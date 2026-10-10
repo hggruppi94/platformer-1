@@ -371,9 +371,12 @@ for sx, side in ((1, "L"), (-1, "R")):
                 hi = mid
             else:
                 lo = mid
-        base = on_eye(lo)
-        out = Vector((math.cos(ar) * sx, -0.3, math.sin(ar))).normalized()
-        tip = base + out * 0.02 + Vector((0, 0, 0.006))
+        rim = on_eye(lo)
+        radial = Vector((rim.x - ec.x, 0, rim.z - ec.z)).normalized()
+        base = HEAD.project(rim + radial * 0.006, offset=0.001)     # on the head, just outside the eye's edge
+        n = HEAD.normal(base)
+        along = (radial - n * radial.dot(n)).normalized()           # away from the eye, along the face
+        tip = base + (along * 0.7 + n * 0.55).normalized() * 0.02 + Vector((0, 0, 0.004))
         tube(f"Lash.{side}{k}", [base, base.lerp(tip, 0.5), tip], [(0.009, 0.006), (0.006, 0.004), (0.0015, 0.0015)],
              "Brow", HEADB, sides=6)
     # Brow: a soft arc on the forehead
@@ -526,17 +529,35 @@ for j in range(NT):
     bm.faces.new((o_hem[j], i_hem[j], i_hem[j2], o_hem[j2]))
 new_obj("Hair", bm, "Hair", HEADB)
 
-# Big red bow on top, tilted toward her left
-bow_c = Vector((0.08, -0.01, 1.435))
-bow_r = Euler((math.radians(-12), math.radians(-18), 0)).to_matrix()
+# Big red bow on top, tilted toward her left: two ribbon loops that are pinched at the knot and fan out
+# round at the ends, a neat knot, and two short flat tails
+BOW_C = Vector((0.08, -0.03, 1.43))
+BOW_R = Euler((math.radians(-14), math.radians(-15), 0)).to_matrix()   # leans back onto the head, tilted
+LOOP_LEN, LOOP_H, LOOP_T, LOOP_LIFT = 0.135, 0.085, 0.03, 16          # loop length, height, thickness, upward angle
+
+
+def bow_loop(name, sx):
+    bm = bmesh.new()
+    bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=1.0)
+    lift = Euler((0, math.radians(-LOOP_LIFT * sx), 0)).to_matrix()
+    for vt in bm.verts:
+        u = (vt.co.x + 1) / 2                                   # 0 at the knot -> 1 at the round outer end
+        w = 0.28 + 0.72 * math.sin(math.pi / 2 * u) ** 0.8      # pinched at the knot, full at the end
+        fold = 1 - 0.45 * math.exp(-((u - 0.7) / 0.2) ** 2) * (1 if vt.co.y < 0 else 0)  # soft dent where the loop folds
+        local = Vector((u * LOOP_LEN * sx, vt.co.y * LOOP_T * w * fold, vt.co.z * LOOP_H * w))
+        vt.co = BOW_C + BOW_R @ (lift @ local)
+    return new_obj(name, bm, "Bow", HEADB)
+
+
 for sx in (1, -1):
-    lobe_r = bow_r @ Euler((0, math.radians(-28 * sx), math.radians(10 * sx))).to_matrix()
-    ellipsoid(f"Bow Lobe.{sx}", bow_c + bow_r @ Vector((0.088 * sx, 0, 0.018)), (0.095, 0.022, 0.066), "Bow", HEADB, power=0.6,
-              rot=lobe_r)
-    tube(f"Bow Tail.{sx}", [bow_c + bow_r @ Vector((0.01 * sx, -0.01, -0.01)),
-                            bow_c + bow_r @ Vector((0.045 * sx, -0.02, -0.07))],
-         [(0.022, 0.008), (0.026, 0.006)], "Bow", HEADB, sides=8)
-ellipsoid("Bow Knot", bow_c + bow_r @ Vector((0, -0.014, 0)), (0.03, 0.026, 0.034), "Bow", HEADB, power=0.7)
+    bow_loop(f"Bow Loop.{sx}", sx)
+    # Tails drape over the top of the hair (projected onto it) instead of sticking out
+    tail = [BOW_C + BOW_R @ Vector((0.012 * sx, -0.016, -0.012))]
+    tail += [HEAD.project(BOW_C + BOW_R @ Vector(((0.02 + 0.05 * s) * sx, -0.02, -0.02 - 0.06 * s)), offset=0.034)
+             for s in (0.35, 0.7, 1.0)]
+    tube(f"Bow Tail.{sx}", tail, [(0.022, 0.007), (0.024, 0.006), (0.027, 0.006), (0.03, 0.005)], "Bow", HEADB,
+         sides=10, normal_fn=HEAD.normal)
+ellipsoid("Bow Knot", BOW_C + BOW_R @ Vector((0, -0.012, 0)), (0.03, 0.024, 0.036), "Bow", HEADB, power=0.75)
 
 # =============================================================================
 # Backpack
