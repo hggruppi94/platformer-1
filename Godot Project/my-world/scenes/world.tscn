@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://d3wscst0x01bc"]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/props/crate.tscn" id="2_crate"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_world")
+tonemap_mode = 2
+
+[node name="World" type="Node3D" unique_id=1390238550]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Crate" parent="." unique_id=1265683072 instance=ExtResource("2_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.7700694, 0.8, -2.182603)
+
+[node name="Ground" type="CSGBox3D" parent="." unique_id=1305106870]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+use_collision = true
+size = Vector3(20, 0.5, 20)
+
+[node name="Player" parent="." unique_id=256268442 instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1904455519]
+transform = Transform3D(0.49999997, 0.49999997, -0.70710677, -0.70710677, 0.70710677, 0, 0.49999997, 0.49999997, 0.70710677, 0, 0, 0)
+shadow_enabled = true

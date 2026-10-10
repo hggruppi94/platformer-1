@@ -1,0 +1,9 @@
+# Godot cache (also ignored by the project's own .gitignore)
+.godot/
+
+# Blender auto-backups
+*.blend1
+*.blend2
+
+# Old duplicate files kept around for review; delete when you're happy
+_archive/
