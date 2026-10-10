@@ -28,9 +28,9 @@ R = (hi - lo).length / (2 * math.sqrt(3))
 print(f"HEAD center={tuple(round(v, 4) for v in c)} size={tuple(round(v, 4) for v in hi - lo)}")
 
 # ---- Hair shape ----
-NT, NR = 64, 14                 # columns around, rows from crown to hem
+NT, NR = 64, 18                 # columns around, rows from crown to hem
 PH = math.radians(95)           # below this polar angle the hair hangs straight down instead of hugging the head
-INNER = 0.006                  # gap between scalp and the inside of the hair (m)
+INNER = 0.008                 # gap between scalp and the inside of the hair (m)
 GROOVES = 16                    # soft strand clumps around the lower hair
 
 
@@ -42,7 +42,7 @@ def ss(e0, e1, x):
 def p_cut(theta):
     """Polar angle (from the top) where the hair ends, by azimuth theta (0 = face, +/-pi = back)."""
     a = abs(math.degrees(theta))
-    p = 52 + 64 * ss(50, 100, a) + 6 * ss(100, 180, a)        # bangs above eyes -> jaw-length sides -> nape
+    p = 52 + 92 * ss(50, 100, a) + 8 * ss(100, 180, a)        # bangs above eyes -> shoulder-length sides and back (Nina ref)
     if a < 50:                                                # side-swept bangs: a little lower on one side
         p += 4 * max(-1.0, min(1.0, math.degrees(theta) / 40)) * (1 - ss(30, 50, a))
     return math.radians(p)
@@ -110,11 +110,11 @@ bm.to_mesh(hair_ob.data)
 bm.free()
 hair_ob.data.update()
 
-# Ginger, closer to the turnaround than the old red
+# Bright red, per Nina's main reference
 hm = D.materials["Hair"]
-ginger = (0.69, 0.17, 0.03, 1.0)
-hm.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = ginger
-hm.diffuse_color = ginger
+red = (0.72, 0.035, 0.01, 1.0)
+hm.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = red
+hm.diffuse_color = red
 
 # ---- Check: no scalp point under the hair may be outside the hair's inner surface ----
 hair_bvh = BVHTree.FromObject(hair_ob, bpy.context.evaluated_depsgraph_get())
