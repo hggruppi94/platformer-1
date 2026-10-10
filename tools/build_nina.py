@@ -228,12 +228,39 @@ def chin_push(x, y, z):
     return CHIN_PUSH * math.exp(-((z - CHIN_Z) / CHIN_SPREAD) ** 2) * across * frontness
 
 
+# Chubby cheeks: round bulges beside the snout, under the eyes
+CHEEK_X, CHEEK_Z, CHEEK_SPREAD, CHEEK_PUSH = 0.205, 1.04, 0.065, 0.042
+
+
+def head_offset(p):
+    """Where the head surface at p moves to: the chubby chin plus the cheeks."""
+    off = Vector((0, -chin_push(p.x, p.y, p.z), 0))
+    if p.y < HEAD.c.y:
+        for sx in (1, -1):
+            d2 = ((p.x - sx * CHEEK_X) ** 2 + (p.z - CHEEK_Z) ** 2) / CHEEK_SPREAD ** 2
+            off += HEAD.normal(p) * CHEEK_PUSH * math.exp(-d2)
+    return off
+
+
+# Philtrum: a soft vertical groove down the front of the snout, from the nose to the smile
+PHILTRUM_W, PHILTRUM_DEPTH, PHILTRUM_TOP, PHILTRUM_BOTTOM = 0.02, 0.013, 1.045, 0.99
+
+
+def smoothstep(e0, e1, x):
+    t = min(max((x - e0) / (e1 - e0), 0.0), 1.0)
+    return t * t * (3 - 2 * t)
+
+
+def philtrum_dip(x, z):
+    return PHILTRUM_DEPTH * math.exp(-(x / PHILTRUM_W) ** 2) * smoothstep(PHILTRUM_TOP, PHILTRUM_BOTTOM, z)
+
+
 class Face:
-    """The head's front surface including the chubby chin, for drawing the mouth on."""
+    """The head's front surface including the chubby chin and cheeks, for drawing the mouth on."""
 
     def front(self, x, z, offset=0.0):
         p = HEAD.front(x, z)
-        p.y -= chin_push(p.x, p.y, p.z)
+        p = p + head_offset(p)
         return p + self.normal(p) * offset if offset else p
 
     def normal(self, p):
@@ -248,8 +275,11 @@ FACE = Face()
 
 head_obj = ellipsoid("Head", HEAD.c, HEAD.r, "Skin", HEADB, u=48, v=24)
 for v in head_obj.data.vertices:
-    v.co.y -= chin_push(v.co.x, v.co.y, v.co.z)
-ellipsoid("Muzzle", MUZZLE.c, MUZZLE.r, "Skin", HEADB, u=48, v=24)
+    v.co += head_offset(v.co.copy())
+muzzle_obj = ellipsoid("Muzzle", MUZZLE.c, MUZZLE.r, "Skin", HEADB, u=96, v=32)
+for v in muzzle_obj.data.vertices:
+    if v.co.y < MUZZLE.c.y:
+        v.co.y += philtrum_dip(v.co.x, v.co.z) * (MUZZLE.c.y - v.co.y) / MUZZLE.r.y
 
 # Torso: one smooth shape, painted shirt / overalls bib by face position
 torso = ellipsoid("Torso", TORSO.c, TORSO.r, "Shirt", ["hips", "spine", "chest", ("thigh.L", 1.8), ("thigh.R", 1.8)],
@@ -341,8 +371,8 @@ for sx, side in ((1, "L"), (-1, "R")):
     # Cheek blush
     eye_e = Ellipsoid(ec, (0.07, 0.05, 0.08))
     for k in range(20):
-        bc = HEAD.project(HEAD.c + Vector(((0.5 + 0.03 * k) * sx, -0.6, 0.04)))
-        n = HEAD.normal(bc)
+        bc0 = HEAD.project(HEAD.c + Vector(((0.5 + 0.03 * k) * sx, -0.6, 0.04)))
+        bc, n = FACE.front(bc0.x, bc0.z), FACE.normal(bc0)          # rides on the chubby cheek
         rim = [bc + basis_facing(n) @ Vector((0.046 * math.cos(a), 0, 0.032 * math.sin(a)))
                for a in (i * math.pi / 8 for i in range(16))]
         if not any(MUZZLE.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
@@ -384,7 +414,7 @@ def snout_seam(x):
         return lo
     for _ in range(30):                     # bisect: above the seam the snout is in front, below it the face is
         mid = (lo + hi) / 2
-        if FACE.front(x, mid).y < MUZZLE.front(x, mid).y:
+        if FACE.front(x, mid).y < MUZZLE.front(x, mid).y + philtrum_dip(x, mid):
             lo = mid
         else:
             hi = mid
