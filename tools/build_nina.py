@@ -229,7 +229,7 @@ def chin_push(x, y, z):
 
 
 # Chubby cheeks: round bulges beside the snout, under the eyes
-CHEEK_X, CHEEK_Z, CHEEK_SPREAD, CHEEK_PUSH = 0.205, 1.04, 0.07, 0.056
+CHEEK_X, CHEEK_Z, CHEEK_SPREAD, CHEEK_PUSH = 0.195, 1.04, 0.065, 0.045
 
 
 def head_offset(p):
@@ -238,7 +238,9 @@ def head_offset(p):
     if p.y < HEAD.c.y:
         for sx in (1, -1):
             d2 = ((p.x - sx * CHEEK_X) ** 2 + (p.z - CHEEK_Z) ** 2) / CHEEK_SPREAD ** 2
-            off += HEAD.normal(p) * CHEEK_PUSH * math.exp(-d2)
+            n = HEAD.normal(p)
+            forward = Vector((n.x * 0.3, n.y, n.z)).normalized()   # puff forward, not sideways, so the skull stays narrow
+            off += forward * CHEEK_PUSH * math.exp(-d2)
     return off
 
 
@@ -356,11 +358,22 @@ for sx, side in ((1, "L"), (-1, "R")):
               u=16, v=8)
     ellipsoid(f"Sparkle Small.{side}", ec + Vector((-0.016, -0.06, -0.024)), (0.007, 0.004, 0.007), "Eye Shine", HEADB,
               u=12, v=6)
-    # Lashes: three little flicks at the upper outer corner
+    # Lashes: three little flicks at the upper outer corner, rooted on the edge where the eye meets her face
     for k, a in enumerate((70, 45, 22)):
         ar = math.radians(a)
-        base = ec + Vector((0.064 * math.cos(ar) * sx, -0.022, 0.074 * math.sin(ar)))
-        tip = base + Vector((0.016 * math.cos(ar) * sx + 0.008 * sx, -0.004, 0.012 + 0.006 * math.sin(ar)))
+
+        def on_eye(t):                       # walk from the front of the eye out toward its rim at this angle
+            return ec + Vector((0.07 * math.sin(t) * math.cos(ar) * sx, -0.05 * math.cos(t), 0.08 * math.sin(t) * math.sin(ar)))
+        lo, hi = 0.0, math.pi / 2
+        for _ in range(30):                  # bisect for the first point that sinks into the head
+            mid = (lo + hi) / 2
+            if HEAD.inside(on_eye(mid)):
+                hi = mid
+            else:
+                lo = mid
+        base = on_eye(lo)
+        out = Vector((math.cos(ar) * sx, -0.3, math.sin(ar))).normalized()
+        tip = base + out * 0.02 + Vector((0, 0, 0.006))
         tube(f"Lash.{side}{k}", [base, base.lerp(tip, 0.5), tip], [(0.009, 0.006), (0.006, 0.004), (0.0015, 0.0015)],
              "Brow", HEADB, sides=6)
     # Brow: a soft arc on the forehead
