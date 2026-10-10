@@ -44,7 +44,7 @@ def mat(name, rgb, rough=0.55, metal=0.0, emit=0.0):
 
 
 mat("Skin", (0.30, 0.21, 0.19))
-mat("Blush", (0.88, 0.30, 0.40))
+mat("Blush", (0.82, 0.30, 0.38))
 mat("Ear Inner", (0.62, 0.30, 0.30))
 mat("Nostril", (0.07, 0.045, 0.04))
 mat("Mouth", (0.16, 0.02, 0.03))
@@ -194,6 +194,15 @@ class Ellipsoid:
         s = self.c + d / k
         return s + self.normal(s) * offset
 
+    def front(self, x, z, offset=0.0):
+        """Point on the front (-Y) surface at this x and z."""
+        k = 1 - ((x - self.c.x) / self.r.x) ** 2 - ((z - self.c.z) / self.r.z) ** 2
+        s = Vector((x, self.c.y - self.r.y * math.sqrt(max(k, 0.0)), z))
+        return s + self.normal(s) * offset
+
+    def inside(self, p, margin=1.0):
+        return sum(((Vector(p) - self.c)[i] / self.r[i]) ** 2 for i in range(3)) < margin
+
     def normal(self, s):
         d = Vector(s) - self.c
         return Vector([d[i] / self.r[i] ** 2 for i in range(3)]).normalized()
@@ -293,14 +302,20 @@ for sx, side in ((1, "L"), (-1, "R")):
         tube(f"Lash.{side}{k}", [base, base.lerp(tip, 0.5), tip], [(0.009, 0.006), (0.006, 0.004), (0.0015, 0.0015)],
              "Brow", HEADB, sides=6)
     # Brow: a soft arc on the forehead
-    brow = [HEAD.project((sx * (0.05 + 0.12 * t), -0.3, 1.295 + 0.02 * math.sin(math.pi * t) + 0.012 * (1 - t)), offset=0.004)
+    brow = [HEAD.front(sx * (0.075 + 0.11 * t), 1.284 + 0.02 * math.sin(math.pi * t) + 0.012 * (1 - t), offset=0.004)
             for t in (i / 8 for i in range(9))]
-    tube(f"Brow.{side}", brow, [(0.007 + 0.006 * math.sin(math.pi * i / 8), 0.004) for i in range(9)], "Brow", HEADB,
+    tube(f"Brow.{side}", brow, [(0.006 + 0.008 * math.sin(math.pi * i / 8), 0.004) for i in range(9)], "Brow", HEADB,
          sides=8, normal_fn=HEAD.normal)
     # Cheek blush
-    bc = MUZZLE.project(MUZZLE.c + Vector((0.9 * sx, -0.4, 0.2)))
-    n = MUZZLE.normal(bc)
-    ellipsoid(f"Blush.{side}", bc - n * 0.008, (0.052, 0.012, 0.036), "Blush", HEADB, rot=basis_facing(n))
+    eye_e = Ellipsoid(ec, (0.07, 0.05, 0.08))
+    for k in range(20):
+        bc = HEAD.project(HEAD.c + Vector(((0.5 + 0.03 * k) * sx, -0.6, 0.04)))
+        n = HEAD.normal(bc)
+        rim = [bc + basis_facing(n) @ Vector((0.046 * math.cos(a), 0, 0.032 * math.sin(a)))
+               for a in (i * math.pi / 8 for i in range(16))]
+        if not any(MUZZLE.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
+            break
+    ellipsoid(f"Blush.{side}", bc - n * 0.008, (0.046, 0.012, 0.032), "Blush", HEADB, rot=basis_facing(n))
     # Ears with pink insides, poking up through the hair
     ear = Vector((0.215 * sx, 0.03, 1.335))
     er = Euler((0, math.radians(-25 * sx), math.radians(-12 * sx))).to_matrix()
@@ -314,8 +329,8 @@ for sx, side in ((1, "L"), (-1, "R")):
 ellipsoid("Mouth", (0, -0.335, 0.985), (0.135, 0.06, 0.095), "Mouth", HEADB, keep_below=0.0)
 ellipsoid("Tongue", (0, -0.358, 0.918), (0.07, 0.03, 0.03), "Tongue", HEADB)
 for sx in (1, -1):
-    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", (0.037 * sx, -0.391, 0.962), (0.019, 0.008, 0.022), "Teeth", HEADB,
-              power=0.7, u=16, v=8)
+    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", (0.064 * sx, -0.389, 0.97), (0.017, 0.008, 0.016), "Teeth", HEADB,
+              power=0.6, u=16, v=8)
 
 # =============================================================================
 # Hair (shell wrapped to the head surface) and bow
@@ -324,7 +339,7 @@ head_ob = D.objects["Head"]
 head_bvh = BVHTree.FromPolygons([v.co.copy() for v in head_ob.data.vertices],
                                 [tuple(p.vertices) for p in head_ob.data.polygons])
 HC = HEAD.c
-NT, NR = 128, 20
+NT, NR = 64, 20
 PH = math.radians(95)
 INNER = 0.008
 GROOVES = 14                     # strand clumps around the head; bang tips line up with them
@@ -337,11 +352,9 @@ def ss(e0, e1, x):
 
 def p_cut(theta):
     a = abs(math.degrees(theta))
-    p = 44 + 100 * ss(45, 100, a) + 8 * ss(100, 180, a)          # bangs above brows -> shoulder length
-    if a < 45:                                                  # side-swept bangs, longer on her right
-        p += 8 * max(-1.0, min(1.0, -math.degrees(theta) / 35)) * (1 - ss(28, 45, a))
-    clump = ((1 + math.cos(GROOVES * theta)) / 2) ** 3          # soft pointed tips where the strand clumps are
-    p += (7 * (1 - ss(40, 60, a)) + 2 * ss(40, 60, a)) * clump
+    p = 33 + 111 * ss(45, 100, a) + 8 * ss(100, 180, a)          # bangs above the brows -> shoulder length
+    if theta < 0:                                               # side sweep falling past her right temple
+        p += 9 * ss(25, 50, a) * (1 - ss(55, 95, a))
     return math.radians(p)
 
 
