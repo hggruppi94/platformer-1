@@ -18,9 +18,19 @@ extends CharacterBody3D
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 # The character model; rotated to face movement (the body itself stays unrotated so the camera doesn't spin)
 @onready var visual: Node3D = $Visual
+# Animations exported from Blender with the character (idle, run, jump, fall)
+@onready var anim: AnimationPlayer = visual.find_child("AnimationPlayer", true, false)
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
+
+
+func _ready() -> void:
+	if anim:
+		for loop_name in ["idle", "run", "fall"]:
+			if anim.has_animation(loop_name):
+				anim.get_animation(loop_name).loop_mode = Animation.LOOP_LINEAR
+		anim.play("idle")
 
 
 func _physics_process(delta: float) -> void:
@@ -76,3 +86,20 @@ func _physics_process(delta: float) -> void:
 	if direction:
 		var target_yaw := atan2(direction.x, direction.z)
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))
+
+	_update_animation(horizontal.length())
+
+
+func _update_animation(horizontal_speed: float) -> void:
+	if anim == null:
+		return
+	var target := "idle"
+	if not is_on_floor():
+		target = "jump" if velocity.y > 0.0 else "fall"
+	elif horizontal_speed > 0.3:
+		target = "run"
+	# assigned_animation sticks after a one-shot (jump) finishes, so it holds its last pose instead of restarting
+	if anim.assigned_animation != target:
+		anim.play(target, 0.15)
+	# Match the stride to how fast she's actually moving
+	anim.speed_scale = clampf(horizontal_speed / speed, 0.6, 1.4) if target == "run" else 1.0

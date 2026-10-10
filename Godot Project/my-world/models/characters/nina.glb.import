@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://djneica7gstu"
-path="res://.godot/imported/hippo_girl.glb-8b47192ebd28411597c4c4fa7989f5ad.scn"
+uid="uid://dgfcggn7i2gid"
+path="res://.godot/imported/nina.glb-b6aeaaef2cc22ca6dd85f9204f628bc0.scn"
 
 [deps]
 
-source_file="res://models/characters/hippo_girl.glb"
-dest_files=["res://.godot/imported/hippo_girl.glb-8b47192ebd28411597c4c4fa7989f5ad.scn"]
+source_file="res://models/characters/nina.glb"
+dest_files=["res://.godot/imported/nina.glb-b6aeaaef2cc22ca6dd85f9204f628bc0.scn"]
 
 [params]
 

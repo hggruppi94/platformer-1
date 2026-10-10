@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://tyi6svprwl4k" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://crt5cwtslp5by" path="res://scenes/player/spring_arm_3d.gd" id="2_arm"]
-[ext_resource type="PackedScene" path="res://models/characters/hippo_girl.glb" id="3_hippo"]
+[ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="3_nina"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -16,7 +16,7 @@ shape = SubResource("CapsuleShape3D_player")
 
 [node name="Visual" type="Node3D" parent="."]
 
-[node name="HippoGirl" parent="Visual" instance=ExtResource("3_hippo")]
+[node name="Nina" parent="Visual" instance=ExtResource("3_nina")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="."]
