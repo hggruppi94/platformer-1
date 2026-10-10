@@ -213,14 +213,43 @@ class Ellipsoid:
 # Body
 # =============================================================================
 HEAD = Ellipsoid((0, 0, 1.10), (0.29, 0.27, 0.28))
-MUZZLE = Ellipsoid((0, -0.24, 1.03), (0.128, 0.13, 0.085))    # snout pad with the nostrils
-JAW = Ellipsoid((0, -0.205, 0.93), (0.128, 0.12, 0.085))       # same width, tucked under the snout; the mouth sits on it
+MUZZLE = Ellipsoid((0, -0.245, 1.045), (0.128, 0.115, 0.08))  # snout pad with the nostrils
 TORSO = Ellipsoid((0, 0, 0.64), (0.27, 0.235, 0.26))
 HEADB = ["head"]
 
-ellipsoid("Head", HEAD.c, HEAD.r, "Skin", HEADB, u=48, v=24)
+# Chubby lower face: the front of the head is pushed forward under the snout, where the mouth is drawn
+CHIN_Z, CHIN_SPREAD, CHIN_HALF_W, CHIN_PUSH = 0.925, 0.075, 0.21, 0.075
+
+
+def chin_push(x, y, z):
+    """How far (m) the head surface at this point is pushed toward -Y."""
+    frontness = max(0.0, -(y - HEAD.c.y) / HEAD.r.y)
+    across = max(0.0, math.cos(math.pi / 2 * min(abs(x) / CHIN_HALF_W, 1.0))) ** 1.5
+    return CHIN_PUSH * math.exp(-((z - CHIN_Z) / CHIN_SPREAD) ** 2) * across * frontness
+
+
+class Face:
+    """The head's front surface including the chubby chin, for drawing the mouth on."""
+
+    def front(self, x, z, offset=0.0):
+        p = HEAD.front(x, z)
+        p.y -= chin_push(p.x, p.y, p.z)
+        return p + self.normal(p) * offset if offset else p
+
+    def normal(self, p):
+        e = 0.002
+        dx = self.front(p.x + e, p.z) - self.front(p.x - e, p.z)
+        dz = self.front(p.x, p.z + e) - self.front(p.x, p.z - e)
+        n = dz.cross(dx).normalized()
+        return n if n.y < 0 else -n
+
+
+FACE = Face()
+
+head_obj = ellipsoid("Head", HEAD.c, HEAD.r, "Skin", HEADB, u=48, v=24)
+for v in head_obj.data.vertices:
+    v.co.y -= chin_push(v.co.x, v.co.y, v.co.z)
 ellipsoid("Muzzle", MUZZLE.c, MUZZLE.r, "Skin", HEADB, u=48, v=24)
-ellipsoid("Jaw", JAW.c, JAW.r, "Skin", HEADB, u=48, v=24)
 
 # Torso: one smooth shape, painted shirt / overalls bib by face position
 torso = ellipsoid("Torso", TORSO.c, TORSO.r, "Shirt", ["hips", "spine", "chest", ("thigh.L", 1.8), ("thigh.R", 1.8)],
@@ -316,7 +345,7 @@ for sx, side in ((1, "L"), (-1, "R")):
         n = HEAD.normal(bc)
         rim = [bc + basis_facing(n) @ Vector((0.046 * math.cos(a), 0, 0.032 * math.sin(a)))
                for a in (i * math.pi / 8 for i in range(16))]
-        if not any(MUZZLE.inside(p, 1.06) or JAW.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
+        if not any(MUZZLE.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
             break
     ellipsoid(f"Blush.{side}", bc - n * 0.008, (0.046, 0.012, 0.032), "Blush", HEADB, rot=basis_facing(n))
     # Ears with pink insides, poking up through the hair
@@ -345,7 +374,7 @@ def surface_patch(name, ell, grid, offset, material, bones):
 
 # Smile painted onto the snout surface so the two blend: flat-ish top that curls up at the corners,
 # round bottom, two little teeth hanging near the corners and a tongue
-SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.108, 0.952, 0.022, 0.052   # just under the snout overhang
+SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.105, 0.952, 0.016, 0.054   # drawn on her face, just under the snout
 
 
 def smile_top(x):
@@ -357,18 +386,18 @@ def smile_bottom(x):
 
 
 cols = [SMILE_W * math.sin(math.pi * (j / 32 - 0.5)) for j in range(33)]   # denser toward the corners
-surface_patch("Mouth", JAW, [[(x, smile_top(x) + (smile_bottom(x) - smile_top(x)) * i / 10) for x in cols]
+surface_patch("Mouth", FACE, [[(x, smile_top(x) + (smile_bottom(x) - smile_top(x)) * i / 10) for x in cols]
                                 for i in range(11)], 0.003, "Mouth", HEADB)
 TONGUE_W, TONGUE_H = 0.058, 0.028
 tz = smile_bottom(0) + TONGUE_H * 1.05                         # flat top edge; round bottom resting in the mouth
 tongue_cols = [math.pi * (j / 16 - 0.5) for j in range(17)]
-surface_patch("Tongue", JAW, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
+surface_patch("Tongue", FACE, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
                                  for i in range(9)], 0.0045, "Tongue", HEADB)
 for sx in (1, -1):
     tx = 0.058 * sx
-    tc = JAW.front(tx, smile_top(tx) - 0.013, offset=0.006)
+    tc = FACE.front(tx, smile_top(tx) - 0.012, offset=0.006)
     ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", tc, (0.015, 0.006, 0.014), "Teeth", HEADB,
-              rot=basis_facing(JAW.normal(tc)), power=0.6, u=16, v=8)
+              rot=basis_facing(FACE.normal(tc)), power=0.6, u=16, v=8)
 
 # =============================================================================
 # Hair (shell wrapped to the head surface) and bow
