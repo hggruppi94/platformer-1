@@ -17,7 +17,7 @@ shape = SubResource("CapsuleShape3D_player")
 [node name="Visual" type="Node3D" parent="."]
 
 [node name="HippoGirl" parent="Visual" instance=ExtResource("3_hippo")]
-transform = Transform3D(0.322, 0, 0, 0, 0.322, 0, 0, 0, 0.322, 0, -0.065, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.1, 0)
