@@ -213,12 +213,12 @@ class Ellipsoid:
 # Body
 # =============================================================================
 HEAD = Ellipsoid((0, 0, 1.10), (0.29, 0.27, 0.28))
-MUZZLE = Ellipsoid((0, -0.245, 1.045), (0.128, 0.115, 0.08))  # snout pad with the nostrils
+MUZZLE = Ellipsoid((0, -0.22, 1.035), (0.15, 0.095, 0.08))    # short, broad, flat-fronted (brachycephalic) snout
 TORSO = Ellipsoid((0, 0, 0.64), (0.27, 0.235, 0.26))
 HEADB = ["head"]
 
 # Chubby lower face: the front of the head is pushed forward under the snout, where the mouth is drawn
-CHIN_Z, CHIN_SPREAD, CHIN_HALF_W, CHIN_PUSH = 0.925, 0.075, 0.21, 0.075
+CHIN_Z, CHIN_SPREAD, CHIN_HALF_W, CHIN_PUSH = 0.925, 0.075, 0.22, 0.05
 
 
 def chin_push(x, y, z):
@@ -354,8 +354,8 @@ for sx, side in ((1, "L"), (-1, "R")):
     ellipsoid(f"Ear.{side}", ear, (0.065, 0.035, 0.062), "Skin", HEADB, rot=er)
     ellipsoid(f"Ear Inner.{side}", ear + er @ Vector((0, -0.024, 0.004)), (0.04, 0.014, 0.04), "Ear Inner", HEADB, rot=er)
     # Nostrils on the upper front of the snout
-    ns = MUZZLE.front(0.047 * sx, 1.072)
-    ellipsoid(f"Nostril.{side}", ns - MUZZLE.normal(ns) * 0.007, (0.02, 0.012, 0.015), "Nostril", HEADB,
+    ns = MUZZLE.front(0.05 * sx, 1.052)                          # on the flat front, facing forward
+    ellipsoid(f"Nostril.{side}", ns - MUZZLE.normal(ns) * 0.007, (0.022, 0.012, 0.017), "Nostril", HEADB,
               rot=basis_facing(MUZZLE.normal(ns)))
 
 
@@ -374,7 +374,7 @@ def surface_patch(name, ell, grid, offset, material, bones):
 
 # Smile painted onto the snout surface so the two blend: flat-ish top that curls up at the corners,
 # round bottom, two little teeth hanging near the corners and a tongue
-SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.105, 0.952, 0.016, 0.054   # drawn on her face, just under the snout
+SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.12, 0.945, 0.016, 0.052    # drawn on her face, just under the snout
 
 
 def smile_top(x):
@@ -394,7 +394,7 @@ tongue_cols = [math.pi * (j / 16 - 0.5) for j in range(17)]
 surface_patch("Tongue", FACE, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
                                  for i in range(9)], 0.0045, "Tongue", HEADB)
 for sx in (1, -1):
-    tx = 0.058 * sx
+    tx = 0.55 * SMILE_W * sx
     tc = FACE.front(tx, smile_top(tx) - 0.012, offset=0.006)
     ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", tc, (0.015, 0.006, 0.014), "Teeth", HEADB,
               rot=basis_facing(FACE.normal(tc)), power=0.6, u=16, v=8)
