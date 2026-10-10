@@ -213,12 +213,14 @@ class Ellipsoid:
 # Body
 # =============================================================================
 HEAD = Ellipsoid((0, 0, 1.10), (0.29, 0.27, 0.28))
-MUZZLE = Ellipsoid((0, -0.235, 1.0), (0.155, 0.13, 0.115))   # dainty snout, about as wide as her smile
+MUZZLE = Ellipsoid((0, -0.24, 1.03), (0.128, 0.13, 0.085))    # snout pad with the nostrils
+JAW = Ellipsoid((0, -0.205, 0.93), (0.128, 0.12, 0.085))       # same width, tucked under the snout; the mouth sits on it
 TORSO = Ellipsoid((0, 0, 0.64), (0.27, 0.235, 0.26))
 HEADB = ["head"]
 
 ellipsoid("Head", HEAD.c, HEAD.r, "Skin", HEADB, u=48, v=24)
 ellipsoid("Muzzle", MUZZLE.c, MUZZLE.r, "Skin", HEADB, u=48, v=24)
+ellipsoid("Jaw", JAW.c, JAW.r, "Skin", HEADB, u=48, v=24)
 
 # Torso: one smooth shape, painted shirt / overalls bib by face position
 torso = ellipsoid("Torso", TORSO.c, TORSO.r, "Shirt", ["hips", "spine", "chest", ("thigh.L", 1.8), ("thigh.R", 1.8)],
@@ -303,7 +305,7 @@ for sx, side in ((1, "L"), (-1, "R")):
         tube(f"Lash.{side}{k}", [base, base.lerp(tip, 0.5), tip], [(0.009, 0.006), (0.006, 0.004), (0.0015, 0.0015)],
              "Brow", HEADB, sides=6)
     # Brow: a soft arc on the forehead
-    brow = [HEAD.front(sx * (0.075 + 0.11 * t), 1.284 + 0.02 * math.sin(math.pi * t) + 0.012 * (1 - t), offset=0.004)
+    brow = [HEAD.front(sx * (0.075 + 0.11 * t), 1.274 + 0.02 * math.sin(math.pi * t) + 0.012 * (1 - t), offset=0.004)
             for t in (i / 8 for i in range(9))]
     tube(f"Brow.{side}", brow, [(0.006 + 0.008 * math.sin(math.pi * i / 8), 0.004) for i in range(9)], "Brow", HEADB,
          sides=8, normal_fn=HEAD.normal)
@@ -314,7 +316,7 @@ for sx, side in ((1, "L"), (-1, "R")):
         n = HEAD.normal(bc)
         rim = [bc + basis_facing(n) @ Vector((0.046 * math.cos(a), 0, 0.032 * math.sin(a)))
                for a in (i * math.pi / 8 for i in range(16))]
-        if not any(MUZZLE.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
+        if not any(MUZZLE.inside(p, 1.06) or JAW.inside(p, 1.06) or eye_e.inside(p, 1.15) for p in rim):
             break
     ellipsoid(f"Blush.{side}", bc - n * 0.008, (0.046, 0.012, 0.032), "Blush", HEADB, rot=basis_facing(n))
     # Ears with pink insides, poking up through the hair
@@ -343,7 +345,7 @@ def surface_patch(name, ell, grid, offset, material, bones):
 
 # Smile painted onto the snout surface so the two blend: flat-ish top that curls up at the corners,
 # round bottom, two little teeth hanging near the corners and a tongue
-SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.105, 0.99, 0.024, 0.058
+SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.108, 0.952, 0.022, 0.052   # just under the snout overhang
 
 
 def smile_top(x):
@@ -355,18 +357,18 @@ def smile_bottom(x):
 
 
 cols = [SMILE_W * math.sin(math.pi * (j / 32 - 0.5)) for j in range(33)]   # denser toward the corners
-surface_patch("Mouth", MUZZLE, [[(x, smile_top(x) + (smile_bottom(x) - smile_top(x)) * i / 10) for x in cols]
+surface_patch("Mouth", JAW, [[(x, smile_top(x) + (smile_bottom(x) - smile_top(x)) * i / 10) for x in cols]
                                 for i in range(11)], 0.003, "Mouth", HEADB)
 TONGUE_W, TONGUE_H = 0.058, 0.028
 tz = smile_bottom(0) + TONGUE_H * 1.05                         # flat top edge; round bottom resting in the mouth
 tongue_cols = [math.pi * (j / 16 - 0.5) for j in range(17)]
-surface_patch("Tongue", MUZZLE, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
+surface_patch("Tongue", JAW, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
                                  for i in range(9)], 0.0045, "Tongue", HEADB)
 for sx in (1, -1):
     tx = 0.058 * sx
-    tc = MUZZLE.front(tx, smile_top(tx) - 0.013, offset=0.006)
+    tc = JAW.front(tx, smile_top(tx) - 0.013, offset=0.006)
     ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", tc, (0.015, 0.006, 0.014), "Teeth", HEADB,
-              rot=basis_facing(MUZZLE.normal(tc)), power=0.6, u=16, v=8)
+              rot=basis_facing(JAW.normal(tc)), power=0.6, u=16, v=8)
 
 # =============================================================================
 # Hair (shell wrapped to the head surface) and bow
