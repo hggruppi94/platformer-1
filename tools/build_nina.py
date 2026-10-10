@@ -374,11 +374,25 @@ def surface_patch(name, ell, grid, offset, material, bones):
 
 # Smile painted onto the snout surface so the two blend: flat-ish top that curls up at the corners,
 # round bottom, two little teeth hanging near the corners and a tongue
-SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.12, 0.945, 0.016, 0.052    # drawn on her face, just under the snout
+SMILE_W, SMILE_DEPTH = 0.12, 0.052       # smile width (half) and how far it opens below the snout
+
+
+def snout_seam(x):
+    """Height where the snout's underside meets her face at this x, so the smile starts right at the snout."""
+    lo, hi = MUZZLE.c.z - MUZZLE.r.z, MUZZLE.c.z
+    if abs(x) >= MUZZLE.r.x:
+        return lo
+    for _ in range(30):                     # bisect: above the seam the snout is in front, below it the face is
+        mid = (lo + hi) / 2
+        if FACE.front(x, mid).y < MUZZLE.front(x, mid).y:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
 
 
 def smile_top(x):
-    return SMILE_TOP + SMILE_CURL * (x / SMILE_W) ** 2
+    return snout_seam(x) - 0.003
 
 
 def smile_bottom(x):
