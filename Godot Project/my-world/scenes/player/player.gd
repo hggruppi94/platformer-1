@@ -26,6 +26,14 @@ var _jump_buffer_timer := 0.0
 
 
 func _ready() -> void:
+	# Coming through a door: appear at the matching spawn marker in this scene
+	if Game.next_spawn != "":
+		var scene_root: Node = owner if owner else get_tree().current_scene   # current_scene isn't set yet during a scene change
+		var marker := scene_root.find_child(Game.next_spawn, true, false) as Node3D
+		if marker:
+			global_transform = marker.global_transform
+			spring_arm.rotation.y = 0.0
+		Game.next_spawn = ""
 	if anim:
 		for loop_name in ["idle", "run", "fall"]:
 			if anim.has_animation(loop_name):

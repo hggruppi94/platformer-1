@@ -425,7 +425,9 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	sign_post(g, name, Vector3(2.6, 0, r + 2.2), 0.0)
 	var area := Area3D.new()
 	area.name = "Door"
-	area.set_meta("destination", name)
+	area.set_script(load("res://scripts/door.gd"))
+	area.set("destination", "res://scenes/interiors/%s.tscn" % name.to_snake_case())    # interiors come later
+	area.set("spawn", "Entrance")
 	area.position = Vector3(0, 1.2, r + 0.6)
 	var cs := CollisionShape3D.new()
 	cs.shape = box_shape(Vector3(2.4, 2.6, 1.2))
@@ -489,7 +491,14 @@ func _castle() -> void:
 	mesh_at(box(Vector3(7.5, 1.2, 1.6)), stone, Vector3(0, 7.6, front + 0.4), g)
 	var area := Area3D.new()
 	area.name = "SchoolEntrance"
-	area.set_meta("destination", "res://scenes/school/school.tscn")
+	area.set_script(load("res://scripts/door.gd"))
+	area.set("destination", "res://scenes/school/school.tscn")
+	area.set("spawn", "FromTown")
+	var back := Marker3D.new()                   # where she appears when leaving the school, facing the town
+	back.name = "FromSchool"
+	back.position = Vector3(0, 1.0, front + 6)
+	back.rotation.y = PI
+	g.add_child(back)
 	area.position = Vector3(0, 2, front + 1.5)
 	var cs := CollisionShape3D.new()
 	cs.shape = box_shape(Vector3(4, 4, 1.5))
