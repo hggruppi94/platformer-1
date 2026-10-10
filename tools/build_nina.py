@@ -531,8 +531,13 @@ new_obj("Hair", bm, "Hair", HEADB)
 
 # Big red bow on top, tilted toward her left: two ribbon loops that are pinched at the knot and fan out
 # round at the ends, a neat knot, and two short flat tails
-BOW_C = Vector((0.08, -0.03, 1.43))
-BOW_R = Euler((math.radians(-14), math.radians(-15), 0)).to_matrix()   # leans back onto the head, tilted
+# The bow lies flat on top of her head: its front faces out along the head's surface normal
+BOW_DIR, BOW_SPIN, BOW_LIFT = Vector((0.18, -0.2, 0.96)), -18, 0.04   # where on the head, tilt in-plane, height off scalp
+BOW_C = HEAD.project(HEAD.c + BOW_DIR, offset=BOW_LIFT)
+_n = HEAD.normal(BOW_C)
+_lx = (Vector((1, 0, 0)) - _n * _n.x).normalized()                     # loops run across the head
+_ly = -_n                                                              # local -Y (the bow's front) faces outward
+BOW_R = Matrix.Rotation(math.radians(BOW_SPIN), 3, _n) @ Matrix((_lx, _ly, _lx.cross(_ly))).transposed()
 LOOP_LEN, LOOP_H, LOOP_T, LOOP_LIFT = 0.135, 0.085, 0.03, 16          # loop length, height, thickness, upward angle
 
 
@@ -545,7 +550,9 @@ def bow_loop(name, sx):
         w = 0.28 + 0.72 * math.sin(math.pi / 2 * u) ** 0.8      # pinched at the knot, full at the end
         fold = 1 - 0.45 * math.exp(-((u - 0.7) / 0.2) ** 2) * (1 if vt.co.y < 0 else 0)  # soft dent where the loop folds
         local = Vector((u * LOOP_LEN * sx, vt.co.y * LOOP_T * w * fold, vt.co.z * LOOP_H * w))
-        vt.co = BOW_C + BOW_R @ (lift @ local)
+        p = lift @ local
+        p.y += (p.x * p.x + p.z * p.z) / (2 * 0.31)              # bend down (into the head) to follow its curve
+        vt.co = BOW_C + BOW_R @ p
     return new_obj(name, bm, "Bow", HEADB)
 
 
