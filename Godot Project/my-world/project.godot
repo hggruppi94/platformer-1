@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="MyWorld"
-run/main_scene="uid://d3wscst0x01bc"
+run/main_scene="res://scenes/town/town.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [display]
