@@ -29,29 +29,34 @@ scene.render.fps = 30
 MATS = {}
 
 
-def mat(name, rgb, rough=0.55, metal=0.0):
+def mat(name, rgb, rough=0.55, metal=0.0, emit=0.0):
     m = D.materials.new(name)
     m.use_nodes = True
     b = m.node_tree.nodes["Principled BSDF"]
     b.inputs["Base Color"].default_value = (*rgb, 1.0)
     b.inputs["Roughness"].default_value = rough
     b.inputs["Metallic"].default_value = metal
+    if emit:                                                    # self-lit, so it stays bright in shade
+        b.inputs["Emission Color"].default_value = (*rgb, 1.0)
+        b.inputs["Emission Strength"].default_value = emit
     m.diffuse_color = (*rgb, 1.0)
     MATS[name] = m
 
 
 mat("Skin", (0.30, 0.21, 0.19))
-mat("Blush", (0.62, 0.24, 0.26))
+mat("Blush", (0.88, 0.30, 0.40))
 mat("Ear Inner", (0.62, 0.30, 0.30))
 mat("Nostril", (0.07, 0.045, 0.04))
 mat("Mouth", (0.16, 0.02, 0.03))
 mat("Tongue", (0.72, 0.20, 0.24))
 mat("Teeth", (0.88, 0.87, 0.82), rough=0.3)
-mat("Eye White", (0.90, 0.90, 0.90), rough=0.2)
-mat("Iris", (0.16, 0.05, 0.015), rough=0.2)
-mat("Pupil", (0.005, 0.004, 0.004), rough=0.1)
+mat("Eye White", (0.90, 0.90, 0.90), rough=0.08)
+mat("Iris", (0.16, 0.05, 0.015), rough=0.08)
+mat("Iris Light", (0.50, 0.21, 0.05), rough=0.08)
+mat("Eye Shine", (1.0, 1.0, 1.0), rough=0.05, emit=1.5)
+mat("Pupil", (0.005, 0.004, 0.004), rough=0.05)
 mat("Brow", (0.05, 0.025, 0.015))
-mat("Hair", (0.72, 0.035, 0.01), rough=0.45)
+mat("Hair", (0.72, 0.035, 0.01), rough=0.35)
 mat("Bow", (0.62, 0.012, 0.015), rough=0.35)
 mat("Shirt", (0.86, 0.86, 0.84))
 mat("Overalls", (0.83, 0.24, 0.40))
@@ -274,8 +279,11 @@ for sx, side in ((1, "L"), (-1, "R")):
     ec = Vector((0.105 * sx, -0.215, 1.18))
     ellipsoid(f"Eye.{side}", ec, (0.07, 0.05, 0.08), "Eye White", HEADB)
     ellipsoid(f"Iris.{side}", ec + Vector((-0.004 * sx, -0.043, -0.004)), (0.043, 0.012, 0.05), "Iris", HEADB)
-    ellipsoid(f"Pupil.{side}", ec + Vector((-0.004 * sx, -0.052, -0.004)), (0.024, 0.006, 0.029), "Pupil", HEADB)
-    ellipsoid(f"Highlight.{side}", ec + Vector((0.01 * sx, -0.058, 0.02)), (0.011, 0.004, 0.012), "Eye White", HEADB,
+    ellipsoid(f"Iris Light.{side}", ec + Vector((-0.004 * sx, -0.051, -0.014)), (0.032, 0.006, 0.03), "Iris Light", HEADB)
+    ellipsoid(f"Pupil.{side}", ec + Vector((-0.004 * sx, -0.054, -0.002)), (0.023, 0.006, 0.027), "Pupil", HEADB)
+    ellipsoid(f"Sparkle.{side}", ec + Vector((0.013, -0.061, 0.022)), (0.016, 0.005, 0.018), "Eye Shine", HEADB,
+              u=16, v=8)
+    ellipsoid(f"Sparkle Small.{side}", ec + Vector((-0.016, -0.06, -0.024)), (0.007, 0.004, 0.007), "Eye Shine", HEADB,
               u=12, v=6)
     # Lashes: three little flicks at the upper outer corner
     for k, a in enumerate((70, 45, 22)):
@@ -290,9 +298,9 @@ for sx, side in ((1, "L"), (-1, "R")):
     tube(f"Brow.{side}", brow, [(0.007 + 0.006 * math.sin(math.pi * i / 8), 0.004) for i in range(9)], "Brow", HEADB,
          sides=8, normal_fn=HEAD.normal)
     # Cheek blush
-    bc = HEAD.project(Vector((0.62 * sx, -0.72, -0.12)) * 0.3 + HEAD.c)
-    n = HEAD.normal(bc)
-    ellipsoid(f"Blush.{side}", bc - n * 0.0145, (0.06, 0.018, 0.042), "Blush", HEADB, rot=basis_facing(n))
+    bc = MUZZLE.project(MUZZLE.c + Vector((0.9 * sx, -0.4, 0.2)))
+    n = MUZZLE.normal(bc)
+    ellipsoid(f"Blush.{side}", bc - n * 0.008, (0.052, 0.012, 0.036), "Blush", HEADB, rot=basis_facing(n))
     # Ears with pink insides, poking up through the hair
     ear = Vector((0.215 * sx, 0.03, 1.335))
     er = Euler((0, math.radians(-25 * sx), math.radians(-12 * sx))).to_matrix()
@@ -306,8 +314,8 @@ for sx, side in ((1, "L"), (-1, "R")):
 ellipsoid("Mouth", (0, -0.335, 0.985), (0.135, 0.06, 0.095), "Mouth", HEADB, keep_below=0.0)
 ellipsoid("Tongue", (0, -0.358, 0.918), (0.07, 0.03, 0.03), "Tongue", HEADB)
 for sx in (1, -1):
-    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", (0.026 * sx, -0.391, 0.962), (0.02, 0.008, 0.022), "Teeth", HEADB,
-              power=0.55, u=16, v=8)
+    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", (0.037 * sx, -0.391, 0.962), (0.019, 0.008, 0.022), "Teeth", HEADB,
+              power=0.7, u=16, v=8)
 
 # =============================================================================
 # Hair (shell wrapped to the head surface) and bow
@@ -316,10 +324,10 @@ head_ob = D.objects["Head"]
 head_bvh = BVHTree.FromPolygons([v.co.copy() for v in head_ob.data.vertices],
                                 [tuple(p.vertices) for p in head_ob.data.polygons])
 HC = HEAD.c
-NT, NR = 64, 20
+NT, NR = 128, 20
 PH = math.radians(95)
 INNER = 0.008
-GROOVES = 16
+GROOVES = 14                     # strand clumps around the head; bang tips line up with them
 
 
 def ss(e0, e1, x):
@@ -331,7 +339,9 @@ def p_cut(theta):
     a = abs(math.degrees(theta))
     p = 44 + 100 * ss(45, 100, a) + 8 * ss(100, 180, a)          # bangs above brows -> shoulder length
     if a < 45:                                                  # side-swept bangs, longer on her right
-        p += 13 * max(-1.0, min(1.0, -math.degrees(theta) / 35)) * (1 - ss(28, 45, a))
+        p += 8 * max(-1.0, min(1.0, -math.degrees(theta) / 35)) * (1 - ss(28, 45, a))
+    clump = ((1 + math.cos(GROOVES * theta)) / 2) ** 3          # soft pointed tips where the strand clumps are
+    p += (7 * (1 - ss(40, 60, a)) + 2 * ss(40, 60, a)) * clump
     return math.radians(p)
 
 
@@ -346,15 +356,19 @@ def scalp(d):
 
 def hair_point(p, theta, outer):
     t = p / p_cut(theta)
-    vol = 0.55 + 0.45 * ss(30, 90, abs(math.degrees(theta)))
-    off = (0.02 + 0.036 * t * vol + 0.004 * math.sin(GROOVES * theta) * t * t) if outer else INNER
+    a = abs(math.degrees(theta))
+    vol = 0.55 + 0.45 * ss(30, 90, a)
+    off = (0.03 + 0.03 * t * vol + 0.006 * math.cos(GROOVES * theta) * t * t) if outer else INNER
+    if outer and a < 50:                                        # bangs curve in toward the forehead at the tips
+        off = INNER + (off - INNER) * (1 - 0.25 * ss(0.75, 1.0, t))
     if p <= PH:
         d = hdir(p, theta)
         return HC + d * (scalp(d) + off)
     d = hdir(PH, theta)
     base = HC + d * (scalp(d) + off)
     drop = (p - PH) * (scalp(d) + off)
-    flare = 1 + 0.3 * (p - PH) + (0.003 * math.sin(GROOVES * theta) if outer else 0)
+    flare = 1 + 0.3 * (p - PH) + (0.004 * math.cos(GROOVES * theta) if outer else 0)
+    flare *= 1 - 0.07 * ss(0.8, 1.0, t)                        # ends curl softly inward
     h = base - HC
     return Vector((HC.x + h.x * flare, HC.y + h.y * flare, base.z - drop))
 
@@ -363,7 +377,7 @@ bm = bmesh.new()
 thetas = [-math.pi + 2 * math.pi * j / NT for j in range(NT)]
 shells = {}
 for outer in (True, False):
-    top = bm.verts.new(HC + Vector((0, 0, scalp(Vector((0, 0, 1))) + (0.02 if outer else INNER))))
+    top = bm.verts.new(HC + Vector((0, 0, scalp(Vector((0, 0, 1))) + (0.03 if outer else INNER))))
     rows = [[bm.verts.new(hair_point(p_cut(th) * k / NR, th, outer)) for th in thetas] for k in range(1, NR + 1)]
     shells[outer] = (top, rows)
 for outer, (top, rows) in shells.items():
@@ -394,9 +408,9 @@ ellipsoid("Bow Knot", bow_c + bow_r @ Vector((0, -0.014, 0)), (0.03, 0.026, 0.03
 # Backpack
 # =============================================================================
 BP = ["chest"]
-ellipsoid("Backpack", (0, 0.30, 0.62), (0.18, 0.09, 0.19), "Backpack", BP, power=0.45, u=32, v=16)
-ellipsoid("Backpack Pocket", (0.175, 0.30, 0.55), (0.028, 0.07, 0.09), "Backpack Mesh", BP, power=0.5)
-zip_pts = [Vector((0.15 * math.cos(a), 0.302, 0.62 + 0.188 * math.sin(a))) for a in
+ellipsoid("Backpack", (0, 0.30, 0.60), (0.18, 0.09, 0.185), "Backpack", BP, power=0.45, u=32, v=16)
+ellipsoid("Backpack Pocket", (0.175, 0.30, 0.53), (0.028, 0.07, 0.09), "Backpack Mesh", BP, power=0.5)
+zip_pts = [Vector((0.15 * math.cos(a), 0.302, 0.60 + 0.183 * math.sin(a))) for a in
            (math.radians(20 + 140 * i / 10) for i in range(11))]
 tube("Zipper", zip_pts, [(0.005, 0.005)] * len(zip_pts), "Zipper", BP, sides=6)
 for sx, side in ((1, "L"), (-1, "R")):
