@@ -229,7 +229,7 @@ def chin_push(x, y, z):
 
 
 # Chubby cheeks: round bulges beside the snout, under the eyes
-CHEEK_X, CHEEK_Z, CHEEK_SPREAD, CHEEK_PUSH = 0.205, 1.04, 0.065, 0.042
+CHEEK_X, CHEEK_Z, CHEEK_SPREAD, CHEEK_PUSH = 0.205, 1.04, 0.07, 0.056
 
 
 def head_offset(p):
@@ -450,10 +450,10 @@ head_ob = D.objects["Head"]
 head_bvh = BVHTree.FromPolygons([v.co.copy() for v in head_ob.data.vertices],
                                 [tuple(p.vertices) for p in head_ob.data.polygons])
 HC = HEAD.c
-NT, NR = 72, 20                 # columns are packed tighter across the bangs (see thetas below)
+NT, NR = 64, 20
 PH = math.radians(95)
 INNER = 0.008
-GROOVES = 14                     # strand clumps around the head; bang tips line up with them
+GROOVES = 16                     # soft strand ridges around the lower hair
 
 
 def ss(e0, e1, x):
@@ -463,11 +463,10 @@ def ss(e0, e1, x):
 
 def p_cut(theta):
     a = abs(math.degrees(theta))
-    p = 33 + 111 * ss(45, 100, a) + 8 * ss(100, 180, a)          # bangs above the brows -> shoulder length
-    if theta < 0:                                               # side sweep falling past her right temple
-        p += 9 * ss(25, 50, a) * (1 - ss(55, 95, a))
-    clump = ((1 + math.cos(GROOVES * theta)) / 2) ** 3          # soft pointed tips where the strand clumps are
-    p += (7 * (1 - ss(40, 60, a)) + 2 * ss(40, 60, a)) * clump
+    # The original smooth bangs: one clean edge swept diagonally across the forehead -> shoulder length
+    p = 44 + 100 * ss(45, 100, a) + 8 * ss(100, 180, a)
+    if a < 45:                                                  # side-swept, longer on her right
+        p += 13 * max(-1.0, min(1.0, -math.degrees(theta) / 35)) * (1 - ss(28, 45, a))
     return math.radians(p)
 
 
@@ -482,29 +481,24 @@ def scalp(d):
 
 def hair_point(p, theta, outer):
     t = p / p_cut(theta)
-    a = abs(math.degrees(theta))
-    vol = 0.55 + 0.45 * ss(30, 90, a)
-    off = (0.03 + 0.03 * t * vol + 0.006 * math.cos(GROOVES * theta) * t * t) if outer else INNER
-    if outer and a < 50:                                        # bangs curve in toward the forehead at the tips
-        off = INNER + (off - INNER) * (1 - 0.25 * ss(0.75, 1.0, t))
+    vol = 0.55 + 0.45 * ss(30, 90, abs(math.degrees(theta)))
+    off = (0.02 + 0.036 * t * vol + 0.004 * math.sin(GROOVES * theta) * t * t) if outer else INNER
     if p <= PH:
         d = hdir(p, theta)
         return HC + d * (scalp(d) + off)
     d = hdir(PH, theta)
     base = HC + d * (scalp(d) + off)
     drop = (p - PH) * (scalp(d) + off)
-    flare = 1 + 0.3 * (p - PH) + (0.004 * math.cos(GROOVES * theta) if outer else 0)
-    flare *= 1 - 0.07 * ss(0.8, 1.0, t)                        # ends curl softly inward
+    flare = 1 + 0.3 * (p - PH) + (0.003 * math.sin(GROOVES * theta) if outer else 0)
     h = base - HC
     return Vector((HC.x + h.x * flare, HC.y + h.y * flare, base.z - drop))
 
 
 bm = bmesh.new()
-# Uneven columns: ~2.3 degrees apart across the bangs (for smooth tips), ~10 degrees at the back
-thetas = [math.pi * u * (0.45 + 0.55 * u * u) for u in (-1 + 2 * j / NT for j in range(NT))]
+thetas = [-math.pi + 2 * math.pi * j / NT for j in range(NT)]
 shells = {}
 for outer in (True, False):
-    top = bm.verts.new(HC + Vector((0, 0, scalp(Vector((0, 0, 1))) + (0.03 if outer else INNER))))
+    top = bm.verts.new(HC + Vector((0, 0, scalp(Vector((0, 0, 1))) + (0.02 if outer else INNER))))
     rows = [[bm.verts.new(hair_point(p_cut(th) * k / NR, th, outer)) for th in thetas] for k in range(1, NR + 1)]
     shells[outer] = (top, rows)
 for outer, (top, rows) in shells.items():
