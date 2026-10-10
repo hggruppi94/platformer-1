@@ -74,8 +74,9 @@ mat("Zipper", (0.02, 0.02, 0.02))
 PARTS = []   # (object, bones) where bones = [name | (name, distance_scale)]
 
 
-def new_obj(name, bm, material, bones):
-    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+def new_obj(name, bm, material, bones, recalc=True):
+    if recalc:
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     me = D.meshes.new(name)
     bm.to_mesh(me)
     bm.free()
@@ -212,7 +213,7 @@ class Ellipsoid:
 # Body
 # =============================================================================
 HEAD = Ellipsoid((0, 0, 1.10), (0.29, 0.27, 0.28))
-MUZZLE = Ellipsoid((0, -0.22, 0.99), (0.24, 0.17, 0.15))
+MUZZLE = Ellipsoid((0, -0.235, 1.0), (0.155, 0.13, 0.115))   # dainty snout, about as wide as her smile
 TORSO = Ellipsoid((0, 0, 0.64), (0.27, 0.235, 0.26))
 HEADB = ["head"]
 
@@ -321,16 +322,51 @@ for sx, side in ((1, "L"), (-1, "R")):
     er = Euler((0, math.radians(-25 * sx), math.radians(-12 * sx))).to_matrix()
     ellipsoid(f"Ear.{side}", ear, (0.065, 0.035, 0.062), "Skin", HEADB, rot=er)
     ellipsoid(f"Ear Inner.{side}", ear + er @ Vector((0, -0.024, 0.004)), (0.04, 0.014, 0.04), "Ear Inner", HEADB, rot=er)
-    # Nostrils on top of the snout
-    ellipsoid(f"Nostril.{side}", (0.075 * sx, -0.33, 1.083), (0.03, 0.024, 0.02), "Nostril", HEADB,
-              rot=(math.radians(-20), 0, math.radians(18 * sx)))
+    # Nostrils on the upper front of the snout
+    ns = MUZZLE.front(0.047 * sx, 1.072)
+    ellipsoid(f"Nostril.{side}", ns - MUZZLE.normal(ns) * 0.007, (0.02, 0.012, 0.015), "Nostril", HEADB,
+              rot=basis_facing(MUZZLE.normal(ns)))
 
-# Open smile: a D-shaped mouth sunk into the snout, two buck teeth and a tongue
-ellipsoid("Mouth", (0, -0.335, 0.985), (0.135, 0.06, 0.095), "Mouth", HEADB, keep_below=0.0)
-ellipsoid("Tongue", (0, -0.358, 0.918), (0.07, 0.03, 0.03), "Tongue", HEADB)
+
+def surface_patch(name, ell, grid, offset, material, bones):
+    """A thin skin that follows ell's front surface. grid: rows of (x, z) points."""
+    bm = bmesh.new()
+    rows = [[bm.verts.new(ell.front(x, z, offset)) for x, z in row] for row in grid]
+    for r0, r1 in zip(rows, rows[1:]):
+        for j in range(len(r0) - 1):
+            f = bm.faces.new((r0[j], r1[j], r1[j + 1], r0[j + 1]))
+            f.normal_update()
+            if f.normal.dot(ell.normal(f.calc_center_median())) < 0:
+                f.normal_flip()
+    return new_obj(name, bm, material, bones, recalc=False)
+
+
+# Smile painted onto the snout surface so the two blend: flat-ish top that curls up at the corners,
+# round bottom, two little teeth hanging near the corners and a tongue
+SMILE_W, SMILE_TOP, SMILE_CURL, SMILE_DEPTH = 0.105, 0.99, 0.024, 0.058
+
+
+def smile_top(x):
+    return SMILE_TOP + SMILE_CURL * (x / SMILE_W) ** 2
+
+
+def smile_bottom(x):
+    return smile_top(x) - SMILE_DEPTH * math.sqrt(max(0.0, 1 - (x / SMILE_W) ** 2))
+
+
+cols = [SMILE_W * math.sin(math.pi * (j / 32 - 0.5)) for j in range(33)]   # denser toward the corners
+surface_patch("Mouth", MUZZLE, [[(x, smile_top(x) + (smile_bottom(x) - smile_top(x)) * i / 10) for x in cols]
+                                for i in range(11)], 0.003, "Mouth", HEADB)
+TONGUE_W, TONGUE_H = 0.058, 0.028
+tz = smile_bottom(0) + TONGUE_H * 1.05                         # flat top edge; round bottom resting in the mouth
+tongue_cols = [math.pi * (j / 16 - 0.5) for j in range(17)]
+surface_patch("Tongue", MUZZLE, [[(TONGUE_W * math.sin(a), tz - TONGUE_H * (i / 8) * math.cos(a)) for a in tongue_cols]
+                                 for i in range(9)], 0.0045, "Tongue", HEADB)
 for sx in (1, -1):
-    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", (0.064 * sx, -0.389, 0.97), (0.017, 0.008, 0.016), "Teeth", HEADB,
-              power=0.6, u=16, v=8)
+    tx = 0.058 * sx
+    tc = MUZZLE.front(tx, smile_top(tx) - 0.013, offset=0.006)
+    ellipsoid(f"Tooth.{'L' if sx > 0 else 'R'}", tc, (0.015, 0.006, 0.014), "Teeth", HEADB,
+              rot=basis_facing(MUZZLE.normal(tc)), power=0.6, u=16, v=8)
 
 # =============================================================================
 # Hair (shell wrapped to the head surface) and bow
@@ -339,7 +375,7 @@ head_ob = D.objects["Head"]
 head_bvh = BVHTree.FromPolygons([v.co.copy() for v in head_ob.data.vertices],
                                 [tuple(p.vertices) for p in head_ob.data.polygons])
 HC = HEAD.c
-NT, NR = 64, 20
+NT, NR = 72, 20                 # columns are packed tighter across the bangs (see thetas below)
 PH = math.radians(95)
 INNER = 0.008
 GROOVES = 14                     # strand clumps around the head; bang tips line up with them
@@ -355,6 +391,8 @@ def p_cut(theta):
     p = 33 + 111 * ss(45, 100, a) + 8 * ss(100, 180, a)          # bangs above the brows -> shoulder length
     if theta < 0:                                               # side sweep falling past her right temple
         p += 9 * ss(25, 50, a) * (1 - ss(55, 95, a))
+    clump = ((1 + math.cos(GROOVES * theta)) / 2) ** 3          # soft pointed tips where the strand clumps are
+    p += (7 * (1 - ss(40, 60, a)) + 2 * ss(40, 60, a)) * clump
     return math.radians(p)
 
 
@@ -387,7 +425,8 @@ def hair_point(p, theta, outer):
 
 
 bm = bmesh.new()
-thetas = [-math.pi + 2 * math.pi * j / NT for j in range(NT)]
+# Uneven columns: ~2.3 degrees apart across the bangs (for smooth tips), ~10 degrees at the back
+thetas = [math.pi * u * (0.45 + 0.55 * u * u) for u in (-1 + 2 * j / NT for j in range(NT))]
 shells = {}
 for outer in (True, False):
     top = bm.verts.new(HC + Vector((0, 0, scalp(Vector((0, 0, 1))) + (0.03 if outer else INNER))))
