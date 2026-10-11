@@ -42,9 +42,9 @@ func message(text: String) -> void:
 	message_posted.emit(text)
 
 
-func go(scene_path: String, spawn: String) -> void:
+func go(scene_path: String, spawn: String, place_name := "") -> void:
 	if not ResourceLoader.exists(scene_path):
-		message("This door doesn't open yet.")
+		message(("The %s isn't open yet." % place_name) if place_name != "" else "This door doesn't open yet.")
 		return
 	next_spawn = spawn
 	get_tree().call_deferred("change_scene_to_file", scene_path)

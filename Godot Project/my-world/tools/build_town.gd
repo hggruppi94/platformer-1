@@ -426,8 +426,9 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	var area := Area3D.new()
 	area.name = "Door"
 	area.set_script(load("res://scripts/door.gd"))
-	area.set("destination", "res://scenes/interiors/%s.tscn" % name.to_snake_case())    # interiors come later
+	area.set("destination", "res://scenes/interiors/%s.tscn" % name.replace("&", "and").to_snake_case())
 	area.set("spawn", "Entrance")
+	area.set("place_name", name)
 	area.position = Vector3(0, 1.2, r + 0.6)
 	var cs := CollisionShape3D.new()
 	cs.shape = box_shape(Vector3(2.4, 7.0, 1.2))            # tall, so it still catches her where the ground slopes

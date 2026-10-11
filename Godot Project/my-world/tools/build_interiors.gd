@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
-#   res://scenes/interiors/cafe.tscn, res://scenes/interiors/aquarium.tscn
+#   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd
 #
@@ -19,6 +19,7 @@ func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	_save("cafe", _cafe())
 	_save("aquarium", _aquarium())
+	_save("restaurant_and_cafe", _restaurant())
 	quit()
 
 
@@ -308,6 +309,59 @@ func _aquarium() -> Node3D:
 			root_node, -a + PI / 2)
 	light(root_node, Vector3(0, 7, 0), Color(0.6, 0.8, 1.0), 1.0, 20)
 	label(root_node, "Aquarium", Vector3(0, 7.2, -3), 96, Color(0.85, 0.95, 1.0))
+	own(root_node)
+	return root_node
+
+
+# -----------------------------------------------------------------------------
+# Restaurant & Cafe: booths around the wall, a kitchen pass with a chef station, dining tables with cloths
+# -----------------------------------------------------------------------------
+func _restaurant() -> Node3D:
+	var r := 12.0
+	var root_node := dome_room("Restaurant & Cafe", r, Color(0.98, 0.8, 0.4), Color(0.55, 0.35, 0.22), Color(1.0, 0.88, 0.72))
+	var wood := mat("Resto Wood", Color(0.45, 0.26, 0.14), 0.6)
+	var red := mat("Booth Red", Color(0.78, 0.22, 0.22), 0.6)
+	var cloth := mat("Tablecloth", Color(0.98, 0.97, 0.93), 0.7)
+	var steel := mat("Steel", Color(0.75, 0.76, 0.8), 0.25, 0.9)
+	# Kitchen at the back: pass-through counter, stove, chef's hat on a hook
+	solid_box(Vector3(10, 1.1, 1.0), steel, Vector3(0, 0.55, -7.2), root_node)
+	mesh_at(box(Vector3(10.2, 0.1, 1.2)), wood, Vector3(0, 1.15, -7.2), root_node)
+	solid_box(Vector3(3.0, 0.9, 1.2), mat("Stove", Color(0.2, 0.2, 0.22), 0.4, 0.6), Vector3(-2.5, 0.45, -9.2), root_node)
+	for k in 4:
+		mesh_at(cylinder(0.25, 0.25, 0.05, 16), mat("Burner", Color(0.95, 0.35, 0.1), 0.5, 0.0, 1.5),
+			Vector3(-3.4 + k * 0.6, 0.93, -9.2), root_node)
+	mesh_at(cylinder(0.3, 0.25, 0.35, 16), mat("Pot Steel", Color(0.7, 0.72, 0.76), 0.3, 0.9), Vector3(-2.2, 1.1, -9.2), root_node)
+	for k in 3:
+		mesh_at(sphere(0.22, 10), mat("Plate Food %d" % k, [Color(0.95, 0.75, 0.3), Color(0.5, 0.75, 0.35), Color(0.85, 0.35, 0.3)][k], 0.6),
+			Vector3(-1.5 + k * 1.5, 1.35, -7.2), root_node)
+	label(root_node, "Kitchen", Vector3(0, 3.0, -8.5), 48)
+	# Booths around the side walls
+	for k in 6:
+		var a := PI / 2 + 0.75 + k * ((TAU - 1.5) / 5)
+		if absf(wrapf(a - (-PI / 2), -PI, PI)) < 0.7:
+			continue                                     # leave the kitchen side clear
+		var p := Vector3(cos(a), 0, sin(a)) * (r - 1.8)
+		var booth := node("Booth %d" % (k + 1), root_node, p, -a)
+		solid_box(Vector3(0.6, 1.3, 2.4), red, Vector3(0.9, 0.65, 0), booth)
+		solid_box(Vector3(1.0, 0.75, 1.2), cloth, Vector3(-0.2, 0.37, 0), booth)
+		solid_box(Vector3(0.6, 0.6, 2.4), red, Vector3(-1.3, 0.3, 0), booth)
+	# Dining tables in the middle with tablecloths and a candle each
+	for t in [Vector2(-3.5, -1.5), Vector2(3.5, -1.5), Vector2(0, 2), Vector2(-4, 4.5), Vector2(4, 4.5)]:
+		solid_cyl(1.0, 0.85, cloth, Vector3(t.x, 0.42, t.y), root_node)
+		mesh_at(cylinder(0.05, 0.05, 0.25, 8), mat("Candle", Color(1.0, 0.85, 0.5), 0.5, 0.0, 2.0), Vector3(t.x, 1.0, t.y), root_node)
+		for k in 4:
+			var a := TAU * k / 4 + 0.4
+			solid_cyl(0.28, 0.55, wood, Vector3(t.x + cos(a) * 1.5, 0.27, t.y + sin(a) * 1.5), root_node)
+	# Specials board and a dessert counter by the door
+	mesh_at(box(Vector3(3.6, 1.8, 0.15)), mat("Chalkboard", Color(0.12, 0.18, 0.15), 0.9), Vector3(5.5, 2.6, -8.8), root_node, -0.5)
+	label(root_node, "Today\nPasta  Soup\nPancakes", Vector3(5.6, 2.6, -8.6), 36, Color(1, 0.98, 0.9))
+	solid_box(Vector3(2.4, 1.0, 1.0), wood, Vector3(-7.0, 0.5, 5.0), root_node, 0.6)
+	for k in 4:
+		mesh_at(sphere(0.2, 10), mat("Treat %d" % k, [Color(0.95, 0.55, 0.7), Color(0.98, 0.85, 0.45), Color(0.6, 0.4, 0.25), Color(0.75, 0.6, 0.95)][k], 0.6),
+			Vector3(-7.6 + k * 0.4, 1.2, 5.0 + k * 0.25), root_node)
+	light(root_node, Vector3(0, 6, 0), Color(1.0, 0.85, 0.6), 1.5, 18)
+	light(root_node, Vector3(0, 3, -7.5), Color(1.0, 0.9, 0.7), 1.0, 8)
+	label(root_node, "Restaurant & Cafe", Vector3(0, 5.8, -2), 80, Color(1, 0.95, 0.8))
 	own(root_node)
 	return root_node
 

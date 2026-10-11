@@ -4,6 +4,7 @@ extends Area3D
 
 @export_file("*.tscn") var destination := ""
 @export var spawn := ""
+@export var place_name := ""          # shown if the destination isn't built yet
 
 
 func _ready() -> void:
@@ -12,4 +13,4 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node3D) -> void:
 	if body is CharacterBody3D and destination != "":
-		Game.go(destination, spawn)
+		Game.go(destination, spawn, place_name)
