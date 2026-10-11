@@ -21,6 +21,7 @@ const WALL_H := 5.7         # interior walls stop just under the next slab
 const DOOR_W := 2.4
 const DOOR_H := 3.0
 const ESCALATOR_SPEED := 1.6
+const SLIVER_MP_LEVEL := 3     # MP level needed to pass through the Slivers into Behind the Walls
 
 var school: Node3D
 var mats := {}
@@ -470,18 +471,15 @@ func _floor_2() -> void:
 	var class_mat := mat("Classroom Wall", Color(0.98, 0.9, 0.7))
 	label(f, "2nd Floor - Classrooms", Vector3(-25, 4.8, 18), 0.0, 80)
 
-	# "Behind the Walls": a hidden passage along the north and east edges. Secret doors look like wall but you can
-	# walk through them.
+	# "Behind the Walls": a hidden passage along the north and east edges. The only ways in are the two Slivers,
+	# which stay sealed until the player's MP level is high enough (scripts/sliver.gd).
 	var behind := node("Behind The Walls", f)
 	var inner := mat("Inner Wall", Color(0.9, 0.93, 0.98))
 	wall(behind, Vector2(X_W + 3, Z_N + 3), Vector2(X_E - 3, Z_N + 3), inner, [0.85])
-	wall(behind, Vector2(X_E - 3, Z_N + 3), Vector2(X_E - 3, Z_S), inner, [0.45, 0.85])
-	secret_panel(behind, Vector2(X_W + 3 + (X_E - X_W - 6) * 0.85, Z_N + 3), 0.0)
-	secret_panel(behind, Vector2(X_E - 3, Z_N + 3 + (Z_S - Z_N - 3) * 0.45), PI / 2)
-	secret_panel(behind, Vector2(X_E - 3, Z_N + 3 + (Z_S - Z_N - 3) * 0.85), PI / 2)
+	wall(behind, Vector2(X_E - 3, Z_N + 3), Vector2(X_E - 3, Z_S), inner, [0.85])
+	sliver(behind, Vector2(X_W + 3 + (X_E - X_W - 6) * 0.85, Z_N + 3), true, SLIVER_MP_LEVEL)     # by the NE break corner
+	sliver(behind, Vector2(X_E - 3, Z_N + 3 + (Z_S - Z_N - 3) * 0.85), false, SLIVER_MP_LEVEL)   # by the SE break corner
 	label(behind, "Behind the Walls", Vector3(0, 3.0, Z_N + 1.5), 0.0, 56)
-	mesh_at(box(Vector3(0.6, 0.6, 0.6)), mat("Silver", Color(0.85, 0.86, 0.9), 0.2, 1.0), Vector3(X_E - 1.5, 0.3, Z_N + 1.5), behind)
-	label(behind, "Silver", Vector3(X_E - 1.5, 1.4, Z_N + 1.5), 0.0, 40)
 
 	# Classrooms with round bays, laid out like the drawing
 	room(f, "Classroom A", -26, -19, -11, -9, class_mat, {"s": [0.2], "e": [0.6]}, "s")
@@ -515,6 +513,44 @@ func secret_panel(parent: Node, at: Vector2, yaw: float) -> void:
 	mesh_at(box(Vector3(0.32, DOOR_H, DOOR_W)), mat("Secret Door", Color(0.86, 0.9, 0.97)), Vector3(at.x, DOOR_H / 2, at.y),
 		parent, yaw + PI / 2 if yaw == 0.0 else 0.0)
 	label(parent, "?", Vector3(at.x, DOOR_H + 0.4, at.y), 0.0, 40)
+
+
+func sliver(parent: Node, at: Vector2, along_x: bool, required: int) -> void:
+	# Fills a doorway with wall, leaving a narrow shimmering slit that opens at the required MP level
+	var s := node("Sliver", parent, Vector3(at.x, 0, at.y), 0.0 if along_x else PI / 2)
+	s.set_script(load("res://scripts/sliver.gd"))
+	s.set("required_mp_level", required)
+	var slit := 0.9
+	var side_w := (DOOR_W - slit) / 2
+	for side in [-1.0, 1.0]:
+		solid_box(Vector3(side_w, DOOR_H, 0.3), mat("Inner Wall", Color()), Vector3(side * (slit + side_w) / 2, DOOR_H / 2, 0), s)
+	var blocker := StaticBody3D.new()
+	blocker.name = "Blocker"
+	blocker.position = Vector3(0, DOOR_H / 2, 0)
+	var cs := CollisionShape3D.new()
+	cs.shape = box_shape(Vector3(slit, DOOR_H, 0.3))
+	blocker.add_child(cs)
+	s.add_child(blocker)
+	var glow := mesh_at(box(Vector3(slit, DOOR_H, 0.12)), mat("Sliver", Color(0.62, 0.76, 1.0), 0.1, 0.9, 1.0, 0.9),
+		Vector3(0, DOOR_H / 2, 0), s)
+	glow.name = "Glow"
+	var sense := Area3D.new()
+	sense.name = "Sense"
+	sense.position = Vector3(0, DOOR_H / 2, 0)
+	var ss := CollisionShape3D.new()
+	ss.shape = box_shape(Vector3(DOOR_W, DOOR_H, 3.0))
+	sense.add_child(ss)
+	s.add_child(sense)
+	var sign := Label3D.new()
+	sign.name = "Sign"
+	sign.text = "Sliver"
+	sign.font_size = 48
+	sign.pixel_size = 0.01
+	sign.outline_size = 10
+	sign.modulate = Color(0.9, 0.93, 1.0)
+	sign.position = Vector3(0, DOOR_H + 0.7, 0)
+	sign.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	s.add_child(sign)
 
 
 func sensory_hall(parent: Node, a: Vector2, b: Vector2) -> void:

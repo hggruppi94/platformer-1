@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://tyi6svprwl4k" path="res://scenes/player/player.gd" id="1_player"]
 [ext_resource type="Script" uid="uid://crt5cwtslp5by" path="res://scenes/player/spring_arm_3d.gd" id="2_arm"]
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="3_nina"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="4_hud"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -26,3 +27,6 @@ margin = 0.1
 script = ExtResource("2_arm")
 
 [node name="Camera3D" type="Camera3D" parent="SpringArm3D"]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("4_hud")

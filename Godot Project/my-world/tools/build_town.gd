@@ -430,9 +430,15 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	area.set("spawn", "Entrance")
 	area.position = Vector3(0, 1.2, r + 0.6)
 	var cs := CollisionShape3D.new()
-	cs.shape = box_shape(Vector3(2.4, 2.6, 1.2))
+	cs.shape = box_shape(Vector3(2.4, 7.0, 1.2))            # tall, so it still catches her where the ground slopes
 	area.add_child(cs)
 	g.add_child(area)
+	var back := Marker3D.new()                     # where she appears when leaving this building, facing away from it
+	back.name = "From" + name.replace(" ", "").replace("&", "And")
+	var front := Vector2(x, z) + Vector2(sin(yaw), cos(yaw)) * (r + 4.5)
+	back.position = Vector3(0, height(front.x, front.y) - c.y + 1.0, r + 4.5)   # on the ground in front of the door
+	back.rotation.y = PI
+	g.add_child(back)
 	keep_clear.append(Vector3(x, z, r + 6))
 	own(g)
 
@@ -454,7 +460,7 @@ func _buildings() -> void:
 	dome_building("Pet Shop 2", 64, -43, 5.5, 0.0)
 	# East side (faces west, toward the lake)
 	dome_building("Gaming Station", 90, -36, 8, -PI / 2, blue)
-	dome_building("Aquarium", 92, -10, 8, -PI / 2, blue, [Vector4(-3, 8, 5, 0)])
+	dome_building("Aquarium", 92, -10, 8, -PI / 2, blue, [Vector4(8, -3, 5, 0)])      # side dome, clear of the door
 	# South shore shops (face south, toward the courts)
 	dome_building("Restaurant & Cafe", 35, 31, 6, 0.0)
 	dome_building("Clothing Boutique", 52, 32, 6, 0.0)
