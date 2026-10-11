@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://crt5cwtslp5by" path="res://scenes/player/spring_arm_3d.gd" id="2_arm"]
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="3_nina"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="4_hud"]
+[ext_resource type="PackedScene" path="res://scenes/items/skateboard.tscn" id="5_board"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
 radius = 0.35
@@ -19,6 +20,10 @@ shape = SubResource("CapsuleShape3D_player")
 
 [node name="Nina" parent="Visual" instance=ExtResource("3_nina")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
+
+[node name="Skateboard" parent="Visual" instance=ExtResource("5_board")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
+visible = false
 
 [node name="SpringArm3D" type="SpringArm3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.1, 0)

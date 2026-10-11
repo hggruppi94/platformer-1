@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Deck"]
+albedo_color = Color(0.86, 0.2, 0.25, 1)
+roughness = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Grip"]
+albedo_color = Color(0.12, 0.12, 0.14, 1)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="Truck"]
+albedo_color = Color(0.72, 0.74, 0.78, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Wheel"]
+albedo_color = Color(0.98, 0.9, 0.45, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="DeckMesh"]
+size = Vector3(0.24, 0.025, 0.62)
+
+[sub_resource type="BoxMesh" id="TailMesh"]
+size = Vector3(0.24, 0.025, 0.16)
+
+[sub_resource type="BoxMesh" id="GripMesh"]
+size = Vector3(0.22, 0.005, 0.6)
+
+[sub_resource type="BoxMesh" id="TruckMesh"]
+size = Vector3(0.2, 0.035, 0.05)
+
+[sub_resource type="CylinderMesh" id="WheelMesh"]
+top_radius = 0.035
+bottom_radius = 0.035
+height = 0.04
+radial_segments = 12
+
+[node name="Skateboard" type="Node3D"]
+
+[node name="Deck" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("DeckMesh")
+surface_material_override/0 = SubResource("Deck")
+
+[node name="Grip" type="MeshInstance3D" parent="Deck"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.014, 0)
+mesh = SubResource("GripMesh")
+surface_material_override/0 = SubResource("Grip")
+
+[node name="Nose" type="MeshInstance3D" parent="Deck"]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202015, 0, -0.34202015, 0.9396926, 0, 0.026, 0.375)
+mesh = SubResource("TailMesh")
+surface_material_override/0 = SubResource("Deck")
+
+[node name="Tail" type="MeshInstance3D" parent="Deck"]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, -0.34202015, 0, 0.34202015, 0.9396926, 0, 0.026, -0.375)
+mesh = SubResource("TailMesh")
+surface_material_override/0 = SubResource("Deck")
+
+[node name="TruckFront" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.068, 0.2)
+mesh = SubResource("TruckMesh")
+surface_material_override/0 = SubResource("Truck")
+
+[node name="TruckBack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.068, -0.2)
+mesh = SubResource("TruckMesh")
+surface_material_override/0 = SubResource("Truck")
+
+[node name="WheelFL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.11, 0.035, 0.2)
+mesh = SubResource("WheelMesh")
+surface_material_override/0 = SubResource("Wheel")
+
+[node name="WheelFR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.11, 0.035, 0.2)
+mesh = SubResource("WheelMesh")
+surface_material_override/0 = SubResource("Wheel")
+
+[node name="WheelBL" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 0.11, 0.035, -0.2)
+mesh = SubResource("WheelMesh")
+surface_material_override/0 = SubResource("Wheel")
+
+[node name="WheelBR" type="MeshInstance3D" parent="."]
+transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, -0.11, 0.035, -0.2)
+mesh = SubResource("WheelMesh")
+surface_material_override/0 = SubResource("Wheel")

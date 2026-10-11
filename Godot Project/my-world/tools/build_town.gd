@@ -67,7 +67,10 @@ func save_external(res: Resource, file: String) -> void:
 
 
 func own(n: Node) -> void:
-	n.owner = town
+	if n != town:
+		n.owner = town
+	if n != town and n.scene_file_path != "":
+		return                                    # instanced scene: keep it a reference, not a copy
 	for c in n.get_children():
 		own(c)
 
@@ -658,6 +661,19 @@ func _skate_park() -> void:
 		mesh_at(box(Vector3(4, 0.4, 5)), ramp, Vector3(r.x, 0.9, r.y), g, r.z, Vector3(r.w, 0, 0))
 		solid(box_shape(Vector3(4, 0.4, 5)), Vector3(r.x, 0.9, r.y), g, r.z, Vector3(r.w, 0, 0))
 	sign_post(g, "Skate Park", Vector3(9, 0, 10), -0.4)
+	# The skateboard waiting to be picked up (scripts/pickup.gd); gone once she owns it
+	var pick := Area3D.new()
+	pick.name = "SkateboardPickup"
+	pick.set_script(load("res://scripts/pickup.gd"))
+	pick.set("item", "skateboard")
+	pick.position = Vector3(0, 0.4, 4)
+	var pcs := CollisionShape3D.new()
+	pcs.shape = _sphere_shape(1.2)
+	pick.add_child(pcs)
+	var board: Node3D = load("res://scenes/items/skateboard.tscn").instantiate()
+	board.scale = Vector3.ONE * 1.6
+	pick.add_child(board)
+	g.add_child(pick)
 	keep_clear.append(Vector3(-8, 42, 16))
 	own(g)
 

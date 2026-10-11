@@ -747,6 +747,25 @@ make_action("idle", 60, idle)
 make_action("run", 20, run)
 make_action("jump", 10, jump)
 make_action("fall", 24, fall)
+
+
+def skate(t):
+    # Sideways riding stance (the game turns her body side-on to the board): knees bent, arms out for balance,
+    # head turned to her left to look where she's going, with a gentle sway
+    s = math.sin(2 * math.pi * t)
+    pose = {
+        "thigh.L": [(X, -0.35)], "thigh.R": [(X, -0.35)],
+        "shin.L": [(X, 0.65)], "shin.R": [(X, 0.65)],
+        "foot.L": [(X, -0.3)], "foot.R": [(X, -0.3)],
+        "spine": [(X, 0.14), (Y, 0.05 * s)], "chest": [(Y, 0.04 * s)],
+        "upper_arm.L": [(Y, -0.25 + 0.08 * s)], "upper_arm.R": [(Y, 0.25 + 0.08 * s)],
+        "forearm.L": [(X, -0.35)], "forearm.R": [(X, -0.35)],
+        "head": [(Z, 1.05), (X, -0.08)],
+    }
+    return pose, -0.02 + 0.008 * s
+
+
+make_action("skate", 40, skate)
 for pb in rig.pose.bones:                                    # back to the rest pose for editing
     pb.rotation_quaternion = (1, 0, 0, 0)
     pb.location = (0, 0, 0)

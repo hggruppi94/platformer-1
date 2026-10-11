@@ -15,6 +15,30 @@ var max_mp := 5
 var mp := 5
 var mp_level := 1                # gates MP-locked places like the Slivers
 
+signal equipment_changed
+var items: Array[String] = []    # things the player owns, e.g. "skateboard"
+var riding := false              # skateboard equipped
+
+
+func has_item(item: String) -> bool:
+	return item in items
+
+
+func give_item(item: String) -> void:
+	if has_item(item):
+		return
+	items.append(item)
+	if item == "skateboard":
+		message("You got a Skateboard! Press E to ride, E again to step off.")
+
+
+func toggle_skateboard() -> void:
+	if not has_item("skateboard"):
+		message("You don't have a skateboard yet. There's one at the Skate Park!")
+		return
+	riding = not riding
+	equipment_changed.emit()
+
 
 func xp_to_next() -> int:
 	return 10 * level
@@ -54,3 +78,5 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Temporary until enemies drop XP: press X for 10 XP
 	if event.is_action_pressed("debug_xp"):
 		add_xp(10)
+	if event.is_action_pressed("toggle_skateboard"):
+		toggle_skateboard()
