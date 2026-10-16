@@ -33,6 +33,43 @@ const CASTLE_SCALE := 1.6
 
 const SPAWN := Vector3(5, 0, 62)
 
+# Look of the world. Switch THEME to "earth" for the original blue-sky town.
+const THEME := "alien"
+const THEMES := {
+	"earth": {
+		"sky_top": Color(0.22, 0.55, 0.95), "sky_horizon": Color(0.7, 0.85, 1.0), "sky_bottom": Color(0.35, 0.5, 0.3),
+		"sun": Color(1, 1, 1), "sun_energy": 1.0, "fog": false, "fog_color": Color(), "fog_density": 0.0,
+		"grass": Color(0.36, 0.72, 0.27), "hill_grass": Color(0.3, 0.62, 0.24), "sand": Color(0.88, 0.8, 0.58),
+		"path": Color(0.86, 0.82, 0.7), "rock": Color(0.55, 0.53, 0.5), "far_grass": Color(0.33, 0.6, 0.27),
+		"water": Color(0.12, 0.55, 0.92), "water_glow": 0.0,
+		"mountain_far": Color(0.42, 0.5, 0.68), "mountain_near": Color(0.38, 0.55, 0.45), "mountain_sides": 10,
+		"trees": [Color(0.2, 0.6, 0.25), Color(0.25, 0.7, 0.3), Color(0.55, 0.3, 0.75), Color(0.9, 0.45, 0.7),
+			Color(0.95, 0.6, 0.2), Color(0.18, 0.5, 0.3)],
+		"bark": Color(0.45, 0.3, 0.18), "tree_glow": 0.0, "canopy_stretch": 1.15,
+		"moons": false, "crystals": 0,
+	},
+	"alien": {
+		# Violet sky fading to a hot pink horizon, a pinkish sun, and a light violet haze
+		"sky_top": Color(0.12, 0.05, 0.3), "sky_horizon": Color(0.95, 0.42, 0.58), "sky_bottom": Color(0.1, 0.04, 0.18),
+		"sun": Color(1.0, 0.78, 0.7), "sun_energy": 1.15, "fog": true, "fog_color": Color(0.62, 0.38, 0.8),
+		"fog_density": 0.0018,
+		# Teal moss, blue-violet hills, pink sand, lavender paths, dark indigo rock
+		"grass": Color(0.05, 0.48, 0.47), "hill_grass": Color(0.2, 0.26, 0.62), "sand": Color(0.9, 0.55, 0.75),
+		"path": Color(0.74, 0.68, 0.9), "rock": Color(0.24, 0.18, 0.36), "far_grass": Color(0.08, 0.42, 0.46),
+		# Glowing acid-green lake
+		"water": Color(0.3, 1.0, 0.55), "water_glow": 0.6,
+		# Faceted dark crystal mountains
+		"mountain_far": Color(0.2, 0.12, 0.4), "mountain_near": Color(0.34, 0.12, 0.44), "mountain_sides": 5,
+		# Tall glowing pods in magenta, cyan, lime, orange and violet on dark stalks
+		"trees": [Color(0.95, 0.22, 0.65), Color(0.15, 0.9, 0.85), Color(0.6, 0.95, 0.2), Color(1.0, 0.55, 0.12),
+			Color(0.58, 0.3, 1.0)],
+		"bark": Color(0.2, 0.14, 0.26), "tree_glow": 0.45, "canopy_stretch": 1.7,
+		# A ringed planet and two moons in the sky, and glowing crystal clusters across the land
+		"moons": true, "crystals": 46,
+	},
+}
+var T: Dictionary = THEMES[THEME]
+
 var town: Node3D
 var mats := {}
 var keep_clear: Array = []      # circles (x, z, r) where no trees are scattered
@@ -213,17 +250,19 @@ func _build() -> void:
 	_fence_and_sign()
 	_boats()
 	_mountains()
+	_sky_objects()
 	_trees()
+	_crystals()
 	_enemies()
 	_player()
 
 
 func _environment() -> void:
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.22, 0.55, 0.95)
-	sky_mat.sky_horizon_color = Color(0.7, 0.85, 1.0)
-	sky_mat.ground_horizon_color = Color(0.7, 0.85, 1.0)
-	sky_mat.ground_bottom_color = Color(0.35, 0.5, 0.3)
+	sky_mat.sky_top_color = T.sky_top
+	sky_mat.sky_horizon_color = T.sky_horizon
+	sky_mat.ground_horizon_color = T.sky_horizon
+	sky_mat.ground_bottom_color = T.sky_bottom
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
 	var env := Environment.new()
@@ -232,6 +271,13 @@ func _environment() -> void:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
+	if T.fog:
+		env.fog_enabled = true
+		env.fog_light_color = T.fog_color
+		env.fog_density = T.fog_density
+		env.fog_sky_affect = 0.0
+		env.glow_intensity = 1.1
+		env.glow_bloom = 0.08
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
 	we.environment = env
@@ -239,6 +285,8 @@ func _environment() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.rotation_degrees = Vector3(-50, -35, 0)
+	sun.light_color = T.sun
+	sun.light_energy = T.sun_energy
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 180.0
 	add(sun)
@@ -249,11 +297,11 @@ func _terrain() -> void:
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var nx := int((X_MAX - X_MIN) / STEP) + 1
 	var nz := int((Z_MAX - Z_MIN) / STEP) + 1
-	var grass := Color(0.36, 0.72, 0.27)
-	var hill_grass := Color(0.3, 0.62, 0.24)
-	var sand := Color(0.88, 0.8, 0.58)
-	var path := Color(0.86, 0.82, 0.7)
-	var rock := Color(0.55, 0.53, 0.5)
+	var grass: Color = T.grass
+	var hill_grass: Color = T.hill_grass
+	var sand: Color = T.sand
+	var path: Color = T.path
+	var rock: Color = T.rock
 	for j in nz:
 		for i in nx:
 			var x := X_MIN + i * STEP
@@ -300,7 +348,7 @@ func _far_ground() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(700, 700)
 	var g := group("Far Ground", Vector3.ZERO)
-	mesh_at(plane, mat("Far Grass", Color(0.33, 0.6, 0.27), 1.0), Vector3(0, -0.8, -30), g)
+	mesh_at(plane, mat("Far Grass", T.far_grass, 1.0), Vector3(0, -0.8, -30), g)
 	own(g)
 
 
@@ -308,7 +356,7 @@ func _water() -> void:
 	var g := group("Lake", Vector3.ZERO)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(110, 90)
-	mesh_at(plane, mat("Water", Color(0.12, 0.55, 0.92), 0.05, 0.2, 0.0, 0.82), Vector3(-2, WATER_Y, -10), g).name = "Water"
+	mesh_at(plane, mat("Water", T.water, 0.05, 0.2, T.water_glow, 0.82), Vector3(-2, WATER_Y, -10), g).name = "Water"
 	own(g)
 
 
@@ -719,8 +767,8 @@ func _boats() -> void:
 
 func _mountains() -> void:
 	var g := group("Mountains", Vector3.ZERO)
-	var far := mat("Mountain", Color(0.42, 0.5, 0.68), 1.0)
-	var near := mat("Mountain Near", Color(0.38, 0.55, 0.45), 1.0)
+	var far := mat("Mountain", T.mountain_far, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3)
+	var near := mat("Mountain Near", T.mountain_near, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for k in 22:
@@ -728,15 +776,111 @@ func _mountains() -> void:
 		var dist := rng.randf_range(210, 260)
 		var h := rng.randf_range(55, 110)
 		var p := Vector3(cos(a) * dist, -5, sin(a) * dist - 30)
-		mesh_at(cylinder(0.0, h * 0.75, h, 10), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), g)
+		mesh_at(cylinder(0.0, h * 0.75, h, T.mountain_sides), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), g,
+			rng.randf() * TAU)
 	own(g)
+
+
+func _sky_objects() -> void:
+	# A huge ringed planet low in the northeast sky, and two small moons. Unshaded so they glow like sky objects.
+	if not T.moons:
+		return
+	var g := group("Sky Objects", Vector3.ZERO)
+	var bodies := [
+		# position, radius, color
+		[Vector3(420, 140, -520), 95.0, Color(0.55, 0.85, 0.95)],
+		[Vector3(-380, 230, -430), 22.0, Color(1.0, 0.75, 0.85)],
+		[Vector3(-250, 300, -560), 12.0, Color(0.85, 0.95, 0.7)],
+	]
+	for k in bodies.size():
+		var b: Array = bodies[k]
+		var m := StandardMaterial3D.new()
+		m.resource_name = "Sky Body " + str(k)
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = b[2]
+		m.disable_fog = true
+		var mi := mesh_at(sphere(b[1], -1, 48), m, b[0], g)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if k == 0:
+			# Bands across the planet, and its ring
+			var band := StandardMaterial3D.new()
+			band.resource_name = "Planet Band"
+			band.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			band.albedo_color = Color(0.4, 0.62, 0.9)
+			band.disable_fog = true
+			for y in [-35.0, 18.0, 52.0]:
+				var r := sqrt(pow(b[1] + 0.6, 2) - y * y)
+				var bm := mesh_at(cylinder(r, r, 9.0, 64), band, b[0] + Vector3(0, y, 0), g)
+				bm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			var ring := TorusMesh.new()
+			ring.inner_radius = b[1] * 1.35
+			ring.outer_radius = b[1] * 1.9
+			ring.rings = 96
+			var rm := StandardMaterial3D.new()
+			rm.resource_name = "Planet Ring"
+			rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			rm.albedo_color = Color(0.95, 0.85, 0.7, 0.75)
+			rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			rm.disable_fog = true
+			var ri := mesh_at(ring, rm, b[0], g, 0.0, Vector3(0.35, 0.0, -0.3))
+			ri.scale = Vector3(1, 0.04, 1)
+			ri.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	own(g)
+
+
+func _crystals() -> void:
+	# Clusters of glowing crystal shards scattered across the land (solid: you can hop on the big ones)
+	var count: int = T.crystals
+	if count == 0:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 99
+	var tints := [Color(0.3, 0.95, 1.0), Color(1.0, 0.35, 0.85), Color(0.7, 0.45, 1.0), Color(0.45, 1.0, 0.6)]
+	var g := group("Crystals", Vector3.ZERO)
+	var placed := 0
+	var tries := 0
+	while placed < count and tries < 4000:
+		tries += 1
+		var x := rng.randf_range(X_MIN + 12, X_MAX - 12)
+		var z := rng.randf_range(Z_MIN + 12, Z_MAX - 12)
+		if lake_f(x, z) < 1.5 or Vector2(x - SPAWN.x, z - SPAWN.z).length() < 14:
+			continue
+		var ok := true
+		for c in keep_clear:
+			if Vector2(x - c.x, z - c.y).length() < c.z:
+				ok = false
+				break
+		if not ok:
+			continue
+		var tint: Color = tints[rng.randi() % tints.size()]
+		var m := mat("Crystal " + str(tints.find(tint)), tint, 0.1, 0.2, 1.1, 0.9)
+		var cluster := Node3D.new()
+		cluster.position = ground(x, z)
+		g.add_child(cluster)
+		var big := rng.randf() < 0.3
+		var shards := rng.randi_range(3, 6)
+		for k in shards:
+			var h := rng.randf_range(1.8, 4.2) * (2.0 if big and k == 0 else 1.0)
+			var r := h * rng.randf_range(0.14, 0.22)
+			var off := Vector3.ZERO if k == 0 else Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)).normalized() * r * 2.2
+			var tilt := Vector3(rng.randf_range(-0.35, 0.35), 0, rng.randf_range(-0.35, 0.35)) * (0.3 if k == 0 else 1.0)
+			var shard := Node3D.new()
+			shard.position = off
+			shard.rotation = tilt + Vector3(0, rng.randf() * TAU, 0)
+			cluster.add_child(shard)
+			mesh_at(cylinder(0.0, r, h * 0.35, 5), m, Vector3(0, h * 0.825, 0), shard)    # point
+			mesh_at(cylinder(r, r * 0.8, h * 0.65, 5), m, Vector3(0, h * 0.325, 0), shard)  # body
+			if k == 0:
+				solid(_cyl_shape(r, h), Vector3(0, h / 2, 0), shard)
+		placed += 1
+	own(g)
+	print("CRYSTALS ", placed)
 
 
 func _trees() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	var palette := [Color(0.2, 0.6, 0.25), Color(0.25, 0.7, 0.3), Color(0.55, 0.3, 0.75), Color(0.9, 0.45, 0.7),
-		Color(0.95, 0.6, 0.2), Color(0.18, 0.5, 0.3)]
+	var palette: Array = T.trees
 	var spots: Array = []
 	var tries := 0
 	while spots.size() < 320 and tries < 6000:
@@ -767,6 +911,9 @@ func _trees() -> void:
 	g.set("positions", positions)
 	g.set("sizes", sizes)
 	g.set("colors", colors)
+	g.set("bark_color", T.bark)
+	g.set("glow", T.tree_glow)
+	g.set("canopy_stretch", T.canopy_stretch)
 	own(g)
 	print("TREES ", spots.size())
 

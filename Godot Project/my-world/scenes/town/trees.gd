@@ -1,11 +1,23 @@
 extends Node3D
 
 # Builds the town's trees when the scene loads (MultiMesh data can't be baked from a headless build).
-# Positions/sizes/colors are written by tools/build_town.gd.
+# Positions/sizes/colors and the look (bark, glow, canopy shape) are written by tools/build_town.gd.
 
 @export var positions: PackedVector3Array
 @export var sizes: PackedFloat32Array
 @export var colors: PackedColorArray
+@export var bark_color := Color(0.45, 0.3, 0.18)
+@export var glow := 0.0                    # how much the canopies light up in their own colour
+@export var canopy_stretch := 1.15         # canopy height / width
+
+const LEAVES_SHADER := """shader_type spatial;
+render_mode cull_back;
+uniform float glow = 0.0;
+void fragment() {
+	ALBEDO = COLOR.rgb;
+	ROUGHNESS = 0.9;
+	EMISSION = COLOR.rgb * glow;
+}"""
 
 
 func _ready() -> void:
@@ -30,16 +42,24 @@ func _ready() -> void:
 	for i in positions.size():
 		var p := positions[i]
 		var s := sizes[i]
-		canopies.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(s, s * 1.15, s)), p + Vector3(0, 1.6 + s, 0)))
+		var half_h := s * canopy_stretch * 0.5               # canopy is a unit sphere scaled by s (wide) x s*stretch (tall)
+		var canopy_y := 1.4 + half_h * 1.4                   # canopy centre above the ground
+		canopies.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(s, s * canopy_stretch, s)),
+			p + Vector3(0, canopy_y, 0)))
 		canopies.set_instance_color(i, colors[i])
-		trunks.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(1, 1.8 + s * 0.5, 1)), p + Vector3(0, 1.0, 0)))
+		# The trunk runs from a little below the ground up to the canopy's centre, so the two always meet
+		var bottom := -0.3
+		var trunk_h := canopy_y - bottom
+		trunks.set_instance_transform(i, Transform3D(Basis().scaled(Vector3(1, trunk_h, 1)),
+			p + Vector3(0, bottom + trunk_h / 2, 0)))
 
-	var leaves := StandardMaterial3D.new()
-	leaves.vertex_color_use_as_albedo = true
-	leaves.vertex_color_is_srgb = true
-	leaves.roughness = 0.9
+	var leaves := ShaderMaterial.new()
+	var sh := Shader.new()
+	sh.code = LEAVES_SHADER
+	leaves.shader = sh
+	leaves.set_shader_parameter("glow", glow)
 	var bark := StandardMaterial3D.new()
-	bark.albedo_color = Color(0.45, 0.3, 0.18)
+	bark.albedo_color = bark_color
 	var a := MultiMeshInstance3D.new()
 	a.multimesh = canopies
 	a.material_override = leaves
