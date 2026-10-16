@@ -1,4 +1,5 @@
 extends CharacterBody3D
+class_name Player
 
 @export_group("Movement")
 @export var speed: float = 5.0
@@ -26,6 +27,12 @@ extends CharacterBody3D
 @export var skate_stance: float = -PI / 2   # she rides side-on to the board
 @export var skate_height: float = 0.115     # board deck height under her feet
 
+@export_group("Getting hurt")
+@export var invulnerable_time: float = 1.2  # seconds of blinking after a hit, when nothing can hurt her
+@export var knockback: float = 7.0          # how hard a hit pushes her away
+@export var knockback_up: float = 4.0
+@export var stun_time: float = 0.3          # seconds the knockback can't be steered out of
+
 # Reference to the camera boom so movement follows where you're looking
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 # The character model; rotated to face movement (the body itself stays unrotated so the camera doesn't spin)
@@ -39,17 +46,28 @@ const MODEL_Y := -0.8                       # feet at the bottom of the collisio
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
+var _invulnerable_timer := 0.0
+var _stun_timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group("player")              # enemies find her through this group
+	var scene_root: Node = owner if owner else get_tree().current_scene   # current_scene isn't set yet during a scene change
 	# Coming through a door: appear at the matching spawn marker in this scene
 	if Game.next_spawn != "":
-		var scene_root: Node = owner if owner else get_tree().current_scene   # current_scene isn't set yet during a scene change
 		var marker := scene_root.find_child(Game.next_spawn, true, false) as Node3D
 		if marker:
 			global_transform = marker.global_transform
 			spring_arm.rotation.y = 0.0
 		Game.next_spawn = ""
+	# Starting the game from a save: appear where she was
+	var resume := Game.take_resume_point(scene_root.scene_file_path if scene_root else "")
+	if not resume.is_empty():
+		global_position = resume["position"]
+		visual.rotation.y = resume["yaw"]
+		spring_arm.rotation.y = resume["yaw"] + PI         # camera behind her
+	if not Game.is_resuming():
+		Game.save_game.call_deferred()                     # autosave on arriving anywhere
 	if anim:
 		for loop_name in ["idle", "run", "fall", "skate"]:
 			if anim.has_animation(loop_name):
@@ -65,8 +83,39 @@ func _on_equipment_changed() -> void:
 	model.rotation.y = skate_stance if Game.riding else 0.0
 
 
+func is_invulnerable() -> bool:
+	return _invulnerable_timer > 0.0
+
+
+func hurt(amount: int, from: Vector3) -> void:
+	# Called by enemies on touch. Knocks her away from the hit, then she blinks and can't be hurt for a moment.
+	if is_invulnerable():
+		return
+	_invulnerable_timer = invulnerable_time
+	_stun_timer = stun_time
+	var away := global_position - from
+	away.y = 0.0
+	if away.length() < 0.01:
+		away = -visual.global_transform.basis.z
+	velocity = away.normalized() * knockback + Vector3.UP * knockback_up
+	Game.damage(amount)
+
+
+func bounce(strength: float) -> void:
+	# Pop upward after stomping an enemy; hold jump for a higher bounce
+	velocity.y = strength * (1.3 if Input.is_action_pressed("jump") else 1.0)
+	_coyote_timer = 0.0
+	_jump_buffer_timer = 0.0
+
+
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
+
+	# Blink while invulnerable after a hit
+	if _invulnerable_timer > 0.0:
+		_invulnerable_timer -= delta
+		model.visible = _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
+	_stun_timer -= delta
 
 	# Gravity
 	if not on_floor:
@@ -105,7 +154,9 @@ func _physics_process(delta: float) -> void:
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
 
 	var horizontal := Vector3(velocity.x, 0, velocity.z)
-	if Game.riding:
+	if _stun_timer > 0.0:
+		pass                                # knocked back: ride out the hit
+	elif Game.riding:
 		horizontal = _skate(horizontal, direction, on_floor, delta)
 	else:
 		# Accelerate toward the target speed instead of snapping to it

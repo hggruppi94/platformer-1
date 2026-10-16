@@ -1,0 +1,118 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/gloop.gd" id="1_ndoq6"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_xns5e"]
+radius = 0.42
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_kmvut"]
+radius = 0.62
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v3sv8"]
+resource_name = "Gloop Jelly"
+transparency = 1
+albedo_color = Color(0.5, 0.28, 0.92, 0.94)
+roughness = 0.3
+emission_enabled = true
+emission = Color(0.5, 0.28, 0.92, 0.94)
+emission_energy_multiplier = 0.1
+rim_enabled = true
+rim = 0.25
+
+[sub_resource type="SphereMesh" id="SphereMesh_db3jr"]
+height = 0.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_towts"]
+resource_name = "Gloop Eye"
+roughness = 0.3
+
+[sub_resource type="SphereMesh" id="SphereMesh_nh62b"]
+radius = 0.12
+height = 0.24
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8wfq0"]
+resource_name = "Gloop Pupil"
+albedo_color = Color(0.05, 0.03, 0.08, 1)
+roughness = 0.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_teyla"]
+radius = 0.06
+height = 0.12
+radial_segments = 16
+rings = 8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qmox7"]
+resource_name = "Gloop Brow"
+albedo_color = Color(0.22, 0.1, 0.35, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_hnmkp"]
+size = Vector3(0.17, 0.04, 0.04)
+
+[sub_resource type="SphereMesh" id="SphereMesh_cjwva"]
+radius = 0.12
+height = 0.24
+radial_segments = 16
+rings = 8
+
+[sub_resource type="SphereMesh" id="SphereMesh_0amrd"]
+radius = 0.06
+height = 0.12
+radial_segments = 16
+rings = 8
+
+[sub_resource type="BoxMesh" id="BoxMesh_c5h0e"]
+size = Vector3(0.17, 0.04, 0.04)
+
+[node name="Gloop" type="CharacterBody3D" unique_id=1229287534]
+script = ExtResource("1_ndoq6")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1483854772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+shape = SubResource("SphereShape3D_xns5e")
+
+[node name="Hitbox" type="Area3D" parent="." unique_id=2071204994]
+monitorable = false
+
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Hitbox" unique_id=864209638]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("SphereShape3D_kmvut")
+
+[node name="Visual" type="Node3D" parent="." unique_id=2050458805]
+
+[node name="Body" type="MeshInstance3D" parent="Visual" unique_id=821599690]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+material_override = SubResource("StandardMaterial3D_v3sv8")
+mesh = SubResource("SphereMesh_db3jr")
+
+[node name="@MeshInstance3D@3" type="MeshInstance3D" parent="Visual/Body" unique_id=1962763446]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17, 0.12, 0.38)
+material_override = SubResource("StandardMaterial3D_towts")
+mesh = SubResource("SphereMesh_nh62b")
+
+[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="Visual/Body/@MeshInstance3D@3" unique_id=1170384054]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.09)
+material_override = SubResource("StandardMaterial3D_8wfq0")
+mesh = SubResource("SphereMesh_teyla")
+
+[node name="@MeshInstance3D@5" type="MeshInstance3D" parent="Visual/Body" unique_id=432707156]
+transform = Transform3D(0.90044713, 0.43496552, 0, -0.43496552, 0.90044713, 0, 0, 0, 1, -0.16, 0.27, 0.42)
+material_override = SubResource("StandardMaterial3D_qmox7")
+mesh = SubResource("BoxMesh_hnmkp")
+
+[node name="@MeshInstance3D@6" type="MeshInstance3D" parent="Visual/Body" unique_id=1194742853]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17, 0.12, 0.38)
+material_override = SubResource("StandardMaterial3D_towts")
+mesh = SubResource("SphereMesh_cjwva")
+
+[node name="@MeshInstance3D@7" type="MeshInstance3D" parent="Visual/Body/@MeshInstance3D@6" unique_id=1548375341]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.01, 0.09)
+material_override = SubResource("StandardMaterial3D_8wfq0")
+mesh = SubResource("SphereMesh_0amrd")
+
+[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="Visual/Body" unique_id=1322807006]
+transform = Transform3D(0.90044713, -0.43496552, 0, 0.43496552, 0.90044713, 0, 0, 0, 1, 0.16, 0.27, 0.42)
+material_override = SubResource("StandardMaterial3D_qmox7")
+mesh = SubResource("BoxMesh_c5h0e")

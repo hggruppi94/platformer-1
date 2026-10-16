@@ -214,6 +214,7 @@ func _build() -> void:
 	_boats()
 	_mountains()
 	_trees()
+	_enemies()
 	_player()
 
 
@@ -768,6 +769,53 @@ func _trees() -> void:
 	g.set("colors", colors)
 	own(g)
 	print("TREES ", spots.size())
+
+
+func _enemies() -> void:
+	# Gloops (scenes/enemies/gloop.tscn) in small packs out in the meadows, and big ones guarding the plateau.
+	# x, z, big?  Spots in the lake, inside a building's clear zone or near the spawn are skipped with a warning.
+	var spots := [
+		# South meadow, past the spawn
+		Vector3(28, 72, 0), Vector3(-22, 82, 0), Vector3(45, 90, 0),
+		# East meadow beside the courts
+		Vector3(115, 12, 0), Vector3(120, -25, 0), Vector3(112, 40, 0),
+		# Foot of the castle hill
+		Vector3(-40, -75, 0), Vector3(-15, -80, 0), Vector3(5, -72, 0),
+		# West fields
+		Vector3(-100, 10, 0), Vector3(-115, -5, 0),
+		# On the plateau, around the Secret Gardens: big Gloops
+		Vector3(-98, -48, 1), Vector3(-62, -58, 1), Vector3(-95, -25, 1),
+	]
+	var gloop: PackedScene = load("res://scenes/enemies/gloop.tscn")
+	var g := group("Enemies", Vector3.ZERO)
+	var placed := 0
+	for s in spots:
+		var why := ""
+		if lake_f(s.x, s.y) < 1.45:
+			why = "in the lake"
+		elif Vector2(s.x - SPAWN.x, s.y - SPAWN.z).length() < 20:
+			why = "too close to the spawn"
+		else:
+			for c in keep_clear:
+				if Vector2(s.x - c.x, s.y - c.y).length() < c.z:
+					why = "inside a clear zone at (%d, %d)" % [c.x, c.y]
+					break
+		if why != "":
+			print("SKIPPED Gloop at (%d, %d): %s" % [s.x, s.y, why])
+			continue
+		var e: Node3D = gloop.instantiate()
+		e.name = "Big Gloop %d" % placed if s.z > 0 else "Gloop %d" % placed
+		e.position = ground(s.x, s.y) + Vector3(0, 0.3, 0)
+		if s.z > 0:
+			e.set("size", 1.5)
+			e.set("color", Color(0.9, 0.25, 0.55))
+			e.set("stomps_to_defeat", 2)
+			e.set("damage", 3)
+			e.set("xp_reward", 12)
+		g.add_child(e)
+		placed += 1
+	own(g)
+	print("GLOOPS ", placed)
 
 
 func _player() -> void:
