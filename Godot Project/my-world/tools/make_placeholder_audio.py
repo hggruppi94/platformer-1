@@ -119,6 +119,22 @@ def sfx():
     out["hurt"] = mix(sweep(480, 140, 0.28, "square"), 0.3 * sweep(500, 150, 0.28, "saw")) * env(int(0.28 * SR), 0.003, 0.18, curve=2)
     out["dash"] = highpass(noise(0.28), 500) * env(int(0.28 * SR), 0.02, 0.12, curve=2) * 0.7 + \
         0.35 * sweep(900, 300, 0.28, "sine") * env(int(0.28 * SR), 0.01, 0.15)
+    del out["dash"]          # the dash became a roll; still generated above so the random sounds after it don't change
+    # Roll and double jump use their own random stream, for the same reason
+    r2 = np.random.default_rng(11)
+    n = int(0.42 * SR)
+    swish = lowpass(highpass(r2.uniform(-1, 1, n), 250), 2200) * np.sin(np.pi * np.linspace(0, 1, n)) ** 1.5 * 0.6
+    thud = lambda: lowpass(r2.uniform(-1, 1, int(0.07 * SR)), 380) * env(int(0.07 * SR), 0.002, 0.03) * 1.8
+    roll = swish.copy()
+    for at in (0.02, 0.24):
+        th = thud()
+        i = int(at * SR)
+        roll[i:i + len(th)] += th
+    out["roll"] = roll
+    n = int(0.22 * SR)
+    whoosh = highpass(r2.uniform(-1, 1, n), 1800) * np.sin(np.pi * np.linspace(0, 1, n)) ** 2 * 0.25
+    out["double_jump"] = mix(sweep(420, 1150, 0.22, "tri", curve=0.5) * env(n, 0.004, 0.13),
+                             0.3 * sweep(840, 2300, 0.22, "sine", curve=0.5) * env(n, 0.004, 0.1), whoosh)
     out["faint"] = sweep(520, 90, 0.9, "tri", curve=0.5) * env(int(0.9 * SR), 0.01, 0.7, curve=1.5)
     # Gloops
     pop = sweep(700, 120, 0.16, "sine", curve=0.4) * env(int(0.16 * SR), 0.002, 0.1)

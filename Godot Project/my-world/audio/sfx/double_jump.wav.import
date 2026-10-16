@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://blp3rxhg3k31h"
-path="res://.godot/imported/dash.wav-a1074fc8fb9ba33141e3602f382b76df.sample"
+uid="uid://cvovk1xxrpxvo"
+path="res://.godot/imported/double_jump.wav-1df4bae4ff85a0c987781b0cafc39f7c.sample"
 
 [deps]
 
-source_file="res://audio/sfx/dash.wav"
-dest_files=["res://.godot/imported/dash.wav-a1074fc8fb9ba33141e3602f382b76df.sample"]
+source_file="res://audio/sfx/double_jump.wav"
+dest_files=["res://.godot/imported/double_jump.wav-1df4bae4ff85a0c987781b0cafc39f7c.sample"]
 
 [params]
 

@@ -6,7 +6,7 @@ extends SpringArm3D
 @export var max_pitch: float = 0.4    # look-up limit (radians)
 
 @onready var camera: Camera3D = $Camera3D
-var fov_kick := 0.0                   # extra field of view for a moment (the dash adds some)
+var fov_kick := 0.0                   # extra field of view for a moment (a roll adds some)
 
 
 func _ready() -> void:

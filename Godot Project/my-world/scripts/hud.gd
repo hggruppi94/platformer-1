@@ -6,6 +6,8 @@ extends CanvasLayer
 var panel: PanelContainer
 var stats_label: Label
 var mp_bar: ProgressBar
+var sp_bar: ProgressBar                     # stamina, spent by rolling
+var bar_labels: Array[Label] = []
 var _last_hp := -1
 var message_label: Label
 var saved_label: Label
@@ -21,10 +23,8 @@ func _ready() -> void:
 	panel.add_child(v)
 	stats_label = Label.new()
 	v.add_child(stats_label)
-	mp_bar = ProgressBar.new()
-	mp_bar.show_percentage = false
-	mp_bar.tooltip_text = "MP: spent by the dash, refills over time"
-	v.add_child(mp_bar)
+	mp_bar = _bar_row(v, "MP", "MP: magic, for abilities to come. Refills over time")
+	sp_bar = _bar_row(v, "SP", "SP: stamina, spent by rolling. Refills quickly")
 	add_child(panel)
 
 	message_label = Label.new()
@@ -52,13 +52,31 @@ func _ready() -> void:
 	add_child(saved_label)
 
 	Game.stats_changed.connect(_refresh)
+	Game.sp_changed.connect(_refresh_sp)
 	Game.message_posted.connect(_show_message)
 	Game.saved.connect(_on_saved)
 	Audio.caption.connect(_on_caption)
 	Settings.changed.connect(_apply_look)
 	_apply_look()
 	_refresh()
+	_refresh_sp()
 	_show_pending.call_deferred()
+
+
+func _bar_row(parent: Control, label_text: String, tip: String) -> ProgressBar:
+	var row := HBoxContainer.new()
+	var l := Label.new()
+	l.text = label_text
+	row.add_child(l)
+	bar_labels.append(l)
+	var bar := ProgressBar.new()
+	bar.show_percentage = false
+	bar.tooltip_text = tip
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(bar)
+	parent.add_child(row)
+	return bar
 
 
 func _fs(px: float) -> int:
@@ -77,15 +95,22 @@ func _apply_look() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	stats_label.add_theme_font_size_override("font_size", _fs(20))
 	stats_label.add_theme_color_override("font_color", Color(1, 1, 1))
-	var fill := StyleBoxFlat.new()
-	fill.bg_color = Color(0.2, 0.8, 1.0) if hc else Color(0.45, 0.6, 1.0)
-	fill.set_corner_radius_all(4)
 	var back := StyleBoxFlat.new()
 	back.bg_color = Color(0.25, 0.25, 0.25) if hc else Color(0.2, 0.15, 0.3)
 	back.set_corner_radius_all(4)
-	mp_bar.add_theme_stylebox_override("fill", fill)
-	mp_bar.add_theme_stylebox_override("background", back)
-	mp_bar.custom_minimum_size = Vector2(_fs(200), _fs(10))
+	var colors := [Color(0.2, 0.8, 1.0) if hc else Color(0.45, 0.6, 1.0),        # MP blue
+		Color(0.3, 1.0, 0.3) if hc else Color(0.62, 0.95, 0.35)]                 # SP lime
+	for i in 2:
+		var bar: ProgressBar = [mp_bar, sp_bar][i]
+		var fill := StyleBoxFlat.new()
+		fill.bg_color = colors[i]
+		fill.set_corner_radius_all(4)
+		bar.add_theme_stylebox_override("fill", fill)
+		bar.add_theme_stylebox_override("background", back)
+		bar.custom_minimum_size = Vector2(_fs(170), _fs(10))
+		bar_labels[i].add_theme_font_size_override("font_size", _fs(14))
+		bar_labels[i].add_theme_color_override("font_color", Color(1, 1, 1))
+		bar_labels[i].custom_minimum_size.x = _fs(28)
 	for l in [message_label, saved_label]:
 		l.add_theme_color_override("font_outline_color", Color(0, 0, 0) if hc else Color(0.1, 0.05, 0.15))
 		l.add_theme_constant_override("outline_size", 14 if hc else 8)
@@ -126,6 +151,12 @@ func _refresh() -> void:
 		Game.hp, Game.max_hp, Game.mp, Game.max_mp, Game.mp_level]
 	mp_bar.max_value = Game.max_mp
 	mp_bar.value = Game.mp
+	_refresh_sp()
+
+
+func _refresh_sp() -> void:
+	sp_bar.max_value = Game.max_sp
+	sp_bar.value = Game.sp
 
 
 func _show_message(text: String) -> void:

@@ -14,6 +14,8 @@ class_name Player
 @export var fall_gravity_multiplier: float = 1.6 # heavier on the way down = less floaty
 @export var coyote_time: float = 0.12            # seconds you can still jump after leaving a ledge
 @export var jump_buffer_time: float = 0.12       # seconds a jump press is remembered before landing
+@export var double_jump_velocity: float = 5.5    # the second jump, in mid-air; free, once per time in the air
+@export var flip_time: float = 0.42              # the front flip that goes with it
 
 @export_group("Skateboard")
 @export var skate_speed: float = 10.0       # top speed from pushing
@@ -27,11 +29,13 @@ class_name Player
 @export var skate_stance: float = -PI / 2   # she rides side-on to the board
 @export var skate_height: float = 0.115     # board deck height under her feet
 
-@export_group("Dash")
-@export var dash_speed: float = 15.0        # burst speed
-@export var dash_time: float = 0.18         # seconds the burst lasts
-@export var dash_cost: int = 2              # MP per dash
-@export var dash_carry: float = 0.55        # fraction of the burst speed kept afterwards
+@export_group("Roll")
+@export var roll_speed: float = 12.0        # speed at the start of the roll; it eases down to a run by the end
+@export var roll_end_speed: float = 4.5
+@export var roll_time: float = 0.45         # seconds the roll lasts (about 3.7 m)
+@export var roll_iframes: float = 0.38      # nothing can hurt her for this much of it, from the start
+@export var roll_cost: float = 25.0         # SP (stamina) per roll
+@export var roll_buffer: float = 0.15       # a roll pressed just before landing still happens
 
 @export_group("Getting hurt")
 @export var invulnerable_time: float = 1.2  # seconds of blinking after a hit, when nothing can hurt her
@@ -43,7 +47,8 @@ class_name Player
 @onready var spring_arm: SpringArm3D = $SpringArm3D
 # The character model; rotated to face movement (the body itself stays unrotated so the camera doesn't spin)
 @onready var visual: Node3D = $Visual
-@onready var model: Node3D = $Visual/Nina
+@onready var tumble: Node3D = $Visual/Tumble     # pivot at her middle: rolls and flips spin this
+@onready var model: Node3D = $Visual/Tumble/Nina
 @onready var board: Node3D = $Visual/Skateboard
 # Animations exported from Blender with the character (idle, run, jump, fall, skate)
 @onready var anim: AnimationPlayer = visual.find_child("AnimationPlayer", true, false)
@@ -54,9 +59,14 @@ var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
 var _invulnerable_timer := 0.0
 var _stun_timer := 0.0
-var _dash_timer := 0.0
-var _dash_dir := Vector3.ZERO
-var _air_dash_used := false
+var _roll_timer := 0.0
+var _roll_dir := Vector3.ZERO
+var _roll_buffer_timer := 0.0
+var _air_jump_used := false
+var _spin_timer := 0.0                      # somersault (roll) or front flip (double jump) in progress
+var _spin_time := 1.0
+var _spin_squash := 0.0                     # how much she tucks into a ball mid-spin
+var _spin_grounded := false                 # roll: keep the ball on the floor while it turns
 var _was_on_floor := true
 var _fall_speed := 0.0
 var _step_timer := 0.0
@@ -96,11 +106,17 @@ func _on_equipment_changed() -> void:
 
 
 func is_invulnerable() -> bool:
+	# Nothing can hurt her: blinking after a hit, or the invulnerable frames of a roll
+	return _invulnerable_timer > 0.0 or (_roll_timer > 0.0 and roll_time - _roll_timer < roll_iframes)
+
+
+func is_recovering() -> bool:
+	# Just the blinking after a hit (enemies leave her alone for it; a roll's iframes don't scare them off)
 	return _invulnerable_timer > 0.0
 
 
-func is_dashing() -> bool:
-	return _dash_timer > 0.0
+func is_rolling() -> bool:
+	return _roll_timer > 0.0
 
 
 func hurt(amount: int, from: Vector3) -> void:
@@ -114,7 +130,7 @@ func hurt(amount: int, from: Vector3) -> void:
 	if away.length() < 0.01:
 		away = -visual.global_transform.basis.z
 	velocity = away.normalized() * knockback + Vector3.UP * knockback_up
-	_dash_timer = 0.0
+	_roll_timer = 0.0
 	Audio.play("hurt")
 	Game.damage(amount)
 
@@ -124,6 +140,7 @@ func bounce(strength: float) -> void:
 	velocity.y = strength * (1.3 if Input.is_action_pressed("jump") else 1.0)
 	_coyote_timer = 0.0
 	_jump_buffer_timer = 0.0
+	_air_jump_used = false              # a stomp gives the double jump back
 
 
 func _physics_process(delta: float) -> void:
@@ -135,10 +152,10 @@ func _physics_process(delta: float) -> void:
 		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
 	if on_floor:
-		_air_dash_used = false
+		_air_jump_used = false
 
-	# Gravity (none mid-dash: the dash is a straight line)
-	if not on_floor and _dash_timer <= 0.0:
+	# Gravity
+	if not on_floor:
 		var gravity := get_gravity()
 		if velocity.y < 0:
 			gravity *= fall_gravity_multiplier
@@ -148,12 +165,22 @@ func _physics_process(delta: float) -> void:
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta
 	_jump_buffer_timer = jump_buffer_time if Input.is_action_just_pressed("jump") else _jump_buffer_timer - delta
 
-	# Jump (an ollie when riding: same jump, momentum kept)
+	# Jump (an ollie when riding: same jump, momentum kept). Jumping out of a roll is allowed and ends it.
 	if _jump_buffer_timer > 0 and _coyote_timer > 0:
 		velocity.y = jump_velocity
 		_jump_buffer_timer = 0
 		_coyote_timer = 0
+		_end_roll()
 		Audio.play("jump", -3.0)
+	# Double jump: a second, free jump in mid-air with a front flip; back again on landing or stomping
+	elif Input.is_action_just_pressed("jump") and not on_floor and not _air_jump_used and not Game.riding \
+			and _stun_timer <= 0.0:
+		velocity.y = double_jump_velocity
+		_air_jump_used = true
+		_jump_buffer_timer = 0
+		_end_roll()
+		_spin(flip_time, 0.25, false)
+		Audio.play("double_jump", -3.0, 0.05)
 
 	# Let go of jump early for a shorter hop
 	if Input.is_action_just_released("jump") and velocity.y > 0:
@@ -174,16 +201,16 @@ func _physics_process(delta: float) -> void:
 
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
 
-	if Input.is_action_just_pressed("dash"):
-		_try_dash(direction)
+	# Roll (the "dash" action): on the ground only; pressed in the air, it waits a moment for her to land
+	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") else _roll_buffer_timer - delta
+	if _roll_buffer_timer > 0.0 and on_floor:
+		_try_roll(direction)
 
 	var horizontal := Vector3(velocity.x, 0, velocity.z)
-	if _dash_timer > 0.0:
-		_dash_timer -= delta
-		horizontal = _dash_dir * dash_speed
-		velocity.y = 0.0
-		if _dash_timer <= 0.0:
-			horizontal *= dash_carry          # ease out of the burst instead of stopping dead
+	if _roll_timer > 0.0:
+		_roll_timer -= delta
+		var f := 1.0 - maxf(_roll_timer, 0.0) / roll_time
+		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
 	elif _stun_timer > 0.0:
 		pass                                # knocked back: ride out the hit
 	elif Game.riding:
@@ -204,8 +231,8 @@ func _physics_process(delta: float) -> void:
 	# Turn the model: on foot it faces where you steer; on the board it faces where the board is rolling
 	# (models face +Z after glTF export from Blender)
 	var face := direction
-	if _dash_timer > 0.0:
-		face = _dash_dir
+	if _roll_timer > 0.0:
+		face = _roll_dir
 	elif Game.riding:
 		face = horizontal if horizontal.length() > 0.3 else Vector3.ZERO
 	if face:
@@ -213,29 +240,61 @@ func _physics_process(delta: float) -> void:
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))
 	if Game.riding:
 		_tilt_board(delta)
+	_update_spin(delta)
 
 	_update_animation(horizontal.length())
 
 
-func _try_dash(direction: Vector3) -> void:
-	# A short straight burst that costs MP; one in the air until she lands again. Pops Gloops she dashes into.
-	if _dash_timer > 0.0 or _stun_timer > 0.0 or Game.riding:
+func _try_roll(direction: Vector3) -> void:
+	# A quick forward somersault that costs stamina (SP). For most of it nothing can hurt her (iframes), so she can
+	# roll straight through an attack; rolling into a Gloop pops it.
+	if _roll_timer > 0.0 or _stun_timer > 0.0 or Game.riding:
 		return
-	if not is_on_floor() and _air_dash_used:
-		return
-	if not Game.spend_mp(dash_cost):
-		Game.message("Not enough MP to dash (needs %d)." % dash_cost)
+	_roll_buffer_timer = 0.0
+	if not Game.spend_sp(roll_cost):
+		Game.message("Too tired to roll! Stamina refills in a moment.")
 		Audio.play("ui_back", -6.0, 0.0)
 		return
-	_dash_dir = direction if direction else visual.global_transform.basis.z.normalized()
-	_dash_dir.y = 0.0
-	_dash_dir = _dash_dir.normalized()
-	_dash_timer = dash_time
-	if not is_on_floor():
-		_air_dash_used = true
-	Audio.play("dash", -2.0)
+	_roll_dir = direction if direction else visual.global_transform.basis.z
+	_roll_dir.y = 0.0
+	_roll_dir = _roll_dir.normalized()
+	_roll_timer = roll_time
+	_spin(roll_time, 0.5, true)
+	Audio.play("roll", -2.0, 0.08)
 	if not Settings.reduce_motion:
-		spring_arm.fov_kick = 9.0
+		spring_arm.fov_kick = 5.0
+
+
+func _end_roll() -> void:
+	if _roll_timer > 0.0:
+		_roll_timer = 0.0
+		_spin_timer = 0.0                    # the spin eases back upright from wherever it was
+
+
+func _spin(time: float, squash: float, grounded: bool) -> void:
+	_spin_time = time
+	_spin_timer = time
+	_spin_squash = squash
+	_spin_grounded = grounded
+
+
+func _update_spin(delta: float) -> void:
+	# One full turn forward around her middle, tucked into a ball halfway through. The visual is rotated to face her
+	# heading, so turning about its X axis is always a forward somersault.
+	if _spin_timer > 0.0:
+		_spin_timer -= delta
+		var f := clampf(1.0 - _spin_timer / _spin_time, 0.0, 1.0)
+		var turn := f * f * (3.0 - 2.0 * f)                         # ease in and out
+		tumble.rotation.x = TAU * turn if _spin_timer > 0.0 else 0.0
+		var s := 1.0 - _spin_squash * sin(PI * f)
+		tumble.scale = Vector3(1.0, s, 1.0)
+		# On the ground, lower the pivot as she tucks so the ball rolls along the floor instead of floating
+		tumble.position.y = -0.8 * (1.0 - s) if _spin_grounded else 0.0
+	else:
+		var k := 1.0 - exp(-18.0 * delta)
+		tumble.rotation.x = lerp_angle(tumble.rotation.x, 0.0, k)
+		tumble.scale = tumble.scale.lerp(Vector3.ONE, k)
+		tumble.position.y = lerpf(tumble.position.y, 0.0, k)
 
 
 func _sounds(delta: float, horizontal_speed: float) -> void:
@@ -244,7 +303,7 @@ func _sounds(delta: float, horizontal_speed: float) -> void:
 		Audio.play("land", linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
 	_was_on_floor = on_floor
 	# Footsteps while running on foot
-	if on_floor and not Game.riding and horizontal_speed > 0.8 and _dash_timer <= 0.0:
+	if on_floor and not Game.riding and horizontal_speed > 0.8 and _roll_timer <= 0.0:
 		_step_timer -= delta
 		if _step_timer <= 0.0:
 			_step_timer = 0.33 * clampf(speed / horizontal_speed, 0.8, 1.6)
@@ -293,7 +352,9 @@ func _update_animation(horizontal_speed: float) -> void:
 	if anim == null:
 		return
 	var target := "idle"
-	if not is_on_floor():
+	if _spin_timer > 0.0:
+		target = "fall"                     # arms and legs tucked in for the roll or flip
+	elif not is_on_floor():
 		target = "jump" if velocity.y > 0.0 else "fall"
 	elif Game.riding:
 		target = "skate"

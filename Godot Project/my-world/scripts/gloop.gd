@@ -1,7 +1,7 @@
 extends CharacterBody3D
 
 # A Gloop: a grumpy jelly blob. It wanders near its home spot, chases Nina when she comes close, and hurts her on
-# touch. Jump on its head to pop it for XP (big ones take two stomps); dashing into it, or ramming it on the skateboard
+# touch. Jump on its head to pop it for XP (big ones take two stomps); rolling into it, or ramming it on the skateboard
 # at speed, works too.
 # It comes back after a while, but only once Nina has walked away. Scene: scenes/enemies/gloop.tscn
 # Expects children: CollisionShape3D (sphere), Hitbox (Area3D with a sphere), Visual (Node3D with Body/eyes/brows).
@@ -81,7 +81,7 @@ func _physics_process(delta: float) -> void:
 	# Decide where to go: chase Nina if she's close (and not still blinking from a hit), otherwise amble about home
 	var speed := wander_speed
 	var chasing := false
-	if player and not player.is_invulnerable():
+	if player and not player.is_recovering():
 		var to_p := player.global_position - global_position
 		if Vector2(to_p.x, to_p.z).length() < sight_range and absf(to_p.y) < 4.0 \
 				and _flat(player.global_position - home) < leash_range:
@@ -142,11 +142,9 @@ func _touch_player() -> void:
 	var feet := player.global_position.y - 0.8                      # player origin is mid-capsule
 	if player.velocity.y < 0.5 and feet > global_position.y + 0.5 * size:
 		_stomped()
-	elif player.is_dashing():
+	elif player.is_rolling() or (Game.riding and _flat(player.velocity) >= ram_speed):
 		_defeat()
-	elif Game.riding and _flat(player.velocity) >= ram_speed:
-		_defeat()
-	else:
+	elif not player.is_invulnerable():
 		player.hurt(damage, global_position)
 
 
@@ -163,7 +161,7 @@ func _stomped() -> void:
 
 func _defeat() -> void:
 	if hits == 0:
-		Audio.play_at("stomp", global_position)              # rammed or dashed into, not stomped
+		Audio.play_at("stomp", global_position)              # rolled into or rammed, not stomped
 	defeated = true
 	velocity = Vector3.ZERO
 	Game.add_xp(xp_reward)

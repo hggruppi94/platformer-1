@@ -38,7 +38,7 @@ const CAPTIONS := {
 	"centipede_skitter": "[skittering overhead]",
 	"centipede_whisper": "[whispering]",
 	"door": "[door]",
-	"dash": "[whoosh]",
+	"roll": "[tumble]",
 }
 
 var _cache := {}

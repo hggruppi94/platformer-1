@@ -20,6 +20,13 @@ var hp := 10
 var max_mp := 5
 var mp := 5
 var mp_level := 1                # gates MP-locked places like the Slivers
+var max_sp := 100.0              # stamina: spent by rolling, refills quickly on its own
+var sp := 100.0
+
+signal sp_changed
+const SP_REGEN := 45.0           # SP per second...
+const SP_DELAY := 0.6            # ...once this long has passed since she last spent any
+var _since_sp := 10.0
 
 const REGEN_DELAY := 6.0         # seconds without being hurt before HP starts coming back
 const REGEN_INTERVAL := 3.0      # then +1 HP this often
@@ -97,9 +104,23 @@ func _level_up() -> void:
 	hp = max_hp
 	max_mp += 3
 	mp = max_mp
+	max_sp += 10.0
+	sp = max_sp
+	sp_changed.emit()
 	mp_level += 1
 	Audio.play("level_up")
 	message("Level up! You're now Lv %d (MP Lv %d)." % [level, mp_level])
+
+
+func spend_sp(amount: float) -> bool:
+	if Settings.infinite_sp:
+		return true
+	if sp < amount:
+		return false
+	sp -= amount
+	_since_sp = 0.0
+	sp_changed.emit()
+	return true
 
 
 func spend_mp(amount: int) -> bool:
@@ -127,6 +148,7 @@ func faint() -> void:
 	# Out of HP: back to the start of this area with full HP. Level, XP and items are kept.
 	hp = max_hp
 	mp = max_mp
+	sp = max_sp
 	next_spawn = ""
 	pending_message = "Nina fainted! She's back on her feet."
 	Audio.play("faint")
@@ -144,6 +166,11 @@ func _process(delta: float) -> void:
 			stats_changed.emit()
 	else:
 		_regen_timer = REGEN_INTERVAL
+	if sp < max_sp:
+		_since_sp += delta
+		if _since_sp >= SP_DELAY:
+			sp = minf(sp + SP_REGEN * delta, max_sp)
+			sp_changed.emit()
 	if mp < max_mp:
 		_mp_timer -= delta
 		if _mp_timer <= 0.0:
@@ -186,7 +213,7 @@ func save_game() -> void:
 		"version": SAVE_VERSION,
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
-		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level,
+		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding,
 	}
 	# Where Nina is, so she reappears there next time
@@ -230,6 +257,8 @@ func load_game() -> void:
 	max_mp = int(data.get("max_mp", max_mp))
 	mp = clampi(int(data.get("mp", max_mp)), 0, max_mp)
 	mp_level = int(data.get("mp_level", mp_level))
+	max_sp = float(data.get("max_sp", 90.0 + 10.0 * level))   # older saves: work it out from the level
+	sp = max_sp
 	items.clear()
 	for it in data.get("items", []):
 		items.append(str(it))
@@ -272,6 +301,8 @@ func new_game() -> void:
 	hp = 10
 	max_mp = 5
 	mp = 5
+	max_sp = 100.0
+	sp = 100.0
 	mp_level = 1
 	items.clear()
 	riding = false

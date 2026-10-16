@@ -314,7 +314,7 @@ func _tab_controls(tabs: TabContainer) -> void:
 		b.focus_entered.connect(func(): if not _suppress_sound: Audio.play("ui_move", -8.0, 0.0))
 		g.add_child(b)
 	var pad := Label.new()
-	pad.text = "Controller: left stick move · right stick camera · A jump · X or RB dash · Y skateboard · Start pause"
+	pad.text = "Controller: left stick move · right stick camera · A jump (again in the air to double jump) · X or RB roll · Y skateboard · Start pause"
 	pad.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	pad.custom_minimum_size.x = _fs(560)
 	pad.add_theme_font_size_override("font_size", _fs(16))
@@ -340,7 +340,7 @@ func _tab_access(tabs: TabContainer) -> void:
 	_check(g, "High-contrast HUD", "high_contrast", "Solid dark panels, bright text and heavy outlines")
 	_check(g, "Sound captions", "captions", "Shows text for important sounds, like a Gloop giggling nearby")
 	_check(g, "Reduce flashing", "reduce_flashing", "No blinking or red flashes when hurt; calmer glowing effects")
-	_check(g, "Reduce motion", "reduce_motion", "No camera kick when dashing; calmer bobbing and shimmering")
+	_check(g, "Reduce motion", "reduce_motion", "No camera kick when rolling; calmer bobbing and shimmering")
 
 
 func _tab_assist(tabs: TabContainer) -> void:
@@ -348,7 +348,7 @@ func _tab_assist(tabs: TabContainer) -> void:
 	_choice(g, "Game speed", "game_speed", [["100%", 1.0], ["90%", 0.9], ["75%", 0.75], ["60%", 0.6]],
 		"Slows the whole game down to give you more time to react")
 	_check(g, "No damage", "no_damage", "Enemies still bump you, but you never lose HP")
-	_check(g, "Infinite MP", "infinite_mp", "Abilities like the dash cost no MP")
+	_check(g, "Infinite stamina", "infinite_sp", "Rolling never runs out of SP")
 
 
 # ----------------------------------------------------------------------------- look

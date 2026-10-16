@@ -11,7 +11,7 @@ const PATH := "user://settings.cfg"
 # Keyboard actions the player can rebind, in menu order, with their menu names
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
-	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Dash"], ["toggle_skateboard", "Skateboard"],
+	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
 	["pause", "Pause"],
 ]
 
@@ -31,12 +31,13 @@ var fov := 75.0
 var text_scale := 1.0                 # HUD and menu text size
 var high_contrast := false            # solid dark panels, bright text, heavy outlines
 var reduce_flashing := false          # no blinking/flashing on hits, calmer glows
-var reduce_motion := false            # no camera kick on dash, calmer bobbing effects
+var reduce_motion := false            # no camera kick when rolling, calmer bobbing effects
 var captions := false                 # show text for important sounds
 # --- Assist
 var game_speed := 1.0                 # 1.0 = normal; lower gives more time to react
 var no_damage := false
 var infinite_mp := false
+var infinite_sp := false
 
 var _defaults := {}
 var bindings := {}                    # action -> physical keycode (keyboard only; controller layout is fixed)
@@ -55,7 +56,7 @@ func _ready() -> void:
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "mouse_sensitivity", "stick_sensitivity", "invert_y",
 		"invert_x", "fullscreen", "fov", "text_scale", "high_contrast", "reduce_flashing", "reduce_motion",
-		"captions", "game_speed", "no_damage", "infinite_mp"]
+		"captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp"]
 
 
 func set_value(prop: String, value) -> void:
