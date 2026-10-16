@@ -1,12 +1,15 @@
 extends CanvasLayer
 
-# On-screen stats panel (top left) and short messages (bottom center).
+# On-screen stats panel (top left), short messages (bottom center), sound captions (bottom left) and a "Saved" note.
+# Text size and high contrast follow Settings.
 
 var panel: PanelContainer
 var stats_label: Label
+var mp_bar: ProgressBar
 var _last_hp := -1
 var message_label: Label
 var saved_label: Label
+var captions_box: VBoxContainer
 var _saved_tween: Tween
 var message_time := 0.0
 
@@ -14,46 +17,88 @@ var message_time := 0.0
 func _ready() -> void:
 	panel = PanelContainer.new()
 	panel.position = Vector2(16, 16)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.08, 0.15, 0.7)
-	style.set_corner_radius_all(10)
-	style.set_content_margin_all(10)
-	panel.add_theme_stylebox_override("panel", style)
+	var v := VBoxContainer.new()
+	panel.add_child(v)
 	stats_label = Label.new()
-	stats_label.add_theme_font_size_override("font_size", 20)
-	panel.add_child(stats_label)
+	v.add_child(stats_label)
+	mp_bar = ProgressBar.new()
+	mp_bar.show_percentage = false
+	mp_bar.tooltip_text = "MP: spent by the dash, refills over time"
+	v.add_child(mp_bar)
 	add_child(panel)
 
 	message_label = Label.new()
-	message_label.add_theme_font_size_override("font_size", 24)
-	message_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.15))
-	message_label.add_theme_constant_override("outline_size", 8)
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	message_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	message_label.offset_top = -90
-	message_label.offset_bottom = -40
-	message_label.offset_left = -400
-	message_label.offset_right = 400
+	message_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	add_child(message_label)
 
-	Game.stats_changed.connect(_refresh)
-	Game.message_posted.connect(_show_message)
-	_refresh()
-	_show_pending.call_deferred()
+	captions_box = VBoxContainer.new()
+	captions_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	captions_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	captions_box.offset_left = 20
+	captions_box.offset_bottom = -20
+	add_child(captions_box)
 
 	saved_label = Label.new()
 	saved_label.text = "Saved"
-	saved_label.add_theme_font_size_override("font_size", 16)
-	saved_label.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.15))
-	saved_label.add_theme_constant_override("outline_size", 6)
 	saved_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	saved_label.offset_left = -90
-	saved_label.offset_top = 16
 	saved_label.offset_right = -16
+	saved_label.offset_top = 16
+	saved_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	saved_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	saved_label.modulate.a = 0.0
 	add_child(saved_label)
+
+	Game.stats_changed.connect(_refresh)
+	Game.message_posted.connect(_show_message)
 	Game.saved.connect(_on_saved)
+	Audio.caption.connect(_on_caption)
+	Settings.changed.connect(_apply_look)
+	_apply_look()
+	_refresh()
+	_show_pending.call_deferred()
+
+
+func _fs(px: float) -> int:
+	return roundi(px * Settings.text_scale)
+
+
+func _apply_look() -> void:
+	var hc := Settings.high_contrast
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.1, 0.08, 0.15, 0.7)
+	style.set_corner_radius_all(10)
+	style.set_content_margin_all(10)
+	if hc:
+		style.border_color = Color(1, 1, 1)
+		style.set_border_width_all(2)
+	panel.add_theme_stylebox_override("panel", style)
+	stats_label.add_theme_font_size_override("font_size", _fs(20))
+	stats_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(0.2, 0.8, 1.0) if hc else Color(0.45, 0.6, 1.0)
+	fill.set_corner_radius_all(4)
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(0.25, 0.25, 0.25) if hc else Color(0.2, 0.15, 0.3)
+	back.set_corner_radius_all(4)
+	mp_bar.add_theme_stylebox_override("fill", fill)
+	mp_bar.add_theme_stylebox_override("background", back)
+	mp_bar.custom_minimum_size = Vector2(_fs(200), _fs(10))
+	for l in [message_label, saved_label]:
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0) if hc else Color(0.1, 0.05, 0.15))
+		l.add_theme_constant_override("outline_size", 14 if hc else 8)
+		l.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(1, 1, 1))
+	message_label.add_theme_font_size_override("font_size", _fs(24))
+	saved_label.add_theme_font_size_override("font_size", _fs(16))
+	var w := _fs(820)
+	message_label.offset_left = -w / 2.0
+	message_label.offset_right = w / 2.0
+	message_label.offset_bottom = -40
+	message_label.offset_top = -40 - _fs(64)
+	for c in captions_box.get_children():
+		_style_caption(c)
 
 
 func _show_pending() -> void:
@@ -73,18 +118,46 @@ func _on_saved() -> void:
 
 
 func _refresh() -> void:
-	if _last_hp >= 0 and Game.hp < _last_hp:          # flash the panel red when she gets hurt
+	if _last_hp >= 0 and Game.hp < _last_hp and not Settings.reduce_flashing:   # flash red when she gets hurt
 		panel.modulate = Color(1.0, 0.35, 0.35)
 		create_tween().tween_property(panel, "modulate", Color.WHITE, 0.5)
 	_last_hp = Game.hp
 	stats_label.text = "Lv %d    XP %d/%d\nHP %d/%d    MP %d/%d\nMP Lv %d" % [Game.level, Game.xp, Game.xp_to_next(),
 		Game.hp, Game.max_hp, Game.mp, Game.max_mp, Game.mp_level]
+	mp_bar.max_value = Game.max_mp
+	mp_bar.value = Game.mp
 
 
 func _show_message(text: String) -> void:
 	message_label.text = text
 	message_label.modulate.a = 1.0
-	message_time = 3.0
+	message_time = 3.0 + 0.04 * text.length()          # longer messages stay up longer
+
+
+func _on_caption(text: String) -> void:
+	if not Settings.captions:
+		return
+	var l := Label.new()
+	l.text = text
+	_style_caption(l)
+	captions_box.add_child(l)
+	while captions_box.get_child_count() > 4:
+		captions_box.get_child(0).free()
+	var tw := l.create_tween()
+	tw.tween_interval(2.5)
+	tw.tween_property(l, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(l.queue_free)
+
+
+func _style_caption(l: Label) -> void:
+	var hc := Settings.high_contrast
+	l.add_theme_font_size_override("font_size", _fs(18))
+	var s := StyleBoxFlat.new()
+	s.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0, 0, 0, 0.6)
+	s.set_content_margin_all(6)
+	s.set_corner_radius_all(6)
+	l.add_theme_stylebox_override("normal", s)
+	l.add_theme_color_override("font_color", Color(1, 1, 1))
 
 
 func _process(delta: float) -> void:

@@ -5,7 +5,7 @@ extends Node
 #
 # Saving: progress is written to user://save.json (on Windows: %APPDATA%\Godot\app_userdata\MyWorld\save.json)
 # automatically — on arriving in a scene, on level up, on getting an item, every 30 seconds, and on quitting.
-# It's loaded when the game starts, putting Nina back where she was. Press F10 twice to start a new game.
+# It's loaded when the game starts, putting Nina back where she was. New Game is in the pause menu.
 
 signal stats_changed
 signal message_posted(text: String)
@@ -23,8 +23,10 @@ var mp_level := 1                # gates MP-locked places like the Slivers
 
 const REGEN_DELAY := 6.0         # seconds without being hurt before HP starts coming back
 const REGEN_INTERVAL := 3.0      # then +1 HP this often
+const MP_REGEN_INTERVAL := 2.5   # +1 MP this often, always
 var _since_hurt := 0.0
 var _regen_timer := 0.0
+var _mp_timer := MP_REGEN_INTERVAL
 var pending_message := ""        # shown by the HUD after a scene reload (e.g. after fainting)
 
 signal equipment_changed
@@ -37,7 +39,6 @@ const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
 var _last_place := {}            # her last known {scene, position, yaw}, for saves made mid scene change
-var _new_game_armed := 0.0       # >0: a second F10 press within this many seconds starts a new game
 
 
 func _ready() -> void:
@@ -60,7 +61,9 @@ func give_item(item: String) -> void:
 		return
 	items.append(item)
 	if item == "skateboard":
-		message("You got a Skateboard! Press E to ride, E again to step off.")
+		message("You got a Skateboard! Press %s to ride, %s again to step off." % [Settings.key_name("toggle_skateboard"),
+			Settings.key_name("toggle_skateboard")])
+	Audio.play("pickup")
 	save_game()
 
 
@@ -95,10 +98,24 @@ func _level_up() -> void:
 	max_mp += 3
 	mp = max_mp
 	mp_level += 1
+	Audio.play("level_up")
 	message("Level up! You're now Lv %d (MP Lv %d)." % [level, mp_level])
 
 
+func spend_mp(amount: int) -> bool:
+	if Settings.infinite_mp:
+		return true
+	if mp < amount:
+		return false
+	mp -= amount
+	_mp_timer = MP_REGEN_INTERVAL
+	stats_changed.emit()
+	return true
+
+
 func damage(amount: int) -> void:
+	if Settings.no_damage:
+		return
 	hp = maxi(hp - amount, 0)
 	_since_hurt = 0.0
 	stats_changed.emit()
@@ -112,6 +129,7 @@ func faint() -> void:
 	mp = max_mp
 	next_spawn = ""
 	pending_message = "Nina fainted! She's back on her feet."
+	Audio.play("faint")
 	stats_changed.emit()
 	get_tree().call_deferred("reload_current_scene")
 
@@ -126,11 +144,16 @@ func _process(delta: float) -> void:
 			stats_changed.emit()
 	else:
 		_regen_timer = REGEN_INTERVAL
+	if mp < max_mp:
+		_mp_timer -= delta
+		if _mp_timer <= 0.0:
+			_mp_timer = MP_REGEN_INTERVAL
+			mp += 1
+			stats_changed.emit()
 
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		save_game()
-	_new_game_armed = maxf(_new_game_armed - delta, 0.0)
 
 
 func message(text: String) -> void:
@@ -142,21 +165,16 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 		message(("The %s isn't open yet." % place_name) if place_name != "" else "This door doesn't open yet.")
 		return
 	next_spawn = spawn
+	Audio.play("door", -4.0)
 	get_tree().call_deferred("change_scene_to_file", scene_path)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Temporary until enemies drop XP: press X for 10 XP
-	if event.is_action_pressed("debug_xp"):
+	# Developer shortcut, only when run from the editor (not in exported builds): X for 10 XP
+	if OS.is_debug_build() and event.is_action_pressed("debug_xp"):
 		add_xp(10)
 	if event.is_action_pressed("toggle_skateboard"):
 		toggle_skateboard()
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F10:
-		if _new_game_armed > 0.0:
-			new_game()
-		else:
-			_new_game_armed = 3.0
-			message("Press F10 again to start a new game (this erases your save).")
 
 
 # -----------------------------------------------------------------------------
@@ -260,7 +278,6 @@ func new_game() -> void:
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}
-	_new_game_armed = 0.0
 	pending_message = "New game!"
 	equipment_changed.emit()
 	stats_changed.emit()

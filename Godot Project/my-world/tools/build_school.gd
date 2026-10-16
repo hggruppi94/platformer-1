@@ -8,6 +8,7 @@ extends SceneTree
 # Units are meters. +X is east, -Z is north. The main floors span X_W..X_E and Z_N..Z_S; the west atrium
 # (ATRIUM_W..X_W) holds the escalators and stairs and is open all the way up.
 
+const WT := preload("res://tools/theme.gd")     # shared look (alien/earth): tools/theme.gd
 const OUT_DIR := "res://scenes/school"
 const OUT := OUT_DIR + "/school.tscn"
 
@@ -54,6 +55,7 @@ func own(n: Node) -> void:
 func mat(name: String, color: Color, rough := 0.85, metal := 0.0, emit := 0.0, alpha := 1.0) -> StandardMaterial3D:
 	if mats.has(name):
 		return mats[name]
+	color = WT.tint(color)
 	var m := StandardMaterial3D.new()
 	m.resource_name = name
 	m.albedo_color = Color(color, alpha)
@@ -262,9 +264,9 @@ func _build() -> void:
 func _environment() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.55, 0.75, 0.95)
+	env.background_color = WT.backdrop(Color(0.55, 0.75, 0.95))
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(1.0, 0.97, 0.92)
+	env.ambient_light_color = WT.light(Color(1.0, 0.97, 0.92))
 	env.ambient_light_energy = 0.7
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var we := WorldEnvironment.new()
@@ -284,7 +286,7 @@ func _environment() -> void:
 				l.position = Vector3(x, f * FLOOR_H + 5.0, z)
 				l.omni_range = 14.0
 				l.light_energy = 0.9
-				l.light_color = Color(1.0, 0.95, 0.85)
+				l.light_color = WT.light(Color(1.0, 0.95, 0.85))
 				school.add_child(l)
 
 
@@ -479,7 +481,9 @@ func _floor_2() -> void:
 	wall(behind, Vector2(X_E - 3, Z_N + 3), Vector2(X_E - 3, Z_S), inner, [0.85])
 	sliver(behind, Vector2(X_W + 3 + (X_E - X_W - 6) * 0.85, Z_N + 3), true, SLIVER_MP_LEVEL)     # by the NE break corner
 	sliver(behind, Vector2(X_E - 3, Z_N + 3 + (Z_S - Z_N - 3) * 0.85), false, SLIVER_MP_LEVEL)   # by the SE break corner
+	wall(behind, Vector2(X_W, Z_N + 3), Vector2(X_W + 3, Z_N + 3), inner)      # seal the west end: only the Slivers lead in
 	label(behind, "Behind the Walls", Vector3(0, 3.0, Z_N + 1.5), 0.0, 56)
+	_behind_the_walls(behind)
 
 	# Classrooms with round bays, laid out like the drawing
 	room(f, "Classroom A", -26, -19, -11, -9, class_mat, {"s": [0.2], "e": [0.6]}, "s")
@@ -506,6 +510,77 @@ func _floor_2() -> void:
 
 	restroom_pod(f, Vector3(-24, 0, -4), 1.6)
 	restroom_pod(f, Vector3(22, 0, 0), 1.6)
+
+
+func _behind_the_walls(behind: Node3D) -> void:
+	# What lives up here: the centipede (scenes/creatures/centipede.tscn), plus its music and its lighting.
+	var zone := Area3D.new()                  # Nina's inside its territory: eerie music, and it takes notice
+	zone.name = "Territory"
+	zone.set_script(load("res://scripts/music_zone.gd"))
+	zone.set("track", "behind_walls")
+	zone.monitorable = false
+	behind.add_child(zone)
+	var north := CollisionShape3D.new()
+	north.shape = box_shape(Vector3(X_E - X_W, 5.0, 2.7))
+	north.position = Vector3((X_W + X_E) / 2, 2.5, Z_N + 1.65)
+	zone.add_child(north)
+	var east := CollisionShape3D.new()
+	east.shape = box_shape(Vector3(2.7, 5.0, Z_S - Z_N - 3.3))
+	east.position = Vector3(X_E - 1.65, 2.5, (Z_N + 3 + Z_S) / 2)
+	zone.add_child(east)
+
+	# Its crawl route: a narrow loop along the ceiling of both arms of the passage
+	var y := FLOOR_H - 0.15 - 0.05              # just under the slab above
+	var a := Z_N + 1.15                         # two lanes along the north arm...
+	var b := Z_N + 2.1
+	var e1 := X_E - 1.15                        # ...and along the east arm
+	var e2 := X_E - 2.1
+	var c: Node3D = load("res://scenes/creatures/centipede.tscn").instantiate()
+	c.name = "Centipede"
+	c.set("route", PackedVector3Array([
+		Vector3(X_W + 1.0, y, a), Vector3(e1, y, a), Vector3(e1, y, Z_S - 1.5), Vector3(e2, y, Z_S - 1.5),
+		Vector3(e2, y, b), Vector3(X_W + 1.0, y, b)]))
+	behind.add_child(c)
+	c.set("territory", c.get_path_to(zone))
+
+	# Dark, stained lining over the passage's floor, ceiling and walls (no collision; the walls behind are solid).
+	# Gaps are left where the Slivers are.
+	var grime := mat("Passage Grime", Color(0.14, 0.12, 0.16), 0.95)
+	var floor_dark := mat("Passage Floor", Color(0.1, 0.09, 0.11), 0.9)
+	var nw := X_E - X_W
+	var lane := 2.55
+	var ez0 := Z_N + 3.0
+	var el := Z_S - ez0
+	mesh_at(box(Vector3(nw, 0.02, lane)), floor_dark, Vector3((X_W + X_E) / 2, 0.012, Z_N + 0.3 + lane / 2), behind)
+	mesh_at(box(Vector3(lane, 0.02, el)), floor_dark, Vector3(X_E - 0.3 - lane / 2, 0.012, ez0 + el / 2), behind)
+	mesh_at(box(Vector3(nw, 0.02, lane)), grime, Vector3((X_W + X_E) / 2, FLOOR_H - 0.31, Z_N + 0.3 + lane / 2), behind)
+	mesh_at(box(Vector3(lane, 0.02, el)), grime, Vector3(X_E - 0.3 - lane / 2, FLOOR_H - 0.31, ez0 + el / 2), behind)
+	var h := WALL_H
+	# outer walls (north and east), full length
+	mesh_at(box(Vector3(nw, h, 0.02)), grime, Vector3((X_W + X_E) / 2, h / 2, Z_N + 0.31), behind)
+	mesh_at(box(Vector3(0.02, h, Z_S - Z_N)), grime, Vector3(X_E - 0.31, h / 2, (Z_N + Z_S) / 2), behind)
+	# inner walls, split around the Sliver openings
+	var gap := DOOR_W / 2 + 0.1
+	var sx := X_W + 3 + (X_E - X_W - 6) * 0.85
+	var sz := Z_N + 3 + (Z_S - Z_N - 3) * 0.85
+	for span in [Vector2(X_W, sx - gap), Vector2(sx + gap, X_E - 3)]:
+		mesh_at(box(Vector3(span.y - span.x, h, 0.02)), grime, Vector3((span.x + span.y) / 2, h / 2, Z_N + 3 - 0.17), behind)
+	for span in [Vector2(Z_N + 3, sz - gap), Vector2(sz + gap, Z_S)]:
+		mesh_at(box(Vector3(0.02, h, span.y - span.x)), grime, Vector3(X_E - 3 + 0.17, h / 2, (span.x + span.y) / 2), behind)
+
+	# Sickly green lights, low and far apart, that flicker
+	var points := [Vector3(-22, 0, Z_N + 1.5), Vector3(-6, 0, Z_N + 1.5), Vector3(10, 0, Z_N + 1.5),
+		Vector3(X_E - 1.5, 0, -8), Vector3(X_E - 1.5, 0, 10)]
+	for p in points:
+		var l := OmniLight3D.new()
+		l.name = "Flicker Light"
+		l.position = p + Vector3(0, 2.2, 0)
+		l.light_color = Color(0.55, 1.0, 0.65)            # sickly green either way
+		l.light_energy = 0.7
+		l.omni_range = 7.0
+		l.set_script(load("res://scripts/flicker_light.gd"))
+		behind.add_child(l)
+		mesh_at(sphere(0.08, 8), mat("Flicker Bulb", Color(0.6, 1.0, 0.7), 0.3, 0.0, 2.5), l.position, behind)
 
 
 func secret_panel(parent: Node, at: Vector2, yaw: float) -> void:

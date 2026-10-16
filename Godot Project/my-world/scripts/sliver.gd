@@ -33,10 +33,16 @@ func _refresh() -> void:
 func _process(delta: float) -> void:
 	t += delta
 	var open := is_open()
-	glow_mat.emission_energy_multiplier = (3.0 if open else 0.8) + sin(t * (4.0 if open else 1.5)) * (1.0 if open else 0.3)
+	var pulse := 0.25 if Settings.reduce_flashing or Settings.reduce_motion else 1.0
+	glow_mat.emission_energy_multiplier = (3.0 if open else 0.8) + sin(t * (4.0 if open else 1.5)) * (1.0 if open else 0.3) * pulse
 	glow_mat.albedo_color.a = 0.2 if open else 0.95          # open: a see-through shimmer; sealed: solid silver
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if body is CharacterBody3D and not is_open():
+	if not body is CharacterBody3D:
+		return
+	if is_open():
+		Audio.play_at("sliver_open", global_position + Vector3(0, 1.5, 0))
+	else:
+		Audio.play_at("sliver_sealed", global_position + Vector3(0, 1.5, 0))
 		Game.message("The Sliver is sealed. It opens at MP Lv %d (you're MP Lv %d)." % [required_mp_level, Game.mp_level])

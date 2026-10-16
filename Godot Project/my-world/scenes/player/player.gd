@@ -27,6 +27,12 @@ class_name Player
 @export var skate_stance: float = -PI / 2   # she rides side-on to the board
 @export var skate_height: float = 0.115     # board deck height under her feet
 
+@export_group("Dash")
+@export var dash_speed: float = 15.0        # burst speed
+@export var dash_time: float = 0.18         # seconds the burst lasts
+@export var dash_cost: int = 2              # MP per dash
+@export var dash_carry: float = 0.55        # fraction of the burst speed kept afterwards
+
 @export_group("Getting hurt")
 @export var invulnerable_time: float = 1.2  # seconds of blinking after a hit, when nothing can hurt her
 @export var knockback: float = 7.0          # how hard a hit pushes her away
@@ -48,6 +54,12 @@ var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
 var _invulnerable_timer := 0.0
 var _stun_timer := 0.0
+var _dash_timer := 0.0
+var _dash_dir := Vector3.ZERO
+var _air_dash_used := false
+var _was_on_floor := true
+var _fall_speed := 0.0
+var _step_timer := 0.0
 
 
 func _ready() -> void:
@@ -87,6 +99,10 @@ func is_invulnerable() -> bool:
 	return _invulnerable_timer > 0.0
 
 
+func is_dashing() -> bool:
+	return _dash_timer > 0.0
+
+
 func hurt(amount: int, from: Vector3) -> void:
 	# Called by enemies on touch. Knocks her away from the hit, then she blinks and can't be hurt for a moment.
 	if is_invulnerable():
@@ -98,6 +114,8 @@ func hurt(amount: int, from: Vector3) -> void:
 	if away.length() < 0.01:
 		away = -visual.global_transform.basis.z
 	velocity = away.normalized() * knockback + Vector3.UP * knockback_up
+	_dash_timer = 0.0
+	Audio.play("hurt")
 	Game.damage(amount)
 
 
@@ -111,14 +129,16 @@ func bounce(strength: float) -> void:
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 
-	# Blink while invulnerable after a hit
+	# Blink while invulnerable after a hit (or stay solid with Reduce flashing on)
 	if _invulnerable_timer > 0.0:
 		_invulnerable_timer -= delta
-		model.visible = _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
+		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
+	if on_floor:
+		_air_dash_used = false
 
-	# Gravity
-	if not on_floor:
+	# Gravity (none mid-dash: the dash is a straight line)
+	if not on_floor and _dash_timer <= 0.0:
 		var gravity := get_gravity()
 		if velocity.y < 0:
 			gravity *= fall_gravity_multiplier
@@ -133,6 +153,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 		_jump_buffer_timer = 0
 		_coyote_timer = 0
+		Audio.play("jump", -3.0)
 
 	# Let go of jump early for a shorter hop
 	if Input.is_action_just_released("jump") and velocity.y > 0:
@@ -153,8 +174,17 @@ func _physics_process(delta: float) -> void:
 
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
 
+	if Input.is_action_just_pressed("dash"):
+		_try_dash(direction)
+
 	var horizontal := Vector3(velocity.x, 0, velocity.z)
-	if _stun_timer > 0.0:
+	if _dash_timer > 0.0:
+		_dash_timer -= delta
+		horizontal = _dash_dir * dash_speed
+		velocity.y = 0.0
+		if _dash_timer <= 0.0:
+			horizontal *= dash_carry          # ease out of the burst instead of stopping dead
+	elif _stun_timer > 0.0:
 		pass                                # knocked back: ride out the hit
 	elif Game.riding:
 		horizontal = _skate(horizontal, direction, on_floor, delta)
@@ -167,12 +197,16 @@ func _physics_process(delta: float) -> void:
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 
+	_fall_speed = -velocity.y
 	move_and_slide()
+	_sounds(delta, horizontal.length())
 
 	# Turn the model: on foot it faces where you steer; on the board it faces where the board is rolling
 	# (models face +Z after glTF export from Blender)
 	var face := direction
-	if Game.riding:
+	if _dash_timer > 0.0:
+		face = _dash_dir
+	elif Game.riding:
 		face = horizontal if horizontal.length() > 0.3 else Vector3.ZERO
 	if face:
 		var target_yaw := atan2(face.x, face.z)
@@ -181,6 +215,42 @@ func _physics_process(delta: float) -> void:
 		_tilt_board(delta)
 
 	_update_animation(horizontal.length())
+
+
+func _try_dash(direction: Vector3) -> void:
+	# A short straight burst that costs MP; one in the air until she lands again. Pops Gloops she dashes into.
+	if _dash_timer > 0.0 or _stun_timer > 0.0 or Game.riding:
+		return
+	if not is_on_floor() and _air_dash_used:
+		return
+	if not Game.spend_mp(dash_cost):
+		Game.message("Not enough MP to dash (needs %d)." % dash_cost)
+		Audio.play("ui_back", -6.0, 0.0)
+		return
+	_dash_dir = direction if direction else visual.global_transform.basis.z.normalized()
+	_dash_dir.y = 0.0
+	_dash_dir = _dash_dir.normalized()
+	_dash_timer = dash_time
+	if not is_on_floor():
+		_air_dash_used = true
+	Audio.play("dash", -2.0)
+	if not Settings.reduce_motion:
+		spring_arm.fov_kick = 9.0
+
+
+func _sounds(delta: float, horizontal_speed: float) -> void:
+	var on_floor := is_on_floor()
+	if on_floor and not _was_on_floor and _fall_speed > 3.0:
+		Audio.play("land", linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
+	_was_on_floor = on_floor
+	# Footsteps while running on foot
+	if on_floor and not Game.riding and horizontal_speed > 0.8 and _dash_timer <= 0.0:
+		_step_timer -= delta
+		if _step_timer <= 0.0:
+			_step_timer = 0.33 * clampf(speed / horizontal_speed, 0.8, 1.6)
+			Audio.play("step", -10.0, 0.15)
+	else:
+		_step_timer = 0.0
 
 
 func _skate(h: Vector3, direction: Vector3, on_floor: bool, delta: float) -> Vector3:

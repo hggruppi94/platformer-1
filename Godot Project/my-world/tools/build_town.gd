@@ -33,8 +33,11 @@ const CASTLE_SCALE := 1.6
 
 const SPAWN := Vector3(5, 0, 62)
 
-# Look of the world. Switch THEME to "earth" for the original blue-sky town.
-const THEME := "alien"
+# Look of the world. THEME comes from tools/theme.gd (shared with the school and interiors builders): set it to
+# "earth" there for the original blue-sky town. The table below is the town's own sky/terrain/water/tree palette;
+# everything else (buildings, signs, props) goes through WT.tint().
+const WT := preload("res://tools/theme.gd")
+const THEME: String = WT.THEME
 const THEMES := {
 	"earth": {
 		"sky_top": Color(0.22, 0.55, 0.95), "sky_horizon": Color(0.7, 0.85, 1.0), "sky_bottom": Color(0.35, 0.5, 0.3),
@@ -118,9 +121,12 @@ func add(n: Node, parent: Node = null) -> Node:
 	return n
 
 
-func mat(name: String, color: Color, rough := 0.85, metal := 0.0, emit := 0.0, alpha := 1.0) -> StandardMaterial3D:
+func mat(name: String, color: Color, rough := 0.85, metal := 0.0, emit := 0.0, alpha := 1.0, themed := true) -> StandardMaterial3D:
+	# themed: buildings and props get the shared palette; pass false for colours already chosen from THEMES
 	if mats.has(name):
 		return mats[name]
+	if themed:
+		color = WT.tint(color)
 	var m := StandardMaterial3D.new()
 	m.resource_name = name
 	m.albedo_color = Color(color, alpha)
@@ -348,7 +354,7 @@ func _far_ground() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(700, 700)
 	var g := group("Far Ground", Vector3.ZERO)
-	mesh_at(plane, mat("Far Grass", T.far_grass, 1.0), Vector3(0, -0.8, -30), g)
+	mesh_at(plane, mat("Far Grass", T.far_grass, 1.0, 0.0, 0.0, 1.0, false), Vector3(0, -0.8, -30), g)
 	own(g)
 
 
@@ -356,7 +362,7 @@ func _water() -> void:
 	var g := group("Lake", Vector3.ZERO)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(110, 90)
-	mesh_at(plane, mat("Water", T.water, 0.05, 0.2, T.water_glow, 0.82), Vector3(-2, WATER_Y, -10), g).name = "Water"
+	mesh_at(plane, mat("Water", T.water, 0.05, 0.2, T.water_glow, 0.82, false), Vector3(-2, WATER_Y, -10), g).name = "Water"
 	own(g)
 
 
@@ -767,8 +773,8 @@ func _boats() -> void:
 
 func _mountains() -> void:
 	var g := group("Mountains", Vector3.ZERO)
-	var far := mat("Mountain", T.mountain_far, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3)
-	var near := mat("Mountain Near", T.mountain_near, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3)
+	var far := mat("Mountain", T.mountain_far, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3, 0.0, 1.0, false)
+	var near := mat("Mountain Near", T.mountain_near, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3, 0.0, 1.0, false)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for k in 22:
@@ -853,7 +859,7 @@ func _crystals() -> void:
 		if not ok:
 			continue
 		var tint: Color = tints[rng.randi() % tints.size()]
-		var m := mat("Crystal " + str(tints.find(tint)), tint, 0.1, 0.2, 1.1, 0.9)
+		var m := mat("Crystal " + str(tints.find(tint)), tint, 0.1, 0.2, 1.1, 0.9, false)
 		var cluster := Node3D.new()
 		cluster.position = ground(x, z)
 		g.add_child(cluster)

@@ -8,6 +8,7 @@ extends SceneTree
 # Each interior has an "Entrance" spawn marker (where you appear coming in from town) and an exit door that takes
 # you back to the "From<Building>" marker in front of the building in town. The door is on the south (+Z) side.
 
+const WT := preload("res://tools/theme.gd")     # shared look (alien/earth): tools/theme.gd
 const OUT_DIR := "res://scenes/interiors"
 const TOWN := "res://scenes/town/town.tscn"
 
@@ -46,6 +47,7 @@ func mat(name: String, color: Color, rough := 0.8, metal := 0.0, emit := 0.0, al
 	if mats.has(name):
 		return mats[name]
 	var m := StandardMaterial3D.new()
+	color = WT.tint(color, true)
 	m.resource_name = name
 	m.albedo_color = Color(color, alpha)
 	m.roughness = rough
@@ -145,7 +147,7 @@ func label(parent: Node, text: String, pos: Vector3, size := 56, color := Color(
 func light(parent: Node, pos: Vector3, color: Color, energy := 1.0, rng := 12.0) -> void:
 	var l := OmniLight3D.new()
 	l.position = pos
-	l.light_color = color
+	l.light_color = WT.light(color)
 	l.light_energy = energy
 	l.omni_range = rng
 	parent.add_child(l)
@@ -158,9 +160,9 @@ func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, a
 	scene_root.name = name.replace(" ", "")
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.1, 0.1, 0.12)
+	env.background_color = WT.backdrop(Color(0.1, 0.1, 0.12))
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = ambient
+	env.ambient_light_color = WT.light(ambient)
 	env.ambient_light_energy = 0.8
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true

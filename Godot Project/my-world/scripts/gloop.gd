@@ -1,7 +1,8 @@
 extends CharacterBody3D
 
 # A Gloop: a grumpy jelly blob. It wanders near its home spot, chases Nina when she comes close, and hurts her on
-# touch. Jump on its head to pop it for XP (big ones take two stomps); ramming it on the skateboard at speed works too.
+# touch. Jump on its head to pop it for XP (big ones take two stomps); dashing into it, or ramming it on the skateboard
+# at speed, works too.
 # It comes back after a while, but only once Nina has walked away. Scene: scenes/enemies/gloop.tscn
 # Expects children: CollisionShape3D (sphere), Hitbox (Area3D with a sphere), Visual (Node3D with Body/eyes/brows).
 
@@ -36,6 +37,8 @@ var _retarget := 0.0
 var _squash := 0.0                            # >0 while recoiling from a stomp
 var _body_mat: StandardMaterial3D
 var _respawn_timer: Timer
+var _was_chasing := false
+var _giggle_cooldown := 0.0
 
 @onready var visual: Node3D = $Visual
 @onready var hitbox: Area3D = $Hitbox
@@ -93,6 +96,12 @@ func _physics_process(delta: float) -> void:
 			_retarget = randf_range(2.0, 4.5)
 	if global_position.y < LOW_GROUND:
 		target = home                                         # wandered into the lake basin: head home
+	# Giggle when it spots her
+	_giggle_cooldown -= delta
+	if chasing and not _was_chasing and _giggle_cooldown <= 0.0:
+		Audio.play_at("gloop_giggle", global_position, -2.0, 0.12)
+		_giggle_cooldown = 5.0
+	_was_chasing = chasing
 
 	# Move (horizontal accel toward the target, gravity), pausing briefly after a stomp
 	var to_t := target - global_position
@@ -133,6 +142,8 @@ func _touch_player() -> void:
 	var feet := player.global_position.y - 0.8                      # player origin is mid-capsule
 	if player.velocity.y < 0.5 and feet > global_position.y + 0.5 * size:
 		_stomped()
+	elif player.is_dashing():
+		_defeat()
 	elif Game.riding and _flat(player.velocity) >= ram_speed:
 		_defeat()
 	else:
@@ -142,6 +153,7 @@ func _touch_player() -> void:
 func _stomped() -> void:
 	hits += 1
 	player.bounce(STOMP_BOUNCE)
+	Audio.play_at("stomp", global_position, 0.0, 0.1 if size == 1.0 else 0.0)
 	if hits >= stomps_to_defeat:
 		_defeat()
 	else:
@@ -150,6 +162,8 @@ func _stomped() -> void:
 
 
 func _defeat() -> void:
+	if hits == 0:
+		Audio.play_at("stomp", global_position)              # rammed or dashed into, not stomped
 	defeated = true
 	velocity = Vector3.ZERO
 	Game.add_xp(xp_reward)
@@ -187,11 +201,13 @@ func _animate(delta: float, moving_speed: float, chasing: bool) -> void:
 		_squash -= delta
 		var k := _squash / 0.6
 		body.scale = Vector3(1.0 + 0.5 * k, 1.0 - 0.45 * k, 1.0 + 0.5 * k)
-		_body_mat.emission_energy_multiplier = 0.1 + 2.0 * k
+		_body_mat.emission_energy_multiplier = 0.1 + (0.4 if Settings.reduce_flashing else 2.0) * k
 		return
 	_body_mat.emission_energy_multiplier = 0.1
 	var freq := 9.0 if chasing else 6.0
 	var hop := absf(sin(_t * freq)) if moving_speed > 0.2 else 0.15 * absf(sin(_t * 2.0))
+	if Settings.reduce_motion:
+		hop *= 0.35
 	body.position.y = 0.4 + hop * (0.25 if chasing else 0.15)
 	var squish := 1.0 - hop
 	body.scale = Vector3(1.0 + 0.12 * squish, 1.0 - 0.12 * squish, 1.0 + 0.12 * squish)

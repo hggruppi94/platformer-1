@@ -1,21 +1,46 @@
 extends SpringArm3D
 
 @export var mouse_sensitivity: float = 0.005
+@export var stick_speed: float = 2.6   # radians per second at full stick tilt
 @export var min_pitch: float = -1.2   # look-down limit (radians)
 @export var max_pitch: float = 0.4    # look-up limit (radians)
+
+@onready var camera: Camera3D = $Camera3D
+var fov_kick := 0.0                   # extra field of view for a moment (the dash adds some)
+
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# Don't let the camera boom collide with the player's own body
 	add_excluded_object(get_parent().get_rid())
+	Settings.changed.connect(_apply_settings)
+	_apply_settings()
+
+
+func _apply_settings() -> void:
+	camera.fov = Settings.fov
+
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Press Escape to release the mouse, click in the window to grab it again
-	if event.is_action_pressed("ui_cancel"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	elif event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+	# The pause menu (Esc) frees the mouse; clicking back in the game window grabs it again
+	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED \
+			and not get_tree().paused:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotation.y -= event.relative.x * mouse_sensitivity   # look left/right
-		rotation.x -= event.relative.y * mouse_sensitivity   # look up/down
-		rotation.x = clamp(rotation.x, min_pitch, max_pitch)
+		var s := mouse_sensitivity * Settings.mouse_sensitivity
+		_look(event.relative.x * s, event.relative.y * s)
+
+
+func _process(delta: float) -> void:
+	# Controller right stick
+	var stick := Input.get_vector("look_left", "look_right", "look_up", "look_down")
+	if stick != Vector2.ZERO:
+		_look(stick.x * stick_speed * Settings.stick_sensitivity * delta, stick.y * stick_speed * Settings.stick_sensitivity * delta)
+	fov_kick = move_toward(fov_kick, 0.0, 30.0 * delta)
+	camera.fov = Settings.fov + fov_kick
+
+
+func _look(dx: float, dy: float) -> void:
+	rotation.y -= dx * (-1.0 if Settings.invert_x else 1.0)   # look left/right
+	rotation.x -= dy * (-1.0 if Settings.invert_y else 1.0)   # look up/down
+	rotation.x = clamp(rotation.x, min_pitch, max_pitch)
