@@ -7,3 +7,5 @@
 
 # Old duplicate files kept around for review; delete when you're happy
 _archive/
+
+__pycache__/
