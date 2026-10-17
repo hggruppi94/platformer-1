@@ -48,8 +48,8 @@ func is_open() -> bool:
 
 # ----------------------------------------------------------------------------- open / close
 func open() -> void:
-	if is_open():
-		return
+	if is_open() or get_tree().paused:
+		return                                     # already paused by something else, e.g. sleeping in a bed
 	root.visible = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
-#   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn
+#   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd
 #
@@ -21,6 +21,7 @@ func _initialize() -> void:
 	_save("cafe", _cafe())
 	_save("aquarium", _aquarium())
 	_save("restaurant_and_cafe", _restaurant())
+	_save("ninas_house", _ninas_house())
 	quit()
 
 
@@ -364,6 +365,79 @@ func _restaurant() -> Node3D:
 	light(root_node, Vector3(0, 6, 0), Color(1.0, 0.85, 0.6), 1.5, 18)
 	light(root_node, Vector3(0, 3, -7.5), Color(1.0, 0.9, 0.7), 1.0, 8)
 	label(root_node, "Restaurant & Cafe", Vector3(0, 5.8, -2), 80, Color(1, 0.95, 0.8))
+	own(root_node)
+	return root_node
+
+
+# -----------------------------------------------------------------------------
+# Nina's House: her bedroom, with the bed she sleeps in (scripts/bed.gd: sleep until morning and save), a desk with
+# crayons and drawings, a bookshelf, a toy chest and a round rug
+# -----------------------------------------------------------------------------
+func _ninas_house() -> Node3D:
+	var r := 9.0
+	var root_node := dome_room("Nina's House", r, Color(0.98, 0.75, 0.8), Color(0.62, 0.44, 0.3), Color(1.0, 0.9, 0.85))
+	var wood := mat("Nina Wood", Color(0.6, 0.38, 0.22), 0.6)
+	var cream := mat("Nina Cream", Color(0.97, 0.94, 0.88), 0.7)
+	var red := mat("Nina Red", Color(0.9, 0.12, 0.22), 0.7)              # the red of the bow in her hair
+	# Round rug in the middle
+	mesh_at(cylinder(2.6, 2.6, 0.04, 32), mat("Rug", Color(0.75, 0.55, 0.95), 0.9), Vector3(0, 0.02, 0), root_node)
+	mesh_at(cylinder(1.6, 1.6, 0.05, 32), mat("Rug Middle", Color(0.98, 0.8, 0.45), 0.9), Vector3(0, 0.03, 0), root_node)
+	# The bed, against the back wall on the left: frame, mattress, red blanket, pillow and headboard
+	var bed := node("Bed", root_node, Vector3(-3.6, 0, -4.6), 0.35)
+	solid_box(Vector3(2.2, 0.5, 3.2), wood, Vector3(0, 0.25, 0), bed)
+	mesh_at(box(Vector3(2.0, 0.3, 3.0)), cream, Vector3(0, 0.65, 0), bed)
+	mesh_at(box(Vector3(2.08, 0.14, 2.0)), red, Vector3(0, 0.84, 0.5), bed)
+	mesh_at(box(Vector3(1.3, 0.22, 0.6)), mat("Pillow", Color(1, 1, 1), 0.8), Vector3(0, 0.92, -1.05), bed)
+	solid_box(Vector3(2.2, 1.5, 0.2), wood, Vector3(0, 0.75, -1.6), bed)
+	for k in 2:                                       # a little bow on the headboard
+		mesh_at(sphere(0.2, 10), red, Vector3(-0.22 + k * 0.44, 1.6, -1.55), bed)
+	var sleep_area := Area3D.new()
+	sleep_area.name = "SleepSpot"
+	sleep_area.set_script(load("res://scripts/bed.gd"))
+	var scs := CollisionShape3D.new()
+	var sshape := SphereShape3D.new()
+	sshape.radius = 2.4
+	scs.shape = sshape
+	scs.position = Vector3(0, 1.0, 0.6)
+	sleep_area.add_child(scs)
+	var prompt := Label3D.new()
+	prompt.name = "Prompt"
+	prompt.text = "Press F to sleep"
+	prompt.font_size = 44
+	prompt.pixel_size = 0.01
+	prompt.outline_size = 10
+	prompt.outline_modulate = Color(0.15, 0.1, 0.12)
+	prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt.no_depth_test = true
+	prompt.position = Vector3(0, 2.3, 0)
+	sleep_area.add_child(prompt)
+	bed.add_child(sleep_area)
+	# Nightstand with a little lamp
+	solid_box(Vector3(0.8, 0.7, 0.7), wood, Vector3(-1.7, 0.35, -5.6), root_node, 0.35)
+	mesh_at(cylinder(0.1, 0.25, 0.5, 12), mat("Lamp Shade", Color(1.0, 0.85, 0.55), 0.6, 0.0, 1.2), Vector3(-1.7, 0.95, -5.6), root_node)
+	light(root_node, Vector3(-1.7, 1.4, -5.4), Color(1.0, 0.8, 0.55), 0.8, 5)
+	# Desk and chair on the right, with paper and crayons (she likes to draw)
+	solid_box(Vector3(2.2, 0.08, 1.0), wood, Vector3(4.3, 0.85, -4.2), root_node, -0.45)
+	for c in [Vector2(-0.95, -0.4), Vector2(0.95, -0.4), Vector2(-0.95, 0.4), Vector2(0.95, 0.4)]:
+		var leg := Vector3(c.x, 0, c.y).rotated(Vector3.UP, -0.45)
+		mesh_at(box(Vector3(0.08, 0.85, 0.08)), wood, Vector3(4.3, 0.42, -4.2) + leg, root_node, -0.45)
+	mesh_at(box(Vector3(0.6, 0.01, 0.45)), cream, Vector3(4.1, 0.9, -4.1), root_node, -0.3)
+	var crayons := [Color(0.95, 0.3, 0.3), Color(0.3, 0.6, 1.0), Color(0.4, 0.85, 0.4), Color(1.0, 0.85, 0.3)]
+	for k in 4:
+		mesh_at(cylinder(0.025, 0.025, 0.25, 6), mat("Crayon %d" % k, crayons[k], 0.6), Vector3(4.7 + k * 0.08, 0.92, -4.4), root_node, 0.0)
+	solid_box(Vector3(0.6, 0.5, 0.6), mat("Chair", Color(0.55, 0.75, 0.95), 0.6), Vector3(3.6, 0.25, -3.2), root_node, -0.45)
+	# Bookshelf by the wall, and a toy chest
+	var shelf := node("Bookshelf", root_node, Vector3(6.3, 0, 1.2), -PI / 2 + 0.2)
+	solid_box(Vector3(2.0, 2.2, 0.5), wood, Vector3(0, 1.1, 0), shelf)
+	var spines := [Color(0.9, 0.4, 0.5), Color(0.4, 0.6, 0.95), Color(0.95, 0.8, 0.35), Color(0.5, 0.85, 0.6), Color(0.75, 0.5, 0.95)]
+	for row in 3:
+		for k in 6:
+			mesh_at(box(Vector3(0.2, 0.5, 0.35)), mat("Book %d" % ((row + k) % 5), spines[(row + k) % 5], 0.7),
+				Vector3(-0.75 + k * 0.3, 0.4 + row * 0.7, 0.1), shelf)
+	solid_box(Vector3(1.4, 0.8, 0.8), mat("Toy Chest", Color(0.95, 0.6, 0.3), 0.6), Vector3(-6.0, 0.4, 1.5), root_node, PI / 2 - 0.2)
+	mesh_at(sphere(0.35, 12), mat("Toy Ball", Color(0.3, 0.75, 1.0), 0.5), Vector3(-5.2, 0.35, 3.0), root_node)
+	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.88, 0.75), 1.2, 14)
+	label(root_node, "Nina's House", Vector3(0, 3.6, -7.5), 56, Color(1, 0.92, 0.95))
 	own(root_node)
 	return root_node
 
