@@ -548,7 +548,7 @@ func _buildings() -> void:
 	dome_building("Book Store", 69, 31, 6, 0.0)
 	# Homes west of the lake, under the plateau
 	_ninas_house(dome_building("Nina's House", -48, 24, 5, 0.4))
-	_brunos_house(dome_building("Bruno's House", -62, 30, 4.5, 0.3, Color(0.75, 0.8, 0.88)))
+	_dashs_house(dome_building("Dash's House", -62, 30, 4.5, 0.3, Color(0.75, 0.8, 0.88)))
 	dome_building("Melanie's House", -30, 30, 4.5, 0.0)
 	# The Observatory on the northeast meadow, door facing the lake
 	_observatory(dome_building("Observatory", 100, -88, 7, -0.85, Color(0.85, 0.85, 0.9)))
@@ -574,8 +574,8 @@ func _ninas_house(g: Node3D) -> void:
 	own(g)
 
 
-func _brunos_house(g: Node3D) -> void:
-	# Bruno is from the future: a silver dome with an antenna mast and glowing rings
+func _dashs_house(g: Node3D) -> void:
+	# Dash is from the future: a silver dome with an antenna mast and glowing rings
 	var metal := mat("Future Metal", Color(0.8, 0.82, 0.88), 0.25, 0.8)
 	var glow := mat("Future Glow", Color(0.2, 0.95, 1.0), 0.3, 0.0, 2.5)
 	mesh_at(cylinder(0.12, 0.18, 4.0, 8), metal, Vector3(0, 6.2, 0), g)

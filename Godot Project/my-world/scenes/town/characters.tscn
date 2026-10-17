@@ -5,7 +5,8 @@
 [ext_resource type="PackedScene" path="res://models/characters/moth_kid.glb" id="3_moth"]
 [ext_resource type="PackedScene" path="res://models/characters/bike_boy.glb" id="4_boy"]
 [ext_resource type="PackedScene" path="res://models/characters/rook.glb" id="5_rook"]
-[ext_resource type="Script" path="res://scripts/rook.gd" id="8_rook"]
+[ext_resource type="Script" path="res://scripts/wanderer.gd" id="8_wander"]
+[ext_resource type="PackedScene" path="res://models/characters/wolf.glb" id="9_wolf"]
 [ext_resource type="PackedScene" path="res://models/props/bike.glb" id="6_bike"]
 [ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 
@@ -15,6 +16,10 @@ height = 1.5
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_rook"]
 radius = 0.3
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wolf"]
+radius = 0.28
+height = 1.2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bike"]
 size = Vector3(0.5, 0.9, 1.4)
@@ -47,16 +52,16 @@ animation = "idle"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 
-[node name="Bruno" type="Node3D" parent="."]
+[node name="Dash" type="Node3D" parent="."]
 transform = Transform3D(0.557023, 0, 0.830497, 0, 1, 0, -0.830497, 0, 0.557023, 11, -0.2366, 58)
 script = ExtResource("1_npc")
 animation = "idle"
 
-[node name="Model" parent="Bruno" instance=ExtResource("4_boy")]
+[node name="Model" parent="Dash" instance=ExtResource("4_boy")]
 
-[node name="Body" type="StaticBody3D" parent="Bruno"]
+[node name="Body" type="StaticBody3D" parent="Dash"]
 
-[node name="Shape" type="CollisionShape3D" parent="Bruno/Body"]
+[node name="Shape" type="CollisionShape3D" parent="Dash/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 
@@ -75,7 +80,7 @@ shape = SubResource("BoxShape3D_bike")
 
 [node name="Rook" type="CharacterBody3D" parent="."]
 transform = Transform3D(0.932327, 0, -0.361615, 0, 1, 0, 0.361615, 0, 0.932327, -4, 0.5, 39)
-script = ExtResource("8_rook")
+script = ExtResource("8_wander")
 
 [node name="Model" parent="Rook" instance=ExtResource("5_rook")]
 
@@ -95,3 +100,24 @@ animation = "idle"
 [node name="Shape" type="CollisionShape3D" parent="GreenMan/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
+
+[node name="SkatingWolf" type="CharacterBody3D" parent="."]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -40, 2, 30)
+script = ExtResource("8_wander")
+wander_radius = 6.0
+walk_speed = 1.6
+run_speed = 1.6
+run_chance = 0.0
+walk_anim = "skate"
+run_anim = "skate"
+walk_anim_speed = 1.0
+run_anim_speed = 1.0
+react_anim = ""
+react_sound = ""
+random_react_chance = 0.0
+
+[node name="Model" parent="SkatingWolf" instance=ExtResource("9_wolf")]
+
+[node name="Shape" type="CollisionShape3D" parent="SkatingWolf"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.28, 0)
+shape = SubResource("CapsuleShape3D_wolf")
