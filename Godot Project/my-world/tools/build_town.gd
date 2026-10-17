@@ -27,7 +27,9 @@ const BASIN_DEPTH := 1.6
 const PLATEAU := Vector3(-78, -42, 12)           # Secret Gardens / Hot Springs plateau: x, z, height
 const PLATEAU_CLIFF := 33.0                      # cliff radius
 const PLATEAU_RAMP := Vector2(-0.6, 0.8)         # direction of the walkable ramp up (southwest)
-const CASTLE_HILL := Vector3(20, -100, 20)       # school hill: x, z, height
+const CASTLE_HILL := Vector3(20, -108, 20)       # school hill: x, z, height
+const CASTLE_HILL_TOP := 30.0                    # flat top radius: wide enough for the whole castle, domed halls too
+const CASTLE_HILL_FOOT := 66.0                   # where the hill meets the town (clear of the north shore shops)
 const TOWN_SQUARE := Vector3(-12, -21, 10)       # x, z, radius (land between the two lakes)
 const CASTLE_SCALE := 1.6
 
@@ -228,7 +230,7 @@ func height(x: float, z: float) -> float:
 	var ramp := ss(0.8, 0.95, v.normalized().dot(PLATEAU_RAMP)) if dp > 0.01 else 0.0
 	h += PLATEAU.z * (1.0 - ss(lerpf(PLATEAU_CLIFF - 3.0, 24.0, ramp), lerpf(PLATEAU_CLIFF + 2.0, 62.0, ramp), dp))
 	var dc := Vector2(x - CASTLE_HILL.x, z - CASTLE_HILL.y).length()
-	h += CASTLE_HILL.z * (1.0 - ss(24.0, 62.0, dc))
+	h += CASTLE_HILL.z * (1.0 - ss(CASTLE_HILL_TOP, CASTLE_HILL_FOOT, dc))
 	return h
 
 
@@ -255,6 +257,19 @@ func _build() -> void:
 	_skate_park()
 	_fence_and_sign()
 	_boats()
+	_town_hall()
+	_haunted_house()
+	_antique_car()
+	_welcome_sign()
+	_portal()
+	_tree_house()
+	_rock_wall()
+	_cloud_nest()
+	_bubble_bath()
+	_park_mural()
+	_soccer_field()
+	_cloud_slide()
+	_happy_places()
 	_mountains()
 	_sky_objects()
 	_characters()
@@ -462,8 +477,10 @@ func _boardwalks() -> void:
 
 
 func dome_building(name: String, x: float, z: float, r: float, yaw: float, color := Color(0.98, 0.78, 0.2),
-		extra := []) -> void:
-	var c := ground(x, z)
+		extra := [], floor_y := NAN) -> Node3D:
+	# floor_y: build it up in the air at that height instead of on the ground (the toy store on the cloud)
+	var c := ground(x, z) if is_nan(floor_y) else Vector3(x, floor_y, z)
+	var id := name.replace("&", "And").replace("'", "")
 	var g := group(name, c, yaw)
 	var shell := mat("Dome " + str(color), color, 0.6)
 	var trim := mat("Dome Trim", Color(0.85, 0.6, 0.12), 0.7)
@@ -486,7 +503,7 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	var area := Area3D.new()
 	area.name = "Door"
 	area.set_script(load("res://scripts/door.gd"))
-	area.set("destination", "res://scenes/interiors/%s.tscn" % name.replace("&", "and").to_snake_case())
+	area.set("destination", "res://scenes/interiors/%s.tscn" % name.replace("&", "and").replace("'", "").to_snake_case())
 	area.set("spawn", "Entrance")
 	area.set("place_name", name)
 	area.position = Vector3(0, 1.2, r + 0.6)
@@ -495,13 +512,16 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	area.add_child(cs)
 	g.add_child(area)
 	var back := Marker3D.new()                     # where she appears when leaving this building, facing away from it
-	back.name = "From" + name.replace(" ", "").replace("&", "And")
+	back.name = "From" + id.replace(" ", "")
 	var front := Vector2(x, z) + Vector2(sin(yaw), cos(yaw)) * (r + 4.5)
-	back.position = Vector3(0, height(front.x, front.y) - c.y + 1.0, r + 4.5)   # on the ground in front of the door
+	var front_y := height(front.x, front.y) - c.y if is_nan(floor_y) else 0.0
+	back.position = Vector3(0, front_y + 1.0, r + 4.5)   # on the ground in front of the door
 	back.rotation.y = PI
 	g.add_child(back)
-	keep_clear.append(Vector3(x, z, r + 6))
+	if is_nan(floor_y):
+		keep_clear.append(Vector3(x, z, r + 6))
 	own(g)
+	return g
 
 
 func _sphere_shape(r: float) -> SphereShape3D:
@@ -516,7 +536,7 @@ func _buildings() -> void:
 	dome_building("Museum", -40, -50, 7, 0.0, Color(0.98, 0.78, 0.2), [Vector4(-7, -2, 4.5, 0)])
 	dome_building("Library", -12, -50, 8, 0.0, Color(0.98, 0.78, 0.2), [Vector4(8, -3, 5, 0)])
 	dome_building("Cafe", 12, -47, 5, 0.0)
-	dome_building("Pharmacy", 30, -47, 6, 0.0)
+	_potion_shop(dome_building("Potion Shop", 30, -47, 6, 0.0, Color(0.55, 0.3, 0.9)))
 	dome_building("Pet Shop", 48, -45, 5.5, 0.0)
 	dome_building("Pet Shop 2", 64, -43, 5.5, 0.0)
 	# East side (faces west, toward the lake)
@@ -527,9 +547,60 @@ func _buildings() -> void:
 	dome_building("Clothing Boutique", 52, 32, 6, 0.0)
 	dome_building("Book Store", 69, 31, 6, 0.0)
 	# Homes west of the lake, under the plateau
-	dome_building("House", -48, 24, 5, 0.4)
-	dome_building("House 2", -62, 30, 4.5, 0.3)
-	dome_building("House 3", -30, 30, 4.5, 0.0)
+	_ninas_house(dome_building("Nina's House", -48, 24, 5, 0.4))
+	_brunos_house(dome_building("Bruno's House", -62, 30, 4.5, 0.3, Color(0.75, 0.8, 0.88)))
+	dome_building("Melanie's House", -30, 30, 4.5, 0.0)
+	# The Observatory on the northeast meadow, door facing the lake
+	_observatory(dome_building("Observatory", 100, -88, 7, -0.85, Color(0.85, 0.85, 0.9)))
+
+
+func _potion_shop(g: Node3D) -> void:
+	# A big potion bottle on the roof: a glass bulb with a glowing brew, a neck and a cork
+	var glass := mat("Potion Glass", Color(0.75, 0.9, 1.0), 0.05, 0.0, 0.0, 0.45)
+	var brew := mat("Potion Brew", Color(0.4, 1.0, 0.5), 0.3, 0.0, 1.4)
+	mesh_at(sphere(1.6, -1, 20), glass, Vector3(0, 6.6, -1.0), g)
+	mesh_at(sphere(1.25, -1, 20), brew, Vector3(0, 6.4, -1.0), g)
+	mesh_at(cylinder(0.45, 0.6, 1.4, 12), glass, Vector3(0, 8.5, -1.0), g)
+	mesh_at(cylinder(0.5, 0.45, 0.5, 12), mat("Cork", Color(0.6, 0.42, 0.25)), Vector3(0, 9.4, -1.0), g)
+	own(g)
+
+
+func _ninas_house(g: Node3D) -> void:
+	# A big red bow on top, like the one in Nina's hair
+	var bow := mat("Nina Bow", Color(0.9, 0.1, 0.2), 0.5)
+	for s in [-1, 1]:
+		mesh_at(sphere(1.1, 1.4, 16), bow, Vector3(s * 1.0, 5.1, 0), g, 0.0, Vector3(0, 0, s * 0.5))
+	mesh_at(sphere(0.5, -1, 12), bow, Vector3(0, 5.1, 0), g)
+	own(g)
+
+
+func _brunos_house(g: Node3D) -> void:
+	# Bruno is from the future: a silver dome with an antenna mast and glowing rings
+	var metal := mat("Future Metal", Color(0.8, 0.82, 0.88), 0.25, 0.8)
+	var glow := mat("Future Glow", Color(0.2, 0.95, 1.0), 0.3, 0.0, 2.5)
+	mesh_at(cylinder(0.12, 0.18, 4.0, 8), metal, Vector3(0, 6.2, 0), g)
+	mesh_at(sphere(0.35, -1, 12), glow, Vector3(0, 8.4, 0), g)
+	for k in 2:
+		var ring := TorusMesh.new()
+		ring.inner_radius = 0.7 + k * 0.5
+		ring.outer_radius = 0.85 + k * 0.5
+		mesh_at(ring, glow, Vector3(0, 6.6 + k * 0.9, 0), g)
+	var band := TorusMesh.new()                    # a glowing stripe round the dome
+	band.inner_radius = 4.35
+	band.outer_radius = 4.6
+	mesh_at(band, glow, Vector3(0, 1.2, 0), g)
+	own(g)
+
+
+func _observatory(g: Node3D) -> void:
+	# A telescope poking out of a slot in the dome, aimed at the ringed planet
+	var tube := mat("Telescope", Color(0.3, 0.32, 0.4), 0.4, 0.6)
+	var slot := mat("Dome Slot", Color(0.1, 0.1, 0.16))
+	mesh_at(box(Vector3(1.6, 6.0, 0.5)), slot, Vector3(0, 4.4, -3.6), g, 0.0, Vector3(0.55, 0, 0))
+	mesh_at(cylinder(0.7, 0.9, 7.0, 16), tube, Vector3(0, 7.2, -3.4), g, 0.0, Vector3(-0.7, 0, 0))
+	mesh_at(cylinder(0.95, 0.95, 0.4, 16), mat("Telescope Lens", Color(0.5, 0.8, 1.0), 0.05, 0.0, 1.5), Vector3(0, 9.9, -5.7), g,
+		0.0, Vector3(-0.7, 0, 0))
+	own(g)
 
 
 func _castle() -> void:
@@ -594,10 +665,14 @@ func _castle() -> void:
 		castle_tower(g, base, r, base.y + 4.5 * S, stone, roof, lit, false, false)
 
 	# Domed halls at the castle's feet, left and right of the gate: x, z, radius
-	for d in [Vector3(-18, 5, 6.0), Vector3(18, 5, 6.0), Vector3(-12.5, 11, 3.6), Vector3(12.5, 11, 3.6)]:
+	for d in [Vector3(-16, 5, 6.0), Vector3(16, 5, 6.0), Vector3(-11.5, 11, 3.6), Vector3(11.5, 11, 3.6)]:
 		var dp := Vector3(d.x, 0, d.y) * S
 		dp.y = height(top.x + dp.x, top.z + dp.z) - top.y
-		domed_hall(g, dp, d.z * S, stone, roof, lit)
+		var low := dp.y                               # lowest ground round its wall, so no side floats on a slope
+		for k in 12:
+			var a := k * TAU / 12
+			low = minf(low, height(top.x + dp.x + sin(a) * d.z * S, top.z + dp.z + cos(a) * d.z * S) - top.y)
+		domed_hall(g, dp, d.z * S, stone, roof, lit, dp.y - low + 2.0)
 
 	# Front gate (south): an arched door between two pillars, with the school entrance trigger
 	var front := keep_r
@@ -628,7 +703,7 @@ func _castle() -> void:
 	glow.position = Vector3(0, 4, front + 3)
 	g.add_child(glow)
 	sign_post(g, "School", Vector3(6, 0, front + 5), 0.0)
-	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, 38))
+	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, 40))
 	own(g)
 
 
@@ -663,11 +738,12 @@ func castle_tower(parent: Node, base: Vector3, r: float, top_y: float, stone: Ma
 		row += 1
 
 
-func domed_hall(parent: Node, pos: Vector3, r: float, stone: Material, roof: Material, lit: Material) -> void:
-	# A round hall with a grey stone dome, gold arched windows all round, and a little spire on top
+func domed_hall(parent: Node, pos: Vector3, r: float, stone: Material, roof: Material, lit: Material, skirt := 3.0) -> void:
+	# A round hall with a grey stone dome, gold arched windows all round, and a little spire on top.
+	# skirt: how far its wall reaches below its centre, so it meets the ground on a slope
 	var drum_h := r * 0.7
-	mesh_at(cylinder(r, r * 1.03, drum_h + 3.0, 32), stone, pos + Vector3(0, drum_h / 2 - 1.5, 0), parent)
-	solid(_cyl_shape(r * 1.03, drum_h + 3.0), pos + Vector3(0, drum_h / 2 - 1.5, 0), parent)
+	mesh_at(cylinder(r, r * 1.03, drum_h + skirt, 32), stone, pos + Vector3(0, (drum_h - skirt) / 2, 0), parent)
+	solid(_cyl_shape(r * 1.03, drum_h + skirt), pos + Vector3(0, (drum_h - skirt) / 2, 0), parent)
 	mesh_at(cylinder(r * 1.06, r * 1.06, r * 0.12, 32), roof, pos + Vector3(0, drum_h, 0), parent)
 	mesh_at(sphere(r * 0.98, r * 0.98 * 2, 32), stone, pos + Vector3(0, drum_h, 0), parent)
 	solid(_sphere_shape(r * 0.98), pos + Vector3(0, drum_h, 0), parent)
@@ -778,7 +854,7 @@ func _towers() -> void:
 	mushroom_tower("Castle Tower Back", 52, -132, 28, true)
 
 
-func court(name: String, x: float, z: float, size: Vector2, color: Color, basketball: bool) -> void:
+func court(name: String, x: float, z: float, size: Vector2, color: Color, basketball: bool, pickleball := false) -> void:
 	var g := group(name, ground(x, z))
 	mesh_at(box(Vector3(size.x + 3, 0.3, size.y + 3)), mat("Court Edge", Color(0.3, 0.55, 0.35)), Vector3(0, 0.05, 0), g)
 	mesh_at(box(Vector3(size.x, 0.32, size.y)), mat("Court " + name, color, 0.7), Vector3(0, 0.07, 0), g)
@@ -802,14 +878,24 @@ func court(name: String, x: float, z: float, size: Vector2, color: Color, basket
 			Vector3(0, 0.6, 0), g)
 		for s in [-1, 1]:
 			mesh_at(cylinder(0.06, 0.06, 1.2, 8), metal, Vector3(0, 0.6, s * size.y / 2), g)
-	sign_post(g, "Basketball Court" if basketball else "Tennis Court", Vector3(0, 0, size.y / 2 + 2.5), 0.0)
+	if pickleball:
+		# A smaller pickleball court painted inside the tennis court, in its own colour
+		var pl := mat("Pickleball Line", Color(1.0, 0.85, 0.2), 0.6)
+		var p := size * Vector2(0.56, 0.56)
+		mesh_at(box(Vector3(p.x, 0.36, p.y)), mat("Pickleball Court", Color(0.35, 0.75, 0.5), 0.7), Vector3(0, 0.075, 0), g)
+		for s in [-1, 1]:
+			mesh_at(box(Vector3(p.x, 0.38, 0.1)), pl, Vector3(0, 0.08, s * p.y / 2), g)
+			mesh_at(box(Vector3(0.1, 0.38, p.y)), pl, Vector3(s * p.x / 2, 0.08, 0), g)
+			mesh_at(box(Vector3(0.1, 0.38, p.y)), pl, Vector3(s * p.x * 0.16, 0.08, 0), g)     # kitchen lines
+	var label := "Basketball Court" if basketball else ("Tennis & Pickleball" if pickleball else "Tennis Court")
+	sign_post(g, label, Vector3(0, 0, size.y / 2 + 2.5), 0.0)
 	keep_clear.append(Vector3(x, z, maxf(size.x, size.y) / 2 + 3))
 	own(g)
 
 
 func _courts() -> void:
 	court("Basketball Court", 58, 52, Vector2(28, 15), Color(0.25, 0.55, 0.9), true)
-	court("Tennis Court", 92, 52, Vector2(24, 11), Color(0.3, 0.62, 0.95), false)
+	court("Tennis Court", 92, 52, Vector2(24, 11), Color(0.3, 0.62, 0.95), false, true)
 
 
 func _skate_park() -> void:
@@ -1135,7 +1221,7 @@ func _enemies() -> void:
 	# x, z, big?  Spots in the lake, inside a building's clear zone or near the spawn are skipped with a warning.
 	var spots := [
 		# South meadow, past the spawn
-		Vector3(28, 72, 0), Vector3(-22, 82, 0), Vector3(45, 90, 0),
+		Vector3(20, 98, 0), Vector3(-22, 82, 0), Vector3(-5, 100, 0),
 		# East meadow beside the courts
 		Vector3(115, 12, 0), Vector3(120, -25, 0), Vector3(112, 40, 0),
 		# Foot of the castle hill
@@ -1143,7 +1229,7 @@ func _enemies() -> void:
 		# West fields
 		Vector3(-100, 10, 0), Vector3(-115, -5, 0),
 		# On the plateau, around the Secret Gardens: big Gloops
-		Vector3(-98, -48, 1), Vector3(-62, -58, 1), Vector3(-95, -25, 1),
+		Vector3(-98, -48, 1), Vector3(-55, -30, 1), Vector3(-95, -25, 1),
 	]
 	var gloop: PackedScene = load("res://scenes/enemies/gloop.tscn")
 	var g := group("Enemies", Vector3.ZERO)
@@ -1193,3 +1279,561 @@ func _player() -> void:
 	player.position = ground(SPAWN.x, SPAWN.z) + Vector3(0, 1.0, 0)
 	town.add_child(player)
 	player.owner = town                     # saved as a reference to player.tscn, not a copy of its insides
+
+
+# -----------------------------------------------------------------------------
+# Places from the show (story/show-notes.md): Mr. Palmer's town map, the pilot's haunted house and cloud water slide,
+# the happy places, and the portal to Earth. The town itself is Galactopia.
+# -----------------------------------------------------------------------------
+const TOWN_HALL := Vector3(16, 34, 0.0)           # x, z, yaw (door faces south, toward the spawn)
+const HAUNTED_HOUSE := Vector3(-55, -95, 0.53)    # x, z, yaw (door faces the town)
+const PORTAL := Vector3(30, 72, -1.95)            # x, z, yaw (faces the spawn)
+const TREE_HOUSE := Vector2(-120, 25)
+const ZIPLINE_END := Vector2(-130, -10)
+const ROCK_WALL := Vector3(126, 58, -PI / 2)      # x, z, yaw (climbing face looks west)
+const CLOUD_NEST := Vector2(-60, -50)             # above the plateau, a few cloud hops up from the Secret Gardens
+const BUBBLE_BATH := Vector2(-60, 5)
+const MURAL := Vector3(-30, 48, PI / 2)           # x, z, yaw (painted side faces the skate park)
+const SOCCER := Vector2(62, 84)
+const SLIDE_CLOUD := Vector3(-28, 6, 20)          # x, z, height: the cloud the water slide starts from, over the lake
+const SLIDE_FLAG := "cloud_slide"                 # Game item that unlocks it (the end of the pilot story)
+
+
+func door(parent: Node3D, destination: String, place_name: String, pos: Vector3, size: Vector3) -> void:
+	# A doorway trigger (scripts/door.gd), plus the marker you come back out at, in front of it
+	var area := Area3D.new()
+	area.name = "Door"
+	area.set_script(load("res://scripts/door.gd"))
+	area.set("destination", destination)
+	area.set("spawn", "Entrance")
+	area.set("place_name", place_name)
+	area.position = pos
+	var cs := CollisionShape3D.new()
+	cs.shape = box_shape(size)
+	area.add_child(cs)
+	parent.add_child(area)
+	var back := Marker3D.new()
+	back.name = "From" + place_name.replace(" ", "").replace("'", "")
+	back.position = pos + Vector3(0, 0, 4.0)
+	back.rotation.y = PI
+	parent.add_child(back)
+
+
+func shader_mat(code: String) -> ShaderMaterial:
+	var sh := Shader.new()
+	sh.code = code
+	var m := ShaderMaterial.new()
+	m.shader = sh
+	return m
+
+
+func label3d(parent: Node3D, text: String, pos: Vector3, size := 96, color := Color(1, 0.97, 0.88)) -> Label3D:
+	var l := Label3D.new()
+	l.text = text
+	l.font_size = size
+	l.pixel_size = 0.01
+	l.outline_size = 14
+	l.modulate = color
+	l.outline_modulate = Color(0.2, 0.1, 0.25)
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.position = pos
+	parent.add_child(l)
+	return l
+
+
+func puff(parent: Node3D, center: Vector3, r: float, m: Material, seed_value: int, count := 9) -> void:
+	# A puffy cloud: a squashed body with round puffs around and on top of it
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var body := mesh_at(sphere(r, r * 0.8, 24), m, center, parent)
+	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for k in count:
+		var a := k * TAU / count + rng.randf_range(-0.2, 0.2)
+		var pr := r * rng.randf_range(0.35, 0.55)
+		var p := center + Vector3(cos(a) * r * 0.8, rng.randf_range(-0.15, 0.1) * r, sin(a) * r * 0.8)
+		mesh_at(sphere(pr, pr * 1.6, 16), m, p, parent).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func _town_hall() -> void:
+	# Mr. Palmer's office: a big dome with a clock tower behind it and the town map on the wall inside (pilot, part 1)
+	var g := dome_building("Town Hall", TOWN_HALL.x, TOWN_HALL.y, 7, TOWN_HALL.z, Color(0.95, 0.93, 0.88))
+	var stone := mat("Town Hall Stone", Color(0.92, 0.9, 0.85), 0.7)
+	var roof := mat("Town Hall Roof", Color(0.2, 0.55, 0.85), 0.5)
+	var tower_z := -5.0
+	mesh_at(box(Vector3(3.2, 13, 3.2)), stone, Vector3(0, 6.5, tower_z), g)
+	solid(box_shape(Vector3(3.2, 13, 3.2)), Vector3(0, 6.5, tower_z), g)
+	mesh_at(cylinder(0.0, 2.6, 3.4, 4), roof, Vector3(0, 14.7, tower_z), g, PI / 4)
+	var face := mat("Clock Face", Color(1.0, 0.97, 0.85), 0.4, 0.0, 0.5)
+	var hand := mat("Clock Hand", Color(0.1, 0.1, 0.15))
+	mesh_at(cylinder(1.2, 1.2, 0.2, 24), face, Vector3(0, 10.8, tower_z + 1.65), g, 0.0, Vector3(PI / 2, 0, 0))
+	mesh_at(box(Vector3(0.12, 0.9, 0.08)), hand, Vector3(0, 11.2, tower_z + 1.8), g)
+	mesh_at(box(Vector3(0.7, 0.12, 0.08)), hand, Vector3(0.3, 10.8, tower_z + 1.8), g)
+	mesh_at(cylinder(0.06, 0.06, 4.0, 6), hand, Vector3(0, 18.4, tower_z), g)             # flag pole
+	mesh_at(box(Vector3(0.05, 1.0, 1.6)), mat("Town Flag", Color(0.95, 0.4, 0.6), 0.6), Vector3(0, 19.8, tower_z + 0.8), g)
+	own(g)
+
+
+func _haunted_house() -> void:
+	# The pilot's cliffhanger: the old house the rich guy offers for the water slide. They try to buy it and an evil
+	# spirit escapes. Crooked, boarded up, faint green light in the windows, bare trees round it.
+	var c := ground(HAUNTED_HOUSE.x, HAUNTED_HOUSE.y)
+	var g := group("Haunted House", c, HAUNTED_HOUSE.z)
+	var wall := mat("Haunted Wall", Color(0.3, 0.27, 0.36), 0.95, 0.0, 0.0, 1.0, false)
+	var roof := mat("Haunted Roof", Color(0.14, 0.11, 0.18), 0.9, 0.0, 0.0, 1.0, false)
+	var ghost := mat("Haunted Window", Color(0.55, 1.0, 0.6), 0.5, 0.0, 1.3, 1.0, false)
+	var plank := mat("Haunted Plank", Color(0.32, 0.22, 0.16), 0.95, 0.0, 0.0, 1.0, false)
+	# Main house, sunk a little into the ground and leaning slightly
+	mesh_at(box(Vector3(11, 8, 9)), wall, Vector3(0, 3.0, 0), g, 0.0, Vector3(0, 0, 0.03))
+	solid(box_shape(Vector3(11, 8, 9)), Vector3(0, 3.0, 0), g)
+	var gable := PrismMesh.new()
+	gable.size = Vector3(12, 4.5, 10)
+	mesh_at(gable, roof, Vector3(0, 9.2, 0), g, 0.0, Vector3(0, 0, 0.05))
+	# Crooked corner tower with a witch-hat roof
+	mesh_at(cylinder(2.0, 2.2, 13, 12), wall, Vector3(4.6, 5.0, 3.0), g, 0.0, Vector3(0.04, 0, -0.06))
+	solid(_cyl_shape(2.2, 13), Vector3(4.6, 5.0, 3.0), g)
+	mesh_at(cylinder(0.0, 2.8, 5.5, 12), roof, Vector3(4.2, 14.2, 3.0), g, 0.0, Vector3(0.1, 0, -0.18))
+	# Windows: two rows, some glowing, some boarded
+	for row in 2:
+		for k in 3:
+			var wx := -3.4 + k * 3.0
+			var wy := 2.4 + row * 3.4
+			mesh_at(box(Vector3(1.4, 1.8, 0.2)), ghost if (row + k) % 2 == 0 else roof, Vector3(wx, wy, 4.55), g)
+			if (row + k) % 2 == 1:
+				for s in [-1, 1]:
+					mesh_at(box(Vector3(2.0, 0.25, 0.12)), plank, Vector3(wx, wy, 4.7), g, 0.0, Vector3(0, 0, s * 0.6))
+	mesh_at(box(Vector3(1.6, 1.6, 0.2)), ghost, Vector3(4.6, 9.0, 5.15), g)
+	# Front door and porch steps
+	mesh_at(box(Vector3(2.2, 3.4, 0.3)), roof, Vector3(0, 0.7, 4.6), g)
+	mesh_at(box(Vector3(5, 0.5, 2.0)), plank, Vector3(0, -0.5, 5.6), g)
+	door(g, "res://scenes/interiors/haunted_house.tscn", "Haunted House", Vector3(0, 1.2, 5.0), Vector3(2.4, 4.0, 1.2))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.5, 1.0, 0.6)
+	glow.light_energy = 1.6
+	glow.omni_range = 14.0
+	glow.position = Vector3(0, 4, 7)
+	g.add_child(glow)
+	sign_post(g, "For Sale!", Vector3(-6.5, 0, 7.5), 0.3)
+	# Bare, twisted trees in the yard
+	var bark := mat("Dead Bark", Color(0.18, 0.14, 0.16), 0.95, 0.0, 0.0, 1.0, false)
+	for t in [Vector3(-10, 8, 0.2), Vector3(9, 9, -0.3), Vector3(-9, -7, 0.5), Vector3(11, -5, -0.1)]:
+		var base := ground(c.x + t.x * cos(HAUNTED_HOUSE.z) + t.y * sin(HAUNTED_HOUSE.z),
+			c.z - t.x * sin(HAUNTED_HOUSE.z) + t.y * cos(HAUNTED_HOUSE.z)) - c
+		mesh_at(cylinder(0.25, 0.45, 6, 6), bark, base + Vector3(0, 3, 0), g, 0.0, Vector3(t.z, 0, t.z * 0.5))
+		for b in 3:
+			mesh_at(cylinder(0.05, 0.15, 2.6, 5), bark, base + Vector3(0.3 * (b - 1), 4.5 + b * 0.6, 0), g, b * 2.1,
+				Vector3(0.9, 0, 0))
+	keep_clear.append(Vector3(HAUNTED_HOUSE.x, HAUNTED_HOUSE.y, 18))
+	own(g)
+
+
+func _antique_car() -> void:
+	# A shiny old-fashioned car parked on the Town Square (the show's antique car theme)
+	var sq := ground(TOWN_SQUARE.x, TOWN_SQUARE.y)
+	var g := group("Antique Car", sq + Vector3(-5.6, 0.1, 1.5), 0.35)
+	var paint := mat("Car Paint", Color(0.6, 0.08, 0.14), 0.3, 0.3, 0.0, 1.0, false)
+	var black := mat("Car Black", Color(0.06, 0.05, 0.07), 0.5, 0.2, 0.0, 1.0, false)
+	var brass := mat("Car Brass", Color(0.9, 0.7, 0.3), 0.3, 0.9, 0.0, 1.0, false)
+	var cream := mat("Car Cream", Color(0.95, 0.9, 0.78), 0.5, 0.0, 0.0, 1.0, false)
+	var glass := mat("Car Glass", Color(0.75, 0.9, 1.0), 0.05, 0.0, 0.0, 0.35, false)
+	mesh_at(box(Vector3(1.7, 0.3, 3.9)), black, Vector3(0, 0.75, 0), g)                     # chassis
+	mesh_at(box(Vector3(1.15, 0.65, 1.3)), paint, Vector3(0, 1.2, 1.2), g)                  # hood
+	mesh_at(box(Vector3(1.0, 0.75, 0.1)), brass, Vector3(0, 1.2, 1.88), g)                  # radiator
+	mesh_at(box(Vector3(1.6, 0.8, 1.9)), paint, Vector3(0, 1.3, -0.6), g)                   # body
+	mesh_at(box(Vector3(1.7, 0.1, 2.0)), cream, Vector3(0, 2.5, -0.65), g)                  # roof
+	for s in [-1, 1]:
+		mesh_at(box(Vector3(0.08, 0.8, 0.08)), black, Vector3(s * 0.78, 2.05, 0.3), g)       # roof posts
+		mesh_at(box(Vector3(0.08, 0.8, 0.08)), black, Vector3(s * 0.78, 2.05, -1.6), g)
+		mesh_at(box(Vector3(0.3, 0.06, 2.6)), black, Vector3(s * 0.95, 0.6, 0), g)          # running boards
+		mesh_at(sphere(0.2, -1, 12), brass, Vector3(s * 0.48, 1.45, 1.95), g)               # headlights
+		for zz in [1.3, -1.3]:
+			var w := mesh_at(cylinder(0.48, 0.48, 0.24, 18), black, Vector3(s * 0.88, 0.48, zz), g, 0.0, Vector3(0, 0, PI / 2))
+			w.name = "Wheel"
+			mesh_at(cylinder(0.16, 0.16, 0.26, 10), brass, Vector3(s * 0.88, 0.48, zz), g, 0.0, Vector3(0, 0, PI / 2))
+			mesh_at(sphere(0.62, 0.5, 14), paint, Vector3(s * 0.88, 0.95, zz), g)            # fenders
+	mesh_at(box(Vector3(1.4, 0.55, 0.06)), glass, Vector3(0, 2.0, 0.32), g)                 # windshield
+	var spare := TorusMesh.new()
+	spare.inner_radius = 0.25
+	spare.outer_radius = 0.45
+	mesh_at(spare, black, Vector3(0, 1.3, -2.0), g, 0.0, Vector3(PI / 2, 0, 0))
+	solid(box_shape(Vector3(1.9, 1.8, 4.1)), Vector3(0, 1.1, 0), g)
+	own(g)
+
+
+func _welcome_sign() -> void:
+	var g := group("Welcome Sign", ground(-1, 53))
+	sign_post(g, "Welcome to Galactopia", Vector3.ZERO, 0.0)
+	own(g)
+
+
+func _portal() -> void:
+	# A ring of light on a stone base: the way to Earth. It doesn't open yet (no Earth scene), so the door says so.
+	var g := group("Portal to Earth", ground(PORTAL.x, PORTAL.y), PORTAL.z)
+	var stone := mat("Portal Stone", Color(0.55, 0.5, 0.7), 0.8)
+	mesh_at(cylinder(3.4, 3.8, 0.8, 32), stone, Vector3(0, 0.2, 0), g)
+	solid(_cyl_shape(3.8, 0.8), Vector3(0, 0.2, 0), g)
+	var ring := TorusMesh.new()
+	ring.inner_radius = 2.6
+	ring.outer_radius = 3.2
+	ring.rings = 48
+	mesh_at(ring, mat("Portal Ring", Color(0.95, 0.75, 0.3), 0.3, 0.6, 0.8), Vector3(0, 3.7, 0), g, 0.0, Vector3(PI / 2, 0, 0))
+	var swirl := shader_mat("""shader_type spatial;
+render_mode unshaded, cull_disabled;
+void fragment() {
+	vec2 p = UV * 2.0 - 1.0;
+	float r = length(p);
+	if (r > 1.0) discard;
+	float a = atan(p.y, p.x);
+	float s = sin(a * 3.0 + r * 9.0 - TIME * 2.5) * 0.5 + 0.5;
+	vec3 sky = mix(vec3(0.25, 0.55, 1.0), vec3(0.4, 0.85, 0.5), s);
+	ALBEDO = mix(sky, vec3(1.0), smoothstep(0.6, 1.0, s) * (1.0 - r));
+	ALPHA = 0.85;
+}""")
+	var q := QuadMesh.new()
+	q.size = Vector2(5.4, 5.4)
+	mesh_at(q, swirl, Vector3(0, 3.7, 0), g)
+	door(g, "res://scenes/earth/earth.tscn", "Portal to Earth", Vector3(0, 2.4, 0.4), Vector3(4.0, 4.0, 1.0))
+	sign_post(g, "Portal to Earth", Vector3(4.5, 0, 2.5), 0.0)
+	keep_clear.append(Vector3(PORTAL.x, PORTAL.y, 7))
+	own(g)
+
+
+func _tree_house() -> void:
+	# A giant tree with a house in its branches, plank steps spiralling up the trunk, and a zipline down to the west
+	# fields. (The zipline is scenery for now: riding it is a later job.)
+	var c := ground(TREE_HOUSE.x, TREE_HOUSE.y)
+	var g := group("Tree House", c)
+	var bark := mat("Big Bark", Color(0.42, 0.28, 0.18))
+	var wood := mat("Tree House Wood", Color(0.7, 0.5, 0.3))
+	var leaf := mat("Big Leaves", T.trees[1], 0.8, 0.0, T.tree_glow, 1.0, false)
+	var deck_y := 7.0
+	mesh_at(cylinder(1.1, 1.6, 14, 14), bark, Vector3(0, 7, 0), g)
+	solid(_cyl_shape(1.4, 14), Vector3(0, 7, 0), g)
+	for k in 5:
+		puff(g, Vector3(cos(k * 1.3) * 3.5, 14 + (k % 2) * 1.5, sin(k * 1.3) * 3.5), 4.5, leaf, 300 + k, 6)
+	# Steps round the trunk: 1.15 m up each, a jump apart
+	var steps := 6
+	for k in steps:
+		var a := k * 1.05
+		var y := 1.0 + k * (deck_y - 1.0) / steps
+		var p := Vector3(cos(a) * 2.6, y, sin(a) * 2.6)
+		mesh_at(box(Vector3(1.8, 0.25, 1.2)), wood, p, g, -a)
+		solid(box_shape(Vector3(1.8, 0.25, 1.2)), p, g, -a)
+	# Deck, railing and the little house
+	mesh_at(cylinder(4.5, 4.5, 0.4, 20), wood, Vector3(0, deck_y, 0), g)
+	solid(_cyl_shape(4.5, 0.4), Vector3(0, deck_y, 0), g)
+	for k in 14:
+		var a := k * TAU / 14
+		if k == 4:
+			continue                                     # gap where the steps arrive
+		mesh_at(box(Vector3(0.12, 1.0, 0.12)), wood, Vector3(cos(a) * 4.3, deck_y + 0.6, sin(a) * 4.3), g)
+	mesh_at(box(Vector3(3.6, 2.6, 3.0)), mat("Tree House Wall", Color(0.85, 0.6, 0.35)), Vector3(-1.2, deck_y + 1.5, -1.2), g)
+	solid(box_shape(Vector3(3.6, 2.6, 3.0)), Vector3(-1.2, deck_y + 1.5, -1.2), g)
+	var gable := PrismMesh.new()
+	gable.size = Vector3(4.2, 1.6, 3.6)
+	mesh_at(gable, mat("Tree House Roof", Color(0.85, 0.3, 0.3)), Vector3(-1.2, deck_y + 3.6, -1.2), g)
+	sign_post(g, "Tree House", Vector3(3.5, 0, 3.5), 0.6)
+	# Zipline: a cable from a post on the deck down to a landing post
+	var metal := mat("Zipline Metal", Color(0.7, 0.72, 0.78), 0.3, 0.8)
+	var top := Vector3(2.5, deck_y + 3.5, 2.5)
+	mesh_at(cylinder(0.12, 0.12, 3.5, 8), metal, Vector3(2.5, deck_y + 1.75, 2.5), g)
+	var end := ground(ZIPLINE_END.x, ZIPLINE_END.y) - c + Vector3(0, 3.0, 0)
+	mesh_at(cylinder(0.15, 0.15, 3.0, 8), metal, end - Vector3(0, 1.5, 0), g)
+	var span := end - top
+	var cable := mesh_at(cylinder(0.04, 0.04, span.length(), 6), metal, top + span / 2, g)
+	cable.look_at_from_position(c + top + span / 2, c + end, Vector3.UP)
+	cable.rotate_object_local(Vector3.RIGHT, PI / 2)
+	cable.position = top + span / 2
+	var handle := mesh_at(box(Vector3(0.6, 0.6, 0.15)), mat("Zipline Handle", Color(1.0, 0.6, 0.15), 0.5), top + Vector3(0, -0.4, 0), g)
+	handle.name = "ZiplineHandle"
+	sign_post(g, "Zipline", end - Vector3(1.5, 3.0, 0), 0.0)
+	keep_clear.append(Vector3(TREE_HOUSE.x, TREE_HOUSE.y, 9))
+	keep_clear.append(Vector3(ZIPLINE_END.x, ZIPLINE_END.y, 4))
+	own(g)
+
+
+func _rock_wall() -> void:
+	# A climbing wall with colourful holds; the big holds are ledges you can jump up
+	var g := group("Rock Wall", ground(ROCK_WALL.x, ROCK_WALL.y), ROCK_WALL.z)
+	var wall := mat("Climbing Wall", Color(0.55, 0.5, 0.6), 0.9)
+	mesh_at(box(Vector3(9, 10, 1.6)), wall, Vector3(0, 4.5, 0), g)
+	solid(box_shape(Vector3(9, 10, 1.6)), Vector3(0, 4.5, 0), g)
+	var colors := [Color(1.0, 0.3, 0.4), Color(0.2, 0.8, 1.0), Color(1.0, 0.85, 0.2), Color(0.5, 1.0, 0.4), Color(0.8, 0.4, 1.0)]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 11
+	for k in 40:                                   # small holds for looks
+		var p := Vector3(rng.randf_range(-4.2, 4.2), rng.randf_range(0.5, 9.2), 0.85)
+		mesh_at(sphere(0.18, 0.22, 8), mat("Hold %d" % (k % 5), colors[k % 5], 0.6), p, g)
+	for k in 7:                                    # ledges zig-zagging up, 1.3 m apart
+		var p := Vector3(-3.0 + (k % 2) * 3.0 + (1.5 if k % 4 >= 2 else 0.0), 1.1 + k * 1.3, 1.25)
+		var m := mat("Ledge %d" % (k % 5), colors[k % 5], 0.6)
+		mesh_at(box(Vector3(1.6, 0.35, 0.9)), m, p, g)
+		solid(box_shape(Vector3(1.6, 0.35, 0.9)), p, g)
+	mesh_at(box(Vector3(9.4, 0.4, 2.4)), wall, Vector3(0, 9.7, 0), g)            # flat top to stand on
+	solid(box_shape(Vector3(9.4, 0.4, 2.4)), Vector3(0, 9.7, 0), g)
+	mesh_at(box(Vector3(10, 0.4, 5)), mat("Crash Mat", Color(0.25, 0.45, 0.95), 0.9), Vector3(0, 0.1, 3.2), g)
+	sign_post(g, "Rock Wall", Vector3(5.8, 0, 3.5), 0.0)
+	keep_clear.append(Vector3(ROCK_WALL.x, ROCK_WALL.y, 9))
+	own(g)
+
+
+func _cloud_nest() -> void:
+	# The Cloud Nest from Mr. Palmer's map: two cloud rooms floating over the plateau, a Quiet Side with pillows and a
+	# Loud Side with speakers and a drum. Small clouds lead up from beside the Secret Gardens.
+	var start := ground(-70, -36)
+	var quiet := Vector3(CLOUD_NEST.x - 4.5, start.y + 5.8, CLOUD_NEST.y)
+	var loud := Vector3(CLOUD_NEST.x + 5.0, start.y + 5.8, CLOUD_NEST.y - 1.0)
+	var g := group("Cloud Nest", Vector3.ZERO)
+	var cloud := mat("Cloud", Color(0.97, 0.97, 1.0), 0.9)
+	var quiet_m := mat("Cloud Quiet", Color(0.75, 0.85, 1.0), 0.9)
+	var loud_m := mat("Cloud Loud", Color(1.0, 0.75, 0.88), 0.9)
+	for lobe in [[quiet, quiet_m, 21], [loud, loud_m, 22]]:
+		var p: Vector3 = lobe[0]
+		puff(g, p - Vector3(0, 0.9, 0), 4.6, lobe[1], lobe[2])
+		mesh_at(cylinder(4.3, 4.3, 0.3, 32), lobe[1], p + Vector3(0, -0.05, 0), g)
+		solid(_cyl_shape(4.4, 1.2), p - Vector3(0, 0.6, 0), g)
+	var bridge := quiet.lerp(loud, 0.5)                     # the two sides join in the middle
+	puff(g, bridge - Vector3(0, 0.9, 0), 2.6, cloud, 23, 6)
+	solid(_cyl_shape(2.6, 1.2), bridge - Vector3(0, 0.6, 0), g)
+	# Quiet Side: pillows and a blanket
+	var pillow := mat("Pillow", Color(0.85, 0.8, 1.0), 0.9)
+	for k in 4:
+		var a := k * 1.4
+		mesh_at(sphere(0.7, 0.5, 14), pillow, quiet + Vector3(cos(a) * 2.4, 0.3, sin(a) * 2.4), g)
+	mesh_at(box(Vector3(2.4, 0.08, 1.8)), mat("Blanket", Color(0.5, 0.7, 1.0), 0.9), quiet + Vector3(0, 0.15, 0), g)
+	label3d(g, "Quiet Side", quiet + Vector3(0, 2.6, 0), 72, Color(0.85, 0.92, 1.0))
+	# Loud Side: two speakers and a drum
+	var dark := mat("Speaker", Color(0.15, 0.12, 0.2), 0.6)
+	var cone := mat("Speaker Cone", Color(1.0, 0.4, 0.75), 0.4, 0.0, 1.0)
+	for s in [-1, 1]:
+		var sp := loud + Vector3(s * 2.4, 1.1, -1.8)
+		mesh_at(box(Vector3(1.2, 2.0, 1.0)), dark, sp, g)
+		mesh_at(cylinder(0.4, 0.4, 0.1, 16), cone, sp + Vector3(0, 0.3, 0.52), g, 0.0, Vector3(PI / 2, 0, 0))
+	mesh_at(cylinder(0.8, 0.8, 0.9, 20), mat("Drum", Color(1.0, 0.55, 0.2), 0.5), loud + Vector3(0, 0.6, 0.8), g)
+	label3d(g, "Loud Side", loud + Vector3(0, 3.4, 0), 72, Color(1.0, 0.85, 0.95))
+	label3d(g, "Cloud Nest", bridge + Vector3(0, 4.6, 0), 120)
+	# Stepping clouds from the plateau up to the Quiet Side
+	var steps := 4
+	for k in steps:
+		var t := float(k + 1) / (steps + 1)
+		var p := start.lerp(quiet - Vector3(0, 0, -4.4).rotated(Vector3.UP, 0.4), t)
+		p.y = start.y + 1.2 * (k + 1)
+		puff(g, p - Vector3(0, 0.4, 0), 1.4, cloud, 40 + k, 5)
+		solid(_cyl_shape(1.4, 0.8), p - Vector3(0, 0.4, 0), g)
+	own(g)
+
+
+func _bubble_bath() -> void:
+	# The magic bubble bath: a big tub of glowing pink water with bubbles rising out of it
+	var g := group("Magic Bubble Bath", ground(BUBBLE_BATH.x, BUBBLE_BATH.y))
+	var tub := mat("Tub", Color(0.98, 0.96, 0.98), 0.3, 0.1)
+	var water := mat("Bath Water", Color(1.0, 0.55, 0.85), 0.1, 0.0, 0.8, 0.85)
+	mesh_at(cylinder(4.2, 3.8, 1.4, 40), tub, Vector3(0, 0.5, 0), g)
+	solid(_cyl_shape(4.2, 1.4), Vector3(0, 0.5, 0), g)
+	mesh_at(cylinder(3.8, 3.8, 0.1, 40), water, Vector3(0, 1.22, 0), g)
+	var bubble := mat("Bubble", Color(0.85, 0.95, 1.0), 0.05, 0.0, 0.5, 0.45)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	for k in 18:
+		var a := rng.randf() * TAU
+		var d := sqrt(rng.randf()) * 3.2
+		mesh_at(sphere(rng.randf_range(0.3, 0.8), -1, 12), bubble, Vector3(cos(a) * d, 1.4, sin(a) * d), g)
+	var rising := CPUParticles3D.new()
+	rising.name = "Bubbles"
+	rising.amount = 40
+	rising.lifetime = 4.0
+	var bm := sphere(0.18, -1, 8)
+	bm.material = bubble
+	rising.mesh = bm
+	rising.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	rising.emission_sphere_radius = 3.0
+	rising.direction = Vector3.UP
+	rising.spread = 15.0
+	rising.gravity = Vector3(0, 0.6, 0)
+	rising.initial_velocity_min = 0.3
+	rising.initial_velocity_max = 0.8
+	rising.position = Vector3(0, 1.4, 0)
+	g.add_child(rising)
+	sign_post(g, "Magic Bubble Bath", Vector3(5.5, 0, 3.0), -0.3)
+	keep_clear.append(Vector3(BUBBLE_BATH.x, BUBBLE_BATH.y, 8))
+	own(g)
+
+
+func _park_mural() -> void:
+	# The magically changing park mural: a long wall whose painting slowly swirls from one picture to the next
+	var g := group("Park Mural", ground(MURAL.x, MURAL.y), MURAL.z)
+	var frame := mat("Mural Frame", Color(0.85, 0.82, 0.9), 0.8)
+	mesh_at(box(Vector3(12.6, 5.6, 0.8)), frame, Vector3(0, 2.6, -0.1), g)
+	solid(box_shape(Vector3(12.6, 5.6, 0.8)), Vector3(0, 2.6, -0.1), g)
+	var paint := shader_mat("""shader_type spatial;
+render_mode unshaded;
+vec3 pal(float t) { return 0.5 + 0.5 * cos(6.2832 * (vec3(0.0, 0.33, 0.67) + t)); }
+void fragment() {
+	vec2 p = UV * vec2(12.0, 5.0);
+	float t = TIME * 0.05;
+	float v = sin(p.x * 0.8 + sin(p.y * 1.3 + t * 7.0) * 1.5 + t * 3.0) + sin(length(p - vec2(6.0 + sin(t * 4.0) * 4.0, 2.5)) * 1.6 - t * 9.0);
+	float stars = step(0.985, fract(sin(dot(floor(p * 6.0), vec2(12.9898, 78.233))) * 43758.5453));
+	ALBEDO = mix(pal(v * 0.25 + t), vec3(1.0), stars * 0.8);
+}""")
+	var q := QuadMesh.new()
+	q.size = Vector2(12, 5)
+	mesh_at(q, paint, Vector3(0, 2.6, 0.32), g)
+	sign_post(g, "Park Mural", Vector3(7.2, 0, 2.0), 0.0)
+	keep_clear.append(Vector3(MURAL.x, MURAL.y, 8))
+	own(g)
+
+
+func _soccer_field() -> void:
+	# The ever-changing deluxe soccer court: its turf slowly cycles through colours and patterns
+	var size := Vector2(30, 18)
+	var g := group("Soccer Field", ground(SOCCER.x, SOCCER.y))
+	mesh_at(box(Vector3(size.x + 3, 0.3, size.y + 3)), mat("Court Edge", Color(0.3, 0.55, 0.35)), Vector3(0, 0.05, 0), g)
+	solid(box_shape(Vector3(size.x + 3, 0.4, size.y + 3)), Vector3(0, 0.05, 0), g)
+	var turf := shader_mat("""shader_type spatial;
+vec3 pal(float t) { return 0.5 + 0.5 * cos(6.2832 * (vec3(0.1, 0.4, 0.7) + t)); }
+void fragment() {
+	vec2 p = UV * vec2(30.0, 18.0);
+	float t = TIME * 0.04;
+	float stripes = step(0.5, fract(p.x / 3.0 + floor(t * 4.0) * 0.25));
+	float checks = step(0.5, fract(p.x / 3.0)) == step(0.5, fract(p.y / 3.0)) ? 1.0 : 0.0;
+	float pattern = mix(stripes, checks, step(0.5, fract(t * 2.0)));
+	vec3 c = pal(t) * mix(0.75, 1.0, pattern);
+	float line = 0.0;
+	line += step(abs(p.x - 15.0), 0.08);
+	line += step(abs(length(p - vec2(15.0, 9.0)) - 3.0), 0.08);
+	line += step(p.x, 0.12) + step(29.88, p.x) + step(p.y, 0.12) + step(17.88, p.y);
+	ALBEDO = mix(c, vec3(1.0), clamp(line, 0.0, 1.0));
+	ROUGHNESS = 0.8;
+}""")
+	var top := PlaneMesh.new()
+	top.size = size
+	mesh_at(top, turf, Vector3(0, 0.22, 0), g)
+	var post := mat("Goal Post", Color(1, 1, 1), 0.4)
+	var net := mat("Goal Net", Color(0.95, 0.95, 1.0), 0.6, 0.0, 0.0, 0.45)
+	for s in [-1, 1]:
+		var gx: float = s * (size.x / 2 + 0.6)
+		for side in [-1, 1]:
+			mesh_at(cylinder(0.1, 0.1, 2.2, 8), post, Vector3(gx, 1.3, side * 3.0), g)
+		mesh_at(cylinder(0.1, 0.1, 6.0, 8), post, Vector3(gx, 2.4, 0), g, 0.0, Vector3(PI / 2, 0, 0))
+		mesh_at(box(Vector3(1.2, 2.2, 6.0)), net, Vector3(gx + s * 0.6, 1.3, 0), g)
+	mesh_at(sphere(0.3, -1, 14), mat("Soccer Ball", Color(1, 1, 1), 0.5), Vector3(0, 0.55, 0), g)
+	sign_post(g, "Soccer Field", Vector3(0, 0, size.y / 2 + 2.5), 0.0)
+	keep_clear.append(Vector3(SOCCER.x, SOCCER.y, maxf(size.x, size.y) / 2 + 3))
+	own(g)
+
+
+func _cloud_slide() -> void:
+	# The end of the pilot: "it doesn't have to be on the waterfall". A magic floating cloud over the lake with a water
+	# slide spiralling down into it, and a toy store on top. Cloud steps spiral up to it from the Town Square.
+	# Hidden until the story unlocks it (scripts/unlockable.gd checks Game.has_item(SLIDE_FLAG)).
+	var g := group("Cloud Water Slide", Vector3.ZERO)
+	g.set_script(load("res://scripts/unlockable.gd"))
+	g.set("flag", SLIDE_FLAG)
+	g.set_meta("unlock_flag", SLIDE_FLAG)
+	var center := Vector3(SLIDE_CLOUD.x, SLIDE_CLOUD.z, SLIDE_CLOUD.y)
+	var cloud := mat("Cloud", Color(0.97, 0.97, 1.0), 0.9)
+	puff(g, center - Vector3(0, 1.2, 0), 8.5, cloud, 77, 12)
+	mesh_at(cylinder(8.2, 8.2, 0.3, 40), cloud, center, g)
+	solid(_cyl_shape(8.3, 1.6), center - Vector3(0, 0.8, 0), g)
+	# Toy store on top (Melanie finally gets one)
+	var store := dome_building("Toy Store", center.x - 2.5, center.z - 2.0, 3.6, 0.6, Color(1.0, 0.6, 0.3), [], center.y)
+	store.get_parent().remove_child(store)
+	store.owner = null                                # own(g) below sets it again
+	g.add_child(store)
+	# The slide: a trough with water running in it, two turns down to the lake
+	var trough := mat("Slide", Color(0.2, 0.75, 1.0), 0.3, 0.1)
+	var rail := mat("Slide Rail", Color(1.0, 0.85, 0.3), 0.4)
+	var flow := shader_mat("""shader_type spatial;
+render_mode unshaded;
+void fragment() {
+	float s = fract(UV.y * 3.0 - TIME * 2.0);
+	ALBEDO = mix(vec3(0.6, 0.9, 1.0), vec3(1.0), smoothstep(0.8, 1.0, s));
+	ALPHA = 0.8;
+}""")
+	var radius := 10.0
+	var turns := 2.0
+	var segs := 60
+	var top_y := center.y + 0.2
+	var bottom_y := WATER_Y + 0.3
+	var a0 := -PI / 2                                 # start on the cloud's south rim
+	var prev := Vector3.ZERO
+	for k in segs + 1:
+		var t := float(k) / segs
+		var a := a0 + t * turns * TAU
+		var r := lerpf(radius * 0.85, radius, t)
+		var p := Vector3(center.x + cos(a) * r, lerpf(top_y, bottom_y, pow(t, 0.9)), center.z + sin(a) * r)
+		if k > 0:
+			var d := p - prev
+			var mid := (p + prev) / 2
+			var yaw := atan2(d.x, d.z)
+			var pitch := atan2(-d.y, Vector2(d.x, d.z).length())
+			var length := d.length() + 0.15
+			mesh_at(box(Vector3(2.4, 0.25, length)), trough, mid, g, yaw, Vector3(pitch, 0, 0))
+			solid(box_shape(Vector3(2.4, 0.25, length)), mid, g, yaw, Vector3(pitch, 0, 0))
+			mesh_at(box(Vector3(2.0, 0.05, length)), flow, mid + Vector3(0, 0.16, 0), g, yaw, Vector3(pitch, 0, 0))
+			for s in [-1, 1]:
+				var side: Vector3 = Vector3(cos(yaw), 0, -sin(yaw)) * 1.15 * s
+				mesh_at(box(Vector3(0.15, 0.6, length)), rail, mid + side + Vector3(0, 0.3, 0), g, yaw, Vector3(pitch, 0, 0))
+				solid(box_shape(Vector3(0.15, 0.6, length)), mid + side + Vector3(0, 0.3, 0), g, yaw, Vector3(pitch, 0, 0))
+		prev = p
+	mesh_at(cylinder(3.0, 3.5, 0.3, 24), mat("Foam", Color(0.95, 0.98, 1.0), 0.3, 0.0, 0.4, 0.85), prev + Vector3(0, -0.2, 0), g)
+	# Cloud steps: a spiral of small clouds rising from the Town Square's edge to the big cloud
+	var spiral := Vector3(-20, 0, -6)
+	var to_square := (Vector2(TOWN_SQUARE.x, TOWN_SQUARE.y) - Vector2(spiral.x, spiral.z)).angle()
+	var to_cloud := (Vector2(center.x, center.z) - Vector2(spiral.x, spiral.z)).angle()
+	var rise := 1.25
+	var n := int(ceil((top_y - 1.4) / rise))
+	var sweep := wrapf(to_cloud - to_square, 0.0, TAU) + TAU          # one and a bit turns
+	for k in n:
+		var t := float(k) / (n - 1)
+		var a := to_square + sweep * t
+		var p := Vector3(spiral.x + cos(a) * 4.2, 1.2 + k * rise, spiral.z + sin(a) * 4.2)
+		puff(g, p - Vector3(0, 0.35, 0), 1.3, cloud, 90 + k, 5)
+		solid(_cyl_shape(1.3, 0.7), p - Vector3(0, 0.35, 0), g)
+	label3d(g, "Cloud Water Slide", center + Vector3(0, 9, 0), 140)
+	own(g)
+
+
+func _happy_places() -> void:
+	# Happy places (safe, calm spots from the show): find them all. Each one fills HP and MP and saves the game
+	# (scripts/happy_place.gd). id, name, position
+	var cave_z := PLATEAU.y + sqrt(pow(PLATEAU_CLIFF + 1.5, 2) - pow(-71.0 - PLATEAU.x, 2))
+	var spots := [
+		["cozy_cave", "Cozy Cave", ground(-71, cave_z + 3.0)],
+		["cloud_nest", "Cloud Nest", Vector3(CLOUD_NEST.x - 4.5, ground(-70, -36).y + 5.8, CLOUD_NEST.y)],
+		["tree_house", "Tree House", ground(TREE_HOUSE.x, TREE_HOUSE.y) + Vector3(1.5, 7.2, -1.0)],
+		["warm_bath", "Warm Bath", ground(BUBBLE_BATH.x + 5.2, BUBBLE_BATH.y - 1.5)],
+		["empty_library", "Empty Library", ground(-21, -41)],
+		["observatory", "Observatory", ground(92, -80)],
+	]
+	var g := group("Happy Places", Vector3.ZERO)
+	var glow := mat("Happy Glow", Color(1.0, 0.8, 0.55), 0.2, 0.0, 2.5, 1.0, false)
+	var halo := mat("Happy Halo", Color(1.0, 0.65, 0.85), 0.2, 0.0, 1.5, 0.7, false)
+	for s in spots:
+		var area := Area3D.new()
+		area.name = "HappyPlace " + s[1]
+		area.set_script(load("res://scripts/happy_place.gd"))
+		area.set("place_id", s[0])
+		area.set("place_name", s[1])
+		area.set("total", spots.size())
+		area.position = s[2]
+		var cs := CollisionShape3D.new()
+		cs.shape = _sphere_shape(1.6)
+		cs.position = Vector3(0, 1.0, 0)
+		area.add_child(cs)
+		var vis := Node3D.new()
+		vis.name = "Glow"
+		vis.position = Vector3(0, 1.4, 0)
+		area.add_child(vis)
+		mesh_at(sphere(0.35, -1, 16), glow, Vector3.ZERO, vis)
+		var ring := TorusMesh.new()
+		ring.inner_radius = 0.55
+		ring.outer_radius = 0.65
+		mesh_at(ring, halo, Vector3.ZERO, vis, 0.0, Vector3(PI / 2, 0, 0))
+		var light := OmniLight3D.new()
+		light.light_color = Color(1.0, 0.8, 0.6)
+		light.light_energy = 0.8
+		light.omni_range = 4.0
+		vis.add_child(light)
+		g.add_child(area)
+		keep_clear.append(Vector3(s[2].x, s[2].z, 2.5))
+	own(g)

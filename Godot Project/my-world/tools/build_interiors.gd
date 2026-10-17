@@ -203,7 +203,7 @@ func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, a
 	exit.position = Vector3(0, 1.5, r + 0.3)
 	exit.set_script(load("res://scripts/door.gd"))
 	exit.set("destination", TOWN)
-	exit.set("spawn", "From" + name.replace(" ", "").replace("&", "And"))
+	exit.set("spawn", "From" + name.replace(" ", "").replace("&", "And").replace("'", ""))
 	var ecs := CollisionShape3D.new()
 	var eshape := BoxShape3D.new()
 	eshape.size = Vector3(2.4, 3.0, 1.0)

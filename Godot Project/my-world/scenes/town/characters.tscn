@@ -46,16 +46,16 @@ animation = "idle"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 
-[node name="BikeBoy" type="Node3D" parent="."]
+[node name="Bruno" type="Node3D" parent="."]
 transform = Transform3D(0.557023, 0, 0.830497, 0, 1, 0, -0.830497, 0, 0.557023, 11, -0.2366, 58)
 script = ExtResource("1_npc")
 animation = "idle"
 
-[node name="Model" parent="BikeBoy" instance=ExtResource("4_boy")]
+[node name="Model" parent="Bruno" instance=ExtResource("4_boy")]
 
-[node name="Body" type="StaticBody3D" parent="BikeBoy"]
+[node name="Body" type="StaticBody3D" parent="Bruno"]
 
-[node name="Shape" type="CollisionShape3D" parent="BikeBoy/Body"]
+[node name="Shape" type="CollisionShape3D" parent="Bruno/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 
@@ -72,16 +72,16 @@ animation = "idle"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_bike")
 
-[node name="Wolf" type="Node3D" parent="."]
+[node name="BrunosDog" type="Node3D" parent="."]
 transform = Transform3D(0.932327, 0, -0.361615, 0, 1, 0, 0.361615, 0, 0.932327, -4, 0.374, 39)
 script = ExtResource("1_npc")
 animation = "idle"
 
-[node name="Model" parent="Wolf" instance=ExtResource("5_wolf")]
+[node name="Model" parent="BrunosDog" instance=ExtResource("5_wolf")]
 
-[node name="Body" type="StaticBody3D" parent="Wolf"]
+[node name="Body" type="StaticBody3D" parent="BrunosDog"]
 
-[node name="Shape" type="CollisionShape3D" parent="Wolf/Body"]
+[node name="Shape" type="CollisionShape3D" parent="BrunosDog/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_wolf")
 
