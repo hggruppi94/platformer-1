@@ -125,31 +125,58 @@ scalp_cap("Hair Cap", HEAD, "Hair", HB, thick=0.02, hairline=lambda x: 1.275 - 0
 ellipsoid("Mane Fill", (0, 0.11, 0.80), (0.33, 0.17, 0.42), "Hair Shade",
           [("head", 2.0), "chest", ("spine", 1.2)], u=32, v=16)
 
-# Crown and the sides of the head: tufts standing out from the scalp
+def falling_lock(name, root, out, flare, z_end, r0, material, bones):
+    """A thick lock that lifts off the scalp, then falls straight down, flaring out a little at the end."""
+    out = Vector((out.x, out.y, 0)).normalized()
+    drop = root.z - z_end
+    ctrl = [root, root + out * 0.05 + Vector((0, 0, 0.015)),
+            root + out * (0.09 + flare * 0.3) + Vector((0, 0, -drop * 0.35)),
+            root + out * (0.10 + flare * 0.6) + Vector((0, 0, -drop * 0.7)),
+            root + out * (0.10 + flare) + Vector((0, 0, -drop))]
+    ob = lock(name, ctrl, r0, material, bones, flat=0.42, normal_fn=lambda p, o=out: o, sides=10, taper=1.1)
+    if material == "Hair" and R.random() < 0.7:
+        top, end = ctrl[0].z, ctrl[-1].z
+        paint(ob, TIPS[R.randrange(2)], lambda cc, nrm: (top - cc.z) / (top - end) > 0.8)
+    return ob
+
+
+# Messy crown: short spikes on top of her head
 k = 0
-for e_deg in (70, 50, 30, 10, -10):
+for e_deg in (75, 55):
     e = math.radians(e_deg)
-    count = 9 if e_deg > 40 else 13
+    count = 8
     for j in range(count):
-        az = math.radians(-125 + 250 * (j + 0.5 * (k % 2)) / (count - 1)) + R.uniform(-0.06, 0.06)
+        az = math.radians(-150 + 300 * (j + 0.5 * (e_deg == 55)) / (count - 1)) + R.uniform(-0.08, 0.08)
         hd = Vector((math.sin(az) * math.cos(e), math.cos(az) * math.cos(e), math.sin(e)))
-        if hd.y < -0.35 and e_deg < 45:
-            continue                                          # keep the face clear
         root = HEAD.dir_point(hd, offset=-0.01)
-        d = HEAD.normal(root) + Vector((0, 0.15, -0.55 if e_deg < 40 else 0.15))
-        spike(f"Crown.{k}", root, d, R.uniform(0.2, 0.3) if e_deg < 40 else R.uniform(0.15, 0.21),
-              R.uniform(0.085, 0.105), "Hair" if R.random() < 0.8 else "Hair Shade", HB,
-              bend=0.25 if e_deg < 40 else 0.0)
+        spike(f"Crown.{k}", root, HEAD.normal(root) + Vector((0, 0.2, 0.25)), R.uniform(0.13, 0.18),
+              R.uniform(0.075, 0.09), "Hair" if R.random() < 0.8 else "Hair Shade", HB)
         k += 1
 
-# A ruff of tufts all round the face, fanning out sideways like a lion's mane
+# Locks framing her face, falling past her cheeks to her shoulders
 for sx, side in ((1, "L"), (-1, "R")):
-    for j, e_deg in enumerate(range(-45, 61, 15)):
+    for j, (e_deg, z_end) in enumerate(((35, 0.86), (15, 0.80), (-5, 0.76), (-25, 0.74))):
         e = math.radians(e_deg)
-        hd = Vector((sx * math.cos(e) * 0.94, -0.34 * math.cos(e), math.sin(e)))
-        root = HEAD.dir_point(hd, offset=-0.01)
-        d = Vector((sx * 1.0, 0.25, 0.25 * math.sin(e) - 0.35))
-        spike(f"Ruff.{side}{j}", root, d, R.uniform(0.2, 0.27), R.uniform(0.085, 0.1), "Hair", HB, bend=0.12)
+        root = HEAD.dir_point((sx * math.cos(e) * 0.93, -0.36 * math.cos(e), math.sin(e)), offset=-0.01)
+        falling_lock(f"Side Lock.{side}{j}", root, Vector((sx, 0.15, 0)), 0.03 + 0.02 * j, z_end + R.uniform(-0.03, 0.03),
+                     R.uniform(0.065, 0.08), "Hair", [("head", 1.0), ("chest", 1.6)])
+
+# The mane: rows of thick locks from all round the back of her head, falling down her back to her knees
+k = 0
+for row, (e_deg, z_lo, z_hi) in enumerate(((40, 0.50, 0.62), (20, 0.42, 0.55), (0, 0.36, 0.48), (-20, 0.33, 0.44))):
+    e = math.radians(e_deg)
+    count = 11
+    for j in range(count):
+        az = math.radians(-112 + 224 * (j + 0.5 * (row % 2)) / count) + R.uniform(-0.04, 0.04)
+        hd = Vector((math.sin(az) * math.cos(e), math.cos(az) * math.cos(e), math.sin(e)))
+        root = HEAD.dir_point(hd, offset=-0.012)
+        side = abs(math.sin(az))                                # sides end a bit higher than the back
+        z_end = z_hi - (z_hi - z_lo) * (1 - side) + R.uniform(-0.07, 0.07) + 0.1 * side
+        bones = [("head", 1.0), ("chest", 1.0), ("spine", 1.3), ("hips", 1.6)]
+        falling_lock(f"Mane.{k}", root, Vector((hd.x, hd.y + 0.35, 0)), (0.05 + 0.04 * row) * R.uniform(0.6, 1.5), z_end,
+                     R.uniform(0.09, 0.11), "Hair" if R.random() < 0.82 else "Hair Shade", bones)
+        k += 1
+
 
 # Spiky bangs over the forehead
 for j in range(7):
@@ -159,22 +186,6 @@ for j in range(7):
     end = HEAD.front(end_x, 1.235 - 0.02 * abs(u) + 0.015 * R.random(), offset=0.03)
     mid = HEAD.front(end_x * 0.9, 1.31, offset=0.05)
     lock(f"Bang.{j}", [root, mid, end], 0.055, "Hair", HB, flat=0.42, normal_fn=lambda p: HEAD.normal(p), sides=10)
-
-# The big curtain behind her shoulders and down to her knees, wider toward the bottom like a lion's mane
-k = 0
-for row, z in enumerate((0.98, 0.88, 0.78, 0.68, 0.58, 0.48, 0.40)):
-    rx = 0.27 + 0.13 * ss(0.98, 0.70, z) - 0.03 * ss(0.55, 0.40, z)
-    ry = 0.19
-    count = 9
-    for j in range(count):
-        az = math.radians(-98 + 196 * (j + 0.5 * (row % 2)) / count) + R.uniform(-0.04, 0.04)
-        out = Vector((math.sin(az), math.cos(az), 0))
-        root = Vector((math.sin(az) * rx, 0.09 + math.cos(az) * ry, z + R.uniform(-0.02, 0.02)))
-        down = 0.45 + 0.5 * ss(0.9, 0.45, z)
-        bones = [("chest", 1.0), ("spine", 1.3)] if z > 0.62 else [("spine", 1.0), ("hips", 1.0)]
-        spike(f"Mane.{k}", root, out * 0.8 + Vector((0, 0, -down)), R.uniform(0.22, 0.3), R.uniform(0.095, 0.115),
-              "Hair" if R.random() < 0.82 else "Hair Shade", bones, bend=0.1)
-        k += 1
 
 # =============================================================================
 # Body: black crop top with a glowing planet, bare furry middle, olive cargo shorts
