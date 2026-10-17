@@ -4,7 +4,8 @@ extends CharacterBody3D
 # nearby, stops to look around, and reacts when Nina comes close. Models face +Z.
 #
 # Rook (Dash's twin, on all fours) uses the defaults: he trots and gallops, and barks at Nina (and now and then
-# for no reason at all). The skating wolf skates about and stops to turn and look at her (no react action).
+# for no reason at all). Rex (Dash's twin, the talking husky on skates) skates about and stops to turn and look
+# at her (no react action).
 
 @export var wander_radius := 7.0
 @export var walk_speed := 0.6

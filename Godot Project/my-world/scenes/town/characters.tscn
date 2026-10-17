@@ -101,7 +101,7 @@ animation = "idle"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 
-[node name="SkatingWolf" type="CharacterBody3D" parent="."]
+[node name="Rex" type="CharacterBody3D" parent="."]
 transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -40, 2, 30)
 script = ExtResource("8_wander")
 wander_radius = 6.0
@@ -116,8 +116,8 @@ react_anim = ""
 react_sound = ""
 random_react_chance = 0.0
 
-[node name="Model" parent="SkatingWolf" instance=ExtResource("9_wolf")]
+[node name="Model" parent="Rex" instance=ExtResource("9_wolf")]
 
-[node name="Shape" type="CollisionShape3D" parent="SkatingWolf"]
+[node name="Shape" type="CollisionShape3D" parent="Rex"]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.28, 0)
 shape = SubResource("CapsuleShape3D_wolf")

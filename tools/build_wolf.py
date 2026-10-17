@@ -1,4 +1,4 @@
-# Builds the skating wolf (Dash's twin brother, who has his conscience and can speak) from scratch: model, materials, rig, weights and animations.
+# Builds Rex, the skating husky (Dash's twin brother, who has his conscience and can speak), from scratch: model, materials, rig, weights and animations.
 # Reference: the group picture of Sofi's characters (grey-and-white husky-like wolf with ice-blue eyes and a
 # snarl, red vest with a metal ring, roller skates on all four paws).
 #
