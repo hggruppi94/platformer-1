@@ -257,6 +257,7 @@ func _build() -> void:
 	_boats()
 	_mountains()
 	_sky_objects()
+	_characters()
 	_trees()
 	_crystals()
 	_enemies()
@@ -969,6 +970,16 @@ func _enemies() -> void:
 		placed += 1
 	own(g)
 	print("GLOOPS ", placed)
+
+
+func _characters() -> void:
+	# Sofi's characters standing around town (scenes/town/characters.tscn, edit their spots there).
+	# Trees are kept off the spots they stand on.
+	var chars: Node3D = load("res://scenes/town/characters.tscn").instantiate()
+	town.add_child(chars)
+	chars.owner = town                      # saved as a reference to characters.tscn, not a copy of its insides
+	for c in chars.get_children():
+		keep_clear.append(Vector3(c.position.x, c.position.z, 4.0))
 
 
 func _player() -> void:

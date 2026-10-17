@@ -1,0 +1,85 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/npc.gd" id="1_npc"]
+[ext_resource type="PackedScene" path="res://models/characters/cattle_girl.glb" id="2_cattle"]
+[ext_resource type="PackedScene" path="res://models/characters/moth_kid.glb" id="3_moth"]
+[ext_resource type="PackedScene" path="res://models/characters/bike_boy.glb" id="4_boy"]
+[ext_resource type="PackedScene" path="res://models/characters/wolf.glb" id="5_wolf"]
+[ext_resource type="PackedScene" path="res://models/props/bike.glb" id="6_bike"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
+radius = 0.32
+height = 1.5
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wolf"]
+size = Vector3(0.45, 0.9, 1.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_bike"]
+size = Vector3(0.5, 0.9, 1.4)
+
+[node name="Characters" type="Node3D"]
+
+[node name="CattleGirl" type="Node3D" parent="."]
+transform = Transform3D(0.557023, 0, -0.830497, 0, 1, 0, 0.830497, 0, 0.557023, -40, 0.0034, 32)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="CattleGirl" instance=ExtResource("2_cattle")]
+
+[node name="Body" type="StaticBody3D" parent="CattleGirl"]
+
+[node name="Shape" type="CollisionShape3D" parent="CattleGirl/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="MothKid" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, -0.0297, -17)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="MothKid" instance=ExtResource("3_moth")]
+
+[node name="Body" type="StaticBody3D" parent="MothKid"]
+
+[node name="Shape" type="CollisionShape3D" parent="MothKid/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="BikeBoy" type="Node3D" parent="."]
+transform = Transform3D(0.557023, 0, 0.830497, 0, 1, 0, -0.830497, 0, 0.557023, 11, -0.2366, 58)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="BikeBoy" instance=ExtResource("4_boy")]
+
+[node name="Body" type="StaticBody3D" parent="BikeBoy"]
+
+[node name="Shape" type="CollisionShape3D" parent="BikeBoy/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="Bike" type="Node3D" parent="."]
+transform = Transform3D(0.764842, 0, 0.644218, 0, 1, 0, -0.644218, 0, 0.764842, 12.4, -0.2617, 59.4)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Bike" instance=ExtResource("6_bike")]
+
+[node name="Body" type="StaticBody3D" parent="Bike"]
+
+[node name="Shape" type="CollisionShape3D" parent="Bike/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_bike")
+
+[node name="Wolf" type="Node3D" parent="."]
+transform = Transform3D(0.932327, 0, -0.361615, 0, 1, 0, 0.361615, 0, 0.932327, -4, 0.374, 39)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Wolf" instance=ExtResource("5_wolf")]
+
+[node name="Body" type="StaticBody3D" parent="Wolf"]
+
+[node name="Shape" type="CollisionShape3D" parent="Wolf/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_wolf")
