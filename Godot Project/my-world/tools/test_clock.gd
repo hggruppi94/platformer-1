@@ -71,7 +71,6 @@ func _run() -> void:
 	check(is_equal_approx(clock.sleep_length(3 * 60.0), 3 * 60.0), "3-hour nap at 2 PM lasts 3 hours")
 	clock.set_time(5, 21 * 60.0 + 30.0, true)
 	check(is_equal_approx(clock.sleep_length(8 * 60.0), 150.0), "8 hours from 9:30 PM stops at midnight (2.5 hours)")
-	check(is_equal_approx(clock.sleep_length(clock.minutes_until_hour(7)), 150.0), "'until morning' from 9:30 PM also stops at midnight")
 	clock.set_time(5, 20.0, true)
 	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "in the Shift she can sleep on through it")
 	check(is_equal_approx(clock.minutes_until_hour(0), 1420.0), "'until the Shift' from inside it waits for the next one")
@@ -124,6 +123,19 @@ func _run() -> void:
 	check(clock.day == 7 and clock.hour() == 7, "slept on through the Shift to day 7, %s" % clock.time_string())
 	check(game.hp == game.max_hp, "a full night's sleep fills HP")
 	check(messages[-1].begins_with("Good morning!"), "wake-up message: " + messages[-1])
+	# "Until morning" from the picker sleeps straight through the night, Shift and all
+	clock.set_time(7, 22 * 60.0, true)
+	_press("interact")
+	await _frames(2)
+	_press("ui_down")
+	await _frames(2)
+	check(bed._preview.text == "She'll wake up at 7:00 AM", "'until morning' preview: " + bed._preview.text)
+	_press("interact")
+	await create_timer(5.0).timeout
+	check(clock.day == 8 and clock.hour() == 7, "'until morning' at 10 PM -> day 8, %s" % clock.time_string())
+	# Back to day 7, 7:00 AM for the save/load check below
+	clock.set_time(7, 7 * 60.0, true)
+	game.save_game()
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
 	check(data is Dictionary and int(data.get("day", 0)) == 7 and is_equal_approx(float(data.get("minutes", 0)), 7 * 60.0),
 		"save.json has day 7, 7:00 AM")

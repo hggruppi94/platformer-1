@@ -2,7 +2,8 @@ extends Area3D
 
 # A bed (Nina's, in tools/build_interiors.gd). Stand next to it and press Interact to sleep, at any time of day.
 # A small picker asks how long: 1 to 12 hours (left/right to change), until morning, or until the Shift. It shows when
-# she'll wake up. A sleep that would run past midnight stops there, so the Shift is never skipped by accident.
+# she'll wake up. A nap that would run past midnight stops there, so the Shift is never skipped by accident; "until
+# morning" is a clear choice to sleep through the night, so it goes straight on to 7:00 AM.
 # Sleeping fades the screen out, moves the clock on, refills HP/MP/SP (fully after 8 hours or more, a share of it for
 # a nap), saves, and fades back in.
 
@@ -110,7 +111,7 @@ func open_picker() -> void:
 	var tip := _label(box, "Left / right: more or less sleep", 15)
 	tip.modulate.a = 0.7
 	var morning := _option(box, "Until morning (%s)" % Clock.format_time(Clock.WAKE_HOUR * 60.0),
-		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR)))
+		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), false))
 	var shift := _option(box, "Until the Shift (midnight)",
 		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	_option(box, "Not now", close_picker)
@@ -118,7 +119,7 @@ func open_picker() -> void:
 	_preview.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(0.9, 0.78, 1.0))
 	# The preview line says when she'll wake up for whichever option is highlighted
 	_hours_button.focus_entered.connect(func() -> void: _show_wake(hours * 60.0))
-	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR)))
+	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), false))
 	shift.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	get_tree().root.add_child(_picker)
 	_set_hours(hours)
@@ -141,8 +142,8 @@ func _set_hours(h: int) -> void:
 	_show_wake(hours * 60.0)
 
 
-func _show_wake(want_minutes: float) -> void:
-	var length := Clock.sleep_length(want_minutes)
+func _show_wake(want_minutes: float, wake_for_shift := true) -> void:
+	var length := Clock.sleep_length(want_minutes) if wake_for_shift else want_minutes
 	var text := "She'll wake up at %s" % Clock.format_time(Clock.minutes + length)
 	if length < want_minutes:
 		text += ", for the Shift!"
@@ -185,20 +186,21 @@ func _option(parent: Control, text: String, cb: Callable) -> Button:
 # -----------------------------------------------------------------------------
 # Sleeping
 # -----------------------------------------------------------------------------
-func sleep_for(want_minutes: float) -> void:
+func sleep_for(want_minutes: float, wake_for_shift := true) -> void:
 	# Sleep straight away, without the picker (also used by tools/test_clock.gd)
 	_busy = true
 	_prompt.visible = false
 	get_tree().paused = true
-	_start_sleep(want_minutes)
+	_start_sleep(want_minutes, wake_for_shift)
 
 
-func _start_sleep(want_minutes: float) -> void:
+func _start_sleep(want_minutes: float, wake_for_shift := true) -> void:
+	# wake_for_shift: stop at midnight rather than sleep through the Shift
 	if _picker:
 		_picker.queue_free()
 		_picker = null
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	var length := Clock.sleep_length(want_minutes)
+	var length := Clock.sleep_length(want_minutes) if wake_for_shift else want_minutes
 	# A dark screen on top of everything; it keeps animating while the game is paused underneath
 	var layer := CanvasLayer.new()
 	layer.layer = 50
