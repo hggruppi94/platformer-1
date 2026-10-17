@@ -4,7 +4,8 @@
 [ext_resource type="PackedScene" path="res://models/characters/cattle_girl.glb" id="2_cattle"]
 [ext_resource type="PackedScene" path="res://models/characters/moth_kid.glb" id="3_moth"]
 [ext_resource type="PackedScene" path="res://models/characters/bike_boy.glb" id="4_boy"]
-[ext_resource type="PackedScene" path="res://models/characters/wolf.glb" id="5_wolf"]
+[ext_resource type="PackedScene" path="res://models/characters/rook.glb" id="5_rook"]
+[ext_resource type="Script" path="res://scripts/rook.gd" id="8_rook"]
 [ext_resource type="PackedScene" path="res://models/props/bike.glb" id="6_bike"]
 [ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 
@@ -12,8 +13,8 @@
 radius = 0.32
 height = 1.5
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_wolf"]
-size = Vector3(0.45, 0.9, 1.3)
+[sub_resource type="SphereShape3D" id="SphereShape3D_rook"]
+radius = 0.3
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bike"]
 size = Vector3(0.5, 0.9, 1.4)
@@ -72,18 +73,15 @@ animation = "idle"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_bike")
 
-[node name="BrunosDog" type="Node3D" parent="."]
-transform = Transform3D(0.932327, 0, -0.361615, 0, 1, 0, 0.361615, 0, 0.932327, -4, 0.374, 39)
-script = ExtResource("1_npc")
-animation = "idle"
+[node name="Rook" type="CharacterBody3D" parent="."]
+transform = Transform3D(0.932327, 0, -0.361615, 0, 1, 0, 0.361615, 0, 0.932327, -4, 0.5, 39)
+script = ExtResource("8_rook")
 
-[node name="Model" parent="BrunosDog" instance=ExtResource("5_wolf")]
+[node name="Model" parent="Rook" instance=ExtResource("5_rook")]
 
-[node name="Body" type="StaticBody3D" parent="BrunosDog"]
-
-[node name="Shape" type="CollisionShape3D" parent="BrunosDog/Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
-shape = SubResource("BoxShape3D_wolf")
+[node name="Shape" type="CollisionShape3D" parent="Rook"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0.12)
+shape = SubResource("SphereShape3D_rook")
 
 [node name="GreenMan" type="Node3D" parent="."]
 transform = Transform3D(0.593199, 0, 0.805056, 0, 1, 0, -0.805056, 0, 0.593199, 24, -0.2566, 48)

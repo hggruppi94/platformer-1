@@ -39,6 +39,7 @@ const CAPTIONS := {
 	"centipede_whisper": "[whispering]",
 	"door": "[door]",
 	"roll": "[tumble]",
+	"bark": "[Rook barks]",
 }
 
 var _cache := {}
