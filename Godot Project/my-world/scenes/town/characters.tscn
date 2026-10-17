@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/bike_boy.glb" id="4_boy"]
 [ext_resource type="PackedScene" path="res://models/characters/wolf.glb" id="5_wolf"]
 [ext_resource type="PackedScene" path="res://models/props/bike.glb" id="6_bike"]
+[ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -83,3 +84,16 @@ animation = "idle"
 [node name="Shape" type="CollisionShape3D" parent="Wolf/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 shape = SubResource("BoxShape3D_wolf")
+
+[node name="GreenMan" type="Node3D" parent="."]
+transform = Transform3D(0.593199, 0, 0.805056, 0, 1, 0, -0.805056, 0, 0.593199, 24, -0.2566, 48)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="GreenMan" instance=ExtResource("7_green")]
+
+[node name="Body" type="StaticBody3D" parent="GreenMan"]
+
+[node name="Shape" type="CollisionShape3D" parent="GreenMan/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")

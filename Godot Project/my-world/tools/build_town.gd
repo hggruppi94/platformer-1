@@ -259,6 +259,7 @@ func _build() -> void:
 	_sky_objects()
 	_characters()
 	_trees()
+	_foliage()
 	_crystals()
 	_enemies()
 	_player()
@@ -1031,6 +1032,102 @@ func _trees() -> void:
 	g.set("canopy_stretch", T.canopy_stretch)
 	own(g)
 	print("TREES ", spots.size())
+
+
+func _clear_spot(x: float, z: float, lake_margin: float, spawn_r: float) -> bool:
+	if lake_f(x, z) < lake_margin or Vector2(x - SPAWN.x, z - SPAWN.z).length() < spawn_r:
+		return false
+	if x < X_MIN + 6 or x > X_MAX - 6 or z < Z_MIN + 6 or z > Z_MAX - 6:
+		return false
+	for c in keep_clear:
+		if Vector2(x - c.x, z - c.y).length() < c.z:
+			return false
+	return true
+
+
+func _foliage() -> void:
+	# Alien undergrowth (palette in tools/theme.gd): patches of giant leaves, ferns and glowing mushrooms all over the
+	# land, plus loose ferns and leaves in between. Plants build themselves at load time (scenes/town/foliage.gd).
+	var pal: Dictionary = WT.foliage()
+	if pal.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2024
+	var positions := PackedVector3Array()
+	var kinds := PackedInt32Array()
+	var sizes := PackedFloat32Array()
+	var yaws := PackedFloat32Array()
+	var colors := PackedColorArray()
+	var counts := [0, 0, 0]
+	var plant := func(kind: int, x: float, z: float, size: float, color: Color) -> void:
+		positions.append(ground(x, z))
+		kinds.append(kind)
+		sizes.append(size)
+		yaws.append(rng.randf() * TAU)
+		colors.append(color)
+		counts[kind] += 1
+	var leaves: Array = pal.leaves
+	var ferns: Array = pal.ferns
+	var caps: Array = pal.mushroom_caps
+
+	# Patches: a few of each kind huddled together, like the corner of Sofi's picture
+	var patches := 0
+	var tries := 0
+	while patches < 120 and tries < 5000:
+		tries += 1
+		var cx := rng.randf_range(X_MIN + 10, X_MAX - 10)
+		var cz := rng.randf_range(Z_MIN + 10, Z_MAX - 10)
+		if not _clear_spot(cx, cz, 1.3, 12.0):
+			continue
+		patches += 1
+		var radius := rng.randf_range(4.0, 9.0)
+		var leaf_col: Color = leaves[rng.randi() % leaves.size()]
+		var fern_col: Color = ferns[rng.randi() % ferns.size()]
+		var cap_col: Color = caps[rng.randi() % caps.size()]
+		var want := [rng.randi_range(2, 4), rng.randi_range(3, 7), rng.randi_range(0, 4) if rng.randf() < 0.75 else 0]
+		var big_mushroom := rng.randf() < 0.4
+		for kind in 3:
+			for k in want[kind]:
+				var a := rng.randf() * TAU
+				var d := sqrt(rng.randf()) * radius
+				var x := cx + cos(a) * d
+				var z := cz + sin(a) * d
+				if not _clear_spot(x, z, 1.25 if kind == 1 else 1.35, 9.0):
+					continue
+				match kind:
+					0:
+						var c: Color = leaf_col if rng.randf() < 0.6 else leaves[rng.randi() % leaves.size()]
+						plant.call(0, x, z, rng.randf_range(2.4, 4.6), c)
+					1:
+						plant.call(1, x, z, rng.randf_range(0.9, 1.8), fern_col if rng.randf() < 0.7 else ferns[rng.randi() % ferns.size()])
+					2:
+						var s := rng.randf_range(2.4, 4.2) if big_mushroom and k == 0 else rng.randf_range(0.5, 1.6)
+						plant.call(2, x, z, s, cap_col)
+	# Loose ferns and leaf clumps in between
+	tries = 0
+	var loose := 0
+	while loose < 320 and tries < 5000:
+		tries += 1
+		var x := rng.randf_range(X_MIN + 8, X_MAX - 8)
+		var z := rng.randf_range(Z_MIN + 8, Z_MAX - 8)
+		if not _clear_spot(x, z, 1.25, 8.0):
+			continue
+		loose += 1
+		if rng.randf() < 0.65:
+			plant.call(1, x, z, rng.randf_range(0.8, 1.5), ferns[rng.randi() % ferns.size()])
+		else:
+			plant.call(0, x, z, rng.randf_range(1.8, 3.2), leaves[rng.randi() % leaves.size()])
+
+	var g := group("Foliage", Vector3.ZERO)
+	g.set_script(load("res://scenes/town/foliage.gd"))
+	g.set("positions", positions)
+	g.set("kinds", kinds)
+	g.set("sizes", sizes)
+	g.set("yaws", yaws)
+	g.set("colors", colors)
+	g.set("stem_color", pal.mushroom_stem)
+	own(g)
+	print("FOLIAGE leaves=%d ferns=%d mushrooms=%d" % counts)
 
 
 func _enemies() -> void:

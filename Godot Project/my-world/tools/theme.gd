@@ -5,8 +5,19 @@ extends RefCounted
 #   yellows/oranges -> teal and cyan      reds/pinks -> magenta      greens -> acid lime
 #   blues -> violet                        purples -> hot pink         whites/greys -> lavender
 # Builders call tint() for surface colours, light() for lamp colours and backdrop() for background/ambient colours.
+# foliage() is the alien undergrowth palette (giant leaves, ferns, glowing mushrooms); it is empty for "earth".
 
 const THEME := "alien"
+
+# Alien undergrowth from Sofi's picture: giant teal and purple leaves, magenta and violet ferns, glowing blue mushrooms
+# on pale pink stems. Used by tools/build_town.gd (_foliage) and drawn by scenes/town/foliage.gd.
+const FOLIAGE := {
+	"leaves": [Color(0.04, 0.62, 0.58), Color(0.02, 0.42, 0.48), Color(0.12, 0.7, 0.66), Color(0.5, 0.2, 0.78),
+		Color(0.34, 0.22, 0.8), Color(0.7, 0.24, 0.72)],
+	"ferns": [Color(0.95, 0.2, 0.66), Color(0.62, 0.24, 0.98), Color(1.0, 0.42, 0.82), Color(0.78, 0.15, 0.85)],
+	"mushroom_caps": [Color(0.22, 0.52, 1.0), Color(0.18, 0.82, 1.0), Color(0.42, 0.4, 1.0)],
+	"mushroom_stem": Color(0.88, 0.62, 0.86),
+}
 
 # Hue remapping for saturated colours: [input hue, output hue], 0..1 around the colour wheel
 const HUE_MAP := [
@@ -17,6 +28,10 @@ const HUE_MAP := [
 
 static func alien() -> bool:
 	return THEME == "alien"
+
+
+static func foliage() -> Dictionary:
+	return FOLIAGE if alien() else {}
 
 
 static func tint(c: Color, calm := false) -> Color:
