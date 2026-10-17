@@ -313,6 +313,25 @@ func _environment() -> void:
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 180.0
 	add(sun)
+	# Day and night from the game clock: moves the sun, darkens the sky, turns on the lamps (scripts/day_night.gd).
+	# The colours above are the noon look it starts from.
+	var day_night := Node.new()
+	day_night.name = "DayNight"
+	day_night.set_script(load("res://scripts/day_night.gd"))
+	add(day_night)
+
+
+func night_light(parent: Node, pos: Vector3, color: Color, energy := 1.2, rng := 7.0) -> OmniLight3D:
+	# A lamp's light: off in the day, on at night (scripts/day_night.gd switches the "night_lights" group)
+	var l := OmniLight3D.new()
+	l.name = "NightLight"
+	l.position = pos
+	l.light_color = color
+	l.light_energy = energy
+	l.omni_range = rng
+	l.add_to_group("night_lights", true)
+	parent.add_child(l)
+	return l
 
 
 func _terrain() -> void:
@@ -466,6 +485,7 @@ func boardwalk(name: String, a: Vector2, b: Vector2, width := 3.0) -> void:
 			var q2: Vector2 = p + side
 			mesh_at(cylinder(0.06, 0.06, 2.2, 8), post_mat, Vector3(q2.x, 1.4, q2.y), g)
 			mesh_at(sphere(0.22, -1, 12), lamp, Vector3(q2.x, 2.6, q2.y), g)
+			night_light(g, Vector3(q2.x, 2.4, q2.y), lamp.albedo_color)
 	own(g)
 
 
@@ -495,6 +515,7 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 		var wpos := Vector3(sin(a), 0, cos(a)) * (r * 0.93) + Vector3(0, r * 0.42, 0)
 		mesh_at(box(Vector3(r * 0.32, r * 0.3, 0.3)), glass, wpos, g, a, Vector3(-0.35, 0, 0))
 	mesh_at(box(Vector3(1.8, 2.6, 0.6)), door, Vector3(0, 1.1, r * 0.97), g)
+	night_light(g, Vector3(0, 3.2, r + 1.0), WT.light(Color(1.0, 0.85, 0.6)), 1.0, 6.0)     # porch light
 	for e in extra:            # extra domes: Vector4(dx, dz, r, height offset)
 		mesh_at(sphere(e.z, e.z * 2, 32), shell, Vector3(e.x, e.w, e.y), g)
 		mesh_at(cylinder(e.z * 1.04, e.z * 1.06, 3.0, 32), trim, Vector3(e.x, e.w - 1.2, e.y), g)
@@ -1466,8 +1487,10 @@ func _welcome_sign() -> void:
 
 
 func _portal() -> void:
-	# A ring of light on a stone base: the way to Earth. It doesn't open yet (no Earth scene), so the door says so.
+	# A ring of light on a stone base: the way to Earth. It only opens during the Shift, midnight to 1 AM
+	# (scripts/portal.gd shows the swirl, sparkles and glow then). There's no Earth scene yet, so the door says so.
 	var g := group("Portal to Earth", ground(PORTAL.x, PORTAL.y), PORTAL.z)
+	g.set_script(load("res://scripts/portal.gd"))
 	var stone := mat("Portal Stone", Color(0.55, 0.5, 0.7), 0.8)
 	mesh_at(cylinder(3.4, 3.8, 0.8, 32), stone, Vector3(0, 0.2, 0), g)
 	solid(_cyl_shape(3.8, 0.8), Vector3(0, 0.2, 0), g)
@@ -1475,7 +1498,9 @@ func _portal() -> void:
 	ring.inner_radius = 2.6
 	ring.outer_radius = 3.2
 	ring.rings = 48
-	mesh_at(ring, mat("Portal Ring", Color(0.95, 0.75, 0.3), 0.3, 0.6, 0.8), Vector3(0, 3.7, 0), g, 0.0, Vector3(PI / 2, 0, 0))
+	var ring_mi := mesh_at(ring, mat("Portal Ring", Color(0.95, 0.75, 0.3), 0.3, 0.6, 0.8), Vector3(0, 3.7, 0), g, 0.0,
+		Vector3(PI / 2, 0, 0))
+	ring_mi.name = "Ring"
 	var swirl := shader_mat("""shader_type spatial;
 render_mode unshaded, cull_disabled;
 void fragment() {
@@ -1490,7 +1515,40 @@ void fragment() {
 }""")
 	var q := QuadMesh.new()
 	q.size = Vector2(5.4, 5.4)
-	mesh_at(q, swirl, Vector3(0, 3.7, 0), g)
+	var swirl_mi := mesh_at(q, swirl, Vector3(0, 3.7, 0), g)
+	swirl_mi.name = "Swirl"
+	var glow := OmniLight3D.new()
+	glow.name = "Glow"
+	glow.position = Vector3(0, 3.7, 1.0)
+	glow.light_color = Color(0.5, 0.75, 1.0)
+	glow.light_energy = 3.0
+	glow.omni_range = 14.0
+	g.add_child(glow)
+	# Sparkles drifting out of the swirl while it's open
+	var sparkles := CPUParticles3D.new()
+	sparkles.name = "Sparkles"
+	sparkles.position = Vector3(0, 3.7, 0)
+	sparkles.emitting = false
+	sparkles.amount = 60
+	sparkles.lifetime = 2.5
+	sparkles.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	sparkles.emission_sphere_radius = 2.4
+	sparkles.direction = Vector3(0, 0.3, 1)
+	sparkles.spread = 60.0
+	sparkles.gravity = Vector3(0, 0.4, 0)
+	sparkles.initial_velocity_min = 0.3
+	sparkles.initial_velocity_max = 1.2
+	sparkles.scale_amount_min = 0.6
+	sparkles.scale_amount_max = 1.4
+	var fade := Curve.new()
+	fade.add_point(Vector2(0, 0))
+	fade.add_point(Vector2(0.2, 1))
+	fade.add_point(Vector2(1, 0))
+	sparkles.scale_amount_curve = fade
+	var dot := sphere(0.07, -1, 6)
+	dot.material = mat("Portal Sparkle", Color(0.75, 0.9, 1.0), 0.2, 0.0, 4.0, 1.0, false)
+	sparkles.mesh = dot
+	g.add_child(sparkles)
 	door(g, "res://scenes/earth/earth.tscn", "Portal to Earth", Vector3(0, 2.4, 0.4), Vector3(4.0, 4.0, 1.0))
 	sign_post(g, "Portal to Earth", Vector3(4.5, 0, 2.5), 0.0)
 	keep_clear.append(Vector3(PORTAL.x, PORTAL.y, 7))

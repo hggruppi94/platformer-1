@@ -1,6 +1,7 @@
 extends CanvasLayer
 
-# On-screen stats panel (top left), short messages (bottom center), sound captions (bottom left) and a "Saved" note.
+# On-screen stats panel (top left), the clock (top center), short messages (bottom center), sound captions (bottom
+# left) and a "Saved" note.
 # Text size and high contrast follow Settings.
 
 var panel: PanelContainer
@@ -10,6 +11,8 @@ var sp_bar: ProgressBar                     # stamina, spent by rolling
 var bar_labels: Array[Label] = []
 var _last_hp := -1
 var message_label: Label
+var clock_panel: PanelContainer
+var clock_label: Label                      # "Day 2   7:15 PM", plus "The Shift" from midnight to 1 AM
 var saved_label: Label
 var captions_box: VBoxContainer
 var _saved_tween: Tween
@@ -26,6 +29,15 @@ func _ready() -> void:
 	mp_bar = _bar_row(v, "MP", "MP: magic, for abilities to come. Refills over time")
 	sp_bar = _bar_row(v, "SP", "SP: stamina, spent by rolling. Refills quickly")
 	add_child(panel)
+
+	clock_panel = PanelContainer.new()
+	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	clock_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	clock_panel.offset_top = 16
+	clock_label = Label.new()
+	clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	clock_panel.add_child(clock_label)
+	add_child(clock_panel)
 
 	message_label = Label.new()
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -55,11 +67,13 @@ func _ready() -> void:
 	Game.sp_changed.connect(_refresh_sp)
 	Game.message_posted.connect(_show_message)
 	Game.saved.connect(_on_saved)
+	Clock.time_changed.connect(_refresh_clock)
 	Audio.caption.connect(_on_caption)
 	Settings.changed.connect(_apply_look)
 	_apply_look()
 	_refresh()
 	_refresh_sp()
+	_refresh_clock()
 	_show_pending.call_deferred()
 
 
@@ -93,6 +107,9 @@ func _apply_look() -> void:
 		style.border_color = Color(1, 1, 1)
 		style.set_border_width_all(2)
 	panel.add_theme_stylebox_override("panel", style)
+	clock_panel.add_theme_stylebox_override("panel", style)
+	clock_label.add_theme_font_size_override("font_size", _fs(20))
+	clock_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	stats_label.add_theme_font_size_override("font_size", _fs(20))
 	stats_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	var back := StyleBoxFlat.new()
@@ -152,6 +169,16 @@ func _refresh() -> void:
 	mp_bar.max_value = Game.max_mp
 	mp_bar.value = Game.mp
 	_refresh_sp()
+
+
+func _refresh_clock() -> void:
+	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
+	if Clock.in_shift():
+		text += "
+The Shift"
+	clock_label.text = text
+	var shift_tint := Color(1.0, 0.8, 1.0) if Settings.high_contrast else Color(0.9, 0.7, 1.0)
+	clock_label.add_theme_color_override("font_color", shift_tint if Clock.in_shift() else Color(1, 1, 1))
 
 
 func _refresh_sp() -> void:

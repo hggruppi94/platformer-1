@@ -5,6 +5,7 @@ extends Area3D
 @export_file("*.tscn") var destination := ""
 @export var spawn := ""
 @export var place_name := ""          # shown if the destination isn't built yet
+@export var closed_message := ""      # if set, the door is shut: show this instead (e.g. the portal outside the Shift)
 
 
 func _ready() -> void:
@@ -12,5 +13,9 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if body is CharacterBody3D and destination != "":
+	if not body is CharacterBody3D or destination == "":
+		return
+	if closed_message != "":
+		Game.message(closed_message)
+	else:
 		Game.go(destination, spawn, place_name)

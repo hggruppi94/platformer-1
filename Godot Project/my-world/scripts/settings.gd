@@ -12,7 +12,7 @@ const PATH := "user://settings.cfg"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
-	["pause", "Pause"],
+	["interact", "Interact"], ["pause", "Pause"],
 ]
 
 # --- Audio (0..1)
@@ -91,7 +91,8 @@ func reset_to_defaults() -> void:
 # ----------------------------------------------------------------------------- key bindings
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "pause": KEY_ESCAPE}
+		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "interact": KEY_F,
+		"pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:
