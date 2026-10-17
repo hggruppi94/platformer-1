@@ -532,29 +532,79 @@ func _buildings() -> void:
 
 
 func _castle() -> void:
+	# The castle school from Sofi's picture (source_art/reference/world/town - cast in front of the castle.webp):
+	# a tall grey-blue fairytale castle, a crowd of slender towers with dark needle spires, gold-lit arched windows,
+	# little turrets hanging off the big towers, and domed halls at its feet. Its colours skip the world theme on
+	# purpose so it looks like her drawing. Positions are in castle units, multiplied by CASTLE_SCALE.
 	var top := ground(CASTLE_HILL.x, CASTLE_HILL.y)
 	var g := group("Castle School", top)
-	var stone := mat("Castle Stone", Color(0.66, 0.66, 0.72), 0.9)
-	var roof := mat("Castle Roof", Color(0.36, 0.42, 0.58), 0.6)
-	var lit := mat("Castle Window", Color(1.0, 0.85, 0.4), 0.5, 0.0, 1.5)
-	var door := mat("Door", Color())
-	# Keep and towers: (dx, dz, radius, height), scaled up so the school looms over the town
-	var towers := [Vector4(0, 0, 9, 18), Vector4(0, -4, 3.2, 40), Vector4(-11, 2, 3.4, 26), Vector4(11, 2, 3.4, 26),
-		Vector4(-8, -9, 3.0, 30), Vector4(8, -9, 3.0, 30), Vector4(-15, -5, 2.6, 22), Vector4(15, -5, 2.6, 22),
-		Vector4(-5, 7, 2.4, 20), Vector4(5, 7, 2.4, 20)]
+	var S := CASTLE_SCALE
+	var stone := mat("Castle Stone", Color(0.34, 0.48, 0.72), 0.85, 0.0, 0.0, 1.0, false)
+	var stone_dark := mat("Castle Stone Dark", Color(0.27, 0.38, 0.6), 0.85, 0.0, 0.0, 1.0, false)
+	var roof := mat("Castle Roof", Color(0.11, 0.14, 0.24), 0.55, 0.1, 0.0, 1.0, false)
+	var lit := mat("Castle Window", Color(1.0, 0.76, 0.28), 0.5, 0.0, 1.6, 1.0, false)
+	var door := mat("Castle Door", Color(0.28, 0.2, 0.16), 0.8, 0.0, 0.0, 1.0, false)
+
+	# Keep: the wide body the towers grow out of, with a battlement ring and rows of windows
+	var keep_r := 9.0 * S
+	var keep_h := 15.0 * S
+	mesh_at(cylinder(keep_r * 0.96, keep_r, keep_h + 4 * S, 16), stone, Vector3(0, keep_h / 2 - 2 * S, 0), g)
+	solid(_cyl_shape(keep_r, keep_h + 4 * S), Vector3(0, keep_h / 2 - 2 * S, 0), g)
+	mesh_at(cylinder(keep_r * 1.04, keep_r * 0.96, 1.2 * S, 16), stone_dark, Vector3(0, keep_h + 0.6 * S, 0), g)
+	for k in 16:
+		var a := k * TAU / 16
+		mesh_at(box(Vector3(1.4, 1.2, 1.0) * S), stone_dark, Vector3(sin(a), 0, cos(a)) * keep_r + Vector3(0, keep_h + 1.7 * S, 0), g, a)
+	for row in 2:
+		for k in 10:
+			var a := (k + 0.5 * row) * TAU / 10
+			if row == 0 and absf(wrapf(a, -PI, PI)) < 0.35:
+				continue                                  # leave the gate clear
+			arch_window(g, lit, Vector3.ZERO, a, keep_r * 0.98, (6.0 + row * 5.0) * S, 1.1 * S)
+
+	# Towers: x, z, radius, height (top of the wall; the needle spire sits above it)
+	var towers := [
+		Vector4(0, -3, 3.6, 46),                          # the tall middle tower
+		Vector4(-5, -7, 2.8, 36), Vector4(5, -7.5, 2.8, 39), Vector4(0, -11, 2.6, 33),
+		Vector4(-3.5, 2.5, 2.3, 30), Vector4(3.8, 2, 2.2, 33),
+		Vector4(-11, 2, 3.0, 24), Vector4(11, 2, 3.0, 26), Vector4(-8.5, -9, 2.6, 28), Vector4(8.5, -10, 2.6, 27),
+		Vector4(-15, -5, 2.2, 20), Vector4(15, -5, 2.2, 21), Vector4(-5, 7, 2.2, 19), Vector4(5, 7, 2.2, 19),
+		Vector4(-12, -12, 1.8, 18), Vector4(12, -13, 1.8, 19),
+	]
 	for i in towers.size():
-		towers[i] = towers[i] * CASTLE_SCALE
-	for t in towers:
-		mesh_at(cylinder(t.z, t.z * 1.05, t.w + 4, 32), stone, Vector3(t.x, t.w / 2 - 2, t.y), g)
-		solid(_cyl_shape(t.z * 1.05, t.w + 4), Vector3(t.x, t.w / 2 - 2, t.y), g)
-		mesh_at(cylinder(0.0, t.z * 1.25, t.z * 2.4, 32), roof, Vector3(t.x, t.w + t.z * 1.2, t.y), g)
-		for k in 4:                                   # lit window slits
-			var a := k * PI / 2 + 0.4
-			mesh_at(box(Vector3(0.5, 1.4, 0.3)), lit, Vector3(t.x + sin(a) * t.z, t.w * 0.7, t.y + cos(a) * t.z), g, a)
-	# Front gate (south) with the school entrance trigger
-	var front := 9.0 * CASTLE_SCALE
+		towers[i] = towers[i] * S
+		var t: Vector4 = towers[i]
+		var inside := Vector2(t.x, t.y).length() + t.z < keep_r     # windows only where they show above the keep
+		castle_tower(g, Vector3(t.x, -2 * S, t.y), t.z, t.w, stone if i % 3 else stone_dark, roof, lit, i == 0, true,
+			keep_h if inside else 0.0)
+
+	# Turrets hanging off the big towers, high up: parent tower index, angle around it, radius, height above base
+	var turrets := [
+		Vector4(0, 0.9, 1.1, 30), Vector4(0, -0.9, 1.0, 34), Vector4(0, PI, 1.0, 26),
+		Vector4(1, -1.3, 0.9, 24), Vector4(2, 1.4, 0.9, 27), Vector4(3, PI, 0.8, 22),
+		Vector4(6, -1.6, 1.0, 16), Vector4(7, 1.6, 1.0, 18), Vector4(8, -2.2, 0.9, 19), Vector4(9, 2.2, 0.9, 18),
+		Vector4(4, -0.7, 0.8, 21), Vector4(5, 0.7, 0.8, 23),
+	]
+	for tu in turrets:
+		var p: Vector4 = towers[int(tu.x)]
+		var dir := Vector3(sin(tu.y), 0, cos(tu.y))
+		var r: float = tu.z * S
+		var base: Vector3 = Vector3(p.x, tu.w * S, p.y) + dir * (p.z + r * 0.6)
+		mesh_at(cylinder(r, 0.0, r * 2.2, 16), stone_dark, base + Vector3(0, -r * 1.1, 0), g)     # corbel underneath
+		castle_tower(g, base, r, base.y + 4.5 * S, stone, roof, lit, false, false)
+
+	# Domed halls at the castle's feet, left and right of the gate: x, z, radius
+	for d in [Vector3(-18, 5, 6.0), Vector3(18, 5, 6.0), Vector3(-12.5, 11, 3.6), Vector3(12.5, 11, 3.6)]:
+		var dp := Vector3(d.x, 0, d.y) * S
+		dp.y = height(top.x + dp.x, top.z + dp.z) - top.y
+		domed_hall(g, dp, d.z * S, stone, roof, lit)
+
+	# Front gate (south): an arched door between two pillars, with the school entrance trigger
+	var front := keep_r
 	mesh_at(box(Vector3(5, 7, 1.2)), door, Vector3(0, 3.5, front + 0.2), g)
-	mesh_at(box(Vector3(7.5, 1.2, 1.6)), stone, Vector3(0, 7.6, front + 0.4), g)
+	mesh_at(cylinder(2.5, 2.5, 1.2, 24), door, Vector3(0, 7, front + 0.2), g, 0.0, Vector3(PI / 2, 0, 0))
+	mesh_at(box(Vector3(7.5, 1.2, 1.6)), stone_dark, Vector3(0, 10.1, front + 0.4), g)
+	for s in [-1, 1]:
+		mesh_at(box(Vector3(1.2, 9.5, 1.6)), stone_dark, Vector3(s * 3.2, 4.75, front + 0.4), g)
 	var area := Area3D.new()
 	area.name = "SchoolEntrance"
 	area.set_script(load("res://scripts/door.gd"))
@@ -570,9 +620,61 @@ func _castle() -> void:
 	cs.shape = box_shape(Vector3(4, 4, 1.5))
 	area.add_child(cs)
 	g.add_child(area)
+	var glow := OmniLight3D.new()                # warm light spilling out of the gate
+	glow.light_color = Color(1.0, 0.75, 0.4)
+	glow.light_energy = 2.0
+	glow.omni_range = 10.0
+	glow.position = Vector3(0, 4, front + 3)
+	g.add_child(glow)
 	sign_post(g, "School", Vector3(6, 0, front + 5), 0.0)
-	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, 24))
+	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, 38))
 	own(g)
+
+
+func arch_window(parent: Node, lit: Material, center: Vector3, a: float, r: float, y: float, w: float) -> void:
+	# A gold-lit arched window on a round wall: wall centre (x, z), angle around it, wall radius, sill height, width
+	var out := Vector3(center.x + sin(a) * r, y, center.z + cos(a) * r)
+	mesh_at(box(Vector3(w, w * 1.3, 0.3)), lit, out + Vector3(0, w * 0.65, 0), parent, a)
+	mesh_at(cylinder(w / 2, w / 2, 0.3, 12), lit, out + Vector3(0, w * 1.3, 0), parent, a, Vector3(PI / 2, 0, 0))
+
+
+func castle_tower(parent: Node, base: Vector3, r: float, top_y: float, stone: Material, roof: Material, lit: Material,
+		tallest := false, collide := true, windows_from := 0.0) -> void:
+	# A slender round tower from base up to top_y, a corbelled ring, and a dark needle spire with a finial
+	var h := top_y - base.y
+	var pos := Vector3(base.x, base.y + h / 2, base.z)
+	mesh_at(cylinder(r * 0.94, r, h, 20), stone, pos, parent)
+	if collide:
+		solid(_cyl_shape(r, h), pos, parent)
+	mesh_at(cylinder(r * 1.18, r * 0.96, r * 0.45, 20), stone, Vector3(base.x, top_y - r * 0.1, base.z), parent)
+	var spire := r * (8.5 if tallest else 6.5)
+	mesh_at(cylinder(0.0, r * 1.1, spire, 20), roof, Vector3(base.x, top_y + r * 0.12 + spire / 2, base.z), parent)
+	mesh_at(cylinder(0.0, maxf(r * 0.08, 0.06), r * 1.6, 6), roof, Vector3(base.x, top_y + spire + r * 0.7, base.z), parent)
+	# Gold arched windows in staggered rows, more of them on the wider towers
+	var per_row := 4 if r > 2.5 else 3
+	var w := clampf(r * 0.32, 0.45, 1.6)
+	var y := maxf(maxf(base.y, 0.0) + r * 2.0, windows_from + w)
+	var row := 0
+	while y < top_y - w * 2.5:
+		for k in per_row:
+			arch_window(parent, lit, base, (k + 0.5 * (row % 2)) * TAU / per_row + 0.3, r * 0.96, y, w)
+		y += maxf(w * 4.5, h / 5.0)
+		row += 1
+
+
+func domed_hall(parent: Node, pos: Vector3, r: float, stone: Material, roof: Material, lit: Material) -> void:
+	# A round hall with a grey stone dome, gold arched windows all round, and a little spire on top
+	var drum_h := r * 0.7
+	mesh_at(cylinder(r, r * 1.03, drum_h + 3.0, 32), stone, pos + Vector3(0, drum_h / 2 - 1.5, 0), parent)
+	solid(_cyl_shape(r * 1.03, drum_h + 3.0), pos + Vector3(0, drum_h / 2 - 1.5, 0), parent)
+	mesh_at(cylinder(r * 1.06, r * 1.06, r * 0.12, 32), roof, pos + Vector3(0, drum_h, 0), parent)
+	mesh_at(sphere(r * 0.98, r * 0.98 * 2, 32), stone, pos + Vector3(0, drum_h, 0), parent)
+	solid(_sphere_shape(r * 0.98), pos + Vector3(0, drum_h, 0), parent)
+	var n := int(r * 1.4)
+	for k in n:
+		arch_window(parent, lit, pos, k * TAU / n, r * 1.0, pos.y + drum_h * 0.15, r * 0.24)
+	var spire_base := pos + Vector3(0, drum_h + r * 0.85, 0)
+	castle_tower(parent, spire_base, r * 0.12, spire_base.y + r * 0.4, stone, roof, lit, false, false)
 
 
 func _plateau_features() -> void:
@@ -646,11 +748,13 @@ void fragment() {
 	own(wf)
 
 
-func mushroom_tower(name: String, x: float, z: float, h: float) -> void:
+func mushroom_tower(name: String, x: float, z: float, h: float, gold := false) -> void:
+	# gold: keep the yellow and blue of Sofi's picture instead of the world theme (the ones beside the castle)
 	var g := group(name, ground(x, z))
-	var yellow := mat("Tower Yellow", Color(0.98, 0.8, 0.25), 0.5)
-	var band := mat("Tower Band", Color(0.85, 0.55, 0.1), 0.6)
-	var cap_glass := mat("Tower Glass", Color(0.35, 0.75, 1.0), 0.05, 0.1, 0.4, 0.7)
+	var k := " Gold" if gold else ""
+	var yellow := mat("Tower Yellow" + k, Color(0.98, 0.8, 0.25), 0.5, 0.0, 0.0, 1.0, not gold)
+	var band := mat("Tower Band" + k, Color(0.85, 0.55, 0.1), 0.6, 0.0, 0.0, 1.0, not gold)
+	var cap_glass := mat("Tower Glass" + k, Color(0.35, 0.75, 1.0), 0.05, 0.1, 0.4, 0.7, not gold)
 	mesh_at(cylinder(0.9, 1.4, h, 16), yellow, Vector3(0, h / 2, 0), g)
 	solid(_cyl_shape(1.4, h), Vector3(0, h / 2, 0), g)
 	mesh_at(cylinder(4.5, 3.2, 1.0, 32), yellow, Vector3(0, h + 0.4, 0), g)
@@ -667,6 +771,10 @@ func _towers() -> void:
 	mushroom_tower("Tower 3", -104, -38, 16)
 	mushroom_tower("Tower 4", 104, -60, 22)
 	mushroom_tower("Tower 5", 48, -78, 18)
+	# Golden ones flanking the castle school, as in Sofi's picture
+	mushroom_tower("Castle Tower West", -24, -96, 24, true)
+	mushroom_tower("Castle Tower East", 66, -104, 20, true)
+	mushroom_tower("Castle Tower Back", 52, -132, 28, true)
 
 
 func court(name: String, x: float, z: float, size: Vector2, color: Color, basketball: bool) -> void:
@@ -934,7 +1042,7 @@ func _enemies() -> void:
 		# East meadow beside the courts
 		Vector3(115, 12, 0), Vector3(120, -25, 0), Vector3(112, 40, 0),
 		# Foot of the castle hill
-		Vector3(-40, -75, 0), Vector3(-15, -80, 0), Vector3(5, -72, 0),
+		Vector3(-40, -75, 0), Vector3(-15, -80, 0), Vector3(-2, -66, 0),
 		# West fields
 		Vector3(-100, 10, 0), Vector3(-115, -5, 0),
 		# On the plateau, around the Secret Gardens: big Gloops
