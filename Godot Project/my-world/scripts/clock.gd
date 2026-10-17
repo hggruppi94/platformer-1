@@ -4,7 +4,8 @@ extends Node
 #
 # A whole day takes DAY_LENGTH_MINUTES real minutes. Every night from 12:00 to 1:00 AM is the Shift: the portal opens,
 # and time in Galactopia slows down (the clock runs SHIFT_SLOWDOWN times slower), just like in the show.
-# The day and time are saved with the rest of the game (scripts/game.gd). Sleeping in a bed jumps to WAKE_HOUR.
+# The day and time are saved with the rest of the game (scripts/game.gd). Sleeping in a bed (scripts/bed.gd) moves
+# the clock on by however long she sleeps.
 #
 # Other scripts read it (Clock.hour(), Clock.daylight(), Clock.in_shift()) or listen to its signals.
 
@@ -105,11 +106,30 @@ func is_night() -> bool:
 
 func time_string() -> String:
 	# 12-hour time, e.g. "7:05 PM"
-	var h := hour()
+	return format_time(minutes)
+
+
+static func format_time(at_minutes: float) -> String:
+	var m := int(fposmod(at_minutes, MINUTES_PER_DAY))
+	var h := m / 60
 	var h12 := h % 12
 	if h12 == 0:
 		h12 = 12
-	return "%d:%02d %s" % [h12, minute(), "AM" if h < 12 else "PM"]
+	return "%d:%02d %s" % [h12, m % 60, "AM" if h < 12 else "PM"]
+
+
+func minutes_until_hour(h: int) -> float:
+	# How long until the clock next reads h:00 (a whole day if it's exactly h:00 now)
+	var wait := fposmod(h * 60.0 - minutes, MINUTES_PER_DAY)
+	return wait if wait > 0.0 else float(MINUTES_PER_DAY)
+
+
+func sleep_length(want_minutes: float) -> float:
+	# How long a sleep of want_minutes really lasts: one that would run past midnight stops there, so she never
+	# sleeps through the Shift without knowing. (Already in the Shift, she can sleep on through it.)
+	if in_shift():
+		return want_minutes
+	return minf(want_minutes, minutes_until_hour(SHIFT_START_HOUR))
 
 
 # -----------------------------------------------------------------------------
@@ -126,10 +146,15 @@ func set_time(new_day: int, new_minutes: float, quiet := false) -> void:
 	time_changed.emit()
 
 
+func advance(game_minutes: float) -> void:
+	# Jump forward in time (sleeping), into the next days if need be. Quiet: whoever jumped says what happened.
+	var total := minutes + game_minutes
+	set_time(day + int(total / MINUTES_PER_DAY), total, true)
+
+
 func sleep_until_morning() -> void:
 	# Next WAKE_HOUR: later today if it's still before it (sleeping at 3 AM), otherwise tomorrow
-	var wake := WAKE_HOUR * 60.0
-	set_time(day if minutes < wake else day + 1, wake, true)
+	advance(minutes_until_hour(WAKE_HOUR))
 
 
 func reset() -> void:

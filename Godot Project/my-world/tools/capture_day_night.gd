@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of day and night: the town at noon, dusk and midnight, the portal open in the Shift and closed after it,
-# and waking up in Nina's House after sleeping. Opens a window (screenshots need rendering, so not --headless):
+# and sleeping in Nina's House: the "how long?" picker, waking at midnight for the Shift, and the morning after. Opens a window (screenshots need rendering, so not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_day_night.gd -- <output folder>
 #
@@ -66,9 +66,17 @@ func _run() -> void:
 	clock.set_time(2, 22 * 60.0 + 30.0)
 	await _frames(20)
 	await _capture("house_bed_prompt")
-	bed.call("sleep")
+	bed.call("open_picker")
+	await _frames(10)
+	await _capture("sleep_picker")
+	bed.call("_sleep_for_hours")                    # 8 hours from 10:30 PM: she wakes at midnight for the Shift
 	await create_timer(1.6).timeout
-	await _capture("sleeping_fade")
+	await _capture("sleeping_fade_shift")
+	await create_timer(3.2).timeout
+	await _capture("house_woke_for_shift")
+	bed.call("sleep_for", clock.call("minutes_until_hour", 7))     # then on until morning
+	await create_timer(1.6).timeout
+	await _capture("sleeping_fade_morning")
 	await create_timer(3.2).timeout
 	await _capture("house_after_sleep")
 	# And outside, the morning after

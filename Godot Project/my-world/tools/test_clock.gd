@@ -66,6 +66,19 @@ func _run() -> void:
 	clock.sleep_until_morning()
 	check(clock.day == 5 and clock.hour() == 7, "sleep at 10 PM -> day 5, 7:00 AM")
 
+	# How long a sleep really lasts: stops at midnight so the Shift isn't skipped, unless she's already in it
+	clock.set_time(5, 14 * 60.0, true)
+	check(is_equal_approx(clock.sleep_length(3 * 60.0), 3 * 60.0), "3-hour nap at 2 PM lasts 3 hours")
+	clock.set_time(5, 21 * 60.0 + 30.0, true)
+	check(is_equal_approx(clock.sleep_length(8 * 60.0), 150.0), "8 hours from 9:30 PM stops at midnight (2.5 hours)")
+	check(is_equal_approx(clock.sleep_length(clock.minutes_until_hour(7)), 150.0), "'until morning' from 9:30 PM also stops at midnight")
+	clock.set_time(5, 20.0, true)
+	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "in the Shift she can sleep on through it")
+	check(is_equal_approx(clock.minutes_until_hour(0), 1420.0), "'until the Shift' from inside it waits for the next one")
+	clock.set_time(5, 23 * 60.0, true)
+	clock.advance(12 * 60.0 + 30.0)
+	check(clock.day == 6 and clock.time_string() == "11:30 AM", "advance 12.5 hours from 11 PM -> day 6, 11:30 AM")
+
 	# Sleep in Nina's bed for real: fade, morning, save
 	change_scene_to_file(HOUSE)
 	for i in 5:
@@ -77,19 +90,40 @@ func _run() -> void:
 	for i in 10:
 		await physics_frame
 	check(bed._near, "standing by the bed shows the prompt: " + bed.get_node("Prompt").text)
+	var messages: Array[String] = []
+	game.message_posted.connect(func(t: String) -> void: messages.append(t))
+	# Interact opens the picker (game paused); right twice: 8 -> 10 hours; Interact again picks it
 	clock.set_time(6, 21 * 60 + 30.0, true)
 	game.hp = 1
-	var press := InputEventAction.new()
-	press.action = "interact"
-	press.pressed = true
-	Input.parse_input_event(press)
-	await process_frame
-	await process_frame
-	check(paused, "sleeping pauses the game")
+	_press("interact")
+	await _frames(2)
+	check(bed._picker != null and paused, "Interact opens the sleep picker and pauses the game")
+	_press("ui_right")
+	_press("ui_right")
+	await _frames(2)
+	check(bed.hours == 10 and bed._hours_button.text.contains("10 hours"), "right twice: " + bed._hours_button.text.strip_edges())
+	check(bed._preview.text.contains("12:00 AM") and bed._preview.text.contains("Shift"), "preview: " + bed._preview.text)
+	_press("interact")
+	await _frames(2)
+	check(bed._picker == null and paused, "picking it closes the picker and she falls asleep")
 	await create_timer(5.0).timeout
 	check(not paused, "...and wakes up again")
-	check(clock.day == 7 and clock.hour() == 7, "woke up on day 7 at %s" % clock.time_string())
-	check(game.hp == game.max_hp, "sleeping filled HP")
+	check(clock.day == 7 and clock.hour() == 0 and clock.minute() == 0 and clock.in_shift(),
+		"10 hours from 9:30 PM woke her at midnight for the Shift: day %d, %s" % [clock.day, clock.time_string()])
+	check(not messages.is_empty() and messages[-1].contains("the Shift has begun"), "wake-up message: %s" % [messages])
+	check(game.hp == 1 + ceili(game.max_hp * 2.5 / 8.0), "a 2.5-hour sleep fills part of her HP (%d/%d)" % [game.hp, game.max_hp])
+	# Cancel does nothing
+	_press("interact")
+	await _frames(2)
+	_press("ui_cancel")
+	await _frames(2)
+	check(bed._picker == null and not paused and clock.day == 7 and clock.hour() == 0, "Cancel closes the picker without sleeping")
+	# In the Shift, sleep on until morning
+	bed.sleep_for(clock.minutes_until_hour(7))
+	await create_timer(5.0).timeout
+	check(clock.day == 7 and clock.hour() == 7, "slept on through the Shift to day 7, %s" % clock.time_string())
+	check(game.hp == game.max_hp, "a full night's sleep fills HP")
+	check(messages[-1].begins_with("Good morning!"), "wake-up message: " + messages[-1])
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
 	check(data is Dictionary and int(data.get("day", 0)) == 7 and is_equal_approx(float(data.get("minutes", 0)), 7 * 60.0),
 		"save.json has day 7, 7:00 AM")
@@ -99,6 +133,21 @@ func _run() -> void:
 	check(saved_pos.distance_to(player.global_position) < 0.5, "save.json has her by the bed %s" % saved_pos)
 	print("RESULT %s (%d failed). Now run with -- --check-load" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(failures)
+
+
+func _press(action: String) -> void:
+	var e := InputEventAction.new()
+	e.action = action
+	e.pressed = true
+	Input.parse_input_event(e)
+	var up := InputEventAction.new()
+	up.action = action
+	Input.parse_input_event(up)
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
 
 
 func _check_load() -> void:
