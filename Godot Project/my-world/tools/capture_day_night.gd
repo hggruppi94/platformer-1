@@ -30,7 +30,9 @@ func _initialize() -> void:
 func _run() -> void:
 	clock = root.get_node("Clock")
 	game = root.get_node("Game")
-	if FileAccess.file_exists(SAVE):
+	# Put your save aside. If a backup is already there, an earlier run stopped before putting it back: that backup
+	# is your real save, so keep it rather than copying this run's test save over it.
+	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
 		DirAccess.copy_absolute(SAVE, BACKUP)
 	game._resume = {}
 	game.pending_message = ""

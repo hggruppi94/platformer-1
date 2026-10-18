@@ -1,0 +1,27 @@
+{
+  "name": "Green Man",
+  "conversations": [
+    {
+      "when": {"time": "shift"},
+      "lines": [
+        "(The Green Man looks at the portal. Then he looks at Nina.)",
+        "..."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "..."
+        ],
+        [
+          "(He gives Nina a tiny smile.)",
+          "..."
+        ],
+        [
+          "...",
+          "Not yet."
+        ]
+      ]
+    }
+  ]
+}

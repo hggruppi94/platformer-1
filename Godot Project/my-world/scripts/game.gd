@@ -5,7 +5,8 @@ extends Node
 #
 # Saving: progress is written to user://save.json (on Windows: %APPDATA%\Godot\app_userdata\MyWorld\save.json)
 # automatically — on arriving in a scene, on level up, on getting an item, on sleeping, every 30 seconds,
-# and on quitting. The day and time of day (scripts/clock.gd) are saved with it.
+# and on quitting. The day and time of day (scripts/clock.gd) and who she's talked to (scripts/dialogue.gd) are saved
+# with it.
 # It's loaded when the game starts, putting Nina back where she was. New Game is in the pause menu.
 
 signal stats_changed
@@ -201,7 +202,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Developer shortcut, only when run from the editor (not in exported builds): X for 10 XP
 	if OS.is_debug_build() and event.is_action_pressed("debug_xp"):
 		add_xp(10)
-	if event.is_action_pressed("toggle_skateboard"):
+	if event.is_action_pressed("toggle_skateboard") and not Dialogue.is_active():
 		toggle_skateboard()
 
 
@@ -217,6 +218,7 @@ func save_game() -> void:
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding,
 		"day": Clock.day, "minutes": Clock.minutes,
+		"dialogue": Dialogue.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -267,6 +269,8 @@ func load_game() -> void:
 	riding = bool(data.get("riding", false)) and has_item("skateboard")
 	if data.has("day") and data.has("minutes"):     # older saves have no clock: keep the new-game time
 		Clock.set_time(int(data["day"]), float(data["minutes"]), true)
+	var dialogue = data.get("dialogue", {})
+	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var pos = data.get("position")
 	if data.has("scene") and ResourceLoader.exists(str(data["scene"])) and pos is Array and pos.size() == 3:
 		_resume = {"scene": str(data["scene"]), "position": [float(pos[0]), float(pos[1]), float(pos[2])],
@@ -311,6 +315,7 @@ func new_game() -> void:
 	items.clear()
 	riding = false
 	Clock.reset()
+	Dialogue.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}

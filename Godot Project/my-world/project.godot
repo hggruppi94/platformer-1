@@ -20,6 +20,7 @@ Clock="*res://scripts/clock.gd"
 Game="*res://scripts/game.gd"
 Audio="*res://scripts/audio.gd"
 Settings="*res://scripts/settings.gd"
+Dialogue="*res://scripts/dialogue.gd"
 PauseMenu="*res://scripts/pause_menu.gd"
 
 [display]
