@@ -13,7 +13,8 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if not body is CharacterBody3D or destination == "":
+	# Only Nina: Rex, Rook and the Gloops are CharacterBody3Ds too, and used to take the whole game inside
+	if not body.is_in_group("player") or destination == "":
 		return
 	if closed_message != "":
 		Game.message(closed_message)

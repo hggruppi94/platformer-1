@@ -24,6 +24,6 @@ func _process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if body is CharacterBody3D:
+	if body.is_in_group("player"):
 		Game.give_item(item)
 		queue_free()
