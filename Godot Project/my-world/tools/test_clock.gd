@@ -24,6 +24,10 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
+	# Never hang: give up after a few minutes (your save stays safe in the backup until --check-load puts it back)
+	create_timer(240.0, true, false, true).timeout.connect(func() -> void:
+		print("RESULT FAILED (timed out)")
+		quit(1))
 	clock = root.get_node("Clock")
 	game = root.get_node("Game")
 	if "--check-load" in OS.get_cmdline_user_args():

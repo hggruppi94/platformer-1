@@ -1,0 +1,9 @@
+{
+  "speed": 1.3,
+  "blocks": [
+    {"at": "06:30", "place": "gardens", "do": "wander", "radius": 6, "label": "gardening"},
+    {"at": "12:30", "place": "lake_west", "do": "wander", "radius": 4, "label": "by_the_water"},
+    {"at": "17:30", "place": "gardens", "do": "idle", "face": [-80, -35], "label": "evening_watering"},
+    {"at": "20:30", "place": "greenhouse", "do": "away", "label": "asleep"}
+  ]
+}

@@ -1,9 +1,10 @@
 extends Node3D
 
 # A townsperson who stands in one spot playing one looping animation from their model (scenes/town/characters.tscn).
-# This is a placeholder until daily routines move them around on the calendar.
+# With a daily routine (scripts/routine.gd) under them, the routine moves them about and picks their animations.
 
 @export var animation := "idle"
+var talking := false                    # set by their talk spot (scripts/talker.gd); a routine waits while it's on
 
 
 func _ready() -> void:

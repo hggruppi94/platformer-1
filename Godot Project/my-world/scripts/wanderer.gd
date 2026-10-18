@@ -40,6 +40,7 @@ var _stuck := 0.0
 var _anim: AnimationPlayer
 var _player: Node3D
 var talking := false                                # set by his talk spot (scripts/talker.gd): stand still and listen
+var held := false                                   # set by his daily routine (scripts/routine.gd) while it moves him
 
 
 func _ready() -> void:
@@ -60,6 +61,9 @@ func _physics_process(delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Node3D
 	_cooldown -= delta
 	velocity.y = 0.0 if is_on_floor() else velocity.y - GRAVITY * delta
+	if held:                                        # his routine is walking him somewhere, or he's away
+		_cooldown = react_cooldown
+		return
 	if talking:                                     # the talk spot turns him to face her
 		if _state != State.IDLE or (_anim and _anim.current_animation != "idle"):
 			_start_idle()

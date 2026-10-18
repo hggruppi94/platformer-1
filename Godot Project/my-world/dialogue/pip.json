@@ -2,7 +2,9 @@
   "name": "Pip",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "Oh! Hi! I'm Pip. Are you a lamp? You're kind of glowy.",
         "Nina: I'm Nina. Not a lamp.",
@@ -10,20 +12,44 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "The portal is the biggest, glowiest light EVER.",
         "I just want to look at it a tiny bit. Okay, a big bit. Okay, ALL the bits."
       ]
     },
     {
-      "when": {"time": "morning"},
+      "when": {
+        "activity": "lamp_watching",
+        "travelling": true
+      },
+      "lines": [
+        "Can't stop! The lamps are coming on! See you on the boardwalk!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "asleep",
+        "travelling": true
+      },
+      "lines": [
+        "(yawn) The sky's getting light... home to my cave. Night night, Nina."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning"
+      },
       "lines": [
         "(yawn) Too bright... come back when it's dark and sparkly..."
       ]
     },
     {
-      "when": {"time": "day"},
+      "when": {
+        "time": "day"
+      },
       "lines": [
         "Zzz... five more hours...",
         "Nina: Pip? Pip!",
@@ -31,7 +57,10 @@
       ]
     },
     {
-      "when": {"time": "evening", "every": 2},
+      "when": {
+        "time": "evening",
+        "every": 2
+      },
       "lines": [
         "It's getting dark! The lamps are coming on! Best part of the whole day!"
       ]
@@ -43,15 +72,23 @@
         ],
         [
           "Want to go lamp watching with me?",
-          {"choice": [
-            {"text": "Sure!", "lines": [
-              "Yay! Lamp number one is... that one.",
-              "Lamp number two is... also that one. It's my favorite."
-            ]},
-            {"text": "Maybe later.", "lines": [
-              "Okay! The lamps will wait. Lamps are very patient."
-            ]}
-          ]}
+          {
+            "choice": [
+              {
+                "text": "Sure!",
+                "lines": [
+                  "Yay! Lamp number one is... that one.",
+                  "Lamp number two is... also that one. It's my favorite."
+                ]
+              },
+              {
+                "text": "Maybe later.",
+                "lines": [
+                  "Okay! The lamps will wait. Lamps are very patient."
+                ]
+              }
+            ]
+          }
         ],
         [
           "I counted all the lamps on the boardwalk. There are... a lot! I got too excited to finish."

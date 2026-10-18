@@ -1,0 +1,9 @@
+{
+  "speed": 1.3,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "04:30", "place": "caves", "do": "away", "label": "asleep"},
+    {"at": "18:30", "place": "boardwalk", "do": "patrol", "route": ["south_shore", "boardwalk", "square_south", "boardwalk"],
+     "pause": 6, "label": "lamp_watching"}
+  ]
+}

@@ -7,7 +7,8 @@ extends Node
 #
 # What they say is in res://dialogue/<id>.json, one file per character. See res://dialogue/README.md for how to
 # write it. Which conversation plays depends on the time of day (Clock.period()), how many times she's talked to
-# them, and flags set by earlier answers. Talk counts and flags are saved with the game (scripts/game.gd).
+# them, flags set by earlier answers, and where they are and what they're up to in their daily routine
+# (scripts/routine.gd). Talk counts and flags are saved with the game (scripts/game.gd).
 
 signal started(id: String)
 signal finished(id: String)
@@ -155,7 +156,7 @@ func pick_conversation(id: String) -> Array:
 	var data := load_character(id)
 	var count := int(talks.get(id, 0))
 	for c in data.get("conversations", []):
-		if not c is Dictionary or not _matches(c.get("when", {}), count):
+		if not c is Dictionary or not _matches(c.get("when", {}), count, id):
 			continue
 		if c.has("rotate"):
 			var sets: Array = c["rotate"]
@@ -164,7 +165,14 @@ func pick_conversation(id: String) -> Array:
 	return []
 
 
-func _matches(when: Dictionary, count: int) -> bool:
+func routine_of(id: String) -> Node:
+	for r in get_tree().get_nodes_in_group("routines"):
+		if r.get("character_id") == id:
+			return r
+	return null
+
+
+func _matches(when: Dictionary, count: int, id := "") -> bool:
 	if when.has("time"):
 		var want = when["time"]
 		var times: Array = want if want is Array else [want]
@@ -183,6 +191,19 @@ func _matches(when: Dictionary, count: int) -> bool:
 		return false
 	if when.has("not_flag") and flags.has(str(when["not_flag"])):
 		return false
+	# Their routine: where they are ("place"), what they're up to ("activity", the block's label), on the move
+	if when.has("place") or when.has("activity") or when.has("travelling"):
+		var r := routine_of(id)
+		if r == null:
+			return false
+		for key in ["place", "activity"]:
+			if when.has(key):
+				var want = when[key]
+				var options: Array = want if want is Array else [want]
+				if not str(r.call(key)) in options:
+					return false
+		if when.has("travelling") and bool(when["travelling"]) != r.call("is_travelling"):
+			return false
 	return true
 
 

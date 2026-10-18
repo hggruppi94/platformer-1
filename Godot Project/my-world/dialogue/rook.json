@@ -2,7 +2,9 @@
   "name": "Rook",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "Grrr...",
         "Nina: Um... hi? Are you okay?",
@@ -13,21 +15,60 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "Awoooooo!",
         "Nina: He's howling at the portal. I think he misses having a tail."
       ]
     },
     {
-      "when": {"time": "night", "every": 2},
+      "when": {
+        "activity": "napping"
+      },
+      "lines": [
+        "Zzzz... snrrk... woof... zzzz.",
+        "Nina: He's napping in the sun. I'll let him sleep."
+      ]
+    },
+    {
+      "when": {
+        "activity": "following",
+        "every": 2
+      },
+      "lines": [
+        "Woof!",
+        "Nina: Following them around again? You're a good... um... brother? Dog? Brother-dog.",
+        "Hmph."
+      ]
+    },
+    {
+      "when": {
+        "activity": "grumbling",
+        "every": 2
+      },
+      "lines": [
+        "Grrr... grumble grumble...",
+        "Nina: Grumbling at the moon again?",
+        "Woof."
+      ]
+    },
+    {
+      "when": {
+        "time": "night",
+        "every": 2
+      },
       "lines": [
         "Zzz... woof... zzz...",
         "Nina: He's barking in his sleep. Sweet dreams, Rook."
       ]
     },
     {
-      "when": {"time": "morning", "every": 2},
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
       "lines": [
         "Woof! Woof!",
         "Nina: Okay, okay! Good morning to you too!"
@@ -42,16 +83,24 @@
         ],
         [
           "Woof?",
-          {"choice": [
-            {"text": "Want a belly rub?", "lines": [
-              "GRRR!",
-              "Nina: Okay! No belly rubs. Got it."
-            ]},
-            {"text": "Want to play fetch?", "lines": [
-              "Woof! Woof!",
-              "Nina: He's wagging... his whole body. I think that's a yes."
-            ]}
-          ]}
+          {
+            "choice": [
+              {
+                "text": "Want a belly rub?",
+                "lines": [
+                  "GRRR!",
+                  "Nina: Okay! No belly rubs. Got it."
+                ]
+              },
+              {
+                "text": "Want to play fetch?",
+                "lines": [
+                  "Woof! Woof!",
+                  "Nina: He's wagging... his whole body. I think that's a yes."
+                ]
+              }
+            ]
+          }
         ],
         [
           "Woof.",

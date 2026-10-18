@@ -1,0 +1,10 @@
+{
+  "speed": 2.8,
+  "move_anim": "skate",
+  "blocks": [
+    {"at": "07:00", "place": "ninas_house", "do": "wander", "radius": 5, "label": "morning_skate"},
+    {"at": "10:00", "place": "town_hall", "do": "wander", "radius": 3, "label": "campaigning"},
+    {"at": "17:30", "place": "skate_park", "do": "wander", "radius": 6, "label": "evening_skate"},
+    {"at": "21:00", "place": "dashs_house", "do": "away", "label": "home"}
+  ]
+}
