@@ -1,0 +1,71 @@
+{
+  "name": "Rex",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Ah, a citizen! Hello! Rex, future mayor of Galactopia, at your service.",
+        "Nina: A talking husky?",
+        "Technically I'm Dash's twin. I'm just borrowing a husky right now. It's a long story with a lot of paperwork.",
+        "Nina: Wait... aren't you Rook?",
+        "I'm REX! He's the dog! ...Even though he's the one with hands right now."
+      ]
+    },
+    {
+      "when": {"time": "shift"},
+      "lines": [
+        "The portal is open! As your future mayor, I'd like to remind everyone:",
+        "No jumping into portals after bedtime. Or before bedtime. Just... ask a grown-up first."
+      ]
+    },
+    {
+      "when": {"time": "night", "every": 2},
+      "lines": [
+        "A good mayor never sleeps.",
+        "(Rex yawns a big husky yawn.)",
+        "...A good mayor has naps. Lots of naps."
+      ]
+    },
+    {
+      "when": {"time": "morning", "every": 2},
+      "lines": [
+        "Good morning, citizen! Today's plan: more parks, more snacks, and more brain breaks!",
+        "Nina: Here's to more brain breaks!",
+        "That's going on a poster."
+      ]
+    },
+    {
+      "when": {"flag": "voted_rex", "every": 3},
+      "lines": [
+        "My favorite voter! I'm putting your name on a park bench. A small one. Very official."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "My big promise: a skate ramp on every corner.",
+          "And a water bowl on every corner. For... other people. Not me. Definitely not me."
+        ],
+        [
+          "Can I count on your vote, citizen?",
+          {"choice": [
+            {"text": "You've got my vote!", "set": "voted_rex", "lines": [
+              "Wonderful! Here's to more brain breaks!"
+            ]},
+            {"text": "What's a vote?", "lines": [
+              "It's when everybody gets a say. Even small people. ESPECIALLY small people."
+            ]},
+            {"text": "Are you Rook?", "lines": [
+              "I'm REX! HE'S the dog! I'm the one with the speeches!"
+            ]}
+          ]}
+        ],
+        [
+          "Someone called me Rook again today.",
+          "Nina: Oh no.",
+          "I'm REX! He's the dog! I'm making badges. Big ones."
+        ]
+      ]
+    }
+  ]
+}

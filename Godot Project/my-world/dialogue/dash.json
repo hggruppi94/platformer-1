@@ -1,0 +1,67 @@
+{
+  "name": "Dash",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Whoa, hey! Nina! I mean... hi, stranger I have definitely never met before.",
+        "Nina: Do I know you?",
+        "Not yet! Well... kind of. It's complicated. Time stuff.",
+        "I'm Dash. I came here through the pond to fix something. A super important something.",
+        "Nina: What are you fixing?",
+        "Can't say! If I talk about the future too much it makes time ripples. Little wobbly ones."
+      ]
+    },
+    {
+      "when": {"time": "shift"},
+      "lines": [
+        "Do you feel that? The portal's open! Time's all slow and stretchy right now.",
+        "Nina: Is that where you came from?",
+        "Ha! Uh... no comment. Time ripples, remember? Wobble wobble."
+      ]
+    },
+    {
+      "when": {"time": "night", "every": 2},
+      "lines": [
+        "Can't sleep. My brain's going boots-and-cats, boots-and-cats.",
+        "Nina: Boots and... cats?",
+        "That's how you say house music with your mouth! Try it! Boots-and-cats!"
+      ]
+    },
+    {
+      "when": {"time": "morning", "every": 2},
+      "lines": [
+        "Morning! I already rode around the lake eleven times. Twelve. I lost count.",
+        "(Dash leans on his bike. The bike wobbles. Dash wobbles.)",
+        "I'm fine!"
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Leaning on my bike is my favorite way to stand. Ask anyone. Ask the bike.",
+          "Nina: Does the bike like it?",
+          "The bike has never complained. Not once. Best friend ever."
+        ],
+        [
+          "Psst. Want to know something about the future?",
+          {"choice": [
+            {"text": "Yes! Tell me!", "lines": [
+              "Okay. In the future, there's this giant...",
+              "(Dash stops. He squints at the sky.)",
+              "...nope. I felt a ripple. Sorry! Ask me again in, like, a hundred years."
+            ]},
+            {"text": "No thanks, I like surprises.", "lines": [
+              "Smart. Super smart. You'd be amazing at time travel."
+            ]}
+          ]}
+        ],
+        [
+          "Untz, untz, untz. That's the beat.",
+          "Nina: I don't hear anything.",
+          "It's always playing in my head. It's a good song. You'd love it. Untz."
+        ]
+      ]
+    }
+  ]
+}

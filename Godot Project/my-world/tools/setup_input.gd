@@ -42,7 +42,7 @@ func _initialize() -> void:
 	set_action("jump", [key(KEY_SPACE), pad_button(JOY_BUTTON_A)])
 	set_action("dash", [key(KEY_SHIFT), pad_button(JOY_BUTTON_X), pad_button(JOY_BUTTON_RIGHT_SHOULDER)])
 	set_action("toggle_skateboard", [key(KEY_E), pad_button(JOY_BUTTON_Y)])
-	set_action("interact", [key(KEY_F), pad_button(JOY_BUTTON_B)])          # sleep in a bed, and other "use" things
+	set_action("interact", [key(KEY_F), pad_button(JOY_BUTTON_B)])          # talk to people, sleep in a bed
 	set_action("pause", [key(KEY_ESCAPE), key(KEY_P), pad_button(JOY_BUTTON_START)])
 	set_action("debug_xp", [key(KEY_X)])
 	# Camera: right stick
@@ -54,7 +54,8 @@ func _initialize() -> void:
 	# Autoloads, in start-up order: Clock before Game (loading a save sets the time), Audio before Settings (Settings
 	# sets the volumes), PauseMenu last
 	for pair in [["Clock", "res://scripts/clock.gd"], ["Game", "res://scripts/game.gd"], ["Audio", "res://scripts/audio.gd"],
-			["Settings", "res://scripts/settings.gd"], ["PauseMenu", "res://scripts/pause_menu.gd"]]:
+			["Settings", "res://scripts/settings.gd"], ["Dialogue", "res://scripts/dialogue.gd"],
+			["PauseMenu", "res://scripts/pause_menu.gd"]]:
 		ProjectSettings.set_setting("autoload/" + pair[0], "*" + pair[1])
 	print("save=", ProjectSettings.save())
 	quit()

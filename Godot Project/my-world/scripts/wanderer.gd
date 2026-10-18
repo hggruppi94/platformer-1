@@ -39,6 +39,7 @@ var _cooldown := 0.0
 var _stuck := 0.0
 var _anim: AnimationPlayer
 var _player: Node3D
+var talking := false                                # set by his talk spot (scripts/talker.gd): stand still and listen
 
 
 func _ready() -> void:
@@ -59,6 +60,15 @@ func _physics_process(delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Node3D
 	_cooldown -= delta
 	velocity.y = 0.0 if is_on_floor() else velocity.y - GRAVITY * delta
+	if talking:                                     # the talk spot turns him to face her
+		if _state != State.IDLE or (_anim and _anim.current_animation != "idle"):
+			_start_idle()
+		_timer = 1.0
+		_cooldown = react_cooldown                  # no barking at her the moment she's done talking
+		velocity.x = 0.0
+		velocity.z = 0.0
+		move_and_slide()
+		return
 	var flat := Vector3.ZERO
 
 	match _state:

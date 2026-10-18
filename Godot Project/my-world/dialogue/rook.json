@@ -1,0 +1,65 @@
+{
+  "name": "Rook",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Grrr...",
+        "Nina: Um... hi? Are you okay?",
+        "Woof.",
+        "Nina: Is that a yes woof or a no woof?",
+        "...Woof.",
+        "Nina: I'm going to say that's a 'not really' woof."
+      ]
+    },
+    {
+      "when": {"time": "shift"},
+      "lines": [
+        "Awoooooo!",
+        "Nina: He's howling at the portal. I think he misses having a tail."
+      ]
+    },
+    {
+      "when": {"time": "night", "every": 2},
+      "lines": [
+        "Zzz... woof... zzz...",
+        "Nina: He's barking in his sleep. Sweet dreams, Rook."
+      ]
+    },
+    {
+      "when": {"time": "morning", "every": 2},
+      "lines": [
+        "Woof! Woof!",
+        "Nina: Okay, okay! Good morning to you too!"
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Grrr...",
+          "Nina: Grumpy again? I'd be grumpy too if I woke up as a whole different shape.",
+          "Hmph."
+        ],
+        [
+          "Woof?",
+          {"choice": [
+            {"text": "Want a belly rub?", "lines": [
+              "GRRR!",
+              "Nina: Okay! No belly rubs. Got it."
+            ]},
+            {"text": "Want to play fetch?", "lines": [
+              "Woof! Woof!",
+              "Nina: He's wagging... his whole body. I think that's a yes."
+            ]}
+          ]}
+        ],
+        [
+          "Woof.",
+          "Nina: You know, Rex keeps telling everyone he's Rex and you're the dog.",
+          "GRRR.",
+          "Nina: Yeah. I figured you'd say that."
+        ]
+      ]
+    }
+  ]
+}

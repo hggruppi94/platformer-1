@@ -70,6 +70,7 @@ var _spin_grounded := false                 # roll: keep the ball on the floor w
 var _was_on_floor := true
 var _fall_speed := 0.0
 var _step_timer := 0.0
+var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
 
 
 func _ready() -> void:
@@ -163,7 +164,8 @@ func _physics_process(delta: float) -> void:
 
 	# Coyote time and jump buffering
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta
-	_jump_buffer_timer = jump_buffer_time if Input.is_action_just_pressed("jump") else _jump_buffer_timer - delta
+	var jump_pressed := Input.is_action_just_pressed("jump") and not input_locked
+	_jump_buffer_timer = jump_buffer_time if jump_pressed else _jump_buffer_timer - delta
 
 	# Jump (an ollie when riding: same jump, momentum kept). Jumping out of a roll is allowed and ends it.
 	if _jump_buffer_timer > 0 and _coyote_timer > 0:
@@ -173,7 +175,7 @@ func _physics_process(delta: float) -> void:
 		_end_roll()
 		Audio.play("jump", -3.0)
 	# Double jump: a second, free jump in mid-air with a front flip; back again on landing or stomping
-	elif Input.is_action_just_pressed("jump") and not on_floor and not _air_jump_used and not Game.riding \
+	elif jump_pressed and not on_floor and not _air_jump_used and not Game.riding \
 			and _stun_timer <= 0.0:
 		velocity.y = double_jump_velocity
 		_air_jump_used = true
@@ -187,7 +189,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y *= jump_cut
 
 	# Read input
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var input_dir := Vector2.ZERO if input_locked else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 	# Build direction relative to the CAMERA's yaw instead of the player body
 	var cam_basis := spring_arm.global_transform.basis
@@ -202,7 +204,7 @@ func _physics_process(delta: float) -> void:
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
 
 	# Roll (the "dash" action): on the ground only; pressed in the air, it waits a moment for her to land
-	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") else _roll_buffer_timer - delta
+	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") and not input_locked else _roll_buffer_timer - delta
 	if _roll_buffer_timer > 0.0 and on_floor:
 		_try_roll(direction)
 

@@ -100,6 +100,21 @@ func daylight() -> float:
 	return smoothstep(5.0, 8.0, h) * (1.0 - smoothstep(17.5, 20.5, h))
 
 
+func period() -> String:
+	# The part of the day, by name: "morning" (5-11), "day" (11-5 PM), "evening" (5-9 PM), "night" (9 PM-5 AM), or
+	# "shift" (midnight-1 AM, which is also night). Dialogue lines can depend on it (scripts/dialogue.gd).
+	var h := hour()
+	if in_shift():
+		return "shift"
+	if h >= 5 and h < 11:
+		return "morning"
+	if h >= 11 and h < 17:
+		return "day"
+	if h >= 17 and h < 21:
+		return "evening"
+	return "night"
+
+
 func is_night() -> bool:
 	return daylight() < 0.35
 
