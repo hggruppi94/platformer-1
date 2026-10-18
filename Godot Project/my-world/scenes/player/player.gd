@@ -80,8 +80,14 @@ func _ready() -> void:
 	if Game.next_spawn != "":
 		var marker := scene_root.find_child(Game.next_spawn, true, false) as Node3D
 		if marker:
-			global_transform = marker.global_transform
-			spring_arm.rotation.y = 0.0
+			# Stand on the marker facing the way it points (its -Z: into the room, or away from the building). Only
+			# the model and the camera turn: the body stays unturned, like everywhere else (movement and the camera
+			# rely on it). Copying the marker's whole transform used to turn the body and leave her facing backwards.
+			global_position = marker.global_position
+			rotation = Vector3.ZERO
+			var yaw := marker.global_rotation.y
+			visual.rotation.y = yaw + PI                    # models face +Z
+			spring_arm.rotation.y = yaw                     # camera behind her, looking the same way
 		Game.next_spawn = ""
 	# Starting the game from a save: appear where she was
 	var resume := Game.take_resume_point(scene_root.scene_file_path if scene_root else "")

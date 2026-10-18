@@ -27,7 +27,7 @@ func _process(delta: float) -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
-	if not body is CharacterBody3D or _cooldown > 0.0:
+	if not body.is_in_group("player") or _cooldown > 0.0:
 		return
 	_cooldown = REST_COOLDOWN
 	Game.hp = Game.max_hp
