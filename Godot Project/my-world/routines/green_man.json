@@ -1,0 +1,7 @@
+{
+  "speed": 1.0,
+  "blocks": [
+    {"at": "00:00", "place": "portal", "do": "idle", "face": [30, 72], "label": "watching_portal"},
+    {"at": "01:00", "place": "green_meadow", "do": "idle", "face": [40, 62], "label": "standing"}
+  ]
+}

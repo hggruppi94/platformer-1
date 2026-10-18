@@ -14,6 +14,7 @@ signal hour_changed(hour: int)
 signal day_changed(day: int)
 signal shift_started
 signal shift_ended
+signal jumped                        # the time jumped instead of ticking on (sleeping, loading a save)
 
 const DAY_LENGTH_MINUTES := 20.0     # real minutes for one whole in-game day
 const SHIFT_START_HOUR := 0          # the Shift: midnight...
@@ -115,6 +116,12 @@ func period() -> String:
 	return "night"
 
 
+static func parse_time(text: String) -> float:
+	# "07:30" (or "7:30") -> minutes since midnight
+	var parts := text.split(":")
+	return int(parts[0]) * 60.0 + (int(parts[1]) if parts.size() > 1 else 0)
+
+
 func is_night() -> bool:
 	return daylight() < 0.35
 
@@ -159,6 +166,7 @@ func set_time(new_day: int, new_minutes: float, quiet := false) -> void:
 		day_changed.emit(day)
 	_check_changes(not quiet)
 	time_changed.emit()
+	jumped.emit()
 
 
 func advance(game_minutes: float) -> void:

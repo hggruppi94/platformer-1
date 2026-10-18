@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://models/props/bike.glb" id="6_bike"]
 [ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 [ext_resource type="Script" path="res://scripts/talker.gd" id="10_talk"]
+[ext_resource type="Script" path="res://scripts/routine.gd" id="11_routine"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -40,6 +41,10 @@ character_id = "bramble"
 display_name = "Bramble"
 name_height = 2.0
 
+[node name="Routine" type="Node" parent="CattleGirl"]
+script = ExtResource("11_routine")
+character_id = "bramble"
+
 [node name="Body" type="StaticBody3D" parent="CattleGirl"]
 
 [node name="Shape" type="CollisionShape3D" parent="CattleGirl/Body"]
@@ -59,6 +64,10 @@ character_id = "pip"
 display_name = "Pip"
 name_height = 2.0
 
+[node name="Routine" type="Node" parent="MothKid"]
+script = ExtResource("11_routine")
+character_id = "pip"
+
 [node name="Body" type="StaticBody3D" parent="MothKid"]
 
 [node name="Shape" type="CollisionShape3D" parent="MothKid/Body"]
@@ -77,6 +86,11 @@ script = ExtResource("10_talk")
 character_id = "dash"
 display_name = "Dash"
 name_height = 2.0
+
+[node name="Routine" type="Node" parent="Dash"]
+script = ExtResource("11_routine")
+character_id = "dash"
+bike_path = NodePath("../../Bike")
 
 [node name="Body" type="StaticBody3D" parent="Dash"]
 
@@ -109,6 +123,10 @@ character_id = "rook"
 display_name = "Rook"
 name_height = 1.5
 
+[node name="Routine" type="Node" parent="Rook"]
+script = ExtResource("11_routine")
+character_id = "rook"
+
 [node name="Shape" type="CollisionShape3D" parent="Rook"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0.12)
 shape = SubResource("SphereShape3D_rook")
@@ -125,6 +143,10 @@ script = ExtResource("10_talk")
 character_id = "green_man"
 display_name = "Green Man"
 name_height = 1.9
+
+[node name="Routine" type="Node" parent="GreenMan"]
+script = ExtResource("11_routine")
+character_id = "green_man"
 
 [node name="Body" type="StaticBody3D" parent="GreenMan"]
 
@@ -154,6 +176,10 @@ script = ExtResource("10_talk")
 character_id = "rex"
 display_name = "Rex"
 name_height = 1.6
+
+[node name="Routine" type="Node" parent="Rex"]
+script = ExtResource("11_routine")
+character_id = "rex"
 
 [node name="Shape" type="CollisionShape3D" parent="Rex"]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.28, 0)

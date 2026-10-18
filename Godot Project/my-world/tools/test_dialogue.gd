@@ -30,6 +30,10 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
+	# Never hang: give up after a few minutes (your save stays safe in the backup until --check-load puts it back)
+	create_timer(240.0, true, false, true).timeout.connect(func() -> void:
+		print("RESULT FAILED (timed out)")
+		quit(1))
 	clock = root.get_node("Clock")
 	game = root.get_node("Game")
 	dialogue = root.get_node("Dialogue")
@@ -57,35 +61,43 @@ func _run() -> void:
 		"everyone in town has a talk spot: %s" % [talkers.keys()])
 	dialogue.line_shown.connect(func(who: String, text: String) -> void: said.append([who, text]))
 
-	# Names only show up close, and only the nearest person gets the prompt
+	# Names only show up close, and only the nearest person gets the prompt (12:45: Dash on his snack break)
+	clock.set_time(1, 12 * 60 + 45.0, true)
 	await _stand_by("dash", 8.0)
 	check(not _name_shown("dash") and not _name_shown("green_man"), "names hidden while far away")
 	await _stand_by("dash", 1.5)
 	check(_name_shown("dash") and _prompt_shown("dash"), "close to Dash: name and '%s'" % talkers["dash"]._prompt.text)
 	check(not _name_shown("green_man") and not _name_shown("bramble"), "...and nobody else's name")
 
-	# First meetings, in the day
-	clock.set_time(1, PERIODS.day, true)
+	# First meetings, at 7 PM when everyone's out and about
+	clock.set_time(1, PERIODS.evening, true)
 	for id in PEOPLE:
 		var lines := await _talk(id)
-		var file := _expected_lines(id, 0, "day")
+		var file := _expected_lines(id, 0, "evening")
 		check(lines.size() == file.size() and lines.size() > 0 and lines[0][1] == _fill(file[0]),
 			"%s, first time: %d lines, \"%s\"" % [id, lines.size(), lines[0][1] if lines.size() > 0 else ""])
 		check(dialogue.talks.get(id, 0) == 1, "%s: talked to once" % id)
 		if id == "dash":
 			check(lines.any(func(l: Array) -> bool: return l[0] == "Nina"), "Nina has lines too")
 
-	# Time of day: Pip is asleep in the day, everyone has something to say in the Shift
-	var pip := await _talk("pip")
-	check(pip.size() > 0 and pip[0][1].begins_with("Zzz"), "Pip in the day: " + (pip[0][1] if pip.size() else ""))
+	# Time of day: Pip at night is all about the lamps; in the Shift, the portal
+	clock.set_time(1, PERIODS.night, true)
+	var pip := await _talk("pip", [1])
+	check(pip.any(func(l: Array) -> bool: return l[1].to_lower().contains("lamp")), "Pip at night: " + (pip[0][1] if pip.size() else ""))
 	clock.set_time(2, PERIODS.shift, true)
-	var dash := await _talk("dash")
-	check(dash.size() > 0 and dash[0][1].contains("portal's open"), "Dash in the Shift: " + (dash[0][1] if dash.size() else ""))
+	var rook_shift := await _talk("rook")
+	check(rook_shift.size() > 0 and rook_shift[0][1].begins_with("Awoo"), "Rook in the Shift: " + (rook_shift[0][1] if rook_shift.size() else ""))
+	var pip_shift := await _talk("pip")
+	check(pip_shift.size() > 0 and pip_shift[0][1].contains("portal"), "Pip in the Shift: " + (pip_shift[0][1] if pip_shift.size() else ""))
 	var green := await _talk("green_man")
 	check(green.size() > 0 and green[0][1].contains("portal") and green[0][0] == "", "Green Man in the Shift (narration): " + (green[0][1] if green.size() else ""))
 
-	# Choices: vote for Rex (sets a flag), take Bramble's pick-me-up (heals)
-	clock.set_time(2, PERIODS.day, true)
+	# Choices: vote for Rex (sets a flag), take Bramble's pick-me-up (heals), play fetch with Rook. 11 AM: Rex is
+	# campaigning at the Town Hall, Bramble gardening, Rook following Rex.
+	clock.set_time(2, 11 * 60.0, true)
+	dialogue.talks["rex"] = 1
+	dialogue.talks["bramble"] = 1
+	dialogue.talks["rook"] = 1
 	var rex := await _talk("rex", [0])         # second talk: the vote question
 	check(rex.any(func(l: Array) -> bool: return l[0] == "Nina" and l[1] == "You've got my vote!"), "Nina says her answer")
 	check(dialogue.flags.has("voted_rex"), "voting for Rex sets the 'voted_rex' flag")
@@ -98,9 +110,8 @@ func _run() -> void:
 	check(rook.any(func(l: Array) -> bool: return l[1].contains("wagging")), "Rook and the fetch answer")
 
 	# While talking she can't walk off; the wanderer stays put and faces her
-	clock.set_time(2, PERIODS.day, true)
 	await _stand_by("rex", 1.6)
-	_press("interact")
+	await _start_talking("rex")
 	await _frames(3)
 	var rex_node := talkers["rex"].get_parent() as Node3D
 	var rex_at := rex_node.global_position
@@ -114,20 +125,21 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	check(not player.input_locked, "...and she can move again after")
 
-	# Someone standing still turns to face her while they talk, and back again after
+	# Someone out gardening stops and turns to face her while they talk, then carries on
 	await _stand_by("bramble", 1.6)
 	var bramble_node := talkers["bramble"].get_parent() as Node3D
-	var home_yaw: float = talkers["bramble"]._home_yaw
-	_press("interact")
+	await _start_talking("bramble")
 	await create_timer(1.0).timeout
 	var to_nina := player.global_position - bramble_node.global_position
 	to_nina.y = 0.0
 	var facing := bramble_node.global_transform.basis.z
 	facing.y = 0.0
 	check(rad_to_deg(facing.angle_to(to_nina)) < 15.0, "Bramble turns to face Nina (%.0f degrees off)" % rad_to_deg(facing.angle_to(to_nina)))
+	var bramble_at := bramble_node.global_position
+	await create_timer(1.0).timeout
+	check(bramble_node.global_position.distance_to(bramble_at) < 0.05, "...and stops gardening while they talk")
 	await _finish()
-	await create_timer(1.5).timeout
-	check(absf(angle_difference(bramble_node.rotation.y, home_yaw)) < 0.1, "...and turns back after")
+	check(not bramble_node.get("talking"), "...and carries on after")
 
 	# Save: talk counts and flags
 	game.save_game()
@@ -176,13 +188,23 @@ func _talk(id: String, picks: Array = []) -> Array:
 	# Walk up, press Interact, read every line (skipping the typing), answer questions with picks, in order
 	await _stand_by(id, 1.5)
 	said.clear()
-	_press("interact")
+	await _start_talking(id)
 	await _frames(2)
 	if not dialogue.is_active():
 		check(false, "couldn't start talking to " + id)
 		return []
 	await _finish(picks)
 	return said.duplicate()
+
+
+func _start_talking(id: String) -> void:
+	# Interact, as a player would. If someone else happens to be nearer (Rook tags along right behind Rex and Dash),
+	# talk to the one we came for directly.
+	await _frames(1)
+	if dialogue._nearest == talkers[id]:
+		_press("interact")
+	else:
+		dialogue.talk_to(talkers[id])
 
 
 func _finish(picks: Array = []) -> void:
@@ -203,6 +225,8 @@ func _finish(picks: Array = []) -> void:
 
 
 func _stand_by(id: String, distance: float) -> void:
+	for i in 3:
+		await physics_frame                       # let routines put everyone where the time says
 	await _in_town()
 	var who := talkers[id].get_parent() as Node3D
 	var side := _clear_side(id, who.global_position, distance)
@@ -276,7 +300,7 @@ func _frames(n: int) -> void:
 
 func _check_load() -> void:
 	# Game (an autoload) has already loaded the save, as on a real start-up
-	check(dialogue.talks.get("rex", 0) == 3 and dialogue.talks.get("dash", 0) == 2, "loaded talk counts: %s" % [dialogue.talks])
+	check(dialogue.talks.get("rex", 0) == 3 and dialogue.talks.get("dash", 0) == 1, "loaded talk counts: %s" % [dialogue.talks])
 	check(dialogue.flags.has("voted_rex"), "loaded flags: %s" % [dialogue.flags.keys()])
 	if FileAccess.file_exists(BACKUP):
 		DirAccess.rename_absolute(BACKUP, SAVE)

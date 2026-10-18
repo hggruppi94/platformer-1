@@ -2,7 +2,9 @@
   "name": "Bramble",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "Well, hey there, sugar! Ain't you just the sweetest thing.",
         "I'm Bramble. I grow things, and I fix up anybody who's feelin' poorly.",
@@ -11,20 +13,57 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "Portal's open, hon. The flowers by it glow brighter every time. Ain't that somethin'?"
       ]
     },
     {
-      "when": {"time": "morning", "every": 2},
+      "when": {
+        "activity": "gardening",
+        "every": 2
+      },
+      "lines": [
+        "Mornin', sugar! These little sprouts need talkin' to. Plants love a good chat.",
+        "(Bramble whispers something to a carrot.)",
+        "He says hi!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "by_the_water",
+        "every": 2
+      },
+      "lines": [
+        "Ain't nothin' better than the water on a warm afternoon.",
+        "The lake's lookin' extra sparkly today. I think it's showin' off."
+      ]
+    },
+    {
+      "when": {
+        "activity": "evening_watering"
+      },
+      "lines": [
+        "Waterin' time! Everybody gets a drink before bed, even the plants."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
       "lines": [
         "Mornin'! The flowers wake up the same time I do. We do our stretches together.",
         "(Bramble stretches. A daisy nearby seems to stretch too.)"
       ]
     },
     {
-      "when": {"time": "night", "every": 2},
+      "when": {
+        "time": "night",
+        "every": 2
+      },
       "lines": [
         "Shh, the plants are sleepin'. We gotta whisper so they grow nice and tall.",
         "Nina: (whispering) Goodnight, plants."
@@ -38,15 +77,24 @@
         ],
         [
           "You look a little tuckered out, darlin'. Want a pick-me-up?",
-          {"choice": [
-            {"text": "Yes, please!", "heal": true, "lines": [
-              "(Bramble pats Nina on the head. Tiny flowers pop up around her feet.)",
-              "There you go! Fresh as a daisy."
-            ]},
-            {"text": "I'm okay, thanks!", "lines": [
-              "Alright! You holler if you need me."
-            ]}
-          ]}
+          {
+            "choice": [
+              {
+                "text": "Yes, please!",
+                "heal": true,
+                "lines": [
+                  "(Bramble pats Nina on the head. Tiny flowers pop up around her feet.)",
+                  "There you go! Fresh as a daisy."
+                ]
+              },
+              {
+                "text": "I'm okay, thanks!",
+                "lines": [
+                  "Alright! You holler if you need me."
+                ]
+              }
+            ]
+          }
         ],
         [
           "Here's to more brain breaks! Sit in the grass a minute, sugar. It helps, I promise."

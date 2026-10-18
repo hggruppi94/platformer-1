@@ -2,7 +2,9 @@
   "name": "Dash",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "Whoa, hey! Nina! I mean... hi, stranger I have definitely never met before.",
         "Nina: Do I know you?",
@@ -13,7 +15,9 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "Do you feel that? The portal's open! Time's all slow and stretchy right now.",
         "Nina: Is that where you came from?",
@@ -21,7 +25,50 @@
       ]
     },
     {
-      "when": {"time": "night", "every": 2},
+      "when": {
+        "activity": "riding",
+        "every": 2
+      },
+      "lines": [
+        "Out for a ride! Wind in my hair! ...Well, in my hat.",
+        "Nina: Where are you going?",
+        "Everywhere! Twice! Riding helps me think about... stuff. Future stuff. Shh."
+      ]
+    },
+    {
+      "when": {
+        "activity": "snack_break"
+      },
+      "lines": [
+        "Snack break! Do you know what they have for snacks in the fu-",
+        "(Dash claps a hand over his mouth.)",
+        "...Crackers. They have crackers. Totally normal crackers."
+      ]
+    },
+    {
+      "when": {
+        "activity": "sunset"
+      },
+      "lines": [
+        "Sunsets here are the best. Pink and purple and a little bit sparkly.",
+        "Nina: Better than the ones where you come from?",
+        "Ha! Nice try. No comment."
+      ]
+    },
+    {
+      "when": {
+        "activity": "waking_up"
+      },
+      "lines": [
+        "(Dash yawns a giant yawn.)",
+        "Morning, Nina. Bike's ready. Brain's still... loading."
+      ]
+    },
+    {
+      "when": {
+        "time": "night",
+        "every": 2
+      },
       "lines": [
         "Can't sleep. My brain's going boots-and-cats, boots-and-cats.",
         "Nina: Boots and... cats?",
@@ -29,7 +76,10 @@
       ]
     },
     {
-      "when": {"time": "morning", "every": 2},
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
       "lines": [
         "Morning! I already rode around the lake eleven times. Twelve. I lost count.",
         "(Dash leans on his bike. The bike wobbles. Dash wobbles.)",
@@ -45,16 +95,24 @@
         ],
         [
           "Psst. Want to know something about the future?",
-          {"choice": [
-            {"text": "Yes! Tell me!", "lines": [
-              "Okay. In the future, there's this giant...",
-              "(Dash stops. He squints at the sky.)",
-              "...nope. I felt a ripple. Sorry! Ask me again in, like, a hundred years."
-            ]},
-            {"text": "No thanks, I like surprises.", "lines": [
-              "Smart. Super smart. You'd be amazing at time travel."
-            ]}
-          ]}
+          {
+            "choice": [
+              {
+                "text": "Yes! Tell me!",
+                "lines": [
+                  "Okay. In the future, there's this giant...",
+                  "(Dash stops. He squints at the sky.)",
+                  "...nope. I felt a ripple. Sorry! Ask me again in, like, a hundred years."
+                ]
+              },
+              {
+                "text": "No thanks, I like surprises.",
+                "lines": [
+                  "Smart. Super smart. You'd be amazing at time travel."
+                ]
+              }
+            ]
+          }
         ],
         [
           "Untz, untz, untz. That's the beat.",

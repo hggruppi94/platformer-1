@@ -3,7 +3,8 @@ extends Area3D
 # A talk spot: put one under a character (scenes/town/characters.tscn) to make them someone Nina can talk to.
 # When she's close, their name shows over their head (only then), and the nearest one says "Press F to talk".
 # What they say is in res://dialogue/<character_id>.json (scripts/dialogue.gd plays it).
-# While they talk, they turn to face her; wanderers (scripts/wanderer.gd) also stop where they are.
+# While they talk, they turn to face her and stop where they are; afterwards their routine (scripts/routine.gd) or
+# their own wandering (scripts/wanderer.gd) carries on.
 
 @export var character_id := ""
 @export var display_name := ""
@@ -94,12 +95,12 @@ func end_talk() -> void:
 
 
 func _process(delta: float) -> void:
-	# Face Nina while talking; standing characters turn back to how they were afterwards
-	# (models face +Z, so the yaw that faces a point is atan2(dx, dz))
+	# Face Nina while talking (models face +Z, so the yaw that faces a point is atan2(dx, dz)). Without a routine or
+	# wandering of their own, turn back to how they stood afterwards.
 	var target := _home_yaw
 	if _talking and _player and is_instance_valid(_player):
 		var to := _player.global_position - _body.global_position
 		target = atan2(to.x, to.z) - (_body.get_parent() as Node3D).global_rotation.y
-	elif "talking" in _body:
-		return                                       # wanderers face where they're going on their own
+	elif _body is CharacterBody3D or _body.has_node("Routine"):
+		return
 	_body.rotation.y = lerp_angle(_body.rotation.y, target, minf(1.0, 6.0 * delta))

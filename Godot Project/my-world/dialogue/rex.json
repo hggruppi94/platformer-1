@@ -2,7 +2,9 @@
   "name": "Rex",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "Ah, a citizen! Hello! Rex, future mayor of Galactopia, at your service.",
         "Nina: A talking husky?",
@@ -12,14 +14,49 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "The portal is open! As your future mayor, I'd like to remind everyone:",
         "No jumping into portals after bedtime. Or before bedtime. Just... ask a grown-up first."
       ]
     },
     {
-      "when": {"time": "night", "every": 2},
+      "when": {
+        "activity": "campaigning",
+        "every": 2
+      },
+      "lines": [
+        "Citizens of Galactopia! Vote Rex! More parks! More snacks!",
+        "Nina: Who are you talking to?",
+        "The Town Hall. It's a practice speech. The Town Hall is a very good listener."
+      ]
+    },
+    {
+      "when": {
+        "activity": "morning_skate",
+        "every": 2
+      },
+      "lines": [
+        "Morning laps around your house! A future mayor has to know every neighborhood.",
+        "Even the ones with a giant red bow on top."
+      ]
+    },
+    {
+      "when": {
+        "activity": "evening_skate",
+        "every": 2
+      },
+      "lines": [
+        "Evening skate! A mayor has to stay in shape. And go wheeee."
+      ]
+    },
+    {
+      "when": {
+        "time": "night",
+        "every": 2
+      },
       "lines": [
         "A good mayor never sleeps.",
         "(Rex yawns a big husky yawn.)",
@@ -27,7 +64,10 @@
       ]
     },
     {
-      "when": {"time": "morning", "every": 2},
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
       "lines": [
         "Good morning, citizen! Today's plan: more parks, more snacks, and more brain breaks!",
         "Nina: Here's to more brain breaks!",
@@ -35,7 +75,10 @@
       ]
     },
     {
-      "when": {"flag": "voted_rex", "every": 3},
+      "when": {
+        "flag": "voted_rex",
+        "every": 3
+      },
       "lines": [
         "My favorite voter! I'm putting your name on a park bench. A small one. Very official."
       ]
@@ -48,17 +91,29 @@
         ],
         [
           "Can I count on your vote, citizen?",
-          {"choice": [
-            {"text": "You've got my vote!", "set": "voted_rex", "lines": [
-              "Wonderful! Here's to more brain breaks!"
-            ]},
-            {"text": "What's a vote?", "lines": [
-              "It's when everybody gets a say. Even small people. ESPECIALLY small people."
-            ]},
-            {"text": "Are you Rook?", "lines": [
-              "I'm REX! HE'S the dog! I'm the one with the speeches!"
-            ]}
-          ]}
+          {
+            "choice": [
+              {
+                "text": "You've got my vote!",
+                "set": "voted_rex",
+                "lines": [
+                  "Wonderful! Here's to more brain breaks!"
+                ]
+              },
+              {
+                "text": "What's a vote?",
+                "lines": [
+                  "It's when everybody gets a say. Even small people. ESPECIALLY small people."
+                ]
+              },
+              {
+                "text": "Are you Rook?",
+                "lines": [
+                  "I'm REX! HE'S the dog! I'm the one with the speeches!"
+                ]
+              }
+            ]
+          }
         ],
         [
           "Someone called me Rook again today.",

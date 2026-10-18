@@ -58,7 +58,7 @@ func _run() -> void:
 	await _conversation("rex", "day", 1, -1, "04_rex_vote_question")
 	await _conversation("bramble", "day", 1, -1, "05_bramble_pick_me_up")
 	await _conversation("pip", "night", 3, 0, "06_pip_at_night")
-	await _conversation("dash", "shift", 2, 2, "07_dash_in_the_shift")
+	await _conversation("pip", "shift", 2, 0, "07_pip_in_the_shift")
 	await _conversation("green_man", "shift", 2, 0, "08_green_man_in_the_shift")
 
 	if FileAccess.file_exists(BACKUP):
