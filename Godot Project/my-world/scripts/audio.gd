@@ -40,6 +40,7 @@ const CAPTIONS := {
 	"door": "[door]",
 	"roll": "[tumble]",
 	"bark": "[Rook barks]",
+	"zipline": "[zipline whirs]",
 }
 
 var _cache := {}
