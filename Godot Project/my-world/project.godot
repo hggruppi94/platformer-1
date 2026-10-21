@@ -120,6 +120,13 @@ interact={
 
 3d/physics_engine="Jolt Physics"
 
+[shader_globals]
+
+nina_pos={
+"type": "vec3",
+"value": Vector3(0, -1000, 0)
+}
+
 [rendering]
 
 rendering_device/driver.windows="d3d12"
