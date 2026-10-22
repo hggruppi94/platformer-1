@@ -3,7 +3,9 @@
   "move_anim": "walk",
   "blocks": [
     {"at": "04:30", "place": "caves", "do": "away", "label": "asleep"},
-    {"at": "18:30", "place": "boardwalk", "do": "patrol", "route": ["south_shore", "boardwalk", "square_south", "boardwalk"],
+    {"at": "18:30", "place": "market", "do": "patrol", "route": ["market", "market_e_lane", "market", "market_w_lane"],
+     "pause": 6, "label": "lamp_watching"},
+    {"at": "22:00", "place": "boardwalk", "do": "patrol", "route": ["south_shore", "boardwalk", "square_south", "boardwalk"],
      "pause": 6, "label": "lamp_watching"}
   ]
 }

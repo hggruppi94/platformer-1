@@ -37,7 +37,7 @@ func _run() -> void:
 		var hit := _ray(space, Vector3(p.x, 80, p.z), Vector3(p.x, -20, p.z), skip)
 		var what := _name(hit.get("collider")) if hit else "NOTHING"
 		var bad := hit.is_empty() or not (what.contains("Ground") or what.contains("Boardwalk") or what.contains("Dock")
-			or what.contains("Skate") or what.contains("TownSquare"))
+			or what.contains("Skate") or what.contains("TownSquare") or what.contains("Market Square"))
 		print("  %s %-16s y=%6.2f  on %s" % ["!!" if bad else "  ", name, p.y, what])
 		if bad:
 			problems += 1

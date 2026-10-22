@@ -11,7 +11,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.capture_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const FAR_AWAY := Vector3(130, 2, 20)              # the empty east edge of town, far from everyone's places
+const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var out_dir := "user://routine_shots"
 var clock: Node

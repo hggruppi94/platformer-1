@@ -384,6 +384,11 @@ func _ninas_house() -> Node3D:
 	mesh_at(cylinder(1.6, 1.6, 0.05, 32), mat("Rug Middle", Color(0.98, 0.8, 0.45), 0.9), Vector3(0, 0.03, 0), root_node)
 	# The bed, against the back wall on the left: frame, mattress, red blanket, pillow and headboard
 	var bed := node("Bed", root_node, Vector3(-3.6, 0, -4.6), 0.35)
+	var wake := Marker3D.new()                         # a new game starts here, just out of bed, facing the room
+	wake.name = "BedSpawn"
+	wake.position = Vector3(-1.6, 1.0, -2.6)
+	wake.rotation.y = atan2(1.6, 2.6) - PI             # she faces the marker's -Z: toward the middle of the room
+	root_node.add_child(wake)
 	solid_box(Vector3(2.2, 0.5, 3.2), wood, Vector3(0, 0.25, 0), bed)
 	mesh_at(box(Vector3(2.0, 0.3, 3.0)), cream, Vector3(0, 0.65, 0), bed)
 	mesh_at(box(Vector3(2.08, 0.14, 2.0)), red, Vector3(0, 0.84, 0.5), bed)

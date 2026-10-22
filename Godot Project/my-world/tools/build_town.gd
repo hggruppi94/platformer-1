@@ -33,11 +33,34 @@ const CASTLE_HILL_FOOT := 66.0                   # where the hill meets the town
 const TOWN_SQUARE := Vector3(-12, -21, 10)       # x, z, radius (land between the two lakes)
 const CASTLE_SCALE := 1.6
 
-const SPAWN := Vector3(5, 0, 62)
+const SPAWN := Vector3(-72, 0, 80)               # where she appears in town without a door: the market's south entrance
+
+# The town's districts (see C:/Users/hggru/Game_dev/town-plan): the Market Square at the foot of the spa plateau, the
+# housing district east of the lake, Sports & Play to the southeast, the Observatory on its own hill to the northeast.
+const MARKET := Vector3(-72, 42, 22)              # x, z, plaza radius
+const MARKET_RING := 27.0                         # the shops stand round it this far from the fountain
+const HOUSING := Vector3(80, 0, 34)               # x, z (its little park), hedge radius
+const OBS_HILL := Vector3(105, -88, 16)           # x, z, height
+const OBS_HILL_TOP := 10.0
+const OBS_HILL_FOOT := 42.0
+const SKATE := Vector2(50, 58)
+# Main paths, painted on the ground: polylines of (x, z)
+const MAIN_PATHS := [
+	[Vector2(-72, 78), Vector2(-72, 64)],
+	[Vector2(-50, 42), Vector2(-26, 23), Vector2(-7, 22), Vector2(22, 20), Vector2(36, 15), Vector2(52, 2), Vector2(70, 2)],
+	[Vector2(-12, -42), Vector2(4, -62), Vector2(20, -82)],
+	[Vector2(-7, 22), Vector2(12, 48), Vector2(38, 56), Vector2(80, 50), Vector2(122, 58)],
+	[Vector2(88, -32), Vector2(97, -54), Vector2(97, -76)],
+	[Vector2(80, 8), Vector2(78, 26), Vector2(76, 46)],
+	[Vector2(90, -4), Vector2(93, -20), Vector2(88, -32)],
+	[Vector2(-94, 42), Vector2(-110, 30), Vector2(-108, 8)],
+	[Vector2(-72, 30), Vector2(-92, 24), Vector2(-108, 8)],
+	[Vector2(-12, -42), Vector2(-60, -82), Vector2(-100, -116)],
+]
 
 # Tall grass meadows: x, z, radius (tools/build_town.gd _foliage; drawn and made to rustle by scenes/town/foliage.gd)
-const GRASS_PATCHES := [Vector3(-5, 88, 11), Vector3(-62, 70, 9), Vector3(-95, 38, 10), Vector3(70, -68, 10),
-	Vector3(62, 14, 8), Vector3(115, 30, 9), Vector3(45, 86, 7)]
+const GRASS_PATCHES := [Vector3(10, 58, 11), Vector3(-30, 90, 10), Vector3(-118, 66, 10), Vector3(70, -64, 9),
+	Vector3(118, 24, 8), Vector3(84, -26, 6), Vector3(-10, 76, 8), Vector3(118, -20, 7)]
 
 # Look of the world. THEME comes from tools/theme.gd (shared with the school and interiors builders): set it to
 # "earth" there for the original blue-sky town. The table below is the town's own sky/terrain/water/tree palette;
@@ -235,7 +258,22 @@ func height(x: float, z: float) -> float:
 	h += PLATEAU.z * (1.0 - ss(lerpf(PLATEAU_CLIFF - 3.0, 24.0, ramp), lerpf(PLATEAU_CLIFF + 2.0, 62.0, ramp), dp))
 	var dc := Vector2(x - CASTLE_HILL.x, z - CASTLE_HILL.y).length()
 	h += CASTLE_HILL.z * (1.0 - ss(CASTLE_HILL_TOP, CASTLE_HILL_FOOT, dc))
+	var dob := Vector2(x - OBS_HILL.x, z - OBS_HILL.y).length()
+	h += OBS_HILL.z * (1.0 - ss(OBS_HILL_TOP, OBS_HILL_FOOT, dob))
 	return h
+
+
+func on_path(x: float, z: float, width := 1.8) -> bool:
+	# Close to one of the main paths (painted on the ground, MAIN_PATHS)
+	var p := Vector2(x, z)
+	for line in MAIN_PATHS:
+		for k in line.size() - 1:
+			var a: Vector2 = line[k]
+			var b: Vector2 = line[k + 1]
+			var t := clampf((p - a).dot(b - a) / (b - a).length_squared(), 0.0, 1.0)
+			if p.distance_to(a.lerp(b, t)) < width:
+				return true
+	return false
 
 
 func ground(x: float, z: float) -> Vector3:
@@ -253,16 +291,20 @@ func _build() -> void:
 	_bounds()
 	_town_square()
 	_boardwalks()
+	_market()
+	_housing()
 	_buildings()
 	_castle()
 	_plateau_features()
 	_towers()
 	_courts()
 	_skate_park()
-	_fence_and_sign()
+	_sports_sign()
 	_boats()
 	_town_hall()
 	_haunted_house()
+	_old_slide()
+	_scary_gate()
 	_antique_car()
 	_welcome_sign()
 	_portal()
@@ -274,6 +316,7 @@ func _build() -> void:
 	_soccer_field()
 	_cloud_slide()
 	_happy_places()
+	_signposts()
 	_mountains()
 	_sky_objects()
 	_characters()
@@ -358,8 +401,8 @@ func _terrain() -> void:
 			var c := grass.lerp(hill_grass, clampf(h / 12.0, 0.0, 1.0))
 			if f < 1.12:
 				c = sand
-			elif f < 1.32:
-				c = path                               # shoreline promenade around the lake
+			elif f < 1.32 or on_path(x, z):
+				c = path                               # shoreline promenade, and the main paths
 			if slope > 0.55:
 				c = c.lerp(rock, clampf((slope - 0.55) * 3.0, 0.0, 1.0))
 			st.set_color(c)
@@ -485,7 +528,7 @@ func _town_square() -> void:
 	mesh_at(cylinder(2.3, 2.3, 0.1, 32), mat("Water", Color()), Vector3(0, 0.75, 0), g)
 	mesh_at(cylinder(0.35, 0.45, 2.4, 16), mat("Fountain Stone", Color()), Vector3(0, 1.6, 0), g)
 	mesh_at(sphere(0.7), mat("Fountain Water", Color(0.6, 0.85, 1.0), 0.1, 0.0, 0.6, 0.7), Vector3(0, 2.9, 0), g)
-	sign_post(g, "Town Square", Vector3(0, 0, 6.5), 0.0)
+	sign_post(g, "Island Park", Vector3(0, 0, 6.5), 0.0)
 	keep_clear.append(Vector3(TOWN_SQUARE.x, TOWN_SQUARE.y, TOWN_SQUARE.z + 2))
 	own(g)
 
@@ -580,6 +623,119 @@ func dome_building(name: String, x: float, z: float, r: float, yaw: float, color
 	return g
 
 
+func _market() -> void:
+	# The Market Square, the town centre: a paved plaza with a fountain, six open-air stalls round it (scenery for
+	# now), lamps that come on at night (Pip comes to look at them), benches, and the Town Hall at its head.
+	# The shops round the edge come from _buildings().
+	var c := ground(MARKET.x, MARKET.y)
+	var g := group("Market Square", c)
+	var stone := mat("Plaza Stone", Color(0.85, 0.8, 0.72))
+	mesh_at(cylinder(MARKET.z, MARKET.z, 1.0, 64), stone, Vector3(0, -0.35, 0), g)
+	solid(_cyl_shape(MARKET.z, 1.0), Vector3(0, -0.35, 0), g)
+	for r in [MARKET.z - 1.0, 9.0]:                                  # rings of darker paving
+		mesh_at(cylinder(r, r, 1.01, 64), mat("Plaza Ring", Color(0.75, 0.68, 0.62)), Vector3(0, -0.345, 0), g)
+		mesh_at(cylinder(r - 0.6, r - 0.6, 1.02, 64), stone, Vector3(0, -0.34, 0), g)
+	# Fountain
+	mesh_at(cylinder(2.6, 2.8, 0.8, 32), mat("Fountain Stone", Color(0.75, 0.72, 0.68)), Vector3(0, 0.4, 0), g)
+	solid(_cyl_shape(2.8, 0.8), Vector3(0, 0.4, 0), g)
+	mesh_at(cylinder(2.3, 2.3, 0.1, 32), mat("Water", Color()), Vector3(0, 0.75, 0), g)
+	mesh_at(cylinder(0.35, 0.45, 2.4, 16), mat("Fountain Stone", Color()), Vector3(0, 1.6, 0), g)
+	mesh_at(sphere(0.7), mat("Fountain Water", Color(0.6, 0.85, 1.0), 0.1, 0.0, 0.6, 0.7), Vector3(0, 2.9, 0), g)
+	# Stalls: a table with goods, a striped awning on four posts, the stall's name, round the fountain on the
+	# diagonals (the four ways in and out stay clear)
+	var wood := mat("Stall Wood", Color(0.6, 0.4, 0.25))
+	var stalls := [["Fruit", 30.0, [Color(0.95, 0.3, 0.3), Color(1.0, 0.75, 0.2), Color(0.5, 0.85, 0.3)]],
+		["Sweets", 60.0, [Color(1.0, 0.6, 0.8), Color(0.75, 0.55, 1.0), Color(1.0, 0.95, 0.6)]],
+		["Crystals", 120.0, [Color(0.6, 0.9, 1.0), Color(0.85, 0.6, 1.0), Color(0.6, 1.0, 0.8)]],
+		["Flowers", 150.0, [Color(1.0, 0.45, 0.7), Color(1.0, 0.9, 0.3), Color(0.7, 0.5, 1.0)]],
+		["Records", 210.0, [Color(0.15, 0.15, 0.2), Color(0.95, 0.4, 0.4), Color(0.3, 0.6, 1.0)]],
+		["Toys", 330.0, [Color(0.3, 0.8, 1.0), Color(1.0, 0.5, 0.2), Color(0.6, 1.0, 0.4)]]]
+	for k in stalls.size():
+		var st: Array = stalls[k]
+		var a := deg_to_rad(st[1])
+		var at := Vector3(cos(a), 0, sin(a)) * 12.0
+		var stall := Node3D.new()
+		stall.name = st[0] + " Stall"
+		stall.position = at
+		stall.rotation.y = atan2(-at.x, -at.z)               # front (with the goods) toward the fountain
+		g.add_child(stall)
+		solid(box_shape(Vector3(2.6, 0.9, 1.2)), Vector3(0, 0.45, 0), stall)
+		mesh_at(box(Vector3(2.6, 0.9, 1.2)), wood, Vector3(0, 0.45, 0), stall)
+		var cols: Array = st[2]
+		for q in 6:                                           # goods on the table
+			mesh_at(sphere(0.18, -1, 10), mat("%s Goods %d" % [st[0], q % 3], cols[q % 3], 0.5, 0.0, 0.3),
+				Vector3(-1.0 + q * 0.4, 1.05, 0.2 * (q % 2)), stall)
+		for px in [-1.2, 1.2]:
+			for pz in [-0.5, 0.5]:
+				mesh_at(cylinder(0.06, 0.06, 2.4, 6), wood, Vector3(px, 1.2, pz), stall)
+		for stripe in 5:                                      # striped awning
+			var sc: Color = cols[0] if stripe % 2 == 0 else Color(1, 1, 1)
+			mesh_at(box(Vector3(0.58, 0.06, 1.7)), mat("%s Awning %d" % [st[0], stripe % 2], sc, 0.7),
+				Vector3(-1.16 + stripe * 0.58, 2.45, 0.1), stall, 0.0, Vector3(0.22, 0, 0))
+		label3d(stall, st[0], Vector3(0, 3.1, 0), 56)
+	# Lamps round the plaza (on at night), and benches by the fountain
+	var lamp := mat("Lamp", Color(1.0, 0.92, 0.6), 0.3, 0.0, 2.0)
+	var post := mat("Lamp Post", Color(0.3, 0.3, 0.38), 0.5, 0.5)
+	for k in 8:
+		var a := deg_to_rad(22.5 + 45.0 * k)
+		var lp := Vector3(cos(a), 0, sin(a)) * (MARKET.z - 3.0)
+		mesh_at(cylinder(0.08, 0.1, 3.4, 8), post, lp + Vector3(0, 1.7, 0), g)
+		mesh_at(sphere(0.3, -1, 12), lamp, lp + Vector3(0, 3.5, 0), g)
+		night_light(g, lp + Vector3(0, 3.3, 0), lamp.albedo_color, 1.4, 9.0)
+	var bench := mat("Bench Wood", Color(0.65, 0.42, 0.25))
+	for k in 4:
+		var a := deg_to_rad(45.0 + 90.0 * k)
+		var bp := Vector3(cos(a), 0, sin(a)) * 6.0
+		mesh_at(box(Vector3(2.0, 0.15, 0.6)), bench, bp + Vector3(0, 0.5, 0), g, atan2(bp.x, bp.z) + PI / 2)
+		solid(box_shape(Vector3(2.0, 0.5, 0.6)), bp + Vector3(0, 0.25, 0), g, atan2(bp.x, bp.z) + PI / 2)
+	sign_post(g, "Market Square", Vector3(4, 0, MARKET.z + 2.0), 0.0)
+	# Where she appears in town when there's no door to come out of (old saves, fainting): the south entrance
+	var entrance := Marker3D.new()
+	entrance.name = "MarketEntrance"
+	entrance.position = Vector3(0, 1.0, MARKET.z + 12.0)
+	g.add_child(entrance)
+	keep_clear.append(Vector3(MARKET.x, MARKET.y, MARKET.z + 8.0))
+	own(g)
+
+
+func _housing() -> void:
+	# The housing district east of the lake: a hedge round it with gaps for the paths (the gate faces the lake), and a
+	# little park in the middle where the zipline from the tree house lands. The homes come from _buildings().
+	var c := ground(HOUSING.x, HOUSING.y)
+	var g := group("Housing District", c)
+	var hedge := mat("Hedge", T.grass.darkened(0.25), 0.9)
+	var gaps := [180.0, -78.0, 93.0, 2.0]                  # gate (west, to the lake), Observatory path, sports, tree house
+	var n := 84
+	for k in n:
+		var deg := 360.0 * k / n
+		var open := false
+		for gap in gaps:
+			if absf(wrapf(deg - gap, -180.0, 180.0)) < 8.0:
+				open = true
+		if open:
+			continue
+		var a := deg_to_rad(deg)
+		var hp := Vector2(HOUSING.x, HOUSING.y) + Vector2(cos(a), sin(a)) * HOUSING.z
+		var y := height(hp.x, hp.y) - c.y
+		var bush := mesh_at(sphere(1.4, -1, 12), hedge, Vector3(hp.x - c.x, y + 0.7, hp.y - c.z), g)
+		bush.scale = Vector3(1.0, 0.8, 1.0)
+		solid(box_shape(Vector3(2.4, 1.6, 1.2)), Vector3(hp.x - c.x, y + 0.8, hp.y - c.z), g, a + PI / 2)
+	sign_post(g, "Homes", Vector3(-HOUSING.z - 2.0, 0, 4.0), -PI / 2)
+	# The park: a round lawn bed with flowers and two benches
+	var flowers := [Color(1.0, 0.45, 0.7), Color(1.0, 0.9, 0.3), Color(0.7, 0.5, 1.0)]
+	mesh_at(cylinder(3.0, 3.2, 0.4, 24), mat("Flower Bed", Color(0.45, 0.3, 0.2)), Vector3(0, 0.0, 0), g)
+	for k in 14:
+		var a := k * TAU / 14
+		mesh_at(sphere(0.3, -1, 8), mat("Bed Flower %d" % (k % 3), flowers[k % 3], 0.6, 0.0, 0.3),
+			Vector3(cos(a) * 2.2, 0.35, sin(a) * 2.2), g)
+	var bench := mat("Bench Wood", Color(0.65, 0.42, 0.25))
+	for side in [-1, 1]:
+		mesh_at(box(Vector3(2.0, 0.15, 0.6)), bench, Vector3(side * 5.0, 0.5, -3.0), g, side * 0.6)
+		solid(box_shape(Vector3(2.0, 0.5, 0.6)), Vector3(side * 5.0, 0.25, -3.0), g, side * 0.6)
+	keep_clear.append(Vector3(HOUSING.x, HOUSING.y, 9.0))
+	own(g)
+
+
 func _sphere_shape(r: float) -> SphereShape3D:
 	var s := SphereShape3D.new()
 	s.radius = r
@@ -588,26 +744,33 @@ func _sphere_shape(r: float) -> SphereShape3D:
 
 func _buildings() -> void:
 	var blue := Color(0.3, 0.62, 0.98)
-	# North shore row (faces south, toward the lake)
+	# Learning Row on the north shore, on the way up to the school
 	dome_building("Museum", -40, -50, 7, 0.0, Color(0.98, 0.78, 0.2), [Vector4(-7, -2, 4.5, 0)])
 	dome_building("Library", -12, -50, 8, 0.0, Color(0.98, 0.78, 0.2), [Vector4(8, -3, 5, 0)])
-	dome_building("Cafe", 12, -47, 5, 0.0)
-	_potion_shop(dome_building("Potion Shop", 30, -47, 6, 0.0, Color(0.55, 0.3, 0.9)))
-	dome_building("Pet Shop", 48, -45, 5.5, 0.0)
-	dome_building("Pet Shop 2", 64, -43, 5.5, 0.0)
-	# East side (faces west, toward the lake)
-	dome_building("Gaming Station", 90, -36, 8, -PI / 2, blue)
-	dome_building("Aquarium", 92, -10, 8, -PI / 2, blue, [Vector4(8, -3, 5, 0)])      # side dome, clear of the door
-	# South shore shops (face south, toward the courts)
-	dome_building("Restaurant & Cafe", 35, 31, 6, 0.0)
-	dome_building("Clothing Boutique", 52, 32, 6, 0.0)
-	dome_building("Book Store", 69, 31, 6, 0.0)
-	# Homes west of the lake, under the plateau
-	_ninas_house(dome_building("Nina's House", -48, 24, 5, 0.4))
-	_dashs_house(dome_building("Dash's House", -62, 30, 4.5, 0.3, Color(0.75, 0.8, 0.88)))
-	dome_building("Melanie's House", -30, 30, 4.5, 0.0)
-	# The Observatory on the northeast meadow, door facing the lake
-	_observatory(dome_building("Observatory", 100, -88, 7, -0.85, Color(0.85, 0.85, 0.9)))
+	dome_building("Aquarium", 26, -54, 8, 0.0, blue, [Vector4(8, -3, 5, 0)])
+	# Market Square: the shops round the plaza, doors facing the fountain (_market adds the plaza, stalls and lamps)
+	for shop in [["Potion Shop", 200.0, 6.0, Color(0.55, 0.3, 0.9)], ["Cafe", 160.0, 5.0, Color(0.98, 0.78, 0.2)],
+			["Clothing Boutique", 115.0, 6.0, Color(0.98, 0.78, 0.2)], ["Book Store", 65.0, 6.0, Color(0.98, 0.78, 0.2)],
+			["Pet Shop", 20.0, 5.5, Color(0.98, 0.78, 0.2)], ["Restaurant & Cafe", 340.0, 6.0, Color(0.98, 0.78, 0.2)]]:
+		var a := deg_to_rad(shop[1])
+		var x := MARKET.x + cos(a) * MARKET_RING
+		var z := MARKET.y + sin(a) * MARKET_RING
+		var g := dome_building(shop[0], x, z, shop[2], atan2(MARKET.x - x, MARKET.y - z), shop[3])
+		if shop[0] == "Potion Shop":
+			_potion_shop(g)
+	# Sports & Play
+	dome_building("Gaming Station", 34, 80, 8, PI, blue)
+	# Housing district east of the lake: homes round a little park, doors facing it
+	for home in [["Nina's House", 62.0, -10.0, 5.0, Color(0.98, 0.78, 0.2)], ["Dash's House", 82.0, -18.0, 4.5, Color(0.75, 0.8, 0.88)],
+			["Melanie's House", 98.0, -4.0, 4.5, Color(0.98, 0.78, 0.2)], ["Empty Home", 66.0, 16.0, 4.5, Color(0.9, 0.85, 0.95)],
+			["Empty Home 2", 94.0, 16.0, 4.5, Color(0.9, 0.85, 0.95)]]:
+		var g := dome_building(home[0], home[1], home[2], home[3], atan2(HOUSING.x - home[1], HOUSING.y - home[2]), home[4])
+		if home[0] == "Nina's House":
+			_ninas_house(g)
+		elif home[0] == "Dash's House":
+			_dashs_house(g)
+	# The Observatory on top of its hill, door looking back over the town
+	_observatory(dome_building("Observatory", OBS_HILL.x, OBS_HILL.y, 7, -0.85, Color(0.85, 0.85, 0.9)))
 
 
 func _potion_shop(g: Node3D) -> void:
@@ -1011,12 +1174,12 @@ func court(name: String, x: float, z: float, size: Vector2, color: Color, basket
 
 
 func _courts() -> void:
-	court("Basketball Court", 58, 52, Vector2(28, 15), Color(0.25, 0.55, 0.9), true)
-	court("Tennis Court", 92, 52, Vector2(24, 11), Color(0.3, 0.62, 0.95), false, true)
+	court("Basketball Court", 96, 56, Vector2(28, 15), Color(0.25, 0.55, 0.9), true)
+	court("Tennis Court", 112, 77, Vector2(24, 11), Color(0.3, 0.62, 0.95), false, true)
 
 
 func _skate_park() -> void:
-	var c := ground(-8, 42)
+	var c := ground(SKATE.x, SKATE.y)
 	var g := group("Skate Park", c)
 	var colors := [Color(0.98, 0.7, 0.8), Color(0.75, 0.7, 0.98), Color(0.7, 0.9, 0.98), Color(0.98, 0.9, 0.65),
 		Color(0.75, 0.95, 0.75), Color(0.98, 0.78, 0.6)]
@@ -1046,22 +1209,10 @@ func _skate_park() -> void:
 	own(g)
 
 
-func _fence_and_sign() -> void:
-	var g := group("Fence", Vector3.ZERO)
-	var wood := mat("Fence Wood", Color(0.6, 0.38, 0.2))
-	var a := Vector2(-95, 38)
-	var b := Vector2(-35, 72)
-	var n := 22
-	for k in n + 1:
-		var p := a.lerp(b, float(k) / n)
-		var y := height(p.x, p.y)
-		mesh_at(box(Vector3(0.3, 1.6, 0.3)), wood, Vector3(p.x, y + 0.8, p.y), g)
-	var dir := b - a
-	var yaw := atan2(dir.x, dir.y)
-	var mid := (a + b) / 2
-	for rail_y in [0.6, 1.2]:
-		mesh_at(box(Vector3(0.12, 0.18, dir.length())), wood, Vector3(mid.x, height(mid.x, mid.y) + rail_y, mid.y), g, yaw)
-	sign_post(g, "Dream  Play  Explore  Grow", ground(-38, 58), 0.5)
+func _sports_sign() -> void:
+	# The sign from Sofi's picture, at the way into Sports & Play
+	var g := group("Sports Sign", ground(36, 50))
+	sign_post(g, "Dream  Play  Explore  Grow", Vector3.ZERO, -0.6)
 	own(g)
 
 
@@ -1162,7 +1313,7 @@ func _crystals() -> void:
 		tries += 1
 		var x := rng.randf_range(X_MIN + 12, X_MAX - 12)
 		var z := rng.randf_range(Z_MIN + 12, Z_MAX - 12)
-		if lake_f(x, z) < 1.5 or Vector2(x - SPAWN.x, z - SPAWN.z).length() < 14:
+		if lake_f(x, z) < 1.5 or not _clear_spot(x, z, 1.5, 14.0):        # not on paths or in buildings' space
 			continue
 		var ok := true
 		for c in keep_clear:
@@ -1213,7 +1364,7 @@ func _trees() -> void:
 			if Vector2(x - c.x, z - c.y).length() < c.z:
 				ok = false
 				break
-		if ok and Vector2(x - SPAWN.x, z - SPAWN.z).length() < 10:
+		if ok and (Vector2(x - SPAWN.x, z - SPAWN.z).length() < 10 or on_path(x, z, 3.0)):
 			ok = false
 		if ok:
 			spots.append(Vector3(x, height(x, z), z))
@@ -1245,7 +1396,7 @@ func _clear_spot(x: float, z: float, lake_margin: float, spawn_r: float) -> bool
 	for c in keep_clear:
 		if Vector2(x - c.x, z - c.y).length() < c.z:
 			return false
-	return true
+	return not on_path(x, z, 3.0)                     # keep the main paths clear of plants and crystals
 
 
 func _foliage() -> void:
@@ -1350,14 +1501,14 @@ func _enemies() -> void:
 	# Gloops (scenes/enemies/gloop.tscn) in small packs out in the meadows, and big ones guarding the plateau.
 	# x, z, big?  Spots in the lake, inside a building's clear zone or near the spawn are skipped with a warning.
 	var spots := [
-		# South meadow, past the spawn
-		Vector3(20, 98, 0), Vector3(-22, 82, 0), Vector3(-5, 100, 0),
-		# East meadow beside the courts
-		Vector3(115, 12, 0), Vector3(120, -25, 0), Vector3(112, 40, 0),
+		# Far south meadow
+		Vector3(20, 100, 0), Vector3(-22, 100, 0), Vector3(-5, 102, 0),
+		# Far east, past the homes and the Observatory's hill
+		Vector3(135, -45, 0), Vector3(132, -62, 0), Vector3(138, 30, 0),
 		# Foot of the castle hill
 		Vector3(-40, -75, 0), Vector3(-15, -80, 0), Vector3(-2, -66, 0),
-		# West fields
-		Vector3(-100, 10, 0), Vector3(-115, -5, 0),
+		# West fields, past the market
+		Vector3(-132, 10, 0), Vector3(-138, -8, 0),
 		# On the plateau, around the Secret Gardens: big Gloops
 		Vector3(-98, -48, 1), Vector3(-55, -30, 1), Vector3(-95, -25, 1),
 	]
@@ -1415,16 +1566,16 @@ func _player() -> void:
 # Places from the show (story/show-notes.md): Mr. Palmer's town map, the pilot's haunted house and cloud water slide,
 # the happy places, and the portal to Earth. The town itself is Galactopia.
 # -----------------------------------------------------------------------------
-const TOWN_HALL := Vector3(16, 34, 0.0)           # x, z, yaw (door faces south, toward the spawn)
-const HAUNTED_HOUSE := Vector3(-55, -95, 0.53)    # x, z, yaw (door faces the town)
-const PORTAL := Vector3(30, 72, -1.95)            # x, z, yaw (faces the spawn)
-const TREE_HOUSE := Vector2(-120, 25)
-const ZIPLINE_END := Vector2(-130, -10)
+const TOWN_HALL := Vector3(-72, 16, 0.0)          # x, z, yaw (head of the Market Square, door facing the fountain)
+const HAUNTED_HOUSE := Vector3(-112, -128, 0.82)  # x, z, yaw (off in the far northwest woods, door facing the town)
+const PORTAL := Vector3(36, 13, -1.1)             # x, z, yaw (on the lake shore by the dock, facing the promenade)
+const TREE_HOUSE := Vector2(122, 2)               # at the housing district's east edge
+const ZIPLINE_END := Vector2(86, 9)               # lands in the neighbourhood park (the cable runs between the houses)
 const ROCK_WALL := Vector3(126, 58, -PI / 2)      # x, z, yaw (climbing face looks west)
 const CLOUD_NEST := Vector2(-60, -50)             # above the plateau, a few cloud hops up from the Secret Gardens
 const BUBBLE_BATH := Vector2(-60, 5)
-const MURAL := Vector3(-30, 48, PI / 2)           # x, z, yaw (painted side faces the skate park)
-const SOCCER := Vector2(62, 84)
+const MURAL := Vector3(50, 40, 0.0)               # x, z, yaw (painted side faces the skate park, south of it)
+const SOCCER := Vector2(78, 90)
 const SLIDE_CLOUD := Vector3(-28, 6, 20)          # x, z, height: the cloud the water slide starts from, over the lake
 const SLIDE_FLAG := "cloud_slide"                 # Game item that unlocks it (the end of the pilot story)
 
@@ -1556,10 +1707,64 @@ func _haunted_house() -> void:
 	own(g)
 
 
+func _old_slide() -> void:
+	# The old water slide by the Haunted House (the pilot's first idea), boarded up: a ladder, a long sagging chute,
+	# planks nailed across, and a CLOSED sign
+	var c := ground(HAUNTED_HOUSE.x + 16, HAUNTED_HOUSE.y + 8)
+	var g := group("Old Slide", c, HAUNTED_HOUSE.z)
+	var wood := mat("Old Slide Wood", Color(0.36, 0.28, 0.22), 0.95, 0.0, 0.0, 1.0, false)
+	var plank := mat("Haunted Plank", Color(0.32, 0.22, 0.16), 0.95, 0.0, 0.0, 1.0, false)
+	for x in [-0.7, 0.7]:
+		mesh_at(box(Vector3(0.2, 7.0, 0.2)), wood, Vector3(x, 3.5, 0), g)
+	for k in 10:
+		mesh_at(box(Vector3(1.5, 0.1, 0.12)), wood, Vector3(0, 0.6 + k * 0.65, 0), g)
+	solid(box_shape(Vector3(1.8, 7.0, 0.6)), Vector3(0, 3.5, 0), g)
+	var chute := mesh_at(box(Vector3(1.6, 0.2, 13.0)), wood, Vector3(0, 3.6, 6.2), g, 0.0, Vector3(0.55, 0, 0))
+	chute.name = "Chute"
+	for k in 4:                                         # boarded up
+		mesh_at(box(Vector3(2.2, 0.25, 0.08)), plank, Vector3(0, 1.0 + k * 0.6, -0.15), g, 0.0, Vector3(0, 0, 0.2 * (k % 2 * 2 - 1)))
+	sign_post(g, "CLOSED", Vector3(2.0, 0, -1.5), 0.2)
+	keep_clear.append(Vector3(c.x, c.z, 10))
+	own(g)
+
+
+func _scary_gate() -> void:
+	# The way to the Scary World (where the centipede comes from): a stone wall across the far northwest woods with a
+	# locked iron gate. It stays shut for now; walking up to it says so (scripts/door.gd closed_message).
+	var c := ground(-128, -150)
+	var g := group("Scary World Gate", c, 0.7)
+	var stone := mat("Old Wall Stone", Color(0.32, 0.3, 0.36), 0.95, 0.0, 0.0, 1.0, false)
+	var iron := mat("Gate Iron", Color(0.12, 0.12, 0.14), 0.4, 0.8, 0.0, 1.0, false)
+	for side in [-1, 1]:
+		mesh_at(box(Vector3(14.0, 5.0, 1.4)), stone, Vector3(side * 9.5, 2.0, 0), g)
+		solid(box_shape(Vector3(14.0, 5.0, 1.4)), Vector3(side * 9.5, 2.0, 0), g)
+		mesh_at(box(Vector3(1.4, 6.5, 1.6)), stone, Vector3(side * 2.6, 2.75, 0), g)
+		solid(box_shape(Vector3(1.4, 6.5, 1.6)), Vector3(side * 2.6, 2.75, 0), g)
+	for k in 7:                                         # iron bars
+		mesh_at(cylinder(0.07, 0.07, 4.6, 6), iron, Vector3(-1.5 + k * 0.5, 2.3, 0), g)
+	mesh_at(box(Vector3(3.8, 0.15, 0.15)), iron, Vector3(0, 4.5, 0), g)
+	mesh_at(box(Vector3(3.8, 0.15, 0.15)), iron, Vector3(0, 0.6, 0), g)
+	solid(box_shape(Vector3(3.8, 4.6, 0.4)), Vector3(0, 2.3, 0), g)
+	mesh_at(box(Vector3(0.5, 0.6, 0.25)), mat("Padlock", Color(0.8, 0.65, 0.3), 0.3, 0.9), Vector3(0, 2.4, 0.25), g)
+	sign_post(g, "Scary World - Keep Out!", Vector3(4.5, 0, 2.5), 0.2)
+	var area := Area3D.new()
+	area.name = "Gate"
+	area.set_script(load("res://scripts/door.gd"))
+	area.set("destination", "res://scenes/scary_world/scary_world.tscn")
+	area.set("place_name", "Scary World")
+	area.set("closed_message", "The gate is locked tight. Something skitters on the other side... Not today!")
+	area.position = Vector3(0, 1.5, 1.4)
+	var cs := CollisionShape3D.new()
+	cs.shape = box_shape(Vector3(3.6, 3.0, 1.2))
+	area.add_child(cs)
+	g.add_child(area)
+	keep_clear.append(Vector3(c.x, c.z, 12))
+	own(g)
+
+
 func _antique_car() -> void:
-	# A shiny old-fashioned car parked on the Town Square (the show's antique car theme)
-	var sq := ground(TOWN_SQUARE.x, TOWN_SQUARE.y)
-	var g := group("Antique Car", sq + Vector3(-5.6, 0.1, 1.5), 0.35)
+	# A shiny old-fashioned car parked in the South Meadow picnic park (the show's antique car theme)
+	var g := group("Antique Car", ground(16, 56) + Vector3(0, 0.1, 0), 0.35)
 	var paint := mat("Car Paint", Color(0.6, 0.08, 0.14), 0.3, 0.3, 0.0, 1.0, false)
 	var black := mat("Car Black", Color(0.06, 0.05, 0.07), 0.5, 0.2, 0.0, 1.0, false)
 	var brass := mat("Car Brass", Color(0.9, 0.7, 0.3), 0.3, 0.9, 0.0, 1.0, false)
@@ -1587,10 +1792,20 @@ func _antique_car() -> void:
 	mesh_at(spare, black, Vector3(0, 1.3, -2.0), g, 0.0, Vector3(PI / 2, 0, 0))
 	solid(box_shape(Vector3(1.9, 1.8, 4.1)), Vector3(0, 1.1, 0), g)
 	own(g)
+	# The rest of the picnic park: blankets with baskets
+	var p := group("South Meadow", ground(8, 52))
+	var cloth := [Color(0.95, 0.4, 0.4), Color(0.4, 0.7, 1.0), Color(1.0, 0.85, 0.3)]
+	for k in 3:
+		var at := Vector3(cos(k * 2.3) * 6.0, 0.05, sin(k * 2.3) * 5.0)
+		mesh_at(box(Vector3(2.4, 0.04, 1.8)), mat("Picnic Blanket %d" % k, cloth[k], 0.9), at, p, k * 0.7)
+		mesh_at(box(Vector3(0.6, 0.4, 0.4)), mat("Picnic Basket", Color(0.7, 0.5, 0.3), 0.8), at + Vector3(0.6, 0.2, 0.3), p, k * 0.7)
+	sign_post(p, "South Meadow", Vector3(-4, 0, -8), 0.3)
+	own(p)
 
 
 func _welcome_sign() -> void:
-	var g := group("Welcome Sign", ground(-1, 53))
+	# At the market's south entrance, where you arrive in town
+	var g := group("Welcome Sign", ground(MARKET.x + 6.0, MARKET.y + MARKET.z + 8.0))
 	sign_post(g, "Welcome to Galactopia", Vector3.ZERO, 0.0)
 	own(g)
 
@@ -1633,6 +1848,14 @@ void fragment() {
 	glow.light_energy = 3.0
 	glow.omni_range = 14.0
 	g.add_child(glow)
+	var hood := OmniLight3D.new()                  # in the Shift the portal lights up the neighbourhood next door
+	hood.name = "NeighbourhoodGlow"
+	hood.position = Vector3(0, 9.0, 0)
+	hood.light_color = Color(0.55, 0.75, 1.0)
+	hood.light_energy = 2.2
+	hood.omni_range = 60.0
+	hood.omni_attenuation = 0.6
+	g.add_child(hood)
 	# Sparkles drifting out of the swirl while it's open
 	var sparkles := CPUParticles3D.new()
 	sparkles.name = "Sparkles"
@@ -2007,6 +2230,54 @@ void fragment() {
 	own(g)
 
 
+func crossroads(at: Vector2, arms: Array) -> void:
+	# A signpost with one board per arm, each pointing the way to where it says: [text, Vector2 target (x, z)]
+	var base := ground(at.x, at.y)
+	var g := group("Signpost %s" % arms[0][0], base)                      # named by its first arm
+	var wood := mat("Signpost Wood", Color(0.55, 0.36, 0.22))
+	var board_m := mat("Signpost Board", Color(0.25, 0.2, 0.32))
+	mesh_at(cylinder(0.12, 0.14, 3.6, 8), wood, Vector3(0, 1.8, 0), g)
+	solid(_cyl_shape(0.18, 3.6), Vector3(0, 1.8, 0), g)
+	for k in arms.size():
+		var arm: Array = arms[k]
+		var to: Vector2 = (arm[1] as Vector2) - at
+		var dir := to.normalized()
+		var yaw := atan2(-dir.y, dir.x)                     # the board's long side points along dir
+		var board := Node3D.new()
+		board.position = Vector3(dir.x * 1.1, 3.2 - k * 0.55, dir.y * 1.1)
+		board.rotation.y = yaw
+		g.add_child(board)
+		mesh_at(box(Vector3(2.2, 0.42, 0.08)), board_m, Vector3.ZERO, board)
+		var tip := PrismMesh.new()                          # the pointy end
+		tip.size = Vector3(0.42, 0.4, 0.08)
+		mesh_at(tip, board_m, Vector3(1.3, 0, 0), board, 0.0, Vector3(0, 0, -PI / 2))
+		for side in [1, -1]:                                # the words on both faces
+			var l := Label3D.new()
+			l.text = arm[0]
+			l.font_size = 40
+			l.pixel_size = 0.01
+			l.outline_size = 6
+			l.modulate = Color(1, 0.97, 0.85)
+			l.position = Vector3(0, 0, 0.05 * side)
+			l.rotation.y = 0.0 if side == 1 else PI
+			l.double_sided = false
+			board.add_child(l)
+	own(g)
+
+
+func _signposts() -> void:
+	# At the main crossroads, pointing the way
+	var market := Vector2(MARKET.x, MARKET.y)
+	var homes := Vector2(HOUSING.x, HOUSING.y)
+	var castle := Vector2(CASTLE_HILL.x, CASTLE_HILL.y)
+	var sports := Vector2(80, 64)
+	crossroads(Vector2(-40, 47), [["Market", market], ["Homes", homes], ["Castle & School", castle], ["Spa & Gardens", Vector2(-62, 0)]])
+	crossroads(Vector2(1, 27), [["Market", market], ["Castle & School", Vector2(-8, -12)], ["Homes", homes], ["Sports & Play", sports]])
+	crossroads(Vector2(30, 23), [["Portal", Vector2(PORTAL.x, PORTAL.y)], ["Homes", homes], ["Market", market], ["South Meadow", Vector2(12, 52)]])
+	crossroads(Vector2(46, 9), [["Homes", homes], ["Observatory", Vector2(OBS_HILL.x, OBS_HILL.y)], ["Market", market], ["Sports & Play", sports]])
+	crossroads(Vector2(-4, -40), [["Castle & School", castle], ["Library", Vector2(-12, -50)], ["Haunted House", Vector2(HAUNTED_HOUSE.x, HAUNTED_HOUSE.y)], ["Market", market]])
+
+
 func _happy_places() -> void:
 	# Happy places (safe, calm spots from the show): find them all. Each one fills HP and MP and saves the game
 	# (scripts/happy_place.gd). id, name, position
@@ -2017,7 +2288,7 @@ func _happy_places() -> void:
 		["tree_house", "Tree House", ground(TREE_HOUSE.x, TREE_HOUSE.y) + Vector3(1.5, 7.2, -1.0)],
 		["warm_bath", "Warm Bath", ground(BUBBLE_BATH.x + 5.2, BUBBLE_BATH.y - 1.5)],
 		["empty_library", "Empty Library", ground(-21, -41)],
-		["observatory", "Observatory", ground(92, -80)],
+		["observatory", "Observatory", ground(OBS_HILL.x - 9.0, OBS_HILL.y + 5.0)],
 	]
 	var g := group("Happy Places", Vector3.ZERO)
 	var glow := mat("Happy Glow", Color(1.0, 0.8, 0.55), 0.2, 0.0, 2.5, 1.0, false)

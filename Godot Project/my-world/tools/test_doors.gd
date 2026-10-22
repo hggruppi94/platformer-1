@@ -15,7 +15,7 @@ const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
 const HOUSE := "res://scenes/interiors/ninas_house.tscn"
-const FAR_AWAY := Vector3(130, 2, 20)
+const FAR_AWAY := Vector3(-140, 2, 100)
 
 var failures := 0
 var clock: Node

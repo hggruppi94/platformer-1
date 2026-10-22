@@ -2,15 +2,15 @@
   "speed": 4.0,
   "rides": true,
   "blocks": [
-    {"at": "07:30", "place": "dashs_house", "do": "idle", "face": [-45, 41], "label": "waking_up"},
-    {"at": "08:30", "place": "skate_park", "do": "patrol",
-     "route": ["skate_park", "spawn", "town_hall", "hall_east", "dock", "south_shore", "shore_southwest", "skate_west"],
+    {"at": "07:30", "place": "dashs_house", "do": "idle", "face": [80, 0], "label": "waking_up"},
+    {"at": "08:30", "place": "market", "do": "patrol",
+     "route": ["market", "market_east", "shore_southwest", "south_shore", "dock", "meadow", "skate_park", "courts", "skate_park", "meadow", "south_shore", "shore_southwest", "market_east"],
      "pause": 8, "label": "riding"},
-    {"at": "12:30", "place": "spawn", "do": "idle", "face": [25, 66], "label": "snack_break"},
-    {"at": "14:00", "place": "skate_park", "do": "patrol",
-     "route": ["skate_park", "spawn", "town_hall", "hall_east", "dock", "south_shore", "shore_southwest", "skate_west"],
+    {"at": "12:30", "place": "market", "do": "idle", "face": [-72, 42], "label": "snack_break"},
+    {"at": "14:00", "place": "market", "do": "patrol",
+     "route": ["market", "market_east", "shore_southwest", "south_shore", "dock", "meadow", "skate_park", "courts", "skate_park", "meadow", "south_shore", "shore_southwest", "market_east"],
      "pause": 8, "label": "riding"},
-    {"at": "19:00", "place": "skate_park", "do": "idle", "face": [0, 60], "label": "sunset"},
+    {"at": "19:00", "place": "skate_park", "do": "idle", "face": [50, 75], "label": "sunset"},
     {"at": "21:00", "place": "dashs_house", "do": "away", "label": "home"}
   ]
 }
