@@ -5,8 +5,8 @@ extends Node
 #
 # Saving: progress is written to user://save.json (on Windows: %APPDATA%\Godot\app_userdata\MyWorld\save.json)
 # automatically — on arriving in a scene, on level up, on getting an item, on sleeping, every 30 seconds,
-# and on quitting. The day and time of day (scripts/clock.gd) and who she's talked to (scripts/dialogue.gd) are saved
-# with it.
+# and on quitting. The day and time of day (scripts/clock.gd), who she's talked to (scripts/dialogue.gd) and how far
+# she's got in each quest (scripts/quests.gd) are saved with it.
 # It's loaded when the game starts, putting Nina back where she was. New Game is in the pause menu.
 # A new game (or the very first start, with no save) begins in Nina's House, just out of bed (the BedSpawn marker).
 # Saves remember which town layout they were made in (LAYOUT): a save made outdoors in an older town starts her at
@@ -226,6 +226,7 @@ func save_game() -> void:
 		"items": items, "riding": riding,
 		"day": Clock.day, "minutes": Clock.minutes,
 		"dialogue": Dialogue.save_data(),
+		"quests": Quests.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -279,6 +280,8 @@ func load_game() -> void:
 		Clock.set_time(int(data["day"]), float(data["minutes"]), true)
 	var dialogue = data.get("dialogue", {})
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
+	var quests = data.get("quests", {})
+	Quests.load_data(quests if quests is Dictionary else {})
 	var pos = data.get("position")
 	if data.has("scene") and ResourceLoader.exists(str(data["scene"])) and pos is Array and pos.size() == 3:
 		_resume = {"scene": str(data["scene"]), "position": [float(pos[0]), float(pos[1]), float(pos[2])],
@@ -332,6 +335,7 @@ func new_game() -> void:
 	riding = false
 	Clock.reset()
 	Dialogue.reset()
+	Quests.reset()
 	next_spawn = NEW_GAME_SPAWN                      # wake up in Nina's House
 	_resume = {}
 	_last_place = {}
