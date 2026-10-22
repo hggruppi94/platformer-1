@@ -4,7 +4,7 @@
   "follow_anim": "run",
   "blocks": [
     {"at": "07:00", "place": "ninas_house", "do": "follow", "who": "rex", "label": "following"},
-    {"at": "13:00", "place": "skate_east", "do": "nap", "face": [6, 60], "label": "napping"},
+    {"at": "13:00", "place": "meadow", "do": "nap", "face": [16, 56], "label": "napping"},
     {"at": "16:30", "place": "skate_park", "do": "follow", "who": "dash", "label": "following"},
     {"at": "21:00", "place": "dashs_house", "do": "wander", "radius": 4, "label": "grumbling"}
   ]

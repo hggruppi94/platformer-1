@@ -40,6 +40,18 @@
     },
     {
       "when": {
+        "activity": "lamp_watching",
+        "place": "market",
+        "every": 2
+      },
+      "lines": [
+        "The market lamps are my favorite! They stand in a big circle, like a lamp party!",
+        "Nina: Do the lamps know they're at a party?",
+        "They do now!"
+      ]
+    },
+    {
+      "when": {
         "time": "morning"
       },
       "lines": [

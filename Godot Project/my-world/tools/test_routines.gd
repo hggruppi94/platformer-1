@@ -13,7 +13,7 @@ const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
 const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man"]
-const FAR_AWAY := Vector3(130, 2, 20)              # the empty east edge of town, far from everyone's places
+const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0
 var clock: Node
@@ -71,7 +71,8 @@ func _run() -> void:
 		for id in PEOPLE:
 			_check_where(id, t)
 
-	# Walking: Nina by Rex at 9:59 AM. At 10 he skates off to the Town Hall along the paths, never under a roof.
+	# Walking: Nina by Rex at 9:59 AM. At 10 he skates off from the homes to the Town Hall in the market, right across
+	# town along the paths, never under a roof.
 	clock.set_time(2, 9 * 60 + 59.0, true)
 	await _settle()
 	var rex := _body("rex")
@@ -79,7 +80,7 @@ func _run() -> void:
 	Engine.time_scale = 4.0
 	var under_roof := []
 	var started := false
-	for i in 900:
+	for i in 3000:
 		await physics_frame
 		if routines.rex.is_travelling():
 			started = true
@@ -94,13 +95,13 @@ func _run() -> void:
 		"...and gets there (%.1f m from it)" % _flat_dist(rex.global_position, "town_hall"))
 	check(under_roof.is_empty(), "...without going through any building: %s" % [under_roof])
 
-	# Nobody watching: at 12:30 Bramble is simply by the water, no walk
+	# Nobody watching: at 12:30 Bramble is simply at her flower stall in the market, no walk
 	player.global_position = FAR_AWAY
 	clock.set_time(2, 12 * 60 + 29.6, true)
 	await _settle()
 	await create_timer(1.0).timeout
-	check(not routines.bramble.is_travelling() and _flat_dist(_body("bramble").global_position, "lake_west") < 6.0,
-		"12:30 with Nina far away: Bramble is just there by the water (%.1f m)" % _flat_dist(_body("bramble").global_position, "lake_west"))
+	check(not routines.bramble.is_travelling() and _flat_dist(_body("bramble").global_position, "flower_stall") < 6.0,
+		"12:30 with Nina far away: Bramble is just there at her flower stall (%.1f m)" % _flat_dist(_body("bramble").global_position, "flower_stall"))
 
 	# Dash's bike: under him while he rides about, parked next to him on his snack break
 	clock.set_time(2, 9 * 60.0, true)
@@ -143,7 +144,7 @@ func _run() -> void:
 	await create_timer(2.0).timeout
 	Engine.time_scale = 1.0
 	check(walked and _flat_dist(green.global_position, "portal") < 1.5, "in the Shift the Green Man walks to the portal (%.1f m)" % _flat_dist(green.global_position, "portal"))
-	var to_portal := Vector3(30, 0, 72) - green.global_position
+	var to_portal := Vector3(36, 0, 13) - green.global_position
 	to_portal.y = 0
 	var facing := green.global_transform.basis.z
 	facing.y = 0
@@ -171,7 +172,7 @@ func _run() -> void:
 
 	# Dialogue that knows where they are and what they're doing
 	for c in [["rex", "11:00", 2, "Citizens of Galactopia"], ["dash", "12:45", 2, "Snack break"],
-			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "water"]]:
+			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()
 		dialogue.talks[c[0]] = c[2]

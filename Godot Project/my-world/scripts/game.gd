@@ -8,6 +8,9 @@ extends Node
 # and on quitting. The day and time of day (scripts/clock.gd) and who she's talked to (scripts/dialogue.gd) are saved
 # with it.
 # It's loaded when the game starts, putting Nina back where she was. New Game is in the pause menu.
+# A new game (or the very first start, with no save) begins in Nina's House, just out of bed (the BedSpawn marker).
+# Saves remember which town layout they were made in (LAYOUT): a save made outdoors in an older town starts her at
+# the Market Square's entrance instead, since buildings may have moved onto the spot where she stood.
 
 signal stats_changed
 signal message_posted(text: String)
@@ -44,6 +47,9 @@ var riding := false              # skateboard equipped
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
+const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
+const TOWN_SCENE := "res://scenes/town/town.tscn"
+const NEW_GAME_SPAWN := "BedSpawn"       # in Nina's House (the main scene)
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -213,6 +219,7 @@ func save_game() -> void:
 	_autosave_timer = AUTOSAVE_INTERVAL
 	var data := {
 		"version": SAVE_VERSION,
+		"layout": LAYOUT,
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
@@ -246,6 +253,7 @@ func save_game() -> void:
 
 func load_game() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
+		next_spawn = NEW_GAME_SPAWN                     # the very first start: wake up in Nina's House
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
 	if typeof(data) != TYPE_DICTIONARY:
@@ -276,6 +284,11 @@ func load_game() -> void:
 		_resume = {"scene": str(data["scene"]), "position": [float(pos[0]), float(pos[1]), float(pos[2])],
 			"yaw": float(data.get("yaw", 0.0))}
 	pending_message = "Welcome back! Lv %d" % level
+	if _resume.get("scene", "") == TOWN_SCENE and int(data.get("layout", 1)) < LAYOUT:
+		# Saved outdoors in the old town: start at the market entrance rather than where she stood
+		_resume = {"scene": TOWN_SCENE}
+		next_spawn = "MarketEntrance"
+		pending_message = "Welcome back! The town has had a makeover. You're at the Market Square."
 
 
 func _go_to_saved_scene() -> void:
@@ -294,6 +307,9 @@ func is_resuming() -> bool:
 func take_resume_point(scene_path: String) -> Dictionary:
 	# Called by the player when she appears. Returns {position, yaw} once, if the save put her in this scene.
 	if _resume.is_empty() or _resume["scene"] != scene_path:
+		return {}
+	if not _resume.has("position"):                  # (an old-layout save: she's at a marker instead)
+		_resume = {}
 		return {}
 	var p: Array = _resume["position"]
 	var r := {"position": Vector3(p[0], p[1], p[2]), "yaw": _resume["yaw"]}
@@ -316,7 +332,7 @@ func new_game() -> void:
 	riding = false
 	Clock.reset()
 	Dialogue.reset()
-	next_spawn = ""
+	next_spawn = NEW_GAME_SPAWN                      # wake up in Nina's House
 	_resume = {}
 	_last_place = {}
 	pending_message = "New game!"

@@ -33,12 +33,13 @@
     },
     {
       "when": {
-        "activity": "by_the_water",
+        "activity": "flower_stall",
         "every": 2
       },
       "lines": [
-        "Ain't nothin' better than the water on a warm afternoon.",
-        "The lake's lookin' extra sparkly today. I think it's showin' off."
+        "Fresh flowers! I grew every single one of 'em myself, sugar.",
+        "(Bramble tucks a little pink flower behind Nina's ear.)",
+        "There. Pretty as a picture."
       ]
     },
     {

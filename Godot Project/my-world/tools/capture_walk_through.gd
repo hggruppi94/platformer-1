@@ -47,7 +47,7 @@ func _run() -> void:
 	cam.make_current()
 
 	# Tall grass: walking through a meadow, the blades parting round her
-	var grass := Vector3(-5, 0, 88)
+	var grass := Vector3(10, 0, 58)
 	await _walk_into(grass + Vector3(3, 0, 0), Vector3(-1, 0, 0), 30)
 	await _look(player.global_position, Vector3(4, 2.2, 4))
 	await _shot("01_tall_grass_parting")
