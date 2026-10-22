@@ -23,6 +23,7 @@ Settings="*res://scripts/settings.gd"
 Dialogue="*res://scripts/dialogue.gd"
 Quests="*res://scripts/quests.gd"
 TownMap="*res://scripts/map_screen.gd"
+Shop="*res://scripts/shop.gd"
 PauseMenu="*res://scripts/pause_menu.gd"
 
 [display]

@@ -51,6 +51,8 @@ class_name Player
 @onready var model: Node3D = $Visual/Tumble/Nina
 @onready var board: Node3D = $Visual/Skateboard
 var _sash: Node3D                                 # shown once she has the campaign sash
+var _hat: Node3D                                  # the market hat she's wearing (scripts/cosmetics.gd)
+var _stickers: Node3D                             # market stickers on the sash
 # Animations exported from Blender with the character (idle, run, jump, fall, skate)
 @onready var anim: AnimationPlayer = visual.find_child("AnimationPlayer", true, false)
 
@@ -123,6 +125,23 @@ func _on_equipment_changed() -> void:
 	board.visible = Game.riding
 	if _sash:
 		_sash.visible = Game.has_item("campaign_sash")     # Rex's thank-you for running his campaign
+		if _stickers:
+			_stickers.free()
+		_stickers = Node3D.new()
+		_stickers.name = "Stickers"
+		_sash.add_child(_stickers)
+		for id in Cosmetics.STICKER_ANGLES:
+			if Game.has_item("shop:" + id):
+				var st: Node3D = Cosmetics.sticker(id)
+				st.transform = Cosmetics.sticker_place(id)
+				_stickers.add_child(st)
+	if _hat:
+		_hat.free()
+		_hat = null
+	if Game.hat != "":
+		_hat = Cosmetics.hat(Game.hat)
+		if _hat:
+			model.add_child(_hat)
 	model.position.y = MODEL_Y + (skate_height if Game.riding else 0.0)
 	model.rotation.y = skate_stance if Game.riding else 0.0
 
@@ -203,6 +222,8 @@ func bounce(strength: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _hat and _hat.has_node("Propeller"):
+		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
 	if carried:
 		return
 	var on_floor := is_on_floor()

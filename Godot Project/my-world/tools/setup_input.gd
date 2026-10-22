@@ -57,7 +57,7 @@ func _initialize() -> void:
 	# sets the volumes), PauseMenu last
 	for pair in [["Clock", "res://scripts/clock.gd"], ["Game", "res://scripts/game.gd"], ["Audio", "res://scripts/audio.gd"],
 			["Settings", "res://scripts/settings.gd"], ["Dialogue", "res://scripts/dialogue.gd"],
-			["Quests", "res://scripts/quests.gd"], ["TownMap", "res://scripts/map_screen.gd"],
+			["Quests", "res://scripts/quests.gd"], ["TownMap", "res://scripts/map_screen.gd"], ["Shop", "res://scripts/shop.gd"],
 			["PauseMenu", "res://scripts/pause_menu.gd"]]:
 		ProjectSettings.set_setting("autoload/" + pair[0], "*" + pair[1])
 	print("save=", ProjectSettings.save())

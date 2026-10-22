@@ -319,6 +319,8 @@ func _build() -> void:
 	_signposts()
 	_rex_campaign()
 	_town_quests()
+	_sparkles()
+	_shops()
 	_mountains()
 	_sky_objects()
 	_characters()
@@ -2536,6 +2538,60 @@ func _flowers(parent: Node3D, box_pos: Vector3, a: float) -> void:
 			fp - Vector3(0, 0.15, 0), parent)
 		mesh_at(sphere(0.13, -1, 10), mat("Window Flower %d" % (q % FLOWER_COLORS.size()), col, 0.6, 0.0, 0.2, 1.0, false),
 			fp, parent)
+
+
+# -----------------------------------------------------------------------------
+# Sparkles (scripts/sparkle.gd): bits of broken time to find round town, the money for the market stalls. Most are
+# out in the open off the paths; a few sit somewhere worth climbing or exploring to.
+# -----------------------------------------------------------------------------
+const SPARKLE_COUNT := 36
+const SPARKLE_SPOTS := [Vector3(124.8, 7.3, 3.0), Vector3(-60, 0, -50), Vector3(-12, 0, -15), Vector3(-112, 0, -118),
+	Vector3(105, 0, -80), Vector3(50, 0, 58), Vector3(78, 0, 90), Vector3(-26, 0, 23)]   # y 0: on the ground there
+
+
+func _sparkles() -> void:
+	var g := group("Sparkles", Vector3.ZERO)
+	var script := load("res://scripts/sparkle.gd")
+	var k := 0
+	for at in SPARKLE_SPOTS:
+		var p: Vector3 = ground(at.x, at.z) + Vector3(0, at.y, 0)
+		_sparkle(g, script, k, p)
+		k += 1
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2024
+	var tries := 0
+	while k < SPARKLE_COUNT and tries < 4000:
+		tries += 1
+		var x := rng.randf_range(X_MIN + 15, X_MAX - 15)
+		var z := rng.randf_range(Z_MIN + 15, Z_MAX - 15)
+		if lake_f(x, z) < 2.0 or not _clear_spot(x, z, 2.0, 6.0):
+			continue
+		_sparkle(g, script, k, ground(x, z))
+		k += 1
+	own(g)
+	print("SPARKLES ", k)
+
+
+func _sparkle(g: Node3D, script: Script, k: int, p: Vector3) -> void:
+	var a := Area3D.new()
+	a.name = "Sparkle %d" % (k + 1)
+	a.set_script(script)
+	a.position = p
+	g.add_child(a)
+
+
+func _shops() -> void:
+	# A shop spot in front of each market stall (scripts/shop_stall.gd; what they sell: res://shop/items.json)
+	var square := town.get_node("Market Square") as Node3D
+	for name in ["Fruit", "Sweets", "Crystals", "Flowers", "Records", "Toys"]:
+		var stall := square.get_node("%s Stall" % name) as Node3D
+		var a := Area3D.new()
+		a.name = "Shop"
+		a.set_script(load("res://scripts/shop_stall.gd"))
+		a.set("stall", name)
+		a.position = Vector3(0, 0, 1.7)                  # in front of the goods (the stall faces the fountain)
+		stall.add_child(a)
+	own(square)
 
 
 func _happy_places() -> void:

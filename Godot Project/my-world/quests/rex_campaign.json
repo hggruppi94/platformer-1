@@ -147,7 +147,8 @@
   ],
   "reward": {
     "item": "campaign_sash",
-    "message": "Rex gave you his VOTE REX sash! (And he's Future Mayor Rex now.)"
+    "message": "Rex gave you his VOTE REX sash! (And he's Future Mayor Rex now.) (+15 sparkles)",
+    "sparkles": 15
   },
   "titles": {
     "rex": "Future Mayor Rex"

@@ -44,6 +44,14 @@ var pending_message := ""        # shown by the HUD after a scene reload (e.g. a
 signal equipment_changed
 var items: Array[String] = []    # things the player owns, e.g. "skateboard"
 var riding := false              # skateboard equipped
+var hat := ""                    # the hat she's wearing (a shop item id, scripts/shop.gd), or "" for none
+
+# Sparkles: little bits of broken time left lying about (from the show). They're the money: found around town
+# (scripts/sparkle.gd, they drift back the next day), earned from quests and happy places, spent at the market stalls.
+signal sparkles_changed
+var sparkles := 0
+var sparkles_taken := {}         # sparkle name -> the day she picked it up
+const HAPPY_PLACE_SPARKLES := 3  # for finding a happy place the first time
 
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
@@ -80,6 +88,31 @@ func give_item(item: String) -> void:
 			Settings.key_name("toggle_skateboard")])
 	Audio.play("pickup")
 	save_game()
+
+
+func add_sparkles(amount: int, why := "") -> void:
+	sparkles += amount
+	sparkles_changed.emit()
+	if why != "":
+		message("%s +%d sparkle%s" % [why, amount, "" if amount == 1 else "s"])
+
+
+func spend_sparkles(amount: int) -> bool:
+	if sparkles < amount:
+		return false
+	sparkles -= amount
+	sparkles_changed.emit()
+	return true
+
+
+func sparkle_taken(id: String) -> bool:
+	# Picked up today? (Tomorrow it's back.)
+	return int(sparkles_taken.get(id, -1)) == Clock.day
+
+
+func take_sparkle(id: String) -> void:
+	sparkles_taken[id] = Clock.day
+	add_sparkles(1)
 
 
 func toggle_skateboard() -> void:
@@ -223,7 +256,8 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding,
+		"items": items, "riding": riding, "hat": hat,
+		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes,
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
@@ -282,6 +316,16 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
+	hat = str(data.get("hat", ""))
+	sparkles_taken.clear()
+	var taken = data.get("sparkles_taken", {})
+	if taken is Dictionary:
+		for k in taken:
+			sparkles_taken[str(k)] = int(taken[k])
+	if data.has("sparkles"):
+		sparkles = int(data["sparkles"])
+	else:
+		sparkles = _sparkles_already_earned()          # a save from before sparkles: pay for what she's already done
 	var pos = data.get("position")
 	if data.has("scene") and ResourceLoader.exists(str(data["scene"])) and pos is Array and pos.size() == 3:
 		_resume = {"scene": str(data["scene"]), "position": [float(pos[0]), float(pos[1]), float(pos[2])],
@@ -292,6 +336,15 @@ func load_game() -> void:
 		_resume = {"scene": TOWN_SCENE}
 		next_spawn = "MarketEntrance"
 		pending_message = "Welcome back! The town has had a makeover. You're at the Market Square."
+
+
+func _sparkles_already_earned() -> int:
+	var total := 0
+	for id in Quests.state:
+		if Quests.is_done(id):
+			total += int(Quests.quest(id).get("reward", {}).get("sparkles", 0))
+	total += HAPPY_PLACE_SPARKLES * items.filter(func(i: String) -> bool: return i.begins_with("happy_place:")).size()
+	return total
 
 
 func _go_to_saved_scene() -> void:
@@ -333,6 +386,9 @@ func new_game() -> void:
 	mp_level = 1
 	items.clear()
 	riding = false
+	hat = ""
+	sparkles = 0
+	sparkles_taken.clear()
 	Clock.reset()
 	Dialogue.reset()
 	Quests.reset()

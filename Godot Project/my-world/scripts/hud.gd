@@ -6,6 +6,7 @@ extends CanvasLayer
 
 var panel: PanelContainer
 var stats_label: Label
+var sparkle_label: Label                    # "✦ 12": sparkles, the money (scripts/game.gd)
 var mp_bar: ProgressBar
 var sp_bar: ProgressBar                     # stamina, spent by rolling
 var bar_labels: Array[Label] = []
@@ -28,6 +29,9 @@ func _ready() -> void:
 	v.add_child(stats_label)
 	mp_bar = _bar_row(v, "MP", "MP: magic, for abilities to come. Refills over time")
 	sp_bar = _bar_row(v, "SP", "SP: stamina, spent by rolling. Refills quickly")
+	sparkle_label = Label.new()
+	sparkle_label.tooltip_text = "Sparkles: bits of broken time. Find them round town, spend them at the market"
+	v.add_child(sparkle_label)
 	add_child(panel)
 
 	clock_panel = PanelContainer.new()
@@ -65,6 +69,7 @@ func _ready() -> void:
 
 	Game.stats_changed.connect(_refresh)
 	Game.sp_changed.connect(_refresh_sp)
+	Game.sparkles_changed.connect(_refresh_sparkles)
 	Game.message_posted.connect(_show_message)
 	Game.saved.connect(_on_saved)
 	Clock.time_changed.connect(_refresh_clock)
@@ -112,6 +117,8 @@ func _apply_look() -> void:
 	clock_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	stats_label.add_theme_font_size_override("font_size", _fs(20))
 	stats_label.add_theme_color_override("font_color", Color(1, 1, 1))
+	sparkle_label.add_theme_font_size_override("font_size", _fs(20))
+	sparkle_label.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(1.0, 0.88, 0.45))
 	var back := StyleBoxFlat.new()
 	back.bg_color = Color(0.25, 0.25, 0.25) if hc else Color(0.2, 0.15, 0.3)
 	back.set_corner_radius_all(4)
@@ -169,6 +176,11 @@ func _refresh() -> void:
 	mp_bar.max_value = Game.max_mp
 	mp_bar.value = Game.mp
 	_refresh_sp()
+	_refresh_sparkles()
+
+
+func _refresh_sparkles() -> void:
+	sparkle_label.text = "✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
 
 
 func _refresh_clock() -> void:
