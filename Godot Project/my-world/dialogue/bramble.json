@@ -14,6 +14,19 @@
     },
     {
       "when": {
+        "quest_step": "rex_campaign:ask",
+        "not_flag": "asked_bramble"
+      },
+      "set": "asked_bramble",
+      "lines": [
+        "Nina: Bramble, Rex is running for mayor. What would you want a mayor to do?",
+        "Well, ain't that sweet of him to ask!",
+        "Flowers, sugar. Flowers in every window box in town. A town with flowers is a town that smiles.",
+        "You tell that pup I said so. Kindly."
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

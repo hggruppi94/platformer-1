@@ -13,6 +13,20 @@
     },
     {
       "when": {
+        "quest_step": "rex_campaign:ask",
+        "not_flag": "asked_pip"
+      },
+      "set": "asked_pip",
+      "lines": [
+        "Nina: Pip, Rex is running for mayor. What would you want a mayor to do?",
+        "MORE LAMPS! Big ones, small ones, lamps shaped like moons!",
+        "So nobody ever has to be scared of the dark. Not even a tiny bit.",
+        "Nina: That's a really good one, Pip.",
+        "Tell Rex I'll vote for him if he promises a lamp. A glowy one."
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

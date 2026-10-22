@@ -317,6 +317,7 @@ func _build() -> void:
 	_cloud_slide()
 	_happy_places()
 	_signposts()
+	_rex_campaign()
 	_mountains()
 	_sky_objects()
 	_characters()
@@ -2276,6 +2277,137 @@ func _signposts() -> void:
 	crossroads(Vector2(30, 23), [["Portal", Vector2(PORTAL.x, PORTAL.y)], ["Homes", homes], ["Market", market], ["South Meadow", Vector2(12, 52)]])
 	crossroads(Vector2(46, 9), [["Homes", homes], ["Observatory", Vector2(OBS_HILL.x, OBS_HILL.y)], ["Market", market], ["Sports & Play", sports]])
 	crossroads(Vector2(-4, -40), [["Castle & School", castle], ["Library", Vector2(-12, -50)], ["Haunted House", Vector2(HAUNTED_HOUSE.x, HAUNTED_HOUSE.y)], ["Market", market]])
+
+
+# -----------------------------------------------------------------------------
+# Rex's campaign (res://quests/rex_campaign.json): where Nina hangs his posters (three signposts and a noticeboard
+# in the Market Square), and Mr. Palmer's office window at the Town Hall, where she can talk to him (he has no
+# model yet: he's a voice from behind the lit window).
+# -----------------------------------------------------------------------------
+const POSTER_SPOTS := [[Vector2(-40, 47), "poster_1"], [Vector2(30, 23), "poster_2"], [Vector2(46, 9), "poster_3"]]
+const NOTICEBOARD_ANGLE := 290.0                  # degrees round the fountain: between the Town Hall path and the Toys stall
+
+
+func _rex_campaign() -> void:
+	var g := group("Rex Campaign", Vector3.ZERO)
+	var market := Vector2(MARKET.x, MARKET.y)
+	for k in POSTER_SPOTS.size():
+		var at: Vector2 = POSTER_SPOTS[k][0]
+		var spot := quest_spot(g, POSTER_SPOTS[k][1], ground(at.x, at.y), "Poster up! VOTE REX!")
+		spot.name = "Poster Spot %d" % (k + 1)
+		var to := (market - at).normalized()
+		var yaw := atan2(to.x, to.y)                       # one poster faces the way to the market, one the other way
+		for side in [0.0, PI]:
+			var face := Vector3(sin(yaw + side), 0, cos(yaw + side))
+			poster(spot.get_node("Done"), face * 0.15 + Vector3(0, 0.95, 0), yaw + side)    # under the lowest board
+	# The noticeboard by the fountain
+	var a := deg_to_rad(NOTICEBOARD_ANGLE)
+	var c := ground(MARKET.x, MARKET.y)
+	var nb_pos := Vector3(MARKET.x + cos(a) * 13.0, c.y + 0.15, MARKET.y + sin(a) * 13.0)
+	var nb := group("Noticeboard", nb_pos, atan2(-cos(a), -sin(a)))           # facing the fountain
+	var wood := mat("Stall Wood", Color(0.6, 0.4, 0.25))
+	var cork := mat("Cork", Color(0.72, 0.55, 0.36))
+	for px in [-0.95, 0.95]:
+		mesh_at(cylinder(0.07, 0.07, 2.4, 8), wood, Vector3(px, 1.2, 0), nb)
+	mesh_at(box(Vector3(2.1, 1.3, 0.1)), cork, Vector3(0, 1.55, 0), nb)
+	mesh_at(box(Vector3(2.3, 0.1, 0.4)), wood, Vector3(0, 2.3, 0.05), nb, 0.0, Vector3(0.2, 0, 0))     # little roof
+	solid(box_shape(Vector3(2.1, 2.4, 0.3)), Vector3(0, 1.2, 0), nb)
+	var notes := [[Vector3(-0.7, 1.75, 0.06), Color(1.0, 0.95, 0.6)], [Vector3(-0.65, 1.3, 0.06), Color(0.7, 0.9, 1.0)],
+		[Vector3(0.75, 1.5, 0.06), Color(1.0, 0.75, 0.85)]]
+	for n in notes:
+		mesh_at(box(Vector3(0.35, 0.42, 0.02)), mat("Note %s" % n[1], n[1], 0.9), n[0], nb)
+	label3d(nb, "Notices", Vector3(0, 2.6, 0), 44)
+	var board_spot := quest_spot(nb, "poster_4", Vector3(0, 0, 0.6), "Poster up on the noticeboard! VOTE REX!")
+	board_spot.name = "Poster Spot 4"
+	poster(board_spot.get_node("Done"), Vector3(0.05, 1.55, -0.53), 0.0)
+	own(nb)
+	# Mr. Palmer's window: the Town Hall's front-left window, lit, with a flower box and a sign. Talk to him here.
+	var hall := town.get_node("Town Hall") as Node3D
+	var r := 7.0
+	var wa := -0.42
+	var w := Node3D.new()
+	w.name = "Palmers Window"
+	var front := Vector3(sin(wa), 0, cos(wa))
+	var stand := Vector2(TOWN_HALL.x, TOWN_HALL.y) + Vector2(front.x, front.z) * (r + 1.6)
+	w.position = front * (r + 1.6) + Vector3(0, height(stand.x, stand.y) - hall.position.y, 0)
+	w.rotation.y = wa
+	hall.add_child(w)
+	var lit := mat("Palmers Window Light", Color(1.0, 0.86, 0.55), 0.4, 0.0, 1.6)
+	var pane := mesh_at(box(Vector3(r * 0.32 - 0.25, r * 0.3 - 0.25, 0.34)), lit, Vector3.ZERO, hall, wa, Vector3(-0.35, 0, 0))
+	pane.position = front * (r * 0.93) + Vector3(0, r * 0.42, 0)
+	pane.name = "Palmers Window Pane"
+	var curtain := mat("Curtain", Color(0.75, 0.25, 0.35), 0.9)
+	for side in [-1, 1]:
+		var cpos: Vector3 = front * (r * 0.93 + 0.05) + Vector3(0, r * 0.42, 0) + Vector3(cos(wa), 0, -sin(wa)) * (0.75 * side)
+		mesh_at(box(Vector3(0.35, r * 0.3 - 0.25, 0.36)), curtain, cpos, hall, wa, Vector3(-0.35, 0, 0))
+	var planter := mat("Planter", Color(0.5, 0.32, 0.2))
+	var box_pos := front * (r * 0.93 + 0.3) + Vector3(0, r * 0.42 - 1.15, 0)
+	mesh_at(box(Vector3(1.9, 0.3, 0.4)), planter, box_pos, hall, wa)
+	for q in 5:
+		var fp: Vector3 = box_pos + Vector3(cos(wa), 0, -sin(wa)) * (-0.7 + q * 0.35) + Vector3(0, 0.25, 0)
+		mesh_at(sphere(0.14, -1, 10), mat("Window Flower %d" % (q % 2), [Color(1.0, 0.5, 0.7), Color(1.0, 0.9, 0.35)][q % 2], 0.6),
+			fp, hall)
+	var office := Label3D.new()
+	office.text = "Mayor's Office
+(knock on the window)"
+	office.font_size = 30
+	office.pixel_size = 0.01
+	office.outline_size = 8
+	office.modulate = Color(1, 0.97, 0.88)
+	office.outline_modulate = Color(0.2, 0.1, 0.25)
+	office.position = Vector3(0, 1.0, -0.6)
+	w.add_child(office)
+	var talk := Area3D.new()
+	talk.name = "Talk"
+	talk.set_script(load("res://scripts/talker.gd"))
+	talk.set("character_id", "mr_palmer")
+	talk.set("display_name", "Mr. Palmer")
+	talk.set("name_height", 2.6)
+	talk.set("turns", false)
+	w.add_child(talk)
+	own(hall)
+	own(g)
+
+
+func quest_spot(parent: Node3D, flag: String, pos: Vector3, message: String) -> Area3D:
+	# A spot (scripts/quest_spot.gd) where Nina can hang one of Rex's posters during the "posters" step. What
+	# shows once it's done goes under its "Done" child.
+	var a := Area3D.new()
+	a.set_script(load("res://scripts/quest_spot.gd"))
+	a.set("quest", "rex_campaign")
+	a.set("step", "posters")
+	a.set("flag", flag)
+	a.set("done_message", message)
+	a.position = pos
+	parent.add_child(a)
+	var done := Node3D.new()
+	done.name = "Done"
+	a.add_child(done)
+	return a
+
+
+func poster(parent: Node3D, pos: Vector3, yaw: float) -> void:
+	# A VOTE REX poster: yellow paper, red words, a paw print
+	var p := Node3D.new()
+	p.position = pos
+	p.rotation.y = yaw
+	parent.add_child(p)
+	mesh_at(box(Vector3(0.62, 0.84, 0.03)), mat("Poster Paper", Color(1.0, 0.9, 0.35), 0.9, 0.0, 0.0, 1.0, false), Vector3.ZERO, p)
+	var l := Label3D.new()
+	l.text = "VOTE
+REX!"
+	l.font_size = 34
+	l.pixel_size = 0.006
+	l.outline_size = 0
+	l.modulate = Color(0.85, 0.15, 0.2)
+	l.position = Vector3(0, 0.08, 0.02)
+	l.double_sided = false
+	p.add_child(l)
+	var paw := mat("Poster Paw", Color(0.45, 0.3, 0.6), 0.8, 0.0, 0.0, 1.0, false)
+	mesh_at(cylinder(0.07, 0.07, 0.01, 12), paw, Vector3(0, -0.27, 0.02), p, 0.0, Vector3(PI / 2, 0, 0))
+	for t in 3:
+		mesh_at(cylinder(0.03, 0.03, 0.01, 8), paw, Vector3(-0.07 + t * 0.07, -0.17 - absf(t - 1) * 0.02, 0.02), p, 0.0,
+			Vector3(PI / 2, 0, 0))
 
 
 func _happy_places() -> void:

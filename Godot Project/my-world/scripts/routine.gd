@@ -11,6 +11,9 @@ extends Node
 #
 # Rex and Rook (scripts/wanderer.gd) keep their own wandering and barking for "wander" blocks; for everything else
 # the routine holds them. While someone is talking to Nina, the routine waits.
+#
+# A quest step can move someone for an event while it's on (Rex's rally at the fountain: scripts/quests.gd,
+# "override"): that block takes over from the schedule until the step's done or its time is over.
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -36,6 +39,7 @@ var _paths: TownPaths
 var _space: PhysicsDirectSpaceState3D
 var _skip: Array[RID] = []
 var _block := -1
+var _override := {}                                 # a quest event's block, while it's on
 var _ready_to_go := false
 var _jumped := true                                 # snap on the first frame
 var _path: Array[Vector3] = []                      # points still to walk through
@@ -90,6 +94,8 @@ func _load() -> void:
 # What they're up to (Dialogue asks, for lines like "Out for my ride!")
 # -----------------------------------------------------------------------------
 func current_block() -> Dictionary:
+	if not _override.is_empty():
+		return _override
 	return blocks[_block] if _block >= 0 and _block < blocks.size() else {}
 
 
@@ -137,9 +143,11 @@ func _physics_process(delta: float) -> void:
 		_play("idle")
 		return
 	var i := block_index_at(blocks, Clock.minutes)
-	if i != _block or _jumped:
+	var o := Quests.override_for(character_id)
+	if i != _block or _jumped or o != _override:
 		var was := _block
 		_block = i
+		_override = o
 		if _jumped or was == -1 or not _near():
 			snap()
 		else:

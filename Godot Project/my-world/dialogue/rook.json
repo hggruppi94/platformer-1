@@ -16,6 +16,21 @@
     },
     {
       "when": {
+        "quest_step": "rex_campaign:ask",
+        "not_flag": "asked_rook"
+      },
+      "set": "asked_rook",
+      "lines": [
+        "Nina: Rook, Rex is running for mayor. What would you want a mayor to do?",
+        "Grrr... grumble grumble...",
+        "Nina: Come on. Every voice counts. Even grumbly ones.",
+        "...Woof.",
+        "(Rook flops down in a sunny spot and wags, just a little.)",
+        "Nina: More naps in the sun. Got it. I'll tell him."
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

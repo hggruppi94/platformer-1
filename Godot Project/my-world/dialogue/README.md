@@ -1,7 +1,8 @@
 # Dialogue: what people say
 
 One file per character, named after the `character_id` on their talk spot (the `Talk` node under them in
-`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`.
+`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`. Mr. Palmer (`mr_palmer.json`)
+talks from behind his office window at the Town Hall.
 `scripts/dialogue.gd` plays them.
 
 ```json
@@ -30,8 +31,11 @@ plain one (no `when`) last, so there's always something to say.
 | `"activity": "riding"` | what they're up to in their daily routine (the block's `label` in `res://routines/<id>.json`). Can be a list |
 | `"place": "town_hall"` | where their routine has them (a point in `res://routines/places.json`). Can be a list |
 | `"travelling": true` | they're on their way somewhere |
+| `"quest_step": "rex_campaign:ask"` | a quest is on that step. Also `quest_ready`, `quest_waiting`, `quest_done` and `quest_not_started`: see `res://quests/README.md` |
 
 **`lines`** plays in order. **`rotate`** is a list of `lines` lists: each visit plays the next one in turn.
+A conversation can have its own **`"set": "flag_name"`**: the flag is set once it's over (handy for quests: "told
+Rex what everyone said").
 
 **A line can be:**
 
@@ -53,7 +57,7 @@ plain one (no `when`) last, so there's always something to say.
   `"say": false` stops Nina from repeating the answer out loud.
 
 **In any text:** `{time}` is the clock time, `{day}` the day number, `{talks}` how many times she's talked to them,
-`{name}` their name and `{nina}` Nina's.
+`{name}` their name, `{nina}` Nina's and `{quest_log}` the quest log's key.
 
 Keep it kid-safe: no blood or violence. Check your changes with
 `godot --headless --path "Godot Project/my-world" --script res://tools/test_dialogue.gd`: it checks every file can

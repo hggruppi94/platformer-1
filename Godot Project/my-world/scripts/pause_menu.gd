@@ -86,7 +86,9 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
-		if not is_open():
+		if Quests.is_log_open():
+			Quests.toggle_log()                    # Pause closes the quest log first
+		elif not is_open():
 			open()
 		elif page == "main":
 			close()

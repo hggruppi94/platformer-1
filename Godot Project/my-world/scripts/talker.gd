@@ -10,6 +10,7 @@ extends Area3D
 @export var display_name := ""
 @export var talk_radius := 2.6
 @export var name_height := 2.0                     # metres above the character's feet
+@export var turns := true                          # face Nina while talking (not for a voice behind a window)
 
 var _name_label: Label3D
 var _prompt: Label3D
@@ -35,6 +36,7 @@ func _ready() -> void:
 	_prompt.position.y = name_height - 0.22
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	Quests.changed.connect(func(_q: String) -> void: _name_label.text = Quests.display_name(character_id, display_name))
 	_show(false)
 	set_prompt(false)
 
@@ -73,6 +75,7 @@ func _on_body_exited(body: Node3D) -> void:
 
 
 func _show(on: bool) -> void:
+	_name_label.text = Quests.display_name(character_id, display_name)     # e.g. "Future Mayor Rex", after his quest
 	_name_label.visible = on
 
 
@@ -97,6 +100,8 @@ func end_talk() -> void:
 func _process(delta: float) -> void:
 	# Face Nina while talking (models face +Z, so the yaw that faces a point is atan2(dx, dz)). Without a routine or
 	# wandering of their own, turn back to how they stood afterwards.
+	if not turns:
+		return
 	var target := _home_yaw
 	if _talking and _player and is_instance_valid(_player):
 		var to := _player.global_position - _body.global_position

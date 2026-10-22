@@ -50,6 +50,7 @@ class_name Player
 @onready var tumble: Node3D = $Visual/Tumble     # pivot at her middle: rolls and flips spin this
 @onready var model: Node3D = $Visual/Tumble/Nina
 @onready var board: Node3D = $Visual/Skateboard
+var _sash: Node3D                                 # shown once she has the campaign sash
 # Animations exported from Blender with the character (idle, run, jump, fall, skate)
 @onready var anim: AnimationPlayer = visual.find_child("AnimationPlayer", true, false)
 
@@ -113,14 +114,54 @@ func _ready() -> void:
 			if anim.has_animation(loop_name):
 				anim.get_animation(loop_name).loop_mode = Animation.LOOP_LINEAR
 		anim.play("idle")
+	_add_sash()
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
 
 
 func _on_equipment_changed() -> void:
 	board.visible = Game.riding
+	if _sash:
+		_sash.visible = Game.has_item("campaign_sash")     # Rex's thank-you for running his campaign
 	model.position.y = MODEL_Y + (skate_height if Game.riding else 0.0)
 	model.rotation.y = skate_stance if Game.riding else 0.0
+
+
+func _add_sash() -> void:
+	# A "VOTE REX" sash from her shoulder across to her hip, round her middle (on the model, so it turns and rolls
+	# with her)
+	_sash = Node3D.new()
+	_sash.name = "Sash"
+	_sash.position = Vector3(0, 0.6, 0)
+	model.add_child(_sash)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.27
+	torus.outer_radius = 0.33
+	torus.rings = 32
+	torus.ring_segments = 6
+	ring.mesh = torus
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.95, 0.25, 0.3)
+	m.roughness = 0.7
+	ring.material_override = m
+	ring.rotation = Vector3(0, 0, deg_to_rad(44))
+	ring.scale = Vector3(1.0, 1.0, 0.85)
+	_sash.add_child(ring)
+	var star := MeshInstance3D.new()                       # a gold rosette on the front
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.06
+	disc.bottom_radius = 0.06
+	disc.height = 0.03
+	star.mesh = disc
+	var gold := StandardMaterial3D.new()
+	gold.albedo_color = Color(1.0, 0.82, 0.25)
+	gold.metallic = 0.6
+	gold.roughness = 0.3
+	star.material_override = gold
+	star.position = Vector3(-0.07, 0.04, 0.27)
+	star.rotation = Vector3(PI / 2, 0, 0)
+	_sash.add_child(star)
 
 
 func is_invulnerable() -> bool:

@@ -15,6 +15,264 @@
     },
     {
       "when": {
+        "quest_not_started": "rex_campaign",
+        "min_talks": 1,
+        "flag": "voted_rex",
+        "not_flag": "rex_campaign_later"
+      },
+      "lines": [
+        "My favorite voter! You already gave me your vote... so now I need something even bigger.",
+        "Nina: Bigger than a vote?",
+        "A CAMPAIGN MANAGER! Someone to help me find out what the whole town needs.",
+        {
+          "choice": [
+            {
+              "text": "I'll help!",
+              "set": "rex_campaign_start",
+              "lines": [
+                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "(Press {quest_log} to see the quest log.)"
+              ]
+            },
+            {
+              "text": "Maybe later.",
+              "set": "rex_campaign_later",
+              "lines": [
+                "That's okay! A good mayor is patient. I'm practicing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "rex_campaign",
+        "min_talks": 3,
+        "every": 3,
+        "not_flag": "rex_campaign_later"
+      },
+      "lines": [
+        "Citizen! Every great mayor needs a great team.",
+        "Right now my team is me. And a lamp post. The lamp post isn't very chatty.",
+        "Will you be my campaign manager?",
+        {
+          "choice": [
+            {
+              "text": "I'll help!",
+              "set": "rex_campaign_start",
+              "lines": [
+                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "(Press {quest_log} to see the quest log.)"
+              ]
+            },
+            {
+              "text": "Maybe later.",
+              "set": "rex_campaign_later",
+              "lines": [
+                "That's okay! A good mayor is patient. I'm practicing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "rex_campaign",
+        "flag": "rex_campaign_later",
+        "every": 2
+      },
+      "lines": [
+        "Changed your mind about being my campaign manager? The badge is still available. It's very shiny.",
+        {
+          "choice": [
+            {
+              "text": "I'll help!",
+              "set": "rex_campaign_start",
+              "lines": [
+                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "(Press {quest_log} to see the quest log.)"
+              ]
+            },
+            {
+              "text": "Not yet.",
+              "lines": [
+                "Patience! I'm getting really good at it."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:ask"
+      },
+      "lines": [
+        "How's the asking going, Campaign Manager?",
+        "Remember: Dash, Bramble, Pip and Rook. Pip only comes out in the evenings, to look at the lamps.",
+        "Rook will probably just say woof. Write it down anyway. Every voice counts!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:report"
+      },
+      "set": "reported_ideas",
+      "lines": [
+        "Campaign Manager! What did everyone say?",
+        "Nina: Dash wants a bike lane all the way round the lake.",
+        "Zoom zoom! Love it.",
+        "Nina: Bramble wants flowers in every window box.",
+        "Pretty! And they smell nice!",
+        "Nina: Pip wants more lamps, so nobody's scared of the dark.",
+        "Oh. That's a really good one.",
+        "Nina: And Rook said... 'Woof.'",
+        "(Rex thinks very hard.)",
+        "Hmm. What kind of woof?",
+        "Nina: A sunny, sleepy, a-little-bit-waggy woof. I think he means more naps in the sun.",
+        "See? Even a grumbly woof is an idea!",
+        "Nina: Wait. Which one of you is the dog again?",
+        "I'm REX! He's the dog!",
+        "...Even if I'm the one with the tail right now. Long story. Lots of paperwork.",
+        "Okay! Bike lanes, flowers, lamps and naps. I'll paint posters tonight. Come back tomorrow and help me hang them!"
+      ]
+    },
+    {
+      "when": {
+        "quest_waiting": "rex_campaign:posters"
+      },
+      "lines": [
+        "Painting posters! I've got paint on my paws. And my ears. And somehow my tail.",
+        "Come back tomorrow, Campaign Manager!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:posters"
+      },
+      "lines": [
+        "The posters are ready! Fresh and only a little bit smudgy.",
+        "One for the signpost west of the Market, one for the signpost by the dock, one for the signpost by the Homes gate...",
+        "...and one for the noticeboard in the Market Square, right where everybody walks by!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:rally",
+        "activity": "rally"
+      },
+      "lines": [
+        "Citizens of Galactopia! Thank you for coming!",
+        "(A few people stop to listen. A pigeon listens too.)",
+        "I'm Rex, and I want to be your mayor! Bike lanes! Flowers! Lamps! And naps in the sun!",
+        "(Rex leans over and whispers.) Campaign Manager, I need a big finish. What do I say?",
+        {
+          "choice": [
+            {
+              "text": "Every voice counts, even the small ones!",
+              "set": "rally_done",
+              "lines": [
+                "EVERY VOICE COUNTS! Even the small ones! ESPECIALLY the small ones!",
+                "(Everybody claps. The pigeon coos.)"
+              ]
+            },
+            {
+              "text": "More brain breaks for everybody!",
+              "set": "rally_done",
+              "lines": [
+                "MORE BRAIN BREAKS! For everybody! Even grown-ups!",
+                "(Everybody cheers. Somebody takes a brain break right away.)"
+              ]
+            },
+            {
+              "text": "Vote Rex, the one who's NOT the dog!",
+              "set": "rally_done",
+              "lines": [
+                "VOTE REX! I'm the one who's NOT the dog!",
+                "(Everybody laughs. Somewhere far away, Rook grumbles.)"
+              ]
+            }
+          ]
+        },
+        "That went GREAT! Tomorrow we take my ideas straight to Mr. Palmer. He's the mayor right now."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:rally"
+      },
+      "lines": [
+        "The big speech is this evening, at the Market Square fountain! Between 5 and 9 o'clock!",
+        "I've been practicing on the Town Hall. It hasn't clapped yet."
+      ]
+    },
+    {
+      "when": {
+        "quest_waiting": "rex_campaign:palmer"
+      },
+      "lines": [
+        "Tomorrow we go and see Mr. Palmer! He's the mayor right now. A very busy, very nice mayor.",
+        "I'm not nervous. My tail is just wagging for exercise."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:palmer"
+      },
+      "lines": [
+        "Can you knock on Mr. Palmer's window? It's the lit one at the front of the Town Hall, with the flower box.",
+        "I'd go myself, but my tail wags too hard when I'm nervous. I'd knock over the flowers."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_campaign:finale"
+      },
+      "set": "campaign_done",
+      "lines": [
+        "Well? What did Mr. Palmer say? Am I mayor? Is there a parade?",
+        "Nina: He said no. Not this year.",
+        "(Rex's ears droop.)",
+        "Oh.",
+        "Nina: But he loved your ideas. He said a good mayor is patient, and listens to everybody first.",
+        "Nina: And he said you've already started. You asked the whole town. Even Rook!",
+        "(Rex's tail starts wagging again. Slowly at first. Then very, very fast.)",
+        "I did, didn't I? Dash, Bramble, Pip... even a grumbly woof!",
+        "Maybe being mayor isn't about big speeches. Maybe it's about listening.",
+        "Then I'll keep listening. And one day... Future Mayor Rex!",
+        "Nina: Future Mayor Rex. I like it.",
+        "This is for you, Campaign Manager. My very best sash. Thank you for listening with me."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "rex_campaign",
+        "every": 2
+      },
+      "rotate": [
+        [
+          "Future Mayor Rex, on listening duty! What's on your mind, citizen?",
+          "Nina: More brain breaks.",
+          "Writing it down. In my heart. And on a poster."
+        ],
+        [
+          "Mr. Palmer put flowers in the window boxes! Bramble's idea! I'm so proud of this town."
+        ],
+        [
+          "You look great in that sash, Campaign Manager!",
+          "Nina: Thanks, Future Mayor Rex.",
+          "Hee hee. Say it again.",
+          "Nina: Future Mayor Rex."
+        ]
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

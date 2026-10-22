@@ -1,0 +1,58 @@
+{
+  "name": "Rex for Mayor!",
+  "start": {"flag": "rex_campaign_start"},
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Rex wants to know what Galactopia needs. Ask around town!",
+      "checklist": [
+        ["asked_dash", "Ask Dash"],
+        ["asked_bramble", "Ask Bramble"],
+        ["asked_pip", "Ask Pip (she comes out to see the lamps in the evening)"],
+        ["asked_rook", "Ask Rook"]
+      ],
+      "done": {"flags": ["asked_dash", "asked_bramble", "asked_pip", "asked_rook"]}
+    },
+    {
+      "id": "report",
+      "text": "Tell Rex what everyone said. He's at the Town Hall in the daytime.",
+      "done": {"flag": "reported_ideas"}
+    },
+    {
+      "id": "posters",
+      "text": "Hang Rex's VOTE REX posters around town.",
+      "wait": {"days": 1, "text": "Rex is still painting the posters. Come back tomorrow!"},
+      "checklist": [
+        ["poster_1", "The signpost west of the Market"],
+        ["poster_2", "The signpost by the dock"],
+        ["poster_3", "The signpost by the Homes gate"],
+        ["poster_4", "The noticeboard in the Market Square"]
+      ],
+      "done": {"flags": ["poster_1", "poster_2", "poster_3", "poster_4"]}
+    },
+    {
+      "id": "rally",
+      "text": "Rex is giving a speech at the Market Square fountain this evening (5 to 9 PM). Go cheer him on!",
+      "override": {
+        "rex": {"time": ["evening"], "place": "market", "do": "idle", "label": "rally", "face": [-72, 42]}
+      },
+      "done": {"flag": "rally_done"}
+    },
+    {
+      "id": "palmer",
+      "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall in the daytime.",
+      "wait": {"days": 1, "text": "Mr. Palmer has gone home for the day. Try tomorrow!"},
+      "done": {"flag": "palmer_said_no"}
+    },
+    {
+      "id": "finale",
+      "text": "Tell Rex what Mr. Palmer said.",
+      "done": {"flag": "campaign_done"}
+    }
+  ],
+  "reward": {
+    "item": "campaign_sash",
+    "message": "Rex gave you his VOTE REX sash! (And he's Future Mayor Rex now.)"
+  },
+  "titles": {"rex": "Future Mayor Rex"}
+}

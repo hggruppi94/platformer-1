@@ -16,6 +16,20 @@
     },
     {
       "when": {
+        "quest_step": "rex_campaign:ask",
+        "not_flag": "asked_dash"
+      },
+      "set": "asked_dash",
+      "lines": [
+        "Nina: Dash, Rex is running for mayor. What would you want a mayor to do?",
+        "A mayor? Rex? My twin brother Rex?",
+        "(Dash thinks about it, very fast.)",
+        "Okay, okay! A bike lane all the way round the lake! So I can zoom without bumping into anybody.",
+        "And tell him if he wins, I'm still not calling him Mayor Rex at breakfast."
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

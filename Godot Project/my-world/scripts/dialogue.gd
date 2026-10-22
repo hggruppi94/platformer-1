@@ -8,18 +8,20 @@ extends Node
 # What they say is in res://dialogue/<id>.json, one file per character. See res://dialogue/README.md for how to
 # write it. Which conversation plays depends on the time of day (Clock.period()), how many times she's talked to
 # them, flags set by earlier answers, and where they are and what they're up to in their daily routine
-# (scripts/routine.gd). Talk counts and flags are saved with the game (scripts/game.gd).
+# (scripts/routine.gd), and where Nina is up to in a quest (scripts/quests.gd). Talk counts and flags are saved with the
+# game (scripts/game.gd).
 
 signal started(id: String)
 signal finished(id: String)
 signal line_shown(speaker: String, text: String)
+signal flag_set(flag: String)
 
 const DIR := "res://dialogue"
 const CHARS_PER_SECOND := 45.0
 const PLAYER_NAME := "Nina"
 
 var talks := {}                      # character id -> how many conversations she's had with them
-var flags := {}                      # flag name -> true, set by answers ("set": "flag" in a choice)
+var flags := {}                      # flag name -> true, set by answers and conversations ("set": "flag")
 
 var _near: Array[Node3D] = []        # talk spots she's standing in (scripts/talker.gd)
 var _nearest: Node3D
@@ -27,6 +29,7 @@ var _talker: Node3D                  # who she's talking to, while a conversatio
 var _id := ""
 var _name := ""
 var _queue: Array = []               # steps still to show: lines (Dictionary {speaker, text}) and choices
+var _set_at_end := ""                # the conversation's own "set" flag, set once it's over
 var _typing := false
 var _shown := 0.0
 var _choosing := false
@@ -112,17 +115,22 @@ func _unhandled_input(event: InputEvent) -> void:
 # Conversations
 # -----------------------------------------------------------------------------
 func talk_to(talker: Node3D) -> void:
+	if talker.has_method("use"):
+		talker.call("use")                           # not someone to talk to: a quest spot (scripts/quest_spot.gd)
+		return
 	var id: String = talker.get("character_id")
 	var data := load_character(id)
 	if data.is_empty():
 		return
-	var convo := pick_conversation(id)
+	var picked := _pick(id)
+	var convo: Array = picked.get("lines", [])
 	if convo.is_empty():
 		return
 	_talker = talker
 	_id = id
-	_name = data.get("name", talker.get("display_name"))
+	_name = Quests.display_name(id, data.get("name", talker.get("display_name")))
 	_queue = _steps(convo)
+	_set_at_end = str(picked.get("set", ""))
 	talks[id] = int(talks.get(id, 0)) + 1
 	if _nearest:
 		_nearest.call("set_prompt", false)
@@ -151,18 +159,23 @@ func load_character(id: String) -> Dictionary:
 
 
 func pick_conversation(id: String) -> Array:
-	# The first conversation in the file whose "when" matches now. "lines" plays as is; "rotate" plays a different
-	# set each visit, in turn.
+	return _pick(id).get("lines", [])
+
+
+func _pick(id: String) -> Dictionary:
+	# The first conversation in the file whose "when" matches now: {lines, set}. "lines" plays as is; "rotate" plays
+	# a different set each visit, in turn.
 	var data := load_character(id)
 	var count := int(talks.get(id, 0))
 	for c in data.get("conversations", []):
 		if not c is Dictionary or not _matches(c.get("when", {}), count, id):
 			continue
+		var lines: Array = c.get("lines", [])
 		if c.has("rotate"):
 			var sets: Array = c["rotate"]
-			return sets[count % sets.size()] if sets.size() > 0 else []
-		return c.get("lines", [])
-	return []
+			lines = sets[count % sets.size()] if sets.size() > 0 else []
+		return {"lines": lines, "set": c.get("set", "")}
+	return {}
 
 
 func routine_of(id: String) -> Node:
@@ -190,6 +203,8 @@ func _matches(when: Dictionary, count: int, id := "") -> bool:
 	if when.has("flag") and not flags.has(str(when["flag"])):
 		return false
 	if when.has("not_flag") and flags.has(str(when["not_flag"])):
+		return false
+	if not Quests.condition_ok(when):              # "quest_step", "quest_ready", "quest_done", ...
 		return false
 	# Their routine: where they are ("place"), what they're up to ("activity", the block's label), on the move
 	if when.has("place") or when.has("activity") or when.has("travelling"):
@@ -248,7 +263,7 @@ func _next() -> void:
 
 func _fill(text: String) -> String:
 	return text.format({"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
-		"name": _name, "nina": PLAYER_NAME})
+		"name": _name, "nina": PLAYER_NAME, "quest_log": Settings.key_name("quest_log")})
 
 
 func _finish_typing() -> void:
@@ -288,7 +303,7 @@ func choose(option: Dictionary) -> void:
 		c.queue_free()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if option.has("set"):
-		flags[str(option["set"])] = true
+		set_flag(str(option["set"]))
 	if option.get("heal", false):
 		Game.hp = Game.max_hp
 		Game.mp = Game.max_mp
@@ -320,12 +335,20 @@ func end() -> void:
 		_talker.call("end_talk")
 	_talker = null
 	_id = ""
+	if _set_at_end != "":
+		set_flag(_set_at_end)
+		_set_at_end = ""
 	# A moment later, so the Jump press that closed the box doesn't make her jump too
 	get_tree().create_timer(0.15).timeout.connect(func() -> void:
 		if not is_active():
 			_set_player_locked(false))
 	Game.save_game()
 	finished.emit(id)
+
+
+func set_flag(flag: String) -> void:
+	flags[flag] = true
+	flag_set.emit(flag)
 
 
 func _set_player_locked(on: bool) -> void:
