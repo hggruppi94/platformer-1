@@ -51,7 +51,8 @@
     }
   ],
   "reward": {
-    "message": "Pip's moon-lamps are up along the boardwalks! Go and see them glow after dark."
+    "message": "Pip's moon-lamps are up along the boardwalks! Go and see them glow after dark. (+10 sparkles)",
+    "sparkles": 10
   },
   "titles": {
     "pip": "Lamplighter Pip"

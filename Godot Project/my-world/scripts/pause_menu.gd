@@ -90,6 +90,8 @@ func _input(event: InputEvent) -> void:
 			Quests.toggle_log()                    # Pause closes the quest log or the map first
 		elif TownMap.is_open():
 			TownMap.toggle()
+		elif Shop.is_open():
+			Shop.close()
 		elif not is_open():
 			open()
 		elif page == "main":

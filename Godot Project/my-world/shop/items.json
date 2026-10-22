@@ -1,0 +1,24 @@
+{
+  "stalls": {
+    "Fruit": "Fresh from the Secret Gardens! Fruit makes you feel brand new.",
+    "Sweets": "Sweet treats for sweet people. One at a time, mind!",
+    "Crystals": "Shiny things that catch the light.",
+    "Flowers": "Bramble grew every one of these.",
+    "Records": "Music for your ears and stickers for your sash.",
+    "Toys": "Toys, games and silly hats!"
+  },
+  "items": [
+    {"id": "star_apple", "name": "Star Apple", "stall": "Fruit", "kind": "snack", "price": 2, "hp": 5, "text": "Crunchy and sweet. +5 HP"},
+    {"id": "moon_melon", "name": "Moon Melon Slice", "stall": "Fruit", "kind": "snack", "price": 4, "hp": 99, "text": "So juicy it fills you right up. All your HP"},
+    {"id": "cloud_candy", "name": "Fizzy Cloud Candy", "stall": "Sweets", "kind": "snack", "price": 1, "hp": 3, "text": "Pops on your tongue! +3 HP"},
+    {"id": "galaxy_pop", "name": "Galaxy Lollipop", "stall": "Sweets", "kind": "snack", "price": 3, "hp": 6, "mp": 3, "text": "Swirly and starry. +6 HP, +3 MP"},
+    {"id": "crystal_tiara", "name": "Crystal Tiara", "stall": "Crystals", "kind": "hat", "price": 15, "text": "A sparkly tiara to wear"},
+    {"id": "star_sticker", "name": "Star Sticker", "stall": "Crystals", "kind": "sticker", "price": 5, "text": "A shiny star for your sash"},
+    {"id": "flower_crown", "name": "Flower Crown", "stall": "Flowers", "kind": "hat", "price": 10, "text": "A crown of Bramble's flowers to wear"},
+    {"id": "daisy_sticker", "name": "Daisy Sticker", "stall": "Flowers", "kind": "sticker", "price": 4, "text": "A happy daisy for your sash"},
+    {"id": "headphones", "name": "Starry Headphones", "stall": "Records", "kind": "hat", "price": 10, "text": "Big comfy headphones to wear"},
+    {"id": "note_sticker", "name": "Music Note Sticker", "stall": "Records", "kind": "sticker", "price": 4, "text": "A music note for your sash"},
+    {"id": "propeller_cap", "name": "Propeller Cap", "stall": "Toys", "kind": "hat", "price": 12, "text": "A cap with a spinning propeller to wear"},
+    {"id": "paw_sticker", "name": "Paw Print Sticker", "stall": "Toys", "kind": "sticker", "price": 3, "text": "A paw print for your sash (Rex approves)"}
+  ]
+}

@@ -51,6 +51,7 @@
     }
   ],
   "reward": {
-    "message": "Bramble planted the rest too: every window box in town is blooming!"
+    "message": "Bramble planted the rest too: every window box in town is blooming! (+10 sparkles)",
+    "sparkles": 10
   }
 }

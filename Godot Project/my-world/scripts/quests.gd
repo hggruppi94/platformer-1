@@ -32,7 +32,8 @@ var _log_text: RichTextLabel
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS                # the log works while the game is paused under it
-	_load_all()
+	if _order.is_empty():
+		_load_all()
 	_build_ui()
 	# Steps move on when a conversation ends (not halfway through one), or when a quest spot sets a flag
 	Dialogue.finished.connect(func(_id: String) -> void: check())
@@ -61,6 +62,8 @@ func _load_all() -> void:
 
 
 func quest(id: String) -> Dictionary:
+	if _order.is_empty():
+		_load_all()                                    # asked before _ready (Game loading the save)
 	return _data.get(id, {})
 
 
@@ -202,6 +205,8 @@ func _advance(id: String) -> void:
 		if reward.has("item"):
 			Game.give_item(str(reward.item))
 			Game.equipment_changed.emit()                   # e.g. she puts on the sash
+		if reward.has("sparkles"):
+			Game.add_sparkles(int(reward.sparkles))
 		_announce("Quest complete: %s" % q.get("name", id), str(reward.get("message", "")))
 		Audio.play("level_up", -4.0)
 	else:
