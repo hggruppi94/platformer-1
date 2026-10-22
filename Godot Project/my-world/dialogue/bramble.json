@@ -14,6 +14,69 @@
     },
     {
       "when": {
+        "quest_done": "rex_campaign",
+        "quest_not_started": "bramble_flowers",
+        "min_talks": 1
+      },
+      "lines": [
+        "Sugar! Guess who asked me for flowers? Mr. Palmer himself! Said Rex's campaign gave him the idea.",
+        "Flowers in every window box in town. I've got the bundles all tied up, but these old knees creak somethin' awful.",
+        "Would you be a dear and fill the boxes for me?",
+        {
+          "choice": [
+            {
+              "text": "Of course!",
+              "set": "bramble_flowers_start",
+              "lines": [
+                "Bless your heart! Here you go, a whole armful.",
+                "(Bramble hands Nina a big bundle of flowers. They smell like sunshine.)",
+                "Mr. Palmer's window at the Town Hall, your house, the Potion Shop, the Book Store, and Dash's place."
+              ]
+            },
+            {
+              "text": "Maybe later.",
+              "lines": [
+                "No rush, hon. Flowers don't mind waitin' in a bucket."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bramble_flowers:deliver"
+      },
+      "lines": [
+        "How're those window boxes comin', sugar? Each one needs a little love.",
+        "Mr. Palmer's, yours, the Potion Shop, the Book Store and Dash's."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bramble_flowers:thanks"
+      },
+      "set": "bramble_thanked",
+      "lines": [
+        "Nina: All the window boxes are full, Bramble!",
+        "Well, look at you! I could see 'em bloomin' from here.",
+        "You know what? I had a few bundles left over. So I snuck round and did the rest of the town too.",
+        "(Bramble winks.)",
+        "A town with flowers is a town that smiles. Thank you, sugar."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "bramble_flowers",
+        "every": 3
+      },
+      "lines": [
+        "Every window in town's got flowers now. I water 'em on my mornin' walk.",
+        "The bees are havin' the best week of their lives."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "rex_campaign:ask",
         "not_flag": "asked_bramble"
       },

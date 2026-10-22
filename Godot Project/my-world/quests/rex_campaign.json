@@ -8,7 +8,7 @@
       "checklist": [
         ["asked_dash", "Ask Dash"],
         ["asked_bramble", "Ask Bramble"],
-        ["asked_pip", "Ask Pip (she comes out to see the lamps in the evening)"],
+        ["asked_pip", "Ask Pip (out to see the lamps in the evening)"],
         ["asked_rook", "Ask Rook"]
       ],
       "done": {"flags": ["asked_dash", "asked_bramble", "asked_pip", "asked_rook"]}

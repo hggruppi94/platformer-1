@@ -1,0 +1,56 @@
+{
+  "name": "Lights for the Boardwalk",
+  "start": {
+    "flag": "pip_lamps_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Pip needs glowy things for new lanterns. Find the glow shells round the lake. They shine brightest at night!",
+      "checklist": [
+        [
+          "glow_1",
+          "A glow shell by the southwest shore"
+        ],
+        [
+          "glow_2",
+          "A glow shell by the south shore"
+        ],
+        [
+          "glow_3",
+          "A glow shell by the dock"
+        ],
+        [
+          "glow_4",
+          "A glow shell by the west shore"
+        ],
+        [
+          "glow_5",
+          "A glow shell by the north boardwalk"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "glow_1",
+          "glow_2",
+          "glow_3",
+          "glow_4",
+          "glow_5"
+        ]
+      }
+    },
+    {
+      "id": "bring",
+      "text": "Bring the glow shells to Pip, who's out looking at lamps in the evening.",
+      "done": {
+        "flag": "pip_got_shells"
+      }
+    }
+  ],
+  "reward": {
+    "message": "Pip's moon-lamps are up along the boardwalks! Go and see them glow after dark."
+  },
+  "titles": {
+    "pip": "Lamplighter Pip"
+  }
+}
