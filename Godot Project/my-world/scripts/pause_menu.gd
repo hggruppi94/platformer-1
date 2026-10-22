@@ -87,7 +87,9 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
 		if Quests.is_log_open():
-			Quests.toggle_log()                    # Pause closes the quest log first
+			Quests.toggle_log()                    # Pause closes the quest log or the map first
+		elif TownMap.is_open():
+			TownMap.toggle()
 		elif not is_open():
 			open()
 		elif page == "main":
@@ -333,6 +335,7 @@ func _tab_display(tabs: TabContainer) -> void:
 	var g := _grid(tabs, "Display")
 	_check(g, "Fullscreen", "fullscreen")
 	_slider(g, "Field of view", "fov", 60, 100, 1, func(x): return "%d°" % x)
+	_check(g, "Corner minimap", "minimap", "A small map in the bottom-right corner (%s opens the big one)" % Settings.key_name("map"))
 
 
 func _tab_access(tabs: TabContainer) -> void:

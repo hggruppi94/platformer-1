@@ -44,7 +44,10 @@
       "text": "Tell Bramble the flowers are in.",
       "done": {
         "flag": "bramble_thanked"
-      }
+      },
+      "where": [
+        "bramble"
+      ]
     }
   ],
   "reward": {

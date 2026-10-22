@@ -12,7 +12,7 @@ const PATH := "user://settings.cfg"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
-	["interact", "Interact"], ["quest_log", "Quest log"], ["pause", "Pause"],
+	["interact", "Interact"], ["quest_log", "Quest log"], ["map", "Map"], ["pause", "Pause"],
 ]
 
 # --- Audio (0..1)
@@ -27,6 +27,7 @@ var invert_x := false
 # --- Display
 var fullscreen := false
 var fov := 75.0
+var minimap := false                  # a small map in the bottom-right corner (scripts/map_screen.gd)
 # --- Accessibility
 var text_scale := 1.0                 # HUD and menu text size
 var high_contrast := false            # solid dark panels, bright text, heavy outlines
@@ -55,7 +56,7 @@ func _ready() -> void:
 
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "mouse_sensitivity", "stick_sensitivity", "invert_y",
-		"invert_x", "fullscreen", "fov", "text_scale", "high_contrast", "reduce_flashing", "reduce_motion",
+		"invert_x", "fullscreen", "fov", "minimap", "text_scale", "high_contrast", "reduce_flashing", "reduce_motion",
 		"captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp"]
 
 
@@ -91,7 +92,7 @@ func reset_to_defaults() -> void:
 # ----------------------------------------------------------------------------- key bindings
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "interact": KEY_F, "quest_log": KEY_Q,
+		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M,
 		"pause": KEY_ESCAPE}
 
 
