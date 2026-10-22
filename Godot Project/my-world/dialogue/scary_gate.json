@@ -1,0 +1,77 @@
+{
+  "name": "The Old Gate",
+  "conversations": [
+    {
+      "when": {
+        "flag": "scary_world_visited"
+      },
+      "lines": [
+        "(The old gate creaks. Mist curls between the bars. Somewhere inside, a glow-bug blinks.)",
+        "(Do you want to go back in?)",
+        {
+          "choice": [
+            {
+              "text": "No, not today.",
+              "answer": "no",
+              "say": false,
+              "record": "scary_world_gate",
+              "set": "scary_world_said_no",
+              "lines": [
+                "(Nina steps back. That's okay. The gate will still be here.)"
+              ]
+            },
+            {
+              "text": "Yes, I want to go back in.",
+              "answer": "yes",
+              "say": false,
+              "record": "scary_world_gate",
+              "set": "scary_world_said_yes",
+              "go": [
+                "res://scenes/scary_world/scary_world.tscn",
+                "Entrance"
+              ],
+              "lines": [
+                "(Nina takes a breath and slips through the gate.)"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "lines": [
+        "(The old gate creaks. It's dark and misty on the other side, and something long skitters away into the shadows...)",
+        "(A sign says SCARY WORLD. Underneath, in very small letters: it's really not that bad.)",
+        "(Do you want to go in?)",
+        {
+          "choice": [
+            {
+              "text": "No, not today.",
+              "answer": "no",
+              "say": false,
+              "record": "scary_world_gate",
+              "set": "scary_world_said_no",
+              "lines": [
+                "(Nina steps back from the gate. Saying no is brave too.)"
+              ]
+            },
+            {
+              "text": "Yes, I want to go in.",
+              "answer": "yes",
+              "say": false,
+              "record": "scary_world_gate",
+              "set": "scary_world_said_yes",
+              "go": [
+                "res://scenes/scary_world/scary_world.tscn",
+                "Entrance"
+              ],
+              "lines": [
+                "(Nina takes a deep breath. The gate creaks open, just wide enough.)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

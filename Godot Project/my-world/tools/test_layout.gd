@@ -3,7 +3,7 @@ extends SceneTree
 # Checks the town's layout (tools/build_town.gd, layout 2): starting a new game in Nina's House, old saves moving to
 # the market entrance, buildings not overlapping and their doors on open ground, the districts where they belong, the
 # Observatory up its hill, signposts pointing the right way, the portal lighting the neighbourhood in the Shift, Pip
-# at the market lamps, and the Scary World gate staying shut.
+# at the market lamps, and the Scary World gate asking before letting her in.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_layout.gd
 #
@@ -189,14 +189,14 @@ func _run() -> void:
 	pip_at = (pip.get_parent() as Node3D).global_position
 	check(Vector2(pip_at.x + 7, pip_at.z - 5).length() < 25.0, "at 11 PM he's on the boardwalk")
 
-	# --- 8. Spooky woods: the old slide, and the Scary World gate stays shut ---
+	# --- 8. Spooky woods: the old slide, and the Scary World gate asks first (it never just lets her in) ---
 	check(town.find_child("Old Slide", false, false) != null, "the boarded-up old slide stands by the Haunted House")
-	var gate := town.find_child("Scary World Gate", false, false).find_child("Gate", false, false) as Area3D
-	messages.clear()
-	p.global_position = gate.global_position + Vector3(0, 0.2, 0)
+	var gate := town.find_child("Scary World Gate", false, false).find_child("Talk", true, false) as Area3D
+	p.global_position = gate.global_position + Vector3(0, 0.6, 0)
 	await _physics(10)
-	check(current_scene.scene_file_path == TOWN and messages.any(func(m: String) -> bool: return m.contains("locked")),
-		"the Scary World gate is locked: \"%s\"" % (messages[-1] if messages.size() else ""))
+	await process_frame
+	check(current_scene.scene_file_path == TOWN and root.get_node("Dialogue")._nearest == gate,
+		"at the Scary World gate: still in town, with a question to answer (%s)" % gate.get("character_id"))
 	_finish()
 
 

@@ -53,8 +53,12 @@ Rex what everyone said").
 ```
 
   Nina says the answer she picks, then that answer's `lines` play, then the conversation carries on. Extras an answer
-  can have: `"set": "flag_name"` remembers it (saved with the game), `"heal": true` fills HP/MP/SP, and
-  `"say": false` stops Nina from repeating the answer out loud.
+  can have: `"set": "flag_name"` remembers it (saved with the game), `"heal": true` fills HP/MP/SP,
+  `"say": false` stops Nina from repeating the answer out loud, `"name": "Wiggles"` gives the character a name (shown
+  over their head and in the talk box from then on), `"go": ["res://scenes/...tscn", "Entrance"]` takes her there
+  once the conversation's over, and `"record": "scary_world_gate"` keeps a note of the answer (and the day and time)
+  in the save's `dialogue.choices` list, for moments worth talking about later, like choosing whether to go into
+  the Scary World.
 
 **In any text:** `{time}` is the clock time, `{day}` the day number, `{talks}` how many times she's talked to them,
 `{name}` their name, `{nina}` Nina's and `{quest_log}` the quest log's key.

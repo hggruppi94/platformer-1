@@ -22,6 +22,8 @@ const PLAYER_NAME := "Nina"
 
 var talks := {}                      # character id -> how many conversations she's had with them
 var flags := {}                      # flag name -> true, set by answers and conversations ("set": "flag")
+var names := {}                      # character id -> the name Nina gave them ("name" in an answer)
+var choice_log: Array = []           # answers marked "record": [{what, answer, day, time}], oldest first (saved)
 
 var _near: Array[Node3D] = []        # talk spots she's standing in (scripts/talker.gd)
 var _nearest: Node3D
@@ -30,6 +32,7 @@ var _id := ""
 var _name := ""
 var _queue: Array = []               # steps still to show: lines (Dictionary {speaker, text}) and choices
 var _set_at_end := ""                # the conversation's own "set" flag, set once it's over
+var _go_at_end: Array = []           # [scene, spawn]: an answer's "go", taken once the conversation's over
 var _typing := false
 var _shown := 0.0
 var _choosing := false
@@ -304,6 +307,15 @@ func choose(option: Dictionary) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if option.has("set"):
 		set_flag(str(option["set"]))
+	if option.has("record"):
+		# Remember this answer for good, with when: e.g. whether she chose to go into the Scary World (a moment
+		# that's worth being able to talk about afterwards)
+		choice_log.append({"what": str(option["record"]), "answer": str(option.get("answer", option.get("text", ""))),
+			"day": Clock.day, "time": Clock.time_string()})
+	if option.has("name"):
+		names[_id] = str(option["name"])
+	if option.has("go"):
+		_go_at_end = option["go"]
 	if option.get("heal", false):
 		Game.hp = Game.max_hp
 		Game.mp = Game.max_mp
@@ -338,6 +350,10 @@ func end() -> void:
 	if _set_at_end != "":
 		set_flag(_set_at_end)
 		_set_at_end = ""
+	if not _go_at_end.is_empty():
+		var go := _go_at_end
+		_go_at_end = []
+		Game.go.call_deferred(str(go[0]), str(go[1]) if go.size() > 1 else "Entrance")
 	# A moment later, so the Jump press that closed the box doesn't make her jump too
 	get_tree().create_timer(0.15).timeout.connect(func() -> void:
 		if not is_active():
@@ -361,7 +377,7 @@ func _set_player_locked(on: bool) -> void:
 # Saving (scripts/game.gd keeps these in save.json)
 # -----------------------------------------------------------------------------
 func save_data() -> Dictionary:
-	return {"talks": talks.duplicate(), "flags": flags.keys()}
+	return {"talks": talks.duplicate(), "flags": flags.keys(), "names": names.duplicate(), "choices": choice_log.duplicate(true)}
 
 
 func load_data(data: Dictionary) -> void:
@@ -373,11 +389,19 @@ func load_data(data: Dictionary) -> void:
 			talks[str(k)] = int(t[k])
 	for f in data.get("flags", []):
 		flags[str(f)] = true
+	names.clear()
+	var n = data.get("names", {})
+	if n is Dictionary:
+		for k in n:
+			names[str(k)] = str(n[k])
+	choice_log = (data.get("choices", []) as Array).duplicate(true) if data.get("choices", []) is Array else []
 
 
 func reset() -> void:
 	talks.clear()
 	flags.clear()
+	names.clear()
+	choice_log.clear()
 
 
 # -----------------------------------------------------------------------------
