@@ -98,7 +98,7 @@ tube("Glasses Bridge", bridge, [(0.007, 0.006)] * 3, "Glasses", HB, sides=8)
 n0 = HEAD.front(0, 1.40)
 ellipsoid("Nose", n0 + HEAD.normal(n0) * 0.035, (0.058, 0.05, 0.05), "Nose", HB)
 ellipsoid("Moustache Middle", JOWL.front(0, 1.358, offset=0.03), (0.045, 0.025, 0.03), "Grey Hair", HB)
-smile("Smile", JOWL, 0, 1.285, 0.05, 0.034, HB, curl=0.006, offset=0.004)   # open happy smile under the moustache
+smile("Smile", JOWL, 0, 1.318, 0.068, 0.05, HB, curl=0.012, offset=0.004)   # big happy smile tucked under the moustache
 
 # Suit jacket over the tummy; trousers show below the hem
 BODY_BONES = ["hips", "spine", "chest", ("thigh.L", 1.8), ("thigh.R", 1.8)]
@@ -151,16 +151,17 @@ tube("Sash", sash, [(0.065, 0.008)] * len(sash), "Sash", BODY_BONES, sides=8, no
      caps=False)
 # Gold rosette where the sash crosses his left hip
 d = Vector((math.cos(-1.05) * math.cos(TILT), math.sin(-1.05), -math.cos(-1.05) * math.sin(TILT)))
-rc = SASH_ELL.dir_point(d, offset=0.05)                          # sits proud of the sash so its edges stay clear
+rc = SASH_ELL.dir_point(d, offset=0.065)                         # sits proud of the sash so its edges stay clear
 rn = TORSO.normal(rc)
 down = (Vector((0, 0, -1)) - rn * rn.z).normalized()             # straight down along the tummy
 for k in range(2):                                              # two ribbon tails hanging below it
     sx = -1 if k == 0 else 1
     side = rn.cross(down).normalized() * sx
     pts = [rc + down * 0.04 + side * 0.02]
-    for step in (0.13, 0.24):
-        pts.append(TORSO.project(rc + down * step + side * (0.02 + 0.15 * step), offset=0.035))
-    lock(f"Rosette Tail.{k}", pts, 0.045, "Sash", BODY_BONES, flat=0.3, normal_fn=TORSO.normal, sides=8,
+    # Clear of the sash band while over it, then down onto the jacket, stopping well above the hem
+    for step, off in ((0.10, 0.058), (0.19, 0.046)):
+        pts.append(TORSO.project(rc + down * step + side * (0.02 + 0.3 * step), offset=off))
+    lock(f"Rosette Tail.{k}", pts, 0.04, "Sash", BODY_BONES, flat=0.3, normal_fn=TORSO.normal, sides=8,
          taper=0.3)
 torus("Rosette Frill", rc, 0.07, 0.022, "Sash", BODY_BONES, u=36, v=8, rot=rn.to_track_quat('Z', 'Y').to_matrix())
 ellipsoid("Rosette", rc + rn * 0.008, (0.062, 0.014, 0.062), "Gold", BODY_BONES, rot=basis_facing(rn))
