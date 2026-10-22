@@ -52,6 +52,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SAVE, BACKUP)
 	game._resume = {}
 	dialogue.reset()
+	root.get_node("Quests").reset()          # start from no quests, whatever your own save has
 	_check_files()
 
 	change_scene_to_file(TOWN)
