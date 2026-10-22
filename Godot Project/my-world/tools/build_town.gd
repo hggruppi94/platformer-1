@@ -318,6 +318,7 @@ func _build() -> void:
 	_happy_places()
 	_signposts()
 	_rex_campaign()
+	_town_quests()
 	_mountains()
 	_sky_objects()
 	_characters()
@@ -2341,12 +2342,10 @@ func _rex_campaign() -> void:
 		var cpos: Vector3 = front * (r * 0.93 + 0.05) + Vector3(0, r * 0.42, 0) + Vector3(cos(wa), 0, -sin(wa)) * (0.75 * side)
 		mesh_at(box(Vector3(0.35, r * 0.3 - 0.25, 0.36)), curtain, cpos, hall, wa, Vector3(-0.35, 0, 0))
 	var planter := mat("Planter", Color(0.5, 0.32, 0.2))
-	var box_pos := front * (r * 0.93 + 0.3) + Vector3(0, r * 0.42 - 1.15, 0)
+	var box_pos := front * (r * 0.93 + 0.3) + Vector3(0, r * 0.42 - 1.5, 0)
 	mesh_at(box(Vector3(1.9, 0.3, 0.4)), planter, box_pos, hall, wa)
-	for q in 5:
-		var fp: Vector3 = box_pos + Vector3(cos(wa), 0, -sin(wa)) * (-0.7 + q * 0.35) + Vector3(0, 0.25, 0)
-		mesh_at(sphere(0.14, -1, 10), mat("Window Flower %d" % (q % 2), [Color(1.0, 0.5, 0.7), Color(1.0, 0.9, 0.35)][q % 2], 0.6),
-			fp, hall)
+	mesh_at(box(Vector3(1.8, 0.04, 0.32)), mat("Soil", Color(0.3, 0.2, 0.12), 0.95), box_pos + Vector3(0, 0.15, 0), hall, wa)
+	# (the flowers come with Bramble's quest: _town_quests())
 	var office := Label3D.new()
 	office.text = "Mayor's Office
 (knock on the window)"
@@ -2369,21 +2368,36 @@ func _rex_campaign() -> void:
 	own(g)
 
 
-func quest_spot(parent: Node3D, flag: String, pos: Vector3, message: String) -> Area3D:
-	# A spot (scripts/quest_spot.gd) where Nina can hang one of Rex's posters during the "posters" step. What
-	# shows once it's done goes under its "Done" child.
+func quest_spot(parent: Node3D, flag: String, pos: Vector3, message: String, quest := "rex_campaign", step := "posters",
+		action := "hang a poster") -> Area3D:
+	# A spot (scripts/quest_spot.gd) where Nina can do something for a quest step (hang one of Rex's posters, pick
+	# up a glow shell, fill a window box). What shows once it's done goes under its "Done" child, and what shows
+	# only while it's waiting under "Before".
 	var a := Area3D.new()
 	a.set_script(load("res://scripts/quest_spot.gd"))
-	a.set("quest", "rex_campaign")
-	a.set("step", "posters")
+	a.set("quest", quest)
+	a.set("step", step)
 	a.set("flag", flag)
 	a.set("done_message", message)
+	a.set("action", action)
 	a.position = pos
 	parent.add_child(a)
-	var done := Node3D.new()
-	done.name = "Done"
-	a.add_child(done)
+	for child in ["Done", "Before"]:
+		var n := Node3D.new()
+		n.name = child
+		a.add_child(n)
 	return a
+
+
+func quest_show(parent: Node3D, name: String, quest_done: String, hide_when_done := false) -> Node3D:
+	# Part of the town that changes for good when a quest's finished (scripts/quest_show.gd)
+	var n := Node3D.new()
+	n.name = name
+	n.set_script(load("res://scripts/quest_show.gd"))
+	n.set("quest_done", quest_done)
+	n.set("hide_when_done", hide_when_done)
+	parent.add_child(n)
+	return n
 
 
 func poster(parent: Node3D, pos: Vector3, yaw: float) -> void:
@@ -2408,6 +2422,120 @@ REX!"
 	for t in 3:
 		mesh_at(cylinder(0.03, 0.03, 0.01, 8), paw, Vector3(-0.07 + t * 0.07, -0.17 - absf(t - 1) * 0.02, 0.02), p, 0.0,
 			Vector3(PI / 2, 0, 0))
+
+
+# -----------------------------------------------------------------------------
+# Pip's lamps and Bramble's window flowers (res://quests/pip_lamps.json, bramble_flowers.json): glow shells to find
+# round the lake, lanterns along the boardwalks that light up once Pip has them, and window boxes on the homes and
+# shops that bloom as Nina fills them (and the rest of them once Bramble's quest is done).
+# -----------------------------------------------------------------------------
+const GLOW_SHELLS := [Vector2(-29, 27), Vector2(-11, 26), Vector2(26, 23), Vector2(-50, 9), Vector2(-8, -30)]
+const SHELL_PLACES := ["the southwest shore", "the south shore", "the dock", "the west shore", "the north boardwalk"]
+const FLOWER_BOXES := [["Nina's House", "flowers_ninas_house"], ["Potion Shop", "flowers_potion_shop"],
+	["Book Store", "flowers_book_store"], ["Dash's House", "flowers_dashs_house"]]
+const BONUS_BOXES := ["Cafe", "Clothing Boutique", "Pet Shop", "Restaurant & Cafe", "Melanie's House", "Library"]
+const FLOWER_COLORS := [Color(1.0, 0.45, 0.7), Color(1.0, 0.9, 0.3), Color(0.7, 0.5, 1.0), Color(1.0, 0.55, 0.35)]
+
+
+func _town_quests() -> void:
+	# Glow shells round the lake (only there while Pip's quest is looking for them)
+	var shells := group("Glow Shells", Vector3.ZERO)
+	for k in GLOW_SHELLS.size():
+		var at: Vector2 = GLOW_SHELLS[k]
+		var spot := quest_spot(shells, "glow_%d" % (k + 1), ground(at.x, at.y), "You found a glow shell!", "pip_lamps",
+			"find", "pick up the glow shell")
+		spot.name = "Glow Shell %d" % (k + 1)
+		var shell := spot.get_node("Before") as Node3D
+		var col: Color = [Color(0.5, 0.95, 1.0), Color(1.0, 0.6, 0.9), Color(1.0, 0.9, 0.5)][k % 3]
+		var glow := mat("Glow Shell %d" % (k % 3), col, 0.2, 0.0, 2.2, 1.0, false)
+		var body := mesh_at(sphere(0.28, 0.32, 16), glow, Vector3(0, 0.2, 0), shell)
+		body.scale = Vector3(1.0, 1.0, 0.8)
+		mesh_at(cylinder(0.0, 0.16, 0.3, 10), glow, Vector3(0, 0.45, 0), shell, 0.0, Vector3(0, 0, 0.5))
+		var light := OmniLight3D.new()
+		light.light_color = col
+		light.light_energy = 0.8
+		light.omni_range = 3.0
+		light.position = Vector3(0, 0.5, 0)
+		shell.add_child(light)
+	own(shells)
+	# Pip's lanterns along the boardwalks: dim glass until the quest's done, then glowing moon-lamps
+	var lanterns := group("Pip's Lanterns", Vector3.ZERO)
+	var post_mat := mat("Boardwalk Post", Color(0.45, 0.3, 0.18))
+	var dim := mat("Lantern Glass", Color(0.55, 0.55, 0.6), 0.2, 0.0, 0.0, 0.7, false)
+	var cols := [Color(0.5, 0.95, 1.0), Color(1.0, 0.6, 0.9), Color(1.0, 0.9, 0.5)]
+	var count := 0
+	for bw in [[Vector2(-6, 21), Vector2(-8, -12), 3.0], [Vector2(-12, -30), Vector2(-12, -42), 3.0]]:
+		var a: Vector2 = bw[0]
+		var dir: Vector2 = bw[1] - a
+		var yaw := atan2(dir.x, dir.y)
+		var n := int(dir.length() / 4.0)
+		var side := Vector2(cos(yaw), -sin(yaw)) * (float(bw[2]) / 2)
+		for k in range(0, n + 1, 2):
+			var q: Vector2 = a + dir * (float(k) / n) - side           # the other side from the boardwalk's own lamps
+			var lp := Vector3(q.x, 0, q.y)
+			mesh_at(cylinder(0.06, 0.06, 2.4, 8), post_mat, lp + Vector3(0, 1.4, 0), lanterns)
+			mesh_at(box(Vector3(0.5, 0.06, 0.06)), post_mat, lp + Vector3(0, 2.55, 0), lanterns, yaw + PI / 2)
+			var hang := lp + Vector3(0, 2.2, 0) + Vector3(side.x, 0, side.y).normalized() * -0.25
+			var before := quest_show(lanterns, "Unlit Lantern %d" % count, "pip_lamps", true)
+			mesh_at(sphere(0.2, -1, 12), dim, hang, before)
+			var lit := quest_show(lanterns, "Lit Lantern %d" % count, "pip_lamps")
+			var col: Color = cols[count % 3]
+			mesh_at(sphere(0.26, -1, 14), mat("Moon Lamp %d" % (count % 3), col, 0.2, 0.0, 3.0, 1.0, false), hang, lit)
+			mesh_at(sphere(0.45, -1, 14), mat("Moon Lamp Halo %d" % (count % 3), col, 0.2, 0.0, 1.0, 0.25, false), hang, lit)
+			var l := night_light(lit, hang, col, 1.6, 8.0)
+			l.name = "NightLight %d" % count
+			count += 1
+	own(lanterns)
+	# Window boxes: Mr. Palmer's (on the Town Hall) and four more get flowers from Nina; the rest bloom at the end
+	var hall := town.get_node("Town Hall") as Node3D
+	var wa := -0.42
+	var r := 7.0
+	var front := Vector3(sin(wa), 0, cos(wa))
+	var box_pos := front * (r * 0.93 + 0.3) + Vector3(0, r * 0.42 - 1.5, 0)
+	_flower_spot(hall, "flowers_town_hall", box_pos, wa, front * (r + 2.6))
+	for fb in FLOWER_BOXES:
+		var g := town.get_node(fb[0]) as Node3D
+		var br := ((g.get_child(0) as MeshInstance3D).mesh as SphereMesh).radius
+		var bp := _window_box(g, br, 0.84)
+		_flower_spot(g, fb[1], bp, 0.84, Vector3(sin(0.84), 0, cos(0.84)) * (br + 1.8))
+	for name in BONUS_BOXES:
+		var g := town.get_node(name) as Node3D
+		var br := ((g.get_child(0) as MeshInstance3D).mesh as SphereMesh).radius
+		var bp := _window_box(g, br, -0.84)
+		var bloom := quest_show(g, "Window Flowers", "bramble_flowers")
+		_flowers(bloom, bp, -0.84)
+		own(g)
+
+
+func _window_box(g: Node3D, r: float, a: float) -> Vector3:
+	# An empty planter under the dome's window at angle a; returns where it is (in g's space)
+	var out := Vector3(sin(a), 0, cos(a))
+	var bp := out * (r * 0.93 + 0.45) + Vector3(0, r * 0.42 - r * 0.15 - 0.25, 0)
+	mesh_at(box(Vector3(1.6, 0.3, 0.4)), mat("Planter", Color(0.5, 0.32, 0.2)), bp, g, a)
+	mesh_at(box(Vector3(1.5, 0.04, 0.32)), mat("Soil", Color(0.3, 0.2, 0.12), 0.95), bp + Vector3(0, 0.15, 0), g, a)
+	return bp
+
+
+func _flower_spot(g: Node3D, flag: String, box_pos: Vector3, a: float, stand: Vector3) -> void:
+	# Where Nina fills a window box for Bramble: she stands in front, the flowers go in the box
+	var world := g.position + stand.rotated(Vector3.UP, g.rotation.y)
+	stand.y = height(world.x, world.z) - g.position.y
+	var spot := quest_spot(g, flag, stand, "The window box is blooming!", "bramble_flowers", "deliver",
+		"put flowers in the window box")
+	spot.name = "Flower Spot"
+	_flowers(spot.get_node("Done"), box_pos - stand, a)
+	own(g)
+
+
+func _flowers(parent: Node3D, box_pos: Vector3, a: float) -> void:
+	var along := Vector3(cos(a), 0, -sin(a))
+	for q in 6:
+		var col: Color = FLOWER_COLORS[q % FLOWER_COLORS.size()]
+		var fp: Vector3 = box_pos + along * (-0.62 + q * 0.25) + Vector3(0, 0.3 + 0.06 * (q % 2), 0)
+		mesh_at(cylinder(0.02, 0.02, 0.3, 5), mat("Flower Stem", Color(0.3, 0.6, 0.25), 0.8, 0.0, 0.0, 1.0, false),
+			fp - Vector3(0, 0.15, 0), parent)
+		mesh_at(sphere(0.13, -1, 10), mat("Window Flower %d" % (q % FLOWER_COLORS.size()), col, 0.6, 0.0, 0.2, 1.0, false),
+			fp, parent)
 
 
 func _happy_places() -> void:

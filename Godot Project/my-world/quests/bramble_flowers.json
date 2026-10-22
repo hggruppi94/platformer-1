@@ -1,0 +1,53 @@
+{
+  "name": "Flowers for Every Window",
+  "start": {
+    "flag": "bramble_flowers_start"
+  },
+  "steps": [
+    {
+      "id": "deliver",
+      "text": "Fill the window boxes with Bramble's flowers.",
+      "checklist": [
+        [
+          "flowers_town_hall",
+          "Mr. Palmer's window at the Town Hall"
+        ],
+        [
+          "flowers_ninas_house",
+          "Nina's House"
+        ],
+        [
+          "flowers_potion_shop",
+          "The Potion Shop"
+        ],
+        [
+          "flowers_book_store",
+          "The Book Store"
+        ],
+        [
+          "flowers_dashs_house",
+          "Dash's House"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "flowers_town_hall",
+          "flowers_ninas_house",
+          "flowers_potion_shop",
+          "flowers_book_store",
+          "flowers_dashs_house"
+        ]
+      }
+    },
+    {
+      "id": "thanks",
+      "text": "Tell Bramble the flowers are in.",
+      "done": {
+        "flag": "bramble_thanked"
+      }
+    }
+  ],
+  "reward": {
+    "message": "Bramble planted the rest too: every window box in town is blooming!"
+  }
+}

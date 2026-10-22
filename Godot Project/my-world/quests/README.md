@@ -43,6 +43,11 @@ quest over.
 | `"wait": {"days": 1, "text": "..."}` | the step can't be done until this many days after it started (the day number, so sleeping past midnight counts). The text shows in the log while waiting |
 | `"override": {"rex": {...}}` | while the step is on, that character follows this routine block instead of their schedule (same keys as `res://routines/README.md`, plus `"time"`: only during those times of day) |
 
+**Changing the town:** a quest spot's `Done` child stays shown once its flag is set (Rex's posters, Bramble's
+flowers), and its `Before` child only shows while it's waiting (Pip's glow shells). For bigger changes, give a node
+`scripts/quest_show.gd` with `quest_done` (or `flag`): it shows from then on, for good (Pip's lit lanterns), or hides
+with `hide_when_done` (the unlit ones). See `_town_quests()` in `tools/build_town.gd`.
+
 **When it's done:** `reward.item` goes to Nina (`Game.give_item`), `reward.message` shows in the note, and `titles`
 changes the name over someone's head (and in the talk box).
 

@@ -13,6 +13,75 @@
     },
     {
       "when": {
+        "quest_done": "rex_campaign",
+        "quest_not_started": "pip_lamps",
+        "min_talks": 1
+      },
+      "lines": [
+        "Nina! Rex says he'll make more lamps when he's mayor. But I don't want to wait THAT long.",
+        "I want to make lamps NOW. Moon-lamps, for the boardwalk! But they need something glowy inside.",
+        "There are glow shells round the lake. Five of them! They only wash up when nobody's looking.",
+        {
+          "choice": [
+            {
+              "text": "I'll find them!",
+              "set": "pip_lamps_start",
+              "lines": [
+                "YAY! Look along the shore. And by the dock. And on the boardwalk. Shells like to be near water.",
+                "They glow brightest at night. Like me! Well. Like I wish I did."
+              ]
+            },
+            {
+              "text": "Maybe another time.",
+              "lines": [
+                "Okay! The shells will wait. Shells are very patient."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pip_lamps:find"
+      },
+      "lines": [
+        "Any glow shells yet? Look by the water! They're the shiny, glowy, roundy things.",
+        "(Pip bounces up and down.)"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pip_lamps:bring"
+      },
+      "set": "pip_got_shells",
+      "lines": [
+        "Nina: Pip! I found all five glow shells!",
+        "(Nina opens her bag. Soft blue and pink light spills out.)",
+        "OHHH. They're even glowier than I imagined. And I imagined a LOT.",
+        "One for each lantern on the boardwalk. Hold still... there! And there! And there!",
+        "(One by one, the lanterns along the boardwalk light up like little moons.)",
+        "Now nobody has to be scared of the dark by the lake. Not even a tiny bit.",
+        "Nina: It's beautiful, Pip.",
+        "It's LAMPLIGHTER Pip now. I just decided."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "pip_lamps",
+        "time": [
+          "evening",
+          "night"
+        ],
+        "every": 2
+      },
+      "lines": [
+        "Look at the boardwalk! The moon-lamps are still glowing.",
+        "I come and say goodnight to every single one."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "rex_campaign:ask",
         "not_flag": "asked_pip"
       },

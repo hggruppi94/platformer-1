@@ -3,7 +3,8 @@ extends Area3D
 # A quest spot: somewhere in town Nina can do something for a quest, like hang a VOTE REX poster on a signpost.
 # While the quest is on the right step (scripts/quests.gd), walking up to it shows "Press F to hang a poster", and
 # Interact sets its flag, which is what the quest step waits for. Its "Done" child (the poster) shows once the flag
-# is set, for good. tools/build_town.gd puts these in the town.
+# is set, for good; its "Before" child (a glow shell to pick up) shows only while it's waiting to be used.
+# tools/build_town.gd puts these in the town.
 
 @export var quest := ""
 @export var step := ""                             # the step this spot is for
@@ -16,6 +17,7 @@ var _prompt: Label3D
 var _inside := false
 var _offered := false
 var _done_node: Node3D
+var _before_node: Node3D
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func _ready() -> void:
 	_prompt.position.y = 2.4
 	add_child(_prompt)
 	_done_node = get_node_or_null("Done") as Node3D
+	_before_node = get_node_or_null("Before") as Node3D
 	body_entered.connect(func(b: Node3D) -> void:
 		if b.is_in_group("player"):
 			_inside = true)
@@ -58,6 +61,8 @@ func is_open() -> bool:
 func _process(_delta: float) -> void:
 	if _done_node:
 		_done_node.visible = Dialogue.flags.has(flag)
+	if _before_node:
+		_before_node.visible = is_open()
 	var offer := _inside and is_open()
 	if offer != _offered:
 		_offered = offer
