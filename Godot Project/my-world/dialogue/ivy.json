@@ -1,0 +1,38 @@
+{
+  "name": "Miss Ivy",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Well hi, sweetie! Welcome to the Hollow Diner. Best pancakes this side of anywhere.",
+        "Nina: Even better than Galactopia pancakes?",
+        "Gala-what-ia? Never heard of it. Is that one of those fancy places in the city?",
+        "Nina: ...Yes. Very fancy."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:find",
+        "not_flag": "lights_diner"
+      },
+      "lines": [
+        "Lights for the gazebo? I saw Mr. Palmer put a box down by the corner of my diner. Over to the left, sweetie."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Coffee's on, pie's warm, and the whole town comes in sooner or later. That's how I hear everything."
+        ],
+        [
+          "You look like you've come a long way. Here, have a cookie. No charge for first-timers."
+        ],
+        [
+          "Is that a portal I saw by the old oak earlier? No... must've been the sunset."
+        ]
+      ]
+    }
+  ]
+}

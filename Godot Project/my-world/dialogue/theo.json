@@ -1,0 +1,38 @@
+{
+  "name": "Theo",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Oh! Hi. I'm Theo. I'm reading. Well, I was reading. Now I'm talking.",
+        "Nina: What are you reading?",
+        "A book about a world where kids turn into creatures when they step through a door. It's pretty silly.",
+        "Nina: Ha. Ha. Yeah. Silly."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:find",
+        "not_flag": "lights_bookshop"
+      },
+      "lines": [
+        "String lights? There's a box by the bookshop window. I thought it was a mystery. I was going to solve it."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "The bookshop has a cat. The cat has a favourite shelf. I'm not allowed to read on that shelf."
+        ],
+        [
+          "If you ever find a door to another world, you should tell me. I won't tell anyone. Probably."
+        ],
+        [
+          "Do you like stories? I like the ones where someone's scared but they do the brave thing anyway."
+        ]
+      ]
+    }
+  ]
+}

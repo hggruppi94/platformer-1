@@ -152,6 +152,10 @@ func _show_main() -> void:
 		_button("Go home to town", func():                 # the Scary World: an easy way out, any time
 			close()
 			Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town"))
+	if here and here.scene_file_path == "res://scenes/earth/earth.tscn":
+		_button("Go back through the portal", func():     # Earth: home before the Shift ends, any time
+			close()
+			Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "home"))
 	_button("Settings", func(): _tab = 0; _show_settings())
 	_button("New Game", _show_confirm)
 	_button("Quit", _quit)

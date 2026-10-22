@@ -1,0 +1,91 @@
+{
+  "name": "Mr. Palmer",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Well, hello there! You're new in town. I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
+        "Nina: Mr. Palmer?! But you're the mayor of Galactopia!",
+        "(Mr. Palmer looks left. Then right. Then he leans down and whispers.)",
+        "Shh! Nobody here knows about that. On this side of the portal I'm just plain old Mr. Palmer.",
+        "Lots of us have a Galactopia side, you know. You look a bit different over there yourself, I expect.",
+        "Nina: I do?",
+        "Everyone does! That's the fun of it."
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "earth_lights"
+      },
+      "lines": [
+        "Oh dear, oh dear. The autumn festival's coming, and I've lost the string lights for the gazebo!",
+        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        {
+          "choice": [
+            {
+              "text": "I'll find them!",
+              "set": "earth_lights_start",
+              "lines": [
+                "Would you? You're a star. Just like back home, eh?",
+                "Mind the time, though. When the portal starts flickering, you'll want to be getting back."
+              ]
+            },
+            {
+              "text": "Maybe next time.",
+              "lines": [
+                "No rush. The festival can wait. The gazebo's very patient."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:find"
+      },
+      "lines": [
+        "Any luck with those lights? By the diner, the bookshop or the inn, I'm sure of it. Fairly sure. A bit sure."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:bring"
+      },
+      "set": "earth_lights_given",
+      "lines": [
+        "Nina: Mr. Palmer! I found all three boxes!",
+        "You found them! Splendid! Let's get them up.",
+        "(Mr. Palmer strings the lights round the gazebo roof. Nina holds the ladder. Click!)",
+        "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
+        "There. Now it's a proper autumn evening.",
+        "Come back next Shift and you can help with the festival. There's apple pie and hot apple juice."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "earth_lights"
+      },
+      "rotate": [
+        [
+          "Doesn't the gazebo look lovely? I keep walking past it just to look."
+        ],
+        [
+          "Same time next Shift? I'll save you a spot by the gazebo."
+        ]
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Lovely evening for it. Autumn's my favourite. Everything smells like leaves."
+        ],
+        [
+          "You'd better keep an eye on the time. The portal won't wait forever."
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Lights for the Gazebo",
+  "start": {
+    "flag": "earth_lights_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Mr. Palmer lost the gazebo's string lights. Find the three boxes round the town green on Earth: by the diner, the bookshop and the inn.",
+      "checklist": [
+        [
+          "lights_diner",
+          "By the Hollow Diner"
+        ],
+        [
+          "lights_bookshop",
+          "By the bookshop"
+        ],
+        [
+          "lights_inn",
+          "By the Maple Inn"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "lights_diner",
+          "lights_bookshop",
+          "lights_inn"
+        ]
+      }
+    },
+    {
+      "id": "bring",
+      "text": "Bring the lights to Mr. Palmer at the gazebo.",
+      "where": [
+        "palmer_earth"
+      ],
+      "done": {
+        "flag": "earth_lights_given"
+      }
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "The gazebo's all lit up! Mr. Palmer says come back next Shift for the autumn festival. (+8 sparkles)"
+  }
+}
