@@ -35,6 +35,10 @@ const CASTLE_SCALE := 1.6
 
 const SPAWN := Vector3(5, 0, 62)
 
+# Tall grass meadows: x, z, radius (tools/build_town.gd _foliage; drawn and made to rustle by scenes/town/foliage.gd)
+const GRASS_PATCHES := [Vector3(-5, 88, 11), Vector3(-62, 70, 9), Vector3(-95, 38, 10), Vector3(70, -68, 10),
+	Vector3(62, 14, 8), Vector3(115, 30, 9), Vector3(45, 86, 7)]
+
 # Look of the world. THEME comes from tools/theme.gd (shared with the school and interiors builders): set it to
 # "earth" there for the original blue-sky town. The table below is the town's own sky/terrain/water/tree palette;
 # everything else (buildings, signs, props) goes through WT.tint().
@@ -399,7 +403,38 @@ func _water() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(110, 90)
 	mesh_at(plane, mat("Water", T.water, 0.05, 0.2, T.water_glow, 0.82, false), Vector3(-2, WATER_Y, -10), g).name = "Water"
+	# She can wade into it: slower, splashy steps, ripples (scripts/water.gd)
+	g.set_script(load("res://scripts/water.gd"))
+	var outline: Array[Vector4] = [LAKE_MAIN, LAKE_NORTH]
+	g.set("ellipses", outline)
+	g.set("water_y", WATER_Y)
 	own(g)
+
+
+func soft_zone(parent: Node3D, kind: String, pos: Vector3, r: float, h: float, color: Color, speed_scale: float,
+		gravity_scale: float, fall_cap: float, heal_every := 0.0) -> Area3D:
+	# A walk-through place (scripts/soft_zone.gd): a cylinder r wide and h tall standing on pos
+	var z := Area3D.new()
+	z.name = kind.capitalize() + "Zone"
+	z.set_script(load("res://scripts/soft_zone.gd"))
+	z.set("kind", kind)
+	z.set("color", color)
+	z.set("speed_scale", speed_scale)
+	z.set("gravity_scale", gravity_scale)
+	z.set("fall_cap", fall_cap)
+	z.set("heal_every", heal_every)
+	z.monitorable = false
+	z.position = pos + Vector3(0, h / 2.0, 0)
+	var cs := CollisionShape3D.new()
+	cs.shape = _cyl_shape(r, h)
+	z.add_child(cs)
+	parent.add_child(z)
+	return z
+
+
+func cloud_zone(parent: Node3D, top: Vector3, r: float) -> void:
+	# The fluffy part of a cloud above its firm floor: floaty and soft (land with a "fwump", little puffs)
+	soft_zone(parent, "cloud", top - Vector3(0, 0.3, 0), r + 0.3, 2.6, Color(1, 1, 1, 0.85), 0.75, 0.55, 5.0)
 
 
 func _bounds() -> void:
@@ -839,7 +874,9 @@ func _plateau_features() -> void:
 		light.omni_range = 8.0
 		light.position = p + Vector3(0, 1.2, 1.5)
 		hs.add_child(light)
-		mesh_at(cylinder(2.2, 2.2, 0.15, 24), steam, p + Vector3(0, 0.05, 4.0), hs)
+		var pool := ground(cx, PLATEAU.y + dz + 4.0)          # on the ground in front of the cave (not up on the cliff)
+		mesh_at(cylinder(2.2, 2.2, 0.15, 24), steam, pool + Vector3(0, 0.05, 0), hs)
+		soft_zone(hs, "spring", pool + Vector3(0, -0.3, 0), 2.3, 2.0, Color(1, 1, 1, 0.55), 0.85, 1.0, 1000.0, 2.0)
 	sign_post(hs, "Hot Springs", ground(-73, PLATEAU.y + PLATEAU_CLIFF + 7), 0.0)
 	keep_clear.append(Vector3(-78, -4, 18))
 	own(hs)
@@ -858,7 +895,9 @@ void fragment() {
 	var wmat := ShaderMaterial.new()
 	wmat.shader = shader
 	var wf := group("Waterfalls", Vector3.ZERO)
+	var falls := 0
 	for w in [Vector2(0.15, 7.0), Vector2(0.55, 5.0)]:   # angle around the plateau (radians from east), width
+		falls += 1
 		var dirv := Vector2(cos(w.x), sin(w.x))
 		var edge := Vector2(PLATEAU.x, PLATEAU.y) + dirv * (PLATEAU_CLIFF + 0.5)
 		var top_y := PLATEAU.z + 0.3
@@ -869,6 +908,37 @@ void fragment() {
 		mesh_at(q, wmat, Vector3(edge.x, bottom_y + h / 2, edge.y), wf, atan2(dirv.x, dirv.y))
 		mesh_at(cylinder(w.y * 0.6, w.y * 0.8, 0.4, 16), mat("Foam", Color(0.95, 0.98, 1.0), 0.3, 0.0, 0.4, 0.85),
 			Vector3(edge.x + dirv.x * 2.5, bottom_y + 0.1, edge.y + dirv.y * 2.5), wf)
+		var foot := Vector3(edge.x + dirv.x * 2.5, bottom_y + 0.4, edge.y + dirv.y * 2.5)
+		var mist := CPUParticles3D.new()                    # spray drifting up off the splash
+		mist.name = "Mist %d" % falls
+		mist.position = foot
+		mist.amount = 40
+		mist.lifetime = 2.2
+		mist.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+		mist.emission_sphere_radius = w.y * 0.5
+		mist.direction = Vector3(dirv.x, 1.2, dirv.y)
+		mist.spread = 35.0
+		mist.initial_velocity_min = 0.6
+		mist.initial_velocity_max = 1.6
+		mist.gravity = Vector3(0, 0.3, 0)
+		var mist_ball := sphere(0.35, -1, 6)
+		mist_ball.material = mat("Mist", Color(0.9, 0.97, 1.0), 0.5, 0.0, 0.3, 0.35, false)
+		mist.mesh = mist_ball
+		var fade := Curve.new()
+		fade.add_point(Vector2(0, 0.3))
+		fade.add_point(Vector2(0.3, 1))
+		fade.add_point(Vector2(1, 0))
+		mist.scale_amount_curve = fade
+		wf.add_child(mist)
+		var rush := AudioStreamPlayer3D.new()               # the rushing sound, loudest close by
+		rush.name = "Rush %d" % falls
+		rush.set_script(load("res://scripts/ambient_loop.gd"))
+		rush.set("sound", "waterfall")
+		rush.position = foot
+		rush.unit_size = 6.0
+		rush.max_distance = 45.0
+		rush.volume_db = -4.0
+		wf.add_child(rush)
 	own(wf)
 
 
@@ -1191,7 +1261,7 @@ func _foliage() -> void:
 	var sizes := PackedFloat32Array()
 	var yaws := PackedFloat32Array()
 	var colors := PackedColorArray()
-	var counts := [0, 0, 0]
+	var counts := [0, 0, 0, 0]
 	var plant := func(kind: int, x: float, z: float, size: float, color: Color) -> void:
 		positions.append(ground(x, z))
 		kinds.append(kind)
@@ -1251,6 +1321,19 @@ func _foliage() -> void:
 		else:
 			plant.call(0, x, z, rng.randf_range(1.8, 3.2), leaves[rng.randi() % leaves.size()])
 
+	# Tall grass in the open meadows: clumps you can run through (they sway, part and swish)
+	var grass_cols := [T.grass.lightened(0.25), T.hill_grass.lightened(0.3), T.grass.lerp(Color(0.6, 1.0, 0.5), 0.35)]
+	for patch in GRASS_PATCHES:
+		var n := int(PI * patch.z * patch.z / 1.6)
+		for k in n:
+			var a := rng.randf() * TAU
+			var d: float = sqrt(rng.randf()) * patch.z
+			var x: float = patch.x + cos(a) * d
+			var z: float = patch.y + sin(a) * d
+			if not _clear_spot(x, z, 1.3, 6.0):
+				continue
+			plant.call(3, x, z, rng.randf_range(0.9, 1.45), grass_cols[rng.randi() % grass_cols.size()])
+
 	var g := group("Foliage", Vector3.ZERO)
 	g.set_script(load("res://scenes/town/foliage.gd"))
 	g.set("positions", positions)
@@ -1260,7 +1343,7 @@ func _foliage() -> void:
 	g.set("colors", colors)
 	g.set("stem_color", pal.mushroom_stem)
 	own(g)
-	print("FOLIAGE leaves=%d ferns=%d mushrooms=%d" % counts)
+	print("FOLIAGE leaves=%d ferns=%d mushrooms=%d grass=%d" % counts)
 
 
 func _enemies() -> void:
@@ -1706,9 +1789,11 @@ func _cloud_nest() -> void:
 		puff(g, p - Vector3(0, 0.9, 0), 4.6, lobe[1], lobe[2])
 		mesh_at(cylinder(4.3, 4.3, 0.3, 32), lobe[1], p + Vector3(0, -0.05, 0), g)
 		solid(_cyl_shape(4.4, 1.2), p - Vector3(0, 0.6, 0), g)
+		cloud_zone(g, p, 4.4)
 	var bridge := quiet.lerp(loud, 0.5)                     # the two sides join in the middle
 	puff(g, bridge - Vector3(0, 0.9, 0), 2.6, cloud, 23, 6)
 	solid(_cyl_shape(2.6, 1.2), bridge - Vector3(0, 0.6, 0), g)
+	cloud_zone(g, bridge, 2.6)
 	# Quiet Side: pillows and a blanket
 	var pillow := mat("Pillow", Color(0.85, 0.8, 1.0), 0.9)
 	for k in 4:
@@ -1734,6 +1819,7 @@ func _cloud_nest() -> void:
 		p.y = start.y + 1.2 * (k + 1)
 		puff(g, p - Vector3(0, 0.4, 0), 1.4, cloud, 40 + k, 5)
 		solid(_cyl_shape(1.4, 0.8), p - Vector3(0, 0.4, 0), g)
+		cloud_zone(g, p, 1.4)
 	own(g)
 
 
@@ -1742,9 +1828,20 @@ func _bubble_bath() -> void:
 	var g := group("Magic Bubble Bath", ground(BUBBLE_BATH.x, BUBBLE_BATH.y))
 	var tub := mat("Tub", Color(0.98, 0.96, 0.98), 0.3, 0.1)
 	var water := mat("Bath Water", Color(1.0, 0.55, 0.85), 0.1, 0.0, 0.8, 0.85)
+	# The tub: a solid rim all round and a floor, so she can climb in and wade (scripts/soft_zone.gd "bath")
 	mesh_at(cylinder(4.2, 3.8, 1.4, 40), tub, Vector3(0, 0.5, 0), g)
-	solid(_cyl_shape(4.2, 1.4), Vector3(0, 0.5, 0), g)
+	var rim_h := 1.4
+	for k in 24:
+		var a := k * TAU / 24
+		solid(box_shape(Vector3(0.45, rim_h, 2 * 4.0 * sin(PI / 24) + 0.1)), Vector3(cos(a) * 4.0, 0.5, sin(a) * 4.0), g, -a)
+	solid(_cyl_shape(3.8, 1.0), Vector3(0, 0.1, 0), g)                        # the floor inside: waist-deep water for her
 	mesh_at(cylinder(3.8, 3.8, 0.1, 40), water, Vector3(0, 1.22, 0), g)
+	for k in 2:                                                                 # two steps up to the rim
+		var st := Vector3(0, 0, 4.9 + 0.7 * k)
+		var hgt := 0.85 - k * 0.4
+		mesh_at(box(Vector3(2.0, hgt, 0.7)), tub, st + Vector3(0, hgt / 2.0 - 0.1, 0), g)
+		solid(box_shape(Vector3(2.0, hgt, 0.7)), st + Vector3(0, hgt / 2.0 - 0.1, 0), g)
+	soft_zone(g, "bath", Vector3(0, 0.15, 0), 3.4, 1.1, Color(1.0, 0.8, 0.95, 0.75), 0.5, 0.45, 3.0)
 	var bubble := mat("Bubble", Color(0.85, 0.95, 1.0), 0.05, 0.0, 0.5, 0.45)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 5
@@ -1849,6 +1946,7 @@ func _cloud_slide() -> void:
 	puff(g, center - Vector3(0, 1.2, 0), 8.5, cloud, 77, 12)
 	mesh_at(cylinder(8.2, 8.2, 0.3, 40), cloud, center, g)
 	solid(_cyl_shape(8.3, 1.6), center - Vector3(0, 0.8, 0), g)
+	cloud_zone(g, center, 8.3)
 	# Toy store on top (Melanie finally gets one)
 	var store := dome_building("Toy Store", center.x - 2.5, center.z - 2.0, 3.6, 0.6, Color(1.0, 0.6, 0.3), [], center.y)
 	store.get_parent().remove_child(store)
@@ -1904,6 +2002,7 @@ void fragment() {
 		var p := Vector3(spiral.x + cos(a) * 4.2, 1.2 + k * rise, spiral.z + sin(a) * 4.2)
 		puff(g, p - Vector3(0, 0.35, 0), 1.3, cloud, 90 + k, 5)
 		solid(_cyl_shape(1.3, 0.7), p - Vector3(0, 0.35, 0), g)
+		cloud_zone(g, p, 1.3)
 	label3d(g, "Cloud Water Slide", center + Vector3(0, 9, 0), 140)
 	own(g)
 

@@ -41,6 +41,9 @@ const CAPTIONS := {
 	"roll": "[tumble]",
 	"bark": "[Rook barks]",
 	"zipline": "[zipline whirs]",
+	"splash": "[splash]",
+	"boing": "[boing!]",
+	"bubbles": "[bubbles gurgle]",
 }
 
 var _cache := {}

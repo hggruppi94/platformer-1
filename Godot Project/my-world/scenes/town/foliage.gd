@@ -3,9 +3,13 @@ extends Node3D
 # Builds the alien undergrowth when the scene loads (MultiMesh data can't be baked from a headless build):
 # giant teal and purple leaves, glowing blue mushrooms and magenta/violet ferns, as in Sofi's picture.
 # Where each plant goes, its kind, size, turn and colour are written by tools/build_town.gd (_foliage).
-# Big mushroom caps are solid, so you can hop across them.
+# Big mushroom caps are solid (and bouncy: scenes/player/player.gd), so you can hop across them.
+#
+# Walking through them: leaves, ferns and tall grass lean away from Nina and spring back (the shader reads her
+# position from the "nina_pos" shader global), rustle or swish as she pushes through, and the odd leaf flutters off.
+# Small mushrooms light up with a "bloop" when she brushes them.
 
-enum { LEAVES, FERN, MUSHROOM }
+enum { LEAVES, FERN, MUSHROOM, GRASS }
 
 @export var positions: PackedVector3Array
 @export var kinds: PackedInt32Array
@@ -18,17 +22,39 @@ enum { LEAVES, FERN, MUSHROOM }
 @export var cap_glow := 0.8                 # mushroom caps
 @export var max_lights := 14                # the biggest mushrooms also light the ground around them
 @export var solid_cap_size := 2.2           # mushrooms at least this tall get a solid cap
+@export var grass_glow := 0.12
+
+const CELL := 6.0                           # metres: the grid used to find plants near her quickly
+const SOUND_GAP := 0.28                     # seconds between rustles
+var _grid := {}                             # Vector2i cell -> plant indices
+var _reach := PackedFloat32Array()          # how close counts as touching each plant
+var _cap_index := {}                        # small mushroom plant index -> its cap in the caps MultiMesh
+var _caps_mm: MultiMesh
+var _cap_cols: Array[Color] = []
+var _touching := {}                         # plants she's in right now
+var _flash := {}                            # cap index -> seconds of glow left
+var _sound_wait := 0.0
+var _player: CharacterBody3D
 
 const PLANT_SHADER := """shader_type spatial;
 render_mode cull_disabled;
 uniform float glow = 0.1;
 uniform float sway = 0.06;
+uniform float push = 0.9;
+global uniform vec3 nina_pos;
 void vertex() {
 	// Gentle wind: tips move more than the base, each plant on its own beat
 	vec3 o = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float w = sin(TIME * 1.3 + o.x * 0.37 + o.z * 0.29) * sway * UV.y * UV.y;
 	VERTEX.x += w;
 	VERTEX.z += w * 0.6;
+	// Lean away from Nina when she's close, tips the most, and press down a little
+	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	vec2 away = wp.xz - nina_pos.xz;
+	float d = length(away);
+	float near = (1.0 - smoothstep(0.3, 1.4, d)) * step(abs(wp.y - nina_pos.y), 2.2) * UV.y;
+	vec3 shove = vec3(away.x / max(d, 0.001), -0.5, away.y / max(d, 0.001)) * near * push;
+	VERTEX += (inverse(MODEL_MATRIX) * vec4(shove, 0.0)).xyz;
 }
 void fragment() {
 	float across = abs(UV.x - 0.5) * 2.0;                  // 0 on the midrib, 1 at the edge
@@ -71,14 +97,25 @@ func _ready() -> void:
 	var stems: Array[Transform3D] = []
 	var caps: Array[Transform3D] = []
 	var cap_cols: Array[Color] = []
+	var blades: Array[Transform3D] = []
+	var blade_cols: Array[Color] = []
 	var lights := 0
+	_reach.resize(positions.size())
 	for i in positions.size():
 		var p := positions[i]
 		var s := sizes[i]
 		var base := Basis(Vector3.UP, yaws[i])
 		var rng := RandomNumberGenerator.new()
 		rng.seed = i * 7919 + 13
+		_reach[i] = s * [0.75, 0.6, 0.5, 0.55][kinds[i]]
+		var cell := Vector2i(floori(p.x / CELL), floori(p.z / CELL))
+		if not _grid.has(cell):
+			_grid[cell] = []
+		_grid[cell].append(i)
 		match kinds[i]:
+			GRASS:
+				blades.append(Transform3D(base * Basis.from_scale(Vector3(s, s, s)), p + Vector3(0, -0.05, 0)))
+				blade_cols.append(colors[i])
 			LEAVES:
 				# A clump of 4-7 giant leaves fanning out from one spot
 				var n := rng.randi_range(4, 7)
@@ -107,6 +144,8 @@ func _ready() -> void:
 				var top := p + b * Vector3(0, h - 0.1, 0)
 				caps.append(Transform3D(b * Basis.from_scale(Vector3(cap_r, cap_r * 0.5, cap_r)), top))
 				cap_cols.append(colors[i])
+				if s < solid_cap_size:
+					_cap_index[i] = caps.size() - 1
 				if s >= solid_cap_size:
 					var body := StaticBody3D.new()
 					var cs := CollisionShape3D.new()
@@ -135,6 +174,7 @@ func _ready() -> void:
 
 	_add_multimesh(_leaf_mesh(), leaves, leaf_cols, _plant_material(leaf_glow, 0.05))
 	_add_multimesh(_fern_mesh(), fronds, frond_cols, _plant_material(fern_glow, 0.08))
+	_add_multimesh(_grass_mesh(), blades, blade_cols, _plant_material(grass_glow, 0.1))
 	var stem_mat := StandardMaterial3D.new()
 	stem_mat.albedo_color = stem_color
 	stem_mat.roughness = 0.5
@@ -162,7 +202,63 @@ func _ready() -> void:
 	cap_sh.code = CAP_SHADER
 	cap_mat.shader = cap_sh
 	cap_mat.set_shader_parameter("glow", cap_glow)
-	_add_multimesh(cap_mesh, caps, cap_cols, cap_mat)
+	_caps_mm = _add_multimesh(cap_mesh, caps, cap_cols, cap_mat)
+	_cap_cols = cap_cols
+
+
+func _physics_process(delta: float) -> void:
+	# Which plants is she pushing through? Rustle, flutter and light up accordingly.
+	if _player == null or not is_instance_valid(_player):
+		_player = get_tree().get_first_node_in_group("player") as CharacterBody3D
+		if _player == null:
+			return
+	_sound_wait -= delta
+	var feet := _player.global_position - Vector3(0, 0.8, 0)
+	var moving := Vector2(_player.velocity.x, _player.velocity.z).length() > 1.0
+	var c := Vector2i(floori(feet.x / CELL), floori(feet.z / CELL))
+	var now := {}
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			for i in _grid.get(c + Vector2i(dx, dz), []):
+				var p := positions[i]
+				if feet.y > p.y + sizes[i] * 0.9 or feet.y < p.y - 0.6:
+					continue                                  # jumping over it, or it's on another level
+				if Vector2(feet.x - p.x, feet.z - p.z).length() < _reach[i]:
+					now[i] = true
+	for i in now:
+		if not _touching.has(i) and kinds[i] == MUSHROOM and _cap_index.has(i):
+			_flash[_cap_index[i]] = 0.8                        # a small mushroom lights up
+			Audio.play_at("bloop", positions[i] + Vector3(0, sizes[i], 0), -6.0, 0.15)
+	_touching = now
+	if moving and _sound_wait <= 0.0 and not now.is_empty():
+		var kind := -1
+		for i in now:
+			if kinds[i] == LEAVES or (kind == -1 and kinds[i] != MUSHROOM):
+				kind = kinds[i]
+		if kind != -1:
+			_sound_wait = SOUND_GAP
+			Audio.play_at("rustle" if kind == LEAVES else "swish", feet + Vector3(0, 0.5, 0), -7.0, 0.15)
+			if kind != GRASS and randf() < 0.5:                 # a leaf or two flutters off
+				var i: int = now.keys()[0]
+				Fx.burst(self, feet + Vector3(0, 1.0, 0), colors[i], 3, 0.07, 1.2, -1.0, 1.3)
+
+
+func _process(delta: float) -> void:
+	for idx in _flash.keys():
+		_flash[idx] -= delta
+		var k := clampf(_flash[idx] / 0.8, 0.0, 1.0)
+		_caps_mm.set_instance_color(idx, _cap_cols[idx].lerp(Color(1, 1, 1), k * 0.7))
+		if _flash[idx] <= 0.0:
+			_flash.erase(idx)
+
+
+func touching_kinds() -> Array:
+	# What she's in right now (for tests): e.g. [LEAVES, GRASS]
+	var out := []
+	for i in _touching:
+		if not kinds[i] in out:
+			out.append(kinds[i])
+	return out
 
 
 func _plant_material(glow: float, sway: float) -> ShaderMaterial:
@@ -175,9 +271,9 @@ func _plant_material(glow: float, sway: float) -> ShaderMaterial:
 	return m
 
 
-func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], material: Material) -> void:
+func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], material: Material) -> MultiMesh:
 	if xforms.is_empty():
-		return
+		return null
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -190,6 +286,7 @@ func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], 
 	mmi.multimesh = mm
 	mmi.material_override = material
 	add_child(mmi)
+	return mm
 
 
 func _leaf_mesh() -> ArrayMesh:
@@ -230,6 +327,34 @@ func _leaf_mesh() -> ArrayMesh:
 				var q: Vector2i = quad[idx]
 				st.set_uv(Vector2(float(q.y) / (COLS - 1), float(q.x) / ROWS))
 				st.add_vertex(grid[q.x][q.y])
+	st.generate_normals()
+	return st.commit()
+
+
+func _grass_mesh() -> ArrayMesh:
+	# A clump of tall grass, 1 unit high: 14 thin tapering blades fanning out and curving over at the tips.
+	# UV.y runs up each blade (0 = root, 1 = tip) so the wind and her push bend the tips most.
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
+	for b in 14:
+		var a := rng.randf() * TAU
+		var root := Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.0, 0.3)
+		var lean := Vector3(cos(a), 0, sin(a)) * rng.randf_range(0.15, 0.4)
+		var h := rng.randf_range(0.7, 1.0)
+		var w := rng.randf_range(0.03, 0.05)
+		var side := Vector3(-sin(a), 0, cos(a)) * w
+		var segs := 4
+		for k in segs:
+			var t0 := float(k) / segs
+			var t1 := float(k + 1) / segs
+			var p0 := root + Vector3(0, h * t0, 0) + lean * t0 * t0
+			var p1 := root + Vector3(0, h * t1, 0) + lean * t1 * t1
+			var w0 := 1.0 - t0
+			var w1 := 1.0 - t1
+			_tri(st, p0 - side * w0, p0 + side * w0, p1 + side * w1, Vector2(0.4, t0), Vector2(0.6, t0), Vector2(0.6, t1))
+			_tri(st, p0 - side * w0, p1 + side * w1, p1 - side * w1, Vector2(0.4, t0), Vector2(0.6, t1), Vector2(0.4, t1))
 	st.generate_normals()
 	return st.commit()
 

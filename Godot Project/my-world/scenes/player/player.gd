@@ -73,6 +73,16 @@ var _step_timer := 0.0
 var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 
+# Walk-through places she's inside (clouds, the bubble bath, hot springs, the lake: scripts/soft_zone.gd,
+# scripts/water.gd). Each can slow her down (speed_scale), make her float (gravity_scale, fall_cap) and sets the
+# sound of her steps (kind). What's under her feet otherwise picks the sound too (scripts/surfaces.gd).
+var _zones: Array[Node] = []
+var _floor_node: Node = null
+const STEP_SOUNDS := {"grass": "step_grass", "wood": "step_wood", "stone": "step_stone", "water": "step_water",
+	"cloud": "step_cloud", "crystal": "step_crystal", "mushroom": "step_cloud"}
+const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
+const MUSHROOM_BOUNCE := 9.5                # landing on a big mushroom cap bounces her up this fast
+
 
 func _ready() -> void:
 	add_to_group("player")              # enemies find her through this group
@@ -166,10 +176,11 @@ func _physics_process(delta: float) -> void:
 
 	# Gravity
 	if not on_floor:
-		var gravity := get_gravity()
+		var gravity := get_gravity() * _zone_min("gravity_scale", 1.0)
 		if velocity.y < 0:
 			gravity *= fall_gravity_multiplier
 		velocity += gravity * delta
+		velocity.y = maxf(velocity.y, -_zone_min("fall_cap", 1000.0))       # floaty in clouds and the bath
 
 	# Coyote time and jump buffering
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta
@@ -231,12 +242,20 @@ func _physics_process(delta: float) -> void:
 		var rate := acceleration if direction else friction
 		if not on_floor:
 			rate *= air_control
-		horizontal = horizontal.move_toward(direction * speed, rate * delta)
+		horizontal = horizontal.move_toward(direction * speed * _zone_min("speed_scale", 1.0), rate * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 
 	_fall_speed = -velocity.y
 	move_and_slide()
+	_floor_node = null
+	if is_on_floor():
+		for i in get_slide_collision_count():
+			var c := get_slide_collision(i)
+			if c.get_normal().y > 0.6:
+				_floor_node = c.get_collider() as Node
+				break
+	RenderingServer.global_shader_parameter_set("nina_pos", global_position)   # plants lean away from her
 	_sounds(delta, horizontal.length())
 
 	# Turn the model: on foot it faces where you steer; on the board it faces where the board is rolling
@@ -310,17 +329,57 @@ func _update_spin(delta: float) -> void:
 
 func _sounds(delta: float, horizontal_speed: float) -> void:
 	var on_floor := is_on_floor()
-	if on_floor and not _was_on_floor and _fall_speed > 3.0:
-		Audio.play("land", linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
+	if on_floor and not _was_on_floor:
+		var ground := ground_kind()
+		if ground == "mushroom" and _fall_speed > 2.0:
+			velocity.y = MUSHROOM_BOUNCE              # boing: big mushroom caps are bouncy
+			_air_jump_used = false
+			Audio.play("boing", -2.0, 0.1)
+		elif _fall_speed > 3.0:
+			if ground == "cloud":
+				velocity.y = minf(_fall_speed * 0.35, 4.0)   # a soft little bounce on a cloud
+			Audio.play(LAND_SOUNDS.get(ground, "land"), linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
 	_was_on_floor = on_floor
 	# Footsteps while running on foot
 	if on_floor and not Game.riding and horizontal_speed > 0.8 and _roll_timer <= 0.0:
 		_step_timer -= delta
 		if _step_timer <= 0.0:
 			_step_timer = 0.33 * clampf(speed / horizontal_speed, 0.8, 1.6)
-			Audio.play("step", -10.0, 0.15)
+			Audio.play(STEP_SOUNDS.get(ground_kind(), "step"), -9.0, 0.15)
 	else:
 		_step_timer = 0.0
+
+
+func enter_zone(zone: Node) -> void:
+	if zone not in _zones:
+		_zones.append(zone)
+
+
+func exit_zone(zone: Node) -> void:
+	_zones.erase(zone)
+
+
+func in_zone(kind: String) -> bool:
+	for z in _zones:
+		if is_instance_valid(z) and z.get("kind") == kind:
+			return true
+	return false
+
+
+func ground_kind() -> String:
+	# Water and clouds she's in come first; otherwise whatever is under her feet
+	for k in ["water", "bath", "spring", "cloud"]:
+		if in_zone(k):
+			return "cloud" if k == "cloud" else "water"
+	return Surfaces.kind_of(_floor_node)
+
+
+func _zone_min(prop: String, default: float) -> float:
+	var v := default
+	for z in _zones:
+		if is_instance_valid(z):
+			v = minf(v, float(z.get(prop)))
+	return v
 
 
 func _skate(h: Vector3, direction: Vector3, on_floor: bool, delta: float) -> Vector3:
