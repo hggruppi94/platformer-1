@@ -8,6 +8,10 @@ extends Node
 # the clock on by however long she sleeps.
 #
 # Other scripts read it (Clock.hour(), Clock.daylight(), Clock.in_shift()) or listen to its signals.
+#
+# Earth (through the portal, during the Shift: scenes/earth/earth.tscn) has its own time. While Nina's there,
+# Galactopia's Shift runs EARTH_SLOWDOWN times slower again, so the one Shift hour lasts a whole Earth evening; Earth's
+# clock (earth_minutes) runs at its own pace. When the Shift ends, the portal pulls her home.
 
 signal time_changed                  # every new in-game minute
 signal hour_changed(hour: int)
@@ -23,10 +27,15 @@ const SHIFT_SLOWDOWN := 4.0          # the clock runs this many times slower dur
 const START_HOUR := 8.0              # a new game starts at 8:00 AM on day 1
 const WAKE_HOUR := 7                 # sleeping wakes her at 7:00 AM
 const MINUTES_PER_DAY := 24 * 60
+const EARTH_SLOWDOWN := 5.0          # on Earth, Galactopia's Shift runs this many times slower again
+const EARTH_MINUTES_PER_SECOND := 1.0 / 3.0   # Earth's clock: an Earth hour every 3 real minutes
+const EARTH_START := 16 * 60.0 + 30.0         # 4:30 PM on a first visit
 
 var day := 1
 var minutes := START_HOUR * 60.0     # minutes since midnight, 0..1440
 var running := true                  # false to stop the clock (e.g. during the sleep fade)
+var on_earth := false                # set by the Earth scene while she's there
+var earth_minutes := EARTH_START     # Earth's time of day (saved)
 
 var _in_shift := false
 var _last_minute := -1
@@ -45,6 +54,9 @@ func _process(delta: float) -> void:
 	var game_minutes_per_second := MINUTES_PER_DAY / (DAY_LENGTH_MINUTES * 60.0)
 	if _in_shift:
 		game_minutes_per_second /= SHIFT_SLOWDOWN
+	if on_earth:
+		game_minutes_per_second /= EARTH_SLOWDOWN
+		earth_minutes = fposmod(earth_minutes + delta * EARTH_MINUTES_PER_SECOND, MINUTES_PER_DAY)
 	_advance(delta * game_minutes_per_second)
 
 
@@ -89,6 +101,10 @@ func minute() -> int:
 func hours() -> float:
 	# The time as a fraction of hours, e.g. 18.5 for 6:30 PM
 	return minutes / 60.0
+
+
+func earth_time_string() -> String:
+	return format_time(earth_minutes)
 
 
 func in_shift() -> bool:

@@ -258,7 +258,7 @@ func save_game() -> void:
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding, "hat": hat,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
-		"day": Clock.day, "minutes": Clock.minutes,
+		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
 	}
@@ -310,6 +310,7 @@ func load_game() -> void:
 	for it in data.get("items", []):
 		items.append(str(it))
 	riding = bool(data.get("riding", false)) and has_item("skateboard")
+	Clock.earth_minutes = float(data.get("earth_minutes", Clock.EARTH_START))
 	if data.has("day") and data.has("minutes"):     # older saves have no clock: keep the new-game time
 		Clock.set_time(int(data["day"]), float(data["minutes"]), true)
 	var dialogue = data.get("dialogue", {})

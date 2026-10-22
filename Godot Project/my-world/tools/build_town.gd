@@ -1824,7 +1824,7 @@ func _welcome_sign() -> void:
 
 func _portal() -> void:
 	# A ring of light on a stone base: the way to Earth. It only opens during the Shift, midnight to 1 AM
-	# (scripts/portal.gd shows the swirl, sparkles and glow then). There's no Earth scene yet, so the door says so.
+	# (scripts/portal.gd shows the swirl, sparkles and glow then), and the door goes to Earth (scenes/earth/earth.tscn).
 	var g := group("Portal to Earth", ground(PORTAL.x, PORTAL.y), PORTAL.z)
 	g.set_script(load("res://scripts/portal.gd"))
 	var stone := mat("Portal Stone", Color(0.55, 0.5, 0.7), 0.8)
