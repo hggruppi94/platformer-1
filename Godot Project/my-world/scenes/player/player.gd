@@ -71,6 +71,7 @@ var _was_on_floor := true
 var _fall_speed := 0.0
 var _step_timer := 0.0
 var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
+var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 
 
 func _ready() -> void:
@@ -151,6 +152,8 @@ func bounce(strength: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if carried:
+		return
 	var on_floor := is_on_floor()
 
 	# Blink while invulnerable after a hit (or stay solid with Reduce flashing on)

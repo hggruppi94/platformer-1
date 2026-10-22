@@ -670,6 +670,32 @@ func _castle() -> void:
 		castle_tower(g, Vector3(t.x, -2 * S, t.y), t.z, t.w, stone if i % 3 else stone_dark, roof, lit, i == 0, true,
 			keep_h if inside else 0.0)
 
+	# Castle walls joining the two outer back towers to the keep (they used to stand on their own beside it)
+	for i in [10, 11]:
+		var t: Vector4 = towers[i]
+		var c := Vector2(t.x, t.y)
+		var dir := c.normalized()
+		var from := dir * (keep_r - 1.5 * S)                     # starts inside the keep's wall...
+		var to := c - dir * (t.z * 0.4)                          # ...and ends inside the tower
+		var mid := (from + to) / 2.0
+		var length := from.distance_to(to)
+		var yaw := atan2(dir.x, dir.y)
+		var wall_h := 10.0 * S
+		var wall_y := -2.0 * S + wall_h / 2.0
+		mesh_at(box(Vector3(2.0 * S, wall_h, length)), stone_dark, Vector3(mid.x, wall_y, mid.y), g, yaw)
+		solid(box_shape(Vector3(2.0 * S, wall_h, length)), Vector3(mid.x, wall_y, mid.y), g, yaw)
+		var n := int(length / (1.6 * S))
+		for k in n:                                            # battlements along both edges of the top
+			var along := from + dir * ((k + 0.5) * length / n)
+			for side in [-1, 1]:
+				var off: Vector2 = Vector2(dir.y, -dir.x) * (0.75 * S) * side
+				mesh_at(box(Vector3(0.5, 0.8, 0.7) * S), stone_dark, Vector3(along.x + off.x, wall_y + wall_h / 2.0 + 0.4 * S,
+					along.y + off.y), g, yaw)
+		for k in 2:                                            # a lit window on each face
+			var w := from.lerp(to, 0.5)
+			var face := Vector2(dir.y, -dir.x) * (1.05 * S) * (1 if k == 0 else -1)
+			mesh_at(box(Vector3(0.9, 1.6, 0.1) * S), lit, Vector3(w.x + face.x, wall_y + 2.0 * S, w.y + face.y), g, yaw + PI / 2.0)
+
 	# Turrets hanging off the big towers, high up: parent tower index, angle around it, radius, height above base
 	var turrets := [
 		Vector4(0, 0.9, 1.1, 30), Vector4(0, -0.9, 1.0, 34), Vector4(0, PI, 1.0, 26),
@@ -1556,8 +1582,8 @@ void fragment() {
 
 
 func _tree_house() -> void:
-	# A giant tree with a house in its branches, plank steps spiralling up the trunk, and a zipline down to the west
-	# fields. (The zipline is scenery for now: riding it is a later job.)
+	# A giant tree with a house in its branches, plank steps spiralling up round it, and a zipline down to the west
+	# fields: press Interact at the handle to ride it (scripts/zipline.gd).
 	var c := ground(TREE_HOUSE.x, TREE_HOUSE.y)
 	var g := group("Tree House", c)
 	var bark := mat("Big Bark", Color(0.42, 0.28, 0.18))
@@ -1568,14 +1594,19 @@ func _tree_house() -> void:
 	solid(_cyl_shape(1.4, 14), Vector3(0, 7, 0), g)
 	for k in 5:
 		puff(g, Vector3(cos(k * 1.3) * 3.5, 14 + (k % 2) * 1.5, sin(k * 1.3) * 3.5), 4.5, leaf, 300 + k, 6)
-	# Steps round the trunk: 1.15 m up each, a jump apart
-	var steps := 6
+	# Steps spiralling up OUTSIDE the deck's edge (they used to sit under the deck, so you hit your head and couldn't
+	# get up), each a small hop above the last, the top one level with the deck at the gap in the railing.
+	var steps := 11
+	var step_r := 5.6                                  # deck radius 4.5: the steps' inner ends stay clear of it
+	var gap_angle := 4 * TAU / 14                      # where the railing has its gap (k == 4 below)
 	for k in steps:
-		var a := k * 1.05
-		var y := 1.0 + k * (deck_y - 1.0) / steps
-		var p := Vector3(cos(a) * 2.6, y, sin(a) * 2.6)
-		mesh_at(box(Vector3(1.8, 0.25, 1.2)), wood, p, g, -a)
-		solid(box_shape(Vector3(1.8, 0.25, 1.2)), p, g, -a)
+		var a := gap_angle - (steps - 1 - k) * 0.52
+		var y := 0.55 + k * (deck_y + 0.075 - 0.55) / (steps - 1)    # the last step's top is level with the deck's
+		var p := Vector3(cos(a) * step_r, y, sin(a) * step_r)
+		mesh_at(box(Vector3(2.2, 0.25, 1.4)), wood, p, g, -a)
+		solid(box_shape(Vector3(2.2, 0.25, 1.4)), p, g, -a)
+		if k > 0:                                      # a post under each step, down to the ground
+			mesh_at(cylinder(0.1, 0.1, y, 6), wood, p - Vector3(0, y / 2, 0), g)
 	# Deck, railing and the little house
 	mesh_at(cylinder(4.5, 4.5, 0.4, 20), wood, Vector3(0, deck_y, 0), g)
 	solid(_cyl_shape(4.5, 0.4), Vector3(0, deck_y, 0), g)
@@ -1590,11 +1621,14 @@ func _tree_house() -> void:
 	gable.size = Vector3(4.2, 1.6, 3.6)
 	mesh_at(gable, mat("Tree House Roof", Color(0.85, 0.3, 0.3)), Vector3(-1.2, deck_y + 3.6, -1.2), g)
 	sign_post(g, "Tree House", Vector3(3.5, 0, 3.5), 0.6)
-	# Zipline: a cable from a post on the deck down to a landing post
+	# Zipline: a cable from a post at the deck's edge (on the landing's side, so she's off the deck straight away)
+	# down to a landing post
 	var metal := mat("Zipline Metal", Color(0.7, 0.72, 0.78), 0.3, 0.8)
-	var top := Vector3(2.5, deck_y + 3.5, 2.5)
-	mesh_at(cylinder(0.12, 0.12, 3.5, 8), metal, Vector3(2.5, deck_y + 1.75, 2.5), g)
 	var end := ground(ZIPLINE_END.x, ZIPLINE_END.y) - c + Vector3(0, 3.0, 0)
+	var out := Vector3(end.x, 0, end.z).normalized()
+	var post := out * 4.0
+	var top := post + Vector3(0, deck_y + 4.0, 0)
+	mesh_at(cylinder(0.12, 0.12, 4.0, 8), metal, post + Vector3(0, deck_y + 2.0, 0), g)
 	mesh_at(cylinder(0.15, 0.15, 3.0, 8), metal, end - Vector3(0, 1.5, 0), g)
 	var span := end - top
 	var cable := mesh_at(cylinder(0.04, 0.04, span.length(), 6), metal, top + span / 2, g)
@@ -1603,6 +1637,29 @@ func _tree_house() -> void:
 	cable.position = top + span / 2
 	var handle := mesh_at(box(Vector3(0.6, 0.6, 0.15)), mat("Zipline Handle", Color(1.0, 0.6, 0.15), 0.5), top + Vector3(0, -0.4, 0), g)
 	handle.name = "ZiplineHandle"
+	for m in [["ZipTop", top], ["ZipEnd", end]]:
+		var marker := Marker3D.new()
+		marker.name = m[0]
+		marker.position = m[1]
+		g.add_child(marker)
+	var ride := Area3D.new()                           # stand by the handle and press Interact
+	ride.name = "Zipline"
+	ride.set_script(load("res://scripts/zipline.gd"))
+	ride.position = post - out * 1.2 + Vector3(0, deck_y + 1.0, 0)
+	var rcs := CollisionShape3D.new()
+	rcs.shape = _sphere_shape(2.2)
+	ride.add_child(rcs)
+	var prompt := Label3D.new()
+	prompt.name = "Prompt"
+	prompt.font_size = 44
+	prompt.pixel_size = 0.01
+	prompt.outline_size = 10
+	prompt.outline_modulate = Color(0.15, 0.1, 0.12)
+	prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt.no_depth_test = true
+	prompt.position = Vector3(0, 1.6, 0)
+	ride.add_child(prompt)
+	g.add_child(ride)
 	sign_post(g, "Zipline", end - Vector3(1.5, 3.0, 0), 0.0)
 	keep_clear.append(Vector3(TREE_HOUSE.x, TREE_HOUSE.y, 9))
 	keep_clear.append(Vector3(ZIPLINE_END.x, ZIPLINE_END.y, 4))
