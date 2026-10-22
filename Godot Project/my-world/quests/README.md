@@ -41,6 +41,7 @@ quest over.
 | --- | --- |
 | `"checklist": [["flag", "Label"], ...]` | shows each flag as a tick-box line in the quest log |
 | `"wait": {"days": 1, "text": "..."}` | the step can't be done until this many days after it started (the day number, so sleeping past midnight counts). The text shows in the log while waiting |
+| `"where": ["rex", {"who": "dash", "unless": "asked_dash"}, "town_hall"]` | stars on the map (M) for who to talk to (a character id) or where to go (a point in `res://routines/places.json`); `unless` drops one once its flag is set. Open quest spots get a star by themselves |
 | `"override": {"rex": {...}}` | while the step is on, that character follows this routine block instead of their schedule (same keys as `res://routines/README.md`, plus `"time"`: only during those times of day) |
 
 **Changing the town:** a quest spot's `Done` child stays shown once its flag is set (Rex's posters, Bramble's

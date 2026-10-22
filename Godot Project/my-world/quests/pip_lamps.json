@@ -44,7 +44,10 @@
       "text": "Bring the glow shells to Pip, who's out looking at lamps in the evening.",
       "done": {
         "flag": "pip_got_shells"
-      }
+      },
+      "where": [
+        "pip"
+      ]
     }
   ],
   "reward": {
