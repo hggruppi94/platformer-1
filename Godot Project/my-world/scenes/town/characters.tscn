@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 [ext_resource type="Script" path="res://scripts/talker.gd" id="10_talk"]
 [ext_resource type="Script" path="res://scripts/routine.gd" id="11_routine"]
+[ext_resource type="PackedScene" path="res://models/characters/mr_palmer.glb" id="12_palmer"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -22,6 +23,10 @@ radius = 0.3
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wolf"]
 radius = 0.28
 height = 1.2
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_palmer"]
+radius = 0.42
+height = 1.8
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bike"]
 size = Vector3(0.5, 0.9, 1.4)
@@ -184,3 +189,16 @@ character_id = "rex"
 [node name="Shape" type="CollisionShape3D" parent="Rex"]
 transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0.28, 0)
 shape = SubResource("CapsuleShape3D_wolf")
+
+[node name="MrPalmer" type="Node3D" parent="."]
+transform = Transform3D(0.9130889, 0, -0.40776044, 0, 1, 0, 0.40776044, 0, 0.9130889, -74.03, 0.117, 23.74)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="MrPalmer" instance=ExtResource("12_palmer")]
+
+[node name="Body" type="StaticBody3D" parent="MrPalmer"]
+
+[node name="Shape" type="CollisionShape3D" parent="MrPalmer/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_palmer")
