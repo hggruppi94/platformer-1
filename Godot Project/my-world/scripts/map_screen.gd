@@ -315,7 +315,12 @@ func _draw_full() -> void:
 		if player:
 			_arrow(c, r.position + to_map(player.global_position) * r.size, nina_facing(), 14.0)
 	else:
-		_text(c, r.get_center(), "You're inside. Step outside to see where you are!", _fs(22), Color(1, 0.95, 0.75))
+		var where := "You're inside. Step outside to see where you are!"
+		if s and s.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
+			where = "You're in the Scary World, behind the gate in the Spooky Woods. The gate behind you leads home."
+			var gate := r.position + to_map(Vector3(-128, 0, -150)) * r.size
+			_star(c, gate, 10.0)
+		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
 	var legend := "Nina    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.key_name("map")
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
 

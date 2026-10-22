@@ -1,0 +1,140 @@
+{
+  "name": "The Centipede",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "(Something long and dark is curled around the hollow log. Lots and lots of legs. A pale face turns slowly to look at Nina.)",
+        "...Oh.",
+        "Oh! A visitor? Nobody ever visits.",
+        {
+          "choice": [
+            {
+              "text": "You're... a little bit scary.",
+              "lines": [
+                "I know. Everybody runs away before I can even say hello.",
+                "It's the legs, I think. I've got rather a lot of them. I'm working on it."
+              ]
+            },
+            {
+              "text": "Hi! I'm Nina.",
+              "lines": [
+                "Nina. That's a lovely name.",
+                "I don't have a name. Nobody's ever stayed long enough to ask."
+              ]
+            }
+          ]
+        },
+        "Sometimes I creep to the edge of town to look at the lights. And sometimes I hide behind the walls at the school, just to hear people laughing.",
+        "But when they see me, they scream. So I hide.",
+        "I'm not trying to be scary. I just... wanted a friend.",
+        {
+          "choice": [
+            {
+              "text": "I'll be your friend!",
+              "set": "centipede_friend",
+              "lines": [
+                "(All of the centipede's legs wiggle at once. Nina thinks that means happy.)",
+                "A friend! I've never had one of those before!"
+              ]
+            },
+            {
+              "text": "Being scared of you wasn't fair. I'm sorry.",
+              "set": "centipede_friend",
+              "lines": [
+                "(The centipede blinks. Slowly, it smiles.)",
+                "Thank you. Nobody's ever said sorry to me before."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "flag": "centipede_friend",
+        "not_flag": "centipede_named"
+      },
+      "lines": [
+        "Nina... would you give me a name? I think a friend should have a name.",
+        {
+          "choice": [
+            {
+              "text": "Wiggles!",
+              "set": "centipede_named",
+              "name": "Wiggles",
+              "lines": [
+                "Wiggles. WIGGLES! (All the legs wiggle.) It fits!"
+              ]
+            },
+            {
+              "text": "Shelby.",
+              "set": "centipede_named",
+              "name": "Shelby",
+              "lines": [
+                "Shelby. Shelby the centipede. That sounds like someone people would want to meet."
+              ]
+            },
+            {
+              "text": "Sir Legs-a-Lot.",
+              "set": "centipede_named",
+              "name": "Sir Legs-a-Lot",
+              "lines": [
+                "SIR Legs-a-Lot? (The centipede sits up very straight.) I'm a knight now. A very leggy knight."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "not_flag": "centipede_friend",
+        "min_talks": 1
+      },
+      "lines": [
+        "You came back! Most people only come once. If they come at all.",
+        {
+          "choice": [
+            {
+              "text": "I'll be your friend!",
+              "set": "centipede_friend",
+              "lines": [
+                "(All of the centipede's legs wiggle at once.)",
+                "A friend! A real one!"
+              ]
+            },
+            {
+              "text": "I just wanted to see you again.",
+              "lines": [
+                "That's... that's the nicest thing anyone's ever said to me."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Did you know there are thirty-seven kinds of mushroom in here? I've named every one.",
+          "Nina: Even the tiny ones?",
+          "ESPECIALLY the tiny ones."
+        ],
+        [
+          "I counted the glow-bugs last night. I got to a hundred, then forgot where I was. So I started again. It was lovely."
+        ],
+        [
+          "Being scary is lonely. Being friends is much better.",
+          "Thank you for not running away, {nina}."
+        ],
+        [
+          "If you ever feel scared in here, it's okay to go home. The gate's always there.",
+          "I'll still be here when you come back."
+        ]
+      ]
+    }
+  ]
+}

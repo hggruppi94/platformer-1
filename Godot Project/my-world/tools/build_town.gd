@@ -1733,8 +1733,8 @@ func _old_slide() -> void:
 
 
 func _scary_gate() -> void:
-	# The way to the Scary World (where the centipede comes from): a stone wall across the far northwest woods with a
-	# locked iron gate. It stays shut for now; walking up to it says so (scripts/door.gd closed_message).
+	# The way to the Scary World (where the centipede lives): a stone wall across the far northwest woods with an old
+	# iron gate. Going in is up to Nina (scenes/scary_world/scary_world.tscn, built by tools/build_scary_world.gd).
 	var c := ground(-128, -150)
 	var g := group("Scary World Gate", c, 0.7)
 	var stone := mat("Old Wall Stone", Color(0.32, 0.3, 0.36), 0.95, 0.0, 0.0, 1.0, false)
@@ -1751,17 +1751,25 @@ func _scary_gate() -> void:
 	solid(box_shape(Vector3(3.8, 4.6, 0.4)), Vector3(0, 2.3, 0), g)
 	mesh_at(box(Vector3(0.5, 0.6, 0.25)), mat("Padlock", Color(0.8, 0.65, 0.3), 0.3, 0.9), Vector3(0, 2.4, 0.25), g)
 	sign_post(g, "Scary World - Keep Out!", Vector3(4.5, 0, 2.5), 0.2)
-	var area := Area3D.new()
-	area.name = "Gate"
-	area.set_script(load("res://scripts/door.gd"))
-	area.set("destination", "res://scenes/scary_world/scary_world.tscn")
-	area.set("place_name", "Scary World")
-	area.set("closed_message", "The gate is locked tight. Something skitters on the other side... Not today!")
-	area.position = Vector3(0, 1.5, 1.4)
-	var cs := CollisionShape3D.new()
-	cs.shape = box_shape(Vector3(3.6, 3.0, 1.2))
-	area.add_child(cs)
-	g.add_child(area)
+	# Walking up to it asks whether she wants to go in (dialogue/scary_gate.json): a clear yes or no, and the answer
+	# is kept in the save. Yes takes her through; she comes back out here.
+	var ask := Node3D.new()
+	ask.name = "Gate Question"
+	ask.position = Vector3(0, 0, 1.6)
+	g.add_child(ask)
+	var talk := Area3D.new()
+	talk.name = "Talk"
+	talk.set_script(load("res://scripts/talker.gd"))
+	talk.set("character_id", "scary_gate")
+	talk.set("display_name", "The Old Gate")
+	talk.set("name_height", 3.4)
+	talk.set("turns", false)
+	ask.add_child(talk)
+	var back := Marker3D.new()                         # where she comes back out, facing away from the gate
+	back.name = "FromScaryWorld"
+	back.position = Vector3(0, 1.0, 4.0)
+	back.rotation.y = PI
+	g.add_child(back)
 	keep_clear.append(Vector3(c.x, c.z, 12))
 	own(g)
 

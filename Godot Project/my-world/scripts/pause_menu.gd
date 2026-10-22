@@ -147,6 +147,11 @@ func _show_main() -> void:
 	_clear()
 	_title("Paused")
 	var first := _button("Resume", close)
+	var here := get_tree().current_scene
+	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
+		_button("Go home to town", func():                 # the Scary World: an easy way out, any time
+			close()
+			Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town"))
 	_button("Settings", func(): _tab = 0; _show_settings())
 	_button("New Game", _show_confirm)
 	_button("Quit", _quit)

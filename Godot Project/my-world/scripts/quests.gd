@@ -144,7 +144,9 @@ func override_for(character_id: String) -> Dictionary:
 
 
 func display_name(character_id: String, default: String) -> String:
-	# A finished quest can give someone a new title over their head ("Future Mayor Rex")
+	# The name Nina gave them, or a new title from a finished quest ("Future Mayor Rex")
+	if Dialogue.names.has(character_id):
+		return str(Dialogue.names[character_id])
 	for id in _order:
 		if is_done(id):
 			var t: Dictionary = quest(id).get("titles", {})
