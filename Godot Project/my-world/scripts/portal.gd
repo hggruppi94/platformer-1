@@ -48,7 +48,10 @@ func _apply() -> void:
 		_hood.light_energy = _hood_energy * k * pulse
 	_sparkles.emitting = k > 0.5
 	_ring_mat.emission_energy_multiplier = lerpf(_ring_energy * 0.3, _ring_energy * 2.5, k)
-	if k > 0.5:
+	# Whether she can go through follows the clock itself, not the swirl fading in or out: when the time jumps (a
+	# save loaded during the Shift, sleeping, the Shift ending) the swirl takes a moment to catch up, and in that
+	# moment the portal used to let her through to an Earth that sent her straight back.
+	if Clock.in_shift():
 		var earth_ready := ResourceLoader.exists(_door.destination)
 		_door.closed_message = "" if earth_ready else \
 			"The portal is open and swirling... but the way through isn't ready yet. Maybe one day!"

@@ -43,7 +43,8 @@ Read this first in every session so each iteration builds on the last one and do
     quests, town_quests, shop, crocodillo, scary_world, clock, quick_fixes).
   - Some tests have two runs: run the same test again with `-- --check-load` straight after, before running any
     other test.
-  - Known flaky: `test_earth` "10 PM: the portal's asleep" fails about 1 run in 4, on main too. Re-run it.
+  - A test that passes on one run and fails the next usually depends on Hayden's save (tests start from whatever
+    time it holds). Find the cause rather than re-running it.
 - **Previews:** run `godot --path ... --script res://tools/capture_<x>.gd -- <folder>`. This needs a window, so no
   `--headless`. Look at the shots, then copy them into `previews/<feature>/`.
 - **Hayden's save** (`%APPDATA%\Godot\app_userdata\MyWorld\save.json`) must never be lost. Tests and capture tools
@@ -63,6 +64,8 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: The portal lets Nina through by the clock, not by its fade-in. It used to let her through for a
+  moment after the Shift ended or after loading a save made during the Shift.
 - 2026-10-23: Renamed Galactopia → Galaxity. Earth got a full day/night sky (clouds, sunrise and sunset, stars,
   moon). The school's Entrance Garden got a greenhouse, vegetable beds, benches and a rose arch. The 3rd-floor
   window now shows the town's real mountains.
