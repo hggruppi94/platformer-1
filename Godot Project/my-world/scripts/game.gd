@@ -44,7 +44,15 @@ var pending_message := ""        # shown by the HUD after a scene reload (e.g. a
 signal equipment_changed
 var items: Array[String] = []    # things the player owns, e.g. "skateboard"
 var riding := false              # skateboard equipped
-var hat := ""                    # the hat she's wearing (a shop item id, scripts/shop.gd), or "" for none
+var outfit := {}                 # what she's wearing, slot -> shop item id (scripts/clothes.gd); a missing slot is her own look
+var hat: String:                 # the hat she's wearing: the outfit's head slot ("" for none)
+	get:
+		return str(outfit.get("head", ""))
+	set(id):
+		if id == "":
+			outfit.erase("head")
+		else:
+			outfit["head"] = id
 
 # Sparkles: little bits of broken time left lying about (from the show). They're the money: found around town
 # (scripts/sparkle.gd, they drift back the next day), earned from quests and happy places, spent at the market stalls.
@@ -275,7 +283,7 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding, "hat": hat,
+		"items": items, "riding": riding, "hat": hat, "outfit": outfit,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -337,7 +345,13 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
-	hat = str(data.get("hat", ""))
+	outfit = {}
+	var worn = data.get("outfit", {})
+	if worn is Dictionary:
+		for slot in worn:
+			outfit[str(slot)] = str(worn[slot])
+	if not outfit.has("head") and str(data.get("hat", "")) != "":
+		hat = str(data["hat"])                       # a save from before outfits: just a hat
 	sparkles_taken.clear()
 	var taken = data.get("sparkles_taken", {})
 	if taken is Dictionary:
@@ -407,7 +421,7 @@ func new_game() -> void:
 	mp_level = 1
 	items.clear()
 	riding = false
-	hat = ""
+	outfit = {}
 	sparkles = 0
 	sparkles_taken.clear()
 	Clock.reset()

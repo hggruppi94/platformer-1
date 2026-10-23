@@ -5,7 +5,8 @@
     "Crystals": "Shiny things that catch the light.",
     "Flowers": "Bramble grew every one of these.",
     "Records": "Music for your ears and stickers for your sash.",
-    "Toys": "Toys, games and silly hats!"
+    "Toys": "Toys, games and silly hats!",
+    "Boutique": "Head to toe and everything in between. Try it on!"
   },
   "items": [
     {"id": "star_apple", "name": "Star Apple", "stall": "Fruit", "kind": "snack", "price": 2, "hp": 5, "text": "Crunchy and sweet. +5 HP"},
@@ -19,6 +20,28 @@
     {"id": "headphones", "name": "Starry Headphones", "stall": "Records", "kind": "hat", "price": 10, "text": "Big comfy headphones to wear"},
     {"id": "note_sticker", "name": "Music Note Sticker", "stall": "Records", "kind": "sticker", "price": 4, "text": "A music note for your sash"},
     {"id": "propeller_cap", "name": "Propeller Cap", "stall": "Toys", "kind": "hat", "price": 12, "text": "A cap with a spinning propeller to wear"},
-    {"id": "paw_sticker", "name": "Paw Print Sticker", "stall": "Toys", "kind": "sticker", "price": 3, "text": "A paw print for your sash (Rex approves)"}
+    {"id": "paw_sticker", "name": "Paw Print Sticker", "stall": "Toys", "kind": "sticker", "price": 3, "text": "A paw print for your sash (Rex approves)"},
+    {"id": "sk8_beanie", "name": "SK8 Beanie", "stall": "Boutique", "kind": "clothes", "slot": "head", "price": 8, "text": "A slouchy beanie for skating"},
+    {"id": "star_glasses", "name": "Star Glasses", "stall": "Boutique", "kind": "clothes", "slot": "face", "price": 8, "text": "Gold star-shaped specs"},
+    {"id": "heart_shades", "name": "Heart Shades", "stall": "Boutique", "kind": "clothes", "slot": "face", "price": 10, "text": "Super cool heart sunglasses"},
+    {"id": "space_goggles", "name": "Space Goggles", "stall": "Boutique", "kind": "clothes", "slot": "face", "price": 12, "text": "Glowy goggles for exploring"},
+    {"id": "cozy_scarf", "name": "Cozy Scarf", "stall": "Boutique", "kind": "clothes", "slot": "neck", "price": 8, "text": "A warm, fluffy scarf"},
+    {"id": "bow_tie", "name": "Bow Tie", "stall": "Boutique", "kind": "clothes", "slot": "neck", "price": 5, "text": "A fancy blue bow tie"},
+    {"id": "crystal_necklace", "name": "Crystal Necklace", "stall": "Boutique", "kind": "clothes", "slot": "neck", "price": 12, "text": "A glowing crystal on a silver chain"},
+    {"id": "stripy_shirt", "name": "Stripy Shirt", "stall": "Boutique", "kind": "clothes", "slot": "top", "price": 8, "text": "Blue and white stripes"},
+    {"id": "galaxy_tee", "name": "Galaxy Tee", "stall": "Boutique", "kind": "clothes", "slot": "top", "price": 10, "text": "Purple, with gold stars all over"},
+    {"id": "sunny_shirt", "name": "Sunshine Shirt", "stall": "Boutique", "kind": "clothes", "slot": "top", "price": 6, "text": "As yellow as a sunny day"},
+    {"id": "denim_overalls", "name": "Denim Overalls", "stall": "Boutique", "kind": "clothes", "slot": "bottoms", "price": 8, "text": "Classic blue overalls"},
+    {"id": "mint_overalls", "name": "Minty Polka Dots", "stall": "Boutique", "kind": "clothes", "slot": "bottoms", "price": 8, "text": "Mint green overalls with white dots"},
+    {"id": "tutu", "name": "Twirly Tutu", "stall": "Boutique", "kind": "clothes", "slot": "bottoms", "price": 12, "text": "A frilly tutu over lilac overalls"},
+    {"id": "rainbow_sneakers", "name": "Rainbow Sneakers", "stall": "Boutique", "kind": "clothes", "slot": "feet", "price": 10, "text": "Stripy sneakers in bright colours"},
+    {"id": "sparkle_slippers", "name": "Sparkle Slippers", "stall": "Boutique", "kind": "clothes", "slot": "feet", "price": 8, "text": "Starry pink slippers"},
+    {"id": "moon_boots", "name": "Moon Boots", "stall": "Boutique", "kind": "clothes", "slot": "feet", "price": 14, "text": "Big puffy boots with glowing rings"},
+    {"id": "cozy_mittens", "name": "Cozy Mittens", "stall": "Boutique", "kind": "clothes", "slot": "hands", "price": 6, "text": "Fluffy blue mittens"},
+    {"id": "hero_gloves", "name": "Hero Gloves", "stall": "Boutique", "kind": "clothes", "slot": "hands", "price": 10, "text": "Red gloves with gold cuffs"},
+    {"id": "garden_gloves", "name": "Garden Gloves", "stall": "Boutique", "kind": "clothes", "slot": "hands", "price": 6, "text": "Green gloves, like Bramble's"},
+    {"id": "butterfly_wings", "name": "Butterfly Wings", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 15, "text": "Shimmery wings (they swap in for your backpack)"},
+    {"id": "super_cape", "name": "Super Cape", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 12, "text": "A flappy hero cape"},
+    {"id": "jetpack", "name": "Toy Jetpack", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 18, "text": "Pretend rocket tanks with glowing flames"}
   ]
 }

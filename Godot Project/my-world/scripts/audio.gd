@@ -24,6 +24,7 @@ const SCENE_MUSIC := {
 	"res://scenes/interiors/cafe.tscn": "interior",
 	"res://scenes/interiors/restaurant_and_cafe.tscn": "interior",
 	"res://scenes/interiors/ninas_house.tscn": "interior",
+	"res://scenes/interiors/clothing_boutique.tscn": "interior",
 }
 
 # What each sound looks like as a caption. Sounds not listed here are too minor to caption.

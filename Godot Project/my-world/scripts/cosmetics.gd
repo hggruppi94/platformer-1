@@ -102,6 +102,12 @@ static func hat(id: String) -> Node3D:
 			for s in [-1, 1]:
 				_mesh(h, _cyl(0.1, 0.1, 0.08), cups, Vector3(s * 0.33, -0.36, 0), Vector3(0, 0, PI / 2))
 				_mesh(h, _sphere(0.035), _mat(Color(1, 0.95, 0.5), 1.5), Vector3(s * 0.38, -0.36, 0))   # a little star
+		"sk8_beanie":
+			# A slouchy knitted beanie with a folded cuff and a pom-pom, a bit back on her head
+			var knit := _mat(Color(0.25, 0.75, 0.7))
+			_mesh(h, _sphere(0.29), knit, Vector3(0, -0.02, -0.04), Vector3(-0.25, 0, 0), Vector3(1, 0.75, 1.05))
+			_mesh(h, _torus(0.24, 0.31), _mat(Color(0.95, 0.4, 0.6)), Vector3(0, -0.1, 0.0), Vector3(-0.2, 0, 0), Vector3(1, 1.4, 1))
+			_mesh(h, _sphere(0.07), _mat(Color(1.0, 0.95, 0.6)), Vector3(0, 0.2, -0.12))
 		_:
 			return null
 	return h

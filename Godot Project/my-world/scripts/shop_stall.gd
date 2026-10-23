@@ -42,7 +42,8 @@ func _exit_tree() -> void:
 
 
 func set_prompt(on: bool) -> void:
-	_prompt.text = "Press %s to shop" % Settings.key_name("interact")
+	var what := "change clothes" if stall == "Wardrobe" else "shop"
+	_prompt.text = "Press %s to %s" % [Settings.key_name("interact"), what]
 	_prompt.visible = on
 
 

@@ -4,10 +4,11 @@ extends Node
 # and a little shop opens with what that stall sells (res://shop/items.json), paid for in sparkles (scripts/game.gd).
 #
 # - Snacks are eaten straight away and fill HP (and MP).
-# - Hats are kept and worn (one at a time); "Wear" and "Take off" swap them.
+# - Hats and clothes are kept and worn, one in each of her clothing slots (scripts/clothes.gd); "Wear" and "Take off"
+#   swap them, and her wardrobe (the "Wardrobe" stall, in Nina's house and the Clothing Boutique) changes the lot.
 # - Stickers go on Rex's VOTE REX sash, so they need the sash first.
-# What she owns is saved with her items ("shop:<id>"), the hat she's wearing as Game.hat. scripts/cosmetics.gd
-# builds what they look like on her.
+# What she owns is saved with her items ("shop:<id>"), what she's wearing as Game.outfit. scripts/cosmetics.gd and
+# scripts/clothes.gd build what they look like on her.
 
 signal bought(item_id: String)
 
@@ -24,6 +25,7 @@ var _wallet: Label
 var _rows: VBoxContainer
 var _note: Label
 var _close: Button
+var _keep_focus := ""              # the wardrobe button to stay on after the window refills
 
 
 func _ready() -> void:
@@ -69,9 +71,9 @@ func buy(id: String) -> bool:
 			Game.mp = mini(Game.mp + int(it.get("mp", 0)), Game.max_mp)
 			Game.stats_changed.emit()
 			_say("Yum! %s. %s" % [it.name, it.text])
-		"hat":
+		"hat", "clothes":
 			Game.items.append("shop:" + id)
-			Game.hat = id                                     # put it straight on
+			Game.outfit[slot_of(id)] = id                     # put it straight on
 			_say("You got the %s! You're wearing it." % it.name)
 		"sticker":
 			Game.items.append("shop:" + id)
@@ -84,14 +86,44 @@ func buy(id: String) -> bool:
 	return true
 
 
-func wear(id: String) -> void:
-	# Put a hat on (or "" to take it off)
+func slot_of(id: String) -> String:
+	return str(items[id].get("slot", "head")) if items.has(id) else "head"
+
+
+func wearable(id: String) -> bool:
+	return items.has(id) and str(items[id].kind) in ["hat", "clothes"]
+
+
+func wear(id: String, slot := "head") -> void:
+	# Put something on (or "" to take off whatever's in that slot)
 	if id != "" and not owns(id):
 		return
-	Game.hat = id
+	if id != "":
+		slot = slot_of(id)
+		Game.outfit[slot] = id
+	else:
+		Game.outfit.erase(slot)
 	Game.equipment_changed.emit()
 	Game.save_game()
 	_fill()
+
+
+func owned_for(slot: String) -> Array[String]:
+	# Everything she owns that goes in this slot, in shop order
+	var out: Array[String] = []
+	for id in items:
+		if wearable(id) and slot_of(id) == slot and owns(id):
+			out.append(id)
+	return out
+
+
+func cycle(slot: String, step: int) -> void:
+	# The wardrobe's arrows: the next thing she owns for this slot, with her own look ("") in the round too
+	var choices: Array[String] = [""]
+	choices.append_array(owned_for(slot))
+	var i := choices.find(Game.outfit.get(slot, ""))
+	_keep_focus = "Button %s %d" % [slot, step]
+	wear(choices[posmod(i + step, choices.size())], slot)
 
 
 # -----------------------------------------------------------------------------
@@ -138,7 +170,10 @@ func _say(text: String) -> void:
 
 
 func _fill() -> void:
-	_title.text = "%s Stall" % _stall
+	if _stall == "Wardrobe":
+		_fill_wardrobe()
+		return
+	_title.text = ("%s Stall" % _stall) if _stall != "Boutique" else "Clothing Boutique"
 	_blurb.text = str(stall_blurbs.get(_stall, ""))
 	_wallet.text = "You have ✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
 	for c in _rows.get_children():
@@ -156,9 +191,10 @@ func _fill() -> void:
 		b.custom_minimum_size.x = roundi(170 * Settings.text_scale)
 		b.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
 		var id := str(it.id)
-		if it.kind == "hat" and owns(id):
-			b.text = "Take off" if Game.hat == id else "Wear"
-			b.pressed.connect(wear.bind("" if Game.hat == id else id))
+		if wearable(id) and owns(id):
+			var on: bool = Game.outfit.get(slot_of(id), "") == id
+			b.text = "Take off" if on else "Wear"
+			b.pressed.connect(wear.bind("" if on else id, slot_of(id)))
 		else:
 			var why := can_buy(id)
 			b.text = ("Eat it!" if it.kind == "snack" else "Buy") if why == "" else ("Got it!" if why == "You have this one" else why)
@@ -169,6 +205,46 @@ func _fill() -> void:
 		_rows.add_child(row)
 		if first == null and not b.disabled:
 			first = b
+	(first if first else _close).grab_focus.call_deferred()
+
+
+func _fill_wardrobe() -> void:
+	# A line for each slot: what she's wearing there, and arrows to swap it for something else she owns
+	_title.text = "Nina's Wardrobe"
+	_blurb.text = "Mix and match! Buy more at the Clothing Boutique in the Market."
+	_wallet.text = ""
+	for c in _rows.get_children():
+		c.queue_free()
+	var first: Button = null
+	for slot in Clothes.SLOTS:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		var label := Label.new()
+		var id: String = Game.outfit.get(slot, "")
+		label.text = "%s:  %s" % [Clothes.SLOT_NAMES[slot], items[id].name if items.has(id) else "her own"]
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
+		var mine := owned_for(slot).size()
+		for step in [-1, 1]:
+			var b := Button.new()
+			b.text = "◀" if step < 0 else "▶"
+			b.name = "Button %s %d" % [slot, step]
+			b.custom_minimum_size.x = roundi(56 * Settings.text_scale)
+			b.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
+			b.disabled = mine == 0
+			b.pressed.connect(cycle.bind(slot, step))
+			if step < 0:
+				row.add_child(b)
+				row.add_child(label)
+			else:
+				row.add_child(b)
+				if first == null and not b.disabled:
+					first = b
+		_rows.add_child(row)
+		var kept := row.get_node_or_null(_keep_focus) as Button
+		if kept:
+			first = kept
+	_keep_focus = ""
 	(first if first else _close).grab_focus.call_deferred()
 
 

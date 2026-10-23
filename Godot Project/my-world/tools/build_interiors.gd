@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
-#   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn
+#   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn,
+#   clothing_boutique.tscn
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd
 #
@@ -22,6 +23,7 @@ func _initialize() -> void:
 	_save("aquarium", _aquarium())
 	_save("restaurant_and_cafe", _restaurant())
 	_save("ninas_house", _ninas_house())
+	_save("clothing_boutique", _clothing_boutique())
 	quit()
 
 
@@ -441,10 +443,88 @@ func _ninas_house() -> Node3D:
 				Vector3(-0.75 + k * 0.3, 0.4 + row * 0.7, 0.1), shelf)
 	solid_box(Vector3(1.4, 0.8, 0.8), mat("Toy Chest", Color(0.95, 0.6, 0.3), 0.6), Vector3(-6.0, 0.4, 1.5), root_node, PI / 2 - 0.2)
 	mesh_at(sphere(0.35, 12), mat("Toy Ball", Color(0.3, 0.75, 1.0), 0.5), Vector3(-5.2, 0.35, 3.0), root_node)
+	# Her wardrobe, by the bookshelf: change clothes there (scripts/shop.gd, the "Wardrobe")
+	wardrobe(root_node, Vector3(5.2, 0, 4.0), -PI / 2 - 0.5)
 	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.88, 0.75), 1.2, 14)
 	label(root_node, "Nina's House", Vector3(0, 3.6, -7.5), 56, Color(1, 0.92, 0.95))
 	own(root_node)
 	return root_node
+
+
+# -----------------------------------------------------------------------------
+# The Clothing Boutique in the Market: rails of clothes, mannequins wearing outfits, a counter to buy at (the
+# "Boutique" stall, scripts/shop.gd) and a big mirror to change at (the wardrobe)
+# -----------------------------------------------------------------------------
+func _clothing_boutique() -> Node3D:
+	var r := 9.0
+	var root_node := dome_room("Clothing Boutique", r, Color(0.98, 0.78, 0.2), Color(0.85, 0.75, 0.9), Color(1.0, 0.92, 0.95))
+	var wood := mat("Boutique Wood", Color(0.75, 0.55, 0.4), 0.6)
+	var metal := mat("Rail Metal", Color(0.85, 0.85, 0.9), 0.3, 0.8)
+	mesh_at(cylinder(3.0, 3.0, 0.04, 32), mat("Boutique Rug", Color(1.0, 0.75, 0.85), 0.9), Vector3(0, 0.02, 0), root_node)
+	# The counter at the back, with the shop on it
+	var counter := node("Counter", root_node, Vector3(0, 0, -5.4))
+	solid_box(Vector3(3.6, 1.0, 1.0), wood, Vector3(0, 0.5, 0), counter)
+	mesh_at(box(Vector3(3.8, 0.08, 1.15)), mat("Counter Top", Color(1.0, 0.95, 0.85), 0.4), Vector3(0, 1.04, 0), counter)
+	var till := Area3D.new()
+	till.name = "BoutiqueCounter"
+	till.set_script(load("res://scripts/shop_stall.gd"))
+	till.set("stall", "Boutique")
+	till.set("radius", 2.6)
+	till.position = Vector3(0, 0, 1.2)
+	counter.add_child(till)
+	label(root_node, "Clothing Boutique", Vector3(0, 3.6, -7.5), 56, Color(1, 0.95, 0.8))
+	# Rails of clothes on both sides: hangers with tops in every colour
+	var colors := [Color(0.95, 0.4, 0.55), Color(0.45, 0.6, 1.0), Color(1.0, 0.85, 0.3), Color(0.55, 0.95, 0.8),
+		Color(0.75, 0.55, 1.0), Color(1.0, 0.6, 0.35)]
+	for side in [-1, 1]:
+		var rail := node("Clothes Rail %s" % ("East" if side > 0 else "West"), root_node, Vector3(side * 5.2, 0, -1.0), side * PI / 2)
+		for x in [-1.3, 1.3]:
+			mesh_at(cylinder(0.04, 0.04, 1.8, 8), metal, Vector3(x, 0.9, 0), rail)
+		var bar := mesh_at(cylinder(0.03, 0.03, 2.7, 8), metal, Vector3(0, 1.75, 0), rail)
+		bar.rotation.z = PI / 2
+		for k in 7:
+			var shirt := mesh_at(box(Vector3(0.08, 0.7, 0.5)), mat("Rack Shirt %d" % (k % 6), colors[k % 6], 0.8),
+				Vector3(-1.1 + k * 0.37, 1.35, 0), rail)
+			shirt.rotation.y = PI / 2
+		var shape := BoxShape3D.new()
+		shape.size = Vector3(2.8, 1.8, 0.6)
+		solid(shape, null, null, Vector3(0, 0.9, 0), rail)
+	# Mannequins near the door, showing outfits: round bodies, a hat, a scarf
+	for m in [[Vector3(-3.2, 0, 3.2), Color(0.45, 0.6, 1.0), Color(0.95, 0.35, 0.45)], [Vector3(3.2, 0, 3.2), Color(0.75, 0.55, 1.0), Color(0.3, 0.75, 0.7)]]:
+		var man := node("Mannequin", root_node, m[0], PI)
+		solid_cyl(0.35, 0.1, mat("Mannequin Base", Color(0.9, 0.9, 0.95), 0.4), Vector3(0, 0.05, 0), man)
+		mesh_at(cylinder(0.03, 0.03, 0.6, 8), metal, Vector3(0, 0.4, 0), man)
+		mesh_at(sphere(0.3, 16), mat("Mannequin Top %s" % m[1].to_html(), m[1], 0.8), Vector3(0, 0.95, 0), man).scale = Vector3(1, 1.2, 0.8)
+		mesh_at(sphere(0.2, 16), mat("Mannequin Head", Color(0.95, 0.92, 0.9), 0.5), Vector3(0, 1.5, 0), man)
+		mesh_at(cylinder(0.16, 0.22, 0.12, 16), mat("Mannequin Scarf %s" % m[2].to_html(), m[2], 0.9), Vector3(0, 1.28, 0), man)
+	# The big mirror: change into anything she owns
+	wardrobe(root_node, Vector3(-4.4, 0, -4.6), PI / 4, true)
+	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.9, 0.85), 1.3, 14)
+	own(root_node)
+	return root_node
+
+
+func wardrobe(parent: Node3D, pos: Vector3, yaw: float, mirror_only := false) -> void:
+	# A wardrobe (or, in the shop, a tall mirror): walk up and press Interact to change clothes. It's the "Wardrobe"
+	# stall in scripts/shop.gd, which lists her clothing slots with arrows to swap what she's wearing.
+	var w := node("Wardrobe", parent, pos, yaw)
+	var frame := mat("Wardrobe Wood", Color(0.85, 0.6, 0.75), 0.6)
+	var glass := mat("Mirror", Color(0.85, 0.95, 1.0), 0.05, 0.2, 0.35)        # a soft shine, so it reads as a mirror
+	if mirror_only:
+		solid_box(Vector3(1.4, 2.4, 0.15), frame, Vector3(0, 1.2, 0), w)
+		mesh_at(box(Vector3(1.15, 2.1, 0.02)), glass, Vector3(0, 1.2, 0.085), w)
+	else:
+		solid_box(Vector3(1.8, 2.4, 0.8), frame, Vector3(0, 1.2, 0), w)
+		for s in [-1, 1]:
+			mesh_at(box(Vector3(0.82, 2.1, 0.02)), frame, Vector3(s * 0.43, 1.2, 0.41), w)
+			mesh_at(sphere(0.05, 8), mat("Wardrobe Knob", Color(1.0, 0.85, 0.3), 0.3, 0.6), Vector3(s * 0.1, 1.2, 0.45), w)
+		mesh_at(box(Vector3(0.5, 1.2, 0.02)), glass, Vector3(-0.43, 1.25, 0.425), w)
+	var spot := Area3D.new()
+	spot.name = "WardrobeSpot"
+	spot.set_script(load("res://scripts/shop_stall.gd"))
+	spot.set("stall", "Wardrobe")
+	spot.position = Vector3(0, 0, 1.0)
+	w.add_child(spot)
 
 
 func fish(parent: Node, color: Color, size: float) -> void:

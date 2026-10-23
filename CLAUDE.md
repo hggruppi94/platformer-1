@@ -64,6 +64,13 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Clothes, head to toe (`scripts/clothes.gd`). Eight slots (head, face, neck, top, bottoms, feet, hands,
+  back), one thing worn in each (`Game.outfit`, saved; `Game.hat` is now the head slot, and old saves' hats carry
+  over). Tops, bottoms and shoes restyle Nina's own shirt, overalls and shoes (colours and patterns); the rest are
+  pieces fixed to her bones so they move with her; back pieces replace her backpack. 22 clothes are sold at the
+  Clothing Boutique (now open, `build_interiors.gd`, the "Boutique" stall in `shop/items.json`), and the "Wardrobe"
+  (her house, and the Boutique's mirror) swaps them with arrows. Only Nina wears them, not friends skating in her
+  place (`tools/test_clothes.gd`, `previews/clothes/`).
 - 2026-10-23: Skating, step 4 (everyone rides). The Skaters' Corner at each park (`scripts/rider_select.gd`, Interact)
   swaps who's skating: Nina (board), Dash (BMX), Rex and Rook (four-paw roller skates), Pip (hover wings, glides
   while Jump is held), Bramble (scooter), the Green Man (leaf board) and Mr. Palmer (the Mayor-mobile). Each has
@@ -105,4 +112,5 @@ Read this first in every session so each iteration builds on the last one and do
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
   keyboard. Steps 1 to 4 are in (see the log). Bruno (SK8 beanie) isn't in the game yet, so he has no ride. Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
+- Clothes (Hayden, Oct 23): more clothes later, and maybe outfits for the other characters.
 - Add new requests here as they come in, and move them to the log when they're done.
