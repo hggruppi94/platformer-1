@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the castle school (Bojnice Castle, built by tools/build_town.gd) at midday: from the lake, at the
-# gate, from the air and from the side. Opens a window (not --headless):
+# gate, from the air and from the side, then the mothership in the green sky. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_castle.gd -- <output folder>
 #
@@ -54,6 +54,10 @@ func _run() -> void:
 	await _view("02_at_the_gate", gate + Vector3(6, 6, 34), gate + Vector3(0, 10, 0))
 	await _view("03_from_the_air", hill + Vector3(-110, 85, 95), hill + Vector3(0, 5, 0))
 	await _view("04_from_the_east", hill + Vector3(120, 30, -10), hill + Vector3(0, 20, 0))
+	var ship := town.get_node_or_null("Mothership") as Node3D
+	if ship:
+		ship.set_process(false)                       # hold it still for the picture
+		await _view("05_mothership_in_the_green_sky", ship.global_position + Vector3(-60, -55, 70), ship.global_position)
 	_finish()
 
 

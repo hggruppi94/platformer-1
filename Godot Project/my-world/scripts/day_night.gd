@@ -23,13 +23,15 @@ const DUSK_HORIZON := Color(1.0, 0.45, 0.3)
 const DUSK_SUN := Color(1.0, 0.55, 0.35)
 const SHIFT_GLOW := Color(0.55, 0.2, 0.85)   # violet tint on the night sky during the Shift
 # Material name -> emission energy at night (the day value is whatever it was built with)
-const NIGHT_GLOW := {"Lamp": 4.0, "Window": 1.6, "Castle Window": 2.6, "Haunted Window": 1.8}
+const NIGHT_GLOW := {"Lamp": 4.0, "Window": 1.6, "Castle Window": 2.6, "Haunted Window": 1.8, "Castle Door Glow": 2.2,
+	"Castle Rose Window": 3.2}
 
 var _sun: DirectionalLight3D
 var _env: Environment
 var _sky: ProceduralSkyMaterial
 var _day := {}                       # the scene's own (noon) look
 var _glow_mats := {}                 # material -> day emission energy
+var _cloud_mats := {}                # cloud material ("Sky Cloud") -> its daytime see-through-ness
 var _shift := 0.0                    # 0..1, eased in and out
 
 
@@ -57,9 +59,17 @@ func _ready() -> void:
 
 func _find_glow_materials(n: Node) -> void:
 	if n is MeshInstance3D:
-		var m := (n as MeshInstance3D).material_override as StandardMaterial3D
-		if m and m.emission_enabled and NIGHT_GLOW.has(m.resource_name) and not _glow_mats.has(m):
-			_glow_mats[m] = m.emission_energy_multiplier
+		var mi := n as MeshInstance3D
+		var found: Array = [mi.material_override]
+		if mi.mesh:                                      # merged meshes (the castle) keep theirs per surface
+			for i in mi.mesh.get_surface_count():
+				found.append(mi.mesh.surface_get_material(i))
+		for m in found:
+			var sm := m as StandardMaterial3D
+			if sm and sm.resource_name == "Sky Cloud" and not _cloud_mats.has(sm):
+				_cloud_mats[sm] = sm.albedo_color.a
+			if sm and sm.emission_enabled and NIGHT_GLOW.has(sm.resource_name) and not _glow_mats.has(sm):
+				_glow_mats[sm] = sm.emission_energy_multiplier
 	for c in n.get_children():
 		_find_glow_materials(c)
 
@@ -106,6 +116,10 @@ func _update(delta: float) -> void:
 		_sky.ground_horizon_color = _sky.sky_horizon_color
 		_sky.ground_bottom_color = (_day.bottom as Color).lerp(NIGHT_SKY.bottom, night)
 		_sky.sun_curve = 0.15
+
+	# Clouds fade away at night
+	for m: StandardMaterial3D in _cloud_mats:
+		m.albedo_color.a = _cloud_mats[m] * smoothstep(0.1, 0.6, day)
 
 	# Lamps and windows
 	var lamps_on := smoothstep(0.55, 0.2, day)           # in as the sun goes down, out after sunrise

@@ -16,7 +16,7 @@ const TOWN := "res://scenes/town/town.tscn"
 const CENTER := Vector2(0, -75)                   # x, z of the middle of the map (the castle hill reaches z -248)
 const SIZE_M := 370.0                             # metres across (it's square)
 const PIXELS := 1024
-const HIDE := ["Player", "Characters", "Sky Objects", "Enemies", "Sailboats", "WorldBounds", "Mountains", "Foliage"]
+const HIDE := ["Player", "Characters", "Sky Objects", "Enemies", "Sailboats", "WorldBounds", "Mountains", "Foliage", "Mothership"]
 
 
 func _initialize() -> void:

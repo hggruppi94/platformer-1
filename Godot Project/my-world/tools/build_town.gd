@@ -32,6 +32,9 @@ const CASTLE_HILL_TOP := 62.0                    # flat top radius: Bojnice Cast
 const CASTLE_HILL_FOOT := 98.0                   # where the hill meets the town (clear of the north shore shops)
 const BOJNICE := "res://tools/bojnice_footprint.json"   # the castle's real footprint (tools/fetch_bojnice.py)
 const CASTLE_YAW := PI                           # Bojnice's gate faces north: turned round to face the town
+const CASTLE_RAMP := Vector2(-0.124, 0.992)       # the castle rock is a cliff all round except a ramp down this way
+const CASTLE_FALLS := [57.0, 137.0]               # degrees round the rock (0 = east, 90 = south): a waterfall at each
+const CASTLE_POND := Vector3(76.0, 10.0, 7.0)     # each fall's pond: distance from the hill's middle, radius x, z
 const TOWN_SQUARE := Vector3(-12, -21, 10)       # x, z, radius (land between the two lakes)
 
 const SPAWN := Vector3(-72, 0, 80)               # where she appears in town without a door: the market's south entrance
@@ -82,8 +85,9 @@ const THEMES := {
 		"moons": false, "crystals": 0,
 	},
 	"alien": {
-		# Violet sky fading to a hot pink horizon, a pinkish sun, and a light violet haze
-		"sky_top": Color(0.12, 0.05, 0.3), "sky_horizon": Color(0.95, 0.42, 0.58), "sky_bottom": Color(0.1, 0.04, 0.18),
+		# A green midday sky fading to a pale lime-yellow horizon (source_art/reference/world/sky - green midday with
+		# mothership.png), a pinkish sun, and a light violet haze over the land
+		"sky_top": Color(0.2, 0.6, 0.3), "sky_horizon": Color(0.86, 0.93, 0.6), "sky_bottom": Color(0.1, 0.04, 0.18),
 		"sun": Color(1.0, 0.78, 0.7), "sun_energy": 1.15, "fog": true, "fog_color": Color(0.62, 0.38, 0.8),
 		"fog_density": 0.0018,
 		# Teal moss, blue-violet hills, pink sand, lavender paths, dark indigo rock
@@ -106,6 +110,9 @@ var T: Dictionary = THEMES[THEME]
 var town: Node3D
 var mats := {}
 var castle_faces := PackedVector3Array()   # the castle's walls and roofs, for its collision
+var castle_outline := PackedVector2Array()  # the castle's outline in town coordinates (x, z)
+var castle_spots: Array[Vector3] = []        # x, z, radius: its domed halls, kept clear of the gardens
+var castle_gate := Vector3.ZERO              # where she stands in front of the gate
 var keep_clear: Array = []      # circles (x, z, r) where no trees are scattered
 
 
@@ -246,7 +253,19 @@ func lake_f(x: float, z: float) -> float:
 	var d_sq := Vector2(x - TOWN_SQUARE.x, z - TOWN_SQUARE.y).length() / TOWN_SQUARE.z
 	if d_sq < 1.3:
 		f = maxf(f, 1.0 + 0.6 * (1.3 - d_sq))       # the town square is dry land between the lakes
+	for pond in castle_ponds():
+		f = minf(f, ellipse(pond, x, z))
 	return f
+
+
+func castle_ponds() -> Array[Vector4]:
+	# The ponds the castle's waterfalls fall into, at the foot of its cliff (as lake ellipses)
+	var out: Array[Vector4] = []
+	for deg in CASTLE_FALLS:
+		var d := Vector2(cos(deg_to_rad(deg)), sin(deg_to_rad(deg)))
+		var c := Vector2(CASTLE_HILL.x, CASTLE_HILL.y) + d * CASTLE_POND.x
+		out.append(Vector4(c.x, c.y, CASTLE_POND.y, CASTLE_POND.z))
+	return out
 
 
 func height(x: float, z: float) -> float:
@@ -258,8 +277,11 @@ func height(x: float, z: float) -> float:
 	var dp := v.length()
 	var ramp := ss(0.8, 0.95, v.normalized().dot(PLATEAU_RAMP)) if dp > 0.01 else 0.0
 	h += PLATEAU.z * (1.0 - ss(lerpf(PLATEAU_CLIFF - 3.0, 24.0, ramp), lerpf(PLATEAU_CLIFF + 2.0, 62.0, ramp), dp))
-	var dc := Vector2(x - CASTLE_HILL.x, z - CASTLE_HILL.y).length()
-	h += CASTLE_HILL.z * (1.0 - ss(CASTLE_HILL_TOP, CASTLE_HILL_FOOT, dc))
+	# Castle rock: a cliff all round (with the waterfalls), except the ramp up from the town
+	var vc := Vector2(x - CASTLE_HILL.x, z - CASTLE_HILL.y)
+	var dc := vc.length()
+	var cramp := ss(0.8, 0.95, vc.normalized().dot(CASTLE_RAMP)) if dc > 0.01 else 0.0
+	h += CASTLE_HILL.z * (1.0 - ss(CASTLE_HILL_TOP + 1.0, lerpf(CASTLE_HILL_TOP + 7.0, CASTLE_HILL_FOOT, cramp), dc))
 	var dob := Vector2(x - OBS_HILL.x, z - OBS_HILL.y).length()
 	h += OBS_HILL.z * (1.0 - ss(OBS_HILL_TOP, OBS_HILL_FOOT, dob))
 	return h
@@ -298,6 +320,7 @@ func _build() -> void:
 	_buildings()
 	_castle()
 	_plateau_features()
+	_castle_grounds()
 	_towers()
 	_courts()
 	_skate_park()
@@ -325,6 +348,7 @@ func _build() -> void:
 	_shops()
 	_mountains()
 	_sky_objects()
+	_mothership()
 	_characters()
 	_trees()
 	_foliage()
@@ -345,6 +369,10 @@ func _environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	if THEME == "alien":
+		# Half the ambient light from a soft lilac instead of the sky, so the green sky doesn't turn everything green
+		env.ambient_light_sky_contribution = 0.5
+		env.ambient_light_color = Color(0.85, 0.72, 0.95)
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
 	if T.fog:
@@ -832,15 +860,19 @@ func _castle() -> void:
 	# The castle school is Bojnice Castle (Bojnice, Slovakia) at its real size: every tower and wing, its outline and
 	# courtyards come from OpenStreetMap's 3D building data (tools/bojnice_footprint.json, made by
 	# tools/fetch_bojnice.py; map data (c) OpenStreetMap contributors, ODbL). Bojnice's gate faces north, so the castle
-	# is turned round to face the town. Colours go through the world theme like every other building.
+	# is turned round to face the town. Its look comes from source_art/reference/world/castle - lilac fairytale
+	# castle.jpg: pale pink stone, lavender pointed roofs, gold-lit windows, round corner towers with tall cones,
+	# purple-domed halls beside a glowing golden gate with a rose window above it.
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(BOJNICE))
 	var top := ground(CASTLE_HILL.x, CASTLE_HILL.y)
 	var g := group("Castle School", top, CASTLE_YAW)
 	var surfaces := {}                                   # material -> SurfaceTool, all merged into one mesh
 	castle_faces = PackedVector3Array()                  # walls and roofs, for the collision
-	var wall := mat("Castle Wall", Color(0.93, 0.88, 0.76), 0.85)
-	var lit := mat("Castle Window", Color(1.0, 0.82, 0.35), 0.4, 0.0, 1.4)
-	var finial := mat("Castle Finial", Color(0.95, 0.78, 0.3), 0.3, 0.6)
+	var wall := mat("Castle Wall", Color(0.96, 0.86, 0.9), 0.8, 0.0, 0.0, 1.0, false)
+	var lit := mat("Castle Window", Color(1.0, 0.78, 0.38), 0.4, 0.0, 1.5, 1.0, false)
+	var finial := mat("Castle Finial", Color(1.0, 0.8, 0.4), 0.3, 0.6, 0.0, 1.0, false)
+	var cone := mat("Castle Roof Cone", Color(0.7, 0.6, 0.93), 0.5, 0.0, 0.0, 1.0, false)
+	var dome := mat("Castle Dome", Color(0.6, 0.48, 0.88), 0.35, 0.2, 0.0, 1.0, false)
 
 	# The base: the whole outline minus the open courtyards, a block as tall as the curtain walls, with battlements
 	var ring: Dictionary = data.ring
@@ -876,7 +908,7 @@ func _castle() -> void:
 		var pts := _pts(part.points)
 		var base: float = part.base
 		var wall_top: float = part.wall_top
-		var roof := mat("Castle Roof " + str(part.roof_colour), _roof_colour(part.roof_colour), 0.6)
+		var roof := mat("Castle Roof " + str(part.roof_colour), _roof_colour(part.roof_colour), 0.55, 0.0, 0.0, 1.0, false)
 		_walls(surfaces, wall, lit, pts, base if base > 0.0 else -3.0, wall_top, false)
 		var apex := _roof(surfaces, roof, pts, part.tris, wall_top, part.roof, part.inner_radius)
 		if part.shape == "pyramidal":
@@ -884,21 +916,6 @@ func _castle() -> void:
 			mesh_at(sphere(0.35, -1, 12), finial, apex + Vector3(0, 0.5, 0), g)
 		if part.gate:
 			gate_part = part
-
-	var mesh := ArrayMesh.new()
-	for m in surfaces:
-		var st: SurfaceTool = surfaces[m]
-		st.commit(mesh)
-		mesh.surface_set_material(mesh.get_surface_count() - 1, m)
-	save_external(mesh, "castle_mesh.res")
-	var shape := ConcavePolygonShape3D.new()
-	shape.set_faces(castle_faces)
-	save_external(shape, "castle_shape.res")
-	var mi := MeshInstance3D.new()
-	mi.name = "Bojnice"
-	mi.mesh = mesh
-	g.add_child(mi)
-	solid(shape, Vector3.ZERO, g).name = "BojniceCollision"
 
 	# The gate: on the gate building's side that faces the town, with the school entrance trigger
 	var gp := _pts(gate_part.points)
@@ -914,12 +931,51 @@ func _castle() -> void:
 			mid = (gp[i - 1] + gp[i]) / 2.0
 			out = n2
 	var door_yaw := atan2(out.x, out.y)
-	var world_mid := g.transform * Vector3(mid.x, 0, mid.y)
-	var dy := height(world_mid.x, world_mid.z) - top.y
+	var dy := _local_ground(g, top, mid)
 	var at := Vector3(mid.x, dy, mid.y) + Vector3(out.x, 0, out.y) * 0.35
-	var door := mat("Castle Door", Color(0.4, 0.26, 0.16), 0.8)
-	mesh_at(box(Vector3(4.0, 5.0, 0.6)), door, at + Vector3(0, 2.5, 0), g, door_yaw)
-	mesh_at(cylinder(2.0, 2.0, 0.6, 24), door, at + Vector3(0, 5.0, 0), g, door_yaw, Vector3(PI / 2, 0, 0))
+	var side := Vector2(out.y, -out.x)
+
+	# Round corner towers with tall pointed roofs, and a purple-domed hall on each side of the gate
+	_corner_towers(surfaces, wall, cone, lit, outline, mid)
+	for s in [-1.0, 1.0]:
+		var c2: Vector2 = mid + out * 9.0 + side * s * 15.5
+		_domed_hall(surfaces, wall, dome, cone, lit, Vector3(c2.x, _local_ground(g, top, c2), c2.y), 6.0)
+		var cw := g.transform * Vector3(c2.x, 0, c2.y)
+		castle_spots.append(Vector3(cw.x, cw.z, 8.5))
+
+	var mesh := ArrayMesh.new()
+	for m in surfaces:
+		var st: SurfaceTool = surfaces[m]
+		st.commit(mesh)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, m)
+	save_external(mesh, "castle_mesh.res")
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(castle_faces)
+	save_external(shape, "castle_shape.res")
+	var mi := MeshInstance3D.new()
+	mi.name = "Bojnice"
+	mi.mesh = mesh
+	g.add_child(mi)
+	solid(shape, Vector3.ZERO, g).name = "BojniceCollision"
+	for p in outline:
+		var w := g.transform * Vector3(p.x, 0, p.y)
+		castle_outline.append(Vector2(w.x, w.z))
+
+	# The gate: a tall glowing golden door in a stone arch, with a rose window above
+	var door := mat("Castle Door Glow", Color(0.95, 0.6, 0.2), 0.4, 0.0, 0.3, 1.0, false)
+	var arch := mat("Castle Arch", Color(0.88, 0.76, 0.84), 0.7, 0.0, 0.0, 1.0, false)
+	var o3 := Vector3(out.x, 0, out.y)               # straight out from the wall
+	mesh_at(box(Vector3(6.2, 6.0, 0.8)), arch, at + Vector3(0, 3.0, 0) - o3 * 0.15, g, door_yaw)
+	mesh_at(cylinder(3.1, 3.1, 0.8, 28), arch, at + Vector3(0, 6.0, 0) - o3 * 0.15, g, door_yaw, Vector3(PI / 2, 0, 0))
+	mesh_at(box(Vector3(4.4, 6.0, 0.6)), door, at + Vector3(0, 3.0, 0) + o3 * 0.12, g, door_yaw)
+	mesh_at(cylinder(2.2, 2.2, 0.6, 24), door, at + Vector3(0, 6.0, 0) + o3 * 0.12, g, door_yaw, Vector3(PI / 2, 0, 0))
+	var rose := mat("Castle Rose Window", Color(0.95, 0.45, 0.9), 0.3, 0.0, 0.9, 1.0, false)
+	var rose_at := at + Vector3(0, 10.8, 0) + o3 * 0.05
+	mesh_at(cylinder(2.1, 2.1, 0.3, 32), finial, rose_at, g, door_yaw, Vector3(PI / 2, 0, 0))
+	mesh_at(cylinder(1.8, 1.8, 0.4, 32), rose, rose_at, g, door_yaw, Vector3(PI / 2, 0, 0))
+	for k in 4:                                    # the star in the middle
+		mesh_at(box(Vector3(0.16, 3.2, 0.5)), mat("Castle Rose Star", Color(0.85, 0.95, 1.0), 0.2, 0.0, 1.4, 1.0, false),
+			rose_at, g, door_yaw, Vector3(0, 0, k * PI / 4))
 	var area := Area3D.new()
 	area.name = "SchoolEntrance"
 	area.set_script(load("res://scripts/door.gd"))
@@ -938,15 +994,15 @@ func _castle() -> void:
 	g.add_child(back)
 	var glow := OmniLight3D.new()                # light spilling out of the gate
 	glow.light_color = WT.light(Color(1.0, 0.75, 0.4))
-	glow.light_energy = 2.0
-	glow.omni_range = 10.0
+	glow.light_energy = 0.7
+	glow.omni_range = 9.0
 	glow.position = at + Vector3(out.x, 0, out.y) * 2.5 + Vector3(0, 4, 0)
 	g.add_child(glow)
-	var side := Vector2(out.y, -out.x)
 	sign_post(g, "School", at + Vector3(out.x * 5.0 + side.x * 5.0, 0, out.y * 5.0 + side.y * 5.0), door_yaw)
 	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, CASTLE_HILL_TOP + 4.0))
 	own(g)
 	var gw := g.transform * at
+	castle_gate = g.transform * (at + Vector3(out.x, 0, out.y) * 6.0)
 	print("CASTLE gate at (%d, %d)" % [gw.x, gw.z])
 
 
@@ -1096,11 +1152,226 @@ func _roof_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3) -> void:
 
 
 func _roof_colour(osm: String) -> Color:
-	# OSM's roof colours where it has them (copper-blue on the big towers, red tiles on the north towers), dark slate
-	# elsewhere; the world theme then turns them into its own colours
-	if osm != "" and Color.html_is_valid(osm):
-		return Color.html(osm)
-	return Color(0.3, 0.32, 0.42)
+	# Lavender roofs as in the picture, a shade lighter where OSM has Bojnice's copper roofs (the big towers) and
+	# pinker where it has red tiles (the north towers)
+	match osm.to_lower():
+		"#badeec":
+			return Color(0.76, 0.68, 0.96)
+		"#c37465":
+			return Color(0.78, 0.58, 0.86)
+	return Color(0.66, 0.57, 0.9)
+
+
+func _local_ground(g: Node3D, top: Vector3, p: Vector2) -> float:
+	# The ground's height under a castle-space point, measured from the castle's floor
+	var w := g.transform * Vector3(p.x, 0, p.y)
+	return height(w.x, w.z) - top.y
+
+
+func _prim(surfaces: Dictionary, m: Material, mesh: PrimitiveMesh, xf: Transform3D, collide := true) -> void:
+	# Copies a primitive (cylinder, sphere...) into the castle's merged mesh, moved by xf, keeping its smooth normals
+	var arrays := mesh.get_mesh_arrays()
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var norms: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var st := _st(surfaces, m)
+	for i in idx.size():
+		st.set_normal((xf.basis * norms[idx[i]]).normalized())
+		st.add_vertex(xf * verts[idx[i]])
+	if collide:
+		for i in idx.size():
+			castle_faces.append(xf * verts[idx[i]])
+
+
+func _round_tower(surfaces: Dictionary, wall: Material, roof: Material, lit: Material, c: Vector3, r: float,
+		top_y: float, spire: float) -> void:
+	# A round tower from below the ground at c up to top_y, a corbelled ring, a pointed roof and rows of windows
+	var h := top_y - (c.y - 3.0)
+	_prim(surfaces, wall, cylinder(r, r, h, 24), Transform3D(Basis(), Vector3(c.x, c.y - 3.0 + h / 2.0, c.z)))
+	_prim(surfaces, wall, cylinder(r * 1.14, r * 0.98, r * 0.4, 24), Transform3D(Basis(), Vector3(c.x, top_y - r * 0.15, c.z)))
+	_prim(surfaces, roof, cylinder(0.0, r * 1.22, spire, 24), Transform3D(Basis(), Vector3(c.x, top_y + spire / 2.0, c.z)))
+	_prim(surfaces, mats["Castle Finial"], cylinder(0.0, maxf(r * 0.07, 0.08), r * 1.5, 8),
+		Transform3D(Basis(), Vector3(c.x, top_y + spire + r * 0.6, c.z)), false)
+	var y := c.y + 3.0
+	var row := 0
+	while y + 2.6 < top_y - 1.5:
+		for k in 5:
+			var a := (k + 0.5 * (row % 2)) * TAU / 5.0
+			var d := Vector2(sin(a), cos(a))
+			_window(_st(surfaces, lit), Vector3(c.x + d.x * (r + 0.05), y, c.z + d.y * (r + 0.05)), Vector2(d.y, -d.x),
+				Vector3(d.x, 0, d.y))
+		y += 4.6
+		row += 1
+
+
+func _corner_towers(surfaces: Dictionary, wall: Material, roof: Material, lit: Material, outline: PackedVector2Array,
+		gate: Vector2) -> void:
+	# A round tower on each sharp outer corner of the castle's outline (not too close together, or to the gate)
+	var area := 0.0
+	for i in outline.size():
+		area += outline[i - 1].cross(outline[i])
+	var placed: Array[Vector2] = []
+	var n := outline.size()
+	for i in n:
+		var v := outline[i]
+		var e1 := (v - outline[i - 1]).normalized()
+		var e2 := (outline[(i + 1) % n] - v).normalized()
+		if e1.cross(e2) * area <= 0.0 or absf(e1.angle_to(e2)) < 0.5:
+			continue                                     # an inside corner, or hardly a corner at all
+		if v.distance_to(gate) < 16.0 or placed.any(func(q: Vector2) -> bool: return q.distance_to(v) < 15.0):
+			continue
+		placed.append(v)
+		var c := v + (e1 - e2).normalized() * 1.2
+		var r := 2.6
+		_round_tower(surfaces, wall, roof, lit, Vector3(c.x, 0.0, c.y), r, 18.0 + 3.0 * (placed.size() % 3), 11.0)
+	print("CASTLE corner towers ", placed.size())
+
+
+func _domed_hall(surfaces: Dictionary, wall: Material, dome: Material, roof: Material, lit: Material, c: Vector3,
+		r: float) -> void:
+	# A round hall with a purple dome, gold windows all round and a little pointed lantern on top
+	var drum := 5.0
+	_prim(surfaces, wall, cylinder(r, r * 1.03, drum + 3.0, 32), Transform3D(Basis(), c + Vector3(0, (drum - 3.0) / 2.0, 0)))
+	_prim(surfaces, mats["Castle Finial"], cylinder(r * 1.06, r * 1.06, 0.4, 32), Transform3D(Basis(), c + Vector3(0, drum, 0)))
+	var hemi := sphere(r * 0.98, r * 0.98, 32)
+	hemi.is_hemisphere = true
+	_prim(surfaces, dome, hemi, Transform3D(Basis(), c + Vector3(0, drum, 0)))
+	for k in 10:
+		var a := k * TAU / 10.0
+		var d := Vector2(sin(a), cos(a))
+		_window(_st(surfaces, lit), Vector3(c.x + d.x * (r + 0.06), c.y + 1.2, c.z + d.y * (r + 0.06)), Vector2(d.y, -d.x),
+			Vector3(d.x, 0, d.y))
+	_round_tower(surfaces, wall, roof, lit, c + Vector3(0, drum + r * 0.98 - 0.5, 0) + Vector3(0, 3.0, 0), 0.8,
+		c.y + drum + r * 0.98 + 1.5, 3.2)
+
+
+func _castle_grounds() -> void:
+	# The castle's gardens, joining it to the town as in the castle picture: the rock's two waterfalls and their
+	# ponds, lamp posts up the ramp, red and pink flowering bushes and tall dark cypresses round the castle
+	var g := group("Castle Grounds", Vector3.ZERO)
+	var surfaces := {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 314
+	var hill := Vector2(CASTLE_HILL.x, CASTLE_HILL.y)
+
+	# Waterfalls down the cliff, into their ponds
+	var wmat := ShaderMaterial.new()
+	wmat.shader = load(OUT_DIR + "/waterfall.gdshader")
+	var water: Material = mats["Water"]
+	var foam := mat("Foam", Color(0.95, 0.98, 1.0), 0.3, 0.0, 0.4, 0.85)
+	for deg in CASTLE_FALLS:
+		var d := Vector2(cos(deg_to_rad(deg)), sin(deg_to_rad(deg)))
+		var top_p := hill + d * (CASTLE_HILL_TOP + 0.5)
+		var bottom_p := hill + d * (CASTLE_HILL_TOP + 7.5)
+		var top_y := height(top_p.x, top_p.y) + 0.3
+		var drop := top_y - WATER_Y
+		var run := top_p.distance_to(bottom_p)
+		var q := QuadMesh.new()
+		q.size = Vector2(6.0, sqrt(drop * drop + run * run))
+		var midp := (top_p + bottom_p) / 2.0
+		mesh_at(q, wmat, Vector3(midp.x, (top_y + WATER_Y) / 2.0, midp.y), g, atan2(d.x, d.y), Vector3(-atan2(run, drop), 0, 0))
+		mesh_at(cylinder(3.6, 4.6, 0.3, 20), foam, Vector3(bottom_p.x + d.x * 1.5, WATER_Y + 0.1, bottom_p.y + d.y * 1.5), g)
+		# a little stream along the top, from the castle's wall to the edge
+		var src := hill + d * (CASTLE_HILL_TOP - 3.0)
+		var sm := box(Vector3(1.6, 0.2, src.distance_to(top_p) + 0.6))
+		mesh_at(sm, water, Vector3((src.x + top_p.x) / 2.0, top_y - 0.32, (src.y + top_p.y) / 2.0), g, atan2(d.x, d.y))
+	var ponds := castle_ponds()
+	for pond in ponds:
+		var disc := mesh_at(cylinder(1.0, 1.0, 0.1, 40), water, Vector3(pond.x, WATER_Y, pond.y), g)
+		disc.scale = Vector3(pond.z * 1.08, 1.0, pond.w * 1.08)
+	var pond_water := Node3D.new()                 # wading in them works like the lake (scripts/water.gd)
+	pond_water.name = "Ponds"
+	pond_water.set_script(load("res://scripts/water.gd"))
+	pond_water.set("ellipses", ponds)
+	pond_water.set("water_y", WATER_Y)
+	g.add_child(pond_water)
+
+	# Lamp posts up both sides of the path to the gate
+	var lamp_line := [Vector2(4, -62), Vector2(20, -82), Vector2(castle_gate.x, castle_gate.z)]
+	var post := mat("Castle Lamp Post", Color(0.35, 0.3, 0.42), 0.4, 0.6, 0.0, 1.0, false)
+	var bulb := mat("Lamp", Color(1.0, 0.92, 0.6), 0.3, 0.0, 2.0)
+	for k in lamp_line.size() - 1:
+		var a: Vector2 = lamp_line[k]
+		var b: Vector2 = lamp_line[k + 1]
+		var n := int(a.distance_to(b) / 8.0)
+		var across := Vector2((b - a).y, -(b - a).x).normalized()
+		for i in n:
+			var p := a.lerp(b, (i + 0.5) / n)
+			for s in [-1.0, 1.0]:
+				var q: Vector2 = p + across * 2.8 * s
+				var base := ground(q.x, q.y)
+				mesh_at(cylinder(0.07, 0.1, 3.2, 8), post, base + Vector3(0, 1.6, 0), g)
+				mesh_at(sphere(0.26, -1, 12), bulb, base + Vector3(0, 3.35, 0), g)
+				night_light(g, base + Vector3(0, 3.3, 0), Color(1.0, 0.85, 0.55), 1.0, 7.0)
+
+	# Flowering bushes and cypresses: along the path, round the castle's terrace and round the ponds
+	var blooms := [mat("Bloom Red", Color(0.92, 0.16, 0.28), 0.8, 0.0, 0.0, 1.0, false),
+		mat("Bloom Pink", Color(0.98, 0.42, 0.68), 0.8, 0.0, 0.0, 1.0, false),
+		mat("Bloom Coral", Color(1.0, 0.45, 0.35), 0.8, 0.0, 0.0, 1.0, false),
+		mat("Bloom Magenta", Color(0.85, 0.2, 0.62), 0.8, 0.0, 0.0, 1.0, false)]
+	var leaf := mat("Cypress", Color(0.1, 0.36, 0.28), 0.9, 0.0, 0.0, 1.0, false)
+	var bark := mat("Cypress Bark", Color(0.3, 0.2, 0.16), 0.9, 0.0, 0.0, 1.0, false)
+	var spots: Array[Vector3] = []                  # x, z, 1 = cypress / 0 = bush
+	for k in lamp_line.size() - 1:
+		var a: Vector2 = lamp_line[k]
+		var b: Vector2 = lamp_line[k + 1]
+		var across := Vector2((b - a).y, -(b - a).x).normalized()
+		for i in int(a.distance_to(b) / 2.2):
+			var p: Vector2 = a.lerp(b, rng.randf()) + across * rng.randf_range(4.0, 8.0) * (1.0 if rng.randf() < 0.5 else -1.0)
+			spots.append(Vector3(p.x, p.y, 1.0 if rng.randf() < 0.12 else 0.0))
+	for i in 170:
+		var a := rng.randf() * TAU
+		var p := hill + Vector2(cos(a), sin(a)) * rng.randf_range(CASTLE_HILL_TOP - 7.0, CASTLE_HILL_TOP + 0.3)
+		spots.append(Vector3(p.x, p.y, 1.0 if rng.randf() < 0.22 else 0.0))
+	for pond in ponds:
+		for i in 26:
+			var a := rng.randf() * TAU
+			var f := rng.randf_range(1.2, 1.55)
+			spots.append(Vector3(pond.x + cos(a) * pond.z * f, pond.y + sin(a) * pond.w * f, 1.0 if rng.randf() < 0.25 else 0.0))
+	var placed := 0
+	for sp in spots:
+		var p := Vector2(sp.x, sp.y)
+		if not _garden_ok(p):
+			continue
+		var base := ground(p.x, p.y) - Vector3(0, 0.2, 0)
+		if sp.z > 0.5:
+			var hgt := rng.randf_range(6.0, 9.5)
+			_prim(surfaces, bark, cylinder(0.18, 0.25, 1.6, 8), Transform3D(Basis(), base + Vector3(0, 0.8, 0)), false)
+			_prim(surfaces, leaf, sphere(1.15, hgt, 14), Transform3D(Basis(), base + Vector3(0, 1.0 + hgt / 2.0, 0)), false)
+		else:
+			var m: Material = blooms[rng.randi() % blooms.size()]
+			for b in rng.randi_range(2, 4):
+				var r := rng.randf_range(0.55, 1.05)
+				var off := Vector3(rng.randf_range(-0.9, 0.9), r * 0.6, rng.randf_range(-0.9, 0.9))
+				_prim(surfaces, m, sphere(r, r * 1.5, 12), Transform3D(Basis(), base + off), false)
+		placed += 1
+	var mesh := ArrayMesh.new()
+	for m in surfaces:
+		(surfaces[m] as SurfaceTool).commit(mesh)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, m)
+	save_external(mesh, "castle_gardens.res")
+	var mi := MeshInstance3D.new()
+	mi.name = "Gardens"
+	mi.mesh = mesh
+	g.add_child(mi)
+	own(g)
+	print("CASTLE gardens ", placed)
+
+
+func _garden_ok(p: Vector2) -> bool:
+	# Somewhere a bush or cypress can grow: not in the castle, its halls, the water, the path or its doorway
+	if Geometry2D.is_point_in_polygon(p, castle_outline):
+		return false
+	for i in castle_outline.size():
+		if p.distance_to(Geometry2D.get_closest_point_to_segment(p, castle_outline[i - 1], castle_outline[i])) < 2.5:
+			return false
+	for c in castle_spots:
+		if p.distance_to(Vector2(c.x, c.y)) < c.z:
+			return false
+	if lake_f(p.x, p.y) < 1.15 or on_path(p.x, p.y, 3.2) or p.distance_to(Vector2(castle_gate.x, castle_gate.z)) < 9.0:
+		return false
+	var slope := Vector2(height(p.x + 1, p.y) - height(p.x - 1, p.y), height(p.x, p.y + 1) - height(p.x, p.y - 1)).length() / 2.0
+	return slope < 0.7                               # not on the cliff
 
 
 func _plateau_features() -> void:
@@ -1233,8 +1504,8 @@ func _towers() -> void:
 	mushroom_tower("Tower 4", 104, -60, 22)
 	mushroom_tower("Tower 5", 48, -78, 18)
 	# Golden ones flanking the castle school, as in Sofi's picture
-	mushroom_tower("Castle Tower West", -46, -112, 24, true)
-	mushroom_tower("Castle Tower East", 74, -112, 20, true)
+	mushroom_tower("Castle Tower West", -60, -112, 24, true)
+	mushroom_tower("Castle Tower East", 80, -118, 20, true)
 	mushroom_tower("Castle Tower Back", -50, -190, 28, true)
 
 
@@ -1399,7 +1670,36 @@ func _sky_objects() -> void:
 			var ri := mesh_at(ring, rm, b[0], g, 0.0, Vector3(0.35, 0.0, -0.3))
 			ri.scale = Vector3(1, 0.04, 1)
 			ri.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_clouds(g)
 	own(g)
+
+
+func _clouds(g: Node3D) -> void:
+	# Long cream streaks of cloud, as in the green sky picture. They fade out at night (scripts/day_night.gd).
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Sky Cloud"
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.99, 0.93, 0.72, 0.85)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.disable_fog = true
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 21
+	for k in 22:
+		var a := rng.randf() * TAU
+		var dist := rng.randf_range(260.0, 480.0)
+		# Long and thin, turned to face the town so they read as streaks across the sky, tipped a little
+		var mi := mesh_at(sphere(1.0, -1, 24), m, Vector3(cos(a) * dist, rng.randf_range(110.0, 240.0), sin(a) * dist - 60.0), g,
+			atan2(-cos(a), -sin(a)), Vector3(0, 0, rng.randf_range(-0.3, 0.3)))
+		mi.scale = Vector3(rng.randf_range(50.0, 120.0), rng.randf_range(3.0, 7.0), 2.0)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func _mothership() -> void:
+	# The mothership cruising round high over the town (scenes/vehicles/mothership.tscn, scripts/mothership.gd)
+	var ship: Node3D = load("res://scenes/vehicles/mothership.tscn").instantiate()
+	ship.position = Vector3(140, 95, -60)
+	town.add_child(ship)
+	ship.owner = town
 
 
 func _crystals() -> void:
@@ -1644,8 +1944,29 @@ func _enemies() -> void:
 			e.set("xp_reward", 12)
 		g.add_child(e)
 		placed += 1
-	own(g)
 	print("GLOOPS ", placed)
+	# Crocodillos (scenes/enemies/crocodillo.tscn): by the castle's ponds and off in the wilder corners
+	var croc: PackedScene = load("res://scenes/enemies/crocodillo.tscn")
+	var crocs := 0
+	for c in [Vector2(70, -78), Vector2(-28, -88), Vector2(-122, -62), Vector2(128, -12)]:
+		var why := ""
+		if lake_f(c.x, c.y) < 1.45:
+			why = "in the water"
+		else:
+			for k in keep_clear:
+				if c.distance_to(Vector2(k.x, k.y)) < k.z:
+					why = "inside a clear zone at (%d, %d)" % [k.x, k.y]
+					break
+		if why != "":
+			print("SKIPPED Crocodillo at (%d, %d): %s" % [c.x, c.y, why])
+			continue
+		var e: Node3D = croc.instantiate()
+		e.name = "Crocodillo %d" % crocs
+		e.position = ground(c.x, c.y) + Vector3(0, 0.2, 0)
+		g.add_child(e)
+		crocs += 1
+	own(g)
+	print("CROCODILLOS ", crocs)
 
 
 func _characters() -> void:
