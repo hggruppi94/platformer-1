@@ -9,6 +9,7 @@ extends SceneTree
 # (ATRIUM_W..X_W) holds the escalators and stairs and is open all the way up.
 
 const WT := preload("res://tools/theme.gd")     # shared look (alien/earth): tools/theme.gd
+const BT := preload("res://tools/build_town.gd")   # the town outside: its sky, mountains and clouds, for the view
 const OUT_DIR := "res://scenes/school"
 const OUT := OUT_DIR + "/school.tscn"
 
@@ -23,6 +24,11 @@ const DOOR_W := 2.4
 const DOOR_H := 3.0
 const ESCALATOR_SPEED := 1.6
 const SLIVER_MP_LEVEL := 3     # MP level needed to pass through the Slivers into Behind the Walls
+const WINDOW_X := 24.0         # the 3rd floor's window wall is open from -WINDOW_X to WINDOW_X along the north side
+const WINDOW_Y := Vector2(0.8, 4.8)   # its sill and top, above the 3rd floor
+# Where the school stands in the town (on the castle hill), so the view out of the windows lines up with the town's
+# own mountains and clouds: town position = school position + IN_TOWN
+const IN_TOWN := Vector3(BT.CASTLE_HILL.x, BT.CASTLE_HILL.z, BT.CASTLE_HILL.y)
 
 var school: Node3D
 var mats := {}
@@ -257,22 +263,47 @@ func _build() -> void:
 	_floor_2()
 	_floor_3()
 	_entrance_garden()
+	_view()
 	_player()
 	own(school)
 
 
 func _environment() -> void:
+	# The town's own sky, seen through the windows and over the Entrance Garden. Rooms keep their own even light.
+	var t: Dictionary = BT.THEMES[WT.THEME]
+	var sky_mat := ProceduralSkyMaterial.new()
+	sky_mat.sky_top_color = t.sky_top
+	sky_mat.sky_horizon_color = t.sky_horizon
+	sky_mat.ground_horizon_color = t.sky_horizon
+	sky_mat.ground_bottom_color = t.sky_bottom
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = WT.backdrop(Color(0.55, 0.75, 0.95))
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = WT.light(Color(1.0, 0.97, 0.92))
 	env.ambient_light_energy = 0.7
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	if t.fog:
+		# Haze on the far hills and mountains only, not in the rooms
+		env.fog_enabled = true
+		env.fog_mode = Environment.FOG_MODE_DEPTH
+		env.fog_light_color = t.fog_color
+		env.fog_density = 0.55
+		env.fog_depth_begin = 90.0
+		env.fog_depth_end = 700.0
+		env.fog_sky_affect = 0.0
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
 	we.environment = env
 	school.add_child(we)
+	# The sky outside follows the clock like the town's (scripts/day_night.gd); it has no sun to move in here
+	var day_night := Node.new()
+	day_night.name = "DayNight"
+	day_night.set_script(load("res://scripts/day_night.gd"))
+	day_night.set("sun_path", NodePath(""))
+	school.add_child(day_night)
 	var sun := DirectionalLight3D.new()
 	sun.name = "Light"
 	sun.rotation_degrees = Vector3(-60, -30, 0)
@@ -305,7 +336,15 @@ func _shell() -> void:
 		Vector3((ATRIUM_W + X_W) / 2, -0.15, 0), shell)
 	var h := 3 * FLOOR_H
 	var outer := node("Outer Walls", shell)
-	wall(outer, Vector2(ATRIUM_W, Z_N), Vector2(X_E, Z_N), stone, [], h, 0.6)
+	# North wall: open along the 3rd floor's window wall (glass and frames in _floor_3)
+	var sill := 2 * FLOOR_H + WINDOW_Y.x
+	var top := 2 * FLOOR_H + WINDOW_Y.y
+	wall(outer, Vector2(ATRIUM_W, Z_N), Vector2(X_E, Z_N), stone, [], sill, 0.6)
+	var above := node("Above Window", outer, Vector3(0, top, 0))
+	wall(above, Vector2(ATRIUM_W, Z_N), Vector2(X_E, Z_N), stone, [], h - top, 0.6)
+	var beside := node("Beside Window", outer, Vector3(0, sill, 0))
+	wall(beside, Vector2(ATRIUM_W, Z_N), Vector2(-WINDOW_X, Z_N), stone, [], top - sill, 0.6)
+	wall(beside, Vector2(WINDOW_X, Z_N), Vector2(X_E, Z_N), stone, [], top - sill, 0.6)
 	wall(outer, Vector2(ATRIUM_W, Z_S), Vector2(X_E, Z_S), stone, [(0.0 - ATRIUM_W) / (X_E - ATRIUM_W)], h, 0.6)   # front door
 	wall(outer, Vector2(ATRIUM_W, Z_N), Vector2(ATRIUM_W, Z_S), stone, [], h, 0.6)
 	wall(outer, Vector2(X_E, Z_N), Vector2(X_E, Z_S), stone, [], h, 0.6)
@@ -670,10 +709,19 @@ func _floor_3() -> void:
 	var wall_mat := mat("Wall 3", Color(0.93, 0.9, 0.86))
 	var office_mat := mat("Office Wall", Color(0.85, 0.88, 0.8))
 	label(f, "3rd Floor - Offices", Vector3(-25, 4.8, 18), 0.0, 80)
-	# Window wall along the north side (glass panes in front of the outer wall)
-	var glass := mat("Window Wall", Color(0.6, 0.85, 1.0), 0.05, 0.1, 0.4, 0.5)
-	mesh_at(box(Vector3(X_E - X_W - 2, 4.0, 0.2)), glass, Vector3(0, 2.8, Z_N + 0.45), f)
-	label(f, "Window Wall", Vector3(0, 4.9, Z_N + 1.2), 0.0, 48)
+	# Window wall along the north side: big clear panes looking out over the town to the mountains (_view)
+	var glass := mat("Window Wall", Color(0.8, 0.92, 1.0), 0.02, 0.1, 0.0, 0.12)
+	var frame := mat("Window Frame", Color(0.95, 0.93, 0.9), 0.5)
+	var wy := (WINDOW_Y.x + WINDOW_Y.y) / 2
+	var wh := WINDOW_Y.y - WINDOW_Y.x
+	solid_box(Vector3(2 * WINDOW_X, wh, 0.08), glass, Vector3(0, wy, Z_N), f)
+	solid_box(Vector3(2 * WINDOW_X + 0.4, 0.2, 0.9), frame, Vector3(0, WINDOW_Y.x - 0.1, Z_N + 0.15), f)   # the sill
+	mesh_at(box(Vector3(2 * WINDOW_X + 0.4, 0.25, 0.7)), frame, Vector3(0, WINDOW_Y.y + 0.1, Z_N), f)
+	mesh_at(box(Vector3(2 * WINDOW_X, 0.12, 0.25)), frame, Vector3(0, WINDOW_Y.x + wh * 0.72, Z_N), f)   # transom
+	var panes := 12
+	for k in panes + 1:
+		mesh_at(box(Vector3(0.22, wh, 0.3)), frame, Vector3(-WINDOW_X + 2 * WINDOW_X * k / panes, wy, Z_N), f)
+	label(f, "Window Wall", Vector3(0, 5.3, Z_N + 1.2), 0.0, 48)
 
 	# Restrooms cut across the four corners
 	for c in [[Vector2(X_W, Z_N + 6), Vector2(X_W + 6, Z_N)], [Vector2(X_E - 6, Z_N), Vector2(X_E, Z_N + 6)],
@@ -712,25 +760,328 @@ func office_row(parent: Node, name: String, x0: float, x1: float, z0: float, z1:
 
 # ----------------------------------------------------------------------------- Outside
 func _entrance_garden() -> void:
+	# The school's garden, between the front doors and the way back to town: a glass greenhouse to walk into, raised
+	# vegetable beds, flower borders, benches, a rose arch over the path and watering cans left out by the beds.
 	var g := node("Entrance Garden", school)
+	var can := mat("Watering Can", Color(0.3, 0.6, 0.9), 0.4, 0.5)
 	solid_box(Vector3(40, 0.3, 18), mat("Garden Grass", Color(0.38, 0.72, 0.3)), Vector3(0, -0.15, Z_S + 9), g)
-	solid_box(Vector3(4, 0.32, 18), mat("Garden Path", Color(0.88, 0.82, 0.68)), Vector3(0, -0.13, Z_S + 9), g)
-	var flowers := [Color(0.95, 0.4, 0.6), Color(0.98, 0.85, 0.3), Color(0.7, 0.45, 0.95), Color(0.98, 0.55, 0.3)]
-	for k in 16:
-		var side := -1.0 if k % 2 == 0 else 1.0
-		var x := side * (4.0 + (k % 4) * 3.5)
-		var z := Z_S + 3.0 + (k / 4) * 3.5
-		mesh_at(sphere(0.6, 10), mat("Flower %d" % (k % 4), flowers[k % 4], 0.9), Vector3(x, 0.4, z), g)
+	var path := mat("Garden Path", Color(0.88, 0.82, 0.68))
+	solid_box(Vector3(4, 0.32, 18), path, Vector3(0, -0.13, Z_S + 9), g)
+	solid_box(Vector3(4.2, 0.32, 2.4), path, Vector3(-4.1, -0.13, Z_S + 9), g)          # across to the greenhouse door
+	var gravel := mat("Garden Gravel", Color(0.78, 0.74, 0.7))
+	for z in [Z_S + 1.4, Z_S + 5.6, Z_S + 9.8, Z_S + 14.0]:                           # between the vegetable beds
+		mesh_at(box(Vector3(14, 0.04, 1.4)), gravel, Vector3(12, 0.02, z), g)
+	_greenhouse(g, Vector3(-12, 0, Z_S + 9))
+	_vegetable_beds(g)
+	_flower_borders(g)
+	# Benches beside the path, facing it
+	_bench(g, Vector3(3.6, 0, Z_S + 6), -PI / 2)
+	_bench(g, Vector3(-3.6, 0, Z_S + 13), PI / 2)
+	_rose_arch(g, Z_S + 15.5)
+	_watering_can(g, Vector3(4.6, 0, Z_S + 3.2), 0.4, can)
+	_watering_can(g, Vector3(19.0, 0, Z_S + 12.0), 2.2, mat("Watering Can Red", Color(0.9, 0.3, 0.3), 0.4, 0.5))
 	# Low garden walls so she can't wander off
 	var hedge := mat("Hedge", Color(0.25, 0.55, 0.25))
 	solid_box(Vector3(0.8, 1.6, 18), hedge, Vector3(-20, 0.8, Z_S + 9), g)
 	solid_box(Vector3(0.8, 1.6, 18), hedge, Vector3(20, 0.8, Z_S + 9), g)
 	solid_box(Vector3(16, 1.6, 0.8), hedge, Vector3(-12, 0.8, Z_S + 18), g)
 	solid_box(Vector3(16, 1.6, 0.8), hedge, Vector3(12, 0.8, Z_S + 18), g)
-	label(g, "Entrance Garden", Vector3(0, 3.0, Z_S + 6), 0.0, 72)
+	label(g, "Entrance Garden", Vector3(0, 4.2, Z_S + 6), 0.0, 72)
 	label(g, "To Town", Vector3(0, 2.6, Z_S + 17), 0.0, 56)
 	door_trigger(g, "ExitToTown", Vector3(0, 1.5, Z_S + 18.5), Vector3(8, 3, 1.5), "res://scenes/town/town.tscn", "FromSchool")
 	spawn_marker(g, "FromTown", Vector3(0, 1.0, Z_S + 13), 0.0)
+
+
+func _greenhouse(parent: Node, at: Vector3) -> void:
+	# A glass house 12 m square with a pitched glass roof and its door on the path side (east). Inside: potting
+	# benches full of seedlings, tomato plants on canes, hanging baskets and a watering can.
+	var gh := node("Greenhouse", parent, at)
+	var half := 6.0
+	var wall_h := 3.2
+	var glass := mat("Greenhouse Glass", Color(0.82, 0.95, 0.9), 0.05, 0.0, 0.0, 0.22)
+	var frame := mat("Greenhouse Frame", Color(0.96, 0.96, 0.94), 0.5)
+	var brick := mat("Greenhouse Brick", Color(0.7, 0.42, 0.32))
+	solid_box(Vector3(2 * half, 0.1, 2 * half), mat("Greenhouse Floor", Color(0.72, 0.6, 0.48)), Vector3(0, 0.03, 0), gh)
+	# Glass walls (solid) on a low brick base, the east one with the doorway in the middle
+	wall(gh, Vector2(-half, -half), Vector2(half, -half), glass, [], wall_h, 0.08)
+	wall(gh, Vector2(-half, half), Vector2(half, half), glass, [], wall_h, 0.08)
+	wall(gh, Vector2(-half, -half), Vector2(-half, half), glass, [], wall_h, 0.08)
+	wall(gh, Vector2(half, -half), Vector2(half, half), glass, [0.5], wall_h, 0.08)
+	for side in [[Vector3(0, 0.3, -half), Vector3(2 * half, 0.6, 0.3)], [Vector3(0, 0.3, half), Vector3(2 * half, 0.6, 0.3)],
+			[Vector3(-half, 0.3, 0), Vector3(0.3, 0.6, 2 * half)]]:
+		mesh_at(box(side[1]), brick, side[0], gh)
+	for z in [-half / 2 - DOOR_W / 4, half / 2 + DOOR_W / 4]:                    # beside the doorway
+		mesh_at(box(Vector3(0.3, 0.6, half - DOOR_W / 2)), brick, Vector3(half, 0.3, z), gh)
+	# White frame: posts round the walls, a beam along the top, the doorway's frame
+	for k in 7:
+		var t := -half + k * 2.0
+		for p in [Vector3(t, 0, -half), Vector3(t, 0, half), Vector3(-half, 0, t), Vector3(half, 0, t)]:
+			if absf(p.x - half) < 0.01 and absf(p.z) < DOOR_W / 2:
+				continue                                                            # not across the doorway
+			mesh_at(box(Vector3(0.14, wall_h, 0.14)), frame, p + Vector3(0, wall_h / 2, 0), gh)
+	for p in [[Vector3(0, wall_h, -half), Vector3(2 * half, 0.16, 0.16)], [Vector3(0, wall_h, half), Vector3(2 * half, 0.16, 0.16)],
+			[Vector3(-half, wall_h, 0), Vector3(0.16, 0.16, 2 * half)], [Vector3(half, wall_h, 0), Vector3(0.16, 0.16, 2 * half)]]:
+		mesh_at(box(p[1]), frame, p[0], gh)
+	for z in [-DOOR_W / 2, DOOR_W / 2]:
+		mesh_at(box(Vector3(0.2, DOOR_H, 0.2)), frame, Vector3(half, DOOR_H / 2, z), gh)
+	# Pitched glass roof, ridge running north-south, with glass gables at the ends
+	var rise := 1.6
+	var slope := atan2(rise, half)
+	var run := sqrt(half * half + rise * rise)
+	for s in [-1.0, 1.0]:
+		mesh_at(box(Vector3(run + 0.2, 0.06, 2 * half + 0.3)), glass, Vector3(s * half / 2, wall_h + rise / 2, 0), gh, 0.0,
+			Vector3(0, 0, -s * slope))
+		for k in 7:                                                                  # rafters
+			mesh_at(box(Vector3(run, 0.1, 0.1)), frame, Vector3(s * half / 2, wall_h + rise / 2 + 0.05, -half + k * 2.0), gh,
+				0.0, Vector3(0, 0, -s * slope))
+	mesh_at(box(Vector3(0.2, 0.2, 2 * half + 0.4)), frame, Vector3(0, wall_h + rise, 0), gh)        # ridge
+	var gable := PrismMesh.new()
+	gable.size = Vector3(2 * half, rise, 0.06)
+	for z in [-half, half]:
+		mesh_at(gable, glass, Vector3(0, wall_h + rise / 2, z), gh)
+	label(gh, "Greenhouse", Vector3(half + 0.3, wall_h + 0.9, 0), 0.0, 56)
+	# Potting benches: one along the back (west) wall, one along the north wall, an island in the middle
+	var wood := mat("Potting Bench", Color(0.6, 0.42, 0.26))
+	var pot := mat("Flower Pot", Color(0.78, 0.42, 0.28))
+	var soil := mat("Garden Soil", Color(0.36, 0.24, 0.15))
+	var leaf := mat("Garden Leaf", Color(0.3, 0.68, 0.25))
+	var blooms := [mat("Bloom Pink", Color(0.98, 0.5, 0.7)), mat("Bloom Yellow", Color(0.98, 0.86, 0.3)),
+		mat("Bloom Violet", Color(0.68, 0.48, 0.95)), mat("Bloom White", Color(0.97, 0.96, 0.92))]
+	var benches := [[Vector3(-half + 0.9, 0, 0), Vector3(1.2, 0.9, 2 * half - 1.0)],
+		[Vector3(-0.8, 0, -half + 0.9), Vector3(6.6, 0.9, 1.2)],
+		[Vector3(-0.6, 0, 0.6), Vector3(1.3, 0.9, 5.0)]]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 33
+	for b in benches:
+		var c: Vector3 = b[0]
+		var size: Vector3 = b[1]
+		solid_box(Vector3(size.x, 0.12, size.z), wood, c + Vector3(0, size.y - 0.06, 0), gh)
+		solid_box(Vector3(size.x * 0.9, 0.08, size.z * 0.9), wood, c + Vector3(0, 0.25, 0), gh, 0.0, Vector3.ZERO, false)
+		for lx in [-0.5, 0.5]:
+			for lz in [-0.5, 0.5]:
+				mesh_at(box(Vector3(0.1, size.y, 0.1)), wood, c + Vector3(lx * (size.x - 0.2), size.y / 2, lz * (size.z - 0.2)), gh)
+		# A row of pots along the bench, each with a seedling or a flower
+		var long := size.z > size.x
+		var n := int((size.z if long else size.x) / 0.7)
+		for k in n:
+			var t := -0.5 + (k + 0.5) / n
+			var p := c + (Vector3(0, 0, t * size.z) if long else Vector3(t * size.x, 0, 0)) + Vector3(0, size.y, 0)
+			var r := rng.randf_range(0.16, 0.24)
+			mesh_at(cylinder(r, r * 0.75, r * 1.4, 10), pot, p + Vector3(0, r * 0.7, 0), gh)
+			mesh_at(cylinder(r * 0.92, r * 0.92, 0.04, 10), soil, p + Vector3(0, r * 1.38, 0), gh)
+			if k % 3 == 1:
+				mesh_at(sphere(r * 0.9, 8), blooms[rng.randi() % blooms.size()], p + Vector3(0, r * 1.4 + r * 0.6, 0), gh)
+			else:
+				for q in 3:
+					var a := TAU * q / 3 + rng.randf()
+					mesh_at(sphere(r * 0.45, 6), leaf, p + Vector3(cos(a) * r * 0.4, r * 1.6 + rng.randf() * 0.15, sin(a) * r * 0.4), gh)
+	# Tomato plants on canes in the southeast corner, by the door
+	var cane := mat("Garden Cane", Color(0.75, 0.62, 0.4))
+	var tomato := mat("Tomato", Color(0.9, 0.2, 0.15), 0.4)
+	for k in 4:
+		var p := Vector3(3.2 + (k % 2) * 1.4, 0, 3.6 + floorf(k / 2.0) * 1.4)
+		mesh_at(cylinder(0.3, 0.24, 0.4, 10), pot, p + Vector3(0, 0.2, 0), gh)
+		mesh_at(cylinder(0.025, 0.025, 2.0, 6), cane, p + Vector3(0, 1.1, 0), gh)
+		for q in 5:
+			var a := rng.randf() * TAU
+			mesh_at(sphere(0.28, 8), leaf, p + Vector3(cos(a) * 0.18, 0.6 + q * 0.3, sin(a) * 0.18), gh)
+			if q % 2 == 1:
+				mesh_at(sphere(0.09, 8), tomato, p + Vector3(cos(a + 1.5) * 0.28, 0.55 + q * 0.3, sin(a + 1.5) * 0.28), gh)
+	# Hanging baskets of flowers from the roof beam
+	var chain := mat("Basket Chain", Color(0.35, 0.35, 0.38), 0.4, 0.6)
+	for k in 3:
+		var p := Vector3(1.6, 0, -3.5 + k * 3.5)
+		mesh_at(cylinder(0.02, 0.02, 1.0, 4), chain, p + Vector3(0, wall_h + 0.5, 0), gh)
+		mesh_at(sphere(0.32, 10), mat("Basket", Color(0.55, 0.38, 0.22)), p + Vector3(0, wall_h - 0.1, 0), gh)
+		mesh_at(sphere(0.3, 8), leaf, p + Vector3(0, wall_h + 0.1, 0), gh)
+		for q in 5:
+			var a := TAU * q / 5
+			mesh_at(sphere(0.12, 6), blooms[(k + q) % blooms.size()], p + Vector3(cos(a) * 0.3, wall_h + 0.05, sin(a) * 0.3), gh)
+	_watering_can(gh, Vector3(4.6, 0, -2.2), -0.6, mat("Watering Can", Color()))
+	# Soft green light in the glass house
+	var l := OmniLight3D.new()
+	l.position = Vector3(0, wall_h, 0)
+	l.omni_range = 9.0
+	l.light_energy = 0.5
+	l.light_color = WT.light(Color(0.9, 1.0, 0.85))
+	gh.add_child(l)
+
+
+func _vegetable_beds(parent: Node) -> void:
+	# Three raised wooden beds east of the path, low enough to hop onto: cabbages, carrots, and pumpkins with
+	# sunflowers along the back.
+	var g := node("Vegetable Beds", parent)
+	var plank := mat("Bed Plank", Color(0.58, 0.4, 0.24))
+	var soil := mat("Garden Soil", Color())
+	var leaf := mat("Garden Leaf", Color())
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 12
+	var beds := [Z_S + 3.5, Z_S + 7.7, Z_S + 11.9]
+	for i in beds.size():
+		var c := Vector3(12, 0, beds[i])
+		solid_box(Vector3(11, 0.55, 2.6), plank, c + Vector3(0, 0.275, 0), g)
+		mesh_at(box(Vector3(10.6, 0.04, 2.2)), soil, c + Vector3(0, 0.56, 0), g)
+		for k in 9:
+			var x := -4.6 + k * 1.15
+			for row in [-0.55, 0.55]:
+				var p := c + Vector3(x + rng.randf_range(-0.1, 0.1), 0.58, row)
+				match i:
+					0:                                                               # cabbages
+						mesh_at(sphere(0.32, 10), mat("Cabbage", Color(0.55, 0.82, 0.4)), p + Vector3(0, 0.22, 0), g)
+						mesh_at(sphere(0.2, 8), mat("Cabbage Heart", Color(0.75, 0.92, 0.55)), p + Vector3(0, 0.4, 0), g)
+					1:                                                               # carrots: orange tops and feathery leaves
+						mesh_at(cylinder(0.07, 0.05, 0.08, 8), mat("Carrot", Color(0.98, 0.55, 0.15)), p + Vector3(0, 0.04, 0), g)
+						for q in 3:
+							mesh_at(cylinder(0.0, 0.05, 0.45, 5), leaf, p + Vector3(0, 0.28, 0), g, q * 1.0,
+								Vector3(0.3, 0, 0))
+					2:                                                               # pumpkins in front, sunflowers behind
+						if row < 0 and k % 2 == 0:
+							var pm := mesh_at(sphere(0.3, 12), mat("Pumpkin", Color(0.95, 0.5, 0.1)), p + Vector3(0, 0.22, 0), g)
+							pm.scale = Vector3(1.2, 0.8, 1.2)
+							mesh_at(cylinder(0.03, 0.04, 0.12, 6), leaf, p + Vector3(0, 0.5, 0), g)
+						elif row > 0 and k % 2 == 1:
+							var h := rng.randf_range(1.7, 2.3)
+							mesh_at(cylinder(0.04, 0.05, h, 6), leaf, p + Vector3(0, h / 2, 0), g)
+							mesh_at(cylinder(0.32, 0.32, 0.06, 14), mat("Sunflower", Color(0.98, 0.82, 0.15)), p + Vector3(0, h, 0.05),
+								g, 0.0, Vector3(PI / 2 - 0.3, 0, 0))
+							mesh_at(cylinder(0.15, 0.15, 0.08, 12), mat("Sunflower Middle", Color(0.4, 0.25, 0.12)), p + Vector3(0, h, 0.07),
+								g, 0.0, Vector3(PI / 2 - 0.3, 0, 0))
+							mesh_at(sphere(0.2, 6), leaf, p + Vector3(0.15, h * 0.5, 0), g)
+	label(g, "Vegetable Beds", Vector3(12, 2.8, Z_S + 1.4), 0.0, 56)
+
+
+func _flower_borders(parent: Node) -> void:
+	# Flowers on stems along the front of the school and the hedges
+	var g := node("Flower Borders", parent)
+	var stem := mat("Flower Stem", Color(0.3, 0.6, 0.25))
+	var colors := [Color(0.95, 0.4, 0.6), Color(0.98, 0.85, 0.3), Color(0.7, 0.45, 0.95), Color(0.98, 0.55, 0.3),
+		Color(0.97, 0.96, 0.92)]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5
+	var spots := []
+	for k in 13:                                   # along the school's front wall, both sides of the doors
+		spots.append(Vector3(-3.2 - k * 0.65, 0, Z_S + 0.6))
+		spots.append(Vector3(3.2 + k * 0.65, 0, Z_S + 0.6))
+	for k in 20:                                   # along the back hedges by the way out
+		spots.append(Vector3(-4.4 - k * 0.75, 0, Z_S + 17.1))
+		spots.append(Vector3(4.4 + k * 0.75, 0, Z_S + 17.1))
+	for k in 9:                                    # along the east hedge
+		spots.append(Vector3(19.0, 0, Z_S + 15.6 - k * 0.6))
+	for p: Vector3 in spots:
+		p += Vector3(rng.randf_range(-0.15, 0.15), 0, rng.randf_range(-0.2, 0.2))
+		var h := rng.randf_range(0.45, 0.85)
+		var c: int = rng.randi() % colors.size()
+		mesh_at(cylinder(0.025, 0.03, h, 5), stem, p + Vector3(0, h / 2, 0), g)
+		mesh_at(sphere(0.13, 8), mat("Flower %d" % c, colors[c], 0.9), p + Vector3(0, h, 0), g)
+		mesh_at(sphere(0.05, 6), mat("Flower Middle", Color(0.98, 0.9, 0.4)), p + Vector3(0, h + 0.1, 0), g)
+		if rng.randf() < 0.5:
+			mesh_at(sphere(0.1, 6), mat("Garden Leaf", Color()), p + Vector3(0.08, h * 0.4, 0), g)
+
+
+func _bench(parent: Node, at: Vector3, yaw: float) -> void:
+	# A garden bench, seat to the front (local +z), so yaw turns it to face the path
+	var b := node("Bench", parent, at, yaw)
+	var wood := mat("Bench Wood", Color(0.62, 0.44, 0.28))
+	var iron := mat("Bench Iron", Color(0.2, 0.22, 0.24), 0.5, 0.6)
+	solid_box(Vector3(2.0, 0.08, 0.6), wood, Vector3(0, 0.48, 0), b)
+	mesh_at(box(Vector3(2.0, 0.5, 0.06)), wood, Vector3(0, 0.85, -0.3), b, 0.0, Vector3(-0.15, 0, 0))
+	for x in [-0.85, 0.85]:
+		mesh_at(box(Vector3(0.08, 0.46, 0.55)), iron, Vector3(x, 0.23, 0), b)
+		mesh_at(box(Vector3(0.08, 0.6, 0.08)), iron, Vector3(x, 0.8, -0.3), b)
+
+
+func _rose_arch(parent: Node, z: float) -> void:
+	# An arch over the path near the way out, covered in climbing roses
+	var a := node("Rose Arch", parent, Vector3(0, 0, z))
+	var frame := mat("Arch Frame", Color(0.96, 0.96, 0.94), 0.5)
+	var leaf := mat("Garden Leaf", Color())
+	var rose := mat("Rose", Color(0.95, 0.35, 0.5))
+	for x in [-2.4, 2.4]:
+		solid_box(Vector3(0.16, 3.0, 0.16), frame, Vector3(x, 1.5, 0), a)
+	for k in 12:                                    # the curve over the top, in short pieces
+		var a0 := PI * k / 12.0
+		var a1 := PI * (k + 1) / 12.0
+		var p0 := Vector2(-cos(a0) * 2.4, sin(a0) * 1.44)
+		var p1 := Vector2(-cos(a1) * 2.4, sin(a1) * 1.44)
+		var mid := (p0 + p1) / 2
+		mesh_at(box(Vector3(p0.distance_to(p1) + 0.05, 0.16, 0.16)), frame, Vector3(mid.x, 3.0 + mid.y, 0), a, 0.0,
+			Vector3(0, 0, atan2(p1.y - p0.y, p1.x - p0.x)))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 8
+	for k in 22:
+		var t := k / 21.0
+		var p: Vector3
+		if t < 0.3:
+			p = Vector3(-2.4, t / 0.3 * 3.0, 0)
+		elif t > 0.7:
+			p = Vector3(2.4, (1.0 - t) / 0.3 * 3.0, 0)
+		else:
+			var ang := PI * (t - 0.3) / 0.4
+			p = Vector3(-cos(ang) * 2.4, 3.0 + sin(ang) * 1.44, 0)
+		p += Vector3(rng.randf_range(-0.15, 0.15), 0, rng.randf_range(-0.15, 0.15))
+		mesh_at(sphere(0.26, 8), leaf, p, a)
+		if k % 2 == 0:
+			mesh_at(sphere(0.11, 6), rose, p + Vector3(0, 0.12, 0.2), a)
+
+
+func _watering_can(parent: Node, at: Vector3, yaw: float, m: Material) -> void:
+	var w := node("Watering Can", parent, at, yaw)
+	mesh_at(cylinder(0.18, 0.2, 0.36, 14), m, Vector3(0, 0.18, 0), w)
+	mesh_at(cylinder(0.025, 0.035, 0.5, 8), m, Vector3(0.3, 0.3, 0), w, 0.0, Vector3(0, 0, -0.9))      # spout
+	mesh_at(cylinder(0.06, 0.03, 0.06, 8), m, Vector3(0.5, 0.46, 0), w, 0.0, Vector3(0, 0, -0.9))       # its rose
+	var handle := TorusMesh.new()
+	handle.inner_radius = 0.12
+	handle.outer_radius = 0.15
+	mesh_at(handle, m, Vector3(-0.02, 0.38, 0), w, 0.0, Vector3(PI / 2, 0, 0))
+
+
+func _view() -> void:
+	# What's outside the school, for its windows and the garden: the castle hill's top it stands on, the cliff down
+	# to the town, the town's land, and the town's own mountains and cloud streaks (tools/build_town.gd), all where
+	# they are in the town. Nothing here is solid; she can't get out to it.
+	var v := node("View", school)
+	var t: Dictionary = BT.THEMES[WT.THEME]
+	var alien := WT.alien()
+	var hill_top := -0.06
+	var town_y := -IN_TOWN.y
+	mesh_at(cylinder(BT.CASTLE_HILL_TOP, BT.CASTLE_HILL_TOP, 0.1, 64), view_mat("View Hill Top", t.hill_grass),
+		Vector3(0, hill_top - 0.05, 0), v)
+	mesh_at(cylinder(BT.CASTLE_HILL_TOP, BT.CASTLE_HILL_TOP + 8.0, IN_TOWN.y, 64), view_mat("View Cliff", t.rock),
+		Vector3(0, hill_top - 0.1 - IN_TOWN.y / 2, 0), v)
+	mesh_at(cylinder(700, 700, 0.2, 64), view_mat("View Land", t.far_grass), Vector3(0, town_y - 0.1, 0), v)
+	var far := view_mat("Mountain", t.mountain_far, 0.35 if alien else 1.0, 0.3 if alien else 0.0)
+	var near := view_mat("Mountain Near", t.mountain_near, 0.35 if alien else 1.0, 0.3 if alien else 0.0)
+	var peaks := BT.mountain_peaks()
+	var mg := node("Mountains", v)
+	for k in peaks.size():
+		var peak: Array = peaks[k]
+		var h: float = peak[1]
+		var p: Vector3 = peak[0] - IN_TOWN
+		var mi := mesh_at(cylinder(0.0, h * 0.75, h, t.mountain_sides), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), mg,
+			peak[2])
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# The cream cloud streaks; they fade at night with the town's (scripts/day_night.gd looks for "Sky Cloud")
+	var cloud := StandardMaterial3D.new()
+	cloud.resource_name = "Sky Cloud"
+	cloud.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cloud.albedo_color = Color(0.99, 0.93, 0.72, 0.85) if alien else Color(1, 1, 1, 0.85)
+	cloud.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	cloud.disable_fog = true
+	var cg := node("Clouds", v)
+	for s: Array in BT.cloud_streaks():
+		var mi := mesh_at(sphere(1.0, 24), cloud, s[0] - IN_TOWN, cg, s[1], Vector3(0, 0, s[2]))
+		mi.scale = s[3]
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func view_mat(name: String, color: Color, rough := 1.0, metal := 0.0) -> StandardMaterial3D:
+	# Colours straight from the town's theme (already in its palette, so not tinted again)
+	var m := StandardMaterial3D.new()
+	m.resource_name = name
+	m.albedo_color = color
+	m.roughness = rough
+	m.metallic = metal
+	return m
 
 
 func _player() -> void:

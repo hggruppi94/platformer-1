@@ -29,6 +29,7 @@ func _initialize() -> void:
 	world.name = "Earth"
 	world.set_script(load("res://scripts/earth_world.gd"))
 	_environment()
+	_sky()
 	_ground_and_street()
 	_gazebo()
 	_buildings()
@@ -148,6 +149,70 @@ func lamp_light(parent: Node3D, pos: Vector3, color: Color, energy := 1.4, rng_m
 
 
 # -----------------------------------------------------------------------------
+func sky_mat(name: String, color: Color) -> StandardMaterial3D:
+	# Unshaded and fog-free, for things far up in the sky. scripts/earth_world.gd recolours them through the day.
+	var m := StandardMaterial3D.new()
+	m.resource_name = name
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = color
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.disable_fog = true
+	return m
+
+
+func _sky() -> void:
+	# An Earth sky: soft white clouds drifting high around the town, stars and the moon for the night. The sky's
+	# colours, the sun, the moon's place and the clouds' colours change with Earth's clock (scripts/earth_world.gd).
+	var g := group("Sky")
+	var sky_rng := RandomNumberGenerator.new()           # its own, so the town's trees and leaves stay where they were
+	sky_rng.seed = 2024
+	var clouds := Node3D.new()
+	clouds.name = "Clouds"
+	g.add_child(clouds)
+	var cloud_m := sky_mat("Earth Cloud", Color(1, 1, 1, 0.92))
+	for k in 18:
+		# A fluffy cumulus: a flat-bottomed row of puffs, the middle ones biggest
+		var a := TAU * k / 18.0 + sky_rng.randf_range(-0.12, 0.12)
+		var dist := sky_rng.randf_range(260.0, 420.0)
+		var c := Node3D.new()
+		c.position = Vector3(cos(a) * dist, sky_rng.randf_range(75.0, 150.0), sin(a) * dist)
+		c.rotation.y = -a + PI / 2                       # its long side across the view from town
+		clouds.add_child(c)
+		var size := sky_rng.randf_range(14.0, 26.0)
+		var puffs := sky_rng.randi_range(4, 7)
+		for q in puffs:
+			var t := (q + 0.5) / puffs - 0.5
+			var r := size * (1.0 - absf(t) * 1.1) * sky_rng.randf_range(0.8, 1.1)
+			var pm := mesh_at(ball(1.0, 16), cloud_m, Vector3(t * size * 2.4, r * 0.35, sky_rng.randf_range(-0.3, 0.3) * size), c)
+			pm.scale = Vector3(r, r * 0.7, r * 0.8)
+			pm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Stars on a dome, only at night
+	var stars := Node3D.new()
+	stars.name = "Stars"
+	g.add_child(stars)
+	var star_m := sky_mat("Earth Star", Color(1, 0.98, 0.9, 0.0))
+	for k in 220:
+		var a := sky_rng.randf() * TAU
+		var up := asin(sky_rng.randf_range(0.12, 1.0))
+		var d := Vector3(cos(a) * cos(up), sin(up), sin(a) * cos(up))
+		var sm := mesh_at(ball(sky_rng.randf_range(0.9, 2.2), 6), star_m, d * 900.0, stars)
+		sm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# The moon: a pale disc with a soft glow round it. It rises opposite the sun.
+	var moon := Node3D.new()
+	moon.name = "Moon"
+	moon.position = Vector3(300, 420, -500)
+	g.add_child(moon)
+	var mm := mesh_at(ball(26.0, 24), sky_mat("Earth Moon", Color(0.97, 0.96, 0.88, 0.0)), Vector3.ZERO, moon)
+	mm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var sea_m := sky_mat("Earth Moon Sea", Color(0.78, 0.78, 0.76, 0.0))
+	for spot in [[Vector3(-7, 8, -20), 6.0], [Vector3(9, -4, -21), 8.0], [Vector3(-2, -12, -22), 4.5]]:   # its grey seas
+		var sea := mesh_at(ball(spot[1], 10), sea_m, spot[0], moon)
+		sea.scale = Vector3(1, 1, 0.3)
+		sea.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var halo := mesh_at(ball(48.0, 24), sky_mat("Earth Moon Glow", Color(0.75, 0.82, 1.0, 0.0)), Vector3.ZERO, moon)
+	halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 func _environment() -> void:
 	var sky_m := ProceduralSkyMaterial.new()
 	sky_m.sky_top_color = Color(0.35, 0.5, 0.8)
@@ -166,6 +231,7 @@ func _environment() -> void:
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.9, 0.7, 0.55)
 	env.fog_density = 0.006
+	env.fog_sky_affect = 0.15                                      # haze over the town, but the sky keeps its colours
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
 	we.environment = env

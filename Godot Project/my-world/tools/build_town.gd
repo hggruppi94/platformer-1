@@ -1614,6 +1614,20 @@ func _mountains() -> void:
 	var g := group("Mountains", Vector3.ZERO)
 	var far := mat("Mountain", T.mountain_far, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3, 0.0, 1.0, false)
 	var near := mat("Mountain Near", T.mountain_near, 1.0 if THEME == "earth" else 0.35, 0.0 if THEME == "earth" else 0.3, 0.0, 1.0, false)
+	var peaks := mountain_peaks()
+	for k in peaks.size():
+		var peak: Array = peaks[k]
+		var p: Vector3 = peak[0]
+		var h: float = peak[1]
+		mesh_at(cylinder(0.0, h * 0.75, h, T.mountain_sides), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), g,
+			peak[2])
+	own(g)
+
+
+static func mountain_peaks() -> Array:
+	# The ring of mountains to the north: [foot position, height, turn] each. The school's 3rd-floor window shows the
+	# same peaks (tools/build_school.gd).
+	var out := []
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
 	for k in 22:
@@ -1621,9 +1635,8 @@ func _mountains() -> void:
 		var dist := rng.randf_range(260, 310)
 		var h := rng.randf_range(55, 110)
 		var p := Vector3(cos(a) * dist, -5, sin(a) * dist - 60)   # well behind the castle hill
-		mesh_at(cylinder(0.0, h * 0.75, h, T.mountain_sides), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), g,
-			rng.randf() * TAU)
-	own(g)
+		out.append([p, h, rng.randf() * TAU])
+	return out
 
 
 func _sky_objects() -> void:
@@ -1682,16 +1695,25 @@ func _clouds(g: Node3D) -> void:
 	m.albedo_color = Color(0.99, 0.93, 0.72, 0.85)
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.disable_fog = true
+	for s: Array in cloud_streaks():
+		var mi := mesh_at(sphere(1.0, -1, 24), m, s[0], g, s[1], Vector3(0, 0, s[2]))
+		mi.scale = s[3]
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+static func cloud_streaks() -> Array:
+	# [position, turn, tip, scale] for each streak of cloud. The school's 3rd-floor window shows them too.
+	var out := []
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 21
 	for k in 22:
 		var a := rng.randf() * TAU
 		var dist := rng.randf_range(260.0, 480.0)
 		# Long and thin, turned to face the town so they read as streaks across the sky, tipped a little
-		var mi := mesh_at(sphere(1.0, -1, 24), m, Vector3(cos(a) * dist, rng.randf_range(110.0, 240.0), sin(a) * dist - 60.0), g,
-			atan2(-cos(a), -sin(a)), Vector3(0, 0, rng.randf_range(-0.3, 0.3)))
-		mi.scale = Vector3(rng.randf_range(50.0, 120.0), rng.randf_range(3.0, 7.0), 2.0)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var p := Vector3(cos(a) * dist, rng.randf_range(110.0, 240.0), sin(a) * dist - 60.0)
+		var tip := rng.randf_range(-0.3, 0.3)
+		out.append([p, atan2(-cos(a), -sin(a)), tip, Vector3(rng.randf_range(50.0, 120.0), rng.randf_range(3.0, 7.0), 2.0)])
+	return out
 
 
 func _mothership() -> void:
