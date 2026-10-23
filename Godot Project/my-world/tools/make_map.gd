@@ -13,10 +13,10 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.capture_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const CENTER := Vector2(-8, -32)                  # x, z of the middle of the map
-const SIZE_M := 300.0                             # metres across (it's square)
+const CENTER := Vector2(0, -75)                   # x, z of the middle of the map (the castle hill reaches z -248)
+const SIZE_M := 370.0                             # metres across (it's square)
 const PIXELS := 1024
-const HIDE := ["Player", "Characters", "Sky Objects", "Enemies", "Sailboats", "WorldBounds", "Far Ground", "Foliage"]
+const HIDE := ["Player", "Characters", "Sky Objects", "Enemies", "Sailboats", "WorldBounds", "Mountains", "Foliage"]
 
 
 func _initialize() -> void:
@@ -41,6 +41,9 @@ func _run() -> void:
 		var node := town.get_node_or_null(n) as Node3D
 		if node:
 			node.visible = false
+	# The map is wider than the town's ground: the far grass fills its edges, dropped below the lake bed so it can't
+	# show through the water
+	(town.get_node("Far Ground") as Node3D).position.y = -3.0
 	var env := (town.get_node("WorldEnvironment") as WorldEnvironment).environment
 	env.fog_enabled = false
 	env.volumetric_fog_enabled = false

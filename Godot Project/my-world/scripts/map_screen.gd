@@ -17,7 +17,7 @@ const MINI_SIZE := 220.0
 const MINI_METRES := 70.0                           # how much of the town the minimap shows across
 
 # Districts (big labels), at fixed spots; buildings (small labels) are looked up in the town by name
-const DISTRICTS := [["Market Square", Vector2(-72, 30)], ["Homes", Vector2(80, 20)], ["Castle & School", Vector2(20, -130)],
+const DISTRICTS := [["Market Square", Vector2(-72, 30)], ["Homes", Vector2(80, 20)], ["Castle & School", Vector2(15, -205)],
 	["Secret Gardens", Vector2(-78, -60)], ["Observatory Hill", Vector2(105, -104)], ["Sports & Play", Vector2(66, 74)],
 	["Spooky Woods", Vector2(-118, -146)], ["The Lake", Vector2(4, 8)]]
 const BUILDINGS := ["Town Hall", "Library", "Museum", "Aquarium", "Potion Shop", "Cafe", "Clothing Boutique", "Book Store",

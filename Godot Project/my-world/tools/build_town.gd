@@ -13,7 +13,7 @@ const OUT := OUT_DIR + "/town.tscn"
 # Terrain extent and resolution
 const X_MIN := -150.0
 const X_MAX := 150.0
-const Z_MIN := -175.0
+const Z_MIN := -260.0
 const Z_MAX := 110.0
 const STEP := 2.0
 
@@ -27,11 +27,12 @@ const BASIN_DEPTH := 1.6
 const PLATEAU := Vector3(-78, -42, 12)           # Secret Gardens / Hot Springs plateau: x, z, height
 const PLATEAU_CLIFF := 33.0                      # cliff radius
 const PLATEAU_RAMP := Vector2(-0.6, 0.8)         # direction of the walkable ramp up (southwest)
-const CASTLE_HILL := Vector3(20, -108, 20)       # school hill: x, z, height
-const CASTLE_HILL_TOP := 30.0                    # flat top radius: wide enough for the whole castle, domed halls too
-const CASTLE_HILL_FOOT := 66.0                   # where the hill meets the town (clear of the north shore shops)
+const CASTLE_HILL := Vector3(15, -150, 16)       # school hill: x, z, height
+const CASTLE_HILL_TOP := 62.0                    # flat top radius: Bojnice Castle is real size, 89 x 106 m
+const CASTLE_HILL_FOOT := 98.0                   # where the hill meets the town (clear of the north shore shops)
+const BOJNICE := "res://tools/bojnice_footprint.json"   # the castle's real footprint (tools/fetch_bojnice.py)
+const CASTLE_YAW := PI                           # Bojnice's gate faces north: turned round to face the town
 const TOWN_SQUARE := Vector3(-12, -21, 10)       # x, z, radius (land between the two lakes)
-const CASTLE_SCALE := 1.6
 
 const SPAWN := Vector3(-72, 0, 80)               # where she appears in town without a door: the market's south entrance
 
@@ -48,7 +49,7 @@ const SKATE := Vector2(50, 58)
 const MAIN_PATHS := [
 	[Vector2(-72, 78), Vector2(-72, 64)],
 	[Vector2(-50, 42), Vector2(-26, 23), Vector2(-7, 22), Vector2(22, 20), Vector2(36, 15), Vector2(52, 2), Vector2(70, 2)],
-	[Vector2(-12, -42), Vector2(4, -62), Vector2(20, -82)],
+	[Vector2(-12, -42), Vector2(4, -62), Vector2(20, -82), Vector2(35, -93)],
 	[Vector2(-7, 22), Vector2(12, 48), Vector2(38, 56), Vector2(80, 50), Vector2(122, 58)],
 	[Vector2(88, -32), Vector2(97, -54), Vector2(97, -76)],
 	[Vector2(80, 8), Vector2(78, 26), Vector2(76, 46)],
@@ -104,6 +105,7 @@ var T: Dictionary = THEMES[THEME]
 
 var town: Node3D
 var mats := {}
+var castle_faces := PackedVector3Array()   # the castle's walls and roofs, for its collision
 var keep_clear: Array = []      # circles (x, z, r) where no trees are scattered
 
 
@@ -439,9 +441,9 @@ func _terrain() -> void:
 
 func _far_ground() -> void:
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(700, 700)
+	plane.size = Vector2(900, 900)
 	var g := group("Far Ground", Vector3.ZERO)
-	mesh_at(plane, mat("Far Grass", T.far_grass, 1.0, 0.0, 0.0, 1.0, false), Vector3(0, -0.8, -30), g)
+	mesh_at(plane, mat("Far Grass", T.far_grass, 1.0, 0.0, 0.0, 1.0, false), Vector3(0, -0.8, -60), g)
 	own(g)
 
 
@@ -827,180 +829,278 @@ func _observatory(g: Node3D) -> void:
 
 
 func _castle() -> void:
-	# The castle school from Sofi's picture (source_art/reference/world/town - cast in front of the castle.webp):
-	# a tall grey-blue fairytale castle, a crowd of slender towers with dark needle spires, gold-lit arched windows,
-	# little turrets hanging off the big towers, and domed halls at its feet. Its colours skip the world theme on
-	# purpose so it looks like her drawing. Positions are in castle units, multiplied by CASTLE_SCALE.
+	# The castle school is Bojnice Castle (Bojnice, Slovakia) at its real size: every tower and wing, its outline and
+	# courtyards come from OpenStreetMap's 3D building data (tools/bojnice_footprint.json, made by
+	# tools/fetch_bojnice.py; map data (c) OpenStreetMap contributors, ODbL). Bojnice's gate faces north, so the castle
+	# is turned round to face the town. Colours go through the world theme like every other building.
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(BOJNICE))
 	var top := ground(CASTLE_HILL.x, CASTLE_HILL.y)
-	var g := group("Castle School", top)
-	var S := CASTLE_SCALE
-	var stone := mat("Castle Stone", Color(0.34, 0.48, 0.72), 0.85, 0.0, 0.0, 1.0, false)
-	var stone_dark := mat("Castle Stone Dark", Color(0.27, 0.38, 0.6), 0.85, 0.0, 0.0, 1.0, false)
-	var roof := mat("Castle Roof", Color(0.11, 0.14, 0.24), 0.55, 0.1, 0.0, 1.0, false)
-	var lit := mat("Castle Window", Color(1.0, 0.76, 0.28), 0.5, 0.0, 1.6, 1.0, false)
-	var door := mat("Castle Door", Color(0.28, 0.2, 0.16), 0.8, 0.0, 0.0, 1.0, false)
+	var g := group("Castle School", top, CASTLE_YAW)
+	var surfaces := {}                                   # material -> SurfaceTool, all merged into one mesh
+	castle_faces = PackedVector3Array()                  # walls and roofs, for the collision
+	var wall := mat("Castle Wall", Color(0.93, 0.88, 0.76), 0.85)
+	var lit := mat("Castle Window", Color(1.0, 0.82, 0.35), 0.4, 0.0, 1.4)
+	var finial := mat("Castle Finial", Color(0.95, 0.78, 0.3), 0.3, 0.6)
 
-	# Keep: the wide body the towers grow out of, with a battlement ring and rows of windows
-	var keep_r := 9.0 * S
-	var keep_h := 15.0 * S
-	mesh_at(cylinder(keep_r * 0.96, keep_r, keep_h + 4 * S, 16), stone, Vector3(0, keep_h / 2 - 2 * S, 0), g)
-	solid(_cyl_shape(keep_r, keep_h + 4 * S), Vector3(0, keep_h / 2 - 2 * S, 0), g)
-	mesh_at(cylinder(keep_r * 1.04, keep_r * 0.96, 1.2 * S, 16), stone_dark, Vector3(0, keep_h + 0.6 * S, 0), g)
-	for k in 16:
-		var a := k * TAU / 16
-		mesh_at(box(Vector3(1.4, 1.2, 1.0) * S), stone_dark, Vector3(sin(a), 0, cos(a)) * keep_r + Vector3(0, keep_h + 1.7 * S, 0), g, a)
-	for row in 2:
-		for k in 10:
-			var a := (k + 0.5 * row) * TAU / 10
-			if row == 0 and absf(wrapf(a, -PI, PI)) < 0.35:
-				continue                                  # leave the gate clear
-			arch_window(g, lit, Vector3.ZERO, a, keep_r * 0.98, (6.0 + row * 5.0) * S, 1.1 * S)
+	# The base: the whole outline minus the open courtyards, a block as tall as the curtain walls, with battlements
+	var ring: Dictionary = data.ring
+	var rh: float = ring.height
+	var outline := _pts(ring.outline)
+	_walls(surfaces, wall, null, outline, -3.0, rh, false)
+	for c in ring.courts:
+		_walls(surfaces, wall, null, _pts(c), -3.0, rh, true)
+	var rp := _pts(ring.points)
+	for t in ring.tris:
+		var a := Vector3(rp[t[0]].x, rh, rp[t[0]].y)
+		var b := Vector3(rp[t[1]].x, rh, rp[t[1]].y)
+		var c := Vector3(rp[t[2]].x, rh, rp[t[2]].y)
+		_tri(_st(surfaces, wall), true, a, b, c, Vector3.UP)
+	var part_polys := []
+	for part in data.parts:
+		part_polys.append(_pts(part.points))
+	for i in outline.size():
+		var p0 := outline[i - 1]
+		var p1 := outline[i]
+		var n := int(p0.distance_to(p1) / 2.4)
+		var inward := -_outward(outline, p0, p1)
+		for k in n:
+			var q := p0.lerp(p1, (k + 0.5) / n)
+			if part_polys.any(func(pp: PackedVector2Array) -> bool: return Geometry2D.is_point_in_polygon(q + inward * 0.8, pp)):
+				continue                                     # this stretch of wall is a tower or wing, not a curtain wall
+			var yaw := atan2(p1.x - p0.x, p1.y - p0.y)
+			_box(surfaces, wall, Vector3(q.x, rh + 0.6, q.y), Vector3(0.9, 1.2, 1.2), yaw)
 
-	# Towers: x, z, radius, height (top of the wall; the needle spire sits above it)
-	var towers := [
-		Vector4(0, -3, 3.6, 46),                          # the tall middle tower
-		Vector4(-5, -7, 2.8, 36), Vector4(5, -7.5, 2.8, 39), Vector4(0, -11, 2.6, 33),
-		Vector4(-3.5, 2.5, 2.3, 30), Vector4(3.8, 2, 2.2, 33),
-		Vector4(-11, 2, 3.0, 24), Vector4(11, 2, 3.0, 26), Vector4(-8.5, -9, 2.6, 28), Vector4(8.5, -10, 2.6, 27),
-		Vector4(-15, -5, 2.2, 20), Vector4(15, -5, 2.2, 21), Vector4(-5, 7, 2.2, 19), Vector4(5, 7, 2.2, 19),
-		Vector4(-12, -12, 1.8, 18), Vector4(12, -13, 1.8, 19),
-	]
-	for i in towers.size():
-		towers[i] = towers[i] * S
-		var t: Vector4 = towers[i]
-		var inside := Vector2(t.x, t.y).length() + t.z < keep_r     # windows only where they show above the keep
-		castle_tower(g, Vector3(t.x, -2 * S, t.y), t.z, t.w, stone if i % 3 else stone_dark, roof, lit, i == 0, true,
-			keep_h if inside else 0.0)
+	# Every tower and wing: walls with rows of lit windows, and a steep hipped roof (a pointed one on the towers)
+	var gate_part := {}
+	for part in data.parts:
+		var pts := _pts(part.points)
+		var base: float = part.base
+		var wall_top: float = part.wall_top
+		var roof := mat("Castle Roof " + str(part.roof_colour), _roof_colour(part.roof_colour), 0.6)
+		_walls(surfaces, wall, lit, pts, base if base > 0.0 else -3.0, wall_top, false)
+		var apex := _roof(surfaces, roof, pts, part.tris, wall_top, part.roof, part.inner_radius)
+		if part.shape == "pyramidal":
+			mesh_at(cylinder(0.0, 0.18, 4.0, 8), finial, apex + Vector3(0, 1.6, 0), g)
+			mesh_at(sphere(0.35, -1, 12), finial, apex + Vector3(0, 0.5, 0), g)
+		if part.gate:
+			gate_part = part
 
-	# Castle walls joining the two outer back towers to the keep (they used to stand on their own beside it)
-	for i in [10, 11]:
-		var t: Vector4 = towers[i]
-		var c := Vector2(t.x, t.y)
-		var dir := c.normalized()
-		var from := dir * (keep_r - 1.5 * S)                     # starts inside the keep's wall...
-		var to := c - dir * (t.z * 0.4)                          # ...and ends inside the tower
-		var mid := (from + to) / 2.0
-		var length := from.distance_to(to)
-		var yaw := atan2(dir.x, dir.y)
-		var wall_h := 10.0 * S
-		var wall_y := -2.0 * S + wall_h / 2.0
-		mesh_at(box(Vector3(2.0 * S, wall_h, length)), stone_dark, Vector3(mid.x, wall_y, mid.y), g, yaw)
-		solid(box_shape(Vector3(2.0 * S, wall_h, length)), Vector3(mid.x, wall_y, mid.y), g, yaw)
-		var n := int(length / (1.6 * S))
-		for k in n:                                            # battlements along both edges of the top
-			var along := from + dir * ((k + 0.5) * length / n)
-			for side in [-1, 1]:
-				var off: Vector2 = Vector2(dir.y, -dir.x) * (0.75 * S) * side
-				mesh_at(box(Vector3(0.5, 0.8, 0.7) * S), stone_dark, Vector3(along.x + off.x, wall_y + wall_h / 2.0 + 0.4 * S,
-					along.y + off.y), g, yaw)
-		for k in 2:                                            # a lit window on each face
-			var w := from.lerp(to, 0.5)
-			var face := Vector2(dir.y, -dir.x) * (1.05 * S) * (1 if k == 0 else -1)
-			mesh_at(box(Vector3(0.9, 1.6, 0.1) * S), lit, Vector3(w.x + face.x, wall_y + 2.0 * S, w.y + face.y), g, yaw + PI / 2.0)
+	var mesh := ArrayMesh.new()
+	for m in surfaces:
+		var st: SurfaceTool = surfaces[m]
+		st.commit(mesh)
+		mesh.surface_set_material(mesh.get_surface_count() - 1, m)
+	save_external(mesh, "castle_mesh.res")
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(castle_faces)
+	save_external(shape, "castle_shape.res")
+	var mi := MeshInstance3D.new()
+	mi.name = "Bojnice"
+	mi.mesh = mesh
+	g.add_child(mi)
+	solid(shape, Vector3.ZERO, g).name = "BojniceCollision"
 
-	# Turrets hanging off the big towers, high up: parent tower index, angle around it, radius, height above base
-	var turrets := [
-		Vector4(0, 0.9, 1.1, 30), Vector4(0, -0.9, 1.0, 34), Vector4(0, PI, 1.0, 26),
-		Vector4(1, -1.3, 0.9, 24), Vector4(2, 1.4, 0.9, 27), Vector4(3, PI, 0.8, 22),
-		Vector4(6, -1.6, 1.0, 16), Vector4(7, 1.6, 1.0, 18), Vector4(8, -2.2, 0.9, 19), Vector4(9, 2.2, 0.9, 18),
-		Vector4(4, -0.7, 0.8, 21), Vector4(5, 0.7, 0.8, 23),
-	]
-	for tu in turrets:
-		var p: Vector4 = towers[int(tu.x)]
-		var dir := Vector3(sin(tu.y), 0, cos(tu.y))
-		var r: float = tu.z * S
-		var base: Vector3 = Vector3(p.x, tu.w * S, p.y) + dir * (p.z + r * 0.6)
-		mesh_at(cylinder(r, 0.0, r * 2.2, 16), stone_dark, base + Vector3(0, -r * 1.1, 0), g)     # corbel underneath
-		castle_tower(g, base, r, base.y + 4.5 * S, stone, roof, lit, false, false)
-
-	# Domed halls at the castle's feet, left and right of the gate: x, z, radius
-	for d in [Vector3(-16, 5, 6.0), Vector3(16, 5, 6.0), Vector3(-11.5, 11, 3.6), Vector3(11.5, 11, 3.6)]:
-		var dp := Vector3(d.x, 0, d.y) * S
-		dp.y = height(top.x + dp.x, top.z + dp.z) - top.y
-		var low := dp.y                               # lowest ground round its wall, so no side floats on a slope
-		for k in 12:
-			var a := k * TAU / 12
-			low = minf(low, height(top.x + dp.x + sin(a) * d.z * S, top.z + dp.z + cos(a) * d.z * S) - top.y)
-		domed_hall(g, dp, d.z * S, stone, roof, lit, dp.y - low + 2.0)
-
-	# Front gate (south): an arched door between two pillars, with the school entrance trigger
-	var front := keep_r
-	mesh_at(box(Vector3(5, 7, 1.2)), door, Vector3(0, 3.5, front + 0.2), g)
-	mesh_at(cylinder(2.5, 2.5, 1.2, 24), door, Vector3(0, 7, front + 0.2), g, 0.0, Vector3(PI / 2, 0, 0))
-	mesh_at(box(Vector3(7.5, 1.2, 1.6)), stone_dark, Vector3(0, 10.1, front + 0.4), g)
-	for s in [-1, 1]:
-		mesh_at(box(Vector3(1.2, 9.5, 1.6)), stone_dark, Vector3(s * 3.2, 4.75, front + 0.4), g)
+	# The gate: on the gate building's side that faces the town, with the school entrance trigger
+	var gp := _pts(gate_part.points)
+	var best := -2.0
+	var mid := Vector2.ZERO
+	var out := Vector2.ZERO
+	for i in gp.size():
+		var e := gp[i] - gp[i - 1]
+		var n2 := _outward(gp, gp[i - 1], gp[i])
+		var score := (Basis(Vector3.UP, CASTLE_YAW) * Vector3(n2.x, 0, n2.y)).z + e.length() * 0.001   # faces the town
+		if score > best:
+			best = score
+			mid = (gp[i - 1] + gp[i]) / 2.0
+			out = n2
+	var door_yaw := atan2(out.x, out.y)
+	var world_mid := g.transform * Vector3(mid.x, 0, mid.y)
+	var dy := height(world_mid.x, world_mid.z) - top.y
+	var at := Vector3(mid.x, dy, mid.y) + Vector3(out.x, 0, out.y) * 0.35
+	var door := mat("Castle Door", Color(0.4, 0.26, 0.16), 0.8)
+	mesh_at(box(Vector3(4.0, 5.0, 0.6)), door, at + Vector3(0, 2.5, 0), g, door_yaw)
+	mesh_at(cylinder(2.0, 2.0, 0.6, 24), door, at + Vector3(0, 5.0, 0), g, door_yaw, Vector3(PI / 2, 0, 0))
 	var area := Area3D.new()
 	area.name = "SchoolEntrance"
 	area.set_script(load("res://scripts/door.gd"))
 	area.set("destination", "res://scenes/school/school.tscn")
 	area.set("spawn", "FromTown")
-	var back := Marker3D.new()                   # where she appears when leaving the school, facing the town
-	back.name = "FromSchool"
-	back.position = Vector3(0, 1.0, front + 6)
-	back.rotation.y = PI
-	g.add_child(back)
-	area.position = Vector3(0, 2, front + 1.5)
+	area.position = at + Vector3(out.x, 0, out.y) * 1.2 + Vector3(0, 2, 0)
+	area.rotation.y = door_yaw
 	var cs := CollisionShape3D.new()
 	cs.shape = box_shape(Vector3(4, 4, 1.5))
 	area.add_child(cs)
 	g.add_child(area)
-	var glow := OmniLight3D.new()                # warm light spilling out of the gate
-	glow.light_color = Color(1.0, 0.75, 0.4)
+	var back := Marker3D.new()                   # where she appears when leaving the school, facing the town
+	back.name = "FromSchool"
+	back.position = at + Vector3(out.x, 0, out.y) * 6.0 + Vector3(0, 1.0, 0)
+	back.rotation.y = door_yaw + PI
+	g.add_child(back)
+	var glow := OmniLight3D.new()                # light spilling out of the gate
+	glow.light_color = WT.light(Color(1.0, 0.75, 0.4))
 	glow.light_energy = 2.0
 	glow.omni_range = 10.0
-	glow.position = Vector3(0, 4, front + 3)
+	glow.position = at + Vector3(out.x, 0, out.y) * 2.5 + Vector3(0, 4, 0)
 	g.add_child(glow)
-	sign_post(g, "School", Vector3(6, 0, front + 5), 0.0)
-	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, 40))
+	var side := Vector2(out.y, -out.x)
+	sign_post(g, "School", at + Vector3(out.x * 5.0 + side.x * 5.0, 0, out.y * 5.0 + side.y * 5.0), door_yaw)
+	keep_clear.append(Vector3(CASTLE_HILL.x, CASTLE_HILL.y, CASTLE_HILL_TOP + 4.0))
 	own(g)
+	var gw := g.transform * at
+	print("CASTLE gate at (%d, %d)" % [gw.x, gw.z])
 
 
-func arch_window(parent: Node, lit: Material, center: Vector3, a: float, r: float, y: float, w: float) -> void:
-	# A gold-lit arched window on a round wall: wall centre (x, z), angle around it, wall radius, sill height, width
-	var out := Vector3(center.x + sin(a) * r, y, center.z + cos(a) * r)
-	mesh_at(box(Vector3(w, w * 1.3, 0.3)), lit, out + Vector3(0, w * 0.65, 0), parent, a)
-	mesh_at(cylinder(w / 2, w / 2, 0.3, 12), lit, out + Vector3(0, w * 1.3, 0), parent, a, Vector3(PI / 2, 0, 0))
+func _pts(arr: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p in arr:
+		out.append(Vector2(p[0], p[1]))
+	return out
 
 
-func castle_tower(parent: Node, base: Vector3, r: float, top_y: float, stone: Material, roof: Material, lit: Material,
-		tallest := false, collide := true, windows_from := 0.0) -> void:
-	# A slender round tower from base up to top_y, a corbelled ring, and a dark needle spire with a finial
-	var h := top_y - base.y
-	var pos := Vector3(base.x, base.y + h / 2, base.z)
-	mesh_at(cylinder(r * 0.94, r, h, 20), stone, pos, parent)
+func _st(surfaces: Dictionary, m: Material) -> SurfaceTool:
+	if not surfaces.has(m):
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		surfaces[m] = st
+	return surfaces[m]
+
+
+func _tri(st: SurfaceTool, collide: bool, a: Vector3, b: Vector3, c: Vector3, n: Vector3) -> void:
+	# One triangle facing n (Godot's front faces wind clockwise), added to the collision when collide
+	if (b - a).cross(c - a).dot(n) > 0.0:
+		var t := b
+		b = c
+		c = t
+	st.set_normal(n)
+	st.add_vertex(a)
+	st.set_normal(n)
+	st.add_vertex(b)
+	st.set_normal(n)
+	st.add_vertex(c)
 	if collide:
-		solid(_cyl_shape(r, h), pos, parent)
-	mesh_at(cylinder(r * 1.18, r * 0.96, r * 0.45, 20), stone, Vector3(base.x, top_y - r * 0.1, base.z), parent)
-	var spire := r * (8.5 if tallest else 6.5)
-	mesh_at(cylinder(0.0, r * 1.1, spire, 20), roof, Vector3(base.x, top_y + r * 0.12 + spire / 2, base.z), parent)
-	mesh_at(cylinder(0.0, maxf(r * 0.08, 0.06), r * 1.6, 6), roof, Vector3(base.x, top_y + spire + r * 0.7, base.z), parent)
-	# Gold arched windows in staggered rows, more of them on the wider towers
-	var per_row := 4 if r > 2.5 else 3
-	var w := clampf(r * 0.32, 0.45, 1.6)
-	var y := maxf(maxf(base.y, 0.0) + r * 2.0, windows_from + w)
-	var row := 0
-	while y < top_y - w * 2.5:
-		for k in per_row:
-			arch_window(parent, lit, base, (k + 0.5 * (row % 2)) * TAU / per_row + 0.3, r * 0.96, y, w)
-		y += maxf(w * 4.5, h / 5.0)
-		row += 1
+		castle_faces.append_array([a, b, c])
 
 
-func domed_hall(parent: Node, pos: Vector3, r: float, stone: Material, roof: Material, lit: Material, skirt := 3.0) -> void:
-	# A round hall with a grey stone dome, gold arched windows all round, and a little spire on top.
-	# skirt: how far its wall reaches below its centre, so it meets the ground on a slope
-	var drum_h := r * 0.7
-	mesh_at(cylinder(r, r * 1.03, drum_h + skirt, 32), stone, pos + Vector3(0, (drum_h - skirt) / 2, 0), parent)
-	solid(_cyl_shape(r * 1.03, drum_h + skirt), pos + Vector3(0, (drum_h - skirt) / 2, 0), parent)
-	mesh_at(cylinder(r * 1.06, r * 1.06, r * 0.12, 32), roof, pos + Vector3(0, drum_h, 0), parent)
-	mesh_at(sphere(r * 0.98, r * 0.98 * 2, 32), stone, pos + Vector3(0, drum_h, 0), parent)
-	solid(_sphere_shape(r * 0.98), pos + Vector3(0, drum_h, 0), parent)
-	var n := int(r * 1.4)
-	for k in n:
-		arch_window(parent, lit, pos, k * TAU / n, r * 1.0, pos.y + drum_h * 0.15, r * 0.24)
-	var spire_base := pos + Vector3(0, drum_h + r * 0.85, 0)
-	castle_tower(parent, spire_base, r * 0.12, spire_base.y + r * 0.4, stone, roof, lit, false, false)
+func _quad(st: SurfaceTool, collide: bool, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3) -> void:
+	_tri(st, collide, a, b, c, n)
+	_tri(st, collide, a, c, d, n)
+
+
+func _box(surfaces: Dictionary, m: Material, at: Vector3, size: Vector3, yaw: float) -> void:
+	var bm := box(size)
+	var arrays := bm.get_mesh_arrays()
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var basis := Basis(Vector3.UP, yaw)
+	for i in range(0, idx.size(), 3):
+		var a := at + basis * verts[idx[i]]
+		var b := at + basis * verts[idx[i + 1]]
+		var c := at + basis * verts[idx[i + 2]]
+		var n := (b - a).cross(c - a).normalized()
+		if n.dot((a + b + c) / 3.0 - at) < 0.0:
+			n = -n
+		_tri(_st(surfaces, m), true, a, b, c, n)
+
+
+func _outward(poly: PackedVector2Array, p0: Vector2, p1: Vector2) -> Vector2:
+	# The normal of edge p0-p1 that points out of the polygon
+	var d := (p1 - p0).normalized()
+	var n := Vector2(d.y, -d.x)
+	if Geometry2D.is_point_in_polygon((p0 + p1) / 2.0 + n * 0.05, poly):
+		n = -n
+	return n
+
+
+func _walls(surfaces: Dictionary, m: Material, lit: Material, poly: PackedVector2Array,
+		y0: float, y1: float, is_hole: bool) -> void:
+	# Upright walls round a polygon (facing out of it, or into it for a courtyard), with rows of windows when lit is given
+	if y1 - y0 < 0.05:
+		return
+	var st := _st(surfaces, m)
+	for i in poly.size():
+		var p0 := poly[i - 1]
+		var p1 := poly[i]
+		var n2 := _outward(poly, p0, p1) * (-1.0 if is_hole else 1.0)
+		var n := Vector3(n2.x, 0, n2.y)
+		_quad(st, true, Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), n)
+		if lit == null:
+			continue
+		var length := p0.distance_to(p1)
+		var across := int((length - 1.5) / 4.0)
+		var y := maxf(y0, 0.0) + 2.6
+		while across > 0 and y + 2.8 < y1 - 0.8:
+			for k in across:
+				var q := p0.lerp(p1, (k + 0.5) / across) + n2 * 0.08
+				_window(_st(surfaces, lit), Vector3(q.x, y, q.y), (p1 - p0).normalized(), n)
+			y += 4.2
+
+
+func _window(st: SurfaceTool, at: Vector3, along2: Vector2, n: Vector3) -> void:
+	# An arched window: 1.1 m wide, 2.2 m to the top of its arch, lying flat on the wall
+	var along := Vector3(along2.x, 0, along2.y)
+	var w := 0.55
+	var h := 1.65
+	var bl := at - along * w
+	var br := at + along * w
+	_quad(st, false, bl, br, br + Vector3.UP * h, bl + Vector3.UP * h, n)
+	var c := at + Vector3.UP * h
+	for k in 6:
+		var a0 := PI * k / 6.0
+		var a1 := PI * (k + 1) / 6.0
+		_tri(st, false, c, c + (along * cos(a0) + Vector3.UP * sin(a0)) * w, c + (along * cos(a1) + Vector3.UP * sin(a1)) * w, n)
+
+
+func _roof(surfaces: Dictionary, m: Material, poly: PackedVector2Array, tris: Array,
+		y0: float, rise: float, inner: float) -> Vector3:
+	# A hipped roof over any outline: the roof rises evenly from every eave, so its height at a point is set by how
+	# far that point is from the nearest wall. Triangles are cut small so the ridges and hips come out sharp enough.
+	var st := _st(surfaces, m)
+	var apex := Vector3(0, -INF, 0)
+	var y_at := func(p: Vector2) -> float:
+		var d := INF
+		for i in poly.size():
+			d = minf(d, p.distance_to(Geometry2D.get_closest_point_to_segment(p, poly[i - 1], poly[i])))
+		return y0 + rise * clampf(d / maxf(inner, 0.01), 0.0, 1.0)
+	for t in tris:
+		var A := poly[t[0]]
+		var B := poly[t[1]]
+		var C := poly[t[2]]
+		var n := maxi(1, ceili(maxf(A.distance_to(B), maxf(B.distance_to(C), C.distance_to(A))) / 0.5))
+		var grid := {}
+		for i in n + 1:
+			for j in n + 1 - i:
+				var p := A + (B - A) * (float(i) / n) + (C - A) * (float(j) / n)
+				var v := Vector3(p.x, y_at.call(p), p.y)
+				grid[Vector2i(i, j)] = v
+				if v.y > apex.y:
+					apex = v
+		for i in n:
+			for j in n - i:
+				var a: Vector3 = grid[Vector2i(i, j)]
+				var b: Vector3 = grid[Vector2i(i + 1, j)]
+				var c: Vector3 = grid[Vector2i(i, j + 1)]
+				_roof_tri(st, a, b, c)
+				if i + j < n - 1:
+					_roof_tri(st, b, grid[Vector2i(i + 1, j + 1)], c)
+	return apex
+
+
+func _roof_tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3) -> void:
+	var n := (b - a).cross(c - a)
+	if n.length_squared() < 1e-10:
+		return
+	n = n.normalized()
+	if n.y < 0.0:
+		n = -n
+	_tri(st, true, a, b, c, n)
+
+
+func _roof_colour(osm: String) -> Color:
+	# OSM's roof colours where it has them (copper-blue on the big towers, red tiles on the north towers), dark slate
+	# elsewhere; the world theme then turns them into its own colours
+	if osm != "" and Color.html_is_valid(osm):
+		return Color.html(osm)
+	return Color(0.3, 0.32, 0.42)
 
 
 func _plateau_features() -> void:
@@ -1133,9 +1233,9 @@ func _towers() -> void:
 	mushroom_tower("Tower 4", 104, -60, 22)
 	mushroom_tower("Tower 5", 48, -78, 18)
 	# Golden ones flanking the castle school, as in Sofi's picture
-	mushroom_tower("Castle Tower West", -24, -96, 24, true)
-	mushroom_tower("Castle Tower East", 66, -104, 20, true)
-	mushroom_tower("Castle Tower Back", 52, -132, 28, true)
+	mushroom_tower("Castle Tower West", -46, -112, 24, true)
+	mushroom_tower("Castle Tower East", 74, -112, 20, true)
+	mushroom_tower("Castle Tower Back", -50, -190, 28, true)
 
 
 func court(name: String, x: float, z: float, size: Vector2, color: Color, basketball: bool, pickleball := false) -> void:
@@ -1247,9 +1347,9 @@ func _mountains() -> void:
 	rng.seed = 7
 	for k in 22:
 		var a := lerpf(-PI * 0.95, -PI * 0.05, k / 21.0) + rng.randf_range(-0.05, 0.05)
-		var dist := rng.randf_range(210, 260)
+		var dist := rng.randf_range(260, 310)
 		var h := rng.randf_range(55, 110)
-		var p := Vector3(cos(a) * dist, -5, sin(a) * dist - 30)
+		var p := Vector3(cos(a) * dist, -5, sin(a) * dist - 60)   # well behind the castle hill
 		mesh_at(cylinder(0.0, h * 0.75, h, T.mountain_sides), far if k % 2 == 0 else near, p + Vector3(0, h / 2, 0), g,
 			rng.randf() * TAU)
 	own(g)
