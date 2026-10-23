@@ -187,7 +187,7 @@ func _refresh_clock() -> void:
 	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
 	if Clock.on_earth:
 		text = "Earth     %s
-Galactopia: %s, the Shift" % [Clock.earth_time_string(), Clock.time_string()]
+Galaxity: %s, the Shift" % [Clock.earth_time_string(), Clock.time_string()]
 	elif Clock.in_shift():
 		text += "
 The Shift"

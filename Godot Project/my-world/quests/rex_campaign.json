@@ -6,7 +6,7 @@
   "steps": [
     {
       "id": "ask",
-      "text": "Rex wants to know what Galactopia needs. Ask around town!",
+      "text": "Rex wants to know what Galaxity needs. Ask around town!",
       "checklist": [
         [
           "asked_dash",

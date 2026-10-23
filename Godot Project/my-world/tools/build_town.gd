@@ -2011,7 +2011,7 @@ func _player() -> void:
 
 # -----------------------------------------------------------------------------
 # Places from the show (story/show-notes.md): Mr. Palmer's town map, the pilot's haunted house and cloud water slide,
-# the happy places, and the portal to Earth. The town itself is Galactopia.
+# the happy places, and the portal to Earth. The town itself is Galaxity.
 # -----------------------------------------------------------------------------
 const TOWN_HALL := Vector3(-72, 16, 0.0)          # x, z, yaw (head of the Market Square, door facing the fountain)
 const HAUNTED_HOUSE := Vector3(-112, -128, 0.82)  # x, z, yaw (off in the far northwest woods, door facing the town)
@@ -2261,7 +2261,7 @@ func _antique_car() -> void:
 func _welcome_sign() -> void:
 	# At the market's south entrance, where you arrive in town
 	var g := group("Welcome Sign", ground(MARKET.x + 6.0, MARKET.y + MARKET.z + 8.0))
-	sign_post(g, "Welcome to Galactopia", Vector3.ZERO, 0.0)
+	sign_post(g, "Welcome to Galaxity", Vector3.ZERO, 0.0)
 	own(g)
 
 

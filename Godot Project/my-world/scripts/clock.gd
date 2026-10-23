@@ -1,16 +1,16 @@
 extends Node
 
-# Autoload "Clock": the time of day in Galactopia. Lives across every scene and keeps running indoors.
+# Autoload "Clock": the time of day in Galaxity. Lives across every scene and keeps running indoors.
 #
 # A whole day takes DAY_LENGTH_MINUTES real minutes. Every night from 12:00 to 1:00 AM is the Shift: the portal opens,
-# and time in Galactopia slows down (the clock runs SHIFT_SLOWDOWN times slower), just like in the show.
+# and time in Galaxity slows down (the clock runs SHIFT_SLOWDOWN times slower), just like in the show.
 # The day and time are saved with the rest of the game (scripts/game.gd). Sleeping in a bed (scripts/bed.gd) moves
 # the clock on by however long she sleeps.
 #
 # Other scripts read it (Clock.hour(), Clock.daylight(), Clock.in_shift()) or listen to its signals.
 #
 # Earth (through the portal, during the Shift: scenes/earth/earth.tscn) has its own time. While Nina's there,
-# Galactopia's Shift runs EARTH_SLOWDOWN times slower again, so the one Shift hour lasts a whole Earth evening; Earth's
+# Galaxity's Shift runs EARTH_SLOWDOWN times slower again, so the one Shift hour lasts a whole Earth evening; Earth's
 # clock (earth_minutes) runs at its own pace. When the Shift ends, the portal pulls her home.
 
 signal time_changed                  # every new in-game minute
@@ -27,7 +27,7 @@ const SHIFT_SLOWDOWN := 4.0          # the clock runs this many times slower dur
 const START_HOUR := 8.0              # a new game starts at 8:00 AM on day 1
 const WAKE_HOUR := 7                 # sleeping wakes her at 7:00 AM
 const MINUTES_PER_DAY := 24 * 60
-const EARTH_SLOWDOWN := 5.0          # on Earth, Galactopia's Shift runs this many times slower again
+const EARTH_SLOWDOWN := 5.0          # on Earth, Galaxity's Shift runs this many times slower again
 const EARTH_MINUTES_PER_SECOND := 1.0 / 3.0   # Earth's clock: an Earth hour every 3 real minutes
 const EARTH_START := 16 * 60.0 + 30.0         # 4:30 PM on a first visit
 

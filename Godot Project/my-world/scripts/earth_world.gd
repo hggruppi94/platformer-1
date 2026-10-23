@@ -1,15 +1,15 @@
 extends Node3D
 
 # Earth, through the portal (scenes/earth/earth.tscn, built by tools/build_earth.gd): a small cozy town on an autumn
-# evening. Nina can only come during the Shift. While she's here Galactopia's clock crawls (scripts/clock.gd,
+# evening. Nina can only come during the Shift. While she's here Galaxity's clock crawls (scripts/clock.gd,
 # EARTH_SLOWDOWN), so one Shift hour is a whole Earth evening; when the Shift ends, the portal pulls her home.
 # The portal she came through (by the old oak) takes her home sooner, any time.
 #
-# In the show, kids are people on Earth and creatures in Galactopia. Nina keeps her Galactopia look here for now.
+# In the show, kids are people on Earth and creatures in Galaxity. Nina keeps her Galaxity look here for now.
 
 const TOWN := "res://scenes/town/town.tscn"
 const HOME_SPAWN := "FromPortaltoEarth"
-const WARN_AT := 50.0                              # Galactopia minutes past midnight: "nearly time to go"
+const WARN_AT := 50.0                              # Galaxity minutes past midnight: "nearly time to go"
 
 var _warned := false
 var _leaving := false

@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Ah, a citizen! Hello! Rex, future mayor of Galactopia, at your service.",
+        "Ah, a citizen! Hello! Rex, future mayor of Galaxity, at your service.",
         "Nina: A talking husky?",
         "Technically I'm Dash's twin. I'm just borrowing a husky right now. It's a long story with a lot of paperwork.",
         "Nina: Wait... aren't you Rook?",
@@ -31,7 +31,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
-                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -64,7 +64,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
-                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -94,7 +94,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
-                "First job: find out what Galactopia needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -167,7 +167,7 @@
         "activity": "rally"
       },
       "lines": [
-        "Citizens of Galactopia! Thank you for coming!",
+        "Citizens of Galaxity! Thank you for coming!",
         "(A few people stop to listen. A pigeon listens too.)",
         "I'm Rex, and I want to be your mayor! Bike lanes! Flowers! Lamps! And naps in the sun!",
         "(Rex leans over and whispers.) Campaign Manager, I need a big finish. What do I say?",
@@ -286,7 +286,7 @@
         "every": 2
       },
       "lines": [
-        "Citizens of Galactopia! Vote Rex! More parks! More snacks!",
+        "Citizens of Galaxity! Vote Rex! More parks! More snacks!",
         "Nina: Who are you talking to?",
         "The Town Hall. It's a practice speech. The Town Hall is a very good listener."
       ]

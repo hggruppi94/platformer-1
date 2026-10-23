@@ -281,7 +281,7 @@ func _draw_full() -> void:
 	var s := get_tree().current_scene
 	var town_here := in_town()
 	_placed.clear()
-	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "Galactopia", _fs(34), Color(1, 0.95, 0.75))
+	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "Galaxity", _fs(34), Color(1, 0.95, 0.75))
 	for d in DISTRICTS:
 		_text(c, r.position + to_map(Vector3(d[1].x, 0, d[1].y)) * r.size, d[0], _fs(24), Color(1, 1, 0.85))
 	if town_here:

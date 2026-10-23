@@ -172,7 +172,7 @@ func _run() -> void:
 		_check_where(id, "after sleeping, 07:00")
 
 	# Dialogue that knows where they are and what they're doing
-	for c in [["rex", "11:00", 2, "Citizens of Galactopia"], ["dash", "12:45", 2, "Snack break"],
+	for c in [["rex", "11:00", 2, "Citizens of Galaxity"], ["dash", "12:45", 2, "Snack break"],
 			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()

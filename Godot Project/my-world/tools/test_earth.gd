@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks the trip through the portal to Earth: only during the Shift, Earth's own clock (Galactopia's crawls while
+# Checks the trip through the portal to Earth: only during the Shift, Earth's own clock (Galaxity's crawls while
 # she's there), the people and Mr. Palmer's lights quest, the warning, being pulled home when the Shift ends, going
 # home early (the portal, the pause menu), and a save made on Earth after the Shift sending her home. Run it twice.
 #
@@ -78,14 +78,14 @@ func _run() -> void:
 	await create_timer(3.5).timeout
 	check(hud.clock_label.text.begins_with("Earth"), "the HUD shows Earth's time: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
 
-	# Time: Earth's evening goes by while Galactopia's Shift crawls
+	# Time: Earth's evening goes by while Galaxity's Shift crawls
 	var g0: float = clock.minutes
 	var e0: float = clock.earth_minutes
 	await create_timer(3.0).timeout
 	var g_rate: float = (clock.minutes - g0) / 3.0
 	var e_rate: float = (clock.earth_minutes - e0) / 3.0
 	var shift_rate: float = clock.MINUTES_PER_DAY / (clock.DAY_LENGTH_MINUTES * 60.0) / clock.SHIFT_SLOWDOWN
-	check(absf(g_rate - shift_rate / clock.EARTH_SLOWDOWN) < 0.01, "Galactopia's clock crawls on Earth (%.3f min/s, %dx slower than the Shift)" % [g_rate, int(clock.EARTH_SLOWDOWN)])
+	check(absf(g_rate - shift_rate / clock.EARTH_SLOWDOWN) < 0.01, "Galaxity's clock crawls on Earth (%.3f min/s, %dx slower than the Shift)" % [g_rate, int(clock.EARTH_SLOWDOWN)])
 	check(e_rate > g_rate * 4.0, "Earth's own evening goes much faster (%.2f min/s)" % e_rate)
 	var real_minutes: float = 60.0 / (shift_rate / clock.EARTH_SLOWDOWN) / 60.0
 	check(real_minutes > 10.0, "a whole Shift on Earth lasts %.0f real minutes" % real_minutes)
@@ -94,7 +94,7 @@ func _run() -> void:
 	var palmer := _talker("palmer_earth")
 	check(palmer != null and _talker("ivy") != null and _talker("theo") != null, "Mr. Palmer (in person), Miss Ivy and Theo are here")
 	var hello := await _talk(palmer)
-	check(_said(hello, "just plain old Mr. Palmer"), "Mr. Palmer keeps his Galactopia side a secret")
+	check(_said(hello, "just plain old Mr. Palmer"), "Mr. Palmer keeps his Galaxity side a secret")
 	var ask := await _talk(_talker("palmer_earth"), [0])
 	check(_said(ask, "string lights") and quests.on_step("earth_lights", "find"), "the hook quest: find the gazebo's lights")
 	var boxes := current_scene.find_children("Light Box *", "Area3D", true, false)
