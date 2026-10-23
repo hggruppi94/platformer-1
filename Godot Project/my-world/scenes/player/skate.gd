@@ -1,9 +1,10 @@
 class_name Skate
 extends Node
 
-# Riding: Tony Hawk-style arcade skating for whoever is on the ride (Nina on her board, for now). The player
-# (scenes/player/player.gd) hands its whole physics step over to this while Game.riding is on. How the ride feels
-# (speeds, ollie height, spin speed, balance) comes from scripts/rides.gd, so other characters' rides can share it.
+# Riding: Tony Hawk-style arcade skating for whoever is on the ride: Nina on her board, or a friend on theirs (Dash's
+# BMX, Rex's paw skates... picked at a skate park's Skaters' Corner). The player (scenes/player/player.gd) hands its
+# whole physics step over to this while Game.riding is on. How each ride feels (speeds, ollie height, spin speed,
+# balance, gliding) and its tricks come from scripts/rides.gd; what it looks like from scenes/player/ride_kit.gd.
 #
 #   Rolling: push by steering the way you're going, carve by steering to the side, pull back to brake. Slopes and
 #            ramps really pull on you, so you can pump a halfpipe.
@@ -76,6 +77,11 @@ var _flip_press := 9.0               # seconds since Flip, and Grab, were presse
 var _grab_press := 9.0
 var _was_fwd := false
 var _was_back := false
+var _pushing := false                # pushing along on the flat (skaters stride for it)
+var _feet := []                      # skates to keep under her feet: [skate, skeleton, bone] (scenes/player/ride_kit.gd)
+var _ride_anim: AnimationPlayer      # the ride's own animation (the BMX's pedals)
+var _shown_yaw := 0.0                # where the model is turned right now (it catches up with _yaw)
+var _shown_up := Vector3.UP          # ...and which way is up for it
 
 
 func setup(player: Player) -> void:
@@ -91,10 +97,21 @@ func setup(player: Player) -> void:
 	hud.visible = false
 
 
+func set_ride(r: Dictionary, parts: Dictionary) -> void:
+	# A different rider and ride (scenes/player/player.gd, set_rider)
+	ride = r
+	tricks.lose()
+	tricks.ride = r
+	_feet = parts.get("feet", [])
+	_ride_anim = parts.get("anim")
+
+
 func start() -> void:
 	# Hopping on: rolling, facing the way she was facing
 	state = State.ROLL
 	_yaw = p.visual.rotation.y
+	_shown_yaw = _yaw
+	_shown_up = Vector3.UP
 	_charge = -1.0
 	balance = 0.0
 	_grounded = p.is_on_floor()
@@ -148,6 +165,7 @@ func physics(delta: float) -> void:
 	var input := Vector2.ZERO if p.input_locked else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	_stick = input
 	var dir := _camera_dir(input)
+	_pushing = false
 	_grind_buffer = 0.25 if Input.is_action_just_pressed("skate_grind") and not p.input_locked else _grind_buffer - delta
 	_flip_press = 0.0 if Input.is_action_just_pressed("skate_flip") and not p.input_locked else _flip_press + delta
 	_grab_press = 0.0 if Input.is_action_just_pressed("skate_grab") and not p.input_locked else _grab_press + delta
@@ -219,7 +237,8 @@ func _roll(dir: Vector3, delta: float) -> void:
 			var rate := float(ride.carve) * (1.0 + 2.0 * (1.0 - clampf(speed / 3.0, 0.0, 1.0)))
 			fwd = fwd.rotated(n, clampf(fwd.signed_angle_to(want, n), -rate * delta, rate * delta)).normalized()
 			_lean = lerpf(_lean, clampf(fwd.signed_angle_to(want, n), -0.6, 0.6) * clampf(speed / 8.0, 0.0, 1.0), 0.15)
-			if speed < float(ride.push_speed) and along > 0.0 and n.y > 0.9:
+			_pushing = speed < float(ride.push_speed) and along > 0.0 and n.y > 0.9
+			if _pushing:
 				speed = move_toward(speed, float(ride.push_speed), float(ride.push_accel) * maxf(along, 0.3) * delta)
 	else:
 		speed = move_toward(speed, 0.0, float(ride.coast) * delta)
@@ -373,6 +392,9 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 	var v := p.velocity
 	var g := p.get_gravity()
 	v += g * delta * (1.0 if v.y > 0.0 else float(ride.fall_gravity))
+	# Riders with wings (Pip) float down slowly while Jump is held
+	if float(ride.glide) > 0.0 and v.y < -float(ride.glide) and Input.is_action_pressed("jump") and not p.input_locked:
+		v.y = move_toward(v.y, -float(ride.glide), 25.0 * delta)
 	if dir and not _vert:
 		var h := Vector3(v.x, 0, v.z)
 		var hs := h.length()
@@ -421,7 +443,7 @@ func _air_tricks() -> void:
 			p._spin(float(ride.tricks.special[3]), 0.3, false)
 			Fx.burst(get_tree().current_scene, p.global_position, Color(1.0, 0.6, 0.95), 18, 0.07, 4.0, 0.0, 0.8)
 			hud.shout(String(ride.tricks.special[0]) + "!", Color(1.0, 0.75, 0.98))
-			Audio.play("level_up", -6.0, 0.0)
+			Audio.play(String(ride.special_sound), -4.0, 0.0)
 			return
 	if _flip_press == 0.0:
 		tricks.start_flip(dir)
@@ -647,15 +669,12 @@ func _add_stars() -> void:
 func _pose(delta: float) -> void:
 	var k := 1.0 - exp(-14.0 * delta)
 	var up := _normal if state == State.ROLL or state == State.BAIL else Vector3.UP
-	var cur := p.visual.basis.orthonormalized()
-	var cur_up := cur.y
-	var new_up := cur_up.slerp(up, k).normalized() if cur_up.dot(up) < 0.9999 else up
+	var new_up := _shown_up.slerp(up, k).normalized() if _shown_up.dot(up) < 0.9999 else up
+	_shown_up = new_up
 	var tilt := Basis(Quaternion(Vector3.UP, new_up)) if new_up.dot(Vector3.UP) < 0.9999 else Basis.IDENTITY
-	var yaw_now := _yaw_of(cur)
-	var yaw := lerp_angle(yaw_now, _yaw, 1.0 - exp(-(30.0 if state == State.AIR else 16.0) * delta))
-	if state == State.BAIL:
-		yaw = yaw_now
-	p.visual.basis = tilt * Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, -_lean * 0.6)
+	if state != State.BAIL:
+		_shown_yaw = lerp_angle(_shown_yaw, _yaw, 1.0 - exp(-(30.0 if state == State.AIR else 16.0) * delta))
+	p.visual.basis = tilt * Basis(Vector3.UP, _shown_yaw) * Basis(Vector3.BACK, -_lean * 0.6) * _body_trick()
 	# Her feet stay where the capsule touches a steep ramp (its side, not the bottom of its middle)
 	p.visual.position = p.visual.position.lerp((new_up - Vector3.UP) * (FEET - SIDE_RADIUS), k)
 	var grabbing := 0.3 if not tricks.grab.is_empty() else 0.0
@@ -665,11 +684,53 @@ func _pose(delta: float) -> void:
 		p.tumble.position.y = -FEET * _crouch
 	if state != State.BAIL:
 		_board_pose()
+	# Grabs that are the rider's own (Superman: stretched out flat behind the bars)
+	var reach := -0.7 if String(tricks.grab.get("style", "")) == "superman" else 0.0
+	p.model.rotation.x = lerpf(p.model.rotation.x, reach, k)
+	_feet_on_skates()
 	if p.anim:
-		var target := "fall" if state == State.BAIL else "skate"
+		var target := String(ride.anim)
+		if state == State.BAIL:
+			target = "fall"
+		elif _pushing and String(ride.push_anim) != "":
+			target = String(ride.push_anim)
+		if not p.anim.has_animation(target):
+			target = "idle"
 		if p.anim.assigned_animation != target:
 			p.anim.play(target, 0.15)
-		p.anim.speed_scale = 1.0
+		p.anim.speed_scale = clampf(p.velocity.length() / 5.0, 0.7, 1.5) if target == String(ride.push_anim) else 1.0
+	if _ride_anim:
+		_ride_anim.speed_scale = clampf(p.velocity.length() / 6.0, 0.0, 2.0) if _pushing else 0.0
+
+
+func _body_trick() -> Basis:
+	# Flips where the rider turns over with the ride (a BMX backflip, a skater's misty flip), round her middle
+	if not tricks.flipping():
+		return Basis.IDENTITY
+	var f := clampf(float(tricks.flip.time) / float(tricks.flip.duration), 0.0, 1.0)
+	f = f * f * (3.0 - 2.0 * f)
+	match String(tricks.flip.style):
+		"backflip":
+			return Basis(Vector3.RIGHT, -TAU * f)
+		"frontflip":
+			return Basis(Vector3.RIGHT, TAU * f)
+		"cork":
+			return Basis(Vector3(1, 1, 0).normalized(), TAU * f)
+		"roll":
+			return Basis(Vector3.BACK, TAU * f)
+	return Basis.IDENTITY
+
+
+func _feet_on_skates() -> void:
+	# Skates follow her feet as they stride, but stay level and pointing the way she rides
+	for f in _feet:
+		var skel := f[1] as Skeleton3D
+		var bone: int = f[2]
+		if skel == null or bone < 0:
+			continue
+		var at := skel.global_transform * skel.get_bone_global_pose(bone).origin
+		var b := p.visual.global_basis.orthonormalized()
+		(f[0] as Node3D).global_transform = Transform3D(b, at + b * Vector3(0, -0.09, 0.03))
 
 
 func _board_pose() -> void:
@@ -690,7 +751,14 @@ func _board_pose() -> void:
 				b = Basis(Vector3.UP, PI * f)
 			"twirl":
 				b = Basis(Vector3.UP, TAU * 2.0 * f) * Basis(Vector3.BACK, TAU * f)
-		lift = sin(PI * f) * 0.35
+			"whip":                                   # a tailwhip: the frame swings right round the bars
+				b = Basis(Vector3.UP, TAU * f)
+			"bar":                                    # a barspin, near enough: the front whips round and back
+				b = Basis(Vector3.UP, sin(TAU * f) * 0.7)
+			"cancan":
+				b = Basis(Vector3.BACK, sin(PI * f) * 0.6)
+		var board_style := String(tricks.flip.style) in ["kick", "heel", "impossible", "shove", "twirl"]
+		lift = sin(PI * f) * (0.35 if board_style else 0.12)
 	elif not tricks.grab.is_empty():
 		match String(tricks.grab.style):
 			"indy":
@@ -701,7 +769,11 @@ func _board_pose() -> void:
 				b = Basis(Vector3.RIGHT, -0.45)
 			"tail":
 				b = Basis(Vector3.RIGHT, 0.45)
-		lift = 0.28
+			"turndown":
+				b = Basis(Vector3.BACK, 0.9)
+			"nohander", "superman":
+				b = Basis(Vector3.RIGHT, -0.15)
+		lift = 0.28 if String(ride.kit) in ["board", "leaf"] else 0.08
 	elif state == State.GRIND:
 		match _grind_style:
 			"nose":
@@ -712,13 +784,6 @@ func _board_pose() -> void:
 		b = Basis(Vector3.RIGHT, -0.3 * _manual)
 		lift = 0.08
 	p.board.transform = Transform3D(b, Vector3(0, -FEET + lift, 0))
-
-
-func _yaw_of(b: Basis) -> float:
-	# The heading of a (possibly tilted) model basis: where its +Z points, flattened
-	var z := b.z
-	z.y = 0.0
-	return atan2(z.x, z.z) if z.length() > 0.01 else _yaw
 
 
 func _plane(d: Vector3, n: Vector3) -> Vector3:

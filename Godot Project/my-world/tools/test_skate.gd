@@ -7,6 +7,8 @@ extends SceneTree
 # and Y on a controller near a rail doesn't step her off the board. Then the tricks (scenes/player/skate_tricks.gd):
 # flips, grabs and spins score, a combo multiplies and pays out after landing, the same trick again is worth less,
 # landing mid-flip is a bail that loses the combo, manuals link combos, and a full special meter gives the special.
+# Then every rider (scripts/rides.gd): each gets their own model, ride and tricks, pushes along and pops, the
+# Skaters' Corner swaps who's skating, and stepping off makes you Nina again.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate.gd
 #
@@ -316,6 +318,70 @@ func _run() -> void:
 	check(not game.riding and p.motion_mode == CharacterBody3D.MOTION_MODE_GROUNDED, "out in the open, the board key steps her off")
 	await _press("toggle_skateboard")
 	check(game.riding, "...and back on")
+
+	# --- Everyone rides ---
+	var corner := park.find_child("RiderSelect", true, false) as Area3D
+	check(corner != null, "the Practice Park has a Skaters' Corner")
+	for id in Rides.ORDER:
+		p.set_rider(id)
+		await _physics(2)
+		var r := Rides.ride(id)
+		var model := p.get("model") as Node3D
+		var ride_node := p.get_node("Visual/Skateboard") as Node3D
+		var ok_model: bool = model != null and model.scene_file_path == r.model
+		var ok_ride: bool = ride_node.get_child_count() > 0 and ride_node.visible
+		check(ok_model and ok_ride and s.ride.rider == r.rider and game.riding,
+			"%s rides: %s" % [r.rider, r.name])
+		_place(Vector3(-30, 0.9, 38), PI)
+		Input.action_press("move_forward")
+		await _physics(150)
+		Input.action_release("move_forward")
+		var sp := _flat(p.velocity)
+		var base_y := p.global_position.y
+		Input.action_press("jump")
+		await _physics(1)
+		Input.action_release("jump")
+		var top := base_y
+		for i in 40:
+			await physics_frame
+			top = maxf(top, p.global_position.y)
+		check(sp > float(r.push_speed) * 0.8 and top > base_y + 0.4,
+			"...pushes along (%.1f m/s) and pops (%.2f m)" % [sp, top - base_y])
+		await _until_rolling()
+		await _big_air()
+		Input.action_press("skate_flip")
+		await _physics(2)
+		Input.action_release("skate_flip")
+		check(t.flipping() and t.flip.name == r.tricks.flips[""][0], "...with their own tricks (%s)" % t.flip.get("name", "none"))
+		await _until_rolling()
+		await _physics(40)
+		check(s.state == s.State.ROLL, "...and lands it")
+	# Pip glides down slowly while Jump is held
+	p.set_rider("pip")
+	await _big_air()
+	Input.action_press("jump")
+	var slowest := 0.0
+	for i in 90:
+		await physics_frame
+		slowest = minf(slowest, p.velocity.y)
+	Input.action_release("jump")
+	check(slowest > -3.0, "Pip glides down gently while Jump is held (falling at most %.1f m/s)" % -slowest)
+	await _until_rolling()
+	# The Skaters' Corner: Interact there swaps to the next skater
+	p.set_rider("nina")
+	await _physics(2)
+	_place(corner.global_position + Vector3(0, 0.2, 0), PI)
+	await _physics(10)
+	await _press("interact")
+	check(p.get("rider") == "dash", "Interact at the Skaters' Corner swaps Nina for Dash")
+	# Stepping off makes you Nina again
+	_place(Vector3(-30, 0.9, 38), PI)
+	await _physics(20)
+	await _press("toggle_skateboard")
+	check(not game.riding and p.get("rider") == "nina" and (p.get("model") as Node3D).name == "Nina",
+		"stepping off the ride makes you Nina again, on foot")
+	await _press("toggle_skateboard")
+	check(game.riding and s.ride.rider == "Nina", "...and back on, it's her board")
 	if not had_board:
 		game.items.erase("skateboard")
 	_end()

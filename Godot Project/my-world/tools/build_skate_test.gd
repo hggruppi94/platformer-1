@@ -2,7 +2,8 @@ extends SceneTree
 
 # Builds res://scenes/skate/test_park.tscn: a small practice park for trying out the skating (scenes/player/skate.gd).
 # A halfpipe, a big quarter pipe, a kicker, a funbox with ledges, flat rails, a ledge, and a platform with stairs and a
-# handrail going down, on a big flat lavender slab under the green Galaxity sky. The pieces come from
+# handrail going down, on a big flat lavender slab under the green Galaxity sky, and a Skaters' Corner by the start
+# for swapping who's skating. The pieces come from
 # tools/skate_kit.gd (the town's Skate Park uses the same ones). Logic: scripts/skate_test_park.gd.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_skate_test.gd
@@ -37,6 +38,7 @@ func _initialize() -> void:
 	kit.flat_rail(world, "Long Rail", Vector3(10, 0, 2), Vector3(0, 0, 1), 14.0, 0.6)
 	kit.ledge(world, "Ledge", Vector3(-20, 0, -12), Vector3(0, 0, 1), 10.0, 0.5)
 	kit.stairs_and_handrail(world, "Stair Set", Vector3(-24, 0, 24))
+	kit.skaters_corner(world, Vector3(-5, 0, 33))
 	_signs()
 	var start := Marker3D.new()
 	start.name = "Start"

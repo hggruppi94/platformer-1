@@ -153,6 +153,43 @@ func stairs_and_handrail(parent: Node, name: String, pos: Vector3) -> Node3D:
 	return g
 
 
+func skaters_corner(parent: Node, pos: Vector3) -> Node3D:
+	# A glowing pad with a sign: stand on it and press Interact to swap who's skating (scripts/rider_select.gd)
+	var g := group(parent, "Skaters Corner", pos)
+	var pad := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 1.3
+	c.bottom_radius = 1.4
+	c.height = 0.08
+	c.radial_segments = 32
+	pad.mesh = c
+	pad.material_override = mat("Coping", 0.4)
+	pad.position = Vector3(0, 0.04, 0)
+	g.add_child(pad)
+	var label := Label3D.new()
+	label.name = "Sign"
+	label.text = "Skaters' Corner"
+	label.font_size = 64
+	label.pixel_size = 0.006
+	label.outline_size = 12
+	label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	label.modulate = Color(1.0, 0.95, 0.75)
+	label.position = Vector3(0, 2.6, 0)
+	g.add_child(label)
+	var area := Area3D.new()
+	area.name = "RiderSelect"
+	area.set_script(load("res://scripts/rider_select.gd"))
+	area.position = Vector3(0, 1.0, 0)
+	var cs := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = 1.3
+	shape.height = 2.0
+	cs.shape = shape
+	area.add_child(cs)
+	g.add_child(area)
+	return g
+
+
 # -----------------------------------------------------------------------------
 # Building blocks
 # -----------------------------------------------------------------------------

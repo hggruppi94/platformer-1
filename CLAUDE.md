@@ -64,6 +64,12 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Skating, step 4 (everyone rides). The Skaters' Corner at each park (`scripts/rider_select.gd`, Interact)
+  swaps who's skating: Nina (board), Dash (BMX), Rex and Rook (four-paw roller skates), Pip (hover wings, glides
+  while Jump is held), Bramble (scooter), the Green Man (leaf board) and Mr. Palmer (the Mayor-mobile). Each has
+  their own feel and trick names in `scripts/rides.gd`; rides are built by `scenes/player/ride_kit.gd`, and
+  `Player.set_rider()` swaps the model and hides that character's town self. Stepping off makes you Nina again
+  (`previews/riders/`).
 - 2026-10-23: Skating, step 3 (the town). The Skate Park (`_skate_park()` in `build_town.gd`) has real quarter pipes,
   a funbox with a rail, a flat rail and a ledge, built from `tools/skate_kit.gd` (shared with the Practice Park). The
   benches in the Market Square and the housing park are grindable (`grind_edge()`). Seven goals pay sparkles once
@@ -97,7 +103,6 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Open ideas / next up
 
-- Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves (Dash on his BMX, Rook
-  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 4: the other riders.
-  Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
+- Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
+  keyboard. Steps 1 to 4 are in (see the log). Bruno (SK8 beanie) isn't in the game yet, so he has no ride. Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
 - Add new requests here as they come in, and move them to the log when they're done.

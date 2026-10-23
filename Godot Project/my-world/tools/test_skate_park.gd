@@ -3,7 +3,7 @@ extends SceneTree
 # Checks the town's Skate Park (tools/build_town.gd, _skate_park) and its goals (scripts/skate_goals.gd): the ramps,
 # funbox, rail and ledge are there and grindable, the benches round town are grindable, a quarter pipe there sends
 # her into a vert air, the S-K-A-T-E letters only count on the board and pay out when all five are got, and each other
-# goal pays its sparkles once.
+# goal pays its sparkles once. Skating as a friend puts their town self out of sight.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate_park.gd
 #
@@ -127,6 +127,18 @@ func _run() -> void:
 	var before: int = game.sparkles
 	t.banked.emit(5000, "Kickflip + 540")
 	check(game.sparkles == before, "a goal only pays once")
+
+	# --- Skating as Dash puts the town's own Dash (and his bike) out of sight until he's done ---
+	check(park.find_child("RiderSelect", true, false) != null, "the Skate Park has a Skaters' Corner")
+	var dash_npc := town.find_child("Dash", true, false) as Node3D
+	var bike := town.find_child("Bike", true, false) as Node3D
+	p.set_rider("dash")
+	await _physics(3)
+	check(not dash_npc.visible and not bike.visible and dash_npc.process_mode == Node.PROCESS_MODE_DISABLED,
+		"while you skate as Dash, the town's Dash and his bike step out of sight")
+	p.set_rider("nina")
+	await _physics(3)
+	check(dash_npc.visible and bike.visible, "...and come back when it's Nina again")
 
 	# --- Far from the park, nothing counts ---
 	for f in dialogue.flags.keys():
