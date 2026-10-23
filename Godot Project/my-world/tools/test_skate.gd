@@ -4,7 +4,9 @@ extends SceneTree
 # speed, a held ollie goes higher than a tap, a halfpipe sends her straight up and back down onto the same ramp, the
 # Grind button locks her onto a rail and the end of the rail sends her off it, the balance needle tips her off if
 # nobody steers and doesn't if someone does, landing sideways is a bail that does no damage and she gets back up,
-# and Y on a controller near a rail doesn't step her off the board.
+# and Y on a controller near a rail doesn't step her off the board. Then the tricks (scenes/player/skate_tricks.gd):
+# flips, grabs and spins score, a combo multiplies and pays out after landing, the same trick again is worth less,
+# landing mid-flip is a bail that loses the combo, manuals link combos, and a full special meter gives the special.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate.gd
 #
@@ -182,6 +184,121 @@ func _run() -> void:
 	await _physics(80)
 	check(bails[0] == 0, "...and so is landing backwards (she rides away fakie)")
 
+	# --- Tricks and combos ---
+	var t: SkateTricks = s.tricks
+	t.lose()
+	t.score = 0
+	await _big_air()
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	check(t.flipping() and t.flip.name == "Kickflip", "Flip in the air with no direction is a kickflip")
+	await _until_rolling()
+	check(t.combo.size() == 1 and t.combo[0].name == "Kickflip", "...and landing it puts it in the combo")
+	await _physics(40)
+	check(t.score == 100 and t.combo.is_empty(), "...which pays out a moment after she rolls away (%d points)" % t.score)
+
+	# Two flips and a grab in one air, with a 360: names, a multiplier, and the repeat worth less
+	t.score = 0
+	await _big_air(true)
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	await _physics(30)
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	await _physics(30)
+	Input.action_press("skate_grab")
+	await _physics(20)
+	check(not t.grab.is_empty() and t.grab.name == "Indy", "holding Grab is a grab")
+	Input.action_release("skate_grab")
+	s._air_spin = TAU                                 # as if she'd spun all the way round
+	s._yaw = s._yaw + TAU
+	await _until_rolling()
+	var names := t.names()
+	check(names == "Kickflip + Kickflip + Indy + 360", "a combo keeps every trick in order (%s)" % names)
+	check(t.combo[1].points == 50, "...the second kickflip is worth half")
+	var expect := (100 + 50 + int(t.combo[2].points) + 250) * 4
+	await _physics(40)
+	check(t.score == expect, "...and it pays out its points times 4 tricks (%d)" % t.score)
+
+	# Landing in the middle of a flip is a bail, and the combo's lost
+	t.score = 0
+	await _big_air()
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	await _physics(30)
+	p.global_position.y = 1.4                         # suddenly right over the ground...
+	p.velocity.y = -3.0
+	Input.action_press("skate_flip")                  # ...flipping again, with no time to finish it
+	await _physics(2)
+	Input.action_release("skate_flip")
+	bails[0] = 0
+	await _physics(60)
+	check(bails[0] == 1 and t.score == 0, "landing in the middle of a flip is a bail, and the combo's gone")
+	await _physics(100)
+
+	# A grind links into the combo
+	t.score = 0
+	_place(r0 + Vector3(1.0, 2.8, 0.0), PI / 2)
+	p.velocity = Vector3(6, 3, 0)
+	s._pop()
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	await _physics(30)
+	p.global_position = r0 + Vector3(3.0, 1.3, 0.0)   # coming down over the rail
+	p.velocity = Vector3(6, -2, 0)
+	s._try_grind()
+	check(s.state == s.State.GRIND and t.live.get("name", "") == "50-50", "grinding with no direction is a 50-50")
+	for i in 40:
+		s.balance = 0.0
+		await physics_frame
+	check(t.names() == "Kickflip + 50-50" and t.multiplier() == 2, "...and it joins the kickflip in one combo")
+	s._rail_offset = rail.length() - 0.1
+	await _until_rolling()
+	await _physics(40)
+	check(t.score > (100 + 50) * 2, "...which pays out together (%d)" % t.score)
+
+	# Manuals: forward then back quickly while rolling
+	t.score = 0
+	_place(Vector3(-30, 0.9, 40), PI)
+	p.velocity = Vector3(0, 0, -6)
+	await _physics(5)
+	Input.action_press("move_forward")
+	await _physics(3)
+	Input.action_release("move_forward")
+	Input.action_press("move_back")
+	await _physics(3)
+	Input.action_release("move_back")
+	check(s._manual == 1 and t.live.name == "Manual", "forward then back quickly starts a manual")
+	await _physics(30)
+	s.balance = 0.0
+	check(s.state == s.State.ROLL and s._manual == 1 and s.balancing(), "...she balances along on two wheels")
+	Input.action_press("jump")
+	await _physics(1)
+	Input.action_release("jump")
+	await _physics(5)
+	check(s.state == s.State.AIR and t.names().begins_with("Manual"), "...and an ollie out of it keeps the combo going")
+	await _until_rolling()
+	await _physics(60)
+	check(t.score > 0, "...which pays out after the landing (%d)" % t.score)
+
+	# The special: a full meter, then Flip and Grab together
+	t.special = 1.0
+	await _big_air()
+	Input.action_press("skate_flip")
+	Input.action_press("skate_grab")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	Input.action_release("skate_grab")
+	check(t.flipping() and t.flip.name == "Galaxy Twirl" and t.special == 0.0, "a full special meter and Flip + Grab together: the Galaxy Twirl")
+	await _until_rolling()
+	await _physics(40)
+	check(t.best_combo >= 1000, "...worth a thousand points")
+
 	# --- Y on a controller near a rail grinds, it doesn't step her off ---
 	_place(r0 + Vector3(2.0, 0.0, 0.6), PI / 2)
 	p.global_position.y = 0.85
@@ -224,6 +341,21 @@ func _ollie(hold_frames: int) -> float:
 		await physics_frame
 		top = maxf(top, p.global_position.y)
 	return top - base
+
+
+func _big_air(slow := false) -> void:
+	# Up high over the open south-west corner, flying north, facing the way she's going
+	_place(Vector3(-30, 6.0, 38), PI)
+	p.velocity = Vector3(0, 8, -3 if slow else -6)
+	s._pop()
+	await _physics(2)
+
+
+func _until_rolling() -> void:
+	for i in 300:
+		if s.state == s.State.ROLL:
+			return
+		await physics_frame
 
 
 func _flat(v: Vector3) -> float:

@@ -64,6 +64,11 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Skating, step 2 (tricks). `scenes/player/skate_tricks.gd`: flips (Flip + direction), held grabs
+  (Grab + direction), spins, grind types (Grind + direction: 50-50, 5-0, Nosegrind, Boardslide, Lipslide), manuals
+  (forward then back quickly), combos that multiply and pay out after landing, repeats worth half, bails lose the
+  combo, a special meter and Nina's special, the Galaxy Twirl (Flip + Grab with a full meter). Each ride's trick
+  names live in its "tricks" in `scripts/rides.gd`. Score and combo HUD: `scripts/skate_hud.gd`.
 - 2026-10-23: Skating, step 1 (the feel). `scenes/player/skate.gd` takes over Nina's physics on the board: push and
   carve, ramps that really pull on her, a hold-to-charge ollie, vert airs off steep quarter pipes, grinds on any
   `GrindRail` (`scripts/grind_rail.gd`) with a balance meter, and comedy bails with no damage. Ride feel numbers live
@@ -87,8 +92,7 @@ Read this first in every session so each iteration builds on the last one and do
 ## Open ideas / next up
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves (Dash on his BMX, Rook
-  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 2: flip and
-  grab tricks, manuals, spins, combos with a multiplier and a special meter. Step 3: a real skate park in town,
+  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 3: a real skate park in town,
   grindable benches and rails round Galaxity, THPS goals (S-K-A-T-E letters, high scores, gaps) paying sparkles.
   Step 4: the other riders.
 - Add new requests here as they come in, and move them to the log when they're done.

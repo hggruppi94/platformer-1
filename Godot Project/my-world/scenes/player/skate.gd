@@ -14,6 +14,10 @@ extends Node
 #   Grind:   press (or hold) Grind near a rail or a ledge edge to lock on. Keep the balance needle in the middle with
 #            left and right, Jump to pop off. Rails sloping down speed you up.
 #   Bail:    a silly tumble (no damage), stars round her head, and she hops back on.
+#   Tricks:  in the air, Flip + a direction flips the board, Grab + a direction (held) grabs it, Flip and Grab together
+#            with a full special meter does her special. Grind + a direction picks the grind. On the ground, forward
+#            then back quickly starts a manual (back then forward, a nose manual), balanced with forward and back.
+#            Scoring and combos: scenes/player/skate_tricks.gd.
 
 signal bailed
 signal landed(clean: bool)
@@ -62,16 +66,28 @@ var _board_tween: Tween              # the board flying off on its own in a bail
 var _roll_sound: AudioStreamPlayer
 var _grind_sound: AudioStreamPlayer
 var hud                              # scripts/skate_hud.gd
+var tricks := SkateTricks.new()
+var _stick := Vector2.ZERO           # the stick (or WASD) this frame, not turned by the camera
+var _manual := 0                     # rolling on two wheels: 1 a manual (on the tail), -1 a nose manual, 0 not
+var _since_fwd_tap := 9.0            # seconds since forward, and back, were last pushed (for starting a manual)
+var _since_back_tap := 9.0
+var _grind_style := "fifty"
+var _flip_press := 9.0               # seconds since Flip, and Grab, were pressed (together = the special)
+var _grab_press := 9.0
+var _was_fwd := false
+var _was_back := false
 
 
 func setup(player: Player) -> void:
 	p = player
+	tricks.ride = ride
 	_roll_sound = _loop_player("skate_roll")
 	_grind_sound = _loop_player("skate_grind")
 	hud = CanvasLayer.new()
 	hud.name = "SkateHUD"
 	hud.set_script(load("res://scripts/skate_hud.gd"))
 	add_child(hud)
+	hud.watch(tricks)
 	hud.visible = false
 
 
@@ -94,6 +110,8 @@ func stop() -> void:
 	# Stepping off: back to walking rules, upright
 	if state == State.BAIL:
 		_end_bail()
+	tricks.bank()
+	_manual = 0
 	state = State.ROLL
 	_rail = null
 	p.motion_mode = CharacterBody3D.MOTION_MODE_GROUNDED
@@ -118,13 +136,21 @@ func is_bailing() -> bool:
 	return state == State.BAIL
 
 
+func balancing() -> bool:
+	# On a rail or in a manual: the balance meter is up
+	return state == State.GRIND or (state == State.ROLL and _manual != 0)
+
+
 # -----------------------------------------------------------------------------
 # The physics step (called by the player instead of its own while riding)
 # -----------------------------------------------------------------------------
 func physics(delta: float) -> void:
 	var input := Vector2.ZERO if p.input_locked else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	_stick = input
 	var dir := _camera_dir(input)
 	_grind_buffer = 0.25 if Input.is_action_just_pressed("skate_grind") and not p.input_locked else _grind_buffer - delta
+	_flip_press = 0.0 if Input.is_action_just_pressed("skate_flip") and not p.input_locked else _flip_press + delta
+	_grab_press = 0.0 if Input.is_action_just_pressed("skate_grab") and not p.input_locked else _grab_press + delta
 	_last_rail_timer -= delta
 	if p._stun_timer > 0.0 and state != State.BAIL:
 		bail()                                        # an enemy knocked her off the board
@@ -138,6 +164,8 @@ func physics(delta: float) -> void:
 		State.BAIL:
 			_bailing(delta)
 	RenderingServer.global_shader_parameter_set("nina_pos", p.global_position)   # plants lean away from her
+	if p._spin_timer > 0.0 or absf(p.tumble.rotation.x) > 0.001:
+		p._update_spin(delta)                         # a bail's tumble, or the special's somersault
 	_pose(delta)
 	_sounds()
 	hud.update_skate(self)
@@ -170,7 +198,18 @@ func _roll(dir: Vector3, delta: float) -> void:
 	v += (g - n * g.dot(n)) * float(ride.slope) * delta   # slopes and ramps pull her down them
 	var speed := v.length()
 	var fwd := v / speed if speed > 0.3 else _plane(_facing(), n)
-	if dir:
+	tricks.update_ground(delta)
+	_manual_input(speed, n, delta)
+	if _manual != 0:
+		if not _balance(-_stick.y, float(ride.manual_drift), float(ride.manual_control), delta):
+			bail()
+			return
+		dir = _camera_dir(Vector2(_stick.x, 0.0))       # forward and back are for balancing now, not pushing
+	if dir and _manual != 0:
+		var side := _plane(dir, n)
+		fwd = fwd.rotated(n, clampf(fwd.signed_angle_to(side, n), -float(ride.carve) * delta, float(ride.carve) * delta)).normalized()
+		speed = move_toward(speed, 0.0, float(ride.coast) * delta)
+	elif dir:
 		var want := _plane(dir, n)
 		var along := fwd.dot(want)
 		if along < -0.5 and speed > 1.0:
@@ -191,7 +230,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 	if speed > 2.0:
 		p.spring_arm.follow(atan2(-v.x, -v.z), delta)
 
-	# Ollie: crouch while Jump is held, pop on letting go
+	# Ollie: crouch while Jump is held, pop on letting go (out of a manual too, which keeps the combo going)
 	if _ollie_input(delta):
 		v += Vector3.UP * lerpf(float(ride.ollie_min), float(ride.ollie_max), _charge)
 		_pop()
@@ -229,6 +268,57 @@ func _move(v: Vector3, on_ground: bool) -> void:
 		_ground_n = Vector3.UP
 
 
+func _manual_input(speed: float, n: Vector3, delta: float) -> void:
+	# Forward then back quickly: a manual. Back then forward: a nose manual. Only rolling along on the flat.
+	_since_fwd_tap += delta
+	_since_back_tap += delta
+	var fwd_now := _stick.y < -0.6
+	var back_now := _stick.y > 0.6
+	var fwd_new := fwd_now and not _was_fwd
+	var back_new := back_now and not _was_back
+	if _manual == 0 and speed > 1.5 and n.y > 0.9 and _charge < 0.0:
+		if back_new and _since_fwd_tap < 0.35:
+			_start_manual(1)
+		elif fwd_new and _since_back_tap < 0.35:
+			_start_manual(-1)
+	if fwd_new:
+		_since_fwd_tap = 0.0
+	if back_new:
+		_since_back_tap = 0.0
+	_was_fwd = fwd_now
+	_was_back = back_now
+
+
+func _start_manual(kind: int) -> void:
+	_manual = kind
+	balance = rng.randf_range(-0.1, 0.1)
+	_balance_vel = 0.0
+	_grind_time = 0.0
+	_since_fwd_tap = 9.0
+	_since_back_tap = 9.0
+	tricks.start_live(ride.tricks.manual if kind > 0 else ride.tricks.nose_manual, 50, 120.0)
+
+
+func _end_manual() -> void:
+	if _manual != 0:
+		_manual = 0
+		balance = 0.0
+		tricks.end_live()
+
+
+func _balance(push: float, drift: float, control: float, delta: float) -> bool:
+	# The balance needle: it wanders, and wants to keep falling the way it leans, more and more the longer she
+	# holds it. push (-1..1) shoves it back. False once it's gone off the end.
+	_grind_time += delta
+	var wobble := drift * (0.7 + _grind_time * 0.18)
+	_balance_vel += (rng.randf_range(-1.0, 1.0) * 3.0 + balance * 2.2) * wobble * delta
+	_balance_vel += push * control * delta
+	_balance_vel *= exp(-1.5 * delta)
+	balance += _balance_vel * delta
+	tricks.update_live(delta)
+	return absf(balance) < 1.0
+
+
 func _ollie_input(delta: float) -> bool:
 	# True on the frame she pops. Holding charges it.
 	if p.input_locked:
@@ -241,6 +331,8 @@ func _ollie_input(delta: float) -> bool:
 
 
 func _pop() -> void:
+	_end_manual()
+	tricks.keep_going()
 	state = State.AIR
 	_air_time = 0.0
 	_air_spin = 0.0
@@ -255,6 +347,8 @@ func _pop() -> void:
 func _leave_ground() -> void:
 	# Rolled off an edge, or up and off a ramp. Off a steep ramp going up, it's a vert air: no flying off over the
 	# top, she goes straight up and comes back down onto the same ramp, turning round on the way.
+	_end_manual()
+	tricks.keep_going()
 	state = State.AIR
 	_air_time = 0.0
 	_air_spin = 0.0
@@ -290,6 +384,8 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 		var turn := -input.x * float(ride.spin_speed) * delta
 		_yaw += turn
 		_air_spin += turn
+	_air_tricks()
+	tricks.update_air(delta)
 	# Vert: turn round by herself, spread over the time she'll be up there
 	if _auto_turn > 0.0:
 		var hang := maxf(2.0 * maxf(v.y, 0.5) / g.length(), 0.25)
@@ -310,6 +406,32 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 		_land()
 
 
+func _air_tricks() -> void:
+	if p.input_locked:
+		return
+	var dir := SkateTricks.direction_name(_stick)
+	# Flip and Grab pressed together (near enough) with a full meter: the special
+	var both := _flip_press < 0.15 and _grab_press < 0.15
+	if both and tricks.special >= 1.0 and (not tricks.flipping() or float(tricks.flip.time) < 0.16):
+		tricks.flip = {}
+		tricks.grab = {}
+		if tricks.start_special():
+			_flip_press = 9.0
+			_grab_press = 9.0
+			p._spin(float(ride.tricks.special[3]), 0.3, false)
+			Fx.burst(get_tree().current_scene, p.global_position, Color(1.0, 0.6, 0.95), 18, 0.07, 4.0, 0.0, 0.8)
+			hud.shout(String(ride.tricks.special[0]) + "!", Color(1.0, 0.75, 0.98))
+			Audio.play("level_up", -6.0, 0.0)
+			return
+	if _flip_press == 0.0:
+		tricks.start_flip(dir)
+	if Input.is_action_pressed("skate_grab"):
+		if not tricks.flipping():
+			tricks.start_grab(dir)
+	else:
+		tricks.release_grab()
+
+
 func _land() -> void:
 	var n := _ground_n
 	_normal = n
@@ -318,7 +440,7 @@ func _land() -> void:
 	p.velocity = v
 	var h := Vector3(v.x, 0, v.z)
 	var facing := _facing()
-	var clean := true
+	var clean := not tricks.flipping()               # still flipping the board: she lands on it wrong
 	if h.length() > 1.0:
 		var off := absf(facing.signed_angle_to(h.normalized(), Vector3.UP))
 		var window := float(ride.land_window)
@@ -331,6 +453,7 @@ func _land() -> void:
 	_auto_turn = 0.0
 	if clean:
 		Audio.play("skate_land", linear_to_db(clampf(absf(v.y) / 8.0 + 0.4, 0.4, 1.0)), 0.08)
+		tricks.land(roundi(absf(_air_spin) / PI))
 		landed.emit(true)
 	else:
 		landed.emit(false)
@@ -380,6 +503,10 @@ func _try_grind() -> bool:
 	_grind_time = 0.0
 	_grind_buffer = 0.0
 	_charge = -1.0
+	_end_manual()
+	var g: Array = ride.tricks.grinds.get(SkateTricks.direction_name(_stick), ride.tricks.grinds[""])
+	_grind_style = g[1]
+	tricks.start_live(g[0], 50, 150.0)
 	state = State.GRIND
 	Audio.play("skate_land", -4.0, 0.1)
 	return true
@@ -390,7 +517,7 @@ func _grind(input: Vector2, delta: float) -> void:
 	_rail_speed += p.get_gravity().dot(t) * 0.8 * delta     # down rails speed her up, up rails slow her
 	_rail_speed = maxf(_rail_speed - float(ride.grind_friction) * delta, 2.0)
 	_rail_offset += _rail_speed * _rail_dir * delta
-	_yaw = atan2(t.x, t.z)
+	_yaw = atan2(t.x, t.z) + (PI / 2 if _grind_style == "slide" else 0.0)   # slides: the board across the rail
 	p.velocity = t * _rail_speed
 	var off_end := _rail_offset < 0.0 or _rail_offset > _rail.length()
 	var target := _rail.point_at(_rail_offset) + Vector3.UP * (FEET + 0.04)
@@ -398,16 +525,10 @@ func _grind(input: Vector2, delta: float) -> void:
 	p.global_position = _snap_from.lerp(target, _rail_snap) if _rail_snap < 1.0 else target
 	p.spring_arm.follow(atan2(-t.x, -t.z), delta)
 
-	# Balance: the needle wanders and wants to keep falling the way it leans, more and more the longer she grinds.
-	# Left and right push it back.
-	_grind_time += delta
-	var wobble := float(ride.balance_drift) * (0.7 + _grind_time * 0.18)
-	_balance_vel += (rng.randf_range(-1.0, 1.0) * 3.0 + balance * 2.2) * wobble * delta
-	_balance_vel += input.x * float(ride.balance_control) * delta
-	_balance_vel *= exp(-1.5 * delta)
-	balance += _balance_vel * delta
+	# Balance: left and right keep the needle in the middle
+	var ok := _balance(input.x, float(ride.balance_drift), float(ride.balance_control), delta)
 	_lean = balance * 0.5
-	if absf(balance) >= 1.0:
+	if not ok:
 		var side := p.visual.global_transform.basis.x * signf(balance)
 		_leave_rail(t * _rail_speed * 0.5 + Vector3.UP * 1.5 + side * 2.0)
 		bail()
@@ -428,6 +549,7 @@ func _grind(input: Vector2, delta: float) -> void:
 
 
 func _leave_rail(v: Vector3) -> void:
+	tricks.end_live()
 	_last_rail = _rail
 	_last_rail_timer = 0.35
 	_rail = null
@@ -440,6 +562,8 @@ func bail() -> void:
 	# A comedy wipeout: she tumbles, the board shoots off on its own, stars go round her head. No damage.
 	if state == State.GRIND:
 		_leave_rail(p.velocity)
+	_manual = 0
+	tricks.lose()
 	state = State.BAIL
 	_bail_timer = float(ride.bail_time)
 	_charge = -1.0
@@ -471,7 +595,6 @@ func _bailing(delta: float) -> void:
 	else:
 		v += p.get_gravity() * delta
 	_move(v, _grounded)
-	p._update_spin(delta)
 	if _stars:
 		_stars.rotate_y(delta * 6.0)
 	if _bail_timer <= 0.0 and _grounded:
@@ -534,15 +657,60 @@ func _pose(delta: float) -> void:
 	p.visual.basis = tilt * Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, -_lean * 0.6)
 	# Her feet stay where the capsule touches a steep ramp (its side, not the bottom of its middle)
 	p.visual.position = p.visual.position.lerp((new_up - Vector3.UP) * (FEET - SIDE_RADIUS), k)
-	_crouch = lerpf(_crouch, 0.25 * maxf(_charge, 0.0) + (0.1 if state == State.GRIND else 0.0), k)
-	if state != State.BAIL:
+	var grabbing := 0.3 if not tricks.grab.is_empty() else 0.0
+	_crouch = lerpf(_crouch, maxf(0.25 * maxf(_charge, 0.0), grabbing) + (0.1 if state == State.GRIND else 0.0), k)
+	if state != State.BAIL and p._spin_timer <= 0.0:
 		p.tumble.scale = Vector3(1.0 + _crouch * 0.3, 1.0 - _crouch, 1.0 + _crouch * 0.3)
 		p.tumble.position.y = -FEET * _crouch
+	if state != State.BAIL:
+		_board_pose()
 	if p.anim:
 		var target := "fall" if state == State.BAIL else "skate"
 		if p.anim.assigned_animation != target:
 			p.anim.play(target, 0.15)
 		p.anim.speed_scale = 1.0
+
+
+func _board_pose() -> void:
+	# The board flips, spins and tilts for tricks, and lifts toward her hand for a grab
+	var b := Basis.IDENTITY
+	var lift := 0.0
+	if tricks.flipping():
+		var f := clampf(float(tricks.flip.time) / float(tricks.flip.duration), 0.0, 1.0)
+		f = f * f * (3.0 - 2.0 * f)
+		match String(tricks.flip.style):
+			"kick":
+				b = Basis(Vector3.BACK, TAU * f)
+			"heel":
+				b = Basis(Vector3.BACK, -TAU * f)
+			"impossible":
+				b = Basis(Vector3.RIGHT, TAU * f)
+			"shove":
+				b = Basis(Vector3.UP, PI * f)
+			"twirl":
+				b = Basis(Vector3.UP, TAU * 2.0 * f) * Basis(Vector3.BACK, TAU * f)
+		lift = sin(PI * f) * 0.35
+	elif not tricks.grab.is_empty():
+		match String(tricks.grab.style):
+			"indy":
+				b = Basis(Vector3.BACK, 0.4)
+			"melon":
+				b = Basis(Vector3.BACK, -0.4)
+			"nose":
+				b = Basis(Vector3.RIGHT, -0.45)
+			"tail":
+				b = Basis(Vector3.RIGHT, 0.45)
+		lift = 0.28
+	elif state == State.GRIND:
+		match _grind_style:
+			"nose":
+				b = Basis(Vector3.RIGHT, 0.22)
+			"tail":
+				b = Basis(Vector3.RIGHT, -0.22)
+	elif _manual != 0:
+		b = Basis(Vector3.RIGHT, -0.3 * _manual)
+		lift = 0.08
+	p.board.transform = Transform3D(b, Vector3(0, -FEET + lift, 0))
 
 
 func _yaw_of(b: Basis) -> float:

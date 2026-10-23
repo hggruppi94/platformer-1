@@ -30,8 +30,35 @@ const BOARD := {
 	"grind_friction": 0.6,
 	"balance_drift": 1.0,       # how hard the balance needle wanders (higher = harder to stay on)
 	"balance_control": 6.0,     # how hard left and right push it back
+	# Manuals: rolling on two wheels, balancing with forward and back
+	"manual_drift": 0.8,
+	"manual_control": 5.0,
 	# Bails
 	"bail_time": 1.4,           # seconds before she's back up on the board
+	# Tricks (scenes/player/skate_tricks.gd), by stick direction ("" is no direction). How the board moves in each
+	# is its style, played by scenes/player/skate.gd.
+	"tricks": {
+		# Flip + direction: [name, points, style, seconds]
+		"flips": {
+			"": ["Kickflip", 100, "kick", 0.42], "left": ["Kickflip", 100, "kick", 0.42],
+			"right": ["Heelflip", 100, "heel", 0.42], "up": ["Impossible", 150, "impossible", 0.5],
+			"down": ["Pop Shove-it", 100, "shove", 0.38],
+		},
+		# Grab + direction, held: [name, style]
+		"grabs": {
+			"": ["Indy", "indy"], "left": ["Indy", "indy"], "right": ["Melon", "melon"],
+			"up": ["Nosegrab", "nose"], "down": ["Tailgrab", "tail"],
+		},
+		# Grind + direction, when she locks on: [name, style]
+		"grinds": {
+			"": ["50-50", "fifty"], "up": ["Nosegrind", "nose"], "down": ["5-0", "tail"],
+			"left": ["Boardslide", "slide"], "right": ["Lipslide", "slide"],
+		},
+		"manual": "Manual",
+		"nose_manual": "Nose Manual",
+		# Flip + Grab together with a full special meter: [name, points, style, seconds]
+		"special": ["Galaxy Twirl", 1000, "twirl", 0.8],
+	},
 }
 
 

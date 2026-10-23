@@ -108,12 +108,102 @@ func _run() -> void:
 	await _physics(16)
 	cam.make_current()
 	await _view("07_bail", p.global_position + Vector3(-1.5, 1.6, 4.2), p.global_position + Vector3(0.4, 0.2, 0))
+	await _physics(90)
+
+	# Tricks (scenes/player/skate_tricks.gd). The combo builds along the bottom of the screen.
+	var t: SkateTricks = s.tricks
+	t.lose()
+	# 8. A kickflip, halfway round, off the kicker (a combo already going)
+	_place(Vector3(-30, 3.5, 30), PI)
+	s._pop()
+	t.add("Indy", 240)
+	t.add("360", 250)
+	t.start_flip("")
+	t.flip.time = 0.17
+	p.velocity = Vector3.ZERO
+	p.set_physics_process(false)
+	s._pose(1.0)
+	t.changed.emit()
+	await _view("08_kickflip_in_a_combo", Vector3(-26.8, 3.9, 31.5), Vector3(-30, 3.2, 30))
+	p.set_physics_process(true)
+
+	# 9. Holding a Melon grab high over the halfpipe
+	t.lose()
+	_place(Vector3(29.6, 6.2, -6), -PI / 2)
+	s._pop()
+	t.add("Kickflip", 100)
+	t.start_grab("right")
+	t.grab.time = 0.8
+	p.set_physics_process(false)
+	s._pose(1.0)
+	t.changed.emit()
+	cam.make_current()
+	await _view("09_melon_grab", Vector3(26.0, 6.4, -2.2), Vector3(29.6, 5.9, -6))
+	p.set_physics_process(true)
+
+	# 10. A boardslide down the handrail, with the combo and the balance meter
+	t.lose()
+	_place(at + Vector3(0, 1.2, 0), 0.0)
+	p.velocity = Vector3(0, -1, 5)
+	s._pop()
+	t.add("Kickflip", 100)
+	Input.action_press("move_left")
+	s._stick = Vector2(-1, 0)
+	s._try_grind()
+	Input.action_release("move_left")
+	s.balance = -0.2
+	arm.rotation = Vector3(-0.3, PI + 0.5, 0)
+	arm._since_look = 0.0
+	await _game_view("10_boardslide", 8)
+
+	# 11. A manual across the flat, balancing
+	t.lose()
+	_place(Vector3(-28, 0.9, 36), PI)
+	p.velocity = Vector3(0, 0, -6)
+	await _physics(4)
+	t.add("Heelflip", 100)
+	s._start_manual(1)
+	s.balance = 0.25
+	arm.rotation = Vector3(-0.25, PI - 0.9, 0)
+	arm._since_look = 0.0
+	await _game_view("11_manual", 8)
+
+	# 12. The Galaxy Twirl, her special, with the meter full
+	t.lose()
+	_place(Vector3(0, 4.5, 26), PI)
+	s._pop()
+	t.special = 1.0
+	s._flip_press = 0.0
+	s._grab_press = 0.0
+	s._air_tricks()
+	t.flip.time = 0.35
+	p._spin_timer = 0.45
+	p._update_spin(0.0)
+	p.velocity = Vector3.ZERO
+	p.set_physics_process(false)
+	s._pose(1.0)
+	t.changed.emit()
+	s.hud.update_skate(s)
+	cam.make_current()
+	await _view("12_galaxy_twirl", Vector3(3.5, 4.2, 30.5), Vector3(0, 4.3, 26))
+	p.set_physics_process(true)
+
+	# 13. A big combo paid out
+	t.lose()
+	_place(Vector3(-28, 0.9, 36), PI)
+	for pair in [["Kickflip", 100], ["50-50", 290], ["Impossible", 150], ["Melon", 330], ["360", 250]]:
+		t.add(pair[0], pair[1])
+	t.bank()
+	await _game_view("13_combo_paid_out", 10)
 	_finish()
 
 
 func _place(pos: Vector3, yaw: float) -> void:
 	if s.state == s.State.BAIL:
 		s._end_bail()
+	s._end_manual()
+	p._spin_timer = 0.0
+	(p.get_node("Visual/Tumble") as Node3D).rotation.x = 0.0
 	p.global_position = pos
 	p.velocity = Vector3.ZERO
 	s.state = s.State.ROLL
