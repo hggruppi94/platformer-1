@@ -12,7 +12,8 @@ const PATH := "user://settings.cfg"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
-	["interact", "Interact"], ["quest_log", "Quest log"], ["map", "Map"], ["pause", "Pause"],
+	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
+	["quest_log", "Quest log"], ["map", "Map"], ["pause", "Pause"],
 ]
 
 # --- Audio (0..1)
@@ -92,8 +93,8 @@ func reset_to_defaults() -> void:
 # ----------------------------------------------------------------------------- key bindings
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M,
-		"pause": KEY_ESCAPE}
+		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
+		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:

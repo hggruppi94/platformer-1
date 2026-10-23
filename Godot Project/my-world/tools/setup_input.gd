@@ -47,6 +47,11 @@ func _initialize() -> void:
 	set_action("map", [key(KEY_M), pad_button(JOY_BUTTON_LEFT_SHOULDER)])
 	set_action("pause", [key(KEY_ESCAPE), key(KEY_P), pad_button(JOY_BUTTON_START)])
 	set_action("debug_xp", [key(KEY_X)])
+	# Skating (scenes/player/skate.gd), Tony Hawk style: A ollie, X flip, B grab, Y grind. Y also hops on and off the
+	# board, but only on the ground with no rail in reach (scripts/game.gd), so it never knocks her off a grind.
+	set_action("skate_flip", [key(KEY_J), pad_button(JOY_BUTTON_X)])
+	set_action("skate_grab", [key(KEY_K), pad_button(JOY_BUTTON_B)])
+	set_action("skate_grind", [key(KEY_L), pad_button(JOY_BUTTON_Y)])
 	# Camera: right stick
 	set_action("look_left", [pad_axis(JOY_AXIS_RIGHT_X, -1.0)], 0.15)
 	set_action("look_right", [pad_axis(JOY_AXIS_RIGHT_X, 1.0)], 0.15)

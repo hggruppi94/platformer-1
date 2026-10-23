@@ -64,6 +64,12 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Skating, step 1 (the feel). `scenes/player/skate.gd` takes over Nina's physics on the board: push and
+  carve, ramps that really pull on her, a hold-to-charge ollie, vert airs off steep quarter pipes, grinds on any
+  `GrindRail` (`scripts/grind_rail.gd`) with a balance meter, and comedy bails with no damage. Ride feel numbers live
+  in `scripts/rides.gd` so other characters can get their own rides. Practice Park: `tools/build_skate_test.gd` →
+  `scenes/skate/test_park.tscn` (`tools/test_skate.gd`, `previews/skating/`). Controls: Space/A ollie, L/Y grind,
+  J/X flip, K/B grab (flip and grab are mapped for step 2); pad Y only steps off the board when no rail is in reach.
 - 2026-10-23: Nina can fly the mothership. The Mothership Pad (east of the Observatory path) calls it down and its
   tractor beam lifts her into the cockpit. Move keys fly it the way the camera faces, Jump climbs, Roll sinks, and
   Interact beams her down to the ground below. A save made while flying puts her back on the pad
@@ -80,4 +86,9 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Open ideas / next up
 
+- Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves (Dash on his BMX, Rook
+  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 2: flip and
+  grab tricks, manuals, spins, combos with a multiplier and a special meter. Step 3: a real skate park in town,
+  grindable benches and rails round Galaxity, THPS goals (S-K-A-T-E letters, high scores, gaps) paying sparkles.
+  Step 4: the other riders.
 - Add new requests here as they come in, and move them to the log when they're done.

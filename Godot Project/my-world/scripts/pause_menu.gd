@@ -329,7 +329,7 @@ func _tab_controls(tabs: TabContainer) -> void:
 		b.focus_entered.connect(func(): if not _suppress_sound: Audio.play("ui_move", -8.0, 0.0))
 		g.add_child(b)
 	var pad := Label.new()
-	pad.text = "Controller: left stick move · right stick camera · A jump (again in the air to double jump) · X or RB roll · Y skateboard · Start pause"
+	pad.text = "Controller: left stick move · right stick camera · A jump (again in the air to double jump) · X or RB roll · Y skateboard · Start pause\nOn the board: hold A to crouch, let go to ollie · Y grind · left and right spin in the air and balance on rails"
 	pad.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	pad.custom_minimum_size.x = _fs(560)
 	pad.add_theme_font_size_override("font_size", _fs(16))

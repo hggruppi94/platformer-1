@@ -17,15 +17,7 @@ class_name Player
 @export var double_jump_velocity: float = 5.5    # the second jump, in mid-air; free, once per time in the air
 @export var flip_time: float = 0.42              # the front flip that goes with it
 
-@export_group("Skateboard")
-@export var skate_speed: float = 10.0       # top speed from pushing
-@export var skate_max_speed: float = 16.0   # absolute cap (you can go faster than pushing downhill)
-@export var skate_push: float = 6.0         # how quickly pushing builds speed
-@export var skate_coast: float = 1.2        # rolling friction when you let go (low = long glide)
-@export var skate_brake: float = 12.0       # slowing down when you pull back against your direction
-@export var skate_carve: float = 2.2        # how quickly the board can turn toward where you steer
-@export var skate_slope: float = 0.9        # how much hills speed you up / slow you down
-@export var skate_air_control: float = 0.15
+@export_group("Skateboard")                   # how the board rides is in scripts/rides.gd
 @export var skate_stance: float = -PI / 2   # she rides side-on to the board
 @export var skate_height: float = 0.115     # board deck height under her feet
 
@@ -75,6 +67,8 @@ var _fall_speed := 0.0
 var _step_timer := 0.0
 var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
+var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
+var _on_board := false
 
 # Walk-through places she's inside (clouds, the bubble bath, hot springs, the lake: scripts/soft_zone.gd,
 # scripts/water.gd). Each can slow her down (speed_scale), make her float (gravity_scale, fall_cap) and sets the
@@ -117,12 +111,21 @@ func _ready() -> void:
 				anim.get_animation(loop_name).loop_mode = Animation.LOOP_LINEAR
 		anim.play("idle")
 	_add_sash()
+	skate = Skate.new()
+	skate.name = "Skate"
+	add_child(skate)
+	skate.setup(self)
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
 
 
 func _on_equipment_changed() -> void:
 	board.visible = Game.riding
+	if Game.riding and not _on_board:
+		skate.start()
+	elif not Game.riding and _on_board:
+		skate.stop()
+	_on_board = Game.riding
 	if _sash:
 		_sash.visible = Game.has_item("campaign_sash")     # Rex's thank-you for running his campaign
 		if _stickers:
@@ -233,6 +236,9 @@ func _physics_process(delta: float) -> void:
 		_invulnerable_timer -= delta
 		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
+	if Game.riding:
+		skate.physics(delta)
+		return
 	if on_floor:
 		_air_jump_used = false
 
@@ -249,7 +255,7 @@ func _physics_process(delta: float) -> void:
 	var jump_pressed := Input.is_action_just_pressed("jump") and not input_locked
 	_jump_buffer_timer = jump_buffer_time if jump_pressed else _jump_buffer_timer - delta
 
-	# Jump (an ollie when riding: same jump, momentum kept). Jumping out of a roll is allowed and ends it.
+	# Jump. Jumping out of a roll is allowed and ends it.
 	if _jump_buffer_timer > 0 and _coyote_timer > 0:
 		velocity.y = jump_velocity
 		_jump_buffer_timer = 0
@@ -257,8 +263,7 @@ func _physics_process(delta: float) -> void:
 		_end_roll()
 		Audio.play("jump", -3.0)
 	# Double jump: a second, free jump in mid-air with a front flip; back again on landing or stomping
-	elif jump_pressed and not on_floor and not _air_jump_used and not Game.riding \
-			and _stun_timer <= 0.0:
+	elif jump_pressed and not on_floor and not _air_jump_used and _stun_timer <= 0.0:
 		velocity.y = double_jump_velocity
 		_air_jump_used = true
 		_jump_buffer_timer = 0
@@ -297,8 +302,6 @@ func _physics_process(delta: float) -> void:
 		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
 	elif _stun_timer > 0.0:
 		pass                                # knocked back: ride out the hit
-	elif Game.riding:
-		horizontal = _skate(horizontal, direction, on_floor, delta)
 	else:
 		# Accelerate toward the target speed instead of snapping to it
 		var rate := acceleration if direction else friction
@@ -320,18 +323,11 @@ func _physics_process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("nina_pos", global_position)   # plants lean away from her
 	_sounds(delta, horizontal.length())
 
-	# Turn the model: on foot it faces where you steer; on the board it faces where the board is rolling
-	# (models face +Z after glTF export from Blender)
-	var face := direction
-	if _roll_timer > 0.0:
-		face = _roll_dir
-	elif Game.riding:
-		face = horizontal if horizontal.length() > 0.3 else Vector3.ZERO
+	# Turn the model to face where you steer (models face +Z after glTF export from Blender)
+	var face := _roll_dir if _roll_timer > 0.0 else direction
 	if face:
 		var target_yaw := atan2(face.x, face.z)
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))
-	if Game.riding:
-		_tilt_board(delta)
 	_update_spin(delta)
 
 	_update_animation(horizontal.length())
@@ -340,7 +336,7 @@ func _physics_process(delta: float) -> void:
 func _try_roll(direction: Vector3) -> void:
 	# A quick forward somersault that costs stamina (SP). For most of it nothing can hurt her (iframes), so she can
 	# roll straight through an attack; rolling into a Gloop pops it.
-	if _roll_timer > 0.0 or _stun_timer > 0.0 or Game.riding:
+	if _roll_timer > 0.0 or _stun_timer > 0.0:
 		return
 	_roll_buffer_timer = 0.0
 	if not Game.spend_sp(roll_cost):
@@ -403,7 +399,7 @@ func _sounds(delta: float, horizontal_speed: float) -> void:
 			Audio.play(LAND_SOUNDS.get(ground, "land"), linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
 	_was_on_floor = on_floor
 	# Footsteps while running on foot
-	if on_floor and not Game.riding and horizontal_speed > 0.8 and _roll_timer <= 0.0:
+	if on_floor and horizontal_speed > 0.8 and _roll_timer <= 0.0:
 		_step_timer -= delta
 		if _step_timer <= 0.0:
 			_step_timer = 0.33 * clampf(speed / horizontal_speed, 0.8, 1.6)
@@ -444,42 +440,6 @@ func _zone_min(prop: String, default: float) -> float:
 	return v
 
 
-func _skate(h: Vector3, direction: Vector3, on_floor: bool, delta: float) -> Vector3:
-	# Momentum-based rolling: pushing builds speed slowly, letting go coasts, steering carves wide arcs,
-	# pulling back brakes, and slopes speed you up or slow you down.
-	if not on_floor:
-		return h.move_toward(direction * h.length(), skate_air_control * skate_push * delta) if direction else h
-	var n := get_floor_normal()
-	var g := get_gravity()
-	var downhill := g - n * g.dot(n)                         # gravity along the ground
-	h += Vector3(downhill.x, 0, downhill.z) * skate_slope * delta
-	var s := h.length()
-	if direction:
-		if s < 0.5:
-			h = h.move_toward(direction * skate_speed, skate_push * delta)     # push off from a standstill
-		else:
-			var heading := h / s
-			var along := heading.dot(direction)
-			if along < -0.3:
-				s = move_toward(s, 0.0, skate_brake * delta)
-			else:
-				heading = heading.slerp(direction, clampf(skate_carve * delta, 0.0, 1.0)).normalized()
-				if s < skate_speed:
-					s = move_toward(s, skate_speed, skate_push * maxf(along, 0.2) * delta)
-			h = heading * s
-	else:
-		h = h.move_toward(Vector3.ZERO, skate_coast * delta)
-	return h.limit_length(skate_max_speed)
-
-
-func _tilt_board(delta: float) -> void:
-	# Lean the board to match the ground under it
-	var n := get_floor_normal() if is_on_floor() else Vector3.UP
-	var local_n := (visual.global_transform.basis.inverse() * n).normalized()
-	var target := Basis(Quaternion(Vector3.UP, local_n))
-	board.basis = board.basis.slerp(target, 1.0 - exp(-10.0 * delta))
-
-
 func _update_animation(horizontal_speed: float) -> void:
 	if anim == null:
 		return
@@ -488,8 +448,6 @@ func _update_animation(horizontal_speed: float) -> void:
 		target = "fall"                     # arms and legs tucked in for the roll or flip
 	elif not is_on_floor():
 		target = "jump" if velocity.y > 0.0 else "fall"
-	elif Game.riding:
-		target = "skate"
 	elif horizontal_speed > 0.3:
 		target = "run"
 	# assigned_animation sticks after a one-shot (jump) finishes, so it holds its last pose instead of restarting

@@ -37,6 +37,12 @@ func _initialize() -> void:
 		"step_cloud": _step(0.09, 100.0, 900.0, 0.0),
 		"step_crystal": _chime(),
 		"beam": _beam(),                                # the mothership's tractor beam
+		# Skating (scenes/player/skate.gd). The roll and grind loop, so they're made to join up end to start.
+		"skate_roll": _skate_roll(),
+		"skate_grind": _skate_grind(),
+		"skate_pop": _skate_pop(),                      # the tail snapping down for an ollie
+		"skate_land": _skate_land(),                    # four wheels slapping down
+		"skate_bail": _skate_bail(),                    # a cartoon wipeout
 	}
 	for name in sounds:
 		_write(name, sounds[name])
@@ -195,6 +201,81 @@ func _chime() -> PackedFloat32Array:
 # -----------------------------------------------------------------------------
 # Building blocks
 # -----------------------------------------------------------------------------
+func _skate_roll() -> PackedFloat32Array:
+	# Wheels on concrete: a low rumble, with a soft tick each time the wheels roll over a crack
+	var n := int(1.2 * SR)
+	var y := _mul(_lowpass(_highpass(_noise(n), 60.0), 700.0), _env(n, 0.0, 99.0, 1.0))
+	for k in 4:
+		var tick := _mul(_lowpass(_noise(int(0.03 * SR)), 1500.0), _env(int(0.03 * SR), 0.001, 0.01))
+		y = _add(y, tick, int(k * 0.3 * SR + 0.05 * SR), 0.6)
+	return _norm(_seamless(y, int(0.15 * SR)), 0.5)
+
+
+func _skate_grind() -> PackedFloat32Array:
+	# Metal on metal: bright scraping noise with a couple of ringing tones that wobble
+	var n := int(1.0 * SR)
+	var scrape := _lowpass(_highpass(_noise(n), 1800.0), 7000.0)
+	var y := PackedFloat32Array()
+	y.resize(n)
+	for i in n:
+		var t := float(i) / SR
+		var rough := 0.6 + 0.4 * sin(TAU * 23.0 * t) * sin(TAU * 7.0 * t)
+		y[i] = scrape[i] * rough * 0.7 + 0.18 * sin(TAU * 1310.0 * t) * rough + 0.12 * sin(TAU * 2190.0 * t)
+	return _norm(_seamless(y, int(0.12 * SR)), 0.55)
+
+
+func _skate_pop() -> PackedFloat32Array:
+	# A sharp wooden clack with a little thump under it
+	var n := int(0.18 * SR)
+	var clack := _mul(_lowpass(_highpass(_noise(n), 900.0), 5000.0), _env(n, 0.0005, 0.02))
+	var wood := _mul(_sweep(420.0, 300.0, n, "tri"), _env(n, 0.0005, 0.04))
+	var thump := _mul(_sweep(120.0, 70.0, n), _env(n, 0.002, 0.06))
+	return _norm(_add(_add(clack, wood, 0, 0.7), thump, 0, 0.8), 0.8)
+
+
+func _skate_land() -> PackedFloat32Array:
+	# Two quick slaps (back wheels, then front) and a rattle of the trucks
+	var n := int(0.3 * SR)
+	var slap := _mul(_lowpass(_noise(int(0.08 * SR)), 2500.0), _env(int(0.08 * SR), 0.001, 0.03))
+	var thud := _mul(_sweep(110.0, 55.0, int(0.12 * SR)), _env(int(0.12 * SR), 0.002, 0.05))
+	var y := PackedFloat32Array()
+	y.resize(n)
+	y = _add(y, slap, 0, 1.0)
+	y = _add(y, thud, 0, 1.0)
+	y = _add(y, slap, int(0.035 * SR), 0.8)
+	var rattle := _mul(_highpass(_noise(int(0.15 * SR)), 3000.0), _env(int(0.15 * SR), 0.01, 0.05))
+	y = _add(y, rattle, int(0.05 * SR), 0.25)
+	return _norm(y, 0.8)
+
+
+func _skate_bail() -> PackedFloat32Array:
+	# A slide whistle going down, a bump, and the board clattering away
+	var n := int(0.9 * SR)
+	var whistle := _mul(_sweep(1400.0, 300.0, int(0.45 * SR)), _env(int(0.45 * SR), 0.02, 0.3, 1.5))
+	var bump := _mul(_sweep(140.0, 50.0, int(0.2 * SR)), _env(int(0.2 * SR), 0.002, 0.08))
+	var y := PackedFloat32Array()
+	y.resize(n)
+	y = _add(y, whistle, 0, 0.6)
+	y = _add(y, bump, int(0.42 * SR), 1.0)
+	for k in 3:
+		var clat := _mul(_lowpass(_highpass(_noise(int(0.05 * SR)), 800.0), 4000.0), _env(int(0.05 * SR), 0.001, 0.015))
+		y = _add(y, clat, int((0.5 + k * 0.09 + rng.randf() * 0.03) * SR), 0.7 - k * 0.15)
+	return _norm(y, 0.8)
+
+
+func _seamless(x: PackedFloat32Array, fade: int) -> PackedFloat32Array:
+	# Fold the last bit of a sound over its start, so it loops with no click where the end meets the beginning
+	var n := x.size() - fade
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		out[i] = x[i]
+	for i in fade:
+		var w := float(i) / fade
+		out[i] = x[i] * w + x[n + i] * (1.0 - w)
+	return out
+
+
 func _noise(n: int) -> PackedFloat32Array:
 	var x := PackedFloat32Array()
 	x.resize(n)
