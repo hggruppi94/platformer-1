@@ -42,6 +42,7 @@ const CAPTIONS := {
 	"roll": "[tumble]",
 	"bark": "[Rook barks]",
 	"zipline": "[zipline whirs]",
+	"beam": "[tractor beam hums]",
 	"splash": "[splash]",
 	"boing": "[boing!]",
 	"bubbles": "[bubbles gurgle]",

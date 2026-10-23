@@ -40,7 +40,7 @@ Read this first in every session so each iteration builds on the last one and do
     town, after a refactor), revert that `.tscn` instead of committing thousands of ID-only lines.
 - **Test:** `godot --headless --path "Godot Project/my-world" --script res://tools/test_<x>.gd`
   - Usual set: layout, map, doors, walk_through, earth, dialogue, plus whatever the change touches (routines,
-    quests, town_quests, shop, crocodillo, scary_world, clock, quick_fixes).
+    quests, town_quests, shop, crocodillo, mothership, scary_world, clock, quick_fixes).
   - Some tests have two runs: run the same test again with `-- --check-load` straight after, before running any
     other test.
   - A test that passes on one run and fails the next usually depends on Hayden's save (tests start from whatever
@@ -64,6 +64,10 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Nina can fly the mothership. The Mothership Pad (east of the Observatory path) calls it down and its
+  tractor beam lifts her into the cockpit. Move keys fly it the way the camera faces, Jump climbs, Roll sinks, and
+  Interact beams her down to the ground below. A save made while flying puts her back on the pad
+  (`tools/test_mothership.gd`, `previews/mothership/`).
 - 2026-10-23: The portal lets Nina through by the clock, not by its fade-in. It used to let her through for a
   moment after the Shift ended or after loading a save made during the Shift.
 - 2026-10-23: Renamed Galactopia → Galaxity. Earth got a full day/night sky (clouds, sunrise and sunset, stars,
@@ -76,5 +80,4 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Open ideas / next up
 
-- Piloting the mothership (it already goes through `fly()` with a cockpit seat).
 - Add new requests here as they come in, and move them to the log when they're done.

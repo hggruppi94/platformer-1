@@ -241,8 +241,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	# Developer shortcut, only when run from the editor (not in exported builds): X for 10 XP
 	if OS.is_debug_build() and event.is_action_pressed("debug_xp"):
 		add_xp(10)
-	if event.is_action_pressed("toggle_skateboard") and not Dialogue.is_active():
+	if event.is_action_pressed("toggle_skateboard") and not Dialogue.is_active() and not _player_carried():
 		toggle_skateboard()
+
+
+func _player_carried() -> bool:
+	# On the zipline or in the mothership: no hopping on the skateboard
+	var player := get_tree().get_first_node_in_group("player")
+	return player != null and player.get("carried") == true
 
 
 # -----------------------------------------------------------------------------
@@ -268,7 +274,8 @@ func save_game() -> void:
 	if not _resume.is_empty():
 		data.merge(_resume)      # still on the way back to where she saved: keep that place
 	elif player and scene and scene.scene_file_path != "" and player.is_inside_tree():
-		var p := player.global_position
+		# Up in the mothership she saves as if back on its pad (scripts/mothership.gd), not in mid-air
+		var p: Vector3 = player.get_meta("save_spot", player.global_position)
 		_last_place = {"scene": scene.scene_file_path, "position": [p.x, p.y, p.z],
 			"yaw": (player.get_node("Visual") as Node3D).rotation.y}
 		data.merge(_last_place)

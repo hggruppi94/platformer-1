@@ -36,6 +36,7 @@ func _initialize() -> void:
 		"step_water": _splash(0.16),
 		"step_cloud": _step(0.09, 100.0, 900.0, 0.0),
 		"step_crystal": _chime(),
+		"beam": _beam(),                                # the mothership's tractor beam
 	}
 	for name in sounds:
 		_write(name, sounds[name])
@@ -166,6 +167,21 @@ func _step(dur: float, lo: float, hi: float, knock: float) -> PackedFloat32Array
 	if knock > 0.0:
 		y = _add(y, _mul(_sweep(knock, knock * 0.8, n), _env(n, 0.001, dur * 0.4)), 0, 0.8)
 	return _norm(y, 0.4)
+
+
+func _beam() -> PackedFloat32Array:
+	# A tractor beam: a soft rising warble with a shimmer an octave and a fifth above, swelling in and out
+	var n := int(1.6 * SR)
+	var low := _sweep(220.0, 440.0, n, "tri")
+	var high := _sweep(660.0, 1320.0, n)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	for i in n:
+		var t := float(i) / SR
+		var wobble := 0.7 + 0.3 * sin(TAU * 7.0 * t)
+		var shape := sin(PI * float(i) / n)
+		out[i] = (low[i] * 0.6 + high[i] * 0.25 * wobble) * shape * wobble
+	return _norm(out, 0.55)
 
 
 func _chime() -> PackedFloat32Array:

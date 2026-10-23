@@ -6,7 +6,8 @@ extends SceneTree
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_mothership.gd
 #
-# Its middle is at the origin and it faces +Z. A seat ("Cockpit", a Marker3D under the dome) is where a pilot will sit.
+# Its middle is at the origin and it faces +Z. A seat ("Cockpit", a Marker3D under the dome, at the pilot's feet) is
+# where Nina stands to fly it, and "Beam" is the tractor beam that lifts her up there (hidden until it's switched on).
 
 const OUT_DIR := "res://scenes/vehicles"
 const OUT := OUT_DIR + "/mothership.tscn"
@@ -26,7 +27,7 @@ func _initialize() -> void:
 
 	var metal := _mat("Ship Metal", Color(0.8, 0.82, 0.88), 0.3, 0.6)
 	var under := _mat("Ship Underside", Color(0.5, 0.53, 0.6), 0.4, 0.6)
-	var glass := _mat("Ship Dome", Color(0.58, 0.82, 0.96, 0.82), 0.05, 0.1, 0.25)
+	var glass := _mat("Ship Dome", Color(0.58, 0.82, 0.96, 0.45), 0.05, 0.1, 0.25)   # see-through enough to spot the pilot
 	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	var spire := _mat("Ship Spire", Color(0.72, 0.75, 0.82), 0.25, 0.8)
 	var gold := _mat("Ship Light Gold", Color(1.0, 0.82, 0.35), 0.3, 0.0, 2.5)
@@ -66,9 +67,19 @@ func _initialize() -> void:
 	glow.position = Vector3(0, -6, 0)
 	hull.add_child(glow)
 	var seat := Marker3D.new()
-	seat.name = "Cockpit"                          # where a pilot will sit, under the dome
-	seat.position = Vector3(0, 2.2, 0)
+	seat.name = "Cockpit"                          # where the pilot stands, under the dome, on top of the disc
+	seat.position = Vector3(0, 2.8, 0)
 	hull.add_child(seat)
+	# The tractor beam: a pale cone of light, 1 m tall here and stretched down to the ground by scripts/mothership.gd.
+	# It hangs off the ship itself, not the hull, so it stays upright when the hull banks.
+	var ray := _mat("Ship Beam", Color(0.6, 0.95, 1.0, 0.3), 1.0, 0.0, 1.2)
+	ray.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ray.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ray.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var cone := _mesh(ship, _cyl(4.5, 6.0, 1.0, 40), ray, Vector3(0, -4.1, 0))
+	cone.name = "Beam"
+	cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	cone.visible = false
 
 	_own(ship)
 	var scene := PackedScene.new()

@@ -48,6 +48,7 @@ const OBS_HILL := Vector3(105, -88, 16)           # x, z, height
 const OBS_HILL_TOP := 10.0
 const OBS_HILL_FOOT := 42.0
 const SKATE := Vector2(50, 58)
+const MOTHERSHIP_PAD := Vector2(118, -42)          # x, z: open ground just east of the Observatory path
 # Main paths, painted on the ground: polylines of (x, z)
 const MAIN_PATHS := [
 	[Vector2(-72, 78), Vector2(-72, 64)],
@@ -1722,6 +1723,41 @@ func _mothership() -> void:
 	ship.position = Vector3(140, 95, -60)
 	town.add_child(ship)
 	ship.owner = town
+	# The Mothership Pad, where Nina calls it down to fly it (scripts/mothership_pad.gd): a round metal landing pad
+	# with three glowing rings, low enough to walk straight onto
+	var g := group("Mothership Pad", ground(MOTHERSHIP_PAD.x, MOTHERSHIP_PAD.y))
+	var metal := mat("Pad Metal", Color(0.72, 0.75, 0.82), 0.35, 0.6)
+	mesh_at(cylinder(4.0, 4.3, 0.4, 40), metal, Vector3(0, -0.1, 0), g)
+	solid(_cyl_shape(4.0, 0.4), Vector3(0, -0.1, 0), g)
+	var glow := mat("Pad Ring", Color(0.5, 0.88, 1.0), 0.3, 0.0, 1.6, 1.0, false)   # the same blue as the ship's lights
+	for k in 3:
+		var ring := TorusMesh.new()
+		ring.inner_radius = 1.0 + k * 1.1
+		ring.outer_radius = 1.25 + k * 1.1
+		ring.rings = 48
+		var mi := mesh_at(ring, glow, Vector3(0, 0.11, 0), g)
+		mi.name = "Pad Ring %d" % (k + 1)
+	var pad_area := Area3D.new()
+	pad_area.name = "PadCall"
+	pad_area.set_script(load("res://scripts/mothership_pad.gd"))
+	pad_area.position = Vector3(0, 1.1, 0)                  # 1 m over the pad's top (its ground_offset)
+	var cs := CollisionShape3D.new()
+	cs.shape = _cyl_shape(4.0, 2.2)
+	pad_area.add_child(cs)
+	var prompt := Label3D.new()
+	prompt.name = "Prompt"
+	prompt.font_size = 44
+	prompt.pixel_size = 0.01
+	prompt.outline_size = 10
+	prompt.outline_modulate = Color(0.15, 0.1, 0.12)
+	prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt.no_depth_test = true
+	prompt.position = Vector3(0, 1.4, 0)
+	pad_area.add_child(prompt)
+	g.add_child(pad_area)
+	sign_post(g, "Mothership Pad", Vector3(-5.5, 0, 2.5), -0.5)
+	keep_clear.append(Vector3(MOTHERSHIP_PAD.x, MOTHERSHIP_PAD.y, 8))
+	own(g)
 
 
 func _crystals() -> void:
