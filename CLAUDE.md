@@ -64,6 +64,12 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Skating, step 3 (the town). The Skate Park (`_skate_park()` in `build_town.gd`) has real quarter pipes,
+  a funbox with a rail, a flat rail and a ledge, built from `tools/skate_kit.gd` (shared with the Practice Park). The
+  benches in the Market Square and the housing park are grindable (`grind_edge()`). Seven goals pay sparkles once
+  (`scripts/skate_goals.gd`: S-K-A-T-E letters, combo, grind, manual, 540, special, park score), saved as
+  `skate_goal_*` / `skate_letter_*` Dialogue flags, with a goals board (`tools/test_skate_park.gd`,
+  `previews/skate_park/`).
 - 2026-10-23: Skating, step 2 (tricks). `scenes/player/skate_tricks.gd`: flips (Flip + direction), held grabs
   (Grab + direction), spins, grind types (Grind + direction: 50-50, 5-0, Nosegrind, Boardslide, Lipslide), manuals
   (forward then back quickly), combos that multiply and pay out after landing, repeats worth half, bails lose the
@@ -92,7 +98,6 @@ Read this first in every session so each iteration builds on the last one and do
 ## Open ideas / next up
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves (Dash on his BMX, Rook
-  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 3: a real skate park in town,
-  grindable benches and rails round Galaxity, THPS goals (S-K-A-T-E letters, high scores, gaps) paying sparkles.
-  Step 4: the other riders.
+  on paw skates, Bruno the SK8-beanie skater, Pip maybe hover or wings), on controller and keyboard. Step 4: the other riders.
+  Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
 - Add new requests here as they come in, and move them to the log when they're done.

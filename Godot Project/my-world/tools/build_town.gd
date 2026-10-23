@@ -723,6 +723,7 @@ func _market() -> void:
 		var bp := Vector3(cos(a), 0, sin(a)) * 6.0
 		mesh_at(box(Vector3(2.0, 0.15, 0.6)), bench, bp + Vector3(0, 0.5, 0), g, atan2(bp.x, bp.z) + PI / 2)
 		solid(box_shape(Vector3(2.0, 0.5, 0.6)), bp + Vector3(0, 0.25, 0), g, atan2(bp.x, bp.z) + PI / 2)
+		grind_edge(g, "Bench Grind %d" % k, bp + Vector3(0, 0.6, 0), atan2(bp.x, bp.z) + PI / 2, 1.9)
 	sign_post(g, "Market Square", Vector3(4, 0, MARKET.z + 2.0), 0.0)
 	# Where she appears in town when there's no door to come out of (old saves, fainting): the south entrance
 	var entrance := Marker3D.new()
@@ -767,6 +768,7 @@ func _housing() -> void:
 	for side in [-1, 1]:
 		mesh_at(box(Vector3(2.0, 0.15, 0.6)), bench, Vector3(side * 5.0, 0.5, -3.0), g, side * 0.6)
 		solid(box_shape(Vector3(2.0, 0.5, 0.6)), Vector3(side * 5.0, 0.25, -3.0), g, side * 0.6)
+		grind_edge(g, "Bench Grind %d" % side, Vector3(side * 5.0, 0.6, -3.0), side * 0.6, 1.9)
 	keep_clear.append(Vector3(HOUSING.x, HOUSING.y, 9.0))
 	own(g)
 
@@ -1555,34 +1557,84 @@ func _courts() -> void:
 
 
 func _skate_park() -> void:
+	# A real skate park (scenes/player/skate.gd): two quarter pipes facing each other across the pastel rings, a funbox
+	# with a rail, a flat rail and a ledge, all grindable. The pieces come from tools/skate_kit.gd, in the town's
+	# palette. Its goals (S-K-A-T-E letters and more, paying sparkles) are scripts/skate_goals.gd, on this node.
 	var c := ground(SKATE.x, SKATE.y)
 	var g := group("Skate Park", c)
+	g.set_script(load("res://scripts/skate_goals.gd"))
 	var colors := [Color(0.98, 0.7, 0.8), Color(0.75, 0.7, 0.98), Color(0.7, 0.9, 0.98), Color(0.98, 0.9, 0.65),
 		Color(0.75, 0.95, 0.75), Color(0.98, 0.78, 0.6)]
+	var r0 := 14.5
 	for k in colors.size():                      # pastel rings
-		var r := 13.0 - k * 2.0
+		var r := r0 - k * 2.2
 		mesh_at(cylinder(r, r, 0.3, 48), mat("Skate " + str(k), colors[k], 0.6), Vector3(0, 0.08 + k * 0.01, 0), g)
-	solid(_cyl_shape(13, 0.4), Vector3(0, 0.05, 0), g)
-	var ramp := mat("Ramp", Color(0.85, 0.82, 0.9), 0.5)
-	for r in [Vector4(-6, 0, 0, 0.3), Vector4(6, 0, PI, 0.3), Vector4(0, -7, PI / 2, 0.4)]:   # x, z, yaw, tilt
-		mesh_at(box(Vector3(4, 0.4, 5)), ramp, Vector3(r.x, 0.9, r.y), g, r.z, Vector3(r.w, 0, 0))
-		solid(box_shape(Vector3(4, 0.4, 5)), Vector3(r.x, 0.9, r.y), g, r.z, Vector3(r.w, 0, 0))
+	solid(_cyl_shape(r0, 0.4), Vector3(0, 0.05, 0), g)
+	var kit := SkateKit.new(func(n: String, col: Color, rough: float, metal: float) -> Material:
+		return mat("Skate " + n, col, rough, metal))
+	var floor_y := 0.25                          # the top of the rings
+	kit.quarter_pipe(g, "Quarter Pipe East", Vector3(8, floor_y, 0), PI / 2, 10.0, 3.0, 76.0, 1.6)
+	kit.quarter_pipe(g, "Quarter Pipe West", Vector3(-8, floor_y, 0), -PI / 2, 10.0, 3.0, 76.0, 1.6)
+	kit.funbox(g, "Funbox", Vector3(0, floor_y, -6.5), PI / 2)
+	kit.flat_rail(g, "Flat Rail", Vector3(0, floor_y, 5), Vector3(1, 0, 0), 10.0, 0.5)
+	kit.ledge(g, "Ledge", Vector3(0, floor_y, 9.5), Vector3(1, 0, 0), 8.0, 0.5)
 	sign_post(g, "Skate Park", Vector3(9, 0, 10), -0.4)
+	# The goals board, and the letters of S-K-A-T-E hidden round the park (high over the quarter pipes, over the
+	# funbox rail, over the flat rail, along the ledge)
+	var board := Node3D.new()
+	board.name = "GoalBoard"
+	board.position = Vector3(-9, 0, 10.5)
+	board.rotation.y = atan2(9.0, -10.5)                  # facing the middle of the park
+	g.add_child(board)
+	var wood := mat("Sign Wood", Color(0.42, 0.25, 0.13))
+	for side in [-1, 1]:
+		mesh_at(cylinder(0.08, 0.08, 2.6, 8), wood, Vector3(side * 1.6, 1.3, 0), board)
+	mesh_at(box(Vector3(3.8, 2.4, 0.12)), mat("Goal Board", Color(0.2, 0.15, 0.3)), Vector3(0, 2.3, 0), board)
+	var text := Label3D.new()
+	text.name = "Goals"
+	text.font_size = 40
+	text.pixel_size = 0.0036
+	text.outline_size = 8
+	text.modulate = Color(1, 0.97, 0.88)
+	text.position = Vector3(0, 2.3, 0.07)
+	board.add_child(text)
+	var lip := floor_y + 3.0 * (1.0 - cos(deg_to_rad(76.0)))
+	var letters := {"S": Vector3(0, floor_y + 2.7, -6.5), "K": Vector3(10.3, lip + 1.9, 3.0),
+		"A": Vector3(-3.0, floor_y + 1.7, 5.0), "T": Vector3(3.0, floor_y + 1.3, 9.5), "E": Vector3(-10.3, lip + 1.9, -3.0)}
+	for l in letters:
+		var m := Marker3D.new()
+		m.name = "Letter " + l
+		m.position = letters[l]
+		g.add_child(m)
 	# The skateboard waiting to be picked up (scripts/pickup.gd); gone once she owns it
 	var pick := Area3D.new()
 	pick.name = "SkateboardPickup"
 	pick.set_script(load("res://scripts/pickup.gd"))
 	pick.set("item", "skateboard")
-	pick.position = Vector3(0, 0.4, 4)
+	pick.position = Vector3(0, 0.6, 1.5)
 	var pcs := CollisionShape3D.new()
 	pcs.shape = _sphere_shape(1.2)
 	pick.add_child(pcs)
-	var board: Node3D = load("res://scenes/items/skateboard.tscn").instantiate()
-	board.scale = Vector3.ONE * 1.6
-	pick.add_child(board)
+	var skateboard: Node3D = load("res://scenes/items/skateboard.tscn").instantiate()
+	skateboard.scale = Vector3.ONE * 1.6
+	pick.add_child(skateboard)
 	g.add_child(pick)
-	keep_clear.append(Vector3(-8, 42, 16))
+	keep_clear.append(Vector3(SKATE.x, SKATE.y, r0 + 2.0))
 	own(g)
+
+
+func grind_edge(parent: Node, name: String, centre: Vector3, yaw: float, length: float, kind := "ledge") -> void:
+	# Makes the top of something grindable (a bench seat, a wall): a scripts/grind_rail.gd line through centre, along
+	# its local x turned by yaw, at centre's height
+	var r := GrindRail.new()
+	r.name = name
+	r.kind = kind
+	var along := Vector3(cos(yaw), 0, -sin(yaw)) * (length / 2)
+	var curve := Curve3D.new()
+	curve.add_point(centre - along)
+	curve.add_point(centre + along)
+	r.curve = curve
+	parent.add_child(r)
 
 
 func _sports_sign() -> void:

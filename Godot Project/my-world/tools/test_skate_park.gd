@@ -1,0 +1,167 @@
+extends SceneTree
+
+# Checks the town's Skate Park (tools/build_town.gd, _skate_park) and its goals (scripts/skate_goals.gd): the ramps,
+# funbox, rail and ledge are there and grindable, the benches round town are grindable, a quarter pipe there sends
+# her into a vert air, the S-K-A-T-E letters only count on the board and pay out when all five are got, and each other
+# goal pays its sparkles once.
+#
+#   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate_park.gd
+#
+# Your own save is put aside and put back at the end.
+
+const SAVE := "user://save.json"
+const BACKUP := "user://save.test_backup.json"
+const TOWN := "res://scenes/town/town.tscn"
+
+var failures := 0
+var game: Node
+var dialogue: Node
+
+
+func check(ok: bool, what: String) -> void:
+	print(("PASS  " if ok else "FAIL  ") + what)
+	if not ok:
+		failures += 1
+
+
+func _initialize() -> void:
+	create_timer(150.0, true, false, true).timeout.connect(func() -> void:
+		print("RESULT FAILED (timed out)")
+		_finish())
+	_run.call_deferred()
+
+
+func _run() -> void:
+	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
+		DirAccess.copy_absolute(SAVE, BACKUP)
+	game = root.get_node("Game")
+	dialogue = root.get_node("Dialogue")
+	game._resume = {}
+	game.pending_message = ""
+	for f in dialogue.flags.keys():
+		if String(f).begins_with("skate_"):
+			dialogue.flags.erase(f)
+	if not game.has_item("skateboard"):
+		game.items.append("skateboard")
+	game.riding = false
+	change_scene_to_file(TOWN)
+	await _frames(6)
+	var town := current_scene
+	var p := town.find_child("Player", true, false) as CharacterBody3D
+	var s: Node = p.get_node("Skate")
+	var park := town.get_node_or_null("Skate Park") as Node3D
+	check(park != null and park.has_method("complete"), "the town has a Skate Park with goals")
+	if park == null:
+		_end()
+		return
+	for piece in ["Quarter Pipe East", "Quarter Pipe West", "Funbox", "Flat Rail", "Ledge"]:
+		var n := park.get_node_or_null(piece)
+		check(n != null and n.find_children("*", "GrindRail", true, false).size() > 0, "...with a grindable " + piece)
+	var benches := 0
+	for r in tree_rails(town):
+		if String(r.name).begins_with("Bench Grind"):
+			benches += 1
+	check(benches >= 6, "benches round town are grindable (%d)" % benches)
+
+	# --- Riding the quarter pipe in town ---
+	game.riding = true
+	game.equipment_changed.emit()
+	await _physics(2)
+	var c := park.global_position
+	p.global_position = c + Vector3(1.0, 1.3, 1.5)
+	p.velocity = Vector3.ZERO
+	s.state = s.State.ROLL
+	await _physics(20)
+	check(s.state == s.State.ROLL and s._grounded, "she rolls on the park floor")
+	p.velocity = Vector3(11, 0, 0)
+	s._yaw = PI / 2
+	var vert := false
+	var peak := 0.0
+	for i in 150:
+		await physics_frame
+		vert = vert or s._vert
+		peak = maxf(peak, p.global_position.y - c.y)
+	check(vert and peak > 4.0, "the east quarter pipe sends her into a vert air (%.1f m up)" % peak)
+	await _physics(60)
+
+	# --- The letters: only on the board, all five pay out ---
+	var start_sparkles: int = game.sparkles
+	game.riding = false
+	game.equipment_changed.emit()
+	var s_letter := park.get_node("Pickup S") as Area3D
+	p.global_position = s_letter.global_position
+	await _physics(6)
+	check(s_letter.visible and not dialogue.flags.has("skate_letter_S"), "walking into a letter doesn't count")
+	game.riding = true
+	game.equipment_changed.emit()
+	for l in ["S", "K", "A", "T", "E"]:
+		var a := park.get_node("Pickup " + l) as Area3D
+		p.global_position = a.global_position + Vector3(0, 3, 0)
+		await _physics(3)
+		s.state = s.State.AIR
+		p.global_position = a.global_position
+		p.velocity = Vector3.ZERO
+		await _physics(3)
+	check(park.is_done("letters"), "riding through all five letters finishes S-K-A-T-E")
+	check(game.sparkles == start_sparkles + 5, "...and pays 5 sparkles (%d)" % (game.sparkles - start_sparkles))
+	var board := park.find_child("Goals", true, false) as Label3D
+	check(board.text.contains("★ Collect S-K-A-T-E"), "...and the board ticks it off")
+
+	# --- The other goals, from tricks done in the park ---
+	p.global_position = c + Vector3(1.0, 1.3, 1.5)
+	await _physics(10)
+	var t: SkateTricks = s.tricks
+	start_sparkles = game.sparkles
+	t.banked.emit(3000, "Kickflip + 50-50 + 540")
+	check(park.is_done("combo") and park.is_done("spin"), "a 3,000 combo with a 540 in it does two goals")
+	t.live_done.emit("50-50", 3.4)
+	t.live_done.emit("Manual", 1.0)
+	check(park.is_done("grind") and not park.is_done("manual"), "a long grind counts, a short manual doesn't")
+	t.live_done.emit("Manual", 3.2)
+	check(park.is_done("manual"), "...a long one does")
+	t.banked.emit(1000, "Galaxy Twirl")
+	check(park.is_done("special"), "doing her special counts")
+	t.banked.emit(11000, "Kickflip")
+	check(park.is_done("score"), "scoring 15,000 here counts")
+	check(game.sparkles == start_sparkles + 5 + 3 + 3 + 3 + 5 + 8, "...and they pay their sparkles (%d)" % (game.sparkles - start_sparkles))
+	var before: int = game.sparkles
+	t.banked.emit(5000, "Kickflip + 540")
+	check(game.sparkles == before, "a goal only pays once")
+
+	# --- Far from the park, nothing counts ---
+	for f in dialogue.flags.keys():
+		if String(f).begins_with("skate_goal_"):
+			dialogue.flags.erase(f)
+	p.global_position = c + Vector3(60, 5, 0)
+	await _physics(3)
+	t.banked.emit(3000, "540")
+	check(not park.is_done("combo"), "tricks done away from the park don't count for its goals")
+	for f in dialogue.flags.keys():
+		if String(f).begins_with("skate_"):
+			dialogue.flags.erase(f)
+	_end()
+
+
+func tree_rails(n: Node) -> Array:
+	return n.find_children("*", "GrindRail", true, false)
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
+
+
+func _physics(n: int) -> void:
+	for i in n:
+		await physics_frame
+
+
+func _end() -> void:
+	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
+	_finish()
+
+
+func _finish() -> void:
+	if FileAccess.file_exists(BACKUP):
+		DirAccess.rename_absolute(BACKUP, SAVE)
+	quit(1 if failures > 0 else 0)

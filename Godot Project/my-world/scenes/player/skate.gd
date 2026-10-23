@@ -530,6 +530,7 @@ func _grind(input: Vector2, delta: float) -> void:
 	_lean = balance * 0.5
 	if not ok:
 		var side := p.visual.global_transform.basis.x * signf(balance)
+		tricks.lose()
 		_leave_rail(t * _rail_speed * 0.5 + Vector3.UP * 1.5 + side * 2.0)
 		bail()
 		return
@@ -560,10 +561,10 @@ func _leave_rail(v: Vector3) -> void:
 # --- Bailing ------------------------------------------------------------------
 func bail() -> void:
 	# A comedy wipeout: she tumbles, the board shoots off on its own, stars go round her head. No damage.
+	tricks.lose()                                     # first, so the grind she falls off doesn't count
+	_manual = 0
 	if state == State.GRIND:
 		_leave_rail(p.velocity)
-	_manual = 0
-	tricks.lose()
 	state = State.BAIL
 	_bail_timer = float(ride.bail_time)
 	_charge = -1.0

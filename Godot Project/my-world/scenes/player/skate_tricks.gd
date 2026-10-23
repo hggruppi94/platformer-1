@@ -12,6 +12,7 @@ extends RefCounted
 signal changed                                  # the combo, score or special meter changed (the HUD listens)
 signal banked(points: int, names: String)       # a combo was paid out
 signal lost                                     # a combo was lost in a bail
+signal live_done(name: String, seconds: float)  # a grind or manual just ended (without a bail)
 
 const GRACE := 0.4                    # after landing, this long to link a manual before the combo is paid out
 const SPIN_POINTS := [0, 100, 250, 400, 600, 800, 1000, 1200]    # by half turns: 180, 360, 540...
@@ -151,8 +152,10 @@ func end_live() -> void:
 		return
 	var pts := _live_points()
 	var name: String = live.name
+	var seconds: float = live.time
 	live = {}
 	add(name, pts)
+	live_done.emit(name, seconds)
 
 
 func _live_points() -> int:
