@@ -2,7 +2,8 @@ extends SceneTree
 
 # Builds res://scenes/earth/earth.tscn: the little Earth town through the portal. A cozy autumn town: a town green
 # with a white gazebo in the middle, a street round it with lamps, a diner, a bookshop, the corner market, an inn,
-# the town hall with its white steeple and a few homes, autumn trees, fallen leaves and pumpkins on the steps.
+# the town hall with its white steeple and a few homes, autumn trees, fallen leaves and pumpkins on the steps. Past the
+# green's southeast corner, the old red barn is the dance studio: walk in through its big doors.
 # Nina arrives by the old oak, where the portal home shimmers. Logic: scripts/earth_world.gd.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_earth.gd
@@ -12,7 +13,9 @@ const TOWN := "res://scenes/town/town.tscn"
 const GREEN_R := 13.0                             # the town green
 const STREET := 21.0                              # the street runs round the green, this far out (a square)
 const STREET_W := 6.0
-const EDGE := 42.0                                # an invisible wall this far out
+const EDGE := 64.0                                # an invisible wall this far out
+const STUDIO_AT := Vector3(35, 0, 35)             # the barn dance studio, past the southeast corner of the green
+const STUDIO_SIZE := Vector3(14, 6, 18)           # width, wall height, depth
 const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal home, on the green's corner
 
 var world: Node3D
@@ -29,6 +32,7 @@ func _initialize() -> void:
 	_ground_and_street()
 	_gazebo()
 	_buildings()
+	_dance_studio()
 	_trees_and_leaves()
 	_lamps()
 	_portal()
@@ -324,6 +328,196 @@ func _buildings() -> void:
 		_building("Home %d" % (k + 1), Vector3(-14 + k * 14, 0, back), PI, Vector3(8, 5.0, 7), home_cols[k], Color(0.3, 0.25, 0.25), "")
 
 
+func _dance_studio() -> void:
+	# The old red barn past the southeast corner of the green, made into the town's dance studio. Walk in through the
+	# big open doors: a maple floor, a mirror wall, ballet barres down both sides, string lights along the rafters
+	# and a disco ball over the middle. Out front: a picket fence, hay bales, pumpkins and a class board.
+	var toward := Vector3(-STUDIO_AT.x, 0, -STUDIO_AT.z).normalized()     # its doors face the green
+	var g := group("Dance Studio", STUDIO_AT, atan2(toward.x, toward.z))
+	var red := mat("Barn Red", Color(0.62, 0.14, 0.12), 0.85)
+	var white := mat("Barn Trim", Color(0.96, 0.94, 0.9), 0.7)
+	var plank := mat("Barn Planks", Color(0.55, 0.38, 0.24), 0.9)
+	var shingle := mat("Barn Roof", Color(0.24, 0.22, 0.24), 0.85)
+	var glass := mat("Warm Window", Color(1.0, 0.85, 0.55), 0.3, 1.6)
+	var hw := STUDIO_SIZE.x / 2.0                                      # half its width
+	var hd := STUDIO_SIZE.z / 2.0                                      # half its depth
+	var wall_h := STUDIO_SIZE.y
+	# The gambrel shape: steep lower roof, shallow upper roof
+	var profile := PackedVector2Array([Vector2(-hw, 0), Vector2(hw, 0), Vector2(hw, wall_h), Vector2(hw * 0.63, wall_h + 3.4),
+		Vector2(0, wall_h + 4.6), Vector2(-hw * 0.63, wall_h + 3.4), Vector2(-hw, wall_h)])
+	var inner := PackedVector2Array()
+	for p in profile:
+		inner.append(Vector2(p.x * (hw - 0.3) / hw, -0.2 if p.y == 0.0 else p.y - 0.3))
+
+	# The shell: one solid barn, hollowed out, with the doorway cut through the front. Solid to walk against.
+	var shell := CSGCombiner3D.new()
+	shell.name = "Barn"
+	shell.use_collision = true
+	g.add_child(shell)
+	var outer := CSGPolygon3D.new()
+	outer.polygon = profile
+	outer.depth = STUDIO_SIZE.z
+	outer.position = Vector3(0, 0, hd)
+	outer.material = red
+	shell.add_child(outer)
+	var hollow := CSGPolygon3D.new()
+	hollow.operation = CSGShape3D.OPERATION_SUBTRACTION
+	hollow.polygon = inner
+	hollow.depth = STUDIO_SIZE.z - 0.6
+	hollow.position = Vector3(0, 0, hd - 0.3)
+	hollow.material = plank
+	shell.add_child(hollow)
+	var doorway := CSGBox3D.new()
+	doorway.operation = CSGShape3D.OPERATION_SUBTRACTION
+	doorway.size = Vector3(4.6, 4.8, 1.2)
+	doorway.position = Vector3(0, 2.4, hd)
+	doorway.material = plank
+	shell.add_child(doorway)
+
+	# Roof slabs over the gambrel, overhanging a little
+	for i in [2, 3, 4, 5]:
+		var a := profile[i]
+		var b := profile[i + 1]
+		var d := b - a
+		var n := Vector2(d.y, -d.x).normalized() * (1.0 if i < 4 else 1.0)
+		if n.y < 0.0:
+			n = -n
+		var mid := (a + b) / 2.0 + n * 0.14
+		mesh_at(box(Vector3(d.length() + 0.35, 0.22, STUDIO_SIZE.z + 0.8)), shingle, Vector3(mid.x, mid.y, 0), g, 0.0,
+			Vector3(0, 0, atan2(d.y, d.x)))
+	# White trim: corner boards, the door frame, and the hayloft door up in the gable
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			mesh_at(box(Vector3(0.3, wall_h, 0.3)), white, Vector3(sx * (hw + 0.02), wall_h / 2.0, sz * (hd + 0.02)), g)
+	mesh_at(box(Vector3(5.2, 0.3, 0.3)), white, Vector3(0, 4.95, hd + 0.05), g)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.3, 4.8, 0.3)), white, Vector3(sx * 2.45, 2.4, hd + 0.05), g)
+	mesh_at(box(Vector3(2.4, 2.2, 0.12)), plank, Vector3(0, wall_h + 1.3, hd + 0.03), g)
+	_white_x(g, Vector3(0, wall_h + 1.3, hd + 0.1), Vector2(2.4, 2.2), white)
+	# The big sliding doors, pushed open either side of the doorway, each with a white X
+	for sx in [-1.0, 1.0]:
+		var dp: Vector3 = Vector3(sx * 3.6, 2.4, hd + 0.25)
+		mesh_at(box(Vector3(2.4, 4.8, 0.15)), red, dp, g)
+		_white_x(g, dp + Vector3(0, 0, 0.1), Vector2(2.4, 4.8), white)
+	# Windows down both sides, glowing warm from the lights inside
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			var wz := -hd + 4.0 + k * (STUDIO_SIZE.z - 8.0) / 2.0
+			mesh_at(box(Vector3(0.12, 1.4, 1.8)), glass, Vector3(sx * (hw + 0.04), 3.0, wz), g)
+			mesh_at(box(Vector3(0.16, 1.6, 0.14)), white, Vector3(sx * (hw + 0.06), 3.0, wz), g)
+	label(g, "Dance Studio", Vector3(0, 5.6, hd + 0.25), 72, Color(1.0, 0.92, 0.95))
+
+	# Inside: the maple floor, a mirror wall at the back, barres, benches and a little stage
+	mesh_at(box(Vector3(STUDIO_SIZE.x - 0.7, 0.08, STUDIO_SIZE.z - 0.7)), mat("Maple Floor", Color(0.85, 0.66, 0.42), 0.35),
+		Vector3(0, 0.04, 0), g)
+	var mirror := mat("Studio Mirror", Color(0.78, 0.86, 0.95), 0.05)
+	mirror.metallic = 0.9
+	mesh_at(box(Vector3(STUDIO_SIZE.x - 1.4, 3.2, 0.08)), mirror, Vector3(0, 2.1, -hd + 0.36), g)
+	mesh_at(box(Vector3(STUDIO_SIZE.x - 1.2, 0.12, 0.12)), white, Vector3(0, 3.75, -hd + 0.36), g)
+	var wood := mat("Barre Wood", Color(0.72, 0.52, 0.32), 0.5)
+	for sx in [-1.0, 1.0]:
+		var bx: float = sx * (hw - 0.65)
+		mesh_at(cyl(0.05, 0.05, STUDIO_SIZE.z - 5.0, 10), wood, Vector3(bx, 1.05, 0.5), g, 0.0, Vector3(PI / 2, 0, 0))
+		for k in 5:
+			var bz := -hd + 2.5 + k * (STUDIO_SIZE.z - 5.0) / 4.0 + 0.5
+			mesh_at(box(Vector3(0.36, 0.06, 0.06)), mat("Barre Bracket", Color(0.75, 0.75, 0.78), 0.3), Vector3(sx * (hw - 0.47), 1.05, bz), g)
+		mesh_at(box(Vector3(0.5, 0.45, 3.2)), plank, Vector3(sx * (hw - 0.6), 0.25, hd - 3.2), g)        # a bench
+		solid_box(Vector3(0.5, 0.45, 3.2), Vector3(sx * (hw - 0.6), 0.25, hd - 3.2), g)
+	mesh_at(box(Vector3(6.0, 0.4, 2.2)), plank, Vector3(0, 0.2, -hd + 1.9), g)                          # the stage
+	solid_box(Vector3(6.0, 0.4, 2.2), Vector3(0, 0.2, -hd + 1.9), g)
+	for sx in [-1.0, 1.0]:                                                                              # speakers
+		mesh_at(box(Vector3(0.7, 1.1, 0.6)), mat("Speaker", Color(0.12, 0.12, 0.14), 0.6), Vector3(sx * 2.6, 0.95, -hd + 1.6), g)
+		mesh_at(cyl(0.22, 0.22, 0.05, 16), mat("Speaker Cone", Color(0.3, 0.3, 0.34), 0.4), Vector3(sx * 2.6, 1.0, -hd + 1.92), g,
+			0.0, Vector3(PI / 2, 0, 0))
+	# Rafters with string lights, and a disco ball in the middle
+	var cols := [Color(1.0, 0.55, 0.8), Color(0.6, 0.85, 1.0), Color(1.0, 0.9, 0.55), Color(0.8, 0.6, 1.0)]
+	for k in 5:
+		var rz := -hd + 1.5 + k * (STUDIO_SIZE.z - 3.0) / 4.0
+		mesh_at(box(Vector3(STUDIO_SIZE.x - 0.6, 0.25, 0.25)), plank, Vector3(0, wall_h - 0.3, rz), g)
+		for b in 12:
+			var bx := -hw + 1.0 + b * (STUDIO_SIZE.x - 2.0) / 11.0
+			mesh_at(ball(0.07, 8), mat("Studio Bulb %d" % (b % 4), cols[b % 4], 0.3, 3.0),
+				Vector3(bx, wall_h - 0.55 - 0.12 * absf(sin(b * 0.6)), rz), g)
+	var disco := mesh_at(ball(0.55, 20), mat("Disco Ball", Color(0.92, 0.92, 0.98), 0.08, 0.6), Vector3(0, wall_h + 1.6, 0), g)
+	(disco.material_override as StandardMaterial3D).metallic = 1.0
+	disco.set_script(load("res://scripts/spin.gd"))
+	mesh_at(cyl(0.02, 0.02, 1.8, 6), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(0, wall_h + 2.7, 0), g)
+	var spots := [[Vector3(-3, wall_h - 0.6, -3), cols[0]], [Vector3(3, wall_h - 0.6, -3), cols[1]],
+		[Vector3(-3, wall_h - 0.6, 4), cols[3]], [Vector3(3, wall_h - 0.6, 4), cols[2]]]
+	for s in spots:
+		var l := OmniLight3D.new()
+		l.light_color = s[1]
+		l.light_energy = 1.3
+		l.omni_range = 9.0
+		l.position = s[0]
+		g.add_child(l)
+	# Music while she's inside (scripts/music_zone.gd)
+	var zone := Area3D.new()
+	zone.name = "StudioMusic"
+	zone.set_script(load("res://scripts/music_zone.gd"))
+	zone.set("track", "interior")
+	var zs := CollisionShape3D.new()
+	var zb := BoxShape3D.new()
+	zb.size = Vector3(STUDIO_SIZE.x - 0.6, 5.0, STUDIO_SIZE.z - 0.6)
+	zs.shape = zb
+	zs.position = Vector3(0, 2.5, 0)
+	zone.add_child(zs)
+	g.add_child(zone)
+
+	# Out front: a gravel path from the corner of the street, picket fences, hay bales, pumpkins and the class board
+	var front := hd + 0.3
+	var corner := (STREET + STREET_W / 2.0 + 1.6) * sqrt(2.0)               # the street corner's distance from the middle
+	var path_len := STUDIO_AT.length() - front - corner + 1.0
+	mesh_at(box(Vector3(3.6, 0.06, path_len)), mat("Gravel", Color(0.72, 0.66, 0.58), 0.95), Vector3(0, 0.04, front + path_len / 2.0), g)
+	for sx in [-1.0, 1.0]:
+		_picket_fence(g, Vector3(sx * 2.4, 0, front + 0.5), Vector3(sx * hw * 1.05, 0, front + 0.5), white)
+		_picket_fence(g, Vector3(sx * hw * 1.05, 0, front + 0.5), Vector3(sx * hw * 1.05, 0, -hd * 0.4), white)
+		for k in 2:                                                          # hay bales by the doors
+			var hp: Vector3 = Vector3(sx * (3.6 + k * 1.3), 0.45, front + 1.6 + k * 0.4)
+			mesh_at(cyl(0.6, 0.6, 1.2, 16), mat("Hay", Color(0.88, 0.74, 0.38), 0.95), hp, g, 0.0, Vector3(0, 0, PI / 2))
+			solid_box(Vector3(1.2, 0.9, 1.0), hp, g)
+		_pumpkin(g, Vector3(sx * 3.4, 0.9, front + 1.6), 0.3)
+		_pumpkin(g, Vector3(sx * 2.6, 0.0, front + 2.6), 0.34)
+	var board := Node3D.new()
+	board.position = Vector3(4.2, 0, front + 4.0)
+	board.rotation.y = -0.35
+	g.add_child(board)
+	for sx in [-0.45, 0.45]:
+		mesh_at(box(Vector3(0.08, 1.5, 0.08)), plank, Vector3(sx, 0.75, 0), board)
+	mesh_at(box(Vector3(1.3, 1.0, 0.06)), mat("Chalkboard", Color(0.12, 0.18, 0.15), 0.9), Vector3(0, 1.1, 0), board)
+	label(board, "Dance class\ntoday!\nAll welcome", Vector3(0, 1.1, 0.05), 28, Color(0.98, 0.96, 0.9))
+	lamp_light(g, Vector3(0, 4.6, front + 1.6), Color(1.0, 0.8, 0.55), 1.4, 9.0)
+	# Madame Celeste, who runs the studio
+	_person("Madame Celeste", "celeste", STUDIO_AT + toward * 2.0, atan2(toward.x, toward.z),
+		{"shirt": Color(0.75, 0.35, 0.6), "trousers": Color(0.15, 0.12, 0.18), "hair": Color(0.12, 0.08, 0.08), "height": 1.72})
+
+
+func _white_x(parent: Node3D, at: Vector3, size: Vector2, m: Material) -> void:
+	# A white X brace across a barn door (and the frame round it)
+	var diag := atan2(size.y, size.x)
+	var len := size.length() - 0.2
+	for s in [-1.0, 1.0]:
+		mesh_at(box(Vector3(len, 0.18, 0.06)), m, at, parent, 0.0, Vector3(0, 0, s * diag))
+	for sy in [-1.0, 1.0]:
+		mesh_at(box(Vector3(size.x, 0.18, 0.06)), m, at + Vector3(0, sy * (size.y / 2.0 - 0.09), 0), parent)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.18, size.y, 0.06)), m, at + Vector3(sx * (size.x / 2.0 - 0.09), 0, 0), parent)
+
+
+func _picket_fence(parent: Node3D, a: Vector3, b: Vector3, m: Material) -> void:
+	# A white picket fence from a to b, solid to walk against
+	var d := b - a
+	var yaw := atan2(d.x, d.z)
+	var n := int(d.length() / 0.35)
+	for k in n + 1:
+		var p := a.lerp(b, float(k) / maxf(n, 1))
+		mesh_at(box(Vector3(0.1, 1.0, 0.06)), m, p + Vector3(0, 0.5, 0), parent, yaw + PI / 2)
+		mesh_at(cyl(0.0, 0.07, 0.14, 4), m, p + Vector3(0, 1.07, 0), parent, yaw + PI / 2 + PI / 4)
+	for y in [0.35, 0.8]:
+		mesh_at(box(Vector3(0.06, 0.08, d.length())), m, (a + b) / 2.0 + Vector3(0, y, 0), parent, yaw)
+	solid_box(Vector3(0.15, 1.0, d.length()), (a + b) / 2.0 + Vector3(0, 0.5, 0), parent, yaw)
+
+
 func _autumn_tree(parent: Node3D, at: Vector3, h: float) -> void:
 	var cols := [Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2), Color(0.7, 0.35, 0.15)]
 	var t := Node3D.new()
@@ -344,7 +538,10 @@ func _trees_and_leaves() -> void:
 		_autumn_tree(g, Vector3(cos(a), 0, sin(a)) * (GREEN_R - 1.5), rng.randf_range(4.0, 5.5))
 	for k in 34:                                                  # behind the buildings, to the edge
 		var a := k * TAU / 34
-		_autumn_tree(g, Vector3(cos(a), 0, sin(a)) * rng.randf_range(EDGE - 6, EDGE - 1), rng.randf_range(5.0, 7.0))
+		var at := Vector3(cos(a), 0, sin(a)) * rng.randf_range(EDGE - 6, EDGE - 1)
+		if at.distance_to(STUDIO_AT) < 16.0:
+			continue                                              # not on the dance studio
+		_autumn_tree(g, at, rng.randf_range(5.0, 7.0))
 	# Fallen leaves everywhere (one MultiMesh, so it's cheap)
 	var leaf := QuadMesh.new()
 	leaf.size = Vector2(0.22, 0.16)
@@ -352,10 +549,12 @@ func _trees_and_leaves() -> void:
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	mm.mesh = leaf
-	mm.instance_count = 900
+	mm.instance_count = 1500
 	for i in mm.instance_count:
 		var r := sqrt(rng.randf()) * (EDGE - 2)
 		var a := rng.randf() * TAU
+		if Vector3(cos(a) * r, 0, sin(a) * r).distance_to(STUDIO_AT) < 12.0:
+			r *= 0.5                                              # not on the studio's floor
 		var basis := Basis(Vector3.RIGHT, -PI / 2).rotated(Vector3.UP, rng.randf() * TAU)
 		mm.set_instance_transform(i, Transform3D(basis, Vector3(cos(a) * r, 0.1, sin(a) * r)))
 		mm.set_instance_color(i, [Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2)][i % 3])

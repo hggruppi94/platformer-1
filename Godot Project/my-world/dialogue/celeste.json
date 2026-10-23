@@ -1,0 +1,41 @@
+{
+  "name": "Madame Celeste",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Oh! A new face in my studio! Come in, come in, mind the hay.",
+        "Nina: Is this a barn?",
+        "It was a barn, darling. Now it's a dance studio. The cows moved out years ago, and they were terrible dancers anyway.",
+        "Nina: I've never done ballet.",
+        "Everyone starts somewhere. Stand at the barre, chin up, and point those toes!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:find"
+      },
+      "lines": [
+        "String lights for the gazebo? Not in here, darling, I keep mine on the rafters. Try along the street round the green."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "And one, and two, and spin! Lovely! You're a natural."
+        ],
+        [
+          "The disco ball? Friday nights are for disco. Mondays are for ballet. Don't tell anyone, but I prefer Fridays."
+        ],
+        [
+          "The whole town comes to my recital every spring. Even the mayor dances. Badly, but he dances."
+        ],
+        [
+          "Dancing is just walking with a bit more joy in it."
+        ]
+      ]
+    }
+  ]
+}
