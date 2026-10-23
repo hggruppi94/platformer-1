@@ -64,6 +64,12 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: Character customization and friends' outfits. Everyone has an outfit (`Game.outfits[who]`) and looks
+  (`Game.looks[who]`: fur, hair, eyes, an accent like Nina's bow or Dash's cap, blush, from `Clothes.PALETTE`). The
+  wardrobe has a "Who" row (Nina, Dash, Rook, Pip, Bramble, the Green Man, Mr. Palmer, Rex) and colour arrows. Clothes
+  are made on Nina and fitted to each body (`Clothes.fit_of()`: eyes, head top, neck, chest, hips, hands, feet measured
+  from each model); Rex only wears hats. Friends wear their outfits in town (`routine.gd _dress()`) and when skating.
+  Mr. Palmer has no routine in town, so only his skating self is dressed (`previews/looks/`).
 - 2026-10-23: Clothes, head to toe (`scripts/clothes.gd`). Eight slots (head, face, neck, top, bottoms, feet, hands,
   back), one thing worn in each (`Game.outfit`, saved; `Game.hat` is now the head slot, and old saves' hats carry
   over). Tops, bottoms and shoes restyle Nina's own shirt, overalls and shoes (colours and patterns); the rest are
@@ -112,5 +118,5 @@ Read this first in every session so each iteration builds on the last one and do
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
   keyboard. Steps 1 to 4 are in (see the log). Bruno (SK8 beanie) isn't in the game yet, so he has no ride. Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
-- Clothes (Hayden, Oct 23): more clothes later, and maybe outfits for the other characters.
+- Clothes (Hayden, Oct 23): more clothes later. Mr. Palmer's town self could wear his outfit too.
 - Add new requests here as they come in, and move them to the log when they're done.

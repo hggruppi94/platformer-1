@@ -68,8 +68,17 @@ func _ready() -> void:
 		for a in _bike_anim.get_animation_list():
 			_bike_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 	_load()
+	_dress()
+	Game.equipment_changed.connect(_dress)
 	_paths = TownPaths.get_shared()
 	Clock.jumped.connect(func() -> void: _jumped = true)
+
+
+func _dress() -> void:
+	# What Nina's dressed them in at her wardrobe, and the looks she picked (scripts/clothes.gd)
+	var model := _body.get_node_or_null("Model") as Node3D
+	if model and character_id in Clothes.WHO:
+		Clothes.dress(model, character_id, Game.outfits.get(character_id, {}), Game.looks.get(character_id, {}))
 
 
 func _load() -> void:

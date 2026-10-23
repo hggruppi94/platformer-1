@@ -1,69 +1,148 @@
 class_name Clothes
 extends RefCounted
 
-# Nina's clothes, head to toe: eight slots, one thing worn in each (Game.outfit, slot -> shop item id). Bought at the
-# Clothing Boutique (res://shop/items.json, kind "clothes"), changed at her wardrobe (scripts/shop.gd).
+# Clothes and looks for Nina and her friends. Each of them has an outfit (Game.outfits[who], slot -> shop item id)
+# and looks (Game.looks[who], part -> colour number). Clothes are bought at the Clothing Boutique
+# (res://shop/items.json, kind "clothes"); outfits and looks are changed at the wardrobe (scripts/shop.gd), and Nina
+# can lend anything she owns to a friend.
 #
-#   head, face, neck, hands and back: pieces built from simple shapes that sit on her body and move with it (fixed to
-#   her bones). Hats are the market's (scripts/cosmetics.gd).
-#   top, bottoms and feet: her own shirt, overalls and shoes in new colours and patterns, sometimes with something
-#   extra (a tutu, moon boots).
-# An empty slot is her own look. Wings, the cape and the jetpack take the place of her backpack.
+#   Slots, head to toe: head, face, neck, top, bottoms, feet, hands, back. One thing in each; an empty slot is their
+#   own look. Top, bottoms and feet restyle their own clothes (new colours and patterns); the rest are pieces built
+#   from simple shapes and fixed to their bones, so they move with them. Back pieces take the place of a backpack.
+#   Hats are the market's (scripts/cosmetics.gd).
+#   Looks: fur (or skin), hair, eyes, an accent (Nina's bow, Dash's cap, Rook's collar...) and blush, each picked from
+#   a few colours. Colour 0 is how Sofi drew them.
 #
-# Pieces are placed in her model's own space (feet at 0, facing +Z), standing as she does in Blender, and then fixed
-# to the nearest bone, so they follow her arms and legs when she runs.
+# Pieces are made for Nina (her model's space: feet at 0, facing +Z, eyes at y 1.13) and fitted to whoever wears them:
+# everyone shares one skeleton, so each piece is moved and stretched from Nina's head, neck, chest, hips, hands or
+# feet to theirs (fit()), then fixed to that bone. Rex walks on four legs, so he only wears hats.
 
 const SLOTS := ["head", "face", "neck", "top", "bottoms", "feet", "hands", "back"]
 const SLOT_NAMES := {"head": "Head", "face": "Face", "neck": "Neck", "top": "Top", "bottoms": "Bottoms",
 	"feet": "Feet", "hands": "Hands", "back": "Back"}
+const WHO := ["nina", "dash", "rook", "pip", "bramble", "green_man", "mr_palmer", "rex"]
+const ONLY_HATS := ["rex"]
 
-# Restyled parts of her model: which of its materials each slot recolours, and with what
-# [surface materials, main colour, second colour (patterns), pattern]
-const RESTYLE := {
-	"stripy_shirt": [["Shirt"], Color(0.98, 0.98, 1.0), Color(0.45, 0.6, 1.0), "stripes"],
-	"galaxy_tee": [["Shirt"], Color(0.25, 0.15, 0.45), Color(1.0, 0.9, 0.5), "stars"],
-	"sunny_shirt": [["Shirt"], Color(1.0, 0.85, 0.3), Color(1.0, 0.85, 0.3), ""],
-	"denim_overalls": [["Overalls", "Overalls Trim"], Color(0.35, 0.5, 0.85), Color(0.3, 0.42, 0.75), ""],
-	"mint_overalls": [["Overalls", "Overalls Trim"], Color(0.55, 0.95, 0.8), Color(1.0, 1.0, 1.0), "dots"],
-	"tutu": [["Overalls", "Overalls Trim"], Color(0.85, 0.7, 1.0), Color(0.85, 0.7, 1.0), ""],
-	"rainbow_sneakers": [["Shoes"], Color(1.0, 0.45, 0.5), Color(0.45, 0.8, 1.0), "stripes"],
-	"sparkle_slippers": [["Shoes", "Sole"], Color(0.95, 0.6, 0.95), Color(1.0, 1.0, 0.7), "stars"],
-	"moon_boots": [["Shoes", "Sole"], Color(0.85, 0.88, 0.95), Color(0.85, 0.88, 0.95), ""],
+# Each character's own clothes, by slot: [main part, trim parts...] (their model's material names). A slot left out
+# has nothing to restyle (the Green Man wears no clothes of his own; Pip's suit is one piece).
+const OWN_CLOTHES := {
+	"nina": {"top": ["Shirt"], "bottoms": ["Overalls", "Overalls Trim"], "feet": ["Shoes", "Sole"]},
+	"dash": {"top": ["Hoodie", "Hoodie Shade"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoes", "Sole"]},
+	"rook": {"top": ["Shirt", "Shirt Shade"], "bottoms": ["Denim", "Denim Light"], "feet": ["Shoes", "Sole"]},
+	"pip": {"top": ["Suit Navy", "Suit Blue"], "bottoms": ["Suit Yellow", "Suit Red"]},
+	"bramble": {"top": ["Top"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoe", "Sole"]},
+	"mr_palmer": {"top": ["Suit", "Suit Shade"], "feet": ["Shoes", "Sole"]},
 }
-const BACKPACK := ["Backpack", "Backpack Mesh", "Zipper"]
+const BACKPACKS := ["Backpack", "Backpack Mesh", "Backpack Dark", "Zipper"]
+
+# Restyles: [main colour, second colour (pattern, trim, soles), pattern]
+const RESTYLE := {
+	"stripy_shirt": [Color(0.98, 0.98, 1.0), Color(0.45, 0.6, 1.0), "stripes"],
+	"galaxy_tee": [Color(0.25, 0.15, 0.45), Color(1.0, 0.9, 0.5), "stars"],
+	"sunny_shirt": [Color(1.0, 0.85, 0.3), Color(1.0, 0.85, 0.3), ""],
+	"denim_overalls": [Color(0.35, 0.5, 0.85), Color(0.3, 0.42, 0.75), ""],
+	"mint_overalls": [Color(0.55, 0.95, 0.8), Color(1.0, 1.0, 1.0), "dots"],
+	"tutu": [Color(0.85, 0.7, 1.0), Color(0.85, 0.7, 1.0), ""],
+	"rainbow_sneakers": [Color(1.0, 0.45, 0.5), Color(0.45, 0.8, 1.0), "stripes"],
+	"sparkle_slippers": [Color(0.95, 0.6, 0.95), Color(1.0, 1.0, 0.7), "stars"],
+	"moon_boots": [Color(0.85, 0.88, 0.95), Color(0.85, 0.88, 0.95), ""],
+}
+
+# Looks: what each can change ([material names] per part; the first is the main one, any others follow it a shade
+# lighter or darker), and the colours to pick from (after colour 0, their own)
+const LOOK_PARTS := ["fur", "hair", "eyes", "accent", "blush"]
+const LOOK_NAMES := {"fur": "Fur", "hair": "Hair", "eyes": "Eyes", "accent": "Accent", "blush": "Blush"}
+const OWN_LOOKS := {
+	"nina": {"fur": ["Skin", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Bow"], "blush": ["Blush"]},
+	"dash": {"fur": ["Skin"], "hair": ["Hair"], "accent": ["Cap"], "blush": ["Blush"]},
+	"rook": {"fur": ["Skin"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Collar"], "blush": ["Blush"]},
+	"pip": {"fur": ["Skin", "Skin Shade"], "hair": ["Mane Orange"], "eyes": ["Iris", "Iris Light"], "accent": ["Antenna Tip"], "blush": ["Blush"]},
+	"bramble": {"fur": ["Fur", "Fur Light"], "hair": ["Hair", "Hair Shade"], "eyes": ["Iris", "Iris Light"], "accent": ["Belt"]},
+	"green_man": {"fur": ["Green", "Green Dark"], "eyes": ["Eye"]},
+	"mr_palmer": {"fur": ["Skin"], "hair": ["Grey Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Tie"], "blush": ["Blush"]},
+	"rex": {"fur": ["Fur", "Fur Dark"], "eyes": ["Iris", "Iris Light"], "accent": ["Vest"]},
+}
+const ACCENT_NAMES := {"nina": "Bow", "dash": "Cap", "rook": "Collar", "pip": "Antenna Tips", "bramble": "Belt",
+	"mr_palmer": "Tie", "rex": "Vest"}
+const PALETTE := {
+	"fur": [Color(0.58, 0.5, 0.47), Color(0.95, 0.8, 0.7), Color(0.75, 0.55, 0.4), Color(0.45, 0.32, 0.25),
+		Color(0.7, 0.6, 0.9), Color(0.55, 0.85, 0.8), Color(1.0, 0.7, 0.8)],
+	"hair": [Color(0.87, 0.2, 0.1), Color(1.0, 0.85, 0.35), Color(0.35, 0.22, 0.15), Color(0.15, 0.12, 0.15),
+		Color(0.7, 0.45, 1.0), Color(0.3, 0.85, 0.85), Color(1.0, 0.5, 0.75)],
+	"eyes": [Color(0.44, 0.25, 0.13), Color(0.3, 0.55, 1.0), Color(0.35, 0.8, 0.45), Color(0.65, 0.4, 0.95),
+		Color(1.0, 0.75, 0.25)],
+	"accent": [Color(0.81, 0.11, 0.13), Color(0.3, 0.55, 1.0), Color(1.0, 0.85, 0.3), Color(0.5, 0.9, 0.5),
+		Color(0.75, 0.45, 1.0), Color(1.0, 0.55, 0.75)],
+	"blush": [Color(0.92, 0.58, 0.65), Color(1.0, 0.45, 0.55), Color(1.0, 0.7, 0.5), Color(0.8, 0.6, 1.0)],
+}
+
+const COLOUR_NAMES := {
+	"fur": ["their own", "peach", "caramel", "cocoa", "lilac", "mint", "bubblegum"],
+	"hair": ["their own", "sunny blonde", "chestnut", "midnight", "purple", "teal", "pink"],
+	"eyes": ["their own", "sky blue", "leaf green", "violet", "gold"],
+	"accent": ["their own", "blue", "yellow", "green", "purple", "pink"],
+	"blush": ["their own", "rosy", "peachy", "lavender"],
+}
+
+# Where each kind of piece is made to sit on Nina: [the bone it rides on, the point on her it's placed round]
+const ANCHORS := {"head": ["head", "top"], "face": ["head", "eyes"], "neck": ["chest", "neck"], "back": ["chest", "chest"],
+	"bottoms": ["hips", "hips"]}
 
 static var _patterns := {}
+static var _fits := {}
 
 
-static func dress(model: Node3D, outfit: Dictionary) -> void:
-	# Put the outfit on her model, taking off whatever was on before
+static func dress(model: Node3D, who: String, outfit: Dictionary, looks := {}) -> void:
+	# Put an outfit and looks on someone's model, taking off whatever was on before
 	var mesh := _body(model)
 	var skel := _skeleton(model)
 	if mesh == null or skel == null:
 		return
 	for old in skel.find_children("Clothes *", "BoneAttachment3D", false, false):
 		old.free()
-	for i in mesh.mesh.get_surface_count():
-		mesh.set_surface_override_material(i, null)
+	for m in model.find_children("*", "MeshInstance3D", true, false):
+		for i in (m as MeshInstance3D).mesh.get_surface_count():
+			(m as MeshInstance3D).set_surface_override_material(i, null)
+	var own: Dictionary = OWN_LOOKS.get(who, {})
+	for part in looks:
+		var pick := int(looks[part])
+		if pick > 0 and own.has(part) and PALETTE.has(part):
+			_recolour(model, own[part], PALETTE[part][pick % PALETTE[part].size()])
+	var fit := fit_of(model)
 	for slot in SLOTS:
 		var id := str(outfit.get(slot, ""))
-		if id == "":
+		if id == "" or (who in ONLY_HATS and slot != "head"):
 			continue
-		if RESTYLE.has(id):
-			_restyle(mesh, RESTYLE[id])
+		var clothes: Dictionary = OWN_CLOTHES.get(who, {})
+		if RESTYLE.has(id) and clothes.has(slot):
+			_restyle(model, clothes[slot], RESTYLE[id])
 		if slot == "back":
-			_hide(mesh, BACKPACK)
+			_hide(model, BACKPACKS)
 		var piece := hat_or_piece(slot, id)
 		if piece:
-			_attach(model, skel, piece, slot)
+			_attach(model, skel, piece, slot, fit)
 
 
 static func wearing(outfit: Dictionary, slot: String) -> String:
 	return str(outfit.get(slot, ""))
 
 
+static func can_wear(who: String, slot: String) -> bool:
+	return not (who in ONLY_HATS and slot != "head")
+
+
+static func looks_for(who: String) -> Array:
+	# The parts of their look that can be changed, in order
+	var own: Dictionary = OWN_LOOKS.get(who, {})
+	return LOOK_PARTS.filter(func(p: String) -> bool: return own.has(p))
+
+
+static func look_name(who: String, part: String) -> String:
+	return str(ACCENT_NAMES.get(who, "Accent")) if part == "accent" else str(LOOK_NAMES[part])
+
+
 # -----------------------------------------------------------------------------
-# Her model's parts
+# Their model's parts
 # -----------------------------------------------------------------------------
 static func _body(model: Node3D) -> MeshInstance3D:
 	for mi in model.find_children("*", "MeshInstance3D", true, false):
@@ -86,31 +165,57 @@ static func _surfaces(mesh: MeshInstance3D, names: Array) -> Array[int]:
 	return out
 
 
-static func _restyle(mesh: MeshInstance3D, look: Array) -> void:
-	# Her own garment in new colours: the first part takes the main colour (and pattern), any others (trim, soles)
+static func _each_surface(model: Node3D, names: Array, fn: Callable) -> void:
+	# fn(mesh, surface index, which name it matched (its place in names)) for every part with one of these names
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := mi as MeshInstance3D
+		for i in mesh.mesh.get_surface_count():
+			var m := mesh.mesh.surface_get_material(i)
+			if m and m.resource_name in names:
+				fn.call(mesh, i, names.find(m.resource_name))
+
+
+static func _recolour(model: Node3D, names: Array, color: Color) -> void:
+	# The main part takes the colour; the others (a shade, a light) keep how much lighter or darker they were
+	var main_base := Color.WHITE
+	_each_surface(model, [names[0]], func(mesh: MeshInstance3D, i: int, _k: int) -> void:
+		main_base = (mesh.mesh.surface_get_material(i) as StandardMaterial3D).albedo_color)
+	_each_surface(model, names, func(mesh: MeshInstance3D, i: int, k: int) -> void:
+		var base := mesh.mesh.surface_get_material(i) as StandardMaterial3D
+		if base == null:
+			return
+		var m := base.duplicate() as StandardMaterial3D
+		var c := color
+		if k > 0 and main_base.v > 0.01:
+			c = Color.from_hsv(color.h, color.s, clampf(color.v * base.albedo_color.v / main_base.v, 0.0, 1.0))
+		m.albedo_color = c
+		mesh.set_surface_override_material(i, m))
+
+
+static func _restyle(model: Node3D, names: Array, look: Array) -> void:
+	# Their own garment in new colours: the first part takes the main colour (and pattern), any others (trim, soles)
 	# the second colour
-	var parts := _surfaces(mesh, look[0])
-	for k in parts.size():
-		var base := mesh.mesh.surface_get_material(parts[k]) as StandardMaterial3D
+	_each_surface(model, names, func(mesh: MeshInstance3D, i: int, k: int) -> void:
+		var base := mesh.mesh.surface_get_material(i) as StandardMaterial3D
 		var m := (base.duplicate() if base else StandardMaterial3D.new()) as StandardMaterial3D
 		if k == 0:
-			m.albedo_color = Color.WHITE if look[3] != "" else look[1]
-			if look[3] != "":
-				m.albedo_texture = _pattern(look[3], look[1], look[2])
-				m.uv1_triplanar = true                     # her model's own UVs don't matter: the pattern wraps round
+			m.albedo_color = Color.WHITE if look[2] != "" else look[0]
+			if look[2] != "":
+				m.albedo_texture = _pattern(look[2], look[0], look[1])
+				m.uv1_triplanar = true                     # their model's own UVs don't matter: the pattern wraps round
 				m.uv1_scale = Vector3(4, 4, 4)
 		else:
-			m.albedo_color = look[2]
+			m.albedo_color = look[1]
 			m.albedo_texture = null
-		mesh.set_surface_override_material(parts[k], m)
+		mesh.set_surface_override_material(i, m))
 
 
-static func _hide(mesh: MeshInstance3D, names: Array) -> void:
+static func _hide(model: Node3D, names: Array) -> void:
 	var gone := StandardMaterial3D.new()
 	gone.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	gone.albedo_color = Color(1, 1, 1, 0)
-	for i in _surfaces(mesh, names):
-		mesh.set_surface_override_material(i, gone)
+	_each_surface(model, names, func(mesh: MeshInstance3D, i: int, _k: int) -> void:
+		mesh.set_surface_override_material(i, gone))
 
 
 static func _pattern(kind: String, a: Color, b: Color) -> ImageTexture:
@@ -138,19 +243,120 @@ static func _pattern(kind: String, a: Color, b: Color) -> ImageTexture:
 	return tex
 
 
-static func _attach(model: Node3D, skel: Skeleton3D, piece: Node3D, slot: String) -> void:
-	# Fix a piece (placed in her model's space) to the bone that carries that part of her
-	var bone_names := {"head": "head", "face": "head", "neck": "chest", "back": "chest", "bottoms": "hips"}
+# -----------------------------------------------------------------------------
+# Fitting: where the places pieces sit round are on someone, measured from their model (and kept per model)
+# -----------------------------------------------------------------------------
+const NINA := "res://models/characters/nina.glb"
+const NOT_HEAD := ["Antenna", "Antenna Tip", "Horn", "Horn Tip", "Cap", "Cap White"]
+
+
+static func fit_of(model: Node3D) -> Dictionary:
+	var key := model.scene_file_path
+	if _fits.has(key) and key != "":
+		return _fits[key]
+	var skel := _skeleton(model)
+	var bones := {}
+	for b in ["head", "chest", "hips", "upper_arm.L", "hand.L", "hand.R", "foot.L", "foot.R"]:
+		var i := skel.find_bone(b)
+		if i >= 0:
+			bones[b] = (_skel_in_model(model, skel) * skel.get_bone_global_rest(i)).origin
+	# The eyes (their middle, at the front) and the top of the head, from the model's parts
+	var eyes := AABB()
+	var got_eyes := false
+	var top := -INF
+	for mi in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh := mi as MeshInstance3D
+		for s in mesh.mesh.get_surface_count():
+			var m := mesh.mesh.surface_get_material(s)
+			var name := m.resource_name if m else ""
+			var v: PackedVector3Array = mesh.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]
+			if v.is_empty():
+				continue
+			var bb := AABB(v[0], Vector3.ZERO)
+			for p in v:
+				bb = bb.expand(p)
+			if name in ["Eye White", "Eye"]:
+				eyes = bb if not got_eyes else eyes.merge(bb)
+				got_eyes = true
+			if name not in NOT_HEAD:
+				top = maxf(top, bb.end.y)
+	var head: Vector3 = bones.get("head", Vector3(0, 0.9, 0))
+	var fit := {}
+	var eye_point := Vector3(head.x, eyes.get_center().y, eyes.end.z + 0.02) if got_eyes else head + Vector3(0, 0.23, 0.29)
+	fit.top = Vector3(head.x, top, head.z)
+	fit.eyes = eye_point
+	fit.head_size = maxf(top - eye_point.y, 0.1)
+	var chest: Vector3 = bones.get("chest", head - Vector3(0, 0.14, 0))
+	fit.neck = (head + chest) / 2.0 + Vector3(0, -0.01, 0)
+	fit.chest = chest
+	fit.hips = bones.get("hips", chest - Vector3(0, 0.26, 0))
+	fit.width = absf(bones["upper_arm.L"].x) if bones.has("upper_arm.L") else 0.24
+	fit.torso = maxf(chest.y - fit.hips.y, 0.1)
+	for b in ["hand.L", "hand.R", "foot.L", "foot.R"]:
+		fit[b] = bones.get(b, fit.hips)
+	if key != "":
+		_fits[key] = fit
+	return fit
+
+
+static func _nina_fit() -> Dictionary:
+	# The pieces were made on Nina, so her measurements are where they start from
+	if not _fits.has(NINA):
+		var nina := (load(NINA) as PackedScene).instantiate() as Node3D
+		nina.scene_file_path = NINA
+		fit_of(nina)
+		nina.free()
+	return _fits[NINA]
+
+
+static func _skel_in_model(model: Node3D, skel: Skeleton3D) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var n: Node = skel
+	while n != model and n is Node3D:
+		t = (n as Node3D).transform * t
+		n = n.get_parent()
+	return t
+
+
+static func _fitted(slot: String, fit: Dictionary, part := "") -> Transform3D:
+	# Moves and stretches a piece made for Nina onto someone else: round the matching point on each of them
+	var nina := _nina_fit()
+	var from: Vector3
+	var to: Vector3
+	var s := Vector3.ONE
+	match slot:
+		"head", "face":
+			var k: float = fit.head_size / nina.head_size
+			s = Vector3(k, k, k)
+			from = nina.top if slot == "head" else nina.eyes
+			to = fit.top if slot == "head" else fit.eyes
+		"neck", "back", "bottoms":
+			var w: float = fit.width / nina.width
+			s = Vector3(w, fit.torso / nina.torso, w)
+			var spot: String = {"neck": "neck", "back": "chest", "bottoms": "hips"}[slot]
+			from = nina[spot]
+			to = fit[spot]
+		"hands", "feet":
+			from = nina[part]
+			to = fit[part]
+	return Transform3D(Basis.from_scale(s), to - from * s)
+
+
+static func _attach(model: Node3D, skel: Skeleton3D, piece: Node3D, slot: String, fit: Dictionary) -> void:
+	# Fix a piece (made in Nina's model space) to the bone that carries that part of whoever wears it
 	if slot in ["hands", "feet"]:
-		# One for each side: the piece has a "L" and an "R" child, each placed for that side
+		# One for each side: the piece has an "L" and an "R" child, each placed for that side
 		for side in ["L", "R"]:
 			var part := piece.get_node_or_null(side) as Node3D
 			if part:
 				piece.remove_child(part)
-				_fix(model, skel, part, ("hand." if slot == "hands" else "foot.") + side, slot)
+				var bone: String = ("hand." if slot == "hands" else "foot.") + side
+				part.transform = _fitted(slot, fit, bone)
+				_fix(model, skel, part, bone, slot)
 		piece.free()
 		return
-	_fix(model, skel, piece, bone_names.get(slot, "chest"), slot)
+	piece.transform = _fitted(slot, fit) * piece.transform
+	_fix(model, skel, piece, str(ANCHORS.get(slot, ["chest"])[0]), slot)
 
 
 static func _fix(model: Node3D, skel: Skeleton3D, part: Node3D, bone_name: String, slot: String) -> void:
@@ -162,19 +368,14 @@ static func _fix(model: Node3D, skel: Skeleton3D, part: Node3D, bone_name: Strin
 	holder.name = "Clothes %s %s" % [slot, bone_name]
 	holder.bone_name = bone_name
 	skel.add_child(holder)
-	# Where the bone sits in her model's space when she stands as in Blender; the piece goes relative to that
-	var skel_in_model := Transform3D.IDENTITY
-	var n: Node = skel
-	while n != model and n is Node3D:
-		skel_in_model = (n as Node3D).transform * skel_in_model
-		n = n.get_parent()
-	var rest := skel_in_model * skel.get_bone_global_rest(bone)
+	# Where the bone sits in their model's space when they stand as in Blender; the piece goes relative to that
+	var rest := _skel_in_model(model, skel) * skel.get_bone_global_rest(bone)
 	part.transform = rest.affine_inverse() * part.transform
 	holder.add_child(part)
 
 
 # -----------------------------------------------------------------------------
-# The pieces, in her model's space: feet at y 0, facing +Z, her face's front at about z 0.27, eyes at y 1.13
+# The pieces, made for Nina (her model's space): feet at y 0, facing +Z, her face's front at about z 0.27, eyes at y 1.13
 # -----------------------------------------------------------------------------
 static func hat_or_piece(slot: String, id: String) -> Node3D:
 	if slot == "head":

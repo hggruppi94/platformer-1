@@ -26,6 +26,7 @@ var _rows: VBoxContainer
 var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
+var who := "nina"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
 
 
 func _ready() -> void:
@@ -94,15 +95,18 @@ func wearable(id: String) -> bool:
 	return items.has(id) and str(items[id].kind) in ["hat", "clothes"]
 
 
-func wear(id: String, slot := "head") -> void:
-	# Put something on (or "" to take off whatever's in that slot)
+func wear(id: String, slot := "head", on := "nina") -> void:
+	# Put something on (or "" to take off whatever's in that slot), on Nina or a friend she's lending it to
 	if id != "" and not owns(id):
 		return
+	if not Game.outfits.has(on):
+		Game.outfits[on] = {}
+	var outfit: Dictionary = Game.outfits[on]
 	if id != "":
 		slot = slot_of(id)
-		Game.outfit[slot] = id
+		outfit[slot] = id
 	else:
-		Game.outfit.erase(slot)
+		outfit.erase(slot)
 	Game.equipment_changed.emit()
 	Game.save_game()
 	_fill()
@@ -121,9 +125,27 @@ func cycle(slot: String, step: int) -> void:
 	# The wardrobe's arrows: the next thing she owns for this slot, with her own look ("") in the round too
 	var choices: Array[String] = [""]
 	choices.append_array(owned_for(slot))
-	var i := choices.find(Game.outfit.get(slot, ""))
+	var i := choices.find(Game.outfits.get(who, {}).get(slot, ""))
 	_keep_focus = "Button %s %d" % [slot, step]
-	wear(choices[posmod(i + step, choices.size())], slot)
+	wear(choices[posmod(i + step, choices.size())], slot, who)
+
+
+func cycle_look(part: String, step: int) -> void:
+	# The wardrobe's colour arrows: the next colour for this part of their look (0 is how Sofi drew them)
+	if not Game.looks.has(who):
+		Game.looks[who] = {}
+	var n: int = Clothes.PALETTE[part].size()
+	Game.looks[who][part] = posmod(int(Game.looks[who].get(part, 0)) + step, n)
+	_keep_focus = "Button look %s %d" % [part, step]
+	Game.equipment_changed.emit()
+	Game.save_game()
+	_fill()
+
+
+func cycle_who(step: int) -> void:
+	who = Clothes.WHO[posmod(Clothes.WHO.find(who) + step, Clothes.WHO.size())]
+	_keep_focus = "Button who %d" % step
+	_fill()
 
 
 # -----------------------------------------------------------------------------
@@ -137,6 +159,8 @@ func open(stall: String) -> void:
 	if is_open() or get_tree().paused or Dialogue.is_active():
 		return
 	_stall = stall
+	who = "nina"
+	_apply_look()                      # the wardrobe's window is wider
 	_note.text = ""
 	_fill()
 	_layer.visible = true
@@ -209,30 +233,53 @@ func _fill() -> void:
 
 
 func _fill_wardrobe() -> void:
-	# A line for each slot: what she's wearing there, and arrows to swap it for something else she owns
-	_title.text = "Nina's Wardrobe"
-	_blurb.text = "Mix and match! Buy more at the Clothing Boutique in the Market."
+	# Who's being dressed, a line for each clothing slot (what they're wearing, with arrows to swap it for something
+	# else Nina owns), then their looks (arrows through the colours)
+	var name: String = Rides.ride(who).rider
+	_title.text = "%s's Wardrobe" % name
+	_blurb.text = "Mix and match, for Nina or a friend! Buy more at the Clothing Boutique in the Market."
 	_wallet.text = ""
 	for c in _rows.get_children():
 		c.queue_free()
 	var first: Button = null
+	# Two columns side by side, so it all fits: who and their clothes on the left, their looks on the right
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 36)
+	_rows.add_child(columns)
+	var left := VBoxContainer.new()
+	var right := VBoxContainer.new()
+	for col in [left, right]:
+		col.add_theme_constant_override("separation", 8)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		columns.add_child(col)
+	var lines := [["who", "Who:  " + name, Clothes.WHO.size() > 1, cycle_who]]
+	var outfit: Dictionary = Game.outfits.get(who, {})
 	for slot in Clothes.SLOTS:
+		var id: String = outfit.get(slot, "")
+		var text := "%s:  %s" % [Clothes.SLOT_NAMES[slot], items[id].name if items.has(id) else "their own"]
+		if not Clothes.can_wear(who, slot):
+			text = "%s:  (not for %s)" % [Clothes.SLOT_NAMES[slot], name]
+		lines.append([slot, text, Clothes.can_wear(who, slot) and owned_for(slot).size() > 0, cycle.bind(slot)])
+	var own_looks: Dictionary = Game.looks.get(who, {})
+	for part in Clothes.looks_for(who):
+		var pick := int(own_looks.get(part, 0))
+		lines.append(["look " + part, "%s:  %s" % [Clothes.look_name(who, part), Clothes.COLOUR_NAMES[part][pick]],
+			true, cycle_look.bind(part)])
+	for line in lines:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 12)
 		var label := Label.new()
-		var id: String = Game.outfit.get(slot, "")
-		label.text = "%s:  %s" % [Clothes.SLOT_NAMES[slot], items[id].name if items.has(id) else "her own"]
+		label.text = line[1]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
-		var mine := owned_for(slot).size()
+		label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
 		for step in [-1, 1]:
 			var b := Button.new()
 			b.text = "◀" if step < 0 else "▶"
-			b.name = "Button %s %d" % [slot, step]
-			b.custom_minimum_size.x = roundi(56 * Settings.text_scale)
-			b.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
-			b.disabled = mine == 0
-			b.pressed.connect(cycle.bind(slot, step))
+			b.name = "Button %s %d" % [line[0], step]
+			b.custom_minimum_size.x = roundi(52 * Settings.text_scale)
+			b.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+			b.disabled = not line[2]
+			b.pressed.connect((line[3] as Callable).bind(step))
 			if step < 0:
 				row.add_child(b)
 				row.add_child(label)
@@ -240,7 +287,7 @@ func _fill_wardrobe() -> void:
 				row.add_child(b)
 				if first == null and not b.disabled:
 					first = b
-		_rows.add_child(row)
+		(right if String(line[0]).begins_with("look ") else left).add_child(row)
 		var kept := row.get_node_or_null(_keep_focus) as Button
 		if kept:
 			first = kept
@@ -289,7 +336,7 @@ func _apply_look() -> void:
 		style.border_color = Color(1, 1, 1)
 		style.set_border_width_all(2)
 	_panel.add_theme_stylebox_override("panel", style)
-	_panel.custom_minimum_size.x = roundi(640 * Settings.text_scale)
+	_panel.custom_minimum_size.x = roundi((1000 if _stall == "Wardrobe" else 640) * Settings.text_scale)
 	_title.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
 	_title.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
 	_blurb.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))

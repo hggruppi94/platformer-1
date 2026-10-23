@@ -186,9 +186,9 @@ func _on_equipment_changed() -> void:
 				var st: Node3D = Cosmetics.sticker(id)
 				st.transform = Cosmetics.sticker_place(id)
 				_stickers.add_child(st)
-	if rider == "nina":
-		Clothes.dress(model, Game.outfit)          # head to toe (scripts/clothes.gd)
-		_hat = model.find_child("Hat", true, false) as Node3D
+	# Head to toe, and their looks (scripts/clothes.gd): Nina's, or the friend skating in her place
+	Clothes.dress(model, rider, Game.outfits.get(rider, {}), Game.looks.get(rider, {}))
+	_hat = model.find_child("Hat", true, false) as Node3D
 	model.position.y = MODEL_Y + (float(skate.ride.deck) if Game.riding else 0.0)
 	model.rotation.y = float(skate.ride.stance) if Game.riding else 0.0
 

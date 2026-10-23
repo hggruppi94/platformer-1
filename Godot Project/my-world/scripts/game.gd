@@ -44,7 +44,15 @@ var pending_message := ""        # shown by the HUD after a scene reload (e.g. a
 signal equipment_changed
 var items: Array[String] = []    # things the player owns, e.g. "skateboard"
 var riding := false              # skateboard equipped
-var outfit := {}                 # what she's wearing, slot -> shop item id (scripts/clothes.gd); a missing slot is her own look
+var outfits := {"nina": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
+var looks := {}                  # how everyone looks: who -> {part -> colour number}; 0 or missing is their own
+var outfit: Dictionary:          # Nina's outfit; a missing slot is her own look
+	get:
+		if not outfits.has("nina"):
+			outfits["nina"] = {}
+		return outfits["nina"]
+	set(v):
+		outfits["nina"] = v
 var hat: String:                 # the hat she's wearing: the outfit's head slot ("" for none)
 	get:
 		return str(outfit.get("head", ""))
@@ -283,7 +291,7 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding, "hat": hat, "outfit": outfit,
+		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -345,11 +353,23 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
-	outfit = {}
-	var worn = data.get("outfit", {})
-	if worn is Dictionary:
-		for slot in worn:
-			outfit[str(slot)] = str(worn[slot])
+	outfits = {"nina": {}}
+	var all_worn = data.get("outfits", {"nina": data.get("outfit", {})})
+	if all_worn is Dictionary:
+		for who in all_worn:
+			var worn = all_worn[who]
+			if worn is Dictionary:
+				outfits[str(who)] = {}
+				for slot in worn:
+					outfits[str(who)][str(slot)] = str(worn[slot])
+	looks = {}
+	var all_looks = data.get("looks", {})
+	if all_looks is Dictionary:
+		for who in all_looks:
+			if all_looks[who] is Dictionary:
+				looks[str(who)] = {}
+				for part in all_looks[who]:
+					looks[str(who)][str(part)] = int(all_looks[who][part])
 	if not outfit.has("head") and str(data.get("hat", "")) != "":
 		hat = str(data["hat"])                       # a save from before outfits: just a hat
 	sparkles_taken.clear()
@@ -421,7 +441,8 @@ func new_game() -> void:
 	mp_level = 1
 	items.clear()
 	riding = false
-	outfit = {}
+	outfits = {"nina": {}}
+	looks = {}
 	sparkles = 0
 	sparkles_taken.clear()
 	Clock.reset()

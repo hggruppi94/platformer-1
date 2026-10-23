@@ -3,8 +3,9 @@ extends SceneTree
 # Checks Nina's clothes (scripts/clothes.gd): every slot from head to toe has things to buy at the Clothing Boutique
 # (res://shop/items.json), each with a look; buying puts it on; she can wear one thing in every slot at once, the
 # pieces sit on her bones and move with her, her backpack comes off for wings; the wardrobe's arrows swap and take
-# things off; outfits save and load (and an old save's hat carries over); Nina's house has a wardrobe; and a friend
-# skating in her place doesn't wear her clothes.
+# things off; outfits save and load (and an old save's hat carries over); Nina's house has a wardrobe; a friend
+# skating in her place doesn't wear her clothes; her looks change colour; and friends can be dressed too, with the
+# clothes fitted to them.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_clothes.gd
 #
@@ -134,6 +135,7 @@ func _run() -> void:
 	var data: Dictionary = JSON.parse_string(f.get_as_text())
 	f.close()
 	data.erase("outfit")
+	data.erase("outfits")
 	data.merge(old, true)
 	f = FileAccess.open(SAVE, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data))
@@ -149,11 +151,55 @@ func _run() -> void:
 	p.set_rider("dash")
 	await _frames(2)
 	var dash_model := p.get("model") as Node3D
-	check(dash_model.find_children("Clothes *", "BoneAttachment3D", true, false).is_empty(), "Dash skates in his own clothes")
+	check(dash_model.find_children("Clothes *", "BoneAttachment3D", true, false).is_empty(), "Dash doesn't borrow Nina's outfit when he skates")
 	p.set_rider("nina")
 	await _frames(2)
 	model = p.get("model") as Node3D
 	check(model.find_children("Clothes *", "BoneAttachment3D", true, false).size() == holders.size(), "...and Nina has hers back")
+
+	# --- Her looks: the wardrobe's colour arrows recolour her hair ---
+	shop.open("Wardrobe")
+	shop.cycle_look("hair", 1)
+	shop.close()
+	await _frames(2)
+	model = p.get("model") as Node3D
+	var body2 := Clothes._body(model)
+	var hair_i: int = Clothes._surfaces(body2, ["Hair"])[0]
+	var hair := body2.get_surface_override_material(hair_i) as StandardMaterial3D
+	check(hair != null and hair.albedo_color.is_equal_approx(Clothes.PALETTE.hair[1]), "the wardrobe changes her hair colour")
+	check(int(game.looks.nina.hair) == 1, "...and remembers it")
+
+	# --- Dressing a friend: Dash gets the star glasses, fitted to his face ---
+	shop.open("Wardrobe")
+	shop.cycle_who(1)
+	check(shop.who == "dash" and shop._title.text == "Dash's Wardrobe", "the Who arrows pick Dash")
+	game.outfits["dash"] = {"face": "star_glasses", "hands": "hero_gloves", "top": "stripy_shirt"}
+	shop.close()
+	p.set_rider("dash")
+	await _frames(3)
+	var dm := p.get("model") as Node3D
+	var fit := Clothes.fit_of(dm)
+	var glasses: Node3D = null
+	for h in dm.find_children("Clothes *", "BoneAttachment3D", true, false):
+		if (h as BoneAttachment3D).bone_name == "head":
+			glasses = h.get_child(0)
+	var lens := glasses.get_child(0) as Node3D if glasses else null
+	var in_model := dm.global_transform.affine_inverse() * lens.global_position if lens else Vector3.ZERO
+	check(lens != null and absf(in_model.y - fit.eyes.y) < 0.12 and absf(in_model.z - fit.eyes.z) < 0.12,
+		"Dash wears the star glasses over his own eyes (%.2f up, %.2f forward)" % [in_model.y, in_model.z])
+	var dbody := Clothes._body(dm)
+	var hoodie: int = Clothes._surfaces(dbody, ["Hoodie"])[0]
+	check(dbody.get_surface_override_material(hoodie) != null, "...and the stripy shirt restyles his hoodie")
+	check(not Clothes.can_wear("rex", "face") and Clothes.can_wear("rex", "head"), "Rex only wears hats")
+	p.set_rider("nina")
+	await _frames(2)
+
+	# --- Friends wear their outfits in town too ---
+	change_scene_to_file("res://scenes/town/town.tscn")
+	await _frames(6)
+	var dash_npc := current_scene.find_child("Dash", true, false) as Node3D
+	var npc_model := dash_npc.get_node("Model") as Node3D
+	check(npc_model.find_children("Clothes *", "BoneAttachment3D", true, false).size() >= 3, "Dash wears his outfit round town")
 
 	# --- Nina's house has a wardrobe ---
 	change_scene_to_file(HOUSE)
