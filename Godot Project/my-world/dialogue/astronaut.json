@@ -1,0 +1,58 @@
+{
+  "name": "Astronaut",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "(The astronaut gives a big, slow wave with a blue glove.)",
+        "Hello there! Ground control to... um... whoever you are!",
+        "{player}: I'm {player}! Are you from space?",
+        "Sort of! I'm from Earth, actually. I flew up past the clouds to see the mothership, and look where I landed. Galaxity!",
+        "Everything here is so green. Even the sky! Back home the sky is blue.",
+        "{player}: Blue? That sounds weird.",
+        "Ha! I suppose it does. I'll stay right here by the pad and watch the ship go round. Come and say hi any time."
+      ]
+    },
+    {
+      "when": {"time": "shift"},
+      "lines": [
+        "(The astronaut's antenna is blinking. Beep. Beep.)",
+        "Did you see that? The portal's open! I wonder if there's a way to Earth through there that doesn't need a rocket.",
+        "If you go through to Earth, say hi to the moon for me."
+      ]
+    },
+    {
+      "when": {"time": "night", "every": 2},
+      "lines": [
+        "Look at all those stars, {player}. I've been to a few of them.",
+        "Well... near a few of them. They're a lot further away than they look."
+      ]
+    },
+    {
+      "when": {"time": "morning", "every": 2},
+      "lines": [
+        "Good morning! I had space porridge for breakfast. It floats off the spoon, so you have to be quick."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Do you want to know what the big red button does?",
+          "{player}: Yes!",
+          "Me too. Nobody ever told me. I'm too scared to press it."
+        ],
+        [
+          "The mothership goes all the way round the town. I've counted it fourteen times today!",
+          "Someone told me {player} can fly it. Is that true? Wow."
+        ],
+        [
+          "This helmet is great for keeping my ears warm. And for keeping bugs out of my mouth."
+        ],
+        [
+          "(The astronaut hops up and down on the spot. Boing. Boing.)",
+          "Sorry! I keep forgetting there's more gravity here. I'm practising."
+        ]
+      ]
+    }
+  ]
+}

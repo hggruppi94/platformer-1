@@ -1,7 +1,7 @@
 # Dialogue: what people say
 
 One file per character, named after the `character_id` on their talk spot (the `Talk` node under them in
-`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`. Mr. Palmer (`mr_palmer.json`)
+`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `astronaut.json` (by the Mothership Pad). Mr. Palmer (`mr_palmer.json`)
 talks from behind his office window at the Town Hall.
 `scripts/dialogue.gd` plays them.
 

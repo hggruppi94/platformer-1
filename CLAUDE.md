@@ -66,6 +66,11 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-23: The Astronaut, from Sofi's drawing (`source_art/reference/Astronaut.jpg`, `tools/build_astronaut.py`):
+  white suit, black visor, antenna, grey backpack and hoses, chest controls, the big red button, US flag patch, blue
+  gloves and grey boots, with a floaty idle and a bouncy moon walk. They stand by the Mothership Pad
+  (`characters.tscn`, no routine yet) and talk (`dialogue/astronaut.json`): an Earth astronaut who flew up to see
+  the mothership and landed in Galaxity (`tools/capture_astronaut.gd`, `previews/astronaut/`).
 - 2026-10-23: Create-your-own hero, RPG style. The player is their own hero (`Game.hero`, `scripts/hero.gd`): a body to
   start from (Sofi's hippo, kid, dog-kid, moth, cow or alien bodies), 11 hairstyles (`scripts/hairstyles.gd`, fitted to
   each head), height, head size and build (`scripts/body_shape.gd`), 20-colour swatches for fur, hair, eyes, accent,
