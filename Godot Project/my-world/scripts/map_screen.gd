@@ -21,7 +21,7 @@ const DISTRICTS := [["Market Square", Vector2(-72, 30)], ["Homes", Vector2(80, 2
 	["Secret Gardens", Vector2(-78, -60)], ["Observatory Hill", Vector2(105, -104)], ["Sports & Play", Vector2(66, 74)],
 	["Spooky Woods", Vector2(-118, -146)], ["The Lake", Vector2(4, 8)]]
 const BUILDINGS := ["Town Hall", "Library", "Museum", "Aquarium", "Potion Shop", "Cafe", "Clothing Boutique", "Book Store",
-	"Pet Shop", "Restaurant & Cafe", "Gaming Station", "Nina's House", "Dash's House", "Melanie's House", "Observatory",
+	"Pet Shop", "Restaurant & Cafe", "Gaming Station", "My House", "Nina's House", "Dash's House", "Melanie's House", "Observatory",
 	"Haunted House", "Tree House", "Skate Park", "Magic Bubble Bath", "Portal to Earth"]
 
 var _texture: Texture2D
@@ -325,7 +325,7 @@ func _draw_full() -> void:
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
-	var legend := "Nina    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.key_name("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.key_name("map")
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
 
 

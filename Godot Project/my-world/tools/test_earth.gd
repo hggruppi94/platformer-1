@@ -124,7 +124,7 @@ func _run() -> void:
 	check(player.global_position.distance_to(by_portal.global_position) < 1.5 and not clock.on_earth, "...right by the portal")
 	await _frames(4)
 	var told: String = player.get_node("HUD").message_label.text
-	check(told.contains("pulls Nina home"), "\"%s\"" % told)
+	check(told.contains("pulls %s home" % root.get_node("Dialogue").player_name()), "\"%s\"" % told)
 
 	# Going home early: the pause menu, and the portal by the oak
 	clock.set_time(3, 5.0, true)

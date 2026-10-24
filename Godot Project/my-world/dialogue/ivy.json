@@ -7,9 +7,9 @@
       },
       "lines": [
         "Well hi, sweetie! Welcome to the Hollow Diner. Best pancakes this side of anywhere.",
-        "Nina: Even better than Galaxity pancakes?",
+        "{player}: Even better than Galaxity pancakes?",
         "Gala-what-ia? Never heard of it. Is that one of those fancy places in the city?",
-        "Nina: ...Yes. Very fancy."
+        "{player}: ...Yes. Very fancy."
       ]
     },
     {

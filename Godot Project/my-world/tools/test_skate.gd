@@ -8,7 +8,7 @@ extends SceneTree
 # flips, grabs and spins score, a combo multiplies and pays out after landing, the same trick again is worth less,
 # landing mid-flip is a bail that loses the combo, manuals link combos, and a full special meter gives the special.
 # Then every rider (scripts/rides.gd): each gets their own model, ride and tricks, pushes along and pops, the
-# Skaters' Corner swaps who's skating, and stepping off makes you Nina again.
+# Skaters' Corner swaps who's skating, and stepping off makes you your own hero again.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate.gd
 #
@@ -374,14 +374,14 @@ func _run() -> void:
 	await _physics(10)
 	await _press("interact")
 	check(p.get("rider") == "dash", "Interact at the Skaters' Corner swaps Nina for Dash")
-	# Stepping off makes you Nina again
+	# Stepping off makes you your own hero again
 	_place(Vector3(-30, 0.9, 38), PI)
 	await _physics(20)
 	await _press("toggle_skateboard")
-	check(not game.riding and p.get("rider") == "nina" and (p.get("model") as Node3D).name == "Nina",
-		"stepping off the ride makes you Nina again, on foot")
+	check(not game.riding and p.get("rider") == "hero" and (p.get("model") as Node3D).name == "Hero",
+		"stepping off the ride makes you your own hero again, on foot")
 	await _press("toggle_skateboard")
-	check(game.riding and s.ride.rider == "Nina", "...and back on, it's her board")
+	check(game.riding and s.ride.rider == Hero.display_name(game.hero), "...and back on, it's their own board")
 	if not had_board:
 		game.items.erase("skateboard")
 	_end()

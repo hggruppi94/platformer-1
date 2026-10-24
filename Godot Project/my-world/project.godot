@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="MyWorld"
-run/main_scene="res://scenes/interiors/ninas_house.tscn"
+run/main_scene="res://scenes/interiors/my_house.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
@@ -24,6 +24,7 @@ Dialogue="*res://scripts/dialogue.gd"
 Quests="*res://scripts/quests.gd"
 TownMap="*res://scripts/map_screen.gd"
 Shop="*res://scripts/shop.gd"
+Creator="*res://scripts/creator.gd"
 PauseMenu="*res://scripts/pause_menu.gd"
 
 [display]

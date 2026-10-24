@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "(Something long and dark is curled around the hollow log. Lots and lots of legs. A pale face turns slowly to look at Nina.)",
+        "(Something long and dark is curled around the hollow log. Lots and lots of legs. A pale face turns slowly to look at {player}.)",
         "...Oh.",
         "Oh! A visitor? Nobody ever visits.",
         {
@@ -19,9 +19,9 @@
               ]
             },
             {
-              "text": "Hi! I'm Nina.",
+              "text": "Hi! I'm {player}.",
               "lines": [
-                "Nina. That's a lovely name.",
+                "{player}. That's a lovely name.",
                 "I don't have a name. Nobody's ever stayed long enough to ask."
               ]
             }
@@ -36,7 +36,7 @@
               "text": "I'll be your friend!",
               "set": "centipede_friend",
               "lines": [
-                "(All of the centipede's legs wiggle at once. Nina thinks that means happy.)",
+                "(All of the centipede's legs wiggle at once. {player} thinks that means happy.)",
                 "A friend! I've never had one of those before!"
               ]
             },
@@ -58,7 +58,7 @@
         "not_flag": "centipede_named"
       },
       "lines": [
-        "Nina... would you give me a name? I think a friend should have a name.",
+        "{player}... would you give me a name? I think a friend should have a name.",
         {
           "choice": [
             {
@@ -120,7 +120,7 @@
       "rotate": [
         [
           "Did you know there are thirty-seven kinds of mushroom in here? I've named every one.",
-          "Nina: Even the tiny ones?",
+          "{player}: Even the tiny ones?",
           "ESPECIALLY the tiny ones."
         ],
         [
@@ -128,7 +128,7 @@
         ],
         [
           "Being scary is lonely. Being friends is much better.",
-          "Thank you for not running away, {nina}."
+          "Thank you for not running away, {player}."
         ],
         [
           "If you ever feel scared in here, it's okay to go home. The gate's always there.",

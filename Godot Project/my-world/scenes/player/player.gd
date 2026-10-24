@@ -37,7 +37,7 @@ class_name Player
 # The character model; rotated to face movement (the body itself stays unrotated so the camera doesn't spin)
 @onready var visual: Node3D = $Visual
 @onready var tumble: Node3D = $Visual/Tumble     # pivot at her middle: rolls and flips spin this
-@onready var model: Node3D = $Visual/Tumble/Nina    # swapped for whoever's skating (set_rider)
+@onready var model: Node3D = $Visual/Tumble/Nina    # swapped for the player's own hero, or a friend skating (set_rider)
 @onready var board: Node3D = $Visual/Skateboard     # what she rides on (scenes/player/ride_kit.gd fills it)
 var _sash: Node3D                                 # shown once she has the campaign sash
 var _hat: Node3D                                  # the market hat she's wearing (scripts/cosmetics.gd)
@@ -65,7 +65,7 @@ var _step_timer := 0.0
 var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
-var rider := "nina"                         # who's skating (scripts/rides.gd): Nina, or a friend at a skate park
+var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 
 # Walk-through places she's inside (clouds, the bubble bath, hot springs, the lake: scripts/soft_zone.gd,
@@ -106,13 +106,17 @@ func _ready() -> void:
 	_loop_animations()
 	if anim:
 		anim.play("idle")
-	_add_sash()
 	skate = Skate.new()
 	skate.name = "Skate"
 	add_child(skate)
 	skate.setup(self)
+	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
+	# A new game (or a save from before heroes) starts in the character creator. Not in tests and screenshot tools,
+	# which run their own main loop.
+	if Game.needs_creator and get_tree().get_script() == null:
+		Creator.open.call_deferred(true)
 
 
 func _loop_animations() -> void:
@@ -123,7 +127,8 @@ func _loop_animations() -> void:
 
 
 func set_rider(id: String, hop_on := true) -> void:
-	# Swap who's skating (the Skaters' Corner at a skate park, scripts/rider_select.gd): their model takes Nina's place,
+	# Swap who's playing: the player's own hero, or a friend skating at a skate park's Skaters' Corner
+	# (scripts/rider_select.gd). Their model takes the place of the last one,
 	# their ride goes under them, and the skating takes on their ride's feel and tricks. While a friend is skating,
 	# their own self in town steps out of sight, so there aren't two of them.
 	_show_npc(rider, true)
@@ -131,7 +136,7 @@ func set_rider(id: String, hop_on := true) -> void:
 	var r := Rides.ride(id)
 	var old := model
 	model = (load(r.model) as PackedScene).instantiate() as Node3D
-	model.name = "Nina" if id == "nina" else "Rider"
+	model.name = "Hero" if id == "hero" else "Rider"
 	tumble.add_child(model)
 	old.free()                                  # her hat, sash and stickers go with her model
 	_sash = null
@@ -139,7 +144,7 @@ func set_rider(id: String, hop_on := true) -> void:
 	_stickers = null
 	anim = model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	_loop_animations()
-	if id == "nina":
+	if id == "hero":
 		_add_sash()
 	skate.set_ride(r, RideKit.build(r.kit, board, model))
 	_show_npc(id, false)
@@ -153,7 +158,7 @@ func set_rider(id: String, hop_on := true) -> void:
 func _show_npc(id: String, on: bool) -> void:
 	# The town's own copy of a character (and Dash's bike), shown or put away
 	var scene := get_tree().current_scene
-	if id == "nina" or scene == null:
+	if id == "hero" or scene == null:
 		return
 	for r in scene.find_children("Routine", "", true, false):
 		if r.get("character_id") != id:
@@ -165,8 +170,8 @@ func _show_npc(id: String, on: bool) -> void:
 
 
 func _on_equipment_changed() -> void:
-	if not Game.riding and rider != "nina":
-		set_rider("nina", false)                # stepping off makes you Nina again
+	if not Game.riding and rider != "hero":
+		set_rider("hero", false)                # stepping off makes you yourself again
 		return
 	board.visible = Game.riding
 	if Game.riding and not _on_board:
@@ -186,8 +191,12 @@ func _on_equipment_changed() -> void:
 				var st: Node3D = Cosmetics.sticker(id)
 				st.transform = Cosmetics.sticker_place(id)
 				_stickers.add_child(st)
-	# Head to toe, and their looks (scripts/clothes.gd): Nina's, or the friend skating in her place
-	Clothes.dress(model, rider, Game.outfits.get(rider, {}), Game.looks.get(rider, {}))
+	# Head to toe, and their looks: the hero as made in the creator (scripts/hero.gd), or a friend as dressed at the
+	# wardrobe (scripts/clothes.gd)
+	if rider == "hero":
+		Hero.apply(model, Game.hero, Game.outfits.get("hero", {}))
+	else:
+		Clothes.dress(model, rider, Game.outfits.get(rider, {}), Game.looks.get(rider, {}))
 	_hat = model.find_child("Hat", true, false) as Node3D
 	model.position.y = MODEL_Y + (float(skate.ride.deck) if Game.riding else 0.0)
 	model.rotation.y = float(skate.ride.stance) if Game.riding else 0.0

@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks the town's layout (tools/build_town.gd, layout 2): starting a new game in Nina's House, old saves moving to
+# Checks the town's layout (tools/build_town.gd, layout 2): starting a new game at home (My House), old saves moving to
 # the market entrance, buildings not overlapping and their doors on open ground, the districts where they belong, the
 # Observatory up its hill, signposts pointing the right way, the portal lighting the neighbourhood in the Shift, Pip
 # at the market lamps, and the Scary World gate asking before letting her in.
@@ -12,7 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const HOUSE := "res://scenes/interiors/ninas_house.tscn"
+const HOUSE := "res://scenes/interiors/my_house.tscn"
 const BT := preload("res://tools/build_town.gd")
 
 var failures := 0
@@ -43,8 +43,8 @@ func _run() -> void:
 	clock = root.get_node("Clock")
 	game.message_posted.connect(func(t: String) -> void: messages.append(t))
 
-	# --- 1. A new game starts in Nina's House, just out of bed ---
-	check(ProjectSettings.get_setting("application/run/main_scene") == HOUSE, "the game starts in Nina's House")
+	# --- 1. A new game starts at home, in My House, just out of bed ---
+	check(ProjectSettings.get_setting("application/run/main_scene") == HOUSE, "the game starts in My House")
 	DirAccess.remove_absolute(SAVE)
 	game._resume = {}
 	game.call("load_game")
@@ -119,7 +119,7 @@ func _run() -> void:
 			var g := town.find_child(n, false, false) as Node3D
 			return g != null and Vector2(g.global_position.x - market.x, g.global_position.z - market.y).length() < 32.0)
 	check(shops_ok, "the Town Hall and the shops ring the Market Square")
-	var homes_ok := ["Nina's House", "Dash's House", "Melanie's House", "Empty Home", "Empty Home 2"].all(
+	var homes_ok := ["Nina's House", "Dash's House", "Melanie's House", "My House", "Empty Home 2"].all(
 		func(n: String) -> bool:
 			var g := town.find_child(n, false, false) as Node3D
 			return g != null and Vector2(g.global_position.x - housing.x, g.global_position.z - housing.y).length() < housing.z - 4.0)

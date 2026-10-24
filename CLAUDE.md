@@ -1,7 +1,8 @@
 # Galaxity: Sofi's game
 
-A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. Nina is the
-player character. She lives in **Galaxity**, the alien town. During the Shift (midnight to 1 AM, game time) a portal
+A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
+character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live in
+**Galaxity**, the alien town. During the Shift (midnight to 1 AM, game time) a portal
 opens to a small Earth town.
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
@@ -61,9 +62,20 @@ Read this first in every session so each iteration builds on the last one and do
   and Dash is his twin. The other characters are Bramble, Pip, Rook (says woof), Ivy and Theo (Earth), Madame
   Celeste (Earth dance studio) and the lonely centipede (Scary World).
 - In the show, kids are people on Earth and creatures in Galaxity. Nina keeps her Galaxity look on Earth for now.
+- The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
 
+- 2026-10-23: Create-your-own hero, RPG style. The player is their own hero (`Game.hero`, `scripts/hero.gd`): a body to
+  start from (Sofi's hippo, kid, dog-kid, moth, cow or alien bodies), 11 hairstyles (`scripts/hairstyles.gd`, fitted to
+  each head), height, head size and build (`scripts/body_shape.gd`), 20-colour swatches for fur, hair, eyes, accent,
+  blush, brows and their own top/bottoms/shoes, body extras on or off, a name and pronouns. The creator
+  (`scripts/creator.gd`, autoload `Creator`) opens on a new game (and once for a save from before heroes, whose outfit
+  carries over), and from the wardrobe. Dialogue uses `{player}`, `{they}`, `{them}`, `{their}` (and capitalised).
+  The player lives in My House (`build_interiors.gd _my_house`, the main scene; was "Empty Home"), decorated at its
+  Decorate spot (`scripts/home_decor.gd`, `Game.home`: colours and six furniture spots). Nina lives in her own house
+  as a friend with a routine (`routines/nina.json`, `dialogue/nina.json`). Player rider id is "hero"
+  (`tools/test_creator.gd`, `previews/creator/`).
 - 2026-10-23: Character customization and friends' outfits. Everyone has an outfit (`Game.outfits[who]`) and looks
   (`Game.looks[who]`: fur, hair, eyes, an accent like Nina's bow or Dash's cap, blush, from `Clothes.PALETTE`). The
   wardrobe has a "Who" row (Nina, Dash, Rook, Pip, Bramble, the Green Man, Mr. Palmer, Rex) and colour arrows. Clothes

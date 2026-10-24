@@ -105,7 +105,7 @@ func open_picker() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", _fs(10))
 	panel.add_child(box)
-	_label(box, "How long will Nina sleep?", 28)
+	_label(box, "How long will %s sleep?" % Dialogue.player_name(), 28)
 	_hours_button = _option(box, "", _sleep_for_hours)
 	_hours_button.custom_minimum_size.x = _fs(380)
 	var tip := _label(box, "Left / right: more or less sleep", 15)
@@ -255,4 +255,4 @@ func _wake_message() -> String:
 	var h := Clock.hour()
 	if h >= 5 and h < 12:
 		return "Good morning! It's day %d. You feel well rested." % Clock.day
-	return "Nina wakes up! It's %s." % Clock.time_string()
+	return "%s wakes up! It's %s." % [Dialogue.player_name(), Clock.time_string()]

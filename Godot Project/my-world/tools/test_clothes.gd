@@ -113,7 +113,7 @@ func _run() -> void:
 	shop.buy("hero_gloves")
 	shop.open("Wardrobe")
 	await _frames(2)
-	check(shop._title.text == "Nina's Wardrobe", "the mirror opens her wardrobe")
+	check(shop._title.text == "Your Wardrobe", "the mirror opens your wardrobe")
 	game.outfit["hands"] = "cozy_mittens"
 	shop.cycle("hands", 1)
 	check(game.outfit.get("hands") == "hero_gloves", "the arrow swaps the mittens for the hero gloves")
@@ -152,26 +152,26 @@ func _run() -> void:
 	await _frames(2)
 	var dash_model := p.get("model") as Node3D
 	check(dash_model.find_children("Clothes *", "BoneAttachment3D", true, false).is_empty(), "Dash doesn't borrow Nina's outfit when he skates")
-	p.set_rider("nina")
+	p.set_rider("hero")
 	await _frames(2)
 	model = p.get("model") as Node3D
-	check(model.find_children("Clothes *", "BoneAttachment3D", true, false).size() == holders.size(), "...and Nina has hers back")
+	check(model.find_children("Clothes *", "BoneAttachment3D", true, false).size() == holders.size(), "...and the hero has theirs back")
 
-	# --- Her looks: the wardrobe's colour arrows recolour her hair ---
-	shop.open("Wardrobe")
-	shop.cycle_look("hair", 1)
-	shop.close()
+	# --- Their looks: a hair colour from the creator recolours their own hair ---
+	game.hero["colors"] = {"hair": 3}
+	game.hero["hairstyle"] = 0                       # their body's own hair
+	game.equipment_changed.emit()
 	await _frames(2)
 	model = p.get("model") as Node3D
 	var body2 := Clothes._body(model)
 	var hair_i: int = Clothes._surfaces(body2, ["Hair"])[0]
 	var hair := body2.get_surface_override_material(hair_i) as StandardMaterial3D
-	check(hair != null and hair.albedo_color.is_equal_approx(Clothes.PALETTE.hair[1]), "the wardrobe changes her hair colour")
-	check(int(game.looks.nina.hair) == 1, "...and remembers it")
+	check(hair != null and hair.albedo_color.is_equal_approx(Hero.SWATCHES[2]), "the creator's hair colour recolours their hair")
+	game.hero["colors"] = {}
 
 	# --- Dressing a friend: Dash gets the star glasses, fitted to his face ---
 	shop.open("Wardrobe")
-	shop.cycle_who(1)
+	shop.cycle_who(2)                                 # past Nina, to Dash
 	check(shop.who == "dash" and shop._title.text == "Dash's Wardrobe", "the Who arrows pick Dash")
 	game.outfits["dash"] = {"face": "star_glasses", "hands": "hero_gloves", "top": "stripy_shirt"}
 	shop.close()
@@ -191,7 +191,7 @@ func _run() -> void:
 	var hoodie: int = Clothes._surfaces(dbody, ["Hoodie"])[0]
 	check(dbody.get_surface_override_material(hoodie) != null, "...and the stripy shirt restyles his hoodie")
 	check(not Clothes.can_wear("rex", "face") and Clothes.can_wear("rex", "head"), "Rex only wears hats")
-	p.set_rider("nina")
+	p.set_rider("hero")
 	await _frames(2)
 
 	# --- Friends wear their outfits in town too ---

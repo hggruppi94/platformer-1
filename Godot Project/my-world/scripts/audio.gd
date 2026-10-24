@@ -25,6 +25,7 @@ const SCENE_MUSIC := {
 	"res://scenes/interiors/restaurant_and_cafe.tscn": "interior",
 	"res://scenes/interiors/ninas_house.tscn": "interior",
 	"res://scenes/interiors/clothing_boutique.tscn": "interior",
+	"res://scenes/interiors/my_house.tscn": "interior",
 }
 
 # What each sound looks like as a caption. Sounds not listed here are too minor to caption.
@@ -34,7 +35,7 @@ const CAPTIONS := {
 	"hurt": "[ouch]",
 	"pickup": "[item get]",
 	"level_up": "[level up!]",
-	"faint": "[Nina faints]",
+	"faint": "[fainting]",
 	"sliver_sealed": "[the Sliver hums, sealed]",
 	"sliver_open": "[the Sliver shimmers]",
 	"centipede_skitter": "[skittering overhead]",

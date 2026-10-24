@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/talker.gd" id="10_talk"]
 [ext_resource type="Script" path="res://scripts/routine.gd" id="11_routine"]
 [ext_resource type="PackedScene" path="res://models/characters/mr_palmer.glb" id="12_palmer"]
+[ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -202,3 +203,26 @@ animation = "idle"
 [node name="Shape" type="CollisionShape3D" parent="MrPalmer/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_palmer")
+
+[node name="Nina" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 70.3, 0.2, -2.5)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Nina" instance=ExtResource("13_nina")]
+
+[node name="Talk" type="Area3D" parent="Nina"]
+script = ExtResource("10_talk")
+character_id = "nina"
+display_name = "Nina"
+name_height = 1.8
+
+[node name="Routine" type="Node" parent="Nina"]
+script = ExtResource("11_routine")
+character_id = "nina"
+
+[node name="Body" type="StaticBody3D" parent="Nina"]
+
+[node name="Shape" type="CollisionShape3D" parent="Nina/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")

@@ -12,7 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0

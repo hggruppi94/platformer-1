@@ -7,11 +7,11 @@
       },
       "lines": [
         "Grrr...",
-        "Nina: Um... hi? Are you okay?",
+        "{player}: Um... hi? Are you okay?",
         "Woof.",
-        "Nina: Is that a yes woof or a no woof?",
+        "{player}: Is that a yes woof or a no woof?",
         "...Woof.",
-        "Nina: I'm going to say that's a 'not really' woof."
+        "{player}: I'm going to say that's a 'not really' woof."
       ]
     },
     {
@@ -21,12 +21,12 @@
       },
       "set": "asked_rook",
       "lines": [
-        "Nina: Rook, Rex is running for mayor. What would you want a mayor to do?",
+        "{player}: Rook, Rex is running for mayor. What would you want a mayor to do?",
         "Grrr... grumble grumble...",
-        "Nina: Come on. Every voice counts. Even grumbly ones.",
+        "{player}: Come on. Every voice counts. Even grumbly ones.",
         "...Woof.",
         "(Rook flops down in a sunny spot and wags, just a little.)",
-        "Nina: More naps in the sun. Got it. I'll tell him."
+        "{player}: More naps in the sun. Got it. I'll tell him."
       ]
     },
     {
@@ -35,7 +35,7 @@
       },
       "lines": [
         "Awoooooo!",
-        "Nina: He's howling at the portal. I think he misses having a tail."
+        "{player}: He's howling at the portal. I think he misses having a tail."
       ]
     },
     {
@@ -44,7 +44,7 @@
       },
       "lines": [
         "Zzzz... snrrk... woof... zzzz.",
-        "Nina: He's napping in the sun. I'll let him sleep."
+        "{player}: He's napping in the sun. I'll let him sleep."
       ]
     },
     {
@@ -54,7 +54,7 @@
       },
       "lines": [
         "Woof!",
-        "Nina: Following them around again? You're a good... um... brother? Dog? Brother-dog.",
+        "{player}: Following them around again? You're a good... um... brother? Dog? Brother-dog.",
         "Hmph."
       ]
     },
@@ -65,7 +65,7 @@
       },
       "lines": [
         "Grrr... grumble grumble...",
-        "Nina: Grumbling at the moon again?",
+        "{player}: Grumbling at the moon again?",
         "Woof."
       ]
     },
@@ -76,7 +76,7 @@
       },
       "lines": [
         "Zzz... woof... zzz...",
-        "Nina: He's barking in his sleep. Sweet dreams, Rook."
+        "{player}: He's barking in his sleep. Sweet dreams, Rook."
       ]
     },
     {
@@ -86,14 +86,14 @@
       },
       "lines": [
         "Woof! Woof!",
-        "Nina: Okay, okay! Good morning to you too!"
+        "{player}: Okay, okay! Good morning to you too!"
       ]
     },
     {
       "rotate": [
         [
           "Grrr...",
-          "Nina: Grumpy again? I'd be grumpy too if I woke up as a whole different shape.",
+          "{player}: Grumpy again? I'd be grumpy too if I woke up as a whole different shape.",
           "Hmph."
         ],
         [
@@ -104,14 +104,14 @@
                 "text": "Want a belly rub?",
                 "lines": [
                   "GRRR!",
-                  "Nina: Okay! No belly rubs. Got it."
+                  "{player}: Okay! No belly rubs. Got it."
                 ]
               },
               {
                 "text": "Want to play fetch?",
                 "lines": [
                   "Woof! Woof!",
-                  "Nina: He's wagging... his whole body. I think that's a yes."
+                  "{player}: He's wagging... his whole body. I think that's a yes."
                 ]
               }
             ]
@@ -119,9 +119,9 @@
         ],
         [
           "Woof.",
-          "Nina: You know, Rex keeps telling everyone he's Rex and you're the dog.",
+          "{player}: You know, Rex keeps telling everyone he's Rex and you're the dog.",
           "GRRR.",
-          "Nina: Yeah. I figured you'd say that."
+          "{player}: Yeah. I figured you'd say that."
         ]
       ]
     }

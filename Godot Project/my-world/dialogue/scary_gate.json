@@ -17,7 +17,7 @@
               "record": "scary_world_gate",
               "set": "scary_world_said_no",
               "lines": [
-                "(Nina steps back. That's okay. The gate will still be here.)"
+                "({player} steps back. That's okay. The gate will still be here.)"
               ]
             },
             {
@@ -31,7 +31,7 @@
                 "Entrance"
               ],
               "lines": [
-                "(Nina takes a breath and slips through the gate.)"
+                "({player} takes a breath and slips through the gate.)"
               ]
             }
           ]
@@ -52,7 +52,7 @@
               "record": "scary_world_gate",
               "set": "scary_world_said_no",
               "lines": [
-                "(Nina steps back from the gate. Saying no is brave too.)"
+                "({player} steps back from the gate. Saying no is brave too.)"
               ]
             },
             {
@@ -66,7 +66,7 @@
                 "Entrance"
               ],
               "lines": [
-                "(Nina takes a deep breath. The gate creaks open, just wide enough.)"
+                "({player} takes a deep breath. The gate creaks open, just wide enough.)"
               ]
             }
           ]

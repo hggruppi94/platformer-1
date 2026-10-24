@@ -26,7 +26,7 @@ var _rows: VBoxContainer
 var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
-var who := "nina"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
+var who := "hero"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
 
 
 func _ready() -> void:
@@ -95,7 +95,7 @@ func wearable(id: String) -> bool:
 	return items.has(id) and str(items[id].kind) in ["hat", "clothes"]
 
 
-func wear(id: String, slot := "head", on := "nina") -> void:
+func wear(id: String, slot := "head", on := "hero") -> void:
 	# Put something on (or "" to take off whatever's in that slot), on Nina or a friend she's lending it to
 	if id != "" and not owns(id):
 		return
@@ -159,7 +159,7 @@ func open(stall: String) -> void:
 	if is_open() or get_tree().paused or Dialogue.is_active():
 		return
 	_stall = stall
-	who = "nina"
+	who = "hero"
 	_apply_look()                      # the wardrobe's window is wider
 	_note.text = ""
 	_fill()
@@ -197,6 +197,9 @@ func _fill() -> void:
 	if _stall == "Wardrobe":
 		_fill_wardrobe()
 		return
+	if _stall == "Decorate":
+		_fill_decorate()
+		return
 	_title.text = ("%s Stall" % _stall) if _stall != "Boutique" else "Clothing Boutique"
 	_blurb.text = str(stall_blurbs.get(_stall, ""))
 	_wallet.text = "You have ✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
@@ -232,12 +235,80 @@ func _fill() -> void:
 	(first if first else _close).grab_focus.call_deferred()
 
 
+func decorate(part: String, step: int) -> void:
+	# The Decorate spot's arrows: the next colour for a part of the room, or the next thing for a spot
+	var DecorScript := load("res://scripts/home_decor.gd")
+	if DecorScript.COLORS.has(part):
+		Game.home[part] = posmod(int(Game.home.get(part, 0)) + step, DecorScript.COLORS[part].size())
+	else:
+		var items_: Array = DecorScript.ITEMS
+		var now: String = DecorScript.item_in(part)
+		Game.home[part] = items_[posmod(items_.find(now) + step, items_.size())]
+	_keep_focus = "Button %s %d" % [part, step]
+	Game.equipment_changed.emit()
+	Game.save_game()
+	_fill()
+
+
+func _fill_decorate() -> void:
+	# A line for each colour (walls, floor, rug, blanket) and each spot round the room, with arrows
+	var DecorScript := load("res://scripts/home_decor.gd")
+	_title.text = "Decorate your house"
+	_blurb.text = "Pick the colours, and what goes where."
+	_wallet.text = ""
+	for c in _rows.get_children():
+		c.queue_free()
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 36)
+	_rows.add_child(columns)
+	var left := VBoxContainer.new()
+	var right := VBoxContainer.new()
+	for col in [left, right]:
+		col.add_theme_constant_override("separation", 8)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		columns.add_child(col)
+	var lines := []
+	for part in ["walls", "floor", "rug", "blanket"]:
+		var names: Array = DecorScript.COLOR_NAMES[part]
+		lines.append([part, "%s:  %s" % [DecorScript.LABELS[part], names[int(Game.home.get(part, 0)) % names.size()]], left])
+	for spot in DecorScript.SPOTS:
+		lines.append([spot, "%s:  %s" % [DecorScript.SPOT_NAMES[spot], DecorScript.ITEM_NAMES[DecorScript.item_in(spot)]], right])
+	var first: Button = null
+	for line in lines:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		var label := Label.new()
+		label.text = line[1]
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+		for step in [-1, 1]:
+			var b := Button.new()
+			b.text = "◀" if step < 0 else "▶"
+			b.name = "Button %s %d" % [line[0], step]
+			b.custom_minimum_size.x = roundi(52 * Settings.text_scale)
+			b.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+			b.pressed.connect(decorate.bind(line[0], step))
+			if step < 0:
+				row.add_child(b)
+				row.add_child(label)
+			else:
+				row.add_child(b)
+				if first == null:
+					first = b
+		(line[2] as VBoxContainer).add_child(row)
+		var kept := row.get_node_or_null(_keep_focus) as Button
+		if kept:
+			first = kept
+	_keep_focus = ""
+	(first if first else _close).grab_focus.call_deferred()
+
+
 func _fill_wardrobe() -> void:
 	# Who's being dressed, a line for each clothing slot (what they're wearing, with arrows to swap it for something
 	# else Nina owns), then their looks (arrows through the colours)
 	var name: String = Rides.ride(who).rider
-	_title.text = "%s's Wardrobe" % name
-	_blurb.text = "Mix and match, for Nina or a friend! Buy more at the Clothing Boutique in the Market."
+	_title.text = "Your Wardrobe" if who == "hero" else "%s's Wardrobe" % name
+	_blurb.text = "Mix and match, for you or a friend! Buy more at the Clothing Boutique in the Market."
 	_wallet.text = ""
 	for c in _rows.get_children():
 		c.queue_free()
@@ -336,7 +407,7 @@ func _apply_look() -> void:
 		style.border_color = Color(1, 1, 1)
 		style.set_border_width_all(2)
 	_panel.add_theme_stylebox_override("panel", style)
-	_panel.custom_minimum_size.x = roundi((1000 if _stall == "Wardrobe" else 640) * Settings.text_scale)
+	_panel.custom_minimum_size.x = roundi((1000 if _stall in ["Wardrobe", "Decorate"] else 640) * Settings.text_scale)
 	_title.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
 	_title.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
 	_blurb.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))

@@ -7,9 +7,9 @@
       },
       "lines": [
         "Oh! A new face in my studio! Come in, come in, mind the hay.",
-        "Nina: Is this a barn?",
+        "{player}: Is this a barn?",
         "It was a barn, darling. Now it's a dance studio. The cows moved out years ago, and they were terrible dancers anyway.",
-        "Nina: I've never done ballet.",
+        "{player}: I've never done ballet.",
         "Everyone starts somewhere. Stand at the barre, chin up, and point those toes!"
       ]
     },

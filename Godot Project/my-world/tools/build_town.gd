@@ -799,7 +799,7 @@ func _buildings() -> void:
 	dome_building("Gaming Station", 34, 80, 8, PI, blue)
 	# Housing district east of the lake: homes round a little park, doors facing it
 	for home in [["Nina's House", 62.0, -10.0, 5.0, Color(0.98, 0.78, 0.2)], ["Dash's House", 82.0, -18.0, 4.5, Color(0.75, 0.8, 0.88)],
-			["Melanie's House", 98.0, -4.0, 4.5, Color(0.98, 0.78, 0.2)], ["Empty Home", 66.0, 16.0, 4.5, Color(0.9, 0.85, 0.95)],
+			["Melanie's House", 98.0, -4.0, 4.5, Color(0.98, 0.78, 0.2)], ["My House", 66.0, 16.0, 4.5, Color(0.9, 0.85, 0.95)],
 			["Empty Home 2", 94.0, 16.0, 4.5, Color(0.9, 0.85, 0.95)]]:
 		var g := dome_building(home[0], home[1], home[2], home[3], atan2(HOUSING.x - home[1], HOUSING.y - home[2]), home[4])
 		if home[0] == "Nina's House":

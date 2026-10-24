@@ -11,7 +11,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "mr_palmer", "scary_gate"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "mr_palmer", "scary_gate", "nina"]
 const PERIODS := {"morning": 8 * 60.0, "day": 13 * 60.0, "evening": 19 * 60.0, "night": 22 * 60.0, "shift": 20.0}
 
 var failures := 0
@@ -79,7 +79,7 @@ func _run() -> void:
 			"%s, first time: %d lines, \"%s\"" % [id, lines.size(), lines[0][1] if lines.size() > 0 else ""])
 		check(dialogue.talks.get(id, 0) == 1, "%s: talked to once" % id)
 		if id == "dash":
-			check(lines.any(func(l: Array) -> bool: return l[0] == "Nina"), "Nina has lines too")
+			check(lines.any(func(l: Array) -> bool: return l[0] == dialogue.player_name()), "the player has lines too")
 
 	# Time of day: Pip at night is all about the lamps; in the Shift, the portal
 	clock.set_time(1, PERIODS.night, true)
@@ -100,7 +100,7 @@ func _run() -> void:
 	dialogue.talks["bramble"] = 1
 	dialogue.talks["rook"] = 1
 	var rex := await _talk("rex", [0])         # second talk: the vote question
-	check(rex.any(func(l: Array) -> bool: return l[0] == "Nina" and l[1] == "You've got my vote!"), "Nina says her answer")
+	check(rex.any(func(l: Array) -> bool: return l[0] == dialogue.player_name() and l[1] == "You've got my vote!"), "the player says their answer")
 	check(dialogue.flags.has("voted_rex"), "voting for Rex sets the 'voted_rex' flag")
 	check(rex.size() > 0 and rex[-1][1].contains("brain breaks"), "Rex: " + (rex[-1][1] if rex.size() else ""))
 	game.hp = 1
@@ -182,7 +182,7 @@ func _expected_lines(id: String, count: int, period: String) -> Array:
 
 
 func _fill(line: String) -> String:
-	return line.substr(6) if line.begins_with("Nina: ") else line
+	return dialogue._fill(line.substr(10) if line.begins_with("{player}: ") else line)
 
 
 func _talk(id: String, picks: Array = []) -> Array:

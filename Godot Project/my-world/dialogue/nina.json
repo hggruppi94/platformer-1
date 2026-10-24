@@ -1,0 +1,83 @@
+{
+  "name": "Nina",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Oh! Hi! You're new, aren't you? I'm Nina!",
+        "{player}: Hi, Nina. I'm {player}.",
+        "{player}! I like that. Welcome to Galaxity!",
+        "You've got the house just past mine, with the round door. We're neighbours!",
+        "If you need anything, I'm usually down by the lake in the morning and at the Skate Park after lunch."
+      ]
+    },
+    {
+      "when": {
+        "activity": "morning",
+        "min_talks": 1
+      },
+      "lines": [
+        "Morning, {player}! I'm deciding what to do today.",
+        "The lake first, I think. Then skating. Then maybe more skating."
+      ]
+    },
+    {
+      "when": {
+        "activity": "boardwalk",
+        "min_talks": 1
+      },
+      "lines": [
+        "Hi, {player}! Have you been to the Clothing Boutique yet?",
+        "They've got butterfly wings now. BUTTERFLY WINGS.",
+        {
+          "choice": [
+            {
+              "text": "I love the wings!",
+              "lines": [
+                "Right?! We should both get some. Then we'd be a team."
+              ]
+            },
+            {
+              "text": "I'm more of a cape person.",
+              "lines": [
+                "Ooh, a super cape. Very heroic. That suits you."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "activity": "skating",
+        "min_talks": 1
+      },
+      "lines": [
+        "{player}! Watch this! ...Okay, I'll do the kickflip later. My board needs a rest.",
+        "Did you find all the S-K-A-T-E letters? The K is way up high over the quarter pipe.",
+        "Try a vert air off the big ramp and go straight up. That's how I got it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "evening",
+        "min_talks": 1
+      },
+      "lines": [
+        "The sky's turning all gold. This is my favourite part of the day.",
+        "{player}: Mine too.",
+        "See you tomorrow, neighbour!"
+      ]
+    },
+    {
+      "when": {
+        "min_talks": 1
+      },
+      "lines": [
+        "Hi again, {player}! Galaxity's even better with a neighbour."
+      ]
+    }
+  ]
+}

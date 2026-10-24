@@ -18,7 +18,7 @@ signal flag_set(flag: String)
 
 const DIR := "res://dialogue"
 const CHARS_PER_SECOND := 45.0
-const PLAYER_NAME := "Nina"
+const PLAYER_TAG := "{player}"       # lines starting "{player}: " are the player's own (their name comes from the creator)
 
 var talks := {}                      # character id -> how many conversations she's had with them
 var flags := {}                      # flag name -> true, set by answers and conversations ("set": "flag")
@@ -230,8 +230,8 @@ func _steps(lines: Array) -> Array:
 	var out: Array = []
 	for l in lines:
 		if l is String:
-			if l.begins_with(PLAYER_NAME + ": "):
-				out.append({"speaker": PLAYER_NAME, "text": l.substr(PLAYER_NAME.length() + 2)})
+			if l.begins_with(PLAYER_TAG + ": "):
+				out.append({"speaker": PLAYER_TAG, "text": l.substr(PLAYER_TAG.length() + 2)})
 			else:
 				out.append({"speaker": "", "text": l})
 		elif l is Dictionary and l.has("choice"):
@@ -252,10 +252,12 @@ func _next() -> void:
 	var text := _fill(step["text"])
 	var narration: bool = step["speaker"] == "" and text.begins_with("(") and text.ends_with(")")
 	var speaker: String = "" if narration else (step["speaker"] if step["speaker"] != "" else _name)
+	var is_player := speaker == PLAYER_TAG
+	if is_player:
+		speaker = player_name()
 	_name_label.text = speaker
 	_name_label.visible = not narration
-	var is_nina := speaker == PLAYER_NAME
-	_name_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.7) if is_nina else Color(0.75, 0.9, 1.0))
+	_name_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.7) if is_player else Color(0.75, 0.9, 1.0))
 	_text.text = text
 	_text.visible_characters = 0
 	_shown = 0.0
@@ -264,9 +266,19 @@ func _next() -> void:
 	line_shown.emit(speaker, text)
 
 
+func player_name() -> String:
+	return Hero.display_name(Game.hero)
+
+
 func _fill(text: String) -> String:
-	return text.format({"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
-		"name": _name, "nina": PLAYER_NAME, "quest_log": Settings.key_name("quest_log")})
+	# Fills in {player} (the name they chose), their pronouns ({they}, {them}, {their}, and capitalised), and more
+	var words := {"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
+		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.key_name("quest_log")}
+	for w in ["they", "them", "their", "theirs", "themself", "are"]:
+		var p := Hero.pronoun(Game.hero, w)
+		words[w] = p
+		words[w.capitalize()] = p.capitalize()
+	return text.format(words)
 
 
 func _finish_typing() -> void:
@@ -322,7 +334,7 @@ func choose(option: Dictionary) -> void:
 		Game.sp = Game.max_sp
 		Game.stats_changed.emit()
 		Game.sp_changed.emit()
-	var steps := _steps([PLAYER_NAME + ": " + str(option.get("text", ""))]) if option.get("say", true) else []
+	var steps := _steps([PLAYER_TAG + ": " + str(option.get("text", ""))]) if option.get("say", true) else []
 	steps.append_array(_steps(option.get("lines", [])))
 	_queue = steps + _queue
 	_next()

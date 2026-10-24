@@ -44,15 +44,18 @@ var pending_message := ""        # shown by the HUD after a scene reload (e.g. a
 signal equipment_changed
 var items: Array[String] = []    # things the player owns, e.g. "skateboard"
 var riding := false              # skateboard equipped
-var outfits := {"nina": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
+var hero := Hero.blank()         # the player's own character, made in the character creator (scripts/hero.gd)
+var needs_creator := false       # a new game (or an old save from before heroes): open the creator on arriving
+var home := {}                   # how the player's house is decorated: part -> colour number, spot -> item (scripts/home_decor.gd)
+var outfits := {"hero": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
 var looks := {}                  # how everyone looks: who -> {part -> colour number}; 0 or missing is their own
-var outfit: Dictionary:          # Nina's outfit; a missing slot is her own look
+var outfit: Dictionary:          # the player's outfit; a missing slot is their own look
 	get:
-		if not outfits.has("nina"):
-			outfits["nina"] = {}
-		return outfits["nina"]
+		if not outfits.has("hero"):
+			outfits["hero"] = {}
+		return outfits["hero"]
 	set(v):
-		outfits["nina"] = v
+		outfits["hero"] = v
 var hat: String:                 # the hat she's wearing: the outfit's head slot ("" for none)
 	get:
 		return str(outfit.get("head", ""))
@@ -73,7 +76,7 @@ const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 1
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
 const TOWN_SCENE := "res://scenes/town/town.tscn"
-const NEW_GAME_SPAWN := "BedSpawn"       # in Nina's House (the main scene)
+const NEW_GAME_SPAWN := "BedSpawn"       # in My House, the player's own (the main scene)
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -207,7 +210,8 @@ func faint() -> void:
 	mp = max_mp
 	sp = max_sp
 	next_spawn = ""
-	pending_message = "Nina fainted! She's back on her feet."
+	pending_message = "%s fainted! %s back on %s feet." % [Dialogue.player_name(),
+		(Hero.pronoun(hero, "they") + ("'re" if Hero.pronoun(hero, "are") == "are" else "'s")).capitalize(), Hero.pronoun(hero, "their")]
 	Audio.play("faint")
 	stats_changed.emit()
 	get_tree().call_deferred("reload_current_scene")
@@ -291,7 +295,7 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks,
+		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "home": home,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -324,7 +328,7 @@ func save_game() -> void:
 
 func load_game() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
-		next_spawn = NEW_GAME_SPAWN                     # the very first start: wake up in Nina's House
+		next_spawn = NEW_GAME_SPAWN                     # the very first start: wake up at home
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
 	if typeof(data) != TYPE_DICTIONARY:
@@ -353,8 +357,8 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
-	outfits = {"nina": {}}
-	var all_worn = data.get("outfits", {"nina": data.get("outfit", {})})
+	outfits = {"hero": {}}
+	var all_worn = data.get("outfits", {"hero": data.get("outfit", {})})
 	if all_worn is Dictionary:
 		for who in all_worn:
 			var worn = all_worn[who]
@@ -362,6 +366,16 @@ func load_game() -> void:
 				outfits[str(who)] = {}
 				for slot in worn:
 					outfits[str(who)][str(slot)] = str(worn[slot])
+	# The player's own character; a save from before heroes was Nina's, so her outfit becomes theirs and they get to
+	# make their hero
+	hero = Hero.blank()
+	needs_creator = not data.get("hero", null) is Dictionary
+	if not needs_creator:
+		hero.merge(data["hero"], true)
+	elif outfits.has("nina") and outfits["hero"].is_empty():
+		outfits["hero"] = outfits["nina"]
+		outfits.erase("nina")
+	home = data.get("home", {}) if data.get("home", {}) is Dictionary else {}
 	looks = {}
 	var all_looks = data.get("looks", {})
 	if all_looks is Dictionary:
@@ -441,14 +455,17 @@ func new_game() -> void:
 	mp_level = 1
 	items.clear()
 	riding = false
-	outfits = {"nina": {}}
+	outfits = {"hero": {}}
 	looks = {}
+	hero = Hero.blank()
+	needs_creator = true
+	home = {}
 	sparkles = 0
 	sparkles_taken.clear()
 	Clock.reset()
 	Dialogue.reset()
 	Quests.reset()
-	next_spawn = NEW_GAME_SPAWN                      # wake up in Nina's House
+	next_spawn = NEW_GAME_SPAWN                      # wake up at home
 	_resume = {}
 	_last_place = {}
 	pending_message = "New game!"

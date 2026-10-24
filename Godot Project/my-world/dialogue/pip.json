@@ -7,7 +7,7 @@
       },
       "lines": [
         "Oh! Hi! I'm Pip. Are you a lamp? You're kind of glowy.",
-        "Nina: I'm Nina. Not a lamp.",
+        "{player}: I'm {player}. Not a lamp.",
         "Aw. Still nice, though."
       ]
     },
@@ -18,7 +18,7 @@
         "min_talks": 1
       },
       "lines": [
-        "Nina! Rex says he'll make more lamps when he's mayor. But I don't want to wait THAT long.",
+        "{player}! Rex says he'll make more lamps when he's mayor. But I don't want to wait THAT long.",
         "I want to make lamps NOW. Moon-lamps, for the boardwalk! But they need something glowy inside.",
         "There are glow shells round the lake. Five of them! They only wash up when nobody's looking.",
         {
@@ -56,13 +56,13 @@
       },
       "set": "pip_got_shells",
       "lines": [
-        "Nina: Pip! I found all five glow shells!",
-        "(Nina opens her bag. Soft blue and pink light spills out.)",
+        "{player}: Pip! I found all five glow shells!",
+        "({player} opens {their} bag. Soft blue and pink light spills out.)",
         "OHHH. They're even glowier than I imagined. And I imagined a LOT.",
         "One for each lantern on the boardwalk. Hold still... there! And there! And there!",
         "(One by one, the lanterns along the boardwalk light up like little moons.)",
         "Now nobody has to be scared of the dark by the lake. Not even a tiny bit.",
-        "Nina: It's beautiful, Pip.",
+        "{player}: It's beautiful, Pip.",
         "It's LAMPLIGHTER Pip now. I just decided."
       ]
     },
@@ -87,10 +87,10 @@
       },
       "set": "asked_pip",
       "lines": [
-        "Nina: Pip, Rex is running for mayor. What would you want a mayor to do?",
+        "{player}: Pip, Rex is running for mayor. What would you want a mayor to do?",
         "MORE LAMPS! Big ones, small ones, lamps shaped like moons!",
         "So nobody ever has to be scared of the dark. Not even a tiny bit.",
-        "Nina: That's a really good one, Pip.",
+        "{player}: That's a really good one, Pip.",
         "Tell Rex I'll vote for him if he promises a lamp. A glowy one."
       ]
     },
@@ -118,7 +118,7 @@
         "travelling": true
       },
       "lines": [
-        "(yawn) The sky's getting light... home to my cave. Night night, Nina."
+        "(yawn) The sky's getting light... home to my cave. Night night, {player}."
       ]
     },
     {
@@ -129,7 +129,7 @@
       },
       "lines": [
         "The market lamps are my favorite! They stand in a big circle, like a lamp party!",
-        "Nina: Do the lamps know they're at a party?",
+        "{player}: Do the lamps know they're at a party?",
         "They do now!"
       ]
     },
@@ -147,8 +147,8 @@
       },
       "lines": [
         "Zzz... five more hours...",
-        "Nina: Pip? Pip!",
-        "Nina: ...He's asleep standing up."
+        "{player}: Pip? Pip!",
+        "{player}: ...He's asleep standing up."
       ]
     },
     {

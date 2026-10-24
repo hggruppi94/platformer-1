@@ -8,7 +8,7 @@
       "lines": [
         "Well, hey there, sugar! Ain't you just the sweetest thing.",
         "I'm Bramble. I grow things, and I fix up anybody who's feelin' poorly.",
-        "Nina: Like a doctor?",
+        "{player}: Like a doctor?",
         "Sort of! More like a garden that gives hugs."
       ]
     },
@@ -29,8 +29,8 @@
               "set": "bramble_flowers_start",
               "lines": [
                 "Bless your heart! Here you go, a whole armful.",
-                "(Bramble hands Nina a big bundle of flowers. They smell like sunshine.)",
-                "Mr. Palmer's window at the Town Hall, your house, the Potion Shop, the Book Store, and Dash's place."
+                "(Bramble hands {player} a big bundle of flowers. They smell like sunshine.)",
+                "Mr. Palmer's window at the Town Hall, Nina's house, the Potion Shop, the Book Store, and Dash's place."
               ]
             },
             {
@@ -58,7 +58,7 @@
       },
       "set": "bramble_thanked",
       "lines": [
-        "Nina: All the window boxes are full, Bramble!",
+        "{player}: All the window boxes are full, Bramble!",
         "Well, look at you! I could see 'em bloomin' from here.",
         "You know what? I had a few bundles left over. So I snuck round and did the rest of the town too.",
         "(Bramble winks.)",
@@ -82,7 +82,7 @@
       },
       "set": "asked_bramble",
       "lines": [
-        "Nina: Bramble, Rex is running for mayor. What would you want a mayor to do?",
+        "{player}: Bramble, Rex is running for mayor. What would you want a mayor to do?",
         "Well, ain't that sweet of him to ask!",
         "Flowers, sugar. Flowers in every window box in town. A town with flowers is a town that smiles.",
         "You tell that pup I said so. Kindly."
@@ -114,7 +114,7 @@
       },
       "lines": [
         "Fresh flowers! I grew every single one of 'em myself, sugar.",
-        "(Bramble tucks a little pink flower behind Nina's ear.)",
+        "(Bramble tucks a little pink flower behind {player}'s ear.)",
         "There. Pretty as a picture."
       ]
     },
@@ -143,7 +143,7 @@
       },
       "lines": [
         "Shh, the plants are sleepin'. We gotta whisper so they grow nice and tall.",
-        "Nina: (whispering) Goodnight, plants."
+        "{player}: (whispering) Goodnight, plants."
       ]
     },
     {
@@ -160,7 +160,7 @@
                 "text": "Yes, please!",
                 "heal": true,
                 "lines": [
-                  "(Bramble pats Nina on the head. Tiny flowers pop up around her feet.)",
+                  "(Bramble pats {player} on the head. Tiny flowers pop up around {their} feet.)",
                   "There you go! Fresh as a daisy."
                 ]
               },

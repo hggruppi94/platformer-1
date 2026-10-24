@@ -11,16 +11,16 @@
       },
       "set": "palmer_said_no",
       "lines": [
-        "(Nina knocks on the window. Tap, tap, tap.)",
-        "Coming, coming! Oh, hello, Nina! What can I do for you?",
-        "Nina: Mr. Palmer, I'm Rex's campaign manager. He wants to be mayor! Here are his ideas.",
-        "(Nina tells him about the bike lane, the flowers, the lamps and the naps in the sun.)",
+        "({player} knocks on the window. Tap, tap, tap.)",
+        "Coming, coming! Oh, hello, {player}! What can I do for you?",
+        "{player}: Mr. Palmer, I'm Rex's campaign manager. He wants to be mayor! Here are his ideas.",
+        "({player} tells him about the bike lane, the flowers, the lamps and the naps in the sun.)",
         "Those are lovely ideas. Really lovely.",
         "But I'm afraid the answer is no. Not this year. I'm still the mayor, and the next election isn't until next year.",
-        "Nina: Oh. Rex is going to be sad.",
+        "{player}: Oh. Rex is going to be sad.",
         "Tell him this from me: a good mayor is patient. And a good mayor listens to everybody before deciding anything.",
         "And it sounds like he's already started. He asked the whole town! Even Rook!",
-        "Tell him to keep listening. And I'll put Bramble's flowers in the window boxes right away. Goodbye, Nina!"
+        "Tell him to keep listening. And I'll put Bramble's flowers in the window boxes right away. Goodbye, {player}!"
       ]
     },
     {
@@ -31,7 +31,7 @@
         ]
       },
       "lines": [
-        "(Nina knocks. Nobody answers. The curtains are closed.)",
+        "({player} knocks. Nobody answers. The curtains are closed.)",
         "(A little sign on the window says: OFFICE HOURS: MORNING TILL TEATIME. Mr. Palmer)"
       ]
     },
@@ -41,7 +41,7 @@
       },
       "rotate": [
         [
-          "Hello, Nina! Tell Future Mayor Rex the window flowers are coming along nicely."
+          "Hello, {player}! Tell Future Mayor Rex the window flowers are coming along nicely."
         ],
         [
           "(Mr. Palmer waves from the window.)",
@@ -54,10 +54,10 @@
         "talks": 0
       },
       "lines": [
-        "(Nina knocks on the window. Tap, tap, tap.)",
+        "({player} knocks on the window. Tap, tap, tap.)",
         "Hello there! I'm Mr. Palmer, the mayor of Galaxity. Lots of paperwork today!",
-        "Nina: Hi, Mr. Palmer! I'm Nina.",
-        "Nina! Welcome. My door is always open. Well... my window is."
+        "{player}: Hi, Mr. Palmer! I'm {player}.",
+        "{player}! Welcome. My door is always open. Well... my window is."
       ]
     },
     {

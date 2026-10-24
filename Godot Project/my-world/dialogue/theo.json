@@ -7,9 +7,9 @@
       },
       "lines": [
         "Oh! Hi. I'm Theo. I'm reading. Well, I was reading. Now I'm talking.",
-        "Nina: What are you reading?",
+        "{player}: What are you reading?",
         "A book about a world where kids turn into creatures when they step through a door. It's pretty silly.",
-        "Nina: Ha. Ha. Yeah. Silly."
+        "{player}: Ha. Ha. Yeah. Silly."
       ]
     },
     {

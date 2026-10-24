@@ -7,11 +7,11 @@
       },
       "lines": [
         "Well, hello there! You're new in town. I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
-        "Nina: Mr. Palmer?! But you're the mayor of Galaxity!",
+        "{player}: Mr. Palmer?! But you're the mayor of Galaxity!",
         "(Mr. Palmer looks left. Then right. Then he leans down and whispers.)",
         "Shh! Nobody here knows about that. On this side of the portal I'm just plain old Mr. Palmer.",
         "Lots of us have a Galaxity side, you know. You look a bit different over there yourself, I expect.",
-        "Nina: I do?",
+        "{player}: I do?",
         "Everyone does! That's the fun of it."
       ]
     },
@@ -56,9 +56,9 @@
       },
       "set": "earth_lights_given",
       "lines": [
-        "Nina: Mr. Palmer! I found all three boxes!",
+        "{player}: Mr. Palmer! I found all three boxes!",
         "You found them! Splendid! Let's get them up.",
-        "(Mr. Palmer strings the lights round the gazebo roof. Nina holds the ladder. Click!)",
+        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
         "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
         "There. Now it's a proper autumn evening.",
         "Come back next Shift and you can help with the festival. There's apple pie and hot apple juice."

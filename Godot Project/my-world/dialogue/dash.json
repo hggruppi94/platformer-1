@@ -6,11 +6,11 @@
         "talks": 0
       },
       "lines": [
-        "Whoa, hey! Nina! I mean... hi, stranger I have definitely never met before.",
-        "Nina: Do I know you?",
+        "Whoa, hey! {player}! I mean... hi, stranger I have definitely never met before.",
+        "{player}: Do I know you?",
         "Not yet! Well... kind of. It's complicated. Time stuff.",
         "I'm Dash. I came here through the pond to fix something. A super important something.",
-        "Nina: What are you fixing?",
+        "{player}: What are you fixing?",
         "Can't say! If I talk about the future too much it makes time ripples. Little wobbly ones."
       ]
     },
@@ -21,7 +21,7 @@
       },
       "set": "asked_dash",
       "lines": [
-        "Nina: Dash, Rex is running for mayor. What would you want a mayor to do?",
+        "{player}: Dash, Rex is running for mayor. What would you want a mayor to do?",
         "A mayor? Rex? My twin brother Rex?",
         "(Dash thinks about it, very fast.)",
         "Okay, okay! A bike lane all the way round the lake! So I can zoom without bumping into anybody.",
@@ -34,7 +34,7 @@
       },
       "lines": [
         "Do you feel that? The portal's open! Time's all slow and stretchy right now.",
-        "Nina: Is that where you came from?",
+        "{player}: Is that where you came from?",
         "Ha! Uh... no comment. Time ripples, remember? Wobble wobble."
       ]
     },
@@ -45,7 +45,7 @@
       },
       "lines": [
         "Out for a ride! Wind in my hair! ...Well, in my hat.",
-        "Nina: Where are you going?",
+        "{player}: Where are you going?",
         "Everywhere! Twice! Riding helps me think about... stuff. Future stuff. Shh."
       ]
     },
@@ -65,7 +65,7 @@
       },
       "lines": [
         "Sunsets here are the best. Pink and purple and a little bit sparkly.",
-        "Nina: Better than the ones where you come from?",
+        "{player}: Better than the ones where you come from?",
         "Ha! Nice try. No comment."
       ]
     },
@@ -75,7 +75,7 @@
       },
       "lines": [
         "(Dash yawns a giant yawn.)",
-        "Morning, Nina. Bike's ready. Brain's still... loading."
+        "Morning, {player}. Bike's ready. Brain's still... loading."
       ]
     },
     {
@@ -85,7 +85,7 @@
       },
       "lines": [
         "Can't sleep. My brain's going boots-and-cats, boots-and-cats.",
-        "Nina: Boots and... cats?",
+        "{player}: Boots and... cats?",
         "That's how you say house music with your mouth! Try it! Boots-and-cats!"
       ]
     },
@@ -104,7 +104,7 @@
       "rotate": [
         [
           "Leaning on my bike is my favorite way to stand. Ask anyone. Ask the bike.",
-          "Nina: Does the bike like it?",
+          "{player}: Does the bike like it?",
           "The bike has never complained. Not once. Best friend ever."
         ],
         [
@@ -130,7 +130,7 @@
         ],
         [
           "Untz, untz, untz. That's the beat.",
-          "Nina: I don't hear anything.",
+          "{player}: I don't hear anything.",
           "It's always playing in my head. It's a good song. You'd love it. Untz."
         ]
       ]

@@ -11,7 +11,7 @@ extends RefCounted
 # spins the ride round its stem (a tailwhip); backflip, frontflip and cork turn the rider and ride together; twirl is a
 # special's spin and somersault.
 
-const ORDER := ["nina", "dash", "rex", "rook", "pip", "bramble", "green_man", "mr_palmer"]
+const ORDER := ["hero", "nina", "dash", "rex", "rook", "pip", "bramble", "green_man", "mr_palmer"]
 
 const BOARD := {
 	"rider": "Nina",
@@ -249,7 +249,16 @@ const RIDERS := {
 
 
 static func ride(id: String) -> Dictionary:
-	# A rider's full set: BOARD with their own differences on top
+	# A rider's full set: BOARD with their own differences on top. The player's own hero (scripts/hero.gd) rides a
+	# board like Nina's, on whatever body they made.
+	if id == "hero":
+		# (The Game autoload, looked up by path: this is a plain class, which can't name autoloads directly)
+		var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
+		var made: Dictionary = game.hero if game else Hero.blank()
+		var hero := BOARD.duplicate(true)
+		hero.model = Hero.model_path(made)
+		hero.rider = Hero.display_name(made)
+		return hero
 	if not RIDERS.has(id):
 		return BOARD
 	var out := BOARD.duplicate(true)

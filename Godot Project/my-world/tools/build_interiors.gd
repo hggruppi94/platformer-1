@@ -2,7 +2,7 @@ extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
 #   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn,
-#   clothing_boutique.tscn
+#   clothing_boutique.tscn, my_house.tscn
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd
 #
@@ -24,6 +24,7 @@ func _initialize() -> void:
 	_save("restaurant_and_cafe", _restaurant())
 	_save("ninas_house", _ninas_house())
 	_save("clothing_boutique", _clothing_boutique())
+	_save("my_house", _my_house())
 	quit()
 
 
@@ -502,6 +503,180 @@ func _clothing_boutique() -> Node3D:
 	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.9, 0.85), 1.3, 14)
 	own(root_node)
 	return root_node
+
+
+# -----------------------------------------------------------------------------
+# My House: the player's own home (a new game starts here, in bed), decorated their way (scripts/home_decor.gd):
+# walls, floor, rug and blanket colours, and what stands in six spots round the room, changed at the Decorate spot
+# (the paint pots by the door). Every choice of furniture is built in each spot and the chosen one shown.
+# -----------------------------------------------------------------------------
+const DECOR_SPOTS := {"spot1": [Vector3(-1.2, 0, -6.4), 0.2], "spot2": [Vector3(2.2, 0, -7.2), 0.0],
+	"spot3": [Vector3(7.0, 0, -1.0), -PI / 2], "spot4": [Vector3(-7.0, 0, 0.6), PI / 2],
+	"spot5": [Vector3(-4.6, 0, 5.6), PI * 0.8], "spot6": [Vector3(4.6, 0, 5.6), -PI * 0.8]}
+const DECOR_ITEMS := ["none", "plant", "bookshelf", "toy_chest", "lamp", "fish_tank", "beanbag", "drum_kit", "easel",
+	"telescope", "arcade", "trophy_shelf"]
+
+
+func _my_house() -> Node3D:
+	var r := 9.0
+	var root_node := dome_room("My House", r, Color(1.0, 0.88, 0.75), Color(0.62, 0.44, 0.3), Color(1.0, 0.92, 0.85))
+	root_node.set_script(load("res://scripts/home_decor.gd"))
+	# The parts that take the player's colours: named "Decor <part>" (scripts/home_decor.gd)
+	for mi in root_node.find_children("*", "MeshInstance3D", true, false):
+		var m := (mi as MeshInstance3D).material_override
+		if m and m.resource_name in ["Wall My House", "Dome My House"]:
+			(mi as MeshInstance3D).material_override = _decor_mat("walls", Color(1.0, 0.85, 0.9))
+		elif m and m.resource_name == "Floor My House":
+			(mi as MeshInstance3D).material_override = _decor_mat("floor", Color(0.62, 0.44, 0.3))
+	var wood := mat("Home Wood", Color(0.6, 0.38, 0.22), 0.6)
+	mesh_at(cylinder(2.8, 2.8, 0.04, 32), _decor_mat("rug", Color(0.75, 0.55, 0.95)), Vector3(0, 0.02, 0), root_node)
+	var stage := Marker3D.new()                        # where the character creator stands them, on the rug
+	stage.name = "CreatorSpot"
+	stage.position = Vector3(0, 1.0, 0.5)
+	root_node.add_child(stage)
+	# The bed, back left: sleep here (scripts/bed.gd); a new game starts just out of it
+	var bed := node("Bed", root_node, Vector3(-3.8, 0, -4.4), 0.35)
+	var wake := Marker3D.new()
+	wake.name = "BedSpawn"
+	wake.position = Vector3(-1.8, 1.0, -2.4)
+	wake.rotation.y = atan2(1.8, 2.4) - PI
+	root_node.add_child(wake)
+	solid_box(Vector3(2.2, 0.5, 3.2), wood, Vector3(0, 0.25, 0), bed)
+	mesh_at(box(Vector3(2.0, 0.3, 3.0)), mat("Home Mattress", Color(0.97, 0.94, 0.88), 0.7), Vector3(0, 0.65, 0), bed)
+	mesh_at(box(Vector3(2.08, 0.14, 2.0)), _decor_mat("blanket", Color(0.9, 0.12, 0.22)), Vector3(0, 0.84, 0.5), bed)
+	mesh_at(box(Vector3(1.3, 0.22, 0.6)), mat("Pillow", Color(1, 1, 1), 0.8), Vector3(0, 0.92, -1.05), bed)
+	solid_box(Vector3(2.2, 1.5, 0.2), wood, Vector3(0, 0.75, -1.6), bed)
+	var sleep_area := Area3D.new()
+	sleep_area.name = "SleepSpot"
+	sleep_area.set_script(load("res://scripts/bed.gd"))
+	var scs := CollisionShape3D.new()
+	var sshape := SphereShape3D.new()
+	sshape.radius = 2.4
+	scs.shape = sshape
+	scs.position = Vector3(0, 1.0, 0.6)
+	sleep_area.add_child(scs)
+	var prompt := Label3D.new()
+	prompt.name = "Prompt"
+	prompt.text = "Press F to sleep"
+	prompt.font_size = 44
+	prompt.pixel_size = 0.01
+	prompt.outline_size = 10
+	prompt.outline_modulate = Color(0.15, 0.1, 0.12)
+	prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt.no_depth_test = true
+	prompt.position = Vector3(0, 2.3, 0)
+	sleep_area.add_child(prompt)
+	bed.add_child(sleep_area)
+	# Their wardrobe, and the Decorate spot: paint pots and a brush by the door
+	wardrobe(root_node, Vector3(5.4, 0, -4.4), -PI / 4)
+	var paint := node("Decorate", root_node, Vector3(1.8, 0, 4.6), PI)
+	var pots := [Color(1.0, 0.5, 0.7), Color(0.4, 0.75, 1.0), Color(1.0, 0.85, 0.3)]
+	for k in 3:
+		mesh_at(cylinder(0.22, 0.2, 0.36, 16), mat("Paint Pot %d" % k, pots[k], 0.5), Vector3(-0.5 + k * 0.5, 0.18, 0), paint)
+		mesh_at(cylinder(0.2, 0.2, 0.02, 16), mat("Paint %d" % k, pots[k].lightened(0.2), 0.3), Vector3(-0.5 + k * 0.5, 0.37, 0), paint)
+	mesh_at(box(Vector3(0.06, 0.6, 0.06)), wood, Vector3(0.3, 0.6, 0.15), paint).rotation.z = 0.5
+	var spot := Area3D.new()
+	spot.name = "DecorateSpot"
+	spot.set_script(load("res://scripts/shop_stall.gd"))
+	spot.set("stall", "Decorate")
+	paint.add_child(spot)
+	label(root_node, "Decorate", Vector3(1.8, 1.4, 4.6), 32, Color(1, 0.95, 0.8))
+	# The six spots, each with every piece of furniture built and hidden but one
+	var decor := node("Decor", root_node)
+	for id in DECOR_SPOTS:
+		var holder := node(id, decor, DECOR_SPOTS[id][0], DECOR_SPOTS[id][1])
+		for item in DECOR_ITEMS:
+			decor_item(item, node("Item " + item, holder))
+	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.88, 0.75), 1.2, 14)
+	label(root_node, "My House", Vector3(0, 3.6, -7.5), 56, Color(1, 0.92, 0.95))
+	own(root_node)
+	return root_node
+
+
+func _decor_mat(part: String, color: Color) -> StandardMaterial3D:
+	# A material scripts/home_decor.gd recolours (its name says which part); not run through the palette, so the
+	# colours picked are the colours seen
+	if mats.has("Decor " + part):
+		return mats["Decor " + part]
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Decor " + part
+	m.albedo_color = color
+	m.roughness = 0.8
+	mats["Decor " + part] = m
+	return m
+
+
+func decor_item(id: String, g: Node3D) -> void:
+	# A piece of furniture for a decorating spot, standing at the spot's middle and facing into the room (+Z)
+	var wood := mat("Home Wood", Color(0.6, 0.38, 0.22), 0.6)
+	match id:
+		"plant":
+			solid_cyl(0.32, 0.6, mat("Plant Pot", Color(0.85, 0.5, 0.35), 0.6), Vector3(0, 0.3, 0), g)
+			for k in 5:
+				var leaf := mesh_at(sphere(0.32, 10), mat("Plant Leaf", Color(0.35, 0.8, 0.45), 0.7),
+					Vector3(cos(k * 1.3) * 0.25, 0.95 + k * 0.12, sin(k * 1.3) * 0.25), g)
+				leaf.scale = Vector3(1.0, 0.5, 1.0)
+		"bookshelf":
+			solid_box(Vector3(1.8, 2.0, 0.45), wood, Vector3(0, 1.0, 0), g)
+			var spines := [Color(0.9, 0.4, 0.5), Color(0.4, 0.6, 0.95), Color(0.95, 0.8, 0.35), Color(0.5, 0.85, 0.6)]
+			for row in 3:
+				for k in 5:
+					mesh_at(box(Vector3(0.22, 0.45, 0.3)), mat("Book %d" % ((row + k) % 4), spines[(row + k) % 4], 0.7),
+						Vector3(-0.65 + k * 0.32, 0.4 + row * 0.6, 0.12), g)
+		"toy_chest":
+			solid_box(Vector3(1.3, 0.75, 0.75), mat("Toy Chest", Color(0.95, 0.6, 0.3), 0.6), Vector3(0, 0.37, 0), g)
+			mesh_at(sphere(0.3, 12), mat("Toy Ball", Color(0.3, 0.75, 1.0), 0.5), Vector3(0.9, 0.3, 0.4), g)
+		"lamp":
+			solid_cyl(0.3, 0.6, mat("Nightstand", Color(0.6, 0.38, 0.22), 0.6), Vector3(0, 0.3, 0), g)
+			mesh_at(cylinder(0.12, 0.18, 0.5, 12), mat("Lava Lamp", Color(1.0, 0.45, 0.8), 0.3, 0.0, 1.5), Vector3(0, 0.85, 0), g)
+			light(g, Vector3(0, 1.2, 0.2), Color(1.0, 0.6, 0.85), 0.6, 4)
+		"fish_tank":
+			solid_box(Vector3(1.4, 0.7, 0.6), mat("Tank Stand", Color(0.35, 0.3, 0.45), 0.6), Vector3(0, 0.35, 0), g)
+			mesh_at(box(Vector3(1.3, 0.7, 0.55)), mat("Tank Water", Color(0.5, 0.85, 1.0), 0.1, 0.0, 0.4, 0.5), Vector3(0, 1.05, 0), g)
+			var fish_cols := [Color(1.0, 0.6, 0.2), Color(1.0, 0.85, 0.3), Color(0.9, 0.4, 0.8)]
+			for k in 3:
+				mesh_at(sphere(0.07, 8), mat("Tank Fish %d" % k, fish_cols[k], 0.4), Vector3(-0.4 + k * 0.4, 0.95 + k * 0.08, 0), g)
+		"beanbag":
+			var bag := mesh_at(sphere(0.6, 16), mat("Beanbag", Color(0.6, 0.4, 0.95), 0.9), Vector3(0, 0.35, 0), g)
+			bag.scale = Vector3(1.1, 0.6, 1.1)
+			var shape := SphereShape3D.new()
+			shape.radius = 0.55
+			solid(shape, null, null, Vector3(0, 0.3, 0), g)
+		"drum_kit":
+			var drum := mat("Drum", Color(0.95, 0.3, 0.4), 0.4)
+			solid_cyl(0.4, 0.5, drum, Vector3(0, 0.35, 0), g)
+			solid_cyl(0.22, 0.25, drum, Vector3(-0.6, 0.6, 0.2), g)
+			solid_cyl(0.22, 0.25, drum, Vector3(0.6, 0.6, 0.2), g)
+			mesh_at(cylinder(0.3, 0.3, 0.02, 16), mat("Cymbal", Color(1.0, 0.85, 0.35), 0.2, 0.9), Vector3(0.9, 1.1, -0.1), g)
+		"easel":
+			for x in [-0.35, 0.35]:
+				mesh_at(box(Vector3(0.06, 1.6, 0.06)), wood, Vector3(x, 0.8, 0), g)
+			mesh_at(box(Vector3(0.9, 0.7, 0.04)), mat("Canvas", Color(1, 1, 1), 0.8), Vector3(0, 1.2, 0.05), g)
+			mesh_at(sphere(0.12, 10), mat("Canvas Sun", Color(1.0, 0.8, 0.2), 0.6), Vector3(0.15, 1.3, 0.08), g)
+			var shape := BoxShape3D.new()
+			shape.size = Vector3(0.9, 1.6, 0.4)
+			solid(shape, null, null, Vector3(0, 0.8, 0), g)
+		"telescope":
+			for k in 3:
+				var leg := mesh_at(cylinder(0.03, 0.03, 1.1, 6), mat("Tripod", Color(0.3, 0.3, 0.35), 0.4, 0.6),
+					Vector3(cos(k * TAU / 3) * 0.2, 0.5, sin(k * TAU / 3) * 0.2), g)
+				leg.rotation = Vector3(sin(k * TAU / 3) * 0.3, 0, -cos(k * TAU / 3) * 0.3)
+			var tube := mesh_at(cylinder(0.1, 0.13, 1.0, 12), mat("Telescope", Color(0.4, 0.5, 0.95), 0.4, 0.4), Vector3(0, 1.15, 0.1), g)
+			tube.rotation.x = -1.0
+			var shape := CylinderShape3D.new()
+			shape.radius = 0.35
+			shape.height = 1.2
+			solid(shape, null, null, Vector3(0, 0.6, 0), g)
+		"arcade":
+			solid_box(Vector3(0.9, 1.8, 0.8), mat("Arcade", Color(0.3, 0.2, 0.55), 0.5), Vector3(0, 0.9, 0), g)
+			mesh_at(box(Vector3(0.7, 0.5, 0.02)), mat("Arcade Screen", Color(0.4, 1.0, 0.7), 0.2, 0.0, 1.5), Vector3(0, 1.3, 0.41), g)
+			mesh_at(sphere(0.05, 8), mat("Arcade Button", Color(1.0, 0.3, 0.4), 0.3), Vector3(0.15, 0.95, 0.42), g)
+		"trophy_shelf":
+			solid_box(Vector3(1.6, 0.9, 0.45), wood, Vector3(0, 0.45, 0), g)
+			var gold := mat("Trophy", Color(1.0, 0.82, 0.3), 0.2, 0.9)
+			for k in 3:
+				mesh_at(cylinder(0.12, 0.06, 0.3, 10), gold, Vector3(-0.5 + k * 0.5, 1.1, 0), g)
+				mesh_at(sphere(0.1, 8), gold, Vector3(-0.5 + k * 0.5, 1.3, 0), g)
 
 
 func wardrobe(parent: Node3D, pos: Vector3, yaw: float, mirror_only := false) -> void:

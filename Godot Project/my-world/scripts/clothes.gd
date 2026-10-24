@@ -20,7 +20,7 @@ extends RefCounted
 const SLOTS := ["head", "face", "neck", "top", "bottoms", "feet", "hands", "back"]
 const SLOT_NAMES := {"head": "Head", "face": "Face", "neck": "Neck", "top": "Top", "bottoms": "Bottoms",
 	"feet": "Feet", "hands": "Hands", "back": "Back"}
-const WHO := ["nina", "dash", "rook", "pip", "bramble", "green_man", "mr_palmer", "rex"]
+const WHO := ["hero", "nina", "dash", "rook", "pip", "bramble", "green_man", "mr_palmer", "rex"]
 const ONLY_HATS := ["rex"]
 
 # Each character's own clothes, by slot: [main part, trim parts...] (their model's material names). A slot left out
@@ -85,7 +85,7 @@ const COLOUR_NAMES := {
 }
 
 # Where each kind of piece is made to sit on Nina: [the bone it rides on, the point on her it's placed round]
-const ANCHORS := {"head": ["head", "top"], "face": ["head", "eyes"], "neck": ["chest", "neck"], "back": ["chest", "chest"],
+const ANCHORS := {"head": ["head", "top"], "hair": ["head", "top"], "face": ["head", "eyes"], "neck": ["chest", "neck"], "back": ["chest", "chest"],
 	"bottoms": ["hips", "hips"]}
 
 static var _patterns := {}
@@ -264,6 +264,9 @@ static func fit_of(model: Node3D) -> Dictionary:
 	var eyes := AABB()
 	var got_eyes := false
 	var top := -INF
+	var skull := -INF                       # the top of their head itself (their skin or fur), without the hair
+	var head_box := AABB()
+	var got_head := false
 	for mi in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh := mi as MeshInstance3D
 		for s in mesh.mesh.get_surface_count():
@@ -275,17 +278,27 @@ static func fit_of(model: Node3D) -> Dictionary:
 			var bb := AABB(v[0], Vector3.ZERO)
 			for p in v:
 				bb = bb.expand(p)
-			if name in ["Eye White", "Eye"]:
+			if name in ["Eye White", "Eye", "Glasses"]:
 				eyes = bb if not got_eyes else eyes.merge(bb)
 				got_eyes = true
 			if name not in NOT_HEAD:
 				top = maxf(top, bb.end.y)
+			if name in ["Skin", "Fur", "Green"]:
+				skull = maxf(skull, bb.end.y)
+				# Their head itself: the skin or fur above the neck
+				var neck_y: float = bones.get("head", Vector3(0, 0.9, 0)).y + 0.08
+				for p in v:
+					if p.y > neck_y:
+						head_box = AABB(p, Vector3.ZERO) if not got_head else head_box.expand(p)
+						got_head = true
 	var head: Vector3 = bones.get("head", Vector3(0, 0.9, 0))
 	var fit := {}
 	var eye_point := Vector3(head.x, eyes.get_center().y, eyes.end.z + 0.02) if got_eyes else head + Vector3(0, 0.23, 0.29)
 	fit.top = Vector3(head.x, top, head.z)
 	fit.eyes = eye_point
 	fit.head_size = maxf(top - eye_point.y, 0.1)
+	fit.skull = maxf((skull if skull > -INF else top) - eye_point.y, 0.1)
+	fit.head_box = head_box if got_head else AABB(head + Vector3(-0.3, 0.1, -0.3), Vector3(0.6, 0.5, 0.6))
 	var chest: Vector3 = bones.get("chest", head - Vector3(0, 0.14, 0))
 	fit.neck = (head + chest) / 2.0 + Vector3(0, -0.01, 0)
 	fit.chest = chest
@@ -326,10 +339,16 @@ static func _fitted(slot: String, fit: Dictionary, part := "") -> Transform3D:
 	var s := Vector3.ONE
 	match slot:
 		"head", "face":
-			var k: float = fit.head_size / nina.head_size
+			# Hats on top of their hair, glasses on their eyes; sized to their head
+			var k: float = fit.head_box.size.x / nina.head_box.size.x
 			s = Vector3(k, k, k)
 			from = nina.top if slot == "head" else nina.eyes
 			to = fit.top if slot == "head" else fit.eyes
+		"hair":
+			# Hairstyles wrap their head itself: Nina's head stretched to theirs, middle to middle
+			s = fit.head_box.size / nina.head_box.size
+			from = nina.head_box.get_center()
+			to = fit.head_box.get_center()
 		"neck", "back", "bottoms":
 			var w: float = fit.width / nina.width
 			s = Vector3(w, fit.torso / nina.torso, w)

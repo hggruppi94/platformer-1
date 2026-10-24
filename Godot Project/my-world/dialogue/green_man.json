@@ -4,7 +4,7 @@
     {
       "when": {"time": "shift"},
       "lines": [
-        "(The Green Man looks at the portal. Then he looks at Nina.)",
+        "(The Green Man looks at the portal. Then he looks at {player}.)",
         "..."
       ]
     },
@@ -14,7 +14,7 @@
           "..."
         ],
         [
-          "(He gives Nina a tiny smile.)",
+          "(He gives {player} a tiny smile.)",
           "..."
         ],
         [

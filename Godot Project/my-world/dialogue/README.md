@@ -61,7 +61,7 @@ Rex what everyone said").
   the Scary World.
 
 **In any text:** `{time}` is the clock time, `{day}` the day number, `{talks}` how many times she's talked to them,
-`{name}` their name, `{nina}` Nina's and `{quest_log}` the quest log's key.
+`{name}` their name, `{player}` the player's own name (from the character creator), `{they}` `{them}` `{their}` (and `{They}` `{Their}`) their pronouns, and `{quest_log}` the quest log's key.
 
 Keep it kid-safe: no blood or violence. Check your changes with
 `godot --headless --path "Godot Project/my-world" --script res://tools/test_dialogue.gd`: it checks every file can

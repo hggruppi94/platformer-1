@@ -7,9 +7,9 @@
       },
       "lines": [
         "Ah, a citizen! Hello! Rex, future mayor of Galaxity, at your service.",
-        "Nina: A talking husky?",
+        "{player}: A talking husky?",
         "Technically I'm Dash's twin. I'm just borrowing a husky right now. It's a long story with a lot of paperwork.",
-        "Nina: Wait... aren't you Rook?",
+        "{player}: Wait... aren't you Rook?",
         "I'm REX! He's the dog! ...Even though he's the one with hands right now."
       ]
     },
@@ -22,7 +22,7 @@
       },
       "lines": [
         "My favorite voter! You already gave me your vote... so now I need something even bigger.",
-        "Nina: Bigger than a vote?",
+        "{player}: Bigger than a vote?",
         "A CAMPAIGN MANAGER! Someone to help me find out what the whole town needs.",
         {
           "choice": [
@@ -30,7 +30,7 @@
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
                 "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
@@ -63,7 +63,7 @@
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
                 "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
@@ -93,7 +93,7 @@
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager Nina! I'll make you a badge. A big one.",
+                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
                 "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
@@ -125,18 +125,18 @@
       "set": "reported_ideas",
       "lines": [
         "Campaign Manager! What did everyone say?",
-        "Nina: Dash wants a bike lane all the way round the lake.",
+        "{player}: Dash wants a bike lane all the way round the lake.",
         "Zoom zoom! Love it.",
-        "Nina: Bramble wants flowers in every window box.",
+        "{player}: Bramble wants flowers in every window box.",
         "Pretty! And they smell nice!",
-        "Nina: Pip wants more lamps, so nobody's scared of the dark.",
+        "{player}: Pip wants more lamps, so nobody's scared of the dark.",
         "Oh. That's a really good one.",
-        "Nina: And Rook said... 'Woof.'",
+        "{player}: And Rook said... 'Woof.'",
         "(Rex thinks very hard.)",
         "Hmm. What kind of woof?",
-        "Nina: A sunny, sleepy, a-little-bit-waggy woof. I think he means more naps in the sun.",
+        "{player}: A sunny, sleepy, a-little-bit-waggy woof. I think he means more naps in the sun.",
         "See? Even a grumbly woof is an idea!",
-        "Nina: Wait. Which one of you is the dog again?",
+        "{player}: Wait. Which one of you is the dog again?",
         "I'm REX! He's the dog!",
         "...Even if I'm the one with the tail right now. Long story. Lots of paperwork.",
         "Okay! Bike lanes, flowers, lamps and naps. I'll paint posters tonight. Come back tomorrow and help me hang them!"
@@ -236,16 +236,16 @@
       "set": "campaign_done",
       "lines": [
         "Well? What did Mr. Palmer say? Am I mayor? Is there a parade?",
-        "Nina: He said no. Not this year.",
+        "{player}: He said no. Not this year.",
         "(Rex's ears droop.)",
         "Oh.",
-        "Nina: But he loved your ideas. He said a good mayor is patient, and listens to everybody first.",
-        "Nina: And he said you've already started. You asked the whole town. Even Rook!",
+        "{player}: But he loved your ideas. He said a good mayor is patient, and listens to everybody first.",
+        "{player}: And he said you've already started. You asked the whole town. Even Rook!",
         "(Rex's tail starts wagging again. Slowly at first. Then very, very fast.)",
         "I did, didn't I? Dash, Bramble, Pip... even a grumbly woof!",
         "Maybe being mayor isn't about big speeches. Maybe it's about listening.",
         "Then I'll keep listening. And one day... Future Mayor Rex!",
-        "Nina: Future Mayor Rex. I like it.",
+        "{player}: Future Mayor Rex. I like it.",
         "This is for you, Campaign Manager. My very best sash. Thank you for listening with me."
       ]
     },
@@ -257,7 +257,7 @@
       "rotate": [
         [
           "Future Mayor Rex, on listening duty! What's on your mind, citizen?",
-          "Nina: More brain breaks.",
+          "{player}: More brain breaks.",
           "Writing it down. In my heart. And on a poster."
         ],
         [
@@ -265,9 +265,9 @@
         ],
         [
           "You look great in that sash, Campaign Manager!",
-          "Nina: Thanks, Future Mayor Rex.",
+          "{player}: Thanks, Future Mayor Rex.",
           "Hee hee. Say it again.",
-          "Nina: Future Mayor Rex."
+          "{player}: Future Mayor Rex."
         ]
       ]
     },
@@ -287,7 +287,7 @@
       },
       "lines": [
         "Citizens of Galaxity! Vote Rex! More parks! More snacks!",
-        "Nina: Who are you talking to?",
+        "{player}: Who are you talking to?",
         "The Town Hall. It's a practice speech. The Town Hall is a very good listener."
       ]
     },
@@ -297,7 +297,7 @@
         "every": 2
       },
       "lines": [
-        "Morning laps around your house! A future mayor has to know every neighborhood.",
+        "Morning laps around Nina's house! A future mayor has to know every neighborhood.",
         "Even the ones with a giant red bow on top."
       ]
     },
@@ -328,7 +328,7 @@
       },
       "lines": [
         "Good morning, citizen! Today's plan: more parks, more snacks, and more brain breaks!",
-        "Nina: Here's to more brain breaks!",
+        "{player}: Here's to more brain breaks!",
         "That's going on a poster."
       ]
     },
@@ -375,7 +375,7 @@
         ],
         [
           "Someone called me Rook again today.",
-          "Nina: Oh no.",
+          "{player}: Oh no.",
           "I'm REX! He's the dog! I'm making badges. Big ones."
         ]
       ]

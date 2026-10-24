@@ -52,7 +52,7 @@ func _ready() -> void:
 				_moon_mats[m] = MOON_ALPHA[m.resource_name]
 	_light()
 	if not Clock.in_shift():
-		go_home.call_deferred("The Shift is over, so the portal brought Nina home.")
+		go_home.call_deferred("The Shift is over, so the portal brought %s home." % Dialogue.player_name())
 	else:
 		Game.message.call_deferred("Earth! A cozy little town on an autumn evening. When the Shift ends (1 AM back home), the portal will pull you home.")
 
@@ -70,7 +70,7 @@ func _process(_delta: float) -> void:
 	if _leaving:
 		return
 	if not Clock.in_shift():
-		go_home("The Shift is over! The portal swirls up and pulls Nina home.")
+		go_home("The Shift is over! The portal swirls up and pulls %s home." % Dialogue.player_name())
 	elif not _warned and Clock.minutes >= WARN_AT:
 		_warned = true
 		Game.message("The portal is flickering: the Shift is nearly over. Time to say goodbye!")
