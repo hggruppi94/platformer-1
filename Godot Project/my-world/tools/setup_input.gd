@@ -63,7 +63,8 @@ func _initialize() -> void:
 	for pair in [["Clock", "res://scripts/clock.gd"], ["Game", "res://scripts/game.gd"], ["Audio", "res://scripts/audio.gd"],
 			["Settings", "res://scripts/settings.gd"], ["Dialogue", "res://scripts/dialogue.gd"],
 			["Quests", "res://scripts/quests.gd"], ["TownMap", "res://scripts/map_screen.gd"], ["Shop", "res://scripts/shop.gd"],
-			["Creator", "res://scripts/creator.gd"],
+			["Creator", "res://scripts/creator.gd"], ["Tips", "res://scripts/tips.gd"],
+			["SkateLesson", "res://scripts/skate_lesson.gd"],
 			["PauseMenu", "res://scripts/pause_menu.gd"]]:
 		ProjectSettings.set_setting("autoload/" + pair[0], "*" + pair[1])
 	print("save=", ProjectSettings.save())

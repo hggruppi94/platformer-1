@@ -81,8 +81,10 @@ func _show(on: bool) -> void:
 
 func set_prompt(on: bool) -> void:
 	# Called by the Dialogue autoload: only the nearest talk spot shows it
-	_prompt.text = "Press %s to talk" % Settings.key_name("interact")
+	_prompt.text = "Press %s to talk" % Settings.prompt("interact")
 	_prompt.visible = on
+	if on:
+		Tips.show_tip("talk")                      # the first time there's someone to talk to
 
 
 func begin_talk() -> void:

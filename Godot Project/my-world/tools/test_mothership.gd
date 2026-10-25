@@ -34,6 +34,7 @@ func _run() -> void:
 	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
 		DirAccess.copy_absolute(SAVE, BACKUP)
 	game = root.get_node("Game")
+	game.riding = false                                # on foot, whatever the save says (these checks are about walking)
 	game._resume = {}
 	game.pending_message = ""
 	change_scene_to_file(TOWN)

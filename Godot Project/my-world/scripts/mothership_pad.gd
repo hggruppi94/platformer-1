@@ -62,7 +62,7 @@ func _refresh_prompt() -> void:
 	if ship and ship.is_coming():
 		_prompt.text = "The mothership is coming!"
 	else:
-		_prompt.text = "Press %s to call the mothership" % Settings.key_name("interact")
+		_prompt.text = "Press %s to call the mothership" % Settings.prompt("interact")
 
 
 func _process(delta: float) -> void:

@@ -13,6 +13,7 @@ signal changed                                  # the combo, score or special me
 signal banked(points: int, names: String)       # a combo was paid out
 signal lost                                     # a combo was lost in a bail
 signal live_done(name: String, seconds: float)  # a grind or manual just ended (without a bail)
+signal added(name: String)                      # a trick went into the combo
 
 const GRACE := 0.4                    # after landing, this long to link a manual before the combo is paid out
 const SPIN_POINTS := [0, 100, 250, 400, 600, 800, 1000, 1200]    # by half turns: 180, 360, 540...
@@ -111,6 +112,13 @@ func release_grab() -> void:
 	grab = {}
 
 
+func finish_flip() -> void:
+	# Landed while the board was still going round, near enough the end to count (the forgiving assists)
+	if flipping():
+		add(flip.name, int(flip.points))
+		flip = {}
+
+
 func update_air(delta: float) -> void:
 	if not grab.is_empty():
 		grab.time += delta
@@ -174,6 +182,7 @@ func add(name: String, pts: int) -> void:
 	pts = maxi(int(pts / pow(2.0, repeats)), 10)
 	combo.append({"name": name, "points": pts})
 	special = minf(special + pts / SPECIAL_FILL, 1.0)
+	added.emit(name)
 	changed.emit()
 
 
@@ -201,6 +210,31 @@ func bank() -> void:
 	best_combo = maxi(best_combo, total)
 	combo.clear()
 	flip = {}
+	banked.emit(total, what)
+	changed.emit()
+
+
+func wipeout(keep: float, keep_special: bool) -> void:
+	# A bail. With keep > 0 (the forgiving assists) that much of the combo so far is still paid out; otherwise, or
+	# with nothing done yet, it's lost. The trick she was in the middle of doesn't count either way.
+	live = {}
+	flip = {}
+	grab = {}
+	if keep <= 0.0 or combo.is_empty():
+		var meter := special
+		lose()
+		if keep_special:
+			special = meter
+			changed.emit()
+		return
+	_grace = -1.0
+	var total := int(points() * multiplier() * keep)
+	var what := names()
+	score += total
+	best_combo = maxi(best_combo, total)
+	combo.clear()
+	if not keep_special:
+		special = 0.0
 	banked.emit(total, what)
 	changed.emit()
 

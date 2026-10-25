@@ -309,7 +309,7 @@ func log_text() -> String:
 	if not any:
 		lines.append("No quests yet. Talk to people around town!")
 	lines.append("")
-	lines.append("[color=#c8c8d8](%s to close)[/color]" % Settings.key_name("quest_log"))
+	lines.append("[color=#c8c8d8](%s to close)[/color]" % Settings.prompt("quest_log"))
 	return "\n".join(lines)
 
 

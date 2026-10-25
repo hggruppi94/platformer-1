@@ -46,6 +46,9 @@ func open(first_time := false) -> void:
 	_first_time = first_time
 	_tab = "Body" if first_time else _tab
 	_player.set("input_locked", true)
+	# Off the ride first: on it, the skating (scenes/player/skate.gd) keeps turning them back the way they're rolling
+	if Game.riding:
+		Game.toggle_skateboard()
 	# If the scene changes while it's open (New Game from the pause menu, say), this hero and camera go with it
 	if not _player.tree_exiting.is_connected(_abandon):
 		_player.tree_exiting.connect(_abandon)
@@ -106,6 +109,7 @@ func close() -> void:
 	Game.save_game()
 	if _first_time:
 		Game.message("Welcome to Galaxity, %s!" % Hero.display_name(Game.hero))
+		Tips.basics()                              # how to walk, jump, open the map... (scripts/tips.gd)
 	Audio.play("ui_accept", -4.0, 0.0)
 	closed.emit()
 

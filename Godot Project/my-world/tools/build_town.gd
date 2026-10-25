@@ -1579,6 +1579,7 @@ func _skate_park() -> void:
 	kit.flat_rail(g, "Flat Rail", Vector3(0, floor_y, 5), Vector3(1, 0, 0), 10.0, 0.5)
 	kit.ledge(g, "Ledge", Vector3(0, floor_y, 9.5), Vector3(1, 0, 0), 8.0, 0.5)
 	kit.skaters_corner(g, Vector3(-4.5, floor_y, 12.3))   # swap who's skating (scripts/rider_select.gd)
+	kit.lesson_pad(g, Vector3(4.5, floor_y, 12.3))        # Coach Rook's skate lesson (scripts/skate_lesson.gd)
 	sign_post(g, "Skate Park", Vector3(9, 0, 10), -0.4)
 	# The goals board, and the letters of S-K-A-T-E hidden round the park (high over the quarter pipes, over the
 	# funbox rail, over the flat rail, along the ledge)

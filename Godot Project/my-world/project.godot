@@ -25,6 +25,8 @@ Quests="*res://scripts/quests.gd"
 TownMap="*res://scripts/map_screen.gd"
 Shop="*res://scripts/shop.gd"
 Creator="*res://scripts/creator.gd"
+Tips="*res://scripts/tips.gd"
+SkateLesson="*res://scripts/skate_lesson.gd"
 PauseMenu="*res://scripts/pause_menu.gd"
 
 [display]

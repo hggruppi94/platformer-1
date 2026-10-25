@@ -23,6 +23,7 @@ var game: Node
 var p: CharacterBody3D
 var s: Node
 var arm: Node3D
+var _kept_settings := []
 
 
 func check(ok: bool, what: String) -> void:
@@ -42,6 +43,12 @@ func _run() -> void:
 	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
 		DirAccess.copy_absolute(SAVE, BACKUP)
 	game = root.get_node("Game")
+	# These checks are about the strict rules and the Classic buttons (tools/test_skate_help.gd checks the forgiving
+	# assists and the Simple layout), whatever the player has picked. Only set here, never saved.
+	var settings := root.get_node("Settings")
+	_kept_settings = [settings.skate_assist, settings.control_style]
+	settings.skate_assist = 2
+	settings.control_style = "classic"
 	game._resume = {}
 	game.pending_message = ""
 	var had_board: bool = game.has_item("skateboard")
@@ -470,6 +477,9 @@ func _end() -> void:
 
 
 func _finish() -> void:
+	if not _kept_settings.is_empty():
+		root.get_node("Settings").skate_assist = _kept_settings[0]
+		root.get_node("Settings").control_style = _kept_settings[1]
 	if FileAccess.file_exists(BACKUP):
 		DirAccess.rename_absolute(BACKUP, SAVE)
 	quit(1 if failures > 0 else 0)

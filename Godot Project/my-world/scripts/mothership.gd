@@ -180,7 +180,7 @@ func _beam(delta: float) -> void:
 	if state == State.BEAMING_UP:
 		state = State.PILOTED
 		Game.message("You're flying the mothership! %s to fly, %s to go up, %s to go down, %s to beam down." % [
-			_move_keys(), Settings.key_name("jump"), Settings.key_name("dash"), Settings.key_name("interact")])
+			_move_keys(), Settings.prompt("jump"), Settings.prompt("dash"), Settings.prompt("interact")])
 	else:
 		_let_off()
 
@@ -317,8 +317,7 @@ func _camera_to(length: float) -> void:
 
 
 func _move_keys() -> String:
-	return "%s%s%s%s" % [Settings.key_name("move_forward"), Settings.key_name("move_left"),
-		Settings.key_name("move_back"), Settings.key_name("move_right")]
+	return Settings.moves()
 
 
 func _flat(v: Vector3) -> Vector2:

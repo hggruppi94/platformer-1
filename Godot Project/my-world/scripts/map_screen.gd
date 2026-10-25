@@ -325,7 +325,7 @@ func _draw_full() -> void:
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.key_name("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.prompt("map")
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
 
 

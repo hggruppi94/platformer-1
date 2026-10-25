@@ -19,9 +19,16 @@ extends Node
 #            with a full special meter does her special. Grind + a direction picks the grind. On the ground, forward
 #            then back quickly starts a manual (back then forward, a nose manual), balanced with forward and back.
 #            Scoring and combos: scenes/player/skate_tricks.gd.
+#   Assist:  Settings.skate_assist picks how forgiving it is (ASSIST): Relaxed and Normal give a wider landing,
+#            finish a flip that's nearly done, slip off a rail or out of a manual instead of falling, keep some or all
+#            of the combo in a bail, and get her back up sooner. Pro is the strict rules.
+#   Simple:  Settings.control_style "simple": one trick button (tap to flip, hold to grab, with a full meter it's the
+#            special), grinds lock on by themselves when she comes down near a rail, and Grind on the flat is a manual.
 
 signal bailed
 signal landed(clean: bool)
+signal popped                        # an ollie (or a hop off a rail)
+signal slipped                       # Relaxed or Normal saved her from a fall (off a rail, out of a manual)
 
 enum State { ROLL, AIR, GRIND, BAIL }
 
@@ -30,6 +37,17 @@ const FLOOR_MIN_Y := 0.17            # ground up to 80 degrees steep counts as s
 const SNAP := 0.35                   # how far she's pulled down onto a slope that drops away under her
 const SIDE_RADIUS := 0.35            # the capsule's radius
 const BAIL_LINES := ["Whoops!", "Oof!", "Wobbly!", "Banana peel!", "Bonk!", "Ta-da? No...", "Wipeout!"]
+const SLIP_LINES := ["Phew!", "Saved it!", "Close one!", "Wobble... OK!"]
+const HOLD_FOR_GRAB := 0.2           # Simple controls: holding the trick button this long is a grab, not a flip
+# How forgiving the skating is, by Settings.skate_assist. land: the ride's landing window times this. finish_flip:
+# landing mid-flip still counts once the flip is this far round (1.0+: never). slip: falling off a rail or out of a
+# manual just ends it. keep_combo: how much of the combo a bail still pays. keep_special: the special meter stays.
+# get_up: the ride's bail time times this. balance: the balance needle's wander times this.
+const ASSIST := [
+	{"land": 1.9, "finish_flip": 0.0, "slip": true, "keep_combo": 1.0, "keep_special": true, "get_up": 0.45, "balance": 0.55},
+	{"land": 1.4, "finish_flip": 0.5, "slip": true, "keep_combo": 0.5, "keep_special": true, "get_up": 0.65, "balance": 0.8},
+	{"land": 1.0, "finish_flip": 9.0, "slip": false, "keep_combo": 0.0, "keep_special": false, "get_up": 1.0, "balance": 1.0},
+]
 
 var p: Player
 var ride: Dictionary = Rides.BOARD
@@ -82,6 +100,7 @@ var _feet := []                      # skates to keep under her feet: [skate, sk
 var _ride_anim: AnimationPlayer      # the ride's own animation (the BMX's pedals)
 var _shown_yaw := 0.0                # where the model is turned right now (it catches up with _yaw)
 var _shown_up := Vector3.UP          # ...and which way is up for it
+var _trick_hold := -1.0              # Simple controls: how long the trick button's been held this air (-1: it isn't)
 
 
 func setup(player: Player) -> void:
@@ -121,6 +140,9 @@ func start() -> void:
 	p.motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	p.wall_min_slide_angle = 0.0
 	hud.visible = true
+	# The first time on a ride: how to ride, and Rook offers a skate lesson (scripts/tips.gd, scripts/skate_lesson.gd)
+	Tips.show_tip("ride")
+	SkateLesson.offer.call_deferred()
 
 
 func stop() -> void:
@@ -151,6 +173,14 @@ func rail_in_reach() -> bool:
 
 func is_bailing() -> bool:
 	return state == State.BAIL
+
+
+static func assist() -> Dictionary:
+	return ASSIST[clampi(Settings.skate_assist, 0, ASSIST.size() - 1)]
+
+
+static func simple() -> bool:
+	return Settings.control_style == "simple"
 
 
 func balancing() -> bool:
@@ -220,8 +250,12 @@ func _roll(dir: Vector3, delta: float) -> void:
 	_manual_input(speed, n, delta)
 	if _manual != 0:
 		if not _balance(-_stick.y, float(ride.manual_drift), float(ride.manual_control), delta):
-			bail()
-			return
+			if assist().slip:
+				_end_manual()                              # down on four wheels, and the combo carries on
+				_slip()
+			else:
+				bail()
+				return
 		dir = _camera_dir(Vector2(_stick.x, 0.0))       # forward and back are for balancing now, not pushing
 	if dir and _manual != 0:
 		var side := _plane(dir, n)
@@ -256,6 +290,10 @@ func _roll(dir: Vector3, delta: float) -> void:
 	elif _grind_buffer > 0.0 or Input.is_action_pressed("skate_grind"):
 		if _try_grind():
 			return
+		# Simple controls: Grind on the flat with no rail near is a manual
+		if simple() and _grind_buffer > 0.0 and _manual == 0 and speed > 1.5 and n.y > 0.9 and _charge < 0.0:
+			_grind_buffer = 0.0
+			_start_manual(1)
 	_move(v, state == State.ROLL)
 	if state == State.ROLL and not _grounded:
 		_leave_ground()
@@ -329,7 +367,7 @@ func _balance(push: float, drift: float, control: float, delta: float) -> bool:
 	# The balance needle: it wanders, and wants to keep falling the way it leans, more and more the longer she
 	# holds it. push (-1..1) shoves it back. False once it's gone off the end.
 	_grind_time += delta
-	var wobble := drift * (0.7 + _grind_time * 0.18)
+	var wobble := drift * float(assist().balance) * (0.7 + _grind_time * 0.18)
 	_balance_vel += (rng.randf_range(-1.0, 1.0) * 3.0 + balance * 2.2) * wobble * delta
 	_balance_vel += push * control * delta
 	_balance_vel *= exp(-1.5 * delta)
@@ -359,8 +397,10 @@ func _pop() -> void:
 	_auto_turn = 0.0
 	_coyote = 0.0
 	_charge = -1.0
+	_trick_hold = -1.0
 	_normal = Vector3.UP
 	Audio.play("skate_pop", -2.0, 0.08)
+	popped.emit()
 
 
 func _leave_ground() -> void:
@@ -374,6 +414,7 @@ func _leave_ground() -> void:
 	_auto_turn = 0.0
 	_vert = false
 	_coyote = 0.15
+	_trick_hold = -1.0
 	var v := p.velocity
 	var out := Vector3(_normal.x, 0, _normal.z)
 	if _normal.y < 0.6 and v.y > 1.0 and out.length() > 0.1:
@@ -406,7 +447,7 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 		var turn := -input.x * float(ride.spin_speed) * delta
 		_yaw += turn
 		_air_spin += turn
-	_air_tricks()
+	_air_tricks(delta)
 	tricks.update_air(delta)
 	# Vert: turn round by herself, spread over the time she'll be up there
 	if _auto_turn > 0.0:
@@ -421,17 +462,22 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 		_pop()
 	elif _coyote <= 0.0:
 		_charge = -1.0
-	if (_grind_buffer > 0.0 or Input.is_action_pressed("skate_grind")) and _try_grind():
+	# Simple controls: coming down near a rail, she locks on by herself
+	var auto_grind := simple() and v.y < 0.5 and _air_time > 0.15
+	if (_grind_buffer > 0.0 or Input.is_action_pressed("skate_grind") or auto_grind) and _try_grind():
 		return
 	_move(v, false)
 	if _grounded and _air_time > 0.05:
 		_land()
 
 
-func _air_tricks() -> void:
+func _air_tricks(delta: float) -> void:
 	if p.input_locked:
 		return
 	var dir := SkateTricks.direction_name(_stick)
+	if simple():
+		_simple_tricks(dir, delta)
+		return
 	# Flip and Grab pressed together (near enough) with a full meter: the special
 	var both := _flip_press < 0.15 and _grab_press < 0.15
 	if both and tricks.special >= 1.0 and (not tricks.flipping() or float(tricks.flip.time) < 0.16):
@@ -454,6 +500,38 @@ func _air_tricks() -> void:
 		tricks.release_grab()
 
 
+func _simple_tricks(dir: String, delta: float) -> void:
+	# One trick button: a tap flips, holding grabs (let go to let go), and with a full meter it's the special
+	if Input.is_action_just_pressed("skate_flip"):
+		_trick_hold = 0.0
+		if tricks.special >= 1.0 and not tricks.flipping() and tricks.start_special():
+			_trick_hold = -1.0
+			p._spin(float(ride.tricks.special[3]), 0.3, false)
+			Fx.burst(get_tree().current_scene, p.global_position, Color(1.0, 0.6, 0.95), 18, 0.07, 4.0, 0.0, 0.8)
+			hud.shout(String(ride.tricks.special[0]) + "!", Color(1.0, 0.75, 0.98))
+			Audio.play(String(ride.special_sound), -4.0, 0.0)
+			return
+	if _trick_hold < 0.0:
+		return
+	if Input.is_action_pressed("skate_flip"):
+		_trick_hold += delta
+		if _trick_hold >= HOLD_FOR_GRAB and not tricks.flipping():
+			tricks.start_grab(dir)
+	else:
+		if _trick_hold < HOLD_FOR_GRAB:
+			tricks.start_flip(dir)
+		else:
+			tricks.release_grab()
+		_trick_hold = -1.0
+
+
+func _slip() -> void:
+	# Relaxed and Normal: a wobble that would have been a fall. No tumble, and the combo goes on.
+	hud.shout(SLIP_LINES[rng.randi() % SLIP_LINES.size()], Color(0.7, 0.95, 1.0))
+	Audio.play("skate_land", -6.0, 0.15)
+	slipped.emit()
+
+
 func _land() -> void:
 	var n := _ground_n
 	_normal = n
@@ -463,9 +541,13 @@ func _land() -> void:
 	var h := Vector3(v.x, 0, v.z)
 	var facing := _facing()
 	var clean := not tricks.flipping()               # still flipping the board: she lands on it wrong
+	if not clean and float(tricks.flip.time) >= float(tricks.flip.duration) * float(assist().finish_flip):
+		tricks.finish_flip()                         # near enough round (Relaxed, Normal): it counts
+		clean = true
 	if h.length() > 1.0:
 		var off := absf(facing.signed_angle_to(h.normalized(), Vector3.UP))
-		var window := float(ride.land_window)
+		# Relaxed and Normal land wider; never so wide it runs into landing backwards
+		var window := minf(float(ride.land_window) * float(assist().land), PI / 2.0 - 0.05)
 		if off > PI - window:
 			_yaw += PI                                 # landed backwards: ride away fakie (turned round, for now)
 		elif off > window:
@@ -552,6 +634,12 @@ func _grind(input: Vector2, delta: float) -> void:
 	_lean = balance * 0.5
 	if not ok:
 		var side := p.visual.global_transform.basis.x * signf(balance)
+		if assist().slip:
+			# Relaxed and Normal: she hops off the side and rides away, the grind and the combo still counting
+			_leave_rail(t * _rail_speed * 0.6 + Vector3.UP * 2.5 + side * 1.2)
+			_pop()
+			_slip()
+			return
 		tricks.lose()
 		_leave_rail(t * _rail_speed * 0.5 + Vector3.UP * 1.5 + side * 2.0)
 		bail()
@@ -582,13 +670,15 @@ func _leave_rail(v: Vector3) -> void:
 
 # --- Bailing ------------------------------------------------------------------
 func bail() -> void:
-	# A comedy wipeout: she tumbles, the board shoots off on its own, stars go round her head. No damage.
-	tricks.lose()                                     # first, so the grind she falls off doesn't count
+	# A comedy wipeout: she tumbles, the board shoots off on its own, stars go round her head. No damage. On Relaxed
+	# and Normal the combo so far is still (partly) paid, and she's up again sooner.
+	var a := assist()
+	tricks.wipeout(float(a.keep_combo), bool(a.keep_special))   # first, so the grind she falls off doesn't count
 	_manual = 0
 	if state == State.GRIND:
 		_leave_rail(p.velocity)
 	state = State.BAIL
-	_bail_timer = float(ride.bail_time)
+	_bail_timer = float(ride.bail_time) * float(a.get_up)
 	_charge = -1.0
 	_auto_turn = 0.0
 	p._spin(0.55, 0.4, _grounded)

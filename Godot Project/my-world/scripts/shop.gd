@@ -167,6 +167,8 @@ func open(stall: String) -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Audio.play("ui_accept", -4.0, 0.0)
+	if not stall in ["Wardrobe", "Decorate"]:
+		Tips.show_tip("shop")                      # the first time at a stall (scripts/tips.gd)
 
 
 func close() -> void:

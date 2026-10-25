@@ -131,8 +131,10 @@ func _refresh() -> void:
 	points_label.text = ("%d x %d" % [_tricks.points(), _tricks.multiplier()]) if active and _tricks.points() > 0 else ""
 	score_label.text = "Score %s" % _commas(_tricks.score)
 	special_bar.size.x = 196.0 * clampf(_tricks.special, 0.0, 1.0)
-	special_label.text = "SPECIAL ready!  %s + %s" % [Settings.key_name("skate_flip"), Settings.key_name("skate_grab")] \
-		if _tricks.special >= 1.0 else ""
+	# The Simple layout's one trick button does the special on its own
+	var how := Settings.prompt("skate_flip") if Skate.simple() else "%s + %s" % [Settings.prompt("skate_flip"),
+		Settings.prompt("skate_grab")]
+	special_label.text = ("SPECIAL ready!  " + how) if _tricks.special >= 1.0 else ""
 
 
 func _on_banked(points: int, _names: String) -> void:

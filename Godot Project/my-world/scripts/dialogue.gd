@@ -273,7 +273,7 @@ func player_name() -> String:
 func _fill(text: String) -> String:
 	# Fills in {player} (the name they chose), their pronouns ({they}, {them}, {their}, and capitalised), and more
 	var words := {"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
-		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.key_name("quest_log")}
+		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.prompt("quest_log")}
 	for w in ["they", "them", "their", "theirs", "themself", "are"]:
 		var p := Hero.pronoun(Game.hero, w)
 		words[w] = p
@@ -469,7 +469,7 @@ func _apply_look() -> void:
 	_text.add_theme_color_override("font_color", Color(1, 1, 0.85) if hc else Color(1, 1, 1))
 	_hint.add_theme_font_size_override("font_size", _fs(15))
 	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
-	_hint.text = "%s  >" % Settings.key_name("interact")
+	_hint.text = "%s  >" % Settings.prompt("interact")
 	for b in _choices.get_children():
 		_style_choice(b)
 

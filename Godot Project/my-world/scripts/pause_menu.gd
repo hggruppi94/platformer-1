@@ -11,6 +11,7 @@ var panel: PanelContainer
 var page := ""
 var _tab := 0
 var _rebinding := ""                   # action waiting for a key press
+var _rebinding_pad := ""               # ...or for a controller button
 var _rebind_label: Label
 var _suppress_sound := false
 
@@ -61,6 +62,7 @@ func close() -> void:
 	if not is_open():
 		return
 	_rebinding = ""
+	_rebinding_pad = ""
 	root.visible = false
 	get_tree().paused = false
 	# Back to the game grabs the mouse, unless it's back to the character creator, which needs the cursor
@@ -69,6 +71,21 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	# A controller button for rebinding (Esc on the keyboard cancels)
+	if _rebinding_pad != "":
+		if event is InputEventJoypadButton and event.pressed:
+			get_viewport().set_input_as_handled()
+			var pad_action := _rebinding_pad
+			_rebinding_pad = ""
+			var pad_clash := Settings.rebind_pad(pad_action, event.button_index)
+			_show_settings()
+			if pad_clash != "":
+				_toast("%s was on that button too, so it moved to %s." % [Settings.action_label(pad_clash), Settings.pad_name(pad_clash)])
+		elif event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE:
+			get_viewport().set_input_as_handled()
+			_rebinding_pad = ""
+			_show_settings()
+		return
 	# Key capture for rebinding comes first, before anything else can react to the key
 	if _rebinding != "" and event is InputEventKey and event.pressed and not event.echo:
 		get_viewport().set_input_as_handled()
@@ -158,6 +175,17 @@ func _show_main() -> void:
 			close()
 			Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "home"))
 	_button("Settings", func(): _tab = 0; _show_settings())
+	if Game.has_item("skateboard"):
+		# Coach Rook's skate lesson (scripts/skate_lesson.gd): start it (or carry on), or stop it
+		_button("Stop the skate lesson" if SkateLesson.active else "Skate lesson", func():
+			close()
+			if SkateLesson.active:
+				SkateLesson.stop()
+			else:
+				SkateLesson.start())
+	_button("How-to tips again", func():
+		close()
+		Tips.replay())
 	_button("New Game", _show_confirm)
 	_button("Quit", _quit)
 	_focus(first)
@@ -315,26 +343,69 @@ func _tab_controls(tabs: TabContainer) -> void:
 	_slider(g, "Controller look speed", "stick_sensitivity", 0.2, 3.0, 0.1, func(x): return "%.1fx" % x)
 	_check(g, "Invert camera up/down", "invert_y")
 	_check(g, "Invert camera left/right", "invert_x")
+	# Layouts: Classic (Tony Hawk's buttons) or Simple (one trick button, grinds by themselves). Picking one also puts
+	# every key and button back where it started.
+	_label(g, "Skating layout", "Simple: tap Flip for a flip trick, hold it to grab, and grinds happen by themselves")
+	var layouts := HBoxContainer.new()
+	layouts.add_theme_constant_override("separation", 8)
+	for style in [["Classic", "classic"], ["Simple", "simple"]]:
+		var lb := Button.new()
+		lb.name = "Layout " + style[1]
+		lb.text = style[0]
+		lb.toggle_mode = true
+		lb.button_pressed = Settings.control_style == style[1]
+		lb.custom_minimum_size = Vector2(_fs(130), _fs(38))
+		lb.pressed.connect(func():
+			Audio.play("ui_accept", -6.0, 0.0)
+			Settings.use_layout(style[1])
+			_show_settings())
+		layouts.add_child(lb)
+	g.add_child(layouts)
 	var head := Label.new()
-	head.text = "Keys (click, then press a new key)"
+	head.text = "Keys and controller buttons (click one, then press the new key or button)"
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head.custom_minimum_size.x = _fs(300)
 	head.add_theme_font_size_override("font_size", _fs(20))
 	g.add_child(head)
 	g.add_child(Control.new())
+	var pad_actions := []
+	for pair in Settings.PAD_REBINDABLE:
+		pad_actions.append(pair[0])
 	for pair in Settings.REBINDABLE:
 		var action: String = pair[0]
 		_label(g, pair[1])
+		var cells := HBoxContainer.new()
+		cells.add_theme_constant_override("separation", 8)
 		var b := Button.new()
 		b.text = Settings.key_name(action)
-		b.custom_minimum_size = Vector2(_fs(160), _fs(38))
+		b.custom_minimum_size = Vector2(_fs(130), _fs(38))
 		b.pressed.connect(func(): _start_rebind(action, b))
 		b.focus_entered.connect(func(): if not _suppress_sound: Audio.play("ui_move", -8.0, 0.0))
-		g.add_child(b)
+		cells.add_child(b)
+		var pb := Button.new()
+		pb.name = "Pad " + action
+		pb.custom_minimum_size = Vector2(_fs(130), _fs(38))
+		if action in pad_actions:
+			pb.text = "🎮 " + Settings.pad_name(action)
+			pb.pressed.connect(func(): _start_pad_rebind(action, pb))
+		else:
+			pb.text = "🎮 left stick"                  # moving stays on the stick
+			pb.disabled = true
+		pb.focus_entered.connect(func(): if not _suppress_sound: Audio.play("ui_move", -8.0, 0.0))
+		cells.add_child(pb)
+		g.add_child(cells)
 	var pad := Label.new()
-	pad.text = "Controller: left stick move · right stick camera · A jump (again in the air to double jump) · X or RB roll · Y skateboard · Start pause\nOn the board: hold A to crouch, let go to ollie · Y grind · left and right spin in the air and balance on rails"
+	pad.text = "Controller: left stick moves, right stick turns the camera (and spins and balances on the board)."
 	pad.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	pad.custom_minimum_size.x = _fs(560)
 	pad.add_theme_font_size_override("font_size", _fs(16))
 	g.add_child(pad)
+
+
+func _start_pad_rebind(action: String, b: Button) -> void:
+	_rebinding_pad = action
+	b.text = "Press a button..."
+	_toast("Press the controller button for %s (Esc to cancel)" % Settings.action_label(action))
 
 
 func _start_rebind(action: String, b: Button) -> void:
@@ -364,6 +435,9 @@ func _tab_assist(tabs: TabContainer) -> void:
 	var g := _grid(tabs, "Assist")
 	_choice(g, "Game speed", "game_speed", [["100%", 1.0], ["90%", 0.9], ["75%", 0.75], ["60%", 0.6]],
 		"Slows the whole game down to give you more time to react")
+	_choice(g, "Skating landings", "skate_assist", [["Relaxed", 0], ["Normal", 1], ["Pro", 2]],
+		"Relaxed: hardly ever fall, and keep your combo. Normal: forgiving, keeps half a combo. Pro: the strict rules")
+	_check(g, "How-to tips", "tips", "Little pop-ups the first time you do something")
 	_check(g, "No damage", "no_damage", "Enemies still bump you, but you never lose HP")
 	_check(g, "Infinite stamina", "infinite_sp", "Rolling never runs out of SP")
 

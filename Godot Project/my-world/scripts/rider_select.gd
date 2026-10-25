@@ -18,7 +18,7 @@ func _ready() -> void:
 	_prompt.pixel_size = 0.006
 	_prompt.outline_size = 10
 	_prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_prompt.position = Vector3(0, 1.6, 0)
+	_prompt.position = Vector3(0, 2.3, 0)        # above the pad's sign
 	_prompt.visible = false
 	add_child(_prompt)
 
@@ -28,7 +28,7 @@ func _process(_delta: float) -> void:
 	if _near:
 		var player := get_tree().get_first_node_in_group("player")
 		var who: String = Rides.ride(player.rider).rider if player else "Nina"
-		_prompt.text = "Skating: %s\nPress %s for the next skater" % [who, Settings.key_name("interact")]
+		_prompt.text = "Skating: %s\nPress %s for the next skater" % [who, Settings.prompt("interact")]
 
 
 func _unhandled_input(event: InputEvent) -> void:

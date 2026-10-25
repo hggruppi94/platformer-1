@@ -33,7 +33,7 @@ func _ready() -> void:
 func _on_body_entered(body: Node3D) -> void:
 	if body.is_in_group("player"):
 		_near = true
-		_prompt.text = "Press %s to sleep" % Settings.key_name("interact")
+		_prompt.text = "Press %s to sleep" % Settings.prompt("interact")
 		_prompt.visible = not _busy
 
 

@@ -103,8 +103,8 @@ func give_item(item: String) -> void:
 		return
 	items.append(item)
 	if item == "skateboard":
-		message("You got a Skateboard! Press %s to ride, %s again to step off." % [Settings.key_name("toggle_skateboard"),
-			Settings.key_name("toggle_skateboard")])
+		message("You got a Skateboard! Press %s to ride, %s again to step off." % [Settings.prompt("toggle_skateboard"),
+			Settings.prompt("toggle_skateboard")])
 	Audio.play("pickup")
 	save_game()
 

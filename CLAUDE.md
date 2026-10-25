@@ -66,6 +66,20 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-25: Skating help and control choices. Forgiving bails: `Settings.skate_assist` (Settings → Assist →
+  "Skating landings": Relaxed, Normal (the default), Pro = the old strict rules; table `Skate.ASSIST` in `skate.gd`).
+  Relaxed and Normal land wider, finish a nearly-done flip, slip off rails and out of manuals instead of falling, keep
+  all (Relaxed) or half (Normal) of the combo and the special meter in a bail, and get up sooner. Controls: the
+  controller buttons can be changed like the keys (`Settings.pad_bindings`, `PAD_GROUPS` say which may share), and
+  there are two layouts (Settings → Controls): Classic, and Simple (`control_style`: one trick button, tap to flip,
+  hold to grab, grinds by themselves, Grind on the flat is a manual). Every prompt uses `Settings.prompt(action)` /
+  `Settings.fill("{jump}")`, which follow remaps and whether a keyboard or controller was used last. How-to tips
+  (`scripts/tips.gd`, autoload `Tips`): first-time pop-ups for walking, jumping, the map, pausing, talking, shopping
+  and riding, saved as `tip_*` flags, toggle in Assist, "How-to tips again" in the pause menu. Coach Rook's skate
+  lesson (`scripts/skate_lesson.gd`, autoload `SkateLesson`): offered the first time on a ride, at the new Lesson Pad
+  in the Skate Park (`skate_kit.gd lesson_pad`, `scripts/lesson_pad.gd`) and in the pause menu; 8 steps (push, ollie,
+  spin, flip, grab, grind, manual, combo) saved as `skate_lesson_*` flags, 10 sparkles once. Bruno isn't in the game
+  yet, so Rook coaches (he still only says woof) (`tools/test_skate_help.gd`, `previews/skate_tutorial/`).
 - 2026-10-24: Character creator fixes. Turning the hero no longer hides the mouse: a click in the world used to reach
   the camera (`spring_arm_3d.gd`), which grabbed the mouse, so the creator now keeps its clicks and the camera leaves the
   mouse alone while it's open. The right stick turns the hero too. Pausing in the creator and resuming keeps the

@@ -190,6 +190,17 @@ func skaters_corner(parent: Node, pos: Vector3) -> Node3D:
 	return g
 
 
+func lesson_pad(parent: Node, pos: Vector3) -> Node3D:
+	# Another glowing pad, for Coach Rook's skate lesson (scripts/lesson_pad.gd, scripts/skate_lesson.gd). Rook stands
+	# beside it while the lesson's on.
+	var g := skaters_corner(parent, pos)
+	g.name = "Lesson Pad"
+	(g.get_node("Sign") as Label3D).text = "Skate Lessons"
+	(g.get_node("RiderSelect") as Area3D).name = "Lesson"
+	(g.get_node("Lesson") as Area3D).set_script(load("res://scripts/lesson_pad.gd"))
+	return g
+
+
 # -----------------------------------------------------------------------------
 # Building blocks
 # -----------------------------------------------------------------------------

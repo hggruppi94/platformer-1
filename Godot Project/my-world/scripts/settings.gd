@@ -5,6 +5,7 @@ extends Node
 # Anything that needs to react to a change listens to `changed`.
 
 signal changed
+signal device_changed                 # the player switched between the keyboard and a controller (prompts follow it)
 
 const PATH := "user://settings.cfg"
 
@@ -16,6 +17,26 @@ const REBINDABLE := [
 	["quest_log", "Quest log"], ["map", "Map"], ["pause", "Pause"],
 ]
 
+# Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
+# (X rolls on foot and flips on the board), so a button only clashes with actions used at the same time (PAD_GROUPS).
+const PAD_REBINDABLE := [
+	["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"],
+	["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
+	["map", "Map"], ["pause", "Pause"],
+]
+const PAD_GROUPS := [
+	["jump", "dash", "toggle_skateboard", "interact", "quest_log", "map", "pause"],          # on foot
+	["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "pause"],   # riding
+]
+const PAD_NAMES := {
+	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
+	JOY_BUTTON_GUIDE: "Guide", JOY_BUTTON_START: "Start", JOY_BUTTON_LEFT_STICK: "L3", JOY_BUTTON_RIGHT_STICK: "R3",
+	JOY_BUTTON_LEFT_SHOULDER: "LB", JOY_BUTTON_RIGHT_SHOULDER: "RB", JOY_BUTTON_DPAD_UP: "D-pad up",
+	JOY_BUTTON_DPAD_DOWN: "D-pad down", JOY_BUTTON_DPAD_LEFT: "D-pad left", JOY_BUTTON_DPAD_RIGHT: "D-pad right",
+}
+# How forgiving the skating is (scenes/player/skate.gd, Skate.ASSIST)
+const ASSIST_NAMES := ["Relaxed", "Normal", "Pro"]
+
 # --- Audio (0..1)
 var master_volume := 1.0
 var music_volume := 0.8
@@ -25,6 +46,8 @@ var mouse_sensitivity := 1.0          # multiplier
 var stick_sensitivity := 1.0
 var invert_y := false
 var invert_x := false
+var control_style := "classic"        # "classic": Tony Hawk's buttons; "simple": one trick button, grinds by themselves
+var tips := true                      # first-time how-to pop-ups (scripts/tips.gd)
 # --- Display
 var fullscreen := false
 var fov := 75.0
@@ -40,9 +63,12 @@ var game_speed := 1.0                 # 1.0 = normal; lower gives more time to r
 var no_damage := false
 var infinite_mp := false
 var infinite_sp := false
+var skate_assist := 1                 # 0 Relaxed, 1 Normal, 2 Pro (the strict first rules)
 
 var _defaults := {}
-var bindings := {}                    # action -> physical keycode (keyboard only; controller layout is fixed)
+var bindings := {}                    # action -> physical keycode
+var pad_bindings := {}                # action -> controller button (JOY_BUTTON_*)
+var last_device := "keyboard"         # "keyboard" (and mouse) or "pad": whichever the player used last
 
 
 func _ready() -> void:
@@ -51,6 +77,9 @@ func _ready() -> void:
 		_defaults[p] = get(p)
 	for pair in REBINDABLE:
 		bindings[pair[0]] = _current_key(pair[0])
+	pad_bindings = default_pad_bindings()
+	if Input.get_connected_joypads().size() > 0:
+		last_device = "pad"
 	load_settings()
 	apply()
 
@@ -58,7 +87,7 @@ func _ready() -> void:
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "mouse_sensitivity", "stick_sensitivity", "invert_y",
 		"invert_x", "fullscreen", "fov", "minimap", "text_scale", "high_contrast", "reduce_flashing", "reduce_motion",
-		"captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp"]
+		"captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips", "skate_assist"]
 
 
 func set_value(prop: String, value) -> void:
@@ -79,6 +108,8 @@ func apply() -> void:
 			DisplayServer.window_set_mode(want)
 	for action in bindings:
 		_bind(action, bindings[action])
+	for action in pad_bindings:
+		_bind_pad(action, pad_bindings[action])
 	changed.emit()
 
 
@@ -86,8 +117,113 @@ func reset_to_defaults() -> void:
 	for p in _defaults:
 		set(p, _defaults[p])
 	bindings = default_bindings()
+	pad_bindings = default_pad_bindings()
 	apply()
 	save_settings()
+
+
+func use_layout(style: String) -> void:
+	# The Controls tab's layouts: Classic (Tony Hawk's buttons) or Simple (one trick button: tap to flip, hold to
+	# grab; grinds happen by themselves). Either one puts every key and button back where it started.
+	control_style = style
+	bindings = default_bindings()
+	pad_bindings = default_pad_bindings()
+	apply()
+	save_settings()
+
+
+func _input(event: InputEvent) -> void:
+	# Which one the player is using, so prompts can show the right button
+	var now := last_device
+	if event is InputEventJoypadButton and event.pressed:
+		now = "pad"
+	elif event is InputEventJoypadMotion and absf(event.axis_value) > 0.5:
+		now = "pad"
+	elif (event is InputEventKey and event.pressed) or event is InputEventMouseButton:
+		now = "keyboard"
+	if now != last_device:
+		last_device = now
+		device_changed.emit()
+
+
+# ----------------------------------------------------------------------------- prompts
+func prompt(action: String) -> String:
+	# What to press for an action, on whatever the player is using right now: "Space", "A", "Left stick up"...
+	if last_device != "pad":
+		return key_name(action)
+	match action:
+		"move_forward", "move_back", "move_left", "move_right":
+			return "Left stick " + {"move_forward": "up", "move_back": "down", "move_left": "left", "move_right": "right"}[action]
+		"look_left", "look_right", "look_up", "look_down":
+			return "Right stick"
+	return pad_name(action)
+
+
+func moves() -> String:
+	# The four move keys together ("WASD"), or the stick
+	if last_device == "pad":
+		return "the left stick"
+	return "%s%s%s%s" % [key_name("move_forward"), key_name("move_left"), key_name("move_back"), key_name("move_right")]
+
+
+func fill(text: String) -> String:
+	# Fills {jump}, {skate_flip}... with what to press, and {moves} with the move keys (scripts/tips.gd, the lesson)
+	var words := {"moves": moves()}
+	for pair in REBINDABLE:
+		words[pair[0]] = prompt(pair[0])
+	return text.format(words)
+
+
+func pad_name(action: String) -> String:
+	var b: int = pad_bindings.get(action, -1)
+	return PAD_NAMES.get(b, "-") if b >= 0 else "-"
+
+
+# ----------------------------------------------------------------------------- controller buttons
+func default_pad_bindings() -> Dictionary:
+	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
+		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": JOY_BUTTON_BACK,
+		"map": JOY_BUTTON_LEFT_SHOULDER, "pause": JOY_BUTTON_START}
+
+
+func rebind_pad(action: String, button: int) -> String:
+	# Like rebind(), for a controller button. Only actions used at the same time clash (PAD_GROUPS); the one that had
+	# the button gets this action's old one.
+	var old: int = pad_bindings.get(action, -1)
+	var clash := ""
+	for group in PAD_GROUPS:
+		if not action in group:
+			continue
+		for other in group:
+			if other != action and pad_bindings.get(other, -1) == button and not _shares_on_purpose(action, other):
+				clash = other
+				pad_bindings[other] = old
+	pad_bindings[action] = button
+	apply()
+	save_settings()
+	return clash
+
+
+func _shares_on_purpose(a: String, b: String) -> bool:
+	# The skateboard button is Grind too while riding (scripts/game.gd, _board_button_free), so those two may share
+	return [a, b].has("toggle_skateboard") and [a, b].has("skate_grind")
+
+
+func _bind_pad(action: String, button: int) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action, 0.2)
+	for e in InputMap.action_get_events(action):
+		if e is InputEventJoypadButton:
+			InputMap.action_erase_event(action, e)
+	var b := InputEventJoypadButton.new()
+	b.device = -1
+	b.button_index = button as JoyButton
+	InputMap.action_add_event(action, b)
+	if action == "dash" and button != JOY_BUTTON_RIGHT_SHOULDER:   # RB rolls too, whatever Roll is on
+		var rb := InputEventJoypadButton.new()
+		rb.device = -1
+		rb.button_index = JOY_BUTTON_RIGHT_SHOULDER
+		InputMap.action_add_event(action, rb)
 
 
 # ----------------------------------------------------------------------------- key bindings
@@ -161,6 +297,8 @@ func save_settings() -> void:
 		cf.set_value("settings", p, get(p))
 	for a in bindings:
 		cf.set_value("keys", a, bindings[a])
+	for a in pad_bindings:
+		cf.set_value("pad", a, pad_bindings[a])
 	cf.save(PATH)
 
 
@@ -176,3 +314,6 @@ func load_settings() -> void:
 	for a in bindings.keys():
 		if cf.has_section_key("keys", a):
 			bindings[a] = int(cf.get_value("keys", a))
+	for a in pad_bindings.keys():
+		if cf.has_section_key("pad", a):
+			pad_bindings[a] = int(cf.get_value("pad", a))

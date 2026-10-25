@@ -74,7 +74,7 @@ func _process(_delta: float) -> void:
 
 
 func set_prompt(on: bool) -> void:
-	_prompt.text = "Press %s to %s" % [Settings.key_name("interact"), action]
+	_prompt.text = "Press %s to %s" % [Settings.prompt("interact"), action]
 	_prompt.visible = on
 
 
