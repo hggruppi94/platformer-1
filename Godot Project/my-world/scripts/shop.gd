@@ -362,6 +362,16 @@ func _fill_wardrobe() -> void:
 		var kept := row.get_node_or_null(_keep_focus) as Button
 		if kept:
 			first = kept
+	if who == "hero":
+		# Back to the character creator (scripts/creator.gd) to change the hero themselves: body, hair, name and all
+		var remake := Button.new()
+		remake.text = "Change your hero..."
+		remake.name = "Button remake"
+		remake.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+		remake.pressed.connect(func() -> void:
+			close()
+			Creator.open())
+		left.add_child(remake)
 	_keep_focus = ""
 	(first if first else _close).grab_focus.call_deferred()
 

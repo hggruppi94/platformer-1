@@ -66,6 +66,12 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-24: Character creator fixes. Turning the hero no longer hides the mouse: a click in the world used to reach
+  the camera (`spring_arm_3d.gd`), which grabbed the mouse, so the creator now keeps its clicks and the camera leaves the
+  mouse alone while it's open. The right stick turns the hero too. Pausing in the creator and resuming keeps the
+  mouse. New Game from the pause menu while the creator was open left it stuck on screen over the new game; now it's
+  put away when the scene changes and opens again for the new hero. A new game quit before the hero's made asks again
+  next time (`needs_creator` is saved). The wardrobe has a "Change your hero..." button (`test_creator.gd`).
 - 2026-10-23: The Astronaut, from Sofi's drawing (`source_art/reference/Astronaut.jpg`, `tools/build_astronaut.py`):
   white suit, black visor, antenna, grey backpack and hoses, chest controls, the big red button, US flag patch, blue
   gloves and grey boots, with a floaty idle and a bouncy moon walk. They stand by the Mothership Pad

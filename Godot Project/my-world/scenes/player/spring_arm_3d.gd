@@ -23,6 +23,9 @@ func _apply_settings() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	# The character creator has the mouse while it's open: it keeps the cursor, and turns the hero, not the camera
+	if Creator.is_open():
+		return
 	# The pause menu (Esc) frees the mouse; clicking back in the game window grabs it again
 	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED \
 			and not get_tree().paused:
@@ -33,9 +36,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	# Controller right stick
+	# Controller right stick (in the character creator it turns the hero instead: scripts/creator.gd)
 	var stick := Input.get_vector("look_left", "look_right", "look_up", "look_down")
-	if stick != Vector2.ZERO:
+	if stick != Vector2.ZERO and not Creator.is_open():
 		_look(stick.x * stick_speed * Settings.stick_sensitivity * delta, stick.y * stick_speed * Settings.stick_sensitivity * delta)
 	_since_look += delta
 	fov_kick = move_toward(fov_kick, 0.0, 30.0 * delta)

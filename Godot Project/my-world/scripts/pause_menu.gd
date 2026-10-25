@@ -63,7 +63,8 @@ func close() -> void:
 	_rebinding = ""
 	root.visible = false
 	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Back to the game grabs the mouse, unless it's back to the character creator, which needs the cursor
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Creator.is_open() else Input.MOUSE_MODE_CAPTURED
 	Audio.play("ui_back", -4.0, 0.0)
 
 

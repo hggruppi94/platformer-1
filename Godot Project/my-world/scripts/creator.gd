@@ -46,6 +46,9 @@ func open(first_time := false) -> void:
 	_first_time = first_time
 	_tab = "Body" if first_time else _tab
 	_player.set("input_locked", true)
+	# If the scene changes while it's open (New Game from the pause menu, say), this hero and camera go with it
+	if not _player.tree_exiting.is_connected(_abandon):
+		_player.tree_exiting.connect(_abandon)
 	if _player.get("rider") != "hero":
 		_player.call("set_rider", "hero", false)
 	# At home they step onto the rug to be made (clear of the bed and its prompt), facing the door
@@ -87,6 +90,8 @@ func close() -> void:
 		return
 	_layer.visible = false
 	Game.needs_creator = false
+	if _player and is_instance_valid(_player) and _player.tree_exiting.is_connected(_abandon):
+		_player.tree_exiting.disconnect(_abandon)
 	if _cam:
 		_cam.queue_free()
 		_cam = null
@@ -103,6 +108,16 @@ func close() -> void:
 		Game.message("Welcome to Galaxity, %s!" % Hero.display_name(Game.hero))
 	Audio.play("ui_accept", -4.0, 0.0)
 	closed.emit()
+
+
+func _abandon() -> void:
+	# The hero being made is leaving (the scene is changing under the creator), so put the creator away without
+	# saving. A new game's player opens it again when it arrives (scenes/player/player.gd).
+	_layer.visible = false
+	_dragging = false
+	_cam = null
+	_old_cam = null
+	_player = null
 
 
 # -----------------------------------------------------------------------------
@@ -152,20 +167,36 @@ func _changed() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_open():
-		return
-	# Drag anywhere off the panel to turn the hero round
+	if not is_open() or get_tree().paused:
+		return                                   # (the pause menu is on top: it has the mouse)
+	# Drag anywhere off the panel to turn the hero round. Clicks and drags off the panel are the creator's, so they're
+	# marked handled: otherwise the camera (scenes/player/spring_arm_3d.gd) takes a click in the world as "grab the
+	# mouse" and the cursor vanishes.
+	var off_panel := event is InputEventMouse and not _panel.get_global_rect().has_point(event.position)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		_dragging = event.pressed and not _panel.get_global_rect().has_point(event.position)
+		_dragging = event.pressed and off_panel
+		if off_panel:
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and off_panel:
+		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and _dragging:
 		_turn(event.relative.x * 0.01)
+		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close()
 
 
+func _process(delta: float) -> void:
+	# The controller's right stick turns the hero too
+	if is_open() and not get_tree().paused:
+		var stick := Input.get_axis("look_left", "look_right")
+		if stick != 0.0:
+			_turn(stick * 2.6 * delta)
+
+
 func _turn(amount: float) -> void:
-	if _player:
+	if _player and is_instance_valid(_player):
 		(_player.get_node("Visual") as Node3D).rotation.y += amount
 
 

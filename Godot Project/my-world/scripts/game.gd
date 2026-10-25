@@ -295,7 +295,7 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "home": home,
+		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "needs_creator": needs_creator, "home": home,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -371,6 +371,9 @@ func load_game() -> void:
 	hero = Hero.blank()
 	needs_creator = not data.get("hero", null) is Dictionary
 	if not needs_creator:
+		# A new game saves as soon as the player arrives, before the hero's made: if they quit then, they still get to
+		# make one next time
+		needs_creator = bool(data.get("needs_creator", false))
 		hero.merge(data["hero"], true)
 	elif outfits.has("nina") and outfits["hero"].is_empty():
 		outfits["hero"] = outfits["nina"]
