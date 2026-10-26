@@ -90,8 +90,17 @@ static func apply(model: Node3D, hero: Dictionary, outfit: Dictionary) -> void:
 	# Dress and shape a model as this hero: their outfit, colours, hairstyle, extras and size
 	var body := body_of(hero)
 	var who: String = body.char
-	Clothes.dress(model, who, outfit, {})
 	var colors: Dictionary = hero.get("colors", {})
+	# Their hair: their body's own, or a new style in their hair colour (and the body's own hair hidden). The clothes
+	# are fitted with these parts gone, and a hat goes over the hairstyle.
+	var hidden := []
+	var style := int(hero.get("hairstyle", 0))
+	if style > 0 and not body.hair.is_empty():
+		hidden.append_array(body.hair)
+	if not bool(hero.get("extras", false)):
+		hidden.append_array(body.extras)
+	var hair_color := _hair_color(model, body, colors)
+	var gone := Clothes.dress(model, who, outfit, {}, hidden, Hairstyles.build(style, hair_color))
 	var own_looks: Dictionary = Clothes.OWN_LOOKS.get(who, {})
 	var own_clothes: Dictionary = Clothes.OWN_CLOTHES.get(who, {})
 	for part in colors:
@@ -113,15 +122,7 @@ static func apply(model: Node3D, hero: Dictionary, outfit: Dictionary) -> void:
 				names = own_looks.get(part, [])
 		if not names.is_empty():
 			Clothes._recolour(model, names, c)
-	# Their hair: their body's own, or a new style in their hair colour (and the body's own hair hidden)
-	var style := int(hero.get("hairstyle", 0))
-	if style > 0 and not body.hair.is_empty():
-		Clothes._hide(model, body.hair)
-	var piece := Hairstyles.build(style, _hair_color(model, body, colors))
-	if piece:
-		Clothes._attach(model, Clothes._skeleton(model), piece, "hair", Clothes.fit_of(model))
-	if not bool(hero.get("extras", false)) and not body.extras.is_empty():
-		Clothes._hide(model, body.extras)
+	Clothes._hide(model, gone)                      # recolouring mustn't bring back anything hidden
 	# Size: height scales the whole model (their feet stay on the ground); head and build go on the skeleton
 	var h := float(hero.get("height", 1.0))
 	model.scale = Vector3(h, h, h)

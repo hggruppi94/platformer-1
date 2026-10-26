@@ -66,6 +66,23 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-26: Clothes fit everyone. Pieces used to be moved from Nina by a few bone positions and one width, so hats
+  hovered over hair or sank into it, capes and jetpacks floated off backs (they were placed for Nina's backpack),
+  gloves sat at the wrist of T-posed arms, a skirt was sized round backpacks, the headphones' band ran front to back
+  and under the chin, and Dash's cap and shades stayed on under hats and glasses. Now `Clothes.fit_of()` measures
+  each body from its own mesh points and the bone carrying each one (`_cloud()`): the top of the head in the middle
+  (not ears, horns or antennae; a hat sits a little down into big spiky hair), the head's width at the eyes and all
+  the way up, the neck, chest and middle without arms, hair or bags, the back, and each hand and foot (where it is,
+  how big, which way it points). `_fitted()` moves and stretches each piece from that place on Nina to the same
+  place on them; `_tailor()` makes glasses' arms, goggle straps and the headphones (cups on the sides of the head, a
+  band arched over it) to measure. Whatever a piece goes over comes off (`Clothes.UNDER`: Dash's cap and Nina's bow
+  under hats, own glasses under new ones, backpacks under back pieces). Hats sit on top of a hairstyle, and a cap or
+  beanie (`Cosmetics.COVERS`) tucks its buns, mohawk or curls away (`hairstyles.gd` tags parts "crown" and "up").
+  `Clothes.dress()` takes the hero's hidden parts and hairstyle so everything is fitted together, and returns what it
+  hid. `tools/test_clothing_fit.gd` puts every hat and piece on all six hero bodies (with and without a hairstyle)
+  and every friend and checks each one touches them; `tools/capture_clothing_fit.gd` takes front and side pictures
+  of everyone in five outfits, with a contact sheet each (`previews/clothing_fit/before` and `after`). The clothes
+  test failed when the save's hero wasn't a hippo (it looked for Nina's shirt on the hero), so it starts from a hippo.
 - 2026-10-26: The player menu (`scripts/player_menu.gd`, autoload `PlayerMenu`): one menu with sheets for Quests, Map,
   Hero, Bag, Skate, Settings and Save. Tab or Back opens it on Quests (`player_menu` action, in Settings > Controls for
   both, Classic and Simple), Q / E or LB / RB (`menu_prev` / `menu_next`, fixed) go along the sheets, and Tab, Esc and

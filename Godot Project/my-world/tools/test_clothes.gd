@@ -42,6 +42,10 @@ func _run() -> void:
 	game._resume = {}
 	game.pending_message = ""
 	game.next_spawn = ""
+	# The player is their own hero, made from your save: start from a hippo body (Nina's), as the checks below look
+	# at her own shirt and hair
+	game.hero = Hero.blank()
+	game.needs_creator = false
 
 	# --- What there is ---
 	var clothes: Array = shop.items.values().filter(func(i: Dictionary) -> bool: return i.kind == "clothes")
@@ -91,8 +95,8 @@ func _run() -> void:
 		var m := body.get_surface_override_material(i) as StandardMaterial3D
 		return m != null and m.albedo_color.a == 0.0)
 	check(hidden, "her backpack comes off for the wings")
-	var shirt: int = Clothes._surfaces(body, ["Shirt"])[0]
-	var sm := body.get_surface_override_material(shirt) as StandardMaterial3D
+	var shirts := Clothes._surfaces(body, ["Shirt"])
+	var sm := body.get_surface_override_material(shirts[0]) as StandardMaterial3D if not shirts.is_empty() else null
 	check(sm != null and sm.albedo_texture != null, "the Galaxy Tee restyles her own shirt, with stars")
 
 	# Pieces move with her: a mitten follows her hand when she runs
@@ -164,8 +168,8 @@ func _run() -> void:
 	await _frames(2)
 	model = p.get("model") as Node3D
 	var body2 := Clothes._body(model)
-	var hair_i: int = Clothes._surfaces(body2, ["Hair"])[0]
-	var hair := body2.get_surface_override_material(hair_i) as StandardMaterial3D
+	var hairs := Clothes._surfaces(body2, ["Hair"])
+	var hair := body2.get_surface_override_material(hairs[0]) as StandardMaterial3D if not hairs.is_empty() else null
 	check(hair != null and hair.albedo_color.is_equal_approx(Hero.SWATCHES[2]), "the creator's hair colour recolours their hair")
 	game.hero["colors"] = {}
 
@@ -188,8 +192,8 @@ func _run() -> void:
 	check(lens != null and absf(in_model.y - fit.eyes.y) < 0.12 and absf(in_model.z - fit.eyes.z) < 0.12,
 		"Dash wears the star glasses over his own eyes (%.2f up, %.2f forward)" % [in_model.y, in_model.z])
 	var dbody := Clothes._body(dm)
-	var hoodie: int = Clothes._surfaces(dbody, ["Hoodie"])[0]
-	check(dbody.get_surface_override_material(hoodie) != null, "...and the stripy shirt restyles his hoodie")
+	var hoodies := Clothes._surfaces(dbody, ["Hoodie"])
+	check(not hoodies.is_empty() and dbody.get_surface_override_material(hoodies[0]) != null, "...and the stripy shirt restyles his hoodie")
 	check(not Clothes.can_wear("rex", "face") and Clothes.can_wear("rex", "head"), "Rex only wears hats")
 	p.set_rider("hero")
 	await _frames(2)

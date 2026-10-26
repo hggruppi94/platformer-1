@@ -13,9 +13,14 @@ extends RefCounted
 #   Looks: fur (or skin), hair, eyes, an accent (Nina's bow, Dash's cap, Rook's collar...) and blush, each picked from
 #   a few colours. Colour 0 is how Sofi drew them.
 #
-# Pieces are made for Nina (her model's space: feet at 0, facing +Z, eyes at y 1.13) and fitted to whoever wears them:
-# everyone shares one skeleton, so each piece is moved and stretched from Nina's head, neck, chest, hips, hands or
-# feet to theirs (fit()), then fixed to that bone. Rex walks on four legs, so he only wears hats.
+# Pieces are made for Nina (her model's space: feet at 0, facing +Z, eyes at y 1.18) and fitted to whoever wears them.
+# Everyone's body is measured from the points of their own mesh and the bones that carry them (fit_of()): the top of
+# the head in the middle (not ears, horns or antennae), how wide the head is at the eyes, the neck, chest and middle
+# without arms or hair, their back, and each hand and foot. Each piece is moved and stretched from that place on Nina
+# to the same place on them (_fitted()), a few parts are made to measure (_tailor(): glasses' arms, goggle straps,
+# headphones), and then it's fixed to the bone there so it moves with them. Whatever a piece goes over comes off
+# (UNDER), and a hat sits on a hairstyle, tucking its buns away if it covers them. Rex walks on four legs, so he only
+# wears hats. tools/test_clothing_fit.gd checks every piece on everyone; tools/capture_clothing_fit.gd takes pictures.
 
 const SLOTS := ["head", "face", "neck", "top", "bottoms", "feet", "hands", "back"]
 const SLOT_NAMES := {"head": "Head", "face": "Face", "neck": "Neck", "top": "Top", "bottoms": "Bottoms",
@@ -92,12 +97,16 @@ static var _patterns := {}
 static var _fits := {}
 
 
-static func dress(model: Node3D, who: String, outfit: Dictionary, looks := {}) -> void:
-	# Put an outfit and looks on someone's model, taking off whatever was on before
+static func dress(model: Node3D, who: String, outfit: Dictionary, looks := {}, hidden := [], hair: Node3D = null) -> Array:
+	# Put an outfit and looks on someone's model, taking off whatever was on before. hidden: parts of them to hide
+	# (the hero's own hair under a new hairstyle, say); hair: a hairstyle to wear (scripts/hairstyles.gd). Gives back
+	# everything that ended up hidden, as anything worn over a part hides it too (a hat hides Dash's cap).
 	var mesh := _body(model)
 	var skel := _skeleton(model)
 	if mesh == null or skel == null:
-		return
+		if hair:
+			hair.free()
+		return []
 	for old in skel.find_children("Clothes *", "BoneAttachment3D", false, false):
 		old.free()
 	for m in model.find_children("*", "MeshInstance3D", true, false):
@@ -108,19 +117,56 @@ static func dress(model: Node3D, who: String, outfit: Dictionary, looks := {}) -
 		var pick := int(looks[part])
 		if pick > 0 and own.has(part) and PALETTE.has(part):
 			_recolour(model, own[part], PALETTE[part][pick % PALETTE[part].size()])
-	var fit := fit_of(model)
+	var gone := hidden.duplicate()
+	for slot in UNDER:
+		if wearing(outfit, slot) != "" and can_wear(who, slot):
+			for n in UNDER[slot]:
+				if n not in gone:
+					gone.append(n)
+	var fit := fit_of(model, gone)
+	if hair:
+		fit = _under_hat(fit, hair, wearing(outfit, "head") in Cosmetics.COVERS)
+		_attach(model, skel, hair, "hair", fit)
 	for slot in SLOTS:
 		var id := str(outfit.get(slot, ""))
-		if id == "" or (who in ONLY_HATS and slot != "head"):
+		if id == "" or not can_wear(who, slot):
 			continue
 		var clothes: Dictionary = OWN_CLOTHES.get(who, {})
 		if RESTYLE.has(id) and clothes.has(slot):
 			_restyle(model, clothes[slot], RESTYLE[id])
-		if slot == "back":
-			_hide(model, BACKPACKS)
 		var piece := hat_or_piece(slot, id)
 		if piece:
 			_attach(model, skel, piece, slot, fit)
+	_hide(model, gone)
+	return gone
+
+
+static func _under_hat(fit: Dictionary, hair: Node3D, covered: bool) -> Dictionary:
+	# A hairstyle changes where a hat goes: on top of it, and as wide as it. Under a hat that covers the head,
+	# anything sticking up (buns, a mohawk, curls) is tucked away. hair is still in Nina's space here.
+	var t := _fitted("hair", fit)
+	var crown := AABB(Vector3.ZERO, -Vector3.ONE)
+	var balls := []
+	for mi in hair.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		match str(m.get_meta("hair", "")):
+			"up":
+				if covered:
+					m.free()
+			"crown":
+				var x: Transform3D = t * hair.transform * m.transform
+				var b: AABB = x * m.get_aabb()
+				crown = b if crown.size.x < 0 else crown.merge(b)
+				balls.append([x.origin, x.basis.get_scale() * (m.mesh as SphereMesh).radius])
+	if crown.size.x < 0:
+		return fit
+	var f := fit.duplicate()
+	f.crown_balls = balls
+	f.top = Vector3(f.top.x, maxf(f.top.y, crown.end.y), f.top.z)
+	var hb: AABB = f.hat_box
+	f.hat_box = AABB(Vector3(minf(hb.position.x, crown.position.x), hb.position.y, minf(hb.position.z, crown.position.z)),
+		Vector3.ZERO).expand(Vector3(maxf(hb.end.x, crown.end.x), hb.end.y, maxf(hb.end.z, crown.end.z)))
+	return f
 
 
 static func wearing(outfit: Dictionary, slot: String) -> String:
@@ -248,78 +294,293 @@ static func _pattern(kind: String, a: Color, b: Color) -> ImageTexture:
 # -----------------------------------------------------------------------------
 const NINA := "res://models/characters/nina.glb"
 const NOT_HEAD := ["Antenna", "Antenna Tip", "Horn", "Horn Tip", "Cap", "Cap White"]
+const SKIN := ["Skin", "Fur", "Green"]
+const HAIR := ["Hair", "Hair Shade", "Hair Tip Teal", "Hair Tip Lavender", "Grey Hair", "Mane Orange", "Mane Teal",
+	"Mane Purple", "Mane Pink"]
+const TORSO_BONES := ["hips", "spine", "chest", "neck"]
+const LEG_BONES := ["thigh.L", "thigh.R"]
+# What comes off when something is worn over it: a hat goes on instead of Dash's cap or Nina's bow, new glasses
+# instead of their own, wings or a cape instead of a backpack
+const UNDER := {"head": ["Cap", "Cap White", "Bow"], "face": ["Glasses", "Lens Shine"], "back": BACKPACKS}
+const SKIRT_Y := 0.44                    # where the tutu sits round Nina's middle
 
 
-static func fit_of(model: Node3D) -> Dictionary:
+static var _clouds := {}
+
+
+static func _cloud(model: Node3D) -> Dictionary:
+	# Every point of their body as they stand in Blender (in their model's space), with the bone that carries it most
+	# and the part it belongs to (as numbers into "bones" and "parts"); kept per model. Pieces are fitted to these
+	# points, so they hug the real shape.
 	var key := model.scene_file_path
-	if _fits.has(key) and key != "":
-		return _fits[key]
-	var skel := _skeleton(model)
-	var bones := {}
-	for b in ["head", "chest", "hips", "upper_arm.L", "hand.L", "hand.R", "foot.L", "foot.R"]:
-		var i := skel.find_bone(b)
-		if i >= 0:
-			bones[b] = (_skel_in_model(model, skel) * skel.get_bone_global_rest(i)).origin
-	# The eyes (their middle, at the front) and the top of the head, from the model's parts
-	var eyes := AABB()
-	var got_eyes := false
-	var top := -INF
-	var skull := -INF                       # the top of their head itself (their skin or fur), without the hair
-	var head_box := AABB()
-	var got_head := false
+	if key != "" and _clouds.has(key):
+		return _clouds[key]
+	var pos := PackedVector3Array()
+	var bone_of := PackedInt32Array()
+	var part_of := PackedInt32Array()
+	var bones := [""]
+	var parts := []
 	for mi in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh := mi as MeshInstance3D
+		var to_model := _in_model(model, mesh)
+		# The skin's bones as numbers into bones
+		var bind := PackedInt32Array()
+		if mesh.skin:
+			for j in mesh.skin.get_bind_count():
+				var bn := String(mesh.skin.get_bind_name(j))
+				if bn not in bones:
+					bones.append(bn)
+				bind.append(bones.find(bn))
 		for s in mesh.mesh.get_surface_count():
 			var m := mesh.mesh.surface_get_material(s)
 			var name := m.resource_name if m else ""
-			var v: PackedVector3Array = mesh.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]
-			if v.is_empty():
-				continue
-			var bb := AABB(v[0], Vector3.ZERO)
-			for p in v:
-				bb = bb.expand(p)
-			if name in ["Eye White", "Eye", "Glasses"]:
-				eyes = bb if not got_eyes else eyes.merge(bb)
-				got_eyes = true
-			if name not in NOT_HEAD:
-				top = maxf(top, bb.end.y)
-			if name in ["Skin", "Fur", "Green"]:
-				skull = maxf(skull, bb.end.y)
-				# Their head itself: the skin or fur above the neck
-				var neck_y: float = bones.get("head", Vector3(0, 0.9, 0)).y + 0.08
-				for p in v:
-					if p.y > neck_y:
-						head_box = AABB(p, Vector3.ZERO) if not got_head else head_box.expand(p)
-						got_head = true
+			if name not in parts:
+				parts.append(name)
+			var part := parts.find(name)
+			var arrays := mesh.mesh.surface_get_arrays(s)
+			var v: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var bi = arrays[Mesh.ARRAY_BONES]
+			var bw = arrays[Mesh.ARRAY_WEIGHTS]
+			var per: int = 0
+			if bi is PackedInt32Array and v.size() > 0 and not bind.is_empty():
+				per = (bi as PackedInt32Array).size() / v.size()
+			for k in v.size():
+				pos.append(to_model * v[k])
+				part_of.append(part)
+				var best := 0
+				var most := -1.0
+				for j in per:
+					if bw[k * per + j] > most:
+						most = bw[k * per + j]
+						best = bind[bi[k * per + j]] if bi[k * per + j] < bind.size() else 0
+				bone_of.append(best)
+	var c := {"pos": pos, "bone_of": bone_of, "part_of": part_of, "bones": bones, "parts": parts}
+	if key != "":
+		_clouds[key] = c
+	return c
+
+
+static func _in_model(model: Node3D, n: Node3D) -> Transform3D:
+	var t := Transform3D.IDENTITY
+	var at: Node = n
+	while at != model and at is Node3D:
+		t = (at as Node3D).transform * t
+		at = at.get_parent()
+	return t
+
+
+static func _flags(names: Array, fn: Callable) -> PackedByteArray:
+	# fn(name) for each bone or part name, as 1s and 0s to look up by number
+	var out := PackedByteArray()
+	for n in names:
+		out.append(1 if fn.call(n) else 0)
+	return out
+
+
+class Box:
+	# A box grown point by point (quicker than AABB.expand), empty until the first point
+	var lo := Vector3(INF, INF, INF)
+	var hi := Vector3(-INF, -INF, -INF)
+
+	func add(p: Vector3) -> void:
+		lo = lo.min(p)
+		hi = hi.max(p)
+
+	func empty() -> bool:
+		return lo.x > hi.x
+
+	func aabb(fallback: AABB) -> AABB:
+		return fallback if empty() else AABB(lo, hi - lo)
+
+
+static func fit_of(model: Node3D, hidden := []) -> Dictionary:
+	# Where everything goes on them, measured from their body (anything hidden left out). Kept per model and per
+	# set of hidden parts.
+	var key := _key_for(model.scene_file_path, hidden)
+	if _fits.has(key) and model.scene_file_path != "":
+		return _fits[key]
+	var skel := _skeleton(model)
+	var c := _cloud(model)
+	var bones := {}
+	for b in ["head", "chest", "hips", "hand.L", "hand.R", "foot.L", "foot.R"]:
+		var i := skel.find_bone(b)
+		if i >= 0:
+			bones[b] = (_skel_in_model(model, skel) * skel.get_bone_global_rest(i)).origin
 	var head: Vector3 = bones.get("head", Vector3(0, 0.9, 0))
-	var fit := {}
-	var eye_point := Vector3(head.x, eyes.get_center().y, eyes.end.z + 0.02) if got_eyes else head + Vector3(0, 0.23, 0.29)
-	fit.top = Vector3(head.x, top, head.z)
-	fit.eyes = eye_point
-	fit.head_size = maxf(top - eye_point.y, 0.1)
-	fit.skull = maxf((skull if skull > -INF else top) - eye_point.y, 0.1)
-	fit.head_box = head_box if got_head else AABB(head + Vector3(-0.3, 0.1, -0.3), Vector3(0.6, 0.5, 0.6))
 	var chest: Vector3 = bones.get("chest", head - Vector3(0, 0.14, 0))
-	fit.neck = (head + chest) / 2.0 + Vector3(0, -0.01, 0)
+	var fit := {}
 	fit.chest = chest
 	fit.hips = bones.get("hips", chest - Vector3(0, 0.26, 0))
-	fit.width = absf(bones["upper_arm.L"].x) if bones.has("upper_arm.L") else 0.24
 	fit.torso = maxf(chest.y - fit.hips.y, 0.1)
-	for b in ["hand.L", "hand.R", "foot.L", "foot.R"]:
-		fit[b] = bones.get(b, fit.hips)
-	if key != "":
+	fit.neck = (head + chest) / 2.0 + Vector3(0, -0.01, 0)
+	if model.scene_file_path == NINA:
+		fit.skirt_y = SKIRT_Y
+	else:
+		var nina := _nina_fit()
+		fit.skirt_y = fit.hips.y + (nina.skirt_y - nina.hips.y) * fit.torso / nina.torso
+
+	var pos: PackedVector3Array = c.pos
+	var bone_of: PackedInt32Array = c.bone_of
+	var part_of: PackedInt32Array = c.part_of
+	var shown := _flags(c.parts, func(n: String) -> bool: return n not in hidden)
+	var headwear := _flags(c.parts, func(n: String) -> bool: return n not in hidden and n not in NOT_HEAD)
+	var loose := _flags(c.parts, func(n: String) -> bool: return n in HAIR or n in BACKPACKS)    # hair and bags: not their body
+	var skin := _flags(c.parts, func(n: String) -> bool: return n in SKIN)
+	var eye := _flags(c.parts, func(n: String) -> bool: return n in ["Eye White", "Eye"])
+	var specs := _flags(c.parts, func(n: String) -> bool: return n == "Glasses")
+	var on_head := _flags(c.bones, func(n: String) -> bool: return n == "head")
+	var torso := _flags(c.bones, func(n: String) -> bool: return n in TORSO_BONES)
+	var leg := _flags(c.bones, func(n: String) -> bool: return n in LEG_BONES)
+	var limb := _flags(c.bones, func(n: String) -> bool: return _is_limb(n))
+	var ends := ["hand.L", "hand.R", "foot.L", "foot.R"]
+	var end_of := PackedInt32Array()
+	for n in c.bones:
+		end_of.append(ends.find(n))
+
+	# First: the eyes, the whole head, their head itself (skin or fur above the neck, for hairstyles), hands and feet
+	var eyes := Box.new()
+	var glasses := Box.new()
+	var whole := Box.new()
+	var skull := Box.new()
+	var limbs := [Box.new(), Box.new(), Box.new(), Box.new()]
+	var neck_y := head.y + 0.08
+	for i in pos.size():
+		var p := pos[i]
+		var pt := part_of[i]
+		var bn := bone_of[i]
+		if eye[pt]:
+			eyes.add(p)
+		if specs[pt]:
+			glasses.add(p)
+		if on_head[bn] and headwear[pt]:
+			whole.add(p)
+		if skin[pt] and p.y > neck_y:
+			skull.add(p)
+		if end_of[bn] >= 0 and shown[pt]:
+			(limbs[end_of[bn]] as Box).add(p)
+	var whole_head := whole.aabb(AABB(head + Vector3(-0.3, 0.0, -0.3), Vector3(0.6, 0.6, 0.6)))
+	# New glasses go where their own were (just in front), as far apart as their eyes (Dash's shades are wider than
+	# eyes, so when they're all he has, his eyes are taken as most of their width)
+	var eye_point := head + Vector3(0, 0.23, 0.29)
+	fit.eyes_w = 0.3
+	var both := Box.new()
+	for b in [eyes, glasses]:
+		if not (b as Box).empty():
+			both.add((b as Box).lo)
+			both.add((b as Box).hi)
+	if not both.empty():
+		var mid := eyes if not eyes.empty() else glasses
+		eye_point = Vector3(head.x, (mid.lo.y + mid.hi.y) / 2.0, both.hi.z + 0.02)
+		fit.eyes_w = maxf((eyes.hi.x - eyes.lo.x) if not eyes.empty() else (glasses.hi.x - glasses.lo.x) * 0.65, 0.1)
+	fit.eyes = eye_point
+	fit.eyes_top = eye_point.y + 0.06
+	if not both.empty():
+		fit.eyes_top = (eyes if not eyes.empty() else glasses).hi.y
+	fit.head_box = skull.aabb(AABB(head + Vector3(-0.3, 0.1, -0.3), Vector3(0.6, 0.5, 0.6)))
+
+	# Then: the top in the middle of the head (so ears, horns and antennae don't count), how wide and deep the head is
+	# at the eyes (hair at the sides included), how wide it is all the way up (a slice every centimetre), and round
+	# the body (arms and hair left out) at the neck, the chest and the middle where a skirt sits
+	var band := whole_head.size.x * 0.18
+	var crown := Box.new()
+	var crown_body := Box.new()
+	var face := Box.new()
+	var skin_face := Box.new()
+	var neck := Box.new()
+	var chest_box := Box.new()
+	var skirt := Box.new()
+	var lo := whole_head.position.y
+	var n := int(ceilf(whole_head.size.y / 0.01)) + 1
+	var left := PackedFloat32Array()
+	var right := PackedFloat32Array()
+	left.resize(n)
+	right.resize(n)
+	left.fill(INF)
+	right.fill(-INF)
+	var neck_at: float = fit.neck.y
+	var skirt_at: float = fit.skirt_y
+	for i in pos.size():
+		var p := pos[i]
+		var pt := part_of[i]
+		var bn := bone_of[i]
+		if on_head[bn] and headwear[pt]:
+			if absf(p.x - head.x) < band:
+				crown.add(p)
+				if not loose[pt]:
+					crown_body.add(p)
+			if absf(p.y - eye_point.y) < 0.04:
+				face.add(p)
+				if skin[pt]:
+					skin_face.add(p)
+			var k := clampi(int((p.y - lo) / 0.01), 0, n - 1)
+			left[k] = minf(left[k], p.x)
+			right[k] = maxf(right[k], p.x)
+		if shown[pt] and not loose[pt]:
+			if torso[bn]:
+				if absf(p.y - neck_at) < 0.03:
+					neck.add(p)
+				if absf(p.y - chest.y) < 0.06:
+					chest_box.add(p)
+			if (torso[bn] or leg[bn]) and absf(p.y - skirt_at) < 0.04:
+				skirt.add(p)
+	fit.top = Vector3(head.x, whole_head.end.y, head.z)
+	if not crown.empty():
+		# On big spiky hair (Pip's mane) a hat sits down into it a bit rather than balancing on the tips
+		var y := crown.hi.y
+		if not crown_body.empty():
+			y = minf(y, crown_body.hi.y + 0.5 * (crown_body.hi.y - eye_point.y))
+		fit.top = Vector3(head.x, y, (crown.lo.z + crown.hi.z) / 2.0)
+	fit.face = face.aabb(whole_head)
+	fit.skin_face = skin_face.aabb(fit.face)    # without hair: straps and glasses' arms go under it
+	fit.hat_box = fit.face                      # what a hat has to fit over (a hairstyle makes it bigger: _under_hat)
+	fit.profile = [lo, left, right]
+	fit.neck_box = neck.aabb(AABB(fit.neck - Vector3(0.12, 0.03, 0.12), Vector3(0.24, 0.06, 0.24)))
+	fit.chest_box = chest_box.aabb(AABB(chest - Vector3(0.2, 0.06, 0.15), Vector3(0.4, 0.12, 0.3)))
+	fit.skirt_box = skirt.aabb(AABB(Vector3(fit.hips.x - 0.2, skirt_at - 0.04, fit.hips.z - 0.15), Vector3(0.4, 0.08, 0.3)))
+
+	# Last: their back, the furthest back their body is behind their chest (hair left out: it hangs over a cape)
+	var w: float = fit.chest_box.size.x * 0.3
+	var back_z: float = fit.chest_box.position.z
+	var got := false
+	for i in pos.size():
+		var p := pos[i]
+		if shown[part_of[i]] and not loose[part_of[i]] and not limb[bone_of[i]] and absf(p.x - chest.x) < w and p.y > fit.hips.y and p.y < neck_at:
+			back_z = p.z if not got else minf(back_z, p.z)
+			got = true
+	fit.back = Vector3(chest.x, chest.y, back_z)
+
+	# Hands and feet: the middle of each, how big it is, and which way it points from the wrist or ankle
+	for e in ends.size():
+		var joint: Vector3 = bones.get(ends[e], fit.hips)
+		var box: AABB = (limbs[e] as Box).aabb(AABB(joint - Vector3(0.05, 0.05, 0.05), Vector3(0.1, 0.1, 0.1)))
+		fit[ends[e]] = {"box": box, "joint": joint, "dir": (box.get_center() - joint).normalized()}
+	if model.scene_file_path != "":
 		_fits[key] = fit
 	return fit
 
 
+static func _is_limb(bone: String) -> bool:
+	for k in ["arm", "hand", "thigh", "shin", "foot", "front", "paw", "tail", "wing", "antenna"]:
+		if k in bone:
+			return true
+	return false
+
+
 static func _nina_fit() -> Dictionary:
-	# The pieces were made on Nina, so her measurements are where they start from
-	if not _fits.has(NINA):
+	# The pieces were made on Nina, so her measurements are where they start from (without her backpack, which the
+	# back pieces take the place of)
+	if not _fits.has(_key_for(NINA, BACKPACKS)):
 		var nina := (load(NINA) as PackedScene).instantiate() as Node3D
 		nina.scene_file_path = NINA
-		fit_of(nina)
+		fit_of(nina, BACKPACKS)
 		nina.free()
-	return _fits[NINA]
+	return _fits[_key_for(NINA, BACKPACKS)]
+
+
+static func _key_for(path: String, hidden: Array) -> String:
+	var names := hidden.duplicate()
+	names.sort()
+	return path + " | " + ",".join(names)
 
 
 static func _skel_in_model(model: Node3D, skel: Skeleton3D) -> Transform3D:
@@ -332,32 +593,64 @@ static func _skel_in_model(model: Node3D, skel: Skeleton3D) -> Transform3D:
 
 
 static func _fitted(slot: String, fit: Dictionary, part := "") -> Transform3D:
-	# Moves and stretches a piece made for Nina onto someone else: round the matching point on each of them
+	# Moves and stretches a piece made for Nina onto someone else: from a place on her to the same place on them,
+	# stretched by how much wider, taller and deeper that part of them is
 	var nina := _nina_fit()
 	var from: Vector3
 	var to: Vector3
 	var s := Vector3.ONE
 	match slot:
-		"head", "face":
-			# Hats on top of their hair, glasses on their eyes; sized to their head
-			var k: float = fit.head_box.size.x / nina.head_box.size.x
+		"head":
+			# Hats on top of their head (or hair) in the middle, as wide as their head is at the eyes
+			# (and no lower over their eyes than on Nina's)
+			var k: float = fit.hat_box.size.x / nina.hat_box.size.x
+			var ky := minf(k, (fit.top.y - fit.eyes_top) / (nina.top.y - nina.eyes_top))
+			s = Vector3(k, ky, clampf(fit.hat_box.size.z / nina.hat_box.size.z, k * 0.85, k * 1.2))
+			from = nina.top
+			to = fit.top
+		"face":
+			# Glasses on their eyes, as far apart as their eyes are
+			var k: float = fit.eyes_w / nina.eyes_w
 			s = Vector3(k, k, k)
-			from = nina.top if slot == "head" else nina.eyes
-			to = fit.top if slot == "head" else fit.eyes
+			from = nina.eyes
+			to = fit.eyes
 		"hair":
 			# Hairstyles wrap their head itself: Nina's head stretched to theirs, middle to middle
 			s = fit.head_box.size / nina.head_box.size
 			from = nina.head_box.get_center()
 			to = fit.head_box.get_center()
-		"neck", "back", "bottoms":
-			var w: float = fit.width / nina.width
+		"neck", "bottoms":
+			# Round their neck, or round their middle: as wide and deep as they are there
+			var a: AABB = nina.neck_box if slot == "neck" else nina.skirt_box
+			var b: AABB = fit.neck_box if slot == "neck" else fit.skirt_box
+			s = Vector3(b.size.x / a.size.x, 1.0, b.size.z / a.size.z)
+			s.y = fit.torso / nina.torso if slot == "bottoms" else (s.x + s.z) / 2.0
+			var ya: float = nina.neck.y if slot == "neck" else nina.skirt_y
+			var yb: float = fit.neck.y if slot == "neck" else fit.skirt_y
+			from = Vector3(a.get_center().x, ya, a.get_center().z)
+			to = Vector3(b.get_center().x, yb, b.get_center().z)
+		"back":
+			# Against their back, as wide as their chest and as tall as their body
+			var w: float = fit.chest_box.size.x / nina.chest_box.size.x
 			s = Vector3(w, fit.torso / nina.torso, w)
-			var spot: String = {"neck": "neck", "back": "chest", "bottoms": "hips"}[slot]
-			from = nina[spot]
-			to = fit[spot]
-		"hands", "feet":
-			from = nina[part]
-			to = fit[part]
+			from = nina.back
+			to = fit.back
+		"hands":
+			# Round each hand, as big as it is and pointing the way it points
+			var a: Dictionary = nina[part]
+			var b: Dictionary = fit[part]
+			var k: float = (b.box as AABB).size.length() / (a.box as AABB).size.length()
+			var turn := Basis(Quaternion(a.dir, b.dir)) if (a.dir as Vector3).dot(b.dir) < 0.999 else Basis.IDENTITY
+			var m := turn * Basis.from_scale(Vector3(k, k, k))
+			return Transform3D(m, (b.box as AABB).get_center() - m * (a.box as AABB).get_center())
+		"feet":
+			# Round each foot, from the ground up
+			var a: AABB = nina[part].box
+			var b: AABB = fit[part].box
+			s = Vector3(b.size.x / a.size.x, 1.0, b.size.z / a.size.z)
+			s.y = (s.x + s.z) / 2.0
+			from = Vector3(a.get_center().x, a.position.y, a.get_center().z)
+			to = Vector3(b.get_center().x, b.position.y, b.get_center().z)
 	return Transform3D(Basis.from_scale(s), to - from * s)
 
 
@@ -375,7 +668,93 @@ static func _attach(model: Node3D, skel: Skeleton3D, piece: Node3D, slot: String
 		piece.free()
 		return
 	piece.transform = _fitted(slot, fit) * piece.transform
+	_tailor(piece, fit)
 	_fix(model, skel, piece, str(ANCHORS.get(slot, ["chest"])[0]), slot)
+
+
+static func _tailor(piece: Node3D, fit: Dictionary) -> void:
+	# A few parts are made to measure instead of just stretched: glasses' arms reach back to the sides of their head,
+	# goggles' band and headphones go round their head as it really is
+	var to_piece := piece.transform.affine_inverse()
+	var face: AABB = fit.skin_face
+	var k := piece.transform.basis.get_scale().x
+	var cups := {}
+	var band: Material = null
+	for mi in piece.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		match str(m.get_meta("fit", "")):
+			"cup":
+				# On the side of their head at the same height, just outside it (hair included)
+				var p := piece.transform * m.position
+				var side := signf(p.x - fit.eyes.x)
+				var at := Vector3(_head_edge(fit, p.y, side) + side * 0.035 * k, p.y, face.get_center().z)
+				m.transform = to_piece * Transform3D(Basis.from_euler(Vector3(0, 0, PI / 2)).scaled(Vector3(k, k, k)), at)
+				cups[side] = at
+			"band":
+				band = m.material_override
+				m.free()
+	if band and cups.size() == 2:
+		# The headphones' band, made again from cup to cup over the top of their head, pushed out wherever their
+		# head (or hair) is wider than the arch
+		var mid: Vector3 = (cups[-1.0] + cups[1.0]) / 2.0
+		var half: float = (cups[1.0].x - cups[-1.0].x) / 2.0
+		var up: float = fit.top.y + 0.018 - mid.y
+		var points := []
+		var n := 12
+		for i in n + 1:
+			var a := PI * i / n
+			var at := mid + Vector3(-cos(a) * half, sin(a) * up, 0)
+			if i > 0 and i < n and absf(cos(a)) > 0.15:
+				var side := signf(-cos(a))
+				var edge := _head_edge(fit, at.y, side) + side * 0.018
+				at.x = maxf(at.x, edge) if side > 0 else minf(at.x, edge)
+			points.append(at)
+		for i in n:
+			var p0: Vector3 = points[i]
+			var p1: Vector3 = points[i + 1]
+			var b := BoxMesh.new()
+			b.size = Vector3(p0.distance_to(p1) + 0.012, 0.035, 0.06)
+			var seg := MeshInstance3D.new()
+			seg.mesh = b
+			seg.material_override = band
+			piece.add_child(seg)
+			seg.transform = to_piece * Transform3D(Basis.from_euler(Vector3(0, 0, atan2(p1.y - p0.y, p1.x - p0.x))), (p0 + p1) / 2.0)
+	for mi in piece.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		match str(m.get_meta("fit", "")):
+			"temple":
+				# Along the side of their head at the eyes, from the glasses back towards their ears
+				var side := signf((piece.transform * m.position).x - fit.eyes.x)
+				var x: float = (face.end.x if side > 0 else face.position.x) + side * 0.012
+				var z0: float = fit.eyes.z - 0.01
+				var z1: float = lerpf(face.get_center().z, z0, 0.35)
+				var at := Transform3D(Basis.from_scale(Vector3(1, 1, (z0 - z1) / 0.22)), Vector3(x, fit.eyes.y + 0.015, (z0 + z1) / 2.0))
+				m.transform = to_piece * at
+			"collar":
+				# Round their neck like a scarf, wherever their back is
+				m.transform = to_piece * _fitted("neck", fit) * m.transform
+			"wrap":
+				# A band round their head at the eyes, just outside it
+				var r := Vector3(face.size.x / 2.0 + 0.02, 0.0, face.size.z / 2.0 + 0.02) / 0.28
+				var at := Transform3D(Basis.from_scale(Vector3(r.x, 0.3, r.z)), Vector3(face.get_center().x, fit.eyes.y + 0.01, face.get_center().z))
+				m.transform = to_piece * at
+
+
+static func _head_edge(fit: Dictionary, y: float, side: float) -> float:
+	# The x of the edge of their head (hair and a hairstyle included) on one side (+1 or -1), at height y
+	var lo: float = fit.profile[0]
+	var edges: PackedFloat32Array = fit.profile[2] if side > 0 else fit.profile[1]
+	var x: float = fit.eyes.x
+	var k := int((y - lo) / 0.01)
+	for j in range(k - 2, k + 3):                  # a slice either side, as a slice can be empty
+		if j >= 0 and j < edges.size() and is_finite(edges[j]):
+			x = maxf(x, edges[j]) if side > 0 else minf(x, edges[j])
+	for ball in fit.get("crown_balls", []):
+		var dy: float = (y - ball[0].y) / ball[1].y
+		if absf(dy) < 1.0:
+			var w: float = ball[1].x * sqrt(1.0 - dy * dy)
+			x = maxf(x, ball[0].x + w) if side > 0 else minf(x, ball[0].x - w)
+	return x
 
 
 static func _fix(model: Node3D, skel: Skeleton3D, part: Node3D, bone_name: String, slot: String) -> void:
@@ -410,6 +789,8 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 				_mesh(g, _cyl(0.075, 0.075, 0.02, 5), gold, Vector3(s * 0.1, 1.135, 0.29), Vector3(PI / 2, 0, 0))
 				_mesh(g, _cyl(0.06, 0.06, 0.025, 5), lens, Vector3(s * 0.1, 1.135, 0.295), Vector3(PI / 2, 0, 0))
 			_mesh(g, _box(Vector3(0.06, 0.015, 0.015)), gold, Vector3(0, 1.15, 0.3))
+			for s in [-1, 1]:                                  # arms back to their ears (made to measure: _tailor)
+				_mesh(g, _box(Vector3(0.015, 0.015, 0.22)), gold, Vector3(s * 0.2, 1.15, 0.19)).set_meta("fit", "temple")
 		"heart_shades":
 			var frame := _mat(Color(1.0, 0.4, 0.7), 0.4)
 			var dark := _mat(Color(0.2, 0.05, 0.2), 0.2, 0.3)
@@ -421,12 +802,12 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 				_mesh(g, tip, dark, Vector3(s * 0.1, 1.105, 0.285), Vector3(0, 0, PI))
 			_mesh(g, _box(Vector3(0.06, 0.015, 0.015)), frame, Vector3(0, 1.15, 0.29))
 			for s in [-1, 1]:
-				_mesh(g, _box(Vector3(0.02, 0.015, 0.22)), frame, Vector3(s * 0.2, 1.15, 0.19))
+				_mesh(g, _box(Vector3(0.02, 0.015, 0.22)), frame, Vector3(s * 0.2, 1.15, 0.19)).set_meta("fit", "temple")
 		"space_goggles":
 			var band := _mat(Color(0.35, 0.25, 0.55), 0.6)
 			var rim := _mat(Color(0.75, 0.78, 0.85), 0.3, 0.8)
 			var glass := _mat(Color(0.4, 1.0, 0.75, 0.6), 0.2, 0.0, 0.6)
-			_mesh(g, _torus(0.25, 0.28), band, Vector3(0, 1.14, 0.02), Vector3.ZERO, Vector3(1.0, 0.3, 1.05))
+			_mesh(g, _torus(0.25, 0.28), band, Vector3(0, 1.14, 0.02), Vector3.ZERO, Vector3(1.0, 0.3, 1.05)).set_meta("fit", "wrap")
 			for s in [-1, 1]:
 				_mesh(g, _cyl(0.075, 0.08, 0.06), rim, Vector3(s * 0.1, 1.14, 0.29), Vector3(PI / 2, 0, 0))
 				_mesh(g, _cyl(0.06, 0.06, 0.065), glass, Vector3(s * 0.1, 1.14, 0.295), Vector3(PI / 2, 0, 0))
@@ -488,9 +869,10 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 				_mesh(g, _sphere(0.05), spot, Vector3(s * 0.26, 0.9, -0.33), Vector3.ZERO, Vector3(1, 1, 0.3))
 		"super_cape":
 			var cloth := _mat(Color(0.95, 0.25, 0.45), 0.6)
-			_mesh(g, _box(Vector3(0.5, 0.62, 0.025)), cloth, Vector3(0, 0.52, -0.33), Vector3(0.18, 0, 0))
-			_mesh(g, _torus(0.16, 0.19), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6), Vector3(0, 0.85, 0.0), Vector3.ZERO, Vector3(1, 0.5, 1))
-			_mesh(g, _cyl(0.07, 0.07, 0.02, 5), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6, 0.6), Vector3(0, 0.55, -0.35), Vector3(PI / 2 + 0.18, 0, 0))
+			# Hanging from her shoulders, just touching her back at the top; its gold collar goes round her neck
+			_mesh(g, _box(Vector3(0.5, 0.62, 0.025)), cloth, Vector3(0, 0.52, -0.29), Vector3(0.18, 0, 0))
+			_mesh(g, _torus(0.16, 0.19), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6), Vector3(0, 0.85, 0.0), Vector3.ZERO, Vector3(1, 0.5, 1)).set_meta("fit", "collar")
+			_mesh(g, _cyl(0.07, 0.07, 0.02, 5), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6, 0.6), Vector3(0, 0.55, -0.31), Vector3(PI / 2 + 0.18, 0, 0))
 		"jetpack":
 			var tank := _mat(Color(0.75, 0.78, 0.88), 0.3, 0.8)
 			var flame := _mat(Color(1.0, 0.6, 0.3), 0.5, 0.0, 3.0)

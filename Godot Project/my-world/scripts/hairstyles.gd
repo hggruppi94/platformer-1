@@ -40,7 +40,7 @@ static func build(style: int, color: Color) -> Node3D:
 		"Space buns":
 			_crown(g, hair, 1.0)
 			for s in [-1, 1]:
-				_ball(g, hair, Vector3(s * 0.22, 1.5, -0.12), 0.13, Vector3.ONE)
+				_up(_ball(g, hair, Vector3(s * 0.22, 1.5, -0.12), 0.13, Vector3.ONE))
 		"Long and flowy":
 			_crown(g, hair, 1.0)
 			_ball(g, hair, Vector3(0, 1.0, -0.33), 0.3, Vector3(1.3, 1.5, 0.45))
@@ -57,14 +57,14 @@ static func build(style: int, color: Color) -> Node3D:
 				var a := lerpf(-0.4, 1.9, k / 5.0)
 				var p := PrismMesh.new()
 				p.size = Vector3(0.06, 0.24, 0.16)
-				var mi := _mesh(g, p, hair, CROWN + Vector3(0, cos(a) * (CROWN_R + 0.06), sin(a) * (CROWN_R + 0.06)))
+				var mi := _up(_mesh(g, p, hair, CROWN + Vector3(0, cos(a) * (CROWN_R + 0.06), sin(a) * (CROWN_R + 0.06))))
 				mi.rotation.x = a
 		"Afro puffs":
 			_crown(g, hair, 1.02)
 			for s in [-1, 1]:
 				for k in 7:
 					var o := Vector3(cos(k * TAU / 7) * 0.09, sin(k * 2.3) * 0.06, sin(k * TAU / 7) * 0.09)
-					_ball(g, hair, Vector3(s * 0.3, 1.45, -0.1) + o, 0.1, Vector3.ONE)
+					_up(_ball(g, hair, Vector3(s * 0.3, 1.45, -0.1) + o, 0.1, Vector3.ONE))
 		"Braids":
 			_crown(g, hair, 1.0)
 			for s in [-1, 1]:
@@ -76,14 +76,21 @@ static func build(style: int, color: Color) -> Node3D:
 			for k in 14:
 				var a := k * 2.4
 				var r := 0.12 + 0.12 * fmod(k * 0.37, 1.0)
-				_ball(g, hair, CROWN + Vector3(cos(a) * r, 0.3 - r * 0.4, sin(a) * r - 0.02), 0.11, Vector3.ONE)
+				_up(_ball(g, hair, CROWN + Vector3(cos(a) * r, 0.3 - r * 0.4, sin(a) * r - 0.02), 0.11, Vector3.ONE))
 	return g
 
 
 static func _crown(g: Node3D, m: Material, size: float) -> void:
-	# A cap of hair over the top and back of the head, with a fringe over the forehead
-	_ball(g, m, CROWN, CROWN_R * size, Vector3(1.08, 0.82, 1.0))
-	_ball(g, m, Vector3(0, 1.36, 0.12), 0.2 * size, Vector3(1.4, 0.45, 0.8))
+	# A cap of hair over the top and back of the head, with a fringe over the forehead. A hat sits on top of it
+	# (scripts/clothes.gd).
+	_ball(g, m, CROWN, CROWN_R * size, Vector3(1.08, 0.82, 1.0)).set_meta("hair", "crown")
+	_ball(g, m, Vector3(0, 1.36, 0.12), 0.2 * size, Vector3(1.4, 0.45, 0.8)).set_meta("hair", "crown")
+
+
+static func _up(mi: MeshInstance3D) -> MeshInstance3D:
+	# Something sticking up off the top of the head, tucked under a hat that covers it (scripts/clothes.gd)
+	mi.set_meta("hair", "up")
+	return mi
 
 
 static func _ball(g: Node3D, m: Material, pos: Vector3, r: float, scale: Vector3) -> MeshInstance3D:

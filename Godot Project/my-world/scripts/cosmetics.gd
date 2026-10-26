@@ -5,6 +5,8 @@ extends RefCounted
 # scenes/player/player.gd puts the hat on her head and the stickers on Rex's sash.
 
 const HAT_Y := 1.40                                # the top of her head (hair included), in her model's space
+# Hats that cover the top of the head: a hairstyle's buns or mohawk tuck in under them (scripts/clothes.gd)
+const COVERS := ["propeller_cap", "sk8_beanie"]
 const STICKER_ANGLES := {"star_sticker": -0.95, "daisy_sticker": -0.5, "note_sticker": 0.5, "paw_sticker": 0.95}
 
 
@@ -96,12 +98,16 @@ static func hat(id: String) -> Node3D:
 				p.size = Vector3(0.07, tall, 0.04)
 				_mesh(h, p, glow, Vector3(sin(a) * 0.23, -0.04 + tall / 2, cos(a) * 0.23), Vector3(0, a, 0))
 		"headphones":
+			# A band over the top from ear to ear, and a cup on each ear. scripts/clothes.gd remakes the band and
+			# moves the cups to fit whoever wears them, so they sit on the sides of their head.
 			var band := _mat(Color(0.25, 0.2, 0.4))
 			var cups := _mat(Color(0.55, 0.4, 1.0), 0.4)
-			_mesh(h, _torus(0.3, 0.34), band, Vector3(0, -0.22, 0), Vector3(0, 0, PI / 2), Vector3(1, 1.0, 0.6))
+			for p in band_arc(Vector3(0, -0.36, 0), 0.36, 0.38):
+				_mesh(h, p[0], band, p[1], p[2]).set_meta("fit", "band")
 			for s in [-1, 1]:
-				_mesh(h, _cyl(0.1, 0.1, 0.08), cups, Vector3(s * 0.33, -0.36, 0), Vector3(0, 0, PI / 2))
-				_mesh(h, _sphere(0.035), _mat(Color(1, 0.95, 0.5), 1.5), Vector3(s * 0.38, -0.36, 0))   # a little star
+				var cup := _mesh(h, _cyl(0.1, 0.1, 0.08), cups, Vector3(s * 0.33, -0.36, 0), Vector3(0, 0, PI / 2))
+				cup.set_meta("fit", "cup")
+				_mesh(cup, _sphere(0.035), _mat(Color(1, 0.95, 0.5), 1.5), Vector3(0, -s * 0.05, 0))   # a little star
 		"sk8_beanie":
 			# A slouchy knitted beanie with a folded cuff and a pom-pom, a bit back on her head
 			var knit := _mat(Color(0.25, 0.75, 0.7))
@@ -111,6 +117,22 @@ static func hat(id: String) -> Node3D:
 		_:
 			return null
 	return h
+
+
+static func band_arc(mid: Vector3, half_width: float, height: float) -> Array:
+	# A headphone band: an arch of short pieces from one ear (mid - half_width) over the top to the other.
+	# [[mesh, position, rotation], ...]
+	var out := []
+	var n := 10
+	for k in n:
+		var a0 := PI * k / n
+		var a1 := PI * (k + 1) / n
+		var p0 := mid + Vector3(cos(a0) * half_width, sin(a0) * height, 0)
+		var p1 := mid + Vector3(cos(a1) * half_width, sin(a1) * height, 0)
+		var b := BoxMesh.new()
+		b.size = Vector3(p0.distance_to(p1) + 0.012, 0.035, 0.06)
+		out.append([b, (p0 + p1) / 2.0, Vector3(0, 0, atan2(p1.y - p0.y, p1.x - p0.x))])
+	return out
 
 
 static func sticker(id: String) -> Node3D:
