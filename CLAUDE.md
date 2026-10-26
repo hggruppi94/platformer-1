@@ -41,7 +41,7 @@ Read this first in every session so each iteration builds on the last one and do
     town, after a refactor), revert that `.tscn` instead of committing thousands of ID-only lines.
 - **Test:** `godot --headless --path "Godot Project/my-world" --script res://tools/test_<x>.gd`
   - Usual set: layout, map, doors, walk_through, earth, dialogue, plus whatever the change touches (routines,
-    quests, town_quests, shop, crocodillo, mothership, scary_world, clock, quick_fixes).
+    quests, town_quests, shop, crocodillo, mothership, scary_world, clock, quick_fixes, player_menu).
   - Some tests have two runs: run the same test again with `-- --check-load` straight after, before running any
     other test.
   - A test that passes on one run and fails the next usually depends on Hayden's save (tests start from whatever
@@ -66,6 +66,15 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-26: The player menu (`scripts/player_menu.gd`, autoload `PlayerMenu`): one menu with sheets for Quests, Map,
+  Hero, Bag, Skate, Settings and Save. Tab or Back opens it on Quests (`player_menu` action, in Settings > Controls for
+  both, Classic and Simple), Q / E or LB / RB (`menu_prev` / `menu_next`, fixed) go along the sheets, and Tab, Esc and
+  B close it. Q and M still go straight to their sheet, and close it there. The sheets lend the game's own screens:
+  the quest log (`Quests.log_view()`), the big map (`TownMap.map_view()`), the pause menu's settings tabs
+  (`PauseMenu.settings_into()`, look from `PauseMenu.make_theme()`), and buttons for the wardrobe, Change your
+  hero..., the skate lesson, the how-to tips, saving, a new game and quitting. The quest log has no controller button
+  of its own now (Back is the menu); old settings with something on Tab give Tab to the menu (`Settings._claim`).
+  Godot's `ui_cancel` is only Esc, so B is checked by hand (`tools/test_player_menu.gd`, `previews/player_menu/`).
 - 2026-10-25: Skating help and control choices. Forgiving bails: `Settings.skate_assist` (Settings → Assist →
   "Skating landings": Relaxed, Normal (the default), Pro = the old strict rules; table `Skate.ASSIST` in `skate.gd`).
   Relaxed and Normal land wider, finish a nearly-done flip, slip off rails and out of manuals instead of falling, keep

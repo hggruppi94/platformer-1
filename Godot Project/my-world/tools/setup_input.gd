@@ -43,8 +43,13 @@ func _initialize() -> void:
 	set_action("dash", [key(KEY_SHIFT), pad_button(JOY_BUTTON_X), pad_button(JOY_BUTTON_RIGHT_SHOULDER)])
 	set_action("toggle_skateboard", [key(KEY_E), pad_button(JOY_BUTTON_Y)])
 	set_action("interact", [key(KEY_F), pad_button(JOY_BUTTON_B)])          # talk to people, sleep in a bed
-	set_action("quest_log", [key(KEY_Q), pad_button(JOY_BUTTON_BACK)])                # Back / Select / Share
+	set_action("quest_log", [key(KEY_Q)])
 	set_action("map", [key(KEY_M), pad_button(JOY_BUTTON_LEFT_SHOULDER)])
+	# The player menu (scripts/player_menu.gd): Tab or Back / Select / Share opens it on its Quests sheet, and inside
+	# it Q / E or LB / RB go from sheet to sheet
+	set_action("player_menu", [key(KEY_TAB), pad_button(JOY_BUTTON_BACK)])
+	set_action("menu_prev", [key(KEY_Q), pad_button(JOY_BUTTON_LEFT_SHOULDER)])
+	set_action("menu_next", [key(KEY_E), pad_button(JOY_BUTTON_RIGHT_SHOULDER)])
 	set_action("pause", [key(KEY_ESCAPE), key(KEY_P), pad_button(JOY_BUTTON_START)])
 	set_action("debug_xp", [key(KEY_X)])
 	# Skating (scenes/player/skate.gd), Tony Hawk style: A ollie, X flip, B grab, Y grind. Y also hops on and off the

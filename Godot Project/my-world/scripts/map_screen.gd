@@ -1,6 +1,7 @@
 extends Node
 
-# Autoload "TownMap": the town map. M (or LB on a controller; rebindable) opens it full screen: the town from above
+# Autoload "TownMap": the town map. M (or LB on a controller; rebindable) opens it on the player menu's Map sheet
+# (scripts/player_menu.gd), which Tab opens too: the town from above
 # (res://ui/town_map.png, drawn from the real town by tools/make_map.gd), labelled by district and building, with an
 # arrow for Nina and which way she's facing, a star on where the current quest steps want her, everyone's spot
 # (or their home, when they're tucked up inside) and, in the Shift, the open portal.
@@ -27,7 +28,7 @@ const BUILDINGS := ["Town Hall", "Library", "Museum", "Aquarium", "Potion Shop",
 var _texture: Texture2D
 var _center := Vector2(-8, -32)
 var _size_m := 300.0
-var _layer: CanvasLayer
+var _view: Control                                  # the big map, shown on the player menu's Map sheet
 var _map: TextureRect
 var _overlay: Control
 var _mini_layer: CanvasLayer
@@ -133,27 +134,23 @@ func portal_open() -> bool:
 # -----------------------------------------------------------------------------
 # Opening and closing
 # -----------------------------------------------------------------------------
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("map"):
-		get_viewport().set_input_as_handled()
-		toggle()
-	elif is_open() and event.is_action_pressed("ui_cancel"):     # (Pause closes it too: scripts/pause_menu.gd)
-		get_viewport().set_input_as_handled()
-		toggle()
-
-
+# The player menu (scripts/player_menu.gd) opens and closes it, pausing the game under it, and keeps it out of the way
+# of the pause menu, a bed and conversations.
 func is_open() -> bool:
-	return _layer.visible
+	return PlayerMenu.showing("map")
 
 
 func toggle() -> void:
-	if not is_open() and (get_tree().paused or Dialogue.is_active()):
-		return                                             # not over the pause menu, a bed, the quest log or a conversation
-	_layer.visible = not _layer.visible
-	get_tree().paused = _layer.visible
-	if _layer.visible:
-		Audio.play("ui_accept", -4.0, 0.0)
+	PlayerMenu.toggle_sheet("map")
+
+
+func map_view() -> Control:
 	_overlay.queue_redraw()
+	return _view
+
+
+func map_view_node() -> Control:
+	return _view
 
 
 func _process(delta: float) -> void:
@@ -176,25 +173,26 @@ func _mini_scale_px() -> float:
 # Drawing
 # -----------------------------------------------------------------------------
 func _build() -> void:
-	_layer = CanvasLayer.new()
-	_layer.layer = 34
-	_layer.visible = false
-	add_child(_layer)
+	_view = Control.new()
+	_view.name = "MapView"
+	_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_view.clip_contents = true
 	var dim := ColorRect.new()
 	dim.color = Color(0.06, 0.04, 0.1, 0.92)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_layer.add_child(dim)
+	_view.add_child(dim)
 	_map = TextureRect.new()
 	_map.texture = _texture
 	_map.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_map.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_map.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_layer.add_child(_map)
+	_view.add_child(_map)
 	_overlay = Control.new()
 	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.draw.connect(_draw_full)
-	_layer.add_child(_overlay)
+	_view.add_child(_overlay)
 	# The corner minimap
 	_mini_layer = CanvasLayer.new()
 	_mini_layer.layer = 5
@@ -348,3 +346,8 @@ func _draw_mini() -> void:
 
 func _apply_settings() -> void:
 	_overlay.queue_redraw()
+
+
+func _exit_tree() -> void:
+	if _view.get_parent() == null:
+		_view.free()                                   # put away (not on the player menu) when the game quits

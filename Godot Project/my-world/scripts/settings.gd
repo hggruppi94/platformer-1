@@ -14,7 +14,7 @@ const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
 	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
-	["quest_log", "Quest log"], ["map", "Map"], ["pause", "Pause"],
+	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
 
 # Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
@@ -22,11 +22,11 @@ const REBINDABLE := [
 const PAD_REBINDABLE := [
 	["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"],
 	["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
-	["map", "Map"], ["pause", "Pause"],
+	["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "toggle_skateboard", "interact", "quest_log", "map", "pause"],          # on foot
-	["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "pause"],   # riding
+	["jump", "dash", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],          # on foot
+	["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
 ]
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
@@ -133,7 +133,12 @@ func use_layout(style: String) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# Which one the player is using, so prompts can show the right button
+	note_device(event)
+
+
+func note_device(event: InputEvent) -> void:
+	# Which one the player is using, so prompts can show the right button. The player menu (scripts/player_menu.gd)
+	# tells this too, as it keeps the buttons it uses from going any further.
 	var now := last_device
 	if event is InputEventJoypadButton and event.pressed:
 		now = "pad"
@@ -150,7 +155,11 @@ func _input(event: InputEvent) -> void:
 func prompt(action: String) -> String:
 	# What to press for an action, on whatever the player is using right now: "Space", "A", "Left stick up"...
 	if last_device != "pad":
+		if action == "quest_log" and bindings.get("quest_log", 0) == 0:
+			action = "player_menu"                 # no key of its own: Tab opens the player menu on the Quests sheet
 		return key_name(action)
+	if action == "quest_log" and pad_bindings.get("quest_log", -1) < 0:
+		action = "player_menu"                     # no button of its own: Back opens the player menu on the Quests sheet
 	match action:
 		"move_forward", "move_back", "move_left", "move_right":
 			return "Left stick " + {"move_forward": "up", "move_back": "down", "move_left": "left", "move_right": "right"}[action]
@@ -182,8 +191,10 @@ func pad_name(action: String) -> String:
 # ----------------------------------------------------------------------------- controller buttons
 func default_pad_bindings() -> Dictionary:
 	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
-		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": JOY_BUTTON_BACK,
-		"map": JOY_BUTTON_LEFT_SHOULDER, "pause": JOY_BUTTON_START}
+		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
+		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "pause": JOY_BUTTON_START}
+	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
+	# sheet. The player can still give it one in Settings > Controls.
 
 
 func rebind_pad(action: String, button: int) -> String:
@@ -215,6 +226,8 @@ func _bind_pad(action: String, button: int) -> void:
 	for e in InputMap.action_get_events(action):
 		if e is InputEventJoypadButton:
 			InputMap.action_erase_event(action, e)
+	if button < 0:
+		return                                      # no button (the quest log, by default)
 	var b := InputEventJoypadButton.new()
 	b.device = -1
 	b.button_index = button as JoyButton
@@ -230,7 +243,7 @@ func _bind_pad(action: String, button: int) -> void:
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
 		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
-		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "pause": KEY_ESCAPE}
+		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:
@@ -278,6 +291,8 @@ func _bind(action: String, physical_keycode: int) -> void:
 	for e in InputMap.action_get_events(action):
 		if e is InputEventKey:
 			InputMap.action_erase_event(action, e)
+	if physical_keycode == 0:
+		return                                      # no key
 	var k := InputEventKey.new()
 	k.device = -1
 	k.physical_keycode = physical_keycode as Key
@@ -317,3 +332,23 @@ func load_settings() -> void:
 	for a in pad_bindings.keys():
 		if cf.has_section_key("pad", a):
 			pad_bindings[a] = int(cf.get_value("pad", a))
+	# Actions added since these settings were saved (the player menu, on Tab and Back) get their own key and button,
+	# even from something the player had moved onto it: that one goes back to where it started, or to nothing if
+	# that's taken too (Hayden's quest log was on Tab, and the player menu opens on the Quests sheet anyway).
+	if cf.has_section("keys"):
+		for a in bindings.keys():
+			if not cf.has_section_key("keys", a):
+				_claim(bindings, a, default_bindings(), 0)
+	if cf.has_section("pad"):
+		for a in pad_bindings.keys():
+			if not cf.has_section_key("pad", a):
+				_claim(pad_bindings, a, default_pad_bindings(), -1)
+
+
+func _claim(table: Dictionary, action: String, defaults: Dictionary, none: int) -> void:
+	var mine: int = defaults.get(action, none)
+	for other in table:
+		# Only one the player moved there: some start out sharing on purpose (X rolls and flips)
+		if other != action and table[other] == mine and table[other] != defaults.get(other, none):
+			var own: int = defaults.get(other, none)
+			table[other] = own if not table.values().has(own) else none

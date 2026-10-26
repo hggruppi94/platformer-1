@@ -4,6 +4,7 @@ extends CanvasLayer
 #   Paused:   Resume · Settings · New Game · Quit
 #   Settings: Audio · Controls · Display · Accessibility · Assist   (all saved by scripts/settings.gd)
 # Works with mouse, keyboard (arrows/Tab + Enter) and controller (d-pad/stick + A, B to go back).
+# The player menu's Settings sheet (scripts/player_menu.gd) shows these same settings tabs (settings_into()).
 
 var root: Control
 var box: VBoxContainer                 # the centre panel's contents; rebuilt for each page
@@ -14,6 +15,7 @@ var _rebinding := ""                   # action waiting for a key press
 var _rebinding_pad := ""               # ...or for a controller button
 var _rebind_label: Label
 var _suppress_sound := false
+var _host: Control                     # where the settings tabs are: this menu's box, or the player menu's sheet
 
 
 func _ready() -> void:
@@ -47,6 +49,11 @@ func is_open() -> bool:
 	return root.visible
 
 
+func is_rebinding() -> bool:
+	# Waiting for a new key or button: nothing else should take it (scripts/player_menu.gd checks this)
+	return _rebinding != "" or _rebinding_pad != ""
+
+
 # ----------------------------------------------------------------------------- open / close
 func open() -> void:
 	if is_open() or get_tree().paused:
@@ -78,25 +85,25 @@ func _input(event: InputEvent) -> void:
 			var pad_action := _rebinding_pad
 			_rebinding_pad = ""
 			var pad_clash := Settings.rebind_pad(pad_action, event.button_index)
-			_show_settings()
+			_refresh_settings()
 			if pad_clash != "":
 				_toast("%s was on that button too, so it moved to %s." % [Settings.action_label(pad_clash), Settings.pad_name(pad_clash)])
 		elif event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE:
 			get_viewport().set_input_as_handled()
 			_rebinding_pad = ""
-			_show_settings()
+			_refresh_settings()
 		return
 	# Key capture for rebinding comes first, before anything else can react to the key
 	if _rebinding != "" and event is InputEventKey and event.pressed and not event.echo:
 		get_viewport().set_input_as_handled()
 		if event.physical_keycode == KEY_ESCAPE and _rebinding != "pause":
 			_rebinding = ""
-			_show_settings()
+			_refresh_settings()
 			return
 		var action := _rebinding
 		_rebinding = ""
 		var clash := Settings.rebind(action, event.physical_keycode)
-		_show_settings()
+		_refresh_settings()
 		if clash != "":
 			_toast("%s was on that key too, so it moved to %s." % [Settings.action_label(clash), Settings.key_name(clash)])
 		return
@@ -104,10 +111,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
-		if Quests.is_log_open():
-			Quests.toggle_log()                    # Pause closes the quest log or the map first
-		elif TownMap.is_open():
-			TownMap.toggle()
+		if PlayerMenu.is_open():
+			PlayerMenu.close()                     # Pause closes the player menu (the quest log, the map...) first
 		elif Shop.is_open():
 			Shop.close()
 		elif not is_open():
@@ -165,15 +170,10 @@ func _show_main() -> void:
 	_clear()
 	_title("Paused")
 	var first := _button("Resume", close)
-	var here := get_tree().current_scene
-	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
-		_button("Go home to town", func():                 # the Scary World: an easy way out, any time
+	for way in way_home():
+		_button(way[0], func():
 			close()
-			Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town"))
-	if here and here.scene_file_path == "res://scenes/earth/earth.tscn":
-		_button("Go back through the portal", func():     # Earth: home before the Shift ends, any time
-			close()
-			Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "home"))
+			(way[1] as Callable).call())
 	_button("Settings", func(): _tab = 0; _show_settings())
 	if Game.has_item("skateboard"):
 		# Coach Rook's skate lesson (scripts/skate_lesson.gd): start it (or carry on), or stop it
@@ -189,6 +189,16 @@ func _show_main() -> void:
 	_button("New Game", _show_confirm)
 	_button("Quit", _quit)
 	_focus(first)
+
+
+func way_home() -> Array:
+	# [button text, what it does] for a quick way home from where the player is (the player menu's Save sheet too)
+	var here := get_tree().current_scene
+	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
+		return [["Go home to town", func(): Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town")]]   # an easy way out, any time
+	if here and here.scene_file_path == "res://scenes/earth/earth.tscn":
+		return [["Go back through the portal", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "home")]]   # home before the Shift ends
+	return []
 
 
 func _show_confirm() -> void:
@@ -222,11 +232,40 @@ func _show_settings() -> void:
 	page = "settings"
 	_clear()
 	_title("Settings")
-	var tabs := TabContainer.new()
+	_host = box
 	var vp := get_viewport().get_visible_rect().size
 	# Fit the screen at any text size; the tab pages scroll when their contents are taller
-	tabs.custom_minimum_size = Vector2(minf(_fs(620), vp.x - 120), minf(_fs(430), vp.y - _fs(40) - _fs(46) - 150))
-	box.add_child(tabs)
+	var tabs := _settings_tabs(box, Vector2(minf(_fs(620), vp.x - 120), minf(_fs(430), vp.y - _fs(40) - _fs(46) - 150)))
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 16)
+	box.add_child(row)
+	var back := _button("Back", _show_main, row)
+	back.custom_minimum_size.x = _fs(200)
+	var reset := _button("Reset to defaults", func(): Settings.reset_to_defaults(); _refresh_settings(), row)
+	reset.custom_minimum_size.x = _fs(260)
+	_focus(tabs.get_tab_bar())
+
+
+func settings_into(host: Control) -> TabContainer:
+	# The player menu's Settings sheet (scripts/player_menu.gd): the same tabs, filling the sheet, and Reset
+	_host = host
+	for c in host.get_children():
+		host.remove_child(c)
+		c.queue_free()
+	var tabs := _settings_tabs(host, Vector2.ZERO)
+	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var reset := _button("Reset to defaults", func(): Settings.reset_to_defaults(); _refresh_settings(), host)
+	reset.custom_minimum_size.x = _fs(260)
+	reset.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return tabs
+
+
+func _settings_tabs(host: Control, size: Vector2) -> TabContainer:
+	var tabs := TabContainer.new()
+	tabs.name = "SettingsTabs"
+	tabs.custom_minimum_size = size
+	host.add_child(tabs)
 	_tab_audio(tabs)
 	_tab_controls(tabs)
 	_tab_display(tabs)
@@ -234,15 +273,20 @@ func _show_settings() -> void:
 	_tab_assist(tabs)
 	tabs.current_tab = _tab
 	tabs.tab_changed.connect(func(i): _tab = i; Audio.play("ui_move", -8.0, 0.0))
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 16)
-	box.add_child(row)
-	var back := _button("Back", _show_main, row)
-	back.custom_minimum_size.x = _fs(200)
-	var reset := _button("Reset to defaults", func(): Settings.reset_to_defaults(); _show_settings(), row)
-	reset.custom_minimum_size.x = _fs(260)
-	_focus(tabs.get_tab_bar())
+	return tabs
+
+
+func _embedded() -> bool:
+	return _host != null and is_instance_valid(_host) and _host != box and _host.is_inside_tree()
+
+
+func _refresh_settings() -> void:
+	# After a change that needs the tabs built again (a new key, a layout, the text size), wherever they are
+	if _embedded():
+		var tabs := settings_into(_host)
+		_focus.call_deferred(tabs.get_tab_bar())
+	else:
+		_show_settings()
 
 
 func _grid(tabs: TabContainer, name: String) -> GridContainer:
@@ -322,7 +366,7 @@ func _choice(g: GridContainer, text: String, prop: String, options: Array, hint 
 		Audio.play("ui_accept", -6.0, 0.0)
 		Settings.set_value(prop, options[i][1])
 		if prop == "text_scale":
-			_show_settings.call_deferred())          # rebuild at the new size
+			_refresh_settings.call_deferred())       # rebuild at the new size
 	g.add_child(o)
 
 
@@ -358,7 +402,7 @@ func _tab_controls(tabs: TabContainer) -> void:
 		lb.pressed.connect(func():
 			Audio.play("ui_accept", -6.0, 0.0)
 			Settings.use_layout(style[1])
-			_show_settings())
+			_refresh_settings())
 		layouts.add_child(lb)
 	g.add_child(layouts)
 	var head := Label.new()
@@ -448,17 +492,27 @@ func _fs(px: float) -> int:
 
 
 func _toast(text: String) -> void:
-	if _rebind_label == null or not is_instance_valid(_rebind_label):
+	if _rebind_label == null or not is_instance_valid(_rebind_label) or _rebind_label.is_queued_for_deletion():
 		_rebind_label = Label.new()
 		_rebind_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_rebind_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_rebind_label.custom_minimum_size.x = _fs(560)
-	if _rebind_label.get_parent() != box:
-		box.add_child(_rebind_label)
+	var host: Control = _host if _embedded() else box
+	if _rebind_label.get_parent() != host:
+		if _rebind_label.get_parent():
+			_rebind_label.get_parent().remove_child(_rebind_label)
+		host.add_child(_rebind_label)
 	_rebind_label.text = text
 
 
 func _apply_theme() -> void:
+	root.theme = make_theme()
+	if is_open() and page == "settings":
+		_show_settings.call_deferred()
+
+
+func make_theme() -> Theme:
+	# The menus' look (the player menu, scripts/player_menu.gd, wears it too): lavender panels, teal highlights
 	var t := Theme.new()
 	var hc := Settings.high_contrast
 	t.default_font_size = _fs(22)
@@ -506,9 +560,7 @@ func _apply_theme() -> void:
 	track.content_margin_bottom = _fs(4)
 	track.set_corner_radius_all(4)
 	t.set_stylebox("slider", "HSlider", track)
-	root.theme = t
-	if is_open() and page == "settings":
-		_show_settings.call_deferred()
+	return t
 
 
 func _dot(size: int, c: Color) -> ImageTexture:

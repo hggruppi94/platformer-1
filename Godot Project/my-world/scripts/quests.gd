@@ -9,7 +9,7 @@ extends Node
 # evening; scripts/routine.gd asks override_for()). Finishing a quest can give an item and a new title.
 #
 # Progress is saved with the game (scripts/game.gd). A small note shows when a step updates, and the quest log
-# (the "quest_log" key, Q) lists what to do next.
+# (the player menu's Quests sheet, scripts/player_menu.gd: Tab, or the "quest_log" key, Q) lists what to do next.
 
 signal changed(quest_id: String)
 
@@ -25,9 +25,7 @@ var _note_layer: CanvasLayer
 var _note: PanelContainer
 var _note_label: Label
 var _note_time := 0.0
-var _log_layer: CanvasLayer
-var _log_panel: PanelContainer
-var _log_text: RichTextLabel
+var _log_text: RichTextLabel         # shown on the player menu's Quests sheet
 
 
 func _ready() -> void:
@@ -262,29 +260,26 @@ func note_text() -> String:
 	return _note_label.text if _note_time > 0.0 else ""
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("quest_log"):
-		get_viewport().set_input_as_handled()
-		toggle_log()
-	elif is_log_open() and event.is_action_pressed("ui_cancel"):     # (Pause closes it too: scripts/pause_menu.gd)
-		get_viewport().set_input_as_handled()
-		toggle_log()
-
-
+# The log is the player menu's Quests sheet (scripts/player_menu.gd), which Q (the "quest_log" key) and Tab open,
+# pausing the game under it.
 func is_log_open() -> bool:
-	return _log_layer.visible
+	return PlayerMenu.showing("quests")
 
 
 func toggle_log() -> void:
-	if not is_log_open() and (get_tree().paused or Dialogue.is_active()):
-		return                                             # not over the pause menu, a bed, or a conversation
-	_log_layer.visible = not _log_layer.visible
-	get_tree().paused = _log_layer.visible
-	if _log_layer.visible:
-		_note_time = 0.0                                   # the log says it all; don't cover it
-		_note.modulate.a = 0.0
-		_log_text.text = log_text()
-		Audio.play("ui_accept", -4.0, 0.0)
+	PlayerMenu.toggle_sheet("quests")
+
+
+func log_view() -> RichTextLabel:
+	# The sheet shows this, filled in fresh each time it opens
+	_note_time = 0.0                                       # the log says it all; don't cover it
+	_note.modulate.a = 0.0
+	_log_text.text = log_text()
+	return _log_text
+
+
+func log_view_node() -> RichTextLabel:
+	return _log_text
 
 
 func log_text() -> String:
@@ -327,33 +322,28 @@ func _build_ui() -> void:
 	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_note.add_child(_note_label)
 	_note_layer.add_child(_note)
-	_log_layer = CanvasLayer.new()
-	_log_layer.layer = 35
-	_log_layer.visible = false
-	add_child(_log_layer)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_log_layer.add_child(center)
-	_log_panel = PanelContainer.new()
-	center.add_child(_log_panel)
 	_log_text = RichTextLabel.new()
 	_log_text.bbcode_enabled = true
 	_log_text.fit_content = true
 	_log_text.scroll_active = false
-	_log_panel.add_child(_log_text)
+	_log_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+
+func _exit_tree() -> void:
+	if _log_text.get_parent() == null:
+		_log_text.free()                               # put away (not on the player menu) when the game quits
 
 
 func _apply_look() -> void:
 	var hc := Settings.high_contrast
-	for p in [_note, _log_panel]:
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.1, 0.08, 0.15, 0.9)
-		style.set_corner_radius_all(12)
-		style.set_content_margin_all(roundi(16 * Settings.text_scale))
-		if hc:
-			style.border_color = Color(1, 1, 1)
-			style.set_border_width_all(2)
-		(p as PanelContainer).add_theme_stylebox_override("panel", style)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.1, 0.08, 0.15, 0.9)
+	style.set_corner_radius_all(12)
+	style.set_content_margin_all(roundi(16 * Settings.text_scale))
+	if hc:
+		style.border_color = Color(1, 1, 1)
+		style.set_border_width_all(2)
+	_note.add_theme_stylebox_override("panel", style)
 	_note.custom_minimum_size.x = roundi(320 * Settings.text_scale)
 	_note_label.custom_minimum_size.x = roundi(300 * Settings.text_scale)
 	_note_label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
