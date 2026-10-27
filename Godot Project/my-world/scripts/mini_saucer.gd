@@ -49,6 +49,7 @@ func _ready() -> void:
 		_build_saucer()
 	if pilot:
 		_hull.add_child(pilot)
+		LittleAliens.vary_snout(pilot)
 		pilot.position = Vector3(0, 0.08, 0) if not jetpack else Vector3(0, -0.3, 0)
 		var anim := pilot.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		var pose := "float" if jetpack else "sit"

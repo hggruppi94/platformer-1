@@ -40,6 +40,7 @@ func _ready() -> void:
 				_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 		_anim.speed_scale = randf_range(0.9, 1.15)        # so a crowd doesn't move in lockstep
 	_timer = randf_range(0.2, 3.0)
+	LittleAliens.vary_snout(self)
 	_play("idle")
 
 

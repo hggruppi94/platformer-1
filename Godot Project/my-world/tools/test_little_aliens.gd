@@ -64,6 +64,13 @@ func _run() -> void:
 	var moves := ["idle", "walk", "run", "sit", "float", "wave"]
 	check(anim != null and moves.all(func(a: String) -> bool: return anim.has_animation(a)),
 		"they can idle, walk, run, sit, float and wave")
+	var sizes := {}
+	for w in walkers:
+		var skel := w.find_child("Skeleton3D", true, false) as Skeleton3D
+		var bone := skel.find_bone("snout")
+		if bone >= 0:
+			sizes[snappedf(skel.get_bone_pose_scale(bone).y, 0.05)] = true
+	check(sizes.size() >= 8, "their snouts come in lots of sizes (%d different)" % sizes.size())
 
 	# --- Nothing of theirs is solid ---
 	var solid := crowd.find_children("*", "CollisionObject3D", true, false)
@@ -74,10 +81,19 @@ func _run() -> void:
 
 	# --- They keep to their surfaces as they wander ---
 	var before := walkers.map(func(w: Node3D) -> Vector3: return w.global_position)
+	var snouts := walkers.map(func(w: Node3D) -> Vector3:
+		var skel := w.find_child("Skeleton3D", true, false) as Skeleton3D
+		return skel.get_bone_pose_scale(skel.find_bone("snout")))
 	p.global_position = Vector3(40, 3, 40)                    # out of the way of most of them
 	for w in walkers:
 		w.visible = true
 	await create_timer(8.0).timeout
+	var kept := 0
+	for i in walkers.size():
+		var skel := walkers[i].find_child("Skeleton3D", true, false) as Skeleton3D
+		if skel.get_bone_pose_scale(skel.find_bone("snout")).is_equal_approx(snouts[i]):
+			kept += 1
+	check(kept == walkers.size(), "...and walking about doesn't change them (%d of %d kept theirs)" % [kept, walkers.size()])
 	var moved := 0
 	for i in walkers.size():
 		if walkers[i].global_position.distance_to(before[i]) > 0.5:

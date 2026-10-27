@@ -79,6 +79,8 @@ func _run() -> void:
 		anim.play("wave" if i % 3 == 1 else "idle")
 	cam.make_current()
 	await _view("02_all_seven", row_at + Vector3(0, 1.0, 5.0), row_at + Vector3(0, 0.4, 0))
+	# 2b. The same row from the side, close, to see their snouts: each colour's own shape, each one's own size
+	await _view("02b_snouts", row_at + Vector3(3.2, 0.75, 2.2), row_at + Vector3(-0.3, 0.55, 0))
 	for i in 7:
 		walkers[i].set_physics_process(true)
 

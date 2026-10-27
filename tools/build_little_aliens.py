@@ -28,14 +28,14 @@ OUT_DIR = ROOT / "source_art" / "characters"
 
 # colour: suit, face (darker), stripe (lighter), the extra they wear, how tall they are (1 = 0.55 m)
 ALIENS = {
-    "blue":   dict(suit=(0.02, 0.10, 0.62), face=(0.012, 0.05, 0.32), stripe=(0.35, 0.6, 1.0), extra="wings"),
-    "purple": dict(suit=(0.22, 0.04, 0.50), face=(0.10, 0.02, 0.24), stripe=(0.65, 0.42, 0.95), extra="flowing"),
+    "blue":   dict(suit=(0.02, 0.10, 0.62), face=(0.012, 0.05, 0.32), stripe=(0.35, 0.6, 1.0), extra="wings", snout="muzzle"),
+    "purple": dict(suit=(0.22, 0.04, 0.50), face=(0.10, 0.02, 0.24), stripe=(0.65, 0.42, 0.95), extra="flowing", snout="button"),
     "yellow": dict(suit=(0.88, 0.62, 0.02), face=(0.48, 0.30, 0.01), stripe=(1.0, 0.92, 0.45), extra="tall",
-                   tall=1.2),
-    "red":    dict(suit=(0.62, 0.02, 0.035), face=(0.30, 0.01, 0.015), stripe=(1.0, 0.55, 0.55), extra="cape"),
-    "pink":   dict(suit=(0.90, 0.26, 0.46), face=(0.52, 0.10, 0.22), stripe=(1.0, 0.75, 0.85), extra="fins"),
-    "orange": dict(suit=(0.92, 0.24, 0.01), face=(0.50, 0.10, 0.005), stripe=(1.0, 0.70, 0.30), extra="sleeves"),
-    "green":  dict(suit=(0.05, 0.30, 0.05), face=(0.02, 0.15, 0.02), stripe=(0.95, 0.80, 0.10), extra="tail"),
+                   snout="long", tall=1.2),
+    "red":    dict(suit=(0.62, 0.02, 0.035), face=(0.30, 0.01, 0.015), stripe=(1.0, 0.55, 0.55), extra="cape", snout="pig"),
+    "pink":   dict(suit=(0.90, 0.26, 0.46), face=(0.52, 0.10, 0.22), stripe=(1.0, 0.75, 0.85), extra="fins", snout="beak"),
+    "orange": dict(suit=(0.92, 0.24, 0.01), face=(0.50, 0.10, 0.005), stripe=(1.0, 0.70, 0.30), extra="sleeves", snout="bulb"),
+    "green":  dict(suit=(0.05, 0.30, 0.05), face=(0.02, 0.15, 0.02), stripe=(0.95, 0.80, 0.10), extra="tail", snout="wide"),
 }
 
 
@@ -86,7 +86,8 @@ def build(colour, spec):
             ellipsoid(f"Ear Pad.{side}", hc + Vector((0.148 * sx, 0.005, -0.005)), (0.022, 0.05, 0.05), "Suit", HB)
             ellipsoid(f"Ear Dot.{side}", hc + Vector((0.168 * sx, 0.005, -0.005)), (0.006, 0.026, 0.026),
                       "Stripe", HB)
-    arc_on(FACE, "Mouth", [(-0.014 + 0.028 * i / 6, hc.z - 0.07 + 6.0 * (-0.014 + 0.028 * i / 6) ** 2)
+    snout_tip = _snout(spec["snout"], FACE, hc)
+    arc_on(FACE, "Mouth", [(-0.014 + 0.028 * i / 6, hc.z - 0.082 + 6.0 * (-0.014 + 0.028 * i / 6) ** 2)
                            for i in range(7)], 0.0035, "Eye", HB, offset=0.001)
     # The seam over the top of the hood, in the stripe colour
     tube("Hood Seam", [HOOD.dir_point((0, -0.6 + 1.6 * k / 10, 1.0 - abs(-0.6 + 1.6 * k / 10) * 0.3), 0.002)
@@ -131,6 +132,11 @@ def build(colour, spec):
 
     BONES = biped_bones(hips=leg, chest=chest, neck=neck, head_top=hc.z + 0.15, shoulder=SH, elbow=EL, wrist=WR,
                         hand_tip=TIP, hip_x=hip_x, knee=knee, ankle=ankle, toe=(-0.07, 0.012))
+    # Its own bone, from where the snout meets the face out to its tip, so the game can make each alien's snout a
+    # different size (scripts/little_alien.gd) without a model per size
+    base = FACE.front(0, hc.z + SNOUT_Z, -0.01)
+    BONES["snout"] = (tuple(base), tuple(snout_tip if (snout_tip - base).length > 0.01 else base + Vector((0, -0.03, 0))),
+                      "head")
     rig = build_rig("LittleAlienRig", BONES)
     skin_and_join(rig, BONES, "LittleAlien", "Torso")
     make_action(rig, "idle", 90, lambda t: alien_idle(BONES, t))
@@ -141,6 +147,50 @@ def build(colour, spec):
     make_action(rig, "wave", 40, lambda t: alien_wave(BONES, t))
     rest_pose(rig)
     finish(OUT_DIR / f"little_alien_{colour}.blend")
+
+
+SNOUT_Z = -0.052                          # how far below the middle of the hood the snout sits, under the eyes
+
+
+def _snout(kind, FACE, hc):
+    """Each colour's own snout, all on the "snout" bone. Returns where its tip is."""
+    SB = ["snout"]
+    z0 = hc.z + SNOUT_Z
+    b = FACE.front(0, z0, -0.01)
+    fwd = Vector((0, -1, 0))
+
+    def nostrils(at, gap, r=0.0045):
+        for sx in (-1, 1):
+            ellipsoid(f"Nostril{sx}", at + Vector((gap * sx, 0, 0)), (r, r * 0.7, r * 0.8), "Eye", SB, u=8, v=4)
+    if kind == "muzzle":                 # a long rounded muzzle, a little like an anteater's
+        tip = b + Vector((0, -0.075, -0.014))
+        capsule("Snout", [b, b + Vector((0, -0.04, -0.004)), tip], 0.026, 0.016, "Face", SB, sides=14)
+        ellipsoid("Snout Nose", tip + fwd * 0.012, (0.013, 0.008, 0.01), "Eye", SB, u=12, v=6)
+    elif kind == "button":               # just a small round button nose
+        tip = FACE.front(0, z0, 0.006)
+        ellipsoid("Snout", tip, (0.021, 0.017, 0.017), "Face", SB, u=16, v=8)
+        nostrils(tip + fwd * 0.015 + Vector((0, 0, -0.004)), 0.007, 0.003)
+    elif kind == "long":                 # a long thin nose that curls up at the end: very curious
+        tip = b + Vector((0, -0.095, 0.03))
+        lock("Snout", [b, b + Vector((0, -0.055, -0.004)), tip], 0.02, "Face", SB, flat=1.0, tip=0.008, taper=0.8)
+        ellipsoid("Snout Tip", tip, (0.011, 0.011, 0.011), "Stripe", SB, u=12, v=6)
+    elif kind == "pig":                  # a short round pig snout with a flat end and two nostrils
+        tip = b + Vector((0, -0.04, 0))
+        cylinder("Snout", b, tip, 0.026, "Face", SB, sides=20)
+        ellipsoid("Snout End", tip, (0.027, 0.006, 0.023), "Face", SB, u=20, v=8)
+        nostrils(tip + fwd * 0.005, 0.009, 0.005)
+    elif kind == "beak":                 # a dolphin's bottle nose
+        tip = b + Vector((0, -0.065, -0.008))
+        capsule("Snout", [b, tip], 0.024, 0.009, "Face", SB, sides=14)
+    elif kind == "bulb":                 # a big bulb of a nose
+        tip = FACE.front(0, z0, 0.018)
+        ellipsoid("Snout", tip, (0.031, 0.028, 0.027), "Face", SB, u=20, v=10)
+        nostrils(tip + Vector((0, -0.022, -0.012)), 0.011, 0.005)
+    else:                                # "wide": a wide flat frog snout
+        tip = FACE.front(0, z0, 0.004)
+        ellipsoid("Snout", tip, (0.046, 0.02, 0.017), "Face", SB, u=24, v=10)
+        nostrils(tip + Vector((0, -0.016, 0.009)), 0.014, 0.004)
+    return Vector(tip)
 
 
 def _extra(kind, hc, HOOD, TORSO, leg, chest, s, SH, EL, WR):

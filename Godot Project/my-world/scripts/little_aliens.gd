@@ -32,6 +32,27 @@ var _check := 0.0
 
 # Whether a ray hit is something real an alien may stand on or land on: not the town's invisible edge walls, not
 # water, not a character or anything that moves.
+# Gives one alien a snout of its own size: each colour has its own snout shape (tools/build_little_aliens.py) on a
+# "snout" bone, and here it's stretched longer or shorter, fatter or thinner, so no two in a crowd look the same.
+# The bone's scale isn't animated, so any scale tracks the exporter baked for it are dropped first (the animations
+# are shared by every alien of that colour, so this only does real work once).
+static func vary_snout(model: Node) -> void:
+	var skel := model.find_child("Skeleton3D", true, false) as Skeleton3D
+	var bone := skel.find_bone("snout") if skel else -1
+	if bone < 0:
+		return
+	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if anim:
+		for a_name in anim.get_animation_list():
+			var a := anim.get_animation(a_name)
+			for t in range(a.get_track_count() - 1, -1, -1):
+				if a.track_get_type(t) == Animation.TYPE_SCALE_3D and str(a.track_get_path(t)).ends_with(":snout"):
+					a.remove_track(t)
+	var length := randf_range(0.55, 1.8)                 # the bone runs out from the face along its own Y
+	var width := lerpf(1.0, length, 0.45) * randf_range(0.8, 1.25)
+	skel.set_bone_pose_scale(bone, Vector3(width, length, width))
+
+
 static func walkable(hit: Dictionary) -> bool:
 	var body := hit.get("collider") as Node
 	if body == null or not (body is StaticBody3D) or body.is_in_group("player"):

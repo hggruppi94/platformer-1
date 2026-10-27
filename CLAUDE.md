@@ -77,6 +77,11 @@ Read this first in every session so each iteration builds on the last one and do
   hover, land on roofs, swoop past the player and do spins, darts and loops. `LittleAliens.walkable()` keeps them off
   the invisible edge walls, the lake bed and characters (`tools/test_little_aliens.gd`,
   `tools/capture_little_aliens.gd`, `previews/little_aliens/`).
+- 2026-10-27: The little aliens got snouts (Hayden). Each colour has its own shape (`_snout()` in
+  `build_little_aliens.py`): blue a long muzzle, purple a button nose, yellow a long nose curling up, red a pig snout,
+  pink a dolphin beak, orange a big bulb nose, green a wide frog snout. The snout is on its own "snout" bone, and
+  `LittleAliens.vary_snout()` stretches it to a random length and width for every alien (walkers and pilots), so no
+  two look the same (`02b_snouts.png` in `previews/little_aliens/`).
 - 2026-10-26: Clothes fit everyone. Pieces used to be moved from Nina by a few bone positions and one width, so hats
   hovered over hair or sank into it, capes and jetpacks floated off backs (they were placed for Nina's backpack),
   gloves sat at the wrist of T-posed arms, a skirt was sized round backpacks, the headphones' band ran front to back
