@@ -66,6 +66,16 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-27: The Agent of Chaos, the giant villain, from Hayden's picture (`tools/build_chaos_giant.py` →
+  `chaos_giant.blend/.glb`; idle, walk, chaos): a hooded figure in gold and dark armour and torn bone-white cloth,
+  with gold skulls, a broken crown and a cracked clock on his chest running backwards. Built about 2.75 m and scaled
+  x4 in town (about 11 m), he stomps slowly back and forth in the far northeast field behind the castle hill
+  (`ChaosGiant` in `characters.tscn`, `scripts/chaos_giant.gd`, patrol (128, -232) to (104, -180)), broods, and now
+  and then flings his arms up and lets the chaos out. He does that at the player too when they come near, but he
+  never chases or hurts anyone. He's solid (a capsule round his legs) and shows on the town map (the
+  "map_landmarks" group). Hayden may rename him the Agent of Time: his name is only `NAME` in `chaos_giant.gd`
+  (`tools/test_chaos_giant.gd`, `tools/capture_chaos_giant.gd`, `previews/chaos_giant/`).
+
 - 2026-10-27: The little aliens, from Hayden's sheet of tiny space kids: seven colours in shiny hooded suits with huge
   black eyes (blue with a wing cape, purple flowing suit, tall curious yellow, red cape, pink fins, orange wide
   sleeves, green tail), built by `tools/build_little_aliens.py` (`little_alien_<colour>.blend/.glb`; idle, walk, run,

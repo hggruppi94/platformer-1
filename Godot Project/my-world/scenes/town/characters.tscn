@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 [ext_resource type="PackedScene" path="res://models/characters/astronaut.glb" id="14_astro"]
 [ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
+[ext_resource type="PackedScene" path="res://models/characters/chaos_giant.glb" id="16_chaos"]
+[ext_resource type="Script" path="res://scripts/chaos_giant.gd" id="17_chaos"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -30,6 +32,10 @@ height = 1.2
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_palmer"]
 radius = 0.42
 height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_giant"]
+radius = 1.5
+height = 9.5
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bike"]
 size = Vector3(0.5, 0.9, 1.4)
@@ -247,6 +253,19 @@ name_height = 2.2
 [node name="Shape" type="CollisionShape3D" parent="Astronaut/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_palmer")
+
+[node name="ChaosGiant" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 128, 0, -232)
+script = ExtResource("17_chaos")
+
+[node name="Model" parent="ChaosGiant" instance=ExtResource("16_chaos")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
+
+[node name="Body" type="AnimatableBody3D" parent="ChaosGiant"]
+
+[node name="Shape" type="CollisionShape3D" parent="ChaosGiant/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.75, 0)
+shape = SubResource("CapsuleShape3D_giant")
 
 [node name="LittleAliens" type="Node3D" parent="."]
 script = ExtResource("15_aliens")

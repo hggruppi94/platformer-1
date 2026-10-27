@@ -299,6 +299,13 @@ func _draw_full() -> void:
 				var at := r.position + to_map(n.global_position) * r.size
 				c.draw_circle(at, 3.0, Color(1, 1, 1, 0.9))
 				_text(c, at + Vector2(0, _fs(13)), b, _fs(14), Color(1, 1, 1, 0.95), true, true)
+		# Things that roam about and name themselves (the Agent of Chaos, scripts/chaos_giant.gd): in the
+		# "map_landmarks" group with a map_name().
+		for n in get_tree().get_nodes_in_group("map_landmarks"):
+			var at := r.position + to_map((n as Node3D).global_position) * r.size
+			c.draw_circle(at, 7.0, Color(1.0, 0.3, 0.45))
+			c.draw_arc(at, 7.0, 0, TAU, 16, Color(0.25, 0.05, 0.1), 1.5)
+			_text(c, at + Vector2(0, -_fs(15)), str(n.call("map_name")), _fs(15), Color(1.0, 0.55, 0.6), true, true)
 		if portal_open():
 			var portal := s.get_node_or_null("Portal to Earth") as Node3D
 			if portal:
