@@ -28,14 +28,14 @@ OUT_DIR = ROOT / "source_art" / "characters"
 
 # colour: suit, face (darker), stripe (lighter), the extra they wear, how tall they are (1 = 0.55 m)
 ALIENS = {
-    "blue":   dict(suit=(0.02, 0.10, 0.62), face=(0.012, 0.05, 0.32), stripe=(0.35, 0.6, 1.0), extra="wings", snout="muzzle"),
+    "blue":   dict(suit=(0.02, 0.10, 0.62), face=(0.012, 0.05, 0.32), stripe=(0.35, 0.6, 1.0), extra="wings", snout="beak"),
     "purple": dict(suit=(0.22, 0.04, 0.50), face=(0.10, 0.02, 0.24), stripe=(0.65, 0.42, 0.95), extra="flowing", snout="button"),
     "yellow": dict(suit=(0.88, 0.62, 0.02), face=(0.48, 0.30, 0.01), stripe=(1.0, 0.92, 0.45), extra="tall",
-                   snout="long", tall=1.2),
-    "red":    dict(suit=(0.62, 0.02, 0.035), face=(0.30, 0.01, 0.015), stripe=(1.0, 0.55, 0.55), extra="cape", snout="pig"),
+                   snout="button", tall=1.2),
+    "red":    dict(suit=(0.62, 0.02, 0.035), face=(0.30, 0.01, 0.015), stripe=(1.0, 0.55, 0.55), extra="cape", snout="beak"),
     "pink":   dict(suit=(0.90, 0.26, 0.46), face=(0.52, 0.10, 0.22), stripe=(1.0, 0.75, 0.85), extra="fins", snout="beak"),
-    "orange": dict(suit=(0.92, 0.24, 0.01), face=(0.50, 0.10, 0.005), stripe=(1.0, 0.70, 0.30), extra="sleeves", snout="bulb"),
-    "green":  dict(suit=(0.05, 0.30, 0.05), face=(0.02, 0.15, 0.02), stripe=(0.95, 0.80, 0.10), extra="tail", snout="wide"),
+    "orange": dict(suit=(0.92, 0.24, 0.01), face=(0.50, 0.10, 0.005), stripe=(1.0, 0.70, 0.30), extra="sleeves", snout="button"),
+    "green":  dict(suit=(0.05, 0.30, 0.05), face=(0.02, 0.15, 0.02), stripe=(0.95, 0.80, 0.10), extra="tail", snout="beak"),
 }
 
 
