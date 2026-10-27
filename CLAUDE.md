@@ -66,6 +66,17 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-27: The little aliens, from Hayden's sheet of tiny space kids: seven colours in shiny hooded suits with huge
+  black eyes (blue with a wing cape, purple flowing suit, tall curious yellow, red cape, pink fins, orange wide
+  sleeves, green tail), built by `tools/build_little_aliens.py` (`little_alien_<colour>.blend/.glb`; idle, walk, run,
+  sit, float, wave). They're scenery, with no collision: `scripts/little_aliens.gd` (the `LittleAliens` node at the
+  end of `characters.tscn`) scatters 30 walkers, 7 tiny saucers and 4 jetpack floaters over the town. Walkers
+  (`scripts/little_alien.gd`) feel along their surface with rays, so they climb walls, roll over onto roofs and turn
+  back at edges, and wave at or scurry from the player; far-off ones are hidden and paused, and ones left behind are
+  moved near the player. Saucers (`scripts/mini_saucer.gd`, built from shapes in the mothership's colours) cruise,
+  hover, land on roofs, swoop past the player and do spins, darts and loops. `LittleAliens.walkable()` keeps them off
+  the invisible edge walls, the lake bed and characters (`tools/test_little_aliens.gd`,
+  `tools/capture_little_aliens.gd`, `previews/little_aliens/`).
 - 2026-10-26: Clothes fit everyone. Pieces used to be moved from Nina by a few bone positions and one width, so hats
   hovered over hair or sank into it, capes and jetpacks floated off backs (they were placed for Nina's backpack),
   gloves sat at the wrist of T-posed arms, a skirt was sized round backpacks, the headphones' band ran front to back

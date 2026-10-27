@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/mr_palmer.glb" id="12_palmer"]
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 [ext_resource type="PackedScene" path="res://models/characters/astronaut.glb" id="14_astro"]
+[ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_kid"]
 radius = 0.32
@@ -246,3 +247,6 @@ name_height = 2.2
 [node name="Shape" type="CollisionShape3D" parent="Astronaut/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_palmer")
+
+[node name="LittleAliens" type="Node3D" parent="."]
+script = ExtResource("15_aliens")
