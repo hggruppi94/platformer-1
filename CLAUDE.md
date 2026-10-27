@@ -92,6 +92,12 @@ Read this first in every session so each iteration builds on the last one and do
   hero..., the skate lesson, the how-to tips, saving, a new game and quitting. The quest log has no controller button
   of its own now (Back is the menu); old settings with something on Tab give Tab to the menu (`Settings._claim`).
   Godot's `ui_cancel` is only Esc, so B is checked by hand (`tools/test_player_menu.gd`, `previews/player_menu/`).
+- 2026-10-25: The quarter pipes are visible again (town Skate Park and the Practice Park's halfpipes).
+  `skate_kit.gd prism()` worked out which way each face points by looking away from the middle of the ramp's side
+  outline, which is wrong on a quarter pipe's hollow curve, so the curve was built inside out: Godot only draws the
+  front of a face, so it was invisible, though still rideable. It now goes by which way round the outline runs.
+  `tools/test_skate_pieces.gd` checks every solid skate piece has a shown, solid mesh with every face outward
+  (`previews/skatepark_ramps/`, before and after).
 - 2026-10-25: Skating help and control choices. Forgiving bails: `Settings.skate_assist` (Settings → Assist →
   "Skating landings": Relaxed, Normal (the default), Pro = the old strict rules; table `Skate.ASSIST` in `skate.gd`).
   Relaxed and Normal land wider, finish a nearly-done flip, slip off rails and out of manuals instead of falling, keep

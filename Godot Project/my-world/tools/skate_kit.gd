@@ -259,23 +259,21 @@ func prism(profile: PackedVector2Array, width: float, m: Material, parent: Node,
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var n := profile.size()
-	var centre := Vector2.ZERO
-	for q in profile:
-		centre += q
-	centre /= n
+	# Which way round the outline goes says which side of every edge is outside. (Pointing away from the outline's
+	# middle doesn't: on a quarter pipe's hollow curve that points into the ramp, and its faces came out inside out,
+	# so the curve was invisible though she could still ride it.)
+	var turn := _winding(profile)
 	var hw := width / 2
 	for i in n:
 		var p0 := profile[i]
 		var p1 := profile[(i + 1) % n]
 		var edge := p1 - p0
-		var out := Vector2(edge.y, -edge.x).normalized()      # perpendicular to the edge
-		if out.dot((p0 + p1) / 2 - centre) < 0.0:
-			out = -out
+		var out := Vector2(edge.y, -edge.x).normalized() * turn      # perpendicular to the edge, outward
 		var n0 := Vector3(0, out.y, out.x)
 		var n1 := n0
 		if i < smooth_top:
-			n0 = _smooth_normal(profile, i, centre)
-			n1 = _smooth_normal(profile, i + 1, centre)
+			n0 = _smooth_normal(profile, i, turn)
+			n1 = _smooth_normal(profile, i + 1, turn)
 		var a := Vector3(-hw, p0.y, p0.x)
 		var b := Vector3(hw, p0.y, p0.x)
 		var c := Vector3(hw, p1.y, p1.x)
@@ -305,14 +303,23 @@ func prism(profile: PackedVector2Array, width: float, m: Material, parent: Node,
 	parent.add_child(body)
 
 
-func _smooth_normal(profile: PackedVector2Array, i: int, centre: Vector2) -> Vector3:
+func _winding(profile: PackedVector2Array) -> float:
+	# +1 if the outline goes round anticlockwise (in its own (z, y) plane), -1 if clockwise: the outside of each edge
+	# is then on its right, or its left
+	var area := 0.0
+	for i in profile.size():
+		var a := profile[i]
+		var b := profile[(i + 1) % profile.size()]
+		area += a.x * b.y - b.x * a.y
+	return 1.0 if area > 0.0 else -1.0
+
+
+func _smooth_normal(profile: PackedVector2Array, i: int, turn: float) -> Vector3:
 	var n := profile.size()
 	var prev := profile[(i - 1 + n) % n]
 	var next := profile[(i + 1) % n]
 	var t := (next - prev).normalized()
-	var out := Vector2(t.y, -t.x)
-	if out.dot(profile[i] - centre) < 0.0:
-		out = -out
+	var out := Vector2(t.y, -t.x) * turn
 	return Vector3(0, out.y, out.x).normalized()
 
 
