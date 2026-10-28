@@ -1,0 +1,9 @@
+{
+  "speed": 1.1,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "07:30", "place": "palmers_step", "do": "idle", "face": [-72, 49], "label": "office_hours"},
+    {"at": "17:00", "place": "market", "do": "wander", "radius": 8, "label": "evening_stroll"},
+    {"at": "20:30", "place": "town_hall", "do": "away", "label": "asleep"}
+  ]
+}

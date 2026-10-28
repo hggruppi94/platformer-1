@@ -1,7 +1,7 @@
 # Routines: where people are during the day
 
 One schedule per character, named after their `character_id` (the same one as their dialogue file): `dash.json`,
-`rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`. `scripts/routine.gd` (the `Routine` node under
+`rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `nina.json`, `mr_palmer.json`. `scripts/routine.gd` (the `Routine` node under
 each character in `scenes/town/characters.tscn`) follows it, using the game clock.
 
 ```json

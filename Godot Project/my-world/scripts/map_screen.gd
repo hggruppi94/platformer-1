@@ -78,12 +78,14 @@ func nina_facing() -> float:
 
 
 func people() -> Array:
-	# [{id, name, pos, home}] for everyone with a daily routine, plus Mr. Palmer at his window
+	# [{id, name, pos, home}] for everyone with a daily routine
 	var out := []
 	for r in get_tree().get_nodes_in_group("routines"):
 		var body := r.get_parent() as Node3D
 		var id := str(r.get("character_id"))
 		var talk := body.get_node_or_null("Talk")
+		if talk == null and get_tree().current_scene:
+			talk = _talker(get_tree().current_scene, id)     # Mr. Palmer talks from his window, not his body
 		var name := Quests.display_name(id, str(talk.get("display_name")) if talk else id.capitalize())
 		out.append({"id": id, "name": name, "pos": body.global_position, "home": not r.call("is_present")})
 	return out

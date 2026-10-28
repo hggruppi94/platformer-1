@@ -12,7 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0
@@ -160,6 +160,23 @@ func _run() -> void:
 			back = true
 			break
 	check(back, "...and at 1 AM, after the Shift, he walks back")
+
+	# Mr. Palmer at bedtime: from his evening stroll he walks to the Town Hall door and goes in, rather than standing
+	# outside all night
+	clock.set_time(3, 20 * 60 + 29.7, true)
+	await _settle()
+	var palmer := _body("mr_palmer")
+	player.global_position = palmer.global_position + Vector3(5, 1, 0)
+	Engine.time_scale = 4.0
+	var strolled_home := false
+	for i in 1500:
+		await physics_frame
+		strolled_home = strolled_home or routines.mr_palmer.is_travelling()
+		if strolled_home and not routines.mr_palmer.is_travelling():
+			break
+	Engine.time_scale = 1.0
+	check(strolled_home and not palmer.visible and _flat_dist(palmer.global_position, "town_hall") < 1.5,
+		"at 8:30 PM Mr. Palmer walks home to the Town Hall and goes in (%.1f m from its door)" % _flat_dist(palmer.global_position, "town_hall"))
 
 	# Asleep / away: not in town, nobody to talk to; sleeping on to the morning puts everyone in place
 	clock.set_time(3, 22 * 60.0, true)

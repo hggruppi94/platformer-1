@@ -66,6 +66,11 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-28: Mr. Palmer has a daily routine in town (`routines/mr_palmer.json`), so he no longer stands outside the
+  Town Hall all night. Office hours from 7:30 AM by his window (new place `palmers_step`), an evening stroll round the
+  market from 5 PM, and at 8:30 PM he walks to the Town Hall door and goes in (away) until morning. He still talks from
+  his window (`Palmers Window/Talk`), so the map finds his name there. His town self now wears his wardrobe outfit too.
+  `test_routines` checks him and his walk home.
 - 2026-10-27: The Agent of Chaos, the giant villain, from Hayden's picture (`tools/build_chaos_giant.py` →
   `chaos_giant.blend/.glb`; idle, walk, chaos): a hooded figure in gold and dark armour and torn bone-white cloth,
   with gold skulls, a broken crown and a cracked clock on his chest running backwards. Built about 2.75 m and scaled

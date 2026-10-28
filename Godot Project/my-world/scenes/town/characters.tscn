@@ -206,6 +206,10 @@ animation = "idle"
 
 [node name="Model" parent="MrPalmer" instance=ExtResource("12_palmer")]
 
+[node name="Routine" type="Node" parent="MrPalmer"]
+script = ExtResource("11_routine")
+character_id = "mr_palmer"
+
 [node name="Body" type="StaticBody3D" parent="MrPalmer"]
 
 [node name="Shape" type="CollisionShape3D" parent="MrPalmer/Body"]
