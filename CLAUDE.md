@@ -66,6 +66,15 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-28: Mr. Palmer's Galaxity form, an alien mayor with an elephant trunk (`tools/build_mr_palmer_alien.py` →
+  `mr_palmer_alien.blend/.glb`; idle, walk, grab). He keeps his tummy, suit, red tie, sash, round glasses and grey
+  moustache, with mint-teal spotted skin, lilac ear fins and crest, antennae with gold bobbles, three fingers and a
+  stubby tail. The trunk runs on its own chain of bones (`trunk.0`-`trunk.7`): it sways in idle and swings in walk.
+  In town (`MrPalmer` in `characters.tscn`, and his Mayor-mobile in `rides.gd`) he's the alien; his human model
+  (`mr_palmer.glb`) stays for Earth later. `scripts/palmer_trunk.gd` puts a tea table in front of his office-hours spot
+  and every 9-18 s he curls his trunk round the teacup, lifts it and puts it back (the cup follows a BoneAttachment3D
+  on the trunk tip, read in `_process` so it stays in step with what's drawn). `tools/test_palmer.gd`,
+  `tools/capture_palmer.gd` (previews in `previews/mr_palmer_alien/`).
 - 2026-10-28: Skating feels more fun, and you can grind anything (Hayden). Momentum: pushing works up hills (ground up
   to about 40 degrees, `HILL_MIN_Y`; only `uphill_pull` of a hill holds her back while she pushes, all of it when she
   coasts), the first pushes from a standstill are stronger (`push_kick`), glides are longer (`coast` 0.45), and she

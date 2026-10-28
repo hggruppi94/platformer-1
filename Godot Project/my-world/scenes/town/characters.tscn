@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/npc.gd" id="1_npc"]
+[ext_resource type="Script" path="res://scripts/palmer_trunk.gd" id="18_trunk"]
 [ext_resource type="PackedScene" path="res://models/characters/cattle_girl.glb" id="2_cattle"]
 [ext_resource type="PackedScene" path="res://models/characters/moth_kid.glb" id="3_moth"]
 [ext_resource type="PackedScene" path="res://models/characters/bike_boy.glb" id="4_boy"]
@@ -11,7 +12,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/green_man.glb" id="7_green"]
 [ext_resource type="Script" path="res://scripts/talker.gd" id="10_talk"]
 [ext_resource type="Script" path="res://scripts/routine.gd" id="11_routine"]
-[ext_resource type="PackedScene" path="res://models/characters/mr_palmer.glb" id="12_palmer"]
+[ext_resource type="PackedScene" path="res://models/characters/mr_palmer_alien.glb" id="12_palmer"]
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 [ext_resource type="PackedScene" path="res://models/characters/astronaut.glb" id="14_astro"]
 [ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
@@ -209,6 +210,9 @@ animation = "idle"
 [node name="Routine" type="Node" parent="MrPalmer"]
 script = ExtResource("11_routine")
 character_id = "mr_palmer"
+
+[node name="Trunk" type="Node" parent="MrPalmer"]
+script = ExtResource("18_trunk")
 
 [node name="Body" type="StaticBody3D" parent="MrPalmer"]
 

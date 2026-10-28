@@ -224,7 +224,7 @@ const RIDERS := {
 		},
 	},
 	"mr_palmer": {
-		"rider": "Mr. Palmer", "name": "Mayor-mobile", "model": "res://models/characters/mr_palmer.glb", "kit": "segway",
+		"rider": "Mr. Palmer", "name": "Mayor-mobile", "model": "res://models/characters/mr_palmer_alien.glb", "kit": "segway",
 		"stance": 0.0, "deck": 0.18, "anim": "idle",
 		# Steady as a mayor: slow, very hard to fall off rails, little hops
 		"push_speed": 7.5, "max_speed": 15.0, "push_accel": 5.0, "carve": 2.2,
