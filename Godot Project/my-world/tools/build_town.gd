@@ -48,6 +48,8 @@ const OBS_HILL := Vector3(105, -88, 16)           # x, z, height
 const OBS_HILL_TOP := 10.0
 const OBS_HILL_FOOT := 42.0
 const SKATE := Vector2(50, 58)
+const RAIL_GAP := 16.0                              # metres between the rails along the town's paths (_town_rails)
+const RAIL_TOTAL := 70                              # ...and more scattered over open ground, up to this many in all
 const MOTHERSHIP_PAD := Vector2(118, -42)          # x, z: open ground just east of the Observatory path
 # Main paths, painted on the ground: polylines of (x, z)
 const MAIN_PATHS := [
@@ -351,6 +353,7 @@ func _build() -> void:
 	_sky_objects()
 	_mothership()
 	_characters()
+	_town_rails()
 	_trees()
 	_foliage()
 	_crystals()
@@ -1623,6 +1626,81 @@ func _skate_park() -> void:
 	g.add_child(pick)
 	keep_clear.append(Vector3(SKATE.x, SKATE.y, r0 + 2.0))
 	own(g)
+
+
+func _town_rails() -> void:
+	# Rails to grind all round town (scenes/player/skate.gd), beside the main paths: one every RAIL_GAP metres along
+	# each, on alternating sides, following the ground (so some run down hills), and a long one now and then. Only
+	# on open ground: not in the lake, on a path, in a building's space or up a cliff. (Every edge of every box is
+	# grindable too, at play time: scripts/edge_rails.gd.)
+	var g := group("Town Rails", Vector3.ZERO)
+	var kit := SkateKit.new(func(n: String, col: Color, rough: float, metal: float) -> Material:
+		return mat("Skate " + n, col, rough, metal))
+	var count := 0
+	var side := 1.0
+	for line in MAIN_PATHS:
+		var walked := RAIL_GAP * 0.5
+		for k in line.size() - 1:
+			var a: Vector2 = line[k]
+			var b: Vector2 = line[k + 1]
+			var seg := b - a
+			var dir := seg.normalized()
+			var out := Vector2(-dir.y, dir.x)
+			while walked < seg.length():
+				var at := a + dir * walked
+				var length := 12.0 if count % 4 == 3 else 7.0
+				var mid := at + out * side * 3.2
+				var ea := mid - dir * length / 2.0
+				var eb := mid + dir * length / 2.0
+				if not _rail_spot_ok(ea, eb, mid):
+					# Try the other side of the path instead
+					side = -side
+					mid = at + out * side * 3.2
+					ea = mid - dir * length / 2.0
+					eb = mid + dir * length / 2.0
+				if _rail_spot_ok(ea, eb, mid):
+					kit.ground_rail(g, "Town Rail %d" % count, ground(ea.x, ea.y), ground(eb.x, eb.y), 0.55,
+						ground(mid.x, mid.y))
+					keep_clear.append(Vector3(mid.x, mid.y, length / 2.0 + 1.0))
+					count += 1
+				side = -side
+				walked += RAIL_GAP
+			walked -= seg.length()
+	# And more out in the open: on lawns and meadows all over town, pointing every which way
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2610
+	var tries := 0
+	while count < RAIL_TOTAL and tries < 4000:
+		tries += 1
+		var mid := Vector2(rng.randf_range(X_MIN + 20, X_MAX - 20), rng.randf_range(-140.0, 120.0))
+		var dir := Vector2.from_angle(rng.randf() * TAU)
+		var length: float = [6.0, 8.0, 10.0, 14.0][rng.randi() % 4]
+		var ea := mid - dir * length / 2.0
+		var eb := mid + dir * length / 2.0
+		if _rail_spot_ok(ea, eb, mid):
+			kit.ground_rail(g, "Town Rail %d" % count, ground(ea.x, ea.y), ground(eb.x, eb.y), rng.randf_range(0.4, 0.8),
+				ground(mid.x, mid.y))
+			keep_clear.append(Vector3(mid.x, mid.y, length / 2.0 + 1.0))
+			count += 1
+	print("TOWN RAILS ", count)
+	own(g)
+
+
+func _rail_spot_ok(a: Vector2, b: Vector2, mid: Vector2) -> bool:
+	for p in [a, b, mid]:
+		if lake_f(p.x, p.y) < 4.0 or p.x < X_MIN + 8 or p.x > X_MAX - 8 or p.y < Z_MIN + 8 or p.y > Z_MAX - 8:
+			return false
+		if on_path(p.x, p.y, 1.6):
+			return false
+		for c in keep_clear:
+			# Buildings and props keep their space; the big circles round whole districts (the Market, the homes)
+			# don't stop a rail by the path through them
+			if c.z <= 12.0 and Vector2(p.x - c.x, p.y - c.y).length() < c.z:
+				return false
+	# Not too steep or bumpy along it: the middle stays near the straight line between the ends
+	var ha := height(a.x, a.y)
+	var hb := height(b.x, b.y)
+	return absf(ha - hb) < a.distance_to(b) * 0.35 and absf(height(mid.x, mid.y) - (ha + hb) / 2.0) < 0.35
 
 
 func grind_edge(parent: Node, name: String, centre: Vector3, yaw: float, length: float, kind := "ledge") -> void:

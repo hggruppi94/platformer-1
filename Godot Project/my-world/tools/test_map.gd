@@ -43,6 +43,7 @@ func _run() -> void:
 	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
 		DirAccess.copy_absolute(SAVE, BACKUP)
 	game._resume = {}
+	game.riding = false                             # on foot, whatever the save says (riding turns her by itself)
 	dialogue.reset()
 	quests.reset()
 	var minimap_was: bool = settings.minimap

@@ -113,6 +113,24 @@ func flat_rail(parent: Node, name: String, pos: Vector3, along: Vector3, length:
 	return g
 
 
+func ground_rail(parent: Node, name: String, ground_a: Vector3, ground_b: Vector3, height: float, ground_mid := Vector3.INF) -> Node3D:
+	# A rail out in the world, from one spot on the ground to another (they needn't be level: it runs down a hill
+	# with the ground), at this height above it, with a post at each end and in the middle. Positions are in the
+	# parent's space.
+	var g := group(parent, name, Vector3.ZERO)
+	var rail := mat("Rail", 0.25, 0.8)
+	var up := Vector3.UP * height
+	var a := ground_a + up
+	var b := ground_b + up
+	tube(a, b, 0.05, rail, g)
+	var mid := ground_mid if ground_mid != Vector3.INF else (ground_a + ground_b) / 2.0
+	for foot in [ground_a, mid, ground_b]:
+		var top: Vector3 = a.lerp(b, clampf((foot - ground_a).length() / maxf((ground_b - ground_a).length(), 0.01), 0.0, 1.0))
+		tube(Vector3(top.x, foot.y - 0.2, top.z), top, 0.04, rail, g)
+	grind_line("Rail", [a + Vector3.UP * 0.05, b + Vector3.UP * 0.05], "rail", g)
+	return g
+
+
 func ledge(parent: Node, name: String, pos: Vector3, along: Vector3, length: float, height: float) -> Node3D:
 	# A long low concrete block, grindable along both top edges
 	var g := group(parent, name, pos)

@@ -25,11 +25,13 @@ const BOARD := {
 	# Rolling
 	"push_speed": 9.0,          # top speed from pushing on the flat
 	"max_speed": 19.0,          # absolute cap (ramps and hills can take you past pushing speed)
-	"push_accel": 6.0,          # how quickly pushing builds speed
-	"coast": 0.7,               # rolling friction when you let go (low = long glide)
+	"push_accel": 7.0,          # how quickly pushing builds speed
+	"coast": 0.45,              # rolling friction when you let go (low = long glide)
 	"brake": 11.0,              # pulling back against where you're rolling
 	"carve": 2.6,               # how quickly the ride turns toward where you steer
 	"slope": 1.0,               # how much of gravity pulls you along a slope (1 = all of it, for real ramps)
+	"uphill_pull": 0.35,        # how much of a hill holds her back while she pushes up it (coasting, it's all of it)
+	"push_kick": 1.5,           # how much harder the first pushes from a standstill are
 	# Ollie: hold Jump to crouch, let go to pop. A tap is a small hop; a full charge goes higher.
 	"ollie_min": 4.2,
 	"ollie_max": 6.2,

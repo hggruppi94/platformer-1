@@ -66,6 +66,18 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-28: Skating feels more fun, and you can grind anything (Hayden). Momentum: pushing works up hills (ground up
+  to about 40 degrees, `HILL_MIN_Y`; only `uphill_pull` of a hill holds her back while she pushes, all of it when she
+  coasts), the first pushes from a standstill are stronger (`push_kick`), glides are longer (`coast` 0.45), and she
+  rolls up kerbs and steps up to `STEP` (0.32 m) instead of stopping (`Skate._step_up`). Any edge: `scripts/edge_rails.gd`
+  makes the top edges of every upright solid box and the rims of round tops in a place into invisible grind lines the
+  first time someone rides there (588 in town: benches, walls, steps, stalls, kerbs, the fountain, the skate park's
+  rim). Rails file themselves in an 8 m grid (`GrindRail.near()`), so the skater only checks nearby ones. 70 new
+  rails round town (`_town_rails()` in `build_town.gd`, `SkateKit.ground_rail`): beside the main paths and scattered
+  over open ground, following hills. Tests can run in a copy of the project with its own save folder (an
+  `override.cfg` with `config/use_custom_user_dir`), so they never touch Hayden's save while he plays
+  (`tools/test_skate.gd`, `tools/test_skate_park.gd`, `tools/capture_rails.gd`, `previews/rails/`). test_walk_through's
+  boardwalk check fails with some saves (on main too); not looked into yet.
 - 2026-10-28: Mr. Palmer has a daily routine in town (`routines/mr_palmer.json`), so he no longer stands outside the
   Town Hall all night. Office hours from 7:30 AM by his window (new place `palmers_step`), an evening stroll round the
   market from 5 PM, and at 8:30 PM he walks to the Town Hall door and goes in (away) until morning. He still talks from

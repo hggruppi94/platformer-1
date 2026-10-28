@@ -95,6 +95,8 @@ func _check_place(place: String, where: Node) -> void:
 	check(pieces >= 3, "%s: found its ramps and boxes (%d)" % [place, pieces])
 	var rails := 0
 	for r in where.find_children("*", "GrindRail", true, false):
+		if r.get_parent().name == "EdgeRails":
+			continue                                    # the edges of things (scripts/edge_rails.gd): the edge is what you see
 		rails += 1
 		var shown := false
 		for m in r.get_parent().find_children("*", "MeshInstance3D", true, false):

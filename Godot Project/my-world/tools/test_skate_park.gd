@@ -3,7 +3,8 @@ extends SceneTree
 # Checks the town's Skate Park (tools/build_town.gd, _skate_park) and its goals (scripts/skate_goals.gd): the ramps,
 # funbox, rail and ledge are there and grindable, the benches round town are grindable, a quarter pipe there sends
 # her into a vert air, the S-K-A-T-E letters only count on the board and pay out when all five are got, and each other
-# goal pays its sparkles once. Skating as a friend puts their town self out of sight.
+# goal pays its sparkles once. Skating as a friend puts their town self out of sight. There are lots of rails round
+# town, every box edge and round rim can be ground, and she can push up a hill.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate_park.gd
 #
@@ -151,7 +152,85 @@ func _run() -> void:
 	for f in dialogue.flags.keys():
 		if String(f).begins_with("skate_"):
 			dialogue.flags.erase(f)
+
+	# --- Rails all round town, and every edge grindable ---
+	var town_rails := town.get_node_or_null("Town Rails")
+	var rail_count := town_rails.find_children("*", "GrindRail", true, false).size() if town_rails else 0
+	check(rail_count >= 60, "lots of rails round town (%d)" % rail_count)
+	game.riding = true
+	game.equipment_changed.emit()
+	await _physics(3)
+	var edges := town.get_node_or_null("EdgeRails")
+	var edge_count := edges.get_child_count() if edges else 0
+	check(edge_count > 200, "the edges of the town's boxes and round tops are grindable (%d)" % edge_count)
+	var ok_grind := 0
+	for k in [5, 50, 150]:
+		if edges == null or k >= edge_count:
+			continue
+		var r := edges.get_child(k) as GrindRail
+		var on: Vector3 = r.point_at(r.length() * 0.5)
+		p.global_position = on + Vector3(0, 0.8 + 0.6, 0)
+		p.velocity = Vector3(0, -1, 0)
+		s._pop()
+		s._grind_buffer = 0.2
+		if s._try_grind():
+			ok_grind += 1
+		s._leave_rail(Vector3.ZERO)
+		s.state = s.State.AIR
+		await _physics(2)
+	check(ok_grind == 3, "she locks onto edges anywhere (%d of 3)" % ok_grind)
+	check(GrindRail.near(c).size() > 0, "rails are filed by where they are, so she only looks at the ones nearby")
+
+	# --- Pushing up a hill ---
+	var hill := _find_hill(town)
+	check(hill.size() > 0, "found a hill to push up")
+	if hill.size() > 0:
+		var foot: Vector3 = hill[0]
+		var up_dir: Vector3 = hill[1]
+		p.global_position = foot + Vector3(0, 1.0, 0)
+		p.velocity = Vector3.ZERO
+		s.state = s.State.ROLL
+		s._yaw = atan2(up_dir.x, up_dir.z)
+		(p.get_node("SpringArm3D") as Node3D).rotation.y = atan2(-up_dir.x, -up_dir.z)
+		await _physics(10)
+		var start := p.global_position
+		Input.action_press("move_forward")
+		await _physics(180)
+		Input.action_release("move_forward")
+		var climbed := p.global_position.y - start.y
+		var went := Vector2(p.global_position.x - start.x, p.global_position.z - start.z).dot(Vector2(up_dir.x, up_dir.z))
+		check(climbed > 1.0 and went > 4.0, "she can push up a hill (%.1f m up, %.1f m along, %.0f degrees)" % [climbed, went, hill[2]])
 	_end()
+
+
+func _find_hill(town: Node) -> Array:
+	# A stretch of open ground sloping 10 to 22 degrees: [the bottom, uphill direction, the slope in degrees]
+	var space := (town as Node3D).get_world_3d().direct_space_state
+	for x in range(-120, 130, 6):
+		for z in range(-120, 100, 6):
+			var hit := _ground_hit(space, Vector3(x, 80, z))
+			if hit.is_empty():
+				continue
+			var n: Vector3 = hit.normal
+			var deg := rad_to_deg(acos(clampf(n.y, -1.0, 1.0)))
+			if deg < 10.0 or deg > 22.0:
+				continue
+			var up_dir := -Vector3(n.x, 0, n.z).normalized()
+			# The same slope for a good way up, with nothing in the way
+			var ok := true
+			for k in range(1, 6):
+				var h2 := _ground_hit(space, hit.position + up_dir * k * 1.5 + Vector3(0, 40, 0))
+				if h2.is_empty() or (h2.normal as Vector3).y < 0.85 or (h2.normal as Vector3).y > 0.99:
+					ok = false
+					break
+			if ok:
+				return [hit.position, up_dir, deg]
+	return []
+
+
+func _ground_hit(space: PhysicsDirectSpaceState3D, from: Vector3) -> Dictionary:
+	var q := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 160)
+	return space.intersect_ray(q)
 
 
 func tree_rails(n: Node) -> Array:

@@ -35,6 +35,8 @@ enum State { ROLL, AIR, GRIND, BAIL }
 const FEET := 0.8                    # from the body's middle down to her feet (the collision capsule's half height)
 const FLOOR_MIN_Y := 0.17            # ground up to 80 degrees steep counts as something to ride on
 const SNAP := 0.35                   # how far she's pulled down onto a slope that drops away under her
+const HILL_MIN_Y := 0.75             # ground this flat or flatter (about 40 degrees) is a hill she can push up
+const STEP := 0.32                   # kerbs and steps this high she rolls up onto by herself
 const SIDE_RADIUS := 0.35            # the capsule's radius
 const BAIL_LINES := ["Whoops!", "Oof!", "Wobbly!", "Banana peel!", "Bonk!", "Ta-da? No...", "Wipeout!"]
 const SLIP_LINES := ["Phew!", "Saved it!", "Close one!", "Wobble... OK!"]
@@ -140,6 +142,8 @@ func start() -> void:
 	p.motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	p.wall_min_slide_angle = 0.0
 	hud.visible = true
+	# Every edge round here can be ground (scripts/edge_rails.gd), made the first time anyone rides in this place
+	EdgeRails.add_to.call_deferred(get_tree().current_scene)
 	# The first time on a ride: how to ride, and Rook offers a skate lesson (scripts/tips.gd, scripts/skate_lesson.gd)
 	Tips.show_tip("ride")
 	SkateLesson.offer.call_deferred()
@@ -243,7 +247,14 @@ func _roll(dir: Vector3, delta: float) -> void:
 	var v := p.velocity
 	v -= n * v.dot(n)                                  # roll along the ground, never into it
 	var g := p.get_gravity()
-	v += (g - n * g.dot(n)) * float(ride.slope) * delta   # slopes and ramps pull her down them
+	var pull := (g - n * g.dot(n)) * float(ride.slope)        # slopes and ramps pull her down them
+	var fwd0 := v.normalized() if v.length() > 0.3 else _plane(_facing(), n)
+	# Pushing up a hill (not a ramp), her legs do most of the work: only part of the hill's pull holds her back, so
+	# she can push all the way up. Coasting, the hill takes it all, and she rolls back down.
+	var uphill := pull.dot(fwd0) < 0.0
+	if uphill and dir and n.y > HILL_MIN_Y and _manual == 0 and fwd0.dot(_plane(dir, n)) > 0.3:
+		pull *= float(ride.uphill_pull)
+	v += pull * delta
 	var speed := v.length()
 	var fwd := v / speed if speed > 0.3 else _plane(_facing(), n)
 	tricks.update_ground(delta)
@@ -271,9 +282,12 @@ func _roll(dir: Vector3, delta: float) -> void:
 			var rate := float(ride.carve) * (1.0 + 2.0 * (1.0 - clampf(speed / 3.0, 0.0, 1.0)))
 			fwd = fwd.rotated(n, clampf(fwd.signed_angle_to(want, n), -rate * delta, rate * delta)).normalized()
 			_lean = lerpf(_lean, clampf(fwd.signed_angle_to(want, n), -0.6, 0.6) * clampf(speed / 8.0, 0.0, 1.0), 0.15)
-			_pushing = speed < float(ride.push_speed) and along > 0.0 and n.y > 0.9
+			# Pushing: on the flat and up or down hills (not up a ramp's steep face). From a standstill the first kicks are
+			# the strongest, so she gets going quickly, then it tapers off toward her pushing speed.
+			_pushing = speed < float(ride.push_speed) and along > 0.0 and n.y > HILL_MIN_Y
 			if _pushing:
-				speed = move_toward(speed, float(ride.push_speed), float(ride.push_accel) * maxf(along, 0.3) * delta)
+				var kick := 1.0 + float(ride.push_kick) * (1.0 - clampf(speed / float(ride.push_speed), 0.0, 1.0))
+				speed = move_toward(speed, float(ride.push_speed), float(ride.push_accel) * kick * maxf(along, 0.3) * delta)
 	else:
 		speed = move_toward(speed, 0.0, float(ride.coast) * delta)
 		_lean = lerpf(_lean, 0.0, 0.1)
@@ -303,17 +317,31 @@ func _move(v: Vector3, on_ground: bool) -> void:
 	# Moves her, and works out whether she ended up on something to ride on. On the ground she's pressed lightly into
 	# it, so she keeps touching it all the way up a ramp; where the ground drops away gently under her (the far side
 	# of a bump, the start of a slope) she's pulled down onto it, but not where it ends (the top of a ramp).
+	var before := p.global_transform
 	p.velocity = v - _ground_n * 0.8 if on_ground else v
 	p.move_and_slide()
 	var was := _grounded
 	_grounded = false
 	var best := -2.0
+	var blocked := false
+	var flat := Vector3(v.x, 0, v.z)
+	var feet_y := before.origin.y - FEET
 	for i in p.get_slide_collision_count():
-		var n := p.get_slide_collision(i).get_normal()
-		if n.y > FLOOR_MIN_Y and n.dot(_ground_n) > best:
+		var col := p.get_slide_collision(i)
+		var n := col.get_normal()
+		# Bumping the top corner of something low (a kerb, a step) while rolling on the flat: that's a step to
+		# roll up, not a steep slope to ride
+		var low_corner := was and _ground_n.y > 0.9 and n.y < HILL_MIN_Y and n.dot(flat.normalized()) < -0.2 \
+			and col.get_position().y - feet_y > 0.02 and col.get_position().y - feet_y < STEP + 0.02
+		if low_corner or (n.y <= FLOOR_MIN_Y and n.dot(flat.normalized()) < -0.3):
+			blocked = true
+		elif n.y > FLOOR_MIN_Y and n.dot(_ground_n) > best:
 			best = n.dot(_ground_n)
 			_ground_n = n
 			_grounded = true
+	# Rolling into a kerb or a step: hop up onto it rather than stopping dead (a board's wheels would ride up it)
+	if blocked and on_ground and was and flat.length() > 0.8 and _step_up(before, flat, v):
+		return
 	if not _grounded and was and on_ground and v.y <= 0.3:
 		var hit := p.move_and_collide(-_ground_n * SNAP, true)
 		if hit and hit.get_normal().y > FLOOR_MIN_Y:
@@ -323,6 +351,27 @@ func _move(v: Vector3, on_ground: bool) -> void:
 	if not _grounded:
 		p.velocity = v if on_ground else p.velocity     # not the press into the ground she just left
 		_ground_n = Vector3.UP
+
+
+func _step_up(from: Transform3D, flat: Vector3, v: Vector3) -> bool:
+	# Lift her by up to STEP, move her on, and set her down on whatever's there; false if there's no room
+	var up := Vector3.UP * STEP
+	if p.test_move(from, up):
+		return false
+	var raised := from.translated(up)
+	var ahead := flat.normalized() * maxf(flat.length() * get_physics_process_delta_time(), 0.12)
+	if p.test_move(raised, ahead):
+		return false                                      # too tall: a wall, not a step
+	p.global_transform = raised.translated(ahead)
+	var down := p.move_and_collide(Vector3.DOWN * (STEP + 0.05), true)
+	if down == null or down.get_normal().y <= FLOOR_MIN_Y:
+		p.global_transform = from                         # nothing to stand on up there
+		return false
+	p.global_position += down.get_travel()
+	_ground_n = down.get_normal()
+	_grounded = true
+	p.velocity = v
+	return true
 
 
 func _manual_input(speed: float, n: Vector3, delta: float) -> void:
@@ -571,7 +620,7 @@ func _find_rail() -> GrindRail:
 	var best_d := INF
 	var low := -1.0 if state == State.AIR else -0.25       # rail below her feet: falling onto it, or just a kerb
 	var high := 0.6 if state == State.AIR else 1.3         # rail above her feet: hopping up onto it from the ground
-	for node in get_tree().get_nodes_in_group("grind"):
+	for node in GrindRail.near(feet):                        # only the rails close by (scripts/grind_rail.gd)
 		var r := node as GrindRail
 		if r == null or (r == _last_rail and _last_rail_timer > 0.0):
 			continue

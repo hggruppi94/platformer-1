@@ -73,6 +73,24 @@ func _run() -> void:
 	await _physics(60)
 	check(_flat(p.velocity) > speed * 0.85, "...and letting go she glides on (%.1f m/s)" % _flat(p.velocity))
 
+	# --- Rolling into a kerb: up onto it, without stopping ---
+	var kerb := StaticBody3D.new()
+	var kcs := CollisionShape3D.new()
+	var kbox := BoxShape3D.new()
+	kbox.size = Vector3(4, 0.25, 3)
+	kcs.shape = kbox
+	kerb.add_child(kcs)
+	park.add_child(kerb)
+	kerb.global_position = Vector3(-30, 0.125, 30)
+	await _physics(2)
+	_place(Vector3(-30, 0.9, 35), PI)
+	p.velocity = Vector3(0, 0, -6)
+	await _physics(50)
+	var on_top := p.global_position.y - 0.8 > 0.2 and p.global_position.z < 31.0
+	check(on_top and _flat(p.velocity) > 3.0, "she rolls up onto a kerb without stopping (%.1f m/s)" % _flat(p.velocity))
+	kerb.queue_free()
+	await _physics(30)
+
 	# --- Ollies: a tap is a hop, a held crouch goes higher ---
 	_place(Vector3(-30, 0.9, 38), 0.0)
 	await _physics(10)
