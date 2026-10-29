@@ -27,6 +27,7 @@ extends CharacterBody3D
 @export var respawn_time := 40.0              # seconds after being popped
 @export var ram_speed := 7.0                  # skateboard speed that knocks one out
 @export var respawns := true                  # false for the Gloops the King calls in: once popped, they're gone
+@export var respawn_clear := 15.0             # it only comes back when she's at least this far from its home
 
 const STOMP_BOUNCE := 8.0                     # Nina's upward speed after a stomp (more if jump is held)
 const LOW_GROUND := -0.25                     # below this height is the lake basin: Gloops don't like water
@@ -213,7 +214,7 @@ func _defeat(bubbled := false) -> void:
 
 func _try_respawn() -> void:
 	# Don't pop back in right next to her
-	if player and is_instance_valid(player) and player.global_position.distance_to(home) < 15.0:
+	if player and is_instance_valid(player) and player.global_position.distance_to(home) < respawn_clear:
 		_respawn_timer.start(3.0)
 		return
 	global_position = home

@@ -22,6 +22,8 @@ const TIPS := {
 		"done": ["shoot", "aim"]},
 	"ride": {"text": "You're riding! Hold {move_forward} to push, hold {jump} and let go to ollie. {toggle_skateboard} hops off.",
 		"done": ["toggle_skateboard"]},
+	"skate_shoot": {"text": "Gloops ahead! Press {shoot} on your ride to bubble them. Every pop is a Pop! trick in your combo.",
+		"done": ["shoot"]},
 }
 const BASICS := ["move", "jump", "map", "pause"]
 

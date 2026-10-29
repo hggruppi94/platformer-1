@@ -114,6 +114,7 @@ func _ready() -> void:
 	popper = StarPopper.new()
 	add_child(popper)
 	popper.setup(self)
+	popper.popped.connect(skate.on_pop)        # pops on the board are tricks in the combo
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()

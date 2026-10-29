@@ -6,8 +6,8 @@ extends SceneTree
 # bubble, floating up) for XP. Holding Aim moves the camera over her shoulder with a crosshair, turns her to face
 # where it looks, slows her down and raises her arm with the popper in her hand; aimed shots go to the crosshair.
 # Big Gloops take two bubbles; holding Shoot charges a big bubble for 1 MP that pops one at once. Bubbles boing off a
-# rolling Crocodillo; out of its ball one makes it dizzy and a second pops it. No shooting on the skateboard or in a
-# conversation, and bubbles that hit nothing pop by themselves.
+# rolling Crocodillo; out of its ball one makes it dizzy and a second pops it. No shooting for riders with no hand free
+# or in a conversation, and bubbles that hit nothing pop by themselves.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_shooting.gd
 #
@@ -235,7 +235,11 @@ func _run() -> void:
 	game.riding = true
 	game.equipment_changed.emit()
 	await _physics(3)
-	check(not popper.can_shoot(), "no shooting on the skateboard")
+	check(popper.can_shoot(), "shooting works on the skateboard too (tools/test_skate_popper.gd has the rest)")
+	p.set_rider("rook")
+	await _physics(3)
+	check(not popper.can_shoot(), "...but not for a rider with no hand free (Rook on his paw skates)")
+	p.set_rider("hero", false)
 	game.riding = false
 	game.equipment_changed.emit()
 	await _physics(3)

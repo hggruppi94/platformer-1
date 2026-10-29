@@ -14,10 +14,15 @@ signal banked(points: int, names: String)       # a combo was paid out
 signal lost                                     # a combo was lost in a bail
 signal live_done(name: String, seconds: float)  # a grind or manual just ended (without a bail)
 signal added(name: String)                      # a trick went into the combo
+signal popped(kind: String, on_grind: bool)     # a Star Popper bubble popped an enemy mid-ride (scripts/skate_goals.gd)
 
 const GRACE := 0.4                    # after landing, this long to link a manual before the combo is paid out
 const SPIN_POINTS := [0, 100, 250, 400, 600, 800, 1000, 1200]    # by half turns: 180, 360, 540...
 const SPECIAL_FILL := 1500.0          # points of tricks that fill the special meter from empty
+# Popping an enemy with the Star Popper while riding is a trick of its own: [name, points], by what was popped.
+# Its points fill the special meter like any trick's (a Gloop's Pop! is about a sixth of it), and a second Pop! in
+# one combo is worth half, like any repeat.
+const POPS := {"gloop": ["Pop!", 250], "croc": ["Croc Pop!", 400], "king": ["King Pop!", 1500]}
 
 var ride: Dictionary
 var combo: Array[Dictionary] = []     # {"name", "points"} in the order she did them
@@ -168,6 +173,29 @@ func end_live() -> void:
 
 func _live_points() -> int:
 	return int(live.base) + int(float(live.time) * float(live.rate))
+
+
+# -----------------------------------------------------------------------------
+# Popping things with the Star Popper (scripts/star_popper.gd)
+# -----------------------------------------------------------------------------
+func pop(kind: String, on_ground: bool, on_grind := false) -> void:
+	# An enemy popped by a bubble while riding goes into the combo. On the ground (not in a manual), a lone pop
+	# starts a combo of its own, with the usual moment to link a manual before it's paid out.
+	var t: Array = POPS.get(kind, POPS.gloop)
+	add(t[0], t[1])
+	combo[-1]["pop"] = kind
+	if on_ground and live.is_empty() and _grace < 0.0:
+		_grace = GRACE
+	popped.emit(kind, on_grind)
+
+
+func pops(kind := "gloop") -> int:
+	# How many of these she's popped in this combo
+	var n := 0
+	for t in combo:
+		if t.get("pop", "") == kind:
+			n += 1
+	return n
 
 
 # -----------------------------------------------------------------------------

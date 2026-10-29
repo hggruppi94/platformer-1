@@ -68,6 +68,26 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: The Star Popper on your board (Hayden, "Before the First Night" prompt C). Shoot works while riding, from
+  the hip only (no aiming on the board, so steering is the same): rolling, in the air, on a grind and in a manual, and
+  in the Simple controls too. On the board it looks for an enemy within 26 m and 40 degrees of where she's going
+  (`BOARD_RANGE`/`BOARD_ANGLE` in `star_popper.gd`), doesn't turn the board, and her arm still points the popper over
+  the skate pose. A bubble that pops an enemy sends `StarPopper.popped(enemy, bubble)`; on the board `Skate.on_pop()`
+  turns it into a trick (`SkateTricks.pop()`, `POPS`): "Pop!" for a Gloop (250), "Croc Pop!" (400), "King Pop!"
+  (1500). Each is its own combo entry (so it adds to the multiplier), repeats are worth half like any trick, and its
+  points fill the special meter like any trick's (a Pop! is about a sixth). A lone pop while rolling is a combo of
+  its own, paid out after the usual moment to link a manual. The big bubble still costs 1 MP. Riders with no hand
+  free can't shoot (`"popper": false` in `rides.gd`): Rex and Rook (a skate on every paw) and Pip (flying). Everyone
+  else can, and each holds the popper up. Two new Skate Park goals: "Pop 3 Gloops in one combo" (5 sparkles) and "Pop
+  a Gloop off a grind" (4; a bubble fired from a grind counts even if she's off the rail when it lands). The park's
+  goals script also brings sleepy Gloops at play time (`_place_gloops()` in `skate_goals.gd`, named "Skate Gloop N"):
+  five round the park and one beside each of the six town rails nearest it. They never chase, amble slowly, and come
+  back after 8 s even with her close by (new `respawn_clear` on `gloop.gd`). The town builder wasn't changed, so
+  `town.tscn` wasn't rebuilt. Controls: Shoot is now in the riding group of `Settings.PAD_GROUPS`, so remapping
+  checks it against the skate buttons; nothing clashes by default (left click / RT), and old settings with Shoot on a
+  skate button get it back on RT (`_free_board_shoot()`). New "skate_shoot" tip, and Coach Rook's combo step says pops
+  count. `tools/test_skate_popper.gd`, `tools/capture_skate_popper.gd` (shots in the project files under
+  world/previews/skate_popper, made in the cloud). `test_shooting` now expects shooting on the board.
 - 2026-10-29: The Gloop King, and every Gloop restyled to match him (Hayden, from their picture). Gloops are now
   glossy green goo swirled with gold, with a rainbow sheen like a soap film (`scenes/enemies/gloop_goo.gdshader`), big
   dark glassy eyes in goo rims, three draped layers of goo with rounded tongues hanging off them, and stubby feet that

@@ -187,6 +187,31 @@ static func simple() -> bool:
 	return Settings.control_style == "simple"
 
 
+func can_shoot() -> bool:
+	# The Star Popper on the ride (scripts/star_popper.gd): from the hip only, whenever she's not tumbling in a bail,
+	# and only for riders with a hand free ("popper" in scripts/rides.gd)
+	return bool(ride.get("popper", true)) and state != State.BAIL
+
+
+func grinding() -> bool:
+	return state == State.GRIND
+
+
+func on_pop(enemy: Node, bubble: Node) -> void:
+	# A bubble popped something (StarPopper.popped). While riding, that's a Pop! in the combo (skate_tricks.gd).
+	if not Game.riding or enemy == null:
+		return
+	var kind := "gloop"
+	var path := String(enemy.get_script().resource_path) if enemy.get_script() else ""
+	if path.ends_with("crocodillo.gd"):
+		kind = "croc"
+	elif path.ends_with("gloop_king.gd"):
+		kind = "king"
+	var on_grind := state == State.GRIND or (bubble != null and bool(bubble.get_meta("from_grind", false)))
+	tricks.pop(kind, (state == State.ROLL and _manual == 0) or state == State.BAIL, on_grind)
+	hud.shout(String(SkateTricks.POPS[kind][0]), Color(0.55, 1.0, 0.9))
+
+
 func balancing() -> bool:
 	# On a rail or in a manual: the balance meter is up
 	return state == State.GRIND or (state == State.ROLL and _manual != 0)

@@ -54,6 +54,8 @@ const BOARD := {
 	# Bails
 	"bail_time": 1.4,           # seconds before she's back up on the board
 	"special_sound": "level_up",
+	# The Star Popper (scripts/star_popper.gd) works from the ride if the rider has a hand free for it
+	"popper": true,
 	# Tricks (scenes/player/skate_tricks.gd), by stick direction ("" is no direction)
 	"tricks": {
 		# Flip + direction: [name, points, style, seconds]
@@ -108,7 +110,7 @@ const RIDERS := {
 	},
 	"rex": {
 		"rider": "Rex", "name": "Paw Skates", "model": "res://models/characters/wolf.glb", "kit": "paw_skates",
-		"stance": 0.0, "deck": 0.07, "anim": "skate",
+		"stance": 0.0, "deck": 0.07, "anim": "skate", "popper": false,   # every paw's on a skate: no hand free
 		# Four paws on four skates: quick and grippy, spins fast, steady on rails
 		"push_speed": 9.5, "push_accel": 8.0, "carve": 3.6, "coast": 0.8,
 		"ollie_min": 4.0, "ollie_max": 6.0, "spin_speed": 9.0, "balance_control": 7.5, "balance_drift": 0.8,
@@ -134,6 +136,7 @@ const RIDERS := {
 		# Four-paw roller skates: Rook rolls along on all fours, a skate on each hand and foot
 		"rider": "Rook", "name": "Four-Paw Skates", "model": "res://models/characters/rook.glb", "kit": "paw_skates",
 		"stance": 0.0, "deck": 0.07, "anim": "run", "push_anim": "run", "special_sound": "bark",
+		"popper": false,            # every paw's on a skate: no hand free
 		"push_speed": 8.5, "push_accel": 7.5, "carve": 3.4, "coast": 0.8,
 		"ollie_min": 4.2, "ollie_max": 6.2, "spin_speed": 8.5, "balance_control": 7.0,
 		"tricks": {
@@ -156,7 +159,7 @@ const RIDERS := {
 	},
 	"pip": {
 		"rider": "Pip", "name": "Hover Wings", "model": "res://models/characters/moth_kid.glb", "kit": "hover",
-		"stance": 0.0, "deck": 0.25, "anim": "fly",
+		"stance": 0.0, "deck": 0.25, "anim": "fly", "popper": false,    # flying with arms and wings: no hand free
 		# Floaty: big slow airs, glides while Jump is held on the way down, a little slower on the ground
 		"push_speed": 8.0, "max_speed": 16.0, "coast": 0.4, "carve": 2.8,
 		"ollie_min": 4.6, "ollie_max": 7.0, "fall_gravity": 0.7, "glide": 2.2, "air_drift": 5.0, "spin_speed": 6.5,

@@ -11,9 +11,14 @@ extends Node3D
 #                                  gets a little help onto an enemy near it).
 #   Hold Shoot                     charges a big bubble (1 MP) that counts for three pops and carries on through.
 #
-# Only on foot: not on the board, the zipline or in the mothership, and not while talking, in a menu or the creator.
+# On the board (or a friend's ride) Shoot works too, from the hip only, so steering stays the same: rolling, in the
+# air, on a grind or in a manual. It finds an enemy ahead of where she's going, and each one popped is a "Pop!" trick
+# in the combo (Skate.on_pop, SkateTricks.pop). Riders with no hand free (Rides "popper": false) can't. Not on the
+# zipline or in the mothership, and not while talking, in a menu or the creator.
 # Her right arm points the popper where the bubbles go (PopperArm below), and the popper shows in her hand while she
 # aims and for a moment after each shot. Keys and buttons are in Settings > Controls ("aim", "shoot").
+
+signal popped(enemy: Node3D, bubble: Node3D)   # one of her bubbles popped an enemy (StarBubble)
 
 const COOLDOWN := 0.2                     # seconds between bubbles
 const CHARGE_START := 0.3                 # holding Shoot this long starts charging a big bubble...
@@ -26,6 +31,8 @@ const AUTO_RANGE := 24.0                  # not aiming: enemies this close...
 const AUTO_ANGLE := 32.0                  # ...and within this many degrees of where she faces get aimed at
 const ASSIST_ANGLE := {"pad": 4.0, "keyboard": 1.5}   # aiming: how close to the crosshair counts as on an enemy
 const SHOW_AFTER_SHOT := 1.2              # seconds the popper stays in her hand after a shot
+const BOARD_RANGE := 26.0                 # on the board: enemies this close...
+const BOARD_ANGLE := 40.0                 # ...and within this many degrees of where she's going get aimed at
 
 var player: Player
 var aiming := false
@@ -80,7 +87,9 @@ func attach(model: Node3D) -> void:
 
 
 func can_shoot() -> bool:
-	if player == null or Game.riding or player.carried or player.input_locked:
+	if player == null or player.carried or player.input_locked:
+		return false
+	if Game.riding and not player.skate.can_shoot():
 		return false
 	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused:
 		return false
@@ -108,7 +117,7 @@ func _physics_process(delta: float) -> void:
 	if player == null:
 		return
 	var ok := can_shoot()
-	aiming = ok and Input.is_action_pressed("aim")
+	aiming = ok and Input.is_action_pressed("aim") and not Game.riding     # no aiming on the board: it would steer
 	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
 	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
 	_cooldown -= delta
@@ -121,6 +130,8 @@ func _physics_process(delta: float) -> void:
 			_tipped = true
 			if not get_tree().get_nodes_in_group("enemies").is_empty():
 				Tips.show_tip("shoot")             # the first time there's something to pop (scripts/tips.gd)
+		if Game.riding and not Tips.seen("skate_shoot") and _enemy_near(BOARD_RANGE):
+			Tips.show_tip("skate_shoot")
 		if Input.is_action_just_pressed("shoot"):
 			_held = 0.0
 			shoot(false)
@@ -161,10 +172,13 @@ func shoot(charged: bool) -> StarBubble:
 	_shot_dir = dir
 	if not aiming:
 		_raise = SHOW_AFTER_SHOT
-		# From the hip she turns to face the shot
-		player.visual.rotation.y = atan2(dir.x, dir.z)
+		# From the hip she turns to face the shot (not on the board: the board goes where it's going)
+		if not Game.riding:
+			player.visual.rotation.y = atan2(dir.x, dir.z)
 	var scene := get_tree().current_scene if get_tree().current_scene else player.get_parent()
 	var b := StarBubble.fire(scene, from, dir, player, charged)
+	if Game.riding and player.skate.grinding():
+		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1
 	Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
 	if charged and not Settings.reduce_motion:
@@ -187,14 +201,24 @@ func aim_dir(from: Vector3) -> Vector3:
 	var face := player.visual.global_transform.basis.z
 	face.y = 0.0
 	face = face.normalized()
+	var reach := AUTO_RANGE
+	var angle := AUTO_ANGLE
+	if Game.riding:
+		# On the board, ahead is where she's going (she may be spinning in the air), and it looks a bit wider and
+		# further, since she can't stop and turn to line a shot up
+		var going := Vector3(player.velocity.x, 0, player.velocity.z)
+		if going.length() > 2.0:
+			face = going.normalized()
+		reach = BOARD_RANGE
+		angle = BOARD_ANGLE
 	var best: Node3D = null
-	var best_d := AUTO_RANGE
+	var best_d := reach
 	for e in _targets():
 		var to: Vector3 = _centre(e) - from
 		var flat := Vector3(to.x, 0, to.z)
 		if flat.length() > best_d or flat.length() < 0.3:
 			continue
-		if rad_to_deg(face.angle_to(flat)) > AUTO_ANGLE or not _clear(from, _centre(e), e):
+		if rad_to_deg(face.angle_to(flat)) > angle or not _clear(from, _centre(e), e):
 			continue
 		best = e
 		best_d = flat.length()
@@ -243,6 +267,13 @@ func _targets() -> Array[Node3D]:
 		if e is Node3D and e.is_inside_tree() and not e.get("defeated") and (e as Node3D).is_visible_in_tree():
 			out.append(e)
 	return out
+
+
+func _enemy_near(d: float) -> bool:
+	for e in _targets():
+		if e.global_position.distance_to(player.global_position) < d:
+			return true
+	return false
 
 
 func _centre(e: Node3D) -> Vector3:

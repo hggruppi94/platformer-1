@@ -29,7 +29,8 @@ const STEPS := [
 	{"id": "manual", "woof": "Woof!",
 		"text": "Manual: rolling on the flat, tap {move_forward} then {move_back} quickly. Balance with {move_forward} and {move_back}.",
 		"simple": "Manual: rolling on the flat, press {skate_grind}. Balance with {move_forward} and {move_back}."},
-	{"id": "combo", "woof": "WOOF!", "text": "Combo: link three tricks before you land and roll away (a flip, a grab and a spin, or a grind into a manual)."},
+	{"id": "combo", "woof": "WOOF!",
+		"text": "Combo: link three tricks before you land and roll away (a flip, a grab and a spin, or a grind into a manual). Popping a Gloop with {shoot} counts too!"},
 ]
 const PRAISE := ["WOOF! (Rook wags his whole back end.)", "Woof woof! (A proud little spin.)",
 	"Woof! (Rook gives you a paw bump.)", "Awoooo! (That's a good one.)"]

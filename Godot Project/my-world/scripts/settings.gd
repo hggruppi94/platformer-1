@@ -27,7 +27,7 @@ const PAD_REBINDABLE := [
 ]
 const PAD_GROUPS := [
 	["jump", "dash", "aim", "shoot", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
-	["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
+	["jump", "shoot", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
 ]
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
@@ -371,6 +371,23 @@ func load_settings() -> void:
 		for a in pad_bindings.keys():
 			if not cf.has_section_key("pad", a):
 				_claim(pad_bindings, a, default_pad_bindings(), -1)
+	_free_board_shoot()
+
+
+func _free_board_shoot() -> void:
+	# Shoot works on the board too now (scripts/star_popper.gd), so a button the player gave it back when it was
+	# only for walking may also be a skate trick's. Then Shoot goes back to RT, and whatever was on RT gets Shoot's
+	# old button if it's only used on foot, or its own first button if it's used on the board too.
+	var mine: int = pad_bindings.get("shoot", -1)
+	if mine < 0:
+		return
+	for other in PAD_GROUPS[1]:
+		if other != "shoot" and pad_bindings.get(other, -1) == mine and not _shares_on_purpose("shoot", other):
+			for a in pad_bindings:
+				if a != "shoot" and pad_bindings[a] == PAD_RT:
+					pad_bindings[a] = mine if not a in PAD_GROUPS[1] else default_pad_bindings().get(a, -1)
+			pad_bindings["shoot"] = PAD_RT
+			return
 
 
 func _claim(table: Dictionary, action: String, defaults: Dictionary, none: int) -> void:

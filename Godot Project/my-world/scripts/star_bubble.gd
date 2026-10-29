@@ -137,7 +137,10 @@ func _physics_process(delta: float) -> void:
 	var target := _target(hit.collider as Node)
 	var what := "miss"
 	if target:
+		var was_down: bool = target.get("defeated") == true
 		what = str(target.shot(power, hit.position, velocity.normalized()))
+		if what == "hit" and not was_down and target.get("defeated") == true and shooter and shooter.get("popper"):
+			shooter.popper.popped.emit(target, self)       # popped it (on the board, that's a trick: skate.gd)
 	if what == "bounce" and _bounces < 2:
 		# An armoured shell: boing off it (and come back towards her a bit)
 		_bounces += 1

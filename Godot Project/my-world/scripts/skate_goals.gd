@@ -1,12 +1,15 @@
 extends Node3D
 
 # The Skate Park's goals, like Tony Hawk's: collect the letters S-K-A-T-E hidden round the park, land a big combo,
-# grind and manual for a long time, land a 540, do your special, and rack up a big score here. Each one pays sparkles
-# once (scripts/game.gd), and the board by the park ticks them off. Done goals and collected letters are Dialogue
+# grind and manual for a long time, land a 540, do your special, rack up a big score here, and pop Gloops with the
+# Star Popper from the board. Each one pays sparkles once (scripts/game.gd), and the board by the park ticks them off. Done goals and collected letters are Dialogue
 # flags ("skate_goal_<id>", "skate_letter_<letter>"), so they're saved with the game like everything else.
 #
 # tools/build_town.gd puts this on the Skate Park, with the letters as Marker3D children ("Letter S"...) and the board.
 # The tricks and scores come from the skater (scenes/player/skate_tricks.gd), and only count in the park.
+#
+# It also brings the slow, sleepy Gloops to pop from the board (_place_gloops): a few round the park, and one beside
+# each of the town rails nearest it. They're placed here at play time rather than by the town builder.
 
 const RADIUS := 18.0                  # how far from the middle counts as in the park
 const LETTERS := ["S", "K", "A", "T", "E"]
@@ -18,7 +21,15 @@ const GOALS := [
 	{"id": "spin", "text": "Land a 540 spin", "sparkles": 3},
 	{"id": "special", "text": "Do your special trick", "sparkles": 5},
 	{"id": "score", "text": "Score 15,000 here", "sparkles": 8},
+	{"id": "pop3", "text": "Pop 3 Gloops in one combo", "sparkles": 5},
+	{"id": "grind_pop", "text": "Pop a Gloop off a grind", "sparkles": 4},
 ]
+# Sleepy Gloops round the park (from its middle; the rings' top is at 0.25), between the funbox, the rails and the
+# quarter pipes, so a line through the park passes a few
+const PARK_GLOOPS := [Vector3(-3.5, 0.6, -1.5), Vector3(3.5, 0.6, 1.5), Vector3(0, 0.6, 2.2), Vector3(-4.5, 0.6, 7.2),
+	Vector3(4.5, 0.6, -3.5)]
+const RAIL_GLOOPS := 6                # town rails nearest the park that get a Gloop beside them
+const RAIL_SIDE := 1.6                # how far beside the rail's middle it sits
 
 var park_score := 0                   # everything she's scored here since she arrived in town
 var _player: Node
@@ -35,6 +46,7 @@ func _ready() -> void:
 			_letters[l] = _make_letter(l, m)
 	_refresh()
 	_hook_up.call_deferred()
+	_place_gloops.call_deferred()
 
 
 func _hook_up() -> void:
@@ -44,6 +56,7 @@ func _hook_up() -> void:
 	var tricks: SkateTricks = _player.skate.tricks
 	tricks.banked.connect(_on_banked)
 	tricks.live_done.connect(_on_live_done)
+	tricks.popped.connect(_on_popped)
 
 
 func _process(delta: float) -> void:
@@ -99,6 +112,56 @@ func _on_live_done(name: String, seconds: float) -> void:
 		return
 	var ride: Dictionary = _player.skate.ride
 	complete("manual" if name == ride.tricks.manual or name == ride.tricks.nose_manual else "grind")
+
+
+func _on_popped(kind: String, on_grind: bool) -> void:
+	if not in_park() or kind != "gloop":
+		return
+	if _player.skate.tricks.pops("gloop") >= 3:
+		complete("pop3")
+	if on_grind:
+		complete("grind_pop")
+
+
+# -----------------------------------------------------------------------------
+# Gloops to pop from the board
+# -----------------------------------------------------------------------------
+func _place_gloops() -> void:
+	var scene: PackedScene = load("res://scenes/enemies/gloop.tscn")
+	var spots: Array[Vector3] = []
+	for at in PARK_GLOOPS:
+		spots.append(to_global(at))
+	# The town rails nearest the park (tools/build_town.gd, _town_rails), not the park's own
+	var rails := []
+	var town_rails := get_tree().current_scene.find_child("Town Rails", true, false) if get_tree().current_scene else null
+	if town_rails:
+		for r in town_rails.find_children("*", "GrindRail", true, false):
+			var rail := r as GrindRail
+			var mid := rail.point_at(rail.length() / 2.0)
+			var d := Vector2(mid.x - global_position.x, mid.z - global_position.z).length()
+			if d > RADIUS:
+				rails.append([d, rail])
+	rails.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	for k in mini(RAIL_GLOOPS, rails.size()):
+		var rail: GrindRail = rails[k][1]
+		var mid := rail.point_at(rail.length() / 2.0)
+		var along := rail.point_at(rail.length() / 2.0 + 0.5) - mid
+		var side := Vector3(-along.z, 0, along.x).normalized() * (RAIL_SIDE if k % 2 == 0 else -RAIL_SIDE)
+		spots.append(mid + side + Vector3(0, -0.2, 0))         # the rail's about 0.6 m up: it drops onto the ground
+	for k in spots.size():
+		var e: Node3D = scene.instantiate()
+		e.name = "Skate Gloop %d" % k                         # not "Gloop …": the town's own Gloops keep their names
+		# Slow and sleepy: they amble about their spot and never chase, so they're there to pop as she rides by, and
+		# they come back soon (even with her close by) so the goals can be tried again
+		e.set("wander_radius", 2.0)
+		e.set("wander_speed", 0.7)
+		e.set("sight_range", 0.0)
+		e.set("damage", 1)
+		e.set("xp_reward", 2)
+		e.set("respawn_time", 8.0)
+		e.set("respawn_clear", 3.0)
+		e.position = to_local(spots[k])
+		add_child(e)
 
 
 # -----------------------------------------------------------------------------
