@@ -37,6 +37,7 @@ const CASTLE_FALLS := [57.0, 137.0]               # degrees round the rock (0 = 
 const CASTLE_POND := Vector3(76.0, 10.0, 7.0)     # each fall's pond: distance from the hill's middle, radius x, z
 const TOWN_SQUARE := Vector3(-12, -21, 10)       # x, z, radius (land between the two lakes)
 
+const GLOOP_KING := Vector2(-134, 2)              # where the Gloop King holds court, out in the west fields
 const SPAWN := Vector3(-72, 0, 80)               # where she appears in town without a door: the market's south entrance
 
 # The town's districts (see C:/Users/hggru/Game_dev/town-plan): the Market Square at the foot of the spa plateau, the
@@ -2101,8 +2102,8 @@ func _enemies() -> void:
 		Vector3(135, -45, 0), Vector3(132, -62, 0), Vector3(138, 30, 0),
 		# Foot of the castle hill
 		Vector3(-40, -75, 0), Vector3(-15, -80, 0), Vector3(-2, -66, 0),
-		# West fields, past the market
-		Vector3(-132, 10, 0), Vector3(-138, -8, 0),
+		# West fields, past the market: the Gloop King's court (he's placed below)
+		Vector3(-132, 10, 0), Vector3(-138, -8, 0), Vector3(-143, 16, 0),
 		# On the plateau, around the Secret Gardens: big Gloops
 		Vector3(-98, -48, 1), Vector3(-55, -30, 1), Vector3(-95, -25, 1),
 	]
@@ -2128,13 +2129,34 @@ func _enemies() -> void:
 		e.position = ground(s.x, s.y) + Vector3(0, 0.3, 0)
 		if s.z > 0:
 			e.set("size", 1.5)
-			e.set("color", Color(0.9, 0.25, 0.55))
+			e.set("color", Color(0.85, 0.72, 0.2))           # goldier goo than the little ones
+			e.set("goldness", 0.6)
 			e.set("stomps_to_defeat", 2)
 			e.set("damage", 3)
 			e.set("xp_reward", 12)
 		g.add_child(e)
 		placed += 1
 	print("GLOOPS ", placed)
+	# The Gloop King (scenes/enemies/gloop_king.tscn), from Hayden's picture: holding court in the west fields
+	var king: Node3D = (load("res://scenes/enemies/gloop_king.tscn") as PackedScene).instantiate()
+	king.name = "The Gloop King"                                 # not "Gloop …", so finding Gloops by name skips him
+	king.position = ground(GLOOP_KING.x, GLOOP_KING.y) + Vector3(0, 0.3, 0)
+	king.set("size", 2.2)
+	king.set("color", Color(0.95, 0.78, 0.25))
+	king.set("goldness", 0.7)
+	king.set("stomps_to_defeat", 6)
+	king.set("damage", 3)
+	king.set("xp_reward", 40)
+	king.set("wander_radius", 7.0)
+	king.set("sight_range", 15.0)
+	king.set("leash_range", 28.0)
+	king.set("wander_speed", 1.0)
+	king.set("chase_speed", 2.6)
+	king.set("respawn_time", 150.0)
+	for c in keep_clear:
+		if Vector2(GLOOP_KING.x - c.x, GLOOP_KING.y - c.y).length() < c.z:
+			push_warning("The Gloop King is inside a clear zone at (%d, %d)" % [c.x, c.y])
+	g.add_child(king)
 	# Crocodillos (scenes/enemies/crocodillo.tscn): by the castle's ponds and off in the wilder corners
 	var croc: PackedScene = load("res://scenes/enemies/crocodillo.tscn")
 	var crocs := 0

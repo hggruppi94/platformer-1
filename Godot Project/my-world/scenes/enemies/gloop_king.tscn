@@ -1,0 +1,365 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/gloop_king.gd" id="1_k5gdo"]
+[ext_resource type="Shader" path="res://scenes/enemies/gloop_goo.gdshader" id="2_5shs1"]
+[ext_resource type="ArrayMesh" path="res://scenes/enemies/gloop_body.tres" id="3_cxfwq"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_dp1bl"]
+radius = 0.42
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_uahwv"]
+radius = 0.62
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_peruk"]
+resource_name = "Gloop Puddle"
+transparency = 1
+albedo_color = Color(0.12, 0.22, 0.05, 0.4)
+metallic = 0.4
+roughness = 0.03
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_x10n6"]
+top_radius = 0.55
+bottom_radius = 0.55
+height = 0.012
+radial_segments = 28
+rings = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qmox7"]
+resource_name = "Gloop Goo"
+render_priority = 0
+shader = ExtResource("2_5shs1")
+shader_parameter/deep = null
+shader_parameter/green = null
+shader_parameter/gold = null
+shader_parameter/goldness = null
+shader_parameter/sheen = null
+shader_parameter/use_drip_mask = null
+shader_parameter/sag = null
+shader_parameter/ooze = null
+shader_parameter/flash = null
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hnmkp"]
+resource_name = "Gloop Goo (still)"
+render_priority = 0
+shader = ExtResource("2_5shs1")
+shader_parameter/deep = null
+shader_parameter/green = null
+shader_parameter/gold = null
+shader_parameter/goldness = null
+shader_parameter/sheen = null
+shader_parameter/use_drip_mask = false
+shader_parameter/sag = null
+shader_parameter/ooze = null
+shader_parameter/flash = null
+
+[sub_resource type="TorusMesh" id="TorusMesh_x61dt"]
+inner_radius = 0.0663
+outer_radius = 0.1014
+rings = 24
+ring_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_twcur"]
+resource_name = "Gloop Eye"
+albedo_color = Color(0.03, 0.02, 0.05, 1)
+metallic = 0.55
+roughness = 0.03
+rim_enabled = true
+rim = 0.5
+rim_tint = 0.2
+clearcoat_enabled = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_4wlw8"]
+radius = 0.078
+height = 0.156
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e3ofi"]
+resource_name = "Gloop Eye Shine"
+shading_mode = 0
+albedo_color = Color(1, 0.97, 0.92, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_g2jd1"]
+radius = 0.0156
+height = 0.0312
+radial_segments = 10
+rings = 6
+
+[sub_resource type="TorusMesh" id="TorusMesh_m73gf"]
+inner_radius = 0.0663
+outer_radius = 0.1014
+rings = 24
+ring_segments = 12
+
+[sub_resource type="SphereMesh" id="SphereMesh_f42w8"]
+radius = 0.078
+height = 0.156
+radial_segments = 24
+rings = 12
+
+[sub_resource type="SphereMesh" id="SphereMesh_wq1rv"]
+radius = 0.0156
+height = 0.0312
+radial_segments = 10
+rings = 6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_djym7"]
+resource_name = "Crown Gold"
+cull_mode = 2
+albedo_color = Color(1, 0.74, 0.22, 1)
+metallic = 1.0
+roughness = 0.28
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_e7aj6"]
+top_radius = 0.105
+bottom_radius = 0.1
+height = 0.06
+radial_segments = 20
+cap_top = false
+cap_bottom = false
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xo5a0"]
+resource_name = "Crown Gold"
+albedo_color = Color(1, 0.74, 0.22, 1)
+metallic = 1.0
+roughness = 0.28
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_n2oqw"]
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.1
+radial_segments = 4
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_b5hoh"]
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.1
+radial_segments = 4
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kg2be"]
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.1
+radial_segments = 4
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_sh53q"]
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.1
+radial_segments = 4
+rings = 1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_cm1sm"]
+top_radius = 0.0
+bottom_radius = 0.045
+height = 0.1
+radial_segments = 4
+rings = 1
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qn6ng"]
+resource_name = "Crown Gem"
+albedo_color = Color(0.78, 0.02, 0.2, 1)
+metallic = 0.3
+roughness = 0.04
+emission_enabled = true
+emission = Color(0.9, 0.05, 0.25, 1)
+emission_energy_multiplier = 0.35
+
+[sub_resource type="SphereMesh" id="SphereMesh_640t4"]
+radius = 0.024
+height = 0.048
+radial_segments = 4
+rings = 2
+
+[sub_resource type="SphereMesh" id="SphereMesh_ojqx3"]
+radius = 0.11
+height = 0.22
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereMesh" id="SphereMesh_lxmad"]
+radius = 0.11
+height = 0.22
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereMesh" id="SphereMesh_wxbum"]
+radius = 0.11
+height = 0.22
+radial_segments = 20
+rings = 10
+
+[sub_resource type="SphereMesh" id="SphereMesh_jsxyr"]
+radius = 0.11
+height = 0.22
+radial_segments = 20
+rings = 10
+
+[node name="Gloop King" type="CharacterBody3D" unique_id=141952622]
+script = ExtResource("1_k5gdo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=621315021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
+shape = SubResource("SphereShape3D_dp1bl")
+
+[node name="Hitbox" type="Area3D" parent="." unique_id=88275696]
+monitorable = false
+
+[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Hitbox" unique_id=426597343]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.47, 0)
+shape = SubResource("SphereShape3D_uahwv")
+
+[node name="Puddle" type="MeshInstance3D" parent="." unique_id=2059342740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.85, 0, 0.012, 0.02)
+material_override = SubResource("StandardMaterial3D_peruk")
+cast_shadow = 0
+mesh = SubResource("CylinderMesh_x10n6")
+
+[node name="Visual" type="Node3D" parent="." unique_id=572866161]
+
+[node name="Body" type="MeshInstance3D" parent="Visual" unique_id=558976934]
+material_override = SubResource("ShaderMaterial_qmox7")
+mesh = ExtResource("3_cxfwq")
+
+[node name="EyeRimL" type="MeshInstance3D" parent="Visual/Body" unique_id=1030321519]
+transform = Transform3D(0.921061, -0.15262745, -0.19133458, 0, 0.2211004, -0.8709711, 0.38941836, 0.36099786, 0.4525488, -0.14977297, 0.79196537, 0.35424638)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("TorusMesh_x61dt")
+
+[node name="EyeL" type="MeshInstance3D" parent="Visual/Body" unique_id=862466620]
+transform = Transform3D(0.921061, 0.1626344, -0.33917212, 0, 0.74032545, 0.4913343, 0.38941836, -0.38466653, 0.8022175, -0.14502455, 0.7850867, 0.3430153)
+material_override = SubResource("StandardMaterial3D_twcur")
+mesh = SubResource("SphereMesh_4wlw8")
+
+[node name="Shine" type="MeshInstance3D" parent="Visual/Body/EyeL" unique_id=1776973621]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.023400001, 0.02652, 0.067080006)
+material_override = SubResource("StandardMaterial3D_e3ofi")
+mesh = SubResource("SphereMesh_g2jd1")
+
+[node name="EyeRimR" type="MeshInstance3D" parent="Visual/Body" unique_id=1575033243]
+transform = Transform3D(0.921061, 0.1527893, 0.19069563, 0, 0.22036207, -0.8718946, -0.38941836, 0.36138064, 0.45103756, 0.15042959, 0.7919588, 0.35579944)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("TorusMesh_m73gf")
+
+[node name="EyeR" type="MeshInstance3D" parent="Visual/Body" unique_id=980007870]
+transform = Transform3D(0.921061, -0.1620913, 0.33953178, 0, 0.74111044, 0.48969352, -0.38941836, -0.38338196, 0.8030681, 0.14567615, 0.7851031, 0.34455648)
+material_override = SubResource("StandardMaterial3D_twcur")
+mesh = SubResource("SphereMesh_f42w8")
+
+[node name="Shine" type="MeshInstance3D" parent="Visual/Body/EyeR" unique_id=1226686715]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.023400001, 0.02652, 0.067080006)
+material_override = SubResource("StandardMaterial3D_e3ofi")
+mesh = SubResource("SphereMesh_wq1rv")
+
+[node name="Drips" type="Node3D" parent="Visual/Body" unique_id=1603125769]
+
+[node name="Drip0" type="Marker3D" parent="Visual/Body/Drips" unique_id=1583790956]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36082625, 0.22101338, -0.2343233)
+
+[node name="Drip1" type="Marker3D" parent="Visual/Body/Drips" unique_id=887794382]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3862059, 0.22870095, -0.19678175)
+
+[node name="Drip2" type="Marker3D" parent="Visual/Body/Drips" unique_id=824003203]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06860693, 0.24229692, -0.4331671)
+
+[node name="Drip3" type="Marker3D" parent="Visual/Body/Drips" unique_id=2084449794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.38395467, 0.25695768, 0.22167633)
+
+[node name="Drip4" type="Marker3D" parent="Visual/Body/Drips" unique_id=765475925]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09236348, 0.2600166, 0.43453598)
+
+[node name="Drip5" type="Marker3D" parent="Visual/Body/Drips" unique_id=1931629627]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4095259, 0.2751825, 0.1823327)
+
+[node name="Drip6" type="Marker3D" parent="Visual/Body/Drips" unique_id=972055946]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28475365, 0.45044982)
+
+[node name="Drip7" type="Marker3D" parent="Visual/Body/Drips" unique_id=1868148119]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.32920685, 0.5269752, 0.2964192)
+
+[node name="Drip8" type="Marker3D" parent="Visual/Body/Drips" unique_id=748290619]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.11455243, 0.5287652, 0.42751548)
+
+[node name="Drip9" type="Marker3D" parent="Visual/Body/Drips" unique_id=1081215661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.332477, 0.5372078, -0.332477)
+
+[node name="Drip10" type="Marker3D" parent="Visual/Body/Drips" unique_id=98154719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.43595186, 0.5638718, 0.022847269)
+
+[node name="Drip11" type="Marker3D" parent="Visual/Body/Drips" unique_id=26010668]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.13476156, 0.56645244, -0.4147534)
+
+[node name="Drip12" type="Marker3D" parent="Visual/Body/Drips" unique_id=1353686460]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3023769, 0.94023997, -0.09824821)
+
+[node name="Drip13" type="Marker3D" parent="Visual/Body/Drips" unique_id=1089353785]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.016560657, 0.9430945, -0.31599614)
+
+[node name="Drip14" type="Marker3D" parent="Visual/Body/Drips" unique_id=15300816]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.016308956, 0.9520823, 0.31119344)
+
+[node name="Drip15" type="Marker3D" parent="Visual/Body/Drips" unique_id=528628606]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.015790831, 0.9697062, 0.301307)
+
+[node name="Crown" type="Node3D" parent="Visual/Body" unique_id=981715745]
+transform = Transform3D(0.8662846, 0.40303463, 0.2951509, -0.40725085, 0.9119478, -0.04997917, -0.28930557, -0.07690427, 0.9541426, 0.16030055, 1.0600001, 0.12720668)
+
+[node name="Band" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=829457016]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.03, 0)
+material_override = SubResource("StandardMaterial3D_djym7")
+mesh = SubResource("CylinderMesh_e7aj6")
+
+[node name="Point0" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=544721106]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.35, 0, 0.11, 0.092)
+material_override = SubResource("StandardMaterial3D_xo5a0")
+mesh = SubResource("CylinderMesh_n2oqw")
+
+[node name="Point1" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=1065910388]
+transform = Transform3D(0.30901697, 0, 0.3328698, 0, 1, 0, -0.95105654, 0, 0.108155936, 0.0874972, 0.11, 0.028429564)
+material_override = SubResource("StandardMaterial3D_xo5a0")
+mesh = SubResource("CylinderMesh_b5hoh")
+
+[node name="Point2" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=1879343263]
+transform = Transform3D(-0.80901706, 0, 0.2057248, 0, 1, 0, -0.5877852, 0, -0.28315598, 0.054076243, 0.11, -0.074429564)
+material_override = SubResource("StandardMaterial3D_xo5a0")
+mesh = SubResource("CylinderMesh_kg2be")
+
+[node name="Point3" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=119197567]
+transform = Transform3D(-0.80901694, 0, -0.20572488, 0, 1, 0, 0.58778536, 0, -0.28315592, -0.054076243, 0.11, -0.074429564)
+material_override = SubResource("StandardMaterial3D_xo5a0")
+mesh = SubResource("CylinderMesh_sh53q")
+
+[node name="Point4" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=1490883138]
+transform = Transform3D(0.30901712, 0, -0.33286977, 0, 1, 0, 0.9510565, 0, 0.10815599, -0.0874972, 0.11, 0.028429564)
+material_override = SubResource("StandardMaterial3D_xo5a0")
+mesh = SubResource("CylinderMesh_cm1sm")
+
+[node name="Gem" type="MeshInstance3D" parent="Visual/Body/Crown" unique_id=1301865021]
+transform = Transform3D(1, 0, 0, 0, 1.3, 0, 0, 0, 0.6, 0, 0.035, 0.108)
+material_override = SubResource("StandardMaterial3D_qn6ng")
+mesh = SubResource("SphereMesh_640t4")
+
+[node name="Feet" type="Node3D" parent="Visual" unique_id=1344191095]
+
+[node name="Foot0" type="MeshInstance3D" parent="Visual/Feet" unique_id=1043054685]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1.15, -0.19, 0.05, 0.16)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("SphereMesh_ojqx3")
+
+[node name="Foot1" type="MeshInstance3D" parent="Visual/Feet" unique_id=580284905]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1.15, 0.19, 0.05, 0.16)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("SphereMesh_lxmad")
+
+[node name="Foot2" type="MeshInstance3D" parent="Visual/Feet" unique_id=1370443764]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1.15, -0.23, 0.05, -0.12)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("SphereMesh_wxbum")
+
+[node name="Foot3" type="MeshInstance3D" parent="Visual/Feet" unique_id=1655996783]
+transform = Transform3D(1, 0, 0, 0, 0.6, 0, 0, 0, 1.15, 0.23, 0.05, -0.12)
+material_override = SubResource("ShaderMaterial_hnmkp")
+mesh = SubResource("SphereMesh_jsxyr")
