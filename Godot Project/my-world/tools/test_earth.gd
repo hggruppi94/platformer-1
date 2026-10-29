@@ -1,8 +1,9 @@
 extends SceneTree
 
-# Checks the trip through the portal to Earth: only during the Shift, Earth's own clock (Galaxity's crawls while
-# she's there), the people and Mr. Palmer's lights quest, the warning, being pulled home when the Shift ends, going
-# home early (the portal, the pause menu), and a save made on Earth after the Shift sending her home. Run it twice.
+# Checks life on Earth and the trips to Galaxity: a new game starting at home on Earth, the people and Mr. Palmer's
+# lights quest, the portal by the old oak asleep until midnight, through it to Galaxity in the Shift (its day at full
+# speed, Earth's clock crawling), home early and back (the portals, the pause menu), the warning at Galaxity's 6 AM,
+# being pulled home at the end of the Shift, and a save made in Galaxity in the Shift loading there. Run it twice.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_earth.gd
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_earth.gd -- --check-load
@@ -48,53 +49,40 @@ func _initialize() -> void:
 func _run() -> void:
 	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
 		DirAccess.copy_absolute(SAVE, BACKUP)
-	game._resume = {}
-	dialogue.reset()
-	quests.reset()
-	game.sparkles = 0
 	dialogue.line_shown.connect(func(who: String, text: String) -> void: said.append([who, text]))
 	game.message_posted.connect(func(t: String) -> void: messages.append(t))
-	change_scene_to_file(TOWN)
-	await _frames(6)
 
-	# Outside the Shift the portal's asleep
-	clock.set_time(1, 22 * 60.0, true)
-	await _frames(4)
-	await _walk_into(current_scene.find_child("Portal to Earth", false, false).find_child("Door", true, false))
-	check(current_scene.scene_file_path == TOWN and messages.any(func(m: String) -> bool: return m.contains("asleep")), "10 PM: the portal's asleep")
-
-	# In the Shift: through to Earth
-	clock.set_time(2, 10.0, true)
-	await create_timer(3.0).timeout                           # the swirl opens
-	await _walk_into(current_scene.find_child("Portal to Earth", false, false).find_child("Door", true, false))
+	# A new game starts at home on Earth, just out of bed, on an evening before the first Shift
+	game.new_game()
 	await _wait_for_scene(EARTH)
-	check(current_scene.scene_file_path == EARTH, "12:10 AM, the Shift: through the portal to Earth")
 	var player := current_scene.find_child("Player", true, false) as Node3D
-	check(player.global_position.distance_to(current_scene.find_child("Entrance", false, false).global_position) < 1.5, "she arrives by the old oak")
-	check(clock.on_earth and dialogue.flags.has("visited_earth"), "on Earth (remembered)")
-	await _frames(3)
-	check(messages.any(func(m: String) -> bool: return m.contains("the portal will pull you home")), "told she'll be pulled home when the Shift ends")
+	var home := current_scene.find_child("My Home", true, false) as Node3D
+	check(current_scene.scene_file_path == EARTH and player != null and home != null, "a new game starts on Earth")
+	var spawn := home.find_child("HomeSpawn", true, false) as Node3D
+	check(player.global_position.distance_to(spawn.global_position) < 1.5, "...at home, just out of bed")
+	check(home.find_child("SleepSpot", true, false) != null and home.find_child("CreatorSpot", true, false) != null,
+		"the house has a bed and a spot for the character creator")
+	check(clock.on_earth and clock.earth_time_string() == "8:00 PM" and not clock.in_shift() and clock.day == 1,
+		"Earth 8:00 PM, before the Shift; Galaxity waits on day 1")
+	await _frames(4)
 	var hud := player.get_node("HUD")
-	await create_timer(3.5).timeout
-	check(hud.clock_label.text.begins_with("Earth"), "the HUD shows Earth's time: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
+	check(str(hud.message_label.text).contains("At midnight the portal"), "\"%s\"" % hud.message_label.text)
+	hud._refresh_clock()
+	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("opens at midnight"),
+		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
 
-	# Time: Earth's evening goes by while Galaxity's Shift crawls
-	var g0: float = clock.minutes
-	var e0: float = clock.earth_minutes
-	await create_timer(3.0).timeout
-	var g_rate: float = (clock.minutes - g0) / 3.0
-	var e_rate: float = (clock.earth_minutes - e0) / 3.0
-	var shift_rate: float = clock.MINUTES_PER_DAY / (clock.DAY_LENGTH_MINUTES * 60.0) / clock.SHIFT_SLOWDOWN
-	check(absf(g_rate - shift_rate / clock.EARTH_SLOWDOWN) < 0.01, "Galaxity's clock crawls on Earth (%.3f min/s, %dx slower than the Shift)" % [g_rate, int(clock.EARTH_SLOWDOWN)])
-	check(e_rate > g_rate * 4.0, "Earth's own evening goes much faster (%.2f min/s)" % e_rate)
-	var real_minutes: float = 60.0 / (shift_rate / clock.EARTH_SLOWDOWN) / 60.0
-	check(real_minutes > 10.0, "a whole Shift on Earth lasts %.0f real minutes" % real_minutes)
+	# Outside the Shift the portal by the old oak is asleep
+	var portal := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
+	await _walk_into(portal)
+	check(current_scene.scene_file_path == EARTH and messages.any(func(m: String) -> bool: return m.contains("asleep")),
+		"8 PM: the portal's asleep")
+	check(not (current_scene.find_child("Portal Swirl", true, false) as Node3D).visible, "...no swirl in it")
 
 	# The people, and Mr. Palmer's lights
 	var palmer := _talker("palmer_earth")
 	check(palmer != null and _talker("ivy") != null and _talker("theo") != null, "Mr. Palmer (in person), Miss Ivy and Theo are here")
 	var hello := await _talk(palmer)
-	check(_said(hello, "just plain old Mr. Palmer"), "Mr. Palmer keeps his Galaxity side a secret")
+	check(_said(hello, "just plain old Mr. Palmer") and _said(hello, "neighbour"), "Mr. Palmer, a neighbour, keeps his Galaxity side a secret")
 	var ask := await _talk(_talker("palmer_earth"), [0])
 	check(_said(ask, "string lights") and quests.on_step("earth_lights", "find"), "the hook quest: find the gazebo's lights")
 	var boxes := current_scene.find_children("Light Box *", "Area3D", true, false)
@@ -112,49 +100,76 @@ func _run() -> void:
 	check(not lit_before and (current_scene.find_child("Gazebo Lights", true, false) as Node3D).visible, "the gazebo lights up")
 	check(quests.is_done("earth_lights") and game.sparkles == 8, "quest done, +8 sparkles")
 
-	# Nearly time; then the Shift ends and the portal pulls her home
-	clock.minutes = 50.5
-	await _frames(3)
-	check(messages.any(func(m: String) -> bool: return m.contains("nearly over")), "12:50: the portal flickers, nearly time to go")
-	clock.minutes = 59.98
-	await _wait_for_scene(TOWN, 600)
-	check(current_scene.scene_file_path == TOWN and not clock.in_shift(), "1 AM: the Shift's over and she's home")
+	# Midnight: the Shift begins, and the portal opens
+	clock.set_earth_time(23 * 60.0 + 59.7, true)
+	await create_timer(3.0).timeout
+	check(clock.in_shift() and messages.any(func(m: String) -> bool: return m.contains("the Shift has begun")),
+		"midnight on Earth: the Shift has begun")
+	check((current_scene.find_child("Portal Swirl", true, false) as Node3D).visible, "...and the portal swirls open")
+	await _walk_into(current_scene.find_child("PortalToGalaxity", true, false))
+	await _wait_for_scene(TOWN)
+	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "through the portal to Galaxity")
 	player = current_scene.find_child("Player", true, false) as Node3D
 	var by_portal := current_scene.find_child("FromPortaltoEarth", true, false) as Node3D
-	check(player.global_position.distance_to(by_portal.global_position) < 1.5 and not clock.on_earth, "...right by the portal")
+	check(player.global_position.distance_to(by_portal.global_position) < 1.5, "...arriving by Galaxity's portal")
+	check(clock.day == 1 and clock.hour() == 7, "Galaxity's day 1 has just begun: %s" % clock.time_string())
+	hud = player.get_node("HUD")
+	hud._refresh_clock()
+	check(hud.clock_label.text.begins_with("Day 1") and hud.clock_label.text.contains("The Shift (Earth 12:0"),
+		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
+
+	# Galaxity's day goes by at full speed while Earth's clock crawls
+	var g0: float = clock.minutes
+	var e0: float = clock.earth_minutes
+	await create_timer(3.0).timeout
+	var g_rate: float = (clock.minutes - g0) / 3.0
+	var e_rate: float = (clock.earth_minutes - e0) / 3.0
+	check(absf(g_rate - 1440.0 / (clock.DAY_LENGTH_MINUTES * 60.0)) < 0.05, "Galaxity's day runs at full speed (%.2f min/s)" % g_rate)
+	check(absf(e_rate * clock.SHIFT_RATIO - g_rate) < 0.05, "Earth's clock crawls along, %dx slower (%.3f min/s)" % [int(clock.SHIFT_RATIO), e_rate])
+
+	# Home early and back again: Galaxity's portal, the pause menu both ways
+	await _walk_into(current_scene.find_child("Portal to Earth", false, false).find_child("Door", true, false))
+	await _wait_for_scene(EARTH)
+	check(current_scene.scene_file_path == EARTH and clock.in_shift(), "Galaxity's portal takes her home early, still in the Shift")
+	player = current_scene.find_child("Player", true, false) as Node3D
+	check(player.global_position.distance_to(current_scene.find_child("Entrance", false, false).global_position) < 1.5,
+		"...by the old oak")
+	var pause := root.get_node("PauseMenu")
+	var way: Array = pause.way_home()
+	check(way.size() == 1 and way[0][0] == "Go through the portal to Galaxity", "on Earth in the Shift, the pause menu has \"%s\"" % [way[0][0] if way.size() else "nothing"])
+	if way.size():
+		way[0][1].call()
+	await _wait_for_scene(TOWN)
+	check(current_scene.scene_file_path == TOWN, "...back to Galaxity")
+	way = pause.way_home()
+	check(way.size() == 1 and way[0][0] == "Go home to Earth", "in Galaxity, the pause menu has \"%s\"" % [way[0][0] if way.size() else "nothing"])
+
+	# Near the end: Galaxity's dawn is coming. Then the Shift ends and the portal pulls her home.
+	clock.set_time(2, 5 * 60.0 + 59.9, true)
+	await create_timer(1.0).timeout
+	check(messages.any(func(m: String) -> bool: return m.contains("the portal will pull you home")), "6 AM in Galaxity: the portal will pull her home soon")
+	clock.set_time(2, 6 * 60.0 + 59.5, true)
+	await _wait_for_scene(EARTH, 600)
+	check(current_scene.scene_file_path == EARTH and not clock.in_shift(), "Galaxity's dawn, Earth's 1 AM: the Shift's over and she's home")
+	check(clock.day == 2 and clock.time_string() == "7:00 AM" and clock.earth_time_string() == "1:00 AM",
+		"Galaxity waits at day 2's dawn (%s), Earth %s" % [clock.time_string(), clock.earth_time_string()])
+	player = current_scene.find_child("Player", true, false) as Node3D
+	check(player.global_position.distance_to(current_scene.find_child("Entrance", false, false).global_position) < 1.5,
+		"...by the old oak")
 	await _frames(4)
 	var told: String = player.get_node("HUD").message_label.text
-	check(told.contains("pulls %s home" % root.get_node("Dialogue").player_name()), "\"%s\"" % told)
+	check(told.contains("home to Earth"), "\"%s\"" % told)
+	check(pause.way_home().is_empty(), "on Earth after the Shift there's no portal shortcut")
 
-	# Going home early: the pause menu, and the portal by the oak
-	clock.set_time(3, 5.0, true)
-	game.go(EARTH, "Entrance")
-	await _wait_for_scene(EARTH)
-	var pause := root.get_node("PauseMenu")
-	pause.open()
-	await _frames(2)
-	var buttons := pause.find_children("*", "Button", true, false).filter(func(b: Button) -> bool: return b.text == "Go back through the portal")
-	check(buttons.size() == 1, "on Earth the pause menu has \"Go back through the portal\"")
-	if buttons.size():
-		buttons[0].pressed.emit()
+	# A save made in Galaxity in the Shift (the second run checks she stays there)
+	clock.set_earth_time(23 * 60.0 + 59.0, true)
+	clock.set_earth_time(30.0, true)
+	game.go(TOWN, "FromPortaltoEarth")
 	await _wait_for_scene(TOWN)
-	check(current_scene.scene_file_path == TOWN and not paused, "...home early")
-	game.go(EARTH, "Entrance")
-	await _wait_for_scene(EARTH)
-	await _walk_into(current_scene.find_child("PortalHome", true, false))
-	await _wait_for_scene(TOWN)
-	check(current_scene.scene_file_path == TOWN, "walking into the portal by the oak goes home too")
-
-	# A save made on Earth, opened after the Shift's ended (phase 2 checks she's sent home)
-	game.go(EARTH, "Entrance")
-	await _wait_for_scene(EARTH)
 	game.save_game()
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
-	check(data.get("scene", "") == EARTH and data.has("earth_minutes"), "saved on Earth (with Earth's time)")
-	data["minutes"] = 3 * 60.0                                     # pretend she closed the game and the Shift's long over
-	var f := FileAccess.open(SAVE, FileAccess.WRITE)
-	f.store_string(JSON.stringify(data))
-	f.close()
+	check(data.get("scene", "") == TOWN and is_equal_approx(float(data.get("earth_minutes", 0)), clock.earth_minutes),
+		"saved in Galaxity, in the Shift (Earth %s, Galaxity %s)" % [clock.earth_time_string(), clock.time_string()])
 	print("RESULT %s (%d failed). Now run with -- --check-load" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(failures)
 
@@ -163,18 +178,16 @@ func _check_load() -> void:
 	# (Your own save goes back at the very end: this run changes scenes, and arriving anywhere autosaves. If anything
 	# goes wrong, the time-out puts it back too.)
 	check(quests.is_done("earth_lights"), "loaded: the lights quest is done")
-	check(game._resume.get("scene", "") == EARTH, "the save says she's on Earth")
-	# Start up as the game does: the main scene, then on to where she saved (Earth), which sends her home
+	check(game._resume.get("scene", "") == TOWN and clock.in_shift() and absf(clock.earth_minutes - 30.0) < 1.0,
+		"the save says she's in Galaxity, in the Shift (Earth %s)" % clock.earth_time_string())
+	# Start up as the game does: the main scene (Earth), then on to where she saved
 	change_scene_to_file(ProjectSettings.get_setting("application/run/main_scene"))
 	await _frames(4)
 	game._go_to_saved_scene()
-	for i in 240:
-		await process_frame
-		if current_scene and current_scene.scene_file_path == TOWN:
-			break
-	await _frames(6)
-	check(current_scene != null and current_scene.scene_file_path == TOWN and not clock.on_earth,
-		"a save on Earth after the Shift: she's sent home (%s)" % (current_scene.scene_file_path if current_scene else "none"))
+	await _wait_for_scene(TOWN, 240)
+	await create_timer(2.0).timeout
+	check(current_scene != null and current_scene.scene_file_path == TOWN and clock.in_shift() and not clock.on_earth,
+		"she's back in Galaxity, and the Shift goes on (%s)" % (current_scene.scene_file_path if current_scene else "none"))
 	await _frames(4)
 	_put_save_back()
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])

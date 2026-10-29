@@ -6,8 +6,8 @@
         "talks": 0
       },
       "lines": [
-        "Well, hello there! You're new in town. I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
-        "{player}: Mr. Palmer?! But you're the mayor of Galaxity!",
+        "Well, hello there, neighbour! I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
+        "{player}: Mr. Palmer?! You look just like the mayor of Galaxity!",
         "(Mr. Palmer looks left. Then right. Then he leans down and whispers.)",
         "Shh! Nobody here knows about that. On this side of the portal I'm just plain old Mr. Palmer.",
         "Lots of us have a Galaxity side, you know. You look a bit different over there yourself, I expect.",
@@ -29,7 +29,7 @@
               "set": "earth_lights_start",
               "lines": [
                 "Would you? You're a star. Just like back home, eh?",
-                "Mind the time, though. When the portal starts flickering, you'll want to be getting back."
+                "No rush. You live just round the corner, after all."
               ]
             },
             {
@@ -61,7 +61,7 @@
         "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
         "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
         "There. Now it's a proper autumn evening.",
-        "Come back next Shift and you can help with the festival. There's apple pie and hot apple juice."
+        "Come by tomorrow and you can help with the festival. There's apple pie and hot apple juice."
       ]
     },
     {
@@ -73,7 +73,7 @@
           "Doesn't the gazebo look lovely? I keep walking past it just to look."
         ],
         [
-          "Same time next Shift? I'll save you a spot by the gazebo."
+          "Off through the portal again tonight? Say hello to my other side for me."
         ]
       ]
     },
@@ -83,7 +83,7 @@
           "Lovely evening for it. Autumn's my favourite. Everything smells like leaves."
         ],
         [
-          "You'd better keep an eye on the time. The portal won't wait forever."
+          "The portal by the old oak opens at midnight. But you didn't hear that from me."
         ]
       ]
     }

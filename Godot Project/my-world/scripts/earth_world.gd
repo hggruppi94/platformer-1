@@ -1,19 +1,13 @@
 extends Node3D
 
-# Earth, through the portal (scenes/earth/earth.tscn, built by tools/build_earth.gd): a small cozy town on an autumn
-# evening. Nina can only come during the Shift. While she's here Galaxity's clock crawls (scripts/clock.gd,
-# EARTH_SLOWDOWN), so one Shift hour is a whole Earth evening; when the Shift ends, the portal pulls her home.
-# The portal she came through (by the old oak) takes her home sooner, any time.
+# Earth (scenes/earth/earth.tscn, built by tools/build_earth.gd): the small cozy town where the player lives. Their
+# house is on the south side of the green, with their bed (a new game starts there). Earth's clock is the one that
+# always runs (scripts/clock.gd). Every night from midnight to 1 AM, the Shift, the portal by the old oak opens to
+# Galaxity; the rest of the time it's a quiet ring and walking into it says when it opens.
 #
-# In the show, kids are people on Earth and creatures in Galaxity. Nina keeps her Galaxity look here for now.
+# In the show, kids are people on Earth and creatures in Galaxity. The player keeps their Galaxity look here for now.
 
-const TOWN := "res://scenes/town/town.tscn"
-const HOME_SPAWN := "FromPortaltoEarth"
-const WARN_AT := 50.0                              # Galaxity minutes past midnight: "nearly time to go"
-
-var _warned := false
-var _leaving := false
-var _last_minute := -1
+const PORTAL_OPEN_TIME := 2.5                      # seconds for the swirl to grow in or shrink away
 const SUN_HIGH := 58.0                              # degrees above the horizon at noon
 const SUN_NOON := Color(1.0, 0.96, 0.88)
 const SUNRISE := Color(1.0, 0.68, 0.5)              # soft peach and gold
@@ -31,6 +25,12 @@ var _moon: Node3D
 var _cloud_mat: StandardMaterial3D
 var _star_mat: StandardMaterial3D
 var _moon_mats := {}                               # material -> its alpha at night
+var _last_minute := -1
+var _portal_door: Area3D
+var _swirl: Node3D
+var _portal_glow: OmniLight3D
+var _glow_energy := 1.5
+var _open := 0.0                                   # the portal's swirl: 0 closed .. 1 fully open
 
 
 func _ready() -> void:
@@ -50,30 +50,42 @@ func _ready() -> void:
 			var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
 			if m and MOON_ALPHA.has(m.resource_name):
 				_moon_mats[m] = MOON_ALPHA[m.resource_name]
+	_portal_door = find_child("PortalToGalaxity", true, false) as Area3D
+	_swirl = find_child("Portal Swirl", true, false) as Node3D
+	_portal_glow = find_child("Portal Glow", true, false) as OmniLight3D
+	if _portal_glow:
+		_glow_energy = _portal_glow.light_energy
+	_open = 1.0 if Clock.in_shift() else 0.0
 	_light()
-	if not Clock.in_shift():
-		go_home.call_deferred("The Shift is over, so the portal brought %s home." % Dialogue.player_name())
-	else:
-		Game.message.call_deferred("Earth! A cozy little town on an autumn evening. When the Shift ends (1 AM back home), the portal will pull you home.")
+	_portal()
 
 
 func _exit_tree() -> void:
 	Clock.on_earth = false
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var m := int(Clock.earth_minutes)
 	if m != _last_minute:
 		_last_minute = m
-		Clock.time_changed.emit()                      # the HUD shows Earth's time too
 		_light()
-	if _leaving:
-		return
-	if not Clock.in_shift():
-		go_home("The Shift is over! The portal swirls up and pulls %s home." % Dialogue.player_name())
-	elif not _warned and Clock.minutes >= WARN_AT:
-		_warned = true
-		Game.message("The portal is flickering: the Shift is nearly over. Time to say goodbye!")
+	_open = move_toward(_open, 1.0 if Clock.in_shift() else 0.0, delta / PORTAL_OPEN_TIME)
+	_portal()
+
+
+func _portal() -> void:
+	# The swirl and its glow grow in at midnight and fade away at 1 AM. Whether she can go through follows the clock
+	# itself, not the swirl (as in Galaxity's portal, scripts/portal.gd).
+	var k := smoothstep(0.0, 1.0, _open)
+	if _swirl:
+		_swirl.visible = k > 0.01
+		_swirl.scale = Vector3.ONE * maxf(k, 0.01)
+	if _portal_glow:
+		_portal_glow.light_energy = _glow_energy * k
+		_portal_glow.visible = k > 0.01
+	if _portal_door:
+		_portal_door.set("closed_message", "" if Clock.in_shift() else
+			"The portal is asleep. It opens to Galaxity during the Shift, from midnight to 1 AM.")
 
 
 func _first_material(n: Node) -> StandardMaterial3D:
@@ -87,14 +99,6 @@ func _first_material(n: Node) -> StandardMaterial3D:
 		if m:
 			return m
 	return null
-
-
-func go_home(why := "") -> void:
-	if _leaving and why == "":
-		return
-	_leaving = true
-	Game.pending_message = why
-	Game.go(TOWN, HOME_SPAWN, "home")
 
 
 func _light() -> void:

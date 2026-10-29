@@ -12,7 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const HOUSE := "res://scenes/interiors/my_house.tscn"
+const EARTH := "res://scenes/earth/earth.tscn"
 const BT := preload("res://tools/build_town.gd")
 
 var failures := 0
@@ -43,16 +43,16 @@ func _run() -> void:
 	clock = root.get_node("Clock")
 	game.message_posted.connect(func(t: String) -> void: messages.append(t))
 
-	# --- 1. A new game starts at home, in My House, just out of bed ---
-	check(ProjectSettings.get_setting("application/run/main_scene") == HOUSE, "the game starts in My House")
+	# --- 1. A new game starts at home on Earth, just out of bed ---
+	check(ProjectSettings.get_setting("application/run/main_scene") == EARTH, "the game starts on Earth")
 	DirAccess.remove_absolute(SAVE)
 	game._resume = {}
 	game.call("load_game")
-	check(game.next_spawn == "BedSpawn", "with no save, she wakes up by her bed (spawn %s)" % game.next_spawn)
-	change_scene_to_file(HOUSE)
+	check(game.next_spawn == "HomeSpawn", "with no save, she wakes up by her bed (spawn %s)" % game.next_spawn)
+	change_scene_to_file(EARTH)
 	await _frames(5)
 	var p := current_scene.find_child("Player", true, false) as Node3D
-	var bed := current_scene.find_child("Bed", true, false) as Node3D
+	var bed := current_scene.find_child("My Home", true, false).find_child("Bed", true, false) as Node3D
 	check(p.global_position.distance_to(bed.global_position) < 3.5, "...right next to it (%.1f m)" % p.global_position.distance_to(bed.global_position))
 
 	# --- 2. Old saves made outdoors move to the market entrance; new ones come back exactly ---
@@ -161,17 +161,14 @@ func _run() -> void:
 					wrong.append("%s at %s" % [l.text, g.name])
 	check(boards >= 12 and wrong.is_empty(), "%d signpost boards point toward where they say: %s" % [boards, wrong])
 
-	# --- 6. The portal lights up the neighbourhood in the Shift ---
+	# --- 6. The portal lights up the neighbourhood (the player is only here in the Shift, so it's always open) ---
 	var hood := town.find_child("Portal to Earth", false, false).get_node("NeighbourhoodGlow") as OmniLight3D
-	clock.set_time(3, 12 * 60.0, true)
-	await create_timer(3.0).timeout                    # (the portal takes a moment to close)
-	var day_on := hood.visible
 	clock.set_time(3, 20.0, true)
 	await create_timer(3.0).timeout
 	var homes := Vector3(housing.x, 0, housing.y)
-	check(not day_on and hood.visible and hood.light_energy > 1.0 and hood.global_position.distance_to(Vector3(BT.PORTAL.x, hood.global_position.y, BT.PORTAL.y)) < 1.0
+	check(hood.visible and hood.light_energy > 1.0 and hood.global_position.distance_to(Vector3(BT.PORTAL.x, hood.global_position.y, BT.PORTAL.y)) < 1.0
 		and Vector2(hood.global_position.x - homes.x, hood.global_position.z - homes.z).length() < hood.omni_range,
-		"in the Shift the portal's glow reaches the homes (and it's dark by day)")
+		"in the Shift the portal's glow reaches the homes")
 
 	# --- 7. Pip at the market lamps in the evening, the boardwalk later ---
 	var pip: Node = null

@@ -14,6 +14,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const HOUSE := "res://scenes/interiors/my_house.tscn"
+const EARTH := "res://scenes/earth/earth.tscn"
 const TOWN := "res://scenes/town/town.tscn"
 
 var failures := 0
@@ -43,15 +44,15 @@ func _run() -> void:
 	creator = root.get_node("Creator")
 	dialogue = root.get_node("Dialogue")
 
-	# --- A new game: no hero yet, wakes up at home ---
+	# --- A new game: no hero yet, wakes up at home on Earth ---
 	game.hero = Hero.blank()
 	game.needs_creator = true
 	game.home = {}
 	game._resume = {}
-	game.next_spawn = "BedSpawn"
-	change_scene_to_file(HOUSE)
+	game.next_spawn = "HomeSpawn"
+	change_scene_to_file(EARTH)
 	await _frames(6)
-	check(ProjectSettings.get_setting("application/run/main_scene") == HOUSE, "the game starts in My House")
+	check(ProjectSettings.get_setting("application/run/main_scene") == EARTH, "the game starts at home on Earth")
 	var p := current_scene.find_child("Player", true, false) as Node3D
 	check(p.get("rider") == "hero" and (p.get("model") as Node3D).name == "Hero", "the player is their own hero")
 
@@ -213,7 +214,7 @@ func _run() -> void:
 	check(not creator.is_open(), "a new game puts away the creator that was open in the old scene")
 	check(game.needs_creator and str(game.hero.get("name", "")) == "", "...and starts with no hero yet")
 	var p2 := current_scene.find_child("Player", true, false) as Node3D
-	check(p2 != null and p2 != p and current_scene.scene_file_path == HOUSE, "...at home, with a new player")
+	check(p2 != null and p2 != p and current_scene.scene_file_path == EARTH, "...at home on Earth, with a new player")
 	creator.open(true)
 	await _frames(2)
 	check(creator.is_open() and p2.get("input_locked") and creator._cam != null and creator._cam.current,

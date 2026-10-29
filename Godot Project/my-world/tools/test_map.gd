@@ -116,11 +116,11 @@ func _run() -> void:
 	var palmer: Array = map.quest_markers()
 	check(palmer.size() == 1 and (palmer[0].pos as Vector3).distance_to(town.get_node("Town Hall").global_position) < 14.0, "Mr. Palmer: a star at the Town Hall")
 
-	# The portal, in the Shift
+	# The portal: the player is only in Galaxity in the Shift, so it's open whatever Galaxity's time
 	clock.set_time(3, 20.0, true)
 	check(map.portal_open(), "in the Shift the map shows the portal open")
-	clock.set_time(3, 2 * 60.0, true)
-	check(not map.portal_open(), "...and not after")
+	clock.set_time(3, 14 * 60.0, true)
+	check(map.portal_open(), "...all through Galaxity's day")
 
 	# Drawing works (nothing breaks with all of the above on it)
 	_press("map")

@@ -184,13 +184,13 @@ func _refresh_sparkles() -> void:
 
 
 func _refresh_clock() -> void:
+	# On Earth, Earth's time and when the portal opens; in Galaxity, its own day and time, and Earth's crawling clock
 	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
 	if Clock.on_earth:
-		text = "Earth     %s
-Galaxity: %s, the Shift" % [Clock.earth_time_string(), Clock.time_string()]
+		text = "Earth     %s\n%s" % [Clock.earth_time_string(),
+			"The Shift! Galaxity: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight"]
 	elif Clock.in_shift():
-		text += "
-The Shift"
+		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text
 	var shift_tint := Color(1.0, 0.8, 1.0) if Settings.high_contrast else Color(0.9, 0.7, 1.0)
 	clock_label.add_theme_color_override("font_color", shift_tint if Clock.in_shift() else Color(1, 1, 1))

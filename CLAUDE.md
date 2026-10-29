@@ -1,9 +1,10 @@
 # Galaxity: Sofi's game
 
 A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
-character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live in
-**Galaxity**, the alien town. During the Shift (midnight to 1 AM, game time) a portal
-opens to a small Earth town.
+character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live on
+**Earth**, in a small Stars Hollow style town. During the Shift (midnight to 1 AM, Earth time) the portal by the old
+oak opens to **Galaxity**, the alien town, and that one Earth hour lasts a whole Galaxity day (7 AM to 7 AM). At 1 AM
+the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in Galaxity and visited Earth).
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
 
@@ -18,14 +19,15 @@ Read this first in every session so each iteration builds on the last one and do
     - `build_school.gd` → `scenes/school/school.tscn`, the castle school interior from Sofi's floor plans
       (`source_art/reference/world/school - *.jpg`). It has 3 floors, the atrium, the Entrance Garden with its
       greenhouse and vegetable beds, and the 3rd-floor window that looks out on the town's real mountains.
-    - `build_earth.gd` → `scenes/earth/earth.tscn`, the Earth town (Stars Hollow style): the town green and gazebo,
-      shops, the barn dance studio, and the sky's clouds, stars and moon.
+    - `build_earth.gd` → `scenes/earth/earth.tscn`, the Earth town (Stars Hollow style) and the main scene: the
+      player's house with their bed (`My Home`, new games start at `HomeSpawn`), the town green and gazebo, shops,
+      the barn dance studio, the portal to Galaxity by the old oak, and the sky's clouds, stars and moon.
     - `build_interiors.gd` (domed rooms: cafe, aquarium, restaurant, Nina's house), `build_scary_world.gd`, and
       `build_centipede/crocodillo/gloop/mothership.gd` for creatures and vehicles.
     - `theme.gd`: the shared look. `THEME = "alien"` maps every colour into the alien palette (oranges → teal,
       reds → magenta, greens → acid lime, whites → lavender). Builders call `tint()` / `light()` / `backdrop()`.
-  - `scripts/`: game logic. Autoloads include `Clock` (`clock.gd`, the time of day, the Shift and Earth's own
-    clock), `Game`, `Dialogue` and `Quests`. `day_night.gd` handles Galaxity's sky and lamps, and `earth_world.gd`
+  - `scripts/`: game logic. Autoloads include `Clock` (`clock.gd`: Earth's clock, which always runs, Galaxity's,
+    which only runs in the Shift, and the Shift), `Game`, `Dialogue` and `Quests`. `day_night.gd` handles Galaxity's sky and lamps, and `earth_world.gd`
     handles Earth's full day and night.
   - `dialogue/*.json`, `quests/*.json`, `routines/`, `shop/`: content, each with its own README.
   - `tools/test_*.gd`: tests. `tools/capture_*.gd`: screenshot tools.
@@ -65,6 +67,21 @@ Read this first in every session so each iteration builds on the last one and do
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
+
+- 2026-10-28: The Shift flipped to match the story (Hayden). The player lives on Earth: a new game starts in their
+  house on the south side of the green (`_my_home()` in `build_earth.gd`, with a bed, and the creator's rug), and
+  `earth.tscn` is the main scene. Earth's clock always runs (an Earth hour a real minute). From Earth's midnight to
+  1 AM the portal by the old oak (`PortalToGalaxity`, opened by `earth_world.gd`) goes to Galaxity, and that hour is
+  one Galaxity day: Galaxity runs from dawn (7 AM) to the next dawn in 20 real minutes while Earth's clock crawls 24x
+  slower, wherever the player is. Galaxity's clock waits at dawn between Shifts and its day number goes up once per
+  visit. At 6 AM Galaxity warns, and when the Shift ends `Clock` pulls the player home to the old oak from any
+  Galaxity scene (`Clock.pulls_home`, off in tests that need it). Galaxity's portal and the pause menu go home early;
+  on Earth in the Shift the pause menu goes through to Galaxity. Beds: on Earth, naps stop at midnight and "Until the
+  Shift" waits for it; in Galaxity, sleep stops at dawn and ends the visit (`Clock.sleep()`, `end_shift()`).
+  `Clock.hour()` and `period()` are local (Earth's on Earth); `hours()`, `time_string()` and `daylight()` stay
+  Galaxity's. Saves are version 2; old ones still load: one made in Galaxity carries on there in the Shift (Earth's
+  time worked out from Galaxity's), one made on Earth keeps Earth's time. Mr. Palmer on Earth talks to a neighbour
+  now. `tools/test_clock.gd` and `tools/test_earth.gd` were rewritten, `tools/capture_shift.gd` (`previews/shift/`).
 
 - 2026-10-28: Mr. Palmer's Galaxity form, an alien mayor with an elephant trunk (`tools/build_mr_palmer_alien.py` →
   `mr_palmer_alien.blend/.glb`; idle, walk, grab). He keeps his tummy, suit, red tie, sash, round glasses and grey

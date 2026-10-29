@@ -8,7 +8,8 @@ extends Node
 # and on quitting. The day and time of day (scripts/clock.gd), who she's talked to (scripts/dialogue.gd) and how far
 # she's got in each quest (scripts/quests.gd) are saved with it.
 # It's loaded when the game starts, putting Nina back where she was. New Game is in the pause menu.
-# A new game (or the very first start, with no save) begins in Nina's House, just out of bed (the BedSpawn marker).
+# A new game (or the very first start, with no save) begins on Earth, where the player lives: in their house by the
+# town green, just out of bed (the HomeSpawn marker in scenes/earth/earth.tscn, the main scene).
 # Saves remember which town layout they were made in (LAYOUT): a save made outdoors in an older town starts her at
 # the Market Square's entrance instead, since buildings may have moved onto the spot where she stood.
 
@@ -73,10 +74,11 @@ var sparkles_taken := {}         # sparkle name -> the day she picked it up
 const HAPPY_PLACE_SPARKLES := 3  # for finding a happy place the first time
 
 const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2          # 2: the player lives on Earth, and Galaxity is visited in the Shift (scripts/clock.gd)
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
 const TOWN_SCENE := "res://scenes/town/town.tscn"
-const NEW_GAME_SPAWN := "BedSpawn"       # in My House, the player's own (the main scene)
+const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
+const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to Galaxity."
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -329,6 +331,7 @@ func save_game() -> void:
 func load_game() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
 		next_spawn = NEW_GAME_SPAWN                     # the very first start: wake up at home
+		pending_message = NEW_GAME_MESSAGE
 		return
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
 	if typeof(data) != TYPE_DICTIONARY:
@@ -350,9 +353,16 @@ func load_game() -> void:
 	for it in data.get("items", []):
 		items.append(str(it))
 	riding = bool(data.get("riding", false)) and has_item("skateboard")
-	Clock.earth_minutes = float(data.get("earth_minutes", Clock.EARTH_START))
+	# The clocks. Away from Earth it's always the Shift, so setting Galaxity's time puts Earth's at the matching moment
+	# of it. That's all a save from before the player lived on Earth (version 1) needs: one made in Galaxity carries on
+	# right there, in the Shift, until Galaxity's next dawn. Saves made on Earth, and newer ones, keep Earth's own time.
+	var saved_scene := str(data.get("scene", ""))
 	if data.has("day") and data.has("minutes"):     # older saves have no clock: keep the new-game time
 		Clock.set_time(int(data["day"]), float(data["minutes"]), true)
+	if int(data.get("version", 1)) >= 2 or saved_scene == Clock.EARTH:
+		Clock.earth_minutes = float(data.get("earth_minutes", Clock.EARTH_START))
+	if saved_scene != Clock.EARTH and not Clock.in_shift():
+		Clock.set_time(Clock.day, Clock.minutes, true)
 	var dialogue = data.get("dialogue", {})
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
@@ -471,7 +481,7 @@ func new_game() -> void:
 	next_spawn = NEW_GAME_SPAWN                      # wake up at home
 	_resume = {}
 	_last_place = {}
-	pending_message = "New game!"
+	pending_message = NEW_GAME_MESSAGE
 	equipment_changed.emit()
 	stats_changed.emit()
 	get_tree().call_deferred("change_scene_to_file", ProjectSettings.get_setting("application/run/main_scene"))

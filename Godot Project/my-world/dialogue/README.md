@@ -23,7 +23,7 @@ plain one (no `when`) last, so there's always something to say.
 
 | Key | Fits when |
 | --- | --- |
-| `"time": "morning"` | the time of day is that: `morning` (5-11 AM), `day` (11 AM-5 PM), `evening` (5-9 PM), `night` (9 PM-5 AM), `shift` (midnight-1 AM). `night` also fits during the Shift. Can be a list: `["evening", "night"]` |
+| `"time": "morning"` | the time of day where the player is (Earth's clock on Earth, Galaxity's in Galaxity) is that: `morning` (5-11 AM), `day` (11 AM-5 PM), `evening` (5-9 PM), `night` (9 PM-5 AM), `shift` (midnight-1 AM: on Earth the Shift itself, in Galaxity its midnight hour, when the portal glows brightest). `night` also fits then. Can be a list: `["evening", "night"]` |
 | `"talks": 0` | Nina has talked to them exactly this many times before (0 = the first time) |
 | `"min_talks": 3` / `"max_talks": 5` | at least / at most this many times before |
 | `"every": 2` | every 2nd visit (handy so time-of-day lines take turns with the ordinary ones) |

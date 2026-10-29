@@ -1,11 +1,13 @@
 extends Node3D
 
-# The portal to Earth (built by tools/build_town.gd). It only opens during the Shift, from midnight to 1 AM
+# The portal to Earth (built by tools/build_town.gd). It's open during the Shift, Earth's midnight to 1 AM
 # (scripts/clock.gd): the swirl grows in the ring, sparkles drift out of it and it lights up the ground around it.
-# The rest of the time it's a quiet stone ring, and walking into it just says when it opens.
+# The player only comes to Galaxity in the Shift, so here it's open: walk in to go home to Earth early (the Shift goes
+# on there until 1 AM, and the portal on Earth brings them back). When the Shift ends it pulls them home anyway.
 # It stands by the homes, so when it opens its glow lights up the whole neighbourhood (NeighbourhoodGlow).
 
 const OPEN_TIME := 2.5               # seconds for the swirl to grow in or shrink away
+const ARRIVE_FURTHER := 5.0          # metres further out than the door marker that arrivals from Earth appear
 
 @onready var _swirl: Node3D = $Swirl
 @onready var _glow: OmniLight3D = $Glow
@@ -27,6 +29,12 @@ func _ready() -> void:
 		_hood_energy = _hood.light_energy
 	_ring_energy = _ring_mat.emission_energy_multiplier
 	_open = 1.0 if Clock.in_shift() else 0.0
+	# Arrivals from Earth come out a few steps further from the ring than the builder's door marker, which left the
+	# camera behind her inside the open swirl and the whole screen white. (Now the portal's always open in Galaxity, so
+	# every arrival would see it.)
+	var arrive := get_node_or_null("FromPortaltoEarth") as Node3D
+	if arrive:
+		arrive.position.z += ARRIVE_FURTHER
 	_apply()
 
 

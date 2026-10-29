@@ -328,7 +328,7 @@ func _draw_full() -> void:
 			var gate := r.position + to_map(Vector3(-128, 0, -150)) * r.size
 			_star(c, gate, 10.0)
 		elif s and s.scene_file_path == "res://scenes/earth/earth.tscn":
-			where = "You're on Earth, through the portal! The way home is the portal by the old oak."
+			where = "You're at home on Earth. In the Shift, the portal by the old oak opens to Galaxity."
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))

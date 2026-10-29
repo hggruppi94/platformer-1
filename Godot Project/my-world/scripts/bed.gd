@@ -1,9 +1,11 @@
 extends Area3D
 
-# A bed (Nina's, in tools/build_interiors.gd). Stand next to it and press Interact to sleep, at any time of day.
-# A small picker asks how long: 1 to 12 hours (left/right to change), until morning, or until the Shift. It shows when
-# she'll wake up. A nap that would run past midnight stops there, so the Shift is never skipped by accident; "until
-# morning" is a clear choice to sleep through the night, so it goes straight on to 7:00 AM.
+# A bed (the player's on Earth in tools/build_earth.gd, and the ones in Galaxity's homes in tools/build_interiors.gd).
+# Stand next to it and press Interact to sleep, at any time of day. A small picker asks how long: 1 to 12 hours
+# (left/right to change), until morning, or (on Earth) until the Shift. It shows when she'll wake up.
+# On Earth, a nap that would run past midnight stops there, so the Shift is never skipped by accident; "until morning"
+# is a clear choice to sleep through the night, so it goes straight on to 7:00 AM. In Galaxity, sleep can't last past
+# the end of the Shift (Galaxity's 7 AM): sleeping until morning there ends the visit, and she wakes up back on Earth.
 # Sleeping fades the screen out, moves the clock on, refills HP/MP/SP (fully after 8 hours or more, a share of it for
 # a nap), saves, and fades back in.
 
@@ -110,17 +112,21 @@ func open_picker() -> void:
 	_hours_button.custom_minimum_size.x = _fs(380)
 	var tip := _label(box, "Left / right: more or less sleep", 15)
 	tip.modulate.a = 0.7
-	var morning := _option(box, "Until morning (%s)" % Clock.format_time(Clock.WAKE_HOUR * 60.0),
-		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), false))
-	var shift := _option(box, "Until the Shift (midnight)",
-		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
+	var morning := _option(box, "Until morning (%s)%s" % [Clock.format_time(Clock.WAKE_HOUR * 60.0),
+		"" if Clock.on_earth else ": home to Earth"],
+		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
+	var shift: Button = null
+	if Clock.on_earth and not Clock.in_shift():
+		shift = _option(box, "Until the Shift (midnight)",
+			func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	_option(box, "Not now", close_picker)
 	_preview = _label(box, "", 18)
 	_preview.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(0.9, 0.78, 1.0))
 	# The preview line says when she'll wake up for whichever option is highlighted
 	_hours_button.focus_entered.connect(func() -> void: _show_wake(hours * 60.0))
-	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), false))
-	shift.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
+	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
+	if shift:
+		shift.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	get_tree().root.add_child(_picker)
 	_set_hours(hours)
 	_hours_button.grab_focus()
@@ -144,8 +150,11 @@ func _set_hours(h: int) -> void:
 
 func _show_wake(want_minutes: float, wake_for_shift := true) -> void:
 	var length := Clock.sleep_length(want_minutes) if wake_for_shift else want_minutes
-	var text := "She'll wake up at %s" % Clock.format_time(Clock.minutes + length)
-	if length < want_minutes:
+	var text := "%s'll wake up at %s" % [Hero.pronoun(Game.hero, "they").capitalize(),
+		Clock.format_time(Clock.local_minutes() + length)]
+	if not Clock.on_earth and Clock.in_shift() and length >= Clock.shift_minutes_left() - 0.01:
+		text = "%s'll wake up back home on Earth, at 1 AM" % Hero.pronoun(Game.hero, "they").capitalize()
+	elif length < want_minutes:
 		text += ", for the Shift!"
 	_preview.text = text
 
@@ -225,11 +234,22 @@ func _start_sleep(want_minutes: float, wake_for_shift := true) -> void:
 	var tw := layer.create_tween()
 	tw.tween_property(dark, "modulate:a", 1.0, FADE_TIME)
 	tw.tween_callback(func() -> void:
-		Clock.advance(length)
 		_rest(length / 60.0)
+		if not Clock.on_earth and Clock.in_shift() and length >= Clock.shift_minutes_left() - 0.01:
+			# The end of the Shift: the portal takes her home to Earth while she sleeps (scripts/clock.gd), and this
+			# bed goes with the scene, so the dark screen goes too
+			get_tree().paused = false
+			layer.queue_free()
+			_busy = false
+			Clock.sleep(length)
+			Game.pending_message = "%s wakes up back home on Earth. It's 1 AM, and the Shift is over." % Dialogue.player_name()
+			return
+		Clock.sleep(length)
 		Game.save_game()
 		_wake_text = _wake_message()                 # a member, not a local: lambdas copy locals when they're made
-		text.text = "Zzz...\n\n%s\nDay %d, %s" % [_wake_text.get_slice("!", 0) + "!", Clock.day, Clock.time_string()])
+		var when := ("Earth, %s" % Clock.earth_time_string()) if Clock.on_earth else \
+			("Day %d, %s" % [Clock.day, Clock.time_string()])
+		text.text = "Zzz...\n\n%s\n%s" % [_wake_text.get_slice("!", 0) + "!", when])
 	tw.tween_interval(HOLD_TIME)
 	tw.tween_property(dark, "modulate:a", 0.0, FADE_TIME)
 	tw.tween_callback(func() -> void:
@@ -250,9 +270,10 @@ func _rest(slept_hours: float) -> void:
 
 
 func _wake_message() -> String:
-	if Clock.in_shift():
-		return "Wake up! It's midnight: the Shift has begun, and the portal is open."
+	if Clock.on_earth and Clock.in_shift():
+		return "Wake up! It's midnight: the Shift has begun, and the portal to Galaxity is open."
 	var h := Clock.hour()
 	if h >= 5 and h < 12:
-		return "Good morning! It's day %d. You feel well rested." % Clock.day
-	return "%s wakes up! It's %s." % [Dialogue.player_name(), Clock.time_string()]
+		return "Good morning! You feel well rested." if Clock.on_earth else \
+			"Good morning! It's day %d. You feel well rested." % Clock.day
+	return "%s wakes up! It's %s." % [Dialogue.player_name(), Clock.format_time(Clock.local_minutes())]

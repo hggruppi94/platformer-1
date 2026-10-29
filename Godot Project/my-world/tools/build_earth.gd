@@ -1,10 +1,11 @@
 extends SceneTree
 
-# Builds res://scenes/earth/earth.tscn: the little Earth town through the portal. A cozy autumn town: a town green
+# Builds res://scenes/earth/earth.tscn: the little Earth town where the player lives. A cozy autumn town: a town green
 # with a white gazebo in the middle, a street round it with lamps, a diner, a bookshop, the corner market, an inn,
 # the town hall with its white steeple and a few homes, autumn trees, fallen leaves and pumpkins on the steps. Past the
-# green's southeast corner, the old red barn is the dance studio: walk in through its big doors.
-# Nina arrives by the old oak, where the portal home shimmers. Logic: scripts/earth_world.gd.
+# green's southeast corner, the old red barn is the dance studio: walk in through its big doors. The middle home on
+# the south side is the player's own: walk in, and their bed is inside (a new game starts there).
+# By the old oak is the portal to Galaxity, open during the Shift. Logic: scripts/earth_world.gd.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_earth.gd
 
@@ -16,7 +17,8 @@ const STREET_W := 6.0
 const EDGE := 64.0                                # an invisible wall this far out
 const STUDIO_AT := Vector3(35, 0, 35)             # the barn dance studio, past the southeast corner of the green
 const STUDIO_SIZE := Vector3(14, 6, 18)           # width, wall height, depth
-const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal home, on the green's corner
+const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal to Galaxity, on the green's corner
+const HOME_SIZE := Vector3(10, 4.6, 9)            # the player's house: width, wall height, depth
 
 var world: Node3D
 var rng := RandomNumberGenerator.new()
@@ -390,8 +392,108 @@ func _buildings() -> void:
 	mesh_at(cyl(0.0, 1.9, 4.0, 4), mat("Steeple Roof", Color(0.3, 0.3, 0.32)), Vector3(0, 12.5, 0), hall, PI / 4)
 	# South side: homes
 	var home_cols := [Color(0.85, 0.75, 0.55), Color(0.6, 0.7, 0.85), Color(0.85, 0.6, 0.55)]
-	for k in 3:
+	for k in [0, 2]:
 		_building("Home %d" % (k + 1), Vector3(-14 + k * 14, 0, back), PI, Vector3(8, 5.0, 7), home_cols[k], Color(0.3, 0.25, 0.25), "")
+	_my_home(Vector3(0, 0, back + 1.0), home_cols[1])
+
+
+func _my_home(at: Vector3, wall: Color) -> void:
+	# The player's house, in the middle of the south side, facing the green. Hollow like the barn, with a doorway to walk
+	# in by: a wooden floor, a rug, their bed (scripts/bed.gd) at the back, a lamp, and warm windows. A new game starts
+	# just out of bed (HomeSpawn), and the character creator stands them on the rug (CreatorSpot).
+	var g := group("My Home", at, PI)
+	var hd := HOME_SIZE.z / 2.0
+	var h := HOME_SIZE.y
+	var wall_m := mat("Wall My Home", wall, 0.85)
+	var shell := CSGCombiner3D.new()
+	shell.name = "House"
+	shell.use_collision = true
+	g.add_child(shell)
+	var outer := CSGBox3D.new()
+	outer.size = HOME_SIZE
+	outer.position = Vector3(0, h / 2.0, 0)
+	outer.material = wall_m
+	shell.add_child(outer)
+	var hollow := CSGBox3D.new()
+	hollow.operation = CSGShape3D.OPERATION_SUBTRACTION
+	hollow.size = HOME_SIZE - Vector3(0.6, 0.2, 0.6)                 # from just under the ground to under the ceiling
+	hollow.position = Vector3(0, h / 2.0 - 0.2, 0)
+	hollow.material = mat("Wall Inside", Color(0.95, 0.9, 0.8), 0.9)
+	shell.add_child(hollow)
+	var doorway := CSGBox3D.new()
+	doorway.operation = CSGShape3D.OPERATION_SUBTRACTION
+	doorway.size = Vector3(1.8, 2.7, 1.2)
+	doorway.position = Vector3(0, 1.35, hd)
+	doorway.material = wall_m
+	shell.add_child(doorway)
+	var roof := PrismMesh.new()
+	roof.size = Vector3(HOME_SIZE.x + 0.6, 2.2, HOME_SIZE.z + 0.6)
+	mesh_at(roof, mat("Roof My Home", Color(0.3, 0.25, 0.25), 0.8), Vector3(0, h + 1.1, 0), g)
+	mesh_at(box(Vector3(HOME_SIZE.x - 0.7, 0.04, HOME_SIZE.z - 0.7)), mat("Home Floor", Color(0.62, 0.44, 0.3), 0.8),
+		Vector3(0, 0.02, 0), g)
+	# The front: a door frame, warm windows either side, a sign and a pumpkin on the step
+	var trim := mat("Home Trim", Color(0.96, 0.94, 0.9), 0.7)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.2, 2.8, 0.2)), trim, Vector3(sx * 1.0, 1.4, hd + 0.05), g)
+	mesh_at(box(Vector3(2.2, 0.2, 0.2)), trim, Vector3(0, 2.8, hd + 0.05), g)
+	var glass := mat("Warm Window", Color(1.0, 0.85, 0.55), 0.3, 1.6)
+	for wx in [-HOME_SIZE.x * 0.28, HOME_SIZE.x * 0.28]:
+		mesh_at(box(Vector3(1.6, 1.2, 0.1)), glass, Vector3(wx, 1.7, hd + 0.05), g)
+		mesh_at(box(Vector3(1.6, 1.2, 0.1)), glass, Vector3(wx, 1.7, hd - 0.33), g)
+	mesh_at(box(Vector3(3.0, 0.7, 0.12)), mat("Sign Board", Color(0.18, 0.25, 0.2)), Vector3(0, 3.5, hd + 0.12), g)
+	label(g, "Home", Vector3(0, 3.5, hd + 0.2), 48)
+	_pumpkin(g, Vector3(1.6, 0, hd + 0.6), 0.28)
+	lamp_light(g, Vector3(0, 2.4, hd + 1.2), Color(1.0, 0.8, 0.55), 1.0, 6.0)
+	# Inside: a warm lamp that's always on, a rug and the bed at the back
+	var inside := OmniLight3D.new()
+	inside.light_color = Color(1.0, 0.85, 0.65)
+	inside.light_energy = 1.3
+	inside.omni_range = 9.0
+	inside.position = Vector3(0, h - 0.8, 0)
+	g.add_child(inside)
+	mesh_at(cyl(2.0, 2.0, 0.04, 32), mat("Home Rug", Color(0.6, 0.45, 0.85), 0.9), Vector3(0, 0.05, 0.6), g)
+	var stage := Marker3D.new()
+	stage.name = "CreatorSpot"
+	stage.position = Vector3(0, 1.0, 1.4)
+	g.add_child(stage)
+	var bed := Node3D.new()
+	bed.name = "Bed"
+	bed.position = Vector3(-2.8, 0, -2.6)
+	g.add_child(bed)
+	var frame := mat("Bed Wood", Color(0.5, 0.32, 0.2), 0.7)
+	solid_box(Vector3(2.0, 0.5, 3.0), Vector3(0, 0.25, 0), bed)
+	mesh_at(box(Vector3(2.0, 0.5, 3.0)), frame, Vector3(0, 0.25, 0), bed)
+	mesh_at(box(Vector3(1.9, 0.3, 2.8)), mat("Mattress", Color(0.97, 0.94, 0.88), 0.7), Vector3(0, 0.65, 0), bed)
+	mesh_at(box(Vector3(1.98, 0.14, 1.9)), mat("Blanket", Color(0.3, 0.45, 0.75), 0.8), Vector3(0, 0.84, 0.45), bed)
+	mesh_at(box(Vector3(1.2, 0.22, 0.55)), mat("Pillow", Color(1, 1, 1), 0.8), Vector3(0, 0.92, -1.0), bed)
+	solid_box(Vector3(2.0, 1.4, 0.2), Vector3(0, 0.7, -1.5), bed)
+	mesh_at(box(Vector3(2.0, 1.4, 0.2)), frame, Vector3(0, 0.7, -1.5), bed)
+	var sleep_area := Area3D.new()
+	sleep_area.name = "SleepSpot"
+	sleep_area.set_script(load("res://scripts/bed.gd"))
+	var scs := CollisionShape3D.new()
+	var sshape := SphereShape3D.new()
+	sshape.radius = 2.4
+	scs.shape = sshape
+	scs.position = Vector3(0, 1.0, 0.6)
+	sleep_area.add_child(scs)
+	var prompt := Label3D.new()
+	prompt.name = "Prompt"
+	prompt.text = "Press F to sleep"
+	prompt.font_size = 44
+	prompt.pixel_size = 0.01
+	prompt.outline_size = 10
+	prompt.outline_modulate = Color(0.15, 0.1, 0.12)
+	prompt.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt.no_depth_test = true
+	prompt.position = Vector3(0, 2.3, 0)
+	sleep_area.add_child(prompt)
+	bed.add_child(sleep_area)
+	var wake := Marker3D.new()                        # just out of bed, facing the door
+	wake.name = "HomeSpawn"
+	wake.position = Vector3(-0.9, 1.0, -0.8)
+	wake.rotation.y = PI                             # (her -Z faces the doorway, at the house's +Z)
+	g.add_child(wake)
 
 
 func _dance_studio() -> void:
@@ -650,7 +752,8 @@ func _lamps() -> void:
 
 
 func _portal() -> void:
-	# The old oak by the green, and the portal home shimmering beside it. Nina arrives here.
+	# The old oak by the green, and the portal to Galaxity beside it (open during the Shift: scripts/earth_world.gd shows
+	# its swirl and glow then). Coming home from Galaxity, the player arrives here.
 	var toward := Vector3(-PORTAL_AT.x, 0, -PORTAL_AT.z).normalized()       # from the portal toward the green's middle
 	var g := group("Portal Home", PORTAL_AT, atan2(toward.x, toward.z))     # the ring faces the green
 	_autumn_tree(g, Vector3(-2.5, 0, -1.5), 6.0)
@@ -658,20 +761,22 @@ func _portal() -> void:
 	ring.inner_radius = 1.5
 	ring.outer_radius = 1.8
 	mesh_at(ring, mat("Portal Ring", Color(0.7, 0.5, 1.0), 0.3, 2.0), Vector3(0, 1.8, 0), g, 0.0, Vector3(PI / 2, 0, 0))
-	mesh_at(cyl(1.5, 1.5, 0.05, 32), mat("Portal Swirl", Color(0.6, 0.4, 1.0), 0.2, 1.5, 0.55), Vector3(0, 1.8, 0), g, 0.0, Vector3(PI / 2, 0, 0))
+	mesh_at(cyl(1.5, 1.5, 0.05, 32), mat("Portal Swirl", Color(0.6, 0.4, 1.0), 0.2, 1.5, 0.55), Vector3(0, 1.8, 0), g, 0.0,
+		Vector3(PI / 2, 0, 0)).name = "Portal Swirl"
 	var l := OmniLight3D.new()
+	l.name = "Portal Glow"
 	l.light_color = Color(0.7, 0.5, 1.0)
 	l.light_energy = 1.5
 	l.omni_range = 7.0
 	l.position = Vector3(0, 1.8, 1.0)
 	g.add_child(l)
-	label(g, "Portal home", Vector3(0, 4.0, 0), 56, Color(0.9, 0.8, 1.0)).billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label(g, "Portal to Galaxity", Vector3(0, 4.0, 0), 56, Color(0.9, 0.8, 1.0)).billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	var exit := Area3D.new()
-	exit.name = "PortalHome"
+	exit.name = "PortalToGalaxity"
 	exit.set_script(load("res://scripts/door.gd"))
 	exit.set("destination", TOWN)
 	exit.set("spawn", "FromPortaltoEarth")
-	exit.set("place_name", "home")
+	exit.set("place_name", "Galaxity")
 	exit.position = Vector3(0, 1.6, 0)
 	var cs := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
