@@ -36,6 +36,11 @@ const OWN_CLOTHES := {
 	"rook": {"top": ["Shirt", "Shirt Shade"], "bottoms": ["Denim", "Denim Light"], "feet": ["Shoes", "Sole"]},
 	"pip": {"top": ["Suit Navy", "Suit Blue"], "bottoms": ["Suit Yellow", "Suit Red"]},
 	"bramble": {"top": ["Top"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoe", "Sole"]},
+	# The hero creator's own bodies (scripts/hero.gd)
+	"earth_kid": {"top": ["Top", "Top Shade"], "bottoms": ["Jeans", "Jeans Shade"], "feet": ["Shoes", "Sole"]},
+	"bunny": {"top": ["Top", "Top Shade"], "bottoms": ["Dungarees", "Dungarees Shade"], "feet": ["Shoes", "Sole"]},
+	"cat": {"top": ["Hoodie", "Hoodie Shade"], "bottoms": ["Shorts", "Shorts Shade"], "feet": ["Shoes", "Sole"]},
+	"dino": {"top": ["Top", "Top Shade"], "bottoms": ["Shorts", "Shorts Shade"], "feet": ["Shoes", "Sole"]},
 	"mr_palmer": {"top": ["Suit", "Suit Shade"], "feet": ["Shoes", "Sole"]},
 }
 const BACKPACKS := ["Backpack", "Backpack Mesh", "Backpack Dark", "Zipper"]
@@ -64,6 +69,13 @@ const OWN_LOOKS := {
 	"pip": {"fur": ["Skin", "Skin Shade"], "hair": ["Mane Orange"], "eyes": ["Iris", "Iris Light"], "accent": ["Antenna Tip"], "blush": ["Blush"]},
 	"bramble": {"fur": ["Fur", "Fur Light"], "hair": ["Hair", "Hair Shade"], "eyes": ["Iris", "Iris Light"], "accent": ["Belt"]},
 	"green_man": {"fur": ["Green", "Green Dark"], "eyes": ["Eye"]},
+	"earth_kid": {"fur": ["Skin", "Nose", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"],
+		"accent": ["Backpack", "Backpack Dark"], "blush": ["Blush"]},
+	"bunny": {"fur": ["Fur", "Ear", "Fur Light"], "eyes": ["Iris", "Iris Light"], "accent": ["Flower", "Flower Middle"],
+		"blush": ["Blush"]},
+	"cat": {"fur": ["Fur", "Ear", "Stripe", "Fur Light"], "eyes": ["Iris", "Iris Light"], "accent": ["Collar"],
+		"blush": ["Blush"]},
+	"dino": {"fur": ["Skin"], "eyes": ["Iris", "Iris Light"], "accent": ["Spike", "Horn"], "blush": ["Blush"]},
 	"mr_palmer": {"fur": ["Skin"], "hair": ["Grey Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Tie"], "blush": ["Blush"]},
 	"rex": {"fur": ["Fur", "Fur Dark"], "eyes": ["Iris", "Iris Light"], "accent": ["Vest"]},
 }
@@ -293,7 +305,8 @@ static func _pattern(kind: String, a: Color, b: Color) -> ImageTexture:
 # Fitting: where the places pieces sit round are on someone, measured from their model (and kept per model)
 # -----------------------------------------------------------------------------
 const NINA := "res://models/characters/nina.glb"
-const NOT_HEAD := ["Antenna", "Antenna Tip", "Horn", "Horn Tip", "Cap", "Cap White"]
+const NOT_HEAD := ["Antenna", "Antenna Tip", "Horn", "Horn Tip", "Cap", "Cap White", "Ear", "Ear Lining", "Spike",
+	"Whisker"]
 const SKIN := ["Skin", "Fur", "Green"]
 const HAIR := ["Hair", "Hair Shade", "Hair Tip Teal", "Hair Tip Lavender", "Grey Hair", "Mane Orange", "Mane Teal",
 	"Mane Purple", "Mane Pink"]

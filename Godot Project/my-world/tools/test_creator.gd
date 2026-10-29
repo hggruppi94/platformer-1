@@ -4,7 +4,8 @@ extends SceneTree
 # needs the creator and starts at home, the creator changes the body, hairstyle, colours, size and name and won't
 # close without a name, "Surprise me" keeps the name, the hero saves and loads, an old save from before heroes asks
 # for one and keeps its outfit, turning the hero (mouse or stick) keeps the mouse and leaves the camera alone, the
-# wardrobe opens the creator, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
+# wardrobe opens the creator, the Face tab sculpts eyes, noses, ears and mouths and picks ready-made faces, the
+# dog-kid is a secret found by finishing Rook's skate lesson, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
 # colours and furniture (and they save), and Nina is a friend in town with things to say.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_creator.gd
@@ -81,6 +82,70 @@ func _run() -> void:
 	creator.set_value("height", 1.15)
 	await _frames(2)
 	check(is_equal_approx(model.scale.y, 1.15), "the height slider makes them taller")
+
+	# --- Face sculpting ---
+	creator._tab = "Face"
+	creator._fill()
+	await _frames(1)
+	for key in ["eyes", "eye_gap", "nose", "ears", "mouth"]:
+		check(creator._content.find_child("Slider " + key, true, false) != null, "the Face tab has a %s slider" % key)
+	var body_mesh := Clothes._body(model)
+	var wide := _head_width(body_mesh.mesh)
+	creator.set_value("ears", 2.8)
+	await _frames(2)
+	model = p.get("model") as Node3D
+	body_mesh = Clothes._body(model)
+	check(body_mesh.mesh != body_mesh.get_meta("unsculpted") and _head_width(body_mesh.mesh) > wide + 0.1,
+		"the ears slider makes their ears much bigger")
+	check(body_mesh.skin != null and body_mesh.mesh.get_surface_count() == (body_mesh.get_meta("unsculpted") as Mesh).get_surface_count(),
+		"...on a copy of their body that's still skinned, part for part")
+	var nose_parts := Clothes._surfaces(body_mesh, ["Nose"])
+	var nose_before := _part_box(body_mesh.get_meta("unsculpted"), nose_parts[0])
+	creator.set_value("nose", 3.0)
+	await _frames(2)
+	body_mesh = Clothes._body(p.get("model"))
+	check(_part_box(body_mesh.mesh, nose_parts[0]).size.x > nose_before.size.x * 2.5, "the nose slider goes up to a huge nose")
+	creator.step_face(1)
+	check(FaceSculpt.preset_index(game.hero) == 0, "the Face arrows go from a face of their own to the first ready-made one")
+	creator.step_face(1)
+	check(FaceSculpt.preset_index(game.hero) == 1 and is_equal_approx(float(game.hero.eyes), FaceSculpt.PRESETS[1].eyes),
+		"the Face arrows pick a ready-made face (%s)" % FaceSculpt.PRESETS[1].name)
+	creator.step_face(-1)
+	await _frames(2)
+	body_mesh = Clothes._body(p.get("model"))
+	check(FaceSculpt.preset_index(game.hero) == 0 and body_mesh.mesh == body_mesh.get_meta("unsculpted"),
+		"...and \"As drawn\" puts their own face back")
+	var alien := Hero.BODIES.alien.face as Dictionary
+	check(not FaceSculpt.has_feature(alien, "ears") and FaceSculpt.has_feature(alien, "eyes"), "a body with no ears has no ears slider")
+
+	# --- Secret bodies: the dog-kid gets about on all fours, so it's found, not picked ---
+	dialogue.flags.erase("skate_lesson_done")
+	game.items.erase("secret:dog")
+	var seen := []
+	for i in Hero.BODY_ORDER.size() + 2:
+		creator.step_body(1)
+		seen.append(game.hero.body)
+	check("dog" not in seen and "dog" not in Hero.BODY_ORDER, "the dog-kid isn't in the list of bodies until it's found")
+	creator._tab = "Body"
+	creator._fill()
+	var hint := false
+	for l in creator._content.find_children("*", "Label", true, false):
+		if "Coach Rook" in (l as Label).text:
+			hint = true
+	check(hint, "...and the Body tab gives a hint for finding it")
+	dialogue.set_flag("skate_lesson_done")
+	await _frames(3)
+	check(game.has_item("secret:dog") and "dog" in Hero.choices(game.hero), "finishing Rook's skate lesson finds the dog-kid")
+	seen = []
+	for i in Hero.choices(game.hero).size():
+		creator.step_body(1)
+		seen.append(game.hero.body)
+	check("dog" in seen, "...which the body arrows then reach")
+	dialogue.flags.erase("skate_lesson_done")
+	check(Hero.found("dog"), "...and it stays found")
+	game.hero["body"] = "kid"
+	creator.step_body(0)
+	await _frames(2)
 	game.hero["name"] = ""
 	creator.close()
 	check(creator.is_open() and creator._tab == "Name", "it won't close without a name, and goes to the Name tab")
@@ -234,6 +299,24 @@ func _run() -> void:
 	check(not game.needs_creator and game.hero.name == "Luna", "...and once it's made, loading doesn't ask again")
 	game._resume = {}
 	_end()
+
+
+func _head_width(mesh: Mesh) -> float:
+	# How wide their head is, ears and all (everything above the neck)
+	var w := 0.0
+	for i in mesh.get_surface_count():
+		for v in mesh.surface_get_arrays(i)[Mesh.ARRAY_VERTEX] as PackedVector3Array:
+			if v.y > 1.0:
+				w = maxf(w, absf(v.x))
+	return w * 2.0
+
+
+func _part_box(mesh: Mesh, surface: int) -> AABB:
+	var v: PackedVector3Array = mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+	var box := AABB(v[0], Vector3.ZERO)
+	for x in v:
+		box = box.expand(x)
+	return box
 
 
 class ClickProbe extends Node:

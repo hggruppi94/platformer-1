@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Screenshots of what the character creator can make (scripts/hero.gd): every hairstyle on a hippo, every body type,
-# body shapes, and a row of random heroes ("Surprise me"). Lineups of models in the Clothing Boutique.
+# body shapes, a row of random heroes ("Surprise me"), and every body as drawn (the secret dog-kid last). Lineups of
+# models in the Clothing Boutique.
 # Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_hero.gd -- <output folder>
@@ -71,6 +72,14 @@ func _run() -> void:
 	for k in 6:
 		heroes.append(Hero.random())
 	await _lineup(heroes, "05_surprise_me")
+	# Every body as drawn, their own hair, with the secret one at the end
+	heroes = []
+	for b in Hero.BODY_ORDER + Hero.SECRET_ORDER:
+		var h := Hero.blank()
+		h.body = b
+		h.hairstyle = 0
+		heroes.append(h)
+	await _lineup(heroes, "06_every_body")
 	_finish()
 
 
@@ -83,13 +92,13 @@ func _lineup(heroes: Array, file: String) -> void:
 		var h: Dictionary = heroes[k]
 		var m := (load(Hero.model_path(h)) as PackedScene).instantiate() as Node3D
 		row.add_child(m)
-		m.position = Vector3((k - (heroes.size() - 1) / 2.0) * 1.15, 0, 0)
+		m.position = Vector3((k - (heroes.size() - 1) / 2.0) * (1.15 if heroes.size() <= 6 else 0.8), 0, 0)
 		Hero.apply(m, h, {})
 		var ap := m.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		if ap and ap.has_animation("idle"):
 			ap.play("idle")
 	cam.make_current()
-	cam.global_position = Vector3(0, 1.3, 7.2)
+	cam.global_position = Vector3(0, 1.3, 7.2 if heroes.size() <= 6 else 7.6)
 	cam.look_at(Vector3(0, 0.85, 0))
 	for i in 8:
 		await process_frame

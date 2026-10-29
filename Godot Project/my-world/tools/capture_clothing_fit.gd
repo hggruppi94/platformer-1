@@ -1,12 +1,12 @@
 extends SceneTree
 
-# Screenshots of how the clothes fit everyone (scripts/clothes.gd): each of the six hero bodies (with a hairstyle, so
+# Screenshots of how the clothes fit everyone (scripts/clothes.gd): each hero body, secret ones too (with a hairstyle, so
 # hats over hair show) and each friend who can be dressed, wearing five outfits that between them have every hat and
 # every piece of clothing, from the front and the side. Each character also gets a contact sheet: the five outfits
 # across, front on the top row and side below. Taken in an empty grey studio so nothing else gets in the way.
 # Opens a window (not --headless):
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_clothing_fit.gd -- <output folder>
+#   godot --path "Godot Project/my-world" --script res://tools/capture_clothing_fit.gd -- <output folder> [who ...]
 #
 # Your own save is put aside and put back afterwards.
 
@@ -34,6 +34,7 @@ const FRIEND_MODELS := {
 }
 
 var out_dir := "user://clothing_fit_shots"
+var only := []                # just these bodies and friends (after the folder), or everyone
 var cam: Camera3D
 var stage: Node3D
 
@@ -42,6 +43,7 @@ func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		out_dir = args[0]
+	only = args.slice(1)
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(SHOT)
 	create_timer(600.0, true, false, true).timeout.connect(_finish)
@@ -77,7 +79,9 @@ func _run() -> void:
 	stage = Node3D.new()
 	studio.add_child(stage)
 
-	for body in Hero.BODY_ORDER:
+	for body in Hero.BODY_ORDER + Hero.SECRET_ORDER:
+		if not only.is_empty() and body not in only:
+			continue
 		await _character("hero_" + body, func(k: int) -> Node3D:
 			var hero := Hero.blank()
 			hero.body = body
@@ -88,6 +92,8 @@ func _run() -> void:
 			Hero.apply(m, hero, OUTFITS[k])
 			return m)
 	for who in FRIEND_MODELS:
+		if not only.is_empty() and who not in only:
+			continue
 		await _character(who, func(k: int) -> Node3D:
 			var m := (load(FRIEND_MODELS[who]) as PackedScene).instantiate() as Node3D
 			m.scene_file_path = FRIEND_MODELS[who]

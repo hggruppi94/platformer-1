@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks that clothes fit everyone (scripts/clothes.gd): each of the six hero bodies (with and without a hairstyle)
+# Checks that clothes fit everyone (scripts/clothes.gd): each hero body, secret ones too (with and without a hairstyle)
 # and each friend who can be dressed tries on every hat and every piece, one at a time, and each piece has to touch
 # them (no hats hovering over hair, no capes or jetpacks floating off a back). Then what's worn over a part hides it:
 # a hat goes on instead of Dash's cap and Nina's bow, new glasses instead of Dash's and Mr. Palmer's own, a cap or
@@ -57,7 +57,7 @@ func _run() -> void:
 
 	# --- Every piece touches everyone it's on ---
 	var wearers := []
-	for body in Hero.BODY_ORDER:
+	for body in Hero.BODY_ORDER + Hero.SECRET_ORDER:
 		for style in [0, 4]:                              # their own hair, and space buns
 			var hero := Hero.blank()
 			hero.body = body
@@ -106,7 +106,7 @@ func _run() -> void:
 	var crowned := await _dress(["", buns, ""], {"head": "flower_crown"})
 	check(_count_hair(crowned, "up") == 2, "...but a flower crown leaves them out")
 	crowned.free()
-	for body in Hero.BODY_ORDER:
+	for body in Hero.BODY_ORDER + Hero.SECRET_ORDER:
 		var hero := Hero.blank()
 		hero.body = body
 		hero.hairstyle = 1

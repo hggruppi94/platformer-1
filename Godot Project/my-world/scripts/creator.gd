@@ -8,10 +8,13 @@ extends Node
 # The hero stands in the world on a turntable (drag with the mouse, or the turn buttons) while a panel down the left
 # changes them; every change shows straight away. The game carries on behind (it isn't paused), but the hero can't
 # move until it's done.
+#
+# Bodies that don't walk on two legs are secret (Hero.SECRETS): they join the list of bodies once they're found, and
+# finding one says so wherever the player is.
 
 signal closed
 
-const TABS := ["Body", "Hair", "Colours", "Clothes", "Name"]
+const TABS := ["Body", "Face", "Hair", "Colours", "Clothes", "Name"]
 const FACE_PARTS := ["fur", "eyes", "accent", "blush", "brows"]
 const CLOTHES_PARTS := ["top", "bottoms", "shoes"]
 
@@ -33,6 +36,16 @@ var _dragging := false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	Dialogue.flag_set.connect(func(_f: String) -> void: check_secrets.call_deferred())
+	Game.saved.connect(func() -> void: check_secrets.call_deferred())
+
+
+func check_secrets() -> void:
+	# A secret body whose condition's been met is found: it's kept in the save, and the player hears about it once
+	for id in Hero.SECRET_ORDER:
+		if not Game.has_item("secret:" + id) and Hero.meets(id):
+			Game.give_item("secret:" + id)
+			Game.message("Secret hero found: %s! Pick it in \"Change your hero...\" at the wardrobe." % Hero.BODIES[id].name)
 
 
 func is_open() -> bool:
@@ -143,9 +156,21 @@ func set_color(part: String, pick: int) -> void:
 
 
 func step_body(step: int) -> void:
-	var i := Hero.BODY_ORDER.find(str(Game.hero.get("body", "hippo")))
-	Game.hero["body"] = Hero.BODY_ORDER[posmod(i + step, Hero.BODY_ORDER.size())]
+	var bodies := Hero.choices(Game.hero)
+	var i := bodies.find(str(Game.hero.get("body", "hippo")))
+	Game.hero["body"] = bodies[posmod(i + step, bodies.size())]
 	_player.call("set_rider", "hero", false)        # a new body is a new model
+	_changed()
+
+
+func step_face(step: int) -> void:
+	# The ready-made faces, one after another (from a face of their own, the next one along from the start)
+	var i := FaceSculpt.preset_index(Game.hero)
+	if i < 0:
+		i = 0 if step > 0 else FaceSculpt.PRESETS.size()
+	else:
+		i += step
+	FaceSculpt.apply_preset(Game.hero, posmod(i, FaceSculpt.PRESETS.size()))
 	_changed()
 
 
@@ -274,7 +299,8 @@ func _fill() -> void:
 	var body := Hero.body_of(h)
 	match _tab:
 		"Body":
-			_arrows("Body", body.name, step_body)
+			var body_id := str(h.get("body", "hippo"))
+			_arrows("Body", body.name + ("  ★" if Hero.is_secret(body_id) else ""), step_body)
 			_slider("Height", "height", Hero.SIZES.height)
 			_slider("Head size", "head", Hero.SIZES.head)
 			_slider("Build", "build", Hero.SIZES.build)
@@ -285,6 +311,21 @@ func _fill() -> void:
 				extras.button_pressed = bool(h.get("extras", false))
 				extras.toggled.connect(func(on: bool) -> void: set_value("extras", on))
 				_content.add_child(extras)
+			# The secret bodies: found ones are in the list above (with a star), the rest show a hint
+			var found := Hero.SECRET_ORDER.filter(func(id: String) -> bool: return Hero.found(id))
+			_content.add_child(_label("★ Secret heroes found: %d of %d" % [found.size(), Hero.SECRET_ORDER.size()], 20,
+				Color(1, 0.9, 0.6)))
+			for id in Hero.SECRET_ORDER:
+				var line := "%s: found! It's in the list of bodies." % Hero.BODIES[id].name if id in found \
+					else "???  Hint: %s." % Hero.SECRETS[id].hint
+				_content.add_child(_label(line, 17, Color(0.85, 0.85, 1.0)))
+		"Face":
+			var face: Dictionary = body.get("face", {})
+			var preset := FaceSculpt.preset_index(h)
+			_arrows("Face", FaceSculpt.PRESETS[preset].name if preset >= 0 else "Your own", step_face)
+			for key in FaceSculpt.KEYS:
+				if FaceSculpt.has_feature(face, key):
+					_slider(FaceSculpt.slider_name(face, key), key, FaceSculpt.RANGES[key], true)
 		"Hair":
 			var styles := Hairstyles.NAMES
 			_arrows("Hairstyle", styles[clampi(int(h.get("hairstyle", 0)), 0, styles.size() - 1)],
@@ -342,6 +383,7 @@ func _arrows(what: String, value: String, on_step: Callable) -> HBoxContainer:
 	row.add_theme_constant_override("separation", 10)
 	row.add_child(_button("◀", on_step.bind(-1), "Button %s -1" % what))
 	var l := _label("%s:  %s" % [what, value], 20)
+	l.name = "Label " + what
 	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(l)
 	row.add_child(_button("▶", on_step.bind(1), "Button %s 1" % what))
@@ -349,11 +391,11 @@ func _arrows(what: String, value: String, on_step: Callable) -> HBoxContainer:
 	return row
 
 
-func _slider(what: String, key: String, range_: Array) -> void:
+func _slider(what: String, key: String, range_: Array, face := false) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	var l := _label(what, 20)
-	l.custom_minimum_size.x = 130
+	l.custom_minimum_size.x = 175
 	row.add_child(l)
 	var s := HSlider.new()
 	s.name = "Slider " + key
@@ -364,9 +406,19 @@ func _slider(what: String, key: String, range_: Array) -> void:
 	s.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	s.value_changed.connect(func(x: float) -> void:
 		Game.hero[key] = x
-		Game.equipment_changed.emit())
+		Game.equipment_changed.emit()
+		if face:
+			_face_label())
 	row.add_child(s)
 	_content.add_child(row)
+
+
+func _face_label() -> void:
+	# Moving a face slider can take the face off a ready-made one (or onto one): the label says which
+	var l := _content.find_child("Label Face", true, false) as Label
+	if l:
+		var preset := FaceSculpt.preset_index(Game.hero)
+		l.text = "Face:  " + (FaceSculpt.PRESETS[preset].name if preset >= 0 else "Your own")
 
 
 func _swatches(part: String) -> void:

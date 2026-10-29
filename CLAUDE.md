@@ -68,6 +68,19 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Hero creator: more bodies, face sculpting and a secret hero (Hayden). Four new bodies built in Blender
+  by `tools/build_hero_bodies.py` (Earth kid, bunny, cat, dino; Dash-sized, on two legs, each with idle/walk/run and
+  its own clothes, colours and extras), so the creator has nine. A new Face tab sculpts the eyes, eye spacing, nose,
+  ears (with the moth's antennae and the cow's and dino's horns) and mouth, from tiny to huge, and has nine ready-made
+  faces to start from (`scripts/face_sculpt.gd`). Faces are sculpted on a copy of the hero's mesh: each body lists
+  where its face parts are in `Hero.BODIES[...].face`, the parts are found as connected pieces of the mesh, and their
+  points are scaled about their roots, so the head bone still carries them and every animation keeps the face. The
+  original mesh stays on the model as meta "unsculpted", and clothes are fitted before sculpting (to the body as
+  drawn). The dog-kid gets about on all fours, so it's a secret (`Hero.SECRETS`): finishing Coach Rook's skate lesson
+  finds it (saved as item "secret:dog"), it joins the body list with a star, and the Body tab hints at secrets not yet
+  found. Bunny and cat ears are their own parts ("Ear", "Ear Lining", in `Clothes.NOT_HEAD`) so hats sit on the head.
+  New tools: `capture_faces.gd`, `capture_creator_face.gd`; `test_creator.gd` checks the Face tab and the secret,
+  `test_clothing_fit.gd` covers every body (`previews/creator_faces/`).
 - 2026-10-28: The Shift flipped to match the story (Hayden). The player lives on Earth: a new game starts in their
   house on the south side of the green (`_my_home()` in `build_earth.gd`, with a bed, and the creator's rug), and
   `earth.tscn` is the main scene. Earth's clock always runs (an Earth hour a real minute). From Earth's midnight to
