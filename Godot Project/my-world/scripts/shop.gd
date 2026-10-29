@@ -66,7 +66,10 @@ func buy(id: String) -> bool:
 		return false
 	var it: Dictionary = items[id]
 	Game.spend_sparkles(int(it.price))
+	var wrapped_for := Requests.wrap(id) if str(it.kind) == "snack" else ""
 	match str(it.kind):
+		"snack" when wrapped_for != "":
+			_say("Wrapped up with a bow for %s! (Now go and find them.)" % wrapped_for)    # a request board delivery
 		"snack":
 			Game.hp = mini(Game.hp + int(it.get("hp", 0)), Game.max_hp)
 			Game.mp = mini(Game.mp + int(it.get("mp", 0)), Game.max_mp)

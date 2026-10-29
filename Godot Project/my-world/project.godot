@@ -30,6 +30,7 @@ SkateLesson="*res://scripts/skate_lesson.gd"
 PauseMenu="*res://scripts/pause_menu.gd"
 PlayerMenu="*res://scripts/player_menu.gd"
 Watches="*res://scripts/watches.gd"
+Requests="*res://scripts/requests.gd"
 
 [display]
 

@@ -78,6 +78,7 @@ var _last_rail_timer := 0.0
 var balance := 0.0                   # -1..1 on a grind; off either end and she falls off
 var _balance_vel := 0.0
 var _grind_time := 0.0
+var _grind_metres := 0.0             # how far along this one rail she's ground (the request board asks for long ones)
 var _bail_timer := 0.0
 var _spark_timer := 0.0
 var _lean := 0.0                     # visual lean into turns and on rails
@@ -679,6 +680,7 @@ func _try_grind() -> bool:
 	balance = rng.randf_range(-0.15, 0.15)
 	_balance_vel = 0.0
 	_grind_time = 0.0
+	_grind_metres = 0.0
 	_grind_buffer = 0.0
 	_charge = -1.0
 	_end_manual()
@@ -695,6 +697,7 @@ func _grind(input: Vector2, delta: float) -> void:
 	_rail_speed += p.get_gravity().dot(t) * 0.8 * delta     # down rails speed her up, up rails slow her
 	_rail_speed = maxf(_rail_speed - float(ride.grind_friction) * delta, 2.0)
 	_rail_offset += _rail_speed * _rail_dir * delta
+	_grind_metres += _rail_speed * delta
 	_yaw = atan2(t.x, t.z) + (PI / 2 if _grind_style == "slide" else 0.0)   # slides: the board across the rail
 	p.velocity = t * _rail_speed
 	var off_end := _rail_offset < 0.0 or _rail_offset > _rail.length()
@@ -735,6 +738,7 @@ func _grind(input: Vector2, delta: float) -> void:
 
 func _leave_rail(v: Vector3) -> void:
 	tricks.end_live()
+	Requests.note("grind", _grind_metres)
 	_last_rail = _rail
 	_last_rail_timer = 0.35
 	_rail = null

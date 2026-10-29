@@ -145,6 +145,25 @@ func talk_to(talker: Node3D) -> void:
 	_next()
 
 
+func say(talker: Node3D, speaker_name: String, lines: Array, id := "") -> void:
+	# A conversation made up on the spot rather than read from a file (the request board's Tally, scripts/requests.gd,
+	# who reads out tonight's requests). The talker needs begin_talk() and end_talk(), like a talk spot.
+	if is_active() or lines.is_empty():
+		return
+	_talker = talker
+	_id = id
+	_name = speaker_name
+	_queue = _steps(lines)
+	_set_at_end = ""
+	if _nearest:
+		_nearest.call("set_prompt", false)
+	_set_player_locked(true)
+	talker.call("begin_talk")
+	_panel.visible = true
+	started.emit(id)
+	_next()
+
+
 func load_character(id: String) -> Dictionary:
 	if _data_cache.has(id):
 		return _data_cache[id]

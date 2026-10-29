@@ -243,6 +243,7 @@ func shot(power: int, _point: Vector3, _dir: Vector3) -> String:
 func _defeat(bubbled := false) -> void:
 	defeated = true
 	velocity = Vector3.ZERO
+	Requests.note("crocodillo")                                  # the request board
 	Game.add_xp(xp_reward)
 	_popup("+%d XP" % xp_reward)
 	shape.set_deferred("disabled", true)

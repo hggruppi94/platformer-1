@@ -304,6 +304,7 @@ func save_game() -> void:
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
+		"requests": Requests.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -369,6 +370,8 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
+	var requests = data.get("requests", {})                  # saves from before the request board have none
+	Requests.load_data(requests if requests is Dictionary else {})
 	outfits = {"hero": {}}
 	var all_worn = data.get("outfits", {"hero": data.get("outfit", {})})
 	if all_worn is Dictionary:
@@ -482,6 +485,7 @@ func new_game() -> void:
 	Clock.reset()
 	Dialogue.reset()
 	Quests.reset()
+	Requests.reset()
 	next_spawn = NEW_GAME_SPAWN                      # wake up at home
 	_resume = {}
 	_last_place = {}

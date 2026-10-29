@@ -303,6 +303,8 @@ func log_text() -> String:
 		lines.append("")
 	if not any:
 		lines.append("No quests yet. Talk to people around town!")
+		lines.append("")
+	lines.append_array(Requests.log_lines())              # tonight's request board (scripts/requests.gd)
 	lines.append("")
 	lines.append("[color=#c8c8d8](%s to close)[/color]" % Settings.prompt("quest_log"))
 	return "\n".join(lines)

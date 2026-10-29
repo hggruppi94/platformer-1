@@ -68,6 +68,30 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: The nightly request board (Hayden, "The First Night" prompt A). A lilac board with a spinning gold star
+  stands at the edge of the Market Square (250 degrees round the fountain, mirroring Rex's noticeboard), and Tally,
+  the tall yellow little alien, a bit bigger than the crowd and holding a clipboard, walks a ring round the fountain
+  between the benches and the stalls. Both are added at runtime by the `Requests` autoload (`scripts/requests.gd`,
+  `request_board.gd`, `request_alien.gd`, `request_spot.gd`), not built into `town.tscn`. Every Shift the board rolls
+  three requests, once per visit (`Requests.visit_day()`: Galaxity's day at the Shift's dawn, so Galaxity's midnight
+  doesn't re-roll), seeded by the visit so a reload keeps them: one easy, one medium, one harder, never the same kind
+  twice, asking for a bit more each night (+5% a night, at most +50% by night 11) and paying 3 / 5 / 8 sparkles (+1
+  every 4 nights, at most +3). Kinds (`KINDS`): pop Gloops (any way, with the Star Popper only, or stomps only), pop a
+  dizzy Crocodillo, grind N metres on one rail, land an N point combo, score N at the Skate Park, bring a friend (Pip,
+  Bramble, Rex, Dash, Mr. Palmer, Nina) a snack from the market (bought while the request is open it's wrapped
+  instead of eaten, and pays its price back on top) or something from Earth (a parcel waits outside the Hollow Diner,
+  Bookshop or Corner Market: `request_parcel.gd`), go to a place (Cozy Cave, Tree House top, Observatory, Scary World
+  gate, Cloud Nest), and find a lost watch (only while `Watches.remaining()` is above 0; `watches.gd` calls
+  `Requests.note("watch")` on a pickup). Skating kinds need the skateboard. Progress comes through
+  `Requests.note()` (from `gloop.gd`/`crocodillo.gd` `_defeat()` and `skate.gd _leave_rail()`, which now counts
+  `_grind_metres`), the skater's `banked` combos, `Shop.buy()`, talking to the friend (`Dialogue.finished`) and where
+  the player is. Talking to Tally or using the board (`Dialogue.say()`, new: a conversation made up in code) turns
+  finished ones in, with confetti and a chime. At the end of the Shift unfinished ones fade with no penalty and
+  finished ones not turned in are paid anyway. The board and the Quests sheet (`Quests.log_text()`) update live.
+  Saved as "requests" in save.json; old saves start with none and get three on the next Shift.
+  `tools/test_request_board.gd` (66 checks), `tools/capture_request_board.gd` (shots are in the project files under
+  world/previews/request_board, made in the cloud, which can't upload LFS files).
+
 - 2026-10-29: Lost watches (Hayden, from the lore: everyone who lands on Galaxity has a watch that tracks time their
   own planet's or era's way). Twenty chosen kids lost theirs round Galaxity (`scripts/watches.gd`, autoload `Watches`):
   each a little spinning, glowing model built from shapes (`Watches.model()`: a drip clock, a tide shell, a cuckoo

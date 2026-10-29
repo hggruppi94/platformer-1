@@ -192,6 +192,7 @@ func _defeat(bubbled := false) -> void:
 		Audio.play_at("stomp", global_position)              # rolled into or rammed, not stomped
 	defeated = true
 	velocity = Vector3.ZERO
+	Requests.note("gloop", 1.0, "bubble" if bubbled else ("stomp" if hits > 0 else "ram"))     # the request board
 	Game.add_xp(xp_reward)
 	_popup("+%d XP" % xp_reward)
 	shape.set_deferred("disabled", true)
