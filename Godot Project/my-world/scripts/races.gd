@@ -35,7 +35,6 @@ const BOX_RADIUS := 1.7
 const GOO_RADIUS := 2.0
 const WANDER := 45.0                 # metres off the track and the race is off
 const BEST_BONUS := 5                # sparkles for beating your best time
-const STARTER := "Zippy"
 
 # Each track: its checkpoints (x, z; the first is the start and finish line), laps, prizes by place, and where its
 # boost pads, Star Boxes (three across the track) and goo puddles are, as a checkpoint number plus how far on to the
@@ -54,6 +53,39 @@ const TRACKS := {
 		"goo": [[5.5, -2.0], [8.6, 2.0], [12.3, -1.6]],
 		"prizes": [15, 10, 6, 3],
 		"rivals": ["dash", "rex", "bramble"],
+		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
+		"tune_up": true,
+	},
+	"meadow_wiggle": {
+		"name": "Meadow Wiggle",
+		"blurb": "two laps of wiggly bends through the south meadow",
+		"scene": TOWN,
+		"laps": 2,
+		"after": "lake_loop",
+		"points": [Vector2(-18, 50), Vector2(4, 46), Vector2(21, 50), Vector2(25, 62), Vector2(14, 72),
+			Vector2(0, 65), Vector2(-14, 72), Vector2(-6, 85), Vector2(12, 92), Vector2(0, 99), Vector2(-24, 96),
+			Vector2(-38, 82), Vector2(-30, 68), Vector2(-38, 56)],
+		"boosts": [[0.5, 0.0], [5.5, 0.0], [9.5, 0.0]],
+		"boxes": [[2.5], [7.5], [11.5]],
+		"goo": [[3.6, 1.8], [6.4, -1.8], [10.5, 1.6]],
+		"prizes": [18, 12, 7, 4],
+		"rivals": ["rook", "pip", "green_man"],
+		"starter": {"name": "Dart", "model": "res://models/characters/little_alien_orange.glb"},
+	},
+	"observatory_hill": {
+		"name": "Observatory Hill",
+		"blurb": "two laps up and down the slopes of the Observatory's hill",
+		"scene": TOWN,
+		"laps": 2,
+		"after": "meadow_wiggle",
+		"points": [Vector2(104, -51), Vector2(88, -54), Vector2(80, -70), Vector2(82, -90), Vector2(92, -108),
+			Vector2(112, -112), Vector2(128, -100), Vector2(132, -80), Vector2(134, -62), Vector2(124, -51)],
+		"boosts": [[0.5, 0.0], [5.5, 0.0], [8.5, 0.0]],
+		"boxes": [[2.5], [4.5], [7.3]],
+		"goo": [[3.5, -1.6], [6.5, 1.6]],
+		"prizes": [20, 14, 8, 4],
+		"rivals": ["dash", "rex", "mr_palmer"],
+		"starter": {"name": "Comet", "model": "res://models/characters/little_alien_blue.glb"},
 	},
 }
 # Who rides in a friend's place when you're riding as them
@@ -89,6 +121,7 @@ var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
 var raced := 0                       # races finished, all told
 var upgrades := {}                   # upgrade -> level bought (see UPGRADES)
+var finished_once := {}              # track id -> true once you've finished it (opens the next track)
 
 var state := State.IDLE
 var track_id := ""
@@ -187,7 +220,8 @@ func racing() -> bool:
 
 
 func save_data() -> Dictionary:
-	return {"best": best.duplicate(), "wins": wins.duplicate(), "raced": raced, "upgrades": upgrades.duplicate()}
+	return {"best": best.duplicate(), "wins": wins.duplicate(), "raced": raced, "upgrades": upgrades.duplicate(),
+		"finished": finished_once.keys()}
 
 
 func load_data(data: Dictionary) -> void:
@@ -201,6 +235,12 @@ func load_data(data: Dictionary) -> void:
 		for k in w:
 			wins[str(k)] = int(w[k])
 	raced = int(data.get("raced", 0))
+	var done = data.get("finished", [])
+	if done is Array:
+		for k in done:
+			finished_once[str(k)] = true
+	for k in best:
+		finished_once[k] = true                       # (a best time means it was finished)
 	var u = data.get("upgrades", {})
 	if u is Dictionary:
 		for k in u:
@@ -215,6 +255,7 @@ func reset() -> void:
 	best.clear()
 	wins.clear()
 	raced = 0
+	finished_once.clear()
 	upgrades.clear()
 	upgraded.emit()
 
@@ -264,37 +305,83 @@ func board_text(id: String) -> String:
 
 
 # -----------------------------------------------------------------------------
-# Zippy
+# For the map (scripts/map_screen.gd)
 # -----------------------------------------------------------------------------
+func map_tracks() -> Array:
+	var out: Array = []
+	for id in TRACKS:
+		var t := track_node(id)
+		if t == null or not t.ready_to_race:
+			continue
+		out.append({"name": TRACKS[id].name, "line": t.line, "start": t.point_at(0.0), "open": unlocked(id),
+			"racing": racing() and track_id == id})
+	return out
+
+
+func map_next() -> Vector3:
+	return track.point_at(track.cp_dist[next_cp]) if racing() and is_instance_valid(track) else Vector3.ZERO
+
+
+func map_rivals() -> Array:
+	return rivals.filter(func(r: RaceRival) -> bool: return is_instance_valid(r)).map(func(r: RaceRival) -> Vector3: return r.global_position)
+
+
+# -----------------------------------------------------------------------------
+# The starters (Zippy at the Lake Loop, and one at each other track)
+# -----------------------------------------------------------------------------
+func unlocked(id: String) -> bool:
+	# A track opens once you've finished the one before it (any place counts)
+	var needs := str(TRACKS[id].get("after", ""))
+	return needs == "" or finished_once.has(needs)
+
+
 func talk(talker: Node3D) -> void:
 	if racing():
 		return
-	Dialogue.say(talker, STARTER, lines(), "zippy")
+	var id := str(talker.get_parent().get_meta("track_id", "lake_loop"))     # the talk spot is on the starter
+	Dialogue.say(talker, str(TRACKS[id].starter.name), lines(id), "race_starter")
 
 
 func lines(id := "lake_loop") -> Array:
 	var tr: Dictionary = TRACKS[id]
+	var me := str(tr.starter.name)
 	if not Game.has_item("skateboard"):
-		return ["Vroom vroom, {player}! I'm Zippy, and I start the races round the lake.",
+		return ["Vroom vroom, {player}! I'm %s, and I start the races here." % me,
 			"But {they}'ll need something to ride first! There's a skateboard waiting at the Skate Park."]
 	var out: Array = []
 	if raced == 0:
-		out.append("Vroom vroom, {player}! I'm Zippy, and I start the races round the lake!")
+		out.append("Vroom vroom, {player}! I'm %s, and I start the %s: %s!" % [me, tr.name, tr.blurb])
 		out.append("Ride through every ring, in order: the next one glows gold. Boost pads zoom you along, and the Star Boxes give you a power-up. Press %s to use it!" % Settings.prompt("aim"))
 		out.append("Goo puddles are slow going, so steer round them. Everyone who finishes wins sparkles!")
 	else:
 		out.append("Back for more, {player}? The %s is %s." % [tr.name, tr.blurb])
 		if best.has(id):
-			out.append("Your best time is %s. Beat it for ✦ %d more!" % [RaceHud.clock(float(best[id])), BEST_BONUS])
-	out.append({"choice": [{"text": "Let's race!", "set": "race_go"}, {"text": "Not right now."}]})
+			out.append("Your best time here is %s. Beat it for ✦ %d more!" % [RaceHud.clock(float(best[id])), BEST_BONUS])
+	if not unlocked(id):
+		out.append("This one opens once you've finished the %s. Zippy starts that one, by the lake!" % TRACKS[str(tr.after)].name)
+	var choice: Array = []
+	if unlocked(id):
+		choice.append({"text": "Let's race!", "set": "race_go_" + id})
+	# The other tracks you can race: the starter whistles up a mini saucer to whizz you over to the line
+	for other in TRACKS:
+		if other != id and unlocked(other) and TRACKS[other].scene == tr.scene:
+			choice.append({"text": "Take me to the %s!" % TRACKS[other].name, "set": "race_go_" + other})
+	choice.append({"text": "Not right now."})
+	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k))
+	if not news.is_empty() and raced > 0:
+		out.append("Ooh, and the %s is open now! I can whizz you over." % TRACKS[news[0]].name)
+	out.append({"choice": choice})
 	return out
 
 
 func _on_talked(id: String) -> void:
-	if id != "zippy" or not Dialogue.flags.has("race_go"):
+	if id != "race_starter":
 		return
-	Dialogue.flags.erase("race_go")
-	start.call_deferred("lake_loop")
+	for f in Dialogue.flags.keys():
+		if str(f).begins_with("race_go_"):
+			Dialogue.flags.erase(f)
+			start.call_deferred(str(f).trim_prefix("race_go_"))
+			return
 
 
 # -----------------------------------------------------------------------------
@@ -307,7 +394,7 @@ func _player() -> Player:
 func start(id: String) -> bool:
 	var t := track_node(id)
 	var p := _player()
-	if racing() or t == null or not t.ready_to_race or p == null or not Game.has_item("skateboard"):
+	if racing() or t == null or not t.ready_to_race or p == null or not Game.has_item("skateboard") or not unlocked(id):
 		return false
 	track_id = id
 	track = t
@@ -413,7 +500,7 @@ func _race(delta: float) -> void:
 		_end(false)
 		return
 	if not Game.riding:
-		Game.message("You stepped off your ride, so the race is off. Talk to Zippy to race again!")
+		Game.message("You stepped off your ride, so the race is off. Talk to the starter to race again!")
 		_end(false)
 		return
 	time += delta
@@ -448,7 +535,7 @@ func _race(delta: float) -> void:
 		_wrong = -2.0
 		hud.shout("Wrong way!", Color(1.0, 0.55, 0.6), 0.6)
 	if t.off_line(pos, here) > WANDER:
-		Game.message("You rode off the track, so the race is off. Talk to Zippy to race again!")
+		Game.message("You rode off the track, so the race is off. Talk to the starter to race again!")
 		_end(false)
 		return
 	_pick_up(p, t)
@@ -504,6 +591,8 @@ func _finish() -> void:
 		best[track_id] = time
 	if place == 1:
 		wins[track_id] = int(wins.get(track_id, 0)) + 1
+	var opens := TRACKS.keys().filter(func(k: String) -> bool: return str(TRACKS[k].get("after", "")) == track_id and not finished_once.has(track_id))
+	finished_once[track_id] = true
 	raced += 1
 	Game.add_sparkles(prize + bonus, "%s in the %s!" % [RaceHud.ordinal(place), TRACKS[track_id].name])
 	# The table: friends not home yet get the time they're on course for
@@ -523,6 +612,8 @@ func _finish() -> void:
 		text += "\nNew best time! ✦ %d more" % bonus
 	elif new_best:
 		text += "\nYour first best time: %s" % RaceHud.clock(time)
+	for k in opens:
+		text += "\nThe %s is open now!" % TRACKS[k].name
 	hud.shout("FINISH!", Color(1.0, 0.85, 0.3), 0.8)
 	hud.show_results(text)
 	Audio.play("level_up")

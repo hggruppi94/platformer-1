@@ -159,7 +159,8 @@ func _process(delta: float) -> void:
 	_time += delta
 	if is_open():
 		_overlay.queue_redraw()
-	var show_mini := Settings.minimap and in_town() and not is_open() and not get_tree().paused and nina() != null
+	# The minimap is always up in a race (scripts/races.gd), to see the bends coming
+	var show_mini := (Settings.minimap or Races.racing()) and in_town() and not is_open() and not get_tree().paused and nina() != null
 	_mini_layer.visible = show_mini
 	if show_mini:
 		var at := to_map(nina().global_position) * _mini_scale_px()
@@ -323,6 +324,7 @@ func _draw_full() -> void:
 				c.draw_circle(at, 16.0, Color(0.6, 0.3, 1.0, 0.35 * glow))
 				c.draw_arc(at, 12.0, 0, TAU, 32, Color(0.75, 0.5, 1.0), 4.0)
 				_text(c, at + Vector2(0, -_fs(26)), "The portal is open!", _fs(18), Color(0.85, 0.7, 1.0))
+		_draw_races(c, r.position, r.size.x, true)
 		for q in quest_markers():
 			_star(c, r.position + to_map(q.pos) * r.size, 13.0)
 		var player := nina()
@@ -339,7 +341,7 @@ func _draw_full() -> void:
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    (%s to close)" % Settings.prompt("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    ⚑ Race    (%s to close)" % Settings.prompt("map")
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
 
 
@@ -348,6 +350,7 @@ func _draw_mini() -> void:
 	var scale := _mini_scale_px()
 	var offset := _mini_tex.position
 	c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.1, 0.06, 0.15), false, 3.0)
+	_draw_races(c, offset, scale, false)
 	for q in quest_markers():
 		var at: Vector2 = offset + to_map(q.pos) * scale
 		at = at.clamp(Vector2(10, 10), Vector2(MINI_SIZE - 10, MINI_SIZE - 10))   # off the edge: pinned to it
@@ -358,6 +361,35 @@ func _draw_mini() -> void:
 			if Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).has_point(at):
 				c.draw_circle(at, 4.0, Color(0.55, 0.9, 1.0))
 	_arrow(c, Vector2(MINI_SIZE, MINI_SIZE) / 2.0, nina_facing(), 10.0)
+
+
+func _draw_races(c: Control, origin: Vector2, size: float, full: bool) -> void:
+	# The race tracks (scripts/races.gd): each one's route with a flag at its start, the one being raced in gold with
+	# the next ring and the friends racing, the ones not open yet faint. The minimap only shows the race being run.
+	for tr in Races.map_tracks():
+		if not full and not tr.racing:
+			continue
+		var line: PackedVector3Array = tr.line
+		var pts := PackedVector2Array()
+		for i in range(0, line.size(), 3):
+			pts.append(origin + to_map(line[i]) * size)
+		if pts.size() > 2:
+			pts.append(pts[0])
+			var col := Color(1.0, 0.82, 0.3, 0.95) if tr.racing else (Color(0.4, 0.95, 0.9, 0.8) if tr.open else Color(0.8, 0.8, 0.9, 0.35))
+			c.draw_polyline(pts, Color(0.12, 0.05, 0.2, 0.6), 6.0 if tr.racing else 4.5, true)
+			c.draw_polyline(pts, col, 3.5 if tr.racing else 2.5, true)
+		var at := origin + to_map(tr.start) * size
+		c.draw_line(at, at + Vector2(0, -16), Color(0.15, 0.08, 0.25), 2.0)
+		c.draw_colored_polygon(PackedVector2Array([at + Vector2(0, -16), at + Vector2(11, -12), at + Vector2(0, -8)]),
+			Color(1.0, 0.82, 0.3) if tr.open else Color(0.8, 0.8, 0.9, 0.6))
+		if full:
+			_text(c, at + Vector2(0, -_fs(26)), str(tr.name) + ("" if tr.open else " (not open yet)"), _fs(15),
+				Color(1.0, 0.9, 0.55) if tr.open else Color(0.85, 0.85, 0.95, 0.7), true, true)
+	if Races.racing():
+		_star(c, origin + to_map(Races.map_next()) * size, 9.0 if full else 7.0)
+		for pos in Races.map_rivals():
+			c.draw_circle(origin + to_map(pos) * size, 5.0 if full else 4.0, Color(1.0, 0.55, 0.75))
+			c.draw_arc(origin + to_map(pos) * size, 5.0 if full else 4.0, 0, TAU, 12, Color(0.25, 0.05, 0.15), 1.5)
 
 
 func _apply_settings() -> void:

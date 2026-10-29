@@ -145,6 +145,39 @@ func _run() -> void:
 	for i in 20:
 		await physics_frame
 	await _shot("13_results")
+	for i in int(races.RESULTS_TIME * 60) + 10:
+		await physics_frame
+
+	# The other tracks, opened up: their starts, then everything on the map
+	for k in races.TRACKS:
+		races.finished_once[k] = true
+	cam.make_current()
+	hud.visible = false
+	var shot := 14
+	for id in ["meadow_wiggle", "observatory_hill"]:
+		var tt: Node3D = races.track_node(id)
+		var s0: Vector3 = tt.point_at(0.0)
+		var f0: Vector3 = tt.dir_at(0.0)
+		var r0: Vector3 = tt.side_at(0.0)
+		await _view("%d_%s_start" % [shot, id], s0 - f0 * 15.0 + r0 * 6.0 + Vector3.UP * 4.5, s0 + Vector3.UP * 2.0 + r0 * 3.0)
+		shot += 1
+	# Racing the hill, through the game's camera with the minimap
+	t = races.track_node("observatory_hill")
+	races.start("observatory_hill")
+	game_cam.make_current()
+	hud.visible = true
+	for i in 200:
+		await physics_frame
+	await _ride(6.0)
+	await _shot("%d_racing_up_observatory_hill" % shot)
+	shot += 1
+	_release()
+	races._end(false)
+	root.get_node("PlayerMenu").open("map")
+	for i in 8:
+		await process_frame
+	await _shot("%d_the_tracks_on_the_map" % shot)
+	root.get_node("PlayerMenu").close()
 	_finish()
 
 

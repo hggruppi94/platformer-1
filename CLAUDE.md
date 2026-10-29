@@ -68,6 +68,19 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Races, step 3: more tracks, and the routes on the map (Hayden: "maps"). Two new tracks in
+  `Races.TRACKS`, each with its own arch, starter and board: the **Meadow Wiggle** (2 laps of S-bends in the south
+  meadow, about 272 m a lap; Dart, the orange little alien; against Rook, Pip and the Green Man; prizes 18/12/7/4)
+  and **Observatory Hill** (2 laps up and down the hill's lower slopes round the Observatory, about 183 m; Comet,
+  the blue one; against Dash, Rex and Mr. Palmer; 20/14/8/4). Tracks open in order (`"after"`: finishing the one
+  before, in any place; `Races.finished_once`, saved as `"finished"`). Any starter offers every open track in the
+  same place and whizzes you to its grid. The talk is `Dialogue` id "race_starter", choices set `race_go_<track>`.
+  The map sheet draws every track's route with a flag and name (faint until it's open), and during a race the gold
+  route, the next ring and the friends; the corner minimap is always on in a race (`_draw_races()` in
+  `scripts/map_screen.gd`, from `Races.map_tracks()`). `test_races` checks every track (dry, no steep steps, nothing
+  in any lane with each lane on its own ground, clear of the portal and of the other tracks' starts) plus unlocking
+  and picking. Kerb-height grind rails out in the meadow cross the Meadow Wiggle: they have no collision, so you
+  ride over or grind them.
 - 2026-10-29: Races, step 2: Zippy's Tune-Up (Hayden: "upgrades"). A workbench under a teal awning past the race
   board (`_tune_up()` in `scripts/race_track.gd`) opens the shop's "Tune-Up" stall. Ride upgrades are items of kind
   `ride_upgrade` in `shop/items.json` (`upgrade`, `level`), sold through `Shop.register_kind()` (shared with the

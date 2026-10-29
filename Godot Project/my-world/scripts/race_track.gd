@@ -12,7 +12,6 @@ const RING_HEIGHT := 3.0             # the ring's middle above the ground
 const STEP := 1.0                    # metres between the line's points
 const PAD_SIZE := Vector3(2.6, 0.06, 3.4)
 const BOX_SPACING := 2.6             # metres between the Star Boxes across the track
-const STARTER_MODEL := "res://models/characters/little_alien_pink.glb"
 
 const NEXT_COLOUR := Color(1.0, 0.82, 0.3)
 const LATER_COLOUR := Color(0.62, 0.5, 0.95)
@@ -46,7 +45,8 @@ func _ready() -> void:
 	_arch()
 	_starter()
 	_board()
-	_tune_up()
+	if track.get("tune_up", false):
+		_tune_up()
 	for b in track.get("boosts", []):
 		pads.append(_pad(at(float(b[0])), float(b[1]) if b.size() > 1 else 0.0))
 	for i in cp_dist.size():
@@ -372,14 +372,15 @@ func _arch() -> void:
 
 
 func _starter() -> void:
-	# Zippy, the pink little alien who starts the races, beside the line with a chequered flag
+	# The little alien who starts the races here (Zippy, pink, at the Lake Loop), beside the line with a chequered flag
 	var d := cp_dist[0] - 4.0
 	starter = Node3D.new()
-	starter.name = "Zippy"
+	starter.name = str(track.starter.name)
+	starter.set_meta("track_id", get_meta("track_id", ""))
 	add_child(starter)
 	place_on(starter, d, 8.5)                         # on the town side of the line, away from the lake
 	_face(starter, point_at(d))
-	var model := (load(STARTER_MODEL) as PackedScene).instantiate() as Node3D
+	var model := (load(str(track.starter.model)) as PackedScene).instantiate() as Node3D
 	model.scale = Vector3.ONE * 1.9
 	starter.add_child(model)
 	LittleAliens.vary_snout(model)
@@ -402,7 +403,7 @@ func _starter() -> void:
 			cell.size = Vector3(0.012, 0.11, 0.11)
 			_mesh(flag, cell, Vector3(0, 1.18 - row * 0.11, 0.07 + k * 0.11),
 				_mat(Color(0.98, 0.96, 0.9) if (k + row) % 2 == 0 else Color(0.15, 0.1, 0.25)))
-	_label(starter, "Zippy", 26, Vector3(0, 1.9, 0)).billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_label(starter, str(track.starter.name), 26, Vector3(0, 1.9, 0)).billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	var spot := (load("res://scripts/race_spot.gd") as GDScript).new() as Area3D
 	spot.name = "Race Talk"
 	spot.set("verb", "race")
