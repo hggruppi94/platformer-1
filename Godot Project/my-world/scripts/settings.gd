@@ -13,7 +13,7 @@ const PATH := "user://settings.cfg"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
-	["toggle_skateboard", "Skateboard"],
+	["gadget_wheel", "Gadget wheel"], ["toggle_skateboard", "Skateboard"],
 	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
 	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
@@ -21,13 +21,13 @@ const REBINDABLE := [
 # Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
 # (X rolls on foot and flips on the board), so a button only clashes with actions used at the same time (PAD_GROUPS).
 const PAD_REBINDABLE := [
-	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["toggle_skateboard", "Skateboard"],
-	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
+	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["gadget_wheel", "Gadget wheel"],
+	["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
 	["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "aim", "shoot", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
-	["jump", "shoot", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
+	["jump", "dash", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
+	["jump", "shoot", "gadget_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
 ]
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
@@ -201,7 +201,7 @@ func pad_name(action: String) -> String:
 
 # ----------------------------------------------------------------------------- controller buttons
 func default_pad_bindings() -> Dictionary:
-	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
+	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
 		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "pause": JOY_BUTTON_START}
 	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
@@ -260,7 +260,7 @@ func _bind_pad(action: String, button: int) -> void:
 # ----------------------------------------------------------------------------- key bindings
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
+		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
 		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "pause": KEY_ESCAPE}
 
 

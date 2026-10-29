@@ -6,7 +6,8 @@
     "Flowers": "Bramble grew every one of these.",
     "Records": "Music for your ears and stickers for your sash.",
     "Toys": "Toys, games and silly hats!",
-    "Boutique": "Head to toe and everything in between. Try it on!"
+    "Boutique": "Head to toe and everything in between. Try it on!",
+    "Gadget": "Dash's gadgets! He builds them from bits of broken time. Nothing gets hurt: they pop, fizz and dance."
   },
   "items": [
     {"id": "star_apple", "name": "Star Apple", "stall": "Fruit", "kind": "snack", "price": 2, "hp": 5, "text": "Crunchy and sweet. +5 HP"},
@@ -45,6 +46,10 @@
     {"id": "jetpack", "name": "Toy Jetpack", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 18, "text": "Pretend rocket tanks with glowing flames"},
     {"id": "watch_sticker", "name": "Tick-Tock Sticker", "stall": "Dash", "reward": true, "kind": "sticker", "price": 0, "text": "A little clock for your sash, from Dash (15 lost watches)"},
     {"id": "time_keeper_watch", "name": "Time Keeper Watch", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "hands", "price": 0, "text": "Dash made it from bits of every lost watch. It keeps your time"},
-    {"id": "time_keeper_pendant", "name": "Time Keeper Pendant", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "neck", "price": 0, "text": "The Time Keeper on a chain, to wear round your neck"}
+    {"id": "time_keeper_pendant", "name": "Time Keeper Pendant", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "neck", "price": 0, "text": "The Time Keeper on a chain, to wear round your neck"},
+    {"id": "fizz_flinger", "name": "Fizz Flinger", "stall": "Gadget", "kind": "gadget", "gadget": "fizz", "price": 10, "text": "Lobs fizzy soda bombs that pop everything where they land"},
+    {"id": "disco_ball", "name": "Disco Ball", "stall": "Gadget", "kind": "gadget", "gadget": "disco", "price": 18, "text": "Throw it up and every enemy near it has to dance"},
+    {"id": "fizz_refill", "name": "Fizz Refill", "stall": "Gadget", "kind": "ammo", "gadget": "fizz", "price": 2, "text": "Fills the Fizz Flinger right up"},
+    {"id": "disco_refill", "name": "Disco Refill", "stall": "Gadget", "kind": "ammo", "gadget": "disco", "price": 3, "text": "Fills the Disco Ball right up"}
   ]
 }

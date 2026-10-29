@@ -19,6 +19,7 @@ const COLORS := [Color(0.35, 0.95, 0.85), Color(1.0, 0.55, 0.85), Color(0.75, 0.
 var velocity := Vector3.ZERO
 var power := 1
 var big := false
+var size_scale := 1.0                     # the Star Popper's V4 and up blows bigger ones (scripts/arsenal.gd)
 var color := Color(0.35, 0.95, 0.85)
 var shooter: CollisionObject3D            # the player: shots never touch her
 var _life := LIFE
@@ -34,13 +35,16 @@ static func flying() -> int:
 	return _count
 
 
-static func fire(parent: Node, from: Vector3, dir: Vector3, by: CollisionObject3D, charged := false) -> StarBubble:
+static func fire(parent: Node, from: Vector3, dir: Vector3, by: CollisionObject3D, charged := false,
+		scale := 1.0) -> StarBubble:
 	var b := StarBubble.new()
 	b.big = charged
+	b.size_scale = scale
 	b.power = 3 if charged else 1
 	b.velocity = dir.normalized() * (BIG_SPEED if charged else SPEED)
 	b.shooter = by
 	b.color = COLORS[randi() % COLORS.size()]
+	b.set_meta("gadget", "popper")
 	parent.add_child(b)
 	b.global_position = from
 	return b
@@ -57,7 +61,7 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	name = "StarBubble"
 	add_to_group("star_bubbles")
-	var r := RADIUS * (2.0 if big else 1.0)
+	var r := RADIUS * (2.0 if big else 1.0) * size_scale
 	var shell := MeshInstance3D.new()
 	var sphere := SphereMesh.new()
 	sphere.radius = r

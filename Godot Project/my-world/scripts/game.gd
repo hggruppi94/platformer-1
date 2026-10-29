@@ -305,6 +305,7 @@ func save_game() -> void:
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
 		"requests": Requests.save_data(),
+		"arsenal": Arsenal.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -372,6 +373,8 @@ func load_game() -> void:
 	Quests.load_data(quests if quests is Dictionary else {})
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
+	var arsenal = data.get("arsenal", {})                    # saves from before gadgets have none: just the popper
+	Arsenal.load_data(arsenal if arsenal is Dictionary else {})
 	outfits = {"hero": {}}
 	var all_worn = data.get("outfits", {"hero": data.get("outfit", {})})
 	if all_worn is Dictionary:
@@ -486,6 +489,7 @@ func new_game() -> void:
 	Dialogue.reset()
 	Quests.reset()
 	Requests.reset()
+	Arsenal.reset()
 	next_spawn = NEW_GAME_SPAWN                      # wake up at home
 	_resume = {}
 	_last_place = {}

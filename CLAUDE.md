@@ -68,6 +68,27 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Gadgets, Ratchet and Clank style (Hayden: "a weapon system like Ratchet and Clank with many
+  combinations and upgrades"), slice 1. The `Arsenal` autoload (`scripts/arsenal.gd`) holds her gadgets, their ammo
+  and their versions, saved as `"arsenal"` in the save. The Star Popper is the first gadget (endless). New: the
+  **Fizz Flinger** (`scripts/fizz_bomb.gd`) lobs a soda bomb in an arc whose splash calls `shot()` on every enemy
+  in its radius, and the **Disco Ball** (`scripts/disco_ball.gd`) floats up where it lands and sets enemies near it
+  dancing on the spot (their physics is switched off, so no chasing or bumping; rolled-up Crocodillos can't hear it:
+  `Crocodillo.shelled()`). Shoot fires whatever is out (`StarPopper.shoot` returns the bubble, bomb or ball); only
+  the popper charges. Throws land where she aims, on an enemy in front (`StarPopper.auto_target`) or 9 m ahead.
+  Every pop by a gadget is a point for it (`StarPopper.popped` -> `Arsenal.on_pop`), and at 5/14/28/48 points it
+  grows V2..V5 (`Arsenal.GADGETS`: more ammo, quicker or bigger, and a Mega trick at V5: the Mega Popper blows two
+  bubbles, the Mega Fizz splits into three, the Disco Fever pops its dancers when the song ends). Pops sometimes
+  leave an ammo bubble (`scripts/ammo_drop.gd`). The **gadget wheel** (`scripts/gadget_wheel.gd`, on the popper's
+  HUD layer): hold Gadget wheel (R / D-pad up, new in Settings > Controls) to open it with the game slowed to 0.2,
+  point with the mouse or a stick, let go to pick; a tap swaps back; 1-8 and D-pad left/right pick directly (only
+  if not bound to something else). A readout in the bottom right shows the gadget, version, ammo and XP once she has
+  more than the popper. **Dash's gadget stall** (`scripts/gadget_stall.gd`, placed at runtime by Arsenal at 215
+  degrees round the fountain, not in `town.tscn`) sells them through the Shop: `Shop.register_kind(kind, {can_buy,
+  buy, button})` lets another system own a kind (`gadget`, `ammo` here; the races use it too). Test
+  `tools/test_arsenal.gd` (uses its own save backup name), previews `tools/capture_arsenal.gd`,
+  `previews/arsenal/`. Next slices: buyable upgrades and mods that combine (Freeze, Split, Bounce, Sparkle Magnet),
+  then more gadgets (Plushinator, Buzz Bots, Rainbow Ray, Jelly Mines) and ammo crates.
 - 2026-10-29: The nightly request board (Hayden, "The First Night" prompt A). A lilac board with a spinning gold star
   stands at the edge of the Market Square (250 degrees round the fountain, mirroring Rex's noticeboard), and Tally,
   the tall yellow little alien, a bit bigger than the crowd and holding a clipboard, walks a ring round the fountain

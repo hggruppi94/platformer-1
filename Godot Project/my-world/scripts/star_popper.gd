@@ -17,6 +17,11 @@ extends Node3D
 # zipline or in the mothership, and not while talking, in a menu or the creator.
 # Her right arm points the popper where the bubbles go (PopperArm below), and the popper shows in her hand while she
 # aims and for a moment after each shot. Keys and buttons are in Settings > Controls ("aim", "shoot").
+#
+# The Star Popper is the first of her gadgets (scripts/arsenal.gd). Shoot fires whichever one is out: the Fizz
+# Flinger lobs a fizz bomb (scripts/fizz_bomb.gd) and the Disco Ball throws a mirror ball (scripts/disco_ball.gd) at
+# what she's aiming at, or at an enemy in front of her. Only the Star Popper charges a big bubble. Each gadget shows
+# in her hand while it's out, and the gadget wheel (scripts/gadget_wheel.gd) picks one.
 
 signal popped(enemy: Node3D, bubble: Node3D)   # one of her bubbles popped an enemy (StarBubble)
 
@@ -33,6 +38,7 @@ const ASSIST_ANGLE := {"pad": 4.0, "keyboard": 1.5}   # aiming: how close to the
 const SHOW_AFTER_SHOT := 1.2              # seconds the popper stays in her hand after a shot
 const BOARD_RANGE := 26.0                 # on the board: enemies this close...
 const BOARD_ANGLE := 40.0                 # ...and within this many degrees of where she's going get aimed at
+const THROW_REACH := 9.0                  # a throw (fizz, disco) with nothing to aim at lands this far in front
 # Its colours (Game.popper_colour): body, nozzle, grip, trim. "classic" is how it comes; the rest are earned (Dash
 # gives "clockwork" for ten lost watches, scripts/watches.gd) and owned as items "popper_colour:<id>".
 const COLOURS := {
@@ -55,16 +61,20 @@ var _hud: CanvasLayer
 var _cross: Control
 var _on_target := false                   # the crosshair is on an enemy (it turns pink)
 var _tipped := false
+var _wheel: GadgetWheel
+var _told_empty := 0.0                    # seconds till "out of ammo" can be said again
 
 
 func setup(p: Player) -> void:
 	player = p
 	name = "StarPopper"
-	_prop = build_prop(Game.popper_colour)
+	_prop = _hand_prop()
 	_prop.top_level = true
 	_prop.visible = false
 	add_child(_prop)
 	Game.equipment_changed.connect(_recolour)
+	Arsenal.changed.connect(_recolour)
+	popped.connect(Arsenal.on_pop)            # pops make gadgets grow versions (and sometimes leave ammo)
 	_hud = CanvasLayer.new()
 	_hud.layer = 5
 	add_child(_hud)
@@ -74,6 +84,10 @@ func setup(p: Player) -> void:
 	_cross.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_cross.visible = false
 	_hud.add_child(_cross)
+	_wheel = GadgetWheel.new()
+	_wheel.name = "GadgetWheel"
+	_wheel.popper = self
+	_hud.add_child(_wheel)
 
 
 func attach(model: Node3D) -> void:
@@ -128,6 +142,7 @@ func _physics_process(delta: float) -> void:
 	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
 	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
 	_cooldown -= delta
+	_told_empty -= delta
 	_raise = maxf(_raise - delta, 0.0)
 	if not ok:
 		_held = 0.0
@@ -142,6 +157,8 @@ func _physics_process(delta: float) -> void:
 		if Input.is_action_just_pressed("shoot"):
 			_held = 0.0
 			shoot(false)
+		elif Input.is_action_pressed("shoot") and Arsenal.current != "popper":
+			_held = 0.0                            # only the Star Popper charges up
 		elif Input.is_action_pressed("shoot"):
 			_held += delta
 			if _held > CHARGE_START:
@@ -168,14 +185,28 @@ func _physics_process(delta: float) -> void:
 			_arm.influence = 1.0
 
 
-func shoot(charged: bool) -> StarBubble:
+func shoot(charged: bool) -> Node3D:
+	# Fires whichever gadget is out (Arsenal.current). Returns the bubble, fizz bomb or disco ball, or null.
 	if _cooldown > 0.0 and not charged:
 		return null
-	if StarBubble.flying() >= MAX_FLYING:
+	var id := Arsenal.current
+	if id == "popper" and StarBubble.flying() >= MAX_FLYING:
 		return null
-	_cooldown = COOLDOWN
+	if id != "popper" and not Arsenal.use_ammo(id):
+		_cooldown = 0.3
+		Audio.play("ui_back", -8.0, 0.0)
+		if _told_empty <= 0.0:
+			_told_empty = 4.0
+			Game.message("The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall."
+				% Arsenal.gadget_name(id))
+		return null
+	_cooldown = float(Arsenal.stat(id, "cooldown"))
 	var from := muzzle()
 	var dir := aim_dir(from)
+	var to := Vector3.ZERO
+	if id != "popper":
+		to = throw_point(from)
+		dir = (to - from).normalized()
 	_shot_dir = dir
 	if not aiming:
 		_raise = SHOW_AFTER_SHOT
@@ -183,14 +214,46 @@ func shoot(charged: bool) -> StarBubble:
 		if not Game.riding:
 			player.visual.rotation.y = atan2(dir.x, dir.z)
 	var scene := get_tree().current_scene if get_tree().current_scene else player.get_parent()
-	var b := StarBubble.fire(scene, from, dir, player, charged)
+	var b: Node3D
+	match id:
+		"fizz":
+			b = FizzBomb.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
+				"power": Arsenal.stat(id, "power"), "splits": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
+			Audio.play("fwump", -5.0, 0.15)
+		"disco":
+			b = DiscoBall.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
+				"time": Arsenal.stat(id, "time"), "pops_at_end": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
+			Audio.play("swish", -4.0, 0.1)
+		_:
+			var lv := Arsenal.level("popper")
+			var grow := 1.35 if lv >= 4 else 1.0                # V4: bigger bubbles
+			b = StarBubble.fire(scene, from, dir, player, charged, grow)
+			if lv >= Arsenal.MAX_LEVEL and not charged:
+				# The Mega Popper blows two at once, a little apart
+				var side := dir.cross(Vector3.UP).normalized()
+				StarBubble.fire(scene, from + side * 0.15, (dir + side * 0.06).normalized(), player, false, grow)
+			Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1
-	Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
 	if charged and not Settings.reduce_motion:
 		player.spring_arm.fov_kick = 4.0
 	return b
+
+
+func throw_point(from: Vector3) -> Vector3:
+	# Where a throw lands: where she's aiming, an enemy in front of her, or the ground a little way ahead
+	if aiming:
+		return aim_point()
+	var e := auto_target(from)
+	if e:
+		return e.global_position
+	var face := _ahead()
+	var ahead := player.global_position + face * THROW_REACH + Vector3(0, 2.0, 0)
+	var q := PhysicsRayQueryParameters3D.create(ahead, ahead + Vector3(0, -12, 0))
+	q.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.position if not hit.is_empty() else ahead - Vector3(0, 2.0, 0)
 
 
 func muzzle() -> Vector3:
@@ -205,19 +268,30 @@ func aim_dir(from: Vector3) -> Vector3:
 	if aiming:
 		return (aim_point() - from).normalized()
 	# From the hip: at the nearest enemy in front of her, or straight ahead
+	var best := auto_target(from)
+	if best:
+		return (_centre(best) - from).normalized()
+	return _ahead()
+
+
+func _ahead() -> Vector3:
+	# Which way is in front of her, flat. On the board, ahead is where she's going (she may be spinning in the air).
 	var face := player.visual.global_transform.basis.z
 	face.y = 0.0
-	face = face.normalized()
-	var reach := AUTO_RANGE
-	var angle := AUTO_ANGLE
+	face = face.normalized() if face.length() > 0.01 else Vector3.FORWARD
 	if Game.riding:
-		# On the board, ahead is where she's going (she may be spinning in the air), and it looks a bit wider and
-		# further, since she can't stop and turn to line a shot up
 		var going := Vector3(player.velocity.x, 0, player.velocity.z)
 		if going.length() > 2.0:
 			face = going.normalized()
-		reach = BOARD_RANGE
-		angle = BOARD_ANGLE
+	return face
+
+
+func auto_target(from: Vector3) -> Node3D:
+	# The nearest enemy in front of her, for a shot from the hip. On the board it looks a bit wider and further,
+	# since she can't stop and turn to line a shot up.
+	var face := _ahead()
+	var reach := BOARD_RANGE if Game.riding else AUTO_RANGE
+	var angle := BOARD_ANGLE if Game.riding else AUTO_ANGLE
 	var best: Node3D = null
 	var best_d := reach
 	for e in _targets():
@@ -229,9 +303,7 @@ func aim_dir(from: Vector3) -> Vector3:
 			continue
 		best = e
 		best_d = flat.length()
-	if best:
-		return (_centre(best) - from).normalized()
-	return face
+	return best
 
 
 func aim_point() -> Vector3:
@@ -312,18 +384,36 @@ func place_prop(hand: Transform3D, dir: Vector3) -> void:
 	_prop.global_transform = Transform3D(b.scaled(Vector3.ONE * s), hand.origin + dir * 0.06)
 
 
+func _hand_prop() -> Node3D:
+	# What's in her hand: the gadget that's out (the Star Popper in its colours)
+	match Arsenal.current:
+		"fizz":
+			return FizzBomb.build_prop()
+		"disco":
+			return DiscoBall.build_prop()
+	var p := build_prop(Game.popper_colour)
+	p.set_meta("gadget", "popper")
+	return p
+
+
 func _recolour() -> void:
-	# A new colour picked (or earned): swap the popper in her hand for one in those colours
-	if _prop == null or str(_prop.get_meta("colour", "")) == Game.popper_colour:
+	# A new colour picked (or earned), or another gadget picked: swap what's in her hand
+	if _prop == null:
+		return
+	var gadget := str(_prop.get_meta("gadget", "popper"))
+	if gadget == Arsenal.current and (gadget != "popper" or str(_prop.get_meta("colour", "")) == Game.popper_colour):
 		return
 	var shown := _prop.visible
 	var at := _prop.global_transform
 	_prop.queue_free()
-	_prop = build_prop(Game.popper_colour)
+	_prop = _hand_prop()
 	_prop.top_level = true
 	_prop.visible = shown
 	add_child(_prop)
 	_prop.global_transform = at
+	if gadget != Arsenal.current and player and not aiming:
+		_raise = SHOW_AFTER_SHOT              # a new gadget out: she holds it up for a moment, so you can see it
+		_shot_dir = player.visual.global_transform.basis.z.normalized()
 
 
 static func build_prop(colour := "classic") -> Node3D:

@@ -218,12 +218,17 @@ func _stomped() -> void:
 		Game.message("The Crocodillo's shell is tough! Stomp it again while it's dizzy!")
 
 
+func shelled() -> bool:
+	# Rolled up in its armour: bubbles boing off and it can't hear the Disco Ball (scripts/disco_ball.gd)
+	return state == State.CURL or state == State.ROLL
+
+
 func shot(power: int, _point: Vector3, _dir: Vector3) -> String:
 	# A Star Popper bubble (scripts/star_bubble.gd)
 	if defeated:
 		return "miss"
 	_find_player()
-	if state == State.CURL or state == State.ROLL:
+	if shelled():
 		if not _told_shell:
 			_told_shell = true
 			Game.message("Boing! Bubbles bounce off its shell. Wait till it uncurls!")
