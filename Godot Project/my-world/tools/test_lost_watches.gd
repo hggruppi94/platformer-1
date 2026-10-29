@@ -46,6 +46,11 @@ func _run() -> void:
 	dialogue.reset()
 	game.items.clear()
 	game.popper_colour = "classic"
+	# Midday in Galaxity, and no pull home to Earth partway through (a save near the end of the Shift used to end the
+	# visit mid-test, so the town checks ran on Earth)
+	var clock := root.get_node("Clock")
+	clock.pulls_home = false
+	clock.set_time(1, 12 * 60.0, true)
 	var all: Array = watches.WATCHES
 
 	# --- Twenty, each its own ---
@@ -133,7 +138,7 @@ func _run() -> void:
 	p.global_position = wb.pos + Vector3(0, 6, 0)
 	await _frames(2)
 	check(not watches.is_found("pocket"), "a roof watch isn't picked up from high above it")
-	p.global_position = _landing(town, wb.pos)
+	p.global_position = _landing(town, wb.pos, p)
 	await _frames(3)
 	check(watches.is_found("pocket"), "landing from the beam on the Town Hall dome picks up the one there")
 
@@ -342,10 +347,15 @@ func _ground(space: PhysicsDirectSpaceState3D, p: Vector3) -> float:
 	return y
 
 
-func _landing(s: Node3D, pos: Vector3) -> Vector3:
-	# Where the mothership's beam puts her down over this spot (scripts/mothership.gd: the first thing below, +0.9)
+func _landing(s: Node3D, pos: Vector3, player: CollisionObject3D) -> Vector3:
+	# Where the mothership's beam puts her down over this spot (scripts/mothership.gd: the first thing below, +0.9,
+	# not counting her own capsule, which the ship leaves out too)
 	var space := s.get_world_3d().direct_space_state
-	return _below(space, Vector3(pos.x, 300.0, pos.z)) + Vector3(0, 0.9, 0)
+	var from := Vector3(pos.x, 300.0, pos.z)
+	var q := PhysicsRayQueryParameters3D.create(from, from + Vector3.DOWN * 500.0)
+	q.exclude = [player.get_rid()]
+	var h := space.intersect_ray(q)
+	return (h.position if h else from) + Vector3(0, 0.9, 0)
 
 
 func _frames(n: int) -> void:
