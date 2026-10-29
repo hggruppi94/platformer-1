@@ -16,6 +16,10 @@ happy places.
   - `snack`: eaten straight away; `hp` and `mp` fill that much.
   - `hat`: kept, and worn one at a time.
   - `sticker`: goes on Rex's VOTE REX sash (so Nina needs the sash first).
+  - `gadget` and `ammo`: Dash's gadget stall (`"stall": "Gadget"`, placed by `scripts/arsenal.gd`). `gadget` names
+    the Arsenal gadget (`fizz`, `disco`): a `gadget` item gives it, an `ammo` item fills it up.
+  - Any other kind belongs to the system that called `Shop.register_kind(kind, {can_buy, buy, button})`, which
+    decides whether it can be bought, what buying it does and keeps it in its own save.
 - What a new hat or sticker looks like is built in `scripts/cosmetics.gd` (add a `match` case for its id; stickers
   also need a spot in `STICKER_ANGLES`).
 

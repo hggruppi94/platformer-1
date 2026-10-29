@@ -9,6 +9,9 @@ extends Node
 # - Stickers go on Rex's VOTE REX sash, so they need the sash first.
 # What she owns is saved with her items ("shop:<id>"), what she's wearing as Game.outfit. scripts/cosmetics.gd and
 # scripts/clothes.gd build what they look like on her.
+# - Other systems can sell their own kinds of thing here too: register_kind() hands a kind (say "gadget" or "ammo",
+#   scripts/arsenal.gd) to whoever looks after it, and they say whether it can be bought and what buying it does. They
+#   keep what was bought in their own save, so those items aren't added to Game.items.
 
 signal bought(item_id: String)
 
@@ -27,6 +30,7 @@ var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
 var who := "hero"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
+var kinds := {}                    # kind -> {can_buy: Callable(item) -> String, buy: Callable(item) -> String, button}
 
 
 func _ready() -> void:
@@ -45,6 +49,12 @@ func for_stall(stall: String) -> Array:
 	return items.values().filter(func(it: Dictionary) -> bool: return it.stall == stall)
 
 
+func register_kind(kind: String, how: Dictionary) -> void:
+	# Another system sells this kind of item here. `how` has "can_buy" (item -> "" or why not), "buy" (item -> what
+	# to say after; it's already paid for) and, if it likes, "button" (what the Buy button says).
+	kinds[kind] = how
+
+
 func owns(id: String) -> bool:
 	return Game.has_item("shop:" + id)
 
@@ -52,7 +62,11 @@ func owns(id: String) -> bool:
 func can_buy(id: String) -> String:
 	# "" if she can buy it now, else why not
 	var it: Dictionary = items[id]
-	if it.kind != "snack" and owns(id):
+	if kinds.has(str(it.kind)):
+		var why: String = kinds[str(it.kind)].can_buy.call(it)
+		if why != "":
+			return why
+	elif it.kind != "snack" and owns(id):
 		return "You have this one"
 	if it.kind == "sticker" and not Game.has_item("campaign_sash"):
 		return "Needs Rex's VOTE REX sash"
@@ -82,6 +96,8 @@ func buy(id: String) -> bool:
 		"sticker":
 			Game.items.append("shop:" + id)
 			_say("You stuck the %s on your sash!" % it.name)
+		var other when kinds.has(other):
+			_say(str(kinds[other].buy.call(it)))
 	Audio.play("pickup", -4.0)
 	Game.equipment_changed.emit()
 	Game.save_game()
@@ -229,7 +245,8 @@ func _fill() -> void:
 			b.pressed.connect(wear.bind("" if on else id, slot_of(id)))
 		else:
 			var why := can_buy(id)
-			b.text = ("Eat it!" if it.kind == "snack" else "Buy") if why == "" else ("Got it!" if why == "You have this one" else why)
+			var label := "Eat it!" if it.kind == "snack" else str(kinds.get(str(it.kind), {}).get("button", "Buy"))
+			b.text = label if why == "" else ("Got it!" if why == "You have this one" else why)
 			b.disabled = why != ""
 			b.pressed.connect(buy.bind(id))
 		b.name = "Button " + id
