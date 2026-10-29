@@ -111,8 +111,8 @@ Read this first in every session so each iteration builds on the last one and do
   HUD layer): hold Gadget wheel (R / D-pad up, new in Settings > Controls) to open it with the game slowed to 0.2,
   point with the mouse or a stick, let go to pick; a tap swaps back; 1-8 and D-pad left/right pick directly (only
   if not bound to something else). A readout in the bottom right shows the gadget, version, ammo and XP once she has
-  more than the popper. **Dash's gadget stall** (`scripts/gadget_stall.gd`, placed at runtime by Arsenal at 215
-  degrees round the fountain, not in `town.tscn`) sells them through the Shop: `Shop.register_kind(kind, {can_buy,
+  more than the popper. **Dash's gadget stall** (`scripts/gadget_stall.gd`, placed at runtime by Arsenal at 105
+  degrees and 15.5 m round the fountain, on the south side, not in `town.tscn`) sells them through the Shop: `Shop.register_kind(kind, {can_buy,
   buy, button})` lets another system own a kind (`gadget`, `ammo` here; the races use it too). Test
   `tools/test_arsenal.gd` (uses its own save backup name), previews `tools/capture_arsenal.gd`,
   `previews/arsenal/`. Next slices: buyable upgrades and mods that combine (Freeze, Split, Bounce, Sparkle Magnet),
