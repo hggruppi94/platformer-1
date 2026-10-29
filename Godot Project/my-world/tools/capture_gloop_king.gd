@@ -153,11 +153,13 @@ func _town() -> void:
 	# His belly-flop: the ring of goo spreading out (jump over it)
 	cam.global_position = k + Vector3(8.0, 9.0, 14.0)
 	cam.look_at(k + Vector3(0, 0.5, 0))
+	Engine.time_scale = 0.15                       # the window renders slowly; slow time so the ring is caught mid-spread
 	king.call("_land")
 	for i in 5:
 		await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(out_dir.path_join("09_belly_flop_goo_ring.png"))
+	Engine.time_scale = 1.0
 	print("SHOT 09_belly_flop_goo_ring")
 	var g0 := town.find_child("Gloop 0", true, false) as Node3D
 	var gp := g0.global_position

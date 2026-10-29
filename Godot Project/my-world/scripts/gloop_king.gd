@@ -89,10 +89,11 @@ func _goo_ring(reach: float) -> void:
 	ring.material_override = m
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	get_parent().add_child(ring)
-	ring.global_position = global_position + Vector3(0, 0.08, 0)
-	ring.scale = Vector3(0.6 * size, 0.6, 0.6 * size)
+	# A tall wave, so the bumps in the ground don't hide it
+	ring.global_position = global_position + Vector3(0, 0.2, 0)
+	ring.scale = Vector3(0.6 * size, 3.0, 0.6 * size)
 	var tw := ring.create_tween().set_parallel()
-	tw.tween_property(ring, "scale", Vector3(reach, 0.8, reach), 0.55).set_ease(Tween.EASE_OUT) \
+	tw.tween_property(ring, "scale", Vector3(reach, 2.5, reach), 0.55).set_ease(Tween.EASE_OUT) \
 		.set_trans(Tween.TRANS_QUAD)
 	tw.tween_property(m, "albedo_color:a", 0.0, 0.3).set_delay(0.35)
 	tw.chain().tween_callback(ring.queue_free)
