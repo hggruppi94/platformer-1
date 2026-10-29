@@ -27,7 +27,7 @@ const PAD_REBINDABLE := [
 ]
 const PAD_GROUPS := [
 	["jump", "dash", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
-	["jump", "shoot", "gadget_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
+	["jump", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
 ]
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",

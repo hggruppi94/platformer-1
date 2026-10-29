@@ -32,6 +32,7 @@ PlayerMenu="*res://scripts/player_menu.gd"
 Watches="*res://scripts/watches.gd"
 Requests="*res://scripts/requests.gd"
 Arsenal="*res://scripts/arsenal.gd"
+Races="*res://scripts/races.gd"
 
 [display]
 

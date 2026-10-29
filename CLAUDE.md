@@ -68,6 +68,34 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Races, step 1: the Lake Loop (Hayden: "races with cash prizes, boosters, maps, upgrades, powerups").
+  The `Races` autoload (`scripts/races.gd`) places each track in `TRACKS` into its scene at play time
+  (`scripts/race_track.gd`), so `town.tscn` wasn't rebuilt. A track is a list of checkpoints (x, z); the racing line
+  is a Catmull-Rom loop through them, a point a metre, dropped onto whatever static body is under it. The Lake Loop
+  goes three laps round the main lake (about 234 m a lap, through the town square, between the portal and the
+  housing hedge on the east side). Always there: a lilac start arch with a chequered banner, **Zippy** (the pink
+  little alien, with a flag, on the town side of the line: `scripts/race_spot.gd`) and the race board (prizes, best
+  time, wins), and 4 boost pads that work any time you ride over one. Only in a race: a glowing ring at each
+  checkpoint (the next one gold), 3 rows of Star Boxes and 3 goo puddles. Talk to Zippy and say yes: you're put on
+  the grid with three friends on their own rides (`scripts/race_rival.gd`: Dash, Rex and Bramble, or Nina, the Green
+  Man or Pip in place of whoever you're riding as), 3-2-1, then the rings in order; a later ring doesn't count. The
+  friends follow the line in their own lanes at `RIVAL_PACE` (9.2 / 8.8 / 8.4 m/s, times 0.9 / 1.0 / 1.1 for
+  Settings > Assist > Skating landings Relaxed / Normal / Pro), ease off up to 30% when far ahead and pedal up to 20%
+  harder when far behind, ride through everyone (no collisions), and get boosted by pads too. Their town selves step
+  out of sight while they race. Power-ups from Star Boxes, used with **Aim** (right click / LT, free on the board, now
+  in the riding group of `Settings.PAD_GROUPS`): Zoom Star (8 m/s over pushing speed for 2.2 s), Bubble Shield (8 s:
+  any fall is a wobble, goo can't touch you) and Super Spring (a huge hop, only from the ground). More Zoom Stars
+  when you're 3rd or 4th. Goo slows you to 45% of pushing speed for 1.3 s. New in `scenes/player/skate.gd`:
+  `boost()`, `gooed()`, `spring()`, `shielded`, and after a boost a 2.5 s fade back to pushing speed on the flat
+  (holding a direction never slowed her, so a boost would otherwise last for ever). Prizes for everyone who
+  finishes: 15 / 10 / 6 / 3 sparkles, plus 5 for beating your best time. Stepping off your ride, riding 45 m off
+  the line or leaving the place ends a race with no harm done. Saved as `"races"` (best times, wins, races run).
+  Race HUD (`scripts/race_hud.gd`): lap, place and time under the day box, the power-up on the left, the countdown
+  and results in the middle. `tools/test_races.gd` (the line is dry, has no step too high and nothing in any lane,
+  stays clear of the portal; countdown, rings, laps, pace, power-ups, goo, prizes, bonus, stepping off, saving) and
+  `tools/capture_races.gd` (a steering bot rides for the racing shots; shots in the project files under
+  world/previews/races, made in the cloud). Planned next: a garage for ride upgrades sold through `Shop` (kind
+  `ride_upgrade`, with `Shop.register_kind`), more tracks with the route on the minimap, and a mothership sky race.
 - 2026-10-29: Gadgets, Ratchet and Clank style (Hayden: "a weapon system like Ratchet and Clank with many
   combinations and upgrades"), slice 1. The `Arsenal` autoload (`scripts/arsenal.gd`) holds her gadgets, their ammo
   and their versions, saved as `"arsenal"` in the save. The Star Popper is the first gadget (endless). New: the

@@ -104,6 +104,13 @@ var _ride_anim: AnimationPlayer      # the ride's own animation (the BMX's pedal
 var _shown_yaw := 0.0                # where the model is turned right now (it catches up with _yaw)
 var _shown_up := Vector3.UP          # ...and which way is up for it
 var _trick_hold := -1.0              # Simple controls: how long the trick button's been held this air (-1: it isn't)
+# Races (scripts/races.gd): boost pads and the Zoom Star push her past her own top speed for a moment, goo slows
+# her down, and the Bubble Shield turns any fall into a wobble.
+var _boost_time := 0.0               # seconds of boost left
+var _boost_speed := 0.0              # how much faster than her pushing speed a boost carries her
+var _slow_time := 0.0                # seconds of goo left
+var _boost_fade := 0.0               # after a boost, a moment of easing back down to her own speed
+var shielded := false
 
 
 func setup(player: Player) -> void:
@@ -194,6 +201,41 @@ func can_shoot() -> bool:
 	return bool(ride.get("popper", true)) and state != State.BAIL
 
 
+func boost(extra: float, seconds: float) -> void:
+	# A boost pad or the Zoom Star (scripts/races.gd): straight up to pushing speed plus this much, for a moment,
+	# and the goo's let go of her
+	_boost_speed = maxf(extra, _boost_speed if _boost_time > 0.0 else 0.0)
+	_boost_time = maxf(_boost_time, seconds)
+	_slow_time = 0.0
+
+
+func boosting() -> bool:
+	return _boost_time > 0.0
+
+
+func gooed(seconds: float) -> void:
+	# Rolling through a goo puddle in a race: slow going for a moment, unless the Bubble Shield keeps it off her
+	if shielded or _boost_time > 0.0:
+		return
+	_slow_time = maxf(_slow_time, seconds)
+
+
+func is_on_ground() -> bool:
+	return state == State.ROLL and _grounded
+
+
+func slowed() -> bool:
+	return _slow_time > 0.0
+
+
+func spring(power: float) -> void:
+	# The Super Spring (scripts/races.gd): a huge hop from wherever she is on the ground, the same as an ollie
+	if state != State.ROLL or not _grounded:
+		return
+	p.velocity += Vector3.UP * power
+	_pop()
+
+
 func grinding() -> bool:
 	return state == State.GRIND
 
@@ -230,6 +272,11 @@ func physics(delta: float) -> void:
 	_flip_press = 0.0 if Input.is_action_just_pressed("skate_flip") and not p.input_locked else _flip_press + delta
 	_grab_press = 0.0 if Input.is_action_just_pressed("skate_grab") and not p.input_locked else _grab_press + delta
 	_last_rail_timer -= delta
+	if _boost_time > 0.0 and _boost_time - delta <= 0.0:
+		_boost_fade = 2.5
+	_boost_time -= delta
+	_boost_fade -= delta
+	_slow_time -= delta
 	if p._stun_timer > 0.0 and state != State.BAIL:
 		bail()                                        # an enemy knocked her off the board
 	match state:
@@ -317,7 +364,17 @@ func _roll(dir: Vector3, delta: float) -> void:
 	else:
 		speed = move_toward(speed, 0.0, float(ride.coast) * delta)
 		_lean = lerpf(_lean, 0.0, 0.1)
-	v = fwd * minf(speed, float(ride.max_speed))
+	var cap := float(ride.max_speed)
+	if _boost_time > 0.0:
+		speed = maxf(speed, float(ride.push_speed) + _boost_speed)
+		cap += _boost_speed
+	elif _boost_fade > 0.0 and speed > float(ride.push_speed) and n.y > HILL_MIN_Y:
+		# Holding a direction never slows her on the flat, so without this a boost would last as long as she kept
+		# steering. Down a ramp or a steep hill she keeps whatever speed it gives her.
+		speed = move_toward(speed, float(ride.push_speed), 3.5 * delta)
+	if _slow_time > 0.0:
+		speed = minf(speed, float(ride.push_speed) * 0.45)
+	v = fwd * minf(speed, cap)
 	if speed > 0.3:
 		_yaw = atan2(fwd.x, fwd.z)
 	if speed > 2.0:
@@ -750,6 +807,9 @@ func _leave_rail(v: Vector3) -> void:
 func bail() -> void:
 	# A comedy wipeout: she tumbles, the board shoots off on its own, stars go round her head. No damage. On Relaxed
 	# and Normal the combo so far is still (partly) paid, and she's up again sooner.
+	if shielded:
+		_slip()                                       # the Bubble Shield catches her
+		return
 	var a := assist()
 	tricks.wipeout(float(a.keep_combo), bool(a.keep_special))   # first, so the grind she falls off doesn't count
 	_manual = 0
