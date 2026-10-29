@@ -7,6 +7,12 @@ extends SpringArm3D
 
 @onready var camera: Camera3D = $Camera3D
 var fov_kick := 0.0                   # extra field of view for a moment (a roll adds some)
+var aim := 0.0                        # 0..1: how far into the over-the-shoulder aiming view (scripts/star_popper.gd)
+const AIM_LENGTH := 2.6               # the boom's length while aiming, in close behind the right shoulder
+const AIM_SHIFT := Vector3(1.0, 0.3, 0.0)
+const AIM_ZOOM := 14.0                # degrees of field of view taken off while aiming
+var _length := 5.0                    # the boom's own length (from the scene), for when she isn't aiming
+var _origin := Vector3.ZERO           # ...and where it's fixed on her
 var _since_look := 10.0               # seconds since the player last turned the camera themselves
 
 
@@ -14,6 +20,8 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	# Don't let the camera boom collide with the player's own body
 	add_excluded_object(get_parent().get_rid())
+	_length = spring_length
+	_origin = position
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
 
@@ -42,7 +50,11 @@ func _process(delta: float) -> void:
 		_look(stick.x * stick_speed * Settings.stick_sensitivity * delta, stick.y * stick_speed * Settings.stick_sensitivity * delta)
 	_since_look += delta
 	fov_kick = move_toward(fov_kick, 0.0, 30.0 * delta)
-	camera.fov = Settings.fov + fov_kick
+	camera.fov = Settings.fov + fov_kick - AIM_ZOOM * aim
+	spring_length = lerpf(_length, AIM_LENGTH, aim)
+	# The boom places its camera itself, so the shoulder shift moves the boom: to the camera's right, a bit up
+	var turn := Basis(Vector3.UP, rotation.y)
+	position = _origin + turn * AIM_SHIFT * aim
 
 
 func follow(yaw: float, delta: float, rate := 2.5) -> void:

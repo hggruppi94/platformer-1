@@ -68,6 +68,23 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Aiming and shooting (Hayden). The hero has a Star Popper, a toy bubble blaster (`scripts/star_popper.gd`,
+  made from shapes: lilac body, bubble tank, teal nozzle, gold stars). Shoot (left click / RT) blows a star bubble
+  (`scripts/star_bubble.gd`); from the hip it finds an enemy in front of her by itself. Holding Aim (right click / LT)
+  moves the camera in over her right shoulder (`aim` in `spring_arm_3d.gd`), shows a crosshair that turns pink on an
+  enemy, turns her to face where the camera looks and slows her walk; bubbles go to the crosshair (a controller gets
+  a little help onto an enemy near it). Holding Shoot charges a big bubble for 1 MP (the first use of MP) that counts
+  for three pops and carries on through. Her right arm points the popper (`PopperArm`, a SkeletonModifier3D on the
+  `upper_arm.R`/`forearm.R`/`hand.R` bones every body has), and it's in her hand while aiming and for a moment after a
+  shot. Kid-safe: a Gloop hit (`Gloop.shot()`; big ones take two) is caught in a bubble, floats up and pops
+  (`StarBubble.carry_off()`) for its XP. Bubbles boing off a rolling Crocodillo's shell; out of its ball one makes it
+  dizzy and a second pops it (`Crocodillo.shot()`). Anything else with a `shot(power, point, dir)` method can be hit
+  later. On foot only: not on the board, zipline or mothership, or in talks, menus and the creator. Aim and Shoot are
+  in Settings > Controls: keys can now be mouse buttons (kept as minus the button number) and controller actions can
+  be the triggers (`Settings.PAD_LT`/`PAD_RT`); old settings get the new defaults. A "shoot" tip shows the first time
+  there are enemies about. `tools/test_shooting.gd`, `tools/capture_shooting.gd` (shots are in the project files under
+  world/previews/shooting, not in `previews/`, as they were made in the cloud, which can't upload LFS files).
+
 - 2026-10-29: Hero creator: more bodies, face sculpting and a secret hero (Hayden). Four new bodies built in Blender
   by `tools/build_hero_bodies.py` (Earth kid, bunny, cat, dino; Dash-sized, on two legs, each with idle/walk/run and
   its own clothes, colours and extras), so the creator has nine. A new Face tab sculpts the eyes, eye spacing, nose,

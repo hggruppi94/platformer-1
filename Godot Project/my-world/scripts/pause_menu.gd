@@ -80,11 +80,16 @@ func close() -> void:
 func _input(event: InputEvent) -> void:
 	# A controller button for rebinding (Esc on the keyboard cancels)
 	if _rebinding_pad != "":
+		var pressed := -1
 		if event is InputEventJoypadButton and event.pressed:
+			pressed = event.button_index
+		elif event is InputEventJoypadMotion and event.axis_value > 0.6:
+			pressed = Settings.PAD_TRIGGERS.find_key(event.axis) if Settings.PAD_TRIGGERS.values().has(event.axis) else -1
+		if pressed >= 0:
 			get_viewport().set_input_as_handled()
 			var pad_action := _rebinding_pad
 			_rebinding_pad = ""
-			var pad_clash := Settings.rebind_pad(pad_action, event.button_index)
+			var pad_clash := Settings.rebind_pad(pad_action, pressed)
 			_refresh_settings()
 			if pad_clash != "":
 				_toast("%s was on that button too, so it moved to %s." % [Settings.action_label(pad_clash), Settings.pad_name(pad_clash)])
@@ -106,6 +111,16 @@ func _input(event: InputEvent) -> void:
 		_refresh_settings()
 		if clash != "":
 			_toast("%s was on that key too, so it moved to %s." % [Settings.action_label(clash), Settings.key_name(clash)])
+		return
+	# ...or a mouse button: the clicks and side buttons can be keys too (Aim and Shoot start on the right and left)
+	if _rebinding != "" and event is InputEventMouseButton and event.pressed and Settings.MOUSE_NAMES.has(event.button_index):
+		get_viewport().set_input_as_handled()
+		var mouse_action := _rebinding
+		_rebinding = ""
+		var mouse_clash := Settings.rebind(mouse_action, -event.button_index)
+		_refresh_settings()
+		if mouse_clash != "":
+			_toast("%s was on that button too, so it moved to %s." % [Settings.action_label(mouse_clash), Settings.key_name(mouse_clash)])
 		return
 	if _rebinding != "":
 		return
@@ -444,7 +459,7 @@ func _tab_controls(tabs: TabContainer) -> void:
 		cells.add_child(pb)
 		g.add_child(cells)
 	var pad := Label.new()
-	pad.text = "Controller: left stick moves, right stick turns the camera (and spins and balances on the board)."
+	pad.text = "Controller: left stick moves, right stick turns the camera (and spins and balances on the board). Aim and Shoot can go on the triggers too."
 	pad.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	pad.custom_minimum_size.x = _fs(560)
 	pad.add_theme_font_size_override("font_size", _fs(16))
@@ -460,7 +475,7 @@ func _start_pad_rebind(action: String, b: Button) -> void:
 func _start_rebind(action: String, b: Button) -> void:
 	_rebinding = action
 	b.text = "Press a key..."
-	_toast("Press the new key for %s%s" % [Settings.action_label(action), "" if action == "pause" else " (Esc to cancel)"])
+	_toast("Press the new key or mouse button for %s%s" % [Settings.action_label(action), "" if action == "pause" else " (Esc to cancel)"])
 
 
 func _tab_display(tabs: TabContainer) -> void:

@@ -27,7 +27,7 @@ func _ready() -> void:
 	panel.add_child(v)
 	stats_label = Label.new()
 	v.add_child(stats_label)
-	mp_bar = _bar_row(v, "MP", "MP: magic, for abilities to come. Refills over time")
+	mp_bar = _bar_row(v, "MP", "MP: magic. A big Star Popper bubble (hold Shoot) takes 1. Refills over time")
 	sp_bar = _bar_row(v, "SP", "SP: stamina, spent by rolling. Refills quickly")
 	sparkle_label = Label.new()
 	sparkle_label.tooltip_text = "Sparkles: bits of broken time. Find them round town, spend them at the market"
