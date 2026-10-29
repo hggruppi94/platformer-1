@@ -68,6 +68,21 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: The Gloop King, and every Gloop restyled to match him (Hayden, from their picture). Gloops are now
+  glossy green goo swirled with gold, with a rainbow sheen like a soap film (`scenes/enemies/gloop_goo.gdshader`), big
+  dark glassy eyes in goo rims, three draped layers of goo with rounded tongues hanging off them, and stubby feet that
+  waddle; the old toothy grin is gone. They never stop dripping: the tongues slowly stretch and spring back (in the
+  shader, from a drip mask in the body mesh's vertex colours), and a drop swells on each tongue's tip, falls into the
+  wet puddle under them and splats (`_drip()` in `scripts/gloop.gd`). `tools/build_gloop.gd` builds both scenes;
+  the body mesh is shared in `scenes/enemies/gloop_body.tres`. Each layer's rolled edge gets its own rows of the mesh
+  that follow its tongues, which is what keeps the edges smooth. Big Gloops are the goldier ones (`goldness` 0.6).
+  The Gloop King (`scripts/gloop_king.gd`, `scenes/enemies/gloop_king.tscn`) is the same goo with a little gold
+  crown and red gem, 2.5 m tall, holding court in the west fields (`GLOOP_KING` in `build_town.gd`) with three Gloops.
+  He's a kid-safe boss: six bubbles or stomps pop him (a big bubble counts for three), a goo meter shows over his
+  crown, every few seconds he belly-flops and sends a ring of goo across the ground (it bumps you only if you're on
+  the ground, so jump it), and at two-thirds and one-third he calls two more Gloops, which don't respawn. Named
+  "The Gloop King" so `find_children("Gloop *")` skips him. Test: `test_gloop_king` (31 checks). Previews:
+  `tools/capture_gloop_king.gd` (a studio like the picture, then town by day and night).
 - 2026-10-29: Aiming and shooting (Hayden). The hero has a Star Popper, a toy bubble blaster (`scripts/star_popper.gd`,
   made from shapes: lilac body, bubble tank, teal nozzle, gold stars). Shoot (left click / RT) blows a star bubble
   (`scripts/star_bubble.gd`); from the hip it finds an enemy in front of her by itself. Holding Aim (right click / LT)
