@@ -6,7 +6,8 @@ extends CharacterBody3D
 # While it's a ball it can't be hurt: jumping on it just bounces her off the shell, and touching it hurts. After a
 # roll it uncurls and sits there dizzy, stars round its head, and that's the time to stomp on its head (two stomps).
 # Rolling into it or ramming it on the skateboard works too, but only while it isn't curled up.
-# It comes back after a while, once Nina has walked away. Expects: CollisionShape3D, Hitbox (Area3D),
+# The Star Popper's bubbles (scripts/star_popper.gd) boing off its rolling shell, but out of its ball one makes it dizzy,
+# and two bubbles (or one big one) pop it away. It comes back after a while, once Nina has walked away. Expects: CollisionShape3D, Hitbox (Area3D),
 # Visual/Body (with LegL, LegR, ArmL, ArmR, Head/Jaw, Tail), Visual/Ball, Visual/Stars.
 
 enum State { WANDER, STALK, CURL, ROLL, DIZZY }
@@ -47,6 +48,7 @@ var _retarget := 0.0
 var _roll_dir := Vector3.FORWARD
 var _flinch := 0.0
 var _respawn_timer: Timer
+var _told_shell := false                       # the "bubbles bounce off its shell" hint, once
 
 @onready var visual: Node3D = $Visual
 @onready var body: Node3D = $Visual/Body
@@ -216,7 +218,29 @@ func _stomped() -> void:
 		Game.message("The Crocodillo's shell is tough! Stomp it again while it's dizzy!")
 
 
-func _defeat() -> void:
+func shot(power: int, _point: Vector3, _dir: Vector3) -> String:
+	# A Star Popper bubble (scripts/star_bubble.gd)
+	if defeated:
+		return "miss"
+	_find_player()
+	if state == State.CURL or state == State.ROLL:
+		if not _told_shell:
+			_told_shell = true
+			Game.message("Boing! Bubbles bounce off its shell. Wait till it uncurls!")
+		return "bounce"
+	hits += power
+	if hits >= stomps_to_defeat:
+		_defeat(true)
+	else:
+		_flinch = 0.6
+		_cooldown = maxf(_cooldown, 1.0)
+		if state != State.DIZZY:
+			_set_state(State.DIZZY)               # one bubble makes it dizzy: pop it again, or stomp it
+		Game.message("Pop! The Crocodillo's dizzy. Once more!")
+	return "hit"
+
+
+func _defeat(bubbled := false) -> void:
 	defeated = true
 	velocity = Vector3.ZERO
 	Game.add_xp(xp_reward)
@@ -224,9 +248,12 @@ func _defeat() -> void:
 	shape.set_deferred("disabled", true)
 	hitbox.set_deferred("monitoring", false)
 	stars.visible = false
-	var tw := create_tween()
-	tw.tween_property(visual, "scale", Vector3(1.4, 0.1, 1.4), 0.18)
-	tw.tween_callback(func() -> void: visual.visible = false)
+	if bubbled:
+		StarBubble.carry_off(self, visual, Color(0.45, 0.85, 0.55), 1.4)   # caught in a bubble, floats up and pops
+	else:
+		var tw := create_tween()
+		tw.tween_property(visual, "scale", Vector3(1.4, 0.1, 1.4), 0.18)
+		tw.tween_callback(func() -> void: visual.visible = false)
 	_respawn_timer.start(respawn_time)
 
 
@@ -246,6 +273,7 @@ func _try_respawn() -> void:
 	shape.set_deferred("disabled", false)
 	hitbox.set_deferred("monitoring", true)
 	visual.visible = true
+	visual.position = Vector3.ZERO
 	visual.scale = Vector3.ONE * 0.05
 	create_tween().tween_property(visual, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 

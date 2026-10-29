@@ -18,6 +18,8 @@ const TIPS := {
 	"talk": {"text": "Someone to talk to! Press {interact} to say hello.", "done": ["interact"]},
 	"shop": {"text": "Pick with the arrows (or the mouse) and buy things with your sparkles ✦. Earn more from quests!",
 		"done": []},
+	"shoot": {"text": "Gloops about! Press {shoot} to blow a bubble at them, and hold {aim} to aim. Hold {shoot} for a big bubble (1 MP).",
+		"done": ["shoot", "aim"]},
 	"ride": {"text": "You're riding! Hold {move_forward} to push, hold {jump} and let go to ollie. {toggle_skateboard} hops off.",
 		"done": ["toggle_skateboard"]},
 }

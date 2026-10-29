@@ -2,7 +2,8 @@ extends CharacterBody3D
 
 # A Gloop: a grumpy jelly blob. It wanders near its home spot, chases Nina when she comes close, and hurts her on
 # touch. Jump on its head to pop it for XP (big ones take two stomps); rolling into it, or ramming it on the skateboard
-# at speed, works too.
+# at speed, works too, and so do the Star Popper's bubbles (scripts/star_popper.gd): it gets caught in a bubble, floats
+# up and pops.
 # It comes back after a while, but only once Nina has walked away. Scene: scenes/enemies/gloop.tscn
 # Expects children: CollisionShape3D (sphere), Hitbox (Area3D with a sphere), Visual (Node3D with Body/eyes/brows).
 
@@ -159,7 +160,22 @@ func _stomped() -> void:
 		Game.message("Big Gloop! Stomp it again!")
 
 
-func _defeat() -> void:
+func shot(power: int, _point: Vector3, dir: Vector3) -> String:
+	# A Star Popper bubble (scripts/star_bubble.gd). Big Gloops take two, or one big bubble.
+	if defeated:
+		return "miss"
+	_find_player()
+	hits += power
+	if hits >= stomps_to_defeat:
+		_defeat(true)
+	else:
+		_squash = 0.6                                                # wobble and flash, then keep coming
+		velocity += Vector3(dir.x, 0, dir.z).normalized() * 3.0
+		Game.message("Big Gloop! Pop it again!")
+	return "hit"
+
+
+func _defeat(bubbled := false) -> void:
 	if hits == 0:
 		Audio.play_at("stomp", global_position)              # rolled into or rammed, not stomped
 	defeated = true
@@ -168,9 +184,12 @@ func _defeat() -> void:
 	_popup("+%d XP" % xp_reward)
 	shape.set_deferred("disabled", true)
 	hitbox.set_deferred("monitoring", false)
-	var tw := create_tween()
-	tw.tween_property(visual, "scale", Vector3(1.7, 0.08, 1.7) * size, 0.12)
-	tw.tween_callback(func(): visual.visible = false)
+	if bubbled:
+		StarBubble.carry_off(self, visual, color, size)       # caught in a bubble, floats up and pops
+	else:
+		var tw := create_tween()
+		tw.tween_property(visual, "scale", Vector3(1.7, 0.08, 1.7) * size, 0.12)
+		tw.tween_callback(func(): visual.visible = false)
 	_respawn_timer.start(respawn_time)
 
 
@@ -187,6 +206,7 @@ func _try_respawn() -> void:
 	shape.set_deferred("disabled", false)
 	hitbox.set_deferred("monitoring", true)
 	visual.visible = true
+	visual.position = Vector3.ZERO
 	visual.scale = Vector3.ONE * 0.05
 	create_tween().tween_property(visual, "scale", Vector3.ONE * size, 0.35) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

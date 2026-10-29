@@ -12,7 +12,8 @@ const PATH := "user://settings.cfg"
 # Keyboard actions the player can rebind, in menu order, with their menu names
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
-	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"],
+	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
+	["toggle_skateboard", "Skateboard"],
 	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
 	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
@@ -20,12 +21,12 @@ const REBINDABLE := [
 # Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
 # (X rolls on foot and flips on the board), so a button only clashes with actions used at the same time (PAD_GROUPS).
 const PAD_REBINDABLE := [
-	["jump", "Jump"], ["dash", "Roll"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"],
-	["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
+	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["toggle_skateboard", "Skateboard"],
+	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
 	["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],          # on foot
+	["jump", "dash", "aim", "shoot", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
 	["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding
 ]
 const PAD_NAMES := {
@@ -33,7 +34,17 @@ const PAD_NAMES := {
 	JOY_BUTTON_GUIDE: "Guide", JOY_BUTTON_START: "Start", JOY_BUTTON_LEFT_STICK: "L3", JOY_BUTTON_RIGHT_STICK: "R3",
 	JOY_BUTTON_LEFT_SHOULDER: "LB", JOY_BUTTON_RIGHT_SHOULDER: "RB", JOY_BUTTON_DPAD_UP: "D-pad up",
 	JOY_BUTTON_DPAD_DOWN: "D-pad down", JOY_BUTTON_DPAD_LEFT: "D-pad left", JOY_BUTTON_DPAD_RIGHT: "D-pad right",
+	PAD_LT: "LT", PAD_RT: "RT",
 }
+# The triggers are axes, not buttons, so they get numbers of their own past the buttons' (aiming and shooting sit on
+# them: scripts/star_popper.gd)
+const PAD_LT := 200
+const PAD_RT := 201
+const PAD_TRIGGERS := {PAD_LT: JOY_AXIS_TRIGGER_LEFT, PAD_RT: JOY_AXIS_TRIGGER_RIGHT}
+# Mouse buttons can be keys too (Aim and Shoot start on them). They're kept as minus the button's number, so they
+# can't be mistaken for a key.
+const MOUSE_NAMES := {MOUSE_BUTTON_LEFT: "Left click", MOUSE_BUTTON_RIGHT: "Right click",
+	MOUSE_BUTTON_MIDDLE: "Middle click", MOUSE_BUTTON_XBUTTON1: "Mouse back", MOUSE_BUTTON_XBUTTON2: "Mouse forward"}
 # How forgiving the skating is (scenes/player/skate.gd, Skate.ASSIST)
 const ASSIST_NAMES := ["Relaxed", "Normal", "Pro"]
 
@@ -190,7 +201,7 @@ func pad_name(action: String) -> String:
 
 # ----------------------------------------------------------------------------- controller buttons
 func default_pad_bindings() -> Dictionary:
-	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
+	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
 		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "pause": JOY_BUTTON_START}
 	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
@@ -224,10 +235,17 @@ func _bind_pad(action: String, button: int) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action, 0.2)
 	for e in InputMap.action_get_events(action):
-		if e is InputEventJoypadButton:
+		if e is InputEventJoypadButton or e is InputEventJoypadMotion:
 			InputMap.action_erase_event(action, e)
 	if button < 0:
 		return                                      # no button (the quest log, by default)
+	if PAD_TRIGGERS.has(button):
+		var t := InputEventJoypadMotion.new()
+		t.device = -1
+		t.axis = PAD_TRIGGERS[button]
+		t.axis_value = 1.0
+		InputMap.action_add_event(action, t)
+		return
 	var b := InputEventJoypadButton.new()
 	b.device = -1
 	b.button_index = button as JoyButton
@@ -242,7 +260,7 @@ func _bind_pad(action: String, button: int) -> void:
 # ----------------------------------------------------------------------------- key bindings
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
+		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
 		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "pause": KEY_ESCAPE}
 
 
@@ -264,6 +282,8 @@ func key_name(action: String) -> String:
 	var code: int = bindings.get(action, 0)
 	if code == 0:
 		return "-"
+	if code < 0:
+		return MOUSE_NAMES.get(-code, "Mouse %d" % -code)
 	if DisplayServer.get_name() == "headless":
 		return OS.get_keycode_string(code)          # no keyboard layout to ask (automated tests)
 	return OS.get_keycode_string(DisplayServer.keyboard_get_keycode_from_physical(code as Key))   # e.g. Z on AZERTY
@@ -282,6 +302,8 @@ func _current_key(action: String) -> int:
 	for e in InputMap.action_get_events(action):
 		if e is InputEventKey:
 			return e.physical_keycode if e.physical_keycode != 0 else e.keycode
+		if e is InputEventMouseButton:
+			return -e.button_index
 	return default_bindings().get(action, 0)
 
 
@@ -289,10 +311,16 @@ func _bind(action: String, physical_keycode: int) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action, 0.2)
 	for e in InputMap.action_get_events(action):
-		if e is InputEventKey:
+		if e is InputEventKey or e is InputEventMouseButton:
 			InputMap.action_erase_event(action, e)
 	if physical_keycode == 0:
 		return                                      # no key
+	if physical_keycode < 0:
+		var mb := InputEventMouseButton.new()       # a mouse button (Aim and Shoot, to start with)
+		mb.device = -1
+		mb.button_index = -physical_keycode as MouseButton
+		InputMap.action_add_event(action, mb)
+		return
 	var k := InputEventKey.new()
 	k.device = -1
 	k.physical_keycode = physical_keycode as Key

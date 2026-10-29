@@ -1,0 +1,405 @@
+class_name StarPopper
+extends Node3D
+
+# The Star Popper: the hero's toy bubble blaster, for popping Gloops and Crocodillos from a distance (stomping still
+# works too). It blows shiny star bubbles (scripts/star_bubble.gd); nothing gets hurt, enemies get caught in a bubble
+# and pop away.
+#
+#   Shoot (left click / RT)        a bubble straight ahead. Not aiming, it finds an enemy in front of her by itself.
+#   Aim (right click / LT, held)   the camera moves in over her right shoulder, a crosshair shows, she faces where
+#                                  the camera looks and walks slower. Bubbles go where the crosshair is (a controller
+#                                  gets a little help onto an enemy near it).
+#   Hold Shoot                     charges a big bubble (1 MP) that counts for three pops and carries on through.
+#
+# Only on foot: not on the board, the zipline or in the mothership, and not while talking, in a menu or the creator.
+# Her right arm points the popper where the bubbles go (PopperArm below), and the popper shows in her hand while she
+# aims and for a moment after each shot. Keys and buttons are in Settings > Controls ("aim", "shoot").
+
+const COOLDOWN := 0.2                     # seconds between bubbles
+const CHARGE_START := 0.3                 # holding Shoot this long starts charging a big bubble...
+const CHARGE_TIME := 0.8                  # ...and it's ready this much later
+const BIG_COST := 1                       # MP for a big bubble
+const MAX_FLYING := 14                    # bubbles in the air at once
+const AIM_MOVE := 0.55                    # walking speed while aiming
+const AIM_RANGE := 60.0                   # how far the crosshair looks for something to aim at
+const AUTO_RANGE := 24.0                  # not aiming: enemies this close...
+const AUTO_ANGLE := 32.0                  # ...and within this many degrees of where she faces get aimed at
+const ASSIST_ANGLE := {"pad": 4.0, "keyboard": 1.5}   # aiming: how close to the crosshair counts as on an enemy
+const SHOW_AFTER_SHOT := 1.2              # seconds the popper stays in her hand after a shot
+
+var player: Player
+var aiming := false
+var aim_blend := 0.0                      # 0..1, eases in and out (the camera and her arm follow it)
+var charge := 0.0                         # 0..1 while a big bubble charges
+var shots := 0                            # every bubble she's blown (tests read it)
+var _cooldown := 0.0
+var _held := 0.0                          # how long Shoot has been held
+var _raise := 0.0                         # her arm comes up for a moment after a shot from the hip
+var _shot_dir := Vector3.FORWARD          # ...pointing where that shot went
+var _arm: PopperArm
+var _prop: Node3D                         # the popper itself, in her hand
+var _hud: CanvasLayer
+var _cross: Control
+var _on_target := false                   # the crosshair is on an enemy (it turns pink)
+var _tipped := false
+
+
+func setup(p: Player) -> void:
+	player = p
+	name = "StarPopper"
+	_prop = build_prop()
+	_prop.top_level = true
+	_prop.visible = false
+	add_child(_prop)
+	_hud = CanvasLayer.new()
+	_hud.layer = 5
+	add_child(_hud)
+	_cross = Crosshair.new()
+	_cross.popper = self
+	_cross.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_cross.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_cross.visible = false
+	_hud.add_child(_cross)
+
+
+func attach(model: Node3D) -> void:
+	# A new model (the hero's made or remade, or a friend's riding): her arm's mover goes on its skeleton
+	if _arm and is_instance_valid(_arm):
+		_arm.queue_free()
+	_arm = null
+	var skels := model.find_children("*", "Skeleton3D", true, false)
+	if skels.is_empty():
+		return
+	var skel := skels[0] as Skeleton3D
+	if skel.find_bone("upper_arm.R") < 0:
+		return
+	_arm = PopperArm.new()
+	_arm.name = "PopperArm"
+	_arm.popper = self
+	skel.add_child(_arm)
+
+
+func can_shoot() -> bool:
+	if player == null or Game.riding or player.carried or player.input_locked:
+		return false
+	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused:
+		return false
+	# The click that grabs the mouse back into the game window isn't a shot
+	if Settings.last_device == "keyboard" and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not _in_test():
+		return false
+	return true
+
+
+func _in_test() -> bool:
+	return get_tree().get_script() != null       # tests and screenshot tools run their own main loop
+
+
+func move_scale() -> float:
+	return lerpf(1.0, AIM_MOVE, aim_blend)
+
+
+func aim_yaw() -> float:
+	# Which way she faces while aiming: where the camera looks
+	var f := -player.spring_arm.global_transform.basis.z
+	return atan2(f.x, f.z)
+
+
+func _physics_process(delta: float) -> void:
+	if player == null:
+		return
+	var ok := can_shoot()
+	aiming = ok and Input.is_action_pressed("aim")
+	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
+	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
+	_cooldown -= delta
+	_raise = maxf(_raise - delta, 0.0)
+	if not ok:
+		_held = 0.0
+		charge = 0.0
+	else:
+		if not _tipped:
+			_tipped = true
+			if not get_tree().get_nodes_in_group("enemies").is_empty():
+				Tips.show_tip("shoot")             # the first time there's something to pop (scripts/tips.gd)
+		if Input.is_action_just_pressed("shoot"):
+			_held = 0.0
+			shoot(false)
+		elif Input.is_action_pressed("shoot"):
+			_held += delta
+			if _held > CHARGE_START:
+				var was := charge
+				charge = clampf((_held - CHARGE_START) / CHARGE_TIME, 0.0, 1.0)
+				if charge >= 1.0 and was < 1.0:
+					Audio.play("bubbles", -8.0, 0.0)  # ready!
+		elif Input.is_action_just_released("shoot") or charge > 0.0:
+			if charge >= 1.0:
+				if Game.spend_mp(BIG_COST):
+					shoot(true)
+				else:
+					Game.message("Not enough MP for a big bubble. MP refills in a moment.")
+			_held = 0.0
+			charge = 0.0
+	_update_target()
+	_cross.visible = aim_blend > 0.5
+	_cross.queue_redraw()
+	# The popper's in her hand while she aims, and for a moment after a shot
+	_prop.visible = _arm != null and (aim_blend > 0.05 or _raise > 0.0 or charge > 0.0)
+	if _arm:
+		_arm.influence = clampf(maxf(aim_blend, minf(_raise / 0.15, 1.0) if _raise > 0.0 else 0.0), 0.0, 1.0)
+		if charge > 0.0:
+			_arm.influence = 1.0
+
+
+func shoot(charged: bool) -> StarBubble:
+	if _cooldown > 0.0 and not charged:
+		return null
+	if StarBubble.flying() >= MAX_FLYING:
+		return null
+	_cooldown = COOLDOWN
+	var from := muzzle()
+	var dir := aim_dir(from)
+	_shot_dir = dir
+	if not aiming:
+		_raise = SHOW_AFTER_SHOT
+		# From the hip she turns to face the shot
+		player.visual.rotation.y = atan2(dir.x, dir.z)
+	var scene := get_tree().current_scene if get_tree().current_scene else player.get_parent()
+	var b := StarBubble.fire(scene, from, dir, player, charged)
+	shots += 1
+	Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
+	if charged and not Settings.reduce_motion:
+		player.spring_arm.fov_kick = 4.0
+	return b
+
+
+func muzzle() -> Vector3:
+	# The popper's nozzle when it's in her hand; otherwise in front of her chest
+	if _prop.visible and _arm and _arm.influence > 0.5:
+		return _prop.global_transform * Vector3(0, 0, 0.32)
+	var face := player.visual.global_transform.basis.z
+	return player.global_position + Vector3(0, 0.35, 0) + face.normalized() * 0.45
+
+
+func aim_dir(from: Vector3) -> Vector3:
+	if aiming:
+		return (aim_point() - from).normalized()
+	# From the hip: at the nearest enemy in front of her, or straight ahead
+	var face := player.visual.global_transform.basis.z
+	face.y = 0.0
+	face = face.normalized()
+	var best: Node3D = null
+	var best_d := AUTO_RANGE
+	for e in _targets():
+		var to: Vector3 = _centre(e) - from
+		var flat := Vector3(to.x, 0, to.z)
+		if flat.length() > best_d or flat.length() < 0.3:
+			continue
+		if rad_to_deg(face.angle_to(flat)) > AUTO_ANGLE or not _clear(from, _centre(e), e):
+			continue
+		best = e
+		best_d = flat.length()
+	if best:
+		return (_centre(best) - from).normalized()
+	return face
+
+
+func aim_point() -> Vector3:
+	# Where the crosshair is: the first thing straight out from the camera, or an enemy right by it
+	var cam := player.spring_arm.get_node("Camera3D") as Camera3D
+	var o := cam.global_position
+	var d := -cam.global_transform.basis.z
+	var assist: float = ASSIST_ANGLE.get(Settings.last_device, 1.5)
+	var best: Node3D = null
+	for e in _targets():
+		var to: Vector3 = _centre(e) - o
+		if to.length() > AIM_RANGE:
+			continue
+		var a := rad_to_deg(d.angle_to(to))
+		if a < assist and _clear(o, _centre(e), e):
+			best = e
+			assist = a
+	if best:
+		return _centre(best)
+	var q := PhysicsRayQueryParameters3D.create(o, o + d * AIM_RANGE)
+	q.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.position if not hit.is_empty() else o + d * AIM_RANGE
+
+
+func _update_target() -> void:
+	_on_target = false
+	if aim_blend < 0.5:
+		return
+	var p := aim_point()
+	for e in _targets():
+		if _centre(e).distance_to(p) < 0.9:
+			_on_target = true
+			return
+
+
+func _targets() -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if e is Node3D and e.is_inside_tree() and not e.get("defeated") and (e as Node3D).is_visible_in_tree():
+			out.append(e)
+	return out
+
+
+func _centre(e: Node3D) -> Vector3:
+	return e.global_position + Vector3(0, 0.45 * float(e.get("size") if e.get("size") != null else 1.0), 0)
+
+
+func _clear(from: Vector3, to: Vector3, target: Node) -> bool:
+	# Nothing solid in the way (other than the target itself)
+	var q := PhysicsRayQueryParameters3D.create(from, to)
+	q.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.is_empty() or hit.collider == target or (hit.collider as Node).is_ancestor_of(target) \
+		or target.is_ancestor_of(hit.collider as Node)
+
+
+func arm_dir() -> Vector3:
+	# Where her arm points (PopperArm): the crosshair while aiming, otherwise the last shot
+	if aiming or charge > 0.0:
+		var from := player.global_position + Vector3(0, 0.4, 0)
+		return (aim_point() - from).normalized() if aiming else player.visual.global_transform.basis.z.normalized()
+	return _shot_dir
+
+
+func place_prop(hand: Transform3D, dir: Vector3) -> void:
+	# The popper sits in her hand, pointing where the bubbles go (PopperArm calls this as it poses the arm)
+	var up := Vector3.UP if absf(dir.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
+	var b := Basis.looking_at(-dir, up)        # looking_at points -Z; the popper's nozzle is on +Z
+	var s := clampf(hand.basis.get_scale().x, 0.6, 1.6)
+	_prop.global_transform = Transform3D(b.scaled(Vector3.ONE * s), hand.origin + dir * 0.06)
+
+
+static func build_prop() -> Node3D:
+	# A chunky toy: a lilac body with a round bubble tank on top, a teal nozzle in front with a gold star on it, and a
+	# pink grip. About 0.4 m long, nozzle towards +Z.
+	var root := Node3D.new()
+	root.name = "Popper"
+	var lilac := _mat(Color(0.72, 0.58, 0.98), 0.4)
+	var teal := _mat(Color(0.3, 0.9, 0.82), 0.3)
+	var pink := _mat(Color(1.0, 0.5, 0.78), 0.5)
+	var gold := _mat(Color(1.0, 0.82, 0.3), 0.25, 0.6)
+	var body := _part(root, CapsuleMesh.new(), lilac, Vector3(0, 0.03, 0.1), Vector3(PI / 2, 0, 0))
+	(body.mesh as CapsuleMesh).radius = 0.06
+	(body.mesh as CapsuleMesh).height = 0.28
+	var nozzle := _part(root, CylinderMesh.new(), teal, Vector3(0, 0.03, 0.27), Vector3(PI / 2, 0, 0))
+	(nozzle.mesh as CylinderMesh).top_radius = 0.035
+	(nozzle.mesh as CylinderMesh).bottom_radius = 0.05
+	(nozzle.mesh as CylinderMesh).height = 0.09
+	var rim := _part(root, TorusMesh.new(), gold, Vector3(0, 0.03, 0.315), Vector3(PI / 2, 0, 0))
+	(rim.mesh as TorusMesh).inner_radius = 0.03
+	(rim.mesh as TorusMesh).outer_radius = 0.045
+	var tank := _part(root, SphereMesh.new(), _glass(), Vector3(0, 0.11, 0.08), Vector3.ZERO)
+	(tank.mesh as SphereMesh).radius = 0.055
+	(tank.mesh as SphereMesh).height = 0.11
+	var grip := _part(root, BoxMesh.new(), pink, Vector3(0, -0.05, 0.03), Vector3(-0.3, 0, 0))
+	(grip.mesh as BoxMesh).size = Vector3(0.05, 0.12, 0.06)
+	var star := MeshInstance3D.new()
+	star.mesh = StarBubble.star_mesh()
+	star.material_override = gold
+	star.scale = Vector3.ONE * 0.07
+	star.position = Vector3(0.062, 0.03, 0.12)
+	star.rotation = Vector3(0, PI / 2, 0)
+	root.add_child(star)
+	var star2 := star.duplicate() as MeshInstance3D
+	star2.position.x = -0.062
+	root.add_child(star2)
+	return root
+
+
+static func _part(root: Node3D, mesh: Mesh, mat: Material, pos: Vector3, rot: Vector3) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.position = pos
+	mi.rotation = rot
+	root.add_child(mi)
+	return mi
+
+
+static func _mat(c: Color, rough: float, metal := 0.0) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = rough
+	m.metallic = metal
+	return m
+
+
+static func _glass() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(0.6, 1.0, 0.95, 0.45)
+	m.emission_enabled = true
+	m.emission = Color(0.4, 0.9, 1.0)
+	m.emission_energy_multiplier = 0.6
+	m.roughness = 0.05
+	return m
+
+
+# ----------------------------------------------------------------------------- her arm
+class PopperArm extends SkeletonModifier3D:
+	# After her animation, swings her right arm (upper arm, forearm, hand) out straight to point where the bubbles
+	# go. `influence` blends it in and out, so the arm eases up and back down.
+	var popper: StarPopper
+	var hand_at := Vector3.ZERO           # where it last put her hand, and which way her arm went (tests read them)
+	var points := Vector3.ZERO
+
+	func _process_modification_with_delta(_delta: float) -> void:
+		var skel := get_skeleton()
+		if skel == null or popper == null or popper.player == null:
+			return
+		var ua := skel.find_bone("upper_arm.R")
+		var fa := skel.find_bone("forearm.R")
+		var hand := skel.find_bone("hand.R")
+		if ua < 0 or fa < 0 or hand < 0:
+			return
+		var world_dir := popper.arm_dir()
+		var to_skel := skel.global_transform.basis.inverse()
+		var d := (to_skel * world_dir).normalized()
+		# The forearm and hand go straight on from the upper arm, as they are in the model's rest pose
+		skel.set_bone_pose_rotation(fa, skel.get_bone_rest(fa).basis.get_rotation_quaternion())
+		skel.set_bone_pose_rotation(hand, skel.get_bone_rest(hand).basis.get_rotation_quaternion())
+		# Turn the upper arm so the hand ends up along d from the shoulder
+		var g := skel.get_bone_global_pose(ua)
+		var hand_now := skel.get_bone_global_pose(hand).origin
+		var along := (hand_now - g.origin)
+		if along.length() < 0.001:
+			return
+		var turn := Quaternion(along.normalized(), d)
+		var parent := skel.get_bone_parent(ua)
+		var parent_g := skel.get_bone_global_pose(parent) if parent >= 0 else Transform3D.IDENTITY
+		var new_g := Basis(turn) * g.basis
+		var local := parent_g.basis.inverse() * new_g
+		skel.set_bone_pose_rotation(ua, local.get_rotation_quaternion())
+		var hand_g := skel.get_bone_global_pose(hand)
+		hand_at = skel.global_transform * hand_g.origin
+		points = (hand_at - skel.global_transform * skel.get_bone_global_pose(ua).origin).normalized()
+		popper.place_prop(skel.global_transform * hand_g, world_dir)
+
+
+# ----------------------------------------------------------------------------- crosshair
+class Crosshair extends Control:
+	# A soft ring with a dot in the middle of the screen while aiming; it turns pink on an enemy, and a gold arc
+	# fills round it as a big bubble charges.
+	var popper: StarPopper
+
+	func _draw() -> void:
+		if popper == null:
+			return
+		var c := size / 2.0
+		var r := 15.0 * Settings.text_scale
+		var col := Color(1.0, 0.55, 0.85) if popper._on_target else Color(0.95, 0.95, 1.0)
+		var shadow := Color(0.1, 0.05, 0.2, 0.6)
+		var w := 3.0 if Settings.high_contrast else 2.0
+		draw_arc(c, r, 0.0, TAU, 40, shadow, w + 2.0, true)
+		draw_arc(c, r, 0.0, TAU, 40, col, w, true)
+		draw_circle(c, 3.5, shadow)
+		draw_circle(c, 2.5, col)
+		if popper.charge > 0.0:
+			var full := popper.charge >= 1.0
+			draw_arc(c, r + 6.0, -PI / 2.0, -PI / 2.0 + TAU * popper.charge, 40,
+				Color(1.0, 0.85, 0.3) if not full else Color(0.4, 1.0, 0.9), 4.0, true)

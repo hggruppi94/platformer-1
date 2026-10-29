@@ -65,6 +65,7 @@ var _step_timer := 0.0
 var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
+var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 
@@ -110,6 +111,9 @@ func _ready() -> void:
 	skate.name = "Skate"
 	add_child(skate)
 	skate.setup(self)
+	popper = StarPopper.new()
+	add_child(popper)
+	popper.setup(self)
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
@@ -147,6 +151,8 @@ func set_rider(id: String, hop_on := true) -> void:
 	if id == "hero":
 		_add_sash()
 	skate.set_ride(r, RideKit.build(r.kit, board, model))
+	if popper:
+		popper.attach(model)
 	_show_npc(id, false)
 	if hop_on and not Game.riding and Game.has_item("skateboard"):
 		Game.riding = true
@@ -360,7 +366,7 @@ func _physics_process(delta: float) -> void:
 		var rate := acceleration if direction else friction
 		if not on_floor:
 			rate *= air_control
-		horizontal = horizontal.move_toward(direction * speed * _zone_min("speed_scale", 1.0), rate * delta)
+		horizontal = horizontal.move_toward(direction * speed * _zone_min("speed_scale", 1.0) * popper.move_scale(), rate * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 
@@ -378,7 +384,10 @@ func _physics_process(delta: float) -> void:
 
 	# Turn the model to face where you steer (models face +Z after glTF export from Blender)
 	var face := _roll_dir if _roll_timer > 0.0 else direction
-	if face:
+	if popper.aiming and _roll_timer <= 0.0:
+		# Aiming the Star Popper: she faces where the camera looks and walks (or sidesteps) that way round
+		visual.rotation.y = lerp_angle(visual.rotation.y, popper.aim_yaw(), 1.0 - exp(-turn_speed * 2.0 * delta))
+	elif face:
 		var target_yaw := atan2(face.x, face.z)
 		visual.rotation.y = lerp_angle(visual.rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))
 	_update_spin(delta)
@@ -508,3 +517,5 @@ func _update_animation(horizontal_speed: float) -> void:
 		anim.play(target, 0.15)
 	# Match the stride to how fast she's actually moving
 	anim.speed_scale = clampf(horizontal_speed / speed, 0.6, 1.4) if target == "run" else 1.0
+	if target == "run" and popper.aiming:
+		anim.speed_scale = clampf(horizontal_speed / (speed * popper.AIM_MOVE), 0.6, 1.0)
