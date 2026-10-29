@@ -211,6 +211,26 @@ func _run() -> void:
 	await _physics(30)
 	check(croc.defeated, "...and a second pops it")
 
+	# --- Every body can aim: the arm finds its bones on each one ---
+	var HERO: GDScript = load("res://scripts/hero.gd")
+	var bodies: Array = HERO.BODY_ORDER + HERO.SECRETS.keys()
+	var posers := []
+	var body_was = game.hero.get("body")
+	Input.action_press("aim")
+	for body in bodies:
+		game.hero["body"] = body
+		p.set_rider("hero", false)
+		await _physics(15)
+		var posed_arm = popper._arm
+		if posed_arm == null or posed_arm.points.dot(popper.arm_dir()) < 0.9 or not popper._prop.visible:
+			posers.append(body)
+	Input.action_release("aim")
+	game.hero["body"] = body_was
+	p.set_rider("hero", false)
+	await _physics(15)
+	check(posers.is_empty(), "every body (%d) points the popper where it aims%s" % [bodies.size(),
+		"" if posers.is_empty() else " (not: %s)" % ", ".join(posers)])
+
 	# --- When there's no shooting ---
 	game.riding = true
 	game.equipment_changed.emit()
