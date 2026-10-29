@@ -282,7 +282,76 @@ func _sheet_bag() -> Control:
 		_gap(box)
 		_heading("Happy places found (%d)" % places.size(), box, 26)
 		_line(", ".join(places), true, box)
+	_gap(box)
+	_watches_page(box)
 	return null
+
+
+func _watches_page(box: VBoxContainer) -> void:
+	# The lost watches (scripts/watches.gd): a picture of each one found, a dark outline of each still out there, and
+	# a few words about whichever is picked (where it was, or a vague hint)
+	var found := Watches.found_count()
+	var given := Watches.given_count()
+	var head := _heading("Lost watches: %d of %d found" % [found, Watches.WATCHES.size()], box, 26)
+	head.name = "Watches"
+	var nxt := Watches.next_reward()
+	var about := "Chosen kids lost these when they landed. Dash collects them."
+	if given > 0:
+		about += " You've given him %d." % given
+	if not Watches.to_give().is_empty():
+		about += " Talk to Dash: you have %d for him!" % Watches.to_give().size()
+	elif not nxt.is_empty() and found > 0:
+		about += " At %d he has %s for you." % [int(nxt.at), nxt.text]
+	_line(about, true, box)
+	var grid := GridContainer.new()
+	grid.name = "Watch Grid"
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", _fs(8))
+	grid.add_theme_constant_override("v_separation", _fs(8))
+	box.add_child(grid)
+	var detail := _line("Pick a watch to see more.", true, box)
+	detail.name = "Watch Detail"
+	detail.custom_minimum_size.y = _fs(60)
+	for w in Watches.WATCHES:
+		var have := Watches.is_found(w.id)
+		var cell := Button.new()
+		cell.name = str(w.id)
+		cell.custom_minimum_size = Vector2(_fs(112), _fs(132))
+		var inner := VBoxContainer.new()
+		inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inner.alignment = BoxContainer.ALIGNMENT_CENTER
+		cell.add_child(inner)
+		var pic := SubViewportContainer.new()
+		pic.stretch = true
+		pic.custom_minimum_size = Vector2(_fs(96), _fs(96))
+		pic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pic.add_child(Watches.icon_viewport(str(w.id), have, _fs(96)))
+		inner.add_child(pic)
+		var label := Label.new()
+		label.text = str(w.name) if have else "???"
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", _fs(13))
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inner.add_child(label)
+		var words := ("%s. %s\n%s%s" % [w.name, w.note, w.place, "  (given to Dash)" if Watches.is_given(w.id) else ""]) \
+			if have else "Still lost. Hint: " + str(w.hint)
+		cell.focus_entered.connect(func(): detail.text = words)
+		cell.mouse_entered.connect(func(): detail.text = words)
+		grid.add_child(cell)
+	if Game.has_item("popper_colour:clockwork"):
+		_gap(box)
+		var colours: Array = StarPopper.COLOURS.keys().filter(func(c: String) -> bool:
+			return c == "classic" or Game.has_item("popper_colour:" + c))
+		var popper := _button("Star Popper colour: %s" % Game.popper_colour.capitalize(), func(): pass, box)
+		popper.name = "Popper Colour"
+		popper.pressed.connect(func():
+			Game.popper_colour = colours[(colours.find(Game.popper_colour) + 1) % colours.size()]
+			popper.text = "Star Popper colour: %s" % Game.popper_colour.capitalize()
+			Game.equipment_changed.emit()
+			Game.save_game())
 
 
 func _sheet_skate() -> Control:

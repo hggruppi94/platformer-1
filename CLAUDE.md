@@ -68,6 +68,31 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Lost watches (Hayden, from the lore: everyone who lands on Galaxity has a watch that tracks time their
+  own planet's or era's way). Twenty chosen kids lost theirs round Galaxity (`scripts/watches.gd`, autoload `Watches`):
+  each a little spinning, glowing model built from shapes (`Watches.model()`: a drip clock, a tide shell, a cuckoo
+  locket, a 1985 beep band, a sundial, a moon-nap dial, a robot's bolt watch, the Watch of Many Hands, a chef's egg
+  timer, one that runs backwards, a candle clock, an hourglass, a railway pocket watch, a star chart, an orrery, a
+  spiral galaxy, a humming crystal ring, a bead calendar, a flower clock and a glow-worm lantern). They're placed so
+  finding them takes every way of getting about: on the fountain's water ball, out in the lake and the waterfall
+  pond, the tree house deck, the zipline's cable, the rock wall, the Cloud Nest, over the castle hill's long rail,
+  high over the Skate Park's quarter pipe, the Gloop King's court, the Agent of Chaos's field, the Spooky Woods, on the
+  Town Hall dome, the Observatory dome and the castle's tallest spire (beam down from the mothership), two high in
+  the sky (fly the mothership through them), the school's top-floor window sill and greenhouse, and the edge of the
+  Scary World. They aren't in the built scenes: `Watches` adds the pickups (`scripts/watch_pickup.gd`) to whichever
+  scene is showing, from `WATCHES`, so no builder or `.tscn` changed. A pickup shows a card with a one-line note about
+  its owner. Dash collects them: `dialogue/dash.json` has a first ask, a first hand-in and later ones (new dialogue
+  keys `watches_to_give`, `no_watches_yet`, `watches_found`, `watches_given`, words `{watches_given}` etc., and a
+  conversation's `"do": "Autoload.method"`, whose returned lines are said after its own). Rewards at 5, 10, 15, 20: 15
+  sparkles; the Clockwork Star Popper (`StarPopper.COLOURS`, `Game.popper_colour`, saved; a toggle on the Bag page);
+  the Tick-Tock Sticker and 10 sparkles; the Time Keeper, worn on the left wrist (hands) or as a pendant (neck), in
+  `shop/items.json` as `"reward": true` items of stall "Dash" (never sold). The Bag sheet has a Watches page: a turning
+  picture of each one found, a dark silhouette and a vague hint for each still lost. Found ones in town show on the
+  map. All saved as Dialogue flags (`watch_found_<id>`, `watch_given_<id>`, `watch_reward_<n>`), so old saves just
+  have none. `Watches.remaining()` and `Requests.note("watch")` link it to the nightly request board.
+  `tools/test_lost_watches.gd` (66 checks, including each watch reachable its own way),
+  `tools/capture_lost_watches.gd` (shots are in the project files under world/previews/lost-watches, made in the
+  cloud, which can't upload LFS files).
 - 2026-10-29: The Star Popper on your board (Hayden, "Before the First Night" prompt C). Shoot works while riding, from
   the hip only (no aiming on the board, so steering is the same): rolling, in the air, on a grind and in a manual, and
   in the Simple controls too. On the board it looks for an enemy within 26 m and 40 degrees of where she's going

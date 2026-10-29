@@ -308,6 +308,13 @@ func _draw_full() -> void:
 			c.draw_circle(at, 7.0, Color(1.0, 0.3, 0.45))
 			c.draw_arc(at, 7.0, 0, TAU, 16, Color(0.25, 0.05, 0.1), 1.5)
 			_text(c, at + Vector2(0, -_fs(15)), str(n.call("map_name")), _fs(15), Color(1.0, 0.55, 0.6), true, true)
+		# Lost watches she's found (scripts/watches.gd), where she found them: never the ones still out there
+		for w in Watches.found_in_town():
+			var at := r.position + to_map(w.pos) * r.size
+			c.draw_circle(at, 6.0, Color(1.0, 0.82, 0.3))
+			c.draw_arc(at, 6.0, 0, TAU, 16, Color(0.3, 0.15, 0.35), 1.5)
+			c.draw_line(at, at + Vector2(0, -4), Color(0.3, 0.15, 0.35), 1.5)
+			c.draw_line(at, at + Vector2(3, 1), Color(0.3, 0.15, 0.35), 1.5)
 		if portal_open():
 			var portal := s.get_node_or_null("Portal to Earth") as Node3D
 			if portal:
@@ -332,7 +339,7 @@ func _draw_full() -> void:
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    (%s to close)" % Settings.prompt("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    (%s to close)" % Settings.prompt("map")
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
 
 

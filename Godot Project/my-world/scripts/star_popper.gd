@@ -33,6 +33,12 @@ const ASSIST_ANGLE := {"pad": 4.0, "keyboard": 1.5}   # aiming: how close to the
 const SHOW_AFTER_SHOT := 1.2              # seconds the popper stays in her hand after a shot
 const BOARD_RANGE := 26.0                 # on the board: enemies this close...
 const BOARD_ANGLE := 40.0                 # ...and within this many degrees of where she's going get aimed at
+# Its colours (Game.popper_colour): body, nozzle, grip, trim. "classic" is how it comes; the rest are earned (Dash
+# gives "clockwork" for ten lost watches, scripts/watches.gd) and owned as items "popper_colour:<id>".
+const COLOURS := {
+	"classic": [Color(0.72, 0.58, 0.98), Color(0.3, 0.9, 0.82), Color(1.0, 0.5, 0.78), Color(1.0, 0.82, 0.3)],
+	"clockwork": [Color(0.95, 0.75, 0.35), Color(0.25, 0.75, 0.7), Color(0.45, 0.25, 0.55), Color(0.85, 0.9, 1.0)],
+}
 
 var player: Player
 var aiming := false
@@ -54,10 +60,11 @@ var _tipped := false
 func setup(p: Player) -> void:
 	player = p
 	name = "StarPopper"
-	_prop = build_prop()
+	_prop = build_prop(Game.popper_colour)
 	_prop.top_level = true
 	_prop.visible = false
 	add_child(_prop)
+	Game.equipment_changed.connect(_recolour)
 	_hud = CanvasLayer.new()
 	_hud.layer = 5
 	add_child(_hud)
@@ -305,15 +312,31 @@ func place_prop(hand: Transform3D, dir: Vector3) -> void:
 	_prop.global_transform = Transform3D(b.scaled(Vector3.ONE * s), hand.origin + dir * 0.06)
 
 
-static func build_prop() -> Node3D:
+func _recolour() -> void:
+	# A new colour picked (or earned): swap the popper in her hand for one in those colours
+	if _prop == null or str(_prop.get_meta("colour", "")) == Game.popper_colour:
+		return
+	var shown := _prop.visible
+	var at := _prop.global_transform
+	_prop.queue_free()
+	_prop = build_prop(Game.popper_colour)
+	_prop.top_level = true
+	_prop.visible = shown
+	add_child(_prop)
+	_prop.global_transform = at
+
+
+static func build_prop(colour := "classic") -> Node3D:
 	# A chunky toy: a lilac body with a round bubble tank on top, a teal nozzle in front with a gold star on it, and a
-	# pink grip. About 0.4 m long, nozzle towards +Z.
+	# pink grip (in the classic colours). About 0.4 m long, nozzle towards +Z.
 	var root := Node3D.new()
 	root.name = "Popper"
-	var lilac := _mat(Color(0.72, 0.58, 0.98), 0.4)
-	var teal := _mat(Color(0.3, 0.9, 0.82), 0.3)
-	var pink := _mat(Color(1.0, 0.5, 0.78), 0.5)
-	var gold := _mat(Color(1.0, 0.82, 0.3), 0.25, 0.6)
+	root.set_meta("colour", colour)
+	var c: Array = COLOURS.get(colour, COLOURS.classic)
+	var lilac := _mat(c[0], 0.4, 0.5 if colour == "clockwork" else 0.0)
+	var teal := _mat(c[1], 0.3)
+	var pink := _mat(c[2], 0.5)
+	var gold := _mat(c[3], 0.25, 0.6)
 	var body := _part(root, CapsuleMesh.new(), lilac, Vector3(0, 0.03, 0.1), Vector3(PI / 2, 0, 0))
 	(body.mesh as CapsuleMesh).radius = 0.06
 	(body.mesh as CapsuleMesh).height = 0.28
@@ -339,6 +362,20 @@ static func build_prop() -> Node3D:
 	var star2 := star.duplicate() as MeshInstance3D
 	star2.position.x = -0.062
 	root.add_child(star2)
+	if colour == "clockwork":
+		# Dash's tinkering: a little clock face on the tank, ticking, and a winding key at the back
+		var dial := _part(root, CylinderMesh.new(), _mat(Color(1.0, 0.95, 0.85), 0.3), Vector3(0, 0.11, 0.135),
+			Vector3(PI / 2, 0, 0))
+		(dial.mesh as CylinderMesh).top_radius = 0.03
+		(dial.mesh as CylinderMesh).bottom_radius = 0.03
+		(dial.mesh as CylinderMesh).height = 0.008
+		for k in 2:
+			var hand := _part(root, BoxMesh.new(), _mat(Color(0.2, 0.12, 0.25), 0.4), Vector3(0, 0.11, 0.14),
+				Vector3(0, 0, 0.6 + k * 2.2))
+			(hand.mesh as BoxMesh).size = Vector3(0.004, 0.045 - k * 0.015, 0.003)
+		var key := _part(root, TorusMesh.new(), gold, Vector3(0, 0.03, -0.09), Vector3(0, PI / 2, 0))
+		(key.mesh as TorusMesh).inner_radius = 0.012
+		(key.mesh as TorusMesh).outer_radius = 0.025
 	return root
 
 

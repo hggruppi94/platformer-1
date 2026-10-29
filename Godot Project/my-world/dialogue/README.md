@@ -31,9 +31,12 @@ plain one (no `when`) last, so there's always something to say.
 | `"activity": "riding"` | what they're up to in their daily routine (the block's `label` in `res://routines/<id>.json`). Can be a list |
 | `"place": "town_hall"` | where their routine has them (a point in `res://routines/places.json`). Can be a list |
 | `"travelling": true` | they're on their way somewhere |
+| `"watches_to_give": true` | the player has lost watches they haven't given Dash yet (false: none). Also `"no_watches_yet": true` (none found at all), `"watches_found": 5` and `"watches_given": 5` (at least that many): see `scripts/watches.gd` |
 | `"quest_step": "rex_campaign:ask"` | a quest is on that step. Also `quest_ready`, `quest_waiting`, `quest_done` and `quest_not_started`: see `res://quests/README.md` |
 
 **`lines`** plays in order. **`rotate`** is a list of `lines` lists: each visit plays the next one in turn.
+A conversation can have a **`"do": "Watches.watches_hand_in"`**: that autoload's method runs as the talk starts, and
+any lines it gives back are said after the conversation's own (Dash taking the lost watches and giving rewards).
 A conversation can have its own **`"set": "flag_name"`**: the flag is set once it's over (handy for quests: "told
 Rex what everyone said").
 
@@ -61,7 +64,7 @@ Rex what everyone said").
   the Scary World.
 
 **In any text:** `{time}` is the clock time, `{day}` the day number, `{talks}` how many times she's talked to them,
-`{name}` their name, `{player}` the player's own name (from the character creator), `{they}` `{them}` `{their}` (and `{They}` `{Their}`) their pronouns, and `{quest_log}` the quest log's key.
+`{name}` their name, `{watches_given}`, `{watches_new}` and `{watches_left}` the lost watches, `{player}` the player's own name (from the character creator), `{they}` `{them}` `{their}` (and `{They}` `{Their}`) their pronouns, and `{quest_log}` the quest log's key.
 
 Keep it kid-safe: no blood or violence. Check your changes with
 `godot --headless --path "Godot Project/my-world" --script res://tools/test_dialogue.gd`: it checks every file can

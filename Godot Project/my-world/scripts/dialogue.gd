@@ -133,6 +133,7 @@ func talk_to(talker: Node3D) -> void:
 	_id = id
 	_name = Quests.display_name(id, data.get("name", talker.get("display_name")))
 	_queue = _steps(convo)
+	_queue.append_array(_steps(_do(str(picked.get("do", "")))))
 	_set_at_end = str(picked.get("set", ""))
 	talks[id] = int(talks.get(id, 0)) + 1
 	if _nearest:
@@ -177,8 +178,22 @@ func _pick(id: String) -> Dictionary:
 		if c.has("rotate"):
 			var sets: Array = c["rotate"]
 			lines = sets[count % sets.size()] if sets.size() > 0 else []
-		return {"lines": lines, "set": c.get("set", "")}
+		return {"lines": lines, "set": c.get("set", ""), "do": c.get("do", "")}
 	return {}
+
+
+func _do(what: String) -> Array:
+	# A conversation's "do": "Autoload.method" runs as the talk starts (handing Dash the lost watches:
+	# scripts/watches.gd), and any lines it gives back are said after the conversation's own
+	if what == "" or what.get_slice_count(".") != 2:
+		return []
+	var target := get_node_or_null("/root/" + what.get_slice(".", 0))
+	var method := what.get_slice(".", 1)
+	if target == null or not target.has_method(method):
+		push_warning("Dialogue: can't do '%s'" % what)
+		return []
+	var lines = target.call(method)
+	return lines if lines is Array else []
 
 
 func routine_of(id: String) -> Node:
@@ -208,6 +223,8 @@ func _matches(when: Dictionary, count: int, id := "") -> bool:
 	if when.has("not_flag") and flags.has(str(when["not_flag"])):
 		return false
 	if not Quests.condition_ok(when):              # "quest_step", "quest_ready", "quest_done", ...
+		return false
+	if not Watches.condition_ok(when):             # "watches_to_give", "watches_found", "watches_given"
 		return false
 	# Their routine: where they are ("place"), what they're up to ("activity", the block's label), on the move
 	if when.has("place") or when.has("activity") or when.has("travelling"):
@@ -274,6 +291,7 @@ func _fill(text: String) -> String:
 	# Fills in {player} (the name they chose), their pronouns ({they}, {them}, {their}, and capitalised), and more
 	var words := {"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
 		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.prompt("quest_log")}
+	words.merge(Watches.fill())                      # {watches_new}, {watches_given}, {watches_left}
 	for w in ["they", "them", "their", "theirs", "themself", "are"]:
 		var p := Hero.pronoun(Game.hero, w)
 		words[w] = p

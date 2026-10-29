@@ -62,7 +62,8 @@ func _run() -> void:
 	check(hats.size() >= 2 and hats.all(func(i: Dictionary) -> bool: return Cosmetics.hat(i.id) != null), "%d hats, each with a look" % hats.size())
 	check(stickers.all(func(i: Dictionary) -> bool: return Cosmetics.sticker(i.id) != null and Cosmetics.STICKER_ANGLES.has(i.id)),
 		"%d stickers, each with a look and a spot on the sash" % stickers.size())
-	check(shop.items.values().all(func(i: Dictionary) -> bool: return int(i.price) > 0 and int(i.price) <= 20), "prices are small (1-20 sparkles)")
+	check(shop.items.values().all(func(i: Dictionary) -> bool: return i.get("reward", false) or (int(i.price) > 0 and int(i.price) <= 20)),
+		"prices are small (1-20 sparkles; rewards, like Dash's for lost watches, aren't sold)")
 
 	change_scene_to_file(TOWN)
 	await _frames(6)

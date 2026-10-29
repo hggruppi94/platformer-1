@@ -42,6 +42,9 @@
     {"id": "garden_gloves", "name": "Garden Gloves", "stall": "Boutique", "kind": "clothes", "slot": "hands", "price": 6, "text": "Green gloves, like Bramble's"},
     {"id": "butterfly_wings", "name": "Butterfly Wings", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 15, "text": "Shimmery wings (they swap in for your backpack)"},
     {"id": "super_cape", "name": "Super Cape", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 12, "text": "A flappy hero cape"},
-    {"id": "jetpack", "name": "Toy Jetpack", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 18, "text": "Pretend rocket tanks with glowing flames"}
+    {"id": "jetpack", "name": "Toy Jetpack", "stall": "Boutique", "kind": "clothes", "slot": "back", "price": 18, "text": "Pretend rocket tanks with glowing flames"},
+    {"id": "watch_sticker", "name": "Tick-Tock Sticker", "stall": "Dash", "reward": true, "kind": "sticker", "price": 0, "text": "A little clock for your sash, from Dash (15 lost watches)"},
+    {"id": "time_keeper_watch", "name": "Time Keeper Watch", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "hands", "price": 0, "text": "Dash made it from bits of every lost watch. It keeps your time"},
+    {"id": "time_keeper_pendant", "name": "Time Keeper Pendant", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "neck", "price": 0, "text": "The Time Keeper on a chain, to wear round your neck"}
   ]
 }

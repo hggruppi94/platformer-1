@@ -7,7 +7,8 @@ extends RefCounted
 const HAT_Y := 1.40                                # the top of her head (hair included), in her model's space
 # Hats that cover the top of the head: a hairstyle's buns or mohawk tuck in under them (scripts/clothes.gd)
 const COVERS := ["propeller_cap", "sk8_beanie"]
-const STICKER_ANGLES := {"star_sticker": -0.95, "daisy_sticker": -0.5, "note_sticker": 0.5, "paw_sticker": 0.95}
+const STICKER_ANGLES := {"star_sticker": -0.95, "daisy_sticker": -0.5, "note_sticker": 0.5, "paw_sticker": 0.95,
+	"watch_sticker": 1.4}
 
 
 static func _mat(color: Color, emit := 0.0, metal := 0.0) -> StandardMaterial3D:
@@ -157,6 +158,13 @@ static func sticker(id: String) -> Node3D:
 			for t in 3:
 				_mesh(s, _sphere(0.011), _mat(Color(1, 0.95, 0.9)), Vector3(-0.018 + t * 0.018, 0.012, 0.008))
 			_mesh(s, _sphere(0.016), _mat(Color(1, 0.95, 0.9)), Vector3(0, -0.012, 0.008))
+		"watch_sticker":                                  # Dash's thank-you for 15 lost watches (scripts/watches.gd)
+			_mesh(s, _cyl(0.05, 0.05, 0.012, 16), _mat(Color(1.0, 0.82, 0.3)), Vector3.ZERO, face)
+			_mesh(s, _cyl(0.04, 0.04, 0.016, 16), _mat(Color(0.8, 0.7, 1.0)), Vector3.ZERO, face)
+			for k in 2:
+				var hand := BoxMesh.new()
+				hand.size = Vector3(0.006, 0.034 - k * 0.012, 0.004)
+				_mesh(s, hand, _mat(Color(0.2, 0.12, 0.3)), Vector3(0, 0, 0.01), Vector3(0, 0, 0.5 + k * 2.0))
 		_:
 			return null
 	return s

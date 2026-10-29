@@ -47,6 +47,7 @@ var items: Array[String] = []    # things the player owns, e.g. "skateboard"
 var riding := false              # skateboard equipped
 var hero := Hero.blank()         # the player's own character, made in the character creator (scripts/hero.gd)
 var needs_creator := false       # a new game (or an old save from before heroes): open the creator on arriving
+var popper_colour := "classic"   # the Star Popper's colours (StarPopper.COLOURS); others are earned (Watches)
 var home := {}                   # how the player's house is decorated: part -> colour number, spot -> item (scripts/home_decor.gd)
 var outfits := {"hero": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
 var looks := {}                  # how everyone looks: who -> {part -> colour number}; 0 or missing is their own
@@ -298,6 +299,7 @@ func save_game() -> void:
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "needs_creator": needs_creator, "home": home,
+		"popper_colour": popper_colour,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -389,6 +391,7 @@ func load_game() -> void:
 		outfits["hero"] = outfits["nina"]
 		outfits.erase("nina")
 	home = data.get("home", {}) if data.get("home", {}) is Dictionary else {}
+	popper_colour = str(data.get("popper_colour", "classic"))
 	looks = {}
 	var all_looks = data.get("looks", {})
 	if all_looks is Dictionary:
@@ -473,6 +476,7 @@ func new_game() -> void:
 	hero = Hero.blank()
 	needs_creator = true
 	home = {}
+	popper_colour = "classic"
 	sparkles = 0
 	sparkles_taken.clear()
 	Clock.reset()

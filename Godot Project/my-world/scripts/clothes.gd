@@ -842,6 +842,10 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 			var gem := PrismMesh.new()
 			gem.size = Vector3(0.06, 0.09, 0.04)
 			_mesh(g, gem, _mat(Color(0.6, 0.9, 1.0), 0.2, 0.0, 1.2), Vector3(0, 0.75, 0.21), Vector3(0, 0, PI))
+		"time_keeper_pendant":                             # Dash's thank-you for all 20 lost watches (scripts/watches.gd)
+			var gold := _mat(Color(1.0, 0.82, 0.3), 0.3, 0.8)
+			_mesh(g, _torus(0.17, 0.182), gold, Vector3(0, 0.84, 0.03), Vector3(0.35, 0, 0))
+			_time_keeper(g, Vector3(0, 0.75, 0.26), 0.055)
 		# --- Bottoms
 		"tutu":
 			var frill := _mat(Color(1.0, 0.7, 0.9, 0.85), 0.6)
@@ -872,6 +876,13 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 					_mesh(hnd, _cyl(0.07, 0.06, 0.07), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.5), at + Vector3(-s * 0.03, 0.06, -0.01), Vector3(0, 0, s * 0.5))
 				elif id == "cozy_mittens":                       # a fluffy cuff
 					_mesh(hnd, _torus(0.045, 0.07), _mat(Color(1, 1, 1), 0.9), at + Vector3(-s * 0.025, 0.06, -0.01), Vector3(0, 0, s * 0.5))
+		"time_keeper_watch":                               # only on the left wrist
+			var hnd := Node3D.new()
+			hnd.name = "L"
+			g.add_child(hnd)
+			var wrist := Vector3(0.43 - 0.035, 0.49 + 0.075, 0.055)
+			_mesh(hnd, _torus(0.04, 0.058), _mat(Color(0.55, 0.35, 0.75), 0.5), wrist, Vector3(0, 0, 0.5))
+			_time_keeper(hnd, wrist + Vector3(0, 0, 0.05), 0.032)
 		# --- Back (her backpack comes off)
 		"butterfly_wings":
 			var wing := _mat(Color(0.75, 0.55, 1.0, 0.8), 0.3, 0.0, 0.4)
@@ -899,6 +910,19 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 			g.free()
 			return null
 	return g
+
+
+static func _time_keeper(parent: Node3D, at: Vector3, r: float) -> void:
+	# The Time Keeper's face: a gold case, a lilac dial with a teal star at twelve and two hands, facing out
+	var face := Vector3(PI / 2, 0, 0)
+	_mesh(parent, _cyl(r, r, r * 0.4), _mat(Color(1.0, 0.82, 0.3), 0.3, 0.8), at, face)
+	_mesh(parent, _cyl(r * 0.82, r * 0.82, r * 0.45), _mat(Color(0.8, 0.7, 1.0), 0.3, 0.0, 0.3), at + Vector3(0, 0, 0.002), face)
+	_mesh(parent, _sphere(r * 0.14), _mat(Color(0.3, 0.95, 0.85), 0.3, 0.0, 1.0), at + Vector3(0, r * 0.6, r * 0.25))
+	for k in 2:                                          # each hand reaches out from the middle
+		var a := 0.7 + k * 2.4
+		var l := r * (0.65 - k * 0.2)
+		_mesh(parent, _box(Vector3(r * 0.08, l, r * 0.06)), _mat(Color(0.2, 0.12, 0.3), 0.4),
+			at + Vector3(-sin(a) * l / 2.0, cos(a) * l / 2.0, r * 0.26), Vector3(0, 0, a))
 
 
 static func _mat(color: Color, rough := 0.5, metal := 0.0, glow := 0.0) -> StandardMaterial3D:

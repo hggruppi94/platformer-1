@@ -30,6 +30,45 @@
     },
     {
       "when": {
+        "watches_to_give": true,
+        "not_flag": "watches_first_given"
+      },
+      "set": "watches_first_given",
+      "do": "Watches.watches_hand_in",
+      "lines": [
+        "{player}: Dash, I found this watch. It's a funny one.",
+        "(Dash's eyes go very wide.)",
+        "A lost watch! Everyone who lands here brings one. It tracks time the way it worked back home, wherever and whenever home was.",
+        "Some of the chosen kids have lost theirs. I'm collecting them. Trying to work out when everyone is from.",
+        "{player}: Why?",
+        "Can't say! Time ripples. Wobble wobble. But if you find more, bring them to me?",
+        "That's {watches_given} of 20. I'll keep it safe, promise."
+      ]
+    },
+    {
+      "when": {
+        "watches_to_give": true
+      },
+      "do": "Watches.watches_hand_in",
+      "rotate": [
+        [
+          "{player}: I found more lost watches!",
+          "Ooh, let me see! Hmm. This one's from a long way away. Or a long time away. Or both!",
+          "That makes {watches_given} of 20."
+        ],
+        [
+          "{player}: Another watch for you, Dash.",
+          "(Dash holds it up to his ear and listens, very seriously.)",
+          "Ticking like it's in a hurry. That's {watches_given} now!"
+        ],
+        [
+          "{player}: Look what I found!",
+          "Yes! You're a time detective. {watches_given} down, {watches_left} to go."
+        ]
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [
@@ -76,6 +115,21 @@
       "lines": [
         "(Dash yawns a giant yawn.)",
         "Morning, {player}. Bike's ready. Brain's still... loading."
+      ]
+    },
+    {
+      "when": {
+        "min_talks": 2,
+        "not_flag": "dash_told_watches",
+        "watches_to_give": false,
+        "no_watches_yet": true
+      },
+      "set": "dash_told_watches",
+      "lines": [
+        "Hey, {player}. If you ever find a watch lying around, a funny-looking one, bring it to me?",
+        "People drop them when they land here. Whoosh, plonk. Gone.",
+        "{player}: What do they look like?",
+        "All different! Everybody counts time their own way. Sundials, hourglasses, beepy ones... Look up high, and down low."
       ]
     },
     {

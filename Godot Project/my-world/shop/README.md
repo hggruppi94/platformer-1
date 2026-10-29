@@ -10,6 +10,8 @@ happy places.
 ```
 
 - `stall`: `Fruit`, `Sweets`, `Crystals`, `Flowers`, `Records` or `Toys`. `stalls` at the top has each one's welcome line.
+  Things that are only ever given, not sold, have `"reward": true` and a stall no shop opens (`Dash`: his thank-yous
+  for lost watches, `scripts/watches.gd`).
 - `kind`:
   - `snack`: eaten straight away; `hp` and `mp` fill that much.
   - `hat`: kept, and worn one at a time.
