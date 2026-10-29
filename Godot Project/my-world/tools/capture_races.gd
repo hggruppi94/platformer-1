@@ -26,7 +26,7 @@ func _initialize() -> void:
 		out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(1200.0, true, false, true).timeout.connect(_finish)
+	create_timer(3600.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
@@ -173,6 +173,68 @@ func _run() -> void:
 	shot += 1
 	_release()
 	races._end(false)
+	# The sky race: board the mothership, then a bot flies it through the rings
+	var sky: Node3D = races.track_node("sky_rings")
+	races._refresh_boards()
+	var ship := get_first_node_in_group("mothership") as Node3D
+	game.riding = false
+	game.equipment_changed.emit()
+	cam.make_current()
+	hud.visible = false
+	var s0: Vector3 = sky.point_at(0.0)
+	var sf: Vector3 = sky.dir_at(0.0)
+	await _view("%d_sky_rings_start_ring" % shot, s0 - sf * 70.0 + Vector3(0, 10, 25), s0)
+	shot += 1
+	ship.global_position = p.global_position + Vector3.UP * 20.0
+	ship.board(p)
+	for i in 240:
+		if ship.is_piloted():
+			break
+		await physics_frame
+	ship.global_position = s0 - sf * 40.0
+	game_cam.make_current()
+	hud.visible = true
+	var frames := 0
+	var shots_taken := 0
+	while frames < 60 * 90:
+		await physics_frame
+		frames += 1
+		var here: float = races.progress if races.racing() else -40.0 + frames * 0.4
+		var target: Vector3 = sky.point_at(fposmod(here, sky.length) + 30.0)
+		var want := Vector3(target.x - ship.global_position.x, 0, target.z - ship.global_position.z).normalized()
+		var b: Basis = p.get_node("SpringArm3D").global_transform.basis
+		var fwd := Vector3(-b.z.x, 0, -b.z.z).normalized()
+		var rgt := Vector3(b.x.x, 0, b.x.z).normalized()
+		_release()
+		for a in ["jump", "dash"]:
+			Input.action_release(a)
+		var ix := rgt.dot(want)
+		var iy := -fwd.dot(want)
+		Input.action_press("move_right" if ix > 0 else "move_left", absf(ix))
+		Input.action_press("move_back" if iy > 0 else "move_forward", absf(iy))
+		if target.y > ship.global_position.y + 2.0:
+			Input.action_press("jump")
+		elif target.y < ship.global_position.y - 2.0:
+			Input.action_press("dash")
+		if races.racing() and races.state == races.State.RACING:
+			if frames % 120 == 0:
+				print("SKY t %.0f cp %d prog %.0f place %d" % [races.time, races.next_cp, races.progress, races.place])
+			if shots_taken == 0 and races.time > 6.0:
+				await _shot("%d_sky_rings_racing_the_saucers" % shot)
+				shot += 1
+				shots_taken += 1
+			elif shots_taken == 1 and races.time > 20.0:
+				await _shot("%d_sky_rings_over_the_castle" % shot)
+				shot += 1
+				shots_taken += 1
+		if races.state == races.State.RESULTS:
+			print("SKY finished in %.1f, place %d" % [races.time, races.place])
+			await _shot("%d_sky_rings_results" % shot)
+			shot += 1
+			break
+	_release()
+	for a in ["jump", "dash"]:
+		Input.action_release(a)
 	root.get_node("PlayerMenu").open("map")
 	for i in 8:
 		await process_frame

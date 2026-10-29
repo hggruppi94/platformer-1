@@ -7,6 +7,9 @@ extends Node3D
 # they're far ahead they ease off, and when they're far behind they pedal harder, so a race is close and
 # anyone can win it with a clean run. Boost pads work for them too. They don't bump into anything: they ride
 # through each other and the player, so nobody gets knocked off.
+#
+# In the sky race they're little aliens in their mini saucers (scripts/mini_saucer.gd, made bigger so they can be
+# seen beside the mothership), flown along the line in the air by this script instead of their own wandering.
 
 const CATCH_UP := 0.2                # at most this much faster when far behind the player
 const EASE_OFF := 0.3                # at most this much slower when far ahead
@@ -27,6 +30,7 @@ var _t := 0.0
 var _running := 0.0
 var _model: Node3D
 var _anim: AnimationPlayer
+var saucer := {}                     # a sky racer: {"name", "colour"} (a little alien in a mini saucer)
 
 
 func setup(who: String, t: RaceTrack, start_d: float, start_lane: float, how_good: float) -> void:
@@ -39,6 +43,9 @@ func setup(who: String, t: RaceTrack, start_d: float, start_lane: float, how_goo
 
 
 func _ready() -> void:
+	if not saucer.is_empty():
+		_saucer()
+		return
 	_ride = Rides.ride(id)
 	var visual := Node3D.new()
 	visual.name = "Visual"
@@ -72,6 +79,29 @@ func _ready() -> void:
 	_place()
 
 
+func _saucer() -> void:
+	# Its speed is said straight out (skill is metres a second), with no ride to take it from
+	_ride = {"push_speed": 1.0, "rider": str(saucer.name)}
+	var s := Node3D.new()
+	s.name = "Visual"
+	s.set_script(load("res://scripts/mini_saucer.gd"))
+	s.set("pilot", (load("res://models/characters/little_alien_%s.glb" % saucer.colour) as PackedScene).instantiate())
+	s.scale = Vector3.ONE * 4.0
+	add_child(s)
+	s.set_physics_process(false)                 # flown along the line from here, not wandering about
+	var tag := Label3D.new()
+	tag.text = str(saucer.name)
+	tag.font_size = 64
+	tag.pixel_size = 0.02
+	tag.outline_size = 14
+	tag.modulate = Color(1, 0.95, 0.75)
+	tag.outline_modulate = Color(0.15, 0.08, 0.2)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.position.y = 5.0
+	add_child(tag)
+	_place()
+
+
 func go() -> void:
 	_running = 0.001
 
@@ -96,11 +126,12 @@ func race(delta: float, player_progress: float) -> void:
 	else:
 		base *= 1.0 + CATCH_UP * clampf(-ahead / GAP, 0.0, 1.0)
 	if _boost > 0.0:
-		base += 6.0
+		base += 6.0 if saucer.is_empty() else 12.0
 	base *= clampf(_running / START_TIME, 0.15, 1.0)
-	speed = move_toward(speed, base, (14.0 if _boost > 0.0 else 5.0) * delta)
+	speed = move_toward(speed, base, (14.0 if _boost > 0.0 else (5.0 if saucer.is_empty() else 10.0)) * delta)
 	d += speed * delta
-	lane = clampf(lane + sin(_t * 0.37) * 0.25 * delta, -2.4, 2.4)    # drifting about their lane a little
+	var wide := 2.4 if saucer.is_empty() else 14.0
+	lane = clampf(lane + sin(_t * 0.37) * 0.25 * delta * (1.0 if saucer.is_empty() else 4.0), -wide, wide)    # drifting about their lane a little
 	_place()
 
 
@@ -109,7 +140,7 @@ func _place() -> void:
 		return
 	var f := track.dir_at(d)
 	var at := track.point_at(d) + track.side_at(d) * lane
-	at.y = track.point_at(d).y
+	at.y = track.point_at(d).y + (sin(_t * 0.8) * 2.0 if not saucer.is_empty() else 0.0)
 	global_position = at
 	var want := Basis.looking_at(-f, Vector3.UP)
 	global_basis = want if speed < 0.5 else global_basis.slerp(want, 0.25).orthonormalized()
@@ -119,4 +150,5 @@ func _place() -> void:
 	var visual := get_node_or_null("Visual") as Node3D
 	if visual:
 		visual.rotation.z = clampf(-turn * 1.2, -0.35, 0.35) * clampf(speed / 8.0, 0.0, 1.0)
-		visual.position.y = absf(sin(_t * 7.0)) * 0.03 * clampf(speed / 8.0, 0.0, 1.0)
+		if saucer.is_empty():
+			visual.position.y = absf(sin(_t * 7.0)) * 0.03 * clampf(speed / 8.0, 0.0, 1.0)

@@ -6,8 +6,13 @@ extends Node3D
 # finish line), the boost pads, the starter alien with her flag and the race board. Only while racing: a glowing ring
 # at each checkpoint (the next one gold), the Star Boxes that give power-ups, and goo puddles that slow you down.
 # Built from shapes, in the town's alien palette, so it needs no model and the town scene isn't rebuilt.
+#
+# A sky track ("sky" in its TRACKS entry: the mothership race) is different: its checkpoints are points in the air,
+# the line isn't laid on the ground, the rings are big enough for the mothership, and instead of boost pads it has
+# smaller cyan boost rings. Its start ring floats there all the time (once the race is open) and starts the race when
+# the mothership flies through it; there's no arch, starter or board.
 
-const RING_RADIUS := 4.2
+const RING_RADIUS := 4.2              # on the ground; a sky track says its own ("ring")
 const RING_HEIGHT := 3.0             # the ring's middle above the ground
 const STEP := 1.0                    # metres between the line's points
 const PAD_SIZE := Vector3(2.6, 0.06, 3.4)
@@ -29,12 +34,16 @@ var goo: Array[Node3D] = []
 var board_text: Label3D
 var starter: Node3D
 var ready_to_race := false
+var sky := false
+var ring_radius := RING_RADIUS
 var _t := 0.0
 var _ring_mats: Array[StandardMaterial3D] = []
 
 
 func setup(t: Dictionary) -> void:
 	track = t
+	sky = bool(t.get("sky", false))
+	ring_radius = float(t.get("ring", RING_RADIUS))
 
 
 func _ready() -> void:
@@ -42,13 +51,17 @@ func _ready() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	_make_line()
-	_arch()
-	_starter()
-	_board()
+	if not sky:
+		_arch()
+		_starter()
+		_board()
 	if track.get("tune_up", false):
 		_tune_up()
 	for b in track.get("boosts", []):
-		pads.append(_pad(at(float(b[0])), float(b[1]) if b.size() > 1 else 0.0))
+		if sky:
+			pads.append(_boost_ring(at(float(b[0]))))
+		else:
+			pads.append(_pad(at(float(b[0])), float(b[1]) if b.size() > 1 else 0.0))
 	for i in cp_dist.size():
 		rings.append(_ring(i))
 	for b in track.get("boxes", []):
@@ -58,7 +71,8 @@ func _ready() -> void:
 		goo.append(_goo(at(float(g[0])), float(g[1])))
 	show_race(false)
 	ready_to_race = true
-	board_text.text = Races.board_text(str(get_meta("track_id", "")))
+	if board_text:
+		board_text.text = Races.board_text(str(get_meta("track_id", "")))
 
 
 # -----------------------------------------------------------------------------
@@ -67,16 +81,17 @@ func _ready() -> void:
 func _make_line() -> void:
 	# A smooth loop through the checkpoints (Catmull-Rom, so it passes right through each one), then each point is
 	# dropped onto whatever's under it
+	# (A sky track's points are in the air: x, height, z; they're used as they are.)
 	var pts: Array = track.points
 	var n := pts.size()
-	var flat: Array[Vector2] = []
+	var flat: Array[Vector3] = []
 	var cp_index: Array[int] = []
 	for i in n:
-		var p0: Vector2 = pts[(i - 1 + n) % n]
-		var p1: Vector2 = pts[i]
-		var p2: Vector2 = pts[(i + 1) % n]
-		var p3: Vector2 = pts[(i + 2) % n]
-		var steps := maxi(2, int(ceil(p1.distance_to(p2) / STEP)))
+		var p0 := _point3(pts[(i - 1 + n) % n])
+		var p1 := _point3(pts[i])
+		var p2 := _point3(pts[(i + 1) % n])
+		var p3 := _point3(pts[(i + 2) % n])
+		var steps := maxi(2, int(ceil(Vector2(p1.x, p1.z).distance_to(Vector2(p2.x, p2.z)) / STEP)))
 		cp_index.append(flat.size())
 		for s in steps:
 			var t := float(s) / steps
@@ -85,7 +100,7 @@ func _make_line() -> void:
 	dist.resize(flat.size())
 	var total := 0.0
 	for i in flat.size():
-		line[i] = ground_at(flat[i])
+		line[i] = flat[i] if sky else ground_at(Vector2(flat[i].x, flat[i].z))
 		if i > 0:
 			total += Vector2(line[i].x, line[i].z).distance_to(Vector2(line[i - 1].x, line[i - 1].z))
 		dist[i] = total
@@ -95,7 +110,11 @@ func _make_line() -> void:
 		cp_dist.append(dist[i])
 
 
-static func _catmull(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
+static func _point3(p) -> Vector3:
+	return p if p is Vector3 else Vector3(p.x, 0.0, p.y)
+
+
+static func _catmull(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, t: float) -> Vector3:
 	var t2 := t * t
 	var t3 := t2 * t
 	return 0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
@@ -192,7 +211,7 @@ func off_line(pos: Vector3, d: float) -> float:
 
 func place_on(node: Node3D, d: float, side := 0.0, up := 0.0) -> void:
 	var at := point_at(d) + side_at(d) * side
-	at = ground_at(Vector2(at.x, at.z)) + Vector3.UP * up
+	at = (at if sky else ground_at(Vector2(at.x, at.z))) + Vector3.UP * up
 	var f := dir_at(d)
 	node.global_position = at
 	node.global_basis = Basis.looking_at(-f, Vector3.UP)          # +Z faces the way the race goes
@@ -204,6 +223,8 @@ func place_on(node: Node3D, d: float, side := 0.0, up := 0.0) -> void:
 func show_race(on: bool) -> void:
 	for r in rings:
 		r.visible = on
+	if sky and not rings.is_empty():
+		rings[0].visible = on or Races.unlocked(str(get_meta("track_id", "")))   # the start ring waits in the sky
 	for b in boxes:
 		b.visible = on
 		b.set_meta("gone", 0.0)
@@ -296,8 +317,9 @@ func _ring(i: int) -> Node3D:
 	ring.position.y = RING_HEIGHT
 	holder.add_child(ring)
 	var torus := TorusMesh.new()
-	torus.inner_radius = RING_RADIUS - 0.25
-	torus.outer_radius = RING_RADIUS + 0.25
+	var thick := 0.25 if not sky else 1.2
+	torus.inner_radius = ring_radius - thick
+	torus.outer_radius = ring_radius + thick
 	torus.rings = 48
 	var m := _mat(Color(LATER_COLOUR, 0.6), 1.0)
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -309,10 +331,12 @@ func _ring(i: int) -> Node3D:
 	for k in 8:
 		var a := TAU * k / 8.0
 		var s := SphereMesh.new()
-		s.radius = 0.16
-		s.height = 0.32
-		_mesh(ring, s, Vector3(cos(a), sin(a), 0) * RING_RADIUS, star_m)
-	if i == 0:
+		s.radius = 0.16 if not sky else 0.9
+		s.height = s.radius * 2.0
+		_mesh(ring, s, Vector3(cos(a), sin(a), 0) * ring_radius, star_m)
+	if sky:
+		ring.position.y = 0.0                     # a sky ring's middle is the line itself
+	if i == 0 and not sky:
 		holder.visible = false                    # the start arch is checkpoint 0's ring
 	return holder
 
@@ -513,6 +537,36 @@ func _tune_up() -> void:
 	spot.set("radius", 2.4)
 	spot.position = Vector3(0, 0, 1.3)
 	bench.add_child(spot)
+
+
+func _boost_ring(d: float) -> Node3D:
+	# A sky track's boost: a smaller cyan ring with gold chevrons; flying through it gives the mothership a burst
+	var holder := Node3D.new()
+	holder.name = "Boost Ring"
+	add_child(holder)
+	place_on(holder, d)
+	var torus := TorusMesh.new()
+	torus.inner_radius = 9.0
+	torus.outer_radius = 10.0
+	torus.rings = 40
+	var m := _mat(Color(0.3, 0.95, 0.95, 0.85), 2.0)
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var g := _mesh(holder, torus, Vector3.ZERO, m)
+	g.name = "Glow"
+	g.rotation.x = PI / 2.0
+	var chev_m := _mat(Color(1.0, 0.85, 0.35), 2.5)
+	chev_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for k in 3:
+		var chevron := Node3D.new()
+		chevron.name = "Chevron%d" % k
+		holder.add_child(chevron)
+		for s in [-1.0, 1.0]:
+			var bar := BoxMesh.new()
+			bar.size = Vector3(3.5, 0.6, 0.6)
+			var b := _mesh(chevron, bar, Vector3(s * 1.4, 0, -0.7), chev_m)
+			b.rotation.y = s * 0.7
+	holder.set_meta("d", d)
+	return holder
 
 
 func _pad(d: float, side: float) -> Node3D:

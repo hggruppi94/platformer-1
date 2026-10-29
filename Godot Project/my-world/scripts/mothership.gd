@@ -49,6 +49,7 @@ var _beam_to := Vector3.ZERO
 var _arm_length := 5.0                           # the camera's normal distance, put back when she gets off
 var _arm_height := 1.1                           # ...and its normal height above her middle
 var _arm_tween: Tween
+var _boost := 0.0                                # seconds of a sky race's boost ring left (scripts/races.gd)
 
 @onready var hull: Node3D = $Hull
 @onready var cockpit: Node3D = $Hull/Cockpit
@@ -84,9 +85,22 @@ func _process(delta: float) -> void:
 	_animate()
 
 
+func boost(seconds: float) -> void:
+	# A boost ring in the sky race: faster for a moment, past its usual top speed
+	_boost = maxf(_boost, seconds)
+
+
+func boosting() -> bool:
+	return _boost > 0.0
+
+
+func is_piloted() -> bool:
+	return state == State.PILOTED
+
+
 func fly(want: Vector3, delta: float, accel := -1.0) -> void:
 	# Ease toward the wanted velocity, turn to face the way it's going, and lean into turns
-	want = want.limit_length(max_speed)
+	want = want.limit_length(max_speed * (1.5 if _boost > 0.0 else 1.0))
 	velocity = velocity.move_toward(want, (acceleration if accel < 0.0 else accel) * delta)
 	global_position += velocity * delta
 	var flat := Vector2(velocity.x, velocity.z)
@@ -201,7 +215,9 @@ func _pilot(delta: float) -> void:
 	right.y = 0
 	var dir := right.normalized() * input.x - forward.normalized() * input.y
 	var lift := (1.0 if Input.is_action_pressed("jump") else 0.0) - (1.0 if Input.is_action_pressed("dash") else 0.0)
-	fly(dir * pilot_speed + Vector3.UP * lift * climb_speed, delta, pilot_accel)
+	_boost -= delta
+	var top := pilot_speed * (1.6 if _boost > 0.0 else 1.0)
+	fly(dir * top + Vector3.UP * lift * climb_speed, delta, pilot_accel * (2.0 if _boost > 0.0 else 1.0))
 	_keep_inside()
 	_seat()
 

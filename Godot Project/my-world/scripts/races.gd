@@ -72,6 +72,24 @@ const TRACKS := {
 		"rivals": ["rook", "pip", "green_man"],
 		"starter": {"name": "Dart", "model": "res://models/characters/little_alien_orange.glb"},
 	},
+	"sky_rings": {
+		"name": "Sky Rings",
+		"blurb": "one big lap of the sky in the mothership",
+		"scene": TOWN,
+		"laps": 1,
+		"after": "lake_loop",
+		"sky": true,
+		"ring": 24.0,
+		# x, height, z: over the lake, the Homes, the Observatory, round the castle, the Spooky Woods and the Market
+		"points": [Vector3(0, 48, 0), Vector3(60, 44, 24), Vector3(104, 58, -18), Vector3(112, 66, -88),
+			Vector3(64, 74, -150), Vector3(-24, 80, -168), Vector3(-84, 62, -112), Vector3(-104, 58, -40),
+			Vector3(-82, 38, 30), Vector3(-40, 42, 52)],
+		"boosts": [[1.5], [4.5], [7.5]],
+		"prizes": [25, 16, 10, 5],
+		"rivals": [{"id": "blip", "name": "Blip", "colour": "green"}, {"id": "nova", "name": "Nova", "colour": "purple"},
+			{"id": "zoomi", "name": "Zoomi", "colour": "yellow"}],
+		"pace": [23.0, 22.0, 21.0],               # metres a second (the mothership flies at 24, more in a boost)
+	},
 	"observatory_hill": {
 		"name": "Observatory Hill",
 		"blurb": "two laps up and down the slopes of the Observatory's hill",
@@ -116,6 +134,7 @@ const ZOOM_TIME := 2.2
 const SPRING_POWER := 11.0
 const PAD_SPEED := 6.5
 const PAD_TIME := 1.3
+const SKY_BOOST := 2.0
 
 var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
@@ -146,6 +165,7 @@ var _goo_wait := 0.0
 var _rival_pad := {}                 # rival -> the last pad they were boosted by
 var _along := 0.0                    # the player's last side of the next checkpoint (- before it, + past it)
 var _rng := RandomNumberGenerator.new()
+var _sky_side := {}                  # sky track -> which side of its start ring the mothership was last frame
 
 
 func _ready() -> void:
@@ -287,6 +307,8 @@ func track_node(id: String) -> RaceTrack:
 func _refresh_boards() -> void:
 	for id in TRACKS:
 		var t := track_node(id)
+		if t and t.sky and t.ready_to_race and not (racing() and track_id == id):
+			t.show_race(false)                        # its start ring shows once it's open
 		if t == null or t.board_text == null:
 			continue
 		t.board_text.text = board_text(id)
@@ -302,6 +324,80 @@ func board_text(id: String) -> String:
 	out += "\nBeat it for ✦ %d more" % BEST_BONUS if best.has(id) else ""
 	out += "\nWins: %d" % int(wins.get(id, 0))
 	return out
+
+
+# -----------------------------------------------------------------------------
+# The sky race: the mothership (scripts/mothership.gd) through rings in the air
+# -----------------------------------------------------------------------------
+func _ship() -> Node3D:
+	return get_tree().get_first_node_in_group("mothership") as Node3D
+
+
+func _watch_sky() -> void:
+	# Flying the mothership through an open sky track's start ring starts its race, straight away
+	var ship := _ship()
+	if ship == null or not ship.is_piloted():
+		_sky_side.clear()
+		return
+	for id in TRACKS:
+		var t := track_node(id)
+		if t == null or not t.sky or not t.ready_to_race or not unlocked(id):
+			continue
+		var c := t.point_at(0.0)
+		var rel := ship.global_position - c
+		var along := rel.dot(t.dir_at(0.0))
+		var before := float(_sky_side.get(id, along))
+		_sky_side[id] = along
+		if before < 0.0 and along >= 0.0 and rel.length() < t.ring_radius + 6.0:
+			start_sky(id)
+			return
+
+
+func start_sky(id: String) -> bool:
+	var t := track_node(id)
+	var ship := _ship()
+	if racing() or t == null or not t.sky or ship == null or not ship.is_piloted() or not unlocked(id):
+		return false
+	track_id = id
+	track = t
+	var pace: Array = TRACKS[id].pace
+	var who: Array = TRACKS[id].rivals
+	for k in who.size():
+		var rival := RaceRival.new()
+		rival.name = "Racer " + str(who[k].name)
+		rival.saucer = who[k]
+		rival.setup(str(who[k].id), t, -12.0 - 10.0 * k, [-12.0, 12.0, 0.0][k % 3], float(pace[k]))
+		get_tree().current_scene.add_child(rival)
+		rival.go()
+		rivals.append(rival)
+	lap = 1
+	last_cp = 0
+	next_cp = 1
+	time = 0.0
+	power = ""
+	place = 1
+	progress = 0.0
+	_wrong = 0.0
+	_along = -1.0
+	_rival_pad.clear()
+	t.show_race(true)
+	t.light_rings(1)
+	state = State.RACING
+	hud.clear()
+	hud.shout("GO!", Color(0.5, 1.0, 0.6), 0.6)
+	Audio.play("level_up")
+	_status()
+	return true
+
+
+func _sky_boosts(ship: Node3D) -> void:
+	for ring in track.pads:
+		if _pad_wait.has(ring) or ship.global_position.distance_to((ring as Node3D).global_position) > 16.0:
+			continue
+		_pad_wait[ring] = 2.0
+		ship.boost(boost_time(SKY_BOOST))
+		Audio.play("swish", 0.0, 0.1)
+		hud.shout("Boost!", Color(0.5, 1.0, 1.0), 0.4)
 
 
 # -----------------------------------------------------------------------------
@@ -364,12 +460,14 @@ func lines(id := "lake_loop") -> Array:
 		choice.append({"text": "Let's race!", "set": "race_go_" + id})
 	# The other tracks you can race: the starter whistles up a mini saucer to whizz you over to the line
 	for other in TRACKS:
-		if other != id and unlocked(other) and TRACKS[other].scene == tr.scene:
+		if other != id and unlocked(other) and TRACKS[other].scene == tr.scene and not TRACKS[other].get("sky", false):
 			choice.append({"text": "Take me to the %s!" % TRACKS[other].name, "set": "race_go_" + other})
 	choice.append({"text": "Not right now."})
-	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k))
+	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k) and not TRACKS[k].get("sky", false))
 	if not news.is_empty() and raced > 0:
 		out.append("Ooh, and the %s is open now! I can whizz you over." % TRACKS[news[0]].name)
+	if unlocked("sky_rings") and not best.has("sky_rings"):
+		out.append("And the Sky Rings are open! Fly the mothership through the big gold ring over the lake to start.")
 	out.append({"choice": choice})
 	return out
 
@@ -459,6 +557,8 @@ func start(id: String) -> bool:
 
 func _physics_process(delta: float) -> void:
 	_tick_pads(delta)
+	if state == State.IDLE:
+		_watch_sky()
 	match state:
 		State.COUNTDOWN:
 			_countdown(delta)
@@ -499,15 +599,22 @@ func _race(delta: float) -> void:
 	if p == null:
 		_end(false)
 		return
-	if not Game.riding:
+	var t := track
+	var ship := _ship()
+	if t.sky:
+		if ship == null or not ship.is_piloted():
+			Game.message("You left the mothership, so the sky race is off. Fly through the gold ring to race again!")
+			_end(false)
+			return
+	elif not Game.riding:
 		Game.message("You stepped off your ride, so the race is off. Talk to the starter to race again!")
 		_end(false)
 		return
 	time += delta
-	var t := track
 	var L := t.length
 	var cps := t.cp_dist
-	var pos := p.global_position
+	var pos := ship.global_position if t.sky else p.global_position
+	var vel: Vector3 = ship.velocity if t.sky else p.velocity
 	# Through the next ring? Either close to its middle, or across its line (fast riders can be between frames)
 	var cp_d := cps[next_cp]
 	var cp_pos := t.point_at(cp_d)
@@ -515,7 +622,9 @@ func _race(delta: float) -> void:
 	var rel := pos - cp_pos
 	var along := rel.dot(cp_dir)
 	var side := absf(rel.dot(t.side_at(cp_d)))
-	var through := Vector2(rel.x, rel.z).length() < PASS_RADIUS or (_along < 0.0 and along >= 0.0 and side < PASS_RADIUS + 2.0 and absf(rel.y) < 6.0)
+	var reach := t.ring_radius + 4.0 if t.sky else PASS_RADIUS
+	var close := rel.length() if t.sky else Vector2(rel.x, rel.z).length()
+	var through := close < reach or (_along < 0.0 and along >= 0.0 and side < reach + 2.0 and absf(rel.y) < (t.ring_radius if t.sky else 6.0))
 	_along = along
 	if through:
 		_pass_checkpoint()
@@ -528,19 +637,22 @@ func _race(delta: float) -> void:
 	here = lo + clampf(wrapf(here - lo, -L / 2.0, L / 2.0), 0.0, hi - lo)     # the loop wraps round at the line
 	progress = (lap - 1) * L + here
 	# Going the wrong way for a while?
-	var speed := Vector2(p.velocity.x, p.velocity.z).length()
-	var fwd := Vector2(p.velocity.x, p.velocity.z).dot(Vector2(t.dir_at(here).x, t.dir_at(here).z))
+	var speed := Vector2(vel.x, vel.z).length()
+	var fwd := Vector2(vel.x, vel.z).dot(Vector2(t.dir_at(here).x, t.dir_at(here).z))
 	_wrong = _wrong + delta if speed > 3.0 and fwd < -2.0 else 0.0
 	if _wrong > 1.2:
 		_wrong = -2.0
 		hud.shout("Wrong way!", Color(1.0, 0.55, 0.6), 0.6)
-	if t.off_line(pos, here) > WANDER:
-		Game.message("You rode off the track, so the race is off. Talk to the starter to race again!")
+	if t.off_line(pos, here) > WANDER * (3.0 if t.sky else 1.0):
+		Game.message("You went off the track, so the race is off. %s" % ("Fly through the gold ring to race again!" if t.sky else "Talk to the starter to race again!"))
 		_end(false)
 		return
-	_pick_up(p, t)
-	_use_power(p)
-	_tick_shield(p, delta)
+	if t.sky:
+		_sky_boosts(ship)
+	else:
+		_pick_up(p, t)
+		_use_power(p)
+		_tick_shield(p, delta)
 	for r in rivals:
 		r.race(delta, progress)
 		_rival_pads(r)
@@ -599,7 +711,7 @@ func _finish() -> void:
 	var rows: Array = [["You", time]]
 	for r in rivals:
 		var t_est := r.finish_time if r.finished else time + maxf(laps_l - r.d, 0.0) / maxf(r.speed, 4.0)
-		rows.append([str(Rides.ride(r.id).rider), t_est])
+		rows.append([str(r.saucer.name) if not r.saucer.is_empty() else str(Rides.ride(r.id).rider), t_est])
 	rows.sort_custom(func(a: Array, b: Array) -> bool: return float(a[1]) < float(b[1]))
 	# Your row stays where you really finished, whatever the guesses say
 	rows.erase(rows.filter(func(row: Array) -> bool: return row[0] == "You")[0])
@@ -661,7 +773,7 @@ func _tick_pads(delta: float) -> void:
 	var skate = p.get("skate")
 	for id in TRACKS:
 		var t := track_node(id)
-		if t == null:
+		if t == null or t.sky:
 			continue
 		for pad in t.pads:
 			if _pad_wait.has(pad) or not _over(p.global_position, (pad as Node3D).global_position, PAD_RADIUS, 1.5):
@@ -794,12 +906,13 @@ func _clear_power() -> void:
 
 
 func _rival_pads(r: RaceRival) -> void:
-	# Friends get boosted by the pads they ride over too
+	# Friends get boosted by the pads they ride over too (and the saucers by the boost rings in the sky)
 	for pad in track.pads:
 		if _rival_pad.get(r) == pad:
 			continue
-		var gap := Vector2(r.global_position.x - (pad as Node3D).global_position.x, r.global_position.z - (pad as Node3D).global_position.z).length()
-		if gap < 2.5:
+		var gap := r.global_position.distance_to((pad as Node3D).global_position) if track.sky else \
+			Vector2(r.global_position.x - (pad as Node3D).global_position.x, r.global_position.z - (pad as Node3D).global_position.z).length()
+		if gap < (16.0 if track.sky else 2.5):
 			_rival_pad[r] = pad
 			r.boost(PAD_TIME)
 

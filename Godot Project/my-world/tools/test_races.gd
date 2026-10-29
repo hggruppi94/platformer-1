@@ -80,7 +80,10 @@ func _run() -> void:
 			if tn and tn.ready_to_race:
 				break
 			await physics_frame
-		await _check_track(id, tn, p)
+		if races.TRACKS[id].get("sky", false):
+			await _check_sky(id, tn, p)
+		else:
+			await _check_track(id, tn, p)
 	check(t.pads.size() == 4 and t.boxes.size() == 9 and t.goo.size() == 3, "4 boost pads, 3 rows of Star Boxes, 3 goo puddles")
 	check(t.pads[0].visible and not t.boxes[0].visible and not t.rings[1].visible,
 		"boost pads are always out; boxes and rings only in a race")
@@ -300,6 +303,47 @@ func _run() -> void:
 	check(races.power == "zoom" and races.hud.power_box.visible, "with the Starter Star every race starts with a Zoom Star")
 	races._end(false)
 
+	# --- The sky race: through the gold ring in the mothership ---
+	var sky: Node3D = races.track_node("sky_rings")
+	var ship: Node3D = town.get_tree().get_first_node_in_group("mothership")
+	check(sky.rings[0].visible and not sky.rings[2].visible, "the Sky Rings' gold start ring waits in the sky (it's open)")
+	game.riding = false
+	game.equipment_changed.emit()
+	ship.global_position = p.global_position + Vector3.UP * 20.0
+	ship.board(p)
+	for i in 240:
+		if ship.is_piloted():
+			break
+		await physics_frame
+	check(ship.is_piloted(), "flying the mothership")
+	var s0: Vector3 = sky.point_at(0.0)
+	var sf: Vector3 = sky.dir_at(0.0)
+	ship.global_position = s0 - sf * 20.0
+	await _physics(3)
+	check(not races.racing(), "...nothing starts until it flies through the ring")
+	ship.global_position = s0 + sf * 2.0
+	await _physics(3)
+	check(races.racing() and races.track_id == "sky_rings" and races.rivals.size() == 3, "through the gold ring: the sky race is on, against three saucers")
+	check(races.rivals.all(func(r) -> bool: return not r.saucer.is_empty()), "...little aliens in mini saucers")
+	await _physics(120)
+	check(races.rivals[0].d + 12.0 > 15.0 and races.rivals[0].global_position.y > 30.0, "the saucers fly the course (%.0f m from the start ring, %.0f m up)" % [races.rivals[0].d + 12.0, races.rivals[0].global_position.y])
+	var bring: Node3D = sky.pads[0]
+	ship.global_position = bring.global_position
+	await _physics(3)
+	check(ship.boosting(), "a boost ring boosts the mothership")
+	sparkles_before = game.sparkles
+	for i in range(1, sky.cp_dist.size() + 1):
+		var cp: int = i % sky.cp_dist.size()
+		ship.global_position = sky.point_at(sky.cp_dist[cp] - 3.0)
+		await _physics(2)
+		ship.global_position = sky.point_at(sky.cp_dist[cp] + 1.0)
+		await _physics(2)
+	check(races.state == races.State.RESULTS, "one lap of the rings and it's finished")
+	check(game.sparkles > sparkles_before, "...with sparkles for it (%d)" % (game.sparkles - sparkles_before))
+	races._end(true)
+	ship.beam_down()
+	await _physics(200)
+
 	# --- Saved ---
 	var data: Dictionary = races.save_data()
 	races.reset()
@@ -358,13 +402,45 @@ func _check_track(id: String, t: Node3D, p: CharacterBody3D) -> void:
 			"%s: %s stands off the track, on dry ground" % [tr.name, who])
 	# Nothing of this track sits on another track's line
 	for other in races.TRACKS:
-		if other == id:
+		if other == id or races.TRACKS[other].get("sky", false):      # (the sky race is up in the air)
 			continue
 		var o: Node3D = races.track_node(other)
 		var close := INF
 		for n in [st, t.get_node("Race Board"), t.get_node("Start Arch")]:
 			close = minf(close, o.off_line(n.global_position, o.nearest(n.global_position)))
 		check(close > 5.0, "%s: its start is clear of the %s (%.1f m)" % [tr.name, races.TRACKS[other].name, close])
+	await physics_frame
+
+
+func _check_sky(id: String, t: Node3D, p: CharacterBody3D) -> void:
+	# The mothership flies at least 16 m over whatever's under it and stays inside the town's edge (scripts/mothership.gd):
+	# the course must too, with room round each ring for its 18 m hull
+	var tr: Dictionary = races.TRACKS[id]
+	var ship: Node3D = p.get_tree().get_first_node_in_group("mothership")
+	var low := 0
+	var low_at := ""
+	var outside := 0
+	var space: PhysicsDirectSpaceState3D = p.get_world_3d().direct_space_state
+	var blocked: Array[String] = []
+	for i in range(0, t.line.size(), 2):
+		var a: Vector3 = t.line[i]
+		var ground: Vector3 = t.ground_at(Vector2(a.x, a.z))
+		if a.y - ground.y < float(ship.min_altitude) + 4.0:
+			low += 1
+			low_at = "(%.0f, %.0f, %.0f) over %.0f" % [a.x, a.y, a.z, ground.y]
+		if not (ship.bounds as Rect2).grow(-20.0).has_point(Vector2(a.x, a.z)):
+			outside += 1
+		# Anything as high as the course, near it (castle towers, the Observatory)
+		for side in [-14.0, 14.0]:
+			var off: Vector3 = t.side_at(t.dist[i]) * side
+			var q := PhysicsRayQueryParameters3D.create(a + off + Vector3.UP * 10.0, a + off + Vector3.DOWN * 10.0)
+			var hit: Dictionary = space.intersect_ray(q)
+			if not hit.is_empty() and blocked.size() < 6:
+				blocked.append("%s at (%.0f, %.0f, %.0f)" % [(hit.collider as Node).name, a.x, a.y, a.z])
+	check(t.length > 500.0, "%s: a big lap (%.0f m)" % [tr.name, t.length])
+	check(low == 0, "%s: always well above the ground (%d too low %s)" % [tr.name, low, low_at])
+	check(outside == 0, "%s: inside the town's edge (%d outside)" % [tr.name, outside])
+	check(blocked.is_empty(), "%s: nothing up there to fly into (%s)" % [tr.name, ", ".join(blocked)])
 	await physics_frame
 
 

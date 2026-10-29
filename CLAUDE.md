@@ -68,6 +68,14 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Races, step 4: Sky Rings, a mothership race (Hayden: "races"). A sky track in `Races.TRACKS` (`"sky":
+  true`, rings 24 m wide, 1 lap of about 750 m high over town, the castle and the gardens; opens after the Lake Loop,
+  prizes 25/16/10/5). Its points are used as they are, not dropped onto the ground. Fly the mothership through the
+  big start ring to begin (`Races._watch_sky()` -> `start_sky()`); no starter to talk to. Three friends race in mini
+  saucers scaled up four times (Blip, Nova, Zoomi, pace 23/22/21 m/s, same rubber-banding), and floating boost rings
+  speed up the ship (`boost()`, `boosting()` and `is_piloted()` are new in `scripts/mothership.gd`: 1.6x top speed
+  while boosting). Leaving the ship or flying 135 m off the line ends the race with no harm done. `test_races` checks
+  that the sky line stays 16 m over everything and inside the town's edge, and a whole race; `capture_races` flies it with a bot.
 - 2026-10-29: Races, step 3: more tracks, and the routes on the map (Hayden: "maps"). Two new tracks in
   `Races.TRACKS`, each with its own arch, starter and board: the **Meadow Wiggle** (2 laps of S-bends in the south
   meadow, about 272 m a lap; Dart, the orange little alien; against Rook, Pip and the Green Man; prizes 18/12/7/4)
