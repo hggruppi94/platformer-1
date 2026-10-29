@@ -46,6 +46,7 @@ func _ready() -> void:
 	_arch()
 	_starter()
 	_board()
+	_tune_up()
 	for b in track.get("boosts", []):
 		pads.append(_pad(at(float(b[0])), float(b[1]) if b.size() > 1 else 0.0))
 	for i in cp_dist.size():
@@ -444,6 +445,73 @@ func _board() -> void:
 	cs.position = Vector3(0, 1.5, 0)
 	body.add_child(cs)
 	board.add_child(body)
+
+
+func _tune_up() -> void:
+	# Zippy's Tune-Up: a workbench under a lilac awning with a spare wheel, a spanner and a tool rack, past the race
+	# board. Interact opens the shop's Tune-Up stall (scripts/shop.gd), where ride upgrades are sold.
+	var bench := Node3D.new()
+	bench.name = "Tune-Up"
+	add_child(bench)
+	var d := cp_dist[0] - 15.0
+	place_on(bench, d, 9.5)
+	_face(bench, point_at(d))
+	var wood := _mat(Color(0.36, 0.22, 0.42))
+	var top := BoxMesh.new()
+	top.size = Vector3(2.6, 0.12, 1.0)
+	_mesh(bench, top, Vector3(0, 0.95, 0), _mat(Color(0.62, 0.5, 0.95)))
+	for x in [-1.15, 1.15]:
+		for z in [-0.4, 0.4]:
+			var leg := BoxMesh.new()
+			leg.size = Vector3(0.1, 0.95, 0.1)
+			_mesh(bench, leg, Vector3(x, 0.47, z), wood)
+	for x in [-1.3, 1.3]:
+		var pole := BoxMesh.new()
+		pole.size = Vector3(0.1, 2.6, 0.1)
+		_mesh(bench, pole, Vector3(x, 1.3, -0.45), wood)
+	var awning := BoxMesh.new()
+	awning.size = Vector3(3.0, 0.08, 1.4)
+	var aw := _mesh(bench, awning, Vector3(0, 2.6, 0.1), _mat(Color(0.3, 0.85, 0.85)))
+	aw.rotation.x = 0.2
+	var rack := BoxMesh.new()
+	rack.size = Vector3(2.4, 0.9, 0.06)
+	_mesh(bench, rack, Vector3(0, 1.75, -0.45), _mat(Color(0.22, 0.16, 0.34)))
+	var metal := _mat(Color(0.8, 0.82, 0.9), 0.0, 0.3)
+	for k in 4:                                              # spanners hanging on the rack
+		var s := BoxMesh.new()
+		s.size = Vector3(0.06, 0.5 - k * 0.06, 0.03)
+		_mesh(bench, s, Vector3(-0.8 + k * 0.35, 1.75, -0.4), metal)
+	var tyre := TorusMesh.new()
+	tyre.inner_radius = 0.18
+	tyre.outer_radius = 0.32
+	var t := _mesh(bench, tyre, Vector3(0.75, 1.34, 0.05), _mat(Color(0.15, 0.1, 0.25)))
+	t.rotation.x = PI / 2.0
+	var hub := CylinderMesh.new()
+	hub.top_radius = 0.17
+	hub.bottom_radius = 0.17
+	hub.height = 0.12
+	var h := _mesh(bench, hub, Vector3(0.75, 1.34, 0.05), _mat(Color(1.0, 0.82, 0.35), 0.4, 0.3))
+	h.rotation.x = PI / 2.0
+	var can := CylinderMesh.new()
+	can.top_radius = 0.1
+	can.bottom_radius = 0.13
+	can.height = 0.3
+	_mesh(bench, can, Vector3(-0.7, 1.16, 0.1), _mat(Color(1.0, 0.45, 0.7)))
+	_label(bench, "ZIPPY'S TUNE-UP", 28, Vector3(0, 2.3, 0.6)).rotation.x = -0.2
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.6, 1.0, 1.0)
+	cs.shape = shape
+	cs.position = Vector3(0, 0.5, 0)
+	body.add_child(cs)
+	bench.add_child(body)
+	var spot := (load("res://scripts/shop_stall.gd") as GDScript).new() as Area3D
+	spot.name = "Tune-Up Spot"
+	spot.set("stall", "Tune-Up")
+	spot.set("radius", 2.4)
+	spot.position = Vector3(0, 0, 1.3)
+	bench.add_child(spot)
 
 
 func _pad(d: float, side: float) -> Node3D:

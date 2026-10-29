@@ -46,12 +46,17 @@ func _ready() -> void:
 
 
 func for_stall(stall: String) -> Array:
-	return items.values().filter(func(it: Dictionary) -> bool: return it.stall == stall)
+	# A kind sold by another system can hide some of its items for now (a "show" in register_kind(): the races' ride
+	# upgrades only show the next level of each)
+	return items.values().filter(func(it: Dictionary) -> bool:
+		return it.stall == stall and (not kinds.has(str(it.kind)) or not kinds[str(it.kind)].has("show")
+			or bool(kinds[str(it.kind)].show.call(it))))
 
 
 func register_kind(kind: String, how: Dictionary) -> void:
 	# Another system sells this kind of item here. `how` has "can_buy" (item -> "" or why not), "buy" (item -> what
-	# to say after; it's already paid for) and, if it likes, "button" (what the Buy button says).
+	# to say after; it's already paid for) and, if it likes, "button" (what the Buy button says) and "show" (item ->
+	# whether to list it right now).
 	kinds[kind] = how
 
 

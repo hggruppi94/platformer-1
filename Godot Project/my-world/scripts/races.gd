@@ -14,9 +14,15 @@ extends Node
 # with no harm done.
 #
 # Kept apart from the Star Popper and other gadgets on purpose: power-ups are things on the track, used up in a race.
-# Best times and wins are saved with the game (scripts/game.gd, "races").
+#
+# Zippy's Tune-Up, a workbench beside the race board, sells ride upgrades through the shared shop (scripts/shop.gd,
+# the "Tune-Up" stall, kind "ride_upgrade" in res://shop/items.json): Speedy Wheels, Power Push, Grippy Grip and
+# Turbo Tank, three levels each, and the Starter Star. They work on every ride, on or off the track: tuned() turns a
+# ride's numbers (scripts/rides.gd) into the upgraded ones, and the skating uses those (scenes/player/skate.gd).
+# Best times, wins and upgrades are saved with the game (scripts/game.gd, "races").
 
 signal finished(track_id: String, place: int)
+signal upgraded
 
 enum State { IDLE, COUNTDOWN, RACING, RESULTS }
 
@@ -62,6 +68,16 @@ const POWERS := {
 	"shield": {"name": "Bubble Shield", "say": "Bubble Shield!"},
 	"spring": {"name": "Super Spring", "say": "Boing!"},
 }
+# What each level of an upgrade adds, as a share of the ride's own number (Speedy Wheels 2 = 10% faster)
+const UPGRADES := {
+	"wheels": {"push_speed": 0.05, "max_speed": 0.05},
+	"push": {"push_accel": 0.15, "push_kick": 0.15},
+	"grip": {"carve": 0.12},
+	"turbo": {},                     # boosts last TURBO longer a level (boost_time())
+	"starter": {},                   # every race starts with a Zoom Star in hand
+}
+const TURBO := 0.25
+
 const SHIELD_TIME := 8.0
 const ZOOM_SPEED := 8.0
 const ZOOM_TIME := 2.2
@@ -72,6 +88,7 @@ const PAD_TIME := 1.3
 var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
 var raced := 0                       # races finished, all told
+var upgrades := {}                   # upgrade -> level bought (see UPGRADES)
 
 var state := State.IDLE
 var track_id := ""
@@ -107,6 +124,62 @@ func _ready() -> void:
 	_on_scene_changed.call_deferred()
 	Dialogue.finished.connect(_on_talked)
 	_rng.randomize()
+	_register_shop.call_deferred()            # Shop comes after this in the autoloads
+
+
+func _register_shop() -> void:
+	Shop.register_kind("ride_upgrade", {"can_buy": _can_upgrade, "buy": _buy_upgrade, "button": "Tune up",
+		"show": _show_upgrade})
+
+
+func _show_upgrade(item: Dictionary) -> bool:
+	# Only the next level of each upgrade is on the bench (the top level stays once it's bought, as "Got it!")
+	var lv := level(str(item.upgrade))
+	return int(item.level) == lv + 1 or (int(item.level) == lv and lv == _top_level(str(item.upgrade)))
+
+
+func _top_level(upgrade: String) -> int:
+	var top := 0
+	for it in Shop.items.values():
+		if it.get("upgrade", "") == upgrade:
+			top = maxi(top, int(it.level))
+	return top
+
+
+func _can_upgrade(item: Dictionary) -> String:
+	var lv := level(str(item.upgrade))
+	if lv >= int(item.level):
+		return "You have this one"
+	if lv < int(item.level) - 1:
+		return "Needs level %d first" % (int(item.level) - 1)
+	return ""
+
+
+func _buy_upgrade(item: Dictionary) -> String:
+	upgrades[str(item.upgrade)] = int(item.level)
+	upgraded.emit()
+	return "Zippy tightens a bolt or two. %s: %s!" % [item.name, str(item.text).split(" (")[0].to_lower()]
+
+
+func level(upgrade: String) -> int:
+	return int(upgrades.get(upgrade, 0))
+
+
+func tuned(ride: Dictionary) -> Dictionary:
+	# A ride's numbers with the upgrades bought so far
+	if upgrades.is_empty():
+		return ride
+	var out := ride.duplicate()
+	for u in UPGRADES:
+		var lv := level(u)
+		for key in UPGRADES[u]:
+			if out.has(key) and lv > 0:
+				out[key] = float(out[key]) * (1.0 + float(UPGRADES[u][key]) * lv)
+	return out
+
+
+func boost_time(seconds: float) -> float:
+	return seconds * (1.0 + TURBO * level("turbo"))
 
 
 func racing() -> bool:
@@ -114,7 +187,7 @@ func racing() -> bool:
 
 
 func save_data() -> Dictionary:
-	return {"best": best.duplicate(), "wins": wins.duplicate(), "raced": raced}
+	return {"best": best.duplicate(), "wins": wins.duplicate(), "raced": raced, "upgrades": upgrades.duplicate()}
 
 
 func load_data(data: Dictionary) -> void:
@@ -128,6 +201,11 @@ func load_data(data: Dictionary) -> void:
 		for k in w:
 			wins[str(k)] = int(w[k])
 	raced = int(data.get("raced", 0))
+	var u = data.get("upgrades", {})
+	if u is Dictionary:
+		for k in u:
+			upgrades[str(k)] = int(u[k])
+	upgraded.emit()
 	_refresh_boards()
 
 
@@ -137,6 +215,8 @@ func reset() -> void:
 	best.clear()
 	wins.clear()
 	raced = 0
+	upgrades.clear()
+	upgraded.emit()
 
 
 # -----------------------------------------------------------------------------
@@ -271,7 +351,7 @@ func start(id: String) -> bool:
 	last_cp = 0
 	next_cp = 1
 	time = 0.0
-	power = ""
+	power = "zoom" if level("starter") > 0 else ""
 	place = 1
 	progress = 0.0
 	_shield = 0.0
@@ -283,6 +363,7 @@ func start(id: String) -> bool:
 	state = State.COUNTDOWN
 	_count = COUNTDOWN
 	hud.clear()
+	hud.show_power(POWERS[power].name if power != "" else "")
 	hud.shout("3", Color(1.0, 0.85, 0.3), 0.5)
 	Audio.play("ui_move")
 	_status()
@@ -495,7 +576,7 @@ func _tick_pads(delta: float) -> void:
 			if _pad_wait.has(pad) or not _over(p.global_position, (pad as Node3D).global_position, PAD_RADIUS, 1.5):
 				continue
 			_pad_wait[pad] = 1.0
-			skate.call("boost", PAD_SPEED, PAD_TIME)
+			skate.call("boost", PAD_SPEED, boost_time(PAD_TIME))
 			Audio.play("swish", 0.0, 0.1)
 			skate.hud.shout("Boost!", Color(0.5, 1.0, 1.0))
 
@@ -551,7 +632,7 @@ func use_power() -> bool:
 	var skate = p.get("skate")
 	match power:
 		"zoom":
-			skate.call("boost", ZOOM_SPEED, ZOOM_TIME)
+			skate.call("boost", ZOOM_SPEED, boost_time(ZOOM_TIME))
 			Audio.play("swish")
 		"shield":
 			_shield = SHIELD_TIME

@@ -7,7 +7,8 @@
     "Records": "Music for your ears and stickers for your sash.",
     "Toys": "Toys, games and silly hats!",
     "Boutique": "Head to toe and everything in between. Try it on!",
-    "Gadget": "Dash's gadgets! He builds them from bits of broken time. Nothing gets hurt: they pop, fizz and dance."
+    "Gadget": "Dash's gadgets! He builds them from bits of broken time. Nothing gets hurt: they pop, fizz and dance.",
+    "Tune-Up": "Zippy's Tune-Up! Every upgrade works on every ride: your board and your friends' rides too. Vroom!"
   },
   "items": [
     {"id": "star_apple", "name": "Star Apple", "stall": "Fruit", "kind": "snack", "price": 2, "hp": 5, "text": "Crunchy and sweet. +5 HP"},
@@ -50,6 +51,19 @@
     {"id": "fizz_flinger", "name": "Fizz Flinger", "stall": "Gadget", "kind": "gadget", "gadget": "fizz", "price": 10, "text": "Lobs fizzy soda bombs that pop everything where they land"},
     {"id": "disco_ball", "name": "Disco Ball", "stall": "Gadget", "kind": "gadget", "gadget": "disco", "price": 18, "text": "Throw it up and every enemy near it has to dance"},
     {"id": "fizz_refill", "name": "Fizz Refill", "stall": "Gadget", "kind": "ammo", "gadget": "fizz", "price": 2, "text": "Fills the Fizz Flinger right up"},
-    {"id": "disco_refill", "name": "Disco Refill", "stall": "Gadget", "kind": "ammo", "gadget": "disco", "price": 3, "text": "Fills the Disco Ball right up"}
+    {"id": "disco_refill", "name": "Disco Refill", "stall": "Gadget", "kind": "ammo", "gadget": "disco", "price": 3, "text": "Fills the Disco Ball right up"},
+    {"id": "tune_wheels_1", "name": "Speedy Wheels I", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "wheels", "level": 1, "price": 8, "text": "Faster top speed on every ride (level 1 of 3)"},
+    {"id": "tune_wheels_2", "name": "Speedy Wheels II", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "wheels", "level": 2, "price": 14, "text": "Faster top speed on every ride (level 2 of 3)"},
+    {"id": "tune_wheels_3", "name": "Speedy Wheels III", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "wheels", "level": 3, "price": 20, "text": "Faster top speed on every ride (level 3 of 3)"},
+    {"id": "tune_push_1", "name": "Power Push I", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "push", "level": 1, "price": 6, "text": "Get up to speed quicker (level 1 of 3)"},
+    {"id": "tune_push_2", "name": "Power Push II", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "push", "level": 2, "price": 10, "text": "Get up to speed quicker (level 2 of 3)"},
+    {"id": "tune_push_3", "name": "Power Push III", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "push", "level": 3, "price": 16, "text": "Get up to speed quicker (level 3 of 3)"},
+    {"id": "tune_grip_1", "name": "Grippy Grip I", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "grip", "level": 1, "price": 6, "text": "Turn more sharply round the bends (level 1 of 3)"},
+    {"id": "tune_grip_2", "name": "Grippy Grip II", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "grip", "level": 2, "price": 10, "text": "Turn more sharply round the bends (level 2 of 3)"},
+    {"id": "tune_grip_3", "name": "Grippy Grip III", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "grip", "level": 3, "price": 16, "text": "Turn more sharply round the bends (level 3 of 3)"},
+    {"id": "tune_turbo_1", "name": "Turbo Tank I", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 1, "price": 6, "text": "Boost pads and Zoom Stars last longer (level 1 of 3)"},
+    {"id": "tune_turbo_2", "name": "Turbo Tank II", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 2, "price": 12, "text": "Boost pads and Zoom Stars last longer (level 2 of 3)"},
+    {"id": "tune_turbo_3", "name": "Turbo Tank III", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 3, "price": 18, "text": "Boost pads and Zoom Stars last longer (level 3 of 3)"},
+    {"id": "tune_starter_star", "name": "Starter Star", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "starter", "level": 1, "price": 20, "text": "Start every race holding a Zoom Star"}
   ]
 }

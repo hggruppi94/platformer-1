@@ -75,6 +75,17 @@ func _run() -> void:
 		(zippy.global_position + board.global_position) / 2.0 + Vector3.UP * 1.3)
 	await _view("03_board_close_up", board.global_position - right * 3.2 + Vector3.UP * 2.0, board.global_position + Vector3.UP * 1.9)
 
+	# Zippy's Tune-Up, and its stall open
+	var bench := t.get_node("Tune-Up") as Node3D
+	var bz := bench.global_transform.basis.z
+	await _view("03b_zippys_tune_up", bench.global_position + bz * 5.0 + right * 2.0 + Vector3.UP * 2.2, bench.global_position + Vector3.UP * 1.3)
+	game.sparkles = 30
+	root.get_node("Shop").open("Tune-Up")
+	await _shot("03c_tune_up_upgrades", 10)
+	root.get_node("Shop").close()
+	for i in 6:
+		await process_frame
+
 	# The grid in the countdown, through the game's camera
 	races.start("lake_loop")
 	game_cam.make_current()

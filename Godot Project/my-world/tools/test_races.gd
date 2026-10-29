@@ -274,11 +274,49 @@ func _run() -> void:
 	races._end(false)
 	p.set_rider("hero", false)
 
+	# --- Zippy's Tune-Up: ride upgrades through the shared shop ---
+	var shop := root.get_node("Shop")
+	check(t.get_node_or_null("Tune-Up") != null and t.get_node("Tune-Up").find_child("Tune-Up Spot", true, false) != null,
+		"Zippy's Tune-Up stands past the race board")
+	check(t.get_node("Tune-Up").global_position.distance_to(t.point_at(-15.0)) > 6.0, "...off the track")
+	var tune: Array = shop.items.values().filter(func(i: Dictionary) -> bool: return i.stall == "Tune-Up")
+	check(tune.size() == 13, "it sells 4 upgrades in 3 levels and the Starter Star (%d)" % tune.size())
+	check(shop.for_stall("Tune-Up").size() == 5, "...showing just the next level of each (%d)" % shop.for_stall("Tune-Up").size())
+	game.sparkles = 200
+	check(shop.can_buy("tune_wheels_2") != "", "level 2 waits for level 1 (%s)" % shop.can_buy("tune_wheels_2"))
+	var base_push: float = s.ride.push_speed
+	check(shop.buy("tune_wheels_1") and races.level("wheels") == 1, "buying Speedy Wheels I")
+	check(absf(float(s.ride.push_speed) - base_push * 1.05) < 0.01, "...makes the ride faster (%.2f -> %.2f)" % [base_push, s.ride.push_speed])
+	check(shop.can_buy("tune_wheels_1") == "You have this one" and shop.can_buy("tune_wheels_2") == "", "...and level 2 is next")
+	check(shop.for_stall("Tune-Up").any(func(i: Dictionary) -> bool: return i.id == "tune_wheels_2")
+		and not shop.for_stall("Tune-Up").any(func(i: Dictionary) -> bool: return i.id == "tune_wheels_1"), "...in level 1's place on the bench")
+	shop.buy("tune_wheels_2")
+	shop.buy("tune_grip_1")
+	check(absf(float(s.ride.push_speed) - base_push * 1.10) < 0.01 and float(s.ride.carve) > float(Rides.ride("hero").carve) * 1.1,
+		"level 2 adds more, and Grippy Grip turns sharper")
+	p.set_rider("dash")
+	await _physics(2)
+	var dash_push: float = Rides.ride("dash").push_speed
+	check(absf(float(s.ride.push_speed) - dash_push * 1.10) < 0.01, "upgrades work on a friend's ride too (Dash %.2f)" % s.ride.push_speed)
+	p.set_rider("hero", false)
+	await _physics(2)
+	shop.buy("tune_turbo_1")
+	check(absf(races.boost_time(2.0) - 2.5) < 0.01, "Turbo Tank makes boosts last longer")
+	shop.buy("tune_starter_star")
+	races.start("lake_loop")
+	await _frames(2)
+	check(races.power == "zoom" and races.hud.power_box.visible, "with the Starter Star every race starts with a Zoom Star")
+	races._end(false)
+
 	# --- Saved ---
 	var data: Dictionary = races.save_data()
 	races.reset()
 	races.load_data(data)
 	check(races.best.has("lake_loop") and int(races.wins.lake_loop) == 1, "best times and wins load back")
+	check(races.level("wheels") == 2 and races.level("starter") == 1, "...and the upgrades")
+	var plain: float = Rides.ride("hero").push_speed
+	races.reset()
+	check(races.level("wheels") == 0 and absf(float(s.ride.push_speed) - plain) < 0.01, "a new game starts with no upgrades")
 
 	_finish()
 

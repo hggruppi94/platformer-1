@@ -111,6 +111,7 @@ var _boost_speed := 0.0              # how much faster than her pushing speed a 
 var _slow_time := 0.0                # seconds of goo left
 var _boost_fade := 0.0               # after a boost, a moment of easing back down to her own speed
 var shielded := false
+var _base_ride: Dictionary = Rides.BOARD     # the ride's own numbers, before upgrades
 
 
 func setup(player: Player) -> void:
@@ -124,11 +125,14 @@ func setup(player: Player) -> void:
 	add_child(hud)
 	hud.watch(tricks)
 	hud.visible = false
+	Races.upgraded.connect(func() -> void: ride = Races.tuned(_base_ride))
 
 
 func set_ride(r: Dictionary, parts: Dictionary) -> void:
-	# A different rider and ride (scenes/player/player.gd, set_rider)
-	ride = r
+	# A different rider and ride (scenes/player/player.gd, set_rider), with any upgrades from Zippy's Tune-Up
+	# (scripts/races.gd)
+	_base_ride = r
+	ride = Races.tuned(r)
 	tricks.lose()
 	tricks.ride = r
 	_feet = parts.get("feet", [])

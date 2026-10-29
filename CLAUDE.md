@@ -68,6 +68,15 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-29: Races, step 2: Zippy's Tune-Up (Hayden: "upgrades"). A workbench under a teal awning past the race
+  board (`_tune_up()` in `scripts/race_track.gd`) opens the shop's "Tune-Up" stall. Ride upgrades are items of kind
+  `ride_upgrade` in `shop/items.json` (`upgrade`, `level`), sold through `Shop.register_kind()` (shared with the
+  gadgets), kept in `Races.upgrades` and saved with the races: Speedy Wheels (+5% pushing and top speed a level),
+  Power Push (+15% acceleration), Grippy Grip (+12% turning), Turbo Tank (boost pads and Zoom Stars last 25% longer),
+  three levels each, and the Starter Star (every race starts with a Zoom Star). Prices 6 to 20 (test_shop keeps
+  prices at 20 or under). They work on every ride, in a race or not: `Races.tuned(ride)` scales the numbers from
+  `scripts/rides.gd`, and `Skate.set_ride()` uses the tuned ones (re-tuned when `Races.upgraded` fires).
+  `register_kind()` also takes an optional "show" (item -> bool) so the bench lists only the next level of each.
 - 2026-10-29: Races, step 1: the Lake Loop (Hayden: "races with cash prizes, boosters, maps, upgrades, powerups").
   The `Races` autoload (`scripts/races.gd`) places each track in `TRACKS` into its scene at play time
   (`scripts/race_track.gd`), so `town.tscn` wasn't rebuilt. A track is a list of checkpoints (x, z); the racing line
