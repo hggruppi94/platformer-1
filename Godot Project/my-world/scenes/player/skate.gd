@@ -910,7 +910,9 @@ func _pose(delta: float) -> void:
 	# Her feet stay where the capsule touches a steep ramp (its side, not the bottom of its middle)
 	p.visual.position = p.visual.position.lerp((new_up - Vector3.UP) * (FEET - SIDE_RADIUS), k)
 	var grabbing := 0.3 if not tricks.grab.is_empty() else 0.0
-	_crouch = lerpf(_crouch, maxf(0.25 * maxf(_charge, 0.0), grabbing) + (0.1 if state == State.GRIND else 0.0), k)
+	# A little crouch while she charges a big bubble too (scripts/star_popper.gd), braced for the kick
+	var bracing: float = 0.12 * float(p.popper.charge) if p.popper else 0.0
+	_crouch = lerpf(_crouch, maxf(maxf(0.25 * maxf(_charge, 0.0), grabbing), bracing) + (0.1 if state == State.GRIND else 0.0), k)
 	if state != State.BAIL and p._spin_timer <= 0.0:
 		p.tumble.scale = Vector3(1.0 + _crouch * 0.3, 1.0 - _crouch, 1.0 + _crouch * 0.3)
 		p.tumble.position.y = -FEET * _crouch

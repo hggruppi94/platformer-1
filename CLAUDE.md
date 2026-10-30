@@ -68,6 +68,21 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-30: Shooting from a ride looks natural (Hayden, option 1). `PopperArm` in `star_popper.gd` now poses the whole
+  upper body on a ride, all in code on the bones every body shares (spine, chest, head, both arms), so it fits every
+  hero body and every rider that can shoot, with no new model files. Her spine, chest and head twist towards the shot
+  (40/35/25 per cent, up to `TWIST_MAX` 1.5 rad: riding side-on, a shot straight ahead is about a quarter turn, and
+  twisting nearly all the way lets the popper arm reach out in front instead of across her chest), her head looks up
+  or down at it a little, her left arm swings out to the side and a bit back for balance with a soft elbow, and each
+  shot kicks her chest back (`KICK_LEAN`, twice for a big bubble) and lifts the arm a touch, settling over 0.25 s.
+  The arm eases round to a new direction (`FOLLOW`) instead of snapping, so it follows through on grinds and
+  mid-flip, and the whole pose eases in and out over `EASE` (0.15 s; the modifier's `influence` is eased too). While
+  a big bubble charges she crouches a little (`bracing` in `skate.gd _pose`). It's all after the animation, so
+  steering and the skate physics never see it; riders with `"popper": false` don't change. Note for anyone reading
+  bones in tests: the skeleton keeps its own poses between frames, so `PopperArm` records what it did (`twist`,
+  `chest_turned`, `left_arm_turned`, `lean`). `test_skate_popper` checks the ease, twist, balance arm, kick, follow-
+  through, crouch and blend-out; `tools/capture_ride_shoot.gd` (before/after shots in the project files under
+  world/previews/ride_shoot, made in the cloud).
 - 2026-10-29: Races, step 4: Sky Rings, a mothership race (Hayden: "races"). A sky track in `Races.TRACKS` (`"sky":
   true`, rings 24 m wide, 1 lap of about 750 m high over town, the castle and the gardens; opens after the Lake Loop,
   prizes 25/16/10/5). Its points are used as they are, not dropped onto the ground. Fly the mothership through the

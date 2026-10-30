@@ -267,6 +267,64 @@ func _run() -> void:
 	await _physics(2)
 	check(game.mp == mp - 1 and popper.shots == shots + 2, "...a tap blows a bubble, letting go the big one for 1 MP (%d -> %d)" % [mp, game.mp])
 
+	# --- The whole-body ride pose: twist, head, balancing arm, kick, a crouch to charge, and it blends out ---
+	await _physics(90)                                   # let the last shot's pose blend away first
+	_put(p, s, floor_at + Vector3(-5, 0.85, 1.5), s.State.ROLL)
+	await _physics(5)
+	var pose = popper._arm
+	await _physics(2)
+	var g9 := _stage(p, gloops[9 % gloops.size()], floor_at + Vector3(1, 0, 6.5))   # off to her left side
+	var steps := []
+	var last: float = pose.influence
+	popper._cooldown = 0.0
+	popper.shoot(false)
+	for i in 14:
+		await physics_frame
+		steps.append(absf(pose.influence - last))
+		last = pose.influence
+	check(steps.max() < 0.16, "the pose eases in rather than popping on (biggest step %.2f a frame)" % steps.max())
+	check(pose.influence > 0.95 and pose.ride_weight > 0.95, "...and is all the way on after about 0.15 s")
+	check(absf(pose.twist) > 0.3, "she twists round towards a shot off to the side (%.0f degrees)" % rad_to_deg(pose.twist))
+	check(rad_to_deg(pose.chest_turned) > 8.0, "...her chest turns with it (%.0f degrees)" % rad_to_deg(pose.chest_turned))
+	check(rad_to_deg(pose.left_arm_turned) > 15.0, "...and her other arm swings out for balance (%.0f degrees)" % rad_to_deg(pose.left_arm_turned))
+	check(pose.points.dot(popper.arm_dir()) > 0.9, "...while the popper still points at the shot (%.2f)" % pose.points.dot(popper.arm_dir()))
+	check(absf(s._yaw - PI / 2) < 0.01, "...and the board keeps going the way it was")
+	pose.kick(false)
+	await _physics(2)
+	var small: float = pose.lean
+	await _physics(30)
+	var settled: float = pose.lean
+	pose.kick(true)
+	await _physics(2)
+	var big: float = pose.lean
+	check(small > 0.05 and big > small * 1.5 and settled < 0.01,
+		"each shot kicks her back a little, a big bubble more, then she settles (%.0f, %.0f, %.0f degrees)" % [
+		rad_to_deg(small), rad_to_deg(big), rad_to_deg(settled)])
+	# A turn mid-flip: the arm swings round smoothly instead of snapping
+	popper._raise = popper.SHOW_AFTER_SHOT
+	await _physics(15)
+	popper._shot_dir = Vector3(0, 0, -1)
+	await _physics(1)
+	var swing: float = pose.points.angle_to(Vector3(0, 0, -1))
+	await _physics(20)
+	check(swing > 0.3 and pose.points.angle_to(Vector3(0, 0, -1)) < 0.35,
+		"a new direction: the arm follows through over a few frames (%.0f then %.0f degrees off)" % [rad_to_deg(swing),
+		rad_to_deg(pose.points.angle_to(Vector3(0, 0, -1)))])
+	# Charging a big bubble: a little crouch
+	Input.action_press("shoot")
+	await _physics(60)
+	check(s._crouch > 0.05, "charging a big bubble, she crouches a little (%.2f)" % s._crouch)
+	game.mp = 0
+	Input.action_release("shoot")
+	await _physics(2)
+	game.mp = game.max_mp
+	# And when it's over, it's the plain skate pose again
+	popper._raise = 0.0
+	await _physics(30)
+	check(pose.influence < 0.01, "after the shot the pose blends all the way out (%.2f)" % pose.influence)
+	check(not popper._prop.visible, "...back to the plain skate pose, with the popper put away")
+	g9.set_physics_process(false)
+
 	# --- Simple controls: Shoot is the same ---
 	settings.use_layout("simple")
 	popper._cooldown = 0.0

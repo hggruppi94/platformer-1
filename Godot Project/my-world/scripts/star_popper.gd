@@ -180,9 +180,11 @@ func _physics_process(delta: float) -> void:
 	# The popper's in her hand while she aims, and for a moment after a shot
 	_prop.visible = _arm != null and (aim_blend > 0.05 or _raise > 0.0 or charge > 0.0)
 	if _arm:
-		_arm.influence = clampf(maxf(aim_blend, minf(_raise / 0.15, 1.0) if _raise > 0.0 else 0.0), 0.0, 1.0)
+		# Eased in and out over PopperArm.EASE, so the pose never pops on or off
+		var arm_on := clampf(maxf(aim_blend, minf(_raise / PopperArm.EASE, 1.0) if _raise > 0.0 else 0.0), 0.0, 1.0)
 		if charge > 0.0:
-			_arm.influence = 1.0
+			arm_on = 1.0
+		_arm.influence = move_toward(_arm.influence, arm_on, delta / PopperArm.EASE)
 
 
 func shoot(charged: bool) -> Node3D:
@@ -236,6 +238,8 @@ func shoot(charged: bool) -> Node3D:
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1
+	if _arm:
+		_arm.kick(charged)                         # her body kicks back a little (PopperArm, on a ride)
 	if charged and not Settings.reduce_motion:
 		player.spring_arm.fov_kick = 4.0
 	return b
@@ -502,11 +506,41 @@ static func _glass() -> StandardMaterial3D:
 class PopperArm extends SkeletonModifier3D:
 	# After her animation, swings her right arm (upper arm, forearm, hand) out straight to point where the bubbles
 	# go. `influence` blends it in and out, so the arm eases up and back down.
+	#
+	# On a ride she shoots with her whole body, so it doesn't look like only an arm moving on a still skater: her
+	# spine and chest twist towards the shot and her head turns to look at it, her left arm swings out for balance,
+	# and each shot kicks her back a little (a big bubble more). All of it is turned in the skeleton's own space, so
+	# it fits every body (they share the same bones) whichever way the bones point, and the skate pose underneath
+	# (a grind's crouch, a flip, a grab) carries on. The arm eases round to a new direction rather than snapping, so
+	# it follows through on grinds and mid-flip. Steering and the skate physics never see any of it.
+	const EASE := 0.15                    # seconds the ride pose takes to blend in or out
+	const FOLLOW := 18.0                  # how quickly the arm swings round to a new direction (per second)
+	# Radians she twists at most (spine, chest and head together). Riding side-on, a shot straight ahead is about a
+	# quarter turn round, and her popper hand is on the far side: twisting nearly all the way lets that arm reach
+	# out in front of her instead of across her chest.
+	const TWIST_MAX := 1.5
+	const TWIST_SPLIT := [0.4, 0.35, 0.25]    # how much of the twist the spine, the chest and the head each take
+	const KICK_TIME := 0.25               # seconds a shot's kick back lasts
+	const KICK_LEAN := 0.14               # radians she leans back on a shot (twice that for a big bubble)
+
 	var popper: StarPopper
 	var hand_at := Vector3.ZERO           # where it last put her hand, and which way her arm went (tests read them)
 	var points := Vector3.ZERO
+	var ride_weight := 0.0                # 0..1: how much of the whole-body ride pose is on (eases with EASE)
+	var twist := 0.0                      # how far round she's twisted right now, radians (tests read it)
+	var chest_turned := 0.0               # radians the ride pose turned her chest, and her left arm, last time
+	var left_arm_turned := 0.0            # (tests read them: the skeleton keeps its own poses between frames)
+	var lean := 0.0                       # radians a shot's kick leans her back right now
+	var _dir := Vector3.ZERO              # where the arm points now, in the world (eases towards popper.arm_dir())
+	var _kick := 0.0                      # 1 straight after a shot, down to 0 over KICK_TIME
+	var _kick_size := 1.0
+	var _was_off := true                  # it wasn't showing last time: start the arm where it should point
 
-	func _process_modification_with_delta(_delta: float) -> void:
+	func kick(big: bool) -> void:
+		_kick = 1.0
+		_kick_size = 2.0 if big else 1.0
+
+	func _process_modification_with_delta(delta: float) -> void:
 		var skel := get_skeleton()
 		if skel == null or popper == null or popper.player == null:
 			return
@@ -515,28 +549,99 @@ class PopperArm extends SkeletonModifier3D:
 		var hand := skel.find_bone("hand.R")
 		if ua < 0 or fa < 0 or hand < 0:
 			return
-		var world_dir := popper.arm_dir()
+		_kick = maxf(_kick - delta / KICK_TIME, 0.0)
+		var riding: bool = Game.riding and popper.player.skate.can_shoot()
+		ride_weight = move_toward(ride_weight, 1.0 if riding else 0.0, delta / EASE)
+		# Ease the arm round to where it should point, so a new target or a turn mid-flip doesn't snap it
+		var want := popper.arm_dir()
+		if _dir == Vector3.ZERO or _was_off:
+			_dir = want
+		else:
+			_dir = _dir.slerp(want, 1.0 - exp(-FOLLOW * delta)).normalized()
+		_was_off = influence < 0.01
+		var world_dir := _dir
 		var to_skel := skel.global_transform.basis.inverse()
 		var d := (to_skel * world_dir).normalized()
+		var kick := _kick * _kick * _kick_size        # eased: a sharp kick that settles
+		if ride_weight > 0.0:
+			_ride_pose(skel, d, kick)
+		else:
+			twist = 0.0
+		# The arm lifts a touch with the kick
+		d = (d + Vector3.UP * 0.12 * kick).normalized()
 		# The forearm and hand go straight on from the upper arm, as they are in the model's rest pose
 		skel.set_bone_pose_rotation(fa, skel.get_bone_rest(fa).basis.get_rotation_quaternion())
 		skel.set_bone_pose_rotation(hand, skel.get_bone_rest(hand).basis.get_rotation_quaternion())
-		# Turn the upper arm so the hand ends up along d from the shoulder
-		var g := skel.get_bone_global_pose(ua)
-		var hand_now := skel.get_bone_global_pose(hand).origin
-		var along := (hand_now - g.origin)
-		if along.length() < 0.001:
-			return
-		var turn := Quaternion(along.normalized(), d)
-		var parent := skel.get_bone_parent(ua)
-		var parent_g := skel.get_bone_global_pose(parent) if parent >= 0 else Transform3D.IDENTITY
-		var new_g := Basis(turn) * g.basis
-		var local := parent_g.basis.inverse() * new_g
-		skel.set_bone_pose_rotation(ua, local.get_rotation_quaternion())
+		_point(skel, ua, hand, d)
 		var hand_g := skel.get_bone_global_pose(hand)
 		hand_at = skel.global_transform * hand_g.origin
 		points = (hand_at - skel.global_transform * skel.get_bone_global_pose(ua).origin).normalized()
 		popper.place_prop(skel.global_transform * hand_g, world_dir)
+
+	func _ride_pose(skel: Skeleton3D, d: Vector3, kick: float) -> void:
+		# The twist, head turn, balancing arm and kick back, in the skeleton's space (the model faces +Z)
+		var flat := Vector3(d.x, 0.0, d.z)
+		var yaw := 0.0
+		if flat.length() > 0.05:
+			yaw = clampf(atan2(flat.x, flat.z), -TWIST_MAX, TWIST_MAX)
+		twist = yaw * ride_weight
+		var fwd := Vector3(sin(twist), 0.0, cos(twist))
+		var lean_axis := fwd.cross(Vector3.UP).normalized()     # turning about this leans her back (or looks up)
+		var chest := skel.find_bone("chest")
+		var chest_was := skel.get_bone_global_pose(chest).basis.get_rotation_quaternion() if chest >= 0 else Quaternion()
+		var parts := ["spine", "chest", "head"]
+		for k in parts.size():
+			var b := skel.find_bone(parts[k])
+			if b < 0:
+				continue
+			var q := Quaternion(Vector3.UP, twist * float(TWIST_SPLIT[k]))
+			if parts[k] == "chest":
+				lean = KICK_LEAN * kick * ride_weight
+				q = Quaternion(lean_axis, lean) * q
+			elif parts[k] == "head":
+				# Look up or down at it too, a little
+				var up_down := clampf(asin(clampf(d.y, -1.0, 1.0)), -0.6, 0.6) * 0.6
+				q = Quaternion(lean_axis, up_down * ride_weight) * q
+			_turn(skel, b, q)
+		# The other arm out to the side for balance: out, a bit down and a bit behind her
+		if chest < 0:
+			return
+		chest_turned = chest_was.angle_to(skel.get_bone_global_pose(chest).basis.get_rotation_quaternion())
+		var ual := skel.find_bone("upper_arm.L")
+		var fal := skel.find_bone("forearm.L")
+		var hl := skel.find_bone("hand.L")
+		if ual < 0 or hl < 0:
+			return
+		var side := skel.get_bone_global_pose(ual).origin - skel.get_bone_global_pose(chest).origin
+		side.y = 0.0
+		if side.length() < 0.001:
+			return
+		var out := (side.normalized() * 0.8 + Vector3.DOWN * 0.5 - fwd * 0.3).normalized()
+		if fal >= 0:
+			# A softly bent elbow: halfway between the animation's and straight
+			var now := skel.get_bone_pose_rotation(fal)
+			skel.set_bone_pose_rotation(fal, now.slerp(skel.get_bone_rest(fal).basis.get_rotation_quaternion(), 0.6))
+		var before := skel.get_bone_pose_rotation(ual)
+		_point(skel, ual, hl, out)
+		skel.set_bone_pose_rotation(ual, before.slerp(skel.get_bone_pose_rotation(ual), ride_weight))
+		left_arm_turned = before.angle_to(skel.get_bone_pose_rotation(ual))
+
+	func _turn(skel: Skeleton3D, bone: int, q: Quaternion) -> void:
+		# Turns a bone by q, given in the skeleton's space (its children go with it)
+		var g := skel.get_bone_global_pose(bone)
+		var parent := skel.get_bone_parent(bone)
+		var parent_g := skel.get_bone_global_pose(parent) if parent >= 0 else Transform3D.IDENTITY
+		var new_g := Basis(q) * g.basis.orthonormalized()
+		var local := parent_g.basis.orthonormalized().inverse() * new_g
+		skel.set_bone_pose_rotation(bone, local.get_rotation_quaternion())
+
+	func _point(skel: Skeleton3D, upper: int, end: int, d: Vector3) -> void:
+		# Turns the upper arm so `end` (the hand) ends up along d from the shoulder
+		var g := skel.get_bone_global_pose(upper)
+		var along := skel.get_bone_global_pose(end).origin - g.origin
+		if along.length() < 0.001:
+			return
+		_turn(skel, upper, Quaternion(along.normalized(), d))
 
 
 # ----------------------------------------------------------------------------- crosshair
