@@ -7,6 +7,9 @@ extends Node
 # (or their home, when they're tucked up inside) and, in the Shift, the open portal.
 # A small corner minimap can be switched on in Settings > Display.
 #
+# On Earth the map is drawn instead of pictured: the streets, buildings, the pond and creek, the hill and the park,
+# from res://ui/earth_map.json (written by tools/build_earth.gd), with the same arrow, people and quest stars.
+#
 # Markers for quests come from the quest spots that are open right now (scripts/quest_spot.gd) and from a step's
 # "where" in res://quests/<id>.json: people (a character id) or places (a point in res://routines/places.json), each
 # optionally {"who": "dash", "unless": "asked_dash"} to drop off once done.
@@ -14,6 +17,8 @@ extends Node
 const MAP_TEXTURE := "res://ui/town_map.png"
 const MAP_INFO := "res://ui/town_map.json"
 const TOWN := "res://scenes/town/town.tscn"
+const EARTH := "res://scenes/earth/earth.tscn"
+const EARTH_INFO := "res://ui/earth_map.json"
 const MINI_SIZE := 220.0
 const MINI_METRES := 70.0                           # how much of the town the minimap shows across
 
@@ -38,6 +43,9 @@ var _mini_overlay: Control
 var _font: Font
 var _time := 0.0
 var _placed: Array[Rect2] = []                       # labels already drawn on the big map (so they don't overlap)
+var _earth := {}                                     # the Earth town's map (EARTH_INFO)
+var _earth_center := Vector2(-30, -25)
+var _earth_size := 260.0
 
 
 func _ready() -> void:
@@ -48,6 +56,12 @@ func _ready() -> void:
 	if info is Dictionary:
 		_center = Vector2(float(info.center[0]), float(info.center[1]))
 		_size_m = float(info.size_m)
+	var earth = JSON.parse_string(FileAccess.get_file_as_string(EARTH_INFO)) if FileAccess.file_exists(EARTH_INFO) else null
+	if earth is Dictionary:
+		_earth = earth
+		var b: Array = _earth.bounds
+		_earth_center = Vector2((float(b[0]) + float(b[2])) / 2.0, (float(b[1]) + float(b[3])) / 2.0)
+		_earth_size = maxf(float(b[2]) - float(b[0]), float(b[3]) - float(b[1])) + 8.0
 	_build()
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
@@ -57,12 +71,19 @@ func _ready() -> void:
 # Where things are on the map (0..1 across and down)
 # -----------------------------------------------------------------------------
 func to_map(world: Vector3) -> Vector2:
+	if on_earth():
+		return Vector2((world.x - _earth_center.x) / _earth_size + 0.5, (world.z - _earth_center.y) / _earth_size + 0.5)
 	return Vector2((world.x - _center.x) / _size_m + 0.5, (world.z - _center.y) / _size_m + 0.5)
 
 
 func in_town() -> bool:
 	var s := get_tree().current_scene
 	return s != null and s.scene_file_path == TOWN
+
+
+func on_earth() -> bool:
+	var s := get_tree().current_scene if is_inside_tree() else null
+	return s != null and s.scene_file_path == EARTH and not _earth.is_empty()
 
 
 func nina() -> Node3D:
@@ -147,6 +168,7 @@ func toggle() -> void:
 
 
 func map_view() -> Control:
+	_map.visible = not on_earth()                      # (Earth's map is drawn, not a picture)
 	_overlay.queue_redraw()
 	return _view
 
@@ -160,16 +182,19 @@ func _process(delta: float) -> void:
 	if is_open():
 		_overlay.queue_redraw()
 	# The minimap is always up in a race (scripts/races.gd), to see the bends coming
-	var show_mini := (Settings.minimap or Races.racing()) and in_town() and not is_open() and not get_tree().paused and nina() != null
+	var show_mini := (Settings.minimap or Races.racing()) and (in_town() or on_earth()) and not is_open() and not get_tree().paused \
+		and nina() != null
 	_mini_layer.visible = show_mini
 	if show_mini:
+		_mini_tex.visible = not on_earth()
+		_mini_tex.size = Vector2.ONE * _mini_scale_px()
 		var at := to_map(nina().global_position) * _mini_scale_px()
 		_mini_tex.position = Vector2(MINI_SIZE, MINI_SIZE) / 2.0 - at
 		_mini_overlay.queue_redraw()
 
 
 func _mini_scale_px() -> float:
-	return MINI_SIZE * _size_m / MINI_METRES             # the whole map's width in minimap pixels
+	return MINI_SIZE * (_earth_size if on_earth() else _size_m) / MINI_METRES    # the whole map's width in minimap pixels
 
 
 # -----------------------------------------------------------------------------
@@ -282,6 +307,9 @@ func _draw_full() -> void:
 	var s := get_tree().current_scene
 	var town_here := in_town()
 	_placed.clear()
+	if on_earth():
+		_draw_earth_full(c, r)
+		return
 	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "Galaxity", _fs(34), Color(1, 0.95, 0.75))
 	for d in DISTRICTS:
 		_text(c, r.position + to_map(Vector3(d[1].x, 0, d[1].y)) * r.size, d[0], _fs(24), Color(1, 1, 0.85))
@@ -349,6 +377,9 @@ func _draw_mini() -> void:
 	var c := _mini_overlay
 	var scale := _mini_scale_px()
 	var offset := _mini_tex.position
+	if on_earth():
+		c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.32, 0.36, 0.2))
+		_draw_earth(c, offset, scale, false)
 	c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.1, 0.06, 0.15), false, 3.0)
 	_draw_races(c, offset, scale, false)
 	for q in quest_markers():
@@ -399,3 +430,108 @@ func _apply_settings() -> void:
 func _exit_tree() -> void:
 	if _view.get_parent() == null:
 		_view.free()                                   # put away (not on the player menu) when the game quits
+
+
+# -----------------------------------------------------------------------------
+# Earth's map, drawn from res://ui/earth_map.json
+# -----------------------------------------------------------------------------
+const EARTH_COLORS := {
+	"grass": Color(0.42, 0.48, 0.24), "hill": Color(0.5, 0.52, 0.28), "hill_top": Color(0.58, 0.57, 0.32),
+	"water": Color(0.3, 0.55, 0.75), "street": Color(0.3, 0.3, 0.34), "path": Color(0.78, 0.7, 0.55),
+	"bridge": Color(0.62, 0.22, 0.18), "green": Color(0.38, 0.62, 0.3), "inside": Color(0.98, 0.72, 0.38),
+	"building": Color(0.85, 0.78, 0.66), "home": Color(1.0, 0.6, 0.75), "skate": Color(0.65, 0.55, 0.85),
+	"park": Color(0.55, 0.62, 0.3), "dock": Color(0.62, 0.45, 0.3),
+}
+
+
+func _ep(origin: Vector2, size: float, x: float, z: float) -> Vector2:
+	return origin + to_map(Vector3(x, 0, z)) * size
+
+
+func _draw_earth(c: Control, origin: Vector2, size: float, full: bool) -> void:
+	# The town from above: grass, the hill, water, streets and paths, then the buildings (walk-in ones warm orange,
+	# home pink, skate spots purple), the green and the portal
+	var px := size / _earth_size                          # pixels a metre
+	var b: Array = _earth.bounds
+	var tl := _ep(origin, size, b[0], b[1])
+	c.draw_rect(Rect2(tl, _ep(origin, size, b[2], b[3]) - tl), EARTH_COLORS.grass)
+	var hill: Array = _earth.hill
+	c.draw_circle(_ep(origin, size, hill[0], hill[1]), float(hill[3]) * px, EARTH_COLORS.hill)
+	c.draw_circle(_ep(origin, size, hill[0], hill[1]), float(hill[2]) * px, EARTH_COLORS.hill_top)
+	var pond: Array = _earth.pond
+	var pts := PackedVector2Array()
+	for k in 32:
+		var a := k * TAU / 32
+		pts.append(_ep(origin, size, pond[0] + cos(a) * pond[2], pond[1] + sin(a) * pond[3]))
+	c.draw_colored_polygon(pts, EARTH_COLORS.water)
+	var creek := PackedVector2Array()
+	for p in _earth.creek:
+		creek.append(_ep(origin, size, p[0], p[1]))
+	c.draw_polyline(creek, EARTH_COLORS.water, maxf(float(_earth.creek_width) * px, 2.0), true)
+	var pool: Array = _earth.pool
+	c.draw_circle(_ep(origin, size, pool[0], pool[1]), float(pool[2]) * px, EARTH_COLORS.water)
+	for kind in ["path", "street", "bridge"]:
+		for st in _earth.streets:
+			if st[5] == kind:
+				c.draw_line(_ep(origin, size, st[0], st[1]), _ep(origin, size, st[2], st[3]), EARTH_COLORS[kind],
+					maxf(float(st[4]) * px, 1.5))
+	var g: Array = _earth.green
+	c.draw_circle(_ep(origin, size, g[0], g[1]), float(g[2]) * px, EARTH_COLORS.green)
+	for bd in _earth.buildings:
+		var kind := str(bd[6])
+		if kind == "bridge" and bd[0] == "":
+			continue
+		var at := Vector2(float(bd[1]), float(bd[2]))
+		var half := Vector2(float(bd[3]), float(bd[4])) / 2.0
+		var yaw := float(bd[5])
+		var corners := PackedVector2Array()
+		for q in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+			# local x/z back to the world: the inverse of the builder's rotation
+			var w: Vector2 = (half * q).rotated(-yaw)
+			corners.append(_ep(origin, size, at.x + w.x, at.y + w.y))
+		var col: Color = EARTH_COLORS.get(kind, EARTH_COLORS.building)
+		if kind == "park":
+			corners.append(corners[0])
+			c.draw_polyline(corners, col.lightened(0.2), 1.5)
+		else:
+			c.draw_colored_polygon(corners, col)
+			corners.append(corners[0])
+			c.draw_polyline(corners, Color(0.15, 0.1, 0.12, 0.8), 1.0)
+	var portal: Array = _earth.portal
+	var pp := _ep(origin, size, portal[0], portal[1])
+	if portal_open():
+		var glow := 0.6 + 0.4 * sin(_time * 4.0)
+		c.draw_circle(pp, 14.0 if full else 9.0, Color(0.6, 0.3, 1.0, 0.35 * glow))
+	c.draw_arc(pp, 8.0 if full else 5.0, 0, TAU, 24, Color(0.75, 0.5, 1.0), 3.0)
+	if not full:
+		return
+	# Labels: the places you can go into and the big ones first, then the park's spots
+	for bd in _earth.buildings:
+		var kind := str(bd[6])
+		if str(bd[0]) == "" or kind == "park" or kind == "dock":
+			continue
+		var at := _ep(origin, size, bd[1], bd[2])
+		var col := Color(1.0, 0.88, 0.6) if kind == "inside" else (Color(1.0, 0.75, 0.85) if kind == "home" else Color(0.95, 0.95, 0.9))
+		_text(c, at + Vector2(0, _fs(4)), str(bd[0]), _fs(13), col, true, true)
+	for l in _earth.labels:
+		_text(c, _ep(origin, size, l[1], l[2]), str(l[0]), _fs(16), Color(0.85, 0.95, 1.0), true, true)
+	_text(c, pp + Vector2(0, -_fs(20)), "The portal is open!" if portal_open() else "Old oak portal", _fs(15), Color(0.85, 0.7, 1.0), true, true)
+
+
+func _draw_earth_full(c: Control, r: Rect2) -> void:
+	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "Home on Earth", _fs(34), Color(1, 0.95, 0.75))
+	_draw_earth(c, r.position, r.size.x, true)
+	for p in people():
+		var at := r.position + to_map(p.pos) * r.size
+		if p.home:
+			continue
+		c.draw_circle(at, 6.0, Color(0.55, 0.9, 1.0))
+		c.draw_arc(at, 6.0, 0, TAU, 16, Color(0.1, 0.2, 0.3), 1.5)
+		_text(c, at + Vector2(0, -_fs(14)), p.name, _fs(14), Color(0.7, 0.95, 1.0), true, true)
+	for q in quest_markers():
+		_star(c, r.position + to_map(q.pos) * r.size, 13.0)
+	var player := nina()
+	if player:
+		_arrow(c, r.position + to_map(player.global_position) * r.size, nina_facing(), 14.0)
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    (%s to close)" % Settings.prompt("map")
+	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))

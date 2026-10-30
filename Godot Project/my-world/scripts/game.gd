@@ -77,6 +77,7 @@ const HAPPY_PLACE_SPARKLES := 3  # for finding a happy place the first time
 const SAVE_PATH := "user://save.json"
 const SAVE_VERSION := 2          # 2: the player lives on Earth, and Galaxity is visited in the Shift (scripts/clock.gd)
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
+const EARTH_LAYOUT := 2          # Earth's layout: 2 = the grown-up town (Main Street, Maple Lane, the park), Oct 30 2026
 const TOWN_SCENE := "res://scenes/town/town.tscn"
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
 const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to Galaxity."
@@ -295,6 +296,7 @@ func save_game() -> void:
 	var data := {
 		"version": SAVE_VERSION,
 		"layout": LAYOUT,
+		"earth_layout": EARTH_LAYOUT,
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
@@ -430,6 +432,11 @@ func load_game() -> void:
 		_resume = {"scene": TOWN_SCENE}
 		next_spawn = "MarketEntrance"
 		pending_message = "Welcome back! The town has had a makeover. You're at the Market Square."
+	if _resume.get("scene", "") == Clock.EARTH and int(data.get("earth_layout", 1)) < EARTH_LAYOUT:
+		# Saved outdoors on Earth before the town grew: where she stood might be inside a new shop now, so wake up at home
+		_resume = {"scene": Clock.EARTH}
+		next_spawn = NEW_GAME_SPAWN
+		pending_message = "Welcome back! The town's grown while you were away: Main Street, Maple Lane and a park. Have a look at the map!"
 
 
 func _sparkles_already_earned() -> int:

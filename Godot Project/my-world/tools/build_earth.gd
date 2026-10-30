@@ -1,28 +1,56 @@
 extends SceneTree
 
-# Builds res://scenes/earth/earth.tscn: the little Earth town where the player lives. A cozy autumn town: a town green
-# with a white gazebo in the middle, a street round it with lamps, a diner, a bookshop, the corner market, an inn,
-# the town hall with its white steeple and a few homes, autumn trees, fallen leaves and pumpkins on the steps. Past the
-# green's southeast corner, the old red barn is the dance studio: walk in through its big doors. The middle home on
-# the south side is the player's own: walk in, and their bed is inside (a new game starts there).
-# By the old oak is the portal to Galaxity, open during the Shift. Logic: scripts/earth_world.gd.
+# Builds res://scenes/earth/earth.tscn: the Earth town where the player lives, a cozy autumn town with a Halloween
+# feel (jack-o'-lanterns, orange and purple string lights, scarecrows, mist on the pond). In the middle, the town green
+# with its white gazebo and a street round it: the Hollow Diner, Turn the Page Books, the Corner Market, the Maple Inn,
+# the Town Hall (walk in: town meetings happen there) and the homes on the south side, the middle one the player's own
+# (walk in: their bed is inside, and a new game starts there). Past the green's southeast corner, the old red barn is
+# the dance studio. By the old oak is the portal to Galaxity, open during the Shift. Logic: scripts/earth_world.gd.
+#
+# Round it (since Oct 30, 2026):
+# - Main Street runs north from the green: Crumb & Cauldron Bakery, Gizmo & Gumdrop Toys (both walk-in), Cobweb
+#   Corner Antiques, Nuts & Bolts Hardware (with a loading dock to skate), Lantern Hill Library (walk-in, up its steps
+#   with handrails to grind), Fire Station No. 1, and Old Oak Elementary at the top, with the Hollow Skate Yard beside it.
+# - Maple Lane, the residential street to the south: the Blastoffs' house (Nina, Prue and Bruno; walk in, a bedroom
+#   each), Mr. Palmer's house and five more, joined to the green by Hollow Lane. The old covered bridge carries it over
+#   Whisper Creek.
+# - The park west of the Town Hall: Willow Pond with a dock, the creek and its footbridge, the playground with the
+#   slide, the pumpkin patch, and Lookout Hill with Mossy Falls coming off its cliff. The hill's slopes are for riding
+#   down: a big kicker at the bottom and a rail all the way down.
+# The ground (hills, pond, creek) is scripts/earth_land.gd, which makes its mesh when the town loads. The town map
+# (res://ui/earth_map.json) is written from what's built here, for scripts/map_screen.gd.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_earth.gd
 
 const OUT := "res://scenes/earth/earth.tscn"
+const MAP_OUT := "res://ui/earth_map.json"
 const TOWN := "res://scenes/town/town.tscn"
 const GREEN_R := 13.0                             # the town green
 const STREET := 21.0                              # the street runs round the green, this far out (a square)
 const STREET_W := 6.0
-const EDGE := 64.0                                # an invisible wall this far out
+const EDGE := 64.0                                # (the old round edge: trees still ring the old town about here)
+const BOUNDS := Rect2(-152, -152, 244, 254)       # the invisible walls: x -152..92, z -152..102
 const STUDIO_AT := Vector3(35, 0, 35)             # the barn dance studio, past the southeast corner of the green
 const STUDIO_SIZE := Vector3(14, 6, 18)           # width, wall height, depth
 const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal to Galaxity, on the green's corner
 const HOME_SIZE := Vector3(10, 4.6, 9)            # the player's house: width, wall height, depth
+const MAIN_Z := Vector2(-36, -120)                # Main Street runs north along x = 0, from z -36 to -120
+const MAPLE_Z := 58.0                             # Maple Lane runs east-west along this z
+const MAPLE_X := Vector2(-150, 62)
+const HOLLOW_X := -26.0                           # Hollow Lane, from the green's southwest corner down to Maple Lane
+const BRIDGE_X := Vector2(-110, -96)              # the covered bridge's span along Maple Lane
+const YARD := Rect2(10, -122, 40, 44)             # the Hollow Skate Yard's concrete: x 10..50, z -122..-78
 
 var world: Node3D
 var rng := RandomNumberGenerator.new()
 var mats := {}
+var kit: SkateKit
+var feet := []                                    # [{name, at: Vector2, size: Vector2, yaw, label, kind}] for the map and clearances
+var roads := []                                   # [a: Vector2, b: Vector2, width, kind]
+var bulbs := []                                   # [position, colour] for all the string lights (one MultiMesh)
+var flags := []                                   # [position, yaw, colour] for all the bunting
+var spots := []                                   # [name, Vector2] extra labels for the map (pond, creek, hill...)
+var tree_parts := []                              # [kind, Transform3D, colour] for the batched trees
 
 
 func _initialize() -> void:
@@ -30,21 +58,55 @@ func _initialize() -> void:
 	world = Node3D.new()
 	world.name = "Earth"
 	world.set_script(load("res://scripts/earth_world.gd"))
+	kit = SkateKit.new(func(n: String, col: Color, rough: float, metal: float) -> Material:
+		return mat("Skate " + n, EARTH_SKATE.get(n, col), rough, metal))
 	_environment()
 	_sky()
 	_ground_and_street()
 	_gazebo()
 	_buildings()
+	_main_street()
+	_maple_lane()
+	_park()
+	_water()
+	_skate_yard()
+	_skate_spots()
 	_dance_studio()
 	_trees_and_leaves()
 	_lamps()
+	_halloween()
 	_portal()
 	_people()
 	_light_boxes()
+	_strings_and_bunting()
 	_own(world)
 	var scene := PackedScene.new()
 	print("SAVED ", OUT, " pack=", scene.pack(world), " save=", ResourceSaver.save(scene, OUT))
+	_write_map()
 	quit()
+
+
+# The skate pieces in Earth's colours: painted wood ramps, grey concrete, orange rails (it's autumn)
+const EARTH_SKATE := {
+	"Ramp": Color(0.72, 0.58, 0.42), "Coping": Color(0.8, 0.8, 0.82), "Kicker": Color(0.62, 0.45, 0.3),
+	"Funbox": Color(0.45, 0.32, 0.55), "Ledge": Color(0.66, 0.65, 0.63), "Ledge Edge": Color(0.85, 0.85, 0.88),
+	"Rail": Color(0.95, 0.5, 0.15), "Concrete": Color(0.66, 0.65, 0.63),
+}
+
+
+func multi(name: String, mesh: Mesh, xforms: Array, cols: Array, m: Material) -> MultiMeshInstance3D:
+	# Many copies of one mesh, each with its own place and colour, drawn as one. The instances are kept on the node and
+	# put into the MultiMesh when the town loads (scripts/multi_fill.gd): a --headless build can't save them itself.
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.mesh = mesh
+	var mi := MultiMeshInstance3D.new()
+	mi.name = name
+	mi.multimesh = mm
+	mi.material_override = m
+	MultiFill.pack(mi, xforms, cols)
+	return mi
 
 
 func _own(n: Node) -> void:
@@ -232,7 +294,7 @@ func _environment() -> void:
 	env.glow_enabled = true
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.9, 0.7, 0.55)
-	env.fog_density = 0.006
+	env.fog_density = 0.0035                                       # (lighter since the town grew: it's much wider now)
 	env.fog_sky_affect = 0.15                                      # haze over the town, but the sky keeps its colours
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -249,16 +311,21 @@ func _environment() -> void:
 
 func _ground_and_street() -> void:
 	var g := group("Ground")
-	mesh_at(cyl(EDGE + 20, EDGE + 20, 1.0, 48), mat("Autumn Grass", Color(0.45, 0.5, 0.25), 0.95), Vector3(0, -0.5, 0), g)
-	var b := StaticBody3D.new()
-	b.position = Vector3(0, -0.5, 0)
-	var cs := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = EDGE + 20
-	shape.height = 1.0
-	cs.shape = shape
-	b.add_child(cs)
-	g.add_child(b)
+	# The land itself: flat round the town, dipping into the pond and the creek, rising into Lookout Hill. Its mesh
+	# and collision are made when the town loads (scripts/earth_land.gd).
+	var land := StaticBody3D.new()
+	land.name = "Land"
+	land.set_script(load("res://scripts/earth_land.gd"))
+	g.add_child(land)
+	# Farmland past the walls, out to the hills on the horizon (just to look at)
+	var far := mat("Far Fields", Color(0.5, 0.48, 0.26), 0.95)
+	var x0 := EarthLand.X0
+	var x1 := EarthLand.X1
+	var z0 := EarthLand.Z0
+	var z1 := EarthLand.Z1
+	for r in [Rect2(x0 - 400, z0 - 400, x1 - x0 + 800, 400), Rect2(x0 - 400, z1, x1 - x0 + 800, 400),
+			Rect2(x0 - 400, z0, 400, z1 - z0), Rect2(x1, z0, 400, z1 - z0)]:
+		mesh_at(box(Vector3(r.size.x, 0.2, r.size.y)), far, Vector3(r.get_center().x, -0.1, r.get_center().y), g)
 	mesh_at(cyl(GREEN_R, GREEN_R, 0.06, 48), mat("Town Green", Color(0.38, 0.55, 0.28), 0.95), Vector3(0, 0.02, 0), g)
 	var road := mat("Street", Color(0.22, 0.22, 0.25), 0.9)
 	var walk := mat("Sidewalk", Color(0.72, 0.68, 0.62), 0.9)
@@ -271,16 +338,112 @@ func _ground_and_street() -> void:
 		for side in [-1, 1]:
 			mesh_at(box(Vector3(1.6, 0.14, length + (STREET_W + 1.6) * side)), walk,
 				out * (STREET + side * (STREET_W / 2 + 0.8)) + Vector3(0, 0.07, 0), g, atan2(along.x, along.z))
+		var c := out * STREET
+		roads.append([Vector2(c.x, c.z) - Vector2(along.x, along.z) * length / 2, Vector2(c.x, c.z) + Vector2(along.x, along.z) * length / 2,
+			STREET_W, "street"])
 	# A path across the green to the gazebo from each side
 	for k in 4:
 		var a := k * PI / 2 + PI / 4
 		var d := Vector3(cos(a), 0, sin(a))
 		mesh_at(box(Vector3(1.6, 0.05, GREEN_R - 4)), walk, d * (4 + (GREEN_R - 4) / 2) + Vector3(0, 0.05, 0), g, atan2(d.x, d.z))
-	# The edge: an invisible wall round the town, beyond the houses and trees
+	# Main Street, north from the green between the diner and the bookshop
+	_street(g, Vector2(0, -24), Vector2(0, MAIN_Z.y), "Main Street", -36.0)
+	# Hollow Lane, from the green's southwest corner down to Maple Lane
+	_street(g, Vector2(HOLLOW_X, 24), Vector2(HOLLOW_X, MAPLE_Z - STREET_W / 2), "Hollow Lane", 38.0)
+	# Maple Lane, east-west, in two parts either side of the covered bridge
+	_street(g, Vector2(MAPLE_X.x, MAPLE_Z), Vector2(BRIDGE_X.x, MAPLE_Z), "Maple Lane")
+	_street(g, Vector2(BRIDGE_X.y, MAPLE_Z), Vector2(MAPLE_X.y, MAPLE_Z), "Maple Lane")
+	roads.append([Vector2(BRIDGE_X.x, MAPLE_Z), Vector2(BRIDGE_X.y, MAPLE_Z), STREET_W, "bridge"])
+	# The edge: invisible walls round the town, past the last houses and trees
 	var edge := group("Edge")
-	for k in 40:
-		var a := k * TAU / 40
-		solid_box(Vector3(1.0, 6.0, 2 * EDGE * sin(PI / 40) + 0.5), Vector3(cos(a), 0, sin(a)) * EDGE + Vector3(0, 3, 0), edge, -a)
+	var r := BOUNDS
+	for wall in [[Vector3(r.get_center().x, 7, r.position.y), Vector3(r.size.x, 14, 1)], [Vector3(r.get_center().x, 7, r.end.y), Vector3(r.size.x, 14, 1)],
+			[Vector3(r.position.x, 7, r.get_center().y), Vector3(1, 14, r.size.y)], [Vector3(r.end.x, 7, r.get_center().y), Vector3(1, 14, r.size.y)]]:
+		solid_box(wall[1], wall[0], edge)                          # (tall enough for the hill and big air)
+	_far_hills()
+
+
+func _street(g: Node3D, a: Vector2, b: Vector2, street_name: String, walk_from := INF) -> void:
+	# A straight street from a to b with a sidewalk each side (sidewalks start at walk_from along its length, if set,
+	# so they don't run into the buildings at a corner), and a name sign at its start
+	var road := mat("Street", Color(0.22, 0.22, 0.25), 0.9)
+	var walk := mat("Sidewalk", Color(0.72, 0.68, 0.62), 0.9)
+	var d := (b - a).normalized()
+	var yaw := atan2(d.x, d.y)
+	var mid := (a + b) / 2.0
+	var length := a.distance_to(b)
+	mesh_at(box(Vector3(STREET_W, 0.06, length)), road, Vector3(mid.x, 0.03, mid.y), g, yaw)
+	var side_dir := Vector2(d.y, -d.x)
+	var wa := a
+	if walk_from != INF:
+		wa = a + d * absf(walk_from - (a.y if absf(d.y) > 0.5 else a.x))
+	var wl := wa.distance_to(b)
+	var wm := (wa + b) / 2.0
+	for side in [-1.0, 1.0]:
+		var c: Vector2 = wm + side_dir * side * (STREET_W / 2 + 0.8)
+		mesh_at(box(Vector3(1.6, 0.14, wl)), walk, Vector3(c.x, 0.07, c.y), g, yaw)
+	roads.append([a, b, STREET_W, "street"])
+	# The street sign: a green board on a post at the corner
+	var at: Vector2 = wa + side_dir * (STREET_W / 2 + 1.9) + d * 1.0
+	var post := Node3D.new()
+	post.name = street_name + " Sign"
+	post.position = Vector3(at.x, 0, at.y)
+	post.rotation.y = yaw + PI / 2
+	g.add_child(post)
+	mesh_at(cyl(0.05, 0.05, 2.8, 6), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(0, 1.4, 0), post)
+	mesh_at(box(Vector3(2.0, 0.35, 0.05)), mat("Street Sign", Color(0.15, 0.4, 0.25), 0.6), Vector3(0, 2.6, 0), post)
+	label(post, street_name, Vector3(0, 2.6, 0.04), 28)
+	label(post, street_name, Vector3(0, 2.6, -0.04), 28).rotation.y = PI
+
+
+func _far_hills() -> void:
+	# A ring of soft autumn hills on the horizon, so the town sits in a valley
+	var g := group("Far Hills")
+	var cols := [Color(0.72, 0.36, 0.14), Color(0.6, 0.25, 0.14), Color(0.75, 0.55, 0.2), Color(0.42, 0.4, 0.2)]
+	var hill_rng := RandomNumberGenerator.new()                # its own, so the town's trees stay where they were
+	hill_rng.seed = 31
+	for k in 26:
+		var a := k * TAU / 26 + hill_rng.randf_range(-0.08, 0.08)
+		var dist := hill_rng.randf_range(330.0, 420.0)
+		var r := hill_rng.randf_range(70.0, 120.0)
+		var h := mesh_at(ball(1.0, 16), mat("Far Hill %d" % (k % 4), cols[k % 4], 0.95), Vector3(cos(a) * dist - 30, -r * 0.55, sin(a) * dist - 25), g)
+		h.scale = Vector3(r, r * hill_rng.randf_range(0.75, 0.95), r)
+		h.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func _clear(p: Vector2, r: float, roads_too := true) -> bool:
+	# Whether nothing's been built within r of p: no building, street, water or skate yard
+	if not BOUNDS.grow(-2.0).has_point(p):
+		return false
+	if EarthLand.height(p.x, p.y) < -0.1 or EarthLand.creek_distance(p.x, p.y) < EarthLand.CREEK_HALF + 2.0 + r:
+		return false
+	if EarthLand.pond_e(p.x, p.y) < 1.2:
+		return false
+	if YARD.grow(r + 1.0).has_point(p):
+		return false
+	if p.length() < GREEN_R + 1.0 + r:
+		return false
+	for f in feet:
+		var local: Vector2 = (p - f.at).rotated(f.yaw)
+		var half: Vector2 = f.size / 2.0 + Vector2(r, r)
+		if absf(local.x) < half.x and absf(local.y) < half.y:
+			return false
+	if roads_too:
+		for rd in roads:
+			var a: Vector2 = rd[0]
+			var b: Vector2 = rd[1]
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+			if p.distance_to(a + ab * t) < rd[2] / 2.0 + 2.4 + r:
+				return false
+	return true
+
+
+func _foot(name: String, at: Vector3, yaw: float, size: Vector2, kind := "building", map_label := "") -> void:
+	# Remember a building's footprint (width along its local x, depth along its local z), for the map and to keep
+	# trees and props off it
+	feet.append({"name": name, "at": Vector2(at.x, at.z), "size": size, "yaw": yaw, "kind": kind,
+		"label": map_label if map_label != "" else name})
 
 
 func _gazebo() -> void:
@@ -349,6 +512,7 @@ func _building(name: String, at: Vector3, yaw: float, size: Vector3, wall: Color
 		awning := Color(0, 0, 0, 0)) -> Node3D:
 	# A shop or house along the street, its front (+Z) facing the green
 	var g := group(name, at, yaw)
+	_foot(name, at, yaw, Vector2(size.x, size.z), "building", sign_text)
 	mesh_at(box(size), mat("Wall " + name, wall, 0.85), Vector3(0, size.y / 2, 0), g)
 	solid_box(size, Vector3(0, size.y / 2, 0), g)
 	var roof := PrismMesh.new()
@@ -385,16 +549,21 @@ func _buildings() -> void:
 		"Corner Market", Color(0.25, 0.4, 0.6))
 	_building("Maple Inn", Vector3(back, 0, 9), -PI / 2, Vector3(11, 6.5, 8), Color(0.95, 0.94, 0.9), Color(0.25, 0.3, 0.4),
 		"Maple Inn")
-	# West side: the town hall with its white steeple
-	var hall := _building("Earth Town Hall", Vector3(-back, 0, 0), PI / 2, Vector3(12, 6.0, 9), Color(0.96, 0.95, 0.92),
-		Color(0.3, 0.3, 0.32), "Town Hall")
+	# West side: the town hall with its white steeple. Walk in: rows of benches, the podium, and the banner for the
+	# town meeting.
+	var hall := _walk_in("Earth Town Hall", Vector3(-back, 0, 0), PI / 2, Vector3(12, 6.0, 9), Color(0.96, 0.95, 0.92),
+		Color(0.3, 0.3, 0.32), "Town Hall", Color(0, 0, 0, 0), Color(0.93, 0.9, 0.84), Color(0.55, 0.38, 0.25))
 	mesh_at(box(Vector3(2.6, 4.0, 2.6)), mat("Steeple", Color(0.97, 0.96, 0.93)), Vector3(0, 8.5, 0), hall)
 	mesh_at(cyl(0.0, 1.9, 4.0, 4), mat("Steeple Roof", Color(0.3, 0.3, 0.32)), Vector3(0, 12.5, 0), hall, PI / 4)
+	_town_hall_inside(hall, Vector3(12, 6.0, 9))
 	# South side: homes
 	var home_cols := [Color(0.85, 0.75, 0.55), Color(0.6, 0.7, 0.85), Color(0.85, 0.6, 0.55)]
 	for k in [0, 2]:
 		_building("Home %d" % (k + 1), Vector3(-14 + k * 14, 0, back), PI, Vector3(8, 5.0, 7), home_cols[k], Color(0.3, 0.25, 0.25), "")
 	_my_home(Vector3(0, 0, back + 1.0), home_cols[1])
+	_foot("My Home", Vector3(0, 0, back + 1.0), PI, Vector2(HOME_SIZE.x, HOME_SIZE.z), "home", "Home")
+	var toward := Vector3(-STUDIO_AT.x, 0, -STUDIO_AT.z).normalized()
+	_foot("Dance Studio", STUDIO_AT, atan2(toward.x, toward.z), Vector2(STUDIO_SIZE.x + 1.0, STUDIO_SIZE.z + 1.0), "building")
 
 
 func _my_home(at: Vector3, wall: Color) -> void:
@@ -686,69 +855,157 @@ func _picket_fence(parent: Node3D, a: Vector3, b: Vector3, m: Material) -> void:
 	solid_box(Vector3(0.15, 1.0, d.length()), (a + b) / 2.0 + Vector3(0, 0.5, 0), parent, yaw)
 
 
-func _autumn_tree(parent: Node3D, at: Vector3, h: float) -> void:
+func _autumn_tree(parent: Node3D, at: Vector3, h: float, batch := false) -> void:
+	# An autumn tree: a trunk and four balls of leaves. In a batch (the town's hundreds of trees), the trunk and
+	# leaves go into shared MultiMeshes (_flush_trees()) and only the trunk's collision is its own node.
 	var cols := [Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2), Color(0.7, 0.35, 0.15)]
-	var t := Node3D.new()
-	t.position = at
-	parent.add_child(t)
-	mesh_at(cyl(0.18, 0.32, h, 8), mat("Trunk", Color(0.32, 0.22, 0.15), 0.95), Vector3(0, h / 2, 0), t)
-	solid_box(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0), t)
+	var t := parent
+	if batch:
+		tree_parts.append(["Trunk", Transform3D(Basis().scaled(Vector3(0.32, h, 0.32)), at + Vector3(0, h / 2, 0)), Color(0.32, 0.22, 0.15)])
+		solid_box(Vector3(0.6, 2.0, 0.6), at + Vector3(0, 1.0, 0), parent)
+	else:
+		t = Node3D.new()
+		t.position = at
+		parent.add_child(t)
+		mesh_at(cyl(0.18, 0.32, h, 8), mat("Trunk", Color(0.32, 0.22, 0.15), 0.95), Vector3(0, h / 2, 0), t)
+		solid_box(Vector3(0.6, 2.0, 0.6), Vector3(0, 1.0, 0), t)
 	for k in 4:
 		var c: Color = cols[rng.randi() % cols.size()]
 		var r := rng.randf_range(1.4, 2.2)
-		mesh_at(ball(r, 12), mat("Leaves %s" % c, c, 0.9), Vector3(rng.randf_range(-1, 1), h + rng.randf_range(-0.5, 1.0), rng.randf_range(-1, 1)), t)
+		var off := Vector3(rng.randf_range(-1, 1), h + rng.randf_range(-0.5, 1.0), rng.randf_range(-1, 1))
+		if batch:
+			tree_parts.append(["Leaves", Transform3D(Basis().scaled(Vector3.ONE * r), at + off), c])
+		else:
+			mesh_at(ball(r, 12), mat("Leaves %s" % c, c, 0.9), off, t)
+
+
+func _flush_trees(parent: Node3D) -> void:
+	# The batched trees' trunks, leaves and bare branches as three MultiMeshes, each coloured per instance
+	var meshes := {"Trunk": cyl(0.56, 1.0, 1.0, 8), "Leaves": ball(1.0, 12), "Branch": cyl(0.4, 1.0, 1.0, 5)}
+	for kind in meshes:
+		var parts := tree_parts.filter(func(p: Array) -> bool: return p[0] == kind)
+		if parts.is_empty():
+			continue
+		var m := StandardMaterial3D.new()
+		m.vertex_color_use_as_albedo = true
+		m.roughness = 0.9
+		parent.add_child(multi("Tree " + kind, meshes[kind], parts.map(func(p: Array) -> Transform3D: return p[1]),
+			parts.map(func(p: Array) -> Color: return p[2]), m))
 
 
 func _trees_and_leaves() -> void:
 	var g := group("Autumn Trees")
 	for k in 10:                                                  # round the green
 		var a := k * TAU / 10 + 0.15
-		_autumn_tree(g, Vector3(cos(a), 0, sin(a)) * (GREEN_R - 1.5), rng.randf_range(4.0, 5.5))
-	for k in 34:                                                  # behind the buildings, to the edge
-		var a := k * TAU / 34
-		var at := Vector3(cos(a), 0, sin(a)) * rng.randf_range(EDGE - 6, EDGE - 1)
-		if at.distance_to(STUDIO_AT) < 16.0:
-			continue                                              # not on the dance studio
-		_autumn_tree(g, at, rng.randf_range(5.0, 7.0))
+		_autumn_tree(g, Vector3(cos(a), 0, sin(a)) * (GREEN_R - 1.5), rng.randf_range(4.0, 5.5), true)
+	# All round the town, wherever there's room: thick woods out by the walls, scattered trees in the park, along
+	# the streets and up the hill. A few bare, twisty ones by the pond and the falls, for that spooky autumn look.
+	var placed: Array[Vector2] = []
+	var tries := 0
+	while placed.size() < 230 and tries < 6000:
+		tries += 1
+		var p := Vector2(rng.randf_range(BOUNDS.position.x + 3, BOUNDS.end.x - 3), rng.randf_range(BOUNDS.position.y + 3, BOUNDS.end.y - 3))
+		var near_edge := minf(minf(p.x - BOUNDS.position.x, BOUNDS.end.x - p.x), minf(p.y - BOUNDS.position.y, BOUNDS.end.y - p.y))
+		# Fewer trees in the middle of town, more towards the edges
+		if near_edge > 14.0 and rng.randf() < 0.55:
+			continue
+		if p.length() < 40.0 and absf(p.x) < 40.0:
+			continue                                              # the old town round the green keeps its look
+		if not _clear(p, 2.2):
+			continue
+		if placed.any(func(q: Vector2) -> bool: return q.distance_to(p) < 5.0):
+			continue
+		if EarthLand.hill(p.x, p.y) > 0.0 and EarthLand.hill(p.x, p.y) < EarthLand.HILL_TOP and \
+				absf(p.y - (EarthLand.HILL.y + 4.0)) < 9.0 and p.x > EarthLand.HILL.x:
+			continue                                              # the hill rail and kicker run need a clear run down
+		placed.append(p)
+		var spooky := (EarthLand.pond_e(p.x, p.y) < 1.8 or EarthLand.creek_distance(p.x, p.y) < 9.0) and placed.size() % 3 == 0
+		if spooky:
+			_bare_tree(g, _on_ground(p), rng.randf_range(4.5, 6.5))
+		else:
+			_autumn_tree(g, _on_ground(p), rng.randf_range(4.5, 7.0), true)
+	_flush_trees(g)
 	# Fallen leaves everywhere (one MultiMesh, so it's cheap)
 	var leaf := QuadMesh.new()
 	leaf.size = Vector2(0.22, 0.16)
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
-	mm.mesh = leaf
-	mm.instance_count = 1500
-	for i in mm.instance_count:
-		var r := sqrt(rng.randf()) * (EDGE - 2)
-		var a := rng.randf() * TAU
-		if Vector3(cos(a) * r, 0, sin(a) * r).distance_to(STUDIO_AT) < 12.0:
-			r *= 0.5                                              # not on the studio's floor
+	var leaves := []
+	while leaves.size() < 6000:
+		var p := Vector2(rng.randf_range(BOUNDS.position.x, BOUNDS.end.x), rng.randf_range(BOUNDS.position.y, BOUNDS.end.y))
+		if EarthLand.height(p.x, p.y) < -0.05 or YARD.has_point(p) or Vector2(p.x - STUDIO_AT.x, p.y - STUDIO_AT.z).length() < 12.0:
+			continue                                              # not in the water, on the yard or the studio's floor
+		var inside := false
+		for f in feet:
+			if f.kind == "inside" or f.kind == "home":
+				var local: Vector2 = (p - f.at).rotated(f.yaw)
+				if absf(local.x) < f.size.x / 2.0 and absf(local.y) < f.size.y / 2.0:
+					inside = true
+					break
+		if inside:
+			continue
+		leaves.append(p)
+	var xf := []
+	var cols := []
+	for i in leaves.size():
+		var p: Vector2 = leaves[i]
 		var basis := Basis(Vector3.RIGHT, -PI / 2).rotated(Vector3.UP, rng.randf() * TAU)
-		mm.set_instance_transform(i, Transform3D(basis, Vector3(cos(a) * r, 0.1, sin(a) * r)))
-		mm.set_instance_color(i, [Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2)][i % 3])
-	var mmi := MultiMeshInstance3D.new()
-	mmi.name = "Fallen Leaves"
-	mmi.multimesh = mm
+		xf.append(Transform3D(basis, _on_ground(p, 0.06)))
+		cols.append([Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2)][i % 3])
 	var lm := StandardMaterial3D.new()
 	lm.vertex_color_use_as_albedo = true
 	lm.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mmi.material_override = lm
-	g.add_child(mmi)
+	g.add_child(multi("Fallen Leaves", leaf, xf, cols, lm))
+
+
+func _bare_tree(parent: Node3D, at: Vector3, h: float) -> void:
+	# A bare, twisty dark tree with crooked branches (spooky, but not scary). Batched like the autumn trees.
+	var bark := Color(0.18, 0.13, 0.12)
+	_branch(at, at + Vector3(0.3, h, 0.25), 0.3, bark)
+	solid_box(Vector3(0.6, 2.0, 0.6), at + Vector3(0, 1.0, 0), parent)
+	for k in 5:
+		var a := k * TAU / 5 + rng.randf_range(-0.3, 0.3)
+		var y := h * rng.randf_range(0.55, 0.95)
+		var len := rng.randf_range(1.2, 2.2)
+		var d := Vector3(cos(a), rng.randf_range(0.4, 0.9), sin(a)).normalized()
+		var root_at := at + Vector3(0.3 * y / h, y, 0.25 * y / h)
+		_branch(root_at, root_at + d * len, 0.08, bark)
+		var d2 := (d + Vector3(rng.randf_range(-0.6, 0.6), 0.3, rng.randf_range(-0.6, 0.6))).normalized()
+		_branch(root_at + d * len, root_at + d * len + d2 * len * 0.6, 0.035, bark)
+
+
+func _branch(a: Vector3, b: Vector3, r: float, c: Color) -> void:
+	# One tapering piece of a bare tree, from a (thick end) to b, for the batched "Branch" MultiMesh
+	var up := b - a
+	var y := up.normalized()
+	var x := y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+	var z := x.cross(y)
+	# The base mesh tapers the wrong way round (wide at the bottom), which is what a branch wants
+	tree_parts.append(["Branch", Transform3D(Basis(x * r, y * up.length(), z * r), (a + b) / 2.0), c])
 
 
 func _lamps() -> void:
 	var g := group("Street Lamps")
-	var iron := mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5)
-	var glow := mat("Lamp Glass", Color(1.0, 0.85, 0.55), 0.3, 2.0)
 	for k in 4:
 		var a := k * PI / 2
 		var out := Vector3(cos(a), 0, sin(a))
 		var along := Vector3(cos(a + PI / 2), 0, sin(a + PI / 2))
 		for t in [-14.0, 0.0, 14.0]:
-			var p: Vector3 = out * (STREET - STREET_W / 2 - 0.9) + along * t
-			mesh_at(cyl(0.07, 0.1, 3.6, 8), iron, p + Vector3(0, 1.8, 0), g)
-			mesh_at(box(Vector3(0.4, 0.5, 0.4)), glow, p + Vector3(0, 3.7, 0), g)
-			lamp_light(g, p + Vector3(0, 3.5, 0), Color(1.0, 0.82, 0.55), 1.6, 9.0)
+			_lamp_post(g, out * (STREET - STREET_W / 2 - 0.9) + along * t)
+	# Down Main Street, both sides (the string lights hang between them), and along Maple Lane and Hollow Lane
+	var z := MAIN_Z.x - 4.0
+	var side := 1.0
+	while z > MAIN_Z.y + 2.0:
+		_lamp_post(g, Vector3(-side * (STREET_W / 2 + 0.9), 0, z))
+		_lamp_post(g, Vector3(side * (STREET_W / 2 + 0.9), 0, z - 8.0))
+		z -= 16.0
+	var x := MAPLE_X.y - 6.0
+	while x > MAPLE_X.x + 4.0:
+		if x < BRIDGE_X.x - 3.0 or x > BRIDGE_X.y + 3.0:
+			_lamp_post(g, Vector3(x, 0, MAPLE_Z + (STREET_W / 2 + 0.9) * (1.0 if int(x) % 2 == 0 else -1.0)))
+		x -= 18.0
+	for zz in [34.0, 46.0]:
+		_lamp_post(g, Vector3(HOLLOW_X + STREET_W / 2 + 0.9, 0, zz))
+	for p in [Vector2(-42, 11.5), Vector2(-60, 13.5), Vector2(-48, -19.5), Vector2(-72, -31), Vector2(-104, -41)]:
+		_lamp_post(g, _on_ground(p))
 
 
 func _portal() -> void:
@@ -852,3 +1109,1306 @@ func _light_boxes() -> void:
 		var done := Node3D.new()
 		done.name = "Done"
 		a.add_child(done)
+
+
+# -----------------------------------------------------------------------------
+# Walk-in buildings and what's inside them
+# -----------------------------------------------------------------------------
+func _walk_in(name: String, at: Vector3, yaw: float, size: Vector3, wall: Color, roof_c: Color, sign_text: String,
+		awning := Color(0, 0, 0, 0), inside_c := Color(0.95, 0.9, 0.8), floor_c := Color(0.62, 0.44, 0.3)) -> Node3D:
+	# A building you can walk into, its front (+Z) facing the street: hollow like the player's house, with a doorway,
+	# a wooden floor, warm lights inside and the "interior" music. Markers: "Doorway" just outside the door and
+	# "Inside" in the middle of the room (tools/test_earth.gd walks between them).
+	var g := group(name, at, yaw)
+	_foot(name, at, yaw, Vector2(size.x, size.z), "inside", sign_text)
+	var hd := size.z / 2.0
+	var h := size.y
+	var wall_m := mat("Wall " + name, wall, 0.85)
+	var shell := CSGCombiner3D.new()
+	shell.name = "Shell"
+	shell.use_collision = true
+	g.add_child(shell)
+	var outer := CSGBox3D.new()
+	outer.size = size
+	outer.position = Vector3(0, h / 2.0, 0)
+	outer.material = wall_m
+	shell.add_child(outer)
+	var hollow := CSGBox3D.new()
+	hollow.operation = CSGShape3D.OPERATION_SUBTRACTION
+	hollow.size = size - Vector3(0.6, 0.2, 0.6)
+	hollow.position = Vector3(0, h / 2.0 - 0.2, 0)
+	hollow.material = mat("Inside " + name, inside_c, 0.9)
+	shell.add_child(hollow)
+	var doorway := CSGBox3D.new()
+	doorway.operation = CSGShape3D.OPERATION_SUBTRACTION
+	doorway.size = Vector3(2.0, 2.8, 1.2)
+	doorway.position = Vector3(0, 1.4, hd)
+	doorway.material = wall_m
+	shell.add_child(doorway)
+	var roof := PrismMesh.new()
+	roof.size = Vector3(size.x + 0.6, 2.2, size.z + 0.6)
+	mesh_at(roof, mat("Roof " + name, roof_c, 0.8), Vector3(0, h + 1.1, 0), g)
+	mesh_at(box(Vector3(size.x - 0.7, 0.04, size.z - 0.7)), mat("Floor " + name, floor_c, 0.7), Vector3(0, 0.02, 0), g)
+	var trim := mat("Home Trim", Color(0.96, 0.94, 0.9), 0.7)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.2, 2.9, 0.2)), trim, Vector3(sx * 1.1, 1.45, hd + 0.05), g)
+	mesh_at(box(Vector3(2.4, 0.2, 0.2)), trim, Vector3(0, 2.9, hd + 0.05), g)
+	var glass := mat("Warm Window", Color(1.0, 0.85, 0.55), 0.3, 1.6)
+	for wx in [-size.x * 0.3, size.x * 0.3]:
+		mesh_at(box(Vector3(1.6, 1.3, 0.1)), glass, Vector3(wx, 1.7, hd + 0.05), g)
+		mesh_at(box(Vector3(1.6, 1.3, 0.1)), glass, Vector3(wx, 1.7, hd - 0.33), g)
+		if h > 5.0:
+			mesh_at(box(Vector3(1.2, 1.0, 0.1)), glass, Vector3(wx, h - 1.3, hd + 0.05), g)
+	if awning.a > 0.0:
+		for s in 6:
+			var c := awning if s % 2 == 0 else Color(0.95, 0.95, 0.9)
+			mesh_at(box(Vector3(size.x / 6, 0.06, 1.4)), mat("Awning %s %d" % [name, s % 2], c, 0.7),
+				Vector3(-size.x / 2 + size.x / 12 + s * size.x / 6, 3.1, hd + 0.7), g, 0.0, Vector3(0.3, 0, 0))
+	if sign_text != "":
+		mesh_at(box(Vector3(maxf(3.0, sign_text.length() * 0.3), 0.7, 0.12)), mat("Sign Board", Color(0.18, 0.25, 0.2)),
+			Vector3(0, 3.65, hd + 0.12), g)
+		label(g, sign_text, Vector3(0, 3.65, hd + 0.2), 44)
+	lamp_light(g, Vector3(0, 2.6, hd + 1.2), Color(1.0, 0.8, 0.55), 1.0, 6.0)
+	for k in int(ceil(size.x / 10.0)):                           # warm lights inside, always on
+		var inside := OmniLight3D.new()
+		inside.light_color = Color(1.0, 0.85, 0.65)
+		inside.light_energy = 1.2
+		inside.omni_range = maxf(size.z, 9.0)
+		inside.position = Vector3(-size.x / 2 + size.x * (k + 0.5) / ceil(size.x / 10.0), h - 0.8, 0)
+		g.add_child(inside)
+	var zone := Area3D.new()
+	zone.name = "Music"
+	zone.set_script(load("res://scripts/music_zone.gd"))
+	zone.set("track", "interior")
+	var zs := CollisionShape3D.new()
+	var zb := BoxShape3D.new()
+	zb.size = Vector3(size.x - 0.6, 4.0, size.z - 0.6)
+	zs.shape = zb
+	zs.position = Vector3(0, 2.0, 0)
+	zone.add_child(zs)
+	g.add_child(zone)
+	var m_in := Marker3D.new()
+	m_in.name = "Inside"
+	m_in.position = Vector3(0, 1.0, 0.5)
+	g.add_child(m_in)
+	var m_door := Marker3D.new()
+	m_door.name = "Doorway"
+	m_door.position = Vector3(0, 1.0, hd + 2.2)
+	g.add_child(m_door)
+	_jack(g, Vector3(size.x * 0.32, 0, hd + 0.7), 0.3)
+	return g
+
+
+func _solid_mesh(size: Vector3, m: Material, pos: Vector3, parent: Node3D, yaw := 0.0) -> MeshInstance3D:
+	# A box you can see and bump into
+	solid_box(size, pos, parent, yaw)
+	return mesh_at(box(size), m, pos, parent, yaw)
+
+
+func _table(parent: Node3D, at: Vector3, top := Color(0.6, 0.4, 0.25), round_top := true) -> void:
+	var wood := mat("Table %s" % top, top, 0.7)
+	if round_top:
+		mesh_at(cyl(0.6, 0.6, 0.06, 16), wood, at + Vector3(0, 0.78, 0), parent)
+	else:
+		mesh_at(box(Vector3(1.6, 0.06, 0.9)), wood, at + Vector3(0, 0.78, 0), parent)
+	mesh_at(cyl(0.06, 0.08, 0.75, 8), wood, at + Vector3(0, 0.38, 0), parent)
+	solid_box(Vector3(0.8, 0.8, 0.8), at + Vector3(0, 0.4, 0), parent)
+
+
+func _chair(parent: Node3D, at: Vector3, yaw: float, c := Color(0.5, 0.32, 0.2)) -> void:
+	var m := mat("Chair %s" % c, c, 0.7)
+	var ch := Node3D.new()
+	ch.position = at
+	ch.rotation.y = yaw
+	parent.add_child(ch)
+	mesh_at(box(Vector3(0.45, 0.06, 0.45)), m, Vector3(0, 0.45, 0), ch)
+	mesh_at(box(Vector3(0.45, 0.5, 0.06)), m, Vector3(0, 0.72, -0.2), ch)
+	for sx in [-0.18, 0.18]:
+		for sz in [-0.18, 0.18]:
+			mesh_at(box(Vector3(0.05, 0.45, 0.05)), m, Vector3(sx, 0.22, sz), ch)
+
+
+func _shelf(parent: Node3D, at: Vector3, yaw: float, width: float, height: float, book_cols: Array, depth := 0.5) -> void:
+	# A tall shelf, its shelves filled with a row of colourful things (books, boxes, jars)
+	var s := Node3D.new()
+	s.position = at
+	s.rotation.y = yaw
+	parent.add_child(s)
+	var wood := mat("Shelf Wood", Color(0.45, 0.3, 0.2), 0.8)
+	mesh_at(box(Vector3(width, height, 0.06)), wood, Vector3(0, height / 2, -depth / 2), s)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.06, height, depth)), wood, Vector3(sx * width / 2, height / 2, 0), s)
+	solid_box(Vector3(width, height, depth), Vector3(0, height / 2, 0), s)
+	# The books (or boxes) as one MultiMesh per shelf: a library's worth would be thousands of nodes otherwise
+	var books := []
+	var rows := int(height / 0.45)
+	for r in rows:
+		var y := 0.1 + r * 0.45
+		mesh_at(box(Vector3(width, 0.04, depth)), wood, Vector3(0, y, 0), s)
+		var x := -width / 2 + 0.1
+		var k := r * 3
+		while x < width / 2 - 0.15:
+			var w := rng.randf_range(0.06, 0.14)
+			var bh := rng.randf_range(0.24, 0.36)
+			books.append([Transform3D(Basis().scaled(Vector3(w, bh, depth * 0.8)), Vector3(x + w / 2, y + 0.02 + bh / 2, 0.02)),
+				book_cols[k % book_cols.size()]])
+			x += w + 0.01
+			k += 1
+	if not mats.has("Books"):
+		var bm := StandardMaterial3D.new()
+		bm.vertex_color_use_as_albedo = true
+		bm.roughness = 0.8
+		mats["Books"] = bm
+	s.add_child(multi("Books", box(Vector3.ONE), books.map(func(b: Array) -> Transform3D: return b[0]),
+		books.map(func(b: Array) -> Color: return b[1]), mats["Books"]))
+
+
+func _town_hall_inside(g: Node3D, size: Vector3) -> void:
+	# Town meetings: rows of benches facing the podium at the back, a banner, flags and a big clock
+	var hd := size.z / 2.0
+	var wood := mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7)
+	for row in 4:
+		for sx in [-1.0, 1.0]:
+			var p: Vector3 = Vector3(sx * 2.6, 0, hd - 2.4 - row * 1.4)
+			_solid_mesh(Vector3(3.4, 0.45, 0.45), wood, p + Vector3(0, 0.25, 0), g)
+			mesh_at(box(Vector3(3.4, 0.5, 0.08)), wood, p + Vector3(0, 0.7, 0.24), g)
+	_solid_mesh(Vector3(1.0, 1.15, 0.6), mat("Podium", Color(0.38, 0.22, 0.14), 0.6), Vector3(0, 0.58, -hd + 1.4), g)
+	mesh_at(box(Vector3(5.0, 0.1, 1.6)), mat("Stage Rug", Color(0.6, 0.15, 0.2), 0.9), Vector3(0, 0.06, -hd + 1.4), g)
+	mesh_at(box(Vector3(5.5, 1.0, 0.05)), mat("Banner", Color(0.95, 0.55, 0.15), 0.8), Vector3(0, 3.8, -hd + 0.35), g)
+	label(g, "TOWN MEETING TONIGHT, 7 PM", Vector3(0, 3.8, -hd + 0.4), 36, Color(0.25, 0.1, 0.05)).outline_size = 0
+	var clock := mesh_at(cyl(0.55, 0.55, 0.08, 24), mat("Clock Face", Color(0.97, 0.95, 0.88), 0.5), Vector3(0, 5.0, -hd + 0.35), g,
+		0.0, Vector3(PI / 2, 0, 0))
+	clock.name = "Hall Clock"
+	for sx in [-1.0, 1.0]:
+		mesh_at(cyl(0.03, 0.03, 2.4, 6), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(sx * 3.4, 1.2, -hd + 0.8), g)
+		mesh_at(box(Vector3(0.9, 0.6, 0.02)), mat("Town Flag", Color(0.2, 0.35, 0.6), 0.8), Vector3(sx * 3.4 + 0.45, 2.1, -hd + 0.8), g)
+		_jack(g, Vector3(sx * 1.6, 0.0, -hd + 1.0), 0.28)
+
+
+func _bakery_inside(g: Node3D, size: Vector3) -> void:
+	# Pies cooling, a glass case of cupcakes and pumpkin bread, the big oven, and little tables by the window
+	var hd := size.z / 2.0
+	var counter := mat("Counter", Color(0.95, 0.88, 0.75), 0.6)
+	_solid_mesh(Vector3(6.0, 1.0, 0.9), counter, Vector3(0, 0.5, -hd + 2.6), g)
+	mesh_at(box(Vector3(5.6, 0.5, 0.7)), mat("Glass Case", Color(0.8, 0.92, 1.0), 0.05, 0.0, 0.35), Vector3(0, 1.27, -hd + 2.6), g)
+	var treats := [Color(0.95, 0.55, 0.2), Color(0.98, 0.8, 0.85), Color(0.55, 0.32, 0.2), Color(0.9, 0.85, 0.6), Color(0.6, 0.35, 0.75)]
+	for k in 9:
+		var c: Color = treats[k % treats.size()]
+		mesh_at(cyl(0.09, 0.07, 0.12, 10), mat("Cupcake %d" % (k % 5), c, 0.7), Vector3(-2.4 + k * 0.6, 1.11, -hd + 2.6), g)
+		mesh_at(ball(0.09, 8), mat("Frosting %d" % (k % 3), [Color(1, 0.97, 0.95), Color(0.95, 0.5, 0.15), Color(0.5, 0.25, 0.6)][k % 3], 0.6),
+			Vector3(-2.4 + k * 0.6, 1.2, -hd + 2.6), g)
+	var oven := mat("Oven Brick", Color(0.6, 0.3, 0.22), 0.9)
+	_solid_mesh(Vector3(2.4, 2.4, 1.2), oven, Vector3(-size.x / 2 + 1.8, 1.2, -hd + 0.9), g)
+	mesh_at(box(Vector3(1.0, 0.7, 0.05)), mat("Oven Glow", Color(1.0, 0.5, 0.15), 0.5, 2.5), Vector3(-size.x / 2 + 1.8, 1.0, -hd + 1.52), g)
+	for k in 4:                                                  # pies cooling on the back shelf
+		_solid_mesh(Vector3(0.1, 0.1, 0.1), counter, Vector3(1.5 + k * 0.8, 1.55, -hd + 0.6), g)
+		mesh_at(cyl(0.3, 0.26, 0.1, 16), mat("Pie Crust", Color(0.85, 0.6, 0.3), 0.8), Vector3(1.5 + k * 0.8, 1.6, -hd + 0.6), g)
+		mesh_at(cyl(0.24, 0.24, 0.02, 16), mat("Pumpkin Filling", Color(0.85, 0.42, 0.12), 0.7), Vector3(1.5 + k * 0.8, 1.65, -hd + 0.6), g)
+	mesh_at(box(Vector3(4.0, 0.06, 0.5)), mat("Shelf Wood", Color(0.45, 0.3, 0.2), 0.8), Vector3(2.7, 1.52, -hd + 0.6), g)
+	for p in [Vector3(-2.6, 0, hd - 2.0), Vector3(2.6, 0, hd - 2.0)]:
+		_table(g, p, Color(0.95, 0.9, 0.8))
+		_chair(g, p + Vector3(-0.9, 0, 0), PI / 2, Color(0.55, 0.3, 0.6))
+		_chair(g, p + Vector3(0.9, 0, 0), -PI / 2, Color(0.95, 0.55, 0.2))
+
+
+func _toy_shop_inside(g: Node3D, size: Vector3) -> void:
+	# Shelves of toys, a table of board games, a train going round the middle and a big teddy in the corner
+	var hd := size.z / 2.0
+	var toys := [Color(0.95, 0.3, 0.3), Color(0.3, 0.6, 0.95), Color(0.98, 0.85, 0.25), Color(0.45, 0.8, 0.4), Color(0.75, 0.45, 0.9),
+		Color(0.98, 0.55, 0.2)]
+	for sx in [-1.0, 1.0]:
+		_shelf(g, Vector3(sx * (size.x / 2 - 0.6), 0, -0.5), sx * -PI / 2, 5.0, 2.2, toys, 0.6)
+	_table(g, Vector3(0, 0, -hd + 2.0), Color(0.35, 0.55, 0.4), false)
+	for k in 5:
+		mesh_at(box(Vector3(0.35, 0.06 + k * 0.0, 0.35)), mat("Game Box %d" % k, toys[k], 0.6), Vector3(-0.5 + (k % 3) * 0.5, 0.84 + (k / 3) * 0.07, -hd + 2.0), g)
+	# A little train on a round track
+	var track := TorusMesh.new()
+	track.inner_radius = 1.5
+	track.outer_radius = 1.6
+	mesh_at(track, mat("Track", Color(0.3, 0.3, 0.32), 0.5), Vector3(0, 0.05, 0.9), g)
+	var train := Node3D.new()
+	train.name = "Toy Train"
+	train.position = Vector3(0, 0.0, 0.9)
+	train.set_script(load("res://scripts/spin.gd"))
+	g.add_child(train)
+	for k in 3:
+		var a := -k * 0.45
+		mesh_at(box(Vector3(0.3, 0.25, 0.45)), mat("Train %d" % k, toys[k], 0.5), Vector3(cos(a) * 1.55, 0.18, sin(a) * 1.55), train, -a)
+	# The big teddy and some blocks
+	var bear := mat("Teddy", Color(0.65, 0.42, 0.22), 0.9)
+	var tp := Vector3(size.x / 2 - 1.3, 0, hd - 1.3)
+	mesh_at(ball(0.55, 12), bear, tp + Vector3(0, 0.55, 0), g)
+	mesh_at(ball(0.38, 12), bear, tp + Vector3(0, 1.35, 0), g)
+	for sx in [-0.28, 0.28]:
+		mesh_at(ball(0.13, 8), bear, tp + Vector3(sx, 1.68, 0), g)
+	solid_box(Vector3(1.1, 1.0, 1.1), tp + Vector3(0, 0.5, 0), g)
+	for k in 6:
+		mesh_at(box(Vector3(0.3, 0.3, 0.3)), mat("Block %d" % k, toys[k], 0.6), Vector3(-size.x / 2 + 1.2 + (k % 3) * 0.32, 0.15 + (k / 3) * 0.3, hd - 1.2), g)
+
+
+func _library_inside(g: Node3D, size: Vector3) -> void:
+	# Rows of bookshelves, reading tables with green lamps, a story corner on a round rug with beanbags
+	var hd := size.z / 2.0
+	var books := [Color(0.6, 0.15, 0.15), Color(0.15, 0.3, 0.5), Color(0.2, 0.42, 0.25), Color(0.75, 0.6, 0.25), Color(0.45, 0.2, 0.45),
+		Color(0.85, 0.45, 0.15)]
+	for k in 3:
+		for sx in [-1.0, 1.0]:
+			_shelf(g, Vector3(sx * (size.x / 2 - 2.6), 0, -hd + 1.5 + k * 2.4), 0.0, 3.6, 2.4, books, 0.5)
+	for sx in [-1.0, 1.0]:
+		_shelf(g, Vector3(sx * (size.x / 2 - 0.5), 0, 0.5), sx * -PI / 2, 6.0, 3.0, books, 0.5)
+	for k in 2:
+		var p := Vector3(0, 0, -hd + 2.5 + k * 3.0)
+		_table(g, p, Color(0.45, 0.3, 0.18), false)
+		mesh_at(cyl(0.12, 0.12, 0.12, 12), mat("Green Lamp", Color(0.2, 0.6, 0.35), 0.4, 1.2), p + Vector3(0, 0.95, 0), g)
+		for sx in [-1.0, 1.0]:
+			_chair(g, p + Vector3(sx * 0.6, 0, 0.7), PI)
+	var rp := Vector3(-size.x / 2 + 3.0, 0, hd - 2.6)
+	mesh_at(cyl(2.0, 2.0, 0.04, 32), mat("Story Rug", Color(0.85, 0.5, 0.2), 0.9), rp + Vector3(0, 0.04, 0), g)
+	for k in 3:
+		var a := k * TAU / 3
+		var bb := mesh_at(ball(0.45, 12), mat("Beanbag %d" % k, books[k + 3], 0.9), rp + Vector3(cos(a), 0.3, sin(a)) * Vector3(1.3, 1, 1.3), g)
+		bb.scale = Vector3(1, 0.6, 1)
+	mesh_at(box(Vector3(1.6, 0.06, 0.6)), mat("Counter", Color(0.95, 0.88, 0.75), 0.6), Vector3(size.x / 2 - 2.5, 1.0, hd - 2.0), g)
+	_solid_mesh(Vector3(1.6, 1.0, 0.6), mat("Desk Wood", Color(0.4, 0.26, 0.16), 0.7), Vector3(size.x / 2 - 2.5, 0.5, hd - 2.0), g)
+	mesh_at(box(Vector3(2.6, 0.5, 0.05)), mat("Sign Board", Color(0.18, 0.25, 0.2)), Vector3(size.x / 2 - 2.5, 2.4, hd - 2.0), g)
+	label(g, "Quiet, please!", Vector3(size.x / 2 - 2.5, 2.4, hd - 1.97), 26)
+
+
+# -----------------------------------------------------------------------------
+# Main Street
+# -----------------------------------------------------------------------------
+func _side(x_sign: float, depth: float) -> float:
+	# The x of a building's middle on Main Street's west (-1) or east (+1) side, behind the sidewalk
+	return x_sign * (STREET_W / 2 + 1.6 + 1.0 + depth / 2.0)
+
+
+func _main_street() -> void:
+	# West side, facing east: the bakery, the toy shop, the library up its steps, the fire station
+	var bakery_size := Vector3(11, 5.0, 10)
+	var bakery := _walk_in("Bakery", Vector3(_side(-1, 10), 0, -46), PI / 2, bakery_size, Color(0.95, 0.78, 0.55),
+		Color(0.45, 0.22, 0.25), "Crumb & Cauldron Bakery", Color(0.55, 0.25, 0.55))
+	_bakery_inside(bakery, bakery_size)
+	_witch_hat(bakery, Vector3(0, 4.6, 5.25), 0.5)                   # a little witch's hat on the sign
+	var toys_size := Vector3(10, 5.0, 10)
+	var toys := _walk_in("Toy Shop", Vector3(_side(-1, 10), 0, -62), PI / 2, toys_size, Color(0.55, 0.75, 0.9),
+		Color(0.85, 0.35, 0.3), "Gizmo & Gumdrop Toys", Color(0.95, 0.75, 0.2))
+	_toy_shop_inside(toys, toys_size)
+	_library(Vector3(_side(-1, 13) - 5.5, 0, -84))                  # set back, for its steps
+	_fire_station(Vector3(_side(-1, 12) - 4.0, 0, -104))            # set back, for the truck
+	# East side, facing west: antiques and the hardware store (the skate yard and the school are further up)
+	var antiques := _building("Antiques", Vector3(_side(1, 9), 0, -46), -PI / 2, Vector3(10, 5.5, 9), Color(0.48, 0.35, 0.55),
+		Color(0.2, 0.18, 0.22), "Cobweb Corner Antiques", Color(0.3, 0.2, 0.35))
+	_cobwebs(antiques, Vector3(10, 5.5, 9))
+	_hardware(Vector3(_side(1, 10), 0, -63))
+	_school(Vector3(0, 0, MAIN_Z.y - 3.0 - 8.0))
+	# Planters and benches down both sidewalks (their edges are grindable, like every box's: scripts/edge_rails.gd)
+	var g := group("Main Street Things")
+	var planter := mat("Planter Stone", Color(0.62, 0.6, 0.58), 0.85)
+	var mums := [Color(0.95, 0.55, 0.15), Color(0.75, 0.2, 0.25), Color(0.95, 0.8, 0.25), Color(0.6, 0.3, 0.6)]
+	var bench_m := mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7)
+	for z in [-43.0, -59.0, -91.0, -107.0]:                             # (between the lamps)
+		for sx in [-1.0, 1.0]:
+			var x: float = sx * (STREET_W / 2 + 0.8)
+			if sx > 0 and z < -75.0:
+				continue                                           # (the skate yard's fence is there)
+			_solid_mesh(Vector3(0.9, 0.55, 3.2), planter, Vector3(x, 0.28, z), g)
+			for k in 4:
+				mesh_at(ball(0.35, 8), mat("Mums %d" % k, mums[k], 0.9), Vector3(x + rng.randf_range(-0.15, 0.15), 0.7, z - 1.2 + k * 0.8), g)
+			_bench(g, Vector3(x, 0, z - 3.0), sx * -PI / 2, bench_m)
+
+
+func _bench(parent: Node3D, at: Vector3, yaw: float, m: Material) -> void:
+	# A park bench, its seat facing local +Z
+	var b := Node3D.new()
+	b.position = at
+	b.rotation.y = yaw
+	parent.add_child(b)
+	_solid_mesh(Vector3(1.8, 0.1, 0.5), m, Vector3(0, 0.45, 0), b)
+	mesh_at(box(Vector3(1.8, 0.45, 0.08)), m, Vector3(0, 0.8, -0.24), b)
+	for sx in [-0.8, 0.8]:
+		mesh_at(box(Vector3(0.08, 0.45, 0.45)), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(sx, 0.22, 0), b)
+
+
+func _library(at: Vector3) -> void:
+	# Lantern Hill Library, up on a stone base with wide steps down to the street and a handrail each side of them
+	# (grind them!). Walk in at the top.
+	var base_h := 1.2
+	var size := Vector3(16, 6.5, 13)
+	var lib := _walk_in("Library", at + Vector3(0, base_h, 0), PI / 2, size, Color(0.62, 0.32, 0.25), Color(0.25, 0.28, 0.3),
+		"Lantern Hill Library", Color(0, 0, 0, 0), Color(0.93, 0.88, 0.78), Color(0.5, 0.33, 0.2))
+	_library_inside(lib, size)
+	var stone := mat("Library Stone", Color(0.75, 0.73, 0.68), 0.85)
+	var hd := size.z / 2.0
+	# The base under the building, and a porch in front of the door
+	_solid_mesh(Vector3(size.x + 1.0, base_h, size.z + 1.0), stone, Vector3(0, -base_h / 2, 0), lib)
+	_solid_mesh(Vector3(8.0, base_h, 2.5), stone, Vector3(0, -base_h / 2, hd + 1.25), lib)
+	var steps := 4
+	for k in steps:                                                  # steps down to the sidewalk
+		var top := base_h * (steps - k - 0.5) / steps
+		_solid_mesh(Vector3(8.0, top, 0.5), stone, Vector3(0, top / 2 - base_h, hd + 2.5 + 0.25 + k * 0.5), lib)
+	var rail := kit.mat("Rail", 0.25, 0.8)
+	for x in [-3.6, 3.6]:
+		var a := Vector3(x, 0.8, hd + 1.0)
+		var b := Vector3(x, 0.8, hd + 2.5)
+		var c := Vector3(x, 0.8 - base_h, hd + 2.5 + steps * 0.5 + 0.6)
+		kit.tube(a, b, 0.05, rail, lib)
+		kit.tube(b, c, 0.05, rail, lib)
+		for p in [[a, 0.0], [b, 0.0], [c, -base_h]]:
+			kit.tube(Vector3(p[0].x, p[1], p[0].z), p[0], 0.04, rail, lib)
+		kit.grind_line("Handrail " + ("A" if x < 0.0 else "B"), [a + Vector3.UP * 0.05, b + Vector3.UP * 0.05, c + Vector3.UP * 0.05], "rail", lib)
+	# The library's lanterns, either side of the door
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.35, 0.5, 0.35)), mat("Lamp Glass", Color(1.0, 0.85, 0.55), 0.3, 2.0), Vector3(sx * 1.6, 2.4, hd + 0.3), lib)
+
+
+func _fire_station(at: Vector3) -> void:
+	# Fire Station No. 1: red brick, two big doors (one open, the shiny red truck half out of it), a bell and a
+	# dalmatian-spotted bench
+	var size := Vector3(12, 6.0, 12)
+	var g := _building("Fire Station", at, PI / 2, size, Color(0.62, 0.2, 0.16), Color(0.25, 0.22, 0.22), "Fire Station No. 1")
+	var hd := size.z / 2.0
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(4.2, 3.8, 0.1)), mat("Station Door", Color(0.9, 0.88, 0.85), 0.6), Vector3(sx * 3.0, 1.9, hd + 0.06), g)
+		for k in 4:
+			mesh_at(box(Vector3(4.0, 0.05, 0.12)), mat("Door Line", Color(0.6, 0.6, 0.62), 0.6), Vector3(sx * 3.0, 0.5 + k * 0.9, hd + 0.1), g)
+	# The truck, parked on the apron in front of the left door
+	var truck := Node3D.new()
+	truck.name = "Fire Truck"
+	truck.position = Vector3(-3.0, 0, hd + 2.6)
+	g.add_child(truck)
+	var red := mat("Truck Red", Color(0.85, 0.1, 0.1), 0.35)
+	_solid_mesh(Vector3(2.4, 1.6, 5.5), red, Vector3(0, 1.3, 0), truck)
+	mesh_at(box(Vector3(2.3, 1.0, 1.6)), red, Vector3(0, 2.6, 1.8), truck)
+	mesh_at(box(Vector3(2.2, 0.6, 0.05)), mat("Truck Glass", Color(0.7, 0.85, 0.95), 0.1), Vector3(0, 2.75, 2.62), truck)
+	mesh_at(box(Vector3(0.4, 0.15, 0.4)), mat("Siren", Color(1.0, 0.2, 0.2), 0.3, 2.0), Vector3(0, 3.18, 1.8), truck)
+	for sx in [-0.5, 0.5]:
+		mesh_at(cyl(0.05, 0.05, 4.8, 6), mat("Ladder", Color(0.85, 0.85, 0.88), 0.3), Vector3(sx, 2.25, -0.6), truck, 0.0, Vector3(PI / 2, 0, 0))
+	for k in 8:
+		mesh_at(box(Vector3(1.0, 0.05, 0.05)), mat("Ladder", Color(0.85, 0.85, 0.88), 0.3), Vector3(0, 2.25, -2.8 + k * 0.6), truck)
+	for sx in [-1.25, 1.25]:
+		for sz in [-1.8, 1.6]:
+			mesh_at(cyl(0.48, 0.48, 0.35, 16), mat("Tyre", Color(0.08, 0.08, 0.09), 0.9), Vector3(sx, 0.48, sz), truck, 0.0, Vector3(0, 0, PI / 2))
+	# The bell, on a little frame by the door
+	var bell := Node3D.new()
+	bell.position = Vector3(4.6, 0, hd + 1.4)
+	g.add_child(bell)
+	for sx in [-0.6, 0.6]:
+		mesh_at(box(Vector3(0.12, 2.2, 0.12)), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(sx, 1.1, 0), bell)
+	mesh_at(box(Vector3(1.3, 0.12, 0.12)), mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5), Vector3(0, 2.2, 0), bell)
+	mesh_at(cyl(0.12, 0.35, 0.5, 14), mat("Brass", Color(0.85, 0.65, 0.25), 0.3), Vector3(0, 1.85, 0), bell)
+	(bell.get_child(bell.get_child_count() - 1) as MeshInstance3D).material_override.metallic = 0.8
+
+
+func _hardware(at: Vector3) -> void:
+	# Nuts & Bolts Hardware, with a loading dock on its north side: a raised concrete dock with a kicker up onto it,
+	# a rail along its edge and pallets, the kind of spot skaters always find
+	var size := Vector3(12, 5.0, 10)
+	var g := _building("Hardware Store", at, -PI / 2, size, Color(0.55, 0.6, 0.5), Color(0.3, 0.25, 0.22), "Nuts & Bolts Hardware",
+		Color(0.85, 0.35, 0.15))
+	# Wheelbarrows and rakes out front, for raking leaves
+	var hd := size.z / 2.0
+	for k in 3:
+		mesh_at(cyl(0.02, 0.02, 1.6, 6), mat("Rake Handle", Color(0.6, 0.45, 0.3), 0.7), Vector3(-size.x / 2 + 1.0 + k * 0.3, 0.8, hd + 0.2), g,
+			0.0, Vector3(-0.2, 0, 0))
+		mesh_at(box(Vector3(0.4, 0.05, 0.06)), mat("Rake Head", Color(0.3, 0.3, 0.32), 0.4), Vector3(-size.x / 2 + 1.0 + k * 0.3, 1.6, hd + 0.05), g)
+	# The dock: on the store's north side (its local -x), running along the side wall
+	var dock := Node3D.new()
+	dock.name = "Loading Dock"
+	dock.position = Vector3(-size.x / 2 - 2.0, 0, -0.5)
+	g.add_child(dock)
+	var concrete := kit.mat("Concrete", 0.85)
+	var dh := 1.2
+	_solid_mesh(Vector3(4.0, dh, 8.0), concrete, Vector3(0, dh / 2, 0), dock)
+	kit.kicker(dock, "Dock Kicker", Vector3(0, 0, 4.0 + 3.0), PI, 3.0, dh, 3.0)       # up onto the dock from the front
+	kit.flat_rail(dock, "Dock Rail", Vector3(-2.3, dh, -0.5), Vector3(0, 0, 1), 6.0, 0.55)
+	for k in 2:
+		_solid_mesh(Vector3(1.2, 0.3, 1.0), mat("Pallet", Color(0.7, 0.55, 0.35), 0.9), Vector3(0.8, dh + 0.15 + k * 0.3, -2.8), dock)
+	_foot("Loading Dock", g.position + Vector3(-1.5, 0, -size.x / 2 - 2.0), 0.0, Vector2(12.0, 4.0), "skate")
+
+
+func _school(at: Vector3) -> void:
+	# Old Oak Elementary, at the top of Main Street: red brick with a white bell tower, steps with handrails, the
+	# flag, a bike rack and a chalk hopscotch on the path
+	var size := Vector3(26, 7.0, 14)
+	var g := _building("School", at, 0.0, size, Color(0.66, 0.3, 0.24), Color(0.25, 0.25, 0.28), "Old Oak Elementary")
+	var white := mat("Gazebo White", Color(0.96, 0.95, 0.92), 0.6)
+	mesh_at(box(Vector3(3.0, 3.0, 3.0)), white, Vector3(0, size.y + 3.2, 0), g)
+	mesh_at(cyl(0.0, 2.3, 3.0, 4), mat("Steeple Roof", Color(0.3, 0.3, 0.32)), Vector3(0, size.y + 6.2, 0), g, PI / 4)
+	mesh_at(cyl(0.3, 0.6, 0.7, 12), mat("Brass", Color(0.85, 0.65, 0.25), 0.3), Vector3(0, size.y + 3.0, 1.55), g)
+	var hd := size.z / 2.0
+	var glass := mat("Warm Window", Color(1.0, 0.85, 0.55), 0.3, 1.6)
+	for k in 6:
+		var wx := -size.x / 2 + 2.5 + k * (size.x - 5.0) / 5.0
+		if absf(wx) < 2.5:
+			continue
+		for y in [1.8, 4.8]:
+			mesh_at(box(Vector3(1.6, 1.4, 0.1)), glass, Vector3(wx, y, hd + 0.05), g)
+	# Wide steps up to the door and their handrails (the stair set is the skate kit's)
+	kit.stairs_and_handrail(g, "School Steps", Vector3(-9.0, 0, hd + 11.0))
+	# The bike rack and hopscotch
+	for k in 5:
+		kit.tube(Vector3(6 + k * 0.6, 0, hd + 2.0), Vector3(6 + k * 0.6, 0.8, hd + 2.0), 0.03, kit.mat("Rail", 0.25, 0.8), g)
+	kit.tube(Vector3(6, 0.8, hd + 2.0), Vector3(8.4, 0.8, hd + 2.0), 0.03, kit.mat("Rail", 0.25, 0.8), g)
+	var chalk := mat("Chalk", Color(0.95, 0.92, 0.98), 0.9)
+	for k in 8:
+		mesh_at(box(Vector3(0.6, 0.02, 0.6)), chalk, Vector3(2.5 + (0.35 if k % 3 == 1 else 0.0), 0.08, hd + 3.0 + k * 0.7), g)
+	_foot("School Steps", g.position + Vector3(-9.0, 0, hd + 9.0), 0.0, Vector2(9, 14), "skate")
+
+
+func _witch_hat(parent: Node3D, at: Vector3, s: float) -> void:
+	var black := mat("Witch Hat", Color(0.12, 0.08, 0.15), 0.7)
+	mesh_at(cyl(s * 0.9, s * 0.9, s * 0.08, 16), black, at, parent)
+	mesh_at(cyl(0.0, s * 0.45, s * 1.3, 12), black, at + Vector3(0, s * 0.65, 0), parent, 0.0, Vector3(0, 0, 0.15))
+	mesh_at(cyl(s * 0.46, s * 0.46, s * 0.12, 12), mat("Hat Band", Color(0.95, 0.5, 0.12), 0.6), at + Vector3(0, s * 0.1, 0), parent)
+
+
+func _cobwebs(parent: Node3D, size: Vector3) -> void:
+	# Spooky-cute cobwebs in the antique shop's top window corners (thin pale threads)
+	var web := mat("Cobweb", Color(0.95, 0.95, 0.98), 0.5, 0.4)
+	var hd := size.z / 2.0 + 0.08
+	for sx in [-1.0, 1.0]:
+		var corner := Vector3(sx * size.x / 2, size.y, hd)
+		for k in 4:
+			var a := PI / 2 * (k + 0.5) / 4.0
+			var d := Vector3(-sx * sin(a), -cos(a), 0)
+			mesh_at(box(Vector3(0.02, 1.4, 0.02)), web, corner + d * 0.7, parent, 0.0, Vector3(0, 0, atan2(-d.x, d.y)))
+		for r in [0.4, 0.8, 1.2]:
+			mesh_at(box(Vector3(r * 1.1, 0.02, 0.02)), web, corner + Vector3(-sx * r * 0.5, -r * 0.5, 0), parent, 0.0, Vector3(0, 0, sx * PI / 4))
+
+
+# -----------------------------------------------------------------------------
+# Maple Lane: where people live
+# -----------------------------------------------------------------------------
+func _maple_lane() -> void:
+	var north_z := MAPLE_Z - (STREET_W / 2 + 1.6 + 5.0 + 3.5)     # house middles, behind their front yards
+	var south_z := MAPLE_Z + (STREET_W / 2 + 1.6 + 5.0 + 3.5)
+	var cols := [Color(0.85, 0.75, 0.55), Color(0.6, 0.7, 0.85), Color(0.85, 0.6, 0.55), Color(0.7, 0.8, 0.65), Color(0.92, 0.88, 0.8),
+		Color(0.65, 0.55, 0.75)]
+	var roofs := [Color(0.3, 0.25, 0.25), Color(0.25, 0.3, 0.4), Color(0.4, 0.22, 0.2)]
+	# North side (facing south): Mr. Palmer's and three neighbours
+	var palmer := _house("Palmer House", Vector3(-62, 0, north_z), 0.0, Color(0.88, 0.86, 0.8), Color(0.22, 0.3, 0.25), "Palmer")
+	# Mr. Palmer's porch: a rocking chair, a little table with a teacup (he does like his tea) and a tidy garden
+	_chair(palmer, Vector3(2.4, 0, 4.6), PI, Color(0.35, 0.25, 0.18))
+	_table(palmer, Vector3(3.3, 0, 4.6), Color(0.35, 0.25, 0.18))
+	mesh_at(cyl(0.06, 0.05, 0.08, 10), mat("Teacup", Color(0.97, 0.97, 1.0), 0.4), Vector3(3.3, 0.85, 4.6), palmer)
+	_house("Maple House 1", Vector3(-84, 0, north_z), 0.0, cols[0], roofs[0], "Hollis")
+	_house("Maple House 2", Vector3(-44, 0, north_z), 0.0, cols[3], roofs[1], "Okafor")
+	_house("Maple House 3", Vector3(8, 0, north_z), 0.0, cols[2], roofs[2], "Larkspur")
+	# South side (facing north): the Blastoffs' (walk in) and two neighbours
+	_blastoff_house(Vector3(-40, 0, south_z + 1.9))
+	_house("Maple House 4", Vector3(-70, 0, south_z), PI, cols[5], roofs[1], "Quill")
+	_house("Maple House 5", Vector3(-10, 0, south_z), PI, cols[4], roofs[0], "Pemberton")
+	_house("Maple House 6", Vector3(16, 0, south_z), PI, cols[1], roofs[2], "Bramblewood")
+
+
+func _house(name: String, at: Vector3, yaw: float, wall: Color, roof_c: Color, family: String) -> Node3D:
+	# A two-storey house with a porch, a picket fence round its front yard and a mailbox with the family's name
+	var size := Vector3(9, 5.6, 7)
+	var g := _building(name, at, yaw, size, wall, roof_c, "")
+	var hd := size.z / 2.0
+	var white := mat("Gazebo White", Color(0.96, 0.95, 0.92), 0.6)
+	_solid_mesh(Vector3(5.0, 0.3, 2.0), mat("Porch Wood", Color(0.55, 0.4, 0.28), 0.8), Vector3(0, 0.15, hd + 1.0), g)
+	mesh_at(box(Vector3(5.4, 0.15, 2.3)), mat("Porch Roof " + name, roof_c, 0.8), Vector3(0, 3.0, hd + 1.1), g)
+	for sx in [-2.4, 2.4]:
+		mesh_at(box(Vector3(0.15, 2.8, 0.15)), white, Vector3(sx, 1.5, hd + 2.0), g)
+	_picket_fence(g, Vector3(-size.x / 2 - 0.5, 0, hd + 3.6), Vector3(-1.0, 0, hd + 3.6), white)
+	_picket_fence(g, Vector3(1.0, 0, hd + 3.6), Vector3(size.x / 2 + 0.5, 0, hd + 3.6), white)
+	_mailbox(g, Vector3(1.5, 0, hd + 4.2), family)
+	_jack(g, Vector3(-1.6, 0.3, hd + 1.5), 0.26)
+	_jack(g, Vector3(1.3, 0.3, hd + 1.6), 0.22)
+	return g
+
+
+func _mailbox(parent: Node3D, at: Vector3, family: String) -> void:
+	var m := Node3D.new()
+	m.name = "Mailbox"
+	m.position = at
+	parent.add_child(m)
+	mesh_at(box(Vector3(0.1, 1.1, 0.1)), mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8), Vector3(0, 0.55, 0), m)
+	var body := mesh_at(cyl(0.18, 0.18, 0.6, 12), mat("Mailbox", Color(0.2, 0.25, 0.3), 0.4), Vector3(0, 1.25, 0), m, 0.0, Vector3(PI / 2, 0, 0))
+	body.name = "Box"
+	mesh_at(box(Vector3(0.04, 0.25, 0.12)), mat("Mail Flag", Color(0.9, 0.2, 0.15), 0.5), Vector3(0.2, 1.35, -0.1), m)
+	var l := label(m, family, Vector3(0, 1.55, 0), 24)
+	l.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+
+
+func _blastoff_house(at: Vector3) -> void:
+	# The Blastoffs' house on Maple Lane, where Nina, Prue and Bruno live. Walk in: a living room with a fireplace at
+	# the front, and a bedroom each at the back. Nina's is red and black with her bow on the wall, Prue's is soft
+	# lilac with plushies, and Bruno's has skate posters, a board on the wall and a little ramp.
+	var size := Vector3(16, 5.0, 12)
+	var g := _walk_in("Blastoff House", at, PI, size, Color(0.95, 0.85, 0.6), Color(0.35, 0.22, 0.3), "", Color(0, 0, 0, 0),
+		Color(0.96, 0.92, 0.85), Color(0.6, 0.42, 0.28))
+	var hd := size.z / 2.0
+	var hw := size.x / 2.0
+	_mailbox(g, Vector3(2.0, 0, hd + 3.4), "Blastoff")
+	var white := mat("Gazebo White", Color(0.96, 0.95, 0.92), 0.6)
+	_picket_fence(g, Vector3(-hw - 0.5, 0, hd + 3.0), Vector3(-1.2, 0, hd + 3.0), white)
+	_picket_fence(g, Vector3(1.2, 0, hd + 3.0), Vector3(hw + 0.5, 0, hd + 3.0), white)
+	_scarecrow(g, Vector3(-4.5, 0, hd + 1.8), 0.4)
+	# Inner walls: across the middle (with a doorway into each bedroom) and between the bedrooms
+	var inner := mat("Inside Blastoff House", Color(0.96, 0.92, 0.85), 0.9)
+	var room_w := (size.x - 0.6) / 3.0
+	var wall_h := size.y - 0.3
+	for k in 3:
+		var cx := -hw + 0.3 + room_w * (k + 0.5)
+		for side in [-1.0, 1.0]:
+			var seg := (room_w - 1.6) / 2.0
+			_solid_mesh(Vector3(seg, wall_h, 0.2), inner, Vector3(cx + side * (0.8 + seg / 2.0), wall_h / 2.0, -0.5), g)
+		mesh_at(box(Vector3(1.6, 1.4, 0.2)), inner, Vector3(cx, wall_h - 0.7, -0.5), g)
+	for k in [1, 2]:
+		_solid_mesh(Vector3(0.2, wall_h, hd - 0.8), inner, Vector3(-hw + 0.3 + room_w * k, wall_h / 2.0, -(hd + 0.5) / 2.0 - 0.0), g)
+	# The bedrooms: [name, wall colour, blanket colour, x]
+	var rooms := [["Bruno", Color(0.55, 0.7, 0.9), Color(0.95, 0.5, 0.15)], ["Prue", Color(0.85, 0.75, 0.95), Color(0.98, 0.7, 0.8)],
+		["Nina", Color(0.18, 0.12, 0.14), Color(0.8, 0.12, 0.15)]]
+	for k in 3:
+		var cx := -hw + 0.3 + room_w * (k + 0.5)
+		var room := Node3D.new()
+		room.name = "%s's Room" % rooms[k][0]
+		room.position = Vector3(cx, 0, -hd / 2.0 - 0.6)
+		g.add_child(room)
+		# A painted back wall, the bed, a rug and the name on the door
+		mesh_at(box(Vector3(room_w - 0.3, wall_h - 0.2, 0.05)), mat("Room Wall %s" % rooms[k][0], rooms[k][1], 0.9), Vector3(0, wall_h / 2.0, -hd / 2.0 + 0.95), room)
+		var bed := Node3D.new()
+		bed.position = Vector3(-room_w / 2 + 1.3, 0, -hd / 2.0 + 2.2)
+		room.add_child(bed)
+		_solid_mesh(Vector3(1.4, 0.45, 2.2), mat("Bed Wood", Color(0.5, 0.32, 0.2), 0.7), Vector3(0, 0.23, 0), bed)
+		mesh_at(box(Vector3(1.35, 0.15, 1.5)), mat("Blanket %s" % rooms[k][0], rooms[k][2], 0.8), Vector3(0, 0.52, 0.3), bed)
+		mesh_at(box(Vector3(0.9, 0.18, 0.4)), mat("Pillow", Color(1, 1, 1), 0.8), Vector3(0, 0.55, -0.8), bed)
+		mesh_at(cyl(0.9, 0.9, 0.03, 24), mat("Rug %s" % rooms[k][0], rooms[k][2].lerp(Color.WHITE, 0.4), 0.9), Vector3(0.6, 0.04, 0.3), room)
+		var door_name := label(g, rooms[k][0], Vector3(cx, 2.6, -0.38), 30, Color(1, 0.95, 0.8))
+		door_name.name = "%s Door Sign" % rooms[k][0]
+	var bruno := g.get_node("Bruno's Room") as Node3D
+	var nina := g.get_node("Nina's Room") as Node3D
+	var prue := g.get_node("Prue's Room") as Node3D
+	var back := -hd / 2.0 + 1.0
+	# Bruno's: three skate posters, a board on the wall and a little ramp on the floor
+	var poster_cols := [[Color(0.95, 0.4, 0.1), Color(0.15, 0.1, 0.2)], [Color(0.25, 0.75, 0.9), Color(0.98, 0.9, 0.3)],
+		[Color(0.6, 0.2, 0.75), Color(0.4, 0.95, 0.5)]]
+	for k in 3:
+		var px := -1.2 + k * 1.2
+		mesh_at(box(Vector3(0.9, 1.2, 0.03)), mat("Poster %d" % k, poster_cols[k][0], 0.8), Vector3(px, 2.6, back + 0.02), bruno)
+		var deck := mesh_at(box(Vector3(0.22, 0.85, 0.02)), mat("Poster Deck %d" % k, poster_cols[k][1], 0.6), Vector3(px, 2.6, back + 0.05), bruno)
+		deck.rotation.z = 0.35 * (k - 1)
+	var board := Node3D.new()
+	board.name = "Wall Board"
+	board.position = Vector3(room_w / 2 - 0.25, 1.6, 0.6)
+	board.rotation = Vector3(0, PI / 2, PI / 2)
+	bruno.add_child(board)
+	mesh_at(box(Vector3(0.8, 0.03, 0.22)), mat("Deck Top", Color(0.15, 0.15, 0.18), 0.9), Vector3.ZERO, board)
+	kit.kicker(bruno, "Bruno's Ramp", Vector3(0.9, 0, 1.0), PI / 2, 1.0, 0.3, 0.8)
+	# Prue's: plushies on the bed and a star lamp
+	for k in 3:
+		mesh_at(ball(0.16, 10), mat("Plush %d" % k, [Color(0.98, 0.75, 0.85), Color(0.75, 0.85, 1.0), Color(1.0, 0.95, 0.7)][k], 0.9),
+			Vector3(-room_w / 2 + 0.9 + k * 0.35, 0.78, -hd / 2.0 + 1.6), prue)
+	mesh_at(ball(0.2, 8), mat("Star Lamp", Color(1.0, 0.9, 0.5), 0.3, 2.0), Vector3(room_w / 2 - 0.8, 1.2, back + 0.6), prue)
+	# Nina's: her big red bow on the wall, and a little desk with a lamp
+	var red := mat("Nina Red", Color(0.85, 0.1, 0.14), 0.6)
+	for sx in [-1.0, 1.0]:
+		var loop := mesh_at(cyl(0.0, 0.4, 0.6, 3), red, Vector3(sx * 0.32, 2.7, back + 0.08), nina, 0.0, Vector3(0, 0, sx * PI / 2))
+		loop.scale = Vector3(1, 1, 0.2)
+	mesh_at(ball(0.13, 10), red, Vector3(0, 2.7, back + 0.1), nina)
+	_solid_mesh(Vector3(1.2, 0.75, 0.6), mat("Desk Wood", Color(0.4, 0.26, 0.16), 0.7), Vector3(room_w / 2 - 1.0, 0.38, back + 0.5), nina)
+	mesh_at(cyl(0.1, 0.14, 0.3, 10), mat("Desk Lamp", Color(0.95, 0.85, 0.6), 0.4, 1.5), Vector3(room_w / 2 - 0.7, 0.9, back + 0.5), nina)
+	# The living room: a sofa facing the fireplace, a pumpkin on the mantel, the family photo
+	var stone := mat("Fireplace Stone", Color(0.55, 0.5, 0.48), 0.9)
+	_solid_mesh(Vector3(2.2, 1.6, 0.6), stone, Vector3(-hw + 0.7, 0.8, hd / 2.0), g, PI / 2)
+	mesh_at(box(Vector3(1.0, 0.6, 0.05)), mat("Fire Glow", Color(1.0, 0.55, 0.2), 0.5, 2.5), Vector3(-hw + 1.01, 0.5, hd / 2.0), g, PI / 2)
+	_jack(g, Vector3(-hw + 0.7, 1.6, hd / 2.0 - 0.5), 0.18)
+	var fire := OmniLight3D.new()
+	fire.light_color = Color(1.0, 0.6, 0.3)
+	fire.light_energy = 1.0
+	fire.omni_range = 5.0
+	fire.position = Vector3(-hw + 1.6, 0.8, hd / 2.0)
+	g.add_child(fire)
+	var sofa := mat("Sofa", Color(0.45, 0.55, 0.4), 0.9)
+	_solid_mesh(Vector3(0.9, 0.5, 2.6), sofa, Vector3(-hw + 4.2, 0.25, hd / 2.0), g)
+	mesh_at(box(Vector3(0.25, 0.9, 2.6)), sofa, Vector3(-hw + 4.6, 0.6, hd / 2.0), g)
+	mesh_at(box(Vector3(1.0, 0.7, 0.04)), mat("Family Photo", Color(0.95, 0.85, 0.6), 0.6), Vector3(hw - 0.33, 2.0, hd / 2.0), g, PI / 2)
+	label(g, "The Blastoffs", Vector3(hw - 0.36, 2.0, hd / 2.0), 22, Color(0.3, 0.15, 0.1)).rotation.y = -PI / 2
+	var bed_spot := Marker3D.new()
+	bed_spot.name = "NinaBed"
+	bed_spot.position = nina.position + Vector3(-room_w / 2 + 1.3, 1.0, -hd / 2.0 + 2.2)
+	g.add_child(bed_spot)
+
+
+# -----------------------------------------------------------------------------
+# The park: Willow Pond, Whisper Creek, Mossy Falls, Lookout Hill, the playground and the pumpkin patch
+# -----------------------------------------------------------------------------
+func _h(x: float, z: float) -> float:
+	return EarthLand.height(x, z)
+
+
+func _on_ground(p: Vector2, y_off := 0.0) -> Vector3:
+	return Vector3(p.x, _h(p.x, p.y) + y_off, p.y)
+
+
+func _path(parent: Node3D, pts: Array, width := 2.0) -> void:
+	# A gravel path through the points, each piece laid on the ground at its middle
+	var gravel := mat("Gravel", Color(0.72, 0.66, 0.58), 0.95)
+	for i in pts.size() - 1:
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[i + 1]
+		var mid := (a + b) / 2.0
+		var d := b - a
+		mesh_at(box(Vector3(width, 0.06, d.length() + width * 0.5)), gravel, _on_ground(mid, 0.035), parent, atan2(d.x, d.y))
+		roads.append([a, b, width, "path"])
+
+
+func _park() -> void:
+	var g := group("Park")
+	spots.append(["Willow Pond", Vector2(EarthLand.POND.x, EarthLand.POND.y)])
+	spots.append(["Whisper Creek", Vector2(-97, -46)])
+	spots.append(["Mossy Falls", Vector2(-104, -83)])
+	spots.append(["Lookout Hill", EarthLand.HILL])
+	# Paths: round the Town Hall to the dock, to the playground, and up past the footbridge to the hill
+	_path(g, [Vector2(-25, 14), Vector2(-45, 14), Vector2(-58, 10), Vector2(-61.5, 2)])
+	_path(g, [Vector2(-45, 14), Vector2(-52, 24)])
+	_path(g, [Vector2(-25, -14), Vector2(-45, -18), Vector2(-70, -28), Vector2(-90.5, -36)])
+	_path(g, [Vector2(-100.5, -38.5), Vector2(-112, -46), Vector2(-118, -66)])
+	_footbridge(g)
+	_dock(g)
+	_playground(g, Vector2(-56, 30))
+	_pumpkin_patch(g, Vector2(-128, 22))
+	_lookout_hill(g)
+	_covered_bridge()
+	# Benches round the pond (grindable edges) and a few lamps
+	var bench_m := mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7)
+	for a in [0.5, 1.3, 2.4, 3.6, 4.6]:
+		var p := Vector2(EarthLand.POND.x + cos(a) * EarthLand.POND.z * 1.38, EarthLand.POND.y + sin(a) * EarthLand.POND.w * 1.38)
+		if _clear(p, 0.5, false) and EarthLand.creek_distance(p.x, p.y) > 7.0:
+			var to_pond := (Vector2(EarthLand.POND.x, EarthLand.POND.y) - p).normalized()
+			_bench(g, _on_ground(p), atan2(to_pond.x, to_pond.y), bench_m)
+	label(g, "Willow Pond", _on_ground(Vector2(-60.5, 6.5), 2.4), 40).billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+
+
+func _footbridge(g: Node3D) -> void:
+	# A little wooden footbridge over the creek on the way to the hill, with a handrail each side (grind them)
+	var c := Vector2(-95.5, -37.0)
+	var across := Vector2(0.97, -0.24).normalized()
+	var a := c - across * 5.2
+	var b := c + across * 5.2
+	var br := Node3D.new()
+	br.name = "Footbridge"
+	g.add_child(br)
+	var wood := mat("Bridge Wood", Color(0.55, 0.38, 0.25), 0.85)
+	var yaw := atan2(across.x, across.y)
+	_solid_mesh(Vector3(2.4, 0.25, 10.4), wood, Vector3(c.x, 0.12, c.y), br, yaw)
+	var side := Vector2(across.y, -across.x)
+	for s in [-1.0, 1.0]:
+		var o: Vector2 = side * s * 1.15
+		kit.ground_rail(br, "Bridge Rail " + ("A" if s < 0 else "B"), Vector3(a.x + o.x, 0.25, a.y + o.y), Vector3(b.x + o.x, 0.25, b.y + o.y), 0.85)
+	feet.append({"name": "Footbridge", "at": c, "size": Vector2(2.4, 10.4), "yaw": yaw, "kind": "bridge", "label": ""})
+
+
+func _dock(g: Node3D) -> void:
+	# A wooden dock out into the pond from its east shore, on posts, with a rowing boat tied up
+	var d := Node3D.new()
+	d.name = "Dock"
+	g.add_child(d)
+	var wood := mat("Bridge Wood", Color(0.55, 0.38, 0.25), 0.85)
+	var x0 := -61.5
+	var x1 := -74.0
+	_solid_mesh(Vector3(absf(x1 - x0), 0.2, 2.6), wood, Vector3((x0 + x1) / 2.0, 0.15, 0.0), d)
+	for k in 5:
+		var x := lerpf(x0, x1, k / 4.0)
+		for sz in [-1.2, 1.2]:
+			var top := 0.1
+			var bottom := _h(x, sz) - 0.3
+			mesh_at(cyl(0.12, 0.12, top - bottom, 8), mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8), Vector3(x, (top + bottom) / 2.0, sz), d)
+	var boat := Node3D.new()
+	boat.name = "Rowing Boat"
+	boat.position = Vector3(x1 + 3.0, EarthLand.WATER_Y + 0.1, 2.6)
+	boat.rotation.y = 0.3
+	d.add_child(boat)
+	var hull := mesh_at(ball(1.0, 16), mat("Boat Red", Color(0.7, 0.2, 0.15), 0.6), Vector3(0, 0, 0), boat)
+	hull.scale = Vector3(0.9, 0.35, 2.0)
+	mesh_at(box(Vector3(1.4, 0.06, 0.35)), wood, Vector3(0, 0.3, 0), boat)
+	feet.append({"name": "Dock", "at": Vector2((x0 + x1) / 2.0, 0.0), "size": Vector2(absf(x1 - x0), 2.6), "yaw": 0.0, "kind": "dock", "label": ""})
+
+
+func _playground(g: Node3D, at: Vector2) -> void:
+	# The playground: a slide (a nod to the show's pilot: the kids asked Mr. Palmer for one), swings, a seesaw and a
+	# sandbox, on soft bark
+	var p := Node3D.new()
+	p.name = "Playground"
+	p.position = _on_ground(at)
+	g.add_child(p)
+	mesh_at(cyl(8.0, 8.0, 0.05, 32), mat("Bark Chips", Color(0.5, 0.35, 0.22), 0.95), Vector3(0, 0.03, 0), p)
+	spots.append(["Playground", at])
+	_foot("Playground", p.position, 0.0, Vector2(15, 15), "park")
+	# The slide: a ladder up to a platform with a roof, and a long yellow slide down
+	var post := mat("Play Post", Color(0.25, 0.55, 0.8), 0.6)
+	var sl := Node3D.new()
+	sl.name = "Slide"
+	sl.position = Vector3(-3.0, 0, -1.0)
+	p.add_child(sl)
+	for sx in [-0.8, 0.8]:
+		for sz in [-0.8, 0.8]:
+			mesh_at(cyl(0.08, 0.08, 3.4, 8), post, Vector3(sx, 1.7, sz), sl)
+	_solid_mesh(Vector3(1.8, 0.15, 1.8), mat("Play Deck", Color(0.95, 0.5, 0.2), 0.7), Vector3(0, 2.0, 0), sl)
+	mesh_at(cyl(0.0, 1.4, 0.9, 4), mat("Play Roof", Color(0.85, 0.2, 0.25), 0.6), Vector3(0, 3.8, 0), sl, PI / 4)
+	for k in 6:                                                         # the ladder's rungs, up the back
+		mesh_at(box(Vector3(1.4, 0.06, 0.06)), post, Vector3(0, 0.3 + k * 0.33, -0.9), sl)
+	var chute := Node3D.new()
+	chute.position = Vector3(0, 1.05, 2.4)
+	chute.rotation.x = atan2(2.0, 3.2)                                 # (its +Z end down)
+	sl.add_child(chute)
+	var yellow := mat("Slide Yellow", Color(0.98, 0.82, 0.2), 0.3)
+	mesh_at(box(Vector3(0.9, 0.06, 3.8)), yellow, Vector3.ZERO, chute)
+	for sx in [-0.45, 0.45]:
+		mesh_at(box(Vector3(0.06, 0.25, 3.8)), yellow, Vector3(sx, 0.12, 0), chute)
+	var sign_post := Node3D.new()
+	sign_post.position = Vector3(-6.2, 0, 2.5)
+	sign_post.rotation.y = 0.5
+	p.add_child(sign_post)
+	mesh_at(box(Vector3(0.1, 1.5, 0.1)), mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8), Vector3(0, 0.75, 0), sign_post)
+	mesh_at(box(Vector3(1.8, 0.9, 0.06)), mat("Kid Sign", Color(0.98, 0.95, 0.85), 0.8), Vector3(0, 1.5, 0), sign_post)
+	label(sign_post, "WE ASKED FOR\nA SLIDE...\nAND WE GOT ONE!", Vector3(0, 1.5, 0.04), 18, Color(0.85, 0.2, 0.25)).outline_size = 0
+	# Swings
+	var sw := Node3D.new()
+	sw.name = "Swings"
+	sw.position = Vector3(3.5, 0, -2.0)
+	p.add_child(sw)
+	for sx in [-1.8, 1.8]:
+		for sz in [-0.7, 0.7]:
+			mesh_at(cyl(0.06, 0.06, 2.9, 8), post, Vector3(sx, 1.4, sz * 0.5), sw, 0.0, Vector3(sz * 0.4, 0, 0))
+	mesh_at(cyl(0.07, 0.07, 3.8, 8), post, Vector3(0, 2.75, 0), sw, 0.0, Vector3(0, 0, PI / 2))
+	for sx in [-0.8, 0.8]:
+		for rx in [-0.22, 0.22]:
+			mesh_at(cyl(0.015, 0.015, 2.1, 4), mat("Chain", Color(0.7, 0.7, 0.72), 0.3), Vector3(sx + rx, 1.7, 0), sw)
+		mesh_at(box(Vector3(0.55, 0.05, 0.25)), mat("Swing Seat", Color(0.85, 0.2, 0.25), 0.6), Vector3(sx, 0.62, 0), sw)
+	# The sandbox, with a bucket
+	var sand := Node3D.new()
+	sand.position = Vector3(2.5, 0, 4.0)
+	p.add_child(sand)
+	_solid_mesh(Vector3(3.0, 0.3, 0.2), mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7), Vector3(0, 0.15, -1.5), sand)
+	_solid_mesh(Vector3(3.0, 0.3, 0.2), mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7), Vector3(0, 0.15, 1.5), sand)
+	_solid_mesh(Vector3(0.2, 0.3, 3.0), mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7), Vector3(-1.5, 0.15, 0), sand)
+	_solid_mesh(Vector3(0.2, 0.3, 3.0), mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7), Vector3(1.5, 0.15, 0), sand)
+	mesh_at(box(Vector3(2.8, 0.2, 2.8)), mat("Sand", Color(0.9, 0.8, 0.55), 0.95), Vector3(0, 0.1, 0), sand)
+	mesh_at(cyl(0.15, 0.11, 0.22, 10), mat("Bucket", Color(0.3, 0.6, 0.95), 0.5), Vector3(0.6, 0.31, 0.3), sand)
+
+
+func _scarecrow(parent: Node3D, at: Vector3, yaw: float) -> void:
+	# A friendly scarecrow: a post and crossbar, a plaid shirt, a sack head with a stitched smile and a floppy hat
+	var s := Node3D.new()
+	s.name = "Scarecrow"
+	s.position = at
+	s.rotation.y = yaw
+	parent.add_child(s)
+	var wood := mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8)
+	mesh_at(box(Vector3(0.12, 2.3, 0.12)), wood, Vector3(0, 1.15, 0), s)
+	mesh_at(box(Vector3(1.8, 0.1, 0.1)), wood, Vector3(0, 1.7, 0), s)
+	mesh_at(box(Vector3(0.75, 0.8, 0.35)), mat("Plaid Shirt", Color(0.75, 0.3, 0.15), 0.9), Vector3(0, 1.45, 0), s)
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.55, 0.22, 0.25)), mat("Plaid Shirt", Color(0.75, 0.3, 0.15), 0.9), Vector3(sx * 0.6, 1.7, 0), s)
+		mesh_at(cyl(0.02, 0.08, 0.25, 6), mat("Straw", Color(0.92, 0.8, 0.4), 0.95), Vector3(sx * 0.95, 1.7, 0), s, 0.0, Vector3(0, 0, sx * PI / 2))
+	mesh_at(ball(0.27, 12), mat("Sack Head", Color(0.85, 0.72, 0.5), 0.95), Vector3(0, 2.1, 0), s)
+	for sx in [-0.09, 0.09]:
+		mesh_at(box(Vector3(0.06, 0.06, 0.02)), mat("Stitch", Color(0.15, 0.1, 0.08), 0.9), Vector3(sx, 2.15, 0.26), s)
+	mesh_at(box(Vector3(0.18, 0.025, 0.02)), mat("Stitch", Color(0.15, 0.1, 0.08), 0.9), Vector3(0, 2.0, 0.25), s)
+	mesh_at(cyl(0.4, 0.4, 0.04, 14), mat("Straw Hat", Color(0.82, 0.68, 0.38), 0.9), Vector3(0, 2.3, 0), s, 0.0, Vector3(0.12, 0, 0))
+	mesh_at(cyl(0.16, 0.2, 0.22, 12), mat("Straw Hat", Color(0.82, 0.68, 0.38), 0.9), Vector3(0, 2.42, 0), s)
+
+
+func _pumpkin_patch(g: Node3D, at: Vector2) -> void:
+	# Rows of pumpkins on dark soil, two scarecrows, hay bales and a sign, by the old split-rail fence
+	var p := Node3D.new()
+	p.name = "Pumpkin Patch"
+	p.position = _on_ground(at)
+	g.add_child(p)
+	spots.append(["Pumpkin Patch", at])
+	_foot("Pumpkin Patch", p.position, 0.0, Vector2(18, 12), "park")
+	mesh_at(box(Vector3(16, 0.05, 10)), mat("Soil", Color(0.3, 0.22, 0.15), 0.95), Vector3(0, 0.03, 0), p)
+	for row in 4:
+		for k in 7:
+			var pp := Vector3(-6.5 + k * 2.1 + rng.randf_range(-0.4, 0.4), 0.05, -3.6 + row * 2.4 + rng.randf_range(-0.3, 0.3))
+			if (row * 7 + k) % 9 == 4:
+				_jack(p, pp, rng.randf_range(0.3, 0.42))
+			else:
+				_pumpkin(p, pp, rng.randf_range(0.25, 0.5))
+	_scarecrow(p, Vector3(-3.0, 0, 0.3), 0.3)
+	_scarecrow(p, Vector3(4.0, 0, -1.0), -0.4)
+	for k in 3:
+		var hp := Vector3(9.0, 0.45, -3 + k * 1.3)
+		mesh_at(cyl(0.6, 0.6, 1.2, 16), mat("Hay", Color(0.88, 0.74, 0.38), 0.95), hp, p, 0.0, Vector3(0, 0, PI / 2))
+		solid_box(Vector3(1.2, 0.9, 1.0), hp, p)
+	var wood := mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8)
+	for k in 7:                                                       # a split-rail fence along the front
+		mesh_at(box(Vector3(0.14, 1.1, 0.14)), wood, Vector3(-8.5 + k * 2.8, 0.55, 5.6), p)
+	for y in [0.45, 0.9]:
+		_solid_mesh(Vector3(17.0, 0.1, 0.1), wood, Vector3(0, y, 5.6), p)
+	var sign_post := Node3D.new()
+	sign_post.position = Vector3(10.5, 0, 5.5)
+	p.add_child(sign_post)
+	mesh_at(box(Vector3(0.1, 1.6, 0.1)), wood, Vector3(0, 0.8, 0), sign_post)
+	mesh_at(box(Vector3(2.0, 0.6, 0.06)), mat("Sign Board", Color(0.18, 0.25, 0.2)), Vector3(0, 1.5, 0), sign_post)
+	label(sign_post, "Pumpkin Patch", Vector3(0, 1.5, 0.05), 30)
+
+
+func _lookout_hill(g: Node3D) -> void:
+	# The top of Lookout Hill: a bench and a coin telescope looking over town, a sign, and a rail all the way down
+	# its east slope with a big kicker at the bottom (ride off the top and fly!)
+	var top := Node3D.new()
+	top.name = "Lookout"
+	var c := EarthLand.HILL + Vector2(7, 5)
+	top.position = _on_ground(c)
+	g.add_child(top)
+	var bench_m := mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7)
+	_bench(top, Vector3(0, 0, 0), PI * 0.8, bench_m)
+	var scope := Node3D.new()
+	scope.position = Vector3(2.0, 0, 0.6)
+	top.add_child(scope)
+	var metal := mat("Scope Metal", Color(0.3, 0.5, 0.45), 0.4)
+	mesh_at(cyl(0.08, 0.1, 1.1, 8), metal, Vector3(0, 0.55, 0), scope)
+	mesh_at(cyl(0.12, 0.16, 0.6, 10), metal, Vector3(0, 1.25, 0.1), scope, 0.0, Vector3(1.2, 0, 0))
+	var sign_post := Node3D.new()
+	sign_post.position = Vector3(-2.2, 0, 1.0)
+	top.add_child(sign_post)
+	var wood := mat("Post Wood", Color(0.45, 0.32, 0.22), 0.8)
+	mesh_at(box(Vector3(0.1, 1.6, 0.1)), wood, Vector3(0, 0.8, 0), sign_post)
+	mesh_at(box(Vector3(2.0, 0.6, 0.06)), mat("Sign Board", Color(0.18, 0.25, 0.2)), Vector3(0, 1.5, 0), sign_post)
+	label(sign_post, "Lookout Hill", Vector3(0, 1.5, 0.05), 30)
+	# The hill rail: from the top's edge straight down the east slope, following the ground
+	var rail_z := EarthLand.HILL.y + 4.0
+	var pts := []
+	var x := EarthLand.HILL.x + EarthLand.HILL_FLAT - 4.0
+	while x <= EarthLand.HILL.x + EarthLand.HILL_FLAT + EarthLand.HILL_SLOPE - 2.0:
+		pts.append(Vector3(x, _h(x, rail_z) + 0.6, rail_z))
+		x += 2.0
+	var hr := Node3D.new()
+	hr.name = "Hill Rail"
+	g.add_child(hr)
+	var rail := kit.mat("Rail", 0.25, 0.8)
+	for i in pts.size() - 1:
+		kit.tube(pts[i], pts[i + 1], 0.05, rail, hr)
+	for i in range(0, pts.size(), 3):
+		kit.tube(Vector3(pts[i].x, pts[i].y - 0.8, pts[i].z), pts[i], 0.04, rail, hr)
+	var line := []
+	for pt in pts:
+		line.append(pt + Vector3.UP * 0.05)
+	kit.grind_line("Rail", line, "rail", hr)
+	# The big kicker at the foot of the slope, beside the rail: down the hill at speed and up you go
+	var kx := EarthLand.HILL.x + EarthLand.HILL_FLAT + EarthLand.HILL_SLOPE + 1.5
+	var kicker := kit.kicker(g, "Big Air Kicker", Vector3(kx, _h(kx, rail_z - 5.0), rail_z - 5.0), PI / 2, 4.5, 2.2, 4.0)
+	feet.append({"name": "Big Air Kicker", "at": Vector2(kx + 2.25, rail_z - 5.0), "size": Vector2(4.5, 4.0), "yaw": 0.0, "kind": "skate", "label": "Big Air!"})
+	# A few lanterns on posts up the slope, so the way down is lit at night
+	for k in 3:
+		var lx := EarthLand.HILL.x + EarthLand.HILL_FLAT + 4.0 + k * 8.0
+		_lamp_post(g, Vector3(lx, _h(lx, rail_z + 3.0), rail_z + 3.0))
+	kicker.name = "Big Air Kicker"
+
+
+func _covered_bridge() -> void:
+	# The old red covered bridge that carries Maple Lane over Whisper Creek: plank deck, red board walls with little
+	# windows, a shingle roof, and a sign over each end
+	var g := group("Covered Bridge", Vector3((BRIDGE_X.x + BRIDGE_X.y) / 2.0, 0, MAPLE_Z))
+	var length := absf(BRIDGE_X.y - BRIDGE_X.x)
+	var red := mat("Barn Red", Color(0.62, 0.14, 0.12), 0.85)
+	var white := mat("Barn Trim", Color(0.96, 0.94, 0.9), 0.7)
+	var plank := mat("Barn Planks", Color(0.55, 0.38, 0.24), 0.9)
+	_solid_mesh(Vector3(length + 1.0, 0.3, STREET_W + 0.6), plank, Vector3(0, 0.0, 0), g)
+	for sz in [-1.0, 1.0]:
+		var z: float = sz * (STREET_W / 2 + 0.3)
+		_solid_mesh(Vector3(length, 3.4, 0.2), red, Vector3(0, 1.85, z), g)
+		for k in 3:
+			mesh_at(box(Vector3(1.4, 0.6, 0.24)), mat("Bridge Window", Color(0.15, 0.1, 0.08), 0.9), Vector3(-length / 3 + k * length / 3, 2.4, z), g)
+		# Its stone feet down in the creek
+		for sx in [-1.0, 1.0]:
+			var fx: float = sx * (length / 2 - 0.5)
+			var bottom := _h(g.position.x + fx, MAPLE_Z + z) - 0.4
+			mesh_at(box(Vector3(1.2, -bottom, 1.0)), mat("Library Stone", Color(0.75, 0.73, 0.68), 0.85), Vector3(fx, bottom / 2.0, z), g)
+	var roof := PrismMesh.new()
+	roof.size = Vector3(STREET_W + 2.0, 1.8, length + 1.2)
+	mesh_at(roof, mat("Barn Roof", Color(0.24, 0.22, 0.24), 0.85), Vector3(0, 4.45, 0), g, PI / 2)
+	for sx in [-1.0, 1.0]:
+		var end := Vector3(sx * (length / 2 + 0.1), 0, 0)
+		mesh_at(box(Vector3(0.2, 0.7, STREET_W + 0.6)), white, end + Vector3(0, 3.6, 0), g)
+		label(g, "Old Covered Bridge", end + Vector3(sx * 0.12, 3.6, 0), 34, Color(0.3, 0.1, 0.08)).rotation.y = sx * PI / 2
+		lamp_light(g, end + Vector3(0, 3.0, 0), Color(1.0, 0.8, 0.55), 1.0, 7.0)
+	feet.append({"name": "Covered Bridge", "at": Vector2(g.position.x, MAPLE_Z), "size": Vector2(length + 1.0, STREET_W + 1.0), "yaw": 0.0,
+		"kind": "bridge", "label": "Covered Bridge"})
+
+
+func _lamp_post(parent: Node3D, at: Vector3) -> void:
+	var iron := mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5)
+	var glow := mat("Lamp Glass", Color(1.0, 0.85, 0.55), 0.3, 2.0)
+	mesh_at(cyl(0.07, 0.1, 3.6, 8), iron, at + Vector3(0, 1.8, 0), parent)
+	mesh_at(box(Vector3(0.4, 0.5, 0.4)), glow, at + Vector3(0, 3.7, 0), parent)
+	lamp_light(parent, at + Vector3(0, 3.5, 0), Color(1.0, 0.82, 0.55), 1.6, 9.0)
+
+
+func _water() -> void:
+	# The pond, the creek and the falls: water surfaces just below the banks (the land under them is scooped out:
+	# scripts/earth_land.gd), lily pads and cattails, a soft evening mist, and the wading zone (scripts/water.gd)
+	var g := group("Water")
+	g.set_script(load("res://scripts/water.gd"))
+	g.set("ellipses", EarthLand.water_circles())
+	g.set("water_y", EarthLand.WATER_Y)
+	var water := mat("Pond Water", Color(0.22, 0.42, 0.48), 0.05, 0.0, 0.82)
+	water.metallic = 0.2
+	var wy := EarthLand.WATER_Y
+	var pond := mesh_at(cyl(1.0, 1.0, 0.02, 48), water, Vector3(EarthLand.POND.x, wy, EarthLand.POND.y), g)
+	pond.scale = Vector3(EarthLand.POND.z * 1.2, 1, EarthLand.POND.w * 1.2)
+	pond.name = "Pond Surface"
+	for i in EarthLand.CREEK.size() - 1:
+		var a: Vector2 = EarthLand.CREEK[i]
+		var b: Vector2 = EarthLand.CREEK[i + 1]
+		var d := b - a
+		var mid := (a + b) / 2.0
+		mesh_at(box(Vector3(EarthLand.CREEK_HALF * 2.0 + 2.6, 0.02, d.length() + 1.0)), water, Vector3(mid.x, wy - 0.005 * (i % 2), mid.y), g, atan2(d.x, d.y))
+	var pool := mesh_at(cyl(6.5, 6.5, 0.02, 32), water, Vector3(EarthLand.FALLS_POOL.x, wy, EarthLand.FALLS_POOL.z), g)
+	pool.name = "Falls Pool"
+	# Lily pads and cattails
+	var pad := mat("Lily Pad", Color(0.3, 0.5, 0.22), 0.8)
+	var pond_rng := RandomNumberGenerator.new()                  # its own, so the rest of the town stays where it was
+	pond_rng.seed = 77
+	for k in 26:
+		var a := pond_rng.randf() * TAU
+		var r := pond_rng.randf_range(0.35, 0.8)
+		var p := Vector3(EarthLand.POND.x + cos(a) * r * EarthLand.POND.z, wy + 0.02, EarthLand.POND.y + sin(a) * r * EarthLand.POND.w)
+		if p.distance_to(Vector3(-68, wy, 0)) < 7.0:
+			continue                                            # not round the dock
+		mesh_at(cyl(0.45, 0.45, 0.02, 12), pad, p, g)
+		if k % 5 == 0:
+			mesh_at(ball(0.12, 8), mat("Lily Flower", Color(0.98, 0.75, 0.85), 0.6), p + Vector3(0.15, 0.08, 0.1), g)
+	var reed := mat("Cattail Stem", Color(0.45, 0.5, 0.25), 0.9)
+	var head := mat("Cattail Head", Color(0.4, 0.25, 0.15), 0.9)
+	for k in 40:
+		var a := pond_rng.randf() * TAU
+		var p := Vector3(EarthLand.POND.x + cos(a) * 0.97 * EarthLand.POND.z, 0, EarthLand.POND.y + sin(a) * 0.97 * EarthLand.POND.w)
+		if absf(p.z) < 3.0 and p.x > EarthLand.POND.x:
+			continue
+		p.y = _h(p.x, p.z)
+		var h := pond_rng.randf_range(1.0, 1.6)
+		mesh_at(cyl(0.02, 0.025, h, 4), reed, p + Vector3(0, h / 2, 0), g)
+		mesh_at(cyl(0.05, 0.05, 0.25, 6), head, p + Vector3(0, h - 0.1, 0), g)
+	# A thin mist over the pond (a Halloween-y touch)
+	var mist := mat("Pond Mist", Color(0.85, 0.85, 0.95), 1.0, 0.0, 0.12)
+	for k in 5:
+		var m := mesh_at(cyl(1.0, 1.0, 0.02, 24), mist, Vector3(EarthLand.POND.x + pond_rng.randf_range(-8, 8), wy + 0.3 + k * 0.12,
+			EarthLand.POND.y + pond_rng.randf_range(-5, 5)), g)
+		m.scale = Vector3(pond_rng.randf_range(7, 12), 1, pond_rng.randf_range(4, 7))
+		m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Three ducks
+	for k in 3:
+		var d := Node3D.new()
+		d.name = "Duck %d" % (k + 1)
+		d.position = Vector3(EarthLand.POND.x - 6 + k * 1.4, wy + 0.12, EarthLand.POND.y - 4 + k * 0.9)
+		d.rotation.y = 0.6
+		g.add_child(d)
+		var body := mesh_at(ball(0.22, 10), mat("Duck %d" % (k % 2), [Color(0.95, 0.85, 0.3), Color(0.55, 0.4, 0.25)][k % 2], 0.8), Vector3.ZERO, d)
+		body.scale = Vector3(0.8, 0.7, 1.2)
+		mesh_at(ball(0.11, 8), mat("Duck %d" % (k % 2), [Color(0.95, 0.85, 0.3), Color(0.55, 0.4, 0.25)][k % 2], 0.8), Vector3(0, 0.2, 0.2), d)
+		mesh_at(cyl(0.0, 0.05, 0.1, 6), mat("Beak", Color(0.95, 0.55, 0.15), 0.6), Vector3(0, 0.19, 0.33), d, 0.0, Vector3(PI / 2, 0, 0))
+	_falls(g)
+
+
+func _falls(g: Node3D) -> void:
+	# Mossy Falls: a spring pool on the hilltop spilling over the rocky cliff into the plunge pool below
+	var dir2 := EarthLand.falls_dir()
+	var dir := Vector3(dir2.x, 0, dir2.y)
+	var c := Vector3(EarthLand.HILL.x, 0, EarthLand.HILL.y)
+	var top := c + dir * (EarthLand.HILL_FLAT - 0.2) + Vector3(0, EarthLand.HILL_TOP + 0.05, 0)
+	var bottom := c + dir * (EarthLand.HILL_FLAT + EarthLand.CLIFF + 0.8) + Vector3(0, EarthLand.WATER_Y, 0)
+	var fall := MeshInstance3D.new()
+	fall.name = "Waterfall"
+	var bm := BoxMesh.new()
+	bm.size = Vector3(3.2, top.distance_to(bottom), 0.12)
+	fall.mesh = bm
+	fall.material_override = mat("Falling Water", Color(0.75, 0.9, 1.0), 0.1, 0.6, 0.75)
+	var up := (top - bottom).normalized()
+	var right := Vector3.UP.cross(dir).normalized()
+	var fwd := right.cross(up).normalized()
+	fall.transform = Transform3D(Basis(right, up, fwd), (top + bottom) / 2.0 + dir * 0.25)
+	g.add_child(fall)
+	# Foam where it lands, and the spring pool at the top with its stones
+	var foam := mat("Foam", Color(0.95, 0.97, 1.0), 0.6, 0.3, 0.8)
+	for k in 7:
+		var f := mesh_at(ball(0.5, 10), foam, bottom + right * (k - 3) * 0.5 + dir * 0.6 + Vector3(0, 0.05, 0), g)
+		f.scale = Vector3(1.0, 0.35, 1.0)
+	var spring_at := c + dir * (EarthLand.HILL_FLAT - 4.0) + Vector3(0, EarthLand.HILL_TOP + 0.04, 0)
+	mesh_at(cyl(2.6, 2.6, 0.04, 24), mat("Pond Water", Color(0.22, 0.42, 0.48), 0.05, 0.0, 0.82), spring_at, g)
+	mesh_at(box(Vector3(2.8, 0.04, 4.0)), mat("Pond Water", Color(0.22, 0.42, 0.48), 0.05, 0.0, 0.82),
+		(spring_at + top) / 2.0 + Vector3(0, 0.01, 0), g, atan2(dir.x, dir.z))
+	var rock := mat("Rock", Color(0.42, 0.42, 0.4), 0.95)
+	var moss := mat("Moss", Color(0.3, 0.42, 0.2), 0.95)
+	for k in 10:
+		var a := k * TAU / 10
+		var rp := spring_at + Vector3(cos(a), 0, sin(a)) * 2.9
+		if Vector3(cos(a), 0, sin(a)).dot(dir) > 0.7:
+			continue
+		var r := mesh_at(ball(0.5, 8), rock if k % 3 else moss, rp, g)
+		r.scale = Vector3(1.0, 0.6, 0.9)
+	# Big mossy rocks along the cliff either side of the falls
+	var falls_rng := RandomNumberGenerator.new()
+	falls_rng.seed = 5
+	for k in 16:
+		var ang := deg_to_rad(-40.0 + k * 80.0 / 15.0)
+		if absf(ang) < deg_to_rad(5.0):
+			continue
+		var d2 := dir2.rotated(ang)
+		var dd := EarthLand.HILL_FLAT + falls_rng.randf_range(0.8, 2.6)
+		var p := Vector2(c.x, c.z) + d2 * dd
+		var r := mesh_at(ball(1.0, 10), rock if k % 4 else moss, Vector3(p.x, _h(p.x, p.y) - 0.3, p.y), g)
+		r.scale = Vector3(falls_rng.randf_range(1.4, 2.4), falls_rng.randf_range(1.2, 2.2), falls_rng.randf_range(1.4, 2.2))
+	var splash := OmniLight3D.new()
+	splash.light_color = Color(0.7, 0.85, 1.0)
+	splash.light_energy = 0.6
+	splash.omni_range = 6.0
+	splash.position = bottom + Vector3(0, 1.0, 0) + dir
+	g.add_child(splash)
+
+
+# -----------------------------------------------------------------------------
+# Skating: the Hollow Skate Yard, and spots round town
+# -----------------------------------------------------------------------------
+func _skate_yard() -> void:
+	# The Hollow Skate Yard beside the school, on a big concrete pad behind a chain-link fence: the Big Vert (a tall
+	# half-pipe for BIG air), a mini ramp, the gap jump (a kicker and a landing deck with a gap between), a funbox,
+	# a stair set with handrails, ledges and rails, a bank, and the Skaters' Corner to swap who's riding.
+	var c := YARD.get_center()
+	var g := group("Hollow Skate Yard", Vector3(c.x, 0, c.y))
+	_foot("Hollow Skate Yard", g.position, 0.0, YARD.size, "skate")
+	var floor_y := 0.2
+	var concrete := kit.mat("Concrete", 0.85)
+	_solid_mesh(Vector3(YARD.size.x, floor_y, YARD.size.y), concrete, Vector3(0, floor_y / 2.0, 0), g)
+	var hx := YARD.size.x / 2.0
+	var hz := YARD.size.y / 2.0
+	# The Big Vert at the north end: two tall quarter pipes facing each other, 4.8 m up, nearly vertical at the top
+	kit.quarter_pipe(g, "Big Vert West", Vector3(-7.5, floor_y, -hz + 9.0), -PI / 2, 12.0, 4.8, 86.0, 2.0)
+	kit.quarter_pipe(g, "Big Vert East", Vector3(7.5, floor_y, -hz + 9.0), PI / 2, 12.0, 4.8, 86.0, 2.0)
+	# The mini ramp, middle east
+	kit.quarter_pipe(g, "Mini Ramp North", Vector3(12.0, floor_y, -2.5), PI, 7.0, 1.8, 70.0, 1.5)
+	kit.quarter_pipe(g, "Mini Ramp South", Vector3(12.0, floor_y, 3.5), 0.0, 7.0, 1.8, 70.0, 1.5)
+	# The gap: a kicker west of the middle, a 7 m gap, then a landing deck sloping down
+	kit.kicker(g, "Gap Kicker", Vector3(-hx + 2.0, floor_y, 1.0), PI / 2, 4.5, 1.9, 4.0)
+	var land := kit.group(g, "Gap Landing", Vector3(-hx + 2.0 + 4.5 + 7.0, floor_y, 1.0), PI / 2)
+	kit.prism(PackedVector2Array([Vector2(0, 0), Vector2(0, 1.9), Vector2(2.0, 1.9), Vector2(7.0, 0)]), 4.0, kit.mat("Kicker", 0.6), land)
+	# Funbox, a stair set, a ledge, two flat rails and a kinked ground rail, a bank against the south fence
+	kit.funbox(g, "Funbox", Vector3(1.0, floor_y, 6.5), PI / 2)
+	kit.stairs_and_handrail(g, "Yard Stairs", Vector3(-11.0, floor_y, 13.0))
+	kit.ledge(g, "Long Ledge", Vector3(4.0, floor_y, 15.0), Vector3(1, 0, 0), 10.0, 0.55)
+	kit.flat_rail(g, "Flat Rail", Vector3(-2.0, floor_y, -3.5), Vector3(1, 0, 0), 9.0, 0.5)
+	kit.flat_rail(g, "Long Rail", Vector3(4.0, floor_y, 10.5), Vector3(1, 0, 0), 12.0, 0.75)
+	kit.prism(PackedVector2Array([Vector2(0, 0), Vector2(3.0, 1.4), Vector2(4.0, 1.4), Vector2(4.0, 0)]), 14.0, kit.mat("Ramp", 0.55),
+		kit.group(g, "South Bank", Vector3(9.0, floor_y, hz - 4.2), 0.0))
+	kit.skaters_corner(g, Vector3(-hx + 3.0, floor_y, hz - 3.0))
+	kit.kicker(g, "Gate Ramp", Vector3(-hx - 1.6, 0, 0), PI / 2, 1.6, floor_y, 4.0)    # a little ramp up through the gate
+	# The chain-link fence round it, with the gate on Main Street's side
+	var fence := mat("Chain Link", Color(0.6, 0.62, 0.65), 0.4, 0.0, 0.55)
+	var post := mat("Lamp Iron", Color(0.1, 0.1, 0.12), 0.5)
+	for side in [[Vector3(0, 0, -hz), Vector3(YARD.size.x, 0, 0)], [Vector3(0, 0, hz), Vector3(YARD.size.x, 0, 0)],
+			[Vector3(hx, 0, 0), Vector3(0, 0, YARD.size.y)]]:
+		var at: Vector3 = side[0]
+		var span: Vector3 = side[1]
+		mesh_at(box(Vector3(maxf(span.x, 0.05), 2.4, maxf(span.z, 0.05))), fence, at + Vector3(0, 1.4, 0), g)
+		solid_box(Vector3(maxf(span.x, 0.2), 2.4, maxf(span.z, 0.2)), at + Vector3(0, 1.4, 0), g)
+	for z0 in [[-hz, -4.0], [4.0, hz]]:                                    # the west side, with a gate in the middle
+		var len: float = z0[1] - z0[0]
+		mesh_at(box(Vector3(0.05, 2.4, len)), fence, Vector3(-hx, 1.4, (z0[0] + z0[1]) / 2.0), g)
+		solid_box(Vector3(0.2, 2.4, len), Vector3(-hx, 1.4, (z0[0] + z0[1]) / 2.0), g)
+	for k in 9:
+		for sx in [-hx, hx]:
+			mesh_at(cyl(0.05, 0.05, 2.6, 6), post, Vector3(sx, 1.3, -hz + k * YARD.size.y / 8.0), g)
+	var sign_post := Node3D.new()
+	sign_post.position = Vector3(-hx - 0.5, 0, -5.0)
+	sign_post.rotation.y = -PI / 2
+	g.add_child(sign_post)
+	mesh_at(box(Vector3(4.2, 1.0, 0.1)), mat("Yard Sign", Color(0.15, 0.1, 0.18), 0.6), Vector3(0, 3.1, 0), sign_post)
+	label(sign_post, "HOLLOW SKATE YARD", Vector3(0, 3.1, -0.07), 44, Color(1.0, 0.6, 0.2)).rotation.y = PI
+	for sx in [-1.8, 1.8]:
+		mesh_at(cyl(0.06, 0.06, 3.6, 6), post, Vector3(sx, 1.8, 0), sign_post)
+	# Floodlights, for skating after dark
+	for p in [Vector3(-hx + 0.6, 0, -hz + 0.6), Vector3(hx - 0.6, 0, -hz + 0.6), Vector3(-hx + 0.6, 0, hz - 0.6), Vector3(hx - 0.6, 0, hz - 0.6)]:
+		mesh_at(cyl(0.1, 0.14, 7.0, 8), post, p + Vector3(0, 3.5, 0), g)
+		mesh_at(box(Vector3(0.8, 0.4, 0.4)), mat("Lamp Glass", Color(1.0, 0.85, 0.55), 0.3, 2.0), p + Vector3(0, 7.1, 0), g)
+		lamp_light(g, p + Vector3(0, 6.8, 0) - p.normalized() * 1.5, Color(1.0, 0.92, 0.8), 2.2, 22.0)
+	# Graffiti-style murals on the north wall (just colour: pumpkins and a big moon)
+	var wall := mat("Yard Wall", Color(0.55, 0.55, 0.58), 0.9)
+	_solid_mesh(Vector3(YARD.size.x - 2.0, 2.2, 0.4), wall, Vector3(0, 1.1 + floor_y, -hz + 0.6), g)
+	mesh_at(cyl(1.0, 1.0, 0.05, 24), mat("Mural Moon", Color(0.98, 0.92, 0.6), 0.6), Vector3(-12.0, 1.5, -hz + 0.84), g, 0.0, Vector3(PI / 2, 0, 0))
+	for k in 5:
+		mesh_at(ball(0.5, 10), mat("Mural %d" % (k % 3), [Color(0.95, 0.5, 0.12), Color(0.6, 0.3, 0.75), Color(0.35, 0.85, 0.5)][k % 3], 0.6),
+			Vector3(-6.0 + k * 3.2, 1.3, -hz + 0.84), g).scale = Vector3(1.2, 0.9, 0.1)
+
+
+func _skate_spots() -> void:
+	# A few more spots round town where they'd really be (the library's and school's handrails, the hardware store's
+	# dock and the hill rail are with their buildings): rails along the creek path, and a kicker ramp by the
+	# playground path made from an old ramp the kids left out
+	var g := group("Skate Spots")
+	var rail_line := [Vector2(-79, -26.5), Vector2(-87, -29.6)]
+	kit.ground_rail(g, "Creek Path Rail", _on_ground(rail_line[0]), _on_ground(rail_line[1]), 0.55)
+	kit.ground_rail(g, "Pond Path Rail", _on_ground(Vector2(-34, 16.8)), _on_ground(Vector2(-43, 16.8)), 0.5)
+	kit.ledge(g, "Town Hall Ledge", Vector3(-30.0, 0, -16.8), Vector3(1, 0, 0), 7.0, 0.5)
+	kit.kicker(g, "Pond Path Kicker", _on_ground(Vector2(-48, 9.8)), -PI / 2, 2.5, 0.9, 2.2)
+	# A curb-cut rail outside the Corner Market's car park
+	kit.flat_rail(g, "Market Rail", Vector3(STREET + STREET_W / 2 + 1.6 + 1.0, 0, 19.0), Vector3(0, 0, 1), 5.0, 0.45)
+
+
+# -----------------------------------------------------------------------------
+# Autumn and Halloween: jack-o'-lanterns, string lights, bunting, cornstalks, scarecrows, hay
+# -----------------------------------------------------------------------------
+func _jack(parent: Node3D, at: Vector3, r: float) -> void:
+	# A jack-o'-lantern: a pumpkin with a friendly carved face that glows (always: it's that time of year)
+	_pumpkin(parent, at, r)
+	var glow := mat("Jack Glow", Color(1.0, 0.65, 0.15), 0.5, 3.0)
+	var face := Node3D.new()
+	face.position = at + Vector3(0, r * 0.75, r * 1.08)
+	parent.add_child(face)
+	for sx in [-1.0, 1.0]:
+		mesh_at(cyl(0.0, r * 0.2, 0.02, 3), glow, Vector3(sx * r * 0.33, r * 0.18, 0), face, 0.0, Vector3(PI / 2, 0, 0))
+	var smile := mesh_at(box(Vector3(r * 0.85, r * 0.16, 0.02)), glow, Vector3(0, -r * 0.2, 0), face)
+	smile.name = "Smile"
+
+
+func _halloween() -> void:
+	# Dressing the whole town for autumn: cornstalk bundles on the street lamps round the green, jack-o'-lanterns on
+	# steps and the gazebo, hay bales and scarecrows at the corners, a ghost (a friendly sheet one) in a few windows
+	var g := group("Autumn Dressing")
+	var stalk := mat("Cornstalk", Color(0.8, 0.68, 0.4), 0.95)
+	for k in 4:
+		var a := k * PI / 2
+		var out := Vector3(cos(a), 0, sin(a))
+		var along := Vector3(cos(a + PI / 2), 0, sin(a + PI / 2))
+		for t in [-14.0, 14.0]:
+			var p: Vector3 = out * (STREET - STREET_W / 2 - 0.9) + along * t
+			for q in 5:
+				var off := Vector3(cos(q * 1.3), 0, sin(q * 1.3)) * 0.22
+				mesh_at(cyl(0.02, 0.05, 2.2, 5), stalk, p + off + Vector3(0, 1.1, 0), g, 0.0, Vector3(off.z * 0.4, 0, -off.x * 0.4))
+	# Hay bales, scarecrows and pumpkins at the green's four corners
+	for k in 4:
+		var a := k * PI / 2 + PI / 4
+		var p := Vector3(cos(a), 0, sin(a)) * (GREEN_R + 1.8)
+		if p.distance_to(PORTAL_AT) < 6.0:
+			continue                                                  # (the old oak's corner has the portal)
+		mesh_at(cyl(0.6, 0.6, 1.2, 16), mat("Hay", Color(0.88, 0.74, 0.38), 0.95), p + Vector3(0, 0.45, 0), g, -a, Vector3(0, 0, PI / 2))
+		solid_box(Vector3(1.2, 0.9, 1.0), p + Vector3(0, 0.45, 0), g, -a)
+		_jack(g, p + Vector3(0, 0.9, 0), 0.3)
+		_scarecrow(g, p + Vector3(cos(a + 0.5), 0, sin(a + 0.5)) * 1.6, -a + PI / 2)
+	for k in 6:                                                       # jack-o'-lanterns round the gazebo
+		var a := k * TAU / 6 + 0.3
+		_jack(g, Vector3(cos(a), 0, sin(a)) * 4.9, 0.25)
+	# Friendly sheet ghosts in some upstairs windows on Main Street (just for fun)
+	var sheet := mat("Ghost Sheet", Color(0.97, 0.97, 1.0), 0.8, 0.4)
+	for spot in [[Vector3(_side(-1, 10) + 5.06, 4.0, -46 + 3.3), PI / 2], [Vector3(_side(1, 9) - 4.56, 4.2, -46 - 3.0), -PI / 2],
+			[Vector3(_side(-1, 10) + 5.06, 3.9, -62 - 3.0), PI / 2]]:
+		var ghost := Node3D.new()
+		ghost.position = spot[0]
+		ghost.rotation.y = spot[1]
+		g.add_child(ghost)
+		mesh_at(ball(0.35, 10), sheet, Vector3(0, 0.2, 0), ghost).scale = Vector3(1, 1.3, 0.3)
+		for sx in [-0.12, 0.12]:
+			mesh_at(ball(0.05, 6), mat("Ghost Eye", Color(0.1, 0.08, 0.12), 0.5), Vector3(sx, 0.3, 0.1), ghost)
+	# String lights zig-zagging across Main Street and Maple Lane, and round the gazebo square; bunting over the
+	# green's streets
+	var orange := Color(1.0, 0.55, 0.15)
+	var purple := Color(0.7, 0.35, 1.0)
+	var warm := Color(1.0, 0.85, 0.5)
+	var z := MAIN_Z.x - 4.0
+	var side := 1.0
+	while z > MAIN_Z.y + 6.0:
+		_string(Vector3(-side * (STREET_W / 2 + 0.9), 4.6, z), Vector3(side * (STREET_W / 2 + 0.9), 4.6, z - 8.0), [orange, purple, warm])
+		z -= 8.0
+		side = -side
+	var x := HOLLOW_X - 8.0
+	while x > -90.0:
+		_string(Vector3(x, 4.4, MAPLE_Z - (STREET_W / 2 + 0.9)), Vector3(x - 10.0, 4.4, MAPLE_Z + (STREET_W / 2 + 0.9)), [orange, warm])
+		x -= 10.0
+	for k in 4:
+		var a := k * PI / 2
+		var out := Vector3(cos(a), 0, sin(a))
+		var along := Vector3(cos(a + PI / 2), 0, sin(a + PI / 2))
+		var p: Vector3 = out * (STREET - STREET_W / 2 - 0.9)
+		_bunting(p - along * 14.0 + Vector3(0, 4.2, 0), p + Vector3(0, 4.2, 0) + out * (STREET_W + 1.8) * 0.0)
+		_bunting(p + Vector3(0, 4.2, 0), p + along * 14.0 + Vector3(0, 4.2, 0))
+
+
+func _string(a: Vector3, b: Vector3, cols: Array, sag := 0.6) -> void:
+	# A string of bulbs from a to b, sagging a little in the middle
+	var n := int(a.distance_to(b) / 0.6)
+	for k in n + 1:
+		var t := float(k) / n
+		bulbs.append([a.lerp(b, t) - Vector3(0, sag * 4.0 * t * (1.0 - t), 0), cols[k % cols.size()]])
+
+
+func _bunting(a: Vector3, b: Vector3) -> void:
+	# A line of little triangle flags in orange, purple, black and cream
+	var cols := [Color(0.95, 0.5, 0.12), Color(0.5, 0.25, 0.65), Color(0.12, 0.1, 0.12), Color(0.96, 0.92, 0.8)]
+	var n := int(a.distance_to(b) / 0.7)
+	var d := b - a
+	for k in n + 1:
+		var t := float(k) / n
+		flags.append([a.lerp(b, t) - Vector3(0, 0.5 * 4.0 * t * (1.0 - t), 0), atan2(d.x, d.z), cols[k % cols.size()]])
+
+
+func _strings_and_bunting() -> void:
+	# All the bulbs as one MultiMesh (glowing, coloured per bulb) and all the flags as another: thousands of little
+	# things for the price of two
+	var g := group("String Lights")
+	var bulb := SphereMesh.new()
+	bulb.radius = 0.11
+	bulb.height = 0.22
+	bulb.radial_segments = 6
+	bulb.rings = 3
+	var bm := StandardMaterial3D.new()
+	bm.vertex_color_use_as_albedo = true
+	bm.emission_enabled = true
+	bm.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+	bm.emission = Color(1, 1, 1)
+	bm.emission_energy_multiplier = 3.0
+	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var mi := multi("Bulbs", bulb, bulbs.map(func(b: Array) -> Transform3D: return Transform3D(Basis(), b[0])),
+		bulbs.map(func(b: Array) -> Color: return b[1]), bm)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	g.add_child(mi)
+	var flag := PrismMesh.new()
+	flag.size = Vector3(0.35, 0.45, 0.02)
+	var flm := StandardMaterial3D.new()
+	flm.vertex_color_use_as_albedo = true
+	flm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	flm.roughness = 0.8
+	g.add_child(multi("Bunting", flag, flags.map(func(f: Array) -> Transform3D:
+		return Transform3D(Basis(Vector3.UP, f[1] + PI / 2) * Basis(Vector3.RIGHT, PI), f[0] - Vector3(0, 0.22, 0))),
+		flags.map(func(f: Array) -> Color: return f[2]), flm))
+
+
+# -----------------------------------------------------------------------------
+# The town map (scripts/map_screen.gd draws it from this)
+# -----------------------------------------------------------------------------
+func _write_map() -> void:
+	var r2 := func(v: float) -> float: return snappedf(v, 0.1)
+	var streets := []
+	for rd in roads:
+		streets.append([r2.call(rd[0].x), r2.call(rd[0].y), r2.call(rd[1].x), r2.call(rd[1].y), rd[2], rd[3]])
+	var buildings := []
+	for f in feet:
+		buildings.append([f.label, r2.call(f.at.x), r2.call(f.at.y), r2.call(f.size.x), r2.call(f.size.y), snappedf(f.yaw, 0.001), f.kind])
+	var creek := []
+	for p in EarthLand.CREEK:
+		creek.append([p.x, p.y])
+	var labels := []
+	for s in spots:
+		labels.append([s[0], r2.call(s[1].x), r2.call(s[1].y)])
+	labels.append(["Main Street", 0.0, -78.0])
+	labels.append(["Maple Lane", -50.0, MAPLE_Z])
+	labels.append(["The Green", 0.0, 0.0])
+	var data := {
+		"bounds": [BOUNDS.position.x, BOUNDS.position.y, BOUNDS.end.x, BOUNDS.end.y],
+		"green": [0.0, 0.0, GREEN_R],
+		"streets": streets,
+		"buildings": buildings,
+		"pond": [EarthLand.POND.x, EarthLand.POND.y, EarthLand.POND.z, EarthLand.POND.w],
+		"creek": creek,
+		"creek_width": EarthLand.CREEK_HALF * 2.0,
+		"pool": [EarthLand.FALLS_POOL.x, EarthLand.FALLS_POOL.z, 5.0],
+		"hill": [EarthLand.HILL.x, EarthLand.HILL.y, EarthLand.HILL_FLAT, EarthLand.HILL_FLAT + EarthLand.HILL_SLOPE],
+		"portal": [PORTAL_AT.x, PORTAL_AT.z],
+		"labels": labels,
+	}
+	var f := FileAccess.open(MAP_OUT, FileAccess.WRITE)
+	f.store_string(JSON.stringify(data, "\t") + "\n")
+	f.close()
+	print("SAVED ", MAP_OUT, " (", buildings.size(), " places)")

@@ -68,6 +68,47 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-30: Stars Hollow build-out, phase 1: the town (Hayden: "go" on prompt S, with a Halloweentown fall feel,
+  "plenty of railing/ramps scattered around town in spots that actually make sense" and "don't be afraid to let the
+  player get BIG AIR"). The green and its buildings stay where they were; the town grows round them
+  (`tools/build_earth.gd`, walls now a rectangle x -152..92, z -152..102):
+  - **Ground:** `scripts/earth_land.gd` (`EarthLand`) is the one height function for the builder, the game and tests.
+    It builds its own mesh and HeightMapShape3D when the town loads (so there's no big LFS ground file): flat town,
+    **Willow Pond** (a bowl west of the Town Hall), **Whisper Creek** (from the falls into the pond and out south),
+    **Lookout Hill** (6.5 m, gentle slopes, a cliff on the pond side) with **Mossy Falls**. `scripts/water.gd` wades the
+    pond and creek (`EarthLand.water_circles()`).
+  - **Main Street** north from the green between the diner and bookshop: Crumb & Cauldron Bakery, Gizmo & Gumdrop Toys,
+    Lantern Hill Library (on a stone base, steps with two grindable handrails) and the Town Hall (now walk-in: benches,
+    podium, "Town meeting tonight" banner), all walk-in (`_walk_in()`: hollow CSG shell, doorway, lights, music, with
+    `Doorway` and `Inside` markers); Cobweb Corner Antiques, Nuts & Bolts Hardware (loading dock with a kicker and a
+    rail), Fire Station No. 1 (truck out front) and Old Oak Elementary (bell tower, stair set) at the top.
+  - **Maple Lane** (south, joined by Hollow Lane): the Blastoffs' house (walk in; living room with fireplace, and a
+    bedroom each: Nina's red and black with her bow, Prue's lilac with plushies, Bruno's with skate posters, a board
+    and a little ramp; `NinaBed` marker), Mr. Palmer's house (rocking chair and teacup on the porch) and six more
+    with mailboxes. The **Old Covered Bridge** carries it over the creek.
+  - **Park:** the dock and rowing boat, lily pads, cattails, mist and ducks on the pond, a footbridge with grindable
+    rails, the playground (slide with a "We asked for a slide... and we got one!" sign, swings, sandbox), the pumpkin
+    patch with scarecrows, the Lookout on the hilltop, a rail all the way down the hill's east slope and the
+    **Big Air Kicker** at its foot.
+  - **Hollow Skate Yard** beside the school: the Big Vert (two 4.8 m quarter pipes, 86 degrees), a mini ramp, a gap
+    jump (kicker, 7 m gap, landing deck), funbox, stair set, ledge, rails, a bank, Skaters' Corner, floodlights and a
+    fence. Plus rails/ledges by the Town Hall, the creek path, the pond path and the market.
+  - **Autumn/Halloween:** jack-o'-lanterns (always glowing), cornstalks on the lamps, hay bales and scarecrows at the
+    green's corners, orange/purple string lights zig-zagging over Main Street and Maple Lane, bunting round the green,
+    friendly sheet ghosts in windows, bare twisty trees by the water, ~240 trees and 6000 fallen leaves. Fog is lighter
+    (0.0035) for the wider town.
+  - **MultiMesh gotcha:** a `--headless` build saves MultiMeshes with no instances (the dummy renderer drops them), so
+    the old fallen leaves never showed. `scripts/multi_fill.gd` (`MultiFill.pack()`, used by `multi()` in the
+    builder) keeps the transforms and colours on the node and fills the MultiMesh at load. Use it in any builder.
+  - **Map:** the builder writes `ui/earth_map.json`; `scripts/map_screen.gd` draws Earth's map from it (streets, places
+    coloured by kind, water, hill, labels, the portal) on the Map sheet and the minimap (`on_earth()`).
+  - **Saves:** `Game.EARTH_LAYOUT` 2 (`"earth_layout"` in the save). A save from out on Earth before this wakes up at
+    home (HomeSpawn) with a "the town's grown" message.
+  - Tests: `test_earth` checks every place, a clear way in to every walk-in and each Blastoff bedroom, nothing floating,
+    the pond and hill, wading, skate lines, the map and the old-save wake-up. `tools/capture_earth_town.gd` takes 22
+    shots (in the project files under world/previews/earth_town, made in the cloud). Names made up for Hayden to rename:
+    the shops above, Willow Pond, Whisper Creek, Mossy Falls, Lookout Hill, Hollow Skate Yard, Maple Lane, Hollow Lane,
+    and the neighbours Hollis, Okafor, Larkspur, Quill, Pemberton and Bramblewood.
 - 2026-10-30: Aiming while riding (Hayden: "make aiming a thing while riding"). Hold Aim (right click / LT) on any ride
   that can shoot and you get the same over-the-shoulder camera, crosshair and shots to the crosshair as on foot;
   her whole body twists round to it (the ride pose). While aiming, the camera is the player's to look round with (it
