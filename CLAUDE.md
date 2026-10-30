@@ -68,6 +68,13 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-30: Aiming while riding (Hayden: "make aiming a thing while riding"). Hold Aim (right click / LT) on any ride
+  that can shoot and you get the same over-the-shoulder camera, crosshair and shots to the crosshair as on foot;
+  her whole body twists round to it (the ride pose). While aiming, the camera is the player's to look round with (it
+  doesn't swing back behind her: `follow()` in `spring_arm_3d.gd` waits), and the board steers from where she's going,
+  not from the camera (`_camera_dir` in `skate.gd`), so looking about never turns the board. Not in a race, where Aim
+  is still the power-up button. `test_skate_popper` checks it; `tools/capture_ride_aim.gd` (shots in the project files
+  under world/previews/ride_aim, made in the cloud).
 - 2026-10-30: Shooting from a ride looks natural (Hayden, option 1). `PopperArm` in `star_popper.gd` now poses the whole
   upper body on a ride, all in code on the bones every body shares (spine, chest, head, both arms), so it fits every
   hero body and every rider that can shoot, with no new model files. Her spine, chest and head twist towards the shot

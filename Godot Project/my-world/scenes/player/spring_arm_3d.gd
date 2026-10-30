@@ -59,8 +59,8 @@ func _process(delta: float) -> void:
 
 func follow(yaw: float, delta: float, rate := 2.5) -> void:
 	# Swing round behind something moving (Nina on her board, scenes/player/skate.gd), unless the player has just
-	# turned the camera themselves: then it's theirs for a moment.
-	if _since_look > 0.8:
+	# turned the camera themselves: then it's theirs for a moment. While she aims it's the player's all the time.
+	if _since_look > 0.8 and aim <= 0.0:
 		rotation.y = lerp_angle(rotation.y, yaw, 1.0 - exp(-rate * delta))
 
 

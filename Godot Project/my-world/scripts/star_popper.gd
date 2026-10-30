@@ -11,8 +11,9 @@ extends Node3D
 #                                  gets a little help onto an enemy near it).
 #   Hold Shoot                     charges a big bubble (1 MP) that counts for three pops and carries on through.
 #
-# On the board (or a friend's ride) Shoot works too, from the hip only, so steering stays the same: rolling, in the
-# air, on a grind or in a manual. It finds an enemy ahead of where she's going, and each one popped is a "Pop!" trick
+# On the board (or a friend's ride) Shoot works too: rolling, in the air, on a grind or in a manual. From the hip it
+# finds an enemy ahead of where she's going. Aim works too (not in a race, where Aim uses the power-up): the camera is
+# then the player's to look round with and the board steers from where she's going. Each one popped is a "Pop!" trick
 # in the combo (Skate.on_pop, SkateTricks.pop). Riders with no hand free (Rides "popper": false) can't. Not on the
 # zipline or in the mothership, and not while talking, in a menu or the creator.
 # Her right arm points the popper where the bubbles go (PopperArm below), and the popper shows in her hand while she
@@ -138,7 +139,9 @@ func _physics_process(delta: float) -> void:
 	if player == null:
 		return
 	var ok := can_shoot()
-	aiming = ok and Input.is_action_pressed("aim") and not Game.riding     # no aiming on the board: it would steer
+	# Aiming works on a ride too (the board then steers from where she's going, not the camera: skate.gd
+	# _camera_dir), except in a race, where Aim uses the power-up (scripts/races.gd)
+	aiming = ok and Input.is_action_pressed("aim") and not (Game.riding and Races.racing())
 	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
 	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
 	_cooldown -= delta

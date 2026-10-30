@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Checks the Star Popper on the board (scripts/star_popper.gd with scenes/player/skate.gd): Shoot works from the hip
-# while rolling, in the air, grinding and in a manual (no aiming on the board, so steering stays the same), each
+# while rolling, in the air, grinding and in a manual, Aim works on the board too (steering then goes from where
+# she's going, not the camera, and not in a race, where Aim is the power-up), each
 # Gloop or Crocodillo popped is a "Pop!" trick in the combo (worth points, its own multiplier entry, half for a
 # repeat) and fills some of the special meter, a big bubble still costs 1 MP, and her arm points the popper without
 # turning the board. The Skate Park's two new goals ("Pop 3 Gloops in one combo", "Pop a Gloop off a grind") pay once,
@@ -133,10 +134,46 @@ func _run() -> void:
 	await _physics(3)
 	var floor_at := c + Vector3(0, 0.25, 0)
 	check(popper.can_shoot(), "she can shoot on the board")
+
+	# --- Aiming on the board: the camera's free to look round, the board keeps going where it was going ---
+	_put(p, s, floor_at + Vector3(-6, 0.85, 1.5), s.State.ROLL)
+	p.velocity = Vector3(4, 0, 0)
+	await _physics(5)
+	var boom := p.get("spring_arm") as SpringArm3D
+	var look := Vector3(cos(1.2), 0, -sin(1.2))         # about 70 degrees to her left of where she's going
 	Input.action_press("aim")
+	await _physics(15)
+	boom.rotation = Vector3(-0.1, atan2(-look.x, -look.z), 0)
+	await _physics(15)
+	check(popper.aiming and popper.aim_blend == 1.0 and is_equal_approx(float(boom.get("aim")), 1.0),
+		"holding Aim on the board aims: the camera moves in over her shoulder")
+	check(popper._cross.visible, "...the crosshair shows")
+	var cam_f := -boom.global_transform.basis.z
+	check(Vector2(cam_f.x, cam_f.z).normalized().dot(Vector2(look.x, look.z)) > 0.98,
+		"...and the camera stays where it's pointed (it doesn't swing back behind her)")
+	var steer: Vector3 = s._camera_dir(Vector2(0, -1))
+	var going := Vector3(p.velocity.x, 0, p.velocity.z).normalized()
+	check(steer.dot(going) > 0.98, "...holding forward keeps going where she's going, not where the camera looks")
+	check(s._camera_dir(Vector2(-1, 0)).dot(going.cross(Vector3.UP) * -1.0) > 0.98, "...and left carves to her left")
+	popper._cooldown = 0.0
+	var aimed: Node3D = popper.shoot(false)
+	var bdir: Vector3 = (aimed.get("velocity") as Vector3).normalized() if aimed else Vector3.ZERO
+	check(aimed != null and Vector2(bdir.x, bdir.z).normalized().dot(Vector2(look.x, look.z)) > 0.9,
+		"...and a shot goes to the crosshair, off to the side")
 	await _physics(10)
-	check(not popper.aiming and popper.aim_blend == 0.0, "...but holding Aim doesn't aim there (steering stays the same)")
+	var aim_pose = popper.get("_arm")
+	check(aim_pose != null and aim_pose.influence > 0.9 and absf(float(aim_pose.twist)) > 0.4,
+		"...her body twists round to the crosshair (%.2f rad)" % (float(aim_pose.twist) if aim_pose else 0.0))
+	var races := root.get_node("Races")
+	races.state = races.State.RESULTS             # in a race, Aim is the power-up button (scripts/races.gd)
+	races._results = 30.0
+	await _physics(20)
+	check(not popper.aiming, "...but in a race Aim uses the power-up instead")
+	races.state = races.State.IDLE
 	Input.action_release("aim")
+	if aimed and is_instance_valid(aimed):
+		aimed.queue_free()
+	await _physics(20)
 
 	# --- Rolling: a Pop! of its own, paid out like a combo ---
 	_put(p, s, floor_at + Vector3(-5, 0.85, 1.5), s.State.ROLL)

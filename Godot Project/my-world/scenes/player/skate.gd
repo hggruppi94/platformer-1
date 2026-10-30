@@ -302,10 +302,15 @@ func physics(delta: float) -> void:
 
 func _camera_dir(input: Vector2) -> Vector3:
 	# Steering is relative to the camera, like walking. The camera swings round behind her as she rolls, so it soon
-	# feels like steering the board itself.
+	# feels like steering the board itself. While she aims the camera is the player's to look round with, so then
+	# forward is where she's going and left and right carve from there, and looking about never turns the board.
 	var b := p.spring_arm.global_transform.basis
 	var forward := Vector3(-b.z.x, 0, -b.z.z).normalized()
 	var right := Vector3(b.x.x, 0, b.x.z).normalized()
+	if p.popper and p.popper.aiming:
+		var going := Vector3(p.velocity.x, 0, p.velocity.z)
+		forward = going.normalized() if going.length() > 1.0 else _facing()
+		right = forward.cross(Vector3.UP)
 	return (right * input.x - forward * input.y).normalized()
 
 

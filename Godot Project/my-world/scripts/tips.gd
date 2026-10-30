@@ -24,7 +24,7 @@ const TIPS := {
 		"done": ["toggle_skateboard"]},
 	"gadgets": {"text": "A new gadget! Hold {gadget_wheel} to open your gadget wheel and pick one. Tap {gadget_wheel} to swap back.",
 		"done": ["gadget_wheel"]},
-	"skate_shoot": {"text": "Gloops ahead! Press {shoot} on your ride to bubble them. Every pop is a Pop! trick in your combo.",
+	"skate_shoot": {"text": "Gloops ahead! Press {shoot} on your ride to bubble them, or hold {aim} to aim. Every pop is a Pop! trick in your combo.",
 		"done": ["shoot"]},
 }
 const BASICS := ["move", "jump", "map", "pause"]
