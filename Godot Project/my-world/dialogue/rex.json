@@ -3,6 +3,28 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:day",
+        "not_flag": "skate_lesson_ollie"
+      },
+      "do": "FirstNight.lesson_from_rex",
+      "lines": [
+        "Ah! A new citizen! Rex, future mayor of Galaxity. And yes, I'm a husky. For now. It's a long story with a lot of paperwork.",
+        "Dash says you need to learn to skate. Excellent. Every great citizen skates. It's in my plans for the town."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:king"
+      },
+      "lines": [
+        "Citizen! Have you heard? The Gloop King is holding court in the west fields again. Past the Market.",
+        "Pop him and you'll be the talk of the town. Possibly a statue. I'll put it on my list."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

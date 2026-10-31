@@ -99,4 +99,6 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	Game.take_sparkle(name)
 	Audio.play("pickup", -10.0, 0.2)
+	Juice.chime_pickup()                                  # climbs the scale on quick pickups (scripts/juice.gd)
+	Juice.burst(get_parent(), global_position, Color(1.0, 0.9, 0.45), 8, 0.05, 2.0, 0.45)
 	refresh()

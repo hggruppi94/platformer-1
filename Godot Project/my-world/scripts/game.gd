@@ -79,12 +79,15 @@ const SAVE_VERSION := 2          # 2: the player lives on Earth, and Galaxity is
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
 const EARTH_LAYOUT := 2          # Earth's layout: 2 = the grown-up town (Main Street, Maple Lane, the park), Oct 30 2026
 const TOWN_SCENE := "res://scenes/town/town.tscn"
+const TITLE_SCENE := "res://scenes/title/title.tscn"   # the game opens on the title screen (scripts/title_screen.gd)...
+const START_SCENE := "res://scenes/earth/earth.tscn"   # ...and a game starts (or carries on) from Earth
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
 const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to Galaxity."
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
 var _last_place := {}            # her last known {scene, position, yaw}, for saves made mid scene change
+var play_time := 0.0             # seconds played, all told (shown on the title screen's Continue)
 
 
 func _ready() -> void:
@@ -243,6 +246,10 @@ func _process(delta: float) -> void:
 			mp += 1
 			stats_changed.emit()
 
+	if on_title():
+		return                                       # the title screen isn't playing: no time, no autosave
+	if not get_tree().paused:
+		play_time += delta
 	_autosave_timer -= delta
 	if _autosave_timer <= 0.0:
 		save_game()
@@ -258,6 +265,7 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 		return
 	next_spawn = spawn
 	Audio.play("door", -4.0)
+	Loading.show_for(scene_path)               # between Earth and Galaxity: a tip and a little alien (loading_screen.gd)
 	get_tree().call_deferred("change_scene_to_file", scene_path)
 
 
@@ -301,7 +309,7 @@ func save_game() -> void:
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "needs_creator": needs_creator, "home": home,
-		"popper_colour": popper_colour,
+		"popper_colour": popper_colour, "play_time": play_time,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -409,6 +417,7 @@ func load_game() -> void:
 		outfits.erase("nina")
 	home = data.get("home", {}) if data.get("home", {}) is Dictionary else {}
 	popper_colour = str(data.get("popper_colour", "classic"))
+	play_time = float(data.get("play_time", 0.0))
 	looks = {}
 	var all_looks = data.get("looks", {})
 	if all_looks is Dictionary:
@@ -459,8 +468,24 @@ func _go_to_saved_scene() -> void:
 	if _resume.is_empty():
 		return                   # she already appeared in the main scene where she saved
 	var scene := get_tree().current_scene
+	if scene and scene.scene_file_path == TITLE_SCENE:
+		return                   # the title screen's Continue takes her there (continue_game())
 	if scene and scene.scene_file_path != _resume["scene"]:
 		get_tree().change_scene_to_file(_resume["scene"])
+
+
+func on_title() -> bool:
+	var scene := get_tree().current_scene
+	return scene != null and scene.scene_file_path == TITLE_SCENE
+
+
+func continue_game() -> void:
+	# From the title screen: back to where the save left off (or home on Earth, for a save with no place in it)
+	var to := str(_resume.get("scene", START_SCENE))
+	if to == START_SCENE and _resume.is_empty() and next_spawn == "":
+		next_spawn = NEW_GAME_SPAWN
+	Loading.show_for(to)
+	get_tree().call_deferred("change_scene_to_file", to)
 
 
 func is_resuming() -> bool:
@@ -501,6 +526,7 @@ func new_game() -> void:
 	popper_colour = "classic"
 	sparkles = 0
 	sparkles_taken.clear()
+	play_time = 0.0
 	Clock.reset()
 	Dialogue.reset()
 	Quests.reset()
@@ -515,4 +541,4 @@ func new_game() -> void:
 	pending_message = NEW_GAME_MESSAGE
 	equipment_changed.emit()
 	stats_changed.emit()
-	get_tree().call_deferred("change_scene_to_file", ProjectSettings.get_setting("application/run/main_scene"))
+	get_tree().call_deferred("change_scene_to_file", START_SCENE)

@@ -883,6 +883,19 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 			var wrist := Vector3(0.43 - 0.035, 0.49 + 0.075, 0.055)
 			_mesh(hnd, _torus(0.04, 0.058), _mat(Color(0.55, 0.35, 0.75), 0.5), wrist, Vector3(0, 0, 0.5))
 			_time_keeper(hnd, wrist + Vector3(0, 0, 0.05), 0.032)
+		"shift_watch":                                     # the watch that appears on arrival (scripts/first_night.gd)
+			var hnd := Node3D.new()
+			hnd.name = "L"
+			g.add_child(hnd)
+			var wrist := Vector3(0.43 - 0.035, 0.49 + 0.075, 0.055)
+			_mesh(hnd, _torus(0.04, 0.056), _mat(Color(0.3, 0.8, 0.75), 0.6), wrist, Vector3(0, 0, 0.5))
+			var face := Vector3(PI / 2, 0, 0)
+			var at := wrist + Vector3(0, 0, 0.05)
+			_mesh(hnd, _cyl(0.028, 0.028, 0.012), _mat(Color(0.85, 0.85, 0.95), 0.3, 0.8), at, face)
+			_mesh(hnd, _cyl(0.023, 0.023, 0.013), _mat(Color(0.25, 0.15, 0.45), 0.3, 0.0, 0.6), at + Vector3(0, 0, 0.002), face)
+			_mesh(hnd, _sphere(0.005), _mat(Color(0.65, 1.0, 0.4), 0.3, 0.0, 2.0), at + Vector3(0, 0.014, 0.008))
+			_mesh(hnd, _box(Vector3(0.003, 0.016, 0.002)), _mat(Color(1, 0.95, 0.7), 0.4, 0.0, 1.0),
+				at + Vector3(0.004, 0.006, 0.008), Vector3(0, 0, -0.6))
 		# --- Back (her backpack comes off)
 		"butterfly_wings":
 			var wing := _mat(Color(0.75, 0.55, 1.0, 0.8), 0.3, 0.0, 0.4)

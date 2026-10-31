@@ -121,7 +121,7 @@ func close() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Game.save_game()
 	if _first_time:
-		Game.message("Welcome to Galaxity, %s!" % Hero.display_name(Game.hero))
+		Game.message(("Welcome to Stars Hollow, %s!" if Clock.on_earth else "Welcome to Galaxity, %s!") % Hero.display_name(Game.hero))
 		Tips.basics()                              # how to walk, jump, open the map... (scripts/tips.gd)
 	Audio.play("ui_accept", -4.0, 0.0)
 	closed.emit()

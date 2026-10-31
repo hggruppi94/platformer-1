@@ -3,6 +3,117 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:evening",
+        "not_flag": "fn_nina"
+      },
+      "set": "fn_nina",
+      "lines": [
+        "Oh! Hi. You opened the door. I wasn't sure anyone lived here yet.",
+        "I'm Nina. Nina Blastoff. I live on Maple Lane, with my sister Prue and my little brother Bruno.",
+        "{player}: Hi Nina! I'm {player}.",
+        "{player}. Cool name. So... can I tell you something weird?",
+        "(She looks over at the big old oak on the green, then back at you.)",
+        "That tree hums. Every night, right at midnight. Nobody else seems to notice. But I think you will.",
+        "Before then, go and meet everyone! Mr. Palmer's by the gazebo. He knows everything about this town. Probably more than he says.",
+        "Walk up to anyone and press {interact} to say hi. And {player_menu} opens your menu, with your quests and a map of town. {map} goes straight to the map.",
+        "See you at the oak? Maybe? No pressure. (She's already walking off.)"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:evening"
+      },
+      "lines": [
+        "Have you met Mr. Palmer yet? Gazebo. Middle of the green. Can't miss him. He waves a lot.",
+        "And say hi to a couple of the others. Everyone round the green is nice. Mostly. Ozzie tells a lot of jokes."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:wait"
+      },
+      "lines": [
+        "Not long now. Midnight. The oak.",
+        "If waiting's boring, have a nap. Your bed has a button for it: \"Until the Shift\". You'll wake up right on time.",
+        "Or keep exploring! The town's pretty at night. Just don't miss it. I'll... probably be there too."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "Can you hear it? The hum! The oak's glowing. Go on, walk right into it.",
+        "{player}: Is it safe?",
+        "I've been loads of times. You'll love it. Trust me. (She grins.) Go!"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:home"
+      },
+      "set": "fn_home_nina",
+      "lines": [
+        "{player}! You're back! I saw you go through. So? SO?",
+        "{player}: There were aliens! And a talking husky! And a big golden Gloop with a crown!",
+        "(Nina laughs.) Told you it was the best. And the watch? Let me see. Yep. You're one of the chosen ones now.",
+        "Everyone there has something they're amazing at. Even if they haven't found it yet. You'll find yours.",
+        "Same time tomorrow?",
+        {
+          "choice": [
+            {
+              "text": "Same time tomorrow!",
+              "lines": [
+                "Midnight. The oak. Don't be late! (She does a little twirl.)"
+              ]
+            },
+            {
+              "text": "Every night, if I can!",
+              "lines": [
+                "Ha! That's the spirit. Galaxity's always there, waiting at dawn."
+              ]
+            }
+          ]
+        }
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_not_started": "first_night",
+        "not_flag": "fn_offered",
+        "min_talks": 2
+      },
+      "set": "fn_offered",
+      "lines": [
+        "Hey, {player}. I was thinking. You know the old oak, and the Shift, and Galaxity?",
+        "I could show you round properly. Like it was your first night all over again. Everyone, everything, start to finish.",
+        {
+          "choice": [
+            {
+              "text": "Yes, show me!",
+              "set": "first_night_start",
+              "lines": [
+                "Brilliant! First: go and say hi to Mr. Palmer by the gazebo. Then midnight, the oak. I'll explain on the way."
+              ]
+            },
+            {
+              "text": "No thanks, I know my way.",
+              "lines": [
+                "Fair enough! If you change your mind, it's in your quest log. Any time."
+              ]
+            }
+          ]
+        }
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

@@ -19,4 +19,11 @@ func _on_body_entered(body: Node3D) -> void:
 	if closed_message != "":
 		Game.message(closed_message)
 	else:
+		if "ortal" in spawn or "ortal" in str(get_parent().name):
+			# Through the portal: a whoosh and a wobble (scripts/juice.gd)
+			Juice.blip("whoosh", 0.8, -4.0)
+			Juice.shake(0.3)
+			Juice.rumble(0.4, 0.3, 0.3)
+		else:
+			Juice.rumble(0.1, 0.05)
 		Game.go(destination, spawn, place_name)

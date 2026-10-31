@@ -311,6 +311,9 @@ func _fill(text: String) -> String:
 	var words := {"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
 		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.prompt("quest_log")}
 	words.merge(Watches.fill())                      # {watches_new}, {watches_given}, {watches_left}
+	for pair in Settings.REBINDABLE:                 # what to press: {shoot}, {map}, {player_menu}, {interact}...
+		if not words.has(pair[0]):
+			words[pair[0]] = Settings.prompt(pair[0])
 	for w in ["they", "them", "their", "theirs", "themself", "are"]:
 		var p := Hero.pronoun(Game.hero, w)
 		words[w] = p

@@ -273,6 +273,8 @@ func hurt(amount: int, from: Vector3) -> void:
 	velocity = away.normalized() * knockback + Vector3.UP * knockback_up
 	_roll_timer = 0.0
 	Audio.play("hurt")
+	Juice.shake(0.35)
+	Juice.rumble(0.4, 0.2, 0.3)
 	Game.damage(amount)
 
 
@@ -322,6 +324,7 @@ func _physics_process(delta: float) -> void:
 		_coyote_timer = 0
 		_end_roll()
 		Audio.play("jump", -3.0)
+		Juice.squash(model, -0.18, 0.2)                 # a stretch up off the ground
 	# Double jump: a second, free jump in mid-air with a front flip; back again on landing or stomping
 	elif jump_pressed and not on_floor and not _air_jump_used and _stun_timer <= 0.0:
 		velocity.y = double_jump_velocity
@@ -330,6 +333,7 @@ func _physics_process(delta: float) -> void:
 		_end_roll()
 		_spin(flip_time, 0.25, false)
 		Audio.play("double_jump", -3.0, 0.05)
+		Juice.burst(get_parent(), global_position + Vector3(0, 0.3, 0), Color(0.85, 0.8, 1.0, 0.8), 8, 0.07, 2.0, 0.4)
 
 	# Let go of jump early for a shorter hop
 	if Input.is_action_just_released("jump") and velocity.y > 0:
@@ -412,6 +416,8 @@ func _try_roll(direction: Vector3) -> void:
 	_roll_timer = roll_time
 	_spin(roll_time, 0.5, true)
 	Audio.play("roll", -2.0, 0.08)
+	Juice.burst(get_parent(), global_position + Vector3(0, 0.1, 0), Color(0.9, 0.85, 0.75, 0.7), 8, 0.08, 1.5, 0.5)
+	Juice.rumble(0.2, 0.08)
 	if not Settings.reduce_motion:
 		spring_arm.fov_kick = 5.0
 
@@ -460,6 +466,13 @@ func _sounds(delta: float, horizontal_speed: float) -> void:
 			if ground == "cloud":
 				velocity.y = minf(_fall_speed * 0.35, 4.0)   # a soft little bounce on a cloud
 			Audio.play(LAND_SOUNDS.get(ground, "land"), linear_to_db(clampf(_fall_speed / 10.0, 0.3, 1.0)))
+			# A squash and a puff of dust, more for a bigger fall; a little shake only for a really big one
+			var hard := clampf((_fall_speed - 3.0) / 12.0, 0.0, 1.0)
+			Juice.squash(model, 0.12 + 0.2 * hard, 0.22)
+			Juice.burst(get_parent(), global_position + Vector3(0, 0.05, 0), Color(0.9, 0.85, 0.75, 0.7), 6 + int(8 * hard), 0.07, 1.2 + 2.0 * hard, 0.5)
+			if hard > 0.4:
+				Juice.shake(0.25 * hard)
+				Juice.rumble(0.3 * hard, 0.12)
 	_was_on_floor = on_floor
 	# Footsteps while running on foot
 	if on_floor and horizontal_speed > 0.8 and _roll_timer <= 0.0:

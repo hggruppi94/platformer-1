@@ -1,0 +1,29 @@
+{
+  "name": "Night 2: Pip's Lamps",
+  "skippable": true,
+  "start": {"flag": "night_2"},
+  "steps": [
+    {
+      "id": "pip",
+      "text": "Pip's waiting for you by the portal. Go and say hi!",
+      "done": {"flag": "n2_pip"},
+      "where": ["pip"],
+      "override": {"pip": {"place": "portal", "do": "idle", "label": "night_2"}}
+    },
+    {
+      "id": "explore",
+      "text": "Galaxity's got new things to try tonight.",
+      "checklist": [
+        ["pip_lamps_start", "Help Pip with the boardwalk lamps (say yes to Pip)"],
+        ["n2_fizz", "Look at the Fizz Flinger at Dash's gadget stall"],
+        ["n2_letter", "Find a letter of S-K-A-T-E in the Skate Park"]
+      ],
+      "done": {"flags": ["pip_lamps_start", "n2_fizz", "n2_letter"]},
+      "where": [{"who": "dash", "unless": "n2_fizz"}, {"who": "pip", "unless": "pip_lamps_start"}, "skate_park"]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Night 2 done! The Goals page in your menu shows what to try next. (+8 sparkles)"
+  }
+}

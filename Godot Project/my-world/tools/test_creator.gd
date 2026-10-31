@@ -53,7 +53,7 @@ func _run() -> void:
 	game.next_spawn = "HomeSpawn"
 	change_scene_to_file(EARTH)
 	await _frames(6)
-	check(ProjectSettings.get_setting("application/run/main_scene") == EARTH, "the game starts at home on Earth")
+	check(game.START_SCENE == EARTH, "a game starts at home on Earth")
 	var p := current_scene.find_child("Player", true, false) as Node3D
 	check(p.get("rider") == "hero" and (p.get("model") as Node3D).name == "Hero", "the player is their own hero")
 

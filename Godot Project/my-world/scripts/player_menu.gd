@@ -15,8 +15,8 @@ extends CanvasLayer
 
 signal sheet_changed(sheet: String)
 
-const SHEETS := [["quests", "Quests"], ["map", "Map"], ["hero", "Hero"], ["bag", "Bag"], ["skate", "Skate"],
-	["settings", "Settings"], ["save", "Save"]]
+const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["hero", "Hero"], ["bag", "Bag"],
+	["skate", "Skate"], ["settings", "Settings"], ["save", "Save"]]
 const HOTKEYS := {"quest_log": "quests", "map": "map"}      # old keys that open the menu straight on their sheet
 const SCROLL_SPEED := 700.0                                 # pixels a second, scrolling a long sheet with the stick
 
@@ -200,6 +200,8 @@ func _fill() -> void:
 	match sheet:
 		"quests":
 			first = _sheet_quests()
+		"goals":
+			first = _sheet_goals()
 		"map":
 			first = _sheet_map()
 		"hero":
@@ -218,7 +220,42 @@ func _fill() -> void:
 
 func _sheet_quests() -> Control:
 	_scroll = _scroller()
-	_scroll.get_child(0).add_child(Quests.log_view())
+	var box := _scroll.get_child(0) as VBoxContainer
+	box.add_child(Quests.log_view())
+	# Buttons under the log: skip a step of a quest that allows it (the First Night), or start the First Night on a
+	# save that's never had it (it's offered, never forced: scripts/first_night.gd). The tab keeps the focus, so the
+	# log opens at the top.
+	for id in Quests._order:
+		if Quests.is_started(id) and Quests.can_skip(id):
+			var q_name := str(Quests.quest(id).get("name", id))
+			var b := _button("Skip this step of %s" % q_name, func():
+				Quests.skip(id)
+				_fill(), box)
+			b.name = "Skip " + id
+	if not Quests.is_started(FirstNight.ID) and not Game.needs_creator:
+		var b := _button("Start The First Night (a guided first hour)", func():
+			FirstNight.start()
+			_fill(), box)
+		b.name = "Start first_night"
+	return null
+
+
+func _sheet_goals() -> Control:
+	# What to aim for next, across everything (scripts/nights.gd goals()): tonight, next, and tomorrow night
+	_scroll = _scroller()
+	var box := _scroll.get_child(0) as VBoxContainer
+	for part in Nights.goals():
+		_heading(str(part[0]), box, 26)
+		for text in part[1]:
+			var r := RichTextLabel.new()
+			r.bbcode_enabled = true
+			r.fit_content = true
+			r.scroll_active = false
+			r.text = str(text)
+			r.add_theme_font_size_override("normal_font_size", _fs(20))
+			r.add_theme_font_size_override("bold_font_size", _fs(22))
+			box.add_child(r)
+		_gap(box)
 	return null
 
 

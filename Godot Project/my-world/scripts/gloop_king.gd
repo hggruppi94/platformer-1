@@ -61,6 +61,9 @@ func _land() -> void:
 	# inside the ring; jumping over it is the trick.
 	_squash = 0.45
 	Audio.play_at("stomp", global_position, 3.0, 0.0)
+	if player and global_position.distance_to(player.global_position) < 25.0:
+		Juice.shake(0.4)                              # the royal belly-flop shakes the ground
+		Juice.rumble(0.4, 0.25, 0.5)
 	var reach := flop_reach * size
 	_goo_ring(reach)
 	if player and not player.is_invulnerable() and player.is_on_floor():
@@ -100,6 +103,9 @@ func _goo_ring(reach: float) -> void:
 
 
 func _hurt_message(_stomped: bool) -> void:
+	Juice.hitstop(0.05)
+	Juice.shake(0.2)
+	Juice.burst(get_parent(), global_position + Vector3(0, 1.2 * size, 0), Color(1.0, 0.85, 0.35), 10, 0.1, 3.0, 0.6)
 	var left := stomps_to_defeat - hits
 	Game.message("The Gloop King wobbles! %d more to pop him." % left if left > 1 else "One more and the King pops!")
 	# Call in the court at two-thirds and at one-third of his goo
@@ -132,6 +138,10 @@ func _call_court(count: int) -> void:
 
 func _defeated() -> void:
 	Game.message("You popped the Gloop King! (He'll be back. Kings always are.)")
+	Dialogue.set_flag("popped_gloop_king")           # remembered for good (the First Night: scripts/first_night.gd)
+	Juice.hitstop(0.09)
+	Juice.shake(0.6)
+	Juice.rumble(0.7, 0.4, 0.7)
 	_calls_made = 0
 	_flopping = false
 	_flop_timer = 3.0

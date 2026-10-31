@@ -45,6 +45,7 @@ var running := true                  # false to stop the clock (e.g. during the 
 var on_earth := false                # set by the Earth scene while she's there
 var earth_minutes := EARTH_START     # Earth's time of day (saved)
 var pulls_home := true               # when the Shift ends in Galaxity, the portal pulls her home (tests can turn it off)
+var pull_spawn := ""                 # where on Earth that puts them, if not by the oak (the First Night: in bed, HomeSpawn)
 
 var _in_shift := false
 var _last_minute := -1
@@ -129,7 +130,11 @@ func _pull_home() -> void:
 		return
 	_pulling = true
 	Game.pending_message = "The Shift is over! The portal swirls up and pulls %s home to Earth." % Dialogue.player_name()
-	Game.go(EARTH, EARTH_ARRIVAL, "Earth")
+	if pull_spawn != "":
+		# The first night ends in bed (scripts/first_night.gd says what happened once Earth's up)
+		Game.pending_message = ""
+		FirstNight.pulled_home()
+	Game.go(EARTH, pull_spawn if pull_spawn != "" else EARTH_ARRIVAL, "Earth")
 	_done_pulling.call_deferred()
 
 

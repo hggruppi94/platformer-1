@@ -211,6 +211,9 @@ func _pop(at: Vector3, on_someone: bool) -> void:
 	Fx.burst(parent, at, color, 14 if big else 9, 0.07 if big else 0.05, 3.0 if on_someone else 2.0, -2.0, 0.5)
 	Fx.burst(parent, at, Color(1.0, 0.9, 0.45), 5, 0.04, 2.5, -1.0, 0.4)
 	Audio.play_at("pop", at, -3.0 if on_someone else -9.0, 0.2)
+	if on_someone:
+		Juice.shake(0.12 if big else 0.06)
+		Juice.rumble(0.25 if big else 0.12, 0.08)
 	queue_free()
 	set_physics_process(false)
 
@@ -254,6 +257,9 @@ static func carry_off(who: Node3D, visual: Node3D, tint: Color, across: float) -
 		Fx.burst(who.get_parent(), at, Color(1.0, 0.9, 0.45), 14, 0.08, 3.0, -1.0, 0.7)
 		Fx.burst(who.get_parent(), at, Color(0.85, 0.95, 1.0, 0.7), 10, 0.1, 2.0, 1.0, 0.6)   # bits of bubble
 		Audio.play_at("pop", at, 0.0, 0.1)
+		Juice.blip("pop", 1.0 + randf() * 0.2, -10.0)
+		Juice.shake(0.15)
+		Juice.rumble(0.3, 0.1)
 		visual.visible = false
 		visual.rotation.z = 0.0
 		bubble.queue_free())

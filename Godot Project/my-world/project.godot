@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="MyWorld"
-run/main_scene="res://scenes/earth/earth.tscn"
+run/main_scene="res://scenes/title/title.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
@@ -36,6 +36,12 @@ Festival="*res://scripts/festival.gd"
 EarthTown="*res://scripts/earth_town.gd"
 Arsenal="*res://scripts/arsenal.gd"
 Races="*res://scripts/races.gd"
+FirstNight="*res://scripts/first_night.gd"
+Juice="*res://scripts/juice.gd"
+Soundscape="*res://scripts/soundscape.gd"
+Nights="*res://scripts/nights.gd"
+Playtest="*res://scripts/playtest.gd"
+Loading="*res://scripts/loading_screen.gd"
 
 [display]
 

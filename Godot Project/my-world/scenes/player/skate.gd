@@ -541,6 +541,7 @@ func _pop() -> void:
 	_trick_hold = -1.0
 	_normal = Vector3.UP
 	Audio.play("skate_pop", -2.0, 0.08)
+	Juice.squash(p.model, -0.15, 0.2)
 	popped.emit()
 
 
@@ -698,6 +699,11 @@ func _land() -> void:
 	_auto_turn = 0.0
 	if clean:
 		Audio.play("skate_land", linear_to_db(clampf(absf(v.y) / 8.0 + 0.4, 0.4, 1.0)), 0.08)
+		var hard := clampf(absf(v.y) / 14.0, 0.0, 1.0)
+		Juice.squash(p.model, 0.1 + 0.15 * hard, 0.2)
+		Juice.rumble(0.15 + 0.3 * hard, 0.1)
+		if hard > 0.5:
+			Juice.shake(0.2 * hard)
 		tricks.land(roundi(absf(_air_spin) / PI))
 		landed.emit(true)
 	else:
@@ -755,6 +761,9 @@ func _try_grind() -> bool:
 	tricks.start_live(g[0], 50, 150.0)
 	state = State.GRIND
 	Audio.play("skate_land", -4.0, 0.1)
+	Juice.blip("buzz", 1.0, -14.0)
+	Juice.burst(p.get_parent(), p.global_position, Color(1.0, 0.85, 0.4), 10, 0.04, 3.5, 0.35)   # sparks
+	Juice.rumble(0.2, 0.1)
 	return true
 
 
@@ -830,6 +839,8 @@ func bail() -> void:
 	_auto_turn = 0.0
 	p._spin(0.55, 0.4, _grounded)
 	Audio.play("skate_bail", -1.0, 0.1)
+	Juice.shake(0.3)
+	Juice.rumble(0.35, 0.2, 0.2)
 	hud.shout(BAIL_LINES[rng.randi() % BAIL_LINES.size()], Color(1.0, 0.55, 0.6))
 	var board := p.board
 	var from := board.global_transform

@@ -118,6 +118,7 @@ func _start(at: Vector3) -> void:
 		add_child(l)
 		_lights.append(l)
 	Audio.play_at("bubbles", at, -3.0, 0.0)
+	Juice.burst(get_tree().current_scene, at, Color(0.95, 0.6, 1.0), 16, 0.06, 3.0, 0.7)
 	Fx.burst(get_parent(), at + Vector3(0, 1.0, 0), Color(1.0, 0.85, 0.3), 16, 0.06, 3.0, -1.0, 0.7)
 	Arsenal.impact(at, "disco", get_parent())       # a frosty dance floor with Freeze fitted
 

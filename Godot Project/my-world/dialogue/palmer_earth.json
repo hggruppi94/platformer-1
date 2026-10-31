@@ -3,6 +3,44 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:evening",
+        "not_flag": "fn_palmer"
+      },
+      "set": "fn_palmer",
+      "lines": [
+        "Well, hello there, neighbour! You must be {player}, the new one on the green. I'm Mr. Palmer.",
+        "I look after things round here. The town meetings, the gazebo lights, the pumpkins that roll off Poppy's cart.",
+        "{player}: Nina said you know everything about this town.",
+        "(Mr. Palmer chuckles and checks his pocket watch.) Everything? No, no. Nearly everything. The old oak keeps a secret or two.",
+        "Now, a few tips for a new neighbour. Press {interact} to talk to anyone. People do different things at different times of day, so try again later if someone's busy.",
+        "{player_menu} opens your menu: your quests, the map, your bag. {map} goes straight to the map, and the star on it shows where to go next.",
+        "And if you're ever tired, your bed will let you sleep the hours away.",
+        "Off you go and say hello to a few more folks. Theo and Mr. Page are on the bench, and Dottie and Ozzie are about the green. They'll be glad to meet you."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:evening"
+      },
+      "lines": [
+        "Met a few of the neighbours? Good, good. Everyone's a little bit odd here, and that's what makes it home.",
+        "(He glances at the oak.) Midnight comes round quicker than you'd think."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:wait"
+      },
+      "lines": [
+        "Still up, {player}? (He looks at the oak, then at his watch, then at you.) Hm. Of course you are.",
+        "Whatever you find at midnight, be kind to it. And be kind to yourself. Everyone's new somewhere."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

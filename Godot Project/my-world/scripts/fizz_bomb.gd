@@ -116,6 +116,8 @@ func burst(at: Vector3) -> int:
 	Fx.burst(parent, at, PINK, 8, 0.06, 3.0, -3.0, 0.6)
 	_splash(parent, at)
 	Audio.play_at("splash", at, -2.0, 0.15)
+	Juice.shake(0.25)
+	Juice.rumble(0.35, 0.15)
 	Audio.play_at("pop", at, -4.0, 0.2)
 	if splits:
 		for k in 3:

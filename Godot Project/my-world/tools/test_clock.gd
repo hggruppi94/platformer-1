@@ -265,7 +265,7 @@ func _check_load() -> void:
 	# Game (an autoload) has already loaded the save, as on a real start-up
 	check(clock.earth_time_string() == "7:00 AM" and not clock.in_shift(), "loaded clock: Earth %s" % clock.earth_time_string())
 	check(game.is_resuming() and game._resume.get("scene") == EARTH, "she'll reappear on Earth")
-	check(ProjectSettings.get_setting("application/run/main_scene") == EARTH, "the game starts on Earth")
+	check(game.START_SCENE == EARTH, "a game starts (and carries on) from Earth, after the title screen")
 	if FileAccess.file_exists(BACKUP):
 		DirAccess.remove_absolute(SAVE)
 		DirAccess.rename_absolute(BACKUP, SAVE)

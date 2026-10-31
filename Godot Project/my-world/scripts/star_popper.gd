@@ -248,11 +248,13 @@ func shoot(charged: bool) -> Node3D:
 				b = FizzBomb.fire(scene, from, a[0], player, {"radius": float(Arsenal.stat(id, "radius")) * shrink,
 					"power": Arsenal.stat(id, "power"), "splits": mega})
 			Audio.play("fwump", -5.0, 0.15)
+			Juice.rumble(0.25, 0.08)
 		"disco":
 			for a in aims:
 				b = DiscoBall.fire(scene, from, a[0], player, {"radius": float(Arsenal.stat(id, "radius")) * shrink,
 					"time": Arsenal.stat(id, "time"), "pops_at_end": mega})
 			Audio.play("swish", -4.0, 0.1)
+			Juice.rumble(0.2, 0.08)
 		"plush":
 			for a in aims:
 				b = PlushBolt.fire_bolt(scene, from, a[1], player, {"time": Arsenal.stat(id, "time"),
@@ -280,6 +282,9 @@ func shoot(charged: bool) -> Node3D:
 					# The Mega Popper blows two at once, a little apart
 					StarBubble.fire(scene, from + side * 0.15, (a[1] + side * 0.06).normalized(), player, false, grow)
 			Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
+			Juice.rumble(0.25 if charged else 0.08, 0.1 if charged else 0.04)
+			if charged:
+				Juice.shake(0.08)
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1

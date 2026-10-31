@@ -234,6 +234,9 @@ func pick_up(id: String, at := Vector3.ZERO) -> void:
 	Dialogue.set_flag("watch_found_" + id)
 	var w := watch(id)
 	Audio.play("pickup", -2.0, 0.0)
+	Juice.blip("sparkle", 1.0, -6.0)
+	Juice.shake(0.1)
+	Juice.rumble(0.3, 0.15)
 	var s := get_tree().current_scene
 	if s:
 		Fx.burst(s, at, Color(1.0, 0.85, 0.35), 18, 0.07, 3.5, -2.0, 0.8)

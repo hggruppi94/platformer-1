@@ -2,6 +2,50 @@
   "name": "Pip",
   "conversations": [
     {
+      "night_2": true,
+      "when": {
+        "quest_step": "night_2:pip",
+        "quest_not_started": "pip_lamps"
+      },
+      "set": "n2_pip",
+      "lines": [
+        "{player}! You came back! I waited right here by the portal. It's the glowiest spot, so I knew you'd find me.",
+        "I want to make moon-lamps for the boardwalk. So nobody's ever scared of the dark. Not even a tiny bit.",
+        "But they need something glowy inside. There are glow shells round the lake. Five of them!",
+        {
+          "choice": [
+            {
+              "text": "I'll find them!",
+              "set": "pip_lamps_start",
+              "lines": [
+                "YAY! Look along the shore. And by the dock. And on the boardwalk. Shells like to be near water.",
+                "Oh! And Dash has something new and fizzy at his stall. And the Skate Park has letters hidden in it! So much to do!"
+              ]
+            },
+            {
+              "text": "Maybe in a bit.",
+              "lines": [
+                "Okay! The shells will wait. Shells are very patient.",
+                "Dash has something new and fizzy at his stall, too. And the Skate Park has letters hidden in it!"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "night_2": true,
+      "when": {
+        "quest_step": "night_2:pip"
+      },
+      "set": "n2_pip",
+      "lines": [
+        "{player}! You came back! I waited right here by the portal. It's the glowiest spot, so I knew you'd find me.",
+        "Dash has something new and fizzy at his stall tonight. And the Skate Park has letters hidden in it! S, K, A, T, E!",
+        "I'm going to go and say hi to my lamps. See you later!"
+      ]
+    },
+    {
       "when": {
         "talks": 0
       },

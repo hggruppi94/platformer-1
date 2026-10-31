@@ -585,6 +585,8 @@ func _countdown(delta: float) -> void:
 	if now != before and now > 0:
 		hud.shout(str(now), Color(1.0, 0.85, 0.3), 0.5)
 		Audio.play("ui_move")
+		Juice.blip("tick", 1.0, -6.0)
+		Juice.rumble(0.15, 0.06)
 	if _count <= 0.0:
 		state = State.RACING
 		p.input_locked = false
@@ -592,6 +594,9 @@ func _countdown(delta: float) -> void:
 			r.go()
 		hud.shout("GO!", Color(0.5, 1.0, 0.6), 0.5)
 		Audio.play("level_up")
+		Juice.blip("tick", 1.5, -4.0)
+		Juice.shake(0.15)
+		Juice.rumble(0.4, 0.15)
 
 
 func _race(delta: float) -> void:
@@ -781,6 +786,10 @@ func _tick_pads(delta: float) -> void:
 			_pad_wait[pad] = 1.0
 			skate.call("boost", PAD_SPEED, boost_time(PAD_TIME))
 			Audio.play("swish", 0.0, 0.1)
+			Juice.blip("whoosh", 1.2, -8.0)
+			Juice.shake(0.12)
+			Juice.rumble(0.3, 0.2)
+			Juice.burst(p.get_parent(), p.global_position + Vector3(0, 0.3, 0), Color(0.5, 1.0, 1.0, 0.8), 12, 0.06, 3.0, 0.5)
 			skate.hud.shout("Boost!", Color(0.5, 1.0, 1.0))
 
 
@@ -799,6 +808,9 @@ func _pick_up(p: Player, t: RaceTrack) -> void:
 		power = _roll_power()
 		hud.show_power(POWERS[power].name)
 		Audio.play("pickup")
+		Juice.blip("sparkle", 1.2, -9.0)
+		Juice.burst(p.get_parent(), (box as Node3D).global_position, Color(1.0, 0.85, 0.35), 14, 0.07, 3.0, 0.6)
+		Juice.rumble(0.2, 0.08)
 	if _goo_wait <= 0.0:
 		for g in t.goo:
 			if _over(p.global_position, (g as Node3D).global_position, GOO_RADIUS, 1.0) and bool(skate.call("is_on_ground")):
