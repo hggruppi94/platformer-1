@@ -1,16 +1,19 @@
 extends Area3D
 
 # A sparkle: a little bit of broken time, twinkling where it's fallen. Walk into it to pick it up (+1 sparkle, the
-# money: scripts/game.gd). It drifts back the next day. tools/build_town.gd scatters them round town.
+# money: scripts/game.gd). It drifts back the next day. tools/build_town.gd scatters them round town. A Sparkle Magnet
+# gadget mod (scripts/arsenal.gd) pulls it in from further away: it flies to her and she's got it.
 
 const COLORS := [Color(1.0, 0.9, 0.45), Color(0.6, 0.95, 1.0), Color(1.0, 0.65, 0.95)]
 
 var _t := 0.0
 var _visual: Node3D
+var _flying := false
 
 
 func _ready() -> void:
 	monitorable = false
+	add_to_group("sparkles")
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
 	sphere.radius = 0.8
@@ -58,6 +61,8 @@ func _ready() -> void:
 
 func refresh() -> void:
 	var here := not Game.sparkle_taken(name)
+	if _visual:
+		_visual.position = Vector3(0, 1.0, 0)          # (back where it fell, if a magnet pulled it away)
 	visible = here
 	set_deferred("monitoring", here)
 
@@ -66,10 +71,27 @@ func _process(delta: float) -> void:
 	if not visible:
 		return
 	_t += delta
+	if _flying:
+		return
 	_visual.position.y = 1.0 + sin(_t * 2.0) * 0.12
 	_visual.rotation.y = _t * 1.8
 	var s := 1.0 + 0.15 * sin(_t * 7.0)
 	_visual.scale = Vector3(s, s, s)
+
+
+func magnet_to(p: Node3D) -> void:
+	# Flies to her (the Sparkle Magnet) and counts as picked up when it gets there
+	if _flying or Game.sparkle_taken(name):
+		return
+	_flying = true
+	var start := _visual.global_position
+	var tw := create_tween()
+	tw.tween_method(func(f: float) -> void:
+		if is_instance_valid(p):
+			_visual.global_position = start.lerp(p.global_position + Vector3(0, 0.6, 0), f * f), 0.0, 1.0, 0.35)
+	tw.tween_callback(func() -> void:
+		_flying = false
+		_on_body_entered(p))
 
 
 func _on_body_entered(body: Node3D) -> void:

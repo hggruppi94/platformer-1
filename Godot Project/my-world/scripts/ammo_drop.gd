@@ -58,7 +58,7 @@ func _physics_process(delta: float) -> void:
 	var p := get_tree().get_first_node_in_group("player") as Node3D
 	if p:
 		var to := p.global_position + Vector3(0, 0.6, 0) - global_position
-		if to.length() < PULL:
+		if to.length() < maxf(PULL, Arsenal.ammo_pull()):        # (further with a Sparkle Magnet)
 			global_position += to.normalized() * minf(to.length(), delta * 8.0)
 	if _t > LIFE - 3.0:
 		_visual.visible = int(_t * 8.0) % 2 == 0       # blinks before it goes

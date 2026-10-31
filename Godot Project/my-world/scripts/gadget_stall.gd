@@ -3,7 +3,9 @@ extends Node3D
 # Dash's gadget stall at the edge of the Market Square (Arsenal places it): a little booth with a striped teal and pink
 # awning, a sign, and his gadgets out on the counter (the Star Popper, a Fizz Flinger bottle and a spinning mirror
 # ball). Interact opens the shop for the "Gadget" stall (scripts/shop_stall.gd, shop/items.json): new gadgets, and
-# refills for the ones she has. Built from shapes here, in the town's alien palette, so it needs no model.
+# refills for the ones she has. Beside it is his workbench, under its own little lilac awning, with a vice, tools and
+# a plushie he's testing: Interact there opens the "Workbench" stall (gadget mods and upgrades, scripts/arsenal.gd).
+# Built from shapes here, in the town's alien palette, so it needs no model.
 
 const WIDTH := 3.0
 
@@ -88,6 +90,62 @@ func _ready() -> void:
 	spot.set("stall", "Gadget")
 	spot.position = Vector3(0, 0, 1.4)
 	add_child(spot)
+	_workbench(wood, top, gold)
+
+
+func _workbench(wood: Material, top: Material, gold: Material) -> void:
+	# His workbench to the side of the stall: a lower bench, an awning, his tools, a vice and gadgets in bits
+	var bench := Node3D.new()
+	bench.name = "Workbench"
+	bench.position = Vector3(WIDTH / 2.0 + 1.5, 0, 0.1)
+	add_child(bench)
+	var parts := [[Vector3(1.8, 0.85, 0.75), Vector3(0, 0.425, 0), wood], [Vector3(1.9, 0.07, 0.85), Vector3(0, 0.88, 0), top],
+		[Vector3(0.08, 2.2, 0.08), Vector3(-0.85, 1.1, -0.32), wood], [Vector3(0.08, 2.2, 0.08), Vector3(0.85, 1.1, -0.32), wood],
+		[Vector3(1.9, 0.8, 0.05), Vector3(0, 1.75, -0.36), StarPopper._mat(Color(0.22, 0.16, 0.34), 0.7)],
+		[Vector3(2.0, 0.06, 1.1), Vector3(0, 2.25, 0.15), StarPopper._mat(Color(0.62, 0.5, 0.95), 0.6)],
+		[Vector3(0.18, 0.14, 0.2), Vector3(-0.6, 0.98, 0.1), StarPopper._mat(Color(0.3, 0.9, 0.82), 0.4)]]
+	for p in parts:
+		var mi := _box(p[0], p[1], p[2])
+		remove_child(mi)
+		bench.add_child(mi)
+	(bench.get_child(bench.get_child_count() - 2) as Node3D).rotation.x = 0.2     # the awning tips forward
+	# Tools hanging on the pegboard behind: spanners and a screwdriver, in gold
+	for k in 4:
+		var tool := _box(Vector3(0.05, 0.32, 0.02), Vector3(-0.6 + 0.4 * k, 1.8, -0.32), gold)
+		tool.rotation.z = 0.2 * (k - 1.5)
+		remove_child(tool)
+		bench.add_child(tool)
+	# Bits of gadgets on the bench: a buzz bot, a jelly blob and a plushie he's testing
+	var bot := BuzzBots.build_bot()
+	bot.position = Vector3(0.0, 1.05, 0.05)
+	bench.add_child(bot)
+	var toy := PlushBolt.build_toy(0.45)
+	toy.position = Vector3(0.6, 0.92, 0.0)
+	toy.rotation.y = -0.4
+	bench.add_child(toy)
+	var sign := Label3D.new()
+	sign.text = "MODS & UPGRADES"
+	sign.font_size = 40
+	sign.pixel_size = 0.007
+	sign.outline_size = 10
+	sign.modulate = Color(0.75, 1.0, 0.95)
+	sign.outline_modulate = Color(0.15, 0.08, 0.2)
+	sign.position = Vector3(0, 1.75, -0.32)
+	bench.add_child(sign)
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.8, 0.95, 0.75)
+	cs.shape = shape
+	cs.position = Vector3(0, 0.475, 0)
+	body.add_child(cs)
+	bench.add_child(body)
+	var spot := (load("res://scripts/shop_stall.gd") as GDScript).new() as Area3D
+	spot.name = "Workbench Shop Spot"
+	spot.set("stall", "Workbench")
+	spot.set("radius", 1.6)
+	spot.position = Vector3(0, 0, 1.2)
+	bench.add_child(spot)
 
 
 func _process(delta: float) -> void:

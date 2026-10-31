@@ -26,6 +26,7 @@ var _title: Label
 var _blurb: Label
 var _wallet: Label
 var _rows: VBoxContainer
+var _scroll: ScrollContainer
 var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
@@ -230,6 +231,7 @@ func _fill() -> void:
 	_blurb.text = str(stall_blurbs.get(_stall, ""))
 	_wallet.text = "You have ✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
 	for c in _rows.get_children():
+		_rows.remove_child(c)
 		c.queue_free()
 	var first: Button = null
 	for it in for_stall(_stall):
@@ -259,7 +261,21 @@ func _fill() -> void:
 		_rows.add_child(row)
 		if first == null and not b.disabled:
 			first = b
-	(first if first else _close).grab_focus.call_deferred()
+	_fit_scroll.call_deferred()
+	_focus_later.call_deferred(first if first else _close)
+
+
+func _focus_later(b: Control) -> void:
+	# (A buy refills the window straight away, so the button picked last time may be gone already)
+	if is_instance_valid(b) and b.is_inside_tree():
+		b.grab_focus()
+
+
+func _fit_scroll() -> void:
+	# As tall as the rows, up to 60% of the screen; past that it scrolls
+	var want := _rows.get_combined_minimum_size().y
+	var most := get_viewport().get_visible_rect().size.y * 0.6
+	_scroll.custom_minimum_size.y = minf(want, most)
 
 
 func decorate(part: String, step: int) -> void:
@@ -284,6 +300,7 @@ func _fill_decorate() -> void:
 	_blurb.text = "Pick the colours, and what goes where."
 	_wallet.text = ""
 	for c in _rows.get_children():
+		_rows.remove_child(c)
 		c.queue_free()
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 36)
@@ -327,7 +344,8 @@ func _fill_decorate() -> void:
 		if kept:
 			first = kept
 	_keep_focus = ""
-	(first if first else _close).grab_focus.call_deferred()
+	_fit_scroll.call_deferred()
+	_focus_later.call_deferred(first if first else _close)
 
 
 func _fill_wardrobe() -> void:
@@ -338,6 +356,7 @@ func _fill_wardrobe() -> void:
 	_blurb.text = "Mix and match, for you or a friend! Buy more at the Clothing Boutique in the Market."
 	_wallet.text = ""
 	for c in _rows.get_children():
+		_rows.remove_child(c)
 		c.queue_free()
 	var first: Button = null
 	# Two columns side by side, so it all fits: who and their clothes on the left, their looks on the right
@@ -400,7 +419,8 @@ func _fill_wardrobe() -> void:
 			Creator.open())
 		left.add_child(remake)
 	_keep_focus = ""
-	(first if first else _close).grab_focus.call_deferred()
+	_fit_scroll.call_deferred()
+	_focus_later.call_deferred(first if first else _close)
 
 
 func _build() -> void:
@@ -422,9 +442,15 @@ func _build() -> void:
 	v.add_child(_blurb)
 	_wallet = Label.new()
 	v.add_child(_wallet)
+	# The rows scroll when a stall has more than fits (Dash's workbench lists a lot of upgrades)
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.follow_focus = true
+	v.add_child(_scroll)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 10)
-	v.add_child(_rows)
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_rows)
 	_note = Label.new()
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_note)

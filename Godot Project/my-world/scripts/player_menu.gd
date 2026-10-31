@@ -283,8 +283,66 @@ func _sheet_bag() -> Control:
 		_heading("Happy places found (%d)" % places.size(), box, 26)
 		_line(", ".join(places), true, box)
 	_gap(box)
+	_gadgets_page(box)
+	_gap(box)
 	_watches_page(box)
 	return null
+
+
+func _gadgets_page(box: VBoxContainer) -> Control:
+	# Her gadgets (scripts/arsenal.gd): each one's version, ammo and upgrades, and a button for each of its two mod
+	# slots that swaps in the next mod she owns (or nothing). Says what the mods and the combo do.
+	var head := _heading("Gadgets", box, 26)
+	head.name = "Gadgets"
+	if Arsenal.mods_owned.is_empty():
+		_line("Mods slot into any gadget, two each. Dash sells them at his workbench, beside his gadget stall.", true, box)
+	var first: Control = null
+	for id in Arsenal.owned:
+		var am := Arsenal.ammo_of(id)
+		var ups: Array[String] = []
+		for k in Arsenal.upgrade_kinds(id):
+			if Arsenal.upgrade_level(id, k) > 0:
+				ups.append("%s %d" % [str(Arsenal.UPGRADES[k].name), Arsenal.upgrade_level(id, k)])
+		_line("%s  V%d   ·   %s%s" % [Arsenal.gadget_name(id), Arsenal.level(id), "∞" if am < 0 else "%d / %d" % [am,
+			Arsenal.max_ammo(id)], ("   ·   " + ", ".join(ups)) if not ups.is_empty() else ""], true, box)
+		if Arsenal.mods_owned.is_empty():
+			continue
+		var row := HBoxContainer.new()
+		row.name = "Mods " + id
+		row.add_theme_constant_override("separation", _fs(10))
+		box.add_child(row)
+		var combo := _line("", true, box)
+		var show := func() -> void:
+			var c := Arsenal.combo_key(id)
+			var ms := Arsenal.mods(id)
+			var words := []
+			for m in ms:
+				words.append("%s: %s" % [Arsenal.MODS[m].name, Arsenal.MODS[m].says])
+			if Arsenal.COMBOS.has(c):
+				words.append("Combo, %s! %s" % [Arsenal.COMBOS[c].name, Arsenal.COMBOS[c].says])
+			combo.text = "\n".join(words) if not words.is_empty() else "No mods in it yet."
+		show.call()
+		for i in Arsenal.SLOTS:
+			var slot := i
+			var b := _button("", func(): pass, row)
+			b.name = "Slot %s %d" % [id, slot]
+			b.custom_minimum_size = Vector2(_fs(250), _fs(42))
+			var label := func() -> void:
+				var m := str(Arsenal.slots_of(id)[slot])
+				b.text = "Mod %d: %s" % [slot + 1, str(Arsenal.MODS[m].name) if m != "" else "(empty)"]
+			label.call()
+			b.pressed.connect(func():
+				Arsenal.cycle_mod(id, slot)
+				for k in Arsenal.SLOTS:
+					var other := row.get_node_or_null("Slot %s %d" % [id, k]) as Button
+					if other:
+						var m := str(Arsenal.slots_of(id)[k])
+						other.text = "Mod %d: %s" % [k + 1, str(Arsenal.MODS[m].name) if m != "" else "(empty)"]
+				show.call()
+				Game.save_game())
+			if first == null:
+				first = b
+	return first
 
 
 func _watches_page(box: VBoxContainer) -> void:

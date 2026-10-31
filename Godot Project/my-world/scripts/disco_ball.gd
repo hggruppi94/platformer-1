@@ -6,6 +6,9 @@ extends Node3D
 # on the spot, with music notes over their heads) till the music stops. Dancers don't chase or bump into anyone, and
 # can still be popped while they dance. The Disco Fever (V5) pops everyone who danced when the song ends.
 # Each new dancer is a point for the Disco Ball (Arsenal.add_xp).
+# Mods (scripts/arsenal.gd): Bounce makes it bounce once before it floats up, Freeze makes a frosty dance floor (a
+# frosty puff where it lands, and its dancers stay frosty and slow for a bit after the song), and Split throws two
+# smaller ones (StarPopper.shoot). Plushies don't dance (they're toys).
 
 const GRAVITY := 18.0
 const FLY_LIFE := 2.0
@@ -22,6 +25,7 @@ var popper: Node
 var dancers := {}                         # enemy -> {visual, pos, rot}; tests read it
 var danced := 0                           # everyone who's danced to this one
 var _flying := true
+var _bounced := false
 var _life := FLY_LIFE
 var _t := 0.0
 var _look := 0.0
@@ -88,6 +92,14 @@ func _fly(delta: float) -> void:
 	if hit.is_empty() and _life > 0.0:
 		global_position = to
 		return
+	if not hit.is_empty() and not _bounced and Arsenal.has_mod("disco", "bounce") \
+			and StarBubble._target(hit.collider as Node) == null:
+		_bounced = true                            # boing! once, then it settles where it next lands
+		velocity = velocity.bounce(hit.normal) * 0.6
+		global_position = hit.position + hit.normal * 0.1
+		_life = maxf(_life, 1.5)
+		Audio.play_at("boing", hit.position, -6.0, 0.2)
+		return
 	_start(hit.position if not hit.is_empty() else global_position)
 
 
@@ -107,6 +119,7 @@ func _start(at: Vector3) -> void:
 		_lights.append(l)
 	Audio.play_at("bubbles", at, -3.0, 0.0)
 	Fx.burst(get_parent(), at + Vector3(0, 1.0, 0), Color(1.0, 0.85, 0.3), 16, 0.06, 3.0, -1.0, 0.7)
+	Arsenal.impact(at, "disco", get_parent())       # a frosty dance floor with Freeze fitted
 
 
 func _find_dancers() -> void:
@@ -120,6 +133,8 @@ func _find_dancers() -> void:
 			continue
 		if n.has_method("shelled") and n.shelled():
 			continue                                   # a rolled-up Crocodillo can't hear the music in its shell
+		if Arsenal.is_plush(n):
+			continue                                   # a plushie is a toy just now
 		var v := n.get_node_or_null("Visual") as Node3D
 		dancers[n] = {"visual": v, "pos": v.position if v else Vector3.ZERO, "rot": v.rotation if v else Vector3.ZERO,
 			"phase": randf() * TAU, "note": _note(n)}
@@ -128,6 +143,10 @@ func _find_dancers() -> void:
 			(n as CharacterBody3D).velocity = Vector3.ZERO
 		danced += 1
 		Arsenal.add_xp("disco")
+	if Arsenal.has_mod("disco", "freeze"):
+		for e in dancers.keys():
+			if is_instance_valid(e):
+				Arsenal.chill(e, time + FrostPuff.CHILL)
 
 
 func _dance(e: Node3D, d: Dictionary) -> void:
@@ -180,9 +199,7 @@ func _finish() -> void:
 		# Disco Fever: everyone who's still dancing at the end pops
 		for e in keep:
 			if is_instance_valid(e) and e.get("defeated") != true and e.has_method("shot"):
-				e.shot(99, (e as Node3D).global_position, Vector3.UP)
-				if e.get("defeated") == true and popper and popper.has_signal("popped"):
-					popper.popped.emit(e, self)
+				Arsenal.hit(e, 99, Vector3.UP, "disco")
 	Fx.burst(get_parent(), global_position, Color(1.0, 0.85, 0.3), 20, 0.07, 3.5, -2.0, 0.8)
 	Fx.burst(get_parent(), global_position, Color(1.0, 0.5, 0.8), 14, 0.06, 3.0, -2.0, 0.7)
 	Audio.play_at("pop", global_position, -2.0, 0.1)

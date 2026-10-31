@@ -23,6 +23,10 @@ extends Node3D
 # Flinger lobs a fizz bomb (scripts/fizz_bomb.gd) and the Disco Ball throws a mirror ball (scripts/disco_ball.gd) at
 # what she's aiming at, or at an enemy in front of her. Only the Star Popper charges a big bubble. Each gadget shows
 # in her hand while it's out, and the gadget wheel (scripts/gadget_wheel.gd) picks one.
+# The Plushinator fires a fluffy bolt (scripts/plush_bolt.gd), the Buzz Bots send out helper bots (buzz_bots.gd), the
+# Rainbow Ray shines while Shoot is held (rainbow_ray.gd) and the Jelly Mines drop jelly at her feet (jelly_mine.gd).
+# The Split mod fires two of anything a little apart (more bots for the Buzz Bots); the other mods are worked by the
+# shots themselves (Arsenal: mods).
 
 signal popped(enemy: Node3D, bubble: Node3D)   # one of her bubbles popped an enemy (StarBubble)
 
@@ -64,6 +68,8 @@ var _on_target := false                   # the crosshair is on an enemy (it tur
 var _tipped := false
 var _wheel: GadgetWheel
 var _told_empty := 0.0                    # seconds till "out of ammo" can be said again
+var ray: RainbowRay                       # the Rainbow Ray's beam (made the first time it shines)
+var _ray_drain := 0.0                     # seconds till the ray uses another shot of ammo
 
 
 func setup(p: Player) -> void:
@@ -157,7 +163,11 @@ func _physics_process(delta: float) -> void:
 				Tips.show_tip("shoot")             # the first time there's something to pop (scripts/tips.gd)
 		if Game.riding and not Tips.seen("skate_shoot") and _enemy_near(BOARD_RANGE):
 			Tips.show_tip("skate_shoot")
-		if Input.is_action_just_pressed("shoot"):
+		if Arsenal.current == "rainbow":
+			_held = 0.0
+			if Input.is_action_pressed("shoot"):
+				shine(delta)                       # the Rainbow Ray shines while Shoot is held
+		elif Input.is_action_just_pressed("shoot"):
 			_held = 0.0
 			shoot(false)
 		elif Input.is_action_pressed("shoot") and Arsenal.current != "popper":
@@ -195,6 +205,8 @@ func shoot(charged: bool) -> Node3D:
 	if _cooldown > 0.0 and not charged:
 		return null
 	var id := Arsenal.current
+	if id == "rainbow":
+		return null                                # the ray shines while Shoot is held (shine())
 	if id == "popper" and StarBubble.flying() >= MAX_FLYING:
 		return null
 	if id != "popper" and not Arsenal.use_ammo(id):
@@ -209,7 +221,7 @@ func shoot(charged: bool) -> Node3D:
 	var from := muzzle()
 	var dir := aim_dir(from)
 	var to := Vector3.ZERO
-	if id != "popper":
+	if id in ["fizz", "disco"]:
 		to = throw_point(from)
 		dir = (to - from).normalized()
 	_shot_dir = dir
@@ -219,24 +231,54 @@ func shoot(charged: bool) -> Node3D:
 		if not Game.riding:
 			player.visual.rotation.y = atan2(dir.x, dir.z)
 	var scene := get_tree().current_scene if get_tree().current_scene else player.get_parent()
+	var mega := Arsenal.level(id) >= Arsenal.MAX_LEVEL
+	var split := Arsenal.has_mod(id, "split")
+	var side := dir.cross(Vector3.UP).normalized()
+	if side.length() < 0.1:
+		side = Vector3.RIGHT
+	# With the Split mod, two of whatever it is, a little apart: thrown ones land either side of the spot, shot ones
+	# fan out. Each is a bit smaller.
+	var aims: Array = [[to, dir]] if not split else [[to + side * 1.6, (dir + side * 0.08).normalized()],
+		[to - side * 1.6, (dir - side * 0.08).normalized()]]
+	var shrink := 0.75 if split else 1.0
 	var b: Node3D
 	match id:
 		"fizz":
-			b = FizzBomb.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
-				"power": Arsenal.stat(id, "power"), "splits": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
+			for a in aims:
+				b = FizzBomb.fire(scene, from, a[0], player, {"radius": float(Arsenal.stat(id, "radius")) * shrink,
+					"power": Arsenal.stat(id, "power"), "splits": mega})
 			Audio.play("fwump", -5.0, 0.15)
 		"disco":
-			b = DiscoBall.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
-				"time": Arsenal.stat(id, "time"), "pops_at_end": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
+			for a in aims:
+				b = DiscoBall.fire(scene, from, a[0], player, {"radius": float(Arsenal.stat(id, "radius")) * shrink,
+					"time": Arsenal.stat(id, "time"), "pops_at_end": mega})
 			Audio.play("swish", -4.0, 0.1)
+		"plush":
+			for a in aims:
+				b = PlushBolt.fire_bolt(scene, from, a[1], player, {"time": Arsenal.stat(id, "time"),
+					"radius": Arsenal.stat(id, "radius"), "scale": shrink})
+			Audio.play("plush_poof", -6.0, 0.15)
+		"buzz":
+			b = BuzzBots.deploy(scene, player, {"time": Arsenal.stat(id, "time"), "radius": Arsenal.stat(id, "radius"),
+				"rate": Arsenal.stat(id, "rate"), "bots": int(Arsenal.stat(id, "bots")) + (2 if split else 0)})
+		"jelly":
+			var at := _feet_ahead()
+			var stats := {"radius": float(Arsenal.stat(id, "radius")) * shrink, "time": Arsenal.stat(id, "time"),
+				"leaves_two": mega}
+			if split:
+				var flat := Vector3(side.x, 0, side.z).normalized()
+				b = JellyMine.drop(scene, at + flat * 0.9, player, stats)
+				JellyMine.drop(scene, at - flat * 0.9, player, stats)
+			else:
+				b = JellyMine.drop(scene, at, player, stats)
 		_:
 			var lv := Arsenal.level("popper")
-			var grow := 1.35 if lv >= 4 else 1.0                # V4: bigger bubbles
-			b = StarBubble.fire(scene, from, dir, player, charged, grow)
-			if lv >= Arsenal.MAX_LEVEL and not charged:
-				# The Mega Popper blows two at once, a little apart
-				var side := dir.cross(Vector3.UP).normalized()
-				StarBubble.fire(scene, from + side * 0.15, (dir + side * 0.06).normalized(), player, false, grow)
+			var grow := (1.35 if lv >= 4 else 1.0) * Arsenal.boost("popper") * shrink     # V4: bigger bubbles
+			for a in aims:
+				b = StarBubble.fire(scene, from, a[1], player, charged, grow)
+				if lv >= Arsenal.MAX_LEVEL and not charged:
+					# The Mega Popper blows two at once, a little apart
+					StarBubble.fire(scene, from + side * 0.15, (a[1] + side * 0.06).normalized(), player, false, grow)
 			Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
@@ -246,6 +288,43 @@ func shoot(charged: bool) -> Node3D:
 	if charged and not Settings.reduce_motion:
 		player.spring_arm.fov_kick = 4.0
 	return b
+
+
+func shine(delta: float) -> void:
+	# One frame of the Rainbow Ray: it uses a shot of ammo every so often while it's on
+	_ray_drain -= delta
+	if _ray_drain <= 0.0:
+		if not Arsenal.use_ammo("rainbow"):
+			if _told_empty <= 0.0:
+				_told_empty = 4.0
+				Audio.play("ui_back", -8.0, 0.0)
+				Game.message("The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall."
+					% Arsenal.gadget_name("rainbow"))
+			return
+		_ray_drain = float(Arsenal.stat("rainbow", "cooldown"))
+	if ray == null or not is_instance_valid(ray):
+		ray = RainbowRay.new()
+		ray.shooter = player
+		var scene := get_tree().current_scene if get_tree().current_scene else player.get_parent()
+		scene.add_child(ray)
+	var from := muzzle()
+	var dir := aim_dir(from)
+	_shot_dir = dir
+	if not aiming:
+		_raise = SHOW_AFTER_SHOT
+		if not Game.riding:
+			player.visual.rotation.y = atan2(dir.x, dir.z)
+	ray.shine(from, dir, {"radius": Arsenal.stat("rainbow", "radius"), "time": Arsenal.stat("rainbow", "time"),
+		"pierce": Arsenal.level("rainbow") >= Arsenal.MAX_LEVEL})
+
+
+func _feet_ahead() -> Vector3:
+	# Where a jelly mine goes: on the ground a little in front of her
+	var ahead := player.global_position + _ahead() * 1.4 + Vector3(0, 1.0, 0)
+	var q := PhysicsRayQueryParameters3D.create(ahead, ahead + Vector3(0, -6, 0))
+	q.exclude = [player.get_rid()]
+	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.position if not hit.is_empty() else player.global_position + _ahead() * 1.4 - Vector3(0, 0.85, 0)
 
 
 func throw_point(from: Vector3) -> Vector3:
@@ -266,7 +345,9 @@ func throw_point(from: Vector3) -> Vector3:
 func muzzle() -> Vector3:
 	# The popper's nozzle when it's in her hand; otherwise in front of her chest
 	if _prop.visible and _arm and _arm.influence > 0.5:
-		return _prop.global_transform * Vector3(0, 0, 0.32)
+		var tip := _prop.global_transform * Vector3(0, 0, 0.32)
+		if tip.distance_to(player.global_position) < 2.0:     # (not left behind from before she was moved)
+			return tip
 	var face := player.visual.global_transform.basis.z
 	return player.global_position + Vector3(0, 0.35, 0) + face.normalized() * 0.45
 
@@ -398,6 +479,14 @@ func _hand_prop() -> Node3D:
 			return FizzBomb.build_prop()
 		"disco":
 			return DiscoBall.build_prop()
+		"plush":
+			return PlushBolt.build_prop()
+		"buzz":
+			return BuzzBots.build_prop()
+		"rainbow":
+			return RainbowRay.build_prop()
+		"jelly":
+			return JellyMine.build_prop()
 	var p := build_prop(Game.popper_colour)
 	p.set_meta("gadget", "popper")
 	return p
