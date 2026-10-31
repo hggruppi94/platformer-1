@@ -70,6 +70,17 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Nights 3 to 7 (Hayden: "Go", the rest of the 7-night plan). Each night is its own skippable quest
+  (`quests/night_3.json` to `night_7.json`): meet a friend (Bramble, Dash and Rex wait by the portal through quest
+  overrides, the Astronaut at the Mothership Pad, Mr. Palmer at his office window; their first lines in
+  `dialogue/<friend>.json` set `n<N>_hi`), then a list of the night's schematics (`schematic_<id>` flags) and its
+  spotlight: 3 The Meadow in Bloom (race on any track, from `Races.finished`), 4 Stars Over Observatory Hill (go up
+  to the Observatory, have Zippy build a ride), 5 Up in the Mothership (fly it, then fly through the sky schematic),
+  6 Rex for Mayor (go inside the castle school), 7 The Agent of Chaos (peek at the Scary World gate, see the giant
+  from 45 m). Rewards 10/12/12/14/20. `Nights._start_next()` starts the next night on landing once the one before is
+  done or skipped, and only one a visit (flag `night_visit_<visit>`); `_check_later_nights()` ticks the spotlight
+  flags. `tools/test_later_nights.gd` walks all five by really doing each thing; `tools/capture_later_nights.gd`
+  (shots in the project files under world/previews/later_nights, made in the cloud).
 - 2026-10-31: Schematics and new rides (Hayden: "I want the weapon and skateboard unlocks to be significant").
   `scripts/schematics.gd` (autoload `Schematics`) puts glowing blue blueprints (`scripts/schematic_pickup.gd`) into
   the town and school at play time, one or two a night from night 2 (`LIST`: `night`, `at` x/z dropped onto the

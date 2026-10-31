@@ -1,0 +1,78 @@
+{
+  "name": "Night 3: The Meadow in Bloom",
+  "skippable": true,
+  "start": {
+    "flag": "night_3"
+  },
+  "steps": [
+    {
+      "id": "hi",
+      "text": "Bramble's waiting for you by the portal. Go and say hi!",
+      "done": {
+        "flag": "n3_hi"
+      },
+      "where": [
+        "bramble"
+      ],
+      "override": {
+        "bramble": {
+          "place": "portal",
+          "do": "idle",
+          "label": "night_3", "face": [22, 21]
+        }
+      }
+    },
+    {
+      "id": "explore",
+      "text": "The south meadow's full of new things tonight.",
+      "checklist": [
+        [
+          "schematic_disco",
+          "Find the Disco Ball's schematic in the south meadow"
+        ],
+        [
+          "schematic_overboard",
+          "Find the Overboard's schematic, on the lake side of the meadow"
+        ],
+        [
+          "n3_race",
+          "Race on any track (Zippy starts them by the Lake Loop)"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "schematic_disco",
+          "schematic_overboard",
+          "n3_race"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            -8,
+            58
+          ],
+          "unless": "schematic_disco"
+        },
+        {
+          "at": [
+            34,
+            58
+          ],
+          "unless": "schematic_overboard"
+        },
+        {
+          "at": [
+            -4,
+            24
+          ],
+          "unless": "n3_race"
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "Night 3 done! Take the Overboard's schematic to Zippy at the Tune-Up and ride on air. (+10 sparkles)"
+  }
+}

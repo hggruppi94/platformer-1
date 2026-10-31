@@ -1,0 +1,83 @@
+{
+  "name": "Night 7: The Agent of Chaos",
+  "skippable": true,
+  "start": {
+    "flag": "night_7"
+  },
+  "steps": [
+    {
+      "id": "hi",
+      "text": "Mr. Palmer wants a quiet word, at his office window by the Town Hall.",
+      "done": {
+        "flag": "n7_hi"
+      },
+      "where": [
+        "mr_palmer"
+      ]
+    },
+    {
+      "id": "explore",
+      "text": "The far corners of Galaxity, tonight. Be brave!",
+      "checklist": [
+        [
+          "schematic_rainbow",
+          "Find the Rainbow Ray's schematic, deep in the Spooky Woods"
+        ],
+        [
+          "n7_gate",
+          "Peek at the Scary World gate (you don't have to go in)"
+        ],
+        [
+          "schematic_saucer",
+          "Find the Flying Saucer's schematic in the far field"
+        ],
+        [
+          "n7_giant",
+          "Get a look at the Agent of Chaos, from a safe distance"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "schematic_rainbow",
+          "n7_gate",
+          "schematic_saucer",
+          "n7_giant"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            -114,
+            -104
+          ],
+          "unless": "schematic_rainbow"
+        },
+        {
+          "at": [
+            -128,
+            -150
+          ],
+          "unless": "n7_gate"
+        },
+        {
+          "at": [
+            112,
+            -186
+          ],
+          "unless": "schematic_saucer"
+        },
+        {
+          "at": [
+            116,
+            -206
+          ],
+          "unless": "n7_giant"
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 20,
+    "message": "Night 7 done! That's every schematic in Galaxity. You found them all! (+20 sparkles)"
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "name": "Night 5: Up in the Mothership",
+  "skippable": true,
+  "start": {
+    "flag": "night_5"
+  },
+  "steps": [
+    {
+      "id": "hi",
+      "text": "The Astronaut's waving from the Mothership Pad. Go and say hi!",
+      "done": {
+        "flag": "n5_hi"
+      },
+      "where": [
+        "astronaut"
+      ]
+    },
+    {
+      "id": "explore",
+      "text": "Tonight's all about the mothership.",
+      "checklist": [
+        [
+          "schematic_buzz",
+          "Find the Buzz Bots' schematic, right by the Mothership Pad"
+        ],
+        [
+          "n5_fly",
+          "Fly the mothership (step onto the pad and call it down)"
+        ],
+        [
+          "schematic_rocket_board",
+          "Fly the mothership through the schematic floating high over town"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "schematic_buzz",
+          "n5_fly",
+          "schematic_rocket_board"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            122,
+            -36
+          ],
+          "unless": "schematic_buzz"
+        },
+        {
+          "at": [
+            118,
+            -42
+          ],
+          "unless": "n5_fly"
+        },
+        {
+          "at": [
+            60,
+            24
+          ],
+          "unless": "schematic_rocket_board"
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Night 5 done! You can fly anywhere now. Zippy can build the Rocket Board. (+12 sparkles)"
+  }
+}

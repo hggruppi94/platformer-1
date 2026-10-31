@@ -6,9 +6,9 @@ extends Node
 # land, a short skippable quest with stars on the map, a line on the Goals page), and each night puts out one or two
 # schematics (scripts/schematics.gd): the real unlocks, for Dash's gadgets and the new rides at Zippy's Tune-Up.
 #
-# The whole 7-night plan is in /mnt/project-files/roadmap/galaxity-plan.md (F4). Nights 1 and 2 are built; the rest
-# wait for Hayden to look at the plan. A night is its own quest file (quests/night_<n>.json), started by the flag
-# "night_<n>", which is set the first time you land in Galaxity on that night.
+# The whole 7-night plan is in /mnt/project-files/roadmap/galaxity-plan.md (F4), and all seven are built. A night is
+# its own quest file (quests/night_<n>.json), started by the flag "night_<n>", which is set the first time you land
+# in Galaxity after the night before is done (one night a visit: _start_next()).
 #
 # The Goals page (the Tab menu, between Quests and Map: scripts/player_menu.gd) reads goals(): tonight's spotlight
 # and requests, the next thing to aim for in watches, races, gadgets and skate goals, and a teaser for tomorrow.
@@ -24,7 +24,28 @@ const NIGHTS := [
 		"new": "Pip's waiting by the portal, the Fizz Flinger's schematic, and S-K-A-T-E letters in the Skate Park",
 		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and there's a schematic glowing on the promenade.",
 		"tease": "Pip has something to show you by the boardwalk..."},
+	{"n": 3, "quest": "night_3", "title": "The Meadow in Bloom",
+		"new": "Bramble by the portal, two schematics in the south meadow (the Disco Ball and the Overboard), and a race",
+		"arrive": "Night 3! Bramble's waiting by the portal, and two schematics have blown into the south meadow.",
+		"tease": "Bramble says the south meadow's about to bloom. Something's glowing out there..."},
+	{"n": 4, "quest": "night_4", "title": "Stars Over Observatory Hill",
+		"new": "Dash by the portal, the Observatory, the Jelly Mines' and the Bike's schematics, and a ride of your own",
+		"arrive": "Night 4! Dash is waiting by the portal. He says the stars are doing something funny over Observatory Hill.",
+		"tease": "Dash wants to show you the stars from Observatory Hill."},
+	{"n": 5, "quest": "night_5", "title": "Up in the Mothership",
+		"new": "the Astronaut at the Mothership Pad, flying the mothership, and a schematic up in the sky",
+		"arrive": "Night 5! The Astronaut's waving from the Mothership Pad. Something's floating high over town tonight...",
+		"tease": "The Astronaut keeps looking up. Is something floating up there?"},
+	{"n": 6, "quest": "night_6", "title": "Rex for Mayor",
+		"new": "Rex by the portal, the castle school, the Plushinator's schematic and the Rocket Bike's",
+		"arrive": "Night 6! Rex is waiting by the portal with a campaign speech, and there's a schematic at the castle school.",
+		"tease": "Rex is practising a speech. Something about the castle school..."},
+	{"n": 7, "quest": "night_7", "title": "The Agent of Chaos",
+		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the Agent of Chaos and the last two schematics",
+		"arrive": "Night 7! Mr. Palmer wants a word at his office window, and he looks worried. The Agent of Chaos has come closer.",
+		"tease": "Mr. Palmer wants a quiet word. Something about the far field..."},
 ]
+const GIANT_NEAR := 45.0                   # night 7: this close to the Agent of Chaos is close enough to see him
 
 var _told_visit := -1                       # the visit this session already said "New tonight" for
 
@@ -32,6 +53,7 @@ var _told_visit := -1                       # the visit this session already sai
 func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Shop.opened.connect(_on_shop)
+	Races.finished.connect(_on_race_finished)
 
 
 # -----------------------------------------------------------------------------
@@ -74,12 +96,29 @@ func _on_scene_changed() -> void:
 	# that's always a new visit). An old save that never had the First Night is offered that first (by Nina, or the
 	# Quests sheet's button), never forced, so the nights follow on from it there too.
 	var visit := Requests.visit_day()
-	if not Dialogue.flags.has("night_2") and Quests.is_done(FirstNight.ID):
-		Dialogue.set_flag("night_2")
+	_start_next(visit)
 	var c := current()
 	if not c.is_empty() and c.has("arrive") and _told_visit != visit:
 		_told_visit = visit
 		get_tree().create_timer(3.0).timeout.connect(func() -> void: Game.message(str(c.arrive)))
+
+
+func _start_next(visit: int) -> void:
+	# The next night starts the next time you land, once the night before it is done (or skipped), and never two on
+	# one visit: each Galaxity visit is one night. The visit a night started on is a flag ("night_visit_<visit>"), so
+	# that's kept in the save without anything new in it.
+	if Dialogue.flags.has("night_visit_%d" % visit):
+		return
+	for d in NIGHTS:
+		var n := int(d.n)
+		if n < 2 or Dialogue.flags.has("night_%d" % n):
+			continue
+		var before := str(info(n - 1).get("quest", ""))
+		if Quests.is_done(before):
+			Dialogue.set_flag("night_visit_%d" % visit)
+			Dialogue.set_flag("night_%d" % n)
+			Schematics.refresh()
+		return
 
 
 # -----------------------------------------------------------------------------
@@ -104,9 +143,57 @@ func _check_letters() -> void:
 
 
 func _process(_delta: float) -> void:
-	# A letter picked up doesn't move a quest on by itself, so look now and then while night 2's list is up
+	# A letter picked up, a ride built or a place reached doesn't move a quest on by itself, so look now and then
+	# while a night's list is up
 	if Engine.get_process_frames() % 30 == 0:
 		_check_letters()
+		_check_later_nights()
+
+
+# -----------------------------------------------------------------------------
+# Nights 3 to 7: the things on their lists that aren't a flag already (schematics are "schematic_<id>")
+# -----------------------------------------------------------------------------
+func _check_later_nights() -> void:
+	var s := get_tree().current_scene
+	if s == null:
+		return
+	if _step("night_4") == "explore":
+		if not Dialogue.flags.has("n4_observatory") and _near(s, "Observatory", 16.0):
+			Dialogue.set_flag("n4_observatory")
+		if not Dialogue.flags.has("n4_ride") and Schematics.rides_owned().size() > 1:
+			Dialogue.set_flag("n4_ride")
+	if _step("night_5") == "explore" and not Dialogue.flags.has("n5_fly"):
+		for ship in get_tree().get_nodes_in_group("mothership"):
+			if ship.has_method("is_piloted") and ship.is_piloted():
+				Dialogue.set_flag("n5_fly")
+	if _step("night_6") == "explore" and not Dialogue.flags.has("n6_school") \
+			and s.scene_file_path == str(Schematics.SCENES.school):
+		Dialogue.set_flag("n6_school")
+	if _step("night_7") == "explore":
+		if not Dialogue.flags.has("n7_giant"):
+			var giant := s.find_child("ChaosGiant", true, false) as Node3D
+			if giant and _near_node(giant, GIANT_NEAR):
+				Dialogue.set_flag("n7_giant")
+		if not Dialogue.flags.has("n7_gate") and _near(s, "Scary World Gate", 10.0):
+			Dialogue.set_flag("n7_gate")
+
+
+func _on_race_finished(_track: String, _place: int) -> void:
+	if _step("night_3") == "explore":
+		Dialogue.set_flag("n3_race")
+
+
+func _near(s: Node, node_name: String, metres: float) -> bool:
+	var n := s.find_child(node_name, true, false) as Node3D
+	return n != null and _near_node(n, metres)
+
+
+func _near_node(n: Node3D, metres: float) -> bool:
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p == null:
+		return false
+	var a := Vector2(p.global_position.x, p.global_position.z)
+	return a.distance_to(Vector2(n.global_position.x, n.global_position.z)) < metres
 
 
 # -----------------------------------------------------------------------------

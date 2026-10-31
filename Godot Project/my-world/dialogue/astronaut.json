@@ -2,7 +2,21 @@
   "name": "Astronaut",
   "conversations": [
     {
-      "when": {"talks": 0},
+      "when": {
+        "quest_step": "night_5:hi"
+      },
+      "set": "n5_hi",
+      "lines": [
+        "(The astronaut's antenna is blinking very fast. Beep beep beep!)",
+        "{player}! Am I glad to see you. Look up there, way over the town. Something's floating, glowing blue. My visor says it's paper!",
+        "There's another one by the pad, too. Right by my boots.",
+        "The only way up to the floaty one is the mothership. Step on the pad and call it down. I'd fly it myself, but it doesn't take Earth licences."
+      ]
+    },
+    {
+      "when": {
+        "talks": 0
+      },
       "lines": [
         "(The astronaut gives a big, slow wave with a blue glove.)",
         "Hello there! Ground control to... um... whoever you are!",
@@ -14,7 +28,9 @@
       ]
     },
     {
-      "when": {"time": "shift"},
+      "when": {
+        "time": "shift"
+      },
       "lines": [
         "(The astronaut's antenna is blinking. Beep. Beep.)",
         "Did you see that? The portal's open! I wonder if there's a way to Earth through there that doesn't need a rocket.",
@@ -22,14 +38,20 @@
       ]
     },
     {
-      "when": {"time": "night", "every": 2},
+      "when": {
+        "time": "night",
+        "every": 2
+      },
       "lines": [
         "Look at all those stars, {player}. I've been to a few of them.",
         "Well... near a few of them. They're a lot further away than they look."
       ]
     },
     {
-      "when": {"time": "morning", "every": 2},
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
       "lines": [
         "Good morning! I had space porridge for breakfast. It floats off the spoon, so you have to be quick."
       ]

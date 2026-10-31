@@ -1,0 +1,78 @@
+{
+  "name": "Night 6: Rex for Mayor",
+  "skippable": true,
+  "start": {
+    "flag": "night_6"
+  },
+  "steps": [
+    {
+      "id": "hi",
+      "text": "Rex is waiting for you by the portal, with a speech. Go and say hi!",
+      "done": {
+        "flag": "n6_hi"
+      },
+      "where": [
+        "rex"
+      ],
+      "override": {
+        "rex": {
+          "place": "portal",
+          "do": "idle",
+          "label": "night_6", "face": [22, 21]
+        }
+      }
+    },
+    {
+      "id": "explore",
+      "text": "Up to the castle school tonight.",
+      "checklist": [
+        [
+          "schematic_rocket_bike",
+          "Find the Rocket Bike's schematic, on the way up to the castle school"
+        ],
+        [
+          "n6_school",
+          "Go inside the castle school"
+        ],
+        [
+          "schematic_plush",
+          "Find the Plushinator's schematic in the school's Entrance Garden"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "schematic_rocket_bike",
+          "n6_school",
+          "schematic_plush"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            -20,
+            -108
+          ],
+          "unless": "schematic_rocket_bike"
+        },
+        {
+          "at": [
+            15,
+            -150
+          ],
+          "unless": "n6_school"
+        },
+        {
+          "at": [
+            15,
+            -150
+          ],
+          "unless": "schematic_plush"
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 14,
+    "message": "Night 6 done! Rex says it was the best campaign stop ever. (+14 sparkles)"
+  }
+}

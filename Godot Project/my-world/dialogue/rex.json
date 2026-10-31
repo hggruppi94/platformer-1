@@ -3,6 +3,18 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "night_6:hi"
+      },
+      "set": "n6_hi",
+      "lines": [
+        "Ahem! Citizens of Galaxity! Oh, it's you, {player}. Hi! I've been practising.",
+        "Tonight's campaign stop is the castle school. Every future voter goes to school! Well, every future voter's little brother, anyway.",
+        "Come with me? Well, not with me. I'll meet you there. I'm faster on skates.",
+        "Dash says there are schematics up there too. One on the hill path, one in the school garden. Vote Rex! Sorry. Habit."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "first_night:day",
         "not_flag": "skate_lesson_ollie"
       },

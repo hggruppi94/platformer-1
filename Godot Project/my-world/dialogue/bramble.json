@@ -3,6 +3,19 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "night_3:hi"
+      },
+      "set": "n3_hi",
+      "lines": [
+        "{player}! Over here! I've been standing by this portal so long a butterfly landed on my nose.",
+        "The south meadow is blooming tonight. Moonflowers, starbells, the lot. You have to see it!",
+        "And something's out there that isn't a flower. Two glowy blue papers, blown in from who knows where. Schematics, Dash calls them.",
+        "One's in the middle of the meadow, by the twisty race track. The other's over on the lake side.",
+        "Oh! And Zippy's been asking who wants to race. Moo-ve fast and you might win something!"
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

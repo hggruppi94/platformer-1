@@ -3,6 +3,19 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "night_7:hi"
+      },
+      "set": "n7_hi",
+      "lines": [
+        "Ah, {player}. Good. I was hoping you'd come through tonight.",
+        "The Agent of Chaos has been creeping closer, out in the far field. I'd like someone to have a look at him. From a nice, safe distance, mind.",
+        "And while you're out that way, there's an old iron gate in the northwest woods. The Scary World gate. Just peek. No need to go in.",
+        "Dash tells me the last two schematics are out there too. One in the Spooky Woods, and one in the far field, near... well. Near him.",
+        "Off you go. And {player}? Thank you. Galaxity is lucky to have you."
+      ]
+    },
+    {
+      "when": {
         "quest_ready": "rex_campaign:palmer",
         "time": [
           "morning",

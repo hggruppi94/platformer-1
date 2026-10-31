@@ -13,7 +13,7 @@ extends Node
 
 const DIR := "user://playtest/"
 const STUCK := 180.0                          # seconds with nothing new before it's a "stuck" moment
-const WATCH_QUESTS := ["first_night", "night_2"]
+const WATCH_QUESTS := ["first_night", "night_2", "night_3", "night_4", "night_5", "night_6", "night_7"]
 
 var file_path := ""
 var _file: FileAccess

@@ -1,0 +1,90 @@
+{
+  "name": "Night 4: Stars Over Observatory Hill",
+  "skippable": true,
+  "start": {
+    "flag": "night_4"
+  },
+  "steps": [
+    {
+      "id": "hi",
+      "text": "Dash is waiting for you by the portal. Go and say hi!",
+      "done": {
+        "flag": "n4_hi"
+      },
+      "where": [
+        "dash"
+      ],
+      "override": {
+        "dash": {
+          "place": "portal",
+          "do": "idle",
+          "label": "night_4", "face": [22, 21]
+        }
+      }
+    },
+    {
+      "id": "explore",
+      "text": "Observatory Hill has new things tonight.",
+      "checklist": [
+        [
+          "n4_observatory",
+          "Go up the hill to the Observatory"
+        ],
+        [
+          "schematic_jelly",
+          "Find the Jelly Mines' schematic, halfway up Observatory Hill"
+        ],
+        [
+          "schematic_bike",
+          "Find the Bike's schematic, round the far side of the hill"
+        ],
+        [
+          "n4_ride",
+          "Have Zippy build you a new ride at the Tune-Up"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "n4_observatory",
+          "schematic_jelly",
+          "schematic_bike",
+          "n4_ride"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            96,
+            -80
+          ],
+          "unless": "n4_observatory"
+        },
+        {
+          "at": [
+            97,
+            -63
+          ],
+          "unless": "schematic_jelly"
+        },
+        {
+          "at": [
+            84,
+            -98
+          ],
+          "unless": "schematic_bike"
+        },
+        {
+          "at": [
+            -4,
+            24
+          ],
+          "unless": "n4_ride"
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Night 4 done! Pick which ride you're on from the Skate page of your menu. (+12 sparkles)"
+  }
+}
