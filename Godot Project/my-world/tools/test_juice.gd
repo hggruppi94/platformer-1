@@ -145,8 +145,13 @@ func _run() -> void:
 	var visual := player.get_node("Visual") as Node3D
 	var base := visual.scale
 	juice.squash(visual, 0.3, 0.2)
-	await create_timer(0.08, true, false, true).timeout
-	check(not visual.scale.is_equal_approx(base), "squash: the hero squashes")
+	# Watch every frame rather than once, since a slow headless frame can jump right past the squash.
+	var squashed := false
+	var until := Time.get_ticks_msec() + 300
+	while Time.get_ticks_msec() < until and not squashed:
+		await process_frame
+		squashed = not visual.scale.is_equal_approx(base)
+	check(squashed, "squash: the hero squashes (time scale %.2f)" % Engine.time_scale)
 	juice.squash(visual, 0.3, 0.2)                     # again before it's done
 	await create_timer(0.4, true, false, true).timeout
 	check(visual.scale.is_equal_approx(base), "...and springs back to their own size, even squashed twice")
