@@ -146,6 +146,24 @@ func _run() -> void:
 				(tabs as TabContainer).current_tab = i
 				await _shot("14_settings_" + title.to_lower())
 	menu.close()
+
+	# --- The opening's watches, held still (the slow cloud renderer can miss them while it plays) ---
+	change_scene_to_file(TITLE)
+	await _wait_for_scene(TITLE, 600)
+	t = current_scene
+	t.menu_box.visible = false
+	for c in t.ui.get_child(0).get_children():
+		if c is Label and c != t.caption:
+			c.visible = false
+	t._watch_stage()
+	t.opening_on = true
+	t._cam_len = 0.01
+	await create_timer(1.5).timeout
+	t.caption.text = str(t.OPENING[4][1])
+	t.caption.modulate.a = 1.0
+	await _shot("07_opening_the_watches")
+	t.caption.text = str(t.OPENING[5][1])
+	await _shot("08_opening_one_of_them_is_you")
 	_finish()
 
 
