@@ -69,6 +69,35 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Stars Hollow build-out, phase 3: things to do. Earth has days of the week now (`Clock.earth_day()`,
+  `Clock.weekday()`: day 1 is a Friday; the HUD says "Earth, Monday"). Most of it is added at play time, so
+  `earth.tscn` wasn't rebuilt (only `routines/earth_places.json`, for the festival's points).
+  - **Notice board** (`scripts/earth_jobs.gd`, autoload `EarthJobs`): Galaxity's request board with Earth's jobs. It
+    extends `requests.gd`, which now has hooks for that (`kinds()`, `board_title()`, `noun()`, the `noted` signal...),
+    and `request_board.gd` / `request_spot.gd` / `request_parcel.gd` take a `jobs` source (the board is `earthy`: wood,
+    cork cards, a jack-o'-lantern on top). It stands by the gazebo's steps; three jobs every Earth day: take a parcel
+    from a shop door to someone, rake the leaf piles round a Maple Lane house, find someone's cat (glowing eyes; it
+    follows you home), pick pumpkins at the patch for Poppy, and the grind/combo ones on Earth. Props:
+    `scripts/earth_job_prop.gd`. Saved as `"earth_jobs"`.
+  - **Shops take sparkles** (one money for both worlds; a second Earth money would split what the player earns):
+    `scripts/earth_town.gd` (autoload `EarthTown`) puts shop spots at the bakery and toy shop counters and the diner's
+    and Corner Market's doors; 17 Earth things in `shop/items.json` (snacks, the Witch Hat and Pumpkin Hat in
+    `cosmetics.gd`, the contest pie).
+  - **Autumn Festival** (`scripts/festival.gd`, autoload `Festival`; `festival_green.gd` builds it): Saturdays 5-10 PM
+    on the green. Poppy's treats stall, Gus's cider cart, the pie contest (buy a contest pie, Dottie judges via
+    `"do": "Festival.judge_pie"`), apple bobbing (`scripts/apple_bobbing.gd`, three timed bites), Miss Marigold's
+    lanterns, hay bales, a banner and lantern strings, and the hayride (a tractor driven by Scarecrow Sam, a lap of the
+    street, stop by the Maple Inn). At 9 PM 56 sky lanterns go up. Routines can have `"festival"` blocks
+    (`routine.gd`), so the townsfolk come. Prizes once a festival; saved as `"festival"`.
+  - **Story hints** (`EarthTown`): the old oak hums (made in code with an AudioStreamGenerator: wav files are LFS)
+    from 9 PM, louder to midnight and loudest in the Shift, with a green glow; one or two small tremors a night between
+    10 PM and midnight (rumble, camera shake, falling leaves, flag `earth_tremor`: Mr. Palmer says "pipes"); a lilac
+    envelope on Mr. Palmer's porch addressed to the Mayor in Galaxity (flag `read_palmer_letter`: his "pen pal").
+    Lots of new lines for the festival and the hints.
+  - Tests: new `tools/test_notice_board.gd` and `tools/test_festival.gd`; `test_earth` checks it all loads;
+    `test_townsfolk` runs on a Friday so the festival doesn't move people. Previews: `tools/capture_earth_fun.gd`
+    (in the project files under world/previews/earth_fun, made in the cloud). Names made up for Hayden to rename:
+    Scarecrow Sam, the cats Duchess, Footnote and Marmalade.
 - 2026-10-31: Stars Hollow build-out, phase 2: the people. Everyone on Earth is made like a hero in the creator
   (`scripts/townsfolk.gd`, `Townsfolk`): the Earth kid body dressed and shaped by `Hero.apply()` from a hero-style look
   (`_look()` in `build_earth.gd`: swatch colours, hairstyle, height, head, build, face), grown-ups taller with smaller

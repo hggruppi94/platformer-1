@@ -7,5 +7,8 @@
     {"at": "15:00", "place": "bakery_door", "do": "idle", "label": "fresh_air", "face": [0, -46]},
     {"at": "16:00", "place": "bakery", "do": "wander", "label": "baking", "radius": 2.5},
     {"at": "19:30", "place": "bakery", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_treats_stall", "do": "idle", "label": "festival_stall", "face": [0, 0]}
   ]
 }

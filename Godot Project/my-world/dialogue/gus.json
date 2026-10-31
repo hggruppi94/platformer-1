@@ -13,6 +13,24 @@
     },
     {
       "when": {
+        "flag": "earth_tremor",
+        "every": 3
+      },
+      "lines": [
+        "Another tremor knocked my sugar jar over. If Palmer says 'pipes' one more time, I'm digging up the green myself."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_cider"
+      },
+      "lines": [
+        "Cider. Hot or cold. Don't ask me for a pumpkin spice anything.",
+        "...Fine. There's a pumpkin spice donut. Don't tell anybody I made it."
+      ]
+    },
+    {
+      "when": {
         "activity": "errand"
       },
       "lines": [

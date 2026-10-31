@@ -13,6 +13,15 @@
     },
     {
       "when": {
+        "activity": "festival_stall"
+      },
+      "lines": [
+        "Caramel apples, kettle corn, cider donuts! Everything's warm and everything's sticky!",
+        "Entering the pie contest? Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+      ]
+    },
+    {
+      "when": {
         "time": "morning"
       },
       "lines": [

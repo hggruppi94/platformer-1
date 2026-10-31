@@ -14,6 +14,16 @@
     },
     {
       "when": {
+        "min_talks": 1,
+        "every": 3
+      },
+      "lines": [
+        "My clocks all stop at midnight. Every one. Then at one o'clock they start again, as if nothing happened.",
+        "Mr. Palmer bought a pocket watch here once. It has two faces. I asked what the second one was for. He said 'later'."
+      ]
+    },
+    {
+      "when": {
         "activity": "inside"
       },
       "lines": [

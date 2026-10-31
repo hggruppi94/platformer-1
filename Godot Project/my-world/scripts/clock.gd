@@ -36,6 +36,8 @@ const EARTH_START := 20 * 60.0       # a new game starts at 8:00 PM on Earth, a 
 const WARN_HOUR := 6                 # Galaxity's 6 AM in the Shift: "the portal will pull you home soon"
 const EARTH := "res://scenes/earth/earth.tscn"
 const EARTH_ARRIVAL := "Entrance"    # where the portal puts the player on Earth: by the old oak
+const WEEKDAYS := ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+const FIRST_WEEKDAY := 4             # Earth's day 1 is a Friday, so the first Autumn Festival is the next evening
 
 var day := 1                         # Galaxity's day
 var minutes := START_HOUR * 60.0     # Galaxity's time: minutes since midnight, 0..1440
@@ -159,6 +161,18 @@ func local_minutes() -> float:
 
 func earth_time_string() -> String:
 	return format_time(earth_minutes)
+
+
+func earth_day() -> int:
+	# Earth's day number. Galaxity's day goes up once a Shift (at its own midnight, partway through), so from Earth's
+	# midnight until then Earth is already a day ahead of it. A new game starts on Earth's day 1, a Friday evening.
+	return day + 1 if in_shift() and minutes >= DAWN_HOUR * 60.0 else day
+
+
+func weekday(on_day := -1) -> String:
+	# "Friday" for Earth's day 1, then round the week (the Autumn Festival is on Saturdays: scripts/festival.gd)
+	var d := earth_day() if on_day < 0 else on_day
+	return WEEKDAYS[(d - 1 + FIRST_WEEKDAY) % 7]
 
 
 func in_shift() -> bool:

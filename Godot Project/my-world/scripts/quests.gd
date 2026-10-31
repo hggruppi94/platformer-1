@@ -305,6 +305,8 @@ func log_text() -> String:
 		lines.append("No quests yet. Talk to people around town!")
 		lines.append("")
 	lines.append_array(Requests.log_lines())              # tonight's request board (scripts/requests.gd)
+	lines.append_array(EarthJobs.log_lines())             # today's jobs on Earth's notice board (scripts/earth_jobs.gd)
+	lines.append_array(Festival.log_lines())              # the Autumn Festival, when it's on (scripts/festival.gd)
 	lines.append("")
 	lines.append("[color=#c8c8d8](%s to close)[/color]" % Settings.prompt("quest_log"))
 	return "\n".join(lines)

@@ -6,6 +6,7 @@ extends Area3D
 # walking and turns to the player while talking.
 
 @export var verb := "talk"
+var jobs: Node                    # whose board this is: Requests, or EarthJobs on Earth
 @export var radius := 2.4
 
 var _prompt: Label3D
@@ -49,7 +50,7 @@ func set_prompt(on: bool) -> void:
 
 
 func use() -> void:
-	Requests.talk(self)
+	(jobs if jobs else Requests).talk(self)
 
 
 func begin_talk() -> void:

@@ -46,6 +46,12 @@ house's gate (`palmer_house`), `gazebo`, `old_oak`, `pond_path`, `skate_yard`, `
 (`nina_room`). A point there can have a third number, the floor's height, for places indoors or up steps.
 `tools/test_townsfolk.gd` checks them all.
 
+**The Autumn Festival** (Saturday evenings, 5 to 10 PM: `scripts/festival.gd`): a file can have a `"festival"` list of
+blocks next to `"blocks"`, in the same shape. While the festival's on they take over from the day's blocks, like a
+quest's override, then the day carries on. The festival's points are `fest_hay`, `fest_apples`, `fest_treats`,
+`fest_pies`, `fest_lanterns` and `fest_cider` on a ring round the gazebo, and `fest_<spot>_stall` beside each stall for
+whoever runs it (Poppy, Gus, Dottie, Hank, Miss Marigold). Kip calls the hayride from `inn`; Barnaby plays at `gazebo`.
+
 ## Places
 
 `places.json` holds the named points of the town (doorsteps, the boardwalk, the gardens up the ramp...) and the links

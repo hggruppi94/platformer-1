@@ -14,6 +14,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "I'm guarding the pie table. Not for any reason. I just like being near pies.",
+        "Dottie says I can't be a judge until I'm 'taller than the table'. Hmph."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "earth_lights:find",
         "not_flag": "lights_bookshop"
       },

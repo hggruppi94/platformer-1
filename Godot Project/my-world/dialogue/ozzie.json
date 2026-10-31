@@ -11,6 +11,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "I got zero apples. ZERO. The barrel's rigged. Hank's rigged it.",
+        "Next year I'm bringing a snorkel."
+      ]
+    },
+    {
+      "when": {
         "activity": "skating"
       },
       "lines": [

@@ -14,6 +14,15 @@
     },
     {
       "when": {
+        "activity": "festival_lanterns"
+      },
+      "lines": [
+        "The craft club made a lantern for everyone. Get yours at my stall, {player}! They all go up together at nine o'clock.",
+        "Shh, between you and me: the lanterns always drift towards the old oak. Every single year. Isn't that curious?"
+      ]
+    },
+    {
+      "when": {
         "place": "pond_path"
       },
       "lines": [

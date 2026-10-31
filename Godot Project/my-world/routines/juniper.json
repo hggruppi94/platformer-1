@@ -10,5 +10,8 @@
     {"at": "15:00", "place": "playground", "do": "wander", "label": "playing", "radius": 4},
     {"at": "17:00", "place": "diner", "do": "idle", "label": "snooping", "face": [-9, -35]},
     {"at": "19:30", "place": "okafor_house", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_apples", "do": "wander", "label": "festival", "radius": 2.5}
   ]
 }

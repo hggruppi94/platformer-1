@@ -16,7 +16,8 @@ extends Node
 # and walk Earth's paths (res://routines/earth_places.json, written by tools/build_earth.gd).
 #
 # A quest step can move someone for an event while it's on (Rex's rally at the fountain: scripts/quests.gd,
-# "override"): that block takes over from the schedule until the step's done or its time is over.
+# "override"): that block takes over from the schedule until the step's done or its time is over. On Earth, a file's
+# "festival" blocks take over the same way while the Autumn Festival is on (Saturday evenings: scripts/festival.gd).
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -33,6 +34,7 @@ var move_anim := "walk"
 var follow_anim := "run"
 var rides := false                                  # rides the bike whenever he's moving
 var earth := false                                  # lives in the Earth town: Earth's clock and paths
+var festival: Array = []                            # where they are at the Autumn Festival, while it's on
 
 var _body: Node3D
 var _bike: Node3D
@@ -102,6 +104,11 @@ func _load() -> void:
 		block["at"] = Clock.parse_time(str(b.get("at", "00:00")))
 		blocks.append(block)
 	blocks.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.at < y.at)
+	for b in data.get("festival", []):
+		var block: Dictionary = b.duplicate()
+		block["at"] = Clock.parse_time(str(b.get("at", "17:00")))
+		festival.append(block)
+	festival.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.at < y.at)
 
 
 # -----------------------------------------------------------------------------
@@ -163,6 +170,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var i := block_index_at(blocks, now())
 	var o := Quests.override_for(character_id)
+	if o.is_empty() and not festival.is_empty() and Festival.is_on():
+		o = festival[block_index_at(festival, now())]
 	if i != _block or _jumped or o != _override:
 		var was := _block
 		_block = i

@@ -9,5 +9,8 @@
     {"at": "16:30", "place": "gazebo", "do": "idle", "label": "singing", "face": [0, 21]},
     {"at": "20:00", "place": "hill_top", "do": "idle", "label": "stargazing", "face": [0, -20]},
     {"at": "22:30", "place": "quill_house", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "gazebo", "do": "idle", "label": "festival_music", "face": [0, 20]}
   ]
 }

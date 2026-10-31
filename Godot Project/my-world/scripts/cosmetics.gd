@@ -115,6 +115,27 @@ static func hat(id: String) -> Node3D:
 			_mesh(h, _sphere(0.29), knit, Vector3(0, -0.02, -0.04), Vector3(-0.25, 0, 0), Vector3(1, 0.75, 1.05))
 			_mesh(h, _torus(0.24, 0.31), _mat(Color(0.95, 0.4, 0.6)), Vector3(0, -0.1, 0.0), Vector3(-0.2, 0, 0), Vector3(1, 1.4, 1))
 			_mesh(h, _sphere(0.07), _mat(Color(1.0, 0.95, 0.6)), Vector3(0, 0.2, -0.12))
+		"witch_hat":
+			# From the toy shop on Earth: a wide brim, a tall cone with a little bend back at the tip, a gold buckle
+			var felt := _mat(Color(0.35, 0.18, 0.5))
+			_mesh(h, _cyl(0.4, 0.4, 0.03), felt, Vector3(0, -0.04, 0))
+			_mesh(h, _cyl(0.1, 0.22, 0.3), felt, Vector3(0, 0.12, -0.01), Vector3(-0.08, 0, 0))
+			_mesh(h, _cyl(0.0, 0.1, 0.26), felt, Vector3(0, 0.37, -0.06), Vector3(-0.35, 0, 0))
+			_mesh(h, _torus(0.205, 0.235), _mat(Color(0.95, 0.5, 0.15)), Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(1, 1.3, 1))
+			var buckle := BoxMesh.new()
+			buckle.size = Vector3(0.09, 0.07, 0.02)
+			_mesh(h, buckle, _mat(Color(1.0, 0.82, 0.3), 0.4, 0.8), Vector3(0, 0.0, 0.225))
+		"pumpkin_hat":
+			# Also from the toy shop: a little pumpkin with its ribs, a curly stem and a leaf
+			var orange := _mat(Color(0.97, 0.52, 0.12))
+			for k in 6:
+				var a := k * TAU / 6
+				_mesh(h, _sphere(0.15), orange, Vector3(sin(a) * 0.12, 0.0, cos(a) * 0.12), Vector3.ZERO, Vector3(1, 0.9, 1))
+			_mesh(h, _sphere(0.2), orange, Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(1.2, 0.75, 1.2))
+			_mesh(h, _cyl(0.025, 0.04, 0.14), _mat(Color(0.35, 0.5, 0.2)), Vector3(0, 0.17, 0), Vector3(0, 0, 0.3))
+			var leaf := PrismMesh.new()
+			leaf.size = Vector3(0.12, 0.1, 0.01)
+			_mesh(h, leaf, _mat(Color(0.4, 0.65, 0.25)), Vector3(0.07, 0.15, 0.02), Vector3(PI / 2, 0, 0.6))
 		_:
 			return null
 	return h

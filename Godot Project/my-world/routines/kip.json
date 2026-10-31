@@ -9,5 +9,8 @@
     {"at": "16:00", "place": "library_door", "do": "idle", "label": "library", "face": [0, -84]},
     {"at": "18:00", "place": "inn", "do": "idle", "label": "inn", "face": [21, 9]},
     {"at": "23:00", "place": "inn", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "inn", "do": "idle", "label": "festival_hayride", "face": [21, 12]}
   ]
 }

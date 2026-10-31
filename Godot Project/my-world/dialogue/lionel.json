@@ -11,6 +11,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
+        "Don't tell anyone, but I came for the kettle corn."
+      ]
+    },
+    {
+      "when": {
         "activity": "evening"
       },
       "lines": [

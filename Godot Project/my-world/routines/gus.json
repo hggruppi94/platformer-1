@@ -7,5 +7,8 @@
     {"at": "14:00", "place": "hardware", "do": "idle", "label": "errand", "face": [10.6, -63]},
     {"at": "14:40", "place": "diner", "do": "wander", "label": "working", "radius": 2.5},
     {"at": "22:30", "place": "diner", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_cider_stall", "do": "idle", "label": "festival_cider", "face": [0, 0]}
   ]
 }

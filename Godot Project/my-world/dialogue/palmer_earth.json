@@ -17,6 +17,48 @@
     },
     {
       "when": {
+        "activity": "festival_lanterns_speech"
+      },
+      "lines": [
+        "Ahem! Friends, neighbours, and anyone who's had too much kettle corn! In a moment, we let our lanterns go.",
+        "May they carry our wishes up... and wherever else they might be going. (He glances at the old oak.)"
+      ]
+    },
+    {
+      "when": {
+        "flag": "earth_tremor",
+        "not_flag": "palmer_tremor_talk"
+      },
+      "set": "palmer_tremor_talk",
+      "lines": [
+        "A tremor? Oh, that. The old pipes under the green. Yes. Pipes. Very old pipes.",
+        "(He checks his pocket watch. Then the old oak. Then his watch again.)",
+        "Off you pop, {player}. Nothing to worry about. Nothing at all."
+      ]
+    },
+    {
+      "when": {
+        "flag": "read_palmer_letter",
+        "not_flag": "palmer_letter_talk"
+      },
+      "set": "palmer_letter_talk",
+      "lines": [
+        "Hm? You saw an envelope on my porch? Oh! That's from my... pen pal. Lives very far away. Terrible handwriting. Lovely person.",
+        "(He tucks something lilac into his coat pocket, very quickly.)",
+        "Galaxity? Ha! Did it say Galaxity? It must have said... Galveston. Yes. Galveston. Well! Lovely weather for it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "Ah, the Autumn Festival! Every year since I was a boy. And every year, the hayride goes round exactly once more than anyone expects.",
+        "Have you tried bobbing for apples? Hank keeps the best ones for the third go."
+      ]
+    },
+    {
+      "when": {
         "activity": "oak_watch"
       },
       "lines": [

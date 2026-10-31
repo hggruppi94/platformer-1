@@ -10,6 +10,9 @@ happy places.
 ```
 
 - `stall`: `Fruit`, `Sweets`, `Crystals`, `Flowers`, `Records` or `Toys`. `stalls` at the top has each one's welcome line.
+  On Earth (since Oct 31, 2026; spots placed by `scripts/earth_town.gd`): `Bakery`, `Toy Shop`, `Diner` and
+  `Corner Market`, and at the Autumn Festival `Festival Treats` and `Cider Cart` (`scripts/festival_green.gd`). They
+  take sparkles too: one money for both worlds.
   Things that are only ever given, not sold, have `"reward": true` and a stall no shop opens (`Dash`: his thank-yous
   for lost watches, `scripts/watches.gd`).
 - `kind`:
@@ -18,6 +21,7 @@ happy places.
   - `sticker`: goes on Rex's VOTE REX sash (so Nina needs the sash first).
   - `gadget` and `ammo`: Dash's gadget stall (`"stall": "Gadget"`, placed by `scripts/arsenal.gd`). `gadget` names
     the Arsenal gadget (`fizz`, `disco`): a `gadget` item gives it, an `ammo` item fills it up.
+  - `contest_pie`: the bakery's pie for the Autumn Festival's pie contest (`scripts/festival.gd` sells it).
   - Any other kind belongs to the system that called `Shop.register_kind(kind, {can_buy, buy, button})`, which
     decides whether it can be bought, what buying it does and keeps it in its own save.
 - What a new hat or sticker looks like is built in `scripts/cosmetics.gd` (add a `match` case for its id; stickers

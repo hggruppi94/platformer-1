@@ -57,6 +57,7 @@ func _run() -> void:
 	game._resume = {}
 	game.pending_message = ""
 	game.next_spawn = "Entrance"
+	clock.day = 1                       # a Friday, so the Autumn Festival (Saturdays: tools/test_festival.gd) isn't on
 	clock.set_earth_time(12 * 60.0, true)
 	change_scene_to_file(EARTH)
 	await _frames(8)

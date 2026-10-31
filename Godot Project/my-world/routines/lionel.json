@@ -6,5 +6,8 @@
     {"at": "09:00", "place": "bookshop", "do": "idle", "label": "working", "face": [9, -21]},
     {"at": "19:00", "place": "green_bench", "do": "idle", "label": "evening", "face": [0, 0]},
     {"at": "21:00", "place": "home_3", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_lanterns", "do": "wander", "label": "festival", "radius": 2}
   ]
 }

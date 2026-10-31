@@ -11,6 +11,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
+        "Have you ridden the hayride? Scarecrow Sam waved at me. I think. Probably the wind."
+      ]
+    },
+    {
+      "when": {
         "activity": "testing_toys"
       },
       "lines": [

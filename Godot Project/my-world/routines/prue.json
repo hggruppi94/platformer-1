@@ -10,5 +10,9 @@
     {"at": "15:00", "place": "playground", "do": "wander", "label": "playing", "radius": 4},
     {"at": "18:00", "place": "prue_room", "do": "idle", "label": "her_room"},
     {"at": "20:00", "place": "prue_room", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_treats", "do": "wander", "label": "festival", "radius": 2.5},
+    {"at": "21:30", "place": "prue_room", "do": "away", "label": "asleep"}
   ]
 }

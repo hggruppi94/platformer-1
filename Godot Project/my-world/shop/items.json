@@ -8,7 +8,13 @@
     "Toys": "Toys, games and silly hats!",
     "Boutique": "Head to toe and everything in between. Try it on!",
     "Gadget": "Dash's gadgets! He builds them from bits of broken time. Nothing gets hurt: they pop, fizz and dance.",
-    "Tune-Up": "Zippy's Tune-Up! Every upgrade works on every ride: your board and your friends' rides too. Vroom!"
+    "Tune-Up": "Zippy's Tune-Up! Every upgrade works on every ride: your board and your friends' rides too. Vroom!",
+    "Bakery": "Crumb & Cauldron Bakery! Baked fresh this morning. The cauldron cakes are green inside, for Halloween.",
+    "Toy Shop": "Gizmo & Gumdrop Toys! Hats for Halloween, and anything that spins.",
+    "Diner": "Hollow Diner. Sit down, eat up, don't complain about the coffee. (Gus)",
+    "Corner Market": "The Corner Market: apples, candy and fizzy pop. Kip's on the till. Probably.",
+    "Festival Treats": "Poppy's festival treats: warm, sweet and very sticky!",
+    "Cider Cart": "Gus's Cider Cart. Hot cider, cold cider, and one secret donut."
   },
   "items": [
     {"id": "star_apple", "name": "Star Apple", "stall": "Fruit", "kind": "snack", "price": 2, "hp": 5, "text": "Crunchy and sweet. +5 HP"},
@@ -64,6 +70,23 @@
     {"id": "tune_turbo_1", "name": "Turbo Tank I", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 1, "price": 6, "text": "Boost pads and Zoom Stars last longer (level 1 of 3)"},
     {"id": "tune_turbo_2", "name": "Turbo Tank II", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 2, "price": 12, "text": "Boost pads and Zoom Stars last longer (level 2 of 3)"},
     {"id": "tune_turbo_3", "name": "Turbo Tank III", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "turbo", "level": 3, "price": 18, "text": "Boost pads and Zoom Stars last longer (level 3 of 3)"},
-    {"id": "tune_starter_star", "name": "Starter Star", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "starter", "level": 1, "price": 20, "text": "Start every race holding a Zoom Star"}
+    {"id": "tune_starter_star", "name": "Starter Star", "stall": "Tune-Up", "kind": "ride_upgrade", "upgrade": "starter", "level": 1, "price": 20, "text": "Start every race holding a Zoom Star"},
+    {"id": "pumpkin_bread", "name": "Pumpkin Bread", "stall": "Bakery", "kind": "snack", "price": 2, "hp": 6, "text": "A warm slice with cinnamon on top. +6 HP"},
+    {"id": "cauldron_cake", "name": "Cauldron Cake", "stall": "Bakery", "kind": "snack", "price": 3, "hp": 4, "mp": 3, "text": "Green inside! +4 HP, +3 MP"},
+    {"id": "ghost_cookie", "name": "Ghost Cookie", "stall": "Bakery", "kind": "snack", "price": 1, "hp": 3, "text": "A friendly ghost with chocolate-chip eyes. +3 HP"},
+    {"id": "contest_pie", "name": "Contest Pumpkin Pie", "stall": "Bakery", "kind": "contest_pie", "price": 6, "text": "A golden pie for the Autumn Festival's pie contest (Saturday evening)"},
+    {"id": "witch_hat", "name": "Witch Hat", "stall": "Toy Shop", "kind": "hat", "price": 12, "text": "Tall, pointy and purple, with a gold buckle"},
+    {"id": "pumpkin_hat", "name": "Pumpkin Hat", "stall": "Toy Shop", "kind": "hat", "price": 10, "text": "A little pumpkin with a curly stem, to wear"},
+    {"id": "grilled_cheese", "name": "Grilled Cheese", "stall": "Diner", "kind": "snack", "price": 2, "hp": 8, "text": "Gooey and golden. +8 HP"},
+    {"id": "hot_cocoa", "name": "Hot Cocoa", "stall": "Diner", "kind": "snack", "price": 2, "hp": 4, "mp": 4, "text": "With marshmallows. +4 HP, +4 MP"},
+    {"id": "apple_pie_slice", "name": "Gus's Apple Pie", "stall": "Diner", "kind": "snack", "price": 4, "hp": 99, "text": "The best in town (don't tell Poppy). All your HP"},
+    {"id": "earth_apple", "name": "Crunchy Apple", "stall": "Corner Market", "kind": "snack", "price": 1, "hp": 4, "text": "From the orchard up the road. +4 HP"},
+    {"id": "candy_corn", "name": "Candy Corn", "stall": "Corner Market", "kind": "snack", "price": 1, "hp": 2, "mp": 1, "text": "Orange, yellow and white. +2 HP, +1 MP"},
+    {"id": "fizzy_pop", "name": "Fizzy Pop", "stall": "Corner Market", "kind": "snack", "price": 2, "hp": 3, "mp": 3, "text": "Bubbles up your nose! +3 HP, +3 MP"},
+    {"id": "caramel_apple", "name": "Caramel Apple", "stall": "Festival Treats", "kind": "snack", "price": 2, "hp": 6, "text": "Sticky and crunchy. +6 HP"},
+    {"id": "kettle_corn", "name": "Kettle Corn", "stall": "Festival Treats", "kind": "snack", "price": 1, "hp": 4, "text": "Sweet and salty. +4 HP"},
+    {"id": "cider_donut", "name": "Cider Donut", "stall": "Festival Treats", "kind": "snack", "price": 2, "hp": 5, "mp": 2, "text": "Rolled in cinnamon sugar. +5 HP, +2 MP"},
+    {"id": "hot_cider", "name": "Hot Apple Cider", "stall": "Cider Cart", "kind": "snack", "price": 2, "hp": 5, "mp": 3, "text": "Warms you right up. +5 HP, +3 MP"},
+    {"id": "spice_donut", "name": "Secret Pumpkin Spice Donut", "stall": "Cider Cart", "kind": "snack", "price": 3, "hp": 8, "mp": 2, "text": "Gus says it doesn't exist. +8 HP, +2 MP"}
   ]
 }

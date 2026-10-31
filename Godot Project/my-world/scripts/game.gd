@@ -307,6 +307,8 @@ func save_game() -> void:
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
 		"requests": Requests.save_data(),
+		"earth_jobs": EarthJobs.save_data(),
+		"festival": Festival.save_data(),
 		"arsenal": Arsenal.save_data(),
 		"races": Races.save_data(),
 	}
@@ -376,6 +378,10 @@ func load_game() -> void:
 	Quests.load_data(quests if quests is Dictionary else {})
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
+	var jobs = data.get("earth_jobs", {})                    # saves from before Earth's notice board have none
+	EarthJobs.load_data(jobs if jobs is Dictionary else {})
+	var festival = data.get("festival", {})
+	Festival.load_data(festival if festival is Dictionary else {})
 	var arsenal = data.get("arsenal", {})                    # saves from before gadgets have none: just the popper
 	Arsenal.load_data(arsenal if arsenal is Dictionary else {})
 	var races = data.get("races", {})                        # saves from before the races have none
@@ -499,6 +505,8 @@ func new_game() -> void:
 	Dialogue.reset()
 	Quests.reset()
 	Requests.reset()
+	EarthJobs.reset()
+	Festival.reset()
 	Arsenal.reset()
 	Races.reset()
 	next_spawn = NEW_GAME_SPAWN                      # wake up at home

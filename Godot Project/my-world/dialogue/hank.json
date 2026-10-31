@@ -11,6 +11,15 @@
     },
     {
       "when": {
+        "activity": "festival_apples"
+      },
+      "lines": [
+        "Step right up and bob for apples! Hands behind your back, face in the barrel, and no biting the barrel. Kip tried.",
+        "Three goes. The apples get sneakier every go. I've got towels."
+      ]
+    },
+    {
+      "when": {
         "activity": "porch"
       },
       "lines": [

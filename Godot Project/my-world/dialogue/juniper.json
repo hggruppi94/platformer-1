@@ -13,6 +13,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "Juniper Okafor, Old Oak Elementary Gazette, covering the festival LIVE! Any comment on the apple bobbing?",
+        "My headline: 'Local Barrel Defeats Local Boy'. Ozzie got zero apples. Zero!"
+      ]
+    },
+    {
+      "when": {
         "activity": "snooping"
       },
       "lines": [

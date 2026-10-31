@@ -5,6 +5,7 @@ extends Area3D
 # Walking into it picks it up for the friend it's for.
 
 var item_id := ""
+var jobs: Node                    # whose delivery it's for: Requests, or EarthJobs (scripts/earth_jobs.gd)
 var _look: Node3D
 var _t := 0.0
 
@@ -31,7 +32,7 @@ func _ready() -> void:
 	add_child(light)
 	body_entered.connect(func(b: Node3D) -> void:
 		if b.is_in_group("player"):
-			Requests.pick_up(item_id)
+			(jobs if jobs else Requests).pick_up(item_id)
 			queue_free())
 
 

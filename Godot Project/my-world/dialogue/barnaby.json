@@ -14,6 +14,25 @@
     },
     {
       "when": {
+        "activity": "festival_music"
+      },
+      "lines": [
+        "(He's strumming a jolly tune about a pumpkin who wanted to be a moon.)",
+        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+      ]
+    },
+    {
+      "when": {
+        "activity": "stargazing",
+        "every": 2
+      },
+      "lines": [
+        "Listen... the old oak's humming again. It always gets louder near midnight. Like it's tuning up for something.",
+        "Last week I saw a green flicker down there, right at twelve. Then Mr. Palmer walked out of the trees, cool as you like, and said 'evening'."
+      ]
+    },
+    {
+      "when": {
         "place": "pond_path"
       },
       "lines": [

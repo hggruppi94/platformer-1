@@ -13,6 +13,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "Hayride's for babies.",
+        "...Okay, it's kind of fun. Don't tell Prue."
+      ]
+    },
+    {
+      "when": {
         "activity": "skating"
       },
       "lines": [

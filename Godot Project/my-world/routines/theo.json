@@ -8,5 +8,8 @@
     {"at": "15:00", "place": "bookshop", "do": "idle", "label": "reading", "face": [9, -35]},
     {"at": "18:00", "place": "green_bench", "do": "idle", "label": "reading", "face": [0, 0]},
     {"at": "20:30", "place": "pemberton_house", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_pies", "do": "wander", "label": "festival", "radius": 2}
   ]
 }

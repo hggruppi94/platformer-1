@@ -6,6 +6,7 @@ extends SceneTree
 # being pulled home at the end of the Shift, and a save made in Galaxity in the Shift loading there. Run it twice.
 # Also the grown-up town (since Oct 30, 2026): every place there, a way in to every walk-in building, nothing floating,
 # the ground's pond and hill, wading, the skate spots, the Earth map, and an old save made on Earth waking up at home.
+# And what's added as it loads (Oct 31): the notice board, the shop counters, the oak's hum and Mr. Palmer's envelope.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_earth.gd
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_earth.gd -- --check-load
@@ -72,6 +73,16 @@ func _run() -> void:
 	hud._refresh_clock()
 	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("opens at midnight"),
 		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
+	check(clock.weekday() == "Friday" and hud.clock_label.text.begins_with("Earth, Friday"), "a new game starts on a Friday evening")
+	# Things added when the town loads (tools/test_notice_board.gd and test_festival.gd check them properly)
+	await _frames(4)
+	check(current_scene.get_node_or_null("Notice Board") != null and root.get_node("EarthJobs").list.size() == 3,
+		"the notice board by the gazebo, with three jobs")
+	check(current_scene.get_node_or_null("Bakery/Shop Bakery") != null and current_scene.get_node_or_null("Hollow Diner/Shop Diner") != null,
+		"the shops have their counters")
+	check(current_scene.get_node_or_null("Portal Home/Oak Hum") != null and current_scene.get_node_or_null("Palmer House/Palmer's Letter") != null,
+		"the old oak hums, and there's an envelope on Mr. Palmer's porch")
+	check(current_scene.get_node_or_null("Autumn Festival") == null, "Friday: no festival on the green")
 
 	await _town_layout()
 

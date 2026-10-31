@@ -11,5 +11,9 @@
     {"at": "21:30", "place": "palmer_house", "do": "away", "label": "asleep"},
     {"at": "23:40", "place": "old_oak", "do": "idle", "label": "oak_watch", "face": [-10, 10]},
     {"at": "01:00", "place": "palmer_house", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_hay", "do": "wander", "label": "festival", "radius": 2.5},
+    {"at": "20:45", "place": "gazebo", "do": "idle", "label": "festival_lanterns_speech", "face": [0, 20]}
   ]
 }

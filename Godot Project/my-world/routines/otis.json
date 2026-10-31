@@ -7,5 +7,8 @@
     {"at": "13:00", "place": "playground", "do": "wander", "label": "testing_toys", "radius": 4},
     {"at": "14:00", "place": "toy_shop", "do": "wander", "label": "working", "radius": 2.5},
     {"at": "18:00", "place": "toy_shop", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_hay", "do": "wander", "label": "festival", "radius": 2}
   ]
 }

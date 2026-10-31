@@ -11,6 +11,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "Look, look! I won a ribbon for the best scarecrow drawing! Mine's got a cape.",
+        "Bruno says the hayride's for babies. He's been on it three times."
+      ]
+    },
+    {
+      "when": {
         "activity": "playing"
       },
       "lines": [

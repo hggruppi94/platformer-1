@@ -9,5 +9,8 @@
     {"at": "14:00", "place": "inn", "do": "wander", "label": "working", "radius": 2.5},
     {"at": "19:00", "place": "gazebo", "do": "wander", "label": "evening", "radius": 3},
     {"at": "21:00", "place": "inn", "do": "away", "label": "asleep"}
+  ],
+  "festival": [
+    {"at": "17:00", "place": "fest_pies_stall", "do": "idle", "label": "festival_judge", "face": [0, 0]}
   ]
 }

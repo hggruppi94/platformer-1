@@ -18,8 +18,13 @@ extends Node
 # then too. The board, and the requests part of the Tab menu's Quests sheet (scripts/quests.gd), show progress live.
 # Everything is saved with the game (scripts/game.gd, "requests"); saves from before the board have none, and get
 # their first three on the next Shift.
+#
+# Earth's notice board on the town green (scripts/earth_jobs.gd, autoload "EarthJobs") is this same board with
+# Earth's jobs: it extends this script and swaps in its own kinds, words and props through the methods marked
+# "(EarthJobs has its own)". The board, its talk spot and the parcels take whichever one put them up ("jobs").
 
 signal changed
+signal noted(kind: String, amount: float, how: String)     # every note(), so Earth's board hears grinds too
 
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
@@ -109,7 +114,7 @@ func _process(delta: float) -> void:
 func roll(seed_value := -1) -> void:
 	# Three new requests: one easy, one medium, one harder, all different kinds. Seeded by the visit so a reload
 	# halfway through doesn't change them (and a test can ask for a particular night).
-	_pay_finished("Sparkles from last night's requests!")
+	_pay_finished(left_over_text())
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value if seed_value >= 0 else hash("requests:%d:%d" % [visit_day(), nights])
 	nights += 1
@@ -138,8 +143,9 @@ func _announce() -> void:
 func kinds_for(tier: String) -> Array[String]:
 	# The kinds that make sense right now: skating ones once there's a board to ride, watches once they exist
 	var out: Array[String] = []
-	for k in KINDS:
-		if not KINDS[k].has(tier):
+	var table := kinds()
+	for k in table:
+		if not table[k].has(tier):
 			continue
 		if k in SKATE_KINDS and not Game.has_item("skateboard"):
 			continue
@@ -147,6 +153,11 @@ func kinds_for(tier: String) -> Array[String]:
 			continue
 		out.append(k)
 	return out
+
+
+func kinds() -> Dictionary:
+	# (EarthJobs has its own)
+	return KINDS
 
 
 func scale() -> float:
@@ -271,11 +282,31 @@ static func _commas(v: int) -> String:
 	return s + out
 
 
+func board_title() -> String:
+	# (EarthJobs has its own, for this and asleep_text() and log_title())
+	return "TONIGHT'S REQUESTS"
+
+
+func asleep_text() -> Array:
+	return ["The board's asleep.", "New requests every Shift!"]
+
+
+func noun() -> String:
+	return "Request"
+
+
+func left_over_text() -> String:
+	return "Sparkles from last night's requests!"
+
+
+func log_title() -> String:
+	return "[b]Tonight's requests[/b] (the board in the Market Square)"
+
+
 func board_text() -> String:
-	var lines: PackedStringArray = ["TONIGHT'S REQUESTS", ""]
+	var lines: PackedStringArray = [board_title(), ""]
 	if not is_live():
-		lines.append("The board's asleep.")
-		lines.append("New requests every Shift!")
+		lines.append_array(asleep_text())
 		return "\n".join(lines)
 	for r in list:
 		var mark := "★" if r.paid else ("✔" if r.done else "•")
@@ -290,7 +321,7 @@ func log_lines() -> Array[String]:
 	var out: Array[String] = []
 	if not is_live():
 		return out
-	out.append("[b]Tonight's requests[/b] (the board in the Market Square)")
+	out.append(log_title())
 	for r in list:
 		var extra := progress_text(r)
 		var line := "  %s %s  [color=#f5e6a3]✦ %d[/color]" % ["[color=#b8f5b8](done)[/color]" if r.done else "( )",
@@ -308,6 +339,7 @@ func log_lines() -> Array[String]:
 func note(kind: String, amount := 1.0, how := "") -> void:
 	# Something happened that a request might want: "gloop" (how: "bubble", "stomp" or "ram"), "crocodillo",
 	# "grind" (amount: metres in that one grind), "watch" (a lost watch found)
+	noted.emit(kind, amount, how)
 	if not is_live():
 		return
 	var any := false
@@ -362,7 +394,7 @@ func _check_done(r: Dictionary) -> void:
 		return
 	r.done = true
 	Audio.play("pickup", -2.0, 0.0)
-	Game.message("Request done: %s! Turn it in at the board for ✦ %d." % [text_of(r), int(r.sparkles)])
+	Game.message("%s done: %s! Turn it in at the board for ✦ %d." % [noun(), text_of(r), int(r.sparkles)])
 
 
 func _check_places() -> void:
@@ -464,7 +496,7 @@ func turn_in(at: Node3D = null) -> int:
 	if total == 0:
 		return 0
 	turned_in += count
-	Game.add_sparkles(total, "Request%s turned in!" % ("" if count == 1 else "s"))
+	Game.add_sparkles(total, "%s%s turned in!" % [noun(), "" if count == 1 else "s"])
 	Audio.play("level_up", -3.0, 0.0)
 	if at and at.is_inside_tree():
 		_celebrate(at)
@@ -561,6 +593,7 @@ func _place_board(scene: Node) -> void:
 	var a := deg_to_rad(250.0)
 	var board := (load("res://scripts/request_board.gd") as GDScript).new() as Node3D
 	board.name = "Request Board"
+	board.set("jobs", self)
 	scene.add_child(board)
 	board.global_position = square.global_position + Vector3(cos(a) * 13.0, 0.15, sin(a) * 13.0)
 	board.rotation.y = atan2(-cos(a), -sin(a))
@@ -585,6 +618,7 @@ func _place_parcels(scene: Node) -> void:
 		var parcel := (load("res://scripts/request_parcel.gd") as GDScript).new() as Node3D
 		parcel.name = "Parcel " + str(g[0])
 		parcel.set("item_id", str(g[0]))
+		parcel.set("jobs", self)
 		scene.add_child(parcel)
 		parcel.global_position = at
 		parcel.call("settle")
@@ -605,7 +639,7 @@ func load_data(data: Dictionary) -> void:
 	var saved = data.get("list", [])
 	if saved is Array:
 		for r in saved:
-			if r is Dictionary and KINDS.has(str(r.get("kind", ""))):
+			if r is Dictionary and kinds().has(str(r.get("kind", ""))):
 				var copy: Dictionary = r.duplicate(true)
 				copy.progress = float(copy.get("progress", 0.0))
 				copy.goal = int(copy.get("goal", 1))

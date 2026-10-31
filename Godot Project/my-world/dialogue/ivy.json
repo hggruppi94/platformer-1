@@ -14,6 +14,15 @@
     },
     {
       "when": {
+        "activity": "festival"
+      },
+      "lines": [
+        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
+        "Try the cider donuts. Then try them again. That's what I did."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "earth_lights:find",
         "not_flag": "lights_diner"
       },

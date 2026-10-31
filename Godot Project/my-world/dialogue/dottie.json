@@ -13,6 +13,36 @@
     },
     {
       "when": {
+        "activity": "festival_judge"
+      },
+      "do": "Festival.judge_pie",
+      "lines": [
+        "Welcome to the pie contest, sweetheart! I'm the judge. I've been practising all week. Mostly the eating part."
+      ]
+    },
+    {
+      "when": {
+        "flag": "earth_tremor",
+        "every": 2
+      },
+      "lines": [
+        "Did you feel that wobble? My teacups rattled right off the shelf! Mr. Palmer says it's pipes. I've never seen a pipe in my life."
+      ]
+    },
+    {
+      "when": {
+        "time": [
+          "night",
+          "shift"
+        ],
+        "every": 2
+      },
+      "lines": [
+        "Can you hear that hum? Every night, about now. Comes from the old oak, I'm sure of it. Kip says it's bees. Bees, at midnight!"
+      ]
+    },
+    {
+      "when": {
         "time": "morning"
       },
       "lines": [

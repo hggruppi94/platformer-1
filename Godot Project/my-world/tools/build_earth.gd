@@ -42,6 +42,10 @@ const HOLLOW_X := -26.0                           # Hollow Lane, from the green'
 const BRIDGE_X := Vector2(-110, -96)              # the covered bridge's span along Maple Lane
 const YARD := Rect2(10, -122, 40, 44)             # the Hollow Skate Yard's concrete: x 10..50, z -122..-78
 const YARD_FLOOR := 0.2
+# The Autumn Festival's spots round the gazebo (scripts/festival_green.gd SPOTS: the same angles, in degrees). It's put
+# up at play time, but the people who come to it need points to walk to: one on a ring round the gazebo in front of
+# each spot, and one beside each stall for whoever runs it.
+const FESTIVAL := {"hay": 62.6, "apples": 350.6, "treats": 314.6, "pies": 278.6, "lanterns": 242.6, "cider": 206.6}
 
 var world: Node3D
 var rng := RandomNumberGenerator.new()
@@ -2535,6 +2539,17 @@ func _write_places() -> void:
 	_place("green_bench", Vector2(10.5, 10.5))
 	_walk(["green_s", "gazebo", "old_oak", "green_s"])
 	_walk(["gazebo", "green_bench", "green_se"])
+	# The Autumn Festival (Saturday evenings): round the gazebo from its steps, and beside each stall
+	var ring := ["gazebo"]
+	for what in FESTIVAL:
+		var a := deg_to_rad(float(FESTIVAL[what]))
+		_place("fest_" + what, Vector2(cos(a), sin(a)) * 7.3)
+		ring.append("fest_" + what)
+		if what != "hay":
+			var b := a + deg_to_rad(15.0)
+			_place("fest_%s_stall" % what, Vector2(cos(b), sin(b)) * 9.6)
+			_walk(["fest_" + what, "fest_%s_stall" % what])
+	_walk(ring)
 	# The shops round the green (their fronts) and the walk-in Town Hall
 	var front := g + STREET_W / 2 + 1.6 + 0.3
 	_place("diner", Vector2(-9, -front))
