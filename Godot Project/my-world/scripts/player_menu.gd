@@ -474,6 +474,28 @@ func _sheet_skate() -> Control:
 				SkateLesson.start(), box)
 		first.name = "Lesson"
 	_gap(box)
+	# Your rides: the skateboard, and any built at Zippy's Tune-Up from a schematic (scripts/schematics.gd)
+	_heading("Your ride", box, 26)
+	var row := HFlowContainer.new()                        # wraps onto a second line when there are lots
+	row.name = "Rides"
+	row.add_theme_constant_override("h_separation", 10)
+	row.add_theme_constant_override("v_separation", 8)
+	box.add_child(row)
+	for r in Schematics.rides_owned():
+		var ride: Dictionary = Rides.HERO_RIDES[r]
+		var on := Game.hero_ride == r
+		var b := _button(("✓ " if on else "") + str(ride.name), func():
+			Schematics.use_ride(r)
+			show_sheet("skate"), row)
+		b.name = "Ride " + r
+		b.custom_minimum_size.x = _fs(210)
+		b.disabled = on
+	var locked := Rides.HERO_ORDER.size() - Schematics.rides_owned().size()
+	if locked > 0:
+		_line("%s ride%s still to unlock: find %s schematic%s round Galaxity, and Zippy builds %s at the Tune-Up." % [
+			locked, "" if locked == 1 else "s", "its" if locked == 1 else "their", "" if locked == 1 else "s",
+			"it" if locked == 1 else "them"], true, box)
+	_gap(box)
 	_heading("Skate Park goals", box, 26)
 	var Goals := load("res://scripts/skate_goals.gd")
 	var letters := 0

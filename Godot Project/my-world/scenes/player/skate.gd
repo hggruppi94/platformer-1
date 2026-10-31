@@ -101,6 +101,7 @@ var _was_back := false
 var _pushing := false                # pushing along on the flat (skaters stride for it)
 var _feet := []                      # skates to keep under her feet: [skate, skeleton, bone] (scenes/player/ride_kit.gd)
 var _ride_anim: AnimationPlayer      # the ride's own animation (the BMX's pedals)
+var _flames: Node3D                  # a rocket ride's flames (ride_kit.gd), bigger while pushing and boosting
 var _shown_yaw := 0.0                # where the model is turned right now (it catches up with _yaw)
 var _shown_up := Vector3.UP          # ...and which way is up for it
 var _trick_hold := -1.0              # Simple controls: how long the trick button's been held this air (-1: it isn't)
@@ -137,6 +138,7 @@ func set_ride(r: Dictionary, parts: Dictionary) -> void:
 	tricks.ride = r
 	_feet = parts.get("feet", [])
 	_ride_anim = parts.get("anim")
+	_flames = parts.get("flames")
 
 
 func start() -> void:
@@ -208,6 +210,7 @@ func can_shoot() -> bool:
 func boost(extra: float, seconds: float) -> void:
 	# A boost pad or the Zoom Star (scripts/races.gd): straight up to pushing speed plus this much, for a moment,
 	# and the goo's let go of her
+	extra *= float(ride.get("boost_power", 1.0))          # rocket rides push harder (Rides.HERO_RIDES)
 	_boost_speed = maxf(extra, _boost_speed if _boost_time > 0.0 else 0.0)
 	_boost_time = maxf(_boost_time, seconds)
 	_slow_time = 0.0
@@ -951,6 +954,12 @@ func _pose(delta: float) -> void:
 		p.anim.speed_scale = clampf(p.velocity.length() / 5.0, 0.7, 1.5) if target == String(ride.push_anim) else 1.0
 	if _ride_anim:
 		_ride_anim.speed_scale = clampf(p.velocity.length() / 6.0, 0.0, 2.0) if _pushing else 0.0
+	if _flames and is_instance_valid(_flames):
+		var burn := 1.8 if _boost_time > 0.0 else (1.0 if _pushing else 0.35)
+		var flick := 1.0 + sin(Time.get_ticks_msec() * 0.05) * 0.12
+		for f in _flames.get_children():
+			if f is Node3D and not f is Light3D:
+				(f as Node3D).scale = (f as Node3D).scale.lerp(Vector3(1.0, 1.0, burn * flick), minf(1.0, k * 2.0))
 
 
 func _body_trick() -> Basis:

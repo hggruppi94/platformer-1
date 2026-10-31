@@ -58,7 +58,7 @@ func for_stall(stall: String) -> Array:
 func register_kind(kind: String, how: Dictionary) -> void:
 	# Another system sells this kind of item here. `how` has "can_buy" (item -> "" or why not), "buy" (item -> what
 	# to say after; it's already paid for) and, if it likes, "button" (what the Buy button says) and "show" (item ->
-	# whether to list it right now).
+	# whether to list it right now) and "note" (item -> a line to say under it, or "": where to find a schematic).
 	kinds[kind] = how
 
 
@@ -243,6 +243,11 @@ func _fill() -> void:
 		row.add_theme_constant_override("separation", 16)
 		var words := Label.new()
 		words.text = "%s   ✦ %d\n%s" % [it.name, int(it.price), it.text]
+		var how: Dictionary = kinds.get(str(it.kind), {})
+		if how.has("note"):
+			var note := str(how.note.call(it))
+			if note != "":
+				words.text += "\n" + note
 		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		words.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
 		row.add_child(words)

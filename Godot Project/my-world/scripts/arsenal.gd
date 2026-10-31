@@ -520,7 +520,8 @@ func ammo_pull() -> float:
 # ----------------------------------------------------------------------------- Dash's gadget stall
 func _register_shop() -> void:
 	# Gadgets and ammo are bought at the market like everything else (scripts/shop.gd, shop/items.json)
-	Shop.register_kind("gadget", {"can_buy": _can_buy_gadget, "buy": _buy_gadget, "button": "Get it!"})
+	Shop.register_kind("gadget", {"can_buy": _can_buy_gadget, "buy": _buy_gadget, "button": "Get it!",
+		"note": func(it: Dictionary) -> String: return Schematics.note_for("gadget", str(it.gadget))})
 	Shop.register_kind("ammo", {"can_buy": _can_buy_ammo, "buy": _buy_ammo, "button": "Refill",
 		"show": func(it: Dictionary) -> bool: return owns(str(it.gadget))})
 	Shop.register_kind("mod", {"can_buy": _can_buy_mod, "buy": _buy_mod, "button": "Get it!"})
@@ -566,7 +567,11 @@ func _buy_upgrade(it: Dictionary) -> String:
 
 
 func _can_buy_gadget(it: Dictionary) -> String:
-	return "You have this one" if owns(str(it.gadget)) else ""
+	# A gadget's on Dash's stall from the start, but he can only build it once its schematic's been found
+	# (scripts/schematics.gd)
+	if owns(str(it.gadget)):
+		return "You have this one"
+	return "" if Schematics.gadget_unlocked(str(it.gadget)) else "Find its schematic"
 
 
 func _buy_gadget(it: Dictionary) -> String:

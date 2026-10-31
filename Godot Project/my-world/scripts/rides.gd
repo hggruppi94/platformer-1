@@ -253,6 +253,82 @@ const RIDERS := {
 }
 
 
+# The player's own hero can ride more than a skateboard: rides unlocked with a schematic (scripts/schematics.gd) and
+# built at Zippy's Tune-Up. Each is only what's different from BOARD, like RIDERS, and Game.hero_ride says which one
+# they're on. "says" is the Tune-Up's line for it; "tricks_from" borrows a friend's tricks (the Bike rides like Dash's
+# BMX); "boost_power" makes boost pads and Zoom Stars push harder; "flames" are its rockets (ride_kit.gd), which
+# burn brighter while it pushes and boosts (skate.gd).
+const HERO_ORDER := ["board", "overboard", "bike", "rocket_board", "rocket_bike", "saucer"]
+const HERO_RIDES := {
+	"board": {"name": "Skateboard", "says": "Your trusty board."},
+	"overboard": {
+		"name": "Overboard", "kit": "overboard", "deck": 0.32,
+		"says": "A hoverboard that floats over the ground: long glides, smooth carves, a soft landing.",
+		# Floats, so the ground's bumps and slopes pull on it less, and it glides on and on
+		"push_speed": 10.0, "max_speed": 20.0, "coast": 0.22, "carve": 3.0, "slope": 0.75, "fall_gravity": 1.05,
+		"ollie_min": 4.5, "ollie_max": 6.6, "land_window": 0.85,
+		"tricks": {
+			"flips": {
+				"": ["Hoverflip", 120, "kick", 0.42], "left": ["Hoverflip", 120, "kick", 0.42],
+				"right": ["Glowflip", 120, "heel", 0.42], "up": ["Float Spin", 160, "impossible", 0.5],
+				"down": ["Hover Shove", 100, "shove", 0.38],
+			},
+			"grabs": {
+				"": ["Indy", "indy"], "left": ["Indy", "indy"], "right": ["Melon", "melon"],
+				"up": ["Nosegrab", "nose"], "down": ["Tailgrab", "tail"],
+			},
+			"grinds": {
+				"": ["Hover Grind", "fifty"], "up": ["Nose Hover", "nose"], "down": ["Tail Hover", "tail"],
+				"left": ["Glow Slide", "slide"], "right": ["Glow Slide", "slide"],
+			},
+			"manual": "Hover Manual", "nose_manual": "Nose Hover",
+			"special": ["Over the Moon", 1000, "twirl", 0.8],
+		},
+	},
+	"bike": {
+		"name": "Bike", "kit": "bmx", "stance": 0.0, "deck": 0.0, "anim": "ride", "tricks_from": "dash",
+		"says": "A BMX of your own: faster than a board, with big bunny hops.",
+		"push_speed": 11.0, "max_speed": 21.0, "coast": 0.5, "carve": 2.3,
+		"ollie_min": 4.6, "ollie_max": 6.8, "spin_speed": 6.4, "fall_gravity": 1.4,
+	},
+	"rocket_board": {
+		"name": "Rocket Board", "kit": "rocket_board", "flames": true, "boost_power": 1.4,
+		"says": "A skateboard with two little rockets: quicker off the line, and boosts go further.",
+		"push_speed": 11.5, "max_speed": 23.0, "push_accel": 9.5, "coast": 0.4,
+		"tricks": {
+			"flips": {
+				"": ["Rocket Flip", 120, "kick", 0.42], "left": ["Rocket Flip", 120, "kick", 0.42],
+				"right": ["Blast Heel", 120, "heel", 0.42], "up": ["Liftoff", 170, "impossible", 0.5],
+				"down": ["Fizz Shove", 100, "shove", 0.38],
+			},
+			"grabs": {
+				"": ["Indy", "indy"], "left": ["Indy", "indy"], "right": ["Melon", "melon"],
+				"up": ["Nosegrab", "nose"], "down": ["Tailgrab", "tail"],
+			},
+			"grinds": {
+				"": ["50-50", "fifty"], "up": ["Nosegrind", "nose"], "down": ["5-0", "tail"],
+				"left": ["Boardslide", "slide"], "right": ["Lipslide", "slide"],
+			},
+			"manual": "Manual", "nose_manual": "Nose Manual",
+			"special": ["Countdown Blast", 1000, "twirl", 0.8],
+		},
+	},
+	"rocket_bike": {
+		"name": "Rocket Bike", "kit": "rocket_bike", "stance": 0.0, "deck": 0.0, "anim": "ride", "tricks_from": "dash",
+		"flames": true, "boost_power": 1.5,
+		"says": "A BMX with a rocket on the back: the fastest thing on wheels in Galaxity.",
+		"push_speed": 12.5, "max_speed": 24.0, "push_accel": 9.0, "coast": 0.45, "carve": 2.2,
+		"ollie_min": 4.6, "ollie_max": 6.8, "spin_speed": 6.2, "fall_gravity": 1.4,
+	},
+	"saucer": {
+		"name": "Flying Saucer", "kit": "saucer", "stance": 0.0, "deck": 0.42, "anim": "idle", "tricks_from": "pip",
+		"says": "Your own little saucer: it skims along, floats a long way off jumps and glides while you hold Jump.",
+		"push_speed": 10.5, "max_speed": 20.0, "coast": 0.3, "carve": 3.0, "slope": 0.7,
+		"ollie_min": 4.8, "ollie_max": 7.4, "fall_gravity": 0.7, "glide": 2.4, "air_drift": 5.0, "spin_speed": 6.8,
+	},
+}
+
+
 static func ride(id: String) -> Dictionary:
 	# A rider's full set: BOARD with their own differences on top. The player's own hero (scripts/hero.gd) rides a
 	# board like Nina's, on whatever body they made.
@@ -261,6 +337,12 @@ static func ride(id: String) -> Dictionary:
 		var game := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Game")
 		var made: Dictionary = game.hero if game else Hero.blank()
 		var hero := BOARD.duplicate(true)
+		var which := str(game.get("hero_ride")) if game else "board"
+		if HERO_RIDES.has(which) and which != "board":
+			var own: Dictionary = HERO_RIDES[which]
+			hero.merge(own, true)
+			if own.has("tricks_from"):
+				hero.tricks = (RIDERS[str(own.tricks_from)].tricks as Dictionary).duplicate(true)
 		hero.model = Hero.model_path(made)
 		hero.rider = Hero.display_name(made)
 		return hero

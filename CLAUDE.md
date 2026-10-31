@@ -70,6 +70,24 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Schematics and new rides (Hayden: "I want the weapon and skateboard unlocks to be significant").
+  `scripts/schematics.gd` (autoload `Schematics`) puts glowing blue blueprints (`scripts/schematic_pickup.gd`) into
+  the town and school at play time, one or two a night from night 2 (`LIST`: `night`, `at` x/z dropped onto the
+  ground, or `sky` for the Rocket Board's, which only the mothership can reach). Found ones are Dialogue flags
+  (`schematic_<id>`), so nothing new in the save. **Gadgets:** Dash's stall lists all six from the start, but each
+  says "Find its schematic" (`Arsenal._can_buy_gadget`) until it's found; a gadget an old save owns stays owned.
+  **Rides:** the hero's own rides are `Rides.HERO_RIDES` (only what differs from BOARD, like `RIDERS`; `tricks_from`
+  borrows a friend's tricks, `boost_power` makes boosts stronger, `flames` are rockets): Overboard (hoverboard, long
+  glides), Bike (BMX), Rocket Board, Rocket Bike (fastest on wheels) and Flying Saucer (floats and glides). Kits in
+  `ride_kit.gd` (`_overboard`, `_rockets`, `_saucer`); rocket flames grow while pushing and boosting (`skate.gd`).
+  Zippy's Tune-Up builds them (shop kind `ride`, items `ride_<id>` made in code), owned ones are items `ride:<id>`,
+  and `Game.hero_ride` (saved) is the one being ridden, picked on the Skate page ("Your ride"). Races use whatever
+  the hero rides. `Shop.register_kind` takes an optional `note` (a line under an item: where its schematic is).
+  Night 2's list now has finding the Fizz Flinger's schematic on the promenade; the Goals page points to the next
+  schematic and to rides ready to build. Schedule (plan doc F4): night 2 Fizz; 3 Disco, Overboard; 4 Jelly, Bike;
+  5 Buzz, Rocket Board (sky); 6 Plushinator (school garden), Rocket Bike; 7 Rainbow, Flying Saucer.
+  `tools/test_schematics.gd` (100+ checks), `tools/capture_schematics.gd` (shots in the project files under
+  world/previews/schematics, made in the cloud).
 - 2026-10-31: Gadgets, slices 2 and 3 (Hayden: "lets start with the next thing", prompts G2 and G3). All in code, so no
   scene was rebuilt; `Arsenal` places the new things at play time like the stall.
   - **Mods** (`Arsenal.MODS`): Freeze, Split, Bounce, Sparkle Magnet, sold at **Dash's workbench** (beside his stall,
