@@ -463,6 +463,9 @@ func _draw_earth(c: Control, origin: Vector2, size: float, full: bool) -> void:
 	var hill: Array = _earth.hill
 	c.draw_circle(_ep(origin, size, hill[0], hill[1]), float(hill[3]) * px, EARTH_COLORS.hill)
 	c.draw_circle(_ep(origin, size, hill[0], hill[1]), float(hill[2]) * px, EARTH_COLORS.hill_top)
+	for r in _earth.get("rolls", []):                     # the rolling hills: a soft hump each, lighter on top
+		c.draw_circle(_ep(origin, size, r[0], r[1]), float(r[2]) * 0.8 * px, EARTH_COLORS.hill)
+		c.draw_circle(_ep(origin, size, r[0], r[1]), float(r[2]) * 0.35 * px, EARTH_COLORS.hill_top)
 	var pond: Array = _earth.pond
 	var pts := PackedVector2Array()
 	for k in 32:

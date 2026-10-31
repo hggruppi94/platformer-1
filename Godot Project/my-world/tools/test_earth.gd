@@ -348,6 +348,27 @@ func _town_layout() -> void:
 	check(absf(_ground_y(space, Vector3(7, 0, 7)) - 0.0) < 0.2, "the green's flat ground is there")
 	check(_ground_y(space, Vector3(EarthLand.POND.x, 0, EarthLand.POND.y)) < -1.4, "Willow Pond is a bowl in the ground")
 	check(absf(_ground_y(space, Vector3(EarthLand.HILL.x, 0, EarthLand.HILL.y)) - EarthLand.HILL_TOP) < 0.3, "Lookout Hill rises %.1f m" % EarthLand.HILL_TOP)
+	# The rolling hills: each one's top is really there to ride over, none is too steep for a board, and nothing built
+	# (a building, street, fence, lamp, rail...) sits on one; only the trees and fallen leaves, which follow the ground
+	var low := []
+	for r: Vector4 in EarthLand.ROLLS:
+		if absf(_ground_y(space, Vector3(r.x, 0, r.y)) - EarthLand.height(r.x, r.y)) > 0.2 or EarthLand.height(r.x, r.y) < r.w - 0.05:
+			low.append(Vector2(r.x, r.y))
+	var steepest := 0.0
+	for x in range(int(EarthLand.X0), int(EarthLand.X1)):
+		for z in range(int(EarthLand.Z0), int(EarthLand.Z1)):
+			if EarthLand.rolls(x, z) > 0.0:
+				var g := Vector2(EarthLand.rolls(x + 0.5, z) - EarthLand.rolls(x - 0.5, z), EarthLand.rolls(x, z + 0.5) - EarthLand.rolls(x, z - 0.5))
+				steepest = maxf(steepest, rad_to_deg(atan(g.length())))
+	var on_rolls := []
+	_on_rolls(s, on_rolls)
+	check(EarthLand.ROLLS.size() >= 12 and low.is_empty() and steepest < 26.0 and on_rolls.is_empty(),
+		"%d rolling hills (low: %s, steepest %.0f degrees, built on: %s)" % [EarthLand.ROLLS.size(), low, steepest, on_rolls.slice(0, 5)])
+	# ...and past the walls the countryside rolls up into hills, meeting the town's ground where both are flat
+	var country := s.find_child("Countryside", true, false) as MeshInstance3D
+	var edge_flat := absf(EarthLand.country(EarthLand.X0 - 0.5, 0.0)) < 0.05 and absf(EarthLand.country(0.0, EarthLand.Z1 + 0.5)) < 0.05
+	var far_up := EarthLand.country(EarthLand.X1 + 200.0, -40.0)
+	check(country != null and country.mesh != null and edge_flat and far_up > 8.0, "the countryside rolls up past the walls (%.0f m high 200 m out)" % far_up)
 
 	# A way in to every walk-in building: nothing between just outside the door and the middle of the room, and a floor
 	for n in INSIDES:
@@ -460,6 +481,22 @@ func _town_layout() -> void:
 	player.velocity = Vector3.ZERO
 	for i in 4:
 		await physics_frame
+
+
+func _on_rolls(n: Node, out: Array) -> void:
+	# Anything built whose footprint touches a rolling hill (the ground itself, trees and leaves are allowed)
+	if n.name in ["Land", "Autumn Trees", "Far Hills", "Edge", "Sky", "Townsfolk", "Player"] or n is CharacterBody3D:
+		return
+	if n is VisualInstance3D and not n is MultiMeshInstance3D and not n is Light3D:
+		var bb: AABB = (n as Node3D).global_transform * (n as VisualInstance3D).get_aabb()
+		if bb.size.x < 80.0 and bb.size.z < 80.0:
+			for cx in [bb.position.x, bb.get_center().x, bb.end.x]:
+				for cz in [bb.position.z, bb.get_center().z, bb.end.z]:
+					if EarthLand.rolls(cx, cz) > 0.05:
+						out.append("%s at (%.0f, %.0f)" % [n.name, cx, cz])
+						return
+	for c in n.get_children():
+		_on_rolls(c, out)
 
 
 func _ground_y(space: PhysicsDirectSpaceState3D, at: Vector3) -> float:

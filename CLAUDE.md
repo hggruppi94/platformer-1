@@ -69,6 +69,17 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Rolling hills round Stars Hollow (Hayden: "add more rolling hills"). `EarthLand.ROLLS` is 17 round humps
+  (cosine bumps, 2 to 4.8 m high, overlapping into rolls, slopes at most about 24 degrees, so a board rolls up and over)
+  in the open ground nothing is built on: the east fields past the Corner Market and the skate yard, south of the dance
+  studio, the meadow north of the creek path, west of the creek (by the hill and past Maple Lane's west end) and behind
+  Maple Lane's back gardens. Trees and fallen leaves follow them (`_on_ground()`); streets, paths, buildings and routine
+  points stay flat, and `earth_places.json` didn't change. Past the walls the flat "Far Fields" boxes are gone:
+  `EarthLand.country()` rolls the countryside up from flat at the ground's edge to about 30 m of hills, autumn fields in
+  patches and woods on the tops, as a mesh made at load with no collision (`_build_country()`). The map draws each roll
+  as a soft hump (`rolls` in `ui/earth_map.json`). `test_earth` checks each roll is there, none is too steep, nothing
+  built touches one, and the countryside. `tools/capture_earth_hills.gd` (shots in the project files under
+  world/previews/earth_hills, made in the cloud).
 - 2026-10-31: Stars Hollow build-out, phase 3: things to do. Earth has days of the week now (`Clock.earth_day()`,
   `Clock.weekday()`: day 1 is a Friday; the HUD says "Earth, Monday"). Most of it is added at play time, so
   `earth.tscn` wasn't rebuilt (only `routines/earth_places.json`, for the festival's points).

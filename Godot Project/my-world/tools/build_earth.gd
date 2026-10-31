@@ -324,15 +324,7 @@ func _ground_and_street() -> void:
 	land.name = "Land"
 	land.set_script(load("res://scripts/earth_land.gd"))
 	g.add_child(land)
-	# Farmland past the walls, out to the hills on the horizon (just to look at)
-	var far := mat("Far Fields", Color(0.5, 0.48, 0.26), 0.95)
-	var x0 := EarthLand.X0
-	var x1 := EarthLand.X1
-	var z0 := EarthLand.Z0
-	var z1 := EarthLand.Z1
-	for r in [Rect2(x0 - 400, z0 - 400, x1 - x0 + 800, 400), Rect2(x0 - 400, z1, x1 - x0 + 800, 400),
-			Rect2(x0 - 400, z0, 400, z1 - z0), Rect2(x1, z0, 400, z1 - z0)]:
-		mesh_at(box(Vector3(r.size.x, 0.2, r.size.y)), far, Vector3(r.get_center().x, -0.1, r.get_center().y), g)
+	# (The countryside past the walls, rolling up into hills, is made by the land too: EarthLand._build_country().)
 	mesh_at(cyl(GREEN_R, GREEN_R, 0.06, 48), mat("Town Green", Color(0.38, 0.55, 0.28), 0.95), Vector3(0, 0.02, 0), g)
 	var road := mat("Street", Color(0.22, 0.22, 0.25), 0.9)
 	var walk := mat("Sidewalk", Color(0.72, 0.68, 0.62), 0.9)
@@ -2478,6 +2470,7 @@ func _write_map() -> void:
 		"creek_width": EarthLand.CREEK_HALF * 2.0,
 		"pool": [EarthLand.FALLS_POOL.x, EarthLand.FALLS_POOL.z, 5.0],
 		"hill": [EarthLand.HILL.x, EarthLand.HILL.y, EarthLand.HILL_FLAT, EarthLand.HILL_FLAT + EarthLand.HILL_SLOPE],
+		"rolls": EarthLand.ROLLS.map(func(r: Vector4) -> Array: return [r.x, r.y, r.z, r.w]),
 		"portal": [PORTAL_AT.x, PORTAL_AT.z],
 		"labels": labels,
 	}
