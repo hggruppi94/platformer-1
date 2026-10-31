@@ -212,8 +212,8 @@ func _check_load() -> void:
 	check(quests.is_done("earth_lights"), "loaded: the lights quest is done")
 	check(game._resume.get("scene", "") == TOWN and clock.in_shift() and absf(clock.earth_minutes - 30.0) < 1.0,
 		"the save says she's in Galaxity, in the Shift (Earth %s)" % clock.earth_time_string())
-	# Start up as the game does: the main scene (Earth), then on to where she saved
-	change_scene_to_file(ProjectSettings.get_setting("application/run/main_scene"))
+	# Start up as the game does from the title screen's Continue: Earth, then on to where she saved
+	change_scene_to_file(game.START_SCENE)
 	await _frames(4)
 	game._go_to_saved_scene()
 	await _wait_for_scene(TOWN, 240)

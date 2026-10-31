@@ -394,6 +394,8 @@ func _check_done(r: Dictionary) -> void:
 		return
 	r.done = true
 	Audio.play("pickup", -2.0, 0.0)
+	Juice.blip("sparkle", 1.1, -8.0)
+	Juice.rumble(0.25, 0.12)
 	Game.message("%s done: %s! Turn it in at the board for ✦ %d." % [noun(), text_of(r), int(r.sparkles)])
 
 

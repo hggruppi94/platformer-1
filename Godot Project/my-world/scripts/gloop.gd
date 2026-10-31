@@ -165,6 +165,9 @@ func _stomped() -> void:
 	hits += 1
 	player.bounce(STOMP_BOUNCE)
 	Audio.play_at("stomp", global_position, 0.0, 0.1 if size == 1.0 else 0.0)
+	Juice.hitstop(0.04)
+	Juice.shake(0.12)
+	Juice.rumble(0.3, 0.1)
 	if hits >= stomps_to_defeat:
 		_defeat()
 	else:

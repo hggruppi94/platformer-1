@@ -19,7 +19,8 @@ Read this first in every session so each iteration builds on the last one and do
     - `build_school.gd` → `scenes/school/school.tscn`, the castle school interior from Sofi's floor plans
       (`source_art/reference/world/school - *.jpg`). It has 3 floors, the atrium, the Entrance Garden with its
       greenhouse and vegetable beds, and the 3rd-floor window that looks out on the town's real mountains.
-    - `build_earth.gd` → `scenes/earth/earth.tscn`, the Earth town (Stars Hollow style) and the main scene: the
+    - `build_earth.gd` → `scenes/earth/earth.tscn`, the Earth town (Stars Hollow style), where every game starts
+      (`Game.START_SCENE`; the main scene is the title screen, `scenes/title/title.tscn`): the
       player's house with their bed (`My Home`, new games start at `HomeSpawn`), the town green and gazebo, shops,
       the barn dance studio, the portal to Galaxity by the old oak, and the sky's clouds, stars and moon.
     - `build_interiors.gd` (domed rooms: cafe, aquarium, restaurant, Nina's house), `build_scary_world.gd`, and
@@ -80,6 +81,48 @@ Read this first in every session so each iteration builds on the last one and do
   as a soft hump (`rolls` in `ui/earth_map.json`). `test_earth` checks each roll is there, none is too steep, nothing
   built touches one, and the countryside. `tools/capture_earth_hills.gd` (shots in the project files under
   world/previews/earth_hills, made in the cloud).
+- 2026-10-31: The First Night plan, F2 to F6 (Hayden: "Go").
+  - **F2 game feel:** `scripts/juice.gd` (autoload `Juice`) is the one helper for feedback: `shake()` (camera
+    h/v offset, trauma squared, settles in about a second and gives the camera back exactly), `hitstop()` (at most
+    0.1 s, puts back whatever speed was there), `burst()` (`Fx.burst`), `squash()` (springs back to the node's own
+    scale), `rumble()`, `blip()` (seven little sounds made in code: chime, pop, tick, whoosh, thud, sparkle, buzz),
+    `chime_pickup()` (quick sparkle pickups climb a major scale) and `hit()`. Hooked into jumping, double jumps, rolls,
+    landings, getting hurt, sparkles, every gadget's shot and pop, stomps, the Gloop King (belly-flop shake, hits, the
+    pop), ollies, landings, grind sparks, bails, combo payouts, race countdowns, boosts and power-ups, quest and
+    request complete, watch pickups, buying and doors. Settings > Assist: **Screen shake** (0 to 100%) and
+    **Controller rumble**; Reduce motion turns shake and hit-pause off. `tools/test_juice.gd`.
+  - **F3 sound:** `scripts/soundscape.gd` (autoload `Soundscape`) picks the music twice a second: a race, the Gloop
+    King chasing you, the Autumn Festival on the green, a music zone, the Scary World, the Skate Park and Skate Yard,
+    then Galaxity or Earth by time of day; `Audio.wanted_track()` falls back to `SCENE_MUSIC` for a track that isn't
+    there. Ambience loops (birds, wind, water by the lake, creek and pond, the market, the little aliens, the
+    mothership). Music ducks 9 dB under dialogue (`Audio.duck()`, kept apart from the Music slider). Voice blips per
+    character on a new **Voices** bus with its own slider (Rook barks, the Green Man and the centipede hum). The barn
+    studio's zone plays `barn_dance` (renamed at runtime, so `earth.tscn` wasn't rebuilt). Ten songs and six ambience
+    loops are made from scratch by `tools/make_soundscape.py` (numpy + ffmpeg), all listed in `audio/CREDITS.md`.
+    **The .ogg files are LFS, so they're committed from the PC** (run the script, or copy them from the project
+    files under world/audio/); until then the old placeholders play. `tools/test_soundscape.gd`.
+  - **F4 nights:** Hayden chose real unlocks (gadgets locked until their schematic is found, then bought at Dash's
+    stall; new rides for racing: Overboard, Bike, Rocket Board, Rocket Bike, Flying Saucer). The 7-night plan is in
+    the plan doc. Built so far: `scripts/nights.gd` (autoload `Nights`: which night it is, from `Requests.nights`),
+    **night 2, Pip's Lamps** (`quests/night_2.json`, skippable: Pip waits at the portal and starts the boardwalk
+    lamps, look at Dash's stall, find a S-K-A-T-E letter; 8 sparkles; starts on the first Galaxity landing after the
+    First Night is done, so an old save gets it once it's had the First Night it's offered), and the **Goals page** in the Tab menu between Quests and Map
+    (tonight, next to aim for in watches, races, gadgets and skating, tomorrow's teaser). `tools/test_nights.gd`.
+  - **F5 start:** the main scene is now the title screen (`scripts/title_screen.gd`): Galaxity at dawn as scenery
+    (its Player taken out, the clock held and put back), Continue (hero, night, play time: new `Game.play_time`,
+    saved), New Game (asks first with a save), Settings, Quit. The opening (about 35 s, skips with Jump, Interact,
+    Esc or a click): Stars Hollow at midnight, the humming oak, Galaxity outside time, five watches ticking their own
+    ways, "Tonight, one of them is you." `Game.continue_game()`, `Game.START_SCENE`. The loading screen
+    (`scripts/loading_screen.gd`, autoload `Loading`) shows on trips between worlds from `Game.go()`, with a tip
+    and a little waving alien drawn in code. `tools/test_title.gd`; tests that checked the main scene now check
+    `Game.START_SCENE`.
+  - **F6 playtest kit:** Settings > Assist > **Playtest notes** (off by default) has `scripts/playtest.gd`
+    (autoload `Playtest`) write `user://playtest/notes_<date>.jsonl`: First Night and night steps and how long
+    each took, stuck moments (3 minutes with nothing new), skips (new `Quests.skipped` signal), bails, menus,
+    races and requests. No network code. `tools/playtest_report.gd` sums up the newest file. Guide for Hayden:
+    /mnt/project-files/roadmap/playtest-guide.md. `tools/test_playtest.gd`.
+  - Previews: `tools/capture_title.gd` (shots in the project files under world/previews/title_and_goals, made in
+    the cloud).
 - 2026-10-31: The First Night (Hayden: "Go", plan prompt F1). The opening quest line of a new game, so the first hour
   has a clear path: `quests/first_night.json` (six steps, run by Quests like every other quest) plus a little glue
   autoload, `scripts/first_night.gd` (`FirstNight`), for the bits a quest file can't do. **1 evening:** making the hero

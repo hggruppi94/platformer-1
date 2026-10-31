@@ -105,6 +105,8 @@ func buy(id: String) -> bool:
 		var other when kinds.has(other):
 			_say(str(kinds[other].buy.call(it)))
 	Audio.play("pickup", -4.0)
+	Juice.blip("chime", 1.5, -8.0)                        # ka-ching
+	Juice.rumble(0.15, 0.06)
 	Game.equipment_changed.emit()
 	Game.save_game()
 	bought.emit(id)

@@ -225,10 +225,12 @@ func shoot(charged: bool) -> Node3D:
 			b = FizzBomb.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
 				"power": Arsenal.stat(id, "power"), "splits": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
 			Audio.play("fwump", -5.0, 0.15)
+			Juice.rumble(0.25, 0.08)
 		"disco":
 			b = DiscoBall.fire(scene, from, to, player, {"radius": Arsenal.stat(id, "radius"),
 				"time": Arsenal.stat(id, "time"), "pops_at_end": Arsenal.level(id) >= Arsenal.MAX_LEVEL})
 			Audio.play("swish", -4.0, 0.1)
+			Juice.rumble(0.2, 0.08)
 		_:
 			var lv := Arsenal.level("popper")
 			var grow := 1.35 if lv >= 4 else 1.0                # V4: bigger bubbles
@@ -238,6 +240,9 @@ func shoot(charged: bool) -> Node3D:
 				var side := dir.cross(Vector3.UP).normalized()
 				StarBubble.fire(scene, from + side * 0.15, (dir + side * 0.06).normalized(), player, false, grow)
 			Audio.play("bloop", -4.0 if charged else -7.0, 0.15)
+			Juice.rumble(0.25 if charged else 0.08, 0.1 if charged else 0.04)
+			if charged:
+				Juice.shake(0.08)
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1

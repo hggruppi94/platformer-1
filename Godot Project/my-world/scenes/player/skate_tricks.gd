@@ -238,6 +238,13 @@ func bank() -> void:
 	best_combo = maxi(best_combo, total)
 	combo.clear()
 	flip = {}
+	if total >= 500:
+		# A combo paid out: a sparkle sound that rises with the size of it, and a little buzz for a big one
+		# (Found by path: this class can be compiled before the autoloads exist, e.g. by a test that names it)
+		var juice := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Juice")
+		if juice:
+			juice.blip("sparkle", clampf(0.9 + total / 20000.0, 0.9, 1.6), -8.0)
+			juice.rumble(clampf(total / 10000.0, 0.15, 0.6), 0.15)
 	banked.emit(total, what)
 	changed.emit()
 

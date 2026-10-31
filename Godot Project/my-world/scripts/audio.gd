@@ -8,11 +8,14 @@ extends Node
 #
 # Music: res://audio/music/<name>.ogg (or .mp3/.wav) is used when it exists; otherwise the generated placeholder
 # in res://audio/music/placeholder/ plays. So dropping in town.ogg replaces the town placeholder, nothing else to do.
-# Each scene's music comes from SCENE_MUSIC below; Area3D zones can override it (see scripts/music_zone.gd).
+# Which track plays where and when is picked by scripts/soundscape.gd (Earth and Galaxity by time of day, the Skate
+# Park, races, the Gloop King, the festival...); scenes it has nothing for use SCENE_MUSIC below, and Area3D zones
+# can override both (see scripts/music_zone.gd). A track the Soundscape picks but that isn't in the project yet
+# falls back to SCENE_MUSIC too, so nothing goes quiet.
 
 signal caption(text: String)                  # "[Gloop giggles]" etc., shown by the HUD when captions are on
 
-const BUSES := ["Music", "SFX"]
+const BUSES := ["Music", "SFX", "Voices"]      # Voices: the little blips people talk in (scripts/soundscape.gd)
 const SFX_DIR := "res://audio/sfx/"
 const MUSIC_DIR := "res://audio/music/"
 const FADE := 1.5
@@ -57,6 +60,10 @@ var _music_b: AudioStreamPlayer
 var _current := ""
 var _zone_stack: Array[String] = []           # music zones Nina is standing in, innermost last
 var _last_caption := {}
+var _music_db := 0.0                           # the Music bus's own level from Settings, before ducking
+var _duck_db := 0.0                            # how far the music is ducked now (under dialogue)
+var _duck_to := 0.0                            # where the duck is heading
+var _duck_tween: Tween
 
 
 func _ready() -> void:
@@ -193,7 +200,21 @@ func push_zone(track: String) -> void:
 
 func pop_zone(track: String) -> void:
 	_zone_stack.erase(track)
-	music(_zone_stack.back() if not _zone_stack.is_empty() else _scene_track())
+	music(wanted_track())
+
+
+func zone_track() -> String:
+	# The music zone she's standing in (innermost), or "" when she's in none
+	return _zone_stack.back() if not _zone_stack.is_empty() else ""
+
+
+func wanted_track() -> String:
+	# What should be playing right now: the Soundscape's pick if that track exists, else the scene's own music
+	var scape := get_node_or_null("/root/Soundscape")
+	var t: String = scape.pick_track() if scape else ""
+	if t != "" and music_path(t) != "":
+		return t
+	return zone_track() if zone_track() != "" else _scene_track()
 
 
 func _scene_track() -> String:
@@ -203,7 +224,7 @@ func _scene_track() -> String:
 
 func _on_scene_changed() -> void:
 	_zone_stack.clear()
-	music(_scene_track())
+	music(wanted_track())
 
 
 # ----------------------------------------------------------------------------- volume (0..1, set from Settings)
@@ -212,4 +233,28 @@ func set_volume(bus: String, linear: float) -> void:
 	if i == -1:
 		return
 	AudioServer.set_bus_mute(i, linear <= 0.001)
-	AudioServer.set_bus_volume_db(i, linear_to_db(maxf(linear, 0.001)))
+	var db := linear_to_db(maxf(linear, 0.001))
+	if bus == "Music":
+		_music_db = db
+		db += _duck_db
+	AudioServer.set_bus_volume_db(i, db)
+
+
+func duck(amount_db: float, time := 0.4) -> void:
+	# Lower the music by amount_db (0 = back to normal) while keeping the player's own Music volume
+	if is_equal_approx(amount_db, _duck_to):
+		return                                   # already there, or on the way
+	_duck_to = amount_db
+	var i := AudioServer.get_bus_index("Music")
+	if i == -1:
+		return
+	if _duck_tween and _duck_tween.is_valid():
+		_duck_tween.kill()
+	_duck_tween = create_tween()
+	_duck_tween.tween_method(func(v: float) -> void:
+		_duck_db = v
+		AudioServer.set_bus_volume_db(i, _music_db + v), _duck_db, amount_db, time)
+
+
+func ducked_by() -> float:
+	return _duck_db

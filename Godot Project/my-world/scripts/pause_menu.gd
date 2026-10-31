@@ -399,6 +399,7 @@ func _tab_audio(tabs: TabContainer) -> void:
 	_slider(g, "Master volume", "master_volume", 0, 1, 0.05, _pct)
 	_slider(g, "Music volume", "music_volume", 0, 1, 0.05, _pct)
 	_slider(g, "Sound effects volume", "sfx_volume", 0, 1, 0.05, _pct)
+	_slider(g, "Voices volume", "voice_volume", 0, 1, 0.05, _pct)
 
 
 func _tab_controls(tabs: TabContainer) -> void:
@@ -501,7 +502,11 @@ func _tab_assist(tabs: TabContainer) -> void:
 		"Slows the whole game down to give you more time to react")
 	_choice(g, "Skating landings", "skate_assist", [["Relaxed", 0], ["Normal", 1], ["Pro", 2]],
 		"Relaxed: hardly ever fall, and keep your combo. Normal: forgiving, keeps half a combo. Pro: the strict rules")
+	_slider(g, "Screen shake", "screen_shake", 0.0, 1.0, 0.1, func(x): return "%d%%" % roundi(x * 100.0))
+	_check(g, "Controller rumble", "rumble", "The controller buzzes a little on bumps, landings and big pops")
 	_check(g, "How-to tips", "tips", "Little pop-ups the first time you do something")
+	_check(g, "Playtest notes", "playtest",
+		"Notes what happens as you play, in a file in the save folder, for a grown-up to read. Nothing leaves this computer")
 	_check(g, "No damage", "no_damage", "Enemies still bump you, but you never lose HP")
 	_check(g, "Infinite stamina", "infinite_sp", "Rolling never runs out of SP")
 

@@ -44,7 +44,7 @@ func _run() -> void:
 	game.message_posted.connect(func(t: String) -> void: messages.append(t))
 
 	# --- 1. A new game starts at home on Earth, just out of bed ---
-	check(ProjectSettings.get_setting("application/run/main_scene") == EARTH, "the game starts on Earth")
+	check(game.START_SCENE == EARTH, "a game starts on Earth")
 	DirAccess.remove_absolute(SAVE)
 	game._resume = {}
 	game.call("load_game")

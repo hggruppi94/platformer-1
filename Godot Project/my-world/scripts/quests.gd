@@ -12,6 +12,7 @@ extends Node
 # (the player menu's Quests sheet, scripts/player_menu.gd: Tab, or the "quest_log" key, Q) lists what to do next.
 
 signal changed(quest_id: String)
+signal skipped(quest_id: String, step_id: String)    # a step skipped from the quest log (scripts/playtest.gd notes it)
 
 const DIR := "res://quests"
 const NOTE_TIME := 4.5
@@ -209,6 +210,7 @@ func _advance(id: String) -> void:
 			Game.add_sparkles(int(reward.sparkles))
 		_announce("Quest complete: %s" % q.get("name", id), str(reward.get("message", "")))
 		Audio.play("level_up", -4.0)
+		_celebrate()
 	else:
 		var step := current_step(id)
 		var text: String = step.get("text", "")
@@ -230,6 +232,7 @@ func skip(id: String) -> void:
 	if not can_skip(id):
 		return
 	var step := current_step(id)
+	skipped.emit(id, str(step.get("id", "")))
 	var cond: Dictionary = step.get("done", {})
 	var wait := int(step.get("wait", {}).get("days", 0))
 	if wait > 0:
@@ -239,6 +242,16 @@ func skip(id: String) -> void:
 	for f in cond.get("flags", []):
 		Dialogue.flags[str(f)] = true
 	check()
+
+
+func _celebrate() -> void:
+	# A shower of sparkles round the player and a happy little sound (scripts/juice.gd)
+	Juice.blip("sparkle", 1.0, -6.0)
+	Juice.rumble(0.3, 0.2)
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p:
+		Juice.burst(p.get_parent(), p.global_position + Vector3(0, 2.0, 0), Color(1.0, 0.88, 0.4), 20, 0.07, 3.5, 1.0)
+		Juice.burst(p.get_parent(), p.global_position + Vector3(0, 2.0, 0), Color(0.75, 0.6, 1.0), 14, 0.06, 3.0, 1.0)
 
 
 func _flags_ok(cond: Dictionary) -> bool:
