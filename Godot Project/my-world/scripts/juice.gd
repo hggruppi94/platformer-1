@@ -124,7 +124,7 @@ func squash(node: Node3D, amount := 0.25, time := 0.22) -> void:
 		return
 	var base: Vector3 = node.get_meta("juice_scale", node.scale)
 	node.set_meta("juice_scale", base)
-	var old: Tween = node.get_meta("juice_tween", null)
+	var old: Tween = node.get_meta("juice_tween") if node.has_meta("juice_tween") else null
 	if old and old.is_valid():
 		old.kill()
 	var tw := node.create_tween()
@@ -133,7 +133,7 @@ func squash(node: Node3D, amount := 0.25, time := 0.22) -> void:
 	tw.tween_property(node, "scale", base, time * 0.35)
 	# Forget the size once it's back, so a node whose own scale changes later (a hero made taller) isn't put back
 	tw.tween_callback(func() -> void:
-		if is_instance_valid(node) and node.get_meta("juice_tween", null) == tw:
+		if is_instance_valid(node) and node.has_meta("juice_tween") and node.get_meta("juice_tween") == tw:
 			node.remove_meta("juice_scale"))
 	node.set_meta("juice_tween", tw)
 
