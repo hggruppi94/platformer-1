@@ -1,0 +1,65 @@
+{
+  "name": "Kip",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Hi! Kip. Welcome. I'm the Corner Market cashier, the inn's night desk, the volunteer fire safety officer, the pumpkin patch manager and the library's assistant on Thursdays.",
+        "{player}: That's a lot of jobs!",
+        "It's six. I counted. Twice. Would you like to buy a stamp?"
+      ]
+    },
+    {
+      "when": {
+        "activity": "market"
+      },
+      "lines": [
+        "Corner Market, how can I help? We have milk, bread, and a very nice selection of slightly bent tins."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fire_station"
+      },
+      "lines": [
+        "Fire safety tip number one: don't be on fire. Tip number two: see tip number one."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins"
+      },
+      "lines": [
+        "Pumpkins! Get your pumpkins! Big ones, little ones, one that looks like Gus!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "library"
+      },
+      "lines": [
+        "Shh. Library voice. (whispering) I've sorted all the books by colour. It's very pretty. Miss Marigold made a noise when she saw it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "inn"
+      },
+      "lines": [
+        "Maple Inn night desk. Would you like a room? We have one with a view of the green, one with a view of the other room, and one with no view but a very good pillow."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "I'm saving up for a seventh job. Maybe 'town troubadour'. Barnaby doesn't know yet."
+        ],
+        [
+          "Did you know the old oak hums? I measured it. It's a B flat."
+        ]
+      ]
+    }
+  ]
+}

@@ -2,7 +2,10 @@
 
 One file per character, named after the `character_id` on their talk spot (the `Talk` node under them in
 `scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `astronaut.json` (by the Mothership Pad). Mr. Palmer (`mr_palmer.json`)
-talks from behind his office window at the Town Hall.
+talks from behind his office window at the Town Hall. On Earth: Mr. Palmer (`palmer_earth.json`), Miss Ivy, Theo,
+Madame Celeste, Gus, Dottie, Barnaby, Miss Marigold, Poppy, Mr. Gumdrop (`otis`), Mrs. Wren, Hank, Kip, Mr. Page
+(`lionel`), Juniper, Ozzie, human Nina (`nina_earth.json`), Prue and Bruno; most of their lines depend on the time
+of day or what their routine has them doing (`"activity"`).
 `scripts/dialogue.gd` plays them.
 
 ```json

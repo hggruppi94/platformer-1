@@ -1,0 +1,40 @@
+{
+  "name": "Mrs. Wren",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "(Mrs. Wren peers at you over her glasses.)",
+        "Yes? This is an antiques shop. Everything is old and everything is precious. Including me. Do not touch.",
+        "{player}: I'll be careful!",
+        "Hm. We'll see."
+      ]
+    },
+    {
+      "when": {
+        "activity": "inside"
+      },
+      "lines": [
+        "I'm closing for lunch. Lunch is twelve o'clock to one o'clock. Not 'about twelve'. Twelve."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+        ],
+        [
+          "The cobwebs in the window are for Halloween. They are not real cobwebs. I would never allow real cobwebs."
+        ],
+        [
+          "Kip tried to sell me my own lamp once. I have not forgotten."
+        ],
+        [
+          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+        ]
+      ]
+    }
+  ]
+}

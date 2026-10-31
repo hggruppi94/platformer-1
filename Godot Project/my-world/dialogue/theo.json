@@ -22,6 +22,31 @@
       ]
     },
     {
+      "when": {
+        "activity": "reading",
+        "place": "green_bench"
+      },
+      "lines": [
+        "Evening's the best for reading on the green. The lamps come on and everything looks like a story."
+      ]
+    },
+    {
+      "when": {
+        "activity": "morning"
+      },
+      "lines": [
+        "School in a minute. I've read the whole reading book already. Is that cheating? It feels like cheating."
+      ]
+    },
+    {
+      "when": {
+        "time": "shift"
+      },
+      "lines": [
+        "You're up late too? Sometimes I see a green glow from my window. Over by the old oak. I've written it down."
+      ]
+    },
+    {
       "rotate": [
         [
           "The bookshop has a cat. The cat has a favourite shelf. I'm not allowed to read on that shelf."

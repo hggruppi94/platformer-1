@@ -1,0 +1,49 @@
+{
+  "name": "Miss Marigold",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "(Miss Marigold looks up from a very big book.)",
+        "Oh, hello! Welcome to Lantern Hill Library. I'm Miss Marigold, the librarian. We whisper in here, but only a little.",
+        "{player}: (whispering) Hi!",
+        "Perfect whisper. You'll fit right in."
+      ]
+    },
+    {
+      "when": {
+        "place": "pond_path"
+      },
+      "lines": [
+        "I like to read by the pond after work. The ducks don't mind, as long as I read the good bits out loud."
+      ]
+    },
+    {
+      "when": {
+        "time": "day",
+        "every": 2
+      },
+      "lines": [
+        "Kip's helping in the library this afternoon. He's put all the books in order. By colour. I'll fix it tomorrow."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Looking for something? Mysteries are on the left, adventures on the right, and the books about the old oak are... hm. Someone's borrowed them all again."
+        ],
+        [
+          "There's a book here, older than the town, that says the oak was planted 'where the two clocks meet'. I've no idea what it means. Do you?"
+        ],
+        [
+          "Please return your books on time. Mrs. Wren once returned one forty years late. She paid the fine in pennies. All of them."
+        ],
+        [
+          "Reading tip: if a book's a little bit scary, read it with a friend. If it's very scary, read it with Barnaby. He sings the scary bits away."
+        ]
+      ]
+    }
+  ]
+}

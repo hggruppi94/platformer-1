@@ -1,0 +1,37 @@
+{
+  "name": "Mr. Page",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Welcome to Turn the Page. I'm Lionel Page. Yes, really. With a name like that, what else could I do?"
+      ]
+    },
+    {
+      "when": {
+        "activity": "evening"
+      },
+      "lines": [
+        "A quiet evening on the green. Best place to finish a chapter."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
+        ],
+        [
+          "The cat? That's Footnote. She sleeps on the mystery shelf. She's solved most of them."
+        ],
+        [
+          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+        ],
+        [
+          "Halloween's my favourite season for books. Ghost stories, pumpkin stories, a pumpkin who's a ghost..."
+        ]
+      ]
+    }
+  ]
+}

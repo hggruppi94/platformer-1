@@ -4,35 +4,45 @@ extends RefCounted
 # The town's path graph: named points (doorsteps, paths, boardwalks, the gardens up the ramp) and the links between
 # them, from res://routines/places.json. People with a daily routine (scripts/routine.gd) walk from point to point
 # along links, so they go round buildings and the lake instead of through them. tools/check_paths.gd checks it.
+# Earth has its own graph, res://routines/earth_places.json, written by tools/build_earth.gd. A point there can have
+# a third number, the height of the floor it's on (inside a shop, up the library's steps), so finding the ground under
+# it doesn't land on the roof.
 
 const FILE := "res://routines/places.json"
+const EARTH_FILE := "res://routines/earth_places.json"
 
-static var _shared: TownPaths
+static var _shared := {}             # file -> TownPaths
 
+var file := FILE
 var points := {}                     # name -> Vector2 (x, z)
+var floors := {}                     # name -> the floor's height, for points indoors or up steps
 var links: Array = []                # [name, name]
 var _astar := AStar2D.new()
 var _ids := {}                       # name -> astar id
 var _names := {}                     # astar id -> name
 
 
-static func get_shared() -> TownPaths:
-	if _shared == null:
-		_shared = TownPaths.new()
-		_shared._load()
-	return _shared
+static func get_shared(from := FILE) -> TownPaths:
+	if not _shared.has(from):
+		var paths := TownPaths.new()
+		paths.file = from
+		paths._load()
+		_shared[from] = paths
+	return _shared[from]
 
 
 func _load() -> void:
-	var res := load(FILE) as JSON
+	var res := load(file) as JSON
 	if res == null or not res.data is Dictionary:
-		push_warning("TownPaths: couldn't read " + FILE)
+		push_warning("TownPaths: couldn't read " + file)
 		return
 	var pts: Dictionary = res.data.get("points", {})
 	var id := 0
 	for name in pts:
 		var p: Array = pts[name]
 		points[name] = Vector2(float(p[0]), float(p[1]))
+		if p.size() > 2:
+			floors[name] = float(p[2])
 		_astar.add_point(id, points[name])
 		_ids[name] = id
 		_names[id] = name
@@ -67,6 +77,8 @@ func nearest(pos: Vector3) -> String:
 
 func position_of(name: String, space: PhysicsDirectSpaceState3D, skip: Array[RID]) -> Vector3:
 	var p: Vector2 = points.get(name, Vector2.ZERO)
+	if floors.has(name):
+		return ground_at(Vector3(p.x, floors[name], p.y), space, skip, 1.2)
 	return ground_at(Vector3(p.x, 0, p.y), space, skip, 80.0)
 
 

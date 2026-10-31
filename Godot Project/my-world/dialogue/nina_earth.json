@@ -1,0 +1,61 @@
+{
+  "name": "Nina",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Oh. Hey. You're the new kid on the green. I'm Nina. Nina Blastoff.",
+        "{player}: Nina? But you look... different.",
+        "(She tugs her bow and gives you a long look.)",
+        "Different from what? ...Never mind. Don't answer that. Not here."
+      ]
+    },
+    {
+      "when": {
+        "activity": "oak"
+      },
+      "lines": [
+        "(Nina's looking at the old oak.) It hums louder near midnight. You've noticed too, haven't you? Thought so."
+      ]
+    },
+    {
+      "when": {
+        "activity": "her_room"
+      },
+      "lines": [
+        "My room. Red and black. Prue says it's 'gloomy'. I say it's 'dramatic'."
+      ]
+    },
+    {
+      "when": {
+        "activity": "skating"
+      },
+      "lines": [
+        "Skating with Bruno. He's better than me. For now."
+      ]
+    },
+    {
+      "when": {
+        "activity": "breakfast"
+      },
+      "lines": [
+        "Breakfast. Prue's built a fort out of cereal boxes. Mum's pretending not to see."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+        ],
+        [
+          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+        ],
+        [
+          "Prue thinks she saw a little green alien in the pumpkin patch. I told her it was a squash. It was probably a squash."
+        ]
+      ]
+    }
+  ]
+}

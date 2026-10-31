@@ -1,0 +1,10 @@
+{
+  "world": "earth",
+  "speed": 1.5,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "07:00", "place": "hardware", "do": "idle", "label": "working", "face": [0, -62.5]},
+    {"at": "17:30", "place": "bramblewood_house", "do": "idle", "label": "porch", "face": [16, 58]},
+    {"at": "21:00", "place": "bramblewood_house", "do": "away", "label": "asleep"}
+  ]
+}

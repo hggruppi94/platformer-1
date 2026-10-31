@@ -63,11 +63,43 @@ Read this first in every session so each iteration builds on the last one and do
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
   and Dash is his twin. The other characters are Bramble, Pip, Rook (says woof), Ivy and Theo (Earth), Madame
   Celeste (Earth dance studio) and the lonely centipede (Scary World).
-- In the show, kids are people on Earth and creatures in Galaxity. Nina keeps her Galaxity look on Earth for now.
+- In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (red bob, red
+  bow, black turtleneck: `nina_earth`) and stays her alien self in Galaxity. Prue and Bruno's Earth looks are placeholders.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
 
+- 2026-10-31: Stars Hollow build-out, phase 2: the people. Everyone on Earth is made like a hero in the creator
+  (`scripts/townsfolk.gd`, `Townsfolk`): the Earth kid body dressed and shaped by `Hero.apply()` from a hero-style look
+  (`_look()` in `build_earth.gd`: swatch colours, hairstyle, height, head, build, face), grown-ups taller with smaller
+  heads, plus their own things made from shapes (`Townsfolk.EXTRAS`: aprons, glasses, a backwards cap, a chef's hat,
+  Barnaby's guitar, Nina's bow and turtleneck...). The model is made in `_enter_tree()`, so it isn't saved in the scene
+  and the Routine finds its AnimationPlayer. Mr. Palmer is his own human model (`mr_palmer.glb`). Node names can't
+  have dots, so the node is "Mr Palmer" and the talk spot says "Mr. Palmer".
+  - **Routines on Earth:** a routine file with `"world": "earth"` follows Earth's clock (`Routine.now()`) and Earth's
+    paths, `routines/earth_places.json`, which the builder writes from the buildings (`_write_places()`: the green,
+    shop fronts, walk-in doors and insides, Main Street, Maple Lane, each house's gate, the park, the hill, the yard,
+    the Blastoffs' bedrooms). `TownPaths.get_shared(file)` keeps one graph per file, and a point can carry its floor
+    height (`floors`) so indoor places don't land on the roof. An Earth hour is a real minute, so a walk across town
+    takes an hour or two of their day: keep far-apart blocks long (Kip runs, at 3.2 m/s).
+  - **Who (names made up, Hayden can rename):** Gus (grumpy Hollow Diner owner), Dottie Pennywhistle (chatty Maple
+    Inn keeper), Barnaby Quill (troubadour, gazebo and pond, stargazes on Lookout Hill), Miss Marigold Hollis
+    (librarian), Poppy Crumb (baker), Otis Gumdrop (toys), Mrs. Wren (strict antiques), Hank Bramblewood (hardware),
+    Kip (six jobs: market, fire station, pumpkin patch, library, inn), Lionel Page (bookshop), Juniper Okafor (school
+    reporter) and Ozzie Larkspur (skater kid); Miss Ivy is now the diner's waitress, Theo (Pemberton) reads at the
+    bookshop and on the green, Madame Celeste stays in her studio. Kids are in school 8-12 and 1-3 (away), out at
+    recess and after. Nights: almost everyone's in by 11.
+  - **The Blastoffs:** human Nina (`nina_earth`) lives at the Blastoff house (breakfast, school, skate yard, the old
+    oak at dusk, her room, bed in her room); Prue (`prue`, lilac, pigtails) and Bruno (`bruno`, SK8 beanie, board)
+    are PLACEHOLDERS (`Townsfolk.placeholder`) until there are drawings of them as people.
+  - **Talk:** every new person has a hello, lines for what they're doing (`"activity"`) and the time of day, and some
+    story hints (the oak hums, a green flicker past the oak, tremors, Mr. Palmer by the oak at midnight: his
+    `oak_watch` block, 11:40 PM to 1 AM, and he knows more than he says). Benches on Main Street moved off the shop
+    doors, and the footbridge now lines up with its path.
+  - Tests: `tools/test_townsfolk.gd` (everyone made, every path link clear and dry, everyone where they should be
+    through the day, walking when watched, talk by time, Nina and the placeholders); `test_earth` checks every
+    routine's places can be reached from the portal and everyone's on the map. Previews: `tools/capture_earth_people.gd`
+    (in the project files under world/previews/earth_people, made in the cloud).
 - 2026-10-30: Stars Hollow build-out, phase 1: the town (Hayden: "go" on prompt S, with a Halloweentown fall feel,
   "plenty of railing/ramps scattered around town in spots that actually make sense" and "don't be afraid to let the
   player get BIG AIR"). The green and its buildings stay where they were; the town grows round them

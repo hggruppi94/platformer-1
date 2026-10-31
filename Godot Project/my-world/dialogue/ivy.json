@@ -22,6 +22,32 @@
       ]
     },
     {
+      "when": {
+        "time": "morning",
+        "every": 2
+      },
+      "lines": [
+        "Morning, sweetie! Pancakes are on. Gus is grumpy. So, a normal morning."
+      ]
+    },
+    {
+      "when": {
+        "activity": "break"
+      },
+      "lines": [
+        "My break! Fifteen whole minutes of looking at books I'll never have time to read. Bliss."
+      ]
+    },
+    {
+      "when": {
+        "time": "night",
+        "every": 2
+      },
+      "lines": [
+        "Nearly closing time. Gus is wiping the same spot on the counter. That means he's happy. Don't tell him I told you."
+      ]
+    },
+    {
       "rotate": [
         [
           "Coffee's on, pie's warm, and the whole town comes in sooner or later. That's how I hear everything."

@@ -34,6 +34,18 @@ along the town's paths; otherwise (or after sleeping, loading, or coming out of 
 **Top of the file:** `speed` (metres a second), `move_anim` (the animation for walking: Rex's is `skate`),
 `follow_anim` (for running to catch up), `rides: true` (Dash: on his bike whenever he's moving).
 
+## People on Earth
+
+The Earth town's people (`scenes/earth/earth.tscn`, made by `tools/build_earth.gd`) have files here too, with
+`"world": "earth"` at the top: `palmer_earth`, `ivy`, `theo`, `gus`, `dottie`, `barnaby`, `marigold`, `poppy`, `otis`,
+`wren`, `hank`, `kip`, `lionel`, `juniper`, `ozzie`, `nina_earth`, `prue` and `bruno`. They follow Earth's clock (which
+always runs: an Earth hour is a real minute, so a walk across town takes an hour or two of their day) and walk Earth's
+paths, `earth_places.json`. Don't edit that one: the builder writes it from the buildings (`_write_places()`), with
+places like `diner`, `bakery` (inside) and `bakery_door`, `main_46` (Main Street), `maple_w40` (Maple Lane), each
+house's gate (`palmer_house`), `gazebo`, `old_oak`, `pond_path`, `skate_yard`, `school` and the Blastoffs' bedrooms
+(`nina_room`). A point there can have a third number, the floor's height, for places indoors or up steps.
+`tools/test_townsfolk.gd` checks them all.
+
 ## Places
 
 `places.json` holds the named points of the town (doorsteps, the boardwalk, the gardens up the ramp...) and the links

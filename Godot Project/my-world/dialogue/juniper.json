@@ -1,0 +1,44 @@
+{
+  "name": "Juniper",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Hi! I'm Juniper, star reporter for the Old Oak Elementary newsletter! Can I ask you three questions? Question one: where are you from? Question two: why? Question three: do you like newts?",
+        "{player}: Uh... here? Because? Yes?",
+        "Great answers. Front page."
+      ]
+    },
+    {
+      "when": {
+        "activity": "snooping"
+      },
+      "lines": [
+        "I'm investigating why Gus is grumpy. So far: no clues. Just pie."
+      ]
+    },
+    {
+      "when": {
+        "activity": "recess"
+      },
+      "lines": [
+        "Recess! Ten minutes of freedom. I'm interviewing the hopscotch."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Breaking news: the big oak hummed at bedtime. My mum says it's the wind. The wind doesn't hum in tune!"
+        ],
+        [
+          "Exclusive: Mr. Palmer was seen standing by the old oak at midnight. He said he was 'checking on it'. Checking on a TREE?"
+        ],
+        [
+          "I want to interview Nina's family but Bruno says 'no comment' and skates off. Every time!"
+        ]
+      ]
+    }
+  ]
+}

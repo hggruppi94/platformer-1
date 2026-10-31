@@ -1,0 +1,10 @@
+{
+  "world": "earth",
+  "speed": 1.5,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "08:00", "place": "library", "do": "wander", "label": "working", "radius": 3},
+    {"at": "17:30", "place": "pond_path", "do": "idle", "label": "reading", "face": [-85, 0]},
+    {"at": "19:30", "place": "hollis_house", "do": "away", "label": "asleep"}
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "world": "earth",
+  "speed": 1.5,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "07:00", "place": "palmer_porch", "do": "idle", "label": "tea", "face": [-59.8, 58]},
+    {"at": "09:00", "place": "town_hall", "do": "wander", "label": "town_hall", "radius": 2.5},
+    {"at": "12:00", "place": "diner", "do": "idle", "label": "lunch", "face": [-9, -35]},
+    {"at": "13:00", "place": "town_hall", "do": "wander", "label": "town_hall", "radius": 2.5},
+    {"at": "16:30", "place": "gazebo", "do": "wander", "label": "gazebo", "radius": 3},
+    {"at": "21:30", "place": "palmer_house", "do": "away", "label": "asleep"},
+    {"at": "23:40", "place": "old_oak", "do": "idle", "label": "oak_watch", "face": [-10, 10]},
+    {"at": "01:00", "place": "palmer_house", "do": "away", "label": "asleep"}
+  ]
+}

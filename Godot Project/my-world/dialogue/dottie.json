@@ -1,0 +1,56 @@
+{
+  "name": "Dottie Pennywhistle",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Oh my goodness, a new face! Welcome, welcome! I'm Dottie, I run the Maple Inn, well, me and Kip, well, Kip runs everything a little bit, have you met Kip?",
+        "{player}: Not yet!",
+        "Oh you will, sweetheart, you will. He'll sell you a pumpkin, a stamp and a fire safety leaflet in one go."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning"
+      },
+      "lines": [
+        "Isn't it a lovely morning? I said that to the postman, and the postman said 'it's raining, Dottie' and I said 'lovely for ducks!'"
+      ]
+    },
+    {
+      "when": {
+        "activity": "chatting"
+      },
+      "lines": [
+        "Just having a little sit and a little chat. Did you know Mrs. Wren has a new clock? Ninety years old, and it only chimes on Tuesdays!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "evening"
+      },
+      "lines": [
+        "The gazebo looks so pretty at night. Mr. Palmer put the lights up himself, bless him. Well, someone helped. Was it you? I bet it was you."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+        ],
+        [
+          "Have you tried Poppy's cauldron cakes? They're green inside! For Halloween! I had three. Don't tell my doctor."
+        ],
+        [
+          "Sometimes at midnight I hear a whoosh from the green. Probably the wind. Probably! Ha!"
+        ],
+        [
+          "You come back any time, sweetheart. The kettle's always on.",
+          "(She pats your hand. Twice.)"
+        ]
+      ]
+    }
+  ]
+}

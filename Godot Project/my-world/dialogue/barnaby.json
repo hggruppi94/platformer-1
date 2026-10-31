@@ -1,0 +1,60 @@
+{
+  "name": "Barnaby Quill",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "(Barnaby strums a big chord.)",
+        "A stranger in the Hollow, a new face on the green! Welcome, friend, welcome, to the cosiest town you've seen!",
+        "{player}: Did you just make that up?",
+        "I make everything up! I'm Barnaby, the town troubadour. Songs for every occasion. And some for no occasion."
+      ]
+    },
+    {
+      "when": {
+        "place": "pond_path"
+      },
+      "lines": [
+        "(He's singing a soft song about a sleepy pond and a duck called Gerald.)",
+        "Shh, Gerald's listening. He's my biggest fan."
+      ]
+    },
+    {
+      "when": {
+        "activity": "stargazing"
+      },
+      "lines": [
+        "On a clear night you can see every star from up here. And sometimes... one more. Just past the old oak. It flickers green.",
+        "{player}: Green?",
+        "Green as a pickle! Must write a song about it."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning"
+      },
+      "lines": [
+        "(Strum!) Good morning, good morning, the leaves are turning gold! Good morning, good morning, and Gus is being cold!",
+        "(From across the street, someone yells \"I HEARD THAT\".)"
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+        ],
+        [
+          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+        ],
+        [
+          "(He plays a spooky little tune.) That's my Halloween song. It's called 'The Pumpkin Who Wanted To Be A Pie'."
+        ],
+        [
+          "The festival's my big night! I'm playing the whole evening. Bring earmuffs! Joking. Bring dancing shoes."
+        ]
+      ]
+    }
+  ]
+}

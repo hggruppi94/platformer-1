@@ -1,0 +1,44 @@
+{
+  "name": "Bruno",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "(Bruno nods at you from under his beanie.) 'Sup. Bruno. Nina's brother. You skate?",
+        "{player}: A bit!",
+        "Cool. Big Vert. Later. Don't chicken out."
+      ]
+    },
+    {
+      "when": {
+        "activity": "skating"
+      },
+      "lines": [
+        "(He's lining up the Big Vert.) Watch. And don't film it if I fall."
+      ]
+    },
+    {
+      "when": {
+        "activity": "his_room"
+      },
+      "lines": [
+        "My room. Posters. Board. Ramp. Mum says no ramps indoors. It's a small ramp."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "The gap jump? Seven metres. I've cleared it. Twice. Okay, once and a half."
+        ],
+        [
+          "Juniper keeps trying to interview me. No comment."
+        ],
+        [
+          "Nina goes quiet near midnight. Like she's listening for something. Weird, right? ...Right?"
+        ]
+      ]
+    }
+  ]
+}

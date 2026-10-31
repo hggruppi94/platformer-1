@@ -1,0 +1,11 @@
+{
+  "world": "earth",
+  "speed": 1.5,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "08:00", "place": "antiques", "do": "idle", "label": "working", "face": [0, -46]},
+    {"at": "12:00", "place": "antiques", "do": "away", "label": "inside"},
+    {"at": "13:00", "place": "antiques", "do": "idle", "label": "working", "face": [0, -46]},
+    {"at": "18:00", "place": "antiques", "do": "away", "label": "asleep"}
+  ]
+}

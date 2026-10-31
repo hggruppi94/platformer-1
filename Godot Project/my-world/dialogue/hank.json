@@ -1,0 +1,37 @@
+{
+  "name": "Hank",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Hey there. Hank. Nuts and Bolts Hardware. If it's broken, I've got the bit for it. If it's not broken, give it time."
+      ]
+    },
+    {
+      "when": {
+        "activity": "porch"
+      },
+      "lines": [
+        "Evening. Just sitting on the porch, watching the lights. Best part of the day."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Rakes are out front. Lot of leaves this year. The town's going to need some help raking. Hint, hint."
+        ],
+        [
+          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+        ],
+        [
+          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+        ],
+        [
+          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+        ]
+      ]
+    }
+  ]
+}

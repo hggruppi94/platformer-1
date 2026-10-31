@@ -12,6 +12,9 @@ extends Node
 # Rex and Rook (scripts/wanderer.gd) keep their own wandering and barking for "wander" blocks; for everything else
 # the routine holds them. While someone is talking to Nina, the routine waits.
 #
+# People in the Earth town have "world": "earth" at the top of their file: they keep Earth's clock (which always runs)
+# and walk Earth's paths (res://routines/earth_places.json, written by tools/build_earth.gd).
+#
 # A quest step can move someone for an event while it's on (Rex's rally at the fountain: scripts/quests.gd,
 # "override"): that block takes over from the schedule until the step's done or its time is over.
 
@@ -29,6 +32,7 @@ var speed := 1.4
 var move_anim := "walk"
 var follow_anim := "run"
 var rides := false                                  # rides the bike whenever he's moving
+var earth := false                                  # lives in the Earth town: Earth's clock and paths
 
 var _body: Node3D
 var _bike: Node3D
@@ -70,7 +74,7 @@ func _ready() -> void:
 	_load()
 	_dress()
 	Game.equipment_changed.connect(_dress)
-	_paths = TownPaths.get_shared()
+	_paths = TownPaths.get_shared(TownPaths.EARTH_FILE if earth else TownPaths.FILE)
 	Clock.jumped.connect(func() -> void: _jumped = true)
 
 
@@ -92,6 +96,7 @@ func _load() -> void:
 	move_anim = str(data.get("move_anim", move_anim))
 	follow_anim = str(data.get("follow_anim", follow_anim))
 	rides = bool(data.get("rides", false))
+	earth = str(data.get("world", "")) == "earth"
 	for b in data.get("blocks", []):
 		var block: Dictionary = b.duplicate()
 		block["at"] = Clock.parse_time(str(b.get("at", "00:00")))
@@ -126,6 +131,11 @@ func is_present() -> bool:
 	return _present
 
 
+func now() -> float:
+	# The time of day their schedule follows: Earth's for people on Earth, Galaxity's for everyone else
+	return Clock.earth_minutes if earth else Clock.minutes
+
+
 static func block_index_at(list: Array, minutes: float) -> int:
 	# The block that's on at this time of day: the last one that has started (yesterday's last one before the first)
 	if list.is_empty():
@@ -151,7 +161,7 @@ func _physics_process(delta: float) -> void:
 	if _body.get("talking"):
 		_play("idle")
 		return
-	var i := block_index_at(blocks, Clock.minutes)
+	var i := block_index_at(blocks, now())
 	var o := Quests.override_for(character_id)
 	if i != _block or _jumped or o != _override:
 		var was := _block
@@ -209,7 +219,7 @@ func snap() -> void:
 		# Next to wherever the leader's own schedule puts them now (they may not have snapped there yet)
 		var t := _leader(b)
 		if t:
-			var theirs: Dictionary = t.blocks[block_index_at(t.blocks, Clock.minutes)] if not t.blocks.is_empty() else {}
+			var theirs: Dictionary = t.blocks[block_index_at(t.blocks, t.now())] if not t.blocks.is_empty() else {}
 			if theirs.get("do", "") != "away" and _paths.has(str(theirs.get("place", ""))):
 				pos = _paths.position_of(str(theirs.place), _space, _skip) + Vector3(1.8, 0, 1.8)
 				pos = TownPaths.ground_at(pos, _space, _skip, 4.0)
@@ -427,7 +437,8 @@ func _blocked(from: Vector3, to: Vector3) -> bool:
 	var q := PhysicsRayQueryParameters3D.create(from + Vector3.UP * 0.7, to + Vector3.UP * 0.7)
 	q.exclude = _skip
 	var hit := _space.intersect_ray(q)
-	return not hit.is_empty() and not str((hit.collider as Node).get_path()).contains("Terrain")
+	var what := str((hit.collider as Node).get_path()) if not hit.is_empty() else ""
+	return not hit.is_empty() and not what.contains("Terrain") and not what.contains("/Land")         # (Earth's ground)
 
 
 func _flat(v: Vector3) -> Vector3:

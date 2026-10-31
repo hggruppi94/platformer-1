@@ -1,0 +1,47 @@
+{
+  "name": "Poppy Crumb",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Welcome to Crumb and Cauldron! I'm Poppy. Everything's fresh, everything's warm, and the cauldron cakes are green inside. Spooky AND delicious!",
+        "{player}: Green inside?!",
+        "It's spinach! ...It's not spinach. It's a secret."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning"
+      },
+      "lines": [
+        "Up since five! The bread doesn't bake itself. Well. The oven does most of it. But I do the hard bit, which is the tasting."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fresh_air"
+      },
+      "lines": [
+        "Just getting some fresh air. Smell that? That's autumn. And cinnamon. Mostly cinnamon. It's coming off me."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Gus says my pumpkin pie's 'too orange'. Too orange! It's a PUMPKIN pie!"
+        ],
+        [
+          "For the festival I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer."
+        ],
+        [
+          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats."
+        ],
+        [
+          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
+        ]
+      ]
+    }
+  ]
+}

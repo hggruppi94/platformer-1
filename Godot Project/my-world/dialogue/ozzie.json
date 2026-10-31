@@ -1,0 +1,42 @@
+{
+  "name": "Ozzie",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Yo! Ozzie. You skate? You totally should. The Big Vert's huge. I've dropped in once. Okay, half once. I sat down halfway."
+      ]
+    },
+    {
+      "when": {
+        "activity": "skating"
+      },
+      "lines": [
+        "Watch this! (Ozzie kickflips. Lands it. Looks very surprised.) Did you see that?! Nobody ever sees that!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "recess"
+      },
+      "lines": [
+        "Recess. No boards allowed at school. I'm practising in my head."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Bruno's the best skater in town. Don't tell him I said that. His head's big enough with the beanie on."
+        ],
+        [
+          "There's a rail all the way down Lookout Hill. Take the kicker at the bottom and you go SO high. Like, bird high."
+        ],
+        [
+          "Hank says I can use his loading dock if I don't scare the pigeons. The pigeons scare me."
+        ]
+      ]
+    }
+  ]
+}

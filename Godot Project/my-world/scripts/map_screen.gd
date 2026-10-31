@@ -112,6 +112,11 @@ func people() -> Array:
 	return out
 
 
+func _paths() -> TownPaths:
+	# The named places where she is: Earth's (written by tools/build_earth.gd) or Galaxity's
+	return TownPaths.get_shared(TownPaths.EARTH_FILE if on_earth() else TownPaths.FILE)
+
+
 func quest_markers() -> Array:
 	# [{pos, label}] for every quest step that's ready to be done right now
 	var out := []
@@ -135,8 +140,8 @@ func quest_markers() -> Array:
 				var t := _talker(s, str(entry.who))
 				if t:
 					pos = (t.get_parent() as Node3D).global_position
-			elif entry.has("place") and TownPaths.get_shared().has(str(entry.place)):
-				var p2: Vector2 = TownPaths.get_shared().points[str(entry.place)]
+			elif entry.has("place") and _paths().has(str(entry.place)):
+				var p2: Vector2 = _paths().points[str(entry.place)]
 				pos = Vector3(p2.x, 0, p2.y)
 			if pos != null:
 				out.append({"pos": pos, "label": name})

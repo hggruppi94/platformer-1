@@ -1,0 +1,13 @@
+{
+  "world": "earth",
+  "speed": 3.2,
+  "move_anim": "run",
+  "blocks": [
+    {"at": "06:00", "place": "market", "do": "idle", "label": "market", "face": [21, -8]},
+    {"at": "10:00", "place": "fire_station", "do": "idle", "label": "fire_station", "face": [0, -106]},
+    {"at": "13:00", "place": "pumpkin_patch", "do": "wander", "label": "pumpkins", "radius": 3},
+    {"at": "16:00", "place": "library_door", "do": "idle", "label": "library", "face": [0, -84]},
+    {"at": "18:00", "place": "inn", "do": "idle", "label": "inn", "face": [21, 9]},
+    {"at": "23:00", "place": "inn", "do": "away", "label": "asleep"}
+  ]
+}

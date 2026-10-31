@@ -1,0 +1,42 @@
+{
+  "name": "Prue",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Hi! I'm Prue! I'm Nina's sister! I'm seven and three quarters! Do you like plushies? I have nine. Ten if you count the sock."
+      ]
+    },
+    {
+      "when": {
+        "activity": "playing"
+      },
+      "lines": [
+        "Swings! Push me! Higher! HIGHER! ...Okay that's high enough."
+      ]
+    },
+    {
+      "when": {
+        "activity": "her_room"
+      },
+      "lines": [
+        "This is my room. It's lilac. Lilac is purple but nicer."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "I saw a little green alien in the pumpkin patch! Nina says it was a squash. Squashes don't wave!"
+        ],
+        [
+          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+        ],
+        [
+          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,734 @@
+{
+	"links": [
+		[
+			"green_e",
+			"green_se"
+		],
+		[
+			"green_se",
+			"green_s"
+		],
+		[
+			"green_s",
+			"green_sw"
+		],
+		[
+			"green_sw",
+			"green_w"
+		],
+		[
+			"green_w",
+			"green_nw"
+		],
+		[
+			"green_nw",
+			"green_n"
+		],
+		[
+			"green_n",
+			"green_ne"
+		],
+		[
+			"green_ne",
+			"green_e"
+		],
+		[
+			"green_s",
+			"gazebo"
+		],
+		[
+			"gazebo",
+			"old_oak"
+		],
+		[
+			"old_oak",
+			"green_s"
+		],
+		[
+			"gazebo",
+			"green_bench"
+		],
+		[
+			"green_bench",
+			"green_se"
+		],
+		[
+			"green_nw",
+			"diner"
+		],
+		[
+			"diner",
+			"green_n"
+		],
+		[
+			"green_n",
+			"bookshop"
+		],
+		[
+			"bookshop",
+			"green_ne"
+		],
+		[
+			"green_ne",
+			"market"
+		],
+		[
+			"market",
+			"green_e"
+		],
+		[
+			"green_e",
+			"inn"
+		],
+		[
+			"inn",
+			"green_se"
+		],
+		[
+			"green_sw",
+			"home_1"
+		],
+		[
+			"home_1",
+			"green_s"
+		],
+		[
+			"green_s",
+			"home_3"
+		],
+		[
+			"home_3",
+			"green_se"
+		],
+		[
+			"town_hall_door",
+			"town_hall"
+		],
+		[
+			"green_w",
+			"town_hall_door"
+		],
+		[
+			"green_n",
+			"main_30"
+		],
+		[
+			"main_30",
+			"main_46"
+		],
+		[
+			"main_46",
+			"main_62"
+		],
+		[
+			"main_62",
+			"main_73"
+		],
+		[
+			"main_73",
+			"main_84"
+		],
+		[
+			"main_84",
+			"main_94"
+		],
+		[
+			"main_94",
+			"main_104"
+		],
+		[
+			"main_104",
+			"main_116"
+		],
+		[
+			"bakery_door",
+			"bakery"
+		],
+		[
+			"toy_shop_door",
+			"toy_shop"
+		],
+		[
+			"library_door",
+			"library"
+		],
+		[
+			"main_46",
+			"bakery_door"
+		],
+		[
+			"main_62",
+			"toy_shop_door"
+		],
+		[
+			"main_84",
+			"library_steps"
+		],
+		[
+			"library_steps",
+			"library_door"
+		],
+		[
+			"main_46",
+			"antiques"
+		],
+		[
+			"main_62",
+			"hardware"
+		],
+		[
+			"main_104",
+			"fire_station"
+		],
+		[
+			"main_116",
+			"school"
+		],
+		[
+			"main_94",
+			"skate_gate"
+		],
+		[
+			"skate_gate",
+			"skate_in"
+		],
+		[
+			"skate_in",
+			"skate_yard"
+		],
+		[
+			"maple_16",
+			"maple_8"
+		],
+		[
+			"maple_8",
+			"maple_w10"
+		],
+		[
+			"maple_w10",
+			"maple_w26"
+		],
+		[
+			"maple_w26",
+			"maple_w40"
+		],
+		[
+			"maple_w40",
+			"maple_w44"
+		],
+		[
+			"maple_w44",
+			"maple_w62"
+		],
+		[
+			"maple_w62",
+			"maple_w70"
+		],
+		[
+			"maple_w70",
+			"maple_w84"
+		],
+		[
+			"maple_w84",
+			"maple_w94"
+		],
+		[
+			"maple_w94",
+			"maple_w112"
+		],
+		[
+			"maple_w112",
+			"maple_w120"
+		],
+		[
+			"green_sw",
+			"hollow_top"
+		],
+		[
+			"hollow_top",
+			"hollow_mid"
+		],
+		[
+			"hollow_mid",
+			"maple_w26"
+		],
+		[
+			"maple_w62",
+			"palmer_house"
+		],
+		[
+			"maple_w84",
+			"hollis_house"
+		],
+		[
+			"maple_w44",
+			"okafor_house"
+		],
+		[
+			"maple_8",
+			"larkspur_house"
+		],
+		[
+			"maple_w70",
+			"quill_house"
+		],
+		[
+			"maple_w10",
+			"pemberton_house"
+		],
+		[
+			"maple_16",
+			"bramblewood_house"
+		],
+		[
+			"palmer_house",
+			"palmer_porch"
+		],
+		[
+			"blastoff_door",
+			"blastoff"
+		],
+		[
+			"maple_w40",
+			"blastoff_door"
+		],
+		[
+			"blastoff",
+			"nina_room_door"
+		],
+		[
+			"nina_room_door",
+			"nina_room"
+		],
+		[
+			"blastoff",
+			"prue_room_door"
+		],
+		[
+			"prue_room_door",
+			"prue_room"
+		],
+		[
+			"blastoff",
+			"bruno_room_door"
+		],
+		[
+			"bruno_room_door",
+			"bruno_room"
+		],
+		[
+			"green_sw",
+			"park_gate"
+		],
+		[
+			"park_gate",
+			"park_fork"
+		],
+		[
+			"park_fork",
+			"pond_path"
+		],
+		[
+			"pond_path",
+			"dock"
+		],
+		[
+			"park_fork",
+			"playground"
+		],
+		[
+			"green_nw",
+			"north_path"
+		],
+		[
+			"north_path",
+			"north_path_2"
+		],
+		[
+			"north_path_2",
+			"north_path_3"
+		],
+		[
+			"north_path_3",
+			"footbridge_e"
+		],
+		[
+			"footbridge_e",
+			"footbridge_w"
+		],
+		[
+			"footbridge_w",
+			"hill_path"
+		],
+		[
+			"hill_path",
+			"hill_foot"
+		],
+		[
+			"hill_foot",
+			"hill_top"
+		],
+		[
+			"maple_w120",
+			"pumpkin_patch"
+		]
+	],
+	"points": {
+		"antiques": [
+			4.9,
+			-46.0
+		],
+		"bakery": [
+			-10.1,
+			-46.0,
+			0.0
+		],
+		"bakery_door": [
+			-3.4,
+			-46.0
+		],
+		"blastoff": [
+			-40.0,
+			72.5,
+			0.0
+		],
+		"blastoff_door": [
+			-40.0,
+			64.8
+		],
+		"bookshop": [
+			9.0,
+			-25.9
+		],
+		"bramblewood_house": [
+			16.0,
+			66.5
+		],
+		"bruno_room": [
+			-34.87,
+			76.6,
+			0.0
+		],
+		"bruno_room_door": [
+			-34.87,
+			73.5,
+			0.0
+		],
+		"diner": [
+			-9.0,
+			-25.9
+		],
+		"dock": [
+			-64.5,
+			0.0,
+			0.25
+		],
+		"fire_station": [
+			-6.5,
+			-106.5
+		],
+		"footbridge_e": [
+			-90.5,
+			-36.0
+		],
+		"footbridge_w": [
+			-100.5,
+			-38.5,
+			0.6
+		],
+		"gazebo": [
+			0.0,
+			8.0
+		],
+		"green_bench": [
+			10.5,
+			10.5
+		],
+		"green_e": [
+			21.0,
+			0.0
+		],
+		"green_n": [
+			0.0,
+			-21.0
+		],
+		"green_ne": [
+			21.0,
+			-21.0
+		],
+		"green_nw": [
+			-21.0,
+			-21.0
+		],
+		"green_s": [
+			0.0,
+			21.0
+		],
+		"green_se": [
+			21.0,
+			21.0
+		],
+		"green_sw": [
+			-21.0,
+			21.0
+		],
+		"green_w": [
+			-21.0,
+			0.0
+		],
+		"hardware": [
+			4.9,
+			-62.5
+		],
+		"hill_foot": [
+			-118.0,
+			-66.0
+		],
+		"hill_path": [
+			-112.0,
+			-46.0
+		],
+		"hill_top": [
+			-112.0,
+			-87.0
+		],
+		"hollis_house": [
+			-84.0,
+			49.5
+		],
+		"hollow_mid": [
+			-26.0,
+			42.0
+		],
+		"hollow_top": [
+			-26.0,
+			27.0
+		],
+		"home_1": [
+			-14.0,
+			25.9
+		],
+		"home_3": [
+			14.0,
+			25.9
+		],
+		"inn": [
+			25.9,
+			9.0
+		],
+		"larkspur_house": [
+			8.0,
+			49.5
+		],
+		"library": [
+			-17.1,
+			-84.0,
+			1.2
+		],
+		"library_door": [
+			-8.9,
+			-84.0,
+			1.2
+		],
+		"library_steps": [
+			-5.2,
+			-84.0
+		],
+		"main_104": [
+			0.0,
+			-104.0
+		],
+		"main_116": [
+			0.0,
+			-116.0
+		],
+		"main_30": [
+			0.0,
+			-30.0
+		],
+		"main_46": [
+			0.0,
+			-46.0
+		],
+		"main_62": [
+			0.0,
+			-62.0
+		],
+		"main_73": [
+			0.0,
+			-73.0
+		],
+		"main_84": [
+			0.0,
+			-84.0
+		],
+		"main_94": [
+			0.0,
+			-94.0
+		],
+		"maple_16": [
+			16.0,
+			58.0
+		],
+		"maple_8": [
+			8.0,
+			58.0
+		],
+		"maple_w10": [
+			-10.0,
+			58.0
+		],
+		"maple_w112": [
+			-112.0,
+			58.0
+		],
+		"maple_w120": [
+			-120.0,
+			58.0
+		],
+		"maple_w26": [
+			-26.0,
+			58.0
+		],
+		"maple_w40": [
+			-40.0,
+			58.0
+		],
+		"maple_w44": [
+			-44.0,
+			58.0
+		],
+		"maple_w62": [
+			-62.0,
+			58.0
+		],
+		"maple_w70": [
+			-70.0,
+			58.0
+		],
+		"maple_w84": [
+			-84.0,
+			58.0
+		],
+		"maple_w94": [
+			-94.0,
+			58.0
+		],
+		"market": [
+			25.9,
+			-8.0
+		],
+		"nina_room": [
+			-45.13,
+			76.6,
+			0.0
+		],
+		"nina_room_door": [
+			-45.13,
+			73.5,
+			0.0
+		],
+		"north_path": [
+			-25.0,
+			-14.0
+		],
+		"north_path_2": [
+			-45.0,
+			-18.0
+		],
+		"north_path_3": [
+			-70.0,
+			-28.0
+		],
+		"okafor_house": [
+			-44.0,
+			49.5
+		],
+		"old_oak": [
+			-5.5,
+			14.5
+		],
+		"palmer_house": [
+			-62.0,
+			49.5
+		],
+		"palmer_porch": [
+			-59.8,
+			49.5
+		],
+		"park_fork": [
+			-45.0,
+			14.0
+		],
+		"park_gate": [
+			-25.0,
+			14.0
+		],
+		"pemberton_house": [
+			-10.0,
+			66.5
+		],
+		"playground": [
+			-52.5,
+			25.0
+		],
+		"pond_path": [
+			-58.5,
+			10.5
+		],
+		"prue_room": [
+			-40.0,
+			76.6,
+			0.0
+		],
+		"prue_room_door": [
+			-40.0,
+			73.5,
+			0.0
+		],
+		"pumpkin_patch": [
+			-119.0,
+			31.0
+		],
+		"quill_house": [
+			-70.0,
+			66.5
+		],
+		"school": [
+			5.0,
+			-119.5
+		],
+		"skate_gate": [
+			8.0,
+			-96.9
+		],
+		"skate_in": [
+			11.5,
+			-96.9,
+			0.2
+		],
+		"skate_yard": [
+			14.5,
+			-92.5,
+			0.2
+		],
+		"town_hall": [
+			-30.1,
+			0.0,
+			0.0
+		],
+		"town_hall_door": [
+			-23.9,
+			0.0
+		],
+		"toy_shop": [
+			-10.1,
+			-62.0,
+			0.0
+		],
+		"toy_shop_door": [
+			-3.4,
+			-62.0
+		]
+	}
+}

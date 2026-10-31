@@ -1,0 +1,55 @@
+{
+  "name": "Gus",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "What. Oh. You're new. I'm Gus. I own the diner. Don't lean on the counter, I just wiped it.",
+        "{player}: Nice to meet you, Gus!",
+        "Mm. We'll see."
+      ]
+    },
+    {
+      "when": {
+        "activity": "errand"
+      },
+      "lines": [
+        "Hardware store. I need a hinge. The door squeaks. Ivy says it's 'charming'. It is not charming."
+      ]
+    },
+    {
+      "when": {
+        "time": "morning"
+      },
+      "lines": [
+        "Coffee? It's early. Everyone wants coffee early. Nobody wants to talk to me early. Good system."
+      ]
+    },
+    {
+      "when": {
+        "time": "night"
+      },
+      "lines": [
+        "We're closing soon. That means go home, not 'one more slice of pie'. ...Fine. One more slice."
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+        ],
+        [
+          "Mr. Palmer wants me to make a pie for the festival. Shaped like a pumpkin. A pie. Shaped like a pumpkin. Pies are already round!"
+        ],
+        [
+          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+        ],
+        [
+          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
+        ]
+      ]
+    }
+  ]
+}

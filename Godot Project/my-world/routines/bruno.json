@@ -1,0 +1,14 @@
+{
+  "world": "earth",
+  "speed": 1.9,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "07:00", "place": "blastoff", "do": "wander", "label": "breakfast", "radius": 2},
+    {"at": "08:00", "place": "school", "do": "away", "label": "school"},
+    {"at": "12:00", "place": "school", "do": "wander", "label": "recess", "radius": 3},
+    {"at": "13:00", "place": "school", "do": "away", "label": "school"},
+    {"at": "15:00", "place": "skate_yard", "do": "wander", "label": "skating", "radius": 5},
+    {"at": "19:00", "place": "bruno_room", "do": "idle", "label": "his_room"},
+    {"at": "21:00", "place": "bruno_room", "do": "away", "label": "asleep"}
+  ]
+}

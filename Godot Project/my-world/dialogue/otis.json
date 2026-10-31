@@ -1,0 +1,37 @@
+{
+  "name": "Mr. Gumdrop",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Ah ha! A customer! Or a friend! Or both! I'm Otis Gumdrop, toy maker. Everything here's handmade, and only some of it squeaks on purpose."
+      ]
+    },
+    {
+      "when": {
+        "activity": "testing_toys"
+      },
+      "lines": [
+        "Testing a new spinning top. Very serious work. (It wobbles and falls over.) Back to the drawing board!"
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "Have you seen the little clockwork mice? They run in circles. I made them to run in straight lines. They have their own ideas."
+        ],
+        [
+          "When I was a boy, a toy rocket of mine flew right over the old oak and never came down. I still look for it sometimes."
+        ],
+        [
+          "Gizmo was my partner. He made the gizmos, I made the gumdrops. Well, the gumdrop-coloured toys. Gizmo moved to the city. I kept the name."
+        ],
+        [
+          "Every toy needs a name. That bear's called Captain Biscuit. Don't ask him about the war with the rubber ducks."
+        ]
+      ]
+    }
+  ]
+}

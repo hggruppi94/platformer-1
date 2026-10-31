@@ -24,6 +24,7 @@ extends SceneTree
 
 const OUT := "res://scenes/earth/earth.tscn"
 const MAP_OUT := "res://ui/earth_map.json"
+const PLACES_OUT := "res://routines/earth_places.json"     # the paths people walk (scripts/town_paths.gd)
 const TOWN := "res://scenes/town/town.tscn"
 const GREEN_R := 13.0                             # the town green
 const STREET := 21.0                              # the street runs round the green, this far out (a square)
@@ -40,6 +41,7 @@ const MAPLE_X := Vector2(-150, 62)
 const HOLLOW_X := -26.0                           # Hollow Lane, from the green's southwest corner down to Maple Lane
 const BRIDGE_X := Vector2(-110, -96)              # the covered bridge's span along Maple Lane
 const YARD := Rect2(10, -122, 40, 44)             # the Hollow Skate Yard's concrete: x 10..50, z -122..-78
+const YARD_FLOOR := 0.2
 
 var world: Node3D
 var rng := RandomNumberGenerator.new()
@@ -83,6 +85,7 @@ func _initialize() -> void:
 	var scene := PackedScene.new()
 	print("SAVED ", OUT, " pack=", scene.pack(world), " save=", ResourceSaver.save(scene, OUT))
 	_write_map()
+	_write_places()
 	quit()
 
 
@@ -826,7 +829,7 @@ func _dance_studio() -> void:
 	lamp_light(g, Vector3(0, 4.6, front + 1.6), Color(1.0, 0.8, 0.55), 1.4, 9.0)
 	# Madame Celeste, who runs the studio
 	_person("Madame Celeste", "celeste", STUDIO_AT + toward * 2.0, atan2(toward.x, toward.z),
-		{"shirt": Color(0.75, 0.35, 0.6), "trousers": Color(0.15, 0.12, 0.18), "hair": Color(0.12, 0.08, 0.08), "height": 1.72})
+		_look(2, 6, 5, 17, 6, 6, 1.32, 0.8, 0.9), [{"kind": "shawl", "color": Color(0.75, 0.3, 0.6)}], {}, false)
 
 
 func _white_x(parent: Node3D, at: Vector3, size: Vector2, m: Material) -> void:
@@ -1052,34 +1055,100 @@ func _portal() -> void:
 	world.add_child(player)
 
 
-func _person(name: String, id: String, at: Vector3, yaw: float, look: Dictionary) -> void:
+func _person(name: String, id: String, at: Vector3, yaw: float, look: Dictionary, extras := [], outfit := {}, has_routine := true,
+		model := "") -> Node3D:
+	# Someone who lives here (scripts/townsfolk.gd): the Earth kid body dressed and shaped like a hero in the creator,
+	# with a talk spot, and a daily routine on Earth's clock (res://routines/<id>.json) if they have one
 	var p := Node3D.new()
-	p.name = name
-	p.set_script(load("res://scripts/earth_person.gd"))
-	for k in look:
-		p.set(k, look[k])
+	p.name = name.replace(".", "")                     # (a node's name can't have a dot: "Mr Palmer")
+	p.set_script(load("res://scripts/townsfolk.gd"))
+	p.set("look", look)
+	p.set("extras", extras)
+	p.set("outfit", outfit)
+	if model != "":
+		p.set("model_path", model)
 	p.position = at
 	p.rotation.y = yaw
-	world.add_child(p)
+	people_group().add_child(p)
+	if has_routine:
+		var r := Node.new()
+		r.name = "Routine"
+		r.set_script(load("res://scripts/routine.gd"))
+		r.set("character_id", id)
+		p.add_child(r)
 	var talk := Area3D.new()
 	talk.name = "Talk"
 	talk.set_script(load("res://scripts/talker.gd"))
 	talk.set("character_id", id)
 	talk.set("display_name", name)
-	talk.set("name_height", 2.1)
+	talk.set("name_height", (2.15 if model != "" else 1.39 * float(look.get("height", 1.0))) + 0.35)
 	p.add_child(talk)
+	return p
+
+
+func people_group() -> Node3D:
+	var g := world.get_node_or_null("Characters") as Node3D
+	return g if g else group("Characters")
+
+
+# Looks, hero style (scripts/hero.gd): colours are Hero.SWATCHES numbers (1 pale skin, 2 light, 3 tan, 4 brown, 5 dark
+# brown, 6 black, 7 white, 8 grey, 9 red, 10 orange, 11 yellow, 12 green, 13 teal, 14 sky, 15 blue, 16 purple, 17 lilac,
+# 18 pink, 19 taupe, 20 mint); hairstyles are Hairstyles.NAMES (1 short crop, 2 pigtails, 3 ponytail, 4 space buns,
+# 5 long, 6 bob, 7 mohawk, 8 afro puffs, 9 braids, 10 curly top, 11 bald). Grown-ups are taller with smaller heads.
+func _look(skin: int, hair: int, style: int, top: int, bottoms: int, shoes: int, height: float, head := 1.0, build := 1.0,
+		more := {}) -> Dictionary:
+	var l := {"colors": {"fur": skin, "hair": hair, "brows": hair if hair != 7 else 8, "top": top, "bottoms": bottoms,
+		"shoes": shoes}, "hairstyle": style, "extras": false, "height": height, "head": head, "build": build}
+	l.merge(more, true)
+	return l
 
 
 func _people() -> void:
-	# Placeholders (simple shapes, no models yet). Mr. Palmer is here in person, at the gazebo.
-	_person("Mr. Palmer", "palmer_earth", Vector3(1.5, 0, 6.0), PI * 0.1,
-		{"shirt": Color(0.25, 0.3, 0.45), "trousers": Color(0.2, 0.2, 0.25), "glasses": true, "grey_hair": true,
-		"tie": Color(0.8, 0.25, 0.3, 1.0), "height": 1.8})
-	_person("Miss Ivy", "ivy", Vector3(-6.0, 0, -(STREET + STREET_W / 2 + 1.6) + 0.6), 0.0,
-		{"shirt": Color(0.85, 0.4, 0.45), "trousers": Color(0.3, 0.25, 0.3), "hair": Color(0.55, 0.25, 0.15), "height": 1.68})
-	_person("Theo", "theo", Vector3(12.0, 0, -(STREET + STREET_W / 2 + 1.6) + 0.8), -0.3,
-		{"shirt": Color(0.35, 0.6, 0.4), "trousers": Color(0.25, 0.3, 0.45), "hair": Color(0.15, 0.1, 0.08), "height": 1.3,
-		"glasses": true, "skin": Color(0.55, 0.4, 0.3)})
+	# Everyone in town, where they'd be in the afternoon (their routines move them about: res://routines/<id>.json).
+	# Mr. Palmer has his own human model; everyone else is made like a hero in the creator.
+	var adult := 1.32
+	var kid := 0.96
+	_person("Mr. Palmer", "palmer_earth", Vector3(1.5, 0, 9.0), PI * 0.1, {}, [], {}, true, "res://models/characters/mr_palmer.glb")
+	_person("Miss Ivy", "ivy", Vector3(-6.0, 0, -25.4), 0.0, _look(2, 10, 3, 18, 6, 9, 1.28, 0.84, 1.0),
+		[{"kind": "apron", "color": Color(0.97, 0.96, 0.92)}])
+	_person("Theo", "theo", Vector3(12.0, 0, -25.2), -0.3, _look(4, 6, 10, 12, 15, 7, kid, 1.0, 1.0, {"extras": true}),
+		[{"kind": "glasses", "color": Color(0.12, 0.1, 0.1)}, {"kind": "book", "color": Color(0.25, 0.4, 0.8)}])
+	_person("Gus", "gus", Vector3(-11.0, 0, -25.4), 0.0, _look(2, 5, 1, 15, 5, 6, 1.36, 0.8, 1.15, {"mouth": 0.85}),
+		[{"kind": "cap", "color": Color(0.2, 0.25, 0.4)}, {"kind": "apron", "color": Color(0.85, 0.85, 0.82)}])
+	_person("Dottie Pennywhistle", "dottie", Vector3(25.5, 0, 9.0), -PI / 2, _look(1, 11, 10, 18, 17, 18, 1.26, 0.86, 1.15,
+		{"eyes": 1.1}), [{"kind": "pearls"}, {"kind": "cardigan", "color": Color(1.0, 0.82, 0.35)}])
+	_person("Barnaby Quill", "barnaby", Vector3(-2.5, 0, 8.5), 0.0, _look(3, 4, 5, 13, 4, 5, adult, 0.82, 0.95),
+		[{"kind": "guitar", "color": Color(0.45, 0.28, 0.18)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}])
+	_person("Miss Marigold", "marigold", Vector3(-17.0, 1.2, -84.0), PI / 2, _look(4, 6, 9, 7, 16, 6, 1.3, 0.84, 0.95),
+		[{"kind": "glasses", "color": Color(0.35, 0.22, 0.12)}, {"kind": "cardigan", "color": Color(0.45, 0.6, 0.4)},
+		{"kind": "book", "color": Color(0.75, 0.2, 0.25)}])
+	_person("Poppy Crumb", "poppy", Vector3(-9.5, 0, -46.0), PI / 2, _look(2, 10, 3, 7, 19, 16, 1.26, 0.86, 1.2),
+		[{"kind": "chef_hat"}, {"kind": "apron", "color": Color(0.55, 0.25, 0.55)}])
+	_person("Mr. Gumdrop", "otis", Vector3(-9.5, 0, -62.0), PI / 2, _look(1, 8, 10, 14, 10, 15, 1.24, 0.88, 1.1),
+		[{"kind": "glasses", "color": Color(0.85, 0.65, 0.25)}, {"kind": "bow_tie", "color": Color(0.85, 0.15, 0.2)},
+		{"kind": "moustache", "color": Color(0.82, 0.82, 0.86)}])
+	_person("Mrs. Wren", "wren", Vector3(4.8, 0, -46.0), -PI / 2, _look(2, 6, 6, 16, 6, 6, 1.25, 0.82, 0.9, {"mouth": 0.8}),
+		[{"kind": "glasses", "color": Color(0.75, 0.12, 0.15)}, {"kind": "cardigan", "color": Color(0.35, 0.2, 0.4)}])
+	_person("Hank", "hank", Vector3(4.8, 0, -62.5), -PI / 2, _look(5, 6, 11, 10, 15, 4, 1.4, 0.78, 1.25),
+		[{"kind": "moustache", "color": Color(0.12, 0.1, 0.1)}, {"kind": "apron", "color": Color(0.3, 0.45, 0.3)}])
+	_person("Kip", "kip", Vector3(25.5, 0, -8.0), -PI / 2, _look(1, 11, 1, 7, 6, 6, adult, 0.82, 0.85, {"eyes": 1.15}),
+		[{"kind": "bow_tie", "color": Color(0.1, 0.1, 0.12)}, {"kind": "clipboard"}])
+	_person("Mr. Page", "lionel", Vector3(9.0, 0, -25.4), 0.0, _look(5, 7, 1, 7, 19, 5, 1.34, 0.8, 1.0),
+		[{"kind": "glasses", "color": Color(0.1, 0.1, 0.1)}, {"kind": "cardigan", "color": Color(0.5, 0.2, 0.25)},
+		{"kind": "book", "color": Color(0.3, 0.55, 0.35)}])
+	_person("Juniper", "juniper", Vector3(5.0, 0, -120.0), 0.0, _look(5, 6, 8, 11, 15, 18, kid, 1.0, 1.0, {"extras": true}),
+		[{"kind": "headband", "color": Color(1.0, 0.45, 0.65)}, {"kind": "clipboard"}])
+	_person("Ozzie", "ozzie", Vector3(14.0, 0.2, -92.0), 0.0, _look(1, 10, 1, 9, 15, 6, 1.0),
+		[{"kind": "cap", "color": Color(0.85, 0.2, 0.2)}, {"kind": "skateboard", "color": Color(0.3, 0.75, 0.4)}])
+	# The Blastoffs: Nina, human on Earth (red bob, red bow, black turtleneck), and her sister and brother. Prue's and
+	# Bruno's looks are PLACEHOLDERS until there are drawings of them as people: a lilac little sister, and Bruno in
+	# his SK8 beanie with his board.
+	_person("Nina", "nina_earth", Vector3(-40.0, 0, 62.0), PI, _look(1, 9, 6, 6, 6, 9, 1.0, 1.0, 0.95),
+		[{"kind": "bow", "color": Color(0.85, 0.1, 0.14)}, {"kind": "turtleneck", "color": Color(0.1, 0.08, 0.1)}])
+	_person("Prue", "prue", Vector3(-38.0, 0, 62.0), PI, _look(1, 4, 2, 17, 18, 18, 0.84, 1.06),
+		[{"kind": "flower", "color": Color(1.0, 0.6, 0.8)}]).set("placeholder", true)
+	_person("Bruno", "bruno", Vector3(-42.0, 0, 62.0), PI, _look(1, 4, 1, 10, 15, 6, 1.0), [{"kind": "skateboard",
+		"color": Color(0.15, 0.15, 0.18)}], {"head": "sk8_beanie"}).set("placeholder", true)
 
 
 func _light_boxes() -> void:
@@ -1414,7 +1483,7 @@ func _main_street() -> void:
 			_solid_mesh(Vector3(0.9, 0.55, 3.2), planter, Vector3(x, 0.28, z), g)
 			for k in 4:
 				mesh_at(ball(0.35, 8), mat("Mums %d" % k, mums[k], 0.9), Vector3(x + rng.randf_range(-0.15, 0.15), 0.7, z - 1.2 + k * 0.8), g)
-			_bench(g, Vector3(x, 0, z - 3.0), sx * -PI / 2, bench_m)
+			_bench(g, Vector3(x, 0, z + 3.0), sx * -PI / 2, bench_m)        # (north of it: shop doors are south)
 
 
 func _bench(parent: Node3D, at: Vector3, yaw: float, m: Material) -> void:
@@ -1784,8 +1853,8 @@ func _park() -> void:
 
 func _footbridge(g: Node3D) -> void:
 	# A little wooden footbridge over the creek on the way to the hill, with a handrail each side (grind them)
-	var c := Vector2(-95.5, -37.0)
-	var across := Vector2(0.97, -0.24).normalized()
+	var c := Vector2(-95.5, -37.25)
+	var across := Vector2(0.97, 0.24).normalized()                   # (lined up with the gravel path at each end)
 	var a := c - across * 5.2
 	var b := c + across * 5.2
 	var br := Node3D.new()
@@ -2412,3 +2481,160 @@ func _write_map() -> void:
 	f.store_string(JSON.stringify(data, "\t") + "\n")
 	f.close()
 	print("SAVED ", MAP_OUT, " (", buildings.size(), " places)")
+
+
+# -----------------------------------------------------------------------------
+# Where people go: the named places of the town and the links they walk along (res://routines/earth_places.json,
+# read by scripts/town_paths.gd for everyone's routine). Made here so it always matches the buildings.
+# -----------------------------------------------------------------------------
+var places := {}                                   # name -> [x, z] or [x, z, floor height]
+var place_links := []
+
+
+func _at(n: Node3D) -> Vector3:
+	# Where a node in the town ends up (it isn't in a tree yet, so add up the transforms by hand)
+	var t := n.transform
+	var p := n.get_parent() as Node3D
+	while p and p != world:
+		t = p.transform * t
+		p = p.get_parent() as Node3D
+	return t.origin
+
+
+func _place(name: String, p: Vector2, floor_y := NAN) -> void:
+	places[name] = [snappedf(p.x, 0.01), snappedf(p.y, 0.01)] if is_nan(floor_y) else \
+		[snappedf(p.x, 0.01), snappedf(p.y, 0.01), snappedf(floor_y, 0.01)]
+
+
+func _walk(names: Array) -> void:
+	for i in names.size() - 1:
+		place_links.append([names[i], names[i + 1]])
+
+
+func _rooms(building: String, prefix: String) -> void:
+	# A walk-in building's doorstep and middle ("<prefix>_door", "<prefix>"), joined
+	var b := world.get_node(building) as Node3D
+	var door := _at(b.get_node("Doorway") as Node3D)
+	var inside := _at(b.get_node("Inside") as Node3D)
+	_place(prefix + "_door", Vector2(door.x, door.z), b.position.y if b.position.y > 0.1 else NAN)
+	_place(prefix, Vector2(inside.x, inside.z), b.position.y)
+	_walk([prefix + "_door", prefix])
+
+
+func _write_places() -> void:
+	var g := STREET
+	# Round the green, on the street, and across the grass to the gazebo's steps and the old oak
+	for k in 8:
+		var names := ["green_e", "green_se", "green_s", "green_sw", "green_w", "green_nw", "green_n", "green_ne"]
+		var a := k * PI / 4
+		var r := g if k % 2 == 0 else g * sqrt(2.0)
+		_place(names[k], Vector2(cos(a), sin(a)) * r)
+	_walk(["green_e", "green_se", "green_s", "green_sw", "green_w", "green_nw", "green_n", "green_ne", "green_e"])
+	_place("gazebo", Vector2(0, 8.0))
+	_place("old_oak", Vector2(PORTAL_AT.x + 4.5, PORTAL_AT.z + 4.5))
+	_place("green_bench", Vector2(10.5, 10.5))
+	_walk(["green_s", "gazebo", "old_oak", "green_s"])
+	_walk(["gazebo", "green_bench", "green_se"])
+	# The shops round the green (their fronts) and the walk-in Town Hall
+	var front := g + STREET_W / 2 + 1.6 + 0.3
+	_place("diner", Vector2(-9, -front))
+	_place("bookshop", Vector2(9, -front))
+	_place("market", Vector2(front, -8))
+	_place("inn", Vector2(front, 9))
+	_place("home_1", Vector2(-14, front))
+	_place("home_3", Vector2(14, front))
+	_walk(["green_nw", "diner", "green_n", "bookshop", "green_ne"])
+	_walk(["green_ne", "market", "green_e", "inn", "green_se"])
+	_walk(["green_sw", "home_1", "green_s", "home_3", "green_se"])
+	_rooms("Earth Town Hall", "town_hall")
+	_walk(["green_w", "town_hall_door"])
+	# Main Street, its shops and the school at the top; the skate yard through its gate
+	var main := []
+	for z in [-30, -46, -62, -73, -84, -94, -104, -116]:
+		_place("main_%d" % -z, Vector2(0, z))
+		main.append("main_%d" % -z)
+	_walk(["green_n"] + main)
+	_rooms("Bakery", "bakery")
+	_rooms("Toy Shop", "toy_shop")
+	_rooms("Library", "library")
+	_walk(["main_46", "bakery_door"])
+	_walk(["main_62", "toy_shop_door"])
+	_place("library_steps", Vector2(-5.2, -84))
+	_walk(["main_84", "library_steps", "library_door"])
+	_place("antiques", Vector2(4.9, -46))
+	_place("hardware", Vector2(4.9, -62.5))
+	_place("fire_station", Vector2(-6.5, -106.5))
+	_place("school", Vector2(5.0, -119.5))
+	_place("skate_gate", Vector2(8.0, -96.9))
+	_place("skate_in", Vector2(11.5, -96.9), YARD_FLOOR)         # (through the gate, beside the gate ramp)
+	_place("skate_yard", Vector2(14.5, -92.5), YARD_FLOOR)
+	_walk(["main_46", "antiques"])
+	_walk(["main_62", "hardware"])
+	_walk(["main_104", "fire_station"])
+	_walk(["main_116", "school"])
+	_walk(["main_94", "skate_gate", "skate_in", "skate_yard"])
+	# Hollow Lane down to Maple Lane, and along it (over the covered bridge to the pumpkin patch)
+	_place("hollow_top", Vector2(HOLLOW_X, 27))
+	_place("hollow_mid", Vector2(HOLLOW_X, 42))
+	var lane := [16, 8, -10, -26, -40, -44, -62, -70, -84, -94, -112, -120]
+	for x in lane:
+		_place("maple_%s" % (("w%d" % -x) if x < 0 else str(x)), Vector2(x, MAPLE_Z))
+	var lane_names := lane.map(func(x: int) -> String: return "maple_%s" % (("w%d" % -x) if x < 0 else str(x)))
+	_walk(lane_names)
+	_walk(["green_sw", "hollow_top", "hollow_mid", "maple_w26"])
+	# The houses: the gate in each front fence, and the porch
+	var north_z := MAPLE_Z - (STREET_W / 2 + 1.6 + 5.0 + 3.5)
+	var south_z := MAPLE_Z + (STREET_W / 2 + 1.6 + 5.0 + 3.5)
+	for h in [["palmer_house", -62, north_z + 4.6, "maple_w62"], ["hollis_house", -84, north_z + 4.6, "maple_w84"],
+			["okafor_house", -44, north_z + 4.6, "maple_w44"], ["larkspur_house", 8, north_z + 4.6, "maple_8"],
+			["quill_house", -70, south_z - 4.6, "maple_w70"], ["pemberton_house", -10, south_z - 4.6, "maple_w10"],
+			["bramblewood_house", 16, south_z - 4.6, "maple_16"]]:
+		_place(h[0], Vector2(h[1], h[2]))
+		_walk([h[3], h[0]])
+	_place("palmer_porch", Vector2(-59.8, north_z + 4.6))
+	_walk(["palmer_house", "palmer_porch"])
+	# The Blastoffs': in through the front door, and into each bedroom through its own door
+	_rooms("Blastoff House", "blastoff")
+	_walk(["maple_w40", "blastoff_door"])
+	var house := world.get_node("Blastoff House") as Node3D
+	for who in ["Nina", "Prue", "Bruno"]:
+		var room := house.get_node("%s's Room" % who) as Node3D
+		var c := _at(room)
+		var id := "%s_room" % who.to_lower()
+		_place(id + "_door", Vector2(c.x, (house.transform * Vector3(room.position.x, 0, -0.5)).z), 0.0)
+		_place(id, Vector2(c.x, c.z), 0.0)
+		_walk(["blastoff", id + "_door", id])
+	# The park: past the Town Hall to the pond's dock and the playground; north over the footbridge to the hill
+	_place("park_gate", Vector2(-25, 14))
+	_place("park_fork", Vector2(-45, 14))
+	_place("pond_path", Vector2(-58.5, 10.5))
+	_place("dock", Vector2(-64.5, 0.0), 0.25)
+	_place("playground", Vector2(-52.5, 25.0))
+	_walk(["green_sw", "park_gate", "park_fork", "pond_path", "dock"])
+	_walk(["park_fork", "playground"])
+	_place("north_path", Vector2(-25, -14))
+	_place("north_path_2", Vector2(-45, -18))
+	_place("north_path_3", Vector2(-70, -28))
+	_place("footbridge_e", Vector2(-90.5, -36))
+	_place("footbridge_w", Vector2(-100.5, -38.5), 0.6)
+	_place("hill_path", Vector2(-112, -46))
+	_place("hill_foot", Vector2(-118, -66))
+	_place("hill_top", Vector2(-112, -87))
+	_walk(["green_nw", "north_path", "north_path_2", "north_path_3", "footbridge_e", "footbridge_w", "hill_path", "hill_foot",
+		"hill_top"])
+	_place("pumpkin_patch", Vector2(-119, 31))
+	_walk(["maple_w120", "pumpkin_patch"])
+	# A look for anything a link crosses that it shouldn't: water, or a building that isn't its own door's
+	for l in place_links:
+		var a := Vector2(places[l[0]][0], places[l[0]][1])
+		var b := Vector2(places[l[1]][0], places[l[1]][1])
+		for k in 21:
+			var p := a.lerp(b, k / 20.0)
+			if EarthLand.is_water(p.x, p.y) and not "footbridge" in str(l) and not "dock" in str(l) and not "w94" in str(l) \
+					and not "w112" in str(l):
+				push_warning("Path %s - %s crosses water at %s" % [l[0], l[1], p])
+				break
+	var f := FileAccess.open(PLACES_OUT, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"points": places, "links": place_links}, "\t") + "\n")
+	f.close()
+	print("SAVED ", PLACES_OUT, " (", places.size(), " places, ", place_links.size(), " links)")

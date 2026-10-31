@@ -427,6 +427,22 @@ func _town_layout() -> void:
 	var p_on_map: Vector2 = tm.to_map(player.global_position)
 	check(p_on_map.x > 0.0 and p_on_map.x < 1.0 and p_on_map.y > 0.0 and p_on_map.y < 1.0, "...and where she is")
 
+	# The people (tools/test_townsfolk.gd checks them properly): everyone's routine runs on Earth's paths, every place
+	# in their day can be walked to from the portal, and they're on the map
+	var earth_paths := TownPaths.get_shared(TownPaths.EARTH_FILE)
+	var lost := []
+	var folk := 0
+	for r in get_nodes_in_group("routines"):
+		folk += 1
+		for b in r.blocks:
+			if not r.earth or earth_paths.route("old_oak", str(b.place)).is_empty():
+				lost.append("%s: %s" % [r.character_id, b.place])
+	check(folk >= 18 and lost.is_empty(), "%d people live here, and every place in their day can be reached (%s)" % [folk, lost])
+	var on_map: Array = tm.people()
+	check(on_map.size() == folk and on_map.all(func(p: Dictionary) -> bool:
+		var m: Vector2 = tm.to_map(p.pos)
+		return m.x > 0.0 and m.x < 1.0 and m.y > 0.0 and m.y < 1.0), "...and they're all on the map")
+
 	# Back home to carry on
 	var spawn := s.find_child("HomeSpawn", true, false) as Node3D
 	player.global_position = spawn.global_position

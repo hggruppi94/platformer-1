@@ -17,6 +17,41 @@
     },
     {
       "when": {
+        "activity": "oak_watch"
+      },
+      "lines": [
+        "(Mr. Palmer jumps.) Oh! Goodness! {player}! Just... admiring the old oak. Lovely tree. Lovely bark.",
+        "{player}: At midnight?",
+        "Best time for it! It hums a bit this time of night, doesn't it? (He winks.) Off you go, then. And mind you're home by one."
+      ]
+    },
+    {
+      "when": {
+        "activity": "tea"
+      },
+      "lines": [
+        "Morning, neighbour! Tea on the porch. Best way to start the day. Well, second best. The first is not losing the string lights."
+      ]
+    },
+    {
+      "when": {
+        "activity": "lunch"
+      },
+      "lines": [
+        "Lunch at the diner. Gus pretends he doesn't save me the window seat. He saves me the window seat."
+      ]
+    },
+    {
+      "when": {
+        "activity": "town_hall",
+        "every": 2
+      },
+      "lines": [
+        "Town business! Today: should the gazebo be painted white, or a slightly different white? Very important."
+      ]
+    },
+    {
+      "when": {
         "quest_not_started": "earth_lights"
       },
       "lines": [

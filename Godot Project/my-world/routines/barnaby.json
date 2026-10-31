@@ -1,0 +1,13 @@
+{
+  "world": "earth",
+  "speed": 1.4,
+  "move_anim": "walk",
+  "blocks": [
+    {"at": "09:00", "place": "gazebo", "do": "idle", "label": "singing", "face": [0, 21]},
+    {"at": "12:00", "place": "main_30", "do": "idle", "label": "singing", "face": [-10, -30]},
+    {"at": "15:00", "place": "pond_path", "do": "idle", "label": "singing", "face": [-85, 0]},
+    {"at": "16:30", "place": "gazebo", "do": "idle", "label": "singing", "face": [0, 21]},
+    {"at": "20:00", "place": "hill_top", "do": "idle", "label": "stargazing", "face": [0, -20]},
+    {"at": "22:30", "place": "quill_house", "do": "away", "label": "asleep"}
+  ]
+}
