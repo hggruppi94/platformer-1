@@ -86,7 +86,7 @@ func _physics_process(delta: float) -> void:
 				_set_state(State.ROLL)
 		State.ROLL:
 			_state_t -= delta
-			want = _roll_dir * roll_speed
+			want = _roll_dir * roll_speed * Arsenal.slow(self)     # (frosty from the Freeze mod: slower)
 			if _state_t <= 0.0 or (is_on_wall() and _state_t < roll_time - 0.3):
 				_set_state(State.DIZZY)
 		State.DIZZY:
@@ -136,7 +136,7 @@ func _walk(delta: float) -> Vector3:
 	to_t.y = 0
 	if to_t.length() < 0.4:
 		return Vector3.ZERO
-	return to_t.normalized() * (stalk_speed if state == State.STALK else wander_speed)
+	return to_t.normalized() * (stalk_speed if state == State.STALK else wander_speed) * Arsenal.slow(self)
 
 
 func _set_state(s: State) -> void:

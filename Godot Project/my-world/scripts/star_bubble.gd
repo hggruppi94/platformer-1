@@ -8,6 +8,10 @@ extends Node3D
 # away, like everywhere else in the game.
 #
 # Big bubbles (a charged shot) are twice the size, count for three hits and carry on through what they pop.
+# Gadget mods (scripts/arsenal.gd) on the gadget that blew it: Bounce makes it bounce off the ground or a wall once
+# (twice with Split too), and Freeze leaves a frosty puff where it pops on something (Arsenal.impact). Split is done
+# when it's fired (StarPopper.shoot, the Buzz Bots). The Plushinator's bolt (scripts/plush_bolt.gd) is one of these
+# with a fluffy look, and turns what it hits into a plushie instead.
 
 const SPEED := 26.0
 const BIG_SPEED := 20.0
@@ -26,6 +30,7 @@ var _life := LIFE
 var _star: Node3D
 var _skip: Array[RID] = []                # things a big bubble has already popped through
 var _bounces := 0
+var bounces_left := -1                    # off the ground or walls (the Bounce mod); -1: not worked out yet
 
 static var _count := 0                    # every bubble flying, so a held-down trigger can't flood a scene
 static var _star_mesh: ArrayMesh
@@ -120,7 +125,14 @@ func _ready() -> void:
 	add_child(trail)
 
 
+func gadget() -> String:
+	return str(get_meta("gadget", "popper"))
+
+
 func _physics_process(delta: float) -> void:
+	if bounces_left < 0:
+		var id := gadget()
+		bounces_left = 0 if not Arsenal.has_mod(id, "bounce") else (2 if Arsenal.has_mod(id, "split") else 1)
 	_life -= delta
 	if _life <= 0.0:
 		_pop(global_position, false)
@@ -141,10 +153,18 @@ func _physics_process(delta: float) -> void:
 	var target := _target(hit.collider as Node)
 	var what := "miss"
 	if target:
-		var was_down: bool = target.get("defeated") == true
-		what = str(target.shot(power, hit.position, velocity.normalized()))
-		if what == "hit" and not was_down and target.get("defeated") == true and shooter and shooter.get("popper"):
-			shooter.popper.popped.emit(target, self)       # popped it (on the board, that's a trick: skate.gd)
+		what = _hit_target(target, hit.position)
+	elif bounces_left > 0:
+		# The Bounce mod: off the ground or a wall it goes (and with Freeze too, a frosty puff where it bounced)
+		bounces_left -= 1
+		velocity = velocity.bounce(hit.normal) * 0.85
+		global_position = hit.position + hit.normal * 0.05
+		_life = maxf(_life, 0.8)
+		Audio.play_at("boing", hit.position, -8.0, 0.2)
+		Fx.burst(get_parent(), hit.position, color, 6, 0.04, 1.5, 0.0, 0.3)
+		if Arsenal.has_mod(gadget(), "freeze"):
+			Arsenal.impact(hit.position, gadget(), get_parent())
+		return
 	if what == "bounce" and _bounces < 2:
 		# An armoured shell: boing off it (and come back towards her a bit)
 		_bounces += 1
@@ -158,7 +178,22 @@ func _physics_process(delta: float) -> void:
 		Fx.burst(get_parent(), hit.position, color, 10, 0.08, 2.5, -1.0, 0.5)
 		global_position = to
 		return
+	if what == "hit" or target == null:
+		Arsenal.impact(hit.position, gadget(), get_parent())   # the Freeze mod's frosty puff
 	_pop(hit.position, what == "hit")
+
+
+func _hit_target(target: Node, at: Vector3) -> String:
+	# It touched something that can be shot: say what happened ("hit", "bounce" or "miss")
+	var was_down: bool = target.get("defeated") == true
+	var p := power
+	if Arsenal.is_plush(target):
+		Arsenal.unplush(target, true)                      # a plushie pops at one touch
+		p = 99
+	var what := str(target.shot(p, at, velocity.normalized()))
+	if what == "hit" and not was_down and target.get("defeated") == true and shooter and shooter.get("popper"):
+		shooter.popper.popped.emit(target, self)           # popped it (on the board, that's a trick: skate.gd)
+	return what
 
 
 static func _target(n: Node) -> Node:

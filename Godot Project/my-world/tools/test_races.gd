@@ -274,9 +274,11 @@ func _run() -> void:
 	check(t.get_node_or_null("Tune-Up") != null and t.get_node("Tune-Up").find_child("Tune-Up Spot", true, false) != null,
 		"Zippy's Tune-Up stands past the race board")
 	check(t.get_node("Tune-Up").global_position.distance_to(t.point_at(-15.0)) > 6.0, "...off the track")
-	var tune: Array = shop.items.values().filter(func(i: Dictionary) -> bool: return i.stall == "Tune-Up")
+	# (The Tune-Up also builds the new rides from their schematics: tools/test_schematics.gd checks those)
+	var tune: Array = shop.items.values().filter(func(i: Dictionary) -> bool: return i.stall == "Tune-Up" and i.kind != "ride")
 	check(tune.size() == 13, "it sells 4 upgrades in 3 levels and the Starter Star (%d)" % tune.size())
-	check(shop.for_stall("Tune-Up").size() == 5, "...showing just the next level of each (%d)" % shop.for_stall("Tune-Up").size())
+	var listed: Array = shop.for_stall("Tune-Up").filter(func(i: Dictionary) -> bool: return i.kind != "ride")
+	check(listed.size() == 5, "...showing just the next level of each (%d)" % listed.size())
 	game.sparkles = 200
 	check(shop.can_buy("tune_wheels_2") != "", "level 2 waits for level 1 (%s)" % shop.can_buy("tune_wheels_2"))
 	var base_push: float = s.ride.push_speed

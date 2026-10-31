@@ -5,6 +5,8 @@ extends Node3D
 # where it lands in a big splash of fizz. Every enemy in the splash is told it was shot (shot(power, point, dir)), so
 # Gloops get bubbled and pop away and a Crocodillo goes dizzy, the same as with the Star Popper. A rolled-up
 # Crocodillo's shell keeps the fizz out. The Mega Fizz (V5) throws three little fizz bombs out of each splash.
+# Mods (scripts/arsenal.gd): Bounce makes it bounce once off the ground before it bursts, Freeze leaves a frosty
+# puff in the splash, and Split throws two (StarPopper.shoot). The splash pops ammo crates too.
 
 const GRAVITY := 18.0
 const LIFE := 3.0
@@ -18,6 +20,7 @@ var splits := false                       # the Mega Fizz's splash throws three 
 var shooter: CollisionObject3D
 var popper: Node                          # whose popped signal pops go to (StarPopper)
 var popped_count := 0                     # tests read it
+var bounces := 0                          # times it's bounced (the Bounce mod)
 var _life := LIFE
 var _bottle: Node3D
 
@@ -77,6 +80,13 @@ func _physics_process(delta: float) -> void:
 	if hit.is_empty():
 		global_position = to
 		return
+	if bounces == 0 and Arsenal.has_mod("fizz", "bounce") and StarBubble._target(hit.collider as Node) == null:
+		bounces += 1                               # boing! off the ground, then it bursts where it next lands
+		velocity = velocity.bounce(hit.normal) * 0.6
+		global_position = hit.position + hit.normal * 0.1
+		_life = maxf(_life, 1.5)
+		Audio.play_at("boing", hit.position, -6.0, 0.2)
+		return
 	burst(hit.position + hit.normal * 0.1)
 
 
@@ -92,11 +102,14 @@ func burst(at: Vector3) -> int:
 			continue
 		var away := c - at
 		away.y = 0.0
-		var what := str(e.shot(power, c, away.normalized() if away.length() > 0.01 else Vector3.FORWARD))
-		if what == "hit" and e.get("defeated") == true:
+		var was_down: bool = e.get("defeated") == true
+		Arsenal.hit(e, power, away.normalized() if away.length() > 0.01 else Vector3.FORWARD, "fizz")
+		if not was_down and e.get("defeated") == true:
 			popped_count += 1
-			if popper and popper.has_signal("popped"):
-				popper.popped.emit(e, self)
+	for c in get_tree().get_nodes_in_group("ammo_crates"):
+		if (c as Node3D).global_position.distance_to(at) < radius + 0.5:
+			c.shot(1, at, Vector3.UP)
+	Arsenal.impact(at, "fizz", parent)
 	# A big fizzy splash: a dome of fizz that swells and fades, with bubbles and drops flying out
 	Fx.burst(parent, at, TEAL, 26, 0.12, 5.0, -4.0, 0.8)
 	Fx.burst(parent, at, Color(0.9, 1.0, 1.0, 0.8), 18, 0.07, 3.5, 2.0, 0.9)

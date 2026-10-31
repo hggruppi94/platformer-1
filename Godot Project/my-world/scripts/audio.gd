@@ -51,6 +51,12 @@ const CAPTIONS := {
 	"splash": "[splash]",
 	"boing": "[boing!]",
 	"bubbles": "[bubbles gurgle]",
+	"plush_poof": "[poof!]",
+	"buzz": "[bots buzz]",
+	"rainbow_pop": "[rainbow chime]",
+	"jelly": "[jelly wobbles]",
+	"frost": "[frosty tinkle]",
+	"crate": "[bubble wrap pops]",
 }
 
 var _cache := {}
@@ -97,7 +103,8 @@ func _make_music_player() -> AudioStreamPlayer:
 func _stream(name: String) -> AudioStream:
 	if not _cache.has(name):
 		var path := SFX_DIR + name + ".wav"
-		_cache[name] = load(path) if ResourceLoader.exists(path) else null
+		# The newer gadgets' sounds are made in code until there's a recording (scripts/gadget_sfx.gd)
+		_cache[name] = load(path) if ResourceLoader.exists(path) else (GadgetSfx.stream(name) if GadgetSfx.has(name) else null)
 	return _cache[name]
 
 

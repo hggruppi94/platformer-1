@@ -121,7 +121,7 @@ func _physics_process(delta: float) -> void:
 	to_t.y = 0
 	var want := Vector3.ZERO
 	if _squash <= 0.0 and to_t.length() > 0.3:
-		want = to_t.normalized() * speed
+		want = to_t.normalized() * speed * Arsenal.slow(self)        # (frosty from the Freeze mod: slower)
 	var h := Vector3(velocity.x, 0, velocity.z).move_toward(want, 12.0 * delta)
 	velocity.x = h.x
 	velocity.z = h.z
