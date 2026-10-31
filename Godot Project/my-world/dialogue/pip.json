@@ -19,14 +19,14 @@
               "set": "pip_lamps_start",
               "lines": [
                 "YAY! Look along the shore. And by the dock. And on the boardwalk. Shells like to be near water.",
-                "Oh! And Dash has something new and fizzy at his stall. And the Skate Park has letters hidden in it! So much to do!"
+                "Oh! And I saw a glowing blue schematic on the promenade, right by the portal. Take it to Dash and he can build something fizzy! And the Skate Park has letters hidden in it! So much to do!"
               ]
             },
             {
               "text": "Maybe in a bit.",
               "lines": [
                 "Okay! The shells will wait. Shells are very patient.",
-                "Dash has something new and fizzy at his stall, too. And the Skate Park has letters hidden in it!"
+                "There's a glowing blue schematic on the promenade by the portal, too. Dash can build something fizzy from it! And the Skate Park has letters hidden in it!"
               ]
             }
           ]
@@ -41,7 +41,7 @@
       "set": "n2_pip",
       "lines": [
         "{player}! You came back! I waited right here by the portal. It's the glowiest spot, so I knew you'd find me.",
-        "Dash has something new and fizzy at his stall tonight. And the Skate Park has letters hidden in it! S, K, A, T, E!",
+        "There's a schematic glowing on the promenade tonight. Take it to Dash! And the Skate Park has letters hidden in it! S, K, A, T, E!",
         "I'm going to go and say hi to my lamps. See you later!"
       ]
     },

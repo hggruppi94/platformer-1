@@ -97,6 +97,9 @@ func _run() -> void:
 	check(popper.find_child("GadgetWheel", true, false) != null, "the wheel is on her HUD")
 
 	# --- Buying ---
+	# (Each gadget needs its schematic found first: tools/test_schematics.gd checks that. Here they're all found.)
+	for e in root.get_node("Schematics").LIST:
+		root.get_node("Dialogue").set_flag("schematic_" + str(e.id))
 	game.sparkles = 5
 	check(shop.can_buy("fizz_flinger") == "Not enough sparkles yet", "the Fizz Flinger costs sparkles")
 	check(shop.can_buy("fizz_refill") != "", "...and there's nothing to refill yet (%s)" % shop.can_buy("fizz_refill"))

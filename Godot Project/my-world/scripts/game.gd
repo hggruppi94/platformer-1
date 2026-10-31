@@ -48,6 +48,7 @@ var riding := false              # skateboard equipped
 var hero := Hero.blank()         # the player's own character, made in the character creator (scripts/hero.gd)
 var needs_creator := false       # a new game (or an old save from before heroes): open the creator on arriving
 var popper_colour := "classic"   # the Star Popper's colours (StarPopper.COLOURS); others are earned (Watches)
+var hero_ride := "board"         # what the hero rides (Rides.HERO_RIDES); others are unlocked by schematics (Schematics)
 var home := {}                   # how the player's house is decorated: part -> colour number, spot -> item (scripts/home_decor.gd)
 var outfits := {"hero": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
 var looks := {}                  # how everyone looks: who -> {part -> colour number}; 0 or missing is their own
@@ -309,7 +310,7 @@ func save_game() -> void:
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "needs_creator": needs_creator, "home": home,
-		"popper_colour": popper_colour, "play_time": play_time,
+		"popper_colour": popper_colour, "play_time": play_time, "hero_ride": hero_ride,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"dialogue": Dialogue.save_data(),
@@ -417,6 +418,9 @@ func load_game() -> void:
 		outfits.erase("nina")
 	home = data.get("home", {}) if data.get("home", {}) is Dictionary else {}
 	popper_colour = str(data.get("popper_colour", "classic"))
+	hero_ride = str(data.get("hero_ride", "board"))         # saves from before the new rides ride a board
+	if not Rides.HERO_RIDES.has(hero_ride) or not (hero_ride == "board" or has_item("ride:" + hero_ride)):
+		hero_ride = "board"
 	play_time = float(data.get("play_time", 0.0))
 	looks = {}
 	var all_looks = data.get("looks", {})
@@ -524,6 +528,7 @@ func new_game() -> void:
 	needs_creator = true
 	home = {}
 	popper_colour = "classic"
+	hero_ride = "board"
 	sparkles = 0
 	sparkles_taken.clear()
 	play_time = 0.0

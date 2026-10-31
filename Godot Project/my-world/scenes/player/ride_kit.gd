@@ -44,6 +44,22 @@ static func build(kit: String, ride: Node3D, model: Node3D) -> Dictionary:
 			_leaf(ride)
 		"segway":
 			_segway(ride)
+		# The hero's own rides, unlocked with schematics (scripts/schematics.gd, Rides.HERO_RIDES)
+		"overboard":
+			_overboard(ride)
+		"rocket_board":
+			ride.add_child(load(SKATEBOARD).instantiate())
+			out.flames = _rockets(ride, [Vector3(-0.07, 0.17, -0.36), Vector3(0.07, 0.17, -0.36)], 0.045)
+		"rocket_bike":
+			var rb: Node3D = load(BIKE).instantiate()
+			ride.add_child(rb)
+			out.anim = rb.find_child("AnimationPlayer", true, false)
+			if out.anim and (out.anim as AnimationPlayer).has_animation("ride"):
+				(out.anim as AnimationPlayer).get_animation("ride").loop_mode = Animation.LOOP_LINEAR
+				(out.anim as AnimationPlayer).play("ride")
+			out.flames = _rockets(ride, [Vector3(0, 0.62, -0.62)], 0.08)
+		"saucer":
+			_saucer(ride)
 	return out
 
 
@@ -198,3 +214,124 @@ static func _segway(ride: Node3D) -> void:
 	_rod(ride, Vector3(-0.3, 1.05, 0.5), Vector3(0.3, 1.05, 0.5), 0.03, metal)
 	_rod(ride, Vector3(0.3, 1.05, 0.5), Vector3(0.3, 1.45, 0.5), 0.012, metal)
 	_box(ride, Vector3(0.02, 0.14, 0.22), Vector3(0.3, 1.38, 0.6), _mat(Color(0.95, 0.3, 0.45), 0.6))
+
+
+static func _overboard(ride: Node3D) -> void:
+	# A hoverboard: a slim lilac deck with a glowing teal strip under it, floating on two soft pads of light
+	var deck := MeshInstance3D.new()
+	var cap := CapsuleMesh.new()
+	cap.radius = 0.13
+	cap.height = 0.9
+	deck.mesh = cap
+	deck.material_override = _mat(Color(0.78, 0.6, 1.0), 0.3, 0.3)
+	deck.rotation.x = PI / 2
+	deck.scale = Vector3(1.0, 1.0, 0.22)
+	deck.position = Vector3(0, 0.3, 0)                 # up at her feet (its "deck" in Rides.HERO_RIDES), floating
+	ride.add_child(deck)
+	var glow := _mat(Color(0.4, 1.0, 0.9), 0.5, 0.0, 2.5)
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_box(ride, Vector3(0.06, 0.015, 0.7), Vector3(0, 0.27, 0), glow)
+	for z in [-0.28, 0.28]:
+		var pad := MeshInstance3D.new()
+		var t := TorusMesh.new()
+		t.inner_radius = 0.06
+		t.outer_radius = 0.1
+		pad.mesh = t
+		pad.material_override = glow
+		pad.position = Vector3(0, 0.2, z)
+		ride.add_child(pad)
+	var light := OmniLight3D.new()
+	light.light_color = Color(0.4, 1.0, 0.9)
+	light.light_energy = 0.7
+	light.omni_range = 2.0
+	light.position = Vector3(0, 0.1, 0)
+	ride.add_child(light)
+
+
+static func _rockets(ride: Node3D, at: Array, radius: float) -> Node3D:
+	# Little rocket tubes pointing backwards, each with a flame out of its end. The flames are returned together as
+	# one node, so the skating can make them burn brighter while she pushes and boosts (skate.gd)
+	var tube := _mat(Color(0.95, 0.35, 0.55), 0.3, 0.5)
+	var fin := _mat(Color(1.0, 0.85, 0.35), 0.4, 0.6)
+	var flames := Node3D.new()
+	flames.name = "Flames"
+	ride.add_child(flames)
+	var fire := _mat(Color(1.0, 0.65, 0.2), 0.5, 0.0, 3.0)
+	fire.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fire.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	fire.albedo_color.a = 0.85
+	for p in at:
+		var pos: Vector3 = p
+		_rod(ride, pos + Vector3(0, 0, 0.16), pos - Vector3(0, 0, 0.02), radius, tube)
+		_box(ride, Vector3(radius * 3.0, 0.01, 0.06), pos + Vector3(0, 0, 0.02), fin)
+		var pivot := Node3D.new()                  # at the tube's mouth, so a flame grows out backwards from it
+		pivot.position = pos - Vector3(0, 0, 0.02)
+		flames.add_child(pivot)
+		var f := MeshInstance3D.new()
+		var cone := CylinderMesh.new()
+		cone.top_radius = radius * 0.9
+		cone.bottom_radius = 0.0
+		cone.height = 0.22
+		f.mesh = cone
+		f.material_override = fire
+		f.rotation.x = PI / 2                      # wide at the tube, the point out the back
+		f.position = Vector3(0, 0, -0.11)
+		f.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		pivot.add_child(f)
+	var light := OmniLight3D.new()
+	light.light_color = Color(1.0, 0.6, 0.25)
+	light.light_energy = 0.8
+	light.omni_range = 2.0
+	light.position = (at[0] as Vector3) - Vector3(0, 0, 0.3)
+	flames.add_child(light)
+	return flames
+
+
+static func _saucer(ride: Node3D) -> void:
+	# A little flying saucer she stands in: a silver disc with a lilac rim, round lights and a glow underneath, in the
+	# mothership's colours
+	var hull := MeshInstance3D.new()
+	var s := SphereMesh.new()
+	s.radius = 0.6
+	s.height = 1.2
+	hull.mesh = s
+	hull.material_override = _mat(Color(0.82, 0.84, 0.92), 0.25, 0.8)
+	hull.scale = Vector3(1.0, 0.22, 1.0)
+	hull.position = Vector3(0, 0.36, 0)          # her feet are on its top (deck 0.42)
+	ride.add_child(hull)
+	var rim := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.55
+	t.outer_radius = 0.66
+	rim.mesh = t
+	rim.material_override = _mat(Color(0.75, 0.55, 1.0), 0.3, 0.3, 0.6)
+	rim.position.y = 0.36
+	ride.add_child(rim)
+	var bulbs := _mat(Color(1.0, 0.9, 0.45), 0.4, 0.0, 2.5)
+	for i in 8:
+		var a := TAU * i / 8.0
+		var b := MeshInstance3D.new()
+		var bs := SphereMesh.new()
+		bs.radius = 0.035
+		bs.height = 0.07
+		b.mesh = bs
+		b.material_override = bulbs
+		b.position = Vector3(cos(a) * 0.6, 0.39, sin(a) * 0.6)
+		ride.add_child(b)
+	var under := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 0.3
+	c.bottom_radius = 0.18
+	c.height = 0.06
+	under.mesh = c
+	var gm := _mat(Color(0.5, 1.0, 0.85), 0.5, 0.0, 2.5)
+	gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	under.material_override = gm
+	under.position = Vector3(0, 0.24, 0)
+	ride.add_child(under)
+	var light := OmniLight3D.new()
+	light.light_color = Color(0.5, 1.0, 0.85)
+	light.light_energy = 1.0
+	light.omni_range = 3.0
+	light.position = Vector3(0, 0.05, 0)
+	ride.add_child(light)

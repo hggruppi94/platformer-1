@@ -3,8 +3,8 @@ extends Node
 # Autoload "Nights": a reason to come back every night (plan prompt F4). Each Galaxity visit after The First Night
 # shows off something new: a friend waiting by the portal, a place, a gadget, a race or a skate goal. Nothing is ever
 # locked behind a grind: a night's things are spotlighted ("Night 2! Pip's waiting for you by the portal..." when you
-# land, a short skippable quest with stars on the map, a line on the Goals page), and the real unlocks are only the
-# ones the game already had (races open in order, Dash's watch rewards).
+# land, a short skippable quest with stars on the map, a line on the Goals page), and each night puts out one or two
+# schematics (scripts/schematics.gd): the real unlocks, for Dash's gadgets and the new rides at Zippy's Tune-Up.
 #
 # The whole 7-night plan is in /mnt/project-files/roadmap/galaxity-plan.md (F4). Nights 1 and 2 are built; the rest
 # wait for Hayden to look at the plan. A night is its own quest file (quests/night_<n>.json), started by the flag
@@ -21,8 +21,8 @@ const NIGHTS := [
 	{"n": 1, "quest": "first_night", "title": "The First Night",
 		"new": "the Market, the Star Popper, the Skate Park, Tally's board, the Lake Loop and the Gloop King"},
 	{"n": 2, "quest": "night_2", "title": "Pip's Lamps",
-		"new": "Pip's waiting by the portal, the Fizz Flinger at Dash's stall, and S-K-A-T-E letters in the Skate Park",
-		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and Dash has something fizzy at his stall.",
+		"new": "Pip's waiting by the portal, the Fizz Flinger's schematic, and S-K-A-T-E letters in the Skate Park",
+		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and there's a schematic glowing on the promenade.",
 		"tease": "Pip has something to show you by the boardwalk..."},
 ]
 
@@ -90,7 +90,7 @@ func _step(quest_id: String) -> String:
 
 
 func _on_shop(stall: String) -> void:
-	if stall == "Gadget" and _step("night_2") == "explore":
+	if stall == "Gadget" and _step("night_2") == "explore" and Schematics.is_found("fizz"):
 		Dialogue.set_flag("n2_fizz")
 
 
@@ -143,6 +143,9 @@ func goals() -> Array:
 	var g := _gadget_goal()
 	if g != "":
 		aim.append(g)
+	var rd := _ride_goal()
+	if rd != "":
+		aim.append(rd)
 	var s := _skate_goal()
 	if s != "":
 		aim.append(s)
@@ -184,21 +187,35 @@ func _race_goal() -> String:
 
 
 func _gadget_goal() -> String:
+	# A gadget she can buy now (its schematic's found), else the next schematic to look for, else growing the one out
 	var cheapest := {}
 	for id in Shop.items:
 		var it: Dictionary = Shop.items[id]
-		if str(it.get("kind", "")) == "gadget" and not Arsenal.owns(str(it.get("gadget", ""))):
+		var g := str(it.get("gadget", ""))
+		if str(it.get("kind", "")) == "gadget" and not Arsenal.owns(g) and Schematics.gadget_unlocked(g):
 			if cheapest.is_empty() or int(it.price) < int(cheapest.price):
 				cheapest = it
 	if not cheapest.is_empty():
 		var have := Game.sparkles
 		return "Gadgets: the %s at Dash's stall, ✦ %d%s" % [str(cheapest.name), int(cheapest.price),
 			" (you can afford it!)" if have >= int(cheapest.price) else " (you have %d)" % have]
+	var sch := Schematics.next_hint()
+	if not sch.is_empty():
+		return "Schematic: find the %s's. %s" % [Schematics.thing_name(sch), str(sch.hint)]
 	var id := str(Arsenal.current)
 	if Arsenal.level(id) < Arsenal.MAX_LEVEL:
 		var need: int = Arsenal.LEVEL_XP[Arsenal.level(id)] - int(Arsenal.xp.get(id, 0))
 		return "Gadgets: %d more pops with the %s and it grows to V%d" % [maxi(need, 1), Arsenal.gadget_name(id),
 			Arsenal.level(id) + 1]
+	return ""
+
+
+func _ride_goal() -> String:
+	# A ride with its schematic found but not built yet, at Zippy's Tune-Up
+	for r in Rides.HERO_ORDER:
+		var item: Dictionary = Shop.items.get("ride_" + str(r), {})
+		if not item.is_empty() and Schematics.ride_unlocked(str(r)) and not Schematics.owns_ride(str(r)):
+			return "Rides: Zippy can build you the %s at the Tune-Up, ✦ %d" % [str(item.name), int(item.price)]
 	return ""
 
 
