@@ -69,6 +69,46 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Gadgets, slices 2 and 3 (Hayden: "lets start with the next thing", prompts G2 and G3). All in code, so no
+  scene was rebuilt; `Arsenal` places the new things at play time like the stall.
+  - **Mods** (`Arsenal.MODS`): Freeze, Split, Bounce, Sparkle Magnet, sold at **Dash's workbench** (beside his stall,
+    `_workbench()` in `gadget_stall.gd`, shop stall "Workbench", kind `mod`). Every gadget has two slots
+    (`Arsenal.slots`, `fit()`, `cycle_mod()`); a mod she owns fits every gadget at once, but not both slots of one.
+    Freeze: where a shot pops or splashes, a frosty puff (`scripts/frost_puff.gd`, `Arsenal.impact()`) chills enemies
+    for 4 s (`Arsenal.chill()`/`slow()`: Gloops and Crocodillos move at 35%, with a snowflake and sparkles). Split: two
+    of every shot, a bit smaller (`StarPopper.shoot`; two more Buzz Bots; two rainbow beams; two jellies). Bounce: off
+    the ground or a wall once (bubbles, plush bolts, bot bubbles, fizz bombs, the disco ball; the rainbow beam bends
+    once; jelly mines hop at enemies). Magnet: while that gadget is out, sparkles within 9 m fly to her
+    (`Sparkle.magnet_to`, group "sparkles") and ammo bubbles drift from 9 m. **Combos** (`Arsenal.COMBOS`, by the two
+    mods sorted): Icy Shards (Freeze + Split: puffs throw shards at the 3 nearest enemies, each a hit), Snowball
+    Bounce (bounces leave puffs), Pinball (split shots bounce twice), and Magnet with anything doubles ammo drops.
+  - **Upgrades** (`Arsenal.UPGRADES`, made into shop items `upgrade_<gadget>_<kind>_<level>` in `_register_shop()`):
+    Bigger Tank (+25% ammo a level, not on the Star Popper), Quick Hands (-10% cooldown), Big Splash (+12% radius:
+    splash, dance floor, beam, bot reach, plush reach, popper bubble size), three levels each, 4 to 15 sparkles; the
+    bench shows only the next level of each for gadgets she owns. They're folded into `Arsenal.stat()`.
+  - **Four new gadgets**, each with V1-V5 and a Mega: **Plushinator** (`scripts/plush_bolt.gd`, extends StarBubble):
+    turns an enemy into a plushie for 4-8 s (`Arsenal.plush()`: physics off, Visual hidden, a toy built from shapes);
+    one touch of anything pops it for 1-2 sparkles; Plush Party (V5) plushes everyone within 3.5 m. Not the Gloop King
+    or a shelled Crocodillo. **Buzz Bots** (`scripts/buzz_bots.gd`): 3 gold bots orbit her for 12-20 s and blow bubbles
+    (gadget "buzz") at the nearest enemy in reach; Buzz Swarm (V5) is 5. **Rainbow Ray** (`scripts/rainbow_ray.gd`):
+    held Shoot (`StarPopper.shine()`, 1 ammo per 0.25 s), a striped beam 10-14 m; enemies in it fill with colour and
+    pop; Double Rainbow (V5) goes through a whole row. **Jelly Mines** (`scripts/jelly_mine.gd`): dropped in front of
+    her, up to 5 out for 40 s; enemies walking in stick, wobble and pop; Jelly Jamboree (V5) leaves two little ones.
+    Sold at the stall (12-20 sparkles) with refills; refills only show for gadgets she owns.
+  - `Arsenal.hit(enemy, power, dir, gadget)` is the one way the new gadgets hit things (plushies pop at one touch, pops
+    credit the gadget through `StarPopper.popped`); `StarBubble._hit_target()` does the same for bubbles. Fizz and
+    disco use it too.
+  - **Ammo crates** (`scripts/ammo_crate.gd`, `Arsenal.CRATES`, dropped onto the ground): 10 bubble-wrapped crates
+    (Market Square, 3 by the Gloop King, Skate Park, tree house, Spooky Woods, the far field, the lake shore). Pop one
+    with anything or walk into it: every gadget refills by half. Back every day.
+  - **Sounds** are made in code (`scripts/gadget_sfx.gd`, used by `Audio._stream()` when there's no .wav), since cloud
+    sessions can't upload LFS wavs: plush_poof, buzz, rainbow_hum (loops), rainbow_pop, jelly, frost, crate.
+  - UI: the wheel has seven slots, each with two mod dots, and names the mods and combo in the middle; the readout
+    shows the mod dots. The Bag sheet has a **Gadgets** page (each gadget's version, ammo, upgrades and two "Mod n"
+    buttons). The shop's rows now scroll past 60% of the screen.
+  - Tests: `tools/test_arsenal.gd` has 120+ checks (every mod on every gadget, combos, upgrades, the new gadgets and
+    their Megas, crates on open ground, sounds, saving). New capture `tools/capture_arsenal_mods.gd` (shots in the
+    project files under world/previews/arsenal, made in the cloud).
 - 2026-10-31: Rolling hills round Stars Hollow (Hayden: "add more rolling hills"). `EarthLand.ROLLS` is 17 round humps
   (cosine bumps, 2 to 4.8 m high, overlapping into rolls, slopes at most about 24 degrees, so a board rolls up and over)
   in the open ground nothing is built on: the east fields past the Corner Market and the skate yard, south of the dance
@@ -280,8 +320,7 @@ Read this first in every session so each iteration builds on the last one and do
   degrees and 15.5 m round the fountain, on the south side, not in `town.tscn`) sells them through the Shop: `Shop.register_kind(kind, {can_buy,
   buy, button})` lets another system own a kind (`gadget`, `ammo` here; the races use it too). Test
   `tools/test_arsenal.gd` (uses its own save backup name), previews `tools/capture_arsenal.gd`,
-  `previews/arsenal/`. Next slices: buyable upgrades and mods that combine (Freeze, Split, Bounce, Sparkle Magnet),
-  then more gadgets (Plushinator, Buzz Bots, Rainbow Ray, Jelly Mines) and ammo crates.
+  `previews/arsenal/`. Slices 2 and 3 (mods, upgrades, four more gadgets, crates) are in: see 2026-10-31.
 - 2026-10-29: The nightly request board (Hayden, "The First Night" prompt A). A lilac board with a spinning gold star
   stands at the edge of the Market Square (250 degrees round the fountain, mirroring Rex's noticeboard), and Tally,
   the tall yellow little alien, a bit bigger than the crowd and holding a clipboard, walks a ring round the fountain

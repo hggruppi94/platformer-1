@@ -9,7 +9,9 @@ extends Control
 #   1-8 / D-pad left and right         pick one straight away / the one before or after.
 #
 # The readout shows the gadget that's out, its version, its ammo and how close it is to growing a version. It only
-# shows once she has more than the Star Popper.
+# shows once she has more than the Star Popper (or a mod).
+# Each gadget's two mod slots (Arsenal: mods) show as little dots under it, in the mod's colour (an empty ring for an
+# empty slot), and the middle of the wheel names the mods and their combo. Mods are swapped in the Bag.
 
 const HOLD := 0.2                         # seconds held before the wheel opens (shorter is a tap)
 const SLOW := 0.2                         # how fast the game runs while the wheel is open
@@ -133,7 +135,7 @@ func slot_angle(i: int) -> float:
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	var s := Settings.text_scale
-	if Arsenal.owned.size() > 1 and not open:
+	if (Arsenal.owned.size() > 1 or not Arsenal.mods_owned.is_empty()) and not open:
 		_draw_readout(font, s)
 	if open:
 		_draw_wheel(font, s)
@@ -154,6 +156,7 @@ func _draw_readout(font: Font, s: float) -> void:
 	var ammo_text := "∞" if am < 0 else "%d / %d" % [am, Arsenal.max_ammo(id)]
 	draw_string(font, Vector2(x, at.y + 46.0 * s), ammo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, roundi(17 * s),
 		Color(1.0, 0.55, 0.6) if am == 0 else Color(0.8, 1.0, 0.95))
+	_mod_dots(id, Vector2(at.x + w - 40.0 * s, at.y + 42.0 * s), 6.0 * s)
 	var bar := Rect2(Vector2(x, at.y + h - 10.0 * s), Vector2(w - h - 12.0, 5.0 * s))
 	draw_rect(bar, Color(1, 1, 1, 0.15))
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * Arsenal.progress(id), bar.size.y)), Color(1.0, 0.82, 0.3))
@@ -179,6 +182,7 @@ func _draw_wheel(font: Font, s: float) -> void:
 			var am := Arsenal.ammo_of(id)
 			draw_string(font, p + Vector2(-rad, rad + 28.0 * s), "∞" if am < 0 else str(am), HORIZONTAL_ALIGNMENT_CENTER,
 				rad * 2.0, roundi(16 * s), Color(1.0, 0.55, 0.6) if am == 0 else Color(1, 1, 1))
+			_mod_dots(id, p + Vector2(0, -rad - 14.0 * s), 5.0 * s)
 		else:
 			draw_string(font, p + Vector2(-rad, 10.0 * s), "?", HORIZONTAL_ALIGNMENT_CENTER, rad * 2.0, roundi(30 * s),
 				Color(0.7, 0.65, 0.75))
@@ -188,6 +192,17 @@ func _draw_wheel(font: Font, s: float) -> void:
 			roundi(22 * s), Color(1, 0.95, 0.8))
 		draw_string(font, c + Vector2(-r, 22.0 * s), "V%d" % Arsenal.level(hover), HORIZONTAL_ALIGNMENT_CENTER, r * 2.0,
 			roundi(18 * s), Color(1.0, 0.82, 0.3))
+		var ms := Arsenal.mods(hover)
+		if not ms.is_empty():
+			var names: Array[String] = []
+			for m in ms:
+				names.append(str(Arsenal.MODS[m].name))
+			draw_string(font, c + Vector2(-r, 46.0 * s), " + ".join(names), HORIZONTAL_ALIGNMENT_CENTER, r * 2.0,
+				roundi(15 * s), Color(0.8, 1.0, 0.95))
+			var combo := Arsenal.combo_name(hover)
+			if combo != "":
+				draw_string(font, c + Vector2(-r, 68.0 * s), combo + "!", HORIZONTAL_ALIGNMENT_CENTER, r * 2.0,
+					roundi(17 * s), Color(1.0, 0.6, 0.9))
 
 
 func _icon(id: String, p: Vector2, r: float) -> void:
@@ -210,6 +225,42 @@ func _icon(id: String, p: Vector2, r: float) -> void:
 				draw_rect(Rect2(p + Vector2.from_angle(a) * r * 0.3 - Vector2(r, r) * 0.08, Vector2(r, r) * 0.16),
 					DiscoBall.COLOURS[k % DiscoBall.COLOURS.size()])
 			draw_line(p + Vector2(0, -r * 0.6), p + Vector2(0, -r * 0.9), Color(1.0, 0.82, 0.3), 2.0)
+		"plush":
+			draw_circle(p + Vector2(0, r * 0.15), r * 0.42, Color(1.0, 0.85, 0.92))
+			draw_circle(p + Vector2(0, -r * 0.35), r * 0.3, Color(1.0, 0.85, 0.92))
+			for k in [-1, 1]:
+				draw_circle(p + Vector2(k * r * 0.25, -r * 0.6), r * 0.13, Color(1.0, 0.85, 0.92))
+				draw_circle(p + Vector2(k * r * 0.1, -r * 0.38), r * 0.05, Color(0.15, 0.08, 0.2))
+		"buzz":
+			for k in 3:
+				var bp := p + Vector2.from_angle(-PI / 2.0 + TAU * k / 3.0) * r * 0.45
+				draw_circle(bp, r * 0.22, Color(1.0, 0.92, 0.55))
+				draw_circle(bp + Vector2(0, -r * 0.02), r * 0.1, Color(0.3, 0.9, 0.82))
+		"rainbow":
+			for k in RainbowRay.STRIPES.size():
+				draw_arc(p + Vector2(0, r * 0.3), r * (0.75 - 0.1 * k), PI, TAU, 16, RainbowRay.STRIPES[k], r * 0.1, true)
+		"jelly":
+			var pts := PackedVector2Array()
+			for k in 13:
+				var a := PI + PI * k / 12.0
+				pts.append(p + Vector2(cos(a) * r * 0.65, sin(a) * r * 0.5 + r * 0.25))
+			draw_colored_polygon(pts, Color(0.95, 0.45, 0.6))
+			draw_circle(p + Vector2(-r * 0.2, -r * 0.02), r * 0.08, white)
+
+
+func _mod_dots(id: String, centre: Vector2, r: float) -> void:
+	# The gadget's mod slots: a dot in the mod's colour, or an empty ring
+	if Arsenal.mods_owned.is_empty():
+		return
+	var slots := Arsenal.slots_of(id)
+	for i in Arsenal.SLOTS:
+		var p := centre + Vector2((i - 0.5) * r * 3.0, 0)
+		var m := str(slots[i])
+		if m != "":
+			draw_circle(p, r + 1.5, Color(0.1, 0.05, 0.18))
+			draw_circle(p, r, Arsenal.MODS[m].colour)
+		else:
+			draw_arc(p, r, 0.0, TAU, 16, Color(1, 1, 1, 0.5), 1.5, true)
 
 
 func _star(p: Vector2, r: float, col: Color) -> void:
