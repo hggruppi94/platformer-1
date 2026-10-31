@@ -220,6 +220,27 @@ func _advance(id: String) -> void:
 	Game.save_game()
 
 
+func can_skip(id: String) -> bool:
+	# A quest whose file says "skippable" (the First Night) can skip its current step from the quest log
+	return bool(quest(id).get("skippable", false)) and not current_step(id).is_empty()
+
+
+func skip(id: String) -> void:
+	# Skip the step it's on: its flags are set as if it had been done (any wait is over too), and it moves on
+	if not can_skip(id):
+		return
+	var step := current_step(id)
+	var cond: Dictionary = step.get("done", {})
+	var wait := int(step.get("wait", {}).get("days", 0))
+	if wait > 0:
+		state[id].since_day = Clock.day - wait
+	if cond.has("flag"):
+		Dialogue.flags[str(cond.flag)] = true
+	for f in cond.get("flags", []):
+		Dialogue.flags[str(f)] = true
+	check()
+
+
 func _flags_ok(cond: Dictionary) -> bool:
 	if cond.has("flag") and not Dialogue.flags.has(str(cond.flag)):
 		return false

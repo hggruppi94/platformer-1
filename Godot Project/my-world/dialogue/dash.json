@@ -3,6 +3,97 @@
   "conversations": [
     {
       "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:shift"
+      },
+      "set": "fn_met_dash",
+      "lines": [
+        "WHOA. Hey! {player}! You made it! I knew you'd come. Well. I hoped. Mostly knew.",
+        "{player}: Where... am I? Who are you?",
+        "I'm Dash! And this is Galaxity! A planet that's sort of... outside of time. Time goes all stretchy here.",
+        "One hour of your Earth night is a whole day here. Dawn to dawn. Isn't that the best?",
+        "{player}: And this watch? It just appeared on my wrist!",
+        "Everyone who comes here gets one. It keeps time your own planet's way. It means you're... (He lowers his voice.) chosen.",
+        "{player}: Chosen for what?",
+        "Ah. Um. Can't say! Time ripples! Little wobbly ones! (He wobbles his hands.)",
+        "Come on! I'll be at the Market Square, by the fountain. I've got loads to show you!"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:day",
+        "not_flag": "fn_popper"
+      },
+      "do": "FirstNight.popper_from_dash",
+      "lines": [
+        "There you are! OK, first things first. Gloops.",
+        "They're little goo blobs. Totally harmless, just really, really bouncy. And they bump into you. A lot.",
+        "That's what your Star Popper's for! It blows bubbles. Press {shoot} to blow one, and hold {aim} to aim. Pop three Gloops and you're a natural!",
+        "And this is my gadget stall, right here by the fountain! Gadgets do even sillier things than bubbles. Have a look!",
+        "Oh, and Rex is at the Skate Park. He's my twin. He's a husky right now. Long story. He'll teach you to skate!",
+        "Tally has the request board in the square: people who need a hand. And Zippy runs the races, round the Lake Loop.",
+        "Oh! And see the fountain? Something shiny's stuck right on top of its water ball. A lost watch, I bet. I collect those!"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:day"
+      },
+      "lines": [
+        "How's it going, {player}? Gloops, my stall, Rex at the Skate Park, Tally's board, the watch on the fountain, and Zippy at the Lake Loop!",
+        "No rush! There's a whole day. And if you're out of time, there's always tomorrow night.",
+        "Check your quest log with {quest_log} to see what's left."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:king",
+        "flag": "popped_gloop_king",
+        "not_flag": "fn_told_dash"
+      },
+      "do": "FirstNight.crown_from_dash",
+      "lines": [
+        "YOU DID IT! You popped the GLOOP KING! I saw the whole thing! Bubbles everywhere!",
+        "{player}: He was SO bouncy.",
+        "And look what he dropped. His crown! It's yours. Champion of the west fields!",
+        "(Dash looks past you, out over the far fields. His smile goes a bit wobbly.)",
+        "{player}: What is it?",
+        "Nothing! Probably nothing. Just... sometimes there's someone out there. Really, really big. Watching.",
+        "They call him the Agent of Chaos. Don't worry about him tonight. Tonight's a good night.",
+        "Enjoy the rest of the day! When the sky goes light, the portal will pull you home. See you next Shift?"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:king"
+      },
+      "lines": [
+        "Everyone's whispering about the Gloop King. Biggest, goldest Gloop there is. He holds court in the west fields, just past here.",
+        "Watch out for his belly-flop! It sends a ring of goo across the ground. Jump over it!",
+        "Bubbles make him wobble. Keep popping and he'll pop too. I'll cheer from here!"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "watches_to_give": false,
+        "quest_step": "first_night:home"
+      },
+      "lines": [
+        "Champion of the west fields! (Dash bows.) Have fun till the sky goes light. The portal pulls you home at the end of the Shift."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

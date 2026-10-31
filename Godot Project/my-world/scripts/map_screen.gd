@@ -136,7 +136,11 @@ func quest_markers() -> Array:
 			if entry.has("unless") and Dialogue.flags.has(str(entry.unless)):
 				continue
 			var pos = null
-			if entry.has("who"):
+			if entry.has("at"):
+				# A spot of its own, in Galaxity ([x, z]: the Gloop King's court out in the west fields)
+				if not on_earth():
+					pos = Vector3(float(entry.at[0]), 0, float(entry.at[1]))
+			elif entry.has("who"):
 				var t := _talker(s, str(entry.who))
 				if t:
 					pos = (t.get_parent() as Node3D).global_position

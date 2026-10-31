@@ -1,0 +1,98 @@
+{
+  "name": "The First Night",
+  "about": "The opening quest line for a new game (scripts/first_night.gd glues it to the rest of the game). Every step can be skipped from the quest log.",
+  "skippable": true,
+  "start": {"flag": "first_night_start"},
+  "steps": [
+    {
+      "id": "evening",
+      "text": "It's evening in Stars Hollow, and someone's knocking! Say hi to Nina outside, then go and meet the town.",
+      "checklist": [
+        ["fn_nina", "Talk to Nina, outside your house"],
+        ["fn_palmer", "Meet Mr. Palmer by the gazebo"],
+        ["fn_folk", "Say hello to two more people round the green"]
+      ],
+      "done": {"flags": ["fn_nina", "fn_palmer", "fn_folk"]},
+      "where": [
+        {"who": "nina_earth", "unless": "fn_nina"},
+        {"who": "palmer_earth", "unless": "fn_palmer"},
+        {"place": "green_bench", "unless": "fn_folk"}
+      ],
+      "override": {
+        "nina_earth": {"place": "green_s", "do": "idle", "label": "first_night", "face": [0, 30]},
+        "palmer_earth": {"place": "gazebo", "do": "wander", "radius": 2.5, "label": "first_night"},
+        "dottie": {"place": "green_ne", "do": "wander", "radius": 2.5, "label": "first_night"},
+        "theo": {"place": "green_bench", "do": "idle", "label": "first_night"},
+        "lionel": {"place": "green_bench", "do": "idle", "label": "first_night"},
+        "ozzie": {"place": "green_sw", "do": "wander", "radius": 3, "label": "first_night"}
+      }
+    },
+    {
+      "id": "wait",
+      "text": "The old oak hums at midnight. Sleep in your bed \"Until the Shift\" to get there quicker, or explore till then. Your choice!",
+      "done": {"flag": "fn_midnight"},
+      "where": ["old_oak"]
+    },
+    {
+      "id": "shift",
+      "text": "It's the Shift! Walk into the portal by the old oak to cross over, then find out who's waiting on the other side.",
+      "done": {"flag": "fn_met_dash"},
+      "where": ["old_oak", {"who": "dash", "unless": "fn_met_dash"}],
+      "override": {
+        "dash": {"place": "portal", "do": "idle", "label": "first_night", "face": [22, 21]}
+      }
+    },
+    {
+      "id": "day",
+      "text": "A whole day in Galaxity! Dash, Rex, Tally and Zippy all have something to show you.",
+      "checklist": [
+        ["fn_gloops", "Pop 3 Gloops with your Star Popper"],
+        ["fn_stall", "Look at Dash's gadget stall by the fountain"],
+        ["skate_lesson_push", "Skate Park: push along with Coach Rook"],
+        ["skate_lesson_ollie", "Skate Park: pop an ollie"],
+        ["fn_request", "Finish a request from Tally's board"],
+        ["fn_fountain_watch", "Find the lost watch on the Market fountain"],
+        ["fn_zippy", "Say hi to Zippy at the Lake Loop"]
+      ],
+      "done": {"flags": ["fn_gloops", "fn_stall", "skate_lesson_push", "skate_lesson_ollie", "fn_request", "fn_fountain_watch", "fn_zippy"]},
+      "where": [
+        {"who": "dash", "unless": "fn_stall"},
+        {"who": "rex", "unless": "skate_lesson_ollie"},
+        {"place": "market", "unless": "fn_fountain_watch"}
+      ],
+      "override": {
+        "dash": {"place": "market", "do": "idle", "label": "first_night", "face": [-72, 42]},
+        "rex": {"place": "skate_park", "do": "wander", "radius": 4, "label": "first_night"}
+      }
+    },
+    {
+      "id": "king",
+      "text": "Everyone's whispering about a big golden Gloop out in the west fields, past the Market. Pop the Gloop King, then tell Dash!",
+      "checklist": [
+        ["popped_gloop_king", "Pop the Gloop King in the west fields"],
+        ["fn_told_dash", "Tell Dash all about it"]
+      ],
+      "done": {"flags": ["popped_gloop_king", "fn_told_dash"]},
+      "where": [
+        {"at": [-134, 2], "unless": "popped_gloop_king"},
+        {"who": "dash", "unless": "fn_told_dash"}
+      ],
+      "override": {
+        "dash": {"place": "market_far_west", "do": "idle", "label": "first_night", "face": [-134, 2]}
+      }
+    },
+    {
+      "id": "home",
+      "text": "What a day! Enjoy Galaxity till the Shift ends at 7 AM, when the portal pulls you home. Then find Nina.",
+      "done": {"flag": "fn_home_nina"},
+      "where": [{"who": "nina_earth", "unless": "fn_home_nina"}],
+      "override": {
+        "nina_earth": {"place": "green_s", "do": "idle", "label": "first_night", "face": [0, 30]}
+      }
+    }
+  ],
+  "reward": {
+    "message": "That was the first night of many. The portal opens again every midnight. (+10 sparkles)",
+    "sparkles": 10
+  }
+}

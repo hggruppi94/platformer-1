@@ -14,6 +14,7 @@ extends Node
 #   keep what was bought in their own save, so those items aren't added to Game.items.
 
 signal bought(item_id: String)
+signal opened(stall: String)         # a stall opened (scripts/first_night.gd: looking at Dash's gadget stall)
 
 const DATA := "res://shop/items.json"
 
@@ -188,6 +189,7 @@ func open(stall: String) -> void:
 	_note.text = ""
 	_fill()
 	_layer.visible = true
+	opened.emit(stall)
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Audio.play("ui_accept", -4.0, 0.0)

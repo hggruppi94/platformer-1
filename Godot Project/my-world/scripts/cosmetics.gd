@@ -136,6 +136,18 @@ static func hat(id: String) -> Node3D:
 			var leaf := PrismMesh.new()
 			leaf.size = Vector3(0.12, 0.1, 0.01)
 			_mesh(h, leaf, _mat(Color(0.4, 0.65, 0.25)), Vector3(0.07, 0.15, 0.02), Vector3(PI / 2, 0, 0.6))
+		"gloop_crown":
+			# Dash's prize for popping the Gloop King: a little gold crown like the King's, with a goo-green gem and a
+			# drip of goo still hanging off one point
+			var gold := _mat(Color(1.0, 0.8, 0.3), 0.2, 0.8)
+			_mesh(h, _cyl(0.2, 0.22, 0.1), gold, Vector3(0, 0.02, 0))
+			for k in 5:
+				var a := k * TAU / 5
+				_mesh(h, _cyl(0.0, 0.05, 0.12, 6), gold, Vector3(sin(a) * 0.19, 0.13, cos(a) * 0.19))
+				_mesh(h, _sphere(0.022), _mat(Color(1.0, 0.95, 0.6), 0.6, 0.6), Vector3(sin(a) * 0.19, 0.2, cos(a) * 0.19))
+			var goo := _mat(Color(0.6, 0.9, 0.2), 1.0)
+			_mesh(h, _sphere(0.04), goo, Vector3(0, 0.03, 0.215), Vector3.ZERO, Vector3(1, 1, 0.5))
+			_mesh(h, _sphere(0.022), goo, Vector3(0.12, -0.04, 0.17), Vector3.ZERO, Vector3(1, 1.6, 1))
 		_:
 			return null
 	return h

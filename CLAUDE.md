@@ -80,6 +80,30 @@ Read this first in every session so each iteration builds on the last one and do
   as a soft hump (`rolls` in `ui/earth_map.json`). `test_earth` checks each roll is there, none is too steep, nothing
   built touches one, and the countryside. `tools/capture_earth_hills.gd` (shots in the project files under
   world/previews/earth_hills, made in the cloud).
+- 2026-10-31: The First Night (Hayden: "Go", plan prompt F1). The opening quest line of a new game, so the first hour
+  has a clear path: `quests/first_night.json` (six steps, run by Quests like every other quest) plus a little glue
+  autoload, `scripts/first_night.gd` (`FirstNight`), for the bits a quest file can't do. **1 evening:** making the hero
+  sets Earth to 8 PM (the creator doesn't pause the clock) and Nina knocks; she waits on the green (`green_s`) and says
+  the oak hums at midnight; Mr. Palmer at the gazebo teaches talking, the menu and the map; then hello to two more
+  people on the green (Dottie, Theo, Mr. Page and Ozzie are kept out by quest overrides). Earth's clock holds at 11 PM
+  until this step's done, so a slow first look round never misses the first Shift. **2 wait:** Nina suggests the bed's
+  "Until the Shift". **3 shift:** through the oak; the first landing in Galaxity plays the arrival moment (a swirl
+  shader over the screen, gentle with Reduce motion) and puts the new **Shift Watch** on the hero's left wrist
+  (`shop:shift_watch`, clothes.gd); Dash waits by the portal: a planet outside time, and some people are "chosen".
+  **4 day** (a checklist): Dash at the market hands over the Star Popper (shoot tip), pop 3 Gloops (from
+  `Requests.noted`), look at his gadget stall (new `Shop.opened` signal), Rex at the Skate Park lends a board and starts
+  Coach Rook's lesson (push and ollie are on the list), finish one of Tally's requests, the fountain's lost watch
+  (`water_clock`), say hi to Zippy. **5 king:** rumours point to the west fields (map star from the new `"at": [x, z]`
+  in a step's `where`); popping him sets the flag `popped_gloop_king` (gloop_king.gd, for good) and cheers with
+  confetti; Dash at `market_far_west` gives the **Gloop Crown** (new hat in cosmetics.gd, worn straight away) and 15
+  sparkles, and hints at the Agent of Chaos watching from the far field. **6 home:** `Clock.pull_spawn` puts them in
+  bed (HomeSpawn) when the Shift ends ("Was it all a dream?"), and Nina outside says "Same time tomorrow?" (+10).
+  Every step can be skipped from the quest log: a quest file's `"skippable": true` gives the Quests sheet a "Skip this
+  step" button (`Quests.skip()`). Old saves are offered it, never forced: Nina asks once (`fn_offered`) and the Quests
+  sheet has a "Start The First Night" button. All progress is Dialogue flags (`fn_*`), so nothing new in the save.
+  Dialogue text can now say any key with `{shoot}`, `{map}`, `{player_menu}`... (Settings.prompt). The creator's
+  welcome says Stars Hollow on Earth. Test `tools/test_first_night.gd` walks it all (Shift fast-forwarded); previews
+  `tools/capture_first_night.gd`, shots in project files under world/previews/first_night/ (cloud can't push png).
 - 2026-10-31: Stars Hollow build-out, phase 3: things to do. Earth has days of the week now (`Clock.earth_day()`,
   `Clock.weekday()`: day 1 is a Friday; the HUD says "Earth, Monday"). Most of it is added at play time, so
   `earth.tscn` wasn't rebuilt (only `routines/earth_places.json`, for the festival's points).

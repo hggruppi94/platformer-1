@@ -132,6 +132,7 @@ func _call_court(count: int) -> void:
 
 func _defeated() -> void:
 	Game.message("You popped the Gloop King! (He'll be back. Kings always are.)")
+	Dialogue.set_flag("popped_gloop_king")           # remembered for good (the First Night: scripts/first_night.gd)
 	_calls_made = 0
 	_flopping = false
 	_flop_timer = 3.0
