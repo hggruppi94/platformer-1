@@ -404,10 +404,20 @@ func _starter() -> void:
 	add_child(starter)
 	place_on(starter, d, 8.5)                         # on the town side of the line, away from the lake
 	_face(starter, point_at(d))
-	var model := (load(str(track.starter.model)) as PackedScene).instantiate() as Node3D
-	model.scale = Vector3.ONE * 1.9
-	starter.add_child(model)
-	LittleAliens.vary_snout(model)
+	var model: Node3D
+	if track.starter.has("look"):
+		# An Earth kid (Pepper on Earth), made like the townsfolk (scripts/townsfolk.gd): kids are people there
+		var kid := Townsfolk.new()
+		kid.name = "Kid"
+		kid.look = track.starter.look
+		kid.extras = track.starter.get("extras", [])
+		starter.add_child(kid)
+		model = kid.model
+	else:
+		model = (load(str(track.starter.model)) as PackedScene).instantiate() as Node3D
+		model.scale = Vector3.ONE * 1.9
+		starter.add_child(model)
+		LittleAliens.vary_snout(model)
 	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if anim and anim.has_animation("idle"):
 		anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR

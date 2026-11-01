@@ -71,6 +71,23 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: The Pumpkin Run, a race round Stars Hollow on Earth (plan item 7, slice 1: "more races and skating").
+  A new track in `Races.TRACKS` (`"pumpkin_run"`, `"scene": EARTH`), placed in the Earth town at play time like the
+  others, so `earth.tscn` wasn't rebuilt. Two laps of about 345 m: start on Maple Lane heading east, round past the
+  barn dance studio, up the east side past the Corner Market, across Main Street through the gap between the bakery
+  and the toy shop on one side and the antiques and hardware shops on the other (z -53.5), down the west side to the
+  green, then Hollow Lane back to Maple Lane. Open from the start (no `"after"`). 4 boost pads, 3 rows of Star Boxes,
+  3 goo puddles, prizes 16/11/6/3. **Kids are people on Earth**, so: the starter, **Pepper**, is an Earth kid made
+  like the townsfolk (a starter can have a hero-style `"look"` and `"extras"` instead of a model: `race_track.gd
+  _starter`), and the friends racing are **Nina, Bruno and Ozzie**, copied from their townsfolk in the scene
+  (`RaceRival._townsfolk_copy()`, leaving the board, book or clipboard they carry at home) on the rides in
+  `Races.TOWNSFOLK_RIDES` (Nina's board, Bruno's SK8 Deck); spares when you ride as one of them are Juniper and Theo
+  (`"spares"`). `Races.ride_of()` and `RaceRival.display_name()` replace the direct `Rides.ride()` lookups. Pepper's
+  lines don't mention Zippy or the Sky Rings; the Goals page says "talk to Pepper in Stars Hollow"; the Earth map
+  (M / Tab) draws the route. Tests: new `tools/test_earth_race.gd` (line dry, nothing in any lane, no steep steps,
+  clear of the old oak, inside the walls, Pepper and the Earth kids, a whole race); `test_races` skips tracks in other
+  scenes. Previews: `tools/capture_earth_race.gd` (in the project files under world/previews/earth_race). Built and
+  tested in the cloud. My choices Hayden may change: the name, Pepper (name and look), the route and the prizes.
 - 2026-11-01: Bruno, Nina's little brother, from Sofi's drawing (prompt B; Hayden: "Bruno is in the reference material
   folder so use that to build him"). The drawing is from the "Kids songvideo more ideas" notes (a hippo boy in a black
   SK8 beanie, golden hair, open blue zip hoodie over an olive tee, tongue out); a crop is in

@@ -31,6 +31,7 @@ var _running := 0.0
 var _model: Node3D
 var _anim: AnimationPlayer
 var saucer := {}                     # a sky racer: {"name", "colour"} (a little alien in a mini saucer)
+var _name := ""                      # an Earth kid's name (from the townsfolk they're copied from)
 
 
 func setup(who: String, t: RaceTrack, start_d: float, start_lane: float, how_good: float) -> void:
@@ -46,11 +47,12 @@ func _ready() -> void:
 	if not saucer.is_empty():
 		_saucer()
 		return
-	_ride = Rides.ride(id)
+	_ride = Races.ride_of(id)
 	var visual := Node3D.new()
 	visual.name = "Visual"
 	add_child(visual)
-	_model = (load(_ride.model) as PackedScene).instantiate() as Node3D
+	var kid := _townsfolk_copy()
+	_model = kid if kid else (load(_ride.model) as PackedScene).instantiate() as Node3D
 	_model.name = "Rider"
 	_model.position.y = float(_ride.deck)
 	_model.rotation.y = float(_ride.stance)
@@ -58,16 +60,20 @@ func _ready() -> void:
 	var ride := Node3D.new()
 	ride.name = "Ride"
 	visual.add_child(ride)
-	if id != "hero":
-		Clothes.dress(_model, id, Game.outfits.get(id, {}), Game.looks.get(id, {}))
-	RideKit.build(str(_ride.kit), ride, _model)
+	if kid:
+		_name = str(_townsfolk_of(id).name)
+		RideKit.build(str(_ride.kit), ride, kid.model)
+	else:
+		if id != "hero":
+			Clothes.dress(_model, id, Game.outfits.get(id, {}), Game.looks.get(id, {}))
+		RideKit.build(str(_ride.kit), ride, _model)
 	_anim = _model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	var pose := str(_ride.get("anim", "skate"))
 	if _anim and _anim.has_animation(pose):
 		_anim.get_animation(pose).loop_mode = Animation.LOOP_LINEAR
 		_anim.play(pose)
 	var tag := Label3D.new()
-	tag.text = str(_ride.rider)
+	tag.text = display_name()
 	tag.font_size = 26
 	tag.pixel_size = 0.01
 	tag.outline_size = 10
@@ -100,6 +106,37 @@ func _saucer() -> void:
 	tag.position.y = 5.0
 	add_child(tag)
 	_place()
+
+
+func display_name() -> String:
+	if not saucer.is_empty():
+		return str(saucer.name)
+	return _name if _name != "" else str(Races.ride_of(id).rider)
+
+
+func _townsfolk_of(who: String) -> Node3D:
+	# The Earth kid in town with this id (the townsfolk's Routine carries it: tools/build_earth.gd _person)
+	var scene := get_tree().current_scene
+	if scene == null or not Races.TOWNSFOLK_RIDES.has(who):
+		return null
+	for r in scene.find_children("Routine", "", true, false):
+		if r.get("character_id") == who and r.get_parent() is Townsfolk:
+			return r.get_parent() as Node3D
+	return null
+
+
+func _townsfolk_copy() -> Townsfolk:
+	# On Earth the friends racing are people: a copy of their Earth self from town (scripts/townsfolk.gd), with the
+	# things they carry round town left at home (their board is under their feet now, and a book won't help)
+	var them := _townsfolk_of(id) as Townsfolk
+	if them == null:
+		return null
+	var kid := Townsfolk.new()
+	kid.look = them.look
+	kid.outfit = them.outfit
+	kid.model_path = them.model_path
+	kid.extras = them.extras.filter(func(e: Dictionary) -> bool: return not str(e.get("kind", "")) in ["skateboard", "book", "clipboard", "guitar"])
+	return kid
 
 
 func go() -> void:

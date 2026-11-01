@@ -558,10 +558,11 @@ func _draw_earth_full(c: Control, r: Rect2) -> void:
 		c.draw_circle(at, 6.0, Color(0.55, 0.9, 1.0))
 		c.draw_arc(at, 6.0, 0, TAU, 16, Color(0.1, 0.2, 0.3), 1.5)
 		_text(c, at + Vector2(0, -_fs(14)), p.name, _fs(14), Color(0.7, 0.95, 1.0), true, true)
+	_draw_races(c, r.position, r.size.x, true)                # the Pumpkin Run round town (scripts/races.gd)
 	for q in quest_markers():
 		_star(c, r.position + to_map(q.pos) * r.size, 13.0)
 	var player := nina()
 	if player:
 		_arrow(c, r.position + to_map(player.global_position) * r.size, nina_facing(), 14.0)
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    (%s to close)" % Settings.prompt("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    ⚑ Race    (%s to close)" % Settings.prompt("map")
 	_legend(c, r, legend)

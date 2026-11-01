@@ -75,6 +75,8 @@ func _run() -> void:
 
 	# --- Every track: laid out on dry, open ground ---
 	for id in races.TRACKS:
+		if races.TRACKS[id].scene != TOWN:
+			continue                                      # (the Pumpkin Run is on Earth: tools/test_earth_race.gd)
 		var tn: Node3D = races.track_node(id)
 		for i in 60:
 			if tn and tn.ready_to_race:
@@ -404,7 +406,7 @@ func _check_track(id: String, t: Node3D, p: CharacterBody3D) -> void:
 			"%s: %s stands off the track, on dry ground" % [tr.name, who])
 	# Nothing of this track sits on another track's line
 	for other in races.TRACKS:
-		if other == id or races.TRACKS[other].get("sky", false):      # (the sky race is up in the air)
+		if other == id or races.TRACKS[other].get("sky", false) or races.TRACKS[other].scene != tr.scene:      # (the sky race is up in the air)
 			continue
 		var o: Node3D = races.track_node(other)
 		var close := INF

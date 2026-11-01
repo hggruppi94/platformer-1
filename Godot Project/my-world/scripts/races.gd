@@ -27,6 +27,7 @@ signal upgraded
 enum State { IDLE, COUNTDOWN, RACING, RESULTS }
 
 const TOWN := "res://scenes/town/town.tscn"
+const EARTH := "res://scenes/earth/earth.tscn"
 const COUNTDOWN := 3.0
 const RESULTS_TIME := 7.0
 const PASS_RADIUS := 6.0             # metres from a checkpoint's middle that counts as through its ring
@@ -105,8 +106,31 @@ const TRACKS := {
 		"rivals": ["dash", "rex", "mr_palmer"],
 		"starter": {"name": "Comet", "model": "res://models/characters/little_alien_blue.glb"},
 	},
+	# On Earth, round Stars Hollow: kids are people here, so the friends racing are Earth kids from town (copied from
+	# the townsfolk in the scene, scripts/townsfolk.gd) on the rides in TOWNSFOLK_RIDES, and the starter is an Earth kid
+	# too ("look", the same hero-style look tools/build_earth.gd gives townsfolk). Open from the start: it's at home.
+	"pumpkin_run": {
+		"name": "Pumpkin Run",
+		"blurb": "two laps of Stars Hollow: Maple Lane, past the barn, behind Main Street and home by the green",
+		"scene": EARTH,
+		"laps": 2,
+		"points": [Vector2(-6, 58), Vector2(20, 58), Vector2(44, 57), Vector2(55, 44), Vector2(56, 22),
+			Vector2(48, 0), Vector2(34, -26), Vector2(28, -46), Vector2(14, -53.5), Vector2(0, -53.5), Vector2(-14, -53.5),
+			Vector2(-30, -46), Vector2(-30, -30), Vector2(-24, -8), Vector2(-24, 16), Vector2(-26, 36), Vector2(-22, 54)],
+		"boosts": [[0.5, 0.0], [4.4, 0.0], [9.5, 0.0], [14.3, 0.0]],
+		"boxes": [[2.5], [7.4], [12.5]],
+		"goo": [[3.5, -1.8], [10.6, 1.8], [15.5, -1.6]],
+		"prizes": [16, 11, 6, 3],
+		"rivals": ["nina_earth", "bruno", "ozzie"],
+		"spares": ["juniper", "theo"],
+		"starter": {"name": "Pepper", "look": {"colors": {"fur": 3, "hair": 6, "brows": 6, "top": 9, "bottoms": 6,
+			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
+			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]},
+	},
 }
-# Who rides in a friend's place when you're riding as them
+# Earth kids who race, and the ride from scripts/rides.gd each one rides (Nina's board, Bruno's SK8 Deck...)
+const TOWNSFOLK_RIDES := {"nina_earth": "nina", "bruno": "bruno", "ozzie": "nina", "juniper": "nina", "theo": "nina"}
+# Who rides in a friend's place when you're riding as them (a track can say its own: "spares")
 const SPARE_RIVALS := ["nina", "green_man", "pip"]
 # How fast each rival rides on the flat (metres per second), front of the grid to back. The player's board pushes at 9.
 const RIVAL_PACE := [9.2, 8.8, 8.4]
@@ -233,6 +257,11 @@ func tuned(ride: Dictionary) -> Dictionary:
 
 func boost_time(seconds: float) -> float:
 	return seconds * (1.0 + TURBO * level("turbo"))
+
+
+func ride_of(who: String) -> Dictionary:
+	# The ride a racer rides: their own (scripts/rides.gd), or, for an Earth kid, the one in TOWNSFOLK_RIDES
+	return Rides.ride(str(TOWNSFOLK_RIDES.get(who, who)))
 
 
 func racing() -> bool:
@@ -454,7 +483,8 @@ func lines(id := "lake_loop") -> Array:
 		if best.has(id):
 			out.append("Your best time here is %s. Beat it for ✦ %d more!" % [RaceHud.clock(float(best[id])), BEST_BONUS])
 	if not unlocked(id):
-		out.append("This one opens once you've finished the %s. Zippy starts that one, by the lake!" % TRACKS[str(tr.after)].name)
+		out.append("This one opens once you've finished the %s. %s starts that one!" % [TRACKS[str(tr.after)].name,
+			TRACKS[str(tr.after)].starter.name])
 	var choice: Array = []
 	if unlocked(id):
 		choice.append({"text": "Let's race!", "set": "race_go_" + id})
@@ -463,10 +493,10 @@ func lines(id := "lake_loop") -> Array:
 		if other != id and unlocked(other) and TRACKS[other].scene == tr.scene and not TRACKS[other].get("sky", false):
 			choice.append({"text": "Take me to the %s!" % TRACKS[other].name, "set": "race_go_" + other})
 	choice.append({"text": "Not right now."})
-	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k) and not TRACKS[k].get("sky", false))
+	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k) and not TRACKS[k].get("sky", false) and TRACKS[k].scene == tr.scene)
 	if not news.is_empty() and raced > 0:
 		out.append("Ooh, and the %s is open now! I can whizz you over." % TRACKS[news[0]].name)
-	if unlocked("sky_rings") and not best.has("sky_rings"):
+	if tr.scene == TOWN and unlocked("sky_rings") and not best.has("sky_rings"):
 		out.append("And the Sky Rings are open! Fly the mothership through the big gold ring over the lake to start.")
 	out.append({"choice": choice})
 	return out
@@ -519,7 +549,7 @@ func start(id: String) -> bool:
 		who.append(r if r != p.get("rider") else "")
 	for k in who.size():
 		if who[k] == "":
-			for spare in SPARE_RIVALS:
+			for spare in TRACKS[id].get("spares", SPARE_RIVALS):
 				if not spare in who and spare != p.get("rider"):
 					who[k] = spare
 					break
@@ -527,7 +557,7 @@ func start(id: String) -> bool:
 	for k in who.size():
 		var rival := RaceRival.new()
 		rival.name = "Racer " + str(who[k])
-		var push := float(Rides.ride(who[k]).push_speed)
+		var push := float(ride_of(who[k]).push_speed)
 		rival.setup(who[k], t, float(grid[k + 1][0]), float(grid[k + 1][1]), RIVAL_PACE[k] * pace / push)
 		get_tree().current_scene.add_child(rival)
 		rivals.append(rival)
@@ -716,7 +746,7 @@ func _finish() -> void:
 	var rows: Array = [["You", time]]
 	for r in rivals:
 		var t_est := r.finish_time if r.finished else time + maxf(laps_l - r.d, 0.0) / maxf(r.speed, 4.0)
-		rows.append([str(r.saucer.name) if not r.saucer.is_empty() else str(Rides.ride(r.id).rider), t_est])
+		rows.append([r.display_name(), t_est])
 	rows.sort_custom(func(a: Array, b: Array) -> bool: return float(a[1]) < float(b[1]))
 	# Your row stays where you really finished, whatever the guesses say
 	rows.erase(rows.filter(func(row: Array) -> bool: return row[0] == "You")[0])
