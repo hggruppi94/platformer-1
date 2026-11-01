@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Screenshots of Earth's calendar (scripts/clock.gd): the Calendar sheet in the Tab menu (this season and the next),
-# the date on the HUD, and the kids out round town on a Saturday morning instead of at school.
+# the date on the HUD, the kids out round town on a Saturday morning instead of at school, then Stars Hollow in each
+# season (scripts/seasons.gd) from the same four places, snow falling, and summer fireflies.
 # Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_calendar.gd -- <output folder>
@@ -70,6 +71,42 @@ func _run() -> void:
 	(menu._body.find_child("Cal next", true, false) as Button).pressed.emit()
 	await _shot("05_calendar_spring_break", 10)
 	menu.close()
+
+	# --- The seasons in Stars Hollow (scripts/seasons.gd): the same views in each ---
+	var seasons := current_scene.get_node("Seasons")
+	var n := 6
+	for season in ["autumn", "winter", "spring", "summer"]:
+		clock.day = clock.day_of(season, 9)                    # a Tuesday: school's on, nobody's at a festival
+		clock.set_earth_time(13 * 60.0, true)
+		clock.jumped.emit()
+		seasons.apply(season)
+		_player().global_position = Vector3(30, 1, 30)
+		_make_cam()
+		for view in [["the_green", Vector3(26, 16, 34), Vector3(0, 2, 0)],
+				["willow_pond", Vector3(-62, 9, 40), Vector3(-85, 0, 18)],
+				["main_street", Vector3(0, 7, -24), Vector3(0, 3, -70)],
+				["lookout_hill", Vector3(-70, 14, -60), Vector3(-110, 5, -100)]]:
+			cam.global_position = view[1]
+			cam.look_at(view[2])
+			_player().global_position = view[1] + Vector3(0, -3, 0)
+			await _shot("%02d_%s_%s" % [n, season, view[0]], 30)
+			n += 1
+		cam.queue_free()
+		cam = null
+	# Snow falling, close up, and summer fireflies at night
+	clock.day = clock.day_of("winter", 9)
+	seasons.apply("winter")
+	clock.set_earth_time(16 * 60.0 + 30.0, true)
+	_player().global_position = Vector3(6.0, 1.0, 16.0)
+	_make_cam()
+	cam.global_position = Vector3(9, 3.2, 24)
+	cam.look_at(Vector3(0, 2.5, 0))
+	await _shot("%02d_winter_snow_falling" % n, 60)
+	n += 1
+	clock.day = clock.day_of("summer", 9)
+	seasons.apply("summer")
+	clock.set_earth_time(22 * 60.0, true)
+	await _shot("%02d_summer_night_fireflies" % n, 60)
 	_finish()
 
 

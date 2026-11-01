@@ -16,6 +16,7 @@ extends Node
 #     "earth_tremor") and Mr. Palmer says it's "the pipes".
 #   - A lilac envelope on Mr. Palmer's porch table, addressed to "His Honour the Mayor, Mr. Palmer ... Galaxity"
 #     (Dialogue flag "read_palmer_letter"; he has a line about his "pen pal").
+# - The season (scripts/seasons.gd, a "Seasons" node): the town's leaves, ground, roofs and pond, and what's in the air.
 
 const EARTH := "res://scenes/earth/earth.tscn"
 # Shop spots: the stall, the building, and where in its own space (+Z is its front; the walk-in ones' floors are
@@ -63,6 +64,11 @@ func _on_scene_changed() -> void:
 	_place_shops(scene)
 	_place_oak(scene)
 	_place_letter(scene)
+	# The season (scripts/seasons.gd): leaves, snow, blossom and what's in the air, by Earth's calendar
+	if scene.get_node_or_null("Seasons") == null:
+		var seasons := (load("res://scripts/seasons.gd") as GDScript).new() as Node3D
+		seasons.name = "Seasons"
+		scene.add_child(seasons)
 
 
 func on_earth_scene() -> bool:

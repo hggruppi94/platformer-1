@@ -57,6 +57,17 @@ const GRASS := Color(0.47, 0.5, 0.25)
 const MUD := Color(0.32, 0.28, 0.2)
 const SAND := Color(0.62, 0.55, 0.4)
 const ROCK := Color(0.45, 0.43, 0.42)
+const SNOW := Color(0.84, 0.87, 0.93)
+# The grass in each season (Earth's calendar: scripts/clock.gd; scripts/seasons.gd calls recolor() when it changes):
+# the base and the patches it drifts toward
+const SEASON_GRASS := {
+	"spring": [Color(0.42, 0.62, 0.28), Color(0.58, 0.68, 0.3)],
+	"summer": [Color(0.33, 0.53, 0.2), Color(0.5, 0.52, 0.24)],
+	"autumn": [GRASS, Color(0.55, 0.45, 0.22)],
+	"winter": [SNOW, Color(0.8, 0.85, 0.94)],
+}
+
+static var season := "autumn"            # which season the ground is coloured for
 
 
 static func _ss(a: float, b: float, x: float) -> float:
@@ -151,10 +162,11 @@ static func color_at(x: float, z: float, h: float, slope: float) -> Color:
 	if h < WATER_Y + 0.25 and (pond_e(x, z) < 1.25 or creek_distance(x, z) < CREEK_HALF + 2.2):
 		return SAND
 	if slope > 0.9:
-		return ROCK
-	# A little variety in the grass: autumn browns and greens in big soft patches
+		return ROCK.lerp(SNOW, 0.45) if season == "winter" else ROCK
+	# A little variety in the grass: big soft patches (in autumn, browns and greens)
 	var n := sin(x * 0.11) * cos(z * 0.13) + 0.5 * sin((x + z) * 0.05)
-	return GRASS.lerp(Color(0.55, 0.45, 0.22), clampf(n * 0.35 + 0.2, 0.0, 0.6))
+	var g: Array = SEASON_GRASS.get(season, SEASON_GRASS.autumn)
+	return (g[0] as Color).lerp(g[1], clampf(n * 0.35 + 0.2, 0.0, 0.6))
 
 
 static func country_color(x: float, z: float, h: float) -> Color:
@@ -164,7 +176,18 @@ static func country_color(x: float, z: float, h: float) -> Color:
 	var pick := absi(int(fx * 7.0 + fz * 13.0)) % 4
 	var field: Color = [Color(0.66, 0.56, 0.3), Color(0.42, 0.33, 0.22), Color(0.45, 0.5, 0.25), Color(0.58, 0.5, 0.28)][pick]
 	var woods := Color(0.62, 0.3, 0.12).lerp(Color(0.72, 0.5, 0.16), 0.5 + 0.5 * sin(x * 0.05 + z * 0.04))
-	return GRASS.lerp(field, _ss(4.0, 30.0, maxf(maxf(X0 - x, x - X1), maxf(Z0 - z, z - Z1)))).lerp(woods, _ss(12.0, 20.0, h))
+	var grass: Color = SEASON_GRASS.get(season, SEASON_GRASS.autumn)[0]
+	match season:
+		"spring":                                    # young crops, pale and bright, and woods in new leaf
+			field = [Color(0.5, 0.68, 0.3), Color(0.45, 0.36, 0.25), Color(0.6, 0.72, 0.32), Color(0.85, 0.8, 0.35)][pick]
+			woods = Color(0.42, 0.62, 0.3).lerp(Color(0.85, 0.7, 0.78), 0.25 + 0.25 * sin(x * 0.05 + z * 0.04))
+		"summer":                                    # deep green, and golden wheat
+			field = [Color(0.85, 0.72, 0.35), Color(0.32, 0.5, 0.2), Color(0.42, 0.58, 0.24), Color(0.78, 0.66, 0.3)][pick]
+			woods = Color(0.2, 0.4, 0.16).lerp(Color(0.28, 0.48, 0.2), 0.5 + 0.5 * sin(x * 0.05 + z * 0.04))
+		"winter":                                    # snow on everything, the woods dark under it
+			field = SNOW.lerp(Color(0.78, 0.82, 0.9), 0.15 * pick)
+			woods = Color(0.42, 0.4, 0.42).lerp(SNOW, 0.45 + 0.2 * sin(x * 0.05 + z * 0.04))
+	return grass.lerp(field, _ss(4.0, 30.0, maxf(maxf(X0 - x, x - X1), maxf(Z0 - z, z - Z1)))).lerp(woods, _ss(12.0, 20.0, h))
 
 
 func _ready() -> void:
@@ -238,6 +261,39 @@ func build() -> void:
 	cs.position = Vector3((X0 + X1) / 2.0, 0, (Z0 + Z1) / 2.0)   # a height map is centred on its node
 	add_child(cs)
 	_build_country(m)
+
+
+func recolor(new_season: String) -> void:
+	# Paint the ground and the countryside for a season (scripts/seasons.gd). The shapes stay; only the colours change.
+	season = new_season
+	var ground := get_node_or_null("Ground Mesh") as MeshInstance3D
+	if ground and ground.mesh is ArrayMesh:
+		var arrays := (ground.mesh as ArrayMesh).surface_get_arrays(0)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var colors := PackedColorArray()
+		colors.resize(verts.size())
+		for k in verts.size():
+			var n := normals[k]
+			colors[k] = color_at(verts[k].x, verts[k].z, verts[k].y, Vector2(n.x, n.z).length() / maxf(n.y, 0.01))
+		arrays[Mesh.ARRAY_COLOR] = colors
+		_replace_surface(ground, arrays)
+	var country_mi := get_node_or_null("Countryside") as MeshInstance3D
+	if country_mi and country_mi.mesh is ArrayMesh:
+		var arrays := (country_mi.mesh as ArrayMesh).surface_get_arrays(0)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colors := PackedColorArray()
+		colors.resize(verts.size())
+		for k in verts.size():
+			colors[k] = country_color(verts[k].x, verts[k].z, verts[k].y + 0.02)
+		arrays[Mesh.ARRAY_COLOR] = colors
+		_replace_surface(country_mi, arrays)
+
+
+static func _replace_surface(mi: MeshInstance3D, arrays: Array) -> void:
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	mi.mesh = mesh
 
 
 func _build_country(m: Material) -> void:

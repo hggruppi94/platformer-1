@@ -71,6 +71,19 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: The seasons in Stars Hollow (plan item 8, slice 2). New `scripts/seasons.gd`, a "Seasons" node that
+  `EarthTown` puts in the Earth scene when it loads (so `earth.tscn` wasn't rebuilt). The town as built is autumn; for
+  the other seasons it changes what's there: the trees' leaves (the "Tree Leaves" MultiMesh: fresh green with pink and
+  white blossom in spring, deep green in summer, and in winter three in four gone and the rest snow on the branches),
+  the fallen leaves (flowers in the grass in spring, a few in summer, snow drifts in winter), the ground and the
+  countryside (`EarthLand.recolor(season)`, `EarthLand.season`, `SEASON_GRASS`), the town green, the far hills, snow
+  on every roof in winter, Willow Pond iced over (only to look at: it's still water), and the Halloween dressing (the
+  "Autumn Dressing" group, its hay bales' collisions too) only in autumn. Something in the air round the player
+  outdoors (not in a music zone): snow, petals, drifting leaves, and fireflies on summer nights. It checks once a
+  second, so the town turns at midnight on a season's first day. It reads the instances from the builder's saved copy
+  (`MultiFill.transforms/colors`), not the MultiMesh, which is empty headless; `shown_leaves` and friends say what's
+  showing, for the test. Test `tools/test_seasons.gd`; previews in `tools/capture_calendar.gd` (project files,
+  world/previews/seasons). Not changed yet: the pumpkin patch and shop-step pumpkins stay all year.
 - 2026-11-01: Earth's calendar (plan item 8, slice 1: "a real calendar"). `Clock` (`scripts/clock.gd`) now has dates:
   four seasons of four weeks (`SEASONS`, `SEASON_DAYS` 28, `YEAR_DAYS` 112), each starting on a Monday, so a date is
   always the same weekday. A new game starts on **Friday 19 Autumn, Year 1** (`CALENDAR_START`), so winter starts on
