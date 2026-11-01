@@ -70,6 +70,46 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Quests from the show's first episodes (plan item 5; Hayden: "time for the next step"). Tested in the
+  cloud only (each run with its own Godot user folder, so no save was touched). Nothing new in the save (all progress
+  is quest flags) and no scene was rebuilt. One script puts everything in at play time: `scripts/episodes.gd`, node
+  "Episodes" under the Watches autoload, like the Lab (dialogue can reach it as `Watches/Episodes.<method>`).
+  They come one after another, like a season:
+  - **We Need a Slide!** (`quests/slide_mystery.json`, the pilot): Melanie (new, cat body, by the Town Hall from The
+    First Night on) wants a water slide. Mr. Palmer says no and lists all the fun the town has (patience); Bramble, Pip
+    and Dash each know a bit about the boarded-up old slide; two clues by it (the CLOSED notice about "The Incident",
+    a giggling green puddle); Mr. Goldwhistle (new, only on his steps) says think outside the box and offers the
+    Haunted House; trying its door lets a giggly green spirit out (the pilot's cliffhanger, left for later). Melanie's
+    new plan, the floating cloud slide with a toy store on top, gets a yes: it gives the `cloud_slide` item, so the
+    builder's hidden Cloud Water Slide appears from the next visit.
+  - **Emergency Prep** (`emergency_prep.json`): Leo (new, bunny, anxious) packs a kit (water jug by the fountain, torch
+    on the Library steps, blanket in the Cozy Cave, snacks on the dock) for his bunker in the south meadow (built at
+    (11, 35), clear of the race lines). Stocking it, a wail: Leo freezes. Three ways to calm down (breathing, checking
+    what's really happening, a happy place), and it was only Rook howling at the mothership: the brain's smoke alarm.
+    He becomes "Ready Leo".
+  - **The Doggie Bill of Rights** (`dog_rights.json`): Rex, who's learned a lot in a dog's body, writes it. The player
+    picks rule two (zoomies, the bubble bath or sniffing); Dash, Bramble, Pip, Nina and Rook (a paw print) sign; Mr.
+    Palmer agrees in his window (a different answer for each rule two). A DOGS WELCOME sign and a doggy fountain go up
+    by the Market fountain; Rook becomes "Rook, Good Citizen".
+  - **Turtle Independence** (`turtle_independence.json`): starts the visit after the Bill of Rights (flag
+    `turtle_next_visit` first), with the hero wearing a **Turtle Shell** (new back piece in `clothes.gd`). The Wizard
+    Lizard (new, dino in a witch hat, Secret Gardens) explains: magic, a different version of you, every version has
+    purpose and value. Three little lake turtles (Tiny, Splash, Pebble, on the south shore) choose their own shells
+    from a teacup, a bucket and a flower pot. Keep wearing the shell or take it off (whatever was on their back goes
+    back on, remembered in a `turtle_back_was:<id>` flag); the shell's theirs either way.
+  - **Aftershock** (`aftershock.json`, Earth): one evening after that (7 to 11:30 PM Earth time) a smaller quake
+    (EarthTown.tremor) and Willow Pond glows. Another Nina climbs out (`other_nina`: an Earth kid with orange hair,
+    freckles, a red-and-white striped beanie and a black turtleneck, new `striped_beanie` and `freckles` extras in
+    `townsfolk.gd`): sweet-looking, mean tricks. Put right her three tricks (tangled gazebo lights, mud pies in the
+    bakery, the Town Hall sign saying TOWN SMELL), tell the real Nina (she's not a part of Nina, just another Nina from
+    another world), and face her at the pond: she goes back through, "ponds work both ways".
+  - `scripts/townsfolk.gd` can now make any hero body (a look with `"body": "cat"`), which is how the Galaxity visitors
+    are made. Earth's townsfolk have no body key and are unchanged.
+  - `tools/test_episodes.gd` (90 checks, plays all five through) and `tools/capture_episodes.gd` (17 shots, in the
+    project files under world/previews/episodes). Full suite green in the cloud.
+  - My choices Hayden may change: everyone's looks and names (Melanie, Mr. Goldwhistle, Leo, the Wizard Lizard, the
+    turtles), the clue and kit places, the bunker spot, rule two's options, and when each one starts.
+
 - 2026-11-01: Time watches as the clock, then Rex and Dash's lab quest (plan item 4; Hayden: "can you do those").
   Tested in the cloud only (each run with its own Godot user folder, so no save was touched). Nothing in the save is
   new and no scene was rebuilt.

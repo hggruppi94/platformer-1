@@ -3,6 +3,19 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "dog_rights:sign",
+        "not_flag": "dogs_sign_rook"
+      },
+      "lines": [
+        "Woof?",
+        "({player} holds out the Doggie Bill of Rights. Rook sniffs it. Sniffs it again. Wags.)",
+        "Woof! WOOF!",
+        "(Rook presses a big muddy paw print right in the middle of the page. It's the best signature on there.)"
+      ],
+      "set": "dogs_sign_rook"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

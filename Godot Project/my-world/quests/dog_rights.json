@@ -1,0 +1,42 @@
+{
+  "name": "The Doggie Bill of Rights",
+  "start": {"flag": "dogs_start"},
+  "steps": [
+    {
+      "id": "write",
+      "text": "Rex is writing the Doggie Bill of Rights. Help him pick the most important right.",
+      "done": {"flag": "dogs_written"},
+      "where": ["rex"]
+    },
+    {
+      "id": "sign",
+      "text": "Get the town to sign the Doggie Bill of Rights.",
+      "checklist": [
+        ["dogs_sign_dash", "Dash"],
+        ["dogs_sign_bramble", "Bramble"],
+        ["dogs_sign_pip", "Pip"],
+        ["dogs_sign_nina", "Nina"],
+        ["dogs_sign_rook", "Rook's paw print"]
+      ],
+      "done": {"flags": ["dogs_sign_dash", "dogs_sign_bramble", "dogs_sign_pip", "dogs_sign_nina", "dogs_sign_rook"]},
+      "where": [
+        {"who": "dash", "unless": "dogs_sign_dash"},
+        {"who": "bramble", "unless": "dogs_sign_bramble"},
+        {"who": "pip", "unless": "dogs_sign_pip"},
+        {"who": "nina", "unless": "dogs_sign_nina"},
+        {"who": "rook", "unless": "dogs_sign_rook"}
+      ]
+    },
+    {
+      "id": "hall",
+      "text": "Five names! Read the Doggie Bill of Rights to Mr. Palmer at his Town Hall window (morning till teatime).",
+      "done": {"flag": "dogs_read"},
+      "where": ["town_hall"]
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Dogs are welcome everywhere in Galaxity now! There's a new sign and a doggy fountain by the Market fountain. +12 sparkles."
+  },
+  "titles": {"rook": "Rook, Good Citizen"}
+}

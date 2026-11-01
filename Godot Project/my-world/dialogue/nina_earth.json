@@ -3,6 +3,30 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "aftershock:nina"
+      },
+      "lines": [
+        "{player}: Nina! A girl came out of Willow Pond after the rumble. She says she's you. She's got freckles, orange hair and a stripy hat.",
+        "A me? From the pond? (Nina goes very quiet.)",
+        "Mum says the pond's deep. Deeper than ponds should be. I guess it goes somewhere else too. Like the portal.",
+        "She's not me. She's not a part of me, either. She's just another Nina, from another world. And I don't think she's a very nice one.",
+        "Go and find her at the pond. I'll be right here. Being... sensible. (She makes a face.)"
+      ],
+      "set": "aftershock_told"
+    },
+    {
+      "when": {
+        "quest_done": "aftershock",
+        "not_flag": "aftershock_nina_after"
+      },
+      "lines": [
+        "She went back through the pond? Good. I think. Is it weird that I feel a bit sorry for her?",
+        "Everyone there must be sweet on the outside and tricky on the inside. That sounds tiring."
+      ],
+      "set": "aftershock_nina_after"
+    },
+    {
+      "when": {
         "quest_step": "first_night:evening",
         "not_flag": "fn_nina"
       },

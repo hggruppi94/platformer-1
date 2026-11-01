@@ -3,6 +3,29 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "slide_mystery:why",
+        "not_flag": "slide_ask_bramble"
+      },
+      "lines": [
+        "Och, the old slide. We don't talk about it, love. Nobody does.",
+        "All I know is, the flowers round it won't grow, and at night there's a wee green glow near the Haunted House.",
+        "My gran used to say something got STUCK in that house a long time ago. Something that liked to slide."
+      ],
+      "set": "slide_ask_bramble"
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:sign",
+        "not_flag": "dogs_sign_bramble"
+      },
+      "lines": [
+        "Rights for dogs? Aye, of course. Rook dug up my whole carrot patch last week, and I still love him.",
+        "(Bramble signs with a big loopy B and a little flower.)"
+      ],
+      "set": "dogs_sign_bramble"
+    },
+    {
+      "when": {
         "quest_step": "night_3:hi"
       },
       "set": "n3_hi",

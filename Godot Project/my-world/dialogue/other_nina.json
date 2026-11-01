@@ -1,0 +1,72 @@
+{
+  "name": "Nina?",
+  "conversations": [
+    {
+      "when": {
+        "quest_step": "aftershock:meet"
+      },
+      "lines": [
+        "Hiii! Oh my gosh, hi! I love your face. I love this town. I love EVERYTHING.",
+        "I'm Nina! Well, a Nina. The pond kind of... spat me out. It does that, after a rumble.",
+        "{player}: You're Nina? You don't look like Nina. Nina has a red bob and a bow.",
+        "Ugh, HER. Red bow, black turtleneck, so sensible. I've got freckles. And a much better hat.",
+        "(She smiles a big, sweet smile. It doesn't quite reach her eyes.)",
+        "Anyway! I'm going to go and have a little look around. Byeee!"
+      ],
+      "set": "aftershock_met"
+    },
+    {
+      "when": {
+        "quest_step": "aftershock:tricks"
+      },
+      "lines": [
+        "Tangled lights? Mud pies? A sign that says TOWN SMELL? Gosh, that's terrible. Who would do something like that?",
+        "(She giggles, and quickly turns it into a cough.)"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "aftershock:nina"
+      },
+      "lines": [
+        "Going to tell on me? To HER? Go on, then. She won't believe you. Nobody believes the sensible one about anything fun."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "aftershock:face"
+      },
+      "lines": [
+        "Oh. It's you. And you told her, didn't you. I can tell.",
+        {
+          "choice": [
+            {
+              "text": "Why are you being so mean?",
+              "lines": [
+                "Mean? Where I come from, everyone does tricks. Being sweet on the outside is how you win.",
+                "...Nobody where I come from ever asked me that before."
+              ]
+            },
+            {
+              "text": "You can't stay here and spoil things.",
+              "lines": [
+                "Spoil things? I made your boring town INTERESTING.",
+                "(She folds her arms. For a second she looks a bit lonely.)"
+              ]
+            }
+          ]
+        },
+        "Fine. Your town's too nice anyway. Everyone's so... happy. It's weird.",
+        "But ponds work both ways, you know. Every time the ground rumbles.",
+        "See you around, {player}. Tell Nina I said hi. Actually, don't. Actually, do.",
+        "(She steps backwards off the bank, and the lilac water swallows her up without even a ripple.)"
+      ],
+      "set": "aftershock_faced"
+    },
+    {
+      "lines": [
+        "Hiii! (She waves a little too sweetly.)"
+      ]
+    }
+  ]
+}

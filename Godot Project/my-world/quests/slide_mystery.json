@@ -1,0 +1,64 @@
+{
+  "name": "We Need a Slide!",
+  "start": {"flag": "slide_start"},
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Melanie wants a water slide for Galaxity. Go with her to ask Mr. Palmer at his Town Hall window (he's in from morning till teatime).",
+      "done": {"flag": "slide_asked"},
+      "where": ["town_hall"]
+    },
+    {
+      "id": "why",
+      "text": "Mr. Palmer said no. But why was the old slide in the Spooky Woods closed? Ask around town.",
+      "checklist": [
+        ["slide_ask_bramble", "Ask Bramble"],
+        ["slide_ask_pip", "Ask Pip"],
+        ["slide_ask_dash", "Ask Dash"]
+      ],
+      "done": {"flags": ["slide_ask_bramble", "slide_ask_pip", "slide_ask_dash"]},
+      "where": [
+        {"who": "bramble", "unless": "slide_ask_bramble"},
+        {"who": "pip", "unless": "slide_ask_pip"},
+        {"who": "dash", "unless": "slide_ask_dash"}
+      ]
+    },
+    {
+      "id": "look",
+      "text": "Look for clues at the old slide, by the Haunted House in the Spooky Woods.",
+      "checklist": [
+        ["slide_clue_sign", "Read the old notice on the slide"],
+        ["slide_clue_goo", "Look at the glowing puddle by the Haunted House"]
+      ],
+      "done": {"flags": ["slide_clue_sign", "slide_clue_goo"]}
+    },
+    {
+      "id": "rich",
+      "text": "A very fancy stranger is waiting by the Haunted House. Talk to him.",
+      "done": {"flag": "slide_rich_talked"},
+      "where": ["goldwhistle"]
+    },
+    {
+      "id": "door",
+      "text": "Mr. Goldwhistle says the slide could go in the Haunted House. Try its old front door.",
+      "done": {"flag": "slide_spirit"}
+    },
+    {
+      "id": "plan",
+      "text": "Something escaped from the Haunted House! Tell Melanie what happened.",
+      "done": {"flag": "slide_plan"},
+      "where": ["melanie"]
+    },
+    {
+      "id": "palmer",
+      "text": "Melanie has a new plan, and it doesn't need the waterfall or the Haunted House. Take it to Mr. Palmer (morning till teatime).",
+      "done": {"flag": "slide_yes"},
+      "where": ["town_hall"]
+    }
+  ],
+  "reward": {
+    "item": "cloud_slide",
+    "sparkles": 10,
+    "message": "Mr. Palmer said YES! The Cloud Water Slide (with a toy store on top) will be floating over the lake next time you visit. +10 sparkles."
+  }
+}

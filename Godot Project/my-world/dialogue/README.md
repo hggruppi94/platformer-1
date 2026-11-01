@@ -1,7 +1,8 @@
 # Dialogue: what people say
 
 One file per character, named after the `character_id` on their talk spot (the `Talk` node under them in
-`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `astronaut.json` (by the Mothership Pad). Mr. Palmer (`mr_palmer.json`)
+`scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `astronaut.json` (by the Mothership Pad). The episode quests' visitors (scripts/episodes.gd) are `melanie.json`, `leo.json`,
+`goldwhistle.json` and `wizard_lizard.json` in Galaxity and `other_nina.json` on Earth. Mr. Palmer (`mr_palmer.json`)
 talks from behind his office window at the Town Hall. On Earth: Mr. Palmer (`palmer_earth.json`), Miss Ivy, Theo,
 Madame Celeste, Gus, Dottie, Barnaby, Miss Marigold, Poppy, Mr. Gumdrop (`otis`), Mrs. Wren, Hank, Kip, Mr. Page
 (`lionel`), Juniper, Ozzie, human Nina (`nina_earth.json`), Prue and Bruno; most of their lines depend on the time

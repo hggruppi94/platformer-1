@@ -1079,6 +1079,19 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 				var cone := _cyl(0.06, 0.0, 0.14, 8)
 				_mesh(g, cone, flame, Vector3(s * 0.1, 0.38, -0.32))
 			_mesh(g, _box(Vector3(0.12, 0.2, 0.06)), tank, Vector3(0, 0.65, -0.27))
+		"turtle_shell":                                    # from Turtle Independence (scripts/episodes.gd)
+			# A round, domed shell: a teal dome with lime plates, a lighter rim, and a pair of straps over the shoulders
+			var shell := _mat(Color(0.25, 0.65, 0.55), 0.6)
+			var plate := _mat(Color(0.65, 0.9, 0.4), 0.55)
+			var rim := _mat(Color(0.85, 0.95, 0.7), 0.6)
+			_mesh(g, _sphere(0.27), shell, Vector3(0, 0.62, -0.25), Vector3.ZERO, Vector3(1.0, 1.2, 0.55))
+			_mesh(g, _torus(0.24, 0.29), rim, Vector3(0, 0.62, -0.19), Vector3(PI / 2, 0, 0), Vector3(1.0, 1.0, 1.2))
+			_mesh(g, _sphere(0.08), plate, Vector3(0, 0.66, -0.39), Vector3.ZERO, Vector3(1.0, 1.0, 0.35))
+			for k in 6:
+				var a := k * TAU / 6.0
+				_mesh(g, _sphere(0.06), plate, Vector3(cos(a) * 0.15, 0.64 + sin(a) * 0.18, -0.36), Vector3.ZERO, Vector3(1.0, 1.0, 0.35))
+			for sx in [-1, 1]:
+				_mesh(g, _box(Vector3(0.04, 0.3, 0.03)), rim, Vector3(sx * 0.12, 0.72, 0.0), Vector3(0.2, 0, 0))
 		_:
 			g.free()
 			return null

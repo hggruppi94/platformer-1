@@ -3,6 +3,39 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "slide_mystery:why",
+        "not_flag": "slide_ask_dash"
+      },
+      "lines": [
+        "The old slide? I looked it up in the town records. Well, I tried to.",
+        "Every page about it has been torn out. Every single one. All it says is \"The Incident\", and then a little drawing of a ghost.",
+        "Rex and I come from the future, and even WE don't know what happened. That's... actually pretty spooky."
+      ],
+      "set": "slide_ask_dash"
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:sign",
+        "not_flag": "dogs_sign_dash"
+      },
+      "lines": [
+        "Rex's Doggie Bill of Rights? Of course I'll sign. He's my twin. Even if he's furrier than me right now.",
+        "(Dash signs: DASH, with a little lightning bolt.)",
+        "Don't tell him, but I think being a husky's made him nicer. He used to never think about anyone else."
+      ],
+      "set": "dogs_sign_dash"
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:wake"
+      },
+      "lines": [
+        "You've got a shell too? I keep wanting to sniff everything. EVERYTHING. Is that a lamp post? Sniff. Is that you? Sniff.",
+        "Rex says this is what it's like every day for him. Huh."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "night_4:hi"
       },
       "set": "n4_hi",

@@ -1,0 +1,38 @@
+{
+  "name": "Turtle Independence",
+  "start": {"flag": "turtle_start"},
+  "steps": [
+    {
+      "id": "wake",
+      "text": "You woke up with a turtle shell on your back! Someone in the Secret Gardens might know why.",
+      "done": {"flag": "turtle_met_lizard"},
+      "where": ["wizard_lizard"]
+    },
+    {
+      "id": "shells",
+      "text": "The little lake turtles want to choose their own shells. Find them three: a teacup, a bucket and a flower pot.",
+      "checklist": [
+        ["turtle_cup", "A big teacup, at the south end of the Market"],
+        ["turtle_bucket", "A bucket, on the dock"],
+        ["turtle_pot", "A flower pot, by the greenhouse"]
+      ],
+      "done": {"flags": ["turtle_cup", "turtle_bucket", "turtle_pot"]}
+    },
+    {
+      "id": "give",
+      "text": "Take the shells to the three little turtles on the lake shore, and let them choose.",
+      "done": {"flag": "turtle_given"}
+    },
+    {
+      "id": "back",
+      "text": "Go back to the Wizard Lizard in the Secret Gardens.",
+      "done": {"flag": "turtle_done_talk"},
+      "where": ["wizard_lizard"]
+    }
+  ],
+  "reward": {
+    "item": "shop:turtle_shell",
+    "sparkles": 10,
+    "message": "The Turtle Shell is yours to keep (find it in the wardrobe). +10 sparkles."
+  }
+}

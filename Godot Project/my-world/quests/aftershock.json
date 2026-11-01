@@ -1,0 +1,43 @@
+{
+  "name": "Aftershock",
+  "start": {"flag": "aftershock_start"},
+  "steps": [
+    {
+      "id": "pond",
+      "text": "An aftershock! Willow Pond is glowing, like the portal does. Go and look.",
+      "done": {"flag": "aftershock_pond"}
+    },
+    {
+      "id": "meet",
+      "text": "Someone climbed out of Willow Pond. Say hello.",
+      "done": {"flag": "aftershock_met"},
+      "where": ["other_nina"]
+    },
+    {
+      "id": "tricks",
+      "text": "Things keep going wrong round town. Put them right.",
+      "checklist": [
+        ["aftershock_lights", "Untangle the gazebo's lights"],
+        ["aftershock_pies", "Swap the mud pies at the bakery for real ones"],
+        ["aftershock_sign", "Fix the Town Hall's sign"]
+      ],
+      "done": {"flags": ["aftershock_lights", "aftershock_pies", "aftershock_sign"]}
+    },
+    {
+      "id": "nina",
+      "text": "Tell the real Nina about the girl from the pond.",
+      "done": {"flag": "aftershock_told"},
+      "where": ["nina_earth"]
+    },
+    {
+      "id": "face",
+      "text": "Find the other Nina at Willow Pond.",
+      "done": {"flag": "aftershock_faced"},
+      "where": ["other_nina"]
+    }
+  ],
+  "reward": {
+    "sparkles": 15,
+    "message": "The other Nina has gone back through the pond. For now. +15 sparkles."
+  }
+}

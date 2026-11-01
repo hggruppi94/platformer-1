@@ -1,0 +1,120 @@
+{
+  "name": "Leo",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "emergency_prep",
+        "quest_done": "slide_mystery"
+      },
+      "lines": [
+        "Stop! Don't move! ...Okay, you can move. I was checking for wobbles.",
+        "I'm Leo. Did you hear about the giggly thing that got out of the Haunted House? What if it comes back? What if it brings friends?",
+        "What if there's a flood? Or a snowstorm? Or a really big wind that blows all the clouds away?",
+        "Nobody else ever gets ready for anything. So I have to get ready for EVERYTHING.",
+        "I need an emergency kit for my bunker. Will you help? Please? Just in case?",
+        {
+          "choice": [
+            {
+              "text": "Let's get you ready!",
+              "lines": [
+                "Really? Okay! Okay okay okay. I made a list. Four things.",
+                "A water jug, by the Market fountain. A torch, on the Library steps. A cozy blanket, in the Cozy Cave. And a snack box, on the dock.",
+                "Then we take them to my bunker. In the meadow, south of the lake. It has a door. A strong one."
+              ],
+              "set": "prep_start"
+            },
+            {
+              "text": "Not right now.",
+              "lines": [
+                "That's okay. I'll just... stand here and keep an eye on the sky."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "emergency_prep:kit"
+      },
+      "lines": [
+        "Water jug by the fountain. Torch on the Library steps. Blanket in the Cozy Cave. Snacks on the dock.",
+        "I've checked the list eleven times. Twelve, now."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "emergency_prep:bunker"
+      },
+      "lines": [
+        "You got EVERYTHING? Bring it in! Put it on the shelves, by the round hatch.",
+        "Snacks on the top shelf. In case of floods. Snacks hate floods."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "emergency_prep:alarm"
+      },
+      "lines": [
+        "(Leo's standing very still. His ears are straight up and his paws are shaking.)",
+        "D-did you hear that? That WAIL? It's an emergency. It's THE emergency. I knew it. I KNEW it.",
+        "{player}: Leo, it's okay. Let's work it out together.",
+        {
+          "choice": [
+            {
+              "text": "Breathe with me. In for four, out for four.",
+              "lines": [
+                "In... two... three... four. Out... two... three... four.",
+                "(You do it together three times. Leo's ears come down a little.)"
+              ]
+            },
+            {
+              "text": "Let's look around. Is anything actually wrong?",
+              "lines": [
+                "(You look together. The lake's calm. The Market's busy. Someone's buying a snack.)",
+                "Nothing's on fire. Nothing's flooding. The clouds are all still there."
+              ]
+            },
+            {
+              "text": "Think of your happy place. What's it like?",
+              "lines": [
+                "My happy place... it's the Cloud Nest. Quiet side. Soft, and warm, and you can see everything coming.",
+                "(Leo closes his eyes. His paws stop shaking.)"
+              ]
+            }
+          ]
+        },
+        "AWOOOOOOO!",
+        "(Over the lake, on top of the Skate Park ramp, Rook is howling at the mothership as it floats past.)",
+        "...It's Rook. It's just Rook. Howling at the mothership.",
+        "My brain shouted EMERGENCY, and it wasn't one. It was a dog. Saying hello to a spaceship.",
+        "My dad says my brain has a smoke alarm in it, and mine's a bit TOO good at its job. It goes off for toast.",
+        "Being ready is good. My kit's really good! But being so ready that I never do anything fun... that's not good either.",
+        "Will you come up the zipline with me some time? Not today. But some time. I'll pack a snack."
+      ],
+      "set": "prep_calm"
+    },
+    {
+      "when": {
+        "quest_done": "emergency_prep"
+      },
+      "rotate": [
+        [
+          "Ready Leo, reporting! The bunker's stocked. Now I don't have to think about it all the time, because it's done."
+        ],
+        [
+          "I went on the zipline! Halfway. Then I came back. Next time, all the way."
+        ],
+        [
+          "If my brain's alarm goes off now, I ask: is it an emergency, or is it Rook?",
+          "It's usually Rook."
+        ]
+      ]
+    },
+    {
+      "lines": [
+        "Is that cloud moving? It's moving. Oh, they all move. Never mind."
+      ]
+    }
+  ]
+}

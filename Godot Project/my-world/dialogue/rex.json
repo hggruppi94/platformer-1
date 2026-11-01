@@ -37,6 +37,104 @@
     },
     {
       "when": {
+        "quest_not_started": "dog_rights",
+        "quest_done": "emergency_prep"
+      },
+      "lines": [
+        "{player}! Citizen! I've been thinking. Deeply. Like a mayor.",
+        "Since I got stuck in this husky body, I've noticed things. Nobody lets dogs in the bubble bath. Nobody asks dogs what they think about ANYTHING.",
+        "When I was a person I never even thought about it. Now I think about it all day. Usually while scratching my ear.",
+        "I'm writing a Doggie Bill of Rights. For Rook, and every dog in Galaxity. Will you help me?",
+        {
+          "choice": [
+            {
+              "text": "Dogs deserve rights. Let's do it!",
+              "lines": [
+                "I KNEW you'd say that. Good citizen. Very good citizen. Let's write it!"
+              ],
+              "set": "dogs_start"
+            },
+            {
+              "text": "Maybe later.",
+              "lines": [
+                "The fight for justice can wait a little. Not long, though. My ear's itchy."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:write"
+      },
+      "lines": [
+        "Rule one is easy: DOGS ARE WELCOME EVERYWHERE. Shops, the castle school, the Town Hall. Everywhere.",
+        "But rule two... I need your help. What's the most important thing a dog should be allowed to do?",
+        {
+          "choice": [
+            {
+              "text": "Zoomies in the Market Square!",
+              "lines": [
+                "The right to zoomies! Running in circles for no reason at all. Beautiful."
+              ],
+              "set": "dogs_right_zoomies"
+            },
+            {
+              "text": "A turn in the magic bubble bath.",
+              "lines": [
+                "The right to bubbles! Rook's going to love that. I'M going to love that."
+              ],
+              "set": "dogs_right_bath"
+            },
+            {
+              "text": "Sniffing absolutely everything.",
+              "lines": [
+                "The right to sniff! Every lamp post, every flower, every new friend. Yes!"
+              ],
+              "set": "dogs_right_sniff"
+            }
+          ]
+        },
+        "(Rex writes it down very carefully, holding the pen in his mouth.)",
+        "Done! Now we need names. Lots of names. Get Dash, Bramble, Pip and Nina to sign it. And Rook! A paw print counts."
+      ],
+      "set": "dogs_written"
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:sign"
+      },
+      "lines": [
+        "How are the signatures coming? Dash, Bramble, Pip, Nina and Rook's paw. Every name makes it stronger!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:hall"
+      },
+      "lines": [
+        "Five names! It's ready. Let's take it to Mr. Palmer's window at the Town Hall. In the morning or daytime: he gets grumpy after teatime."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "dog_rights"
+      },
+      "rotate": [
+        [
+          "Did you see the sign by the fountain? DOGS WELCOME! I wrote that. With my mouth. It took nine tries."
+        ],
+        [
+          "Rook drank from the doggy fountain for twenty minutes. He's so proud. Then he had to go to the toilet for twenty minutes."
+        ],
+        [
+          "When I get my body back, I'm keeping the Bill of Rights. Some things you learn as a husky, you don't want to forget."
+        ]
+      ]
+    },
+    {
+      "when": {
         "quest_not_started": "rex_lab",
         "quest_done": "first_night",
         "min_talks": 1,

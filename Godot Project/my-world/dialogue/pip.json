@@ -2,6 +2,38 @@
   "name": "Pip",
   "conversations": [
     {
+      "when": {
+        "quest_step": "slide_mystery:why",
+        "not_flag": "slide_ask_pip"
+      },
+      "lines": [
+        "The old slide? (Pip's wings flutter nervously.)",
+        "I flew past it once at night. I heard a whoosh, like someone going down a slide... and a giggle. But nobody was there.",
+        "I didn't stop. I'm brave about moon-lamps, not about giggles in the dark."
+      ],
+      "set": "slide_ask_pip"
+    },
+    {
+      "when": {
+        "quest_step": "dog_rights:sign",
+        "not_flag": "dogs_sign_pip"
+      },
+      "lines": [
+        "Oh, I'd LOVE to sign! Rook always waits for me under the lamps at night. He's a very good dog.",
+        "(Pip signs in tiny, neat letters, with a moon over the i.)"
+      ],
+      "set": "dogs_sign_pip"
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:wake"
+      },
+      "lines": [
+        "My wings feel like flippers today! I tried to fly to the lamps and I just sort of... swam through the air.",
+        "It's not bad, though. I'm a really good swimmer now. Every version of me can do something!"
+      ]
+    },
+    {
       "night_2": true,
       "when": {
         "quest_step": "night_2:pip",

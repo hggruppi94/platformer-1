@@ -1,0 +1,92 @@
+{
+  "name": "The Wizard Lizard",
+  "conversations": [
+    {
+      "when": {
+        "quest_step": "turtle_independence:wake"
+      },
+      "lines": [
+        "Ahh. A shell. I wondered who it would be today.",
+        "Don't be frightened. I am the Wizard Lizard: friend of the seers, keeper of rules, and very fond of naps on warm rocks.",
+        "{player}: Why do I have a SHELL? And why does Pip say her wings feel like flippers?",
+        "Magic, my dear {player}. Galaxity is a planet that thinks, and sometimes it dreams. And some days, everyone wakes up a different version of themselves.",
+        "People here do love their magic. A bit too much, if you ask me. Magic for breakfast, magic for lunch, magic for brushing your teeth.",
+        "You didn't choose your shell. Most of the time, we don't get to choose. Your body, your brain, the planet you wake up on.",
+        "But every version of you has purpose and value. Even this slow, shelly one. Especially this one, perhaps.",
+        "Now. Since you have a shell, you'll understand the little lake turtles. Galaxity's turtles use THINGS as their shells, and nobody has ever let them choose their own.",
+        "Today is their Independence Day. Find them three things that could be a home: a teacup, a bucket, a flower pot. Then let THEM choose."
+      ],
+      "set": "turtle_met_lizard"
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:shells"
+      },
+      "lines": [
+        "A teacup at the Market's south end, a bucket on the dock, a flower pot by the greenhouse. And then: let them choose.",
+        "Don't choose for them. That's the whole point. Very important. I'll be napping on this rock."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:give"
+      },
+      "lines": [
+        "A teacup at the Market's south end, a bucket on the dock, a flower pot by the greenhouse. And then: let them choose.",
+        "Don't choose for them. That's the whole point. Very important. I'll be napping on this rock."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:back"
+      },
+      "lines": [
+        "They chose? Each one, all by themselves? Wonderful. Wonderful!",
+        "That's independence, {player}. Not getting to choose everything. Just getting to choose something, and having it respected.",
+        "Now, your shell. The magic's wearing off. You'll be your own self again by the time you reach the portal.",
+        "But I can leave the shell with you, if you like. It's yours now. You earned it.",
+        {
+          "choice": [
+            {
+              "text": "I'll keep wearing it!",
+              "lines": [
+                "A fine choice. It suits you. Slow and steady, as they say."
+              ],
+              "set": "turtle_keep_shell"
+            },
+            {
+              "text": "I'll take it off for now.",
+              "lines": [
+                "Also a fine choice. I'll pop it in your wardrobe. Wear it whenever you like."
+              ]
+            }
+          ]
+        },
+        "Why does the planet do it, you ask? Why turtles, why today?",
+        "...Just because? Some things are just because. Off you go."
+      ],
+      "set": "turtle_done_talk"
+    },
+    {
+      "when": {
+        "quest_done": "turtle_independence"
+      },
+      "rotate": [
+        [
+          "Tiny, Splash and Pebble have been showing off their shells to everyone. Even the fish."
+        ],
+        [
+          "Every version of anything has purpose and value. I tell the rocks that too. They take it very well."
+        ],
+        [
+          "(The Wizard Lizard is asleep on his warm rock. He's smiling.)"
+        ]
+      ]
+    },
+    {
+      "lines": [
+        "Mm? Oh, hello. I was resting my eyes. Wizards need a lot of rest."
+      ]
+    }
+  ]
+}

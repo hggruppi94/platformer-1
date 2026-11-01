@@ -142,6 +142,10 @@ func _ready() -> void:
 	var lab := (load("res://scripts/lab.gd") as GDScript).new() as Node
 	lab.name = "Lab"
 	add_child(lab)
+	# The quests from the show's first episodes (scripts/episodes.gd): the same trick, "Watches/Episodes.<method>"
+	var episodes := (load("res://scripts/episodes.gd") as GDScript).new() as Node
+	episodes.name = "Episodes"
+	add_child(episodes)
 
 
 func _process(delta: float) -> void:

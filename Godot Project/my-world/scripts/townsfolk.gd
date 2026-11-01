@@ -6,6 +6,9 @@ extends Node3D
 # Hero.SWATCHES, a hairstyle, height, head size, build and face), plus a few things of their own made from shapes
 # (EXTRAS: an apron, a guitar, Nina's red bow...). Grown-ups are the same body, taller, with a smaller head.
 # Mr. Palmer is the exception: he has his own human model (model_path), which is used as it is.
+# A look that names another hero body ("body": "cat") is made from that body instead: that's how the episode quests'
+# visitors in Galaxity (scripts/episodes.gd: Melanie, Leo, the Wizard Lizard...) are made, as creatures, the way kids
+# are there. EXTRAS are placed for the Earth kid body, so they're only for Earth kids.
 #
 # The model is made as they enter the scene, before their Routine (scripts/routine.gd) and Talk spot
 # (scripts/talker.gd) wake up, so the routine finds its AnimationPlayer. With no routine they just stand and idle.
@@ -16,7 +19,7 @@ const EXTRAS := {
 	"bow": "head", "turtleneck": "chest", "apron": "spine", "glasses": "head", "cap": "head", "chef_hat": "head",
 	"guitar": "chest", "pearls": "chest", "fire_helmet": "head", "book": "hand.L", "skateboard": "hand.R",
 	"bow_tie": "chest", "scarf": "chest", "shawl": "chest", "headband": "head", "moustache": "head", "flower": "head",
-	"clipboard": "hand.L", "cardigan": "spine",
+	"clipboard": "hand.L", "cardigan": "spine", "striped_beanie": "head", "freckles": "head",
 }
 
 @export var look := {}                     # a hero (Hero.blank()'s shape); empty for a model used as it is
@@ -32,12 +35,15 @@ var _anim: AnimationPlayer
 func _enter_tree() -> void:
 	if model:
 		return
+	var own_body := str(look.get("body", "earth_kid"))
+	if model_path == BODY and own_body != "earth_kid" and Hero.BODIES.has(own_body):
+		model_path = Hero.model_path(look)
 	model = (load(model_path) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
 	add_child(model)
 	if not look.is_empty():
 		var hero := look.duplicate(true)
-		hero["body"] = "earth_kid"
+		hero["body"] = own_body if Hero.BODIES.has(own_body) else "earth_kid"
 		Hero.apply(model, hero, outfit)
 	var skel := Clothes._skeleton(model)
 	if skel:
@@ -55,7 +61,9 @@ func _ready() -> void:
 
 func height() -> float:
 	# How tall they stand, roughly: the Earth kid body is 1.39 m as drawn
-	return 1.39 * float(look.get("height", 1.0)) if model_path == BODY else 1.8
+	if model_path == BODY or str(look.get("body", "")) in Hero.BODIES:
+		return 1.39 * float(look.get("height", 1.0))
+	return 1.8
 
 
 # -----------------------------------------------------------------------------
@@ -107,6 +115,16 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 				var a := k * TAU / 5
 				_mesh(g, _ball(0.035), c, Vector3(0.24 + cos(a) * 0.04, 1.22 + sin(a) * 0.04, 0.03))
 			_mesh(g, _ball(0.025), Color(1.0, 0.85, 0.3), Vector3(0.245, 1.22, 0.05))
+		"striped_beanie":                              # a red-and-white striped beanie with a bobble (the other Nina's)
+			for k in 4:
+				var band := c if k % 2 == 0 else Color(0.97, 0.95, 0.93)
+				_mesh(g, _cyl(0.27 - k * 0.035, 0.3 - k * 0.035, 0.075), band, Vector3(0, 1.27 + k * 0.07, -0.02))
+			_mesh(g, _ball(0.17), c, Vector3(0, 1.5, -0.02), Vector3.ZERO, Vector3(1.0, 0.55, 1.0))
+			_mesh(g, _ball(0.075), Color(0.97, 0.95, 0.93), Vector3(0, 1.6, -0.02))
+		"freckles":                                    # a sprinkle across the nose and cheeks
+			for s in [-1.0, 1.0]:
+				for k in 4:
+					_mesh(g, _ball(0.009), c, Vector3(s * (0.045 + 0.022 * k), 1.04 + 0.012 * (k % 2), 0.215 - 0.012 * k))
 		"moustache":
 			for s in [-1.0, 1.0]:
 				_mesh(g, _ball(0.04), c, Vector3(s * 0.035, 1.0, 0.215), Vector3(0, 0, s * 0.3), Vector3(1.5, 0.6, 0.7))

@@ -1,0 +1,34 @@
+{
+  "name": "Emergency Prep",
+  "start": {"flag": "prep_start"},
+  "steps": [
+    {
+      "id": "kit",
+      "text": "Leo wants an emergency kit packed, just in case. Find four things round town.",
+      "checklist": [
+        ["prep_water", "A water jug, by the Market fountain"],
+        ["prep_torch", "A torch, from the Library steps"],
+        ["prep_blanket", "A cozy blanket, in the Cozy Cave"],
+        ["prep_snacks", "A snack box, on the dock"]
+      ],
+      "done": {"flags": ["prep_water", "prep_torch", "prep_blanket", "prep_snacks"]}
+    },
+    {
+      "id": "bunker",
+      "text": "Take the kit to Leo's emergency bunker, in the meadow south of the lake.",
+      "done": {"flag": "prep_stored"},
+      "where": [{"at": [11, 35]}]
+    },
+    {
+      "id": "alarm",
+      "text": "A loud wail! Leo's frozen with worry by the bunker. Talk to him.",
+      "done": {"flag": "prep_calm"},
+      "where": ["leo"]
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Leo's ready for anything now, and he says you are too. +12 sparkles."
+  },
+  "titles": {"leo": "Ready Leo"}
+}

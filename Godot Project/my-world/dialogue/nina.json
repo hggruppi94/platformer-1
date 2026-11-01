@@ -3,6 +3,17 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "dog_rights:sign",
+        "not_flag": "dogs_sign_nina"
+      },
+      "lines": [
+        "Rex is doing a Bill of Rights? For dogs? That's so Rex. I'm in.",
+        "(Nina signs NINA in big round letters and draws a bone next to it.)"
+      ],
+      "set": "dogs_sign_nina"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

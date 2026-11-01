@@ -3,6 +3,141 @@
   "conversations": [
     {
       "when": {
+        "quest_ready": "slide_mystery:ask",
+        "time": [
+          "morning",
+          "day"
+        ]
+      },
+      "lines": [
+        "({player} knocks on the window. Melanie stands beside you wearing her most serious face.)",
+        "Ah. Melanie. And {player}. I know that face. This is about the slide again, isn't it.",
+        "{player}: Mr. Palmer, Galaxity needs a water slide.",
+        {
+          "speaker": "Melanie",
+          "text": "We don't even have a toy store!"
+        },
+        "Melanie, I told you, you could have a toy store or a gaming store, and you chose the gaming store.",
+        {
+          "speaker": "Melanie",
+          "text": "...Toys were sooo 90s. At the time."
+        },
+        "(Mr. Palmer points to the big map of Galaxity on his wall.)",
+        "Look at all this! A tree house. A zipline. A rock wall. An observatory. A cloud with a quiet side AND a loud side. A magic bubble bath.",
+        "This town has plenty of fun. The answer is no. Not now. Sometimes the best thing is to wait.",
+        "Patience, both of you. Patience.",
+        "(And the curtain swishes shut. You're sure you saw him wince when Melanie said \"the old slide\".)"
+      ],
+      "set": "slide_asked"
+    },
+    {
+      "when": {
+        "quest_ready": "slide_mystery:palmer",
+        "time": [
+          "morning",
+          "day"
+        ]
+      },
+      "lines": [
+        "({player} knocks. Melanie's beside you, holding a drawing of a cloud.)",
+        "Back again? You two are very patient. Hmm. That's rather the point, isn't it.",
+        "{player}: We went to the old slide. And the Haunted House. And something green and giggly got out.",
+        "Something got OUT? Oh dear. Oh dear oh dear. I'll... keep an eye on that. Nobody panic. Especially not Leo.",
+        {
+          "speaker": "Melanie",
+          "text": "But we have a new plan! It doesn't need the waterfall, or the Haunted House."
+        },
+        "(Melanie holds up the drawing: a fluffy cloud over the lake, a slide spiralling down into the water, and a little toy store sitting on top.)",
+        "...A floating cloud slide. Over the lake. With a toy store on top.",
+        "You waited. You listened. You found out why the old slide was closed, and you came back with something better.",
+        "That's what patience is for. Yes. YES! My builders will have it floating by your next visit.",
+        {
+          "speaker": "Melanie",
+          "text": "AAAAAAAAH!"
+        },
+        "(Mr. Palmer smiles, and closes the curtain very gently.)"
+      ],
+      "set": "slide_yes"
+    },
+    {
+      "when": {
+        "quest_ready": "dog_rights:hall",
+        "time": [
+          "morning",
+          "day"
+        ],
+        "flag": "dogs_right_zoomies"
+      },
+      "lines": [
+        "({player} knocks, and holds up the Doggie Bill of Rights. Rex is beside you, standing very tall for a husky.)",
+        {
+          "speaker": "Rex",
+          "text": "Mr. Palmer! The Doggie Bill of Rights. Signed by the town. And one paw."
+        },
+        "Hm. Hm hm. \"Rule one: dogs are welcome everywhere.\" \"Rule two: the right to zoomies in the Market Square.\"",
+        "Rule one: yes. Dogs are welcome everywhere in Galaxity. I'll have a sign made, and a fountain at dog height.",
+        "Rule two: zoomies... in the mornings only. Before the flower stall opens. We had an incident with the tulips.",
+        "Well done, Rex. You listened to everybody, even Rook. That's what a good mayor does.",
+        {
+          "speaker": "Rex",
+          "text": "(whispering) Did you hear that? \"A good mayor.\""
+        }
+      ],
+      "set": "dogs_read"
+    },
+    {
+      "when": {
+        "quest_ready": "dog_rights:hall",
+        "time": [
+          "morning",
+          "day"
+        ],
+        "flag": "dogs_right_bath"
+      },
+      "lines": [
+        "({player} knocks, and holds up the Doggie Bill of Rights. Rex is beside you, standing very tall for a husky.)",
+        {
+          "speaker": "Rex",
+          "text": "Mr. Palmer! The Doggie Bill of Rights. Signed by the town. And one paw."
+        },
+        "Hm. \"Rule one: dogs are welcome everywhere.\" \"Rule two: dogs may use the magic bubble bath.\"",
+        "Rule one: yes. Dogs are welcome everywhere in Galaxity. I'll have a sign made, and a fountain at dog height.",
+        "Rule two: yes, on Tuesdays. We'll need a LOT more bubbles. And a towel the size of a tent.",
+        "Well done, Rex. You listened to everybody, even Rook. That's what a good mayor does.",
+        {
+          "speaker": "Rex",
+          "text": "(whispering) Did you hear that? \"A good mayor.\""
+        }
+      ],
+      "set": "dogs_read"
+    },
+    {
+      "when": {
+        "quest_ready": "dog_rights:hall",
+        "time": [
+          "morning",
+          "day"
+        ]
+      },
+      "lines": [
+        "({player} knocks, and holds up the Doggie Bill of Rights. Rex is beside you, standing very tall for a husky.)",
+        {
+          "speaker": "Rex",
+          "text": "Mr. Palmer! The Doggie Bill of Rights. Signed by the town. And one paw."
+        },
+        "Hm. \"Rule one: dogs are welcome everywhere.\" \"Rule two: the right to sniff absolutely everything.\"",
+        "Rule one: yes. Dogs are welcome everywhere in Galaxity. I'll have a sign made, and a fountain at dog height.",
+        "Rule two: yes. But not my sandwiches. A mayor's sandwiches are private.",
+        "Well done, Rex. You listened to everybody, even Rook. That's what a good mayor does.",
+        {
+          "speaker": "Rex",
+          "text": "(whispering) Did you hear that? \"A good mayor.\""
+        }
+      ],
+      "set": "dogs_read"
+    },
+    {
+      "when": {
         "quest_step": "night_7:hi"
       },
       "set": "n7_hi",

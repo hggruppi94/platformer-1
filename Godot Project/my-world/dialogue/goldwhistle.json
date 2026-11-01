@@ -1,0 +1,32 @@
+{
+  "name": "Mr. Goldwhistle",
+  "conversations": [
+    {
+      "when": {
+        "quest_step": "slide_mystery:rich"
+      },
+      "lines": [
+        "Ahh, a young visionary! I can always tell. It's the shoes.",
+        "Goldwhistle's the name. Bartholomew Goldwhistle. I own things. Lots of things. That house, for one.",
+        "I hear you're after a water slide, and the mayor said no. Pfft! Mayors. Think outside the box!",
+        "Why squeeze a slide onto a waterfall when you could have a whole HOUSE of slide? Stairs? Slide. Hallway? Slide. Bathtub? Big slide.",
+        "It's been for sale for three hundred years. Bit of a fixer-upper. Go on, try the door! It's only a LITTLE bit haunted."
+      ],
+      "set": "slide_rich_talked"
+    },
+    {
+      "when": {
+        "quest_step": "slide_mystery:door"
+      },
+      "lines": [
+        "The front door, young visionary! It sticks a bit. Give it a good push.",
+        "(He takes a big step back. And then another one.)"
+      ]
+    },
+    {
+      "lines": [
+        "Think outside the box! Or inside a different box. Either way, there's a box."
+      ]
+    }
+  ]
+}
