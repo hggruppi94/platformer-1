@@ -506,6 +506,15 @@ func _sheet_skate() -> Control:
 		var extra := "  (%d of 5 letters)" % letters if g.id == "letters" and not ok else ""
 		_line("%s %s   ✦ %d%s" % ["✓" if ok else "○", g.text, g.sparkles, extra], false, box)
 	_gap(box)
+	# Gaps (scripts/skate_gaps.gd): the ones found, and where to look for the rest
+	_heading("Gaps found: %d of %d" % [Gaps.found_count(), Gaps.all_ids().size()], box, 26)
+	for id in Gaps.all_ids():
+		var gi := Gaps.info(id)
+		if Gaps.is_found(id):
+			_line("✓ %s   %d points" % [gi.name, gi.points], false, box)
+		else:
+			_line("○ ???   (%s)" % gi.where, false, box)
+	_gap(box)
 	_heading("How-to tips", box, 26)
 	var tips := _button("Show the how-to tips again", func():
 		close()

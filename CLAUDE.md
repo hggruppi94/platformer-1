@@ -71,6 +71,21 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Gap bonuses for the skating (plan item 7, slice 2). New autoload `Gaps` (`scripts/skate_gaps.gd`), like
+  Tony Hawk's: fly from one spot to another on a ride and "GAP! <name>" goes into the combo as a trick
+  (`SkateTricks.gap()`, which also starts the moment to link a manual if the combo was empty, so it's paid out). It
+  watches the rider's skate state from outside (leaving the ground or a rail = take-off, coming down on the ground or
+  a rail without a bail = landing), so `skate.gd` wasn't changed. A move of more than 3 m in one physics frame (a race
+  start, a door, a respawn) cancels the jump, so teleports are never gaps. **Named gaps** (`GAPS`) are circles in the
+  frame of a skate piece in the scene (`"piece"`, found by name at scene load, so they follow the builders): Hollow
+  Yard Gap (gap kicker onto the landing deck, 500), Yard Funbox Hop and Galaxity's Funbox Hop (either way, 250), Yard
+  Stair Set and School Stair Set (300), Lookout Launch (off the Big Air Kicker, 9 m+, 750), Pond Path Hop (200), Dock
+  Drop (off the hardware store's loading dock, 250). **Anywhere gaps** (`ANYWHERE`): Hang Time (2 s up, not a vert air),
+  Long Gap (12 m), Big Drop (3.5 m), Rail Transfer (one rail straight onto another). The first landing of each finds it:
+  flag `gap_<id>` and 2 sparkles. The Skate page in the Tab menu lists them ("Gaps found: n of 12", the rest as ??? with
+  a hint). Test `tools/test_gaps.gd` (zones, fits and misses, both ways, the anywhere gaps, finding pays once, real rides
+  off the yard's gap kicker at 11 m/s and the Big Air Kicker at 13 m/s). Previews `tools/capture_gaps.gd` (project files,
+  world/previews/gaps). My choices: the names, points and the 2-sparkle reward.
 - 2026-11-01: The Pumpkin Run, a race round Stars Hollow on Earth (plan item 7, slice 1: "more races and skating").
   A new track in `Races.TRACKS` (`"pumpkin_run"`, `"scene": EARTH`), placed in the Earth town at play time like the
   others, so `earth.tscn` wasn't rebuilt. Two laps of about 345 m: start on Maple Lane heading east, round past the

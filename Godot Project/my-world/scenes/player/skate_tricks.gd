@@ -214,6 +214,14 @@ func add(name: String, pts: int) -> void:
 	changed.emit()
 
 
+func gap(name: String, pts: int) -> void:
+	# A gap (scripts/skate_gaps.gd) goes into the combo like a trick. It's added just after a landing: if there was
+	# nothing in the combo before it, start the moment to link a manual, so it's paid out like any combo.
+	add(name, pts)
+	if live.is_empty() and _grace < 0.0:
+		_grace = GRACE
+
+
 func update_ground(delta: float) -> void:
 	# Rolling along after a landing: pay the combo out once the moment to link something has passed
 	if _grace >= 0.0 and live.is_empty():
