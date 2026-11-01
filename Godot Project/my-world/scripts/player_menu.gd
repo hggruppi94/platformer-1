@@ -506,6 +506,17 @@ func _sheet_skate() -> Control:
 		var extra := "  (%d of 5 letters)" % letters if g.id == "letters" and not ok else ""
 		_line("%s %s   ✦ %d%s" % ["✓" if ok else "○", g.text, g.sparkles, extra], false, box)
 	_gap(box)
+	# Skate runs (scripts/skate_runs.gd): two minutes at a Run Clock, best scores and medals
+	_heading("Skate runs", box, 26)
+	for id in SkateRuns.RUNS:
+		var run: Dictionary = SkateRuns.RUNS[id]
+		var got := int(SkateRuns.medals.get(id, 0))
+		var names: Array = []
+		for k in run.medals.size():
+			names.append(("★ " if k < got else "○ ") + str(run.medals[k][0]) + " " + SkateRuns._num(int(run.medals[k][1])))
+		_line("%s (%s): best %s   %s" % [run.name, "Stars Hollow" if run.scene == SkateRuns.EARTH else "Galaxity",
+			SkateRuns._num(int(SkateRuns.best[id])) if SkateRuns.best.has(id) else "not yet", "  ".join(names)], false, box)
+	_gap(box)
 	# Gaps (scripts/skate_gaps.gd): the ones found, and where to look for the rest
 	_heading("Gaps found: %d of %d" % [Gaps.found_count(), Gaps.all_ids().size()], box, 26)
 	for id in Gaps.all_ids():

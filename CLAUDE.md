@@ -71,6 +71,16 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Timed skate runs (plan item 7, slice 3). New autoload `SkateRuns` (`scripts/skate_runs.gd`), like Tony
+  Hawk's two-minute sessions. A **Run Clock** (a post with a big clock face and a SKATE RUN sign, put up at play time,
+  talk spot `scripts/run_spot.gd`) stands at Galaxity's Skate Park (just outside the rings, south) and at the Hollow
+  Skate Yard (northwest corner, by the Big Vert). Interact, say go: 3-2-1, then 120 s to score anywhere; every combo
+  banked counts (gaps too, and they're counted), and a combo you're in at the buzzer counts if you land it within 8 s
+  ("Land it!"). Results: score, best, medals (`RUNS`: Skate Park 5,000 / 15,000 / 35,000, Skate Yard 6,000 / 18,000 /
+  40,000), each medal paying 3 / 5 / 8 sparkles the first time. Time and score across the top use a `RaceHud`. Stepping
+  off the ride or starting a race ends it. Saved as `"skate_runs"` (best, medals); the Skate page lists both runs.
+  Test `tools/test_skate_runs.gd`; previews `tools/capture_skate_runs.gd` (project files, world/previews/skate_runs).
+  My choices: the medal scores and sparkles, two minutes, where the clocks stand.
 - 2026-11-01: Gap bonuses for the skating (plan item 7, slice 2). New autoload `Gaps` (`scripts/skate_gaps.gd`), like
   Tony Hawk's: fly from one spot to another on a ride and "GAP! <name>" goes into the combo as a trick
   (`SkateTricks.gap()`, which also starts the moment to link a manual if the combo was empty, so it's paid out). It
