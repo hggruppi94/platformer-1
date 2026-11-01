@@ -137,6 +137,11 @@ var _card_t := 0.0
 
 func _ready() -> void:
 	_build_card()
+	# Rex and Dash's lab and its quest, where the hero's watch finds time ripples (scripts/lab.gd). It lives here so
+	# dialogue can reach it ("Watches/Lab.tune_watch") without a new autoload.
+	var lab := (load("res://scripts/lab.gd") as GDScript).new() as Node
+	lab.name = "Lab"
+	add_child(lab)
 
 
 func _process(delta: float) -> void:

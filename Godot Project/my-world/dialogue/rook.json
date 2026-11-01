@@ -16,6 +16,47 @@
     },
     {
       "when": {
+        "quest_step": "rex_lab:rook"
+      },
+      "lines": [
+        "(Rook looks up at you. Then at your watch, which is still humming.)",
+        "Woof?",
+        {
+          "choice": [
+            {
+              "text": "Rook, will you come to the lab?",
+              "lines": [
+                "(Rook flattens his ears and lies down flat. He remembers the lab.)"
+              ]
+            },
+            {
+              "text": "There's a ball at the lab, Rook!",
+              "set": "lab_rook",
+              "lines": [
+                "WOOF! WOOF WOOF!",
+                "(Rook is off like a rocket, towards Dash's house. There had better be a ball.)"
+              ]
+            },
+            {
+              "text": "Good boy, Rex!",
+              "lines": [
+                "(Rook gives you a long look. Somewhere far away, a husky shouts \"I'M REX!\")"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:try"
+      },
+      "lines": [
+        "(Rook is in his pod with a ball in his mouth. He wags, just a little.)"
+      ]
+    },
+    {
+      "when": {
         "quest_step": "rex_campaign:ask",
         "not_flag": "asked_rook"
       },

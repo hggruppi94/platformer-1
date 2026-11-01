@@ -1,7 +1,9 @@
 extends CanvasLayer
 
 # On-screen stats panel (top left), the clock (top center), short messages (bottom center), sound captions (bottom
-# left) and a "Saved" note.
+# left) and a "Saved" note. Once the hero has a watch (their first crossing), the clock is that watch's face beside
+# the words (scripts/watch_face.gd, Settings > Display > Clock), and the check_watch key (T, D-pad down) holds it up
+# big with what it says (scripts/time_watch.gd).
 # Text size and high contrast follow Settings.
 
 var panel: PanelContainer
@@ -14,6 +16,12 @@ var _last_hp := -1
 var message_label: Label
 var clock_panel: PanelContainer
 var clock_label: Label                      # "Day 2   7:15 PM", plus "The Shift" from midnight to 1 AM
+var watch_face: WatchFace                   # the hero's watch, beside the words (hidden until they have one)
+var glance: PanelContainer                  # checking the watch: the big face and what it says
+var glance_face: WatchFace
+var glance_label: Label
+var _glance_t := 0.0
+const GLANCE_TIME := 6.0                    # seconds the big watch stays up
 var saved_label: Label
 var captions_box: VBoxContainer
 var _saved_tween: Tween
@@ -38,10 +46,21 @@ func _ready() -> void:
 	clock_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	clock_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	clock_panel.offset_top = 16
+	var clock_row := HBoxContainer.new()
+	clock_row.add_theme_constant_override("separation", 10)
+	clock_panel.add_child(clock_row)
+	watch_face = WatchFace.new()
+	watch_face.name = "WatchFace"
+	watch_face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	watch_face.tooltip_text = "Your watch. Press T (D-pad down) to check it"
+	clock_row.add_child(watch_face)
 	clock_label = Label.new()
 	clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	clock_panel.add_child(clock_label)
+	clock_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	clock_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	clock_row.add_child(clock_label)
 	add_child(clock_panel)
+	_build_glance()
 
 	message_label = Label.new()
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -73,6 +92,8 @@ func _ready() -> void:
 	Game.message_posted.connect(_show_message)
 	Game.saved.connect(_on_saved)
 	Clock.time_changed.connect(_refresh_clock)
+	Game.equipment_changed.connect(_refresh_clock)
+	Settings.changed.connect(_refresh_clock)
 	Audio.caption.connect(_on_caption)
 	Settings.changed.connect(_apply_look)
 	_apply_look()
@@ -114,6 +135,12 @@ func _apply_look() -> void:
 	panel.add_theme_stylebox_override("panel", style)
 	clock_panel.add_theme_stylebox_override("panel", style)
 	clock_label.add_theme_font_size_override("font_size", _fs(20))
+	watch_face.custom_minimum_size = Vector2.ONE * _fs(58)
+	if glance:
+		glance.add_theme_stylebox_override("panel", style)
+		glance_face.custom_minimum_size = Vector2.ONE * _fs(220)
+		glance_label.add_theme_font_size_override("font_size", _fs(20))
+		glance_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	clock_label.add_theme_color_override("font_color", Color(1, 1, 1))
 	stats_label.add_theme_font_size_override("font_size", _fs(20))
 	stats_label.add_theme_color_override("font_color", Color(1, 1, 1))
@@ -192,6 +219,10 @@ func _refresh_clock() -> void:
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text
+	# The watch face once they've got one; the words unless they've picked "Just the watch" (Settings > Display)
+	var watch := TimeWatch.has_watch() and Settings.clock_style != "words"
+	watch_face.visible = watch
+	clock_label.visible = not watch or Settings.clock_style != "watch"
 	var shift_tint := Color(1.0, 0.8, 1.0) if Settings.high_contrast else Color(0.9, 0.7, 1.0)
 	clock_label.add_theme_color_override("font_color", shift_tint if Clock.in_shift() else Color(1, 1, 1))
 
@@ -233,7 +264,62 @@ func _style_caption(l: Label) -> void:
 	l.add_theme_color_override("font_color", Color(1, 1, 1))
 
 
+# -----------------------------------------------------------------------------
+# Checking the watch
+# -----------------------------------------------------------------------------
+func _build_glance() -> void:
+	glance = PanelContainer.new()
+	glance.name = "WatchGlance"
+	glance.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	glance.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	glance.grow_vertical = Control.GROW_DIRECTION_BOTH
+	glance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	glance.visible = false
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 18)
+	glance.add_child(row)
+	glance_face = WatchFace.new()
+	glance_face.big = true
+	glance_face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(glance_face)
+	glance_label = Label.new()
+	glance_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	glance_label.custom_minimum_size.x = 380
+	glance_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(glance_label)
+	add_child(glance)
+
+
+func check_watch() -> void:
+	# Hold the watch up (or put it away if it's up)
+	if glance.visible:
+		_glance_t = 0.0
+		glance.visible = false
+		return
+	if not TimeWatch.has_watch():
+		Game.message("You haven't got a watch yet. Something tells you one will turn up...")
+		return
+	glance_label.text = "\n".join(TimeWatch.lines())
+	glance.visible = true
+	_glance_t = GLANCE_TIME
+	Audio.play("pickup", -14.0, 0.0)
+	Juice.rumble(0.12, 0.08)
+
+
+func _can_check_watch() -> bool:
+	return not get_tree().paused and not Dialogue.is_active() and not Shop.is_open()
+
+
 func _process(delta: float) -> void:
+	if InputMap.has_action("check_watch") and Input.is_action_just_pressed("check_watch") and _can_check_watch():
+		check_watch()
+	if _glance_t > 0.0:
+		_glance_t -= delta
+		if Engine.get_process_frames() % 30 == 0:
+			glance_label.text = "\n".join(TimeWatch.lines())
+		glance.modulate.a = clampf(_glance_t / 0.4, 0.0, 1.0)
+		if _glance_t <= 0.0:
+			glance.visible = false
 	if message_time > 0.0:
 		message_time -= delta
 		message_label.modulate.a = clampf(message_time, 0.0, 1.0)

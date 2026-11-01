@@ -37,6 +37,186 @@
     },
     {
       "when": {
+        "quest_not_started": "rex_lab",
+        "quest_done": "first_night",
+        "min_talks": 1,
+        "not_flag": "lab_later"
+      },
+      "lines": [
+        "Psst. {player}. Can you keep a secret? A mayor-sized secret?",
+        "Dash and I have a lab. In a shed past his house. It's a very scientific shed.",
+        "Where we come from, everyone runs experiments. That's how I ended up a husky. And how all three of us ended up here.",
+        "I think I've worked out how to switch back! I just need a helper. One with hands. And a watch.",
+        {
+          "choice": [
+            {
+              "text": "I'll help!",
+              "set": "lab_start",
+              "lines": [
+                "EXCELLENT! Meet me at the lab: the shed in the yard past Dash's house. Look for the sign.",
+                "(It's on your map now. Press {map} to look.)"
+              ]
+            },
+            {
+              "text": "Not right now.",
+              "set": "lab_later",
+              "lines": [
+                "That's okay. A good mayor is patient. I'm practising. Again. Come and find me when you're ready."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "rex_lab",
+        "flag": "lab_later",
+        "every": 2
+      },
+      "lines": [
+        "The lab's still there, you know. Behind Dash's house. The Swap-o-Tron isn't going to pull its own lever.",
+        {
+          "choice": [
+            {
+              "text": "Okay, let's do it!",
+              "set": "lab_start",
+              "lines": [
+                "YES! See you at the lab. Look for the sign!"
+              ]
+            },
+            {
+              "text": "Still not yet.",
+              "lines": [
+                "Patient. Very patient. Extremely patient mayor."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:see"
+      },
+      "set": "lab_seen",
+      "do": "Watches/Lab.tune_watch",
+      "lines": [
+        "Welcome to the lab! Mind the cables. And the beakers. And Dash.",
+        {
+          "speaker": "Dash",
+          "text": "Hi {player}! Don't touch the big lever."
+        },
+        "This is the Swap-o-Tron. Back home, in the furthest future, I built one to swap with Rook for a day. Just for fun!",
+        "But at that exact same moment, Dash ran HIS experiment...",
+        {
+          "speaker": "Dash",
+          "text": "...a time one. And WHOOSH. All three of us landed here. Me in my body, Rex in Rook's, and Rook in Rex's."
+        },
+        "And here, it won't swap back. We think it needs a push from time itself. Little bits of broken time: time ripples.",
+        {
+          "speaker": "Dash",
+          "text": "And please don't ask us about the future. Talking about it makes more ripples. Messy ones."
+        },
+        {
+          "speaker": "Dash",
+          "text": "Your watch can feel ripples, though. Hold still a sec..."
+        },
+        "(Dash taps your watch with a tiny screwdriver. It gives a little hum.)",
+        {
+          "speaker": "Dash",
+          "text": "There! When it hums, a ripple's near. Follow the pink pointer on its rim. We need three."
+        },
+        "Press {check_watch} to check your watch any time. Go, go, go! Future mayor's orders!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:ripples"
+      },
+      "rotate": [
+        [
+          "Three time ripples! Your watch's pink pointer knows the way. Mine just points at snacks."
+        ],
+        [
+          "Ripples wobble about a bit, like jelly. Very scientific jelly. Grab them with your watch!"
+        ]
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:rook"
+      },
+      "lines": [
+        "Three ripples! You're brilliant. Now the hard part.",
+        "Rook has to get in the other pod. He doesn't like the lab. Last time his fur went curly for a week.",
+        "Go and find him. Be persuasive! Like a campaign manager."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:try"
+      },
+      "lines": [
+        "We're in! Rook's in the other pod. Dash found him a ball, so he's happy.",
+        "When you're ready, pull the big lever on the console. For science! And for democracy!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:after"
+      },
+      "set": "lab_after",
+      "lines": [
+        "(Rex blinks. He looks down at his paws.)",
+        "Woof! ...WOOF? Why did I just say woof?",
+        {
+          "speaker": "Rook",
+          "text": "I'M REX! HE'S THE DOG!"
+        },
+        "(Everyone stares at Rook.)",
+        {
+          "speaker": "Rook",
+          "text": "...Woof."
+        },
+        {
+          "speaker": "Dash",
+          "text": "Whoa! For one second, it swapped your VOICES!"
+        },
+        "So close! My own voice! Did you hear how mayoral it sounded?",
+        {
+          "speaker": "Dash",
+          "text": "Look at the reading, though. The swap's all knotted up in the Shift itself. In the crack our experiments made."
+        },
+        {
+          "speaker": "Dash",
+          "text": "So to undo it, we'd have to fix the crack first. And fixing that is... a much bigger job."
+        },
+        "(For a moment Dash looks very far away. Then he grins.)",
+        {
+          "speaker": "Dash",
+          "text": "Next time. We'll get you back, Rex. Promise."
+        },
+        "Then it's settled. Science continues! {player}, you're officially our lab assistant. Here: these were mine.",
+        "(Rex hands you a pair of brass goggles with pink lenses. They smell a bit like husky.)"
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "rex_lab",
+        "every": 3
+      },
+      "rotate": [
+        [
+          "I've been practising my speech in my own voice. Well, my own voice in my head. It's very good."
+        ],
+        [
+          "The lab's always open for you, lab assistant. Just don't pull the lever without me."
+        ]
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

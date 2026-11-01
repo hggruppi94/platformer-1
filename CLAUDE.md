@@ -70,6 +70,42 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Time watches as the clock, then Rex and Dash's lab quest (plan item 4; Hayden: "can you do those").
+  Tested in the cloud only (each run with its own Godot user folder, so no save was touched). Nothing in the save is
+  new and no scene was rebuilt.
+  - **The watch is the clock** (story/how-it-fits.md: "the watch can be the player's clock"). Once the hero has a watch
+    (the Shift Watch on their first crossing), the HUD's clock is its face beside the old words
+    (`scripts/watch_face.gd`, drawn in code; `scripts/time_watch.gd`, `TimeWatch`, says which watch, what it shows and
+    what it says). The **Shift Watch** "ticks Earth's way": its hands always show Earth's time, so in Galaxity they
+    crawl. The **Time Keeper** (all 20 lost watches, wrist or pendant) shows the time where you are, with the other
+    world on a little dial. Round the rim: on Earth a moon at twelve and a lavender wedge filling up to it (the portal
+    opens when the hour hand gets there); in the Shift, Galaxity's dawn-to-dawn day with a sun or moon going round, the
+    part still to come glowing. **Check your watch** (`check_watch`: T, D-pad down, rebindable) holds it up big with a
+    few lines (Earth's day and time, the portal or how much Shift is left, the festival, the night). Settings > Display >
+    Clock: watch and words, just the watch, or just words (`Settings.clock_style`). No watch yet: words only. The
+    pause menu's `_choice` now matches string values too. `hud.clock_label` keeps its old text, so old tests still read it.
+  - **Rex and Dash's lab** (`scripts/lab.gd`, node "Lab" under the Watches autoload, so dialogue calls
+    `Watches/Lab.tune_watch` and no new autoload was needed): a shed in the yard past Dash's house, built at play time
+    (centre (99, -16), open front facing west): the Swap-o-Tron's two glass pods and coil, a console with the big
+    lever (a quest spot added at play time), Dash's workbench, a chalkboard and a framed "Hound Hero" (the show's
+    Dog Man easter egg, our own name). The two trees and a plant the builder had scattered there are shrunk away at
+    load (`_clear_plot`). The roof has no collision on purpose: routines find the floor by looking down.
+    New places `lab`, `lab_pod_rex`, `lab_pod_rook`, `lab_bench` (linked from `housing_ne`).
+  - **The quest** (`quests/rex_lab.json`): Rex offers it once The First Night's done ("a helper with hands, and a
+    watch"; "not now" sets `lab_later` and he asks again now and then). **see:** Rex and Dash explain the two
+    experiments at once and that it won't swap back here; Dash tunes the watch (`lab_tuned`; a hero with no watch
+    gets the Shift Watch). **ripples:** three time ripples (Market Square south end, the town square, the
+    Observatory path) appear only on this step; the watch's rim gets a pink pointer to the nearest, pulsing faster
+    closer, and walking into one catches it (`lab_ripple_1..3`). **rook:** Rook won't come when asked nicely, only for
+    a ball (`lab_rook`). **try:** Rex and Rook stand in the pods, pull the lever: the coil charges, a flash (soft with
+    Reduce flashing), lavender smoke. **after:** Rex says "Woof!", Rook shouts "I'M REX!", Dash's reading says the
+    swap is knotted into the crack in the Shift their experiments made, so it can't undo until that's fixed (Dash
+    looks far away for a moment: a hint at his arc, no spoiler). Reward: **Lab Goggles** (face slot, brass with pink
+    lenses, `clothes.gd`) and 15 sparkles.
+  - `tools/test_time_watch.gd` (52 checks), `tools/capture_time_watch.gd` (shots in the project files under
+    world/previews/time_watch, made in the cloud). Full suite green in the cloud apart from `test_soundscape` (waits
+    for the generated audio).
+
 - 2026-10-31: Clean-up pass (prompt K in the plan). Tested in the cloud only (each run with its own Godot user
   folder, so no save was touched).
   - **Controller in the shop and wardrobe:** A presses the highlighted button and B backs out, whatever the game's

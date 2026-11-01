@@ -44,7 +44,11 @@
     "green_meadow": [22.0, 44.0],
     "market_far_west": [-110.0, 30.0],
     "gate_out": [42.0, 1.0],
-    "housing_ne": [93.0, -20.0]
+    "housing_ne": [93.0, -20.0],
+    "lab": [91.5, -16.0],
+    "lab_pod_rex": [100.8, -19.5],
+    "lab_pod_rook": [100.8, -16.5],
+    "lab_bench": [101.4, -12.1]
   },
   "links": [
     ["market", "market_south"],
@@ -94,6 +98,10 @@
     ["portal", "gate_out"],
     ["gate_out", "housing_gate"],
     ["melanies_house", "housing_ne"],
-    ["housing_ne", "housing_north"]
+    ["housing_ne", "housing_north"],
+    ["housing_ne", "lab"],
+    ["lab", "lab_pod_rex"],
+    ["lab", "lab_pod_rook"],
+    ["lab", "lab_bench"]
   ]
 }

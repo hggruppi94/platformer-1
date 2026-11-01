@@ -15,7 +15,8 @@ const REBINDABLE := [
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
 	["gadget_wheel", "Gadget wheel"], ["toggle_skateboard", "Skateboard"],
 	["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
-	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
+	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"],
+	["pause", "Pause"],
 ]
 
 # Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
@@ -23,11 +24,11 @@ const REBINDABLE := [
 const PAD_REBINDABLE := [
 	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["gadget_wheel", "Gadget wheel"],
 	["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
-	["map", "Map"], ["player_menu", "Player menu"], ["pause", "Pause"],
+	["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "pause"],   # on foot
-	["jump", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
+	["jump", "dash", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "check_watch", "pause"],   # on foot
+	["jump", "aim", "shoot", "gadget_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "check_watch", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
 ]
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
@@ -64,6 +65,7 @@ var tips := true                      # first-time how-to pop-ups (scripts/tips.
 var fullscreen := false
 var fov := 75.0
 var minimap := false                  # a small map in the bottom-right corner (scripts/map_screen.gd)
+var clock_style := "both"             # the HUD's clock once the hero has a watch: "both" (watch and words), "watch", "words"
 # --- Accessibility
 var text_scale := 1.0                 # HUD and menu text size
 var high_contrast := false            # solid dark panels, bright text, heavy outlines
@@ -101,7 +103,7 @@ func _ready() -> void:
 
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
-		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "text_scale", "high_contrast", "reduce_flashing",
+		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "clock_style", "text_scale", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
 		"skate_assist", "screen_shake", "rumble", "playtest"]
 
@@ -209,7 +211,7 @@ func pad_name(action: String) -> String:
 func default_pad_bindings() -> Dictionary:
 	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
-		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "pause": JOY_BUTTON_START}
+		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "pause": JOY_BUTTON_START}
 	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
 	# sheet. The player can still give it one in Settings > Controls.
 
@@ -267,7 +269,7 @@ func _bind_pad(action: String, button: int) -> void:
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
 		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
-		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "pause": KEY_ESCAPE}
+		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "check_watch": KEY_T, "pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:

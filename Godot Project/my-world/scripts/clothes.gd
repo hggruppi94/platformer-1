@@ -974,6 +974,15 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 			for s in [-1, 1]:
 				_mesh(g, _cyl(0.075, 0.08, 0.06), rim, Vector3(s * 0.1, 1.14, 0.29), Vector3(PI / 2, 0, 0))
 				_mesh(g, _cyl(0.06, 0.06, 0.065), glass, Vector3(s * 0.1, 1.14, 0.295), Vector3(PI / 2, 0, 0))
+		"lab_goggles":                                     # Rex's, from the lab quest (scripts/lab.gd)
+			var strap := _mat(Color(0.3, 0.2, 0.25), 0.8)
+			var brass := _mat(Color(0.85, 0.65, 0.3), 0.35, 0.8)
+			var lens := _mat(Color(1.0, 0.45, 0.8, 0.6), 0.2, 0.0, 0.8)
+			_mesh(g, _torus(0.25, 0.28), strap, Vector3(0, 1.14, 0.02), Vector3.ZERO, Vector3(1.0, 0.3, 1.05)).set_meta("fit", "wrap")
+			for s in [-1, 1]:
+				var big := 1.0 if s < 0 else 1.15                  # one lens a bit bigger, like a proper inventor's
+				_mesh(g, _cyl(0.08 * big, 0.085 * big, 0.07), brass, Vector3(s * 0.1, 1.14, 0.29), Vector3(PI / 2, 0, 0))
+				_mesh(g, _cyl(0.065 * big, 0.065 * big, 0.075), lens, Vector3(s * 0.1, 1.14, 0.295), Vector3(PI / 2, 0, 0))
 		# --- Neck
 		"cozy_scarf":
 			var wool := _mat(Color(0.95, 0.35, 0.45), 0.9)

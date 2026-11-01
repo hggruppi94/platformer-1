@@ -380,7 +380,7 @@ func _choice(g: GridContainer, text: String, prop: String, options: Array, hint 
 	var current = Settings.get(prop)
 	for i in options.size():
 		o.add_item(options[i][0], i)
-		if is_equal_approx(float(options[i][1]), float(current)):
+		if (str(options[i][1]) == current) if current is String else is_equal_approx(float(options[i][1]), float(current)):
 			o.select(i)
 	o.item_selected.connect(func(i):
 		Audio.play("ui_accept", -6.0, 0.0)
@@ -484,6 +484,8 @@ func _tab_display(tabs: TabContainer) -> void:
 	_check(g, "Fullscreen", "fullscreen")
 	_slider(g, "Field of view", "fov", 60, 100, 1, func(x): return "%d°" % x)
 	_check(g, "Corner minimap", "minimap", "A small map in the bottom-right corner (%s opens the big one)" % Settings.key_name("map"))
+	_choice(g, "Clock", "clock_style", [["Watch and words", "both"], ["Just the watch", "watch"], ["Just words", "words"]],
+		"Once you've got a watch, it's the clock at the top. %s holds it up to check it" % Settings.key_name("check_watch"))
 
 
 func _tab_access(tabs: TabContainer) -> void:

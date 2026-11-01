@@ -56,6 +56,7 @@
     {"id": "time_keeper_watch", "name": "Time Keeper Watch", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "hands", "price": 0, "text": "Dash made it from bits of every lost watch. It keeps your time"},
     {"id": "shift_watch", "name": "Shift Watch", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "hands", "price": 0, "text": "It appeared on your wrist the first time you crossed over. It ticks Earth's way"},
     {"id": "gloop_crown", "name": "Gloop Crown", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "The Gloop King dropped it when he popped. Still a tiny bit sticky"},
+    {"id": "lab_goggles", "name": "Lab Goggles", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "face", "price": 0, "text": "Rex's old lab goggles: brass, with pink lenses. They smell a bit like husky"},
     {"id": "time_keeper_pendant", "name": "Time Keeper Pendant", "stall": "Dash", "reward": true, "kind": "clothes", "slot": "neck", "price": 0, "text": "The Time Keeper on a chain, to wear round your neck"},
     {"id": "fizz_flinger", "name": "Fizz Flinger", "stall": "Gadget", "kind": "gadget", "gadget": "fizz", "price": 10, "text": "Lobs fizzy soda bombs that pop everything where they land"},
     {"id": "disco_ball", "name": "Disco Ball", "stall": "Gadget", "kind": "gadget", "gadget": "disco", "price": 18, "text": "Throw it up and every enemy near it has to dance"},

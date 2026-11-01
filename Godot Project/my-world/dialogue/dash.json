@@ -106,6 +106,53 @@
     },
     {
       "when": {
+        "quest_step": "rex_lab:see",
+        "watches_to_give": false
+      },
+      "lines": [
+        "Hi! Rex is so excited. Talk to him, he's doing a whole tour."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:ripples",
+        "watches_to_give": false
+      },
+      "lines": [
+        "Watch the pink pointer on your watch's rim. The faster it pulses, the closer the ripple. Then just walk into it!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:rook",
+        "watches_to_give": false
+      },
+      "lines": [
+        "Rook won't come for us. Maybe he'll come for you? He's very food-motivated. And ball-motivated."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:try",
+        "watches_to_give": false
+      },
+      "lines": [
+        "Ripples loaded, pods sealed, ball supplied. The big lever's on the console. It's probably safe!",
+        "{player}: Probably?",
+        "Very probably."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "rex_lab:after",
+        "watches_to_give": false
+      },
+      "lines": [
+        "Go on, ask Rex. I want to see his face."
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

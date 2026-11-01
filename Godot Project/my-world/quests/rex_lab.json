@@ -1,0 +1,64 @@
+{
+  "name": "Rex and Dash's Lab",
+  "start": {"flag": "lab_start"},
+  "steps": [
+    {
+      "id": "see",
+      "text": "Rex and Dash have a lab, in the shed past Dash's house. Go and see it!",
+      "done": {"flag": "lab_seen"},
+      "where": ["lab"],
+      "override": {
+        "rex": {"place": "lab", "do": "idle", "label": "lab", "face": [80, -16]},
+        "dash": {"place": "lab_bench", "do": "idle", "label": "lab", "face": [106, -12]}
+      }
+    },
+    {
+      "id": "ripples",
+      "text": "The Swap-o-Tron needs three time ripples. Your watch hums near them: follow the pink pointer on its rim.",
+      "checklist": [
+        ["lab_ripple_1", "A time ripple in the Market Square"],
+        ["lab_ripple_2", "A time ripple in the town square"],
+        ["lab_ripple_3", "A time ripple on Observatory Hill"]
+      ],
+      "done": {"flags": ["lab_ripple_1", "lab_ripple_2", "lab_ripple_3"]},
+      "where": [
+        {"at": [-70, 71], "unless": "lab_ripple_1"},
+        {"at": [-11, -16], "unless": "lab_ripple_2"},
+        {"at": [96, -56], "unless": "lab_ripple_3"}
+      ]
+    },
+    {
+      "id": "rook",
+      "text": "Rook has to stand in the other pod. Find him and talk him into coming to the lab.",
+      "done": {"flag": "lab_rook"},
+      "where": ["rook"]
+    },
+    {
+      "id": "try",
+      "text": "Everyone's in place at the lab. Pull the big lever on the Swap-o-Tron's console!",
+      "done": {"flag": "lab_lever"},
+      "where": ["lab"],
+      "override": {
+        "rex": {"place": "lab_pod_rex", "do": "idle", "label": "lab", "face": [90, -19.5]},
+        "rook": {"place": "lab_pod_rook", "do": "idle", "label": "lab", "face": [90, -16.5]},
+        "dash": {"place": "lab_bench", "do": "idle", "label": "lab", "face": [99, -16]}
+      }
+    },
+    {
+      "id": "after",
+      "text": "Did it work? Talk to Rex.",
+      "done": {"flag": "lab_after"},
+      "where": ["rex"],
+      "override": {
+        "rex": {"place": "lab", "do": "idle", "label": "lab", "face": [101, -16]},
+        "rook": {"place": "lab_pod_rook", "do": "idle", "label": "lab", "face": [90, -16.5]},
+        "dash": {"place": "lab_bench", "do": "idle", "label": "lab", "face": [92, -16]}
+      }
+    }
+  ],
+  "reward": {
+    "item": "shop:lab_goggles",
+    "sparkles": 15,
+    "message": "You're an official lab assistant! Rex gave you his Lab Goggles (find them in the wardrobe), and +15 sparkles."
+  }
+}
