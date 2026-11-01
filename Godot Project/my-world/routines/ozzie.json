@@ -20,6 +20,10 @@
     {"at": "19:30", "place": "green_s", "do": "wander", "label": "evening", "radius": 3},
     {"at": "21:30", "place": "larkspur_house", "do": "away", "label": "asleep"}
   ],
+  "hallows": [
+    {"at": "17:00", "place": "home_1", "do": "patrol", "label": "trick_or_treat", "route": ["home_1", "home_3", "blastoff_door", "palmer_house", "hollis_house", "quill_house", "bramblewood_house", "okafor_house", "pemberton_house", "larkspur_house"], "pause": 6},
+    {"at": "20:45", "place": "larkspur_house", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_apples", "do": "wander", "label": "festival", "radius": 2.5}
   ]

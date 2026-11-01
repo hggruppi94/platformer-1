@@ -21,7 +21,8 @@ extends Node
 #
 # Earth has a calendar (scripts/clock.gd): "blocks" are a school day (or any working day). A file's "weekend" blocks
 # replace them on Saturdays and Sundays, and its "holiday" blocks on the school holidays (falling back to "weekend"
-# when there are none), so kids lie in and play instead of going to Old Oak Elementary.
+# when there are none), so kids lie in and play instead of going to Old Oak Elementary. "hallows" blocks take over on
+# Hallow's Eve evening (trick-or-treating up and down Maple Lane), like the festival's.
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -41,6 +42,7 @@ var earth := false                                  # lives in the Earth town: E
 var festival: Array = []                            # where they are at the Autumn Festival, while it's on
 var weekend: Array = []                             # Earth: Saturdays and Sundays, if their weekends are different
 var holiday: Array = []                             # Earth: the school holidays' weekdays (else weekend, else blocks)
+var hallows: Array = []                             # Earth: trick-or-treating on Hallow's Eve, while it's on
 
 var _body: Node3D
 var _bike: Node3D
@@ -114,6 +116,7 @@ func _load() -> void:
 	festival = _read_blocks(data.get("festival", []), "17:00")
 	weekend = _read_blocks(data.get("weekend", []), "00:00")
 	holiday = _read_blocks(data.get("holiday", []), "00:00")
+	hallows = _read_blocks(data.get("hallows", []), "17:00")
 
 
 static func _read_blocks(list, default_at: String) -> Array:
@@ -201,6 +204,8 @@ func _physics_process(delta: float) -> void:
 	var o := Quests.override_for(character_id)
 	if o.is_empty() and not festival.is_empty() and Festival.is_on():
 		o = festival[block_index_at(festival, now())]
+	elif o.is_empty() and not hallows.is_empty() and Festival.hallows_on():
+		o = hallows[block_index_at(hallows, now())]
 	if i != _block or not is_same(list, _list) or _jumped or o != _override:
 		var was := _block
 		_block = i

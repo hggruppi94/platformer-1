@@ -20,6 +20,10 @@
     {"at": "19:30", "place": "bruno_room", "do": "idle", "label": "his_room"},
     {"at": "21:30", "place": "bruno_room", "do": "away", "label": "asleep"}
   ],
+  "hallows": [
+    {"at": "17:00", "place": "quill_house", "do": "patrol", "label": "trick_or_treat", "route": ["quill_house", "bramblewood_house", "okafor_house", "pemberton_house", "larkspur_house", "home_1", "home_3", "blastoff_door", "palmer_house", "hollis_house"], "pause": 6},
+    {"at": "20:45", "place": "bruno_room", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_hay", "do": "wander", "label": "festival", "radius": 2.5},
     {"at": "21:30", "place": "bruno_room", "do": "away", "label": "asleep"}

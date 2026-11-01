@@ -7,6 +7,11 @@ extends Node3D
 # roof out over the stalls. The hayride's little tractor (a friendly scarecrow drives it) pulls a hay wagon round the
 # street that rings the green, stopping by the Maple Inn; hop on for a lap. At 9 PM a sky full of paper lanterns
 # floats up from the green.
+#
+# It's the same fair every Saturday of the year, dressed for the season (scripts/festival.gd FAIRS): the banner says
+# the fair's name, the strings of lanterns change colour, the pumpkins become snowballs, flower pots or watermelons,
+# the apple barrel is iced over with a fishing hole in winter and full of ducks in spring, the cider cart is Gus's
+# cocoa or lemonade cart, and in winter the hayride's wagon is a red sleigh.
 
 const STALL_R := 9.6                # how far out the stalls stand (the trees are at 11.5)
 # Each spot: what's there, and its angle round the gazebo (degrees, the gaps between the trees; 90 is due south). The
@@ -32,9 +37,11 @@ var _wait := WAGON_WAIT
 var _player: CharacterBody3D
 var _lanterns: Array[Node3D] = []
 var _mats := {}
+var _season := "autumn"
 
 
 func _ready() -> void:
+	_season = Clock.season()
 	_make_loop()
 	for what in SPOTS:
 		var a := deg_to_rad(float(SPOTS[what]))
@@ -49,11 +56,11 @@ func _ready() -> void:
 				_stall(node, "Festival Treats", [Color(0.95, 0.5, 0.15), Color(1.0, 0.95, 0.85)], "Festival Treats")
 				_treats(node)
 			"cider":
-				_stall(node, "Cider Cart", [Color(0.55, 0.25, 0.15), Color(0.95, 0.8, 0.45)], "Gus's Cider Cart")
+				_stall(node, "Cider Cart", [Color(0.55, 0.25, 0.15), Color(0.95, 0.8, 0.45)], str(Festival.fair().cart))
 				for k in 3:
 					_barrel(node, Vector3(-0.8 + k * 0.8, 1.0, -0.05), 0.22, 0.4)
 			"lanterns":
-				_stall(node, "", [Color(0.45, 0.25, 0.6), Color(0.95, 0.75, 0.3)], "Lanterns for Nine O'Clock")
+				_stall(node, "", [Color(0.45, 0.25, 0.6), Color(0.95, 0.75, 0.3)], "Lanterns for %d O'Clock" % (int(Festival.fair().lanterns) - 12))
 				_talk_spot(node, "Lantern Stall", "get a lantern", Vector3(0, 0, 1.3))
 				for k in 7:
 					_paper_lantern(node, Vector3(-1.1 + k * 0.37, 2.15 - (k % 2) * 0.15, 0.2), k)
@@ -74,7 +81,7 @@ func _process(delta: float) -> void:
 		l.position += v * delta
 		l.position.x += sin(l.position.y * 0.35 + float(l.get_meta("phase"))) * delta * 0.4
 	if not lanterns_released and Festival.lanterns_up():
-		release_lanterns(Clock.earth_minutes > Festival.LANTERNS + 3.0)
+		release_lanterns(Clock.earth_minutes > Festival.lantern_time() + 3.0)
 
 
 func _physics_process(delta: float) -> void:
@@ -228,8 +235,9 @@ func _hayride() -> void:
 	wagon = Node3D.new()
 	wagon.name = "Hay Wagon"
 	add_child(wagon)
-	var wood := _mat(Color(0.55, 0.36, 0.2))
-	var hay := _mat(Color(0.9, 0.76, 0.38))
+	var sleigh := _season == "winter"
+	var wood := _mat(Color(0.75, 0.12, 0.15) if sleigh else Color(0.55, 0.36, 0.2))       # (a red sleigh in winter)
+	var hay := _mat(Color(0.95, 0.95, 1.0) if sleigh else Color(0.9, 0.76, 0.38))         # (white fur rugs on it)
 	_box(wagon, Vector3(2.0, 0.15, 3.4), Vector3(0, 0.75, 0), wood)
 	for side in [-1, 1]:
 		_box(wagon, Vector3(0.08, 0.5, 3.4), Vector3(side * 1.0, 1.05, 0), wood)
@@ -241,7 +249,7 @@ func _hayride() -> void:
 	for p in [Vector3(0.6, 0.83, 1.35), Vector3(-0.65, 0.83, -1.4)]:
 		_pumpkin(wagon, p, 0.22)
 	var sign_node := Label3D.new()
-	sign_node.text = "HAYRIDE"
+	sign_node.text = str(Festival.fair().ride).to_upper()
 	sign_node.font_size = 48
 	sign_node.pixel_size = 0.006
 	sign_node.outline_size = 10
@@ -250,7 +258,7 @@ func _hayride() -> void:
 	sign_node.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	sign_node.position = Vector3(0, 2.0, -1.7)
 	wagon.add_child(sign_node)
-	_talk_spot(wagon, "Hayride", "ride the hayride", Vector3(0, 0, 0), 2.8)
+	_talk_spot(wagon, "Hayride", "hop on the " + str(Festival.fair().ride), Vector3(0, 0, 0), 2.8)
 	_place_on_loop(tractor, 0.0)
 	_place_on_loop(wagon, -4.2)
 
@@ -401,7 +409,7 @@ func _pie_table(node: Node3D) -> void:
 		_box(node, Vector3(0.1, 2.8, 0.1), Vector3(sx, 1.4, -0.55), wood)
 	_box(node, Vector3(3.3, 0.6, 0.05), Vector3(0, 2.45, -0.55), _mat(Color(0.95, 0.55, 0.15)))
 	var l := Label3D.new()
-	l.text = "PIE CONTEST"
+	l.text = "PIE CONTEST" if Clock.season() == "autumn" else "BAKING CONTEST"
 	l.font_size = 52
 	l.pixel_size = 0.006
 	l.outline_size = 10
@@ -414,16 +422,29 @@ func _pie_table(node: Node3D) -> void:
 func _apple_barrel(node: Node3D) -> void:
 	# A big wooden barrel of water with apples bobbing in it, and a basket of towels
 	_barrel(node, Vector3(0, 0.0, 0), 0.6, 0.95, true)
-	_cyl(node, 0.55, 0.55, 0.02, Vector3(0, 0.88, 0), _mat(Color(0.3, 0.55, 0.75), 0.0, 0.3))
-	for k in 6:
+	var catch := str(Festival.fair().catch)
+	if catch == "fish":
+		# Iced over, with a round fishing hole in the middle and a little rod leaning on the side
+		_cyl(node, 0.55, 0.55, 0.03, Vector3(0, 0.88, 0), _mat(Color(0.85, 0.92, 0.98), 0.15))
+		_cyl(node, 0.2, 0.2, 0.035, Vector3(0, 0.885, 0), _mat(Color(0.12, 0.25, 0.4), 0.0, 0.2))
+		var rod := _cyl(node, 0.015, 0.02, 1.4, Vector3(0.5, 1.3, 0.3), _mat(Color(0.5, 0.33, 0.2)))
+		rod.rotation.z = 0.5
+	else:
+		_cyl(node, 0.55, 0.55, 0.02, Vector3(0, 0.88, 0), _mat(Color(0.3, 0.55, 0.75), 0.0, 0.3))
+	for k in (0 if catch == "fish" else 6):
 		var a := k * TAU / 6.0
-		var apple := _ball(node, 0.09, Vector3(cos(a) * 0.32, 0.9, sin(a) * 0.32), _mat(Color(0.85, 0.12, 0.12) if k % 3 else
-			Color(0.6, 0.8, 0.2)))
+		var c := Color(0.85, 0.12, 0.12) if k % 3 else Color(0.6, 0.8, 0.2)
+		if catch == "duck":
+			c = Color(1.0, 0.85, 0.15)
+		var apple := _ball(node, 0.09 if catch != "duck" else 0.1, Vector3(cos(a) * 0.32, 0.9, sin(a) * 0.32), _mat(c))
 		apple.name = "Apple %d" % k
+		if catch == "duck":
+			_ball(node, 0.06, apple.position + Vector3(0.06, 0.09, 0), _mat(c))                        # its head
+			_box(node, Vector3(0.05, 0.02, 0.03), apple.position + Vector3(0.12, 0.09, 0), _mat(Color(1.0, 0.5, 0.1)))
 	_cyl(node, 0.32, 0.26, 0.3, Vector3(1.0, 0.15, 0.2), _mat(Color(0.7, 0.55, 0.3)))
 	_box(node, Vector3(0.4, 0.1, 0.3), Vector3(1.0, 0.33, 0.2), _mat(Color(0.95, 0.95, 1.0)))
 	var l := Label3D.new()
-	l.text = "Bob for Apples!"
+	l.text = str(Festival.fair().game) + "!"
 	l.font_size = 40
 	l.pixel_size = 0.006
 	l.outline_size = 10
@@ -432,7 +453,7 @@ func _apple_barrel(node: Node3D) -> void:
 	l.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 	l.position = Vector3(0, 1.8, 0)
 	node.add_child(l)
-	_talk_spot(node, "Apple Barrel", "bob for apples", Vector3(0, 0, 1.0))
+	_talk_spot(node, "Apple Barrel", str(Festival.fair().verb), Vector3(0, 0, 1.0))
 
 
 func _barrel(node: Node3D, at: Vector3, r: float, h: float, solid := false) -> void:
@@ -468,15 +489,18 @@ func _banner() -> void:
 	for sx in [-2.8, 2.8]:
 		_box(self, Vector3(0.14, 4.2, 0.14), Vector3(sx, y + 2.1, 13.0), wood)
 		_pumpkin(self, Vector3(sx, y, 13.6), 0.32)
-	_box(self, Vector3(5.6, 0.8, 0.06), Vector3(0, y + 3.7, 13.0), _mat(Color(0.45, 0.2, 0.55)))
+	var colours := {"autumn": [Color(0.45, 0.2, 0.55), Color(1.0, 0.75, 0.3)], "winter": [Color(0.15, 0.3, 0.6), Color(0.9, 0.97, 1.0)],
+		"spring": [Color(0.95, 0.6, 0.75), Color(1.0, 1.0, 0.9)], "summer": [Color(0.1, 0.55, 0.6), Color(1.0, 0.9, 0.3)]}
+	var cs: Array = colours.get(_season, colours.autumn)
+	_box(self, Vector3(5.6, 0.8, 0.06), Vector3(0, y + 3.7, 13.0), _mat(cs[0]))
 	for side in [1, -1]:
 		var l := Label3D.new()
-		l.text = "AUTUMN FESTIVAL"
+		l.text = Festival.fair_name().to_upper()
 		l.font_size = 64
 		l.pixel_size = 0.007
 		l.outline_size = 12
-		l.modulate = Color(1.0, 0.75, 0.3)
-		l.outline_modulate = Color(0.2, 0.05, 0.25)
+		l.modulate = cs[1]
+		l.outline_modulate = (cs[0] as Color).darkened(0.6)
 		l.position = Vector3(0, y + 3.7, 13.0 + side * 0.04)
 		l.rotation.y = 0.0 if side > 0 else PI
 		add_child(l)
@@ -485,7 +509,7 @@ func _banner() -> void:
 func _strings() -> void:
 	# Paper lanterns strung from the gazebo's roof out over each stall to a pole behind it
 	var wood := _mat(Color(0.45, 0.3, 0.2))
-	var cols := [Color(1.0, 0.6, 0.2), Color(0.8, 0.5, 1.0), Color(1.0, 0.9, 0.6)]
+	var cols := _string_colours()
 	var mesh := CylinderMesh.new()
 	mesh.top_radius = 0.1
 	mesh.bottom_radius = 0.12
@@ -510,13 +534,37 @@ func _strings() -> void:
 		k += 1
 
 
+func _string_colours() -> Array:
+	match _season:
+		"winter":
+			return [Color(0.55, 0.8, 1.0), Color(1.0, 1.0, 1.0), Color(0.75, 0.6, 1.0)]
+		"spring":
+			return [Color(1.0, 0.7, 0.85), Color(0.75, 1.0, 0.7), Color(1.0, 1.0, 0.7)]
+		"summer":
+			return [Color(1.0, 0.35, 0.35), Color(0.3, 0.85, 1.0), Color(1.0, 0.9, 0.3)]
+	return [Color(1.0, 0.6, 0.2), Color(0.8, 0.5, 1.0), Color(1.0, 0.9, 0.6)]
+
+
 func _paper_lantern(node: Node3D, at: Vector3, k: int) -> void:
-	_cyl(node, 0.1, 0.12, 0.22, at, _mat([Color(1.0, 0.6, 0.2), Color(0.8, 0.5, 1.0), Color(1.0, 0.9, 0.6)][k % 3], 0.0, 1.8))
+	_cyl(node, 0.1, 0.12, 0.22, at, _mat(_string_colours()[k % 3], 0.0, 1.8))
 
 
 func _pumpkin(parent: Node3D, at: Vector3, r: float) -> void:
-	_ball(parent, r, at + Vector3(0, r * 0.7, 0), _mat(Color(0.95, 0.5, 0.12))).scale = Vector3(1.15, 0.8, 1.15)
-	_cyl(parent, 0.03, 0.04, 0.14, at + Vector3(0, r * 1.4, 0), _mat(Color(0.3, 0.45, 0.2)))
+	# A pumpkin in autumn; a snowball in winter, a pot of flowers in spring, a watermelon in summer
+	match _season:
+		"winter":
+			_ball(parent, r, at + Vector3(0, r * 0.8, 0), _mat(Color(0.95, 0.97, 1.0)))
+		"spring":
+			_cyl(parent, r * 0.8, r * 0.6, r * 1.1, at + Vector3(0, r * 0.55, 0), _mat(Color(0.75, 0.4, 0.25)))
+			for k in 5:
+				var a := k * TAU / 5.0
+				_ball(parent, r * 0.3, at + Vector3(cos(a) * r * 0.4, r * 1.25, sin(a) * r * 0.4),
+					_mat([Color(1.0, 0.6, 0.78), Color(1.0, 0.95, 0.4), Color(0.75, 0.6, 1.0)][k % 3]))
+		"summer":
+			_ball(parent, r, at + Vector3(0, r * 0.7, 0), _mat(Color(0.2, 0.55, 0.22))).scale = Vector3(1.3, 0.8, 1.0)
+		_:
+			_ball(parent, r, at + Vector3(0, r * 0.7, 0), _mat(Color(0.95, 0.5, 0.12))).scale = Vector3(1.15, 0.8, 1.15)
+			_cyl(parent, 0.03, 0.04, 0.14, at + Vector3(0, r * 1.4, 0), _mat(Color(0.3, 0.45, 0.2)))
 
 
 # --- Shapes --------------------------------------------------------------------

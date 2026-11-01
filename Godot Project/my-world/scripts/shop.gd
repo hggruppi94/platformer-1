@@ -52,8 +52,16 @@ func for_stall(stall: String) -> Array:
 	# A kind sold by another system can hide some of its items for now (a "show" in register_kind(): the races' ride
 	# upgrades only show the next level of each)
 	return items.values().filter(func(it: Dictionary) -> bool:
-		return it.stall == stall and (not kinds.has(str(it.kind)) or not kinds[str(it.kind)].has("show")
+		return it.stall == stall and _in_season(it) and (not kinds.has(str(it.kind)) or not kinds[str(it.kind)].has("show")
 			or bool(kinds[str(it.kind)].show.call(it))))
+
+
+static func _in_season(it: Dictionary) -> bool:
+	# An item with a "season" (one, or a list) is only sold then, by Earth's calendar: hot cocoa in winter, lemonade in summer
+	if not it.has("season"):
+		return true
+	var when = it["season"]
+	return Clock.season() in (when if when is Array else [when])
 
 
 func register_kind(kind: String, how: Dictionary) -> void:

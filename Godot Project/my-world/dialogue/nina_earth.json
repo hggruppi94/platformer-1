@@ -158,6 +158,15 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "Happy Hallow's Eve! I'm a vampire. (She shows you her plastic fangs.) Bruno's a meatball. Don't ask.",
+        "Mr. Palmer gives the best treats, but you have to listen to a story about the old oak first. Worth it."
+      ]
+    },
+    {
+      "when": {
         "weekend": true,
         "activity": "breakfast"
       },

@@ -23,6 +23,14 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "I'm a knight. This is my shield. It's also my treat bucket. Very practical, knights."
+      ]
+    },
+    {
+      "when": {
         "weekend": true,
         "activity": "reading"
       },

@@ -71,6 +71,19 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: A fair every Saturday, and Hallow's Eve (plan item 8, slice 3). `Festival.FAIRS` gives each season its
+  own fair on the green: the **Autumn Festival** (as before, 5-10 PM), the **Frost Fair** (4-9 PM: ice fishing in the
+  barrel, a sleigh ride, Gus's Cocoa Cart, a gingerbread house for the baking contest), the **Spring Fair** (5-10 PM:
+  hook a duck, strawberry tarts, lemonade) and the **Summer Fair** (6-11 PM: blueberry pie, bob for apples).
+  `fair()`, `fair_name()`, `start_time()`, `end_time()`, `lantern_time()`, `hours_text()`; `festival_green.gd`
+  dresses the stalls, banner, string lights, barrel, wagon and pumpkins for the season (the node keeps the name
+  "Autumn Festival", and it's made again if the season changes while it's up). Shop items can have a `"season"`
+  (`Shop._in_season`): seven new seasonal treats. **Hallow's Eve** (28 Autumn, 5-9 PM, `Festival.HALLOWS`):
+  `scripts/hallows_eve.gd` puts a glowing jack-o'-lantern and a knock spot at ten gates on Maple Lane
+  (`HALLOWS_DOORS`); each door gives a treat line and a sparkle once (`knock()`), all ten a 6-sparkle bonus; saved
+  in the festival save. The six kids' routines have `"hallows"` blocks (going door to door, then bed) and
+  trick-or-treat lines. Test `tools/test_fairs.gd`; shots in `tools/capture_calendar.gd` (project files,
+  world/previews/fairs). My choices Hayden may change: the fairs' names, hours and games, the treats, the doors.
 - 2026-11-01: The seasons in Stars Hollow (plan item 8, slice 2). New `scripts/seasons.gd`, a "Seasons" node that
   `EarthTown` puts in the Earth scene when it loads (so `earth.tscn` wasn't rebuilt). The town as built is autumn; for
   the other seasons it changes what's there: the trees' leaves (the "Tree Leaves" MultiMesh: fresh green with pink and

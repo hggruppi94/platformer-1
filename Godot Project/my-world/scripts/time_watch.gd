@@ -77,10 +77,12 @@ static func lines() -> Array[String]:
 		out.append("The Shift: %s of Galaxity's day left before the portal pulls you home" % _span(left))
 	elif Clock.on_earth:
 		out.append("The portal by the old oak opens at midnight: %s to go" % _span(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
-		if Festival.is_festival_day() and not Festival.is_on() and Clock.earth_minutes < Festival.START:
-			out.append("The Autumn Festival starts at 5 PM today, on the green")
+		if Festival.is_festival_day() and not Festival.is_on() and Clock.earth_minutes < Festival.start_time():
+			out.append("The %s starts at %d PM today, on the green" % [Festival.fair_name(), int(Festival.fair().start) - 12])
 		elif Festival.is_on():
-			out.append("The Autumn Festival is on, on the green!")
+			out.append("The %s is on, on the green!" % Festival.fair_name())
+		if Festival.hallows_on():
+			out.append("Hallow's Eve! Trick-or-treat on Maple Lane till 9 PM")
 	else:
 		out.append("Galaxity: day %d, %s (the portal's closed)" % [Clock.day, Clock.time_string()])
 	var bearing = ripple_bearing()

@@ -24,6 +24,10 @@
     {"at": "20:30", "place": "nina_room", "do": "idle", "label": "her_room"},
     {"at": "22:00", "place": "nina_room", "do": "away", "label": "asleep"}
   ],
+  "hallows": [
+    {"at": "17:00", "place": "blastoff_door", "do": "patrol", "label": "trick_or_treat", "route": ["blastoff_door", "palmer_house", "hollis_house", "quill_house", "bramblewood_house", "okafor_house", "pemberton_house", "larkspur_house", "home_1", "home_3"], "pause": 6},
+    {"at": "20:45", "place": "nina_room", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_apples", "do": "wander", "label": "festival", "radius": 2.5},
     {"at": "21:30", "place": "nina_room", "do": "away", "label": "asleep"}

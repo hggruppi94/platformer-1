@@ -22,6 +22,15 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "I'm a detective dressed as a witch dressed as a detective. It's a disguise inside a disguise.",
+        "Clue: the Pickwicks give cupcakes. Second clue: GO NOW."
+      ]
+    },
+    {
+      "when": {
         "weekend": true
       },
       "lines": [

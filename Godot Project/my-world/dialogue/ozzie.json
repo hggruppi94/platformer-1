@@ -20,6 +20,15 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "I'm a skeleton on a skateboard! A skate-leton! (He waits for you to laugh.)",
+        "Ten doors on Maple Lane. I've done all ten. Twice. Don't tell my dad."
+      ]
+    },
+    {
+      "when": {
         "weekend": true,
         "activity": "skating"
       },

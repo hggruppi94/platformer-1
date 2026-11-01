@@ -2,7 +2,8 @@ extends SceneTree
 
 # Screenshots of Earth's calendar (scripts/clock.gd): the Calendar sheet in the Tab menu (this season and the next),
 # the date on the HUD, the kids out round town on a Saturday morning instead of at school, then Stars Hollow in each
-# season (scripts/seasons.gd) from the same four places, snow falling, and summer fireflies.
+# season (scripts/seasons.gd) from the same four places, snow falling, summer fireflies, the Frost, Spring and Summer
+# fairs (scripts/festival.gd) and Hallow's Eve on Maple Lane.
 # Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_calendar.gd -- <output folder>
@@ -107,6 +108,38 @@ func _run() -> void:
 	seasons.apply("summer")
 	clock.set_earth_time(22 * 60.0, true)
 	await _shot("%02d_summer_night_fireflies" % n, 60)
+	n += 1
+	cam.queue_free()
+	cam = null
+
+	# --- The fairs (scripts/festival.gd) and Hallow's Eve ---
+	for f in [["winter", 17, "frost_fair"], ["spring", 18, "spring_fair"], ["summer", 19, "summer_fair"]]:
+		clock.day = clock.day_of(f[0], 6)                     # a Saturday
+		seasons.apply(f[0])
+		clock.set_earth_time(f[1] * 60.0 + 20.0, true)
+		_player().global_position = Vector3(0, 1, 18)
+		await _frames(60)                                      # (Festival puts the fair up within half a second)
+		_make_cam()
+		cam.global_position = Vector3(0, 6.5, 24)
+		cam.look_at(Vector3(0, 1.5, 4))
+		await _shot("%02d_%s" % [n, f[2]], 40)
+		n += 1
+		cam.global_position = Vector3(7, 2.6, -2)
+		cam.look_at(Vector3(9.5, 1.2, -1.6))
+		await _shot("%02d_%s_barrel_game" % [n, f[2]], 20)
+		n += 1
+		cam.queue_free()
+		cam = null
+	clock.day = 10                                             # Sunday 28 Autumn: Hallow's Eve
+	seasons.apply("autumn")
+	clock.set_earth_time(19 * 60.0, true)
+	await _frames(60)
+	var door := _place("palmer_house")
+	_player().global_position = door + Vector3(0, 1, 2.5)
+	_make_cam()
+	cam.global_position = door + Vector3(6, 3.5, 7)
+	cam.look_at(door + Vector3(-6, 1, 0))
+	await _shot("%02d_hallows_eve_maple_lane" % n, 50)
 	_finish()
 
 

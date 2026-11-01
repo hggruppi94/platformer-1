@@ -265,6 +265,7 @@ func _run() -> void:
 			if inside:
 				check(absf(shop_spot.global_position.y - inside.global_position.y) < 0.3, "...inside, on the shop's floor")
 	game.sparkles = 40
+	game.items.erase("shop:witch_hat")                   # (a save that already has it can't buy it again)
 	check(shop.buy("witch_hat") and game.outfit.get("head", "") == "witch_hat", "buying the Witch Hat puts it on")
 	check(root.get_node("Shop").can_buy("pumpkin_hat") == "" and Cosmetics.hat("pumpkin_hat") != null, "the Pumpkin Hat has a look too")
 	game.items.erase("contest_pie")

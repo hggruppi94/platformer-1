@@ -21,7 +21,8 @@ const TIPS := [
 	"Zippy's races open one after another. Any place counts!",
 	"Feeling stuck? Open the map: the stars show where to go.",
 	"The little aliens love it when you wave back.",
-	"On Saturday evenings in autumn, Stars Hollow has its Autumn Festival on the green.",
+	"Every Saturday evening there's a fair on the green: a different one each season.",
+	"On the last day of autumn it's Hallow's Eve. Knock on every door on Maple Lane!",
 	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
 	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
 ]

@@ -50,6 +50,15 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "Trick or treat! I'm a meatball. A thpooky meatball.",
+        "(Bruno lowers his voice.) I'm gonna make you a treat you can't refuthe... (Back to normal.) It'th a gummy worm. Want one?"
+      ]
+    },
+    {
+      "when": {
         "weekend": true,
         "activity": [
           "breakfast",

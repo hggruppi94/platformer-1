@@ -1,6 +1,7 @@
 extends CanvasLayer
 
-# Bobbing for apples at the Autumn Festival (scripts/festival.gd starts it from the apple barrel). Three goes: an apple
+# Bobbing for apples at the Autumn Festival (scripts/festival.gd starts it from the apple barrel). The other seasons'
+# fairs play it the same way with their own words: ice fishing at the Frost Fair, hooking a duck at the Spring Fair. Three goes: an apple
 # bobs back and forth across the barrel, and Interact (or Jump) bites. Bite while it's over the green ripple to get it;
 # each go the apple's quicker and the ripple's smaller. Then the score, and Festival pays for the apples once a
 # festival. The player can't move while their face is in the barrel.
@@ -63,8 +64,9 @@ func _label(parent: Node, size: int, c: Color) -> Label:
 func _next_go() -> void:
 	zone = randf_range(0.2, 0.8)
 	_t = randf() * TAU
-	_title.text = "Bob for apples!   Go %d of %d   Apples: %d" % [go + 1, GOES, apples]
-	_say.text = "Press %s to bite when the apple's over the green!" % Settings.prompt("interact")
+	var f: Dictionary = Festival.fair()
+	_title.text = "%s!   Go %d of %d   %s: %d" % [f.game, go + 1, GOES, _plural(), apples]
+	_say.text = "Press %s to %s when the %s's over the green!" % [Settings.prompt("interact"), _act(), f.catch]
 
 
 func _process(delta: float) -> void:
@@ -91,6 +93,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		bite()
 
 
+static func _plural() -> String:
+	return {"apple": "Apples", "fish": "Fish", "duck": "Ducks"}.get(str(Festival.fair().catch), "Got")
+
+
+static func _act() -> String:
+	# What the button does in this season's barrel game
+	return {"apple": "bite", "fish": "pull the line", "duck": "hook it"}.get(str(Festival.fair().catch), "go")
+
+
 func in_zone() -> bool:
 	return absf(marker - zone) * WIDTH <= ZONES[mini(go, GOES - 1)] / 2.0
 
@@ -104,11 +115,14 @@ func bite() -> bool:
 	if got:
 		apples += 1
 		Audio.play("pop", -3.0)
-		_say.text = "CRUNCH! Got one!"
+		_say.text = {"apple": "CRUNCH! Got one!", "fish": "A bite! You reel it in!", "duck": "Hooked it! Quack!"}.get(
+			str(Festival.fair().catch), "Got one!")
 	else:
 		Audio.play("splash", -4.0)
-		_say.text = "Splash! It bobbed away."
-	_title.text = "Bob for apples!   Go %d of %d   Apples: %d" % [go, GOES, apples]
+		_say.text = {"apple": "Splash! It bobbed away.", "fish": "Splash! It swam off.", "duck": "Missed! It floated by."}.get(
+			str(Festival.fair().catch), "Missed!")
+	var f: Dictionary = Festival.fair()
+	_title.text = "%s!   Go %d of %d   %s: %d" % [f.game, go, GOES, _plural(), apples]
 	_wait = 1.0
 	_bar.queue_redraw()
 	return got
@@ -117,7 +131,7 @@ func bite() -> bool:
 func _finish() -> void:
 	finished = true
 	_say.text = Festival.apples_done(apples)
-	_title.text = "Bob for apples!   You got %d of %d" % [apples, GOES]
+	_title.text = "%s!   You got %d of %d" % [Festival.fair().game, apples, GOES]
 	get_tree().create_timer(2.0).timeout.connect(close)
 
 

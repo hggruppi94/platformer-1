@@ -1,9 +1,9 @@
 extends SceneTree
 
 # Checks Earth's calendar (scripts/clock.gd): four seasons of four weeks, each starting on a Monday, a new game on
-# Friday 19 Autumn, dates and weekdays that agree, weekends and the school holidays, the Autumn Festival only on autumn
-# Saturdays (scripts/festival.gd), and the calendar saving, loading, and fitting a save from before it into autumn
-# (scripts/game.gd). Then the kids' routines (scripts/routine.gd "weekend" blocks): at school on a weekday morning, out
+# Friday 19 Autumn, dates and weekdays that agree, weekends and the school holidays, the Autumn Festival on autumn
+# Saturdays and each season's own fair on the others (scripts/festival.gd; tools/test_fairs.gd checks the fairs), and
+# the calendar saving, loading, and fitting a save from before it into autumn (scripts/game.gd). Then the kids' routines (scripts/routine.gd "weekend" blocks): at school on a weekday morning, out
 # round town on a Saturday. Then the lines that depend on the calendar (scripts/dialogue.gd "season", "weekday",
 # "weekend", "school_day"), the date on the HUD and the watch, and the Calendar sheet in the Tab menu.
 #
@@ -79,8 +79,8 @@ func _run() -> void:
 		and clock.is_school_day(clock.day_of("spring", 15)), "the winter holidays, spring break and the summer holidays")
 
 	# --- The Autumn Festival: Saturdays in autumn only ---
-	check(F.is_festival_day(2) and F.is_festival_day(9) and not F.is_festival_day(16) and not F.is_festival_day(1),
-		"the Autumn Festival is on autumn Saturdays (20 and 27 Autumn), not on a winter one")
+	check(F.is_festival_day(2) and F.is_festival_day(9) and F.fair_name(9) == "Autumn Festival" and F.fair_name(16) == "Frost Fair"
+		and not F.is_festival_day(1), "the Autumn Festival is on autumn Saturdays (20 and 27 Autumn); winter's is the Frost Fair")
 	check(F.days_until() == 1, "tomorrow's the first festival (%d)" % F.days_until())
 	check(F.events_on(11).has("First day of Winter") and F.events_on(2).has("Autumn Festival, 5-10 PM"), "the calendar's events")
 

@@ -122,7 +122,7 @@ func _run() -> void:
 
 	# --- The pie contest ---
 	var lines: Array = F.judge_pie()
-	check(" ".join(lines).contains("contest pies at the bakery"), "no pie: she says where to get one")
+	check(" ".join(lines).contains("contest bakes at the bakery"), "no pie: she says where to get one")
 	game.sparkles = 30
 	root.get_node("Shop").buy("contest_pie")
 	var before: int = game.sparkles

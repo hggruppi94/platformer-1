@@ -20,6 +20,15 @@
     },
     {
       "when": {
+        "activity": "trick_or_treat"
+      },
+      "lines": [
+        "I'm a ghost! Wooooo! (Her sheet slips over her eyes.) Wooo... where did everyone go?",
+        "Nina says if you knock on EVERY door on Maple Lane your bucket gets full. I've done four. My arms are tired."
+      ]
+    },
+    {
+      "when": {
         "weekend": true,
         "activity": [
           "breakfast",

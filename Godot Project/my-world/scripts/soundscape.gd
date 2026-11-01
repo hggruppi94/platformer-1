@@ -5,7 +5,7 @@ extends Node
 #
 #   a race                          -> "race"           (Races.racing())
 #   the Gloop King after you        -> "gloop_king"     (a boss in the "bosses" group chasing, close by)
-#   the Autumn Festival on the green-> "festival"       (Festival.is_on(), on Earth)
+#   a fair on the green (Saturdays) -> "festival"       (Festival.is_on(), on Earth)
 #   a music zone you're standing in -> its own track    (scripts/music_zone.gd: interiors; the barn's is "barn_dance")
 #   the Skate Park / the Skate Yard -> "skate_park"
 #   the Scary World                 -> "scary_world"
