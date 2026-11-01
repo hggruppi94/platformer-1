@@ -9,6 +9,7 @@ extends Node
 #     Their boss, Grandfather Tock (scripts/time_goblin_boss.gd), keeps the middle of it.
 #   - Boulder Hollow, in the far northwest: a ring of big boulders where the Boulderdillo (scripts/crocodillo_boss.gd),
 #     the Crocodillos' boss, rolls about. (The Gloops' boss is the Gloop King, built into the town.)
+#   - The final boss fight (scripts/chaos_fight.gd), hung under the Agent of Chaos (scripts/chaos_giant.gd).
 #
 # Every enemy's boss is remembered here once beaten (Dialogue flags, so it's saved with everything else).
 
@@ -42,6 +43,7 @@ func _on_scene_changed() -> void:
 		return
 	_place_clockyard(scene)
 	_place_hollow(scene)
+	_arm_the_agent(scene)
 
 
 func ground(scene: Node3D, x: float, z: float) -> Vector3:
@@ -165,6 +167,16 @@ func _place_hollow(scene: Node) -> void:
 	boss.set("respawn_time", 180.0)
 	boss.position = _local(parent, hollow.global_position + Vector3(0, 0.4, 0))
 	parent.add_child(boss)
+
+
+func _arm_the_agent(scene: Node) -> void:
+	var giant := scene.find_child("ChaosGiant", true, false)
+	if giant == null or giant.get_node_or_null("ChaosFight") != null:
+		return
+	var fight := (load("res://scripts/chaos_fight.gd") as GDScript).new() as Node
+	fight.name = "ChaosFight"
+	giant.add_child(fight)
+	giant.set("fight", fight)
 
 
 func _local(parent: Node, at: Vector3) -> Vector3:

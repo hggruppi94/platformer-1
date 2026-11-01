@@ -70,6 +70,22 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: The Agent of Chaos final boss fight (plan item 6, slice 3 of 3). `scripts/chaos_fight.gd` is hung under
+  the giant (`ChaosFight`, added by `Bosses`) and drives him while a fight is on (`chaos_giant.gd` gained `fight`,
+  `shot()` and a `size` used only so hip fire aims at his chest). **Locked** until the flags `popped_gloop_king`,
+  `popped_grandfather_tock` and `popped_boulderdillo` are all set (walking up before that gives a hint naming who's
+  left); then coming within 24 m starts it, and going 70 m away calls it off (he gets all his chaos back). His weak spot
+  is the cracked clock on his chest (`ChaosClock`, a StaticBody sphere at 7.2 m up, 1.5 m forward): bubbles only count
+  on it while it **glows** (legs and shut clock: "bounce"). 30 chaos in three phases: **1 bursts** (`scripts/
+  chaos_burst.gd`: a marked spot that pops in glitch cubes 1.3 s later, bumps you if you're still on it, jumping
+  doesn't help; every second volley also a big `ShockRing` to jump), then his clock glows 3.5 s; **2 minions** (glitch
+  rifts bring Time Goblins and a Gloop; his clock opens once they're popped or after 14 s); **3 rewind** (every other
+  turn his clock spins backwards for 4 s: three hits break it and leave him dazed and open 6 s; otherwise the player is
+  pulled back 3.5 s along their trail, the screen flashes purple (softer with Reduce flashing) and he gets 3 chaos
+  back, never past the phase start). At zero his clock shatters, he shrinks away out of time (hidden till the town
+  reloads, so a rematch is there next visit), flag `beat_agent_of_chaos`, 200 XP and 20 sparkles. Test
+  `tools/test_chaos_fight.gd` (29 checks); `tools/capture_chaos_fight.gd` soaks the fight for 25 s of bubbles then poses
+  shots → /mnt/project-files/characters/chaos-giant/final-fight/. Tested in the cloud only.
 - 2026-11-01: The Boulderdillo, the Crocodillos' boss, and a cross Gloop King (plan item 6, slice 2 of 3). `Bosses`
   now also puts **Boulder Hollow** at (-118, -180) in the northwest (12 mossy boulders with collision in a ring, two
   ways in; on the map) with the Boulderdillo in it: `crocodillo.tscn` with `scripts/crocodillo_boss.gd`, size 2.6

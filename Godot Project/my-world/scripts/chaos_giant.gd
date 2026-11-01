@@ -5,6 +5,8 @@ extends Node3D
 # between two spots, stops to brood, and now and then flings his arms up and lets the chaos out (his "chaos" action).
 # When the player comes near he stops, turns to look at them and does it too. He's scenery: he never chases or hurts
 # anyone, but he's solid, so nobody can walk through his legs. Models face +Z.
+# He's also the game's FINAL BOSS (Nov 1, 2026): once the player has popped the Gloop King, Grandfather Tock and the
+# Boulderdillo, coming close starts the fight in scripts/chaos_fight.gd, which drives him while it's on.
 
 # Hayden may rename him "Agent of Time": this is the one place his name lives (the town map reads it from here).
 const NAME := "Agent of Chaos"
@@ -30,6 +32,8 @@ var _anim: AnimationPlayer
 var _model: Node3D
 var _body: CollisionObject3D
 var _player: Node3D
+var fight: Node                                     # his final boss fight (scripts/chaos_fight.gd, added by Bosses)
+var size := 1.0                                     # only used while fighting: the Star Popper aims at 0.45 x size up
 
 
 func _ready() -> void:
@@ -51,11 +55,18 @@ func map_name() -> String:
 	return NAME
 
 
+func shot(power: int, point: Vector3, dir: Vector3) -> String:
+	# A Star Popper bubble hit him: only his chest clock counts, and only in the fight (scripts/chaos_fight.gd)
+	return str(fight.call("shot", power, point, dir)) if fight else "miss"
+
+
 func _physics_process(delta: float) -> void:
 	if _anim == null:
 		return
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as Node3D
+	if fight and fight.call("drive", delta):
+		return                                          # the final boss fight is driving him
 	_cooldown -= delta
 	_timer -= delta
 	match _state:
