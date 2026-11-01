@@ -73,8 +73,8 @@ func _run() -> void:
 	await _view("03_in_the_cockpit", seat + fwd * 15.0 + Vector3(0, 6.0, 0), seat + Vector3(0, 1.0, 0))
 
 	# 4. Flying over the town, from her camera pulled right back and lifted over the dome
-	arm.spring_length = ship.camera_distance
-	arm.position.y = 1.1 + ship.camera_lift
+	arm.set("boom_length", ship.camera_distance)
+	arm.set("lift", ship.camera_lift)
 	ship.global_position = Vector3(20, 70, 60)
 	ship.rotation.y = PI
 	ship._seat()

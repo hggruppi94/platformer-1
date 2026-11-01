@@ -137,7 +137,7 @@ func _run() -> void:
 	for k in [1, 2, 3, 4]:
 		await _stand_at_spot(k)
 		var spot: Area3D = spots[k]
-		check(dialogue._nearest == spot and spot._prompt.visible and spot._prompt.text == "Press F to hang a poster",
+		check(dialogue._nearest == spot and spot._prompt.visible and spot._prompt.text == "Press %s to hang a poster" % settings.prompt("interact"),
 			"poster spot %d offers: \"%s\"" % [k, spot._prompt.text])
 		check(not spot.get_node("Done").visible, "...no poster there yet")
 		_press("interact")

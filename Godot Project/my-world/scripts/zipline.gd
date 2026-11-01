@@ -31,21 +31,31 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node3D) -> void:
+	# The handle is a spot like the people and the stalls (scripts/dialogue.gd): whichever is nearest gets the prompt
+	# and the Interact press. It used to read Interact itself, so someone standing close by could take the press.
 	if body.is_in_group("player"):
 		_near = true
-		_prompt.text = "Press %s to ride the zipline" % Settings.prompt("interact")
-		_prompt.visible = not _riding
+		Dialogue.enter_range(self)
 
 
 func _on_body_exited(body: Node3D) -> void:
 	if body.is_in_group("player"):
 		_near = false
+		Dialogue.exit_range(self)
 		_prompt.visible = false
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if _near and not _riding and not get_tree().paused and event.is_action_pressed("interact"):
-		get_viewport().set_input_as_handled()
+func _exit_tree() -> void:
+	Dialogue.exit_range(self)
+
+
+func set_prompt(on: bool) -> void:
+	_prompt.text = "Press %s to ride the zipline" % Settings.prompt("interact")
+	_prompt.visible = on and not _riding
+
+
+func use() -> void:
+	if _near and not _riding:
 		ride(get_tree().get_first_node_in_group("player") as CharacterBody3D)
 
 

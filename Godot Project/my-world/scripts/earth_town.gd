@@ -10,7 +10,7 @@ extends Node
 #   would split what the player earns between two purses for no fun.
 # - Story hints that something's going on with the old oak:
 #   - It hums. Quiet in the evening, louder towards midnight, loudest in the Shift, with a faint green glow in its
-#     branches to match (made here as it plays, so there's no sound file: Hayden's wav files go through LFS).
+#     branches to match (made here in code, so there's no sound file: Hayden's wav files go through LFS).
 #   - Small tremors, once or twice a night between 10 PM and midnight, at times picked for each Earth day: a low
 #     rumble, a little shake of the camera and the oak's leaves falling. People talk about them after (Dialogue flag
 #     "earth_tremor") and Mr. Palmer says it's "the pipes".
@@ -29,16 +29,17 @@ const SHOPS := [
 const OAK := Vector3(-2.5, 0, -1.5)       # the old oak, in the "Portal Home" group's space (tools/build_earth.gd _portal)
 const HUM_FROM := 21 * 60.0               # the hum starts, very quietly...
 const HUM_LOUD := 24 * 60.0               # ...and is loud by midnight (and all through the Shift)
-const MIX_RATE := 22050.0
+const MIX_RATE := 22050
+const HUM_LOOP := 4.0                     # seconds: every note and wobble in the hum fits a whole number of times
 const TREMOR_FROM := 22 * 60.0
 const TREMOR_TO := 23 * 60.0 + 50.0
 
 var tremors_felt := 0
 var _hum: AudioStreamPlayer3D
-var _rumble: AudioStreamPlayer
+var _rumble: AudioStreamPlayer3D
+static var _hum_sound: AudioStreamWAV     # made once, the first time Earth loads
+static var _rumble_sound: AudioStreamWAV
 var _glow: OmniLight3D
-var _phase := 0.0
-var _rumble_left := 0.0
 var _shake := 0.0
 var _camera: Camera3D
 var _last_minutes := -1.0
@@ -97,15 +98,24 @@ func _place_oak(scene: Node) -> void:
 	holder.name = "Oak Hum"
 	home.add_child(holder)
 	holder.position = OAK + Vector3(0, 3.0, 0)
+	# The hum loops a sound made once in code. It used to be made as it played (an AudioStreamGenerator fed each
+	# frame), and that could lock up the whole game: now and then the audio thread got stuck mixing it.
+	if _hum_sound == null:
+		_hum_sound = _make_hum()
+		_rumble_sound = _make_rumble()
 	_hum = AudioStreamPlayer3D.new()
-	var gen := AudioStreamGenerator.new()
-	gen.mix_rate = MIX_RATE
-	gen.buffer_length = 0.3
-	_hum.stream = gen
+	_hum.stream = _hum_sound
 	_hum.bus = "SFX"
 	_hum.unit_size = 6.0
 	_hum.max_distance = 70.0
+	_hum.volume_db = -60.0
 	holder.add_child(_hum)
+	_rumble = AudioStreamPlayer3D.new()
+	_rumble.stream = _rumble_sound
+	_rumble.bus = "SFX"
+	_rumble.unit_size = 10.0
+	_rumble.max_distance = 90.0
+	holder.add_child(_rumble)
 	_glow = OmniLight3D.new()
 	_glow.light_color = Color(0.55, 1.0, 0.6)
 	_glow.omni_range = 7.0
@@ -136,7 +146,6 @@ func tremor_times(day := -1) -> Array[float]:
 
 
 func _process(delta: float) -> void:
-	_feed_hum()
 	if _shake > 0.0:
 		_shake = maxf(_shake - delta, 0.0)
 		if is_instance_valid(_camera):
@@ -176,37 +185,57 @@ func _tell_hum(level: float) -> void:
 		Game.message("The old oak is humming, low and deep. It's louder than it was this evening.")
 
 
-func _feed_hum() -> void:
-	# A low, wobbling hum (a few notes of an organ that isn't there), and the tremor's rumble on top of it
-	if _hum == null or not is_instance_valid(_hum) or not _hum.playing:
-		return
-	if hum_level() <= 0.0 and _rumble_left <= 0.0:
-		return                                         # (silent: no need to make the sound at all)
-	var pb := _hum.get_stream_playback() as AudioStreamGeneratorPlayback
-	if pb == null:
-		return
-	var n := pb.get_frames_available()
+static func _make_hum() -> AudioStreamWAV:
+	# A low, wobbling hum (a few notes of an organ that isn't there), as a seamless loop
+	var n := int(HUM_LOOP * MIX_RATE)
+	var out := PackedFloat32Array()
+	out.resize(n)
 	for i in n:
-		_phase += 1.0 / MIX_RATE
-		var t := _phase
+		var t := float(i) / MIX_RATE
 		var wobble := 0.6 + 0.4 * sin(TAU * 0.5 * t)
-		var v := (sin(TAU * 55.0 * t) * 0.5 + sin(TAU * 82.5 * t) * 0.3 + sin(TAU * 110.0 * t + sin(TAU * 0.25 * t)) * 0.2) * wobble
-		if _rumble_left > 0.0:
-			_rumble_left -= 1.0 / MIX_RATE
-			v += randf_range(-1.0, 1.0) * 0.35 * minf(_rumble_left, 1.0) + sin(TAU * 31.0 * t) * 0.4 * minf(_rumble_left, 1.0)
-		v *= 0.35
-		pb.push_frame(Vector2(v, v))
-	if _phase > 4000.0:
-		_phase = 0.0
+		out[i] = (sin(TAU * 55.0 * t) * 0.5 + sin(TAU * 82.5 * t) * 0.3 + sin(TAU * 110.0 * t + sin(TAU * 0.25 * t)) * 0.2) \
+			* wobble * 0.35
+	return _wav(out, true)
+
+
+static func _make_rumble() -> AudioStreamWAV:
+	# The tremor's rumble: noise and a deep note, fading out over 1.8 seconds
+	var n := int(1.8 * MIX_RATE)
+	var out := PackedFloat32Array()
+	out.resize(n)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7
+	for i in n:
+		var t := float(i) / MIX_RATE
+		var left := minf(1.8 - t, 1.0)
+		out[i] = (rng.randf_range(-1.0, 1.0) * 0.35 * left + sin(TAU * 31.0 * t) * 0.4 * left) * 0.35
+	return _wav(out, false)
+
+
+static func _wav(samples: PackedFloat32Array, loop: bool) -> AudioStreamWAV:
+	var data := PackedByteArray()
+	data.resize(samples.size() * 2)
+	for i in samples.size():
+		data.encode_s16(i * 2, int(clampf(samples[i], -1.0, 1.0) * 32000.0))
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = MIX_RATE
+	w.stereo = false
+	w.data = data
+	if loop:
+		w.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		w.loop_end = samples.size()
+	return w
 
 
 func tremor() -> void:
 	# A small one: a rumble, a little shake, leaves off the oak, and the town will talk about it
 	tremors_felt += 1
 	Dialogue.flags["earth_tremor"] = true
-	_rumble_left = 1.8
 	_shake = 1.4
 	_camera = get_viewport().get_camera_3d()
+	if is_instance_valid(_rumble):
+		_rumble.play()
 	if _hum:
 		_hum.volume_db = maxf(_hum.volume_db, -8.0)
 		var scene := get_tree().current_scene

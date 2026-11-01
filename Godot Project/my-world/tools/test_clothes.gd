@@ -59,8 +59,9 @@ func _run() -> void:
 		if piece:
 			piece.free()
 		return ok)
-	check(looks and clothes.all(func(i: Dictionary) -> bool: return i.stall == "Boutique"),
-		"all %d clothes have a look and are sold at the Boutique" % clothes.size())
+	# Rewards (the Shift Watch, the Time Keeper from Dash) are given, not sold, so they don't need to be at the Boutique
+	check(looks and clothes.all(func(i: Dictionary) -> bool: return i.stall == "Boutique" or i.get("reward", false)),
+		"all %d clothes have a look and are sold at the Boutique (or given as rewards)" % clothes.size())
 
 	# --- The Boutique: buy one thing for every slot ---
 	change_scene_to_file(BOUTIQUE)

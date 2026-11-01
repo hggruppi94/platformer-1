@@ -21,6 +21,7 @@ const DATA := "res://shop/items.json"
 var items := {}                    # id -> item
 var stall_blurbs := {}
 var _stall := ""
+var _opened_frame := -1               # (the frame it opened on: that press is done with)
 var _layer: CanvasLayer
 var _panel: PanelContainer
 var _title: Label
@@ -192,6 +193,7 @@ func open(stall: String) -> void:
 	_note.text = ""
 	_fill()
 	_layer.visible = true
+	_opened_frame = Engine.get_process_frames()
 	opened.emit(stall)
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -210,10 +212,24 @@ func close() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_open() and event.is_action_pressed("ui_cancel"):        # (Pause closes it too: scripts/pause_menu.gd)
+	if not is_open() or Engine.get_process_frames() == _opened_frame:
+		return                     # (the press that opened the shop mustn't close or buy anything too)
+	# On a controller, menus work the usual way whatever the game's buttons are: A presses the highlighted button and
+	# B backs out. B is Interact out in the world, so without this B bought things instead of closing the shop.
+	var pad := event as InputEventJoypadButton
+	if pad and pad.pressed and pad.button_index in [JOY_BUTTON_A, JOY_BUTTON_B]:
+		get_viewport().set_input_as_handled()
+		if pad.button_index == JOY_BUTTON_B:
+			close()
+			return
+		var focused := get_viewport().gui_get_focus_owner() as Button
+		if focused:
+			focused.pressed.emit()
+		return
+	if event.is_action_pressed("ui_cancel"):        # Esc (Pause closes it too: scripts/pause_menu.gd)
 		get_viewport().set_input_as_handled()
 		close()
-	elif is_open() and event.is_action_pressed("interact"):        # Interact presses the highlighted button
+	elif event.is_action_pressed("interact"):        # Interact presses the highlighted button
 		var b := get_viewport().gui_get_focus_owner() as Button
 		if b:
 			get_viewport().set_input_as_handled()

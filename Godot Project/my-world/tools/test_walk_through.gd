@@ -157,10 +157,22 @@ func _zone(kind: String, under: String) -> Area3D:
 
 
 func _top_of(node: Node, xz: Vector2) -> Vector3:
+	# The top of this node's ground here. Anything else the ray meets first is skipped: someone walking by (the
+	# people, the little aliens, a ride) or another building's roof. Before, it took the first thing hit, so with
+	# some saves (whoever happened to be on the boardwalk at the save's time) she was stood on someone's head.
 	var q := PhysicsRayQueryParameters3D.create(Vector3(xz.x, 30, xz.y), Vector3(xz.x, -10, xz.y))
-	q.exclude = [player.get_rid()]
-	var hit := space.intersect_ray(q)
-	return hit.position if hit else Vector3(xz.x, 0, xz.y)
+	var skip: Array[RID] = [player.get_rid()]
+	for i in 16:
+		q.exclude = skip
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			break
+		var c := hit.collider as Node
+		var moving := c is CharacterBody3D or c is RigidBody3D or c is AnimatableBody3D
+		if not moving and (c == node or node.is_ancestor_of(c)):
+			return hit.position
+		skip.append(hit.rid)
+	return Vector3(xz.x, 0, xz.y)
 
 
 func _big_mushroom_cap() -> Vector3:

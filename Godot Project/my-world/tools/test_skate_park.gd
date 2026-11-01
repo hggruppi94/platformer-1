@@ -69,11 +69,20 @@ func _run() -> void:
 	game.equipment_changed.emit()
 	await _physics(2)
 	var c := park.global_position
-	p.global_position = c + Vector3(1.0, 1.3, 1.5)
+	# Nothing passing by may knock her off her board here (whatever's about at the save's time: on a busy run a
+	# passer-by's hit made her bail before she reached the ramp)
+	p.set("_invulnerable_timer", 30.0)
+	# Put her right on the floor (not dropped onto it: on a busy run a drop sometimes landed as a bail)
+	var drop := PhysicsRayQueryParameters3D.create(c + Vector3(1.0, 3.0, 1.5), c + Vector3(1.0, -2.0, 1.5))
+	drop.exclude = [p.get_rid()]
+	var floor_hit: Dictionary = (town as Node3D).get_world_3d().direct_space_state.intersect_ray(drop)
+	var on_floor: Vector3 = floor_hit.position if floor_hit else c + Vector3(1.0, 0.0, 1.5)
+	p.global_position = on_floor + Vector3(0, 0.05, 0)
 	p.velocity = Vector3.ZERO
 	s.state = s.State.ROLL
 	await _physics(20)
-	check(s.state == s.State.ROLL and s._grounded, "she rolls on the park floor")
+	check(s.state == s.State.ROLL and s._grounded, "she rolls on the park floor (%s, %s, at %s from the park, riding %s)" % [
+		s.State.keys()[s.state], "on the ground" if s._grounded else "in the air", p.global_position - c, game.riding])
 	p.velocity = Vector3(11, 0, 0)
 	s._yaw = PI / 2
 	var vert := false
@@ -84,6 +93,7 @@ func _run() -> void:
 		peak = maxf(peak, p.global_position.y - c.y)
 	check(vert and peak > 4.0, "the east quarter pipe sends her into a vert air (%.1f m up)" % peak)
 	await _physics(60)
+	p.set("_invulnerable_timer", 0.0)
 
 	# --- The letters: only on the board, all five pay out ---
 	var start_sparkles: int = game.sparkles

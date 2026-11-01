@@ -551,25 +551,85 @@ static func fit_of(model: Node3D, hidden := []) -> Dictionary:
 	fit.chest_box = chest_box.aabb(AABB(chest - Vector3(0.2, 0.06, 0.15), Vector3(0.4, 0.12, 0.3)))
 	fit.skirt_box = skirt.aabb(AABB(Vector3(fit.hips.x - 0.2, skirt_at - 0.04, fit.hips.z - 0.15), Vector3(0.4, 0.08, 0.3)))
 
-	# Last: their back, the furthest back their body is behind their chest (hair left out: it hangs over a cape)
-	var w: float = fit.chest_box.size.x * 0.3
-	var back_z: float = fit.chest_box.position.z
-	var got := false
+	# Last: their back. In slices a centimetre high from the neck down past the hips, how far back their body reaches,
+	# and their hair (a cape hangs outside long hair rather than through it). Only something as wide as a good part of
+	# their back counts, coming in from behind: a tail with no bone of its own (the cat's curls up behind her) isn't
+	# their back, and things worn on the back used to float out on it.
+	var cape_lo: float = fit.hips.y - fit.torso * 1.6
+	var slices := maxi(int(ceilf((neck_at + 0.04 - cape_lo) / 0.01)), 1)
+	var cw: float = fit.chest_box.size.x * 0.6     # (as wide as a cape: hair at its edges counts too)
+	var body_bins := []
+	var hair_bins := []
+	for k in slices:
+		body_bins.append({})
+		hair_bins.append({})
 	for i in pos.size():
 		var p := pos[i]
-		if shown[part_of[i]] and not loose[part_of[i]] and not limb[bone_of[i]] and absf(p.x - chest.x) < w and p.y > fit.hips.y and p.y < neck_at:
-			back_z = p.z if not got else minf(back_z, p.z)
-			got = true
-	fit.back = Vector3(chest.x, chest.y, back_z)
+		if shown[part_of[i]] and not limb[bone_of[i]] and absf(p.x - chest.x) < cw and p.y >= cape_lo:
+			var k := int((p.y - cape_lo) / 0.01)
+			if k < slices:
+				var bins: Dictionary = hair_bins[k] if loose[part_of[i]] else body_bins[k]
+				var zb := int(floorf(p.z / 0.01))
+				var span: Vector2 = bins.get(zb, Vector2(INF, -INF))
+				bins[zb] = Vector2(minf(span.x, p.x), maxf(span.y, p.x))
+	var wide: float = fit.chest_box.size.x * 0.35
+	var reach := _reach(body_bins, wide)
+	var hair_reach := _reach(hair_bins, wide)
+	fit.cape_back = [cape_lo, reach, hair_reach]
+	# The back pieces (wings, jetpack) go against the furthest back of it between their hips and their neck
+	var back_z := INF
+	for k in slices:
+		var y: float = cape_lo + k * 0.01
+		if y > fit.hips.y and y < neck_at:
+			back_z = minf(back_z, reach[k])
+	fit.back = Vector3(chest.x, chest.y, back_z if is_finite(back_z) else fit.chest_box.position.z)
 
 	# Hands and feet: the middle of each, how big it is, and which way it points from the wrist or ankle
 	for e in ends.size():
 		var joint: Vector3 = bones.get(ends[e], fit.hips)
 		var box: AABB = (limbs[e] as Box).aabb(AABB(joint - Vector3(0.05, 0.05, 0.05), Vector3(0.1, 0.1, 0.1)))
 		fit[ends[e]] = {"box": box, "joint": joint, "dir": (box.get_center() - joint).normalized()}
+	# Ears that stand up past the top of their head (Rex's): hats stay low enough for the tips to poke out
+	# (the top of the head itself is measured in a strip down the middle, between the ears; the ears' tips are the
+	# highest point of the head)
+	var ears := Box.new()
+	var ear := _flags(c.parts, func(n: String) -> bool: return n in ["Ear Inner", "Ear Lining"])
+	var skull_top := -INF
+	var head_top := -INF
+	for i in pos.size():
+		if on_head[bone_of[i]] and headwear[part_of[i]]:
+			head_top = maxf(head_top, pos[i].y)
+			if absf(pos[i].x - head.x) < 0.03:
+				skull_top = maxf(skull_top, pos[i].y)
+			if ear[part_of[i]]:
+				ears.add(pos[i])
+	fit.skull_top = skull_top
+	fit.ears_top = head_top if not ears.empty() and ears.hi.y > skull_top + 0.03 else -INF
 	if model.scene_file_path != "":
 		_fits[key] = fit
 	return fit
+
+
+static func _reach(slices: Array, wide: float) -> PackedFloat32Array:
+	# For each slice's depth bins (z in centimetres -> the x span there), coming in from behind: the first depth where
+	# everything so far is at least this wide side to side
+	var out := PackedFloat32Array()
+	out.resize(slices.size())
+	out.fill(INF)
+	for k in slices.size():
+		var bins: Dictionary = slices[k]
+		var keys := bins.keys()
+		keys.sort()
+		var lo := INF
+		var hi := -INF
+		for zb in keys:
+			var span: Vector2 = bins[zb]
+			lo = minf(lo, span.x)
+			hi = maxf(hi, span.y)
+			if hi - lo >= wide:
+				out[k] = zb * 0.01
+				break
+	return out
 
 
 static func _is_limb(bone: String) -> bool:
@@ -681,8 +741,29 @@ static func _attach(model: Node3D, skel: Skeleton3D, piece: Node3D, slot: String
 		piece.free()
 		return
 	piece.transform = _fitted(slot, fit) * piece.transform
+	if slot == "head":
+		_under_ears(piece, fit)
 	_tailor(piece, fit)
 	_fix(model, skel, piece, str(ANCHORS.get(slot, ["chest"])[0]), slot)
+
+
+static func _under_ears(hat: Node3D, fit: Dictionary) -> void:
+	# On a head whose ears stand up past its top (Rex), a hat as tall as usual swallowed the ears whole. Squash it
+	# down towards the top of the head so the top part of each ear pokes out above it.
+	var above: float = fit.ears_top - fit.skull_top
+	if above < 0.03:
+		return
+	var limit: float = fit.skull_top + above * 0.6
+	var hi := -INF
+	for mi in hat.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		var box := _in_model(hat, m) * m.get_aabb()
+		hi = maxf(hi, (hat.transform * box).end.y)
+	if hi <= limit:
+		return
+	var f: float = (limit - fit.skull_top) / (hi - fit.skull_top)
+	var squash := Transform3D(Basis.from_scale(Vector3(1.0, f, 1.0)), Vector3(0, fit.skull_top * (1.0 - f), 0))
+	hat.transform = squash * hat.transform
 
 
 static func _tailor(piece: Node3D, fit: Dictionary) -> void:
@@ -707,21 +788,32 @@ static func _tailor(piece: Node3D, fit: Dictionary) -> void:
 				band = m.material_override
 				m.free()
 	if band and cups.size() == 2:
-		# The headphones' band, made again from cup to cup over the top of their head, pushed out wherever their
-		# head (or hair) is wider than the arch
+		# The headphones' band, made again from cup to cup over the top of their head: one smooth, rounded arch,
+		# made wider all over (not bent out bit by bit, which made it a box) until it clears their head, or their hair,
+		# everywhere up its sides. Near the top it rides over the head in the middle, so ears that stand up there
+		# (Rex's) don't push it out into a box.
 		var mid: Vector3 = (cups[-1.0] + cups[1.0]) / 2.0
 		var half: float = (cups[1.0].x - cups[-1.0].x) / 2.0
 		var up: float = fit.top.y + 0.018 - mid.y
-		var points := []
-		var n := 12
+		if fit.get("ears_top", -INF) > fit.top.y - 0.02:
+			up = fit.get("skull_top", fit.top.y) + 0.018 - mid.y
+		var n := 16
+		var dirs := []
+		var widen := 1.0
 		for i in n + 1:
 			var a := PI * i / n
-			var at := mid + Vector3(-cos(a) * half, sin(a) * up, 0)
-			if i > 0 and i < n and absf(cos(a)) > 0.15:
-				var side := signf(-cos(a))
-				var edge := _head_edge(fit, at.y, side) + side * 0.018
-				at.x = maxf(at.x, edge) if side > 0 else minf(at.x, edge)
-			points.append(at)
+			var d := Vector2(-signf(cos(a)) * pow(absf(cos(a)), 0.7), pow(sin(a), 0.7))   # a little squarer than a circle
+			dirs.append(d)
+			var at_y := mid.y + d.y * up
+			var grow := smoothstep(0.0, 0.5, d.y)             # (its ends stay on the cups)
+			if absf(d.x) > 0.35 and at_y < mid.y + up * 0.75 and grow > 0.15:
+				var side := signf(d.x)
+				var need := absf(_head_edge(fit, at_y, side) + side * 0.018 - mid.x)
+				widen = maxf(widen, 1.0 + (need / (absf(d.x) * half) - 1.0) / grow)
+		var points := []
+		for d in dirs:
+			var w := 1.0 + (widen - 1.0) * smoothstep(0.0, 0.5, (d as Vector2).y)
+			points.append(mid + Vector3((d as Vector2).x * half * w, (d as Vector2).y * up, 0))
 		for i in n:
 			var p0: Vector3 = points[i]
 			var p1: Vector3 = points[i + 1]
@@ -746,11 +838,69 @@ static func _tailor(piece: Node3D, fit: Dictionary) -> void:
 			"collar":
 				# Round their neck like a scarf, wherever their back is
 				m.transform = to_piece * _fitted("neck", fit) * m.transform
+			"cape":
+				var cape := _cape(fit)
+				m.transform = to_piece * Transform3D((cape.basis as Basis) * Basis.from_scale(Vector3(cape.width / 0.5, cape.length / 0.62, 1.0)), cape.at)
+			"cape_badge":
+				# On the cape, a little above its middle, on the outside
+				var cape := _cape(fit)
+				var k2: float = cape.width / 0.5
+				var at: Vector3 = cape.at + cape.basis.y * cape.length * 0.05 - cape.basis.z * 0.02
+				m.transform = to_piece * Transform3D((cape.basis as Basis) * Basis.from_euler(Vector3(PI / 2, 0, 0)) * Basis.from_scale(Vector3(k2, 1.0, k2)), at)
 			"wrap":
 				# A band round their head at the eyes, just outside it
 				var r := Vector3(face.size.x / 2.0 + 0.02, 0.0, face.size.z / 2.0 + 0.02) / 0.28
 				var at := Transform3D(Basis.from_scale(Vector3(r.x, 0.3, r.z)), Vector3(face.get_center().x, fit.eyes.y + 0.01, face.get_center().z))
 				m.transform = to_piece * at
+
+
+static func _cape(fit: Dictionary) -> Dictionary:
+	# A cape made to measure (in their model's space): from their shoulders, just touching their back (or the back of
+	# their hair), hanging down past their hips and leaning out just enough to clear the roundest part of them, so it
+	# never cuts through a round tummy-and-bottom body or long hair. Stretched only, it used to stand off a round
+	# back at the top or go through hair.
+	var nina := _nina_fit()
+	var kt: float = fit.torso / nina.torso
+	var width: float = 0.5 * fit.chest_box.size.x / nina.chest_box.size.x
+	var y_top: float = fit.neck.y - 0.05 * kt
+	var length: float = 0.62 * kt
+	var y_bot: float = y_top - length * cos(0.18)
+	var lo: float = fit.cape_back[0]
+	var reach: PackedFloat32Array = fit.cape_back[1]
+	var hair: PackedFloat32Array = fit.cape_back[2]
+	# Hair only counts if it's long, hanging well down over where the cape goes (Bramble's). A bob that ends at the
+	# shoulders (Nina's) just lies over the top of the cape.
+	var k_long := int((y_top - 0.3 * kt - lo) / 0.01)
+	var long_hair := k_long >= 0 and k_long < hair.size() and is_finite(hair[k_long])
+	var back_at := func(y: float) -> float:
+		var k := int((y - lo) / 0.01)
+		var z := INF
+		for j in range(k - 1, k + 2):
+			if j >= 0 and j < reach.size():
+				z = minf(z, reach[j])
+				if long_hair:
+					z = minf(z, hair[j])
+		return z
+	var z_top := INF                       # (the furthest back near the top, so the top edge rests on their shoulders)
+	var yy := y_top
+	while yy > y_top - 0.08 * kt:
+		z_top = minf(z_top, back_at.call(yy))
+		yy -= 0.01
+	if not is_finite(z_top):
+		z_top = fit.back.z
+	z_top -= 0.015
+	var z_bot := z_top - length * sin(0.18)
+	var y := y_top - 0.01
+	while y > y_bot:
+		var t := (y_top - y) / (y_top - y_bot)
+		var z: float = back_at.call(y)
+		if t > 0.12 and is_finite(z):
+			z_bot = minf(z_bot, z_top + (z - 0.02 - z_top) / t)
+		y -= 0.01
+	var dir := Vector3(0, y_top - y_bot, z_top - z_bot)
+	var lean := atan2(dir.z, dir.y)
+	return {"at": Vector3(fit.chest.x, (y_top + y_bot) / 2.0, (z_top + z_bot) / 2.0), "basis": Basis.from_euler(Vector3(lean, 0, 0)),
+		"width": width, "length": dir.length()}
 
 
 static func _head_edge(fit: Dictionary, y: float, side: float) -> float:
@@ -907,9 +1057,10 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 		"super_cape":
 			var cloth := _mat(Color(0.95, 0.25, 0.45), 0.6)
 			# Hanging from her shoulders, just touching her back at the top; its gold collar goes round her neck
-			_mesh(g, _box(Vector3(0.5, 0.62, 0.025)), cloth, Vector3(0, 0.52, -0.29), Vector3(0.18, 0, 0))
+			_mesh(g, _box(Vector3(0.5, 0.62, 0.025)), cloth, Vector3(0, 0.52, -0.29), Vector3(0.18, 0, 0)).set_meta("fit", "cape")
 			_mesh(g, _torus(0.16, 0.19), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6), Vector3(0, 0.85, 0.0), Vector3.ZERO, Vector3(1, 0.5, 1)).set_meta("fit", "collar")
-			_mesh(g, _cyl(0.07, 0.07, 0.02, 5), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6, 0.6), Vector3(0, 0.55, -0.31), Vector3(PI / 2 + 0.18, 0, 0))
+			_mesh(g, _cyl(0.07, 0.07, 0.02, 5), _mat(Color(1.0, 0.85, 0.25), 0.4, 0.6, 0.6), Vector3(0, 0.55, -0.31),
+				Vector3(PI / 2 + 0.18, 0, 0)).set_meta("fit", "cape_badge")
 		"jetpack":
 			var tank := _mat(Color(0.75, 0.78, 0.88), 0.3, 0.8)
 			var flame := _mat(Color(1.0, 0.6, 0.3), 0.5, 0.0, 3.0)

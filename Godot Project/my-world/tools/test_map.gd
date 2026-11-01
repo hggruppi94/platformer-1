@@ -87,8 +87,9 @@ func _run() -> void:
 	check(not map.is_open() and not paused and not root.get_node("PauseMenu").is_open(), "Pause closes the map (not opening the menu)")
 
 	# Nina's arrow faces where she faces
+	# Checked straight away: a frame later the player's own turning (scripts/player.gd steers the model toward any
+	# push still in the input) could have turned her again, which made this fail about 2 runs in 5.
 	player.get_node("Visual").rotation.y = PI / 2                # facing +x: east, right on the map
-	await _frames(2)
 	check(absf(sin(map.nina_facing()) - 1.0) < 0.01, "Nina's facing on the map: east is right")
 
 	# People: out and about by day, at home at night

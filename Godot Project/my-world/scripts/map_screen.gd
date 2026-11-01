@@ -178,6 +178,7 @@ func toggle() -> void:
 
 func map_view() -> Control:
 	_map.visible = not on_earth()                      # (Earth's map is drawn, not a picture)
+	_map.offset_bottom = -_legend_height()             # the picture stays above the legend's strip (_map_rect)
 	_overlay.queue_redraw()
 	return _view
 
@@ -189,6 +190,7 @@ func map_view_node() -> Control:
 func _process(delta: float) -> void:
 	_time += delta
 	if is_open():
+		_map.offset_bottom = -_legend_height()         # (the text size can change in Settings)
 		_overlay.queue_redraw()
 	# The minimap is always up in a race (scripts/races.gd), to see the bends coming
 	var show_mini := (Settings.minimap or Races.racing()) and (in_town() or on_earth()) and not is_open() and not get_tree().paused \
@@ -257,10 +259,25 @@ func _build() -> void:
 
 
 func _map_rect() -> Rect2:
-	# Where the (square) picture sits on screen
-	var vp := _overlay.size
+	# Where the (square) picture sits on screen: above a strip at the bottom kept for the legend, so the legend never
+	# sits on top of the labels along the map's bottom edge (the Book Store, the Gaming Station...)
+	var vp := _overlay.size - Vector2(0, _legend_height())
 	var side := minf(vp.x, vp.y)
-	return Rect2((vp - Vector2(side, side)) / 2.0, Vector2(side, side))
+	return Rect2(Vector2((vp.x - side) / 2.0, (vp.y - side) / 2.0), Vector2(side, side))
+
+
+func _legend_height() -> float:
+	return _fs(16) * 2.0
+
+
+func _legend(c: Control, r: Rect2, legend: String) -> void:
+	# In its own strip under the picture. Wider than the map, it can use the whole sheet's width; on a narrow screen
+	# the font shrinks to fit rather than run off the sides.
+	var size := _fs(16)
+	var w := _font.get_string_size(legend, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	if w > _overlay.size.x - 16.0:
+		size = maxi(8, floori(size * (_overlay.size.x - 16.0) / w))
+	_text(c, Vector2(_overlay.size.x / 2.0, r.end.y + _legend_height() / 2.0 - size * 0.1), legend, size, Color(1, 1, 1, 0.85))
 
 
 func _fs(px: float) -> int:
@@ -273,7 +290,7 @@ func _text(c: Control, at: Vector2, s: String, size: int, color: Color, centered
 	var pos := at - Vector2(w / 2.0 if centered else 0.0, -size * 0.35)
 	if nudge:
 		var found := false
-		for dy in [0.0, size * 1.1, -size * 1.1, size * 2.2]:
+		for dy in [0.0, size * 1.1, -size * 1.1, size * 2.2, -size * 2.2]:
 			var rect := Rect2(pos + Vector2(0, dy - size), Vector2(w, size * 1.1))
 			if not _placed.any(func(o: Rect2) -> bool: return o.intersects(rect)):
 				pos.y += dy
@@ -316,6 +333,7 @@ func _draw_full() -> void:
 	var s := get_tree().current_scene
 	var town_here := in_town()
 	_placed.clear()
+	_placed.append(Rect2(0, r.end.y, c.size.x, _legend_height()))   # the legend's strip: labels keep out of it
 	if on_earth():
 		_draw_earth_full(c, r)
 		return
@@ -379,7 +397,7 @@ func _draw_full() -> void:
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
 	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    ⚑ Race    (%s to close)" % Settings.prompt("map")
-	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
+	_legend(c, r, legend)
 
 
 func _draw_mini() -> void:
@@ -546,4 +564,4 @@ func _draw_earth_full(c: Control, r: Rect2) -> void:
 	if player:
 		_arrow(c, r.position + to_map(player.global_position) * r.size, nina_facing(), 14.0)
 	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    (%s to close)" % Settings.prompt("map")
-	_text(c, Vector2(r.position.x + r.size.x / 2, r.end.y - _fs(18)), legend, _fs(16), Color(1, 1, 1, 0.85))
+	_legend(c, r, legend)

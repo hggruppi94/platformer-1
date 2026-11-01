@@ -62,6 +62,9 @@ func _run() -> void:
 	game.riding = false
 	game._resume = {}
 	requests.nights = 1
+	# This visit's board counts as already put up: otherwise, with a save whose clock is in the Shift, going into town
+	# rolls the board and counts a new night (scripts/requests.gd roll()), and night 1 turns into night 2.
+	requests.rolled_visit = requests.visit_day()
 
 	# --- Everything's on the shelf, but locked ---
 	var gadgets: Array = shop.items.values().filter(func(it: Dictionary) -> bool: return str(it.kind) == "gadget")

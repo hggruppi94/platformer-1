@@ -47,7 +47,6 @@ var _beam_t := 0.0
 var _beam_from := Vector3.ZERO
 var _beam_to := Vector3.ZERO
 var _arm_length := 5.0                           # the camera's normal distance, put back when she gets off
-var _arm_height := 1.1                           # ...and its normal height above her middle
 var _arm_tween: Tween
 var _boost := 0.0                                # seconds of a sky race's boost ring left (scripts/races.gd)
 
@@ -319,17 +318,17 @@ func _camera_to(length: float) -> void:
 	if not is_instance_valid(pilot):
 		return
 	var arm := pilot.get_node_or_null("SpringArm3D") as SpringArm3D
-	if arm == null:
+	if arm == null or not "boom_length" in arm:
 		return
-	var out := length > arm.spring_length + 1.0
+	# The boom's own length and lift (scenes/player/spring_arm_3d.gd), not spring_length: the arm sets that itself
+	var out := length > float(arm.get("boom_length")) + 1.0
 	if out:
-		_arm_length = arm.spring_length
-		_arm_height = arm.position.y
+		_arm_length = arm.get("boom_length")
 	if _arm_tween:
 		_arm_tween.kill()
 	_arm_tween = create_tween().set_parallel()
-	_arm_tween.tween_property(arm, "spring_length", length, 1.5).set_trans(Tween.TRANS_SINE)
-	_arm_tween.tween_property(arm, "position:y", _arm_height + (camera_lift if out else 0.0), 1.5).set_trans(Tween.TRANS_SINE)
+	_arm_tween.tween_property(arm, "boom_length", length, 1.5).set_trans(Tween.TRANS_SINE)
+	_arm_tween.tween_property(arm, "lift", camera_lift if out else 0.0, 1.5).set_trans(Tween.TRANS_SINE)
 
 
 func _move_keys() -> String:

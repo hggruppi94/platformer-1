@@ -136,8 +136,8 @@ func _input(event: InputEvent) -> void:
 			close()
 		else:
 			_back()
-	elif is_open() and event.is_action_pressed("ui_cancel") and not event is InputEventKey:
-		get_viewport().set_input_as_handled()      # controller B: back out of a page
+	elif is_open() and event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_B:
+		get_viewport().set_input_as_handled()      # controller B: back out of a page (Godot's ui_cancel is only Esc)
 		if page == "main":
 			close()
 		else:

@@ -110,8 +110,15 @@ func _run() -> void:
 	var fruit: Area3D = spots.filter(func(s: Node) -> bool: return s.get("stall") == "Fruit")[0]
 	player.global_position = fruit.global_position + (fruit.global_basis.z * 0.8) + Vector3(0, 0.8, 0)
 	await _physics(6)
+	# Whoever happens to be passing the stall at the save's time (someone walking by, a request alien) steps out of
+	# the way: nearer, they'd get the prompt, and this is about the stall
+	for t in dialogue._near.duplicate():
+		if t != fruit and str(t.get("stall")) == "<null>":
+			dialogue.exit_range(t)
 	await _frames(2)
-	check(dialogue._nearest == fruit and fruit._prompt.text == "Press F to shop", "at the Fruit stall: \"%s\"" % fruit._prompt.text)
+	var shop_prompt := "Press %s to shop" % root.get_node("Settings").prompt("interact")
+	check(dialogue._nearest == fruit and fruit._prompt.text == shop_prompt, "at the Fruit stall: \"%s\" (nearest: %s)" % [
+		fruit._prompt.text, dialogue._nearest.name if dialogue._nearest else "nobody"])
 	_press("interact")
 	await _frames(3)
 	check(shop.is_open() and paused and shop._title.text == "Fruit Stall", "Interact opens the Fruit Stall (game paused)")
@@ -164,6 +171,28 @@ func _run() -> void:
 	check(_button("paw_sticker").disabled and _button("paw_sticker").text == "Got it!", "...and it can't be bought twice")
 	shop.close()
 
+	# On a controller, A presses the highlighted button and B backs out of the shop and the wardrobe (B is Interact
+	# out in the world: it used to buy things instead)
+	shop.open("Toys")
+	await _frames(2)
+	_button("propeller_cap").grab_focus()
+	_pad(JOY_BUTTON_A)
+	await _frames(2)
+	check(game.hat == "", "controller A presses the highlighted button (took the Propeller Cap off)")
+	_button("propeller_cap").pressed.emit()                   # (and back on)
+	await _frames(2)
+	var pad_left: int = game.sparkles
+	_button("propeller_cap").grab_focus()
+	_pad(JOY_BUTTON_B)
+	await _frames(3)
+	check(not shop.is_open() and not paused and game.sparkles == pad_left and game.hat == "propeller_cap",
+		"controller B closes the shop (without pressing anything)")
+	shop.open("Wardrobe")
+	await _frames(2)
+	_pad(JOY_BUTTON_B)
+	await _frames(3)
+	check(not shop.is_open() and not paused, "...and the wardrobe")
+
 	# Can't open a shop while talking or paused
 	get_root_paused_check()
 	game.save_game()
@@ -208,6 +237,16 @@ func _press(action: String) -> void:
 	Input.parse_input_event(e)
 	var up := InputEventAction.new()
 	up.action = action
+	Input.parse_input_event(up)
+
+
+func _pad(button: JoyButton) -> void:
+	var e := InputEventJoypadButton.new()
+	e.button_index = button
+	e.pressed = true
+	Input.parse_input_event(e)
+	var up := InputEventJoypadButton.new()
+	up.button_index = button
 	Input.parse_input_event(up)
 
 

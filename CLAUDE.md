@@ -70,6 +70,33 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-10-31: Clean-up pass (prompt K in the plan). Tested in the cloud only (each run with its own Godot user
+  folder, so no save was touched).
+  - **Controller in the shop and wardrobe:** A presses the highlighted button and B backs out, whatever the game's
+    buttons are (`scripts/shop.gd`). B is Interact out in the world, so before, B bought things instead of closing.
+    The press that opens the shop is ignored by it. The pause menu's B-to-go-back now works too (Godot's `ui_cancel`
+    is only Esc, so the old check never fired). `test_shop` presses A and B.
+  - **Map legend:** it has its own strip under the map picture (`_map_rect`, `_legend` in `scripts/map_screen.gd`),
+    and labels keep out of it, so it no longer sits on the Book Store, Gaming Station and Clothing Boutique labels.
+  - **Clothes** (`scripts/clothes.gd`): capes are made to measure (`_cape`): from the shoulders, touching the back,
+    leaning out just enough to clear a round body, and outside long hair (Bramble's). The back is now measured
+    ignoring anything narrow sticking out behind (the cat's tail has no bone, so wings, jetpacks and capes used to
+    float out on it: `_reach`). Hats on a head whose ears stand up past its top (Rex) are squashed down so the ear
+    tips poke out (`_under_ears`). The headphones' band is one rounded arch, widened as a whole to clear hair,
+    instead of being pushed out bit by bit into a box.
+  - **Real bugs the flaky tests found:** the mothership's pulled-back camera never pulled back (the spring arm set
+    its own length every frame since aiming came in): others now change `boom_length` and `lift` on
+    `scenes/player/spring_arm_3d.gd`. The old oak's hum (`scripts/earth_town.gd`) was made live with an
+    AudioStreamGenerator, which sometimes locked up the whole game in the audio thread (the creator test hung about
+    half the time); it's now a 4-second loop made once in code, with the tremor's rumble as its own sound. The
+    zipline handle is a talk spot like stalls and people (`Dialogue.enter_range`), so the nearest gets Interact.
+  - **Tests:** `test_quests` reads the bound Interact key; `test_map` checks the arrow before the player can turn;
+    `test_walk_through` stands on the boardwalk itself, not on whoever walks over it; `test_schematics` doesn't let
+    the request board count a new night; `test_clothes` allows reward clothes (Shift Watch, Time Keeper) not sold at
+    the Boutique; `test_shop` moves passers-by (a request alien) away from the Fruit stall before checking its prompt;
+    `test_skate_park` puts her on the park floor instead of dropping her onto it (a drop sometimes landed as a bail).
+    `test_soundscape` still fails until the generated music and ambience are copied into `audio/`.
+
 - 2026-10-31: Nights 3 to 7 (Hayden: "Go", the rest of the 7-night plan). Each night is its own skippable quest
   (`quests/night_3.json` to `night_7.json`): meet a friend (Bramble, Dash and Rex wait by the portal through quest
   overrides, the Astronaut at the Mothership Pad, Mr. Palmer at his office window; their first lines in
