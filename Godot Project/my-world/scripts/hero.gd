@@ -107,7 +107,7 @@ const BODIES := {
 const BODY_ORDER := ["hippo", "kid", "earth_kid", "bunny", "cat", "moth", "cow", "dino", "alien"]
 # Secret bodies, and how each one's found. They're kept by the save once found (Game.items "secret:<body>").
 const SECRETS := {
-	"dog": {"flag": "skate_lesson_done", "hint": "Finish Coach Rook's skate lesson"},
+	"dog": {"flag": "skate_lesson_done", "hint": "Finish Coach Bruno's skate lesson"},
 }
 const SECRET_ORDER := ["dog"]
 const PRONOUNS := {

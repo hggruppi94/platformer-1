@@ -4,7 +4,7 @@ extends SceneTree
 # waking up at home the next night: the hero's made at 8 PM on Earth, Nina knocks, Mr. Palmer and two more people on
 # the green, the evening waits at 11 PM until that's done, the bed's "Until the Shift", the portal and the arrival
 # moment (the swirl, the watch on their wrist), Dash at the portal, the Galaxity day (Star Popper and three Gloops,
-# Dash's gadget stall, Rex and Coach Rook's first two lesson steps, a request, the fountain's lost watch, Zippy), the
+# Dash's gadget stall, Rex and Coach Bruno's first two lesson steps, a request, the fountain's lost watch, Zippy), the
 # Gloop King and the crown from Dash, then pulled home at the end of the Shift into bed, and Nina's "Same time
 # tomorrow?". The Shift is fast-forwarded. Then: every step can be skipped from the quest log, an old save is
 # offered it (never forced), the quest log has the buttons, and it all saves and loads.
@@ -165,7 +165,7 @@ func _run() -> void:
 	lines = await _talk("rex")
 	check(game.has_item("skateboard") and _said(lines, "spare"), "Rex lends a skateboard if they haven't got one")
 	await _frames(6)
-	check(lesson.active, "...and Coach Rook's lesson starts")
+	check(lesson.active, "...and Coach Bruno's lesson starts")
 	lesson.complete("push")
 	await create_timer(2.0).timeout                          # (Rook's praise between steps)
 	lesson.complete("ollie")

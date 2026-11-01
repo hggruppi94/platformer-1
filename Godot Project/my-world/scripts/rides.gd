@@ -11,7 +11,7 @@ extends RefCounted
 # spins the ride round its stem (a tailwhip); backflip, frontflip and cork turn the rider and ride together; twirl is a
 # special's spin and somersault.
 
-const ORDER := ["hero", "nina", "dash", "rex", "rook", "pip", "bramble", "green_man", "mr_palmer"]
+const ORDER := ["hero", "nina", "bruno", "dash", "rex", "rook", "pip", "bramble", "green_man", "mr_palmer"]
 
 const BOARD := {
 	"rider": "Nina",
@@ -83,6 +83,33 @@ const BOARD := {
 
 # Everyone else: only what's different from BOARD
 const RIDERS := {
+	"bruno": {
+		# Nina's little brother and the Skate Park's coach (scripts/skate_lesson.gd). A street skater: his board is
+		# lighter and snappier than Nina's, with quick flips and steady grinds, but less glide. His trick names are his
+		# own, and his special's a little Godfather parody (our own words): he makes the ramp an offer.
+		"rider": "Bruno", "name": "SK8 Deck", "model": "res://models/characters/bruno.glb", "kit": "sk8",
+		"stance": -PI / 2, "deck": 0.115, "anim": "skate", "push_anim": "push", "special_sound": "level_up",
+		"push_speed": 9.5, "max_speed": 19.5, "push_accel": 8.0, "coast": 0.5, "carve": 2.9,
+		"ollie_min": 4.4, "ollie_max": 6.4, "charge_time": 0.4, "spin_speed": 8.0,
+		"balance_drift": 0.85, "balance_control": 6.5, "manual_drift": 0.9, "bail_time": 1.2,
+		"tricks": {
+			"flips": {
+				"": ["Gap-Tooth Flip", 120, "kick", 0.4], "left": ["Gap-Tooth Flip", 120, "kick", 0.4],
+				"right": ["Beanie Heelflip", 120, "heel", 0.4], "up": ["Tre Flip", 180, "impossible", 0.48],
+				"down": ["Meatball Shove-it", 110, "shove", 0.36],
+			},
+			"grabs": {
+				"": ["Hoodie Grab", "indy"], "left": ["Hoodie Grab", "indy"], "right": ["Nonna's Melon", "melon"],
+				"up": ["Nose Boop", "nose"], "down": ["Tail Thwip", "tail"],
+			},
+			"grinds": {
+				"": ["Fifty-Thifty", "fifty"], "up": ["Nosegrind", "nose"], "down": ["5-0", "tail"],
+				"left": ["Spaghetti Slide", "slide"], "right": ["Family Lipslide", "slide"],
+			},
+			"manual": "Cool Manual", "nose_manual": "Nose Manual",
+			"special": ["Offer You Can't Refuse", 1000, "twirl", 0.85],
+		},
+	},
 	"dash": {
 		"rider": "Dash", "name": "BMX", "model": "res://models/characters/bike_boy.glb", "kit": "bmx",
 		"stance": 0.0, "deck": 0.0, "anim": "ride",

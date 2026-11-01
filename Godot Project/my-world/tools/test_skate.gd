@@ -398,7 +398,7 @@ func _run() -> void:
 	_place(corner.global_position + Vector3(0, 0.2, 0), PI)
 	await _physics(10)
 	await _press("interact")
-	check(p.get("rider") == "dash", "Interact at the Skaters' Corner swaps Nina for Dash")
+	check(p.get("rider") == "bruno", "Interact at the Skaters' Corner swaps Nina for Bruno (her brother's next in line)")
 	# Stepping off makes you your own hero again
 	_place(Vector3(-30, 0.9, 38), PI)
 	await _physics(20)

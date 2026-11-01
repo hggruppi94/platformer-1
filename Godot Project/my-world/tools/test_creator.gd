@@ -5,7 +5,7 @@ extends SceneTree
 # close without a name, "Surprise me" keeps the name, the hero saves and loads, an old save from before heroes asks
 # for one and keeps its outfit, turning the hero (mouse or stick) keeps the mouse and leaves the camera alone, the
 # wardrobe opens the creator, the Face tab sculpts eyes, noses, ears and mouths and picks ready-made faces, the
-# dog-kid is a secret found by finishing Rook's skate lesson, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
+# dog-kid is a secret found by finishing Bruno's skate lesson, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
 # colours and furniture (and they save), and Nina is a friend in town with things to say.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_creator.gd
@@ -130,12 +130,12 @@ func _run() -> void:
 	creator._fill()
 	var hint := false
 	for l in creator._content.find_children("*", "Label", true, false):
-		if "Coach Rook" in (l as Label).text:
+		if "Coach Bruno" in (l as Label).text:
 			hint = true
 	check(hint, "...and the Body tab gives a hint for finding it")
 	dialogue.set_flag("skate_lesson_done")
 	await _frames(3)
-	check(game.has_item("secret:dog") and "dog" in Hero.choices(game.hero), "finishing Rook's skate lesson finds the dog-kid")
+	check(game.has_item("secret:dog") and "dog" in Hero.choices(game.hero), "finishing Bruno's skate lesson finds the dog-kid")
 	seen = []
 	for i in Hero.choices(game.hero).size():
 		creator.step_body(1)

@@ -1,7 +1,7 @@
 extends Area3D
 
 # The Lesson Pad at the Skate Park (built by tools/skate_kit.gd lesson_pad): stand on it and press Interact for Coach
-# Rook's skate lesson (scripts/skate_lesson.gd). It carries on from the last step done, or starts again once it's all
+# Bruno's skate lesson (Rook helps) (scripts/skate_lesson.gd). It carries on from the last step done, or starts again once it's all
 # been learned.
 
 var _near := false
@@ -25,7 +25,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_prompt.visible = _near and not SkateLesson.active
 	if _prompt.visible:
-		var what := "the skate lesson again" if SkateLesson.is_done() else "a skate lesson with Rook"
+		var what := "the skate lesson again" if SkateLesson.is_done() else "a skate lesson with Bruno"
 		_prompt.text = "Press %s for %s" % [Settings.prompt("interact"), what]
 
 

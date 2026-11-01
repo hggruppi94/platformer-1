@@ -12,7 +12,7 @@ extends Node
 #              until this step's done, so a slow first look round never misses the first Shift.
 #   2 wait     until midnight (Nina suggests the bed's "Until the Shift").
 #   3 shift    through the portal: the arrival moment, then Dash at the portal on the far side.
-#   4 day      Galaxity: Gloops, Dash's stall, Coach Rook's first two lesson steps, a request, the fountain's watch, Zippy.
+#   4 day      Galaxity: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch, Zippy.
 #   5 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
 #   6 home     pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
@@ -208,16 +208,17 @@ func popper_from_dash() -> Array:
 
 
 func lesson_from_rex() -> Array:
-	# Rex's "do" (res://dialogue/rex.json): a spare board if they haven't got one, then Coach Rook's lesson once the
+	# Rex's "do" (res://dialogue/rex.json): a spare board if they haven't got one, then Coach Bruno's lesson once the
 	# conversation's over (scripts/skate_lesson.gd; the first two steps, push and ollie, are on the checklist)
 	var out: Array = []
 	if not Game.has_item("skateboard"):
 		Game.give_item("skateboard")
 		out.append("(Rex slides a skateboard over with one paw.) Here, borrow my spare. It's yours now. Mayors share.")
 	if Dialogue.flags.has("skate_lesson_ollie"):
-		out.append("You already know the basics! Rook's at the Lesson Pad if you want the fancy stuff.")
+		out.append("You already know the basics! Bruno's at the Lesson Pad if you want the fancy stuff.")
 		return out
-	out.append("COACH ROOK! We have a student!")
+	out.append("COACH BRUNO! We have a student!")
+	out.append({"speaker": "Bruno", "text": "(Nina's little brother skids up on a black SK8 deck.) A new one? Thweet. Lesson Pad. Let'th go."})
 	out.append({"speaker": "Rook", "text": "Woof!"})
 	Dialogue.finished.connect(_start_lesson, CONNECT_ONE_SHOT)
 	return out

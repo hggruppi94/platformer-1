@@ -12,7 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer", "bruno_alien"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0
@@ -181,7 +181,7 @@ func _run() -> void:
 	# Asleep / away: not in town, nobody to talk to; sleeping on to the morning puts everyone in place
 	clock.set_time(3, 22 * 60.0, true)
 	await _settle()
-	for id in ["dash", "rex", "bramble"]:
+	for id in ["dash", "rex", "bramble", "bruno_alien"]:
 		check(not _body(id).visible and not routines[id].is_present() and not _talk(id).monitoring, "%s is home at 10 PM (gone from town)" % id)
 	clock.call("sleep_until_morning")              # 7 AM: the clock jumps, everyone snaps
 	await _settle()
@@ -190,7 +190,7 @@ func _run() -> void:
 
 	# Dialogue that knows where they are and what they're doing
 	for c in [["rex", "11:00", 2, "Citizens of Galaxity"], ["dash", "12:45", 2, "Snack break"],
-			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"]]:
+			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"], ["bruno_alien", "10:00", 2, "leththon"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()
 		dialogue.talks[c[0]] = c[2]

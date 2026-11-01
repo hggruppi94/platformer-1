@@ -13,7 +13,7 @@ extends Node
 # The Goals page (the Tab menu, between Quests and Map: scripts/player_menu.gd) reads goals(): tonight's spotlight
 # and requests, the next thing to aim for in watches, races, gadgets and skate goals, and a teaser for tomorrow.
 # Everything here is read from the systems that already exist (Quests, Requests, Watches, Races, Arsenal, Shop, the
-# Skate Park's goals, Coach Rook's lesson), so it needs nothing new in the save: progress is Dialogue flags.
+# Skate Park's goals, Coach Bruno's lesson), so it needs nothing new in the save: progress is Dialogue flags.
 
 const TOWN := "res://scenes/town/town.tscn"
 # Night 1 is The First Night (quests/first_night.json, scripts/first_night.gd).
@@ -313,7 +313,7 @@ func _skate_goal() -> String:
 		var done := 0
 		for st in SkateLesson.STEPS:
 			done += 1 if Dialogue.flags.has("skate_lesson_" + st.id) else 0
-		return "Skating: finish Coach Rook's lesson (%d of %d steps)" % [done, SkateLesson.STEPS.size()]
+		return "Skating: finish Coach Bruno's lesson (%d of %d steps)" % [done, SkateLesson.STEPS.size()]
 	var G := load("res://scripts/skate_goals.gd")
 	for goal in G.GOALS:
 		if not Dialogue.flags.has("skate_goal_" + goal.id):

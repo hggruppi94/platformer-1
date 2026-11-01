@@ -3,8 +3,9 @@ extends SceneTree
 # Checks the help for skating and the controls: the forgiving landings (Settings.skate_assist: Relaxed, Normal, Pro in
 # scenes/player/skate.gd), the Simple layout (one trick button, grinds by themselves, Grind on the flat is a manual),
 # changing controller buttons and keys (scripts/settings.gd) with prompts that follow them and whichever device is in
-# use, the how-to tips (scripts/tips.gd), and Coach Rook's skate lesson (scripts/skate_lesson.gd): each step done for
-# real, saved, carried on later, paying sparkles once, and Rook coaching by the Lesson Pad in town.
+# use, the how-to tips (scripts/tips.gd), and Coach Bruno's skate lesson (scripts/skate_lesson.gd): each step done for
+# real, saved, carried on later, paying sparkles once, and Bruno coaching by the Lesson Pad in town with Rook helping,
+# and Bruno's Godfather voice coming out after two bails on a step.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate_help.gd
 #
@@ -328,7 +329,7 @@ func _lesson() -> void:
 	await _physics(5)
 	# The offer, the first time on a ride
 	lesson.offer(true)
-	check(lesson.is_offering() and p.input_locked, "Rook offers a skate lesson (and the hero waits for the answer)")
+	check(lesson.is_offering() and p.input_locked, "Bruno offers a skate lesson (and the hero waits for the answer)")
 	lesson.answer(true)
 	check(lesson.active and not lesson.is_offering() and not p.input_locked and lesson.step_id() == "push",
 		"saying yes starts it, at the first step")
@@ -395,7 +396,7 @@ func _lesson() -> void:
 
 
 func _coach() -> void:
-	# In town, Rook coaches by the Lesson Pad at the Skate Park
+	# In town, Bruno coaches by the Lesson Pad at the Skate Park, with Rook helping
 	game.next_spawn = ""
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
@@ -405,19 +406,33 @@ func _coach() -> void:
 	var pad := current_scene.find_child("Lesson Pad", true, false) as Node3D
 	check(pad != null and pad.find_child("Lesson", true, false).get_script() != null, "the Skate Park has a Lesson Pad")
 	var town_rook: Node3D = null
+	var town_bruno: Node3D = null
 	for r in current_scene.find_children("Routine", "", true, false):
 		if r.get("character_id") == "rook":
 			town_rook = r.get_parent()
+		if r.get("character_id") == "bruno_alien":
+			town_bruno = r.get_parent()
+	check(town_bruno != null, "Bruno lives in Galaxity (his hippo self, with a routine)")
 	lesson.start()
 	await _frames(3)
-	var coach := current_scene.find_child("Coach Rook", true, false) as Node3D
-	check(lesson.active and game.riding and coach != null, "starting the lesson in town puts the hero on their ride, with Rook coaching")
+	var coach := current_scene.find_child("Coach Bruno", true, false) as Node3D
+	var helper := current_scene.find_child("Helper Rook", true, false) as Node3D
+	check(lesson.active and game.riding and coach != null, "starting the lesson in town puts the hero on their ride, with Bruno coaching")
 	check(p.global_position.distance_to(pad.global_position) < 5.0, "...over at the Lesson Pad")
-	check(coach != null and coach.global_position.distance_to(pad.global_position) < 4.0, "...where Rook stands")
+	check(coach != null and coach.global_position.distance_to(pad.global_position) < 4.0, "...where Bruno stands")
+	check(helper != null and helper.global_position.distance_to(pad.global_position) < 4.5, "...with Rook beside him, helping")
 	check(town_rook == null or not town_rook.visible, "...and there's only one Rook in town")
+	check(town_bruno == null or not town_bruno.visible, "...and only one Bruno")
+	# Two bails on one step and the stress gets to Bruno: his Godfather voice, then he's himself again
+	lesson._on_bailed()
+	check(lesson._stressed == "", "one bail: Bruno keeps his cool")
+	lesson._on_bailed()
+	check(lesson._stressed != "" and lesson._woof.text == lesson._stressed,
+		"two bails on a step: Bruno's Godfather voice comes out (\"%s\")" % lesson._woof.text.left(60))
 	lesson.stop()
 	await _frames(2)
-	check(not is_instance_valid(coach) and (town_rook == null or town_rook.visible), "stopping it sends Rook back to his day")
+	check(not is_instance_valid(coach) and not is_instance_valid(helper) and (town_rook == null or town_rook.visible)
+		and (town_bruno == null or town_bruno.visible), "stopping it sends Bruno and Rook back to their day")
 	lesson.start()
 	game.go(PARK, "")
 	await _frames(8)

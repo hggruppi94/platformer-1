@@ -3,12 +3,40 @@
   "conversations": [
     {
       "when": {
+        "quest_step": [
+          "aftershock:tricks",
+          "aftershock:nina",
+          "aftershock:face"
+        ]
+      },
+      "lines": [
+        "(Bruno's voice drops. It goes low and slow and very, very Italian. This only happens when he's stressed.)",
+        "Thomebody... put mud pies... in Mrs. Crumb's bakery. And they let my thister take the blame.",
+        "You find this other Nina. You tell her... Bruno sends his regards.",
+        "(He blinks. His normal voice comes back.) ...Sorry. That just comes out sometimes. Please help Nina."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "aftershock",
+        "not_flag": "bruno_after_aftershock"
+      },
+      "lines": [
+        "You sent the other Nina back through the pond? For real?",
+        "(The voice creeps in again.) You have done this family... a great favour. One day, I may ask you for a favour in return.",
+        "(Normal again.) Probably a skate favour. Like filming me. Not when I fall."
+      ],
+      "set": "bruno_after_aftershock"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
-        "(Bruno nods at you from under his beanie.) 'Sup. Bruno. Nina's brother. You skate?",
-        "{player}: A bit!",
-        "Cool. Big Vert. Later. Don't chicken out."
+        "(Bruno nods at you from under his black SK8 beanie.) 'Thup. Bruno. Nina's brother. The little one, but don't thay little.",
+        "{player}: Did you just say 'thup'?",
+        "(He points at the gap in his grin.) Lotht a tooth. On the Big Vert. Totally worth it.",
+        "You thkate? Come find me at the Thkate Yard after school. I'll show you thtuff."
       ]
     },
     {
@@ -16,8 +44,8 @@
         "activity": "festival"
       },
       "lines": [
-        "Hayride's for babies.",
-        "...Okay, it's kind of fun. Don't tell Prue."
+        "Hayride'th for babieth.",
+        "...Okay, it'th kind of fun. Don't tell Prue."
       ]
     },
     {
@@ -25,7 +53,23 @@
         "activity": "skating"
       },
       "lines": [
-        "(He's lining up the Big Vert.) Watch. And don't film it if I fall."
+        "(He's lining up the Big Vert.) Watch. And don't film it if I fall.",
+        {
+          "choice": [
+            {
+              "text": "Teach me something!",
+              "lines": [
+                "Okay. Thecret one. Pop the ollie at the very top of the ramp, not before. Patience. Like Mr. Palmer thays. Ugh."
+              ]
+            },
+            {
+              "text": "Go for it!",
+              "lines": [
+                "(He drops in, flies up the far side, grabs his board and lands it clean.) ...You thaw that, right? Tell Nina."
+              ]
+            }
+          ]
+        }
       ]
     },
     {
@@ -33,19 +77,41 @@
         "activity": "his_room"
       },
       "lines": [
-        "My room. Posters. Board. Ramp. Mum says no ramps indoors. It's a small ramp."
+        "My room. Pothterth. Board. Ramp. Mum thays no rampth indoorth. It'th a thmall ramp."
+      ]
+    },
+    {
+      "when": {
+        "activity": "breakfast"
+      },
+      "lines": [
+        "(Mouth full of cereal.) Mm. Nina'th being weird again. Thtaring at the clock like it owes her money."
+      ]
+    },
+    {
+      "when": {
+        "activity": [
+          "school",
+          "recess"
+        ]
+      },
+      "lines": [
+        "Recess is the only good part. Juniper keeps trying to interview me. No comment."
       ]
     },
     {
       "rotate": [
         [
-          "The gap jump? Seven metres. I've cleared it. Twice. Okay, once and a half."
-        ],
-        [
-          "Juniper keeps trying to interview me. No comment."
+          "The gap jump? Theven metreth. I've cleared it. Twice. Okay, once and a half."
         ],
         [
           "Nina goes quiet near midnight. Like she's listening for something. Weird, right? ...Right?"
+        ],
+        [
+          "Grandma thays my beanie makes me look like I'm about to rob the bakery. It'th a SKATE beanie. It thays SK8 on it."
+        ],
+        [
+          "(He whistles through the gap in his teeth.) The tooth fairy gave me a whole dollar. I'm thaving it for wheelth."
         ]
       ]
     }

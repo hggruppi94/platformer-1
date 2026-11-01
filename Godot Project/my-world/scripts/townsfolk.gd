@@ -20,13 +20,14 @@ const EXTRAS := {
 	"guitar": "chest", "pearls": "chest", "fire_helmet": "head", "book": "hand.L", "skateboard": "hand.R",
 	"bow_tie": "chest", "scarf": "chest", "shawl": "chest", "headband": "head", "moustache": "head", "flower": "head",
 	"clipboard": "hand.L", "cardigan": "spine", "striped_beanie": "head", "freckles": "head",
+	"bruno_beanie": "head", "open_hoodie": "chest",
 }
 
 @export var look := {}                     # a hero (Hero.blank()'s shape); empty for a model used as it is
 @export var outfit := {}                   # clothes by slot (scripts/clothes.gd), e.g. {"head": "sk8_beanie"}
 @export var extras: Array = []             # [{"kind": "apron", "color": Color}], from EXTRAS
 @export var model_path := BODY
-@export var placeholder := false           # a stand-in look until there's a drawing (Prue and Bruno)
+@export var placeholder := false           # a stand-in look until there's a drawing (Prue)
 
 var model: Node3D
 var _anim: AnimationPlayer
@@ -121,6 +122,30 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 				_mesh(g, _cyl(0.27 - k * 0.035, 0.3 - k * 0.035, 0.075), band, Vector3(0, 1.27 + k * 0.07, -0.02))
 			_mesh(g, _ball(0.17), c, Vector3(0, 1.5, -0.02), Vector3.ZERO, Vector3(1.0, 0.55, 1.0))
 			_mesh(g, _ball(0.075), Color(0.97, 0.95, 0.93), Vector3(0, 1.6, -0.02))
+		"bruno_beanie":                                # Bruno's black knit SK8 beanie, from Sofi's drawing: pulled down
+			# to his brows, slouching back, with a folded cuff and the SK8 patch over his left eye
+			_mesh(g, _ball(0.3), c, Vector3(0, 1.33, -0.05), Vector3(-0.3, 0, 0), Vector3(1.08, 0.95, 1.12))
+			_mesh(g, _cyl(0.315, 0.325, 0.095), c.lightened(0.06), Vector3(0, 1.27, -0.01), Vector3(-0.22, 0, 0))
+			var patch := _mesh(g, _box(Vector3(0.1, 0.05, 0.012)), Color(0.12, 0.12, 0.13), Vector3(0.1, 1.29, 0.3),
+				Vector3(-0.22, 0.32, -0.1))
+			var sk8 := Label3D.new()
+			sk8.text = "SK8"
+			sk8.font_size = 32
+			sk8.pixel_size = 0.0011
+			sk8.outline_size = 0
+			sk8.modulate = Color(0.92, 0.92, 0.92)
+			sk8.position = Vector3(0, 0, 0.0075)
+			patch.add_child(sk8)
+		"open_hoodie":                                 # an open zip hoodie in his top's colour (set by the look): the
+			# olive tee showing down the middle, two zips, the hood bunched behind his neck and white drawstrings
+			_mesh(g, _box(Vector3(0.12, 0.34, 0.02)), e.get("tee", Color(0.45, 0.5, 0.15)), Vector3(0, 0.66, 0.172),
+				Vector3(-0.06, 0, 0))
+			for sd in [-1.0, 1.0]:
+				_mesh(g, _box(Vector3(0.012, 0.36, 0.024)), Color(0.75, 0.75, 0.8), Vector3(sd * 0.066, 0.66, 0.18),
+					Vector3(-0.06, 0, 0))
+				_mesh(g, _cyl(0.007, 0.007, 0.15), Color(0.95, 0.95, 0.95), Vector3(sd * 0.045, 0.76, 0.19))
+			_mesh(g, _torus(0.12, 0.2), c, Vector3(0, 0.86, -0.04), Vector3(0.25, 0, 0), Vector3(1.0, 1.6, 1.0))
+			_mesh(g, _ball(0.13), c, Vector3(0, 0.83, -0.16), Vector3.ZERO, Vector3(1.2, 0.8, 0.6))
 		"freckles":                                    # a sprinkle across the nose and cheeks
 			for s in [-1.0, 1.0]:
 				for k in 4:

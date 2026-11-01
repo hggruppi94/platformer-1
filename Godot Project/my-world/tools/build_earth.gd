@@ -1136,16 +1136,18 @@ func _people() -> void:
 		[{"kind": "headband", "color": Color(1.0, 0.45, 0.65)}, {"kind": "clipboard"}])
 	_person("Ozzie", "ozzie", Vector3(14.0, 0.2, -92.0), 0.0, _look(1, 10, 1, 9, 15, 6, 1.0),
 		[{"kind": "cap", "color": Color(0.85, 0.2, 0.2)}, {"kind": "skateboard", "color": Color(0.3, 0.75, 0.4)}])
-	# The Blastoffs: Nina, human on Earth (red bob, red bow, black turtleneck), and her sister and brother. Prue's and
-	# Bruno's looks are PLACEHOLDERS until there are drawings of them as people: a lilac little sister, and Bruno in
-	# his SK8 beanie with his board.
+	# The Blastoffs: Nina, human on Earth (red bob, red bow, black turtleneck), and her sister and brother. Prue's look
+	# is a PLACEHOLDER until there's a drawing of her as a person. Bruno is Sofi's drawing of him as a person: a mop
+	# of golden hair under his black SK8 beanie, an open blue zip hoodie over an olive tee, dark jeans, his board.
 	_person("Nina", "nina_earth", Vector3(-40.0, 0, 62.0), PI, _look(1, 9, 6, 6, 6, 9, 1.0, 1.0, 0.95),
 		[{"kind": "bow", "color": Color(0.85, 0.1, 0.14)}, {"kind": "turtleneck", "color": Color(0.1, 0.08, 0.1)}])
 	_person("Prue", "prue", Vector3(-38.0, 0, 62.0), PI, _look(1, 4, 2, 17, 18, 18, 0.84, 1.06),
 		[{"kind": "flower", "color": Color(1.0, 0.6, 0.8)}]).set("placeholder", true)
-	_person("Bruno", "bruno", Vector3(-42.0, 0, 62.0), PI, _look(1, 4, 1, 10, 15, 6, 1.0), [{"kind": "skateboard",
-		"color": Color(0.15, 0.15, 0.18)}], {"head": "sk8_beanie"}).set("placeholder", true)
-
+	_person("Bruno", "bruno", Vector3(-42.0, 0, 62.0), PI, _look(2, 11, 1, 15, 6, 6, 0.92, 1.05, 1.0, {"eyes": 1.08}),
+		[{"kind": "open_hoodie", "color": Color(0.35, 0.5, 1.0), "tee": Color(0.45, 0.5, 0.15)},
+		{"kind": "bruno_beanie", "color": Color(0.1, 0.1, 0.11)},
+		{"kind": "freckles", "color": Color(0.7, 0.45, 0.32)},
+		{"kind": "skateboard", "color": Color(0.12, 0.12, 0.14)}])
 
 func _light_boxes() -> void:
 	# The gazebo's lost boxes of string lights (quest earth_lights): by the diner, the bookshop and the inn

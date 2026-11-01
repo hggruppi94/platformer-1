@@ -65,10 +65,46 @@ Read this first in every session so each iteration builds on the last one and do
   and Dash is his twin. The other characters are Bramble, Pip, Rook (says woof), Ivy and Theo (Earth), Madame
   Celeste (Earth dance studio) and the lonely centipede (Scary World).
 - In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (red bob, red
-  bow, black turtleneck: `nina_earth`) and stays her alien self in Galaxity. Prue and Bruno's Earth looks are placeholders.
+  bow, black turtleneck: `nina_earth`) and stays her alien self in Galaxity. Since Nov 1, 2026 Bruno is too (`bruno` on
+  Earth, `bruno_alien` in Galaxity, from Sofi's drawing). Prue's Earth look is still a placeholder.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
+
+- 2026-11-01: Bruno, Nina's little brother, from Sofi's drawing (prompt B; Hayden: "Bruno is in the reference material
+  folder so use that to build him"). The drawing is from the "Kids songvideo more ideas" notes (a hippo boy in a black
+  SK8 beanie, golden hair, open blue zip hoodie over an olive tee, tongue out); a crop is in
+  `source_art/reference/Bruno - SK8 beanie.png`. Built and tested in the cloud (each run with its own Godot user
+  folder, so no save was touched).
+  - **Galaxity Bruno** (`tools/build_bruno.py` → `source_art/characters/bruno.blend` → `models/characters/bruno.glb`):
+    made like Nina (same head, snout and body code, so they look related), with his own spiky golden mop, the black
+    knit beanie with a folded cuff and an SK8 patch (real text), ears out under the cuff, blue eyes, freckles on his
+    snout, ONE front tooth (the gap is his lisp), the tongue poking out, the open hoodie (zips, drawstrings, pockets,
+    hood bunched at the back), dark jeans and black skate shoes. Animations: idle (hands near his pockets, head
+    bobbing), walk, run, jump, fall, skate, push and `tough` (his Godfather bit). In `scenes/town/characters.tscn` next
+    to Nina, id `bruno_alien` (`routines/bruno_alien.json`: home in the morning, the Skate Park most of the day,
+    lunch by the lake, the home park in the evening; `dialogue/bruno_alien.json`).
+  - **Earth Bruno** (`tools/build_earth.gd`, no longer a placeholder): the Earth kid body with golden hair, a bit
+    shorter than Nina, freckles, a blue top with the new `open_hoodie` extra (olive tee, zips, hood, drawstrings) and the
+    new `bruno_beanie` extra (black, cuffed, SK8 patch) in `scripts/townsfolk.gd`, and his black board under his arm.
+    `earth.tscn` was rebuilt (only Bruno changed; the rest is unique_id churn). New lines in `dialogue/bruno.json`.
+  - **His lisp and his Godfather voice:** his lines lisp ("Thkate Park", "leththon"). Under stress his voice goes low,
+    slow and Italian: during the Aftershock quest (the other Nina's tricks), when Leo's alarm wails in Galaxity, and
+    after two bails on one step of his skate lesson. Parody bursts in our own words, then he's himself again.
+  - **His ride** (`scripts/rides.gd` "bruno", after Nina in `ORDER`): the SK8 Deck (`ride_kit.gd` kit `sk8`: Nina's
+    board in black with golden wheels and SK8 on the deck). Snappier than Nina's board, steadier grinds, less glide,
+    pushes with his own `push` animation. Tricks: Gap-Tooth Flip, Beanie Heelflip, Tre Flip, Meatball Shove-it; Hoodie
+    Grab, Nonna's Melon, Nose Boop, Tail Thwip; Fifty-Thifty, Spaghetti Slide, Family Lipslide; Cool Manual; special
+    "Offer You Can't Refuse".
+  - **Coach Bruno:** the skate lesson (`scripts/skate_lesson.gd`) is his now. Each step has his line ("says") and
+    Rook's woof; Rook stands beside him at the Lesson Pad ("Helper Rook") and cheers; their town selves step out of
+    sight meanwhile. Rex calls "COACH BRUNO!" in The First Night. Words changed in the lesson pad, pause and player menu,
+    nights checklist and the dog-kid hint.
+  - Tests updated: test_townsfolk, test_routines, test_dialogue, test_skate_help (Bruno and Rook at the pad, the
+    stress line after two bails), test_creator, test_first_night, test_skate_popper. Previews: `tools/capture_bruno.gd`
+    (in the project files under characters/bruno/in-game), Blender turnarounds under characters/bruno/previews.
+  - My choices Hayden may change: his Earth look (Sofi only drew his hippo self), his trick names, how heavy the lisp
+    is, his routine, and that he's a little shorter than Nina.
 
 - 2026-11-01: The Agent of Chaos final boss fight (plan item 6, slice 3 of 3). `scripts/chaos_fight.gd` is hung under
   the giant (`ChaosFight`, added by `Bosses`) and drives him while a fight is on (`chaos_giant.gd` gained `fight`,
@@ -865,6 +901,6 @@ Read this first in every session so each iteration builds on the last one and do
 ## Open ideas / next up
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
-  keyboard. Steps 1 to 4 are in (see the log). Bruno (SK8 beanie) isn't in the game yet, so he has no ride. Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
+  keyboard. Steps 1 to 4 are in (see the log). Bruno rides his SK8 Deck and coaches the lesson (Nov 1). Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
 - Clothes (Hayden, Oct 23): more clothes later. Mr. Palmer's town self could wear his outfit too.
 - Add new requests here as they come in, and move them to the log when they're done.

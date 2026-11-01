@@ -37,6 +37,7 @@ const VOICES := {
 	"rook": [1.0, "bark"], "green_man": [0.55, "hum"], "pip": [1.7, "voice"], "bramble": [0.95, "voice"],
 	"mr_palmer": [0.75, "voice"], "palmer_earth": [0.75, "voice"], "tally": [1.9, "voice"], "race_starter": [1.8, "voice"],
 	"centipede": [0.6, "hum"], "celeste": [1.15, "voice"], "astronaut": [0.85, "voice"],
+	"bruno": [1.4, "voice"], "bruno_alien": [1.4, "voice"],
 }
 const PLAYER_PITCH := 1.3
 

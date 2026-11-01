@@ -3,7 +3,7 @@ extends RefCounted
 
 # Builds what each rider rides (scripts/rides.gd "kit"), under the player's Ride node (scenes/player/player.gd):
 # Nina's skateboard, Dash's BMX, four-paw roller skates for Rex and Rook (all four paws, or both hands and feet), Pip's glowing
-# hover disc, Bramble's scooter, the Green Man's leaf board and Mr. Palmer's Mayor-mobile. Simple shapes, in the
+# hover disc, Bruno's black SK8 deck, Bramble's scooter, the Green Man's leaf board and Mr. Palmer's Mayor-mobile. Simple shapes, in the
 # same bright colours as the rest of the game.
 #
 # Skates sit on the rider's feet: build() returns them as "feet" ([skate node, skeleton, bone index] each), and
@@ -20,6 +20,8 @@ static func build(kit: String, ride: Node3D, model: Node3D) -> Dictionary:
 	match kit:
 		"board":
 			ride.add_child(load(SKATEBOARD).instantiate())
+		"sk8":
+			_sk8(ride)
 		"bmx":
 			var bike: Node3D = load(BIKE).instantiate()
 			ride.add_child(bike)
@@ -335,3 +337,31 @@ static func _saucer(ride: Node3D) -> void:
 	light.omni_range = 3.0
 	light.position = Vector3(0, 0.05, 0)
 	ride.add_child(light)
+
+
+static func _sk8(ride: Node3D) -> void:
+	# Bruno's own board: Nina's skateboard made his, all black like his beanie, with golden wheels (like his hair) and
+	# SK8 written along the deck
+	var board: Node3D = load(SKATEBOARD).instantiate()
+	board.name = "SK8 Deck"
+	ride.add_child(board)
+	var black := _mat(Color(0.07, 0.07, 0.08), 0.6)
+	for path in ["Deck", "Deck/Nose", "Deck/Tail"]:
+		var mi := board.get_node_or_null(path) as MeshInstance3D
+		if mi:
+			mi.material_override = black
+	var gold := _mat(Color(1.0, 0.78, 0.22), 0.35)
+	for w in ["WheelFL", "WheelFR", "WheelBL", "WheelBR"]:
+		var mi := board.get_node_or_null(w) as MeshInstance3D
+		if mi:
+			mi.material_override = gold
+	var text := Label3D.new()
+	text.name = "SK8"
+	text.text = "SK8"
+	text.font_size = 64
+	text.pixel_size = 0.0022
+	text.outline_size = 0
+	text.modulate = Color(0.95, 0.95, 0.95)
+	text.position = Vector3(0, 0.131, -0.02)
+	text.rotation = Vector3(-PI / 2, PI / 2, 0)        # lying on the deck, reading along it
+	board.add_child(text)

@@ -11,7 +11,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "mr_palmer", "scary_gate", "nina", "astronaut"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "mr_palmer", "scary_gate", "nina", "astronaut", "bruno_alien"]
 const PERIODS := {"morning": 8 * 60.0, "day": 13 * 60.0, "evening": 19 * 60.0, "night": 22 * 60.0, "shift": 20.0}
 
 var failures := 0

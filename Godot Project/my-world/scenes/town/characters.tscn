@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/mr_palmer_alien.glb" id="12_palmer"]
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 [ext_resource type="PackedScene" path="res://models/characters/astronaut.glb" id="14_astro"]
+[ext_resource type="PackedScene" path="res://models/characters/bruno.glb" id="19_bruno"]
 [ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
 [ext_resource type="PackedScene" path="res://models/characters/chaos_giant.glb" id="16_chaos"]
 [ext_resource type="Script" path="res://scripts/chaos_giant.gd" id="17_chaos"]
@@ -240,6 +241,29 @@ character_id = "nina"
 [node name="Body" type="StaticBody3D" parent="Nina"]
 
 [node name="Shape" type="CollisionShape3D" parent="Nina/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="Bruno" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 72.0, 0.2, -2.0)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Bruno" instance=ExtResource("19_bruno")]
+
+[node name="Talk" type="Area3D" parent="Bruno"]
+script = ExtResource("10_talk")
+character_id = "bruno_alien"
+display_name = "Bruno"
+name_height = 1.95
+
+[node name="Routine" type="Node" parent="Bruno"]
+script = ExtResource("11_routine")
+character_id = "bruno_alien"
+
+[node name="Body" type="StaticBody3D" parent="Bruno"]
+
+[node name="Shape" type="CollisionShape3D" parent="Bruno/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 

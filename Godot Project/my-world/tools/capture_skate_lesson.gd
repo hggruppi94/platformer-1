@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Screenshots of the skating help: the Lesson Pad at the Skate Park, Rook offering a lesson, Coach Rook teaching (with
+# Screenshots of the skating help: the Lesson Pad at the Skate Park, Bruno offering a lesson, Coach Bruno teaching with Rook (with
 # keyboard and with controller prompts), a how-to tip, and the Controls and Assist settings.
 # Opens a window (not --headless):
 #
@@ -62,19 +62,19 @@ func _run() -> void:
 	_place(pad.global_position + Vector3(0, 1.0, -0.3), 0.0)
 	await _shot("01_lesson_pad", 30)
 
-	# 2. The first time on a ride, Rook offers a lesson
+	# 2. The first time on a ride, Bruno offers a lesson
 	game.riding = true
 	game.equipment_changed.emit()
 	tips.clear()
 	_place(pad.global_position + Vector3(0, 1.0, -2.5), 0.0)
 	lesson.offer(true)
-	await _shot("02_rook_offers", 10)
+	await _shot("02_bruno_offers", 10)
 
-	# 3. Coach Rook teaching, by the pad
+	# 3. Coach Bruno teaching, by the pad, with Rook helping
 	lesson.answer(true)
 	tips.clear()
 	_place(pad.global_position + Vector3(-1.2, 1.0, -3.5), 0.4)
-	await _shot("03_coach_rook", 20)
+	await _shot("03_coach_bruno", 20)
 
 	# 4. The same lesson on a controller: the prompts say its buttons
 	for id in ["push", "ollie", "spin"]:

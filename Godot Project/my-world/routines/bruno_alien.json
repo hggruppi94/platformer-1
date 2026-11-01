@@ -1,0 +1,13 @@
+{
+  "speed": 1.5,
+  "move_anim": "walk",
+  "follow_anim": "run",
+  "blocks": [
+    {"at": "07:30", "place": "ninas_house", "do": "idle", "face": [80.0, 6.0], "label": "morning"},
+    {"at": "09:00", "place": "skate_park", "do": "wander", "radius": 6, "label": "skating"},
+    {"at": "12:30", "place": "south_shore", "do": "wander", "radius": 3, "label": "lunch"},
+    {"at": "14:00", "place": "skate_park", "do": "wander", "radius": 6, "label": "skating"},
+    {"at": "18:00", "place": "home_park", "do": "wander", "radius": 4, "label": "evening"},
+    {"at": "21:00", "place": "ninas_house", "do": "away", "label": "asleep"}
+  ]
+}

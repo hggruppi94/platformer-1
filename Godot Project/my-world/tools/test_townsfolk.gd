@@ -4,8 +4,8 @@ extends SceneTree
 # the hero system, their routines (res://routines/<id>.json, "world": "earth") run on Earth's clock along Earth's
 # paths (res://routines/earth_places.json) and reach every place, nobody walks through a wall or into the pond, the
 # right people are about at each time of day, they walk when the player's watching, their talk changes with the time
-# and what they're doing, human Nina lives at the Blastoffs' (and goes to bed in her own room), and Prue and Bruno are
-# marked as placeholders.
+# and what they're doing, human Nina lives at the Blastoffs' (and goes to bed in her own room), Prue is marked
+# as a placeholder, and Bruno is dressed as Sofi drew him.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_townsfolk.gd
 #
@@ -157,9 +157,11 @@ func _check_blastoffs() -> void:
 	check("bow" in kinds and "turtleneck" in kinds and int(nina.look.colors.top) == 6, "...her red bow and a black turtleneck")
 	var skel := Clothes._skeleton(nina.model)
 	check(skel.get_node_or_null("Own bow") != null and skel.get_node_or_null("Own turtleneck") != null, "...and she's wearing them")
-	check((_body("prue") as Townsfolk).placeholder and (_body("bruno") as Townsfolk).placeholder and not nina.placeholder,
-		"Prue and Bruno are marked as placeholders (Nina isn't)")
-	check((_body("bruno") as Townsfolk).outfit.get("head", "") == "sk8_beanie", "Bruno wears his SK8 beanie")
+	check((_body("prue") as Townsfolk).placeholder and not (_body("bruno") as Townsfolk).placeholder and not nina.placeholder,
+		"Prue is marked as a placeholder (Nina and Bruno aren't)")
+	var bruno := _body("bruno") as Townsfolk
+	check(bruno.find_child("bruno_beanie", true, false) != null and bruno.find_child("open_hoodie", true, false) != null,
+		"Bruno wears his black SK8 beanie and his open blue hoodie, from Sofi's drawing")
 	var blocks: Array = routines.nina_earth.blocks
 	check(blocks.any(func(b: Dictionary) -> bool: return b.place == "nina_room" and b.do == "away"),
 		"Nina goes to bed in her own room at the Blastoffs'")

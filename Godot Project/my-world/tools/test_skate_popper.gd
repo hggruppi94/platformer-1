@@ -8,7 +8,7 @@ extends SceneTree
 # turning the board. The Skate Park's two new goals ("Pop 3 Gloops in one combo", "Pop a Gloop off a grind") pay once,
 # there are sleepy Gloops round the park and by the town rails, riders with no hand free can't shoot, Shoot doesn't
 # clash with a skate button on keys or a controller (old settings that clash are put right), and the tip and Coach
-# Rook's lesson say how.
+# Bruno's lesson say how.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_skate_popper.gd
 #
@@ -422,7 +422,7 @@ func _run() -> void:
 	var tips: Node = root.get_node("Tips")
 	check(tips.TIPS.has("skate_shoot") and String(tips.TIPS.skate_shoot.text).contains("{shoot}"), "there's a tip for shooting on the board")
 	var lesson: Node = root.get_node("SkateLesson")
-	check(String(lesson.STEPS[-1].text).contains("{shoot}"), "Coach Rook's combo step says Pops count")
+	check(String(lesson.STEPS[-1].text).contains("{shoot}"), "Coach Bruno's combo step says Pops count")
 	for f in dialogue.flags.keys():
 		if String(f).begins_with("skate_"):
 			dialogue.flags.erase(f)

@@ -53,7 +53,7 @@ func showing(which: String) -> bool:
 
 func can_open() -> bool:
 	# Not over the pause menu or a bed (they pause the game), a conversation, the character creator, a shop or the
-	# wardrobe, or Coach Rook's offer of a lesson
+	# wardrobe, or Coach Bruno's offer of a lesson
 	return not get_tree().paused and not Dialogue.is_active() and not Creator.is_open() and not Shop.is_open() \
 		and not SkateLesson.is_offering()
 
@@ -453,7 +453,7 @@ func _sheet_skate() -> Control:
 	_scroll = _scroller()
 	var box := _scroll.get_child(0) as VBoxContainer
 	var first: Control = null
-	_heading("Coach Rook's skate lesson", box, 26)
+	_heading("Coach Bruno's skate lesson", box, 26)
 	if not Game.has_item("skateboard"):
 		_line("Pick up the skateboard in the middle of the Skate Park first, then Rook can teach you!", true, box)
 	else:
