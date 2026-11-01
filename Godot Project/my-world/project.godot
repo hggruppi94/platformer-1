@@ -43,6 +43,7 @@ Nights="*res://scripts/nights.gd"
 Playtest="*res://scripts/playtest.gd"
 Loading="*res://scripts/loading_screen.gd"
 Schematics="*res://scripts/schematics.gd"
+Bosses="*res://scripts/bosses.gd"
 
 [display]
 

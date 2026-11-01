@@ -70,6 +70,22 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Time Goblins and their boss, Grandfather Tock (plan item 6, slice 1 of 3; Hayden: the Agent of Chaos
+  is the final boss, a new enemy "time goblins", and every enemy gets a bigger boss version). New autoload `Bosses`
+  (`scripts/bosses.gd`) puts it all in town at play time, so the town wasn't rebuilt: the **Goblin Clockyard**
+  (128, -150), a ring of seven tumbledown grandfather clocks east of the Agent's field (on the map through the new
+  `scripts/landmark.gd`), 8 Time Goblins (4 in the yard, 2 towards the Observatory, 2 in the Agent's field) and Tock in
+  the middle. `tools/build_time_goblin.gd` → `scenes/enemies/time_goblin.tscn` + `time_goblin_boss.tscn` (shapes in
+  the palette: teal goblin, pointy ears, amber eyes, top hat with a cog, a gold pocket watch in its belly running
+  backwards; Tock wears a grandfather clock as a hat with a swinging pendulum). `scripts/time_goblin.gd`: remembers
+  where it's been and **blinks back in time** 2 s (ghost trail, `Juice.blip("rewind")`) when a bubble's about to hit
+  it (75%), then it's dizzy 1.4 s and can't blink for 5 s: make it blink, then pop it. Bumping you snatches a sparkle
+  (held over its head) and it runs off; popping it gives it back. `scripts/time_goblin_boss.gd`: 8 hits, a blink
+  undoes his last hit, his clock strikes three chime rings to jump (`scripts/shock_ring.gd`, shared by the coming
+  bosses), two goblins at a third and two more at two-thirds, quicker and more chimes past half, flag
+  `popped_grandfather_tock`. `scripts/boss_bar.gd` is the name-and-meter bar for the new bosses. Test
+  `tools/test_time_goblins.gd` (31 checks, 5 runs green); previews `tools/capture_time_goblins.gd` →
+  /mnt/project-files/characters/time-goblins/. Tested in the cloud only.
 - 2026-11-01: Quests from the show's first episodes (plan item 5; Hayden: "time for the next step"). Tested in the
   cloud only (each run with its own Godot user folder, so no save was touched). Nothing new in the save (all progress
   is quest flags) and no scene was rebuilt. One script puts everything in at play time: `scripts/episodes.gd`, node

@@ -160,7 +160,7 @@ func hit(parent: Node, pos: Vector3, colour: Color, big := false) -> void:
 # -----------------------------------------------------------------------------
 func blip(kind: String, pitch := 1.0, volume_db := -8.0) -> void:
 	# "chime" (pickups), "pop" (bubbles), "tick" (countdowns, menus), "whoosh" (boosts, portals), "thud" (landings),
-	# "sparkle" (rewards), "buzz" (grinds). Each made once, then played at any pitch.
+	# "sparkle" (rewards), "buzz" (grinds), "rewind" (a Time Goblin blinking back in time). Each made once, then played at any pitch.
 	calls += 1
 	if not _blips.has(kind):
 		_blips[kind] = _make(kind)
@@ -191,7 +191,7 @@ func chime_step() -> int:
 
 
 func _make(kind: String) -> AudioStreamWAV:
-	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3}
+	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3, "rewind": 0.45}
 	if not length.has(kind):
 		return null
 	var n := int(RATE * float(length[kind]))
@@ -223,6 +223,11 @@ func _make(kind: String) -> AudioStreamWAV:
 				v = sin(TAU * 990.0 * note * t) * pow(1.0 - fmod(f * 4.0, 1.0), 1.5) * env
 			"buzz":
 				v = (fmod(t * 110.0, 1.0) * 2.0 - 1.0) * 0.4 * sin(PI * f) + rng.randf_range(-0.2, 0.2) * sin(PI * f)
+			"rewind":
+				# a falling warble with quick clock ticks over it, like a tape wound backwards
+				phase += TAU * lerpf(1400.0, 300.0, f) * (1.0 + 0.08 * sin(TAU * 18.0 * t)) / RATE
+				var tick := 1.0 if fmod(t, 0.06) < 0.006 else 0.0
+				v = sin(phase) * sin(PI * f) * 0.6 + tick * 0.5
 		var s := int(clampf(v * 0.5, -1.0, 1.0) * 32767.0)
 		data.encode_s16(i * 2, s)
 	var w := AudioStreamWAV.new()
