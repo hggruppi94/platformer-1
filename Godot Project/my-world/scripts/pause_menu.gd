@@ -507,6 +507,7 @@ func _tab_assist(tabs: TabContainer) -> void:
 	_slider(g, "Screen shake", "screen_shake", 0.0, 1.0, 0.1, func(x): return "%d%%" % roundi(x * 100.0))
 	_check(g, "Controller rumble", "rumble", "The controller buzzes a little on bumps, landings and big pops")
 	_check(g, "How-to tips", "tips", "Little pop-ups the first time you do something")
+	_check(g, "Race intros", "race_intros", "A flyover of the track and your rivals before each race (Jump skips it)")
 	_check(g, "Playtest notes", "playtest",
 		"Notes what happens as you play, in a file in the save folder, for a grown-up to read. Nothing leaves this computer")
 	_check(g, "No damage", "no_damage", "Enemies still bump you, but you never lose HP")

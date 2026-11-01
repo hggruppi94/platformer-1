@@ -58,6 +58,7 @@ func _run() -> void:
 	S = root.get_node("Schematics")
 	game.message_posted.connect(func(t: String) -> void: messages.append(t))
 	root.get_node("Settings").tips = false
+	root.get_node("Settings").race_intros = false
 	dialogue.reset()
 	quests.reset()
 	root.get_node("Arsenal").reset()

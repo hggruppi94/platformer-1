@@ -81,6 +81,7 @@ var no_damage := false
 var infinite_mp := false
 var infinite_sp := false
 var skate_assist := 1                 # 0 Relaxed, 1 Normal, 2 Pro (the strict first rules)
+var race_intros := true               # the flyover of the track and the rivals before a race (scripts/race_intro.gd)
 
 var _defaults := {}
 var bindings := {}                    # action -> physical keycode
@@ -105,7 +106,7 @@ func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
 		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "clock_style", "text_scale", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
-		"skate_assist", "screen_shake", "rumble", "playtest"]
+		"skate_assist", "screen_shake", "rumble", "playtest", "race_intros"]
 
 
 func set_value(prop: String, value) -> void:

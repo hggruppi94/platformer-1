@@ -50,6 +50,7 @@ func _run() -> void:
 	settings.use_layout("classic")
 	settings.last_device = "keyboard"
 	settings.tips = false
+	settings.race_intros = false                    # the intros have their own test (test_race_intros)
 	settings.skate_assist = 1
 	game._resume = {}
 	game.pending_message = ""

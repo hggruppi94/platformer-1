@@ -194,7 +194,7 @@ func _process(delta: float) -> void:
 		_overlay.queue_redraw()
 	# The minimap is always up in a race (scripts/races.gd), to see the bends coming
 	var show_mini := (Settings.minimap or Races.racing()) and (in_town() or on_earth()) and not is_open() and not get_tree().paused \
-		and nina() != null
+		and nina() != null and not (Races.intro and Races.intro.playing())
 	_mini_layer.visible = show_mini
 	if show_mini:
 		_mini_tex.visible = not on_earth()

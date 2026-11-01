@@ -41,6 +41,7 @@ func _run() -> void:
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
 	root.get_node("Settings").tips = false
+	root.get_node("Settings").race_intros = false
 	clock.pulls_home = false
 	clock.on_earth = false
 	clock.set_time(3, 10 * 60.0, true)

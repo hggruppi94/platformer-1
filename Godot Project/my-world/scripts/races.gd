@@ -24,7 +24,7 @@ extends Node
 signal finished(track_id: String, place: int)
 signal upgraded
 
-enum State { IDLE, COUNTDOWN, RACING, RESULTS }
+enum State { IDLE, INTRO, COUNTDOWN, RACING, RESULTS }
 
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
@@ -178,6 +178,7 @@ var power := ""                      # the power-up being held ("" for none)
 var place := 1
 var progress := 0.0                  # how far round the player is, all laps together
 var hud: RaceHud
+var intro: RaceIntro                 # the cutscene before a race (scripts/race_intro.gd)
 var _count := 0.0
 var _results := 0.0
 var _shield := 0.0
@@ -197,6 +198,10 @@ func _ready() -> void:
 	hud = RaceHud.new()
 	hud.name = "RaceHUD"
 	add_child(hud)
+	intro = RaceIntro.new()
+	intro.name = "RaceIntro"
+	add_child(intro)
+	intro.done.connect(_after_intro)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
 	Dialogue.finished.connect(_on_talked)
@@ -397,7 +402,6 @@ func start_sky(id: String) -> bool:
 		rival.saucer = who[k]
 		rival.setup(str(who[k].id), t, -12.0 - 10.0 * k, [-12.0, 12.0, 0.0][k % 3], float(pace[k]))
 		get_tree().current_scene.add_child(rival)
-		rival.go()
 		rivals.append(rival)
 	lap = 1
 	last_cp = 0
@@ -411,12 +415,25 @@ func start_sky(id: String) -> bool:
 	_rival_pad.clear()
 	t.show_race(true)
 	t.light_rings(1)
+	hud.clear()
+	if Settings.race_intros:
+		state = State.INTRO
+		_set_ship_frozen(true)
+		intro.play(t, rivals, str(TRACKS[id].name), str(TRACKS[id].blurb))
+	else:
+		for r in rivals:
+			r.go()
+		_go_sky()
+	return true
+
+
+func _go_sky() -> void:
 	state = State.RACING
+	_along = -1.0
 	hud.clear()
 	hud.shout("GO!", Color(0.5, 1.0, 0.6), 0.6)
 	Audio.play("level_up")
 	_status()
-	return true
 
 
 func _sky_boosts(ship: Node3D) -> void:
@@ -575,6 +592,16 @@ func start(id: String) -> bool:
 	_along = -1.0
 	_rival_pad.clear()
 	t.show_race(true)
+	hud.clear()
+	if Settings.race_intros:
+		state = State.INTRO                       # the cutscene first (scripts/race_intro.gd), then the countdown
+		intro.play(t, rivals, str(TRACKS[id].name), str(TRACKS[id].blurb))
+	else:
+		_begin_countdown()
+	return true
+
+
+func _begin_countdown() -> void:
 	state = State.COUNTDOWN
 	_count = COUNTDOWN
 	hud.clear()
@@ -582,7 +609,26 @@ func start(id: String) -> bool:
 	hud.shout("3", Color(1.0, 0.85, 0.3), 0.5)
 	Audio.play("ui_move")
 	_status()
-	return true
+
+
+func _after_intro() -> void:
+	# The cutscene's over (or skipped): on the ground the countdown starts; in the sky, the race is on straight away
+	if state != State.INTRO:
+		return
+	if track and track.sky:
+		_set_ship_frozen(false)
+		for r in rivals:
+			r.go()
+		_go_sky()
+	else:
+		_begin_countdown()
+
+
+func _set_ship_frozen(on: bool) -> void:
+	# The mothership holds still in the air while the sky race's intro plays
+	var ship := _ship()
+	if ship:
+		ship.process_mode = Node.PROCESS_MODE_DISABLED if on else Node.PROCESS_MODE_INHERIT
 
 
 func _physics_process(delta: float) -> void:
@@ -590,6 +636,13 @@ func _physics_process(delta: float) -> void:
 	if state == State.IDLE:
 		_watch_sky()
 	match state:
+		State.INTRO:
+			var p := _player()
+			if p == null:
+				_end(false)
+			elif not track.sky:
+				p.velocity = Vector3.ZERO
+				p.input_locked = true
 		State.COUNTDOWN:
 			_countdown(delta)
 		State.RACING:
@@ -785,8 +838,11 @@ func _end(_done: bool) -> void:
 	if is_instance_valid(track):
 		track.show_race(false)
 	var p := _player()
-	if p and state == State.COUNTDOWN:
+	if p and (state == State.COUNTDOWN or (state == State.INTRO and is_instance_valid(track) and not track.sky)):
 		p.input_locked = false
+	if state == State.INTRO:
+		intro.stop()
+		_set_ship_frozen(false)
 	state = State.IDLE
 	hud.clear()
 	_refresh_boards()

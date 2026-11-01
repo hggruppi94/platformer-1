@@ -71,6 +71,18 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Race intro cutscenes for every track (plan item 7, slice 4; Hayden: "I also want to add cutscenes for all
+  the tracks"). Saying go to a starter (or flying through the Sky Rings' start ring) now plays a short intro before the
+  countdown (`scripts/race_intro.gd`, `RaceIntro`, made by `Races` in `_ready`): black bars, the track's name and
+  blurb over a slow swing round the start arch, a flight along the whole racing line (5.5 s, however long the track),
+  then a hello to each rival on the grid with their name and ride ("Bruno / SK8 Deck", "Nova / Mini Saucer"). About
+  13 s; Jump, Interact or Accept skips it. It uses its own camera (the player's camera and spring arm are untouched),
+  hides the player's HUD layers and the minimap while it plays, and keeps the player and rivals still (`Races.State.
+  INTRO`; for the Sky Rings the mothership is frozen with `process_mode`, then `_go_sky()` starts the race). Calling a
+  race off mid-intro cleans up. Settings > Assist > **Race intros** (on by default, `Settings.race_intros`). Older
+  race tests turn it off. Test `tools/test_race_intros.gd` (all five tracks, the camera stays 3 m+ over the ground the
+  whole flyover); previews `tools/capture_race_intros.gd` (project files, world/previews/race_intros). My choices: the
+  timings and camera moves.
 - 2026-11-01: Timed skate runs (plan item 7, slice 3). New autoload `SkateRuns` (`scripts/skate_runs.gd`), like Tony
   Hawk's two-minute sessions. A **Run Clock** (a post with a big clock face and a SKATE RUN sign, put up at play time,
   talk spot `scripts/run_spot.gd`) stands at Galaxity's Skate Park (just outside the rings, south) and at the Hollow
@@ -943,6 +955,6 @@ Read this first in every session so each iteration builds on the last one and do
 ## Open ideas / next up
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
-  keyboard. Steps 1 to 4 are in (see the log). Bruno rides his SK8 Deck and coaches the lesson (Nov 1). Later: gap bonuses, more grindable spots round town (boardwalk edges, castle steps), timed runs.
+  keyboard. Steps 1 to 4 are in (see the log). Bruno rides his SK8 Deck and coaches the lesson (Nov 1). Gap bonuses and timed runs are in (Nov 1). Later: more grindable spots round town (boardwalk edges, castle steps).
 - Clothes (Hayden, Oct 23): more clothes later. Mr. Palmer's town self could wear his outfit too.
 - Add new requests here as they come in, and move them to the log when they're done.

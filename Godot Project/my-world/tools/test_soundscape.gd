@@ -186,6 +186,7 @@ func _run() -> void:
 	await _settle()
 	check(audio.current_track() == "skate_park", "the Skate Park: skate_park (%s)" % audio.current_track())
 	var races := root.get_node("Races")
+	root.get_node("Settings").race_intros = false
 	var started: bool = races.start("lake_loop")
 	await _settle()
 	check(started and audio.current_track() == "race", "a race: race (%s)" % audio.current_track())

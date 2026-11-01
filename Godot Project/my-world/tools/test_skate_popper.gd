@@ -48,6 +48,7 @@ func _run() -> void:
 	settings = root.get_node("Settings")
 	dialogue = root.get_node("Dialogue")
 	settings.use_layout("classic")
+	settings.race_intros = false
 	settings.last_device = "keyboard"
 	settings.tips = false
 	settings.skate_assist = 1
