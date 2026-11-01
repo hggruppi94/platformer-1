@@ -22,7 +22,8 @@ extends Node
 # Earth has a calendar (scripts/clock.gd): "blocks" are a school day (or any working day). A file's "weekend" blocks
 # replace them on Saturdays and Sundays, and its "holiday" blocks on the school holidays (falling back to "weekend"
 # when there are none), so kids lie in and play instead of going to Old Oak Elementary. "hallows" blocks take over on
-# Hallow's Eve evening (trick-or-treating up and down Maple Lane), like the festival's.
+# Hallow's Eve evening (trick-or-treating up and down Maple Lane), like the festival's, and a file can have blocks
+# for each of the other big days by its id ("lights", "kites", "fireworks": Festival.BIG_DAYS) while it's on.
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -43,6 +44,7 @@ var festival: Array = []                            # where they are at the Autu
 var weekend: Array = []                             # Earth: Saturdays and Sundays, if their weekends are different
 var holiday: Array = []                             # Earth: the school holidays' weekdays (else weekend, else blocks)
 var hallows: Array = []                             # Earth: trick-or-treating on Hallow's Eve, while it's on
+var big_days := {}                                  # Earth: big day id -> its blocks, while it's on (Festival.BIG_DAYS)
 
 var _body: Node3D
 var _bike: Node3D
@@ -117,6 +119,9 @@ func _load() -> void:
 	weekend = _read_blocks(data.get("weekend", []), "00:00")
 	holiday = _read_blocks(data.get("holiday", []), "00:00")
 	hallows = _read_blocks(data.get("hallows", []), "17:00")
+	for id in Festival.BIG_DAYS:
+		if data.has(id):
+			big_days[id] = _read_blocks(data[id], "%02d:%02d" % [int(Festival.BIG_DAYS[id].start / 60.0), int(Festival.BIG_DAYS[id].start) % 60])
 
 
 static func _read_blocks(list, default_at: String) -> Array:
@@ -206,6 +211,10 @@ func _physics_process(delta: float) -> void:
 		o = festival[block_index_at(festival, now())]
 	elif o.is_empty() and not hallows.is_empty() and Festival.hallows_on():
 		o = hallows[block_index_at(hallows, now())]
+	elif o.is_empty() and not big_days.is_empty() and big_days.has(Festival.big_day_on()):
+		var big: Array = big_days[Festival.big_day_on()]
+		if not big.is_empty():
+			o = big[block_index_at(big, now())]
 	if i != _block or not is_same(list, _list) or _jumped or o != _override:
 		var was := _block
 		_block = i

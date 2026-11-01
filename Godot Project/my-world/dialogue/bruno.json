@@ -50,6 +50,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "The tree'th got thixty-four lighth. I counted. Then I lotht count. Thixty-thomething.",
+        "(Bruno lowers his voice.) Nobody touches the prethentth. Capiche? (Back to normal.) They're empty boxeth anyway."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "My kite'th a thkateboard kite. It doethn't fly. I'm jutht holding it up.",
+        "Nina thayth kiteth are for babieth. Then she flew hers for three hourth."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "Ten! Eleven! ...What comth after eleven? Big one! BIG one!",
+        "Firefly Night meanth no bedtime till ALMOTHT eleven. Betht night."
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [

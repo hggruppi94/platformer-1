@@ -83,6 +83,9 @@ static func lines() -> Array[String]:
 			out.append("The %s is on, on the green!" % Festival.fair_name())
 		if Festival.hallows_on():
 			out.append("Hallow's Eve! Trick-or-treat on Maple Lane till 9 PM")
+		var big := Festival.big_day()
+		if big != "":
+			out.append("Today it's %s: %s" % [Festival.BIG_DAYS[big].name, Festival.BIG_DAYS[big].where])
 	else:
 		out.append("Galaxity: day %d, %s (the portal's closed)" % [Clock.day, Clock.time_string()])
 	var bearing = ripple_bearing()

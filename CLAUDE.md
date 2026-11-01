@@ -71,6 +71,18 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: A big day every season (plan item 8, slice 4; Hayden chose 4-week seasons on the card, so they stay).
+  `Festival.BIG_DAYS`, each on a Sunday so never on top of a fair, put up by `scripts/big_day.gd` ("Big Day" node,
+  `kind`) only in its hours: **Winter Lights** (21 Winter, 5-10 PM: the Winter Tree at `Festival.TREE_AT` on the
+  green's west side, with presents and a star, lit at 6 PM), **Kite Day** (14 Spring, 10 AM-5 PM: seven kites over
+  Lookout Hill, a kite stand at `KITE_STAND_AT` by the hill path that lends you one (`kite_lines()`, spot "Kite
+  Stand"), and it flies over you) and **Firefly Night** (28 Summer, 8:30-11 PM: rockets from a raft in Willow Pond,
+  a finale from 10 PM). Being there (by the tree once it's lit, on the hilltop with your kite, by the pond for the
+  finale) pays 5 / 3 / 4 sparkles once (`big_day_reached()`, saved as `big_prize_days` and `kite_day`). The six kids
+  come (routine blocks `"lights"`, `"kites"`, `"fireworks"`, with lines for each). The firework bursts are a MultiMesh
+  moved in code, not CPUParticles3D: one-shot CPUParticles didn't show up in the cloud's screenshots. On the Calendar,
+  the Quests sheet, the watch and a loading tip. Test `tools/test_big_days.gd`; previews `tools/capture_big_days.gd`
+  (project files, world/previews/big_days). My choices Hayden may change: the days, names, hours and prizes.
 - 2026-11-01: A fair every Saturday, and Hallow's Eve (plan item 8, slice 3). `Festival.FAIRS` gives each season its
   own fair on the green: the **Autumn Festival** (as before, 5-10 PM), the **Frost Fair** (4-9 PM: ice fishing in the
   barrel, a sleigh ride, Gus's Cocoa Cart, a gingerbread house for the baking contest), the **Spring Fair** (5-10 PM:

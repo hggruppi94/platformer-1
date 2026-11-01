@@ -158,6 +158,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "Every year I think the tree can't be bigger than last year. Every year it is.",
+        "Make a wish when the star lights up. I always do. ...No, I'm not telling you what it is."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "Mine's the red one with the black bow. Obviously.",
+        "If you run backwards up the hill it goes higher. If you trip, it also goes higher. Ask me how I know."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "Firefly Night's my favourite. Real fireflies AND fake ones that go boom.",
+        "Bruno counts every single rocket. He loses count at about nine."
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [

@@ -20,6 +20,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "I brought Mr. Snuggles to see the lights. He's never seen a tree glow before.",
+        "The star looks like it's winking at me."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "My kite is a butterfly. It's shy, so it only flies a little bit.",
+        "Look how small the town looks from up here! Like a toy town!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "The pink ones are mine. I decided.",
+        "The real fireflies are hiding because the fireworks are too loud. I'll tell them it's okay."
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [

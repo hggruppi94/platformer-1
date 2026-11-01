@@ -57,6 +57,13 @@ blocks next to `"blocks"`, in the same shape. While the festival's on they take 
 quest's override, then the day carries on. The festival's points are `fest_hay`, `fest_apples`, `fest_treats`,
 `fest_pies`, `fest_lanterns` and `fest_cider` on a ring round the gazebo, and `fest_<spot>_stall` beside each stall for
 whoever runs it (Poppy, Gus, Dottie, Hank, Miss Marigold). Kip calls the hayride from `inn`; Barnaby plays at `gazebo`.
+There's a fair like it every Saturday of the year (a different one each season), and the same `"festival"` blocks are
+used for all of them.
+
+**Hallow's Eve and the big days** work the same way: `"hallows"` blocks while trick-or-treating's on (28 Autumn, 5 to
+9 PM), and blocks named after each big day in `Festival.BIG_DAYS` while it's on: `"lights"` (Winter Lights, 21 Winter,
+5 to 10 PM, the tree is near `green_w`), `"kites"` (Kite Day, 14 Spring, 10 AM to 5 PM, `hill_top`) and `"fireworks"`
+(Firefly Night, 28 Summer, 8:30 to 11 PM, `pond_path`). The six kids have all of them.
 
 ## Places
 

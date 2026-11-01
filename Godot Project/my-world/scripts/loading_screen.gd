@@ -23,6 +23,7 @@ const TIPS := [
 	"The little aliens love it when you wave back.",
 	"Every Saturday evening there's a fair on the green: a different one each season.",
 	"On the last day of autumn it's Hallow's Eve. Knock on every door on Maple Lane!",
+	"Winter Lights, Kite Day and Firefly Night: one big day every season. Check the Calendar!",
 	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
 	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
 ]

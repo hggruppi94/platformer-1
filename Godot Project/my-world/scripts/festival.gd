@@ -2,7 +2,9 @@ extends Node
 
 # Autoload "Festival": a fair on Earth's town green every Saturday evening (Earth's calendar: Clock.weekday()), a
 # different one each season (FAIRS): the Autumn Festival, the Frost Fair, the Spring Fair and the Summer Fair. And
-# Hallow's Eve on the last day of autumn: trick-or-treating door to door on Maple Lane (scripts/hallows_eve.gd).
+# Hallow's Eve on the last day of autumn: trick-or-treating door to door on Maple Lane (scripts/hallows_eve.gd). And
+# one big day in each of the other seasons (BIG_DAYS, put up by scripts/big_day.gd): Winter Lights (the Winter Tree
+# on the green, lit at 6 PM), Kite Day (kites over Lookout Hill) and Firefly Night (fireworks over Willow Pond).
 # Below, "the festival" means whichever fair's on. While it's on, scripts/festival_green.gd puts it up round the gazebo: stalls with treats and
 # cider, the pie contest table, a barrel to bob for apples, the lantern stall, hay bales, strings of paper lanterns, a
 # banner, and the hayride (a little tractor driven by a friendly scarecrow, pulling a hay wagon round the green).
@@ -44,6 +46,18 @@ const FAIRS := {
 }
 # Hallow's Eve: the last day of autumn, trick-or-treating door to door on Maple Lane (scripts/hallows_eve.gd)
 const HALLOWS := {"season": "autumn", "date": 28, "start": 17 * 60.0, "end": 21 * 60.0}
+# The big days, all on Sundays (so never on top of a fair). "moment" is when the big thing happens: the tree's lit,
+# the fireworks' finale. Being there for it (or flying a kite from the hilltop) pays "prize" sparkles once that day.
+const BIG_DAYS := {
+	"lights": {"name": "Winter Lights", "season": "winter", "date": 21, "start": 17 * 60.0, "end": 22 * 60.0,
+		"moment": 18 * 60.0, "prize": 5, "where": "the Winter Tree on the green, lit at 6 PM"},
+	"kites": {"name": "Kite Day", "season": "spring", "date": 14, "start": 10 * 60.0, "end": 17 * 60.0,
+		"moment": 10 * 60.0, "prize": 3, "where": "kites over Lookout Hill"},
+	"fireworks": {"name": "Firefly Night", "season": "summer", "date": 28, "start": 20 * 60.0 + 30.0, "end": 23 * 60.0,
+		"moment": 22 * 60.0, "prize": 4, "where": "fireworks over Willow Pond, the big finale at 10 PM"},
+}
+const TREE_AT := Vector2(-14, -9)                # the Winter Tree, on the green's west side (clear of the paths)
+const KITE_STAND_AT := Vector2(-111, -64)        # beside the path at the foot of Lookout Hill
 const TREAT_PRIZE := 1                          # sparkles a door
 const TREAT_BONUS := 6                          # ...and for every door on the lane
 const PIE_PRIZES := [12, 8, 5]                  # sparkles for 1st, 2nd and 3rd
@@ -61,6 +75,8 @@ var hayrides := 0
 var treats_day := 0             # the Hallow's Eve the doors below were knocked on
 var treat_doors: Array = []     # the doors that gave a treat that night
 var hallows_bonus_day := 0
+var big_prize_days := {}        # big day id -> the Earth day its prize was paid
+var kite_day := 0               # the Kite Day the player borrowed a kite on
 
 var _check := 0.0
 var _told_day := 0
@@ -141,7 +157,7 @@ func event_on() -> String:
 		return "festival"
 	if hallows_on():
 		return "hallows"
-	return ""
+	return big_day_on()
 
 
 func days_until() -> int:
@@ -157,6 +173,9 @@ func events_on(on_day: int) -> Array[String]:
 	var out: Array[String] = []
 	if is_hallows_eve(on_day):
 		out.append("Hallow's Eve, trick-or-treat 5-9 PM")
+	var big := big_day(on_day)
+	if big != "":
+		out.append("%s, %s" % [BIG_DAYS[big].name, _hours(BIG_DAYS[big].start, BIG_DAYS[big].end).replace(" to ", "-")])
 	if Clock.season_day(on_day) == 1:
 		out.append("First day of %s" % Clock.season_name(on_day))
 	if is_festival_day(on_day):
@@ -195,9 +214,22 @@ func _process(delta: float) -> void:
 			scene.add_child(lane)
 		elif not spooky and lane != null:
 			lane.queue_free()
+		var big := big_day_on()
+		var show := scene.get_node_or_null("Big Day")
+		if show != null and str(show.get_meta("kind", "")) != big:
+			scene.remove_child(show)
+			show.queue_free()
+			show = null
+		if big != "" and show == null:
+			show = (load("res://scripts/big_day.gd") as GDScript).new() as Node3D
+			show.name = "Big Day"
+			show.set_meta("kind", big)
+			show.set("kind", big)
+			scene.add_child(show)
 		if Clock.on_earth:
 			_announce(on)
 			_announce_hallows(spooky)
+			_announce_big(big)
 	if on != _was_on:
 		_was_on = on
 		changed.emit()
@@ -249,6 +281,23 @@ func log_lines() -> Array[String]:
 		out.append("")
 	elif is_hallows_eve() and Clock.earth_minutes < HALLOWS.start:
 		out.append("[b]Tonight:[/b] Hallow's Eve, trick-or-treat on Maple Lane from 5 PM")
+		out.append("")
+	var big := big_day()
+	if big != "" and (big_day_on() != "" or Clock.earth_minutes < BIG_DAYS[big].start):
+		var b: Dictionary = BIG_DAYS[big]
+		var done := int(big_prize_days.get(big, 0)) == Clock.earth_day()
+		var head := "[b]%s![/b]" % b.name if big_day_on() != "" else "[b]Today:[/b] %s," % b.name
+		match big:
+			"lights":
+				out.append("%s The Winter Tree on the green, %s" % [head, _hours(b.start, b.end)])
+				out.append("  %s Be by the tree when it's lit at 6 PM" % _tick(done))
+			"kites":
+				out.append("%s Kites over Lookout Hill, %s" % [head, _hours(b.start, b.end)])
+				out.append("  %s Borrow a kite at the stand by the hill" % _tick(kite_day == Clock.earth_day()))
+				out.append("  %s Fly it from the top of the hill" % _tick(done))
+			"fireworks":
+				out.append("%s Fireworks over Willow Pond, %s" % [head, _hours(b.start, b.end)])
+				out.append("  %s Watch the big finale from the pond at 10 PM" % _tick(done))
 		out.append("")
 	return out
 
@@ -304,6 +353,8 @@ func talk(spot: Node3D) -> void:
 			knock(str(spot.name).trim_prefix("Door "))
 		"Lantern Stall":
 			Dialogue.say(spot, "Miss Marigold", lantern_lines(), "festival_lanterns")
+		"Kite Stand":
+			Dialogue.say(spot, "Kite Stand", kite_lines(), "kite_stand")
 		"Hayride":
 			var wagon := spot.get_parent()
 			if wagon and wagon.has_method("hop_on"):
@@ -336,6 +387,89 @@ func let_lanterns_go() -> void:
 	Game.add_sparkles(LANTERN_PRIZE, "You let your lantern go!")
 	Game.message("Your lantern floats up with all the others, higher and higher, over the old oak.")
 	changed.emit()
+
+
+# --- The big days (BIG_DAYS; scripts/big_day.gd puts each one up while it's on) ---------------------------------
+func big_day(on_day := TODAY) -> String:
+	# Which big day it is ("lights", "kites", "fireworks"), or ""
+	for id in BIG_DAYS:
+		if Clock.season(on_day) == BIG_DAYS[id].season and Clock.season_day(on_day) == BIG_DAYS[id].date \
+				and (on_day != TODAY or not Clock.in_shift()):
+			return id
+	return ""
+
+
+func big_day_on() -> String:
+	var id := big_day()
+	if id != "" and Clock.earth_minutes >= BIG_DAYS[id].start and Clock.earth_minutes < BIG_DAYS[id].end:
+		return id
+	return ""
+
+
+func big_moment() -> bool:
+	# The tree's lit, the kites are up, the finale's started
+	var id := big_day_on()
+	return id != "" and Clock.earth_minutes >= BIG_DAYS[id].moment
+
+
+func big_day_reached(id: String) -> bool:
+	# scripts/big_day.gd: the player was there for it. Pays once that day; true if it paid now.
+	var today := Clock.earth_day()
+	if big_day_on() != id or int(big_prize_days.get(id, 0)) == today or not Clock.on_earth:
+		return false
+	big_prize_days[id] = today
+	var why: String = {"lights": "You saw the Winter Tree lit!", "kites": "Your kite's flying high over Lookout Hill!",
+		"fireworks": "You watched the Firefly Night finale!"}.get(id, "")
+	Game.add_sparkles(int(BIG_DAYS[id].prize), why)
+	changed.emit()
+	return true
+
+
+func kite_lines() -> Array:
+	# The kite stand at the foot of Lookout Hill (its spot is "Kite Stand"): a box of kites from the toy shop and a note
+	var today := Clock.earth_day()
+	if big_day_on() != "kites":
+		return ["(The kite stand's all packed up. Kite Day's on 14 Spring, from 10 till 5.)"]
+	if kite_day == today:
+		return ["(You've already got a kite. Up the hill with it: the wind's best right at the top!)"]
+	kite_day = today
+	changed.emit()
+	return ["(A note on the box: \"Happy Kite Day! Borrow a kite, fly it high, bring it back by five. Love, Otis, Gizmo & Gumdrop Toys.\")",
+		"(You take the one with a gold star on it. Now run it up Lookout Hill and let the wind do the rest!)"]
+
+
+func _announce_big(on: String) -> void:
+	var id := big_day()
+	if id == "":
+		return
+	var today := Clock.earth_day()
+	var b: Dictionary = BIG_DAYS[id]
+	if on != "" and _told_big != -today:
+		_told_big = -today
+		var start_line: String = {"lights": "Winter Lights on the green! The Winter Tree gets lit at 6 PM.",
+			"kites": "It's Kite Day! Borrow a kite at the stand by Lookout Hill and fly it from the top.",
+			"fireworks": "Firefly Night! Fireworks over Willow Pond till 11, and the big finale at 10."}[id]
+		Game.message(start_line)
+	elif on == "" and Clock.earth_minutes < b.start and Clock.hour() >= 6 and _told_big != today and _told_big != -today:
+		_told_big = today
+		Game.message("Today it's %s: %s, %s." % [b.name, b.where, _hours(b.start, b.end)])
+
+
+var _told_big := 0
+
+
+static func _hours(a: float, b: float) -> String:
+	return "%s to %s" % [_clock_words(a), _clock_words(b)]
+
+
+static func _clock_words(m: float) -> String:
+	var h := int(m / 60.0)
+	var mm := int(m) % 60
+	var ampm := "AM" if h < 12 else "PM"
+	var h12 := h % 12
+	if h12 == 0:
+		h12 = 12
+	return ("%d" % h12 if mm == 0 else "%d:%02d" % [h12, mm]) + " " + ampm
 
 
 # --- Hallow's Eve: trick-or-treat (scripts/hallows_eve.gd puts a lantern and a knock spot at each door) ------------
@@ -424,7 +558,8 @@ func apples_done(apples: int) -> String:
 func save_data() -> Dictionary:
 	return {"pie_day": pie_day, "ribbons": ribbons.duplicate(), "apples_day": apples_day, "apples_best": apples_best,
 		"lantern_day": lantern_day, "lanterns_let_go": lanterns_let_go, "hayrides": hayrides,
-		"treats_day": treats_day, "treat_doors": treat_doors.duplicate(), "hallows_bonus_day": hallows_bonus_day}
+		"treats_day": treats_day, "treat_doors": treat_doors.duplicate(), "hallows_bonus_day": hallows_bonus_day,
+		"big_prize_days": big_prize_days.duplicate(), "kite_day": kite_day}
 
 
 func load_data(data: Dictionary) -> void:
@@ -442,6 +577,11 @@ func load_data(data: Dictionary) -> void:
 	var doors = data.get("treat_doors", [])
 	treat_doors = (doors as Array).map(func(d) -> String: return str(d)) if doors is Array else []
 	hallows_bonus_day = int(data.get("hallows_bonus_day", 0))
+	var big = data.get("big_prize_days", {})
+	if big is Dictionary:
+		for id in big:
+			big_prize_days[str(id)] = int(big[id])
+	kite_day = int(data.get("kite_day", 0))
 	changed.emit()
 
 
@@ -456,3 +596,5 @@ func reset() -> void:
 	treats_day = 0
 	treat_doors = []
 	hallows_bonus_day = 0
+	big_prize_days = {}
+	kite_day = 0

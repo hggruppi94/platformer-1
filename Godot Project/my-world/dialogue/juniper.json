@@ -22,6 +22,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "Hollow Herald, Winter Lights edition: 'Tree Lit, Town Delighted, Gus Seen Smiling.' Unconfirmed.",
+        "I'm interviewing everyone about their wishes. Strictly off the record. Mostly."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "Kite Day report: wind, west-ish. Kites, many. Tangles so far: two.",
+        "Ozzie's kite has been stuck in the same tree for an hour. I'm calling it a story."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "I'm timing the gaps between rockets for the paper. Nobody asked. Readers deserve facts.",
+        "Headline: 'Sky Goes Boom, Ducks Unimpressed.'"
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [

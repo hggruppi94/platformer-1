@@ -23,6 +23,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "There's a book about a tree that remembers every winter. I think about it every Winter Lights.",
+        "It's warmer by the tree. That might be science, or it might just be cocoa."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "Kites were invented over two thousand years ago. Mine was invented on Tuesday, by me. With tape.",
+        "I've got a book in my pocket in case the wind stops."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "The colours come from different metals. Copper makes the blue ones! ...Sorry, it's still pretty.",
+        "I'm counting the seconds between the flash and the bang."
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [

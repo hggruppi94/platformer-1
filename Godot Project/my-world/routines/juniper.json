@@ -19,6 +19,18 @@
     {"at": "16:30", "place": "green_ne", "do": "wander", "label": "playing", "radius": 3},
     {"at": "19:30", "place": "okafor_house", "do": "away", "label": "asleep"}
   ],
+  "lights": [
+    {"at": "17:00", "place": "green_w", "do": "wander", "label": "winter_lights", "radius": 3},
+    {"at": "20:45", "place": "okafor_house", "do": "away", "label": "asleep"}
+  ],
+  "kites": [
+    {"at": "10:00", "place": "hill_top", "do": "wander", "label": "kites", "radius": 5},
+    {"at": "16:30", "place": "okafor_house", "do": "away", "label": "home"}
+  ],
+  "fireworks": [
+    {"at": "20:30", "place": "pond_path", "do": "wander", "label": "fireworks", "radius": 3},
+    {"at": "22:30", "place": "okafor_house", "do": "away", "label": "asleep"}
+  ],
   "hallows": [
     {"at": "17:00", "place": "hollis_house", "do": "patrol", "label": "trick_or_treat", "route": ["hollis_house", "quill_house", "bramblewood_house", "okafor_house", "pemberton_house", "larkspur_house", "home_1", "home_3", "blastoff_door", "palmer_house"], "pause": 6},
     {"at": "20:45", "place": "okafor_house", "do": "away", "label": "asleep"}

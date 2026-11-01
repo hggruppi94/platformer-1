@@ -20,6 +20,33 @@
     },
     {
       "when": {
+        "activity": "winter_lights"
+      },
+      "lines": [
+        "Tried to grind the railing round the tree. Mrs. Wren saw. I'm just standing here now.",
+        "Lights at night, frozen pond tomorrow. Best week."
+      ]
+    },
+    {
+      "when": {
+        "activity": "kites"
+      },
+      "lines": [
+        "Tied my kite to my board. Free tow up the hill! ...Not really. It doesn't work.",
+        "My kite's in that tree. It lives there now."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fireworks"
+      },
+      "lines": [
+        "Every time one goes off I do a kickflip. In my head.",
+        "The finale's at ten. Front row's the dock. Trust me."
+      ]
+    },
+    {
+      "when": {
         "activity": "trick_or_treat"
       },
       "lines": [
