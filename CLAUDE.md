@@ -195,8 +195,8 @@ Read this first in every session so each iteration builds on the last one and do
     character on a new **Voices** bus with its own slider (Rook barks, the Green Man and the centipede hum). The barn
     studio's zone plays `barn_dance` (renamed at runtime, so `earth.tscn` wasn't rebuilt). Ten songs and six ambience
     loops are made from scratch by `tools/make_soundscape.py` (numpy + ffmpeg), all listed in `audio/CREDITS.md`.
-    **The .ogg files are LFS, so they're committed from the PC** (run the script, or copy them from the project
-    files under world/audio/); until then the old placeholders play. `tools/test_soundscape.gd`.
+    The .ogg files are LFS, so they were committed from the PC (Nov 1, from the project files'
+    `world/galaxity-audio.zip`); re-run the script there to remake them. `tools/test_soundscape.gd`.
   - **F4 nights:** Hayden chose real unlocks (gadgets locked until their schematic is found, then bought at Dash's
     stall; new rides for racing: Overboard, Bike, Rocket Board, Rocket Bike, Flying Saucer). The 7-night plan is in
     the plan doc. Built so far: `scripts/nights.gd` (autoload `Nights`: which night it is, from `Requests.nights`),
