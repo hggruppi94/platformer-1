@@ -313,6 +313,7 @@ func save_game() -> void:
 		"popper_colour": popper_colour, "play_time": play_time, "hero_ride": hero_ride,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
+		"calendar_offset": Clock.calendar_offset,
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
 		"requests": Requests.save_data(),
@@ -382,6 +383,11 @@ func load_game() -> void:
 		Clock.earth_minutes = float(data.get("earth_minutes", Clock.EARTH_START))
 	if saved_scene != Clock.EARTH and not Clock.in_shift():
 		Clock.set_time(Clock.day, Clock.minutes, true)
+	# Earth's calendar (scripts/clock.gd): a save from before it keeps its weekday and lands in late autumn
+	if data.has("calendar_offset"):
+		Clock.calendar_offset = int(data["calendar_offset"])
+	else:
+		Clock.fit_calendar_to_old_save()
 	var dialogue = data.get("dialogue", {})
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})

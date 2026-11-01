@@ -57,6 +57,7 @@ func _run() -> void:
 	game.pending_message = ""
 	game.next_spawn = "Entrance"
 	game.items.erase("contest_pie")
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 2                                              # Saturday
 	clock.minutes = 7 * 60.0
 	clock.set_earth_time(16 * 60.0, true)

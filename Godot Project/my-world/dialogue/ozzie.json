@@ -20,6 +20,32 @@
     },
     {
       "when": {
+        "weekend": true,
+        "activity": "skating"
+      },
+      "lines": [
+        "Weekend sesh! Bruno says he's landing a kickflip today. I've got snacks for when he doesn't.",
+        "Want to skate with us?"
+      ]
+    },
+    {
+      "when": {
+        "activity": "snacks"
+      },
+      "lines": [
+        "Mrs. Wren's got the good crisps at the market. The cheesy ones. I've got three bags. For training."
+      ]
+    },
+    {
+      "when": {
+        "activity": "hill"
+      },
+      "lines": [
+        "Bruno says the hill's for rolling. I say it's for racing. We're still arguing."
+      ]
+    },
+    {
+      "when": {
         "activity": "skating"
       },
       "lines": [

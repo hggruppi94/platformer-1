@@ -21,6 +21,8 @@ signal changed
 
 const EARTH := "res://scenes/earth/earth.tscn"
 const DAY := "Saturday"
+const SEASON := "autumn"
+const TODAY := -(1 << 40)                       # (the same as Clock.TODAY: a day left out means today)
 const START := 17 * 60.0
 const END := 22 * 60.0
 const LANTERNS := 21 * 60.0
@@ -60,8 +62,9 @@ func _pie_buy(_it: Dictionary) -> String:
 # -----------------------------------------------------------------------------
 # When
 # -----------------------------------------------------------------------------
-func is_festival_day() -> bool:
-	return Clock.weekday() == DAY and not Clock.in_shift()
+func is_festival_day(on_day := TODAY) -> bool:
+	# Saturdays in autumn (Earth's calendar: scripts/clock.gd)
+	return Clock.weekday(on_day) == DAY and Clock.season(on_day) == SEASON and (on_day != TODAY or not Clock.in_shift())
 
 
 func is_on() -> bool:
@@ -73,11 +76,21 @@ func lanterns_up() -> bool:
 
 
 func days_until() -> int:
-	# 0 on a Saturday, 1 on a Friday...
-	for k in 7:
-		if Clock.weekday(Clock.earth_day() + k) == DAY:
+	# 0 on a festival Saturday, 1 on the Friday before... (-1 if there's none until next autumn: a season's 28 days)
+	for k in Clock.YEAR_DAYS:
+		if is_festival_day(Clock.earth_day() + k):
 			return k
-	return 0
+	return -1
+
+
+func events_on(on_day: int) -> Array[String]:
+	# What's on in Stars Hollow that day, for the Calendar page (scripts/player_menu.gd)
+	var out: Array[String] = []
+	if Clock.season_day(on_day) == 1:
+		out.append("First day of %s" % Clock.season_name(on_day))
+	if is_festival_day(on_day):
+		out.append("Autumn Festival, 5-10 PM")
+	return out
 
 
 func _process(delta: float) -> void:

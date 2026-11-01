@@ -69,6 +69,7 @@ func _run() -> void:
 	check(audio.music_path("no_such_song") == "", "a track that isn't there is just not found")
 
 	# --- Earth ---
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 1                                             # a Friday: no festival
 	clock.set_earth_time(12 * 60.0, true)
 	await _go(EARTH)

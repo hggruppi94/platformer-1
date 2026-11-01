@@ -60,6 +60,7 @@ func _run() -> void:
 	# --- Earth's days of the week ---
 	check(clock.weekday(1) == "Friday" and clock.weekday(2) == "Saturday" and clock.weekday(9) == "Saturday",
 		"Earth's day 1 is a Friday, day 2 a Saturday, and round the week (%s, %s)" % [clock.weekday(1), clock.weekday(2)])
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 4
 	clock.minutes = 8 * 60.0
 	clock.earth_minutes = 10.0

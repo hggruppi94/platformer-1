@@ -50,6 +50,37 @@
     },
     {
       "when": {
+        "weekend": true,
+        "activity": [
+          "breakfast",
+          "skating"
+        ]
+      },
+      "lines": [
+        "No thchool! Two whole dayth of thkating!",
+        "I'm gonna land a kickflip off the Big Vert before Monday. Probably. Maybe."
+      ]
+    },
+    {
+      "when": {
+        "activity": "lunch"
+      },
+      "lines": [
+        "Pancakeths for breakfatht AND grilled cheese for lunch. Weekendth are the betht."
+      ]
+    },
+    {
+      "when": {
+        "activity": "hill"
+      },
+      "lines": [
+        "Lookout Hill ith the betht for rolling down. Watch!",
+        "(Bruno lies down and rolls. He gets about a metre.)",
+        "...It'th better when you're dizzy."
+      ]
+    },
+    {
+      "when": {
         "activity": "skating"
       },
       "lines": [

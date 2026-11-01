@@ -50,6 +50,7 @@ func _run() -> void:
 	game.riding = false
 	game.sparkles = 60
 	root.get_node("Settings").tips = false                        # (no how-to pop-ups in the pictures)
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 4                                                 # a Monday
 	clock.minutes = 7 * 60.0
 	clock.earth_minutes = 10 * 60.0

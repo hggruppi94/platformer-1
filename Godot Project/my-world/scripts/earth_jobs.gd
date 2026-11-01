@@ -229,8 +229,10 @@ func asleep_text() -> Array:
 
 
 func board_text() -> String:
-	# Today's jobs, and a reminder of the Autumn Festival along the bottom
-	return super.board_text() + "\n\n★ Autumn Festival on the green ★\nSaturdays, 5 to 10 PM"
+	# Today's jobs, and (in autumn) a reminder of the Autumn Festival along the bottom
+	if Clock.season() == Festival.SEASON:
+		return super.board_text() + "\n\n★ Autumn Festival on the green ★\nSaturdays, 5 to 10 PM"
+	return super.board_text()
 
 
 func log_title() -> String:

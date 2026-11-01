@@ -229,6 +229,20 @@ func _matches(when: Dictionary, count: int, id := "") -> bool:
 		var now := Clock.period()
 		if not (now in times or (now == "shift" and "night" in times)):
 			return false
+	# Earth's calendar (scripts/clock.gd): "season" ("winter" or a list), "weekday" ("Saturday" or a list), "weekend"
+	# and "school_day" (true or false)
+	if when.has("season"):
+		var seasons: Array = when["season"] if when["season"] is Array else [when["season"]]
+		if not Clock.season() in seasons:
+			return false
+	if when.has("weekday"):
+		var days: Array = when["weekday"] if when["weekday"] is Array else [when["weekday"]]
+		if not Clock.weekday() in days:
+			return false
+	if when.has("weekend") and bool(when["weekend"]) != Clock.is_weekend():
+		return false
+	if when.has("school_day") and bool(when["school_day"]) != Clock.is_school_day():
+		return false
 	if when.has("talks") and count != int(when["talks"]):
 		return false
 	if when.has("min_talks") and count < int(when["min_talks"]):

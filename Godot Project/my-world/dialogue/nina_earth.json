@@ -158,6 +158,43 @@
     },
     {
       "when": {
+        "weekend": true,
+        "activity": "breakfast"
+      },
+      "lines": [
+        "No school today! Mum's making pancakes. Bruno's already had four.",
+        "Saturdays and Sundays are the best. Nobody tells you what to learn. You just... find things out."
+      ]
+    },
+    {
+      "when": {
+        "activity": "lunch"
+      },
+      "lines": [
+        "Gus does a grilled cheese on weekends that's shaped like a pumpkin. Well. He says it is.",
+        "It's a grilled cheese with a bite out of it. But I like it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pond"
+      },
+      "lines": [
+        "Willow Pond goes all still when there's nobody about. Like it's listening.",
+        "I come here at weekends to think. Mostly about the oak. And about where the ripples go."
+      ]
+    },
+    {
+      "when": {
+        "activity": "toy_shop"
+      },
+      "lines": [
+        "Otis has a telescope in the window. I'm saving up for it.",
+        "Then I can see what's really up there at midnight."
+      ]
+    },
+    {
+      "when": {
         "activity": "oak"
       },
       "lines": [

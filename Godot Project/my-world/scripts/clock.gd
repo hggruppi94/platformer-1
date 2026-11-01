@@ -38,6 +38,14 @@ const EARTH := "res://scenes/earth/earth.tscn"
 const EARTH_ARRIVAL := "Entrance"    # where the portal puts the player on Earth: by the old oak
 const WEEKDAYS := ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 const FIRST_WEEKDAY := 4             # Earth's day 1 is a Friday, so the first Autumn Festival is the next evening
+# Earth's calendar: four seasons of four weeks each (a real year would be hundreds of hours of play, so Sofi would
+# never see the snow). Every season starts on a Monday, so a date is always the same day of the week ("Saturday 27
+# Autumn" every year). A new game starts on Friday 19 Autumn, a week before Hallow's Eve.
+const SEASONS := ["spring", "summer", "autumn", "winter"]
+const SEASON_DAYS := 28
+const YEAR_DAYS := SEASON_DAYS * 4
+const CALENDAR_START := 2 * SEASON_DAYS + 18   # calendar days before Earth's day 1 (so day 1 is 19 Autumn, Year 1)
+const TODAY := -(1 << 40)            # "on_day" left out: today (any real number is a day, even before day 1)
 
 var day := 1                         # Galaxity's day
 var minutes := START_HOUR * 60.0     # Galaxity's time: minutes since midnight, 0..1440
@@ -46,6 +54,7 @@ var on_earth := false                # set by the Earth scene while she's there
 var earth_minutes := EARTH_START     # Earth's time of day (saved)
 var pulls_home := true               # when the Shift ends in Galaxity, the portal pulls her home (tests can turn it off)
 var pull_spawn := ""                 # where on Earth that puts them, if not by the oak (the First Night: in bed, HomeSpawn)
+var calendar_offset := CALENDAR_START  # saved: older saves from before the calendar get one that puts them in autumn
 
 var _in_shift := false
 var _last_minute := -1
@@ -174,10 +183,75 @@ func earth_day() -> int:
 	return day + 1 if in_shift() and minutes >= DAWN_HOUR * 60.0 else day
 
 
-func weekday(on_day := -1) -> String:
+func weekday(on_day := TODAY) -> String:
 	# "Friday" for Earth's day 1, then round the week (the Autumn Festival is on Saturdays: scripts/festival.gd)
-	var d := earth_day() if on_day < 0 else on_day
-	return WEEKDAYS[(d - 1 + FIRST_WEEKDAY) % 7]
+	return WEEKDAYS[calendar_index(on_day) % 7]
+
+
+# --- Earth's calendar ----------------------------------------------------------
+func calendar_index(on_day := TODAY) -> int:
+	# Days since Monday 1 Spring, Year 1 (the weekday and the date both come from it)
+	var d := earth_day() if on_day == TODAY else on_day
+	return maxi(d - 1 + calendar_offset, 0)
+
+
+func season(on_day := TODAY) -> String:
+	# "spring", "summer", "autumn" or "winter" on Earth (Galaxity has no seasons: it's outside time)
+	return SEASONS[(calendar_index(on_day) / SEASON_DAYS) % 4]
+
+
+func season_name(on_day := TODAY) -> String:
+	return season(on_day).capitalize()
+
+
+func season_day(on_day := TODAY) -> int:
+	# 1..28: the date within the season
+	return calendar_index(on_day) % SEASON_DAYS + 1
+
+
+func year(on_day := TODAY) -> int:
+	return calendar_index(on_day) / YEAR_DAYS + 1
+
+
+func date_string(on_day := TODAY) -> String:
+	# "Friday 19 Autumn"
+	return "%s %d %s" % [weekday(on_day), season_day(on_day), season_name(on_day)]
+
+
+func day_of(season_id: String, date: int, after_day := TODAY) -> int:
+	# The Earth day number of the next season_id date (today counts), e.g. day_of("winter", 1) for the first snow
+	var from := earth_day() if after_day == TODAY else after_day
+	var want := SEASONS.find(season_id) * SEASON_DAYS + clampi(date, 1, SEASON_DAYS) - 1
+	return from + posmod(want - calendar_index(from) % YEAR_DAYS, YEAR_DAYS)
+
+
+func is_weekend(on_day := TODAY) -> bool:
+	return calendar_index(on_day) % 7 >= 5
+
+
+func school_holiday(on_day := TODAY) -> String:
+	# The name of the school holiday on that day, or "" (weekends aren't holidays: is_school_day() asks both)
+	var s := season(on_day)
+	var date := season_day(on_day)
+	if s == "summer":
+		return "the summer holidays"
+	if s == "winter" and date >= 22:
+		return "the winter holidays"
+	if s == "spring" and date >= 8 and date <= 14:
+		return "spring break"
+	return ""
+
+
+func is_school_day(on_day := TODAY) -> bool:
+	# Old Oak Elementary is open Monday to Friday, outside the holidays (kids' routines: scripts/routine.gd)
+	return not is_weekend(on_day) and school_holiday(on_day) == ""
+
+
+func fit_calendar_to_old_save() -> void:
+	# A save from before the calendar: keep its day of the week and put it in the week of 19 Autumn, so the town
+	# (dressed for autumn) and the Autumn Festival stay as they were
+	var d := earth_day() - 1
+	calendar_offset = 2 * SEASON_DAYS + 14 + (d + CALENDAR_START) % 7 - d   # (Monday 15 Autumn starts that week)
 
 
 func in_shift() -> bool:
@@ -353,5 +427,6 @@ func reset() -> void:
 	set_time(1, START_HOUR * 60.0, true)
 	on_earth = was_on_earth
 	earth_minutes = EARTH_START
+	calendar_offset = CALENDAR_START
 	_in_shift = in_shift()
 	_check_changes(false)

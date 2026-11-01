@@ -109,7 +109,9 @@ func _check_files() -> void:
 # The people themselves
 # -----------------------------------------------------------------------------
 func _check_people() -> void:
-	var folk: Array = current_scene.find_children("*", "Townsfolk", true, false)
+	# (not counting race starters made like townsfolk, such as Pepper at the Pumpkin Run: scripts/race_track.gd)
+	var folk: Array = current_scene.find_children("*", "Townsfolk", true, false).filter(
+		func(f: Node) -> bool: return not f.get_parent().has_meta("track_id"))
 	check(folk.size() == PEOPLE.size() + 1, "%d townsfolk (everyone and Madame Celeste)" % folk.size())
 	var made := true
 	var animated := true

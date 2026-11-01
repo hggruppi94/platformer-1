@@ -1,0 +1,118 @@
+extends SceneTree
+
+# Screenshots of Earth's calendar (scripts/clock.gd): the Calendar sheet in the Tab menu (this season and the next),
+# the date on the HUD, and the kids out round town on a Saturday morning instead of at school.
+# Opens a window (not --headless):
+#
+#   godot --path "Godot Project/my-world" --script res://tools/capture_calendar.gd -- <output folder>
+#
+# Your own save is put aside and put back afterwards.
+
+const SAVE := "user://save.json"
+const BACKUP := "user://save.calendar_capture_backup.json"
+const EARTH := "res://scenes/earth/earth.tscn"
+
+var out_dir := "user://calendar_shots"
+var cam: Camera3D
+var game: Node
+var clock: Node
+
+
+func _initialize() -> void:
+	var args := OS.get_cmdline_user_args()
+	if args.size() > 0:
+		out_dir = args[0]
+	DirAccess.make_dir_recursive_absolute(out_dir)
+	DisplayServer.window_set_size(Vector2i(1280, 800))
+	create_timer(600.0, true, false, true).timeout.connect(_finish)
+	_run.call_deferred()
+
+
+func _run() -> void:
+	if FileAccess.file_exists(SAVE) and not FileAccess.file_exists(BACKUP):
+		DirAccess.copy_absolute(SAVE, BACKUP)
+	game = root.get_node("Game")
+	clock = root.get_node("Clock")
+	root.get_node("Settings").tips = false
+	root.get_node("Dialogue").reset()
+	root.get_node("Quests").reset()
+	game.needs_creator = false
+	game._resume = {}
+	game.riding = false
+	game.pending_message = ""
+	clock.pulls_home = false
+	clock.reset()
+	clock.day = 2                                              # Saturday 20 Autumn: no school, festival tonight
+	change_scene_to_file(EARTH)
+	await _wait_for_scene(EARTH)
+	clock.set_earth_time(10 * 60.0 + 30.0, true)
+	clock.jumped.emit()
+	await _frames(30)
+
+	# --- The kids at the skate yard on a Saturday morning ---
+	var yard := _place("skate_yard")
+	_player().global_position = yard + Vector3(8, 1, 8)
+	_make_cam()
+	cam.global_position = yard + Vector3(9, 5, 11)
+	cam.look_at(yard + Vector3(0, 1, 0))
+	await _shot("01_saturday_morning_no_school_skate_yard", 40)
+	cam.queue_free()
+	cam = null
+
+	# --- The date on the HUD, then the Calendar sheet ---
+	_player().global_position = Vector3(6.0, 1.0, 16.0)
+	await _shot("02_the_date_on_the_hud", 20)
+	var menu := root.get_node("PlayerMenu")
+	menu.open("calendar")
+	await _shot("03_calendar_this_season", 10)
+	(menu._body.find_child("Cal next", true, false) as Button).pressed.emit()
+	await _shot("04_calendar_next_season_winter", 10)
+	(menu._body.find_child("Cal next", true, false) as Button).pressed.emit()
+	await _shot("05_calendar_spring_break", 10)
+	menu.close()
+	_finish()
+
+
+func _place(name: String) -> Vector3:
+	var paths := TownPaths.get_shared(TownPaths.EARTH_FILE)
+	var p: Vector2 = paths.points[name]
+	return Vector3(p.x, EarthLand.height(p.x, p.y), p.y)
+
+
+func _make_cam() -> void:
+	cam = Camera3D.new()
+	cam.fov = 65.0
+	current_scene.add_child(cam)
+	cam.make_current()
+
+
+func _player() -> CharacterBody3D:
+	return current_scene.find_child("Player", true, false) as CharacterBody3D
+
+
+func _shot(file: String, settle := 8) -> void:
+	for i in settle:
+		await process_frame
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(out_dir.path_join(file + ".png"))
+	print("SHOT ", file)
+
+
+func _wait_for_scene(path: String, frames := 200) -> void:
+	for i in frames:
+		await process_frame
+		if current_scene and current_scene.scene_file_path == path:
+			break
+	await _frames(6)
+
+
+func _frames(n: int) -> void:
+	for i in n:
+		await process_frame
+
+
+func _finish() -> void:
+	if FileAccess.file_exists(BACKUP):
+		DirAccess.remove_absolute(SAVE)
+		DirAccess.rename_absolute(BACKUP, SAVE)
+	quit()

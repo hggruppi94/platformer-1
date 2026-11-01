@@ -22,6 +22,15 @@
     },
     {
       "when": {
+        "weekend": true
+      },
+      "lines": [
+        "Weekends are for investigating. No homework, just clues.",
+        "Did you know Mr. Palmer goes for a walk at midnight? Every night? Suspicious."
+      ]
+    },
+    {
+      "when": {
         "activity": "snooping"
       },
       "lines": [

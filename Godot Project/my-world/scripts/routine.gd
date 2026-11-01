@@ -18,6 +18,10 @@ extends Node
 # A quest step can move someone for an event while it's on (Rex's rally at the fountain: scripts/quests.gd,
 # "override"): that block takes over from the schedule until the step's done or its time is over. On Earth, a file's
 # "festival" blocks take over the same way while the Autumn Festival is on (Saturday evenings: scripts/festival.gd).
+#
+# Earth has a calendar (scripts/clock.gd): "blocks" are a school day (or any working day). A file's "weekend" blocks
+# replace them on Saturdays and Sundays, and its "holiday" blocks on the school holidays (falling back to "weekend"
+# when there are none), so kids lie in and play instead of going to Old Oak Elementary.
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -35,6 +39,8 @@ var follow_anim := "run"
 var rides := false                                  # rides the bike whenever he's moving
 var earth := false                                  # lives in the Earth town: Earth's clock and paths
 var festival: Array = []                            # where they are at the Autumn Festival, while it's on
+var weekend: Array = []                             # Earth: Saturdays and Sundays, if their weekends are different
+var holiday: Array = []                             # Earth: the school holidays' weekdays (else weekend, else blocks)
 
 var _body: Node3D
 var _bike: Node3D
@@ -45,6 +51,7 @@ var _paths: TownPaths
 var _space: PhysicsDirectSpaceState3D
 var _skip: Array[RID] = []
 var _block := -1
+var _list: Array = []                               # today's blocks (today_blocks()), _block counts in it
 var _override := {}                                 # a quest event's block, while it's on
 var _ready_to_go := false
 var _jumped := true                                 # snap on the first frame
@@ -104,11 +111,32 @@ func _load() -> void:
 		block["at"] = Clock.parse_time(str(b.get("at", "00:00")))
 		blocks.append(block)
 	blocks.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.at < y.at)
-	for b in data.get("festival", []):
+	festival = _read_blocks(data.get("festival", []), "17:00")
+	weekend = _read_blocks(data.get("weekend", []), "00:00")
+	holiday = _read_blocks(data.get("holiday", []), "00:00")
+
+
+static func _read_blocks(list, default_at: String) -> Array:
+	var out: Array = []
+	if not list is Array:
+		return out
+	for b in list:
 		var block: Dictionary = b.duplicate()
-		block["at"] = Clock.parse_time(str(b.get("at", "17:00")))
-		festival.append(block)
-	festival.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.at < y.at)
+		block["at"] = Clock.parse_time(str(b.get("at", default_at)))
+		out.append(block)
+	out.sort_custom(func(x: Dictionary, y: Dictionary) -> bool: return x.at < y.at)
+	return out
+
+
+func today_blocks() -> Array:
+	# The day they're having on Earth's calendar: a school day, a weekend or a holiday (Galaxity's people: every day)
+	if not earth or Clock.is_school_day():
+		return blocks
+	if Clock.is_weekend():
+		return weekend if not weekend.is_empty() else blocks
+	if not holiday.is_empty():
+		return holiday
+	return weekend if not weekend.is_empty() else blocks
 
 
 # -----------------------------------------------------------------------------
@@ -117,7 +145,7 @@ func _load() -> void:
 func current_block() -> Dictionary:
 	if not _override.is_empty():
 		return _override
-	return blocks[_block] if _block >= 0 and _block < blocks.size() else {}
+	return _list[_block] if _block >= 0 and _block < _list.size() else {}
 
 
 func place() -> String:
@@ -168,13 +196,15 @@ func _physics_process(delta: float) -> void:
 	if _body.get("talking"):
 		_play("idle")
 		return
-	var i := block_index_at(blocks, now())
+	var list := today_blocks()
+	var i := block_index_at(list, now())
 	var o := Quests.override_for(character_id)
 	if o.is_empty() and not festival.is_empty() and Festival.is_on():
 		o = festival[block_index_at(festival, now())]
-	if i != _block or _jumped or o != _override:
+	if i != _block or not is_same(list, _list) or _jumped or o != _override:
 		var was := _block
 		_block = i
+		_list = list
 		_override = o
 		if _jumped or was == -1 or not _near():
 			snap()
@@ -228,7 +258,8 @@ func snap() -> void:
 		# Next to wherever the leader's own schedule puts them now (they may not have snapped there yet)
 		var t := _leader(b)
 		if t:
-			var theirs: Dictionary = t.blocks[block_index_at(t.blocks, t.now())] if not t.blocks.is_empty() else {}
+			var their_day: Array = t.today_blocks()
+			var theirs: Dictionary = their_day[block_index_at(their_day, t.now())] if not their_day.is_empty() else {}
 			if theirs.get("do", "") != "away" and _paths.has(str(theirs.get("place", ""))):
 				pos = _paths.position_of(str(theirs.place), _space, _skip) + Vector3(1.8, 0, 1.8)
 				pos = TownPaths.ground_at(pos, _space, _skip, 4.0)

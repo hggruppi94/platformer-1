@@ -11,6 +11,14 @@
     {"at": "17:00", "place": "diner", "do": "idle", "label": "snooping", "face": [-9, -35]},
     {"at": "19:30", "place": "okafor_house", "do": "away", "label": "asleep"}
   ],
+  "weekend": [
+    {"at": "09:00", "place": "okafor_house", "do": "idle", "label": "morning", "face": [-44, 58]},
+    {"at": "10:00", "place": "playground", "do": "wander", "label": "playing", "radius": 4},
+    {"at": "12:30", "place": "diner", "do": "idle", "label": "snooping", "face": [-9, -35]},
+    {"at": "14:30", "place": "dock", "do": "idle", "label": "dock"},
+    {"at": "16:30", "place": "green_ne", "do": "wander", "label": "playing", "radius": 3},
+    {"at": "19:30", "place": "okafor_house", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_apples", "do": "wander", "label": "festival", "radius": 2.5}
   ]

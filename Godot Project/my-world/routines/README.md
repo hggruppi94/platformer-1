@@ -46,6 +46,12 @@ house's gate (`palmer_house`), `gazebo`, `old_oak`, `pond_path`, `skate_yard`, `
 (`nina_room`). A point there can have a third number, the floor's height, for places indoors or up steps.
 `tools/test_townsfolk.gd` checks them all.
 
+**Weekends and holidays:** Earth has a calendar (`scripts/clock.gd`: four seasons of four weeks, each starting on a
+Monday). `"blocks"` are a school day. A file can add `"weekend"` blocks (Saturdays and Sundays) and `"holiday"` blocks
+(the school holidays' weekdays: spring break 8-14 Spring, all of Summer, 22-28 Winter; if there are none, the
+weekend's are used), in the same shape, so the kids lie in and play instead of going to Old Oak Elementary. Nina,
+Bruno, Prue, Juniper, Theo and Ozzie have weekends. `Clock.is_school_day()` says if school's on.
+
 **The Autumn Festival** (Saturday evenings, 5 to 10 PM: `scripts/festival.gd`): a file can have a `"festival"` list of
 blocks next to `"blocks"`, in the same shape. While the festival's on they take over from the day's blocks, like a
 quest's override, then the day carries on. The festival's points are `fest_hay`, `fest_apples`, `fest_treats`,

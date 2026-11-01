@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 # Autoload "PlayerMenu": one menu for everything the player looks at or changes, on sheets side by side:
-#   Quests · Map · Hero · Bag · Skate · Settings · Save
+#   Quests · Goals · Map · Calendar · Hero · Bag · Skate · Settings · Save
 # Tab (Back on a controller; both can be changed in Settings > Controls) opens it on Quests. The old keys still go
 # straight to their sheet: Q (the quest log) and M (the map, LB on a controller), and pressing one again on its own
 # sheet closes the menu, like they used to. Inside it, Q / E or LB / RB go from sheet to sheet, the mouse clicks the
@@ -15,7 +15,7 @@ extends CanvasLayer
 
 signal sheet_changed(sheet: String)
 
-const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["hero", "Hero"], ["bag", "Bag"],
+const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["calendar", "Calendar"], ["hero", "Hero"], ["bag", "Bag"],
 	["skate", "Skate"], ["settings", "Settings"], ["save", "Save"]]
 const HOTKEYS := {"quest_log": "quests", "map": "map"}      # old keys that open the menu straight on their sheet
 const SCROLL_SPEED := 700.0                                 # pixels a second, scrolling a long sheet with the stick
@@ -31,6 +31,7 @@ var _hint: Label
 var _scroll: ScrollContainer            # a long sheet that the stick and arrows scroll
 var _note: Label                        # "Saved!" and the like on the Save sheet
 var _confirm_new := false
+var _cal_page := 0                      # the Calendar sheet: seasons on from this one (0), or back (-1)
 var _suppress_sound := false
 
 
@@ -65,6 +66,7 @@ func open(at := "quests") -> void:
 		return
 	if not can_open():
 		return
+	_cal_page = 0
 	root.visible = true
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -204,6 +206,8 @@ func _fill() -> void:
 			first = _sheet_goals()
 		"map":
 			first = _sheet_map()
+		"calendar":
+			first = _sheet_calendar()
 		"hero":
 			first = _sheet_hero()
 		"bag":
@@ -263,6 +267,111 @@ func _sheet_map() -> Control:
 	var view := TownMap.map_view()
 	_body.add_child(view)
 	return null
+
+
+func _sheet_calendar() -> Control:
+	# Earth's calendar (scripts/clock.gd): a season as four weeks, Monday to Sunday, with today ringed, the weekends
+	# and school holidays shaded and what's on each day (scripts/festival.gd events_on()); then what's coming up.
+	# Two buttons look at the seasons before and after.
+	_scroll = _scroller()
+	var box := _scroll.get_child(0) as VBoxContainer
+	var today := Clock.earth_day()
+	var first_day := today - Clock.season_day() + 1 + _cal_page * Clock.SEASON_DAYS
+	_heading("%s, Year %d" % [Clock.season_name(first_day), Clock.year(first_day)], box)
+	_line("Today is %s. %s" % [Clock.date_string(), _school_line()], true, box)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	box.add_child(row)
+	var back := _button("◀ Last season", func():
+		_cal_page -= 1
+		_fill()
+		_focus(_body.find_child("Cal back", true, false) as Control), row)
+	back.name = "Cal back"
+	back.custom_minimum_size.x = _fs(220)
+	var on := _button("Next season ▶", func():
+		_cal_page += 1
+		_fill()
+		_focus(_body.find_child("Cal next", true, false) as Control), row)
+	on.name = "Cal next"
+	on.custom_minimum_size.x = _fs(220)
+	if _cal_page != 0:
+		var now := _button("This season", func():
+			_cal_page = 0
+			_fill(), row)
+		now.custom_minimum_size.x = _fs(220)
+	var grid := GridContainer.new()
+	grid.name = "Calendar grid"
+	grid.columns = 7
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
+	box.add_child(grid)
+	for wd in Clock.WEEKDAYS:
+		var head := _line(str(wd).substr(0, 3), false, grid)
+		head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		head.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+	for k in Clock.SEASON_DAYS:
+		grid.add_child(_cal_cell(first_day + k, today))
+	_gap(box)
+	_heading("Coming up", box, 26)
+	var shown := 0
+	for k in range(1, Clock.YEAR_DAYS):
+		for e in Festival.events_on(today + k):
+			_line("%s  (%s): %s" % [Clock.date_string(today + k), _in_days(k), e], true, box)
+			shown += 1
+		if shown >= 4:
+			break
+	return back
+
+
+func _cal_cell(on_day: int, today: int) -> Control:
+	var cell := PanelContainer.new()
+	cell.name = "Day %d" % Clock.season_day(on_day)
+	cell.custom_minimum_size = Vector2(_fs(118), _fs(64))
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var look := StyleBoxFlat.new()
+	look.set_corner_radius_all(6)
+	look.bg_color = Color(0.22, 0.16, 0.34, 0.9)
+	if not Clock.is_school_day(on_day):
+		look.bg_color = Color(0.3, 0.22, 0.42, 0.95)          # weekends and holidays: no school
+	if on_day < today:
+		look.bg_color = look.bg_color.darkened(0.35)
+	if on_day == today:
+		look.border_color = Color(1, 0.85, 0.4)
+		look.set_border_width_all(3)
+	cell.add_theme_stylebox_override("panel", look)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 0)
+	cell.add_child(v)
+	var num := Label.new()
+	num.text = str(Clock.season_day(on_day))
+	num.add_theme_font_size_override("font_size", _fs(20))
+	v.add_child(num)
+	var notes: Array[String] = Festival.events_on(on_day)
+	var hol := Clock.school_holiday(on_day)
+	if notes.is_empty() and hol != "" and (Clock.season_day(on_day) == 1 or Clock.school_holiday(on_day - 1) == ""):
+		var h := hol.trim_prefix("the ")
+		notes.append(h.left(1).to_upper() + h.substr(1))
+	if not notes.is_empty():
+		var what := Label.new()
+		what.text = notes[0].get_slice(",", 0)
+		what.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		what.add_theme_font_size_override("font_size", _fs(14))
+		what.add_theme_color_override("font_color", Color(1, 0.75, 0.5))
+		v.add_child(what)
+	return cell
+
+
+func _school_line() -> String:
+	var hol := Clock.school_holiday()
+	if hol != "":
+		return "No school: it's %s!" % hol
+	if Clock.is_weekend():
+		return "No school: it's the weekend!"
+	return "Old Oak Elementary is open, 8 AM to 3 PM."
+
+
+static func _in_days(k: int) -> String:
+	return "tomorrow" if k == 1 else "in %d days" % k
 
 
 func _sheet_hero() -> Control:
@@ -730,6 +839,6 @@ func _apply_look() -> void:
 	for side in ["top", "bottom"]:
 		outer.add_theme_constant_override("margin_" + side, _fs(32))
 	for b in _tab_buttons.values():
-		(b as Button).custom_minimum_size = Vector2(_fs(118), _fs(46))
+		(b as Button).custom_minimum_size = Vector2(_fs(96), _fs(46))
 	_hint.add_theme_font_size_override("font_size", _fs(17))
 	_update_hints()

@@ -20,6 +20,44 @@
     },
     {
       "when": {
+        "weekend": true,
+        "activity": [
+          "breakfast",
+          "playing"
+        ]
+      },
+      "lines": [
+        "It's the weekend! I don't have to do spellings till Sunday night.",
+        "Do you want to play on the slide? You go first. I'll count."
+      ]
+    },
+    {
+      "when": {
+        "activity": "bakery"
+      },
+      "lines": [
+        "Poppy lets me lick the spoon if I say please in a posh voice.",
+        "Pleeease, Miss Poppy. (She giggles.)"
+      ]
+    },
+    {
+      "when": {
+        "activity": "library"
+      },
+      "lines": [
+        "I'm reading a book about a dragon who's scared of the dark. He gets a nightlight. It's very good."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins"
+      },
+      "lines": [
+        "I'm looking for the biggest pumpkin in the whole patch. This one's big. But that one's BIGGER."
+      ]
+    },
+    {
+      "when": {
         "activity": "playing"
       },
       "lines": [

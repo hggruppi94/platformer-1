@@ -9,6 +9,14 @@
     {"at": "18:00", "place": "green_bench", "do": "idle", "label": "reading", "face": [0, 0]},
     {"at": "20:30", "place": "pemberton_house", "do": "away", "label": "asleep"}
   ],
+  "weekend": [
+    {"at": "09:00", "place": "pemberton_house", "do": "idle", "label": "morning", "face": [-10, 58]},
+    {"at": "10:00", "place": "library", "do": "idle", "label": "reading"},
+    {"at": "13:00", "place": "bookshop", "do": "idle", "label": "reading", "face": [9, -35]},
+    {"at": "15:30", "place": "green_bench", "do": "idle", "label": "reading", "face": [0, 0]},
+    {"at": "17:00", "place": "pond_path", "do": "wander", "label": "pond", "radius": 2},
+    {"at": "20:30", "place": "pemberton_house", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_pies", "do": "wander", "label": "festival", "radius": 2}
   ]

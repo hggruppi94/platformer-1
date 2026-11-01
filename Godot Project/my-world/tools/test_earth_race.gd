@@ -58,6 +58,7 @@ func _run() -> void:
 		game.items.append("skateboard")
 	var clock := root.get_node("Clock")
 	clock.set("pulls_home", false)
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 1                                      # a Friday, so the Autumn Festival isn't on the green
 	clock.set_earth_time(14 * 60.0, true)              # an afternoon on Earth, well away from the Shift
 

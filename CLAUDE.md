@@ -71,6 +71,24 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Earth's calendar (plan item 8, slice 1: "a real calendar"). `Clock` (`scripts/clock.gd`) now has dates:
+  four seasons of four weeks (`SEASONS`, `SEASON_DAYS` 28, `YEAR_DAYS` 112), each starting on a Monday, so a date is
+  always the same weekday. A new game starts on **Friday 19 Autumn, Year 1** (`CALENDAR_START`), so winter starts on
+  day 11. `Clock.date_string()` ("Saturday 20 Autumn"), `season()`, `season_day()`, `year()`, `day_of(season, date)`,
+  `is_weekend()`, `school_holiday()` (spring break 8-14 Spring, all of Summer, 22-28 Winter) and `is_school_day()`.
+  Functions that take a day use `Clock.TODAY` (not -1) when it's left out, since days before day 1 are real dates on
+  the calendar. Saved as `"calendar_offset"`; a save from before the calendar keeps its weekday and lands in the week
+  of Monday 15 Autumn (`fit_calendar_to_old_save()`). The HUD and the watch show the date. New **Calendar** sheet in
+  the Tab menu (after Map): the season as four weeks with today ringed, weekends and holidays shaded, what's on, and
+  "Last season / Next season" buttons; "Coming up" underneath (`Festival.events_on(day)` says what's on). The Autumn
+  Festival is now only on **autumn** Saturdays. Routines (`scripts/routine.gd`) can have `"weekend"` and `"holiday"`
+  blocks (`today_blocks()`): Nina, Bruno, Prue, Juniper, Theo and Ozzie lie in and go round town at weekends (skate
+  yard, diner lunches, the pond, the toy shop, Lookout Hill) instead of going to Old Oak Elementary, with new lines.
+  Dialogue `when` can use `"season"`, `"weekday"`, `"weekend"` and `"school_day"`. Tests that set the day reset
+  `calendar_offset` first (a save's could put day 2 in another season). Fixed `test_townsfolk`'s count, which had
+  counted Pepper (the Pumpkin Run's starter) since the race went in. Test `tools/test_calendar.gd`; previews
+  `tools/capture_calendar.gd` (project files, world/previews/calendar). My choices Hayden may change: 4-week seasons,
+  the start date, the holidays, the kids' weekends.
 - 2026-11-01: Race intro cutscenes for every track (plan item 7, slice 4; Hayden: "I also want to add cutscenes for all
   the tracks"). Saying go to a starter (or flying through the Sky Rings' start ring) now plays a short intro before the
   countdown (`scripts/race_intro.gd`, `RaceIntro`, made by `Races` in `_ready`): black bars, the track's name and

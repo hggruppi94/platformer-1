@@ -45,6 +45,7 @@ func _run() -> void:
 	game.riding = false
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
+	clock.calendar_offset = clock.CALENDAR_START           # (the calendar as a new game has it, whatever the save said)
 	clock.day = 4                                                 # a Monday, so no festival on the green
 	clock.earth_minutes = 11 * 60.0
 	change_scene_to_file(EARTH)

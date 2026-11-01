@@ -21,7 +21,9 @@ const TIPS := [
 	"Zippy's races open one after another. Any place counts!",
 	"Feeling stuck? Open the map: the stars show where to go.",
 	"The little aliens love it when you wave back.",
-	"On a Saturday evening, Stars Hollow has its Autumn Festival on the green.",
+	"On Saturday evenings in autumn, Stars Hollow has its Autumn Festival on the green.",
+	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
+	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
 ]
 
 var tip := ""

@@ -70,7 +70,7 @@ static func lines() -> Array[String]:
 	var out: Array[String] = []
 	var keeper := style() == "keeper"
 	out.append("%s: %s" % [watch_name(), "keeps your own time" if keeper else "ticks Earth's way"])
-	out.append("Earth: %s, %s" % [Clock.weekday(), Clock.earth_time_string()])
+	out.append("Earth: %s, %s (Year %d)" % [Clock.date_string(), Clock.earth_time_string(), Clock.year()])
 	if Clock.in_shift():
 		var left := Clock.shift_minutes_left()
 		out.append("Galaxity: day %d, %s" % [Clock.day, Clock.time_string()])

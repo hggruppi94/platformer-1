@@ -11,6 +11,15 @@
     {"at": "18:00", "place": "prue_room", "do": "idle", "label": "her_room"},
     {"at": "20:00", "place": "prue_room", "do": "away", "label": "asleep"}
   ],
+  "weekend": [
+    {"at": "08:30", "place": "blastoff", "do": "wander", "label": "breakfast", "radius": 2},
+    {"at": "10:00", "place": "playground", "do": "wander", "label": "playing", "radius": 4},
+    {"at": "12:30", "place": "bakery", "do": "idle", "label": "bakery"},
+    {"at": "13:30", "place": "library", "do": "idle", "label": "library"},
+    {"at": "15:30", "place": "pumpkin_patch", "do": "wander", "label": "pumpkins", "radius": 3},
+    {"at": "18:00", "place": "prue_room", "do": "idle", "label": "her_room"},
+    {"at": "20:30", "place": "prue_room", "do": "away", "label": "asleep"}
+  ],
   "festival": [
     {"at": "17:00", "place": "fest_treats", "do": "wander", "label": "festival", "radius": 2.5},
     {"at": "21:30", "place": "prue_room", "do": "away", "label": "asleep"}

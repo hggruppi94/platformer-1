@@ -23,6 +23,24 @@
     },
     {
       "when": {
+        "weekend": true,
+        "activity": "reading"
+      },
+      "lines": [
+        "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
+        "I've read fourteen books about knights this autumn. Ask me anything about castles."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pond"
+      },
+      "lines": [
+        "I'm counting ducks. There were seven. Now there are eight. Nobody saw where the eighth came from."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "earth_lights:find",
         "not_flag": "lights_bookshop"
       },
