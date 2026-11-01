@@ -635,7 +635,7 @@ func _dogs_welcome(holder: Node3D) -> void:
 	holder.add_child(g)
 	g.global_position = _ground(Vector3(FOUNTAIN_SIGN_AT.x, 0, FOUNTAIN_SIGN_AT.y))
 	g.rotation.y = atan2(FOUNTAIN_SIGN_AT.x - FOUNTAIN.x, FOUNTAIN_SIGN_AT.y - FOUNTAIN.y)      # its face away from the fountain, to the path
-	_box(g, Vector3(0.12, 1.8, 0.12), Vector3(-0.8, 0.9, 0), _mat(Color(0.5, 0.35, 0.25)))
+	_box(g, Vector3(0.12, 2.3, 0.12), Vector3(-0.8, 1.15, -0.12), _mat(Color(0.5, 0.35, 0.25)))      # the post, behind the board
 	_box(g, Vector3(1.9, 1.0, 0.08), Vector3(-0.8, 1.9, 0.0), _mat(Color(0.3, 0.8, 0.75)))
 	var l := Label3D.new()
 	l.text = "DOGS WELCOME!\nDoggie Bill of Rights,\nRule 1. Signed: the Town"
