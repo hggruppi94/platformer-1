@@ -13,6 +13,7 @@ extends CharacterBody3D
 enum State { WANDER, STALK, CURL, ROLL, DIZZY }
 
 @export_group("Stats")
+@export var size := 1.0                        # 1 = normal; the Boulderdillo (scripts/crocodillo_boss.gd) is much bigger
 @export var stomps_to_defeat := 2
 @export var damage := 3
 @export var xp_reward := 15
@@ -29,6 +30,7 @@ enum State { WANDER, STALK, CURL, ROLL, DIZZY }
 @export var roll_cooldown := 2.5
 @export var respawn_time := 45.0
 @export var ram_speed := 7.0
+@export var respawns := true                   # false for the little ones the Boulderdillo calls in
 
 const STOMP_BOUNCE := 8.0
 const SHELL_BOUNCE := 9.5
@@ -60,6 +62,8 @@ var _told_shell := false                       # the "bubbles bounce off its she
 
 func _ready() -> void:
 	add_to_group("enemies")
+	if size != 1.0:
+		_resize()
 	home = global_position
 	target = home
 	_t = randf() * 10.0
@@ -67,6 +71,20 @@ func _ready() -> void:
 	_respawn_timer.one_shot = true
 	_respawn_timer.timeout.connect(_try_respawn)
 	add_child(_respawn_timer)
+
+
+func _resize() -> void:
+	# Scale the body, the physics shapes (copied, so each Crocodillo can have its own size) and the visuals
+	for cs in [shape, hitbox.get_child(0)]:
+		var c := cs as CollisionShape3D
+		c.shape = c.shape.duplicate()
+		if c.shape is CapsuleShape3D:
+			(c.shape as CapsuleShape3D).radius *= size
+			(c.shape as CapsuleShape3D).height *= size
+		elif c.shape is SphereShape3D:
+			(c.shape as SphereShape3D).radius *= size
+		c.position *= size
+	visual.scale = Vector3.ONE * size
 
 
 func _physics_process(delta: float) -> void:
@@ -88,7 +106,7 @@ func _physics_process(delta: float) -> void:
 			_state_t -= delta
 			want = _roll_dir * roll_speed * Arsenal.slow(self)     # (frosty from the Freeze mod: slower)
 			if _state_t <= 0.0 or (is_on_wall() and _state_t < roll_time - 0.3):
-				_set_state(State.DIZZY)
+				_roll_ended()
 		State.DIZZY:
 			_state_t -= delta
 			if _state_t <= 0.0:
@@ -189,7 +207,7 @@ func _find_player() -> void:
 func _touch_player() -> void:
 	var curled := state == State.CURL or state == State.ROLL
 	var feet := player.global_position.y - 0.8
-	var on_top := player.velocity.y < 0.5 and feet > global_position.y + (1.1 if curled else 1.4)
+	var on_top := player.velocity.y < 0.5 and feet > global_position.y + (1.1 if curled else 1.4) * size
 	if curled:
 		if on_top:
 			player.bounce(SHELL_BOUNCE)                   # armoured: she just bounces off
@@ -215,7 +233,7 @@ func _stomped() -> void:
 	else:
 		_flinch = 0.6
 		_cooldown = maxf(_cooldown, 1.0)
-		Game.message("The Crocodillo's shell is tough! Stomp it again while it's dizzy!")
+		_hurt_message(true)
 
 
 func shelled() -> bool:
@@ -241,7 +259,7 @@ func shot(power: int, _point: Vector3, _dir: Vector3) -> String:
 		_cooldown = maxf(_cooldown, 1.0)
 		if state != State.DIZZY:
 			_set_state(State.DIZZY)               # one bubble makes it dizzy: pop it again, or stomp it
-		Game.message("Pop! The Crocodillo's dizzy. Once more!")
+		_hurt_message(false)
 	return "hit"
 
 
@@ -255,12 +273,16 @@ func _defeat(bubbled := false) -> void:
 	hitbox.set_deferred("monitoring", false)
 	stars.visible = false
 	if bubbled:
-		StarBubble.carry_off(self, visual, Color(0.45, 0.85, 0.55), 1.4)   # caught in a bubble, floats up and pops
+		StarBubble.carry_off(self, visual, Color(0.45, 0.85, 0.55), 1.4 * size)   # caught in a bubble, floats up and pops
 	else:
 		var tw := create_tween()
-		tw.tween_property(visual, "scale", Vector3(1.4, 0.1, 1.4), 0.18)
+		tw.tween_property(visual, "scale", Vector3(1.4, 0.1, 1.4) * size, 0.18)
 		tw.tween_callback(func() -> void: visual.visible = false)
-	_respawn_timer.start(respawn_time)
+	_defeated()
+	if respawns:
+		_respawn_timer.start(respawn_time)
+	else:
+		get_tree().create_timer(2.5).timeout.connect(queue_free)
 
 
 func _try_respawn() -> void:
@@ -281,7 +303,8 @@ func _try_respawn() -> void:
 	visual.visible = true
 	visual.position = Vector3.ZERO
 	visual.scale = Vector3.ONE * 0.05
-	create_tween().tween_property(visual, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	create_tween().tween_property(visual, "scale", Vector3.ONE * size, 0.4).set_trans(Tween.TRANS_BACK) \
+		.set_ease(Tween.EASE_OUT)
 
 
 func _animate(delta: float, speed: float) -> void:
@@ -324,8 +347,24 @@ func _popup(text: String) -> void:
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	get_parent().add_child(label)
-	label.global_position = global_position + Vector3(0, 2.2, 0)
+	label.global_position = global_position + Vector3(0, 2.2 * size, 0)
 	var tw := label.create_tween().set_parallel()
 	tw.tween_property(label, "global_position:y", label.global_position.y + 1.2, 1.0)
 	tw.tween_property(label, "modulate:a", 0.0, 1.0).set_delay(0.4)
 	tw.chain().tween_callback(label.queue_free)
+
+
+# --- Hooks for the Boulderdillo (scripts/crocodillo_boss.gd) -------------------------------------------------------
+
+func _roll_ended() -> void:
+	# A roll ran out of time or hit a wall: it uncurls, dizzy
+	_set_state(State.DIZZY)
+
+
+func _hurt_message(stomped: bool) -> void:
+	Game.message("The Crocodillo's shell is tough! Stomp it again while it's dizzy!" if stomped
+		else "Pop! The Crocodillo's dizzy. Once more!")
+
+
+func _defeated() -> void:
+	pass

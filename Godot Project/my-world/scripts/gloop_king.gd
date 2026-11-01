@@ -5,6 +5,8 @@ extends "res://scripts/gloop.gd"
 # does a royal belly-flop: a big hop that sends a ring of goo across the ground (jump over it). Each hit makes him
 # wobble; at two-thirds and one-third of his goo he calls in two more Gloops. Pop him with enough bubbles (a big
 # bubble counts for three) or stomps and he's carried off in a bubble like any Gloop, then comes back much later.
+# Past half his goo he gets cross (Nov 1, 2026: every boss ramps up): quicker, belly-flops more often, and each flop
+# sends a second, wider wave of goo (scripts/shock_ring.gd) after the first.
 # Kid-safe: he never does more than a normal bump, and nothing about him is gory.
 # Scene: scenes/enemies/gloop_king.tscn (built by tools/build_gloop.gd), placed by tools/build_town.gd.
 
@@ -21,12 +23,15 @@ var _calls_made := 0
 var _court: Array[Node] = []
 var _bar: Node3D
 var _bar_fill: MeshInstance3D
+var _cross := false                           # under half his goo: quicker, flops more often, and a second wave
+var _base := []
 
 
 func _ready() -> void:
 	super()
 	add_to_group("bosses")
 	_make_bar()
+	_base = [chase_speed, flop_every]
 
 
 func _physics_process(delta: float) -> void:
@@ -41,6 +46,11 @@ func _physics_process(delta: float) -> void:
 		_bar.global_basis = cam.global_basis                  # the meter always faces you
 	_bar_fill.scale.x = maxf(0.001, 1.0 - float(hits) / stomps_to_defeat)
 	_bar_fill.position.x = -0.5 * (1.0 - _bar_fill.scale.x)
+	if not _cross and hits * 2 >= stomps_to_defeat:
+		_cross = true
+		chase_speed = _base[0] * 1.25
+		flop_every = _base[1] * 0.65
+		Game.message("The Gloop King is cross! He's flopping faster!")
 	# The belly-flop: only while chasing and on the ground
 	if _flopping:
 		if is_on_floor() and velocity.y <= 0.0:
@@ -66,6 +76,10 @@ func _land() -> void:
 		Juice.rumble(0.4, 0.25, 0.5)
 	var reach := flop_reach * size
 	_goo_ring(reach)
+	if _cross:                                    # cross: a second, wider wave of goo rolls out after the first
+		get_tree().create_timer(0.45).timeout.connect(func() -> void:
+			if not defeated and is_inside_tree():
+				ShockRing.spawn(get_parent(), global_position, reach * 1.6, Color(0.6, 0.85, 0.15), damage, 0.9))
 	if player and not player.is_invulnerable() and player.is_on_floor():
 		var d := _flat(player.global_position - global_position)
 		if d < reach and d > 0.6 * size:
@@ -143,6 +157,9 @@ func _defeated() -> void:
 	Juice.shake(0.6)
 	Juice.rumble(0.7, 0.4, 0.7)
 	_calls_made = 0
+	_cross = false
+	chase_speed = _base[0]
+	flop_every = _base[1]
 	_flopping = false
 	_flop_timer = 3.0
 

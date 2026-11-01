@@ -7,12 +7,17 @@ extends Node
 #   - The Goblin Clockyard, out in the northeast fields by the Agent's patrol: a ring of tumbledown grandfather clocks
 #     where the Time Goblins (scripts/time_goblin.gd) live, plus a few goblins roaming towards the Observatory.
 #     Their boss, Grandfather Tock (scripts/time_goblin_boss.gd), keeps the middle of it.
+#   - Boulder Hollow, in the far northwest: a ring of big boulders where the Boulderdillo (scripts/crocodillo_boss.gd),
+#     the Crocodillos' boss, rolls about. (The Gloops' boss is the Gloop King, built into the town.)
 #
 # Every enemy's boss is remembered here once beaten (Dialogue flags, so it's saved with everything else).
 
 const TOWN := "res://scenes/town/town.tscn"
 const GOBLIN := "res://scenes/enemies/time_goblin.tscn"
 const TOCK := "res://scenes/enemies/time_goblin_boss.tscn"
+const CROC := "res://scenes/enemies/crocodillo.tscn"
+const HOLLOW := Vector2(-118, -180)             # x, z: Boulder Hollow, flat open ground in the northwest
+const HOLLOW_RADIUS := 17.0
 
 const CLOCKYARD := Vector2(128, -150)          # x, z: open, flat ground east of the Agent's field (the world's east
                                               # wall is at x 146, so it keeps well in from that)
@@ -36,6 +41,7 @@ func _on_scene_changed() -> void:
 	if scene == null or scene.scene_file_path != TOWN or scene.get_node_or_null("Goblin Clockyard") != null:
 		return
 	_place_clockyard(scene)
+	_place_hollow(scene)
 
 
 func ground(scene: Node3D, x: float, z: float) -> Vector3:
@@ -91,6 +97,74 @@ func _place_clockyard(scene: Node) -> void:
 	tock.set("respawn_time", 150.0)
 	tock.position = _local(parent, ground(scene, CLOCKYARD.x, CLOCKYARD.y) + Vector3(0, 0.3, 0))
 	parent.add_child(tock)
+
+
+# -----------------------------------------------------------------------------
+# Boulder Hollow
+# -----------------------------------------------------------------------------
+func _place_hollow(scene: Node) -> void:
+	var hollow := Node3D.new()
+	hollow.name = "Boulder Hollow"
+	hollow.set_script(load("res://scripts/landmark.gd"))
+	hollow.set("label", "Boulder Hollow")
+	scene.add_child(hollow)
+	hollow.global_position = ground(scene, HOLLOW.x, HOLLOW.y)
+	var rock := _mat(Color(0.5, 0.44, 0.55))
+	var moss := _mat(Color(0.3, 0.6, 0.35))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2207
+	for k in 14:
+		if k == 3 or k == 10:                          # two ways in
+			continue
+		var a := TAU * k / 14.0
+		var r := rng.randf_range(1.4, 2.4)
+		var b := StaticBody3D.new()
+		b.name = "Boulder %d" % k
+		b.position = Vector3(cos(a), 0, sin(a)) * HOLLOW_RADIUS + Vector3(0, r * 0.6, 0)
+		var mi := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = r
+		sm.height = r * 1.6
+		sm.radial_segments = 9
+		sm.rings = 5
+		mi.mesh = sm
+		mi.material_override = rock
+		mi.rotation = Vector3(rng.randf(), rng.randf() * TAU, rng.randf() * 0.3)
+		b.add_child(mi)
+		var cap := MeshInstance3D.new()
+		var cm := SphereMesh.new()
+		cm.radius = r * 0.7
+		cm.height = r * 0.5
+		cap.mesh = cm
+		cap.material_override = moss
+		cap.position = Vector3(0, r * 0.6, 0)
+		b.add_child(cap)
+		var cs := CollisionShape3D.new()
+		var ss := SphereShape3D.new()
+		ss.radius = r * 0.85
+		cs.shape = ss
+		b.add_child(cs)
+		hollow.add_child(b)
+	var enemies := scene.find_child("Enemies", true, false)
+	var parent: Node = enemies if enemies else scene
+	var boss := (load(CROC) as PackedScene).instantiate() as CharacterBody3D
+	boss.set_script(load("res://scripts/crocodillo_boss.gd"))
+	boss.name = "The Boulderdillo"                       # not "Crocodillo …", so finding Crocodillos by name skips it
+	boss.set("size", 2.6)
+	boss.set("stomps_to_defeat", 10)
+	boss.set("damage", 3)
+	boss.set("xp_reward", 60)
+	boss.set("wander_radius", 6.0)
+	boss.set("sight_range", 20.0)
+	boss.set("leash_range", 30.0)
+	boss.set("stalk_speed", 2.6)
+	boss.set("roll_speed", 11.0)
+	boss.set("roll_time", 1.3)
+	boss.set("dizzy_time", 3.6)
+	boss.set("roll_cooldown", 2.0)
+	boss.set("respawn_time", 180.0)
+	boss.position = _local(parent, hollow.global_position + Vector3(0, 0.4, 0))
+	parent.add_child(boss)
 
 
 func _local(parent: Node, at: Vector3) -> Vector3:

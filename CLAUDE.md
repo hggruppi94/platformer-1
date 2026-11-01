@@ -70,6 +70,18 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: The Boulderdillo, the Crocodillos' boss, and a cross Gloop King (plan item 6, slice 2 of 3). `Bosses`
+  now also puts **Boulder Hollow** at (-118, -180) in the northwest (12 mossy boulders with collision in a ring, two
+  ways in; on the map) with the Boulderdillo in it: `crocodillo.tscn` with `scripts/crocodillo_boss.gd`, size 2.6
+  (about 6 m), boulders grown into its shell and ball, a crown of rocks. **Pinball rolls**: a roll that ends or hits a
+  boulder slams a ring out (`ShockRing`) and rolls at you again, 3 in a row, then it's dizzy 3.6 s. **Thick hide**:
+  bubbles boing and stomps bounce unless it's dizzy. Two **Pebbledillos** (size 0.6, no respawn) at a third and two
+  more at two-thirds; past half it's cross (rolls 25% faster, 4 in a row). 10 hits, flag `popped_boulderdillo`.
+  `scripts/crocodillo.gd` gained `size` (scales shapes and visual), `respawns` and the hooks `_roll_ended`,
+  `_hurt_message`, `_defeated`; ordinary Crocodillos are unchanged. The Gloop King gets cross past half his goo:
+  25% quicker, flops a third more often, and each flop sends a second, wider ring. Test `tools/test_boss_versions.gd`
+  (24 checks); previews `tools/capture_boss_versions.gd` → /mnt/project-files/characters/boulderdillo/. Tested in the
+  cloud only.
 - 2026-11-01: Time Goblins and their boss, Grandfather Tock (plan item 6, slice 1 of 3; Hayden: the Agent of Chaos
   is the final boss, a new enemy "time goblins", and every enemy gets a bigger boss version). New autoload `Bosses`
   (`scripts/bosses.gd`) puts it all in town at play time, so the town wasn't rebuilt: the **Goblin Clockyard**
