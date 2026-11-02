@@ -71,6 +71,19 @@ Read this first in every session so each iteration builds on the last one and do
 
 ## Log (newest first)
 
+- 2026-11-01: Sparkly alien trees in Galaxity (Hayden). `scenes/town/trees.gd` builds them at load from the same
+  spots, sizes and colours as before, so `town.tscn` wasn't rebuilt. Three kinds, picked from each tree's spot
+  (`kind_of()`, so a rebuild keeps them): **orb trees** (a leaning stalk, a big glowing ball and two little ones on
+  side branches), **spire trees** (three faceted seven-sided cones, each turned and nudged off the last so the spire
+  twists, with a glowing ball on the tip) and **parasol trees** (a tall stalk, a wide flat cap and glowing bulbs
+  hanging round its edge). The canopy shader shimmers, glows at the rim, has slow swirling bands and specks that
+  flash white. Eight **twinkles** a tree: camera-facing quads playing a 16-frame sheet made with the pixelfx skill
+  (`scenes/town/tree_twinkle.png`, its effect kept in `source_art/fx/tree-twinkle.js` with how to remake it), each
+  with its own start and a 1.4 to 3 s cycle (MultiMesh custom data), additive, fading out past 110 m. Nodes under
+  "Trees": Canopies, Spires, Trunks, Twinkles; `kinds` and `twinkle_spots` say what was built (the lab's
+  `_clear_plot` still shrinks them away by instance). Still nothing solid. Test `tools/test_trees.gd`; previews
+  `tools/capture_trees.gd`, `previews/alien_trees/` (before and after). My choices Hayden may change: the three
+  shapes, how many twinkles, how fast they wink.
 - 2026-11-01: A big day every season (plan item 8, slice 4; Hayden chose 4-week seasons on the card, so they stay).
   `Festival.BIG_DAYS`, each on a Sunday so never on top of a fair, put up by `scripts/big_day.gd` ("Big Day" node,
   `kind`) only in its hours: **Winter Lights** (21 Winter, 5-10 PM: the Winter Tree at `Festival.TREE_AT` on the
