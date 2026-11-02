@@ -126,6 +126,8 @@ func setup(player: Player) -> void:
 	add_child(hud)
 	hud.watch(tricks)
 	hud.visible = false
+	tricks.added.connect(_on_trick)
+	tricks.banked.connect(_on_banked)
 	Races.upgraded.connect(func() -> void: ride = Races.tuned(_base_ride))
 
 
@@ -532,6 +534,7 @@ func _ollie_input(delta: float) -> bool:
 
 
 func _pop() -> void:
+	var off_ground := state == State.ROLL               # an ollie, not hopping off a rail
 	_end_manual()
 	tricks.keep_going()
 	state = State.AIR
@@ -545,6 +548,8 @@ func _pop() -> void:
 	_normal = Vector3.UP
 	Audio.play("skate_pop", -2.0, 0.08)
 	Juice.squash(p.model, -0.15, 0.2)
+	if off_ground:
+		Juice.dust(p.get_parent(), p.global_position - Vector3.UP * FEET, 0.25)   # the tail snapping the ground
 	popped.emit()
 
 
@@ -705,8 +710,14 @@ func _land() -> void:
 		var hard := clampf(absf(v.y) / 14.0, 0.0, 1.0)
 		Juice.squash(p.model, 0.1 + 0.15 * hard, 0.2)
 		Juice.rumble(0.15 + 0.3 * hard, 0.1)
+		Juice.dust(p.get_parent(), p.global_position - Vector3.UP * FEET, 0.2 + 0.8 * hard)
+		if hard > 0.2:
+			Juice.kick(Vector2.DOWN, 0.3 + 0.7 * hard)   # the camera sinks with her a little, then comes back up
 		if hard > 0.5:
 			Juice.shake(0.2 * hard)
+			Juice.blip("thud", 1.1 - 0.3 * hard, -10.0)
+		if hard > 0.85:
+			Juice.hitstop(0.03)                       # only a really big drop gets the tiny freeze
 		tricks.land(roundi(absf(_air_spin) / PI))
 		landed.emit(true)
 	else:
@@ -815,6 +826,9 @@ func _grind(input: Vector2, delta: float) -> void:
 
 
 func _leave_rail(v: Vector3) -> void:
+	if _rail and _rail.kind == "rail" and state == State.GRIND:
+		# A last flick of sparks off the end of the rail
+		Juice.burst(p.get_parent(), p.global_position - Vector3.UP * FEET, Color(1.0, 0.85, 0.4), 7, 0.035, 4.0, 0.3)
 	tricks.end_live()
 	Requests.note("grind", _grind_metres)
 	_last_rail = _rail
@@ -844,6 +858,11 @@ func bail() -> void:
 	Audio.play("skate_bail", -1.0, 0.1)
 	Juice.shake(0.3)
 	Juice.rumble(0.35, 0.2, 0.2)
+	# A comic splat: a beat of freeze, a thud, the camera bumped down and a cloud of dust where she hits
+	Juice.hitstop(0.05)
+	Juice.blip("thud", 0.8, -8.0)
+	Juice.kick(Vector2.DOWN, 0.6)
+	Juice.dust(p.get_parent(), p.global_position - Vector3.UP * FEET, 0.8)
 	hud.shout(BAIL_LINES[rng.randi() % BAIL_LINES.size()], Color(1.0, 0.55, 0.6))
 	var board := p.board
 	var from := board.global_transform
@@ -892,6 +911,21 @@ func _end_bail() -> void:
 	p.tumble.scale = Vector3.ONE
 	p.tumble.position.y = 0.0
 	p._spin_timer = 0.0
+
+
+func _on_trick(_name: String) -> void:
+	# Every trick in a combo gets a tick that climbs as the combo grows, and the combo line on the HUD bumps
+	Juice.blip("tick", 1.0 + 0.08 * mini(tricks.combo.size() - 1, 10), -16.0)
+	hud.bump()
+
+
+func _on_banked(points: int, _names: String) -> void:
+	# A combo paid out: the bigger it is, the bigger the shower of gold round her
+	if points < 1000 or p == null or not p.is_inside_tree():
+		return
+	var big := clampf(points / 10000.0, 0.0, 1.0)
+	Juice.burst(p.get_parent(), p.global_position + Vector3.UP * 0.6, Color(1.0, 0.88, 0.4), 8 + int(16 * big), 0.05,
+		2.0 + 2.0 * big, 0.9)
 
 
 func _add_stars() -> void:
