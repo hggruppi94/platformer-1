@@ -58,6 +58,19 @@ Read this first in every session so each iteration builds on the last one and do
   other work.
 - Comments in code are full sentences that explain *why*, matching the surrounding style.
 
+## GodotPrompter
+
+This is a Godot project with GodotPrompter skills available. Before implementing any game system, you MUST check for a matching `godot-prompter:*` skill and invoke it. This applies to all agents, subagents, and sessions working in this repository.
+
+Key skills: `player-controller`, `state-machine`, `event-bus`, `scene-organization`, `component-system`, `resource-pattern`, `godot-ui`, `hud-system`, `ai-navigation`, `camera-system`, `audio-system`, `save-load`, `inventory-system`, `godot-testing`.
+
+For the full skill list, invoke `godot-prompter:using-godot-prompter`.
+
+- The skills are installed on Hayden's PC only (user scope, with the `router`, `godot` and `disciplines` bundles
+  from awesome-gamedev-agent-skills). Cloud sessions that don't have them carry on as usual.
+- The skills give general Godot advice. Where they disagree with this file (builders, tests, save safety, style),
+  this file wins.
+
 ## Names and story
 
 - The town and world is **Galaxity** (it was called "Galactopia" until Oct 2026, so don't bring that name back).
