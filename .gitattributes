@@ -17,3 +17,10 @@
 
 # PowerShell scripts keep Windows line endings
 *.ps1 text eol=crlf
+
+# --- Claude Code Game Studios (trial) ---
+*.sh text eol=lf
+*.awk text eol=lf
+.worktreeinclude text eol=lf
+*.tsv text eol=lf
+.claude/**/*.md text eol=lf

@@ -9,3 +9,24 @@
 _archive/
 
 __pycache__/
+
+# --- Claude Code Game Studios (trial) ---
+# === Claude Code Local ===
+.claude/settings.local.json
+CLAUDE.local.md
+project.local.yaml
+production/session-logs/
+# Ephemeral per-session checkpoint. directory-structure.md documents this as
+# gitignored; the rule was missing, so active.md would have been committed.
+production/session-state/
+.scratch/
+# Per-agent working memory written at runtime — not release material
+.claude/agent-memory/
+# Worktrees from the prototyper, isolated subagents and `claude --worktree`.
+# Each is a separate checkout; staging everything would add it as an embedded
+# repository.
+.claude/worktrees/
+
+
+# === Local sandboxes and scratch work ===
+examples/
