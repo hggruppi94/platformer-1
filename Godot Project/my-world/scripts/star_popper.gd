@@ -288,6 +288,14 @@ func shoot(charged: bool) -> Node3D:
 	if Game.riding and player.skate.grinding():
 		b.set_meta("from_grind", true)            # popping something with it counts as off a grind (skate goals)
 	shots += 1
+	if id != "jelly" and id != "buzz":
+		# A puff of tiny bubbles at the nozzle and the popper squeezing as it blows (gadget_sfx and the shot itself
+		# carry the sound). Aiming, or a big bubble, nudges the camera up a touch like a little kick.
+		Juice.burst(scene, from, Color(0.85, 0.95, 1.0, 0.7), 6 if charged else 3, 0.03, 1.2, 0.3)
+		if _prop.visible:
+			Juice.squash(_prop, 0.25 if charged else 0.12, 0.15)
+		if aiming or charged:
+			Juice.kick(Vector2.UP, 0.5 if charged else 0.15)
 	if _arm:
 		_arm.kick(charged)                         # her body kicks back a little (PopperArm, on a ride)
 	if charged and not Settings.reduce_motion:

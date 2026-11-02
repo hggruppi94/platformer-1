@@ -84,6 +84,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-02: A game feel pass on skating and the Star Popper (the coordinator's suggestion, Hayden: "go"; the first
+  try of the game-feel skill from awesome-gamedev-agent-skills and GodotPrompter's camera-system). Small, short touches
+  on top of what `Juice` already did, all scaled by Settings > Assist > Screen shake and off with Reduce motion.
+  `Juice.kick(dir, amount)`: one camera nudge in a screen direction that springs back on the real clock (kicks add up
+  to at most `KICK_OFFSET`, 12 cm). `Juice.dust(parent, pos, amount)`: a ring of soft lilac-grey puffs rolling out
+  over the ground, made of a few spheres moved by one tween, not one-shot CPUParticles3D (on the PC too, those only
+  show a few of their puffs in the first frames, so a burst at someone's feet hardly showed). Skating (`skate.gd`):
+  an ollie off the ground puffs dust from the tail; a clean landing puffs dust by how hard it was, kicks the camera
+  down (from a 0.2 hard landing up), thuds on a hard one and gets a 0.03 s freeze only on a really big drop; riding off
+  a rail flicks a last spray of sparks; every trick into a combo ticks a little higher and bumps the HUD's combo line
+  (`skate_hud.gd bump()`); a combo of 1,000+ paid out showers gold round her; a bail gets a 0.05 s freeze, a thud, a
+  kick down and a dust cloud. Star Popper (`star_popper.gd`, `star_bubble.gd`): a puff of tiny bubbles at the nozzle
+  and the popper squeezing on every shot (not Buzz Bots or Jelly Mines), a small kick up when aiming or for a big
+  bubble; whatever a bubble hits squishes, and the bubble that pops it gets a 0.035 s freeze (0.05 for a big one).
+  `test_juice` checks the kick (down is down, it adds up to one at most, it springs back exactly, Reduce motion);
+  skate, skate_park, skate_popper, shooting, skate_help, gloop_king, arsenal, gaps, skate_runs and races pass, run
+  one at a time on the PC with the save checked untouched. Clips: `tools/capture_game_feel.gd` (folders of frames for
+  GIFs; stills in `previews/game_feel/`). My choices Hayden may change: every strength and time above.
 - 2026-11-01: A big day every season (plan item 8, slice 4; Hayden chose 4-week seasons on the card, so they stay).
   `Festival.BIG_DAYS`, each on a Sunday so never on top of a fair, put up by `scripts/big_day.gd` ("Big Day" node,
   `kind`) only in its hours: **Winter Lights** (21 Winter, 5-10 PM: the Winter Tree at `Festival.TREE_AT` on the
