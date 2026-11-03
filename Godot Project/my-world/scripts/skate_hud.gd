@@ -18,6 +18,7 @@ var special_back: ColorRect
 var special_bar: ColorRect
 var special_label: Label
 var _shout_tween: Tween
+var _bump_tween: Tween
 var _tricks: SkateTricks
 var _special_glow := 0.0
 
@@ -135,6 +136,18 @@ func _refresh() -> void:
 	var how := Settings.prompt("skate_flip") if Skate.simple() else "%s + %s" % [Settings.prompt("skate_flip"),
 		Settings.prompt("skate_grab")]
 	special_label.text = ("SPECIAL ready!  " + how) if _tricks.special >= 1.0 else ""
+
+
+func bump() -> void:
+	# The combo line swells for a moment when a trick goes into it, then settles (skate.gd _on_trick)
+	if combo_label == null or Settings.reduce_motion:
+		return
+	combo_label.pivot_offset = combo_label.size / 2
+	if _bump_tween:
+		_bump_tween.kill()
+	combo_label.scale = Vector2(1.18, 1.18)
+	_bump_tween = create_tween()
+	_bump_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _on_banked(points: int, _names: String) -> void:

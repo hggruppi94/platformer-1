@@ -5,8 +5,10 @@ extends Node
 # window, Settings.screen_shake at 0, rumble off) and gentle by default, because this is a kid's game.
 #
 #   Juice.shake(0.3)                         # a small camera shake (0..1), scaled by Settings.screen_shake
+#   Juice.kick(Vector2(0, -1), 0.4)          # one camera nudge in a direction that springs back (a landing, a shot)
 #   Juice.hitstop(0.06)                      # a tiny freeze on a big hit (real seconds)
 #   Juice.burst(parent, pos, colour)         # a puff of particles (scripts/fx.gd)
+#   Juice.dust(parent, pos, 0.5)             # a low ring of dust kicked up off the ground (landings, ollies, bails)
 #   Juice.squash(node, 0.25)                 # squash and stretch a node's scale, then spring back
 #   Juice.rumble(0.3, 0.15)                  # controller rumble (weak/strong 0..1, seconds), if Settings.rumble
 #   Juice.blip("chime", 1.2)                 # a short sound made in code (no .wav: those need LFS)
@@ -21,11 +23,15 @@ const DECAY := 2.6                            # how fast the shake settles (per 
 const CHIME_WINDOW := 0.9                     # pickups closer than this together climb the scale
 const CHIME_STEPS := [1.0, 1.122, 1.26, 1.335, 1.498, 1.682, 1.888, 2.0]   # a major scale, up an octave
 const RATE := 22050
+const KICK_OFFSET := 0.12                     # metres a full-strength kick moves the camera
+const KICK_RETURN := 14.0                     # how fast a kick springs back (per second)
+const DUST := Color(0.74, 0.68, 0.8, 0.85)             # a soft lilac grey, so it shows on the pale pastel ground
 
 var trauma := 0.0                             # 0..1, eases off by itself; the shake is trauma squared
 var _t := 0.0
 var _cam: Camera3D
 var _cam_offset := Vector2.ZERO               # what this shake added to the camera's h/v offset, taken off again
+var _kick := Vector2.ZERO                     # the nudge still being worked off, in metres
 var _stop_until := 0
 var _stop_scale := 1.0
 var _chime_at := -10.0
@@ -58,6 +64,20 @@ func shake(amount := 0.3) -> void:
 	trauma = clampf(maxf(trauma, amount * shake_scale()), 0.0, 1.0)
 
 
+func kick(dir: Vector2, amount := 0.4) -> void:
+	# One push of the camera in a screen direction (Godot's way round: Vector2.DOWN is down), easing back on its own. A shake wobbles;
+	# a kick says which way something hit: down for a landing, back for a shot. Kicks add up but never past one
+	# full kick, and the Screen shake slider and Reduce motion scale them the same way as the shake.
+	calls += 1
+	if shake_scale() <= 0.0 or dir == Vector2.ZERO:
+		return
+	_kick = (_kick + dir.normalized() * KICK_OFFSET * clampf(amount, 0.0, 1.0) * shake_scale()).limit_length(KICK_OFFSET)
+
+
+func kicked() -> Vector2:
+	return _kick
+
+
 func _process(delta: float) -> void:
 	_t += delta
 	# The hit-pause ends on the real clock, whatever the game speed
@@ -70,12 +90,18 @@ func _process(delta: float) -> void:
 		_cam = cam
 	if _cam == null or not is_instance_valid(_cam):
 		trauma = 0.0
+		_kick = Vector2.ZERO
 		return
-	if trauma <= 0.0 and _cam_offset == Vector2.ZERO:
+	if trauma <= 0.0 and _kick == Vector2.ZERO and _cam_offset == Vector2.ZERO:
 		return
 	trauma = maxf(trauma - DECAY * delta * 0.5, 0.0)
+	# The kick eases back the real-time way, so a hit-pause doesn't hold it out
+	var real := delta / maxf(Engine.time_scale, 0.05)
+	_kick = _kick.lerp(Vector2.ZERO, 1.0 - exp(-KICK_RETURN * real))
+	if _kick.length() < 0.002:
+		_kick = Vector2.ZERO
 	var k := trauma * trauma * MAX_OFFSET
-	var want := Vector2(sin(_t * 47.0) + 0.5 * sin(_t * 83.0), cos(_t * 53.0) + 0.5 * cos(_t * 71.0)) * k * 0.66
+	var want := Vector2(sin(_t * 47.0) + 0.5 * sin(_t * 83.0), cos(_t * 53.0) + 0.5 * cos(_t * 71.0)) * k * 0.66 + Vector2(_kick.x, -_kick.y)
 	_cam.h_offset += want.x - _cam_offset.x
 	_cam.v_offset += want.y - _cam_offset.y
 	_cam_offset = want
@@ -115,6 +141,51 @@ func burst(parent: Node, pos: Vector3, colour: Color, amount := 12, size := 0.1,
 	if parent == null or not is_instance_valid(parent) or not parent.is_inside_tree():
 		return
 	Fx.burst(parent, pos, colour, amount, size, speed, -5.0, life)
+
+
+func dust(parent: Node, pos: Vector3, amount := 0.5, colour := DUST) -> void:
+	# A low ring of dust puffs rolling out over the ground and fading, so it reads as kicked up rather than a
+	# firework. `amount` 0..1 is how hard (a little hop to a big drop). Made of a few plain spheres moved by a tween,
+	# not one-shot particles: those emit only a few of their puffs in their first frames, so a short burst at someone's
+	# feet hardly showed.
+	calls += 1
+	if parent == null or not is_instance_valid(parent) or not parent.is_inside_tree():
+		return
+	var a := clampf(amount, 0.0, 1.0)
+	var root := Node3D.new()
+	root.name = "Dust"
+	parent.add_child(root)
+	root.global_position = pos + Vector3(0, 0.06, 0)
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.5
+	mesh.height = 1.0
+	mesh.radial_segments = 8
+	mesh.rings = 4
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = colour
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mat
+	var n := 6 + int(8 * a)
+	var reach := 0.5 + 1.1 * a
+	var size := 0.18 + 0.22 * a
+	var life := 0.45 + 0.3 * a
+	var tw := root.create_tween().set_parallel()
+	for i in n:
+		var puff := MeshInstance3D.new()
+		puff.mesh = mesh
+		puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(puff)
+		var ang := TAU * (i + randf() * 0.5) / n
+		var out := Vector3(cos(ang), 0, sin(ang))
+		puff.position = out * 0.15
+		puff.scale = Vector3.ONE * size * 0.4
+		var r := reach * randf_range(0.7, 1.0)
+		tw.tween_property(puff, "position", out * r + Vector3(0, randf_range(0.05, 0.25) * (1.0 + a), 0), life) 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(puff, "scale", Vector3.ONE * size * randf_range(0.8, 1.2), life * 0.4) 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(puff, "scale", Vector3.ONE * size * 0.1, life * 0.6).set_delay(life * 0.4)
+	tw.tween_property(mat, "albedo_color:a", 0.0, life).set_ease(Tween.EASE_IN)
+	tw.chain().tween_callback(root.queue_free)
 
 
 func squash(node: Node3D, amount := 0.25, time := 0.22) -> void:

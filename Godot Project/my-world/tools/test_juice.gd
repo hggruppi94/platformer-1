@@ -85,6 +85,18 @@ func _run() -> void:
 	await _frames(3)
 	check(juice.trauma == 0.0 and is_equal_approx(cam.h_offset, h0) and is_equal_approx(cam.v_offset, v0),
 		"...settles in about a second, and gives the camera back exactly as it was")
+	# A kick nudges the camera one way and springs back
+	juice.kick(Vector2.DOWN, 1.0)
+	await _frames(2)
+	check(cam.v_offset < v0 - 0.01 and absf(cam.v_offset - v0) <= juice.KICK_OFFSET + 0.001,
+		"a kick down nudges the camera down a little (%.3f m)" % (v0 - cam.v_offset))
+	for i in 4:
+		juice.kick(Vector2.DOWN, 1.0)
+	check(juice.kicked().length() <= juice.KICK_OFFSET + 0.0001, "...and kicks on top of each other never go past one")
+	await create_timer(0.6, true, false, true).timeout
+	await _frames(3)
+	check(juice.kicked() == Vector2.ZERO and is_equal_approx(cam.v_offset, v0) and is_equal_approx(cam.h_offset, h0),
+		"...then it springs back and gives the camera back exactly")
 	settings.screen_shake = 0.5
 	juice.shake(1.0)
 	check(juice.trauma <= 0.51, "the slider scales it (50%%: %.2f)" % juice.trauma)
@@ -92,8 +104,9 @@ func _run() -> void:
 	settings.screen_shake = 1.0
 	settings.reduce_motion = true
 	juice.shake(1.0)
+	juice.kick(Vector2.UP, 1.0)
 	juice.hitstop(0.08)
-	check(juice.trauma == 0.0 and not juice.stopped() and is_equal_approx(Engine.time_scale, 1.0),
+	check(juice.kicked() == Vector2.ZERO and juice.trauma == 0.0 and not juice.stopped() and is_equal_approx(Engine.time_scale, 1.0),
 		"Reduce motion: no shake and no hit-pause")
 	settings.reduce_motion = false
 	await _frames(2)
@@ -208,6 +221,8 @@ func _every_call(juice: Node, at: Node3D) -> void:
 	juice.shake(0.5)
 	juice.hitstop(0.03)
 	juice.burst(parent, pos, Color.WHITE)
+	juice.dust(parent, pos, 0.7)
+	juice.kick(Vector2.DOWN, 0.5)
 	juice.squash(at.get_node("Visual") if at else null, 0.2)
 	juice.rumble(0.5, 0.1, 0.5)
 	juice.hit(parent, pos, Color.WHITE, true)

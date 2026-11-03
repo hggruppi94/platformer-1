@@ -191,6 +191,13 @@ func _hit_target(target: Node, at: Vector3) -> String:
 		Arsenal.unplush(target, true)                      # a plushie pops at one touch
 		p = 99
 	var what := str(target.shot(p, at, velocity.normalized()))
+	if what == "hit":
+		# Whatever it hit squishes from the bubble, and the one that pops it gets a beat of freeze so the pop lands
+		var vis = target.get("visual")
+		if vis is Node3D and (vis as Node3D).visible:
+			Juice.squash(vis, 0.22 if big else 0.14, 0.18)
+		if not was_down and target.get("defeated") == true:
+			Juice.hitstop(0.05 if big else 0.035)
 	if what == "hit" and not was_down and target.get("defeated") == true and shooter and shooter.get("popper"):
 		shooter.popper.popped.emit(target, self)           # popped it (on the board, that's a trick: skate.gd)
 	return what
