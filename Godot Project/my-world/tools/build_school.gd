@@ -786,10 +786,39 @@ func _entrance_garden() -> void:
 	solid_box(Vector3(0.8, 1.6, 18), hedge, Vector3(20, 0.8, Z_S + 9), g)
 	solid_box(Vector3(16, 1.6, 0.8), hedge, Vector3(-12, 0.8, Z_S + 18), g)
 	solid_box(Vector3(16, 1.6, 0.8), hedge, Vector3(12, 0.8, Z_S + 18), g)
+	# The hedges are only 1.6 m, and a double jump clears them, onto nothing at all: past them there's no ground, so
+	# she used to fall off the map. Tall see-through walls stand on the hedges, and one just behind the way out stops
+	# a fast ride overshooting the doorway (it stands inside the doorway's trigger, so she's already on her way).
+	_invisible_wall(g, "Garden Wall West", Vector3(0.8, 60, 18.8), Vector3(-20, 30, Z_S + 9))
+	_invisible_wall(g, "Garden Wall East", Vector3(0.8, 60, 18.8), Vector3(20, 30, Z_S + 9))
+	_invisible_wall(g, "Garden Wall South West", Vector3(16.8, 60, 0.8), Vector3(-12, 30, Z_S + 18))
+	_invisible_wall(g, "Garden Wall South East", Vector3(16.8, 60, 0.8), Vector3(12, 30, Z_S + 18))
+	_invisible_wall(g, "Garden Wall Way Out", Vector3(8.4, 60, 0.4), Vector3(0, 30, Z_S + 18.9))
+	# And a safety net far below, in case she ever finds a way out anyway: it puts her back by the way in
+	var net := Area3D.new()
+	net.name = "Fall Catch"
+	net.position = Vector3(0, -25, 0)
+	net.set_script(load("res://scripts/fall_catch.gd"))
+	var ncs := CollisionShape3D.new()
+	ncs.shape = box_shape(Vector3(600, 4, 600))
+	net.add_child(ncs)
+	g.add_child(net)
 	label(g, "Entrance Garden", Vector3(0, 4.2, Z_S + 6), 0.0, 72)
 	label(g, "To Town", Vector3(0, 2.6, Z_S + 17), 0.0, 56)
 	door_trigger(g, "ExitToTown", Vector3(0, 1.5, Z_S + 18.5), Vector3(8, 3, 1.5), "res://scenes/town/town.tscn", "FromSchool")
 	spawn_marker(g, "FromTown", Vector3(0, 1.0, Z_S + 13), 0.0)
+	net.set("back_to", net.get_path_to(g.get_node("FromTown")))
+
+
+func _invisible_wall(parent: Node, name: String, size: Vector3, pos: Vector3) -> void:
+	# Solid but not drawn: keeps her in without spoiling the view
+	var body := StaticBody3D.new()
+	body.name = name
+	body.position = pos
+	var cs := CollisionShape3D.new()
+	cs.shape = box_shape(size)
+	body.add_child(cs)
+	parent.add_child(body)
 
 
 func _greenhouse(parent: Node, at: Vector3) -> void:
