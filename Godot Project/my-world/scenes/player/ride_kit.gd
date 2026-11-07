@@ -46,12 +46,14 @@ static func build(kit: String, ride: Node3D, model: Node3D) -> Dictionary:
 			_leaf(ride)
 		"segway":
 			_segway(ride)
-		# The hero's own rides, unlocked with schematics (scripts/schematics.gd, Rides.HERO_RIDES)
+		# The hero's own rides, unlocked with schematics and levels (scripts/schematics.gd, scripts/ride_upgrades.gd)
 		"overboard":
 			_overboard(ride)
 		"rocket_board":
 			ride.add_child(load(SKATEBOARD).instantiate())
 			out.flames = _rockets(ride, [Vector3(-0.07, 0.17, -0.36), Vector3(0.07, 0.17, -0.36)], 0.045)
+		"hover_bike":
+			_hover_bike(ride)
 		"rocket_bike":
 			var rb: Node3D = load(BIKE).instantiate()
 			ride.add_child(rb)
@@ -246,6 +248,47 @@ static func _overboard(ride: Node3D) -> void:
 	light.light_color = Color(0.4, 1.0, 0.9)
 	light.light_energy = 0.7
 	light.omni_range = 2.0
+	light.position = Vector3(0, 0.1, 0)
+	ride.add_child(light)
+
+
+static func _hover_bike(ride: Node3D) -> void:
+	# The Bike made to float (Rides.HERO_RIDES "hover_bike", deck 0.3): the same BMX lifted off the ground, each wheel
+	# ringed in teal light like the Overboard's pads, with a glowing pad of light under each one holding it up
+	const LIFT := 0.3
+	var bike: Node3D = load(BIKE).instantiate()
+	bike.position.y = LIFT
+	ride.add_child(bike)
+	var glow := _mat(Color(0.4, 1.0, 0.9), 0.5, 0.0, 2.5)
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var soft := glow.duplicate() as StandardMaterial3D
+	soft.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	soft.albedo_color.a = 0.45
+	for z in [-0.4, 0.4]:
+		var ring := MeshInstance3D.new()
+		var t := TorusMesh.new()
+		t.inner_radius = 0.25
+		t.outer_radius = 0.29
+		ring.mesh = t
+		ring.material_override = glow
+		ring.rotation.z = PI / 2                      # round the wheel, facing sideways
+		ring.position = Vector3(0, LIFT + 0.26, z)
+		ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ride.add_child(ring)
+		var pad := MeshInstance3D.new()
+		var disc := CylinderMesh.new()
+		disc.top_radius = 0.2
+		disc.bottom_radius = 0.12
+		disc.height = 0.02
+		pad.mesh = disc
+		pad.material_override = soft
+		pad.position = Vector3(0, 0.12, z)
+		pad.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ride.add_child(pad)
+	var light := OmniLight3D.new()
+	light.light_color = Color(0.4, 1.0, 0.9)
+	light.light_energy = 0.8
+	light.omni_range = 2.4
 	light.position = Vector3(0, 0.1, 0)
 	ride.add_child(light)
 

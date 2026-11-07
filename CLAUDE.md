@@ -85,6 +85,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-07: Ride upgrades as you level up: hover and rocket boards and bikes, and the rocket ones FLY (plan item 29,
+  Hayden: "new vehicle mechanics as you level up to hover and rocket boards/bikes, with the rocket ones capable of
+  flight"). Built and tested in the cloud (own Godot user folders, no save touched); full suite 63/63 green.
+  - **Three steps each** (`Rides.LINES`): Skateboard, Overboard (hover, Lv 2), Rocket Board (flies, Lv 5); Bike,
+    **Hover Bike** (new, Lv 3, needs the Bike, no schematic), Rocket Bike (flies, Lv 6). `"level"`, `"needs"`,
+    `"hover"` and `"flight"` in `Rides.HERO_RIDES`. Schematics still unlock them too; rides an old save owns stay.
+  - **`scripts/ride_upgrades.gd`** (autoload `RideUpgrades`): level gates for Zippy's Tune-Up ("Reach Lv N" /
+    "Needs the Bike first", note with XP to go), a message when a level-up opens a ride (`Game.leveled_up`, new
+    signal), and **XP from riding**: races 25/15/10/6 by place, skate-run medals 8/12/20 (new ones only), 5 per new
+    gap. Goals page says which level opens the next ride. Skate page explains hover/rocket.
+  - **Hover** (`skate.gd _float_on_water`): hover rides (Overboard, Hover Bike, Saucer) skim over any `scripts/water.gd`
+    water (now in group "water", `covers(x, z)`) with ripples, and race goo can't slow them.
+  - **Flight** (`skate.gd _fly`): on a rocket ride, Jump again in the air and hold to fire the rockets: climbs at
+    7.5 m/s up to 32 m over the ground (`FLY_CEILING`), plane-style steering, 5 s of fuel (fuel bar in the skate HUD)
+    that refills on the ground and from any boost; let go and she floats down at most 6 m/s, landing clean facing
+    where she's going. No flying in races (`Races.racing()`). The sky schematic at 46 m stays mothership-only.
+  - `scenes/player/ride_kit.gd _hover_bike`: the BMX lifted 0.3 m with teal light rings round the wheels and pads
+    under them. Tips `rocket_flight` and `hover_ride`.
+  - Tests: new `tools/test_ride_upgrades.gd`; `tools/test_schematics.gd` updated for six rides. Capture
+    `tools/capture_ride_upgrades.gd`; previews in project files `world/previews/ride_upgrades/`.
+
 - 2026-11-07: The quick outfit wheel and skins (plan item 16). Built and tested in the cloud (own Godot user folders,
   no save touched).
   - **`scripts/quick_outfits.gd`** (autoload `QuickOutfits`, drawn by `scripts/outfit_wheel.gd`): hold **Outfit wheel**

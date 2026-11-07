@@ -22,6 +22,12 @@ extends Node
 #   Assist:  Settings.skate_assist picks how forgiving it is (ASSIST): Relaxed and Normal give a wider landing,
 #            finish a flip that's nearly done, slip off a rail or out of a manual instead of falling, keep some or all
 #            of the combo in a bail, and get her back up sooner. Pro is the strict rules.
+#   Hover:   hover rides ("hover" in scripts/rides.gd: the Overboard, the Hover Bike, the Saucer) float on water
+#            (scripts/water.gd) instead of wading through it, and race goo can't slow them.
+#   Flight:  rocket rides ("flight": the Rocket Board and the Rocket Bike) fly. In the air, press and hold Jump to
+#            fire the rockets and climb (up to FLY_CEILING over the ground), steer with the stick, let go to float
+#            back down gently. The rockets burn fuel (FLY_FUEL seconds), which fills back up on the ground and from
+#            any boost. No flying in a race on the ground: the rockets just boost there.
 #   Simple:  Settings.control_style "simple": one trick button (tap to flip, hold to grab, with a full meter it's the
 #            special), grinds lock on by themselves when she comes down near a rail, and Grind on the flat is a manual.
 
@@ -40,6 +46,16 @@ const STEP := 0.32                   # kerbs and steps this high she rolls up on
 const SIDE_RADIUS := 0.35            # the capsule's radius
 const BAIL_LINES := ["Whoops!", "Oof!", "Wobbly!", "Banana peel!", "Bonk!", "Ta-da? No...", "Wipeout!"]
 const SLIP_LINES := ["Phew!", "Saved it!", "Close one!", "Wobble... OK!"]
+# Rocket flight (rocket rides: "flight" in scripts/rides.gd)
+const FLY_FUEL := 5.0                # seconds of rocket burn on a full tank
+const FLY_REFUEL := 1.4              # tank filled per second while rolling on the ground
+const FLY_CLIMB := 7.5               # how fast the rockets lift her (m/s)
+const FLY_LIFT := 26.0               # ...and how quickly they get there
+const FLY_CEILING := 32.0            # metres over the ground she can climb to
+const FLY_TURN := 2.4                # radians a second of steering in the air
+const FLY_SPEED := 1.2               # flying speed, times the ride's pushing speed
+const FLY_FLOAT := 6.0               # after flying, she never comes down faster than this (soft landings)
+const FLY_GLIDE := 2.5               # ...or this, while Jump is held with the tank empty
 const HOLD_FOR_GRAB := 0.2           # Simple controls: holding the trick button this long is a grab, not a flip
 # How forgiving the skating is, by Settings.skate_assist. land: the ride's landing window times this. finish_flip:
 # landing mid-flip still counts once the flip is this far round (1.0+: never). slip: falling off a rail or out of a
@@ -113,6 +129,12 @@ var _slow_time := 0.0                # seconds of goo left
 var _boost_fade := 0.0               # after a boost, a moment of easing back down to her own speed
 var shielded := false
 var _base_ride: Dictionary = Rides.BOARD     # the ride's own numbers, before upgrades
+var fuel := FLY_FUEL                 # rocket fuel left (seconds)
+var flying := false                  # the rockets are firing right now
+var _flew := false                   # flew in this air: plane steering, and a soft landing
+var _fly_armed := false              # Jump was pressed fresh in this air (not the ollie's hold)
+var on_water := false                # a hover ride floating on water
+var _water_fx := 0.0
 
 
 func setup(player: Player) -> void:
@@ -162,6 +184,13 @@ func start() -> void:
 	EdgeRails.add_to.call_deferred(get_tree().current_scene)
 	# The first time on a ride: how to ride, and Rook offers a skate lesson (scripts/tips.gd, scripts/skate_lesson.gd)
 	Tips.show_tip("ride")
+	fuel = FLY_FUEL
+	flying = false
+	_flew = false
+	if bool(ride.get("flight", false)):
+		Tips.show_tip("rocket_flight")
+	elif hovers():
+		Tips.show_tip("hover_ride")
 	SkateLesson.offer.call_deferred()
 
 
@@ -216,6 +245,7 @@ func boost(extra: float, seconds: float) -> void:
 	_boost_speed = maxf(extra, _boost_speed if _boost_time > 0.0 else 0.0)
 	_boost_time = maxf(_boost_time, seconds)
 	_slow_time = 0.0
+	fuel = FLY_FUEL                                       # and fills the rockets' tank
 
 
 func boosting() -> bool:
@@ -224,8 +254,8 @@ func boosting() -> bool:
 
 func gooed(seconds: float) -> void:
 	# Rolling through a goo puddle in a race: slow going for a moment, unless the Bubble Shield keeps it off her
-	if shielded or _boost_time > 0.0:
-		return
+	if shielded or _boost_time > 0.0 or hovers():
+		return                                        # hover rides float over goo
 	_slow_time = maxf(_slow_time, seconds)
 
 
@@ -243,6 +273,15 @@ func spring(power: float) -> void:
 		return
 	p.velocity += Vector3.UP * power
 	_pop()
+
+
+func hovers() -> bool:
+	return bool(ride.get("hover", false))
+
+
+func can_fly() -> bool:
+	# Rocket rides, outside a race on the ground (the Sky Rings is the mothership's, so no rocket rides there either)
+	return bool(ride.get("flight", false)) and not Races.racing()
 
 
 func grinding() -> bool:
@@ -331,6 +370,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 		return
 	var n := _ground_n
 	_normal = n
+	fuel = minf(fuel + FLY_REFUEL * delta, FLY_FUEL)
 	var v := p.velocity
 	v -= n * v.dot(n)                                  # roll along the ground, never into it
 	var g := p.get_gravity()
@@ -448,6 +488,41 @@ func _move(v: Vector3, on_ground: bool) -> void:
 	if not _grounded:
 		p.velocity = v if on_ground else p.velocity     # not the press into the ground she just left
 		_ground_n = Vector3.UP
+	_float_on_water()
+
+
+func _float_on_water() -> void:
+	# Hover rides skim over water instead of sinking into it: wherever her feet would go under a water surface
+	# (scripts/water.gd), the surface is her ground
+	var was := on_water
+	on_water = false
+	if not hovers() or state == State.GRIND:
+		return
+	var at := p.global_position
+	for w in get_tree().get_nodes_in_group("water"):
+		if not w.has_method("covers") or not w.covers(at.x, at.z):
+			continue
+		var top := float(w.water_y) + 0.04
+		if at.y - FEET > top + 0.02 or p.velocity.y > 1.0:
+			continue
+		p.global_position.y = top + FEET
+		if p.velocity.y < 0.0:
+			p.velocity.y = 0.0
+		_grounded = true
+		_ground_n = Vector3.UP
+		on_water = true
+		break
+	if on_water:
+		_water_fx -= get_physics_process_delta_time()
+		var flat := Vector2(p.velocity.x, p.velocity.z).length()
+		if _water_fx <= 0.0 and flat > 1.0:
+			_water_fx = clampf(0.5 - flat * 0.02, 0.12, 0.4)
+			var s := get_tree().current_scene
+			var under := Vector3(at.x, p.global_position.y - FEET, at.z)
+			Fx.ripple(s, under)
+			Fx.burst(s, under, Color(0.8, 1.0, 0.95, 0.8), 4, 0.06, 2.0, -8.0, 0.5, 35.0)
+		if not was:
+			Audio.play("splash", -10.0, 0.1)
 
 
 func _step_up(from: Transform3D, flat: Vector3, v: Vector3) -> bool:
@@ -546,6 +621,9 @@ func _pop() -> void:
 	_charge = -1.0
 	_trick_hold = -1.0
 	_normal = Vector3.UP
+	_fly_armed = false
+	_flew = false
+	flying = false
 	Audio.play("skate_pop", -2.0, 0.08)
 	Juice.squash(p.model, -0.15, 0.2)
 	if off_ground:
@@ -565,6 +643,9 @@ func _leave_ground() -> void:
 	_vert = false
 	_coyote = 0.15
 	_trick_hold = -1.0
+	_fly_armed = false
+	_flew = false
+	flying = false
 	var v := p.velocity
 	var out := Vector3(_normal.x, 0, _normal.z)
 	if _normal.y < 0.6 and v.y > 1.0 and out.length() > 0.1:
@@ -586,7 +667,11 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 	# Riders with wings (Pip) float down slowly while Jump is held
 	if float(ride.glide) > 0.0 and v.y < -float(ride.glide) and Input.is_action_pressed("jump") and not p.input_locked:
 		v.y = move_toward(v.y, -float(ride.glide), 25.0 * delta)
-	if dir and not _vert:
+	# Rocket rides: hold Jump to fly
+	v = _fly(v, dir, delta)
+	if _flew:
+		input = Vector2.ZERO                          # left and right steer the flight, not spin her
+	elif dir and not _vert:
 		var h := Vector3(v.x, 0, v.z)
 		var hs := h.length()
 		h = (h + dir * float(ride.air_drift) * delta).limit_length(maxf(hs, 2.0))
@@ -619,6 +704,67 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 	_move(v, false)
 	if _grounded and _air_time > 0.05:
 		_land()
+
+
+func _fly(v: Vector3, dir: Vector3, delta: float) -> Vector3:
+	# Rocket flight. Jump pressed fresh in the air (letting go of it is what pops an ollie, so this is a second press)
+	# and held fires the rockets: up she goes, steering like a little plane. Let go, or run out of fuel, and she
+	# floats down, never faster than FLY_FLOAT, so even a landing from high up is soft.
+	if not can_fly() or _vert:
+		flying = false
+		return v
+	var held := Input.is_action_pressed("jump") and not p.input_locked
+	if Input.is_action_just_pressed("jump") and not p.input_locked and _air_time > 0.04:
+		_fly_armed = true
+	var burn := _fly_armed and held and fuel > 0.0
+	if burn and not flying:
+		Audio.play("double_jump", -3.0, 0.05)
+		Juice.rumble(0.25, 0.15)
+		Fx.burst(get_tree().current_scene, p.global_position - Vector3.UP * FEET, Color(1.0, 0.7, 0.3), 10, 0.08, 3.0, -2.0, 0.5)
+		if not _flew:
+			hud.shout("Liftoff!", Color(1.0, 0.8, 0.45))
+	flying = burn
+	if flying:
+		_flew = true
+		fuel = maxf(fuel - delta, 0.0)
+		var climb := FLY_CLIMB if _height() < FLY_CEILING else 0.0
+		v.y = move_toward(v.y, climb, FLY_LIFT * delta)
+		if fuel <= 0.0:
+			hud.shout("Out of fuel!", Color(1.0, 0.6, 0.5))
+			Audio.play("steam", -6.0, 0.05)
+	elif _flew:
+		var cap := FLY_GLIDE if held else FLY_FLOAT
+		if v.y < -cap:
+			v.y = move_toward(v.y, -cap, 30.0 * delta)
+	if not _flew:
+		return v
+	# Steering: the stick turns where she flies; under the rockets she keeps up flying speed
+	var h := Vector3(v.x, 0.0, v.z)
+	var speed := h.length()
+	var heading := h / speed if speed > 0.5 else _facing()
+	if dir:
+		var want := Vector3(dir.x, 0.0, dir.z).normalized()
+		var ang := heading.signed_angle_to(want, Vector3.UP)
+		heading = heading.rotated(Vector3.UP, clampf(ang, -FLY_TURN * delta, FLY_TURN * delta)).normalized()
+	var fly_speed := float(ride.push_speed) * FLY_SPEED
+	if flying and speed < fly_speed:
+		speed = move_toward(speed, fly_speed, (8.0 if dir else 3.0) * delta)
+	h = heading * speed
+	v.x = h.x
+	v.z = h.z
+	_yaw = lerp_angle(_yaw, atan2(heading.x, heading.z), 1.0 - exp(-8.0 * delta))
+	if speed > 2.0:
+		p.spring_arm.follow(atan2(-v.x, -v.z), delta)
+	return v
+
+
+func _height() -> float:
+	# How far down the ground is under her (FLY_CEILING * 2 if it's further than that)
+	var from := p.global_position
+	var q := PhysicsRayQueryParameters3D.create(from, from - Vector3.UP * FLY_CEILING * 2.0)
+	q.exclude = [p.get_rid()]
+	var hit := p.get_world_3d().direct_space_state.intersect_ray(q)
+	return from.y - (hit.position as Vector3).y if not hit.is_empty() else FLY_CEILING * 2.0
 
 
 func _air_tricks(delta: float) -> void:
@@ -689,6 +835,11 @@ func _land() -> void:
 	v -= n * v.dot(n)
 	p.velocity = v
 	var h := Vector3(v.x, 0, v.z)
+	if _flew and h.length() > 1.0:
+		_yaw = atan2(h.x, h.z)                         # after a flight she touches down facing where she's going
+	_flew = false
+	flying = false
+	_fly_armed = false
 	var facing := _facing()
 	var clean := not tricks.flipping()               # still flipping the board: she lands on it wrong
 	if not clean and float(tricks.flip.time) >= float(tricks.flip.duration) * float(assist().finish_flip):
@@ -887,9 +1038,14 @@ func _bailing(delta: float) -> void:
 		_normal = _ground_n
 	else:
 		v += p.get_gravity() * delta
+		if _flew:
+			v.y = maxf(v.y, -FLY_FLOAT * 1.5)          # knocked out of a flight: still a soft bump down
 	_move(v, _grounded)
 	if _stars:
 		_stars.rotate_y(delta * 6.0)
+	if _grounded:
+		_flew = false
+		flying = false
 	if _bail_timer <= 0.0 and _grounded:
 		_end_bail()
 		state = State.ROLL
@@ -989,7 +1145,7 @@ func _pose(delta: float) -> void:
 	if _ride_anim:
 		_ride_anim.speed_scale = clampf(p.velocity.length() / 6.0, 0.0, 2.0) if _pushing else 0.0
 	if _flames and is_instance_valid(_flames):
-		var burn := 1.8 if _boost_time > 0.0 else (1.0 if _pushing else 0.35)
+		var burn := 2.6 if flying else (1.8 if _boost_time > 0.0 else (1.0 if _pushing else 0.35))
 		var flick := 1.0 + sin(Time.get_ticks_msec() * 0.05) * 0.12
 		for f in _flames.get_children():
 			if f is Node3D and not f is Light3D:

@@ -17,6 +17,9 @@ var score_label: Label
 var special_back: ColorRect
 var special_bar: ColorRect
 var special_label: Label
+var fuel_back: ColorRect             # rocket rides: the fuel tank (scenes/player/skate.gd, flight)
+var fuel_bar: ColorRect
+var fuel_label: Label
 var _shout_tween: Tween
 var _bump_tween: Tween
 var _tricks: SkateTricks
@@ -87,6 +90,30 @@ func _ready() -> void:
 	special_label.offset_right = -16
 	special_label.offset_top = 108
 
+	# Rocket fuel, under the special meter, only on a ride that flies
+	fuel_back = ColorRect.new()
+	fuel_back.name = "Fuel"
+	fuel_back.color = Color(0.2, 0.08, 0.05, 0.75)
+	fuel_back.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	fuel_back.offset_left = -216
+	fuel_back.offset_right = -16
+	fuel_back.offset_top = 140
+	fuel_back.offset_bottom = 154
+	add_child(fuel_back)
+	fuel_bar = ColorRect.new()
+	fuel_bar.color = Color(1.0, 0.65, 0.25)
+	fuel_bar.position = Vector2(2, 2)
+	fuel_bar.size = Vector2(196, 10)
+	fuel_back.add_child(fuel_bar)
+	fuel_label = _label(18, Color(1.0, 0.8, 0.5))
+	fuel_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	fuel_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	fuel_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	fuel_label.offset_right = -16
+	fuel_label.offset_top = 156
+	fuel_back.visible = false
+	fuel_label.visible = false
+
 	shout_label = _label(44, Color.WHITE)
 	shout_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
 	shout_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -113,6 +140,14 @@ func watch(t: SkateTricks) -> void:
 
 
 func update_skate(s: Skate) -> void:
+	var rockets := bool(s.ride.get("flight", false))
+	fuel_back.visible = rockets
+	fuel_label.visible = rockets
+	if rockets:
+		var f := clampf(s.fuel / Skate.FLY_FUEL, 0.0, 1.0)
+		fuel_bar.size.x = 196.0 * f
+		fuel_bar.color = Color(1.0, 0.85, 0.4) if s.flying else (Color(1.0, 0.65, 0.25) if f > 0.25 else Color(1.0, 0.4, 0.35))
+		fuel_label.text = "Rockets: flying!" if s.flying else ("Rockets: hold %s in the air" % Settings.prompt("jump") if f > 0.05 else "Rockets: refuelling...")
 	balance_box.visible = s.balancing()
 	if balance_box.visible:
 		needle.position.x = METER_W / 2 * (1.0 + clampf(s.balance, -1.0, 1.0)) - 3

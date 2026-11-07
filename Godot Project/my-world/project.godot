@@ -48,6 +48,7 @@ Schematics="*res://scripts/schematics.gd"
 Bosses="*res://scripts/bosses.gd"
 Boosters="*res://scripts/boosters.gd"
 QuickOutfits="*res://scripts/quick_outfits.gd"
+RideUpgrades="*res://scripts/ride_upgrades.gd"
 
 [display]
 

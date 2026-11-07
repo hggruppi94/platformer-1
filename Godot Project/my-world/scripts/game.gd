@@ -16,6 +16,7 @@ extends Node
 signal stats_changed
 signal message_posted(text: String)
 signal saved
+signal leveled_up(level: int)    # after each level gained (scripts/ride_upgrades.gd opens rides with it)
 
 var next_spawn := ""             # spawn marker name to appear at after a scene change
 
@@ -179,6 +180,7 @@ func _level_up() -> void:
 	mp_level += 1
 	Audio.play("level_up")
 	message("Level up! You're now Lv %d (MP Lv %d)." % [level, mp_level])
+	leveled_up.emit(level)
 
 
 func spend_sp(amount: float) -> bool:

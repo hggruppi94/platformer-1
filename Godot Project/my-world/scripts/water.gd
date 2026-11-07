@@ -18,6 +18,14 @@ var _inside := false
 var _fx := 0.0
 
 
+func _ready() -> void:
+	add_to_group("water")                           # hover rides float on it (scenes/player/skate.gd, _float_on_water)
+
+
+func covers(x: float, z: float) -> bool:
+	return _in_outline(x, z)
+
+
 func _physics_process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as CharacterBody3D

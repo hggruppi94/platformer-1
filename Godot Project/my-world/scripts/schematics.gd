@@ -45,7 +45,8 @@ const LIST := [
 ]
 
 # What each ride costs at Zippy's Tune-Up (the shop keeps prices at 20 or under)
-const RIDE_PRICES := {"overboard": 14, "bike": 16, "rocket_board": 18, "rocket_bike": 20, "saucer": 20}
+# The Hover Bike has no schematic: Zippy makes it from your Bike once you're Lv 3 (scripts/ride_upgrades.gd)
+const RIDE_PRICES := {"overboard": 14, "bike": 16, "hover_bike": 17, "rocket_board": 18, "rocket_bike": 20, "saucer": 20}
 
 var _scene: Node
 
@@ -158,12 +159,18 @@ func pick_up(id: String, at := Vector3.ZERO) -> void:
 # -----------------------------------------------------------------------------
 func _register_shop() -> void:
 	Shop.register_kind("ride", {"can_buy": _can_buy_ride, "buy": _buy_ride, "button": "Build it!",
-		"note": func(it: Dictionary) -> String: return note_for("ride", str(it.ride))})
+		"note": _ride_note})
 	for r in RIDE_PRICES:
 		var item_id := "ride_" + str(r)
 		var ride: Dictionary = Rides.HERO_RIDES[r]
 		Shop.items[item_id] = {"id": item_id, "name": str(ride.name), "stall": "Tune-Up", "kind": "ride", "ride": r,
-			"price": int(RIDE_PRICES[r]), "text": str(ride.says)}
+			"price": int(RIDE_PRICES[r]), "text": str(ride.says) + (" (Lv %d)" % int(ride.level) if ride.has("level") else "")}
+
+
+func _ride_note(it: Dictionary) -> String:
+	# Where its schematic is, or else what level Zippy's waiting for
+	var n := note_for("ride", str(it.ride))
+	return n if n != "" else RideUpgrades.level_note(str(it.ride))
 
 
 func _can_buy_ride(it: Dictionary) -> String:
@@ -172,6 +179,9 @@ func _can_buy_ride(it: Dictionary) -> String:
 		return "You have this one"
 	if not ride_unlocked(r):
 		return "Find its schematic"
+	var lock := RideUpgrades.lock_line(r)
+	if lock != "":
+		return lock
 	if not Game.has_item("skateboard"):
 		return "Needs a skateboard"
 	return ""
