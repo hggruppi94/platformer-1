@@ -7,6 +7,8 @@
 #   bunny       a bunny-kid: long ears, buck teeth, a pink nose, whiskers and a cotton tail, in dungarees
 #   cat         a cat-kid: pointed ears, a little pink nose, whiskers and a long curly tail, in a hoodie
 #   dino        a Galaxity dino-kid: a round snout with nostrils, little horns, spikes down the back and tail
+#   human_girl  the creator's human kid, a girl: big bright eyes with lashes, a T-shirt and a flared skirt
+#   human_boy   the creator's human kid, a boy: big bright eyes, a T-shirt and shorts
 #
 #   blender -b --python tools\build_hero_bodies.py [-- name ...]
 #
@@ -146,13 +148,18 @@ def tail(name, pts, r0, material, tip=0.01, taper=0.8):
     lock(name, pts, r0, material, ["hips"], flat=1.0, tip=tip, taper=taper, sides=12)
 
 
-def finish_kid(name, rig_name, main="Torso"):
+def finish_kid(name, rig_name, main="Torso", extra=False):
     b = bones()
     rig = build_rig(rig_name, b)
     skin_and_join(rig, b, name, main)
     make_action(rig, "idle", 60, lambda t: biped_idle(b, t))
     make_action(rig, "walk", 32, lambda t: biped_walk(b, t))
     make_action(rig, "run", 20, lambda t: biped_run(b, t))
+    if extra:
+        # The human kids are the player, so they jump, fall and skate too (the player plays these)
+        make_action(rig, "jump", 10, lambda t: human_jump(b, t))
+        make_action(rig, "fall", 24, lambda t: human_fall(b, t))
+        make_action(rig, "skate", 40, lambda t: human_skate(b, t))
     rest_pose(rig)
     finish(OUT / f"{name.lower().replace(' ', '_')}.blend")
 
@@ -402,7 +409,146 @@ def dino():
     finish_kid("Dino", "DinoRig")
 
 
-BUILDERS = {"earth_kid": earth_kid, "bunny": bunny, "cat": cat, "dino": dino}
+# =============================================================================
+# Human kids: the creator's one body, as a girl or a boy (Hayden, 7 Nov 2026: "one body type, human, boy or girl")
+# =============================================================================
+# Same head and skeleton as the Earth kid (so clothes, hats and the new hairstyles fit them the same way), with
+# bigger, brighter eyes and a softer face. Their own hair is only a close cap ("Hair"): every hairstyle
+# (scripts/hairstyles.gd) sits on top of it, so there's never a bald gap under a style.
+def human_face(head, girl):
+    eye_r = (0.064, 0.038, 0.076) if girl else (0.062, 0.038, 0.072)
+    for sx, side in ((1, "L"), (-1, "R")):
+        p = head.front(0.098 * sx, 1.09)
+        cartoon_eye(side, p - head.normal(p) * 0.014, eye_r, HB, look=(0.0, 0.004))
+        # Brows: thinner and higher for her, a bit straighter and bolder for him
+        lift, w = (0.022, 0.009) if girl else (0.012, 0.0125)
+        arc_on(head, f"Brow.{side}", [(sx * (0.045 + 0.10 * t), 1.205 + lift * math.sin(math.pi * t) - 0.006 * t)
+                                      for t in (i / 7 for i in range(8))], w, "Brow", HB, offset=0.005)
+        b = head.front(0.16 * sx, 0.995)
+        ellipsoid(f"Blush.{side}", b - head.normal(b) * 0.006, (0.036, 0.012, 0.022), "Blush", HB,
+                  rot=basis_facing(head.normal(b)))
+        if girl:
+            # Three lashes flicking out from the top outer edge of each eye
+            for k, (ang, ln) in enumerate(((0.95, 0.034), (1.25, 0.03), (1.55, 0.024))):
+                ex, ez = 0.098 * sx + sx * eye_r[0] * 0.92 * math.cos(ang - 0.6), 1.09 + eye_r[2] * 0.92 * math.sin(ang - 0.6)
+                root = head.front(ex - sx * 0.006, ez + 0.004, offset=0.008)
+                tip = root + Vector((sx * ln * math.cos(ang - 0.9), -0.012, ln * math.sin(ang - 0.4)))
+                lock(f"Lash.{side}{k}", [root, root.lerp(tip, 0.5) + Vector((0, -0.004, 0.003)), tip], 0.006, "Lash", HB,
+                     flat=0.5, tip=0.0015, taper=1.0, sides=6, normal_fn=lambda q: head.normal(q))
+    n0 = head.front(0, 1.02)
+    ellipsoid("Nose", n0 + head.normal(n0) * 0.004, (0.022, 0.018, 0.018) if girl else (0.025, 0.02, 0.02), "Nose", HB)
+    smile("Mouth", head, 0.0, 0.962, 0.055, 0.04, HB)
+
+
+def human_kid(girl):
+    K.begin()
+    mat("Skin", (0.86, 0.62, 0.48))
+    mat("Nose", (0.80, 0.55, 0.42))
+    mat("Ear Inner", (0.76, 0.48, 0.38))
+    mat("Blush", (0.95, 0.45, 0.45))
+    mat("Mouth", (0.30, 0.05, 0.06))
+    mat("Tongue", (0.90, 0.36, 0.40))
+    mat("Brow", (0.20, 0.11, 0.05))
+    mat("Lash", (0.06, 0.03, 0.03))
+    mat("Hair", (0.30, 0.17, 0.08), rough=0.5)
+    eye_materials((0.10, 0.30, 0.55), (0.30, 0.60, 0.90))
+    if girl:
+        mat("Top", (0.95, 0.45, 0.62), rough=0.7)
+        mat("Top Shade", (0.80, 0.30, 0.48), rough=0.7)
+        mat("Badge", (1.0, 0.95, 0.96), rough=0.6)
+        mat("Skirt", (0.45, 0.35, 0.85), rough=0.75)
+        mat("Skirt Shade", (0.32, 0.24, 0.66), rough=0.75)
+        mat("Shoes", (0.98, 0.80, 0.25), rough=0.55)
+    else:
+        mat("Top", (0.20, 0.55, 0.90), rough=0.7)
+        mat("Top Shade", (0.12, 0.38, 0.70), rough=0.7)
+        mat("Star", (1.0, 0.85, 0.25), rough=0.6)
+        mat("Shorts", (0.30, 0.42, 0.30), rough=0.8)
+        mat("Shorts Shade", (0.20, 0.30, 0.20), rough=0.8)
+        mat("Shoes", (0.90, 0.25, 0.20), rough=0.55)
+    mat("Sole", (0.95, 0.95, 0.95))
+    head = Ellipsoid((0, 0, 1.10), (0.25, 0.23, 0.27))
+    ellipsoid("Head", head.c, head.r, "Skin", HB, u=48, v=24)
+    # Their own hair: a close cap with a soft hairline (hairstyles go on top of it)
+    scalp_cap("Hair", head, "Hair", HB, thick=0.012,
+              hairline=lambda x: 1.245 - 0.12 * ss(0.15, 0.24, abs(x)), u=96, v=48, bottom=0.99)
+    human_face(head, girl)
+    for sx, side in ((1, "L"), (-1, "R")):
+        ear = head.dir_point((sx, 0.05, -0.05), offset=-0.004)
+        ellipsoid(f"Ear.{side}", ear, (0.028, 0.042, 0.054), "Skin", HB)
+        ellipsoid(f"Ear Inner.{side}", ear + Vector((0.011 * sx, -0.008, 0)), (0.015, 0.028, 0.037), "Ear Inner", HB)
+    if girl:
+        torso_ell = kid_body("Top", "Skirt", "Skin", torso_r=(0.22, 0.19, 0.25), shorts_r=0.104)
+        # A flared skirt over the shorts
+        zs = [0.52 - 0.17 * i / 8 for i in range(9)]
+        tube("Skirt Flare", [(0, 0, z) for z in zs],
+             [(0.205 + 0.075 * ((0.52 - z) / 0.17) ** 1.2,) * 2 for z in zs], "Skirt",
+             ["hips", ("thigh.L", 1.0), ("thigh.R", 1.0)], sides=40, caps=False)
+        torus("Skirt Hem", (0, 0, 0.352), 0.278, 0.012, "Skirt Shade", ["hips"])
+        flower = torso_ell.front(0, 0.67, offset=0.003)
+        star_prism("Shirt Flower", flower, torso_ell.normal(flower), 0.055, 0.04, 0.006, "Badge", ["spine", "chest"],
+                   points=8)
+        finish_kid("Human Girl", "HumanGirlRig", extra=True)
+    else:
+        torso_ell = kid_body("Top", "Shorts", "Skin")
+        star = torso_ell.front(0, 0.67, offset=0.003)
+        star_prism("Shirt Star", star, torso_ell.normal(star), 0.06, 0.026, 0.006, "Star", ["spine", "chest"])
+        finish_kid("Human Boy", "HumanBoyRig", extra=True)
+
+
+def _pose(b, spec, offset=0.0):
+    p = Pose(b)
+    for bone, rots in spec.items():
+        p.rel(bone, *rots)
+    p.offset = Vector((0, 0, offset))
+    return p
+
+
+def human_jump(b, t):
+    # Tucking the legs up, arms thrown up and out
+    k = ss(0, 1, t)
+    return _pose(b, {
+        "thigh.L": [(X, -0.55 * k)], "thigh.R": [(X, -0.35 * k)],
+        "shin.L": [(X, 0.95 * k)], "shin.R": [(X, 0.6 * k)],
+        "upper_arm.L": [(Y, 0.38 - 1.3 * k)], "upper_arm.R": [(Y, -0.38 + 1.3 * k)],
+        "forearm.L": [(X, -0.3 - 0.3 * k)], "forearm.R": [(X, -0.3 - 0.3 * k)],
+        "spine": [(X, -0.06 * k)], "head": [(X, -0.1 * k)]})
+
+
+def human_fall(b, t):
+    # Arms up and legs paddling a little on the way down
+    s = math.sin(2 * math.pi * t)
+    return _pose(b, {
+        "thigh.L": [(X, -0.25 + 0.15 * s)], "thigh.R": [(X, -0.25 - 0.15 * s)],
+        "shin.L": [(X, 0.45)], "shin.R": [(X, 0.45)],
+        "upper_arm.L": [(Y, -1.0 + 0.15 * s)], "upper_arm.R": [(Y, 1.0 + 0.15 * s)],
+        "forearm.L": [(X, -0.5 - 0.2 * s)], "forearm.R": [(X, -0.5 + 0.2 * s)],
+        "head": [(X, 0.08)]})
+
+
+def human_skate(b, t):
+    # Riding stance, side-on to the board (the game turns them): knees bent, arms out for balance
+    s = math.sin(2 * math.pi * t)
+    return _pose(b, {
+        "thigh.L": [(X, -0.4)], "thigh.R": [(X, -0.4)],
+        "shin.L": [(X, 0.7)], "shin.R": [(X, 0.7)],
+        "foot.L": [(X, -0.3)], "foot.R": [(X, -0.3)],
+        "spine": [(X, 0.15), (Y, 0.05 * s)], "chest": [(Y, 0.04 * s)],
+        "upper_arm.L": [(Y, -0.35 + 0.1 * s)], "upper_arm.R": [(Y, 0.35 - 0.1 * s)],
+        "forearm.L": [(X, -0.3)], "forearm.R": [(X, -0.3)],
+        "head": [(Z, 1.0), (X, -0.08)]}, -0.03 + 0.008 * s)
+
+
+def human_girl():
+    human_kid(True)
+
+
+def human_boy():
+    human_kid(False)
+
+
+BUILDERS = {"earth_kid": earth_kid, "bunny": bunny, "cat": cat, "dino": dino, "human_girl": human_girl,
+            "human_boy": human_boy}
 only = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 for key, build in BUILDERS.items():
     if not only or key in only:

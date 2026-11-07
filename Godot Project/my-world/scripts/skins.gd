@@ -26,7 +26,7 @@ const SKINS := {
 }
 const ORDER := ["starlight", "comet", "clockwork", "midnight", "checkered", "champion"]
 # What a body keeps of its own whatever skin it wears
-const KEEP := {"earth_kid": ["fur"]}
+const KEEP := {"earth_kid": ["fur"], "human_girl": ["fur"], "human_boy": ["fur"]}
 
 
 static func colors_of(hero: Dictionary) -> Dictionary:

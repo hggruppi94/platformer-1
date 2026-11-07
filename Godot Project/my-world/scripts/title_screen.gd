@@ -5,7 +5,9 @@ extends Node3D
 # held still and set to dawn just for the view, and both are put back as they were when you leave. Buttons:
 #
 #   Continue   (only with a save: the hero's name, which night, how long they've played)  -> Game.continue_game()
-#   New Game   (asks first if there's a save) -> the opening, then Game.new_game() and the creator
+#   Save Slots (three games side by side: Game.SLOTS) -> play a slot, start a new game in an empty one, or delete one
+#   New Game   (asks first if there's a save, or offers another slot) -> the opening, then Game.new_game() and the
+#              creator
 #   Settings   (the pause menu's settings tabs)
 #   Quit
 #
@@ -38,6 +40,10 @@ var continue_button: Button
 var new_button: Button
 var settings_panel: PanelContainer
 var confirm_panel: PanelContainer
+var slots_panel: PanelContainer
+var slots_button: Button
+var _new_slot := 0                            # a new game is going into this slot (0: the one being played)
+var _delete_slot := 0                         # the slot the confirm panel is asking to delete
 var caption: Label
 var skip_hint: Label
 var fader: ColorRect
@@ -97,6 +103,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif confirm_panel.visible and event.is_action_pressed("ui_cancel"):
 		_close_confirm()
+		get_viewport().set_input_as_handled()
+	elif slots_panel.visible and event.is_action_pressed("ui_cancel"):
+		_close_slots()
 		get_viewport().set_input_as_handled()
 
 
@@ -181,6 +190,7 @@ func _build_ui() -> void:
 		info.add_theme_color_override("font_outline_color", Color(0.1, 0.1, 0.2))
 		info.add_theme_constant_override("outline_size", 8)
 		menu_box.add_child(info)
+	slots_button = _button("Save Slots", open_slots)
 	new_button = _button("New Game", _ask_new_game)
 	_button("Settings", _open_settings)
 	_button("Quit", func() -> void: get_tree().quit())
@@ -214,14 +224,36 @@ func _build_ui() -> void:
 	yes.name = "Yes"
 	yes.text = "Yes, start a new game"
 	yes.pressed.connect(func() -> void:
+		if _delete_slot > 0:
+			Game.delete_slot(_delete_slot)
+			_delete_slot = 0
+			_reset_confirm()
+			confirm_panel.visible = false
+			_rebuild_menu()
+			open_slots()
+			return
 		_close_confirm()
 		play_opening())
 	cb.add_child(yes)
+	var other := Button.new()
+	other.name = "OtherSlot"
+	other.text = "Use a different save slot"
+	other.pressed.connect(func() -> void:
+		confirm_panel.visible = false
+		open_slots())
+	cb.add_child(other)
 	var no := Button.new()
 	no.name = "No"
 	no.text = "No, go back"
 	no.pressed.connect(_close_confirm)
 	cb.add_child(no)
+
+	slots_panel = PanelContainer.new()
+	slots_panel.set_anchors_preset(Control.PRESET_CENTER)
+	slots_panel.position = Vector2(-380, -250)
+	slots_panel.custom_minimum_size = Vector2(760, 0)
+	slots_panel.visible = false
+	root.add_child(slots_panel)
 
 	fader = ColorRect.new()
 	fader.color = Color(0, 0, 0, 0)
@@ -264,15 +296,116 @@ func _button(text: String, cb: Callable) -> Button:
 
 
 static func has_save() -> bool:
-	return FileAccess.file_exists(Game.SAVE_PATH) and not Game.needs_creator
+	return FileAccess.file_exists(Game.save_path()) and not Game.needs_creator
 
 
 static func save_info() -> String:
-	# "Sunny  ·  Night 3  ·  played 1 h 12 min"
+	# "Slot 1  ·  Sunny  ·  Night 3  ·  played 1 h 12 min"
 	var who := Dialogue.player_name()
-	var mins := int(Game.play_time / 60.0)
-	var played := "%d h %d min" % [mins / 60, mins % 60] if mins >= 60 else "%d min" % maxi(mins, 1)
-	return "%s  ·  Night %d  ·  played %s" % [who, Nights.night(), played]
+	return "Slot %d  ·  %s  ·  Night %d  ·  played %s" % [Game.slot, who, Nights.night(), _played(Game.play_time)]
+
+
+static func _played(seconds: float) -> String:
+	var mins := int(seconds / 60.0)
+	return "%d h %d min" % [mins / 60, mins % 60] if mins >= 60 else "%d min" % maxi(mins, 1)
+
+
+# -----------------------------------------------------------------------------
+# Save slots
+# -----------------------------------------------------------------------------
+func open_slots() -> void:
+	# A card for each slot: who's in it and how far they've got (press to play), or "Empty" (press to start a new
+	# game there). A filled slot has a Delete button that asks first.
+	Audio.play("ui_accept", -6.0, 0.0)
+	menu_box.visible = false
+	confirm_panel.visible = false
+	slots_panel.visible = true
+	for c in slots_panel.get_children():
+		c.free()
+	var box := VBoxContainer.new()
+	box.name = "Box"
+	box.add_theme_constant_override("separation", 12)
+	slots_panel.add_child(box)
+	var head := Label.new()
+	head.text = "Pick a save slot"
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_font_size_override("font_size", 34)
+	box.add_child(head)
+	var first: Button = null
+	for n in range(1, Game.SLOTS + 1):
+		var info: Dictionary = Game.slot_info(n)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		box.add_child(row)
+		var b := Button.new()
+		b.name = "Slot %d" % n
+		b.custom_minimum_size = Vector2(0, 86)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 24)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if info.is_empty():
+			b.text = "  Slot %d:  Empty\n  Start a new game here" % n
+			b.pressed.connect(_new_game_in.bind(n))
+		elif info.has("broken"):
+			b.text = "  Slot %d:  This save can't be read" % n
+			b.disabled = true
+		else:
+			b.text = "  Slot %d:  %s%s\n  Level %d  ·  Day %d  ·  played %s" % [n, info.name,
+				"  (playing now)" if n == Game.slot else "", info.level, info.day, _played(info.play_time)]
+			b.pressed.connect(_play_slot.bind(n))
+		b.focus_entered.connect(func() -> void: Audio.play("ui_move", -10.0, 0.0))
+		row.add_child(b)
+		if not info.is_empty():
+			var del := Button.new()
+			del.name = "Delete %d" % n
+			del.text = "Delete"
+			del.custom_minimum_size = Vector2(130, 86)
+			del.add_theme_font_size_override("font_size", 20)
+			del.pressed.connect(_ask_delete.bind(n))
+			row.add_child(del)
+		if first == null or n == Game.slot:
+			first = b
+	var back := Button.new()
+	back.name = "Back"
+	back.text = "Back"
+	back.custom_minimum_size = Vector2(0, 54)
+	back.pressed.connect(_close_slots)
+	box.add_child(back)
+	first.grab_focus.call_deferred()
+
+
+func _close_slots() -> void:
+	slots_panel.visible = false
+	menu_box.visible = true
+	(continue_button if continue_button else new_button).grab_focus()
+
+
+func _play_slot(n: int) -> void:
+	Audio.play("ui_accept", -6.0, 0.0)
+	Game.use_slot(n)
+	# The clock is now that slot's: keep it as it is when the title screen puts the clock back on the way out
+	_keep.merge({"minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes, "on_earth": Clock.on_earth}, true)
+	Game.continue_game()
+
+
+func _new_game_in(n: int) -> void:
+	# A new game in an empty slot: the opening, then Game.new_game_in(n)
+	Audio.play("ui_accept", -6.0, 0.0)
+	slots_panel.visible = false
+	_new_slot = n
+	play_opening()
+
+
+func _ask_delete(n: int) -> void:
+	_delete_slot = n
+	slots_panel.visible = false
+	var info: Dictionary = Game.slot_info(n)
+	(confirm_panel.get_node("Box/Question") as Label).text = "Delete slot %d? %s's adventure will be gone for good." % [n,
+		str(info.get("name", "This"))]
+	(confirm_panel.get_node("Box/Yes") as Button).text = "Yes, delete it"
+	(confirm_panel.get_node("Box/OtherSlot") as Button).visible = false
+	confirm_panel.visible = true
+	(confirm_panel.get_node("Box/No") as Button).grab_focus()
 
 
 func continue_game() -> void:
@@ -294,8 +427,30 @@ func _ask_new_game() -> void:
 
 func _close_confirm() -> void:
 	confirm_panel.visible = false
+	if _delete_slot > 0:                       # (No to deleting: back to the slots)
+		_delete_slot = 0
+		_reset_confirm()
+		open_slots()
+		return
 	menu_box.visible = true
 	new_button.grab_focus()
+
+
+func _reset_confirm() -> void:
+	(confirm_panel.get_node("Box/Yes") as Button).text = "Yes, start a new game"
+	(confirm_panel.get_node("Box/OtherSlot") as Button).visible = true
+
+
+func _rebuild_menu() -> void:
+	# After a slot's deleted, Continue may have nothing left to continue
+	if continue_button and not has_save():
+		continue_button.queue_free()
+		continue_button = null
+		var info := menu_box.get_node_or_null("SaveInfo")
+		if info:
+			info.queue_free()
+	elif continue_button:
+		(menu_box.get_node("SaveInfo") as Label).text = save_info()
 
 
 func _open_settings() -> void:
@@ -468,7 +623,10 @@ func _finish_opening() -> void:
 	tw.tween_property(fader, "color:a", 1.0, 0.0 if _skip else 0.6)
 	tw.tween_property(caption, "modulate:a", 0.0, 0.2)
 	await tw.finished
-	Game.new_game()
+	if _new_slot > 0:
+		Game.new_game_in(_new_slot)
+	else:
+		Game.new_game()
 
 
 func _find(n: String) -> Node3D:

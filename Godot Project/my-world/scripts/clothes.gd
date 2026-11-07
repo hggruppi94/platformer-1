@@ -38,6 +38,8 @@ const OWN_CLOTHES := {
 	"clover": {"top": ["Top"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoe", "Sole"]},
 	# The hero creator's own bodies (scripts/hero.gd)
 	"earth_kid": {"top": ["Top", "Top Shade"], "bottoms": ["Jeans", "Jeans Shade"], "feet": ["Shoes", "Sole"]},
+	"human_girl": {"top": ["Top", "Top Shade"], "bottoms": ["Skirt", "Skirt Shade"], "feet": ["Shoes", "Sole"]},
+	"human_boy": {"top": ["Top", "Top Shade"], "bottoms": ["Shorts", "Shorts Shade"], "feet": ["Shoes", "Sole"]},
 	"bunny": {"top": ["Top", "Top Shade"], "bottoms": ["Dungarees", "Dungarees Shade"], "feet": ["Shoes", "Sole"]},
 	"cat": {"top": ["Hoodie", "Hoodie Shade"], "bottoms": ["Shorts", "Shorts Shade"], "feet": ["Shoes", "Sole"]},
 	"dino": {"top": ["Top", "Top Shade"], "bottoms": ["Shorts", "Shorts Shade"], "feet": ["Shoes", "Sole"]},
@@ -71,6 +73,8 @@ const OWN_LOOKS := {
 	"green_man": {"fur": ["Green", "Green Dark"], "eyes": ["Eye"]},
 	"earth_kid": {"fur": ["Skin", "Nose", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"],
 		"accent": ["Backpack", "Backpack Dark"], "blush": ["Blush"]},
+	"human_girl": {"fur": ["Skin", "Nose", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"], "blush": ["Blush"]},
+	"human_boy": {"fur": ["Skin", "Nose", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"], "blush": ["Blush"]},
 	"bunny": {"fur": ["Fur", "Ear", "Fur Light"], "eyes": ["Iris", "Iris Light"], "accent": ["Flower", "Flower Middle"],
 		"blush": ["Blush"]},
 	"cat": {"fur": ["Fur", "Ear", "Stripe", "Fur Light"], "eyes": ["Iris", "Iris Light"], "accent": ["Collar"],

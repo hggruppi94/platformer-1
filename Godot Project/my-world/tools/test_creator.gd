@@ -4,8 +4,8 @@ extends SceneTree
 # needs the creator and starts at home, the creator changes the body, hairstyle, colours, size and name and won't
 # close without a name, "Surprise me" keeps the name, the hero saves and loads, an old save from before heroes asks
 # for one and keeps its outfit, turning the hero (mouse or stick) keeps the mouse and leaves the camera alone, the
-# wardrobe opens the creator, the Face tab sculpts eyes, noses, ears and mouths and picks ready-made faces, the
-# dog-kid is a secret found by finishing Bruno's skate lesson, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
+# wardrobe opens the creator, the Face tab sculpts eyes, noses, ears and mouths and picks ready-made faces, there's
+# one body (a human kid, girl or boy) with ten hairstyles each and old heroes become one, New Game while it's open starts cleanly (and asks again after a quit), dialogue says the player's name and pronouns, the house's Decorate spot changes the
 # colours and furniture (and they save), and Nina is a friend in town with things to say.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_creator.gd
@@ -61,12 +61,16 @@ func _run() -> void:
 	creator.open(true)
 	await _frames(2)
 	check(creator.is_open() and p.get("input_locked"), "the creator opens, and the hero waits while it's open")
-	game.hero["body"] = "hippo"
-	creator.step_body(1)
+	creator.set_girl(true)
+	creator.set_girl(false)
 	await _frames(2)
 	var model := p.get("model") as Node3D
-	check(game.hero.body == "kid" and model.scene_file_path == Hero.BODIES.kid.model, "the body arrows change the body")
-	creator.set_value("hairstyle", 3)
+	check(game.hero.body == "human_boy" and model.scene_file_path == Hero.BODIES.human_boy.model, "the Boy button makes them a boy")
+	creator.set_girl(true)
+	await _frames(2)
+	model = p.get("model") as Node3D
+	check(game.hero.body == "human_girl" and model.scene_file_path == Hero.BODIES.human_girl.model, "...and Girl a girl")
+	creator.set_value("hairstyle", Hairstyles.GIRL_STYLES[0])
 	await _frames(2)
 	model = p.get("model") as Node3D
 	var hair := false
@@ -118,32 +122,46 @@ func _run() -> void:
 	var alien := Hero.BODIES.alien.face as Dictionary
 	check(not FaceSculpt.has_feature(alien, "ears") and FaceSculpt.has_feature(alien, "eyes"), "a body with no ears has no ears slider")
 
-	# --- Secret bodies: the dog-kid gets about on all fours, so it's found, not picked ---
-	dialogue.flags.erase("skate_lesson_done")
-	game.items.erase("secret:dog")
-	var seen := []
-	for i in Hero.BODY_ORDER.size() + 2:
-		creator.step_body(1)
-		seen.append(game.hero.body)
-	check("dog" not in seen and "dog" not in Hero.BODY_ORDER, "the dog-kid isn't in the list of bodies until it's found")
+	# --- One body: a human kid, a girl or a boy, with their own ten hairstyles ---
+	check(Hero.choices(game.hero) == ["human_girl", "human_boy"], "the creator offers only a girl and a boy")
 	creator._tab = "Body"
 	creator._fill()
-	var hint := false
-	for l in creator._content.find_children("*", "Label", true, false):
-		if "Coach Bruno" in (l as Label).text:
-			hint = true
-	check(hint, "...and the Body tab gives a hint for finding it")
-	dialogue.set_flag("skate_lesson_done")
-	await _frames(3)
-	check(game.has_item("secret:dog") and "dog" in Hero.choices(game.hero), "finishing Bruno's skate lesson finds the dog-kid")
-	seen = []
-	for i in Hero.choices(game.hero).size():
-		creator.step_body(1)
-		seen.append(game.hero.body)
-	check("dog" in seen, "...which the body arrows then reach")
-	dialogue.flags.erase("skate_lesson_done")
-	check(Hero.found("dog"), "...and it stays found")
-	game.hero["body"] = "kid"
+	check(creator._content.find_child("Pick girl", true, false) is Button and creator._content.find_child("Pick boy", true, false) is Button,
+		"...as two big buttons on the Body tab")
+	var tones: Node = creator._content.find_child("Swatches fur", true, false)
+	check(tones != null and tones.get_child_count() == Hero.SKIN_TONES.size() + 1, "...with skin tones to pick from")
+	creator._tab = "Hair"
+	creator._fill()
+	var grid: Node = creator._content.find_child("Hair styles", true, false)
+	check(grid != null and grid.get_child_count() == 10, "the Hair tab shows the girls' ten styles")
+	creator.set_girl(false)
+	await _frames(2)
+	check(int(game.hero.hairstyle) in Hairstyles.BOY_STYLES, "...and a boy gets a boy's style")
+	grid = creator._content.find_child("Hair styles", true, false)
+	check(grid.get_child_count() == 10 and (grid.get_child(0) as Button).text == "Hero spikes", "...and the boys' ten")
+	creator._all_hair = true
+	creator._fill()
+	check(creator._content.find_child("Hair styles", true, false).get_child_count() == 20, "Show every style shows all twenty")
+	creator._all_hair = false
+	for style in Hairstyles.GIRL_STYLES + Hairstyles.BOY_STYLES:
+		var built := Hairstyles.build(style, Color(0.4, 0.25, 0.1))
+		var ok := built != null and built.get_child_count() > 0 and HairKit.ABOUT.has(Hairstyles.name_of(style))
+		check(ok, "the %s hairstyle is built" % Hairstyles.name_of(style))
+		if built:
+			built.free()
+	creator.set_value("hairstyle", Hairstyles.BOY_STYLES[3])
+	await _frames(2)
+	var cap := Clothes._surfaces(Clothes._body(p.get("model")), ["Hair"])
+	var over := Clothes._body(p.get("model")).get_surface_override_material(cap[0]) as StandardMaterial3D if not cap.is_empty() else null
+	check(not cap.is_empty() and (over == null or over.albedo_color.a > 0.5), "their own close hair stays on under a hairstyle")
+	# Old heroes become human kids
+	var old := Hero.migrate({"name": "Pip", "pronouns": "they", "body": "moth", "hairstyle": 3, "colors": {"fur": 16, "hair": 5}})
+	check(old.body == "human_girl" and old.hairstyle == Hairstyles.GIRL_STYLES[0] and not old.colors.has("fur") and old.colors.hair == 5,
+		"an old moth hero becomes a girl with a ponytail, their skin their own and their hair colour kept")
+	old = Hero.migrate({"name": "Max", "pronouns": "he", "body": "hippo", "hairstyle": 7, "colors": {"fur": 3}})
+	check(old.body == "human_boy" and old.hairstyle == 27 and old.colors.fur == 3, "an old he/him hippo becomes a boy (mohawk to faux-hawk, skin tone kept)")
+	check(Hero.migrate({"body": "human_boy", "hairstyle": 22}).hairstyle == 22, "...and a human kid stays as they are")
+	game.hero["body"] = "human_boy"
 	creator.step_body(0)
 	await _frames(2)
 	game.hero["name"] = ""
