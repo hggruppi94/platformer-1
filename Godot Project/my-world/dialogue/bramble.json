@@ -7,9 +7,9 @@
         "not_flag": "slide_ask_bramble"
       },
       "lines": [
-        "Och, the old slide. We don't talk about it, love. Nobody does.",
-        "All I know is, the flowers round it won't grow, and at night there's a wee green glow near the Haunted House.",
-        "My gran used to say something got STUCK in that house a long time ago. Something that liked to slide."
+        "The old slide? Ooh. The plants round it don't like to talk about it.",
+        "Nothing grows near it any more, and at night there's a little green glow by the Haunted House.",
+        "The oldest roots in the woods remember something getting STUCK in that house, a long time ago. Something that liked to slide."
       ],
       "set": "slide_ask_bramble"
     },
@@ -19,8 +19,8 @@
         "not_flag": "dogs_sign_bramble"
       },
       "lines": [
-        "Rights for dogs? Aye, of course. Rook dug up my whole carrot patch last week, and I still love him.",
-        "(Bramble signs with a big loopy B and a little flower.)"
+        "Rights for dogs? Of course! Rook dug up my whole carrot patch last week, and I still love him. The carrots forgave him too.",
+        "(Bramble signs with a big loopy B and a little leaf. Snappy tries to eat the pen.)"
       ],
       "set": "dogs_sign_bramble"
     },
@@ -30,11 +30,11 @@
       },
       "set": "n3_hi",
       "lines": [
-        "{player}! Over here! I've been standing by this portal so long a butterfly landed on my nose.",
-        "The south meadow is blooming tonight. Moonflowers, starbells, the lot. You have to see it!",
+        "{player}! Down here! Well, up here now. (Bramble pops out of the ground by the portal.) I've been waiting so long a butterfly landed on my antlers.",
+        "The south meadow is blooming tonight. Moonflowers, starbells, the lot. The roots told me. You have to see it!",
         "And something's out there that isn't a flower. Two glowy blue papers, blown in from who knows where. Schematics, Dash calls them.",
         "One's in the middle of the meadow, by the twisty race track. The other's over on the lake side.",
-        "Oh! And Zippy's been asking who wants to race. Moo-ve fast and you might win something!"
+        "Oh! And Zippy's been asking who wants to race. Grow fast and you might win something!"
       ]
     },
     {
@@ -42,10 +42,12 @@
         "talks": 0
       },
       "lines": [
-        "Well, hey there, sugar! Ain't you just the sweetest thing.",
-        "I'm Bramble. I grow things, and I fix up anybody who's feelin' poorly.",
+        "(The ground in front of you bulges... and a girl made of leaves pops up, showering soil everywhere.) Oh! Hello! Sorry about the dirt.",
+        "I'm Bramble. I grow things, and I fix up anybody who's feeling poorly. And this is Snappy.",
+        "(The flytrap on her arm opens wide and goes SNAP!)",
+        "Snappy, manners! Sorry! He's friendly, really. He only eats bugs. And sometimes socks.",
         "{player}: Like a doctor?",
-        "Sort of! More like a garden that gives hugs."
+        "Sort of! More like a garden that gives hugs. I travel underground, it's quicker, and the worms give very good directions."
       ]
     },
     {
@@ -55,16 +57,16 @@
         "min_talks": 1
       },
       "lines": [
-        "Sugar! Guess who asked me for flowers? Mr. Palmer himself! Said Rex's campaign gave him the idea.",
-        "Flowers in every window box in town. I've got the bundles all tied up, but these old knees creak somethin' awful.",
-        "Would you be a dear and fill the boxes for me?",
+        "Guess who asked me for flowers? Mr. Palmer himself! He said Rex's campaign gave him the idea.",
+        "Flowers in every window box in town. I've got the bundles all tied up, but I can't carry them underground. They'd get muddy.",
+        "Would you fill the boxes for me?",
         {
           "choice": [
             {
               "text": "Of course!",
               "set": "bramble_flowers_start",
               "lines": [
-                "Bless your heart! Here you go, a whole armful.",
+                "Hooray! Here you go, a whole armful.",
                 "(Bramble hands {player} a big bundle of flowers. They smell like sunshine.)",
                 "Mr. Palmer's window at the Town Hall, Nina's house, the Potion Shop, the Book Store, and Dash's place."
               ]
@@ -72,7 +74,7 @@
             {
               "text": "Maybe later.",
               "lines": [
-                "No rush, hon. Flowers don't mind waitin' in a bucket."
+                "No rush! Flowers don't mind waiting in a bucket."
               ]
             }
           ]
@@ -84,8 +86,8 @@
         "quest_step": "bramble_flowers:deliver"
       },
       "lines": [
-        "How're those window boxes comin', sugar? Each one needs a little love.",
-        "Mr. Palmer's, yours, the Potion Shop, the Book Store and Dash's."
+        "How are the window boxes coming? Each one needs a little love.",
+        "Mr. Palmer's, Nina's, the Potion Shop, the Book Store and Dash's."
       ]
     },
     {
@@ -95,10 +97,10 @@
       "set": "bramble_thanked",
       "lines": [
         "{player}: All the window boxes are full, Bramble!",
-        "Well, look at you! I could see 'em bloomin' from here.",
-        "You know what? I had a few bundles left over. So I snuck round and did the rest of the town too.",
-        "(Bramble winks.)",
-        "A town with flowers is a town that smiles. Thank you, sugar."
+        "I know! I could feel them blooming from here. All the way down in my roots.",
+        "You know what? I had a few bundles left over. So I popped up round town and did the rest of the town too.",
+        "(Bramble winks. Snappy winks too, sort of.)",
+        "A town with flowers is a town that smiles. Thank you!"
       ]
     },
     {
@@ -107,8 +109,8 @@
         "every": 3
       },
       "lines": [
-        "Every window in town's got flowers now. I water 'em on my mornin' walk.",
-        "The bees are havin' the best week of their lives."
+        "Every window in town's got flowers now. I pop up and water them on my morning walk. Well, morning burrow.",
+        "The bees are having the best week of their lives."
       ]
     },
     {
@@ -119,8 +121,8 @@
       "set": "asked_bramble",
       "lines": [
         "{player}: Bramble, Rex is running for mayor. What would you want a mayor to do?",
-        "Well, ain't that sweet of him to ask!",
-        "Flowers, sugar. Flowers in every window box in town. A town with flowers is a town that smiles.",
+        "Ooh, he asked about me? That's so sweet!",
+        "Flowers. Flowers in every window box in town. A town with flowers is a town that smiles.",
         "You tell that pup I said so. Kindly."
       ]
     },
@@ -129,7 +131,7 @@
         "time": "shift"
       },
       "lines": [
-        "Portal's open, hon. The flowers by it glow brighter every time. Ain't that somethin'?"
+        "The portal's open! The flowers by it glow brighter every time. Isn't that something?"
       ]
     },
     {
@@ -138,9 +140,9 @@
         "every": 2
       },
       "lines": [
-        "Mornin', sugar! These little sprouts need talkin' to. Plants love a good chat.",
+        "Morning! I wiggle my roots in, and everything grows a little happier.",
         "(Bramble whispers something to a carrot.)",
-        "He says hi!"
+        "He says hi! Roots are like friends. You can't always see them, but they're the ones holding you up."
       ]
     },
     {
@@ -149,9 +151,19 @@
         "every": 2
       },
       "lines": [
-        "Fresh flowers! I grew every single one of 'em myself, sugar.",
+        "Fresh flowers! I grew every single one of them myself. Some of them are my cousins.",
         "(Bramble tucks a little pink flower behind {player}'s ear.)",
         "There. Pretty as a picture."
+      ]
+    },
+    {
+      "when": {
+        "activity": "meadow"
+      },
+      "lines": [
+        "Want to see how I get about? Watch the ground!",
+        "(She dives into the soil with a little twirl and pops up a few steps away.) Ta-daa!",
+        "When I'm under there, everything's quiet and cosy. Then I come up and say hello to the sky again."
       ]
     },
     {
@@ -159,7 +171,7 @@
         "activity": "evening_watering"
       },
       "lines": [
-        "Waterin' time! Everybody gets a drink before bed, even the plants."
+        "Watering time! Everybody gets a drink before bed, even the plants. Even me."
       ]
     },
     {
@@ -168,7 +180,7 @@
         "every": 2
       },
       "lines": [
-        "Mornin'! The flowers wake up the same time I do. We do our stretches together.",
+        "Morning! The flowers wake up the same time I do. We do our stretches together. Sunshine is my breakfast.",
         "(Bramble stretches. A daisy nearby seems to stretch too.)"
       ]
     },
@@ -178,18 +190,17 @@
         "every": 2
       },
       "lines": [
-        "Shh, the plants are sleepin'. We gotta whisper so they grow nice and tall.",
+        "Shh, the plants are sleeping. We have to whisper so they grow nice and tall.",
         "{player}: (whispering) Goodnight, plants."
       ]
     },
     {
       "rotate": [
         [
-          "My best friend's from Scotland. She says 'wee' and I say 'y'all'.",
-          "Put us together and we're a whole dictionary!"
+          "(Snappy snaps at a passing firefly. Misses.) He's still learning. We all are!"
         ],
         [
-          "You look a little tuckered out, darlin'. Want a pick-me-up?",
+          "You look a little tuckered out. Want a pick-me-up?",
           {
             "choice": [
               {
@@ -203,14 +214,20 @@
               {
                 "text": "I'm okay, thanks!",
                 "lines": [
-                  "Alright! You holler if you need me."
+                  "Alright! Give the ground a knock if you need me."
                 ]
               }
             ]
           }
         ],
         [
-          "Here's to more brain breaks! Sit in the grass a minute, sugar. It helps, I promise."
+          "Whenever I feel wobbly, I think about my roots. Deep down, nice and steady. You've got roots too, you know. Your friends. Your home."
+        ],
+        [
+          "Melody sings to my flowers every evening. I think they like the high notes best."
+        ],
+        [
+          "Here's to more brain breaks! Sit in the grass a minute. It helps, I promise."
         ]
       ]
     }

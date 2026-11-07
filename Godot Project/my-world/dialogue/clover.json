@@ -1,0 +1,66 @@
+{
+  "name": "Clover",
+  "conversations": [
+    {
+      "when": {
+        "talks": 0
+      },
+      "lines": [
+        "Well, hey there, sugar! Ain't you just the sweetest thing.",
+        "I'm Clover. I came up from a little farm a long, long way from here. Or a long, long WHEN from here. I'm still workin' that out.",
+        "{player}: Do you like it here?",
+        "I sure do! The grass tastes like candy floss, and Bramble lets me help in the gardens on her busy days."
+      ]
+    },
+    {
+      "when": {
+        "activity": "grazing",
+        "every": 2
+      },
+      "lines": [
+        "Mornin'! This meadow's got the springiest grass in the whole town. Go on, give it a bounce.",
+        "Back home I'd be up before the rooster. Here I just get up when the sky turns green."
+      ]
+    },
+    {
+      "when": {
+        "activity": "scooting",
+        "every": 2
+      },
+      "lines": [
+        "Watch this! (Clover kicks off on her scooter and spins round.) Ha! Moo-ve over, Dash!",
+        "Zippy says I'm a natural. I say I'm just stubborn. Same thing, mostly."
+      ]
+    },
+    {
+      "when": {
+        "activity": "lake"
+      },
+      "lines": [
+        "I like to sit by the water at the end of the day. It looks just like the pond on the farm, if the pond glowed. And had aliens in it."
+      ]
+    },
+    {
+      "when": {
+        "time": "shift"
+      },
+      "lines": [
+        "Portal's open, hon. Ain't that somethin'?"
+      ]
+    },
+    {
+      "rotate": [
+        [
+          "My best friend's from Scotland. She says 'wee' and I say 'y'all'.",
+          "Put us together and we're a whole dictionary!"
+        ],
+        [
+          "Bramble says I'm the only person she knows who can out-stubborn a carrot."
+        ],
+        [
+          "When I miss home, I hum a farm song. Want to hear? ...Moooo. That's the whole song."
+        ]
+      ]
+    }
+  ]
+}
