@@ -1,5 +1,6 @@
 {
   "name": "Lights for the Boardwalk",
+  "giver": "pip",
   "start": {
     "flag": "pip_lamps_start"
   },

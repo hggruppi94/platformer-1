@@ -1,5 +1,6 @@
 {
   "name": "Emergency Prep",
+  "giver": "leo",
   "start": {"flag": "prep_start"},
   "steps": [
     {

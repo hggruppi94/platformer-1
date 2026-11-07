@@ -243,9 +243,8 @@ func _build() -> void:
 	_panel.offset_top = 16
 	_panel.offset_bottom = -16
 	_panel.custom_minimum_size.x = 520
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.08, 0.18, 0.92)
-	style.set_corner_radius_all(14)
+	_panel.theme = UiStyle.theme(1.0, false, false)    # the shared menu look (scripts/ui_style.gd)
+	var style := UiStyle.box(UiStyle.PANEL, 18, UiStyle.EDGE, 3)
 	style.set_content_margin_all(18)
 	_panel.add_theme_stylebox_override("panel", style)
 	_layer.add_child(_panel)

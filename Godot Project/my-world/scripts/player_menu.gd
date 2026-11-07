@@ -225,7 +225,21 @@ func _fill() -> void:
 func _sheet_quests() -> Control:
 	_scroll = _scroller()
 	var box := _scroll.get_child(0) as VBoxContainer
-	box.add_child(Quests.log_view())
+	box.add_child(Quests.cards_view())                    # each quest as a card (scripts/quests.gd)
+	var full := Quests.log_view()                          # the whole log as text: kept up to date, not shown
+	full.visible = false
+	box.add_child(full)
+	var extra := Quests.extras_text()
+	if extra != "":
+		var r := RichTextLabel.new()
+		r.name = "Extras"
+		r.bbcode_enabled = true
+		r.fit_content = true
+		r.scroll_active = false
+		r.text = extra
+		r.add_theme_font_size_override("normal_font_size", _fs(20))
+		r.add_theme_font_size_override("bold_font_size", _fs(22))
+		box.add_child(r)
 	# Buttons under the log: skip a step of a quest that allows it (the First Night), or start the First Night on a
 	# save that's never had it (it's offered, never forced: scripts/first_night.gd). The tab keeps the focus, so the
 	# log opens at the top.
@@ -709,8 +723,8 @@ func _scroller() -> ScrollContainer:
 func _heading(text: String, parent: Node = null, size := 32) -> Label:
 	var l := Label.new()
 	l.text = text
+	l.theme_type_variation = "Heading"                     # big gold lettering (scripts/ui_style.gd)
 	l.add_theme_font_size_override("font_size", _fs(size))
-	l.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
 	(parent if parent else _body).add_child(l)
 	return l
 
@@ -789,7 +803,7 @@ func _build() -> void:
 		margin.add_theme_constant_override("margin_" + side, 22)
 	panel.add_child(margin)
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 14)
+	v.add_theme_constant_override("separation", 0)       # the tabs sit right on the page
 	margin.add_child(v)
 	# The tabs along the top, with which keys go left and right
 	var top := HBoxContainer.new()
@@ -810,6 +824,8 @@ func _build() -> void:
 		b.name = "Tab " + which
 		b.text = pair[1]
 		b.toggle_mode = true
+		b.theme_type_variation = "SheetTab"             # a folder tab on the sheet's page (scripts/ui_style.gd)
+		b.size_flags_vertical = Control.SIZE_SHRINK_END
 		b.pressed.connect(func():
 			b.set_pressed_no_signal(true)                   # clicking the open tab keeps it lit
 			show_sheet(which))
@@ -819,13 +835,19 @@ func _build() -> void:
 	_next_hint = Label.new()
 	_next_hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top.add_child(_next_hint)
-	v.add_child(HSeparator.new())
+	# The sheet itself: a page the open tab joins onto
+	var page := PanelContainer.new()
+	page.name = "Page"
+	page.theme_type_variation = "SheetPanel"
+	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(page)
 	_body = VBoxContainer.new()
 	_body.name = "Sheet"
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_body.add_theme_constant_override("separation", 10)
-	v.add_child(_body)
+	page.add_child(_body)
 	_hint = Label.new()
+	_hint.name = "Hint"
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint.modulate = Color(1, 1, 1, 0.8)
 	v.add_child(_hint)
@@ -839,6 +861,6 @@ func _apply_look() -> void:
 	for side in ["top", "bottom"]:
 		outer.add_theme_constant_override("margin_" + side, _fs(32))
 	for b in _tab_buttons.values():
-		(b as Button).custom_minimum_size = Vector2(_fs(96), _fs(46))
+		(b as Button).custom_minimum_size = Vector2(_fs(92), _fs(48))
 	_hint.add_theme_font_size_override("font_size", _fs(17))
 	_update_hints()

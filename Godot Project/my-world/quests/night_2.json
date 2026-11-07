@@ -1,5 +1,6 @@
 {
   "name": "Night 2: Pip's Lamps",
+  "giver": "pip",
   "skippable": true,
   "start": {
     "flag": "night_2"

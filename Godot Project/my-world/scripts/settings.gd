@@ -64,7 +64,7 @@ var tips := true                      # first-time how-to pop-ups (scripts/tips.
 # --- Display
 var fullscreen := false
 var fov := 75.0
-var minimap := false                  # a small map in the bottom-right corner (scripts/map_screen.gd)
+var minimap := true                   # the round map in the bottom-right corner (scripts/map_screen.gd); on by default since Nov 2026
 var clock_style := "both"             # the HUD's clock once the hero has a watch: "both" (watch and words), "watch", "words"
 # --- Accessibility
 var text_scale := 1.0                 # HUD and menu text size
@@ -347,6 +347,7 @@ func save_settings() -> void:
 	var cf := ConfigFile.new()
 	for p in _props():
 		cf.set_value("settings", p, get(p))
+	cf.set_value("settings", "minimap_v2", true)
 	for a in bindings:
 		cf.set_value("keys", a, bindings[a])
 	for a in pad_bindings:
@@ -363,6 +364,10 @@ func load_settings() -> void:
 			var v = cf.get_value("settings", p)
 			if typeof(v) == typeof(get(p)) or (typeof(get(p)) == TYPE_FLOAT and typeof(v) == TYPE_INT):
 				set(p, v)
+	# The minimap used to start off. Settings saved before it was on by default get it switched on once (the
+	# "minimap_v2" mark says that's been done), and after that it stays however the player leaves it.
+	if not cf.has_section_key("settings", "minimap_v2"):
+		minimap = true
 	for a in bindings.keys():
 		if cf.has_section_key("keys", a):
 			bindings[a] = int(cf.get_value("keys", a))

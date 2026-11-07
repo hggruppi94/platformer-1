@@ -1,5 +1,6 @@
 {
   "name": "The First Night",
+  "giver": "nina_earth",
   "about": "The opening quest line for a new game (scripts/first_night.gd glues it to the rest of the game). Every step can be skipped from the quest log.",
   "skippable": true,
   "start": {"flag": "first_night_start"},

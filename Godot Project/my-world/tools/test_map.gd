@@ -133,7 +133,7 @@ func _run() -> void:
 	# Minimap: only when switched on, only outdoors
 	settings.minimap = false
 	await _frames(2)
-	check(not map._mini_layer.visible, "minimap off by default setting")
+	check(not map._mini_layer.visible, "minimap switched off: hidden")
 	settings.minimap = true
 	await _frames(2)
 	check(map._mini_layer.visible, "minimap on: shows in the corner")

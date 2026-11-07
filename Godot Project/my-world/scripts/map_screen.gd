@@ -5,7 +5,8 @@ extends Node
 # (res://ui/town_map.png, drawn from the real town by tools/make_map.gd), labelled by district and building, with an
 # arrow for Nina and which way she's facing, a star on where the current quest steps want her, everyone's spot
 # (or their home, when they're tucked up inside) and, in the Shift, the open portal.
-# A small corner minimap can be switched on in Settings > Display.
+# The round corner minimap is on by default (Settings > Display can switch it off): a compass ring round it, and
+# icons for quests, shops, boosters and portals, on Earth too.
 #
 # On Earth the map is drawn instead of pictured: the streets, buildings, the pond and creek, the hill and the park,
 # from res://ui/earth_map.json (written by tools/build_earth.gd), with the same arrow, people and quest stars.
@@ -20,6 +21,10 @@ const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 const EARTH_INFO := "res://ui/earth_map.json"
 const MINI_SIZE := 220.0
+const MINI_RING := 12.0                             # the compass ring's width round the round minimap
+# Places with a shop in them, shown on the minimap with a little bag (looked up in the scene by name)
+const SHOPS := ["Potion Shop", "Cafe", "Clothing Boutique", "Book Store", "Pet Shop", "Restaurant & Cafe", "Gaming Station",
+	"Gadget Stall", "Hollow Diner", "Bookshop", "Corner Market", "Bakery", "Toy Shop", "Antiques", "Hardware Store"]
 const MINI_METRES := 70.0                           # how much of the town the minimap shows across
 
 # Districts (big labels), at fixed spots; buildings (small labels) are looked up in the town by name
@@ -40,6 +45,7 @@ var _mini_layer: CanvasLayer
 var _mini: Control
 var _mini_tex: TextureRect
 var _mini_overlay: Control
+var _mini_frame: Control                             # the compass ring, drawn over the round minimap
 var _font: Font
 var _time := 0.0
 var _placed: Array[Rect2] = []                       # labels already drawn on the big map (so they don't overlap)
@@ -50,7 +56,7 @@ var _earth_size := 260.0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS                # the map works while the game is paused under it
-	_font = ThemeDB.fallback_font
+	_font = UiStyle.font()                               # the menus' comic lettering (scripts/ui_style.gd)
 	_texture = load(MAP_TEXTURE) as Texture2D
 	var info = JSON.parse_string(FileAccess.get_file_as_string(MAP_INFO)) if FileAccess.file_exists(MAP_INFO) else null
 	if info is Dictionary:
@@ -202,6 +208,7 @@ func _process(delta: float) -> void:
 		var at := to_map(nina().global_position) * _mini_scale_px()
 		_mini_tex.position = Vector2(MINI_SIZE, MINI_SIZE) / 2.0 - at
 		_mini_overlay.queue_redraw()
+		_mini_frame.queue_redraw()
 
 
 func _mini_scale_px() -> float:
@@ -237,14 +244,17 @@ func _build() -> void:
 	_mini_layer.layer = 5
 	add_child(_mini_layer)
 	_mini = Control.new()
-	_mini.clip_contents = true
+	_mini.name = "Minimap"
+	# Round: the minimap draws a filled circle and everything in it is clipped to that circle
+	_mini.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
+	_mini.draw.connect(func() -> void: _mini.draw_circle(Vector2(MINI_SIZE, MINI_SIZE) / 2.0, MINI_SIZE / 2.0, Color.WHITE))
 	_mini.custom_minimum_size = Vector2(MINI_SIZE, MINI_SIZE)
 	_mini.size = Vector2(MINI_SIZE, MINI_SIZE)
 	_mini.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	_mini.offset_left = -MINI_SIZE - 16
-	_mini.offset_top = -MINI_SIZE - 16
-	_mini.offset_right = -16
-	_mini.offset_bottom = -16
+	_mini.offset_left = -MINI_SIZE - 16 - MINI_RING
+	_mini.offset_top = -MINI_SIZE - 16 - MINI_RING
+	_mini.offset_right = -16 - MINI_RING
+	_mini.offset_bottom = -16 - MINI_RING
 	_mini_layer.add_child(_mini)
 	_mini_tex = TextureRect.new()
 	_mini_tex.texture = _texture
@@ -256,6 +266,16 @@ func _build() -> void:
 	_mini_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mini_overlay.draw.connect(_draw_mini)
 	_mini.add_child(_mini_overlay)
+	_mini_frame = Control.new()
+	_mini_frame.name = "Compass"
+	_mini_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mini_frame.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	_mini_frame.offset_left = _mini.offset_left
+	_mini_frame.offset_top = _mini.offset_top
+	_mini_frame.offset_right = _mini.offset_right
+	_mini_frame.offset_bottom = _mini.offset_bottom
+	_mini_frame.draw.connect(_draw_compass)
+	_mini_layer.add_child(_mini_frame)
 
 
 func _map_rect() -> Rect2:
@@ -408,12 +428,14 @@ func _draw_mini() -> void:
 	if on_earth():
 		c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.32, 0.36, 0.2))
 		_draw_earth(c, offset, scale, false)
-	c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.1, 0.06, 0.15), false, 3.0)
 	_draw_races(c, offset, scale, false)
+	_draw_mini_places(c, offset, scale)
 	_draw_boosters(c, offset, scale, false)
+	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
 	for q in quest_markers():
 		var at: Vector2 = offset + to_map(q.pos) * scale
-		at = at.clamp(Vector2(10, 10), Vector2(MINI_SIZE - 10, MINI_SIZE - 10))   # off the edge: pinned to it
+		if at.distance_to(mid) > MINI_SIZE / 2.0 - 12.0:
+			at = mid + (at - mid).normalized() * (MINI_SIZE / 2.0 - 12.0)   # off the edge: pinned to the rim
 		_star(c, at, 8.0)
 	for p in people():
 		if not p.home:
@@ -421,6 +443,58 @@ func _draw_mini() -> void:
 			if Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).has_point(at):
 				c.draw_circle(at, 4.0, Color(0.55, 0.9, 1.0))
 	_arrow(c, Vector2(MINI_SIZE, MINI_SIZE) / 2.0, nina_facing(), 10.0)
+
+
+func _draw_mini_places(c: Control, origin: Vector2, size: float) -> void:
+	# Shops (a little bag) and portals (a purple swirl, bright when it's open) near enough to be on the minimap
+	var s := get_tree().current_scene
+	if s == null:
+		return
+	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
+	for name in SHOPS:
+		var n := s.get_node_or_null(name) as Node3D
+		if n == null:
+			continue
+		var at: Vector2 = origin + to_map(n.global_position) * size
+		if at.distance_to(mid) < MINI_SIZE / 2.0 - 6.0:
+			_bag(c, at, 6.0)
+	var portal := s.get_node_or_null("Portal to Earth" if in_town() else "Portal Home") as Node3D
+	if portal:
+		var at: Vector2 = origin + to_map(portal.global_position) * size
+		if at.distance_to(mid) < MINI_SIZE / 2.0 - 6.0:
+			var open := portal_open()
+			c.draw_circle(at, 8.0, Color(0.6, 0.3, 1.0, 0.45 if open else 0.2))
+			c.draw_arc(at, 6.0, 0, TAU, 20, Color(0.8, 0.55, 1.0) if open else Color(0.7, 0.6, 0.85, 0.8), 2.5)
+			c.draw_arc(at, 3.0, _time * 3.0, _time * 3.0 + PI * 1.4, 10, Color(1, 1, 1, 0.9), 1.5)
+
+
+func _bag(c: Control, at: Vector2, r: float) -> void:
+	# A shopping bag: a rounded body and a handle
+	var body := Rect2(at - Vector2(r, r * 0.6), Vector2(r * 2.0, r * 1.6))
+	c.draw_rect(body.grow(1.5), Color(0.08, 0.04, 0.14))
+	c.draw_rect(body, Color(1.0, 0.55, 0.8))
+	c.draw_arc(at - Vector2(0, r * 0.6), r * 0.55, PI, TAU, 10, Color(0.08, 0.04, 0.14), 2.0)
+
+
+func _draw_compass(c: Control = null) -> void:
+	# The ring round the minimap: ink, then lavender, a gold rim, and the four compass points (north is up the map)
+	c = _mini_frame
+	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
+	var r := MINI_SIZE / 2.0
+	c.draw_arc(mid, r + MINI_RING / 2.0, 0, TAU, 64, Color(0.07, 0.03, 0.12, 0.95), MINI_RING + 4.0, true)
+	c.draw_arc(mid, r + MINI_RING / 2.0, 0, TAU, 64, Color(0.29, 0.18, 0.5), MINI_RING - 2.0, true)
+	c.draw_arc(mid, r + 1.0, 0, TAU, 64, Color(1.0, 0.85, 0.35), 2.5, true)
+	for k in 4:
+		var a := -PI / 2.0 + k * PI / 2.0
+		var at := mid + Vector2(cos(a), sin(a)) * (r + MINI_RING / 2.0)
+		var size := _fs(17) if k == 0 else _fs(14)
+		var letter: String = ["N", "E", "S", "W"][k]
+		var w := _font.get_string_size(letter, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		var pos := at + Vector2(-w / 2.0, size * 0.35)
+		if k == 0:
+			c.draw_circle(at, size * 0.75, Color(1.0, 0.4, 0.6))      # north gets a pink marker, like a real compass
+		c.draw_string_outline(_font, pos, letter, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 4, Color(0.07, 0.03, 0.12))
+		c.draw_string(_font, pos, letter, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1) if k == 0 else Color(1.0, 0.92, 0.7))
 
 
 func _draw_races(c: Control, origin: Vector2, size: float, full: bool) -> void:

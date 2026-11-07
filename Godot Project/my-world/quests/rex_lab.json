@@ -1,5 +1,6 @@
 {
   "name": "Rex and Dash's Lab",
+  "giver": "rex",
   "start": {"flag": "lab_start"},
   "steps": [
     {
