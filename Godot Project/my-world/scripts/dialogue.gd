@@ -18,8 +18,10 @@ signal flag_set(flag: String)
 
 const DIR := "res://dialogue"
 const CHARS_PER_SECOND := 45.0
+const FONT_PATH := "res://ui/fonts/Kalam-Bold.ttf"   # comic hand lettering, SIL Open Font License (ui/fonts/Kalam-OFL.txt)
 const PLAYER_TAG := "{player}"       # lines starting "{player}: " are the player's own (their name comes from the creator)
 
+var font: Font = load(FONT_PATH)     # the subtitle lettering (the HUD's messages and captions use it too)
 var talks := {}                      # character id -> how many conversations she's had with them
 var flags := {}                      # flag name -> true, set by answers and conversations ("set": "flag")
 var names := {}                      # character id -> the name Nina gave them ("name" in an answer)
@@ -321,10 +323,33 @@ func _next() -> void:
 	_name_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.7) if is_player else Color(0.75, 0.9, 1.0))
 	_text.text = text
 	_text.visible_characters = 0
+	_pop_in()
 	_shown = 0.0
 	_typing = true
 	_hint.visible = false
 	line_shown.emit(speaker, text)
+
+
+func shown_characters() -> int:
+	# How much of the line is out so far (the voices babble along with it: scripts/soundscape.gd)
+	return _text.get_total_character_count() if not _typing else int(_shown)
+
+
+func is_typing() -> bool:
+	return _typing
+
+
+func current_line() -> String:
+	return _text.text
+
+
+func _pop_in() -> void:
+	# Each new line gives the banner a little bounce, like a comic panel landing
+	if Settings.reduce_motion:
+		return
+	_panel.pivot_offset = _panel.size / 2.0
+	_panel.scale = Vector2(1.04, 0.92)
+	create_tween().tween_property(_panel, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func player_name() -> String:
@@ -360,8 +385,8 @@ func _show_choice(options: Array) -> void:
 	var first: Button = null
 	for o in options:
 		var b := Button.new()
-		b.text = _fill(str(o.get("text", "...")))
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.text = _fill(str(o.get("text", "..."))).to_upper()
+		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_style_choice(b)
 		b.pressed.connect(choose.bind(o))
 		_choices.add_child(b)
@@ -496,9 +521,14 @@ func _build_ui() -> void:
 	_layer.add_child(_panel)
 	var v := VBoxContainer.new()
 	_panel.add_child(v)
+	v.add_theme_constant_override("separation", 2)
 	_name_label = Label.new()
+	_name_label.uppercase = true
 	v.add_child(_name_label)
 	_text = Label.new()
+	_text.uppercase = true                               # all caps, like hand-lettered comic subtitles
+	_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(_text)
@@ -515,32 +545,57 @@ func _fs(px: float) -> int:
 
 
 func _apply_look() -> void:
+	# The subtitle banner: a dark strip along the bottom, chunky white hand-lettered caps with a thick black outline,
+	# and the speaker's name in a small tab above
 	var hc := Settings.high_contrast
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.1, 0.08, 0.15, 0.88)
-	style.set_corner_radius_all(14)
-	style.set_content_margin_all(_fs(18))
-	if hc:
-		style.border_color = Color(1, 1, 1)
-		style.set_border_width_all(2)
+	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.03, 0.02, 0.07, 0.86)
+	style.set_corner_radius_all(6)
+	style.content_margin_left = _fs(28)
+	style.content_margin_right = _fs(28)
+	style.content_margin_top = _fs(10)
+	style.content_margin_bottom = _fs(10)
+	style.border_color = Color(1, 1, 1) if hc else Color(0, 0, 0, 0.9)
+	style.set_border_width_all(2 if hc else 3)
+	style.shadow_color = Color(0, 0, 0, 0.45)
+	style.shadow_size = 0 if hc else 10
 	_panel.add_theme_stylebox_override("panel", style)
-	var w := _fs(860)
-	_panel.custom_minimum_size = Vector2(w, _fs(150))
+	var w := _fs(980)
+	_panel.custom_minimum_size = Vector2(w, _fs(124))
 	_panel.offset_left = -w / 2.0
 	_panel.offset_right = w / 2.0
 	_panel.offset_bottom = -24
+	for l in [_name_label, _text, _hint]:
+		l.add_theme_font_override("font", font)
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
 	_name_label.add_theme_font_size_override("font_size", _fs(22))
-	_text.add_theme_font_size_override("font_size", _fs(24))
+	_name_label.add_theme_constant_override("outline_size", _fs(8))
+	_text.add_theme_font_size_override("font_size", _fs(32))
+	_text.add_theme_constant_override("outline_size", _fs(14 if hc else 11))
+	_text.add_theme_constant_override("line_spacing", -_fs(6))
 	_text.add_theme_color_override("font_color", Color(1, 1, 0.85) if hc else Color(1, 1, 1))
-	_hint.add_theme_font_size_override("font_size", _fs(15))
-	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.65))
+	_hint.add_theme_font_size_override("font_size", _fs(17))
+	_hint.add_theme_constant_override("outline_size", _fs(6))
+	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))
 	_hint.text = "%s  >" % Settings.prompt("interact")
 	for b in _choices.get_children():
 		_style_choice(b)
 
 
 func _style_choice(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", _fs(22))
+	b.add_theme_font_override("font", font)
+	b.add_theme_font_size_override("font_size", _fs(24))
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	b.add_theme_constant_override("outline_size", _fs(8))
+	var flat := StyleBoxFlat.new()                       # answers sit on the banner, a touch lighter
+	flat.bg_color = Color(1, 1, 1, 0.06)
+	flat.set_corner_radius_all(6)
+	flat.set_content_margin_all(_fs(6))
+	b.add_theme_stylebox_override("normal", flat)
+	var hover := flat.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.9, 0.75, 1.0, 0.18)
+	b.add_theme_stylebox_override("hover", hover)
+	b.add_theme_stylebox_override("pressed", hover)
 	var focus := StyleBoxFlat.new()                      # a clear outline on the highlighted answer, for controllers
 	focus.draw_center = false
 	focus.border_color = Color(1, 1, 0.6) if Settings.high_contrast else Color(0.9, 0.75, 1.0)

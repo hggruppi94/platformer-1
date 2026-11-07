@@ -142,10 +142,18 @@ func _run() -> void:
 	dialogue.say(talker, "Nina", ["Hello! This is a test line, long enough for a few blips.", "And another."], "nina")
 	await _frames(3)
 	var blips: int = S.blips_left()
+	var said0: int = S.syllables
 	await _wait(0.7)
+	var said: int = S.syllables - said0
 	check(dialogue.is_active() and AudioServer.get_bus_volume_db(bus) < base - 6.0,
 		"the music ducks while someone's talking (%.1f dB under)" % (base - AudioServer.get_bus_volume_db(bus)))
 	check(blips > 0, "...and they talk in little blips (%d for that line)" % blips)
+	check(said >= 4 and dialogue.is_typing(), "...babbling along as the letters type out (%d syllables so far)" % said)
+	dialogue._finish_typing()
+	await _frames(2)
+	var after: int = S.syllables
+	await _wait(0.3)
+	check(S.blips_left() == 0 and S.syllables == after, "...and the babble stops when you skip to the end of the line")
 	dialogue.end()
 	await _wait(0.8)
 	check(absf(AudioServer.get_bus_volume_db(bus) - base) < 0.5, "...and comes back to your own Music volume after (%.1f / %.1f, ducked %.1f, talking %s)" % [

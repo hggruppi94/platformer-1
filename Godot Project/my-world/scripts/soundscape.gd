@@ -49,6 +49,8 @@ var _voice_left := 0                          # blips still to go for the line b
 var _voice_gap := 0.0
 var _voice_pitch := 1.0
 var _voice_kind := "voice"
+var syllables := 0                            # babble syllables said so far (for the tests)
+var _voice_next := 0                          # babble: the letter of the line that gets the next syllable
 var last_track := ""                          # what it picked last (tools/test_soundscape.gd)
 var last_ambience: Array[String] = []
 
@@ -222,7 +224,10 @@ func _on_line(speaker: String, text: String) -> void:
 		Audio.play("bark", -6.0, 0.1)        # Rook just says woof
 		_voice_left = 0
 		return
-	_voice_left = clampi(text.length() / 9, 2, 9) if _voice_kind == "voice" else 1
+	# "voice": Banjo-style babble, a gibberish syllable every few letters as the line types out (see _babble);
+	# "hum": one long hum
+	_voice_left = clampi(text.length() / 3, 1, 200) if _voice_kind == "voice" else 1
+	_voice_next = 0
 	_voice_gap = 0.0
 
 
@@ -230,15 +235,61 @@ func _voices(delta: float) -> void:
 	if _voice_left <= 0:
 		return
 	_voice_gap -= delta
+	if _voice_kind == "voice":
+		_babble()
+		return
 	if _voice_gap > 0.0:
 		return
 	_voice_left -= 1
 	_voice_gap = 0.075 + randf() * 0.04
-	if not _voice_streams.has(_voice_kind):
-		_voice_streams[_voice_kind] = _make_voice(_voice_kind)
-	_voice.stream = _voice_streams[_voice_kind]
-	_voice.pitch_scale = _voice_pitch * (1.0 + randf_range(-0.08, 0.08))
-	_voice.volume_db = -12.0
+	_blip(_voice_kind, 1.0 + randf_range(-0.08, 0.08))
+
+
+const VOWELS := ["a", "e", "i", "o", "u"]
+const BABBLE_EVERY := 3                       # letters per syllable
+const BABBLE_GAP := 0.06                      # the shortest time between two syllables
+
+
+func _babble() -> void:
+	# Follows the typewriter: as each few letters appear, say a syllable whose vowel comes from the word being typed
+	# (so "hello" babbles e-o and "you" goes oo), with a little wobble in pitch. Skipping ahead (Interact) or the box
+	# closing stops it straight away.
+	if not Dialogue.is_active() or not Dialogue.is_typing():
+		_voice_left = 0
+		return
+	var line := Dialogue.current_line().to_lower()
+	var shown := Dialogue.shown_characters()
+	while _voice_next < mini(shown, line.length()):
+		var c := line[_voice_next]
+		if not (c >= "a" and c <= "z"):
+			_voice_next += 1                          # spaces and punctuation are quiet
+			continue
+		if _voice_gap > 0.0:
+			return
+		_blip(_vowel_at(line, _voice_next), 1.0 + randf_range(-0.07, 0.09))
+		_voice_gap = BABBLE_GAP
+		syllables += 1
+		_voice_next += BABBLE_EVERY
+		_voice_left = maxi(_voice_left - 1, 1)
+
+
+func _vowel_at(line: String, i: int) -> String:
+	# The first vowel from letter i on, within the word: that's the syllable's sound
+	for j in range(i, mini(i + 4, line.length())):
+		var c := line[j]
+		if c in VOWELS:
+			return c
+		if not (c >= "a" and c <= "z"):
+			break
+	return VOWELS[line.unicode_at(i) % VOWELS.size()]
+
+
+func _blip(kind: String, wobble: float) -> void:
+	if not _voice_streams.has(kind):
+		_voice_streams[kind] = _make_voice(kind)
+	_voice.stream = _voice_streams[kind]
+	_voice.pitch_scale = _voice_pitch * wobble
+	_voice.volume_db = -11.0
 	_voice.play()
 
 
@@ -246,19 +297,37 @@ func blips_left() -> int:
 	return _voice_left
 
 
+# Vowel formants (Hz) for the babble syllables: a rough "bah", "beh", "bee", "boh", "boo"
+const FORMANTS := {"a": [800.0, 1250.0], "e": [500.0, 1900.0], "i": [320.0, 2300.0], "o": [520.0, 900.0],
+	"u": [360.0, 800.0]}
+
+
 func _make_voice(kind: String) -> AudioStreamWAV:
-	# A short vowel-ish "bah" (two partials, a quick swell), or a long soft hum for the Green Man
+	# A babble syllable: a buzzy voice (harmonics of a note that bends down a little, like a grunt) shaped by the
+	# vowel's two formants, with a quick "b" at the start. Or a long soft hum for the Green Man.
 	var rate := 22050
-	var length := 0.06 if kind == "voice" else 0.5
+	var length := 0.5 if kind == "hum" else 0.085
 	var n := int(rate * length)
 	var data := PackedByteArray()
 	data.resize(n * 2)
+	var f := FORMANTS.get(kind, FORMANTS["a"]) as Array
+	var phase := 0.0
 	for i in n:
 		var t := float(i) / rate
-		var f := t / length
-		var env := sin(PI * f)
-		var v := (sin(TAU * 330.0 * t) + 0.5 * sin(TAU * 660.0 * t) + 0.25 * sin(TAU * 990.0 * t)) * env * 0.4 \
-			if kind == "voice" else sin(TAU * 140.0 * t) * env * 0.5 * (1.0 + 0.2 * sin(TAU * 5.0 * t))
+		var k := t / length
+		var v := 0.0
+		if kind == "hum":
+			v = sin(TAU * 140.0 * t) * sin(PI * k) * 0.5 * (1.0 + 0.2 * sin(TAU * 5.0 * t))
+		else:
+			var f0 := 210.0 * (1.12 - 0.18 * k)                    # bends down through the syllable
+			phase += f0 / rate
+			for h in range(1, 18):
+				var fh := f0 * h
+				var amp := exp(-pow((fh - float(f[0])) / 160.0, 2.0)) + 0.6 * exp(-pow((fh - float(f[1])) / 240.0, 2.0)) \
+					+ 0.08 / h
+				v += amp * sin(TAU * phase * h)
+			var env := minf(k / 0.12, 1.0) * pow(1.0 - k, 1.4)       # quick attack, a lip-pop "b", then fade
+			v *= env * 0.32
 		data.encode_s16(i * 2, int(clampf(v, -1.0, 1.0) * 32767.0))
 	var w := AudioStreamWAV.new()
 	w.format = AudioStreamWAV.FORMAT_16_BITS
