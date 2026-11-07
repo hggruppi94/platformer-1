@@ -53,7 +53,7 @@ const TRACKS := {
 		"boxes": [[2.5], [9.4], [13.0]],
 		"goo": [[5.5, -2.0], [8.6, 2.0], [12.3, -1.6]],
 		"prizes": [15, 10, 6, 3],
-		"rivals": ["dash", "rex", "bramble"],
+		"rivals": ["dash", "rex", "clover"],
 		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
 		"tune_up": true,
 	},
@@ -558,6 +558,8 @@ func start(id: String) -> bool:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("_boost_time", 0.0)                         # a boost from a booster on the way here (scripts/boosters.gd)
+	skate.set("_boost_fade", 0.0)                         # ...doesn't carry her over the line before GO
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
 	p.input_locked = true
 	# The friends lining up

@@ -15,7 +15,7 @@ const DRESSED := {
 	"dash": {"head": "sk8_beanie", "neck": "cozy_scarf", "top": "galaxy_tee", "hands": "hero_gloves", "back": "super_cape"},
 	"rook": {"face": "space_goggles", "neck": "bow_tie", "top": "stripy_shirt", "feet": "rainbow_sneakers"},
 	"pip": {"head": "flower_crown", "face": "heart_shades", "neck": "crystal_necklace", "hands": "cozy_mittens"},
-	"bramble": {"face": "star_glasses", "top": "sunny_shirt", "bottoms": "tutu", "feet": "moon_boots", "back": "jetpack"},
+	"clover": {"face": "star_glasses", "top": "sunny_shirt", "bottoms": "tutu", "feet": "moon_boots", "back": "jetpack"},
 	"green_man": {"head": "propeller_cap", "face": "star_glasses", "neck": "cozy_scarf", "hands": "garden_gloves", "back": "butterfly_wings"},
 	"mr_palmer": {"head": "crystal_tiara", "face": "heart_shades", "top": "stripy_shirt", "feet": "sparkle_slippers"},
 	"rex": {"head": "propeller_cap"},

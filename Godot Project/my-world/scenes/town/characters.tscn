@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://models/characters/melody.glb" id="20_melody"]
 [ext_resource type="PackedScene" path="res://models/characters/plant_girl.glb" id="21_plant"]
 [ext_resource type="Script" path="res://scripts/burrower.gd" id="22_burrow"]
+[ext_resource type="Script" path="res://scripts/snappy.gd" id="23_snappy"]
 [ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
 [ext_resource type="PackedScene" path="res://models/characters/chaos_giant.glb" id="16_chaos"]
 [ext_resource type="Script" path="res://scripts/chaos_giant.gd" id="17_chaos"]
@@ -56,13 +57,13 @@ animation = "idle"
 
 [node name="Talk" type="Area3D" parent="CattleGirl"]
 script = ExtResource("10_talk")
-character_id = "bramble"
-display_name = "Bramble"
+character_id = "clover"
+display_name = "Clover"
 name_height = 2.0
 
 [node name="Routine" type="Node" parent="CattleGirl"]
 script = ExtResource("11_routine")
-character_id = "bramble"
+character_id = "clover"
 
 [node name="Body" type="StaticBody3D" parent="CattleGirl"]
 
@@ -302,16 +303,19 @@ animation = "idle"
 
 [node name="Talk" type="Area3D" parent="Plant Girl"]
 script = ExtResource("10_talk")
-character_id = "plant_girl"
-display_name = "Sprout"
+character_id = "bramble"
+display_name = "Bramble"
 name_height = 2.1
 
 [node name="Routine" type="Node" parent="Plant Girl"]
 script = ExtResource("11_routine")
-character_id = "plant_girl"
+character_id = "bramble"
 
 [node name="Burrower" type="Node" parent="Plant Girl"]
 script = ExtResource("22_burrow")
+
+[node name="Snappy" type="Node" parent="Plant Girl"]
+script = ExtResource("23_snappy")
 
 [node name="Body" type="StaticBody3D" parent="Plant Girl"]
 

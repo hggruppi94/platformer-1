@@ -29,7 +29,7 @@ const HERO_HAIR := [5, 8, 4, 7, 10]
 const FRIEND_MODELS := {
 	"nina": "res://models/characters/nina.glb", "dash": "res://models/characters/bike_boy.glb",
 	"rook": "res://models/characters/rook.glb", "pip": "res://models/characters/moth_kid.glb",
-	"bramble": "res://models/characters/cattle_girl.glb", "green_man": "res://models/characters/green_man.glb",
+	"clover": "res://models/characters/cattle_girl.glb", "green_man": "res://models/characters/green_man.glb",
 	"mr_palmer": "res://models/characters/mr_palmer_alien.glb", "rex": "res://models/characters/wolf.glb",
 }
 

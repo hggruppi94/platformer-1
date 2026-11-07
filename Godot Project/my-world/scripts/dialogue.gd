@@ -277,6 +277,17 @@ func _matches(when: Dictionary, count: int, id := "") -> bool:
 	return true
 
 
+func cut_in(lines: Array) -> void:
+	# Lines that butt in right after the one showing, before the rest of the conversation (Snappy snapping at whoever
+	# Bramble's talking to, scripts/snappy.gd). Written like a conversation's lines.
+	if is_active():
+		_queue = _steps(lines) + _queue
+
+
+func talk_count(id: String) -> int:
+	return int(talks.get(id, 0))
+
+
 func _steps(lines: Array) -> Array:
 	# Lines as written in the file -> steps: {speaker, text} or {choice: [...]}
 	var out: Array = []

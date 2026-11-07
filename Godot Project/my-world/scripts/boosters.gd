@@ -75,7 +75,7 @@ const BOOSTERS := [
 	# --- Stars Hollow: round Willow Pond and big air ---
 	{"scene": "earth", "kind": "coins", "at": Vector3(-66, 0, 21), "to": Vector2(-86, 21), "count": 5, "where": "round Willow Pond"},
 	{"scene": "earth", "kind": "ramp", "at": Vector3(-40, 0, 26), "to": Vector2(-50, 26), "where": "by the playground"},
-	{"scene": "earth", "kind": "ramp", "at": Vector3(56, 0, 30), "to": Vector2(56, 20), "where": "the lane past the barn"},
+	{"scene": "earth", "kind": "ramp", "at": Vector3(-60, 0, -80), "to": Vector2(-60, -70), "where": "the park by Lookout Hill"},
 ]
 
 const TEAL := Color(0.3, 0.95, 0.95)

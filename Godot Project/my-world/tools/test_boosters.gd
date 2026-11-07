@@ -138,6 +138,18 @@ func _check_scene(sc: String) -> void:
 					if (n as Node3D).global_position.distance_to((pad as Node3D).global_position) < 6.0:
 						near_pad.append(str(n.name))
 	check(near_pad.is_empty(), "%s: no booster on top of a race's boost pad (%s)" % [sc, ", ".join(near_pad)])
+	# Ramps are solid: none on a race's line, where they'd be in the racers' way
+	var on_line: Array[String] = []
+	for t in s.get_children():
+		if t.get("line") is PackedVector3Array and not bool(t.get("sky")):
+			for n in holder.get_children():
+				if str(n.get_meta("kind")) != "ramp":
+					continue
+				for pt in t.get("line"):
+					if Vector2(pt.x, pt.z).distance_to(Vector2((n as Node3D).global_position.x, (n as Node3D).global_position.z)) < 5.0:
+						on_line.append(str(n.name))
+						break
+	check(on_line.is_empty(), "%s: no ramp on a race's line (%s)" % [sc, ", ".join(on_line)])
 	# The map has an arrow for each strip and ramp and each coin line
 	check(boosters.marks().size() == here.size(), "%s: the map shows an arrow for each booster (%d)" % [sc, boosters.marks().size()])
 

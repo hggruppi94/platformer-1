@@ -75,8 +75,9 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 - The town and world is **Galaxity** (it was called "Galactopia" until Oct 2026, so don't bring that name back).
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
-  and Dash is his twin. The other characters are Bramble, Pip, Rook (says woof), Ivy and Theo (Earth), Madame
-  Celeste (Earth dance studio) and the lonely centipede (Scary World).
+  and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Clover (the
+  horned cow girl: a working name, she was "Bramble" until Nov 7, 2026), Melody, Pip, Rook (says woof), Ivy and Theo
+  (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (Scary World).
 - In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
   since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in Galaxity. Since Nov 1, 2026 Bruno is too (`bruno` on
   Earth, `bruno_alien` in Galaxity, from Sofi's drawing). Prue's Earth look is still a placeholder.
@@ -92,7 +93,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     Lake Loop's own pads), the Homes street, out of the Market, into the Skate Park; on Earth into the Big Air Kicker,
     into the Hollow Skate Yard, Maple Lane and behind Main Street. Ramps: solid little kickers (StaticBody3D in group
     `booster`) that boost you and pop you off the lip (`RAMP_POP` on a ride via `Skate.spring()`, `FOOT_POP` on foot);
-    meadow, sports fields, soccer field, the playground and the lane past the barn. Coins: lines between the rails of
+    meadow, sports fields, soccer field, the playground and the park by Lookout Hill. Coins: lines between the rails of
     the meadow rail line and the Library-to-woods rail line, down Lookout Hill and round Willow Pond; each a short
     burst, back after `COIN_BACK` seconds. Every boost uses `Races.boost_time()`, so the Turbo Tank helps here too.
   - On foot too: `Player.boost()` (scenes/player/player.gd) hands a ride's boost to `Skate.boost()` and otherwise
@@ -103,6 +104,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     pad, boosts on foot and on the board and wear off, a ramp pops you up, coins go and come back, map arrows).
     Previews: `tools/capture_boosters.gd`, shots in `/mnt/project-files/world/previews/boosters/` (PNGs need LFS, so
     they stay out of the repo from the cloud).
+- 2026-11-07: The plant girl is **Bramble** (Hayden named her, and chose "Plant girl becomes Bramble fully" on the card).
+  "Bramble" had been the horned cow girl's working name, so the two swapped. The plant girl's node now has
+  character_id `bramble`, so she has everything that was Bramble's: the Secret Gardens, the flower stall, the
+  window-box quest, the pick-me-up that heals, and her part in the slide, Bill of Rights, Rex's campaign and Night 3
+  quests. `dialogue/bramble.json` was rewritten in her voice, and `routines/bramble.json` is her old day with a meadow
+  burrow in the afternoon (`move_anim` "under"). `plant_girl.json` is gone. The cow girl is **Clover** for now
+  (character_id `clover`, a working name until Hayden names her). A farm girl from a long way and a long WHEN away:
+  `dialogue/clover.json`, `routines/clover.json` (home park, the green meadow, scooting at the Skate Park, the south
+  shore). She keeps her model, her scooter (`Rides` "clover"), her wardrobe (`Clothes.WHO`), the cow hero body
+  (`Hero.BODIES.cow.char`) and her place racing the Lake Loop. A save's old `outfits`/`looks` "bramble" moves to
+  "clover" on load (`game.gd`). **Snappy is a he, and badly trained** (Hayden): `scripts/snappy.gd` (a "Snappy" node
+  under her) makes him lunge and SNAP at whoever she's talking to every other conversation (not the first), right
+  after her first line; then she says sorry (`Dialogue.cut_in()` puts lines in next). test_dialogue checks it.
 - 2026-11-07: Human Nina's new look, and two new Galaxity kids, Melody and the plant girl (from Hayden's three pictures,
   copied to `source_art/reference/`: "Nina - human form.jpg", "Melody - capybara girl.jpg", "Plant girl.jpg"; Hayden:
   "Plant girl grows in and out of the ground to move around"). Built and tested in the cloud (own Godot user folders,
@@ -120,8 +134,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     chest, delighted, like the picture), walk, run, jump, fall, `dance` (her pop dance) and `sass` (arms crossed).
     Routine (`routines/melody.json`): home at `housing_north`, busking (dancing) at `market_south` in the morning,
     a dance break in the town square, singing to the flowers in the meadow in the evening. `dialogue/melody.json`.
-  - **The plant girl** (`tools/build_plant_girl.py` -> `plant_girl.glb`, id `plant_girl`, shown as "Sprout": a
-    working name until Hayden names her): round pale green face with closed happy eyes and purple blush, a cap of
+  - **The plant girl** (`tools/build_plant_girl.py` -> `plant_girl.glb`; first called "Sprout", she's Bramble now:
+    see the next entry): round pale green face with closed happy eyes and purple blush, a cap of
     layered leaves, bark antlers wrapped in vines with leaves and dewdrops, a dress of leaves, a branchy leaf hand, a
     Venus flytrap on her other arm ("Snappy", its own `trap` bone so it snaps) and golden roots instead of legs.
     Animations: idle (swaying, the trap breathing), `burrow`, `under`, `sprout`, `snap`, `wave`, plus walk/run/jump/
@@ -129,8 +143,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     her routine moves her she dives into the ground (soil puff from `Juice.dust`, her model sinks out of sight), a
     little mound of soil with a sprig travels along where she is, and when she stops she sprouts back up with a
     springy pop. It never moves her body, so routines, talking and tests treat her like anyone else. Routine
-    (`routines/plant_girl.json`, `move_anim` "under", speed 2.2): the Secret Gardens with Bramble, sunbathing at the
-    spa, the meadow, planted in the gardens at night. `dialogue/plant_girl.json`.
+    `move_anim` "under", speed 2.2.
   - Routines can now say which animation someone plays while standing about or resting between little walks:
     `"anim": "dance"` on an `idle` or `wander` block (`scripts/routine.gd`, README). Voices for both in
     `scripts/soundscape.gd`. Tests: test_routines (both routines, Melody dancing, the plant girl going under and

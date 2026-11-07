@@ -12,7 +12,7 @@ const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
 const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "mr_palmer", "scary_gate", "nina", "astronaut", "bruno_alien",
-	"melody", "plant_girl"]
+	"melody", "clover"]
 const PERIODS := {"morning": 8 * 60.0, "day": 13 * 60.0, "evening": 19 * 60.0, "night": 22 * 60.0, "shift": 20.0}
 
 var failures := 0
@@ -108,6 +108,11 @@ func _run() -> void:
 	var bramble := await _talk("bramble", [0])
 	check(game.hp == game.max_hp, "Bramble's pick-me-up fills HP (%d/%d)" % [game.hp, game.max_hp])
 	check(bramble.size() > 0 and bramble[-1][1].contains("daisy"), "Bramble: " + (bramble[-1][1] if bramble.size() else ""))
+	# Snappy, her flytrap, snaps at whoever she talks to every other time, and she says sorry (scripts/snappy.gd)
+	check(bramble.any(func(l: Array) -> bool: return l[1].contains("SNAP")) and bramble.any(func(l: Array) -> bool: return l[1].contains("Sorry")),
+		"Snappy snaps at {player} and Bramble says sorry")
+	var calm := await _talk("bramble", [1])
+	check(not calm.any(func(l: Array) -> bool: return l[1].contains("SNAP")), "...but not every time")
 	var rook := await _talk("rook", [1])       # second talk: fetch
 	check(rook.any(func(l: Array) -> bool: return l[1].contains("wagging")), "Rook and the fetch answer")
 
