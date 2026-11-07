@@ -85,6 +85,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-07: The quick outfit wheel and skins (plan item 16). Built and tested in the cloud (own Godot user folders,
+  no save touched).
+  - **`scripts/quick_outfits.gd`** (autoload `QuickOutfits`, drawn by `scripts/outfit_wheel.gd`): hold **Outfit wheel**
+    (C, L3; new in Settings > Controls, in both pad groups) anywhere outside a talk, menu, shop, the creator or a
+    cutscene and a wheel of six saved outfits opens, the game slowed to 0.2 like the gadget wheel; point with the mouse
+    or a stick, let go to change, with a sparkle puff (spheres moved by one tween), a squash and a chime. A tap does
+    nothing (L3 is easy to click by accident). With nothing saved, holding it says how to save one.
+  - **Saved outfits** are `Game.saved_outfits` (saved as `"saved_outfits"`, six places, null for an empty one, tidied
+    on load by `SavedOutfits.clean()`; old saves have six empty places). Each keeps the hero's clothes, creator colours
+    and skin. Changing into one only puts on clothes the player still owns. The wardrobe (hero only) has an "Outfit n"
+    row to pick a place, **Save this outfit** and **Forget it**.
+  - **Skins** (`scripts/skins.gd`, `Skins`): six colour sets for the hero's body (fur, hair, eyes, accent, blush,
+    brows), working on every body; an Earth kid keeps their own skin tone (`KEEP`). Starlight (3 requests turned in),
+    Comet Tail (10), Clockwork Brass (5 watches given to Dash), Midnight Hour (15), Checkered Flag (finish a race),
+    Champion Gold (win 3). `QuickOutfits.check_skins()` hands them out once a second when earned (items `skin:<id>`,
+    with a message). `Game.hero.skin` sits on top of the creator's colours (`Skins.colors_of()`, used by
+    `Hero.apply()`), so taking it off gives them back; the wardrobe has a Skin row, and picking a colour the skin
+    covers in the creator takes the skin off.
+  - Playing as cast members is written up in the plan (item 16) for later, not built.
+  - Test `tools/test_quick_outfits.gd` (the buttons, old and odd saves, the wardrobe, skins earned once, the wheel by
+    holding, a tap, not in a shop or a talk, owned clothes only, all ten bodies, the creator, saving). Previews
+    `tools/capture_quick_outfits.gd`, shots in `/mnt/project-files/world/previews/quick_outfits/`.
+  - My choices Hayden may change: C and L3, the six skins (names, colours, what earns them), six places.
 - 2026-11-07: Boosters everywhere (plan item 14). Built and tested in the cloud (own Godot user folders, no save
   touched).
   - **`scripts/boosters.gd`** (autoload `Boosters`): boost strips, booster ramps and booster coins round Galaxity and

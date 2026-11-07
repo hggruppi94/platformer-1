@@ -148,6 +148,9 @@ func set_value(key: String, value) -> void:
 func set_color(part: String, pick: int) -> void:
 	if not Game.hero.has("colors"):
 		Game.hero["colors"] = {}
+	# A skin (scripts/skins.gd) would hide the new colour, so picking one of the colours it covers takes it off
+	if part in Skins.SKINS.get(str(Game.hero.get("skin", "")), {}).get("colors", {}):
+		Game.hero.erase("skin")
 	if pick <= 0:
 		Game.hero.colors.erase(part)
 	else:

@@ -33,6 +33,7 @@ var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
 var who := "hero"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
+var outfit_slot := 0               # which of the quick outfit wheel's places "Save this outfit" saves to
 var kinds := {}                    # kind -> {can_buy: Callable(item) -> String, buy: Callable(item) -> String, button}
 
 
@@ -176,6 +177,37 @@ func cycle_look(part: String, step: int) -> void:
 	_keep_focus = "Button look %s %d" % [part, step]
 	Game.equipment_changed.emit()
 	Game.save_game()
+	_fill()
+
+
+func cycle_skin(step: int) -> void:
+	# The hero's skin arrows (scripts/skins.gd): their own colours, then each skin they've earned
+	var choices: Array[String] = [""]
+	choices.append_array(Skins.owned())
+	var i := choices.find(str(Game.hero.get("skin", "")))
+	_keep_focus = "Button skin %d" % step
+	QuickOutfits.wear_skin(choices[posmod(i + step, choices.size())])
+	_fill()
+
+
+func cycle_outfit_slot(step: int) -> void:
+	outfit_slot = posmod(outfit_slot + step, QuickOutfits.MAX)
+	_keep_focus = "Button saved %d" % step
+	_fill()
+
+
+func save_outfit() -> void:
+	# "Save this outfit": what the hero has on, into the place picked above, for the quick outfit wheel
+	QuickOutfits.save_slot(outfit_slot)
+	_keep_focus = "Button save outfit"
+	_say("Saved as outfit %d! Hold %s anywhere to change into it." % [outfit_slot + 1, Settings.prompt("outfit_wheel")])
+	Juice.blip("sparkle", 1.3, -8.0)
+	_fill()
+
+
+func forget_outfit() -> void:
+	QuickOutfits.forget(outfit_slot)
+	_keep_focus = "Button forget outfit"
 	_fill()
 
 
@@ -414,6 +446,11 @@ func _fill_wardrobe() -> void:
 		if not Clothes.can_wear(who, slot):
 			text = "%s:  (not for %s)" % [Clothes.SLOT_NAMES[slot], name]
 		lines.append([slot, text, Clothes.can_wear(who, slot) and owned_for(slot).size() > 0, cycle.bind(slot)])
+	if who == "hero":
+		# Their skin (colours earned round the game) and the quick outfit wheel's six places
+		var skin_count := Skins.owned().size()
+		lines.append(["skin", "Skin:  " + Skins.skin_name(str(Game.hero.get("skin", ""))), skin_count > 0, cycle_skin])
+		lines.append(["saved", "Outfit %d:  %s" % [outfit_slot + 1, _saved_name(outfit_slot)], true, cycle_outfit_slot])
 	var own_looks: Dictionary = Game.looks.get(who, {})
 	for part in Clothes.looks_for(who):
 		var pick := int(own_looks.get(part, 0))
@@ -441,11 +478,34 @@ func _fill_wardrobe() -> void:
 				row.add_child(b)
 				if first == null and not b.disabled:
 					first = b
-		(right if String(line[0]).begins_with("look ") else left).add_child(row)
+		(right if String(line[0]).begins_with("look ") or line[0] in ["skin", "saved"] else left).add_child(row)
 		var kept := row.get_node_or_null(_keep_focus) as Button
 		if kept:
 			first = kept
 	if who == "hero":
+		var buttons := HBoxContainer.new()
+		buttons.add_theme_constant_override("separation", 12)
+		right.add_child(buttons)
+		for pair in [["save outfit", "Save this outfit", save_outfit], ["forget outfit", "Forget it", forget_outfit]]:
+			var b := Button.new()
+			b.text = pair[1]
+			b.name = "Button " + pair[0]
+			b.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+			b.disabled = pair[0] == "forget outfit" and QuickOutfits.get_slot(outfit_slot) == null
+			b.pressed.connect(pair[2])
+			buttons.add_child(b)
+			if b.name == _keep_focus and not b.disabled:
+				first = b
+		var tip := Label.new()
+		tip.name = "Outfit Tip"
+		tip.text = "Hold %s anywhere to change outfits." % Settings.prompt("outfit_wheel")
+		if Skins.owned().size() < Skins.ORDER.size():
+			tip.text += " More skins come from requests, lost watches and races."
+		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tip.custom_minimum_size.x = roundi(380 * Settings.text_scale)
+		tip.add_theme_font_size_override("font_size", roundi(15 * Settings.text_scale))
+		tip.modulate = Color(0.85, 0.95, 1.0)
+		right.add_child(tip)
 		# Back to the character creator (scripts/creator.gd) to change the hero themselves: body, hair, name and all
 		var remake := Button.new()
 		remake.text = "Change your hero..."
@@ -458,6 +518,11 @@ func _fill_wardrobe() -> void:
 	_keep_focus = ""
 	_fit_scroll.call_deferred()
 	_focus_later.call_deferred(first if first else _close)
+
+
+func _saved_name(i: int) -> String:
+	var o = QuickOutfits.get_slot(i)
+	return "(empty)" if o == null else "%s (%s)" % [o.name, QuickOutfits.describe(o)]
 
 
 func _build() -> void:
