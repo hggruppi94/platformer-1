@@ -75,9 +75,10 @@ func _run() -> void:
 	check(not shop.buy("fizz_flinger") and not arsenal.owns("fizz") and game.sparkles == 999,
 		"...so even with lots of sparkles you can't buy one yet")
 	var rides: Array = shop.items.values().filter(func(it: Dictionary) -> bool: return str(it.kind) == "ride")
-	check(rides.size() == 5 and rides.all(func(it: Dictionary) -> bool: return str(it.stall) == "Tune-Up"),
-		"Zippy's Tune-Up lists the five new rides (%s)" % str(rides.map(func(it: Dictionary) -> String: return str(it.name))))
-	check(rides.all(func(it: Dictionary) -> bool: return shop.can_buy(str(it.id)) == "Find its schematic"),
+	check(rides.size() == 6 and rides.all(func(it: Dictionary) -> bool: return str(it.stall) == "Tune-Up"),
+		"Zippy's Tune-Up lists the six new rides (%s)" % str(rides.map(func(it: Dictionary) -> String: return str(it.name))))
+	# (The Hover Bike has no schematic: it's the Bike made to float, at a level. tools/test_ride_upgrades.gd)
+	check(rides.all(func(it: Dictionary) -> bool: return shop.can_buy(str(it.id)) == ("Needs the Bike first" if str(it.ride) == "hover_bike" else "Find its schematic")),
 		"...each locked behind its schematic")
 	check(rides.all(func(it: Dictionary) -> bool: return int(it.price) > 0 and int(it.price) <= 20), "...each 20 sparkles or less")
 	check(str(shop.kinds.gadget.note.call(shop.items["fizz_flinger"])).contains("night 2"),
@@ -149,6 +150,7 @@ func _run() -> void:
 	check(aim.any(func(l: String) -> bool: return l.begins_with("Schematic:")), "the Goals page says which schematic to look for next")
 
 	# --- Rides ---
+	game.level = 9                                       # rides wait for a level too (scripts/ride_upgrades.gd)
 	for r in S.RIDE_PRICES:
 		var ride: Dictionary = _ride_for(str(r))
 		check(str(ride.kit) != "board" or r == "rocket_board", "%s: has its own kit (%s)" % [r, ride.kit])
@@ -175,7 +177,7 @@ func _run() -> void:
 	check(await _rides_along(player), "...and it rolls along")
 
 	# Rocket rides push harder off boosts
-	for r in ["rocket_board", "rocket_bike", "saucer", "bike"]:
+	for r in ["rocket_board", "rocket_bike", "saucer", "bike", "hover_bike"]:
 		S.pick_up(r)
 		game.sparkles = 40
 		shop.buy("ride_" + r)
@@ -197,7 +199,7 @@ func _run() -> void:
 	await _frames(3)
 	var row: Node = menu.root.find_child("Rides", true, false)
 	var buttons: Array = row.get_children().filter(func(c: Node) -> bool: return c is Button) if row else []
-	check(buttons.size() == 6, "the Skate page has a button for each ride she has (%d)" % buttons.size())
+	check(buttons.size() == 7, "the Skate page has a button for each ride she has (%d)" % buttons.size())
 	var bb := row.find_child("Ride board", true, false) as Button if row else null
 	if bb:
 		bb.pressed.emit()

@@ -613,11 +613,15 @@ func _sheet_skate() -> Control:
 		b.name = "Ride " + r
 		b.custom_minimum_size.x = _fs(210)
 		b.disabled = on
+	# What each one does: hover rides float over water, rocket rides fly (scripts/ride_upgrades.gd)
+	var now := str(RideUpgrades.tier(Game.hero_ride))
+	if now != "":
+		_line("Your %s: %s.%s" % [str(Rides.HERO_RIDES[Game.hero_ride].name), now.get_slice(": ", 1),
+			" In the air, hold %s to fire the rockets and fly." % Settings.prompt("jump") if Rides.HERO_RIDES[Game.hero_ride].get("flight", false) else ""], true, box)
 	var locked := Rides.HERO_ORDER.size() - Schematics.rides_owned().size()
 	if locked > 0:
-		_line("%s ride%s still to unlock: find %s schematic%s round Galaxity, and Zippy builds %s at the Tune-Up." % [
-			locked, "" if locked == 1 else "s", "its" if locked == 1 else "their", "" if locked == 1 else "s",
-			"it" if locked == 1 else "them"], true, box)
+		_line("%s ride%s still to unlock. Boards and bikes go up to hover and then rocket versions as you level up (you're Lv %d): find the schematics round Galaxity, and Zippy builds them at the Tune-Up." % [
+			locked, "" if locked == 1 else "s", Game.level], true, box)
 	_gap(box)
 	_heading("Skate Park goals", box, 26)
 	var Goals := load("res://scripts/skate_goals.gd")

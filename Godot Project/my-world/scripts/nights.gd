@@ -301,8 +301,15 @@ func _ride_goal() -> String:
 	# A ride with its schematic found but not built yet, at Zippy's Tune-Up
 	for r in Rides.HERO_ORDER:
 		var item: Dictionary = Shop.items.get("ride_" + str(r), {})
-		if not item.is_empty() and Schematics.ride_unlocked(str(r)) and not Schematics.owns_ride(str(r)):
+		if not item.is_empty() and RideUpgrades.ready_to_build(str(r)):
 			return "Rides: Zippy can build you the %s at the Tune-Up, ✦ %d" % [str(item.name), int(item.price)]
+	# ...or the next ride a level will open (its schematic found, if it needs one)
+	for r in Rides.HERO_ORDER:
+		var rr := str(r)
+		if not Schematics.owns_ride(rr) and Schematics.ride_unlocked(rr) and RideUpgrades.needs_ok(rr) \
+				and not RideUpgrades.level_ok(rr):
+			return "Rides: reach Lv %d for the %s (%d XP to go)" % [RideUpgrades.level_for(rr),
+				str(Rides.HERO_RIDES[rr].name), RideUpgrades.xp_to_level(RideUpgrades.level_for(rr))]
 	return ""
 
 
