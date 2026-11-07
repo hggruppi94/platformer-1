@@ -92,7 +92,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     Lake Loop's own pads), the Homes street, out of the Market, into the Skate Park; on Earth into the Big Air Kicker,
     into the Hollow Skate Yard, Maple Lane and behind Main Street. Ramps: solid little kickers (StaticBody3D in group
     `booster`) that boost you and pop you off the lip (`RAMP_POP` on a ride via `Skate.spring()`, `FOOT_POP` on foot);
-    meadow, sports fields, soccer field, the playground and the lane past the barn. Coins: lines between the rails of
+    meadow, sports fields, soccer field, the playground and the park by Lookout Hill. Coins: lines between the rails of
     the meadow rail line and the Library-to-woods rail line, down Lookout Hill and round Willow Pond; each a short
     burst, back after `COIN_BACK` seconds. Every boost uses `Races.boost_time()`, so the Turbo Tank helps here too.
   - On foot too: `Player.boost()` (scenes/player/player.gd) hands a ride's boost to `Skate.boost()` and otherwise

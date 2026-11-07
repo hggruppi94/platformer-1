@@ -558,6 +558,8 @@ func start(id: String) -> bool:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("_boost_time", 0.0)                         # a boost from a booster on the way here (scripts/boosters.gd)
+	skate.set("_boost_fade", 0.0)                         # ...doesn't carry her over the line before GO
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
 	p.input_locked = true
 	# The friends lining up
