@@ -11,7 +11,7 @@ extends RefCounted
 # spins the ride round its stem (a tailwhip); backflip, frontflip and cork turn the rider and ride together; twirl is a
 # special's spin and somersault.
 
-const ORDER := ["hero", "nina", "bruno", "dash", "rex", "rook", "pip", "bramble", "green_man", "mr_palmer"]
+const ORDER := ["hero", "nina", "bruno", "dash", "rex", "rook", "pip", "clover", "green_man", "mr_palmer"]
 
 const BOARD := {
 	"rider": "Nina",
@@ -208,8 +208,8 @@ const RIDERS := {
 			"special": ["Moonbeam Loop", 1000, "twirl", 0.9],
 		},
 	},
-	"bramble": {
-		"rider": "Bramble", "name": "Scooter", "model": "res://models/characters/cattle_girl.glb", "kit": "scooter",
+	"clover": {
+		"rider": "Clover", "name": "Scooter", "model": "res://models/characters/cattle_girl.glb", "kit": "scooter",
 		"stance": 0.0, "deck": 0.12, "anim": "idle",
 		"push_speed": 9.0, "carve": 3.0, "ollie_min": 4.3, "ollie_max": 6.3, "spin_speed": 7.5,
 		"tricks": {

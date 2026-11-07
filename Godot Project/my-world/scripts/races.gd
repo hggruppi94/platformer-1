@@ -53,7 +53,7 @@ const TRACKS := {
 		"boxes": [[2.5], [9.4], [13.0]],
 		"goo": [[5.5, -2.0], [8.6, 2.0], [12.3, -1.6]],
 		"prizes": [15, 10, 6, 3],
-		"rivals": ["dash", "rex", "bramble"],
+		"rivals": ["dash", "rex", "clover"],
 		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
 		"tune_up": true,
 	},

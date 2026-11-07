@@ -101,7 +101,7 @@ func _galaxity() -> void:
 	root.get_node("Tips").clear()
 	game.message("")
 	var melody := _npc("melody")
-	var plant := _npc("plant_girl")
+	var plant := _npc("bramble")
 	for n in [melody, plant]:
 		var r: Node = n.get_node_or_null("Routine")
 		if r:

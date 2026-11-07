@@ -62,7 +62,7 @@ func _run() -> void:
 		n += 1
 
 	# Tricks, held halfway, high over the open corner
-	for shot in [["dash", "up", "backflip"], ["rook", "", "misty_flip"], ["rex", "", "tail_spin"], ["bramble", "", "tailwhip"]]:
+	for shot in [["dash", "up", "backflip"], ["rook", "", "misty_flip"], ["rex", "", "tail_spin"], ["clover", "", "tailwhip"]]:
 		p.set_rider(shot[0])
 		_place(Vector3(-30, 4.0, 30), PI)
 		s._pop()
