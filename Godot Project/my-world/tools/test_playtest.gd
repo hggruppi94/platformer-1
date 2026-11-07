@@ -56,11 +56,11 @@ func _run() -> void:
 	dialogue.set_flag("first_night_start")
 	quests.check()
 	await _frames(2)
-	check(_has(P, "step", "evening"), "it notes The First Night's first step")
+	check(_has(P, "step", "morning"), "it notes The First Night's first step")
 	P._step_at["first_night"][1] = P._now() - 95.0       # pretend the first step took a while
 	quests.skip("first_night")
 	await _frames(2)
-	check(_has(P, "skip", "evening"), "...a skipped step")
+	check(_has(P, "skip", "morning"), "...a skipped step")
 	var done: Array = P.events.filter(func(e: Dictionary) -> bool: return e.what == "step_done")
 	check(not done.is_empty() and float(done[0].seconds) >= 94.0, "...and how long the step took (%s s)" % (done[0].seconds if done else "?"))
 	P._quiet = P.STUCK - 0.05
@@ -88,7 +88,7 @@ func _run() -> void:
 	var R := load("res://tools/playtest_report.gd")
 	var text: String = R.report(P.events)
 	print(text)
-	for want in ["PLAYTEST REPORT", "How long each step took", "first_night / evening", "Stuck moments", "Steps skipped: 1",
+	for want in ["PLAYTEST REPORT", "How long each step took", "first_night / morning", "Stuck moments", "Steps skipped: 1",
 			"Bails on the board: 1", "lake_loop in place 2", "Menus opened"]:
 		check(text.contains(want), "the report has \"%s\"" % want)
 	var src := FileAccess.get_file_as_string("res://scripts/playtest.gd")

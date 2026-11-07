@@ -104,6 +104,11 @@ func _process(delta: float) -> void:
 	# wandering of their own, turn back to how they stood afterwards.
 	if not turns:
 		return
+	var routine := _body.get_node_or_null("Routine")
+	if routine and routine.has_method("busy") and routine.busy():
+		return                                     # busy skating or riding: they talk on the move
+	if _body.get("sitting") == true:
+		return                                     # sitting on a bench: they stay sat facing the way it faces
 	var target := _home_yaw
 	if _talking and _player and is_instance_valid(_player):
 		var to := _player.global_position - _body.global_position

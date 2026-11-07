@@ -143,8 +143,9 @@ func quest_markers() -> Array:
 				continue
 			var pos = null
 			if entry.has("at"):
-				# A spot of its own, in Galaxity ([x, z]: the Gloop King's court out in the west fields)
-				if not on_earth():
+				# A spot of its own ([x, z]: the Gloop King's court out in the west fields), in Galaxity unless it says
+				# "world": "earth" (the First Night's glowing acorns)
+				if (str(entry.get("world", "")) == "earth") == on_earth():
 					pos = Vector3(float(entry.at[0]), 0, float(entry.at[1]))
 			elif entry.has("who"):
 				var t := _talker(s, str(entry.who))
@@ -245,6 +246,10 @@ func _build() -> void:
 	add_child(_mini_layer)
 	_mini = Control.new()
 	_mini.name = "Minimap"
+	# The minimap never takes the mouse. Its map picture is far bigger than the circle (only clipped to it on screen),
+	# and with the mouse captured every mouse move lands in the middle of the screen: in Galaxity that was on the
+	# picture, so the minimap ate every mouse move and the camera wouldn't turn after coming through the portal.
+	_mini.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Round: the minimap draws a filled circle and everything in it is clipped to that circle
 	_mini.clip_children = CanvasItem.CLIP_CHILDREN_ONLY
 	_mini.draw.connect(func() -> void: _mini.draw_circle(Vector2(MINI_SIZE, MINI_SIZE) / 2.0, MINI_SIZE / 2.0, Color.WHITE))
@@ -258,6 +263,7 @@ func _build() -> void:
 	_mini_layer.add_child(_mini)
 	_mini_tex = TextureRect.new()
 	_mini_tex.texture = _texture
+	_mini_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mini_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_mini_tex.size = Vector2.ONE * _mini_scale_px()
 	_mini.add_child(_mini_tex)

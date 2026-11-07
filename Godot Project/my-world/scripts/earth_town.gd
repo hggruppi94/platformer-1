@@ -27,7 +27,7 @@ const SHOPS := [
 	["Diner", "Hollow Diner", Vector3(2.0, 0, 5.2)],
 	["Corner Market", "Corner Market", Vector3(2.0, 0, 5.2)],
 ]
-const OAK := Vector3(-2.5, 0, -1.5)       # the old oak, in the "Portal Home" group's space (tools/build_earth.gd _portal)
+const OAK := Vector3(0, 0, -1.6)         # the old oak, in the "Portal Home" group's space (tools/build_earth.gd _portal, OAK_BACK)
 const HUM_FROM := 21 * 60.0               # the hum starts, very quietly...
 const HUM_LOUD := 24 * 60.0               # ...and is loud by midnight (and all through the Shift)
 const MIX_RATE := 22050

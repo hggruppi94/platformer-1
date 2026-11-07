@@ -85,6 +85,48 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-07: The first hour, reworked from Hayden's playtest: the Humming Oak, a daytime start, people who stop to
+  talk, the bench, fewer collectibles at first, and the camera after the portal. Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **The Humming Oak** (Hayden chose "Yes, build it"): a new game now starts at **9 AM** on Earth and The First Night
+    (`quests/first_night.json`) has a whole first day before Galaxity: **morning** (Nina, Mr. Palmer, two hellos; Theo
+    and Mr. Page on the bench), **oak** (listen at the old oak: something ticks inside), **clues** (Mr. Page's book,
+    *The Legend of the Old Oak*, at Turn the Page; Mr. Palmer's lilac envelope; three glowing acorns by Mossy Falls, the
+    pumpkin patch and on Lookout Hill, each with a tremor), **dusk** (lay them in the nook in its roots: the runes
+    wake), **wait**, **awaken** (at midnight, walking up to the oak plays the reveal: the camera swings to it, fireflies
+    spiral up, runes light one by one, roots lift, the hollow swirls open), then shift/day/king/home as before (Zippy
+    is off the day's checklist). Earth's clock waits at 6 PM until the clues are done and at 11 PM until the acorns are
+    in; the bed only offers "Until the Shift" from the wait step (`FirstNight.shift_sleep_ok()`).
+  - **`scripts/humming_oak.gd`** (autoload `HummingOak`): the oak's spot (listen / put the acorns in), the acorn pickups
+    (bob, halo, a faint beam; quest `"at"` stars with the new `"world": "earth"`, map_screen.gd), runes (the shared
+    "Oak Rune" material and the "Rune Glow" light), fireflies, the reveal (`start_reveal()`, Jump/Interact skips) and
+    `awake()`. The oak's door only opens once it's awake (`earth_world.gd _door_open()`); old saves and anyone not on
+    the First Night's early steps find it awake. Flags: `fn_oak_listen`, `fn_book`, `fn_acorn_1..3`, `fn_acorns`,
+    `fn_acorns_placed`, `oak_woken`.
+  - **The old oak** (`build_earth.gd _portal`): the ring and its "Portal to Galaxity" sign are gone. A great gnarled oak
+    (`OAK_BACK` behind `PORTAL_AT`) with a dark arched hollow framed by thick bark in its front, the swirl inside it,
+    runes over the arch, down its sides and spiralling up the trunk, roots round the foot and the Acorn Nook. The door
+    area and Entrance marker kept their names. `EarthTown.OAK` follows it.
+  - **Old saves** mid-First Night: `FirstNight.migrate()` (called by `Game.load_game()`) moves the old step number to the
+    same step now (`OLD_STEPS`), marks the new Earth-day steps done and the oak awake if they'd crossed; flag `fn_v2`.
+  - **Fewer collectibles at first** (`FirstNight.held_back(night)`, only for games started since this: flag
+    `fresh_start`): night 1 has just the fountain's lost watch (then 8, 14, all from night 4: `Watches.out_tonight()`),
+    no S-K-A-T-E letters or booster coins until night 2 (strips and ramps stay; `Boosters.drop_coins()`), no Earth
+    notice board until night 2.
+  - **Theo and Mr. Page** were both sent to `green_bench`, which was the hay bale on the green's corner, so they stood
+    inside each other. Now there's a real bench on the green (`GREEN_BENCH`) with two seats, `green_bench` and
+    `green_bench_2`, and a new routine `"do": "sit"` (`townsfolk.gd sit()` poses the legs in code; Dottie sits too).
+  - **People stop when you talk:** Earth's townsfolk had no `talking` property, so their routines never paused. Now
+    they stop, turn and listen; someone busy skating, riding, scooting or flying a kite carries on (`routine.gd BUSY`,
+    or `"busy"` on a block), routines/README.md.
+  - **Camera locked after the portal:** the minimap's map picture is much bigger than its circle and the minimap took
+    the mouse, so in Galaxity (with the mouse captured in the middle of the screen) it ate every mouse move. The
+    minimap and its picture now ignore the mouse (`map_screen.gd`).
+  - Tests: `tools/test_first_night.gd` walks the new day; new `tools/test_first_hour.gd` (bench, stopping to talk,
+    busy, the oak asleep, held-back collectibles, the camera in Galaxity, old-save migration). Previews
+    `tools/capture_humming_oak.gd`, shots in project files `world/previews/humming_oak/`.
+  - My choices Hayden may change: the acorn spots, 9 AM, the 6 PM hold, what comes out on which night, the BUSY list.
+
 - 2026-11-07: Ride upgrades as you level up: hover and rocket boards and bikes, and the rocket ones FLY (plan item 29,
   Hayden: "new vehicle mechanics as you level up to hover and rocket boards/bikes, with the rocket ones capable of
   flight"). Built and tested in the cloud (own Godot user folders, no save touched); full suite 63/63 green.

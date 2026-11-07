@@ -361,8 +361,8 @@ func _on_scene_changed() -> void:
 		return
 	_hook_skater.call_deferred()
 	if scene.scene_file_path == EARTH:
-		if scene.get_node_or_null("Notice Board") == null:
-			_place_board(scene)
+		if scene.get_node_or_null("Notice Board") == null and not FirstNight.held_back(2):
+			_place_board(scene)                           # (a new game's first day is the Humming Oak's)
 		_place_props.call_deferred()
 
 

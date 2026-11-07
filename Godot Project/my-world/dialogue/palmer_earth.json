@@ -3,7 +3,7 @@
   "conversations": [
     {
       "when": {
-        "quest_step": "first_night:evening",
+        "quest_step": "first_night:morning",
         "not_flag": "fn_palmer"
       },
       "set": "fn_palmer",
@@ -21,11 +21,22 @@
     },
     {
       "when": {
-        "quest_step": "first_night:evening"
+        "quest_step": "first_night:morning"
       },
       "lines": [
         "Met a few of the neighbours? Good, good. Everyone's a little bit odd here, and that's what makes it home.",
-        "(He glances at the oak.) Midnight comes round quicker than you'd think."
+        "(He glances at the old oak.) Nina's waiting for you by that old tree, I see. Hm."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:clues"
+      },
+      "lines": [
+        "Post? On my porch? Oh, that. (He coughs.) I have a pen pal. Very far away. VERY far.",
+        "Some letters take a long time to arrive, {player}. Some take no time at all. Funny, isn't it?",
+        "(He checks his pocket watch, which seems to be ticking backwards.) Off you go. The day won't wait. Well. It might."
       ],
       "first_night": true
     },

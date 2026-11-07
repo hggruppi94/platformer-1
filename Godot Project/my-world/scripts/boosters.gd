@@ -123,6 +123,14 @@ func in_scene(key: String) -> Array:
 	return BOOSTERS.filter(func(b: Dictionary) -> bool: return b.scene == key)
 
 
+func drop_coins() -> void:
+	# A new game's first day holds the coin lines back (FirstNight.held_back): take away any already put out
+	for b in _items.duplicate():
+		if is_instance_valid(b) and str(b.get_meta("kind", "")) == "coins":
+			_items.erase(b)
+			b.queue_free()
+
+
 func items() -> Array[Node3D]:
 	return _items
 
@@ -162,7 +170,8 @@ func _place_in(s: Node) -> void:
 			"ramp":
 				_add(_ramp(), b, i, at, to)
 			"coins":
-				var n := int(b.get("count", 3))
+				# (a new game's coin lines come out from night 2: FirstNight.held_back)
+				var n := 0 if FirstNight.held_back(2) else int(b.get("count", 3))
 				for k in n:
 					var f := float(k) / maxf(n - 1, 1)
 					var spot := Vector3(lerpf(at.x, to.x, f), at.y, lerpf(at.z, to.y, f))
