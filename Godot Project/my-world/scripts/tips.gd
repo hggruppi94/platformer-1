@@ -11,8 +11,8 @@ const SHOW_FOR := 10.0               # seconds a tip stays up if the player does
 const TIPS := {
 	"move": {"text": "Walk with {moves}. Move the mouse (or the right stick) to look round.",
 		"done": ["move_forward", "move_back", "move_left", "move_right"]},
-	"jump": {"text": "Press {jump} to jump, and again in the air for a double jump. {dash} does a roll.", "done": ["jump"]},
-	"map": {"text": "{player_menu} opens your menu: your quests, the town map, your bag and more. {map} goes straight to the map.",
+	"jump": {"text": "Press {jump} to jump, and again in the air for a double jump. {dash} does a roll, and holding it makes you sprint!", "done": ["jump"]},
+	"map": {"text": "{player_menu} opens your menu: your quests, the map, your bag and more. Open it and you'll get a quick look round!",
 		"done": ["player_menu", "map", "quest_log"]},
 	"pause": {"text": "{pause} pauses the game. Settings are in there, and you can turn these tips off.", "done": ["pause"]},
 	"talk": {"text": "Someone to talk to! Press {interact} to say hello.", "done": ["interact"]},
@@ -50,8 +50,8 @@ func _ready() -> void:
 
 
 func _on_settings() -> void:
-	_text.add_theme_font_size_override("font_size", roundi(21 * Settings.text_scale))
-	_text.custom_minimum_size.x = roundi(560 * minf(Settings.text_scale, 1.5))
+	_text.add_theme_font_size_override("font_size", Settings.hud(21))
+	_text.custom_minimum_size.x = roundi(560 * minf(Settings.text_scale, 1.5) * Settings.hud_size)
 	if not Settings.tips:
 		clear()
 
