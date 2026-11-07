@@ -13,7 +13,7 @@ const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
 const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer", "bruno_alien", "melody",
-	"plant_girl"]
+	"clover"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0
@@ -192,7 +192,7 @@ func _run() -> void:
 	# Dialogue that knows where they are and what they're doing
 	for c in [["rex", "11:00", 2, "Citizens of Galaxity"], ["dash", "12:45", 2, "Snack break"],
 			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"], ["bruno_alien", "10:00", 2, "leththon"],
-			["melody", "10:00", 2, "YES"], ["plant_girl", "07:00", 2, "roots"]]:
+			["melody", "10:00", 2, "YES"], ["bramble", "07:00", 2, "roots"], ["clover", "11:00", 2, "meadow"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()
 		dialogue.talks[c[0]] = c[2]
@@ -227,7 +227,7 @@ func _run() -> void:
 	# soil shows; when she stops she sprouts back up
 	clock.set_time(4, 15 * 60.0, true)
 	await _settle()
-	var sprout := _body("plant_girl")
+	var sprout := _body("bramble")
 	var burrower := sprout.get_node("Burrower")
 	var model := sprout.get_node("Model") as Node3D
 	player.global_position = sprout.global_position + Vector3(6, 1, 0)

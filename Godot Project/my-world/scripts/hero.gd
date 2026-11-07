@@ -41,7 +41,7 @@ const BODIES := {
 			"ears": [{"at": Vector3(0.275, 1.055, -0.015), "r": 0.08, "parts": ["Skin", "Skin Shade"]},
 				{"at": Vector3(0.15, 1.47, 0.05), "r": 0.16, "root": Vector3(0.075, 1.32, 0.045),
 					"parts": ["Antenna", "Antenna Tip"]}], "ears_name": "Ears and antennae"}},
-	"cow": {"name": "Cow", "char": "bramble", "model": "res://models/characters/cattle_girl.glb",
+	"cow": {"name": "Cow", "char": "clover", "model": "res://models/characters/cattle_girl.glb",
 		"hair": ["Hair", "Hair Shade", "Hair Tip Teal", "Hair Tip Lavender"], "extras": ["Alien Charm", "Star", "Glow Teal", "Glow Violet"],
 		"extras_name": "Charm and glow",
 		"face": {"head": Vector3(0, 1.1, 0),

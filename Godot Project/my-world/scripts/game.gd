@@ -439,6 +439,12 @@ func load_game() -> void:
 				looks[str(who)] = {}
 				for part in all_looks[who]:
 					looks[str(who)][str(part)] = int(all_looks[who][part])
+	# Until Nov 7, 2026 the cow girl was called Bramble (that's the plant girl's name now), so her clothes and colours
+	# from an older save were filed under "bramble": they're hers, so they move to "clover"
+	for d in [outfits, looks]:
+		if d.has("bramble") and not d.has("clover"):
+			d["clover"] = d["bramble"]
+		d.erase("bramble")
 	if not outfit.has("head") and str(data.get("hat", "")) != "":
 		hat = str(data["hat"])                       # a save from before outfits: just a hat
 	sparkles_taken.clear()

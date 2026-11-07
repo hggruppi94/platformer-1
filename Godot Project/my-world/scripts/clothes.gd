@@ -25,7 +25,7 @@ extends RefCounted
 const SLOTS := ["head", "face", "neck", "top", "bottoms", "feet", "hands", "back"]
 const SLOT_NAMES := {"head": "Head", "face": "Face", "neck": "Neck", "top": "Top", "bottoms": "Bottoms",
 	"feet": "Feet", "hands": "Hands", "back": "Back"}
-const WHO := ["hero", "nina", "dash", "rook", "pip", "bramble", "green_man", "mr_palmer", "rex"]
+const WHO := ["hero", "nina", "dash", "rook", "pip", "clover", "green_man", "mr_palmer", "rex"]
 const ONLY_HATS := ["rex"]
 
 # Each character's own clothes, by slot: [main part, trim parts...] (their model's material names). A slot left out
@@ -35,7 +35,7 @@ const OWN_CLOTHES := {
 	"dash": {"top": ["Hoodie", "Hoodie Shade"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoes", "Sole"]},
 	"rook": {"top": ["Shirt", "Shirt Shade"], "bottoms": ["Denim", "Denim Light"], "feet": ["Shoes", "Sole"]},
 	"pip": {"top": ["Suit Navy", "Suit Blue"], "bottoms": ["Suit Yellow", "Suit Red"]},
-	"bramble": {"top": ["Top"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoe", "Sole"]},
+	"clover": {"top": ["Top"], "bottoms": ["Shorts", "Shorts Trim"], "feet": ["Shoe", "Sole"]},
 	# The hero creator's own bodies (scripts/hero.gd)
 	"earth_kid": {"top": ["Top", "Top Shade"], "bottoms": ["Jeans", "Jeans Shade"], "feet": ["Shoes", "Sole"]},
 	"bunny": {"top": ["Top", "Top Shade"], "bottoms": ["Dungarees", "Dungarees Shade"], "feet": ["Shoes", "Sole"]},
@@ -67,7 +67,7 @@ const OWN_LOOKS := {
 	"dash": {"fur": ["Skin"], "hair": ["Hair"], "accent": ["Cap"], "blush": ["Blush"]},
 	"rook": {"fur": ["Skin"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Collar"], "blush": ["Blush"]},
 	"pip": {"fur": ["Skin", "Skin Shade"], "hair": ["Mane Orange"], "eyes": ["Iris", "Iris Light"], "accent": ["Antenna Tip"], "blush": ["Blush"]},
-	"bramble": {"fur": ["Fur", "Fur Light"], "hair": ["Hair", "Hair Shade"], "eyes": ["Iris", "Iris Light"], "accent": ["Belt"]},
+	"clover": {"fur": ["Fur", "Fur Light"], "hair": ["Hair", "Hair Shade"], "eyes": ["Iris", "Iris Light"], "accent": ["Belt"]},
 	"green_man": {"fur": ["Green", "Green Dark"], "eyes": ["Eye"]},
 	"earth_kid": {"fur": ["Skin", "Nose", "Ear Inner"], "hair": ["Hair"], "eyes": ["Iris", "Iris Light"],
 		"accent": ["Backpack", "Backpack Dark"], "blush": ["Blush"]},
@@ -79,7 +79,7 @@ const OWN_LOOKS := {
 	"mr_palmer": {"fur": ["Skin"], "hair": ["Grey Hair"], "eyes": ["Iris", "Iris Light"], "accent": ["Tie"], "blush": ["Blush"]},
 	"rex": {"fur": ["Fur", "Fur Dark"], "eyes": ["Iris", "Iris Light"], "accent": ["Vest"]},
 }
-const ACCENT_NAMES := {"nina": "Bow", "dash": "Cap", "rook": "Collar", "pip": "Antenna Tips", "bramble": "Belt",
+const ACCENT_NAMES := {"nina": "Bow", "dash": "Cap", "rook": "Collar", "pip": "Antenna Tips", "clover": "Belt",
 	"mr_palmer": "Tie", "rex": "Vest"}
 const PALETTE := {
 	"fur": [Color(0.58, 0.5, 0.47), Color(0.95, 0.8, 0.7), Color(0.75, 0.55, 0.4), Color(0.45, 0.32, 0.25),
@@ -868,7 +868,7 @@ static func _cape(fit: Dictionary) -> Dictionary:
 	var lo: float = fit.cape_back[0]
 	var reach: PackedFloat32Array = fit.cape_back[1]
 	var hair: PackedFloat32Array = fit.cape_back[2]
-	# Hair only counts if it's long, hanging well down over where the cape goes (Bramble's). A bob that ends at the
+	# Hair only counts if it's long, hanging well down over where the cape goes (Clover's). A bob that ends at the
 	# shoulders (Nina's) just lies over the top of the cape.
 	var k_long := int((y_top - 0.3 * kt - lo) / 0.01)
 	var long_hair := k_long >= 0 and k_long < hair.size() and is_finite(hair[k_long])

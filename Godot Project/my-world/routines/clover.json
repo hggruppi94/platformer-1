@@ -1,0 +1,10 @@
+{
+  "speed": 1.3,
+  "blocks": [
+    {"at": "07:00", "place": "home_park", "do": "wander", "radius": 6, "label": "morning"},
+    {"at": "10:00", "place": "green_meadow", "do": "wander", "radius": 7, "label": "grazing"},
+    {"at": "13:00", "place": "skate_park", "do": "wander", "radius": 6, "label": "scooting"},
+    {"at": "17:00", "place": "south_shore", "do": "wander", "radius": 5, "label": "lake"},
+    {"at": "20:30", "place": "housing_south", "do": "away", "label": "asleep"}
+  ]
+}
