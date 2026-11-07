@@ -108,6 +108,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     holding, a tap, not in a shop or a talk, owned clothes only, all ten bodies, the creator, saving). Previews
     `tools/capture_quick_outfits.gd`, shots in `/mnt/project-files/world/previews/quick_outfits/`.
   - My choices Hayden may change: C and L3, the six skins (names, colours, what earns them), six places.
+- 2026-11-07: One menu look for the whole game (plan item 15). Built and tested in the cloud (own Godot user folders,
+  no save touched); the whole suite passes (69 runs).
+  - **`scripts/ui_style.gd`** (`UiStyle`) makes the shared theme, saved as `ui/theme.tres` by `tools/make_ui_theme.gd`
+    and set as the project theme (`[gui] theme/custom`), so every Control wears it. It's lettered in the subtitles'
+    comic font (`UiStyle.FONT_PATH`, Kalam Bold from the subtitles work), in the alien palette: chunky rounded buttons
+    with a lip they sink into when pressed, a thick teal focus ring for controllers (yellow in High contrast), folder
+    tabs, sliders, scroll bars and text boxes to match. Type variations `SheetTab`, `SheetPanel`, `Card`, `Heading`.
+    Menus that follow Settings (text size, High contrast) call `UiStyle.theme()`: the pause menu's `make_theme()`, the
+    player menu, the shops and wardrobe (`shop.gd`), the creator. `UiStyle.box()` and `card()` are the panel looks.
+  - **Player menu** (`player_menu.gd`): the sheets are folder tabs over a page. **Quests** shows each quest as a card
+    (`Quests.cards_view()`/`card()`: a round picture of who gave it, `scripts/quest_picture.gd`, its name, "From ...",
+    the steps with ticks and the reward); a quest file can name its `"giver"` (quests/README.md), else the first step's
+    place says. The old text log is still there (hidden) for tests, and the extras (requests, the board) underneath.
+  - **Quest banner** (`quests.gd _note`): a card that slides in from the right when a quest starts, moves on or ends.
+  - **Minimap**: on by default (old settings get it switched on once, `minimap_v2`), round (`clip_children`), with a
+    compass ring (N in pink), and icons for quests (stars pinned to the rim when off it), shops (bags), boosters and
+    the portal, the same on Earth. HUD messages keep clear of it.
+  - Shop windows fit at 1280x720 (the wardrobe's Bye button ran off before: `_fit_scroll`).
+  - Test `tools/test_ui_style.gd` (the theme, every menu and sheet opening and closing on keyboard and controller,
+    nothing off screen or overlapping at 1280x720 and 1920x1080, the minimap, cards and banner). Previews
+    `tools/capture_ui_style.gd`, before and after shots in `/mnt/project-files/world/previews/ui_style/`.
+  - My choices Hayden may change: the colours, the font for menus, the button lip, the compass, the quest pictures.
 - 2026-11-07: Boosters everywhere (plan item 14). Built and tested in the cloud (own Godot user folders, no save
   touched).
   - **`scripts/boosters.gd`** (autoload `Boosters`): boost strips, booster ramps and booster coins round Galaxity and
