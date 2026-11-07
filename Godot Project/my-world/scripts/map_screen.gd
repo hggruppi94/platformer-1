@@ -380,6 +380,7 @@ func _draw_full() -> void:
 				c.draw_arc(at, 12.0, 0, TAU, 32, Color(0.75, 0.5, 1.0), 4.0)
 				_text(c, at + Vector2(0, -_fs(26)), "The portal is open!", _fs(18), Color(0.85, 0.7, 1.0))
 		_draw_races(c, r.position, r.size.x, true)
+		_draw_boosters(c, r.position, r.size.x, true)
 		for q in quest_markers():
 			_star(c, r.position + to_map(q.pos) * r.size, 13.0)
 		var player := nina()
@@ -396,7 +397,7 @@ func _draw_full() -> void:
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    ⚑ Race    (%s to close)" % Settings.prompt("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ⌂ Home    ◷ Watch found    ⚑ Race    ➤ Booster    (%s to close)" % Settings.prompt("map")
 	_legend(c, r, legend)
 
 
@@ -409,6 +410,7 @@ func _draw_mini() -> void:
 		_draw_earth(c, offset, scale, false)
 	c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.1, 0.06, 0.15), false, 3.0)
 	_draw_races(c, offset, scale, false)
+	_draw_boosters(c, offset, scale, false)
 	for q in quest_markers():
 		var at: Vector2 = offset + to_map(q.pos) * scale
 		at = at.clamp(Vector2(10, 10), Vector2(MINI_SIZE - 10, MINI_SIZE - 10))   # off the edge: pinned to it
@@ -448,6 +450,23 @@ func _draw_races(c: Control, origin: Vector2, size: float, full: bool) -> void:
 		for pos in Races.map_rivals():
 			c.draw_circle(origin + to_map(pos) * size, 5.0 if full else 4.0, Color(1.0, 0.55, 0.75))
 			c.draw_arc(origin + to_map(pos) * size, 5.0 if full else 4.0, 0, TAU, 12, Color(0.25, 0.05, 0.15), 1.5)
+
+
+func _draw_boosters(c: Control, origin: Vector2, size: float, full: bool) -> void:
+	# The boosters (scripts/boosters.gd): a small arrow each, the way it pushes; teal for strips and ramps, gold at
+	# the start of a line of coins. The minimap only draws the ones in its window.
+	var r := 6.0 if full else 4.5
+	for m in Boosters.marks():
+		var at: Vector2 = origin + to_map(m.pos) * size
+		if not full and not Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).grow(-4.0).has_point(at):
+			continue
+		var fwd := Vector2(sin(float(m.yaw)), cos(float(m.yaw)))
+		var side := Vector2(-fwd.y, fwd.x)
+		var pts := PackedVector2Array([at + fwd * r, at - fwd * r * 0.7 + side * r * 0.75, at - fwd * r * 0.3,
+			at - fwd * r * 0.7 - side * r * 0.75])
+		c.draw_colored_polygon(pts, Color(1.0, 0.85, 0.35) if m.kind == "coins" else Color(0.3, 0.95, 0.95))
+		pts.append(pts[0])
+		c.draw_polyline(pts, Color(0.08, 0.15, 0.22, 0.9), 1.5)
 
 
 func _apply_settings() -> void:
@@ -559,10 +578,11 @@ func _draw_earth_full(c: Control, r: Rect2) -> void:
 		c.draw_arc(at, 6.0, 0, TAU, 16, Color(0.1, 0.2, 0.3), 1.5)
 		_text(c, at + Vector2(0, -_fs(14)), p.name, _fs(14), Color(0.7, 0.95, 1.0), true, true)
 	_draw_races(c, r.position, r.size.x, true)                # the Pumpkin Run round town (scripts/races.gd)
+	_draw_boosters(c, r.position, r.size.x, true)
 	for q in quest_markers():
 		_star(c, r.position + to_map(q.pos) * r.size, 13.0)
 	var player := nina()
 	if player:
 		_arrow(c, r.position + to_map(player.global_position) * r.size, nina_facing(), 14.0)
-	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    ⚑ Race    (%s to close)" % Settings.prompt("map")
+	var legend := Dialogue.player_name() + "    ★ Quest    ● People    ■ Go inside    ■ Skate    ⚑ Race    ➤ Booster    (%s to close)" % Settings.prompt("map")
 	_legend(c, r, legend)

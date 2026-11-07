@@ -68,6 +68,11 @@ var skate: Skate                            # takes over her physics while she's
 var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
+# Boosters (scripts/boosters.gd) work on foot too: a rush carries her past her running speed for a moment, the way a
+# boost pad carries a rider past her pushing speed (scenes/player/skate.gd), then she eases back down to a run.
+var _rush_time := 0.0
+var _rush_speed := 0.0
+var _rush_fade := 0.0
 
 # Walk-through places she's inside (clouds, the bubble bath, hot springs, the lake: scripts/soft_zone.gd,
 # scripts/water.gd). Each can slow her down (speed_scale), make her float (gravity_scale, fall_cap) and sets the
@@ -286,6 +291,24 @@ func bounce(strength: float) -> void:
 	_air_jump_used = false              # a stomp gives the double jump back
 
 
+func boost(extra: float, seconds: float) -> void:
+	# A booster: on a ride the ride takes it (the same as a race's boost pads), on foot she rushes along
+	if Game.riding:
+		skate.boost(extra, seconds)
+		return
+	_rush_speed = maxf(extra, _rush_speed if _rush_time > 0.0 else 0.0)
+	_rush_time = maxf(_rush_time, seconds)
+
+
+func boosting() -> bool:
+	return skate.boosting() if Game.riding else _rush_time > 0.0
+
+
+func facing_dir() -> Vector3:
+	# Which way her model faces, flat (models face +Z)
+	return Vector3(sin(visual.rotation.y), 0.0, cos(visual.rotation.y))
+
+
 func _physics_process(delta: float) -> void:
 	if _hat and _hat.has_node("Propeller"):
 		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
@@ -298,6 +321,10 @@ func _physics_process(delta: float) -> void:
 		_invulnerable_timer -= delta
 		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
+	if _rush_time > 0.0 and _rush_time - delta <= 0.0:
+		_rush_fade = 0.8
+	_rush_time -= delta
+	_rush_fade -= delta
 	if Game.riding:
 		skate.physics(delta)
 		return
@@ -371,7 +398,14 @@ func _physics_process(delta: float) -> void:
 		var rate := acceleration if direction else friction
 		if not on_floor:
 			rate *= air_control
-		horizontal = horizontal.move_toward(direction * speed * _zone_min("speed_scale", 1.0) * popper.move_scale(), rate * delta)
+		var target := direction * speed * _zone_min("speed_scale", 1.0) * popper.move_scale()
+		if _rush_time > 0.0:
+			# Rushing from a booster: she shoots along the way she steers (or faces, with nothing held)
+			target = (direction if direction else facing_dir()) * (speed + _rush_speed)
+			rate = acceleration * (3.0 if on_floor else 1.0)
+		elif _rush_fade > 0.0 and horizontal.length() > speed:
+			rate = acceleration * 0.2                   # easing back down to a run, not a sudden stop
+		horizontal = horizontal.move_toward(target, rate * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 

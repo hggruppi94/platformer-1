@@ -85,6 +85,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-07: Boosters everywhere (plan item 14). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **`scripts/boosters.gd`** (autoload `Boosters`): boost strips, booster ramps and booster coins round Galaxity and
+    Stars Hollow, outside races too. Like the lost watches they're put into the scene at play time from `BOOSTERS`
+    (no builder or `.tscn` change), each on the ground found under its spot. Strips: along the lakeside (between the
+    Lake Loop's own pads), the Homes street, out of the Market, into the Skate Park; on Earth into the Big Air Kicker,
+    into the Hollow Skate Yard, Maple Lane and behind Main Street. Ramps: solid little kickers (StaticBody3D in group
+    `booster`) that boost you and pop you off the lip (`RAMP_POP` on a ride via `Skate.spring()`, `FOOT_POP` on foot);
+    meadow, sports fields, soccer field, the playground and the park by Lookout Hill. Coins: lines between the rails of
+    the meadow rail line and the Library-to-woods rail line, down Lookout Hill and round Willow Pond; each a short
+    burst, back after `COIN_BACK` seconds. Every boost uses `Races.boost_time()`, so the Turbo Tank helps here too.
+  - On foot too: `Player.boost()` (scenes/player/player.gd) hands a ride's boost to `Skate.boost()` and otherwise
+    makes her rush past running speed, then ease back down. Going fast never bails.
+  - Map and minimap: a small arrow for each (`Boosters.marks()`, `TownMap._draw_boosters()`), teal for strips and
+    ramps, gold at the start of a coin line; "➤ Booster" in both legends.
+  - Tests: `tools/test_boosters.gd` (on the ground, dry, flat enough, nothing in the way, spread out, not on a race
+    pad, boosts on foot and on the board and wear off, a ramp pops you up, coins go and come back, map arrows).
+    Previews: `tools/capture_boosters.gd`, shots in `/mnt/project-files/world/previews/boosters/` (PNGs need LFS, so
+    they stay out of the repo from the cloud).
 - 2026-11-07: The plant girl is **Bramble** (Hayden named her, and chose "Plant girl becomes Bramble fully" on the card).
   "Bramble" had been the horned cow girl's working name, so the two swapped. The plant girl's node now has
   character_id `bramble`, so she has everything that was Bramble's: the Secret Gardens, the flower stall, the
