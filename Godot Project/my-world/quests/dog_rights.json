@@ -1,5 +1,6 @@
 {
   "name": "The Doggie Bill of Rights",
+  "giver": "rex",
   "start": {"flag": "dogs_start"},
   "steps": [
     {

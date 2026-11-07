@@ -1,5 +1,6 @@
 {
   "name": "Flowers for Every Window",
+  "giver": "bramble",
   "start": {
     "flag": "bramble_flowers_start"
   },

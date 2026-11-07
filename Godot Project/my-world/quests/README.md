@@ -7,6 +7,7 @@ quest over.
 ```json
 {
   "name": "Rex for Mayor!",
+  "giver": "rex",
   "start": {"flag": "rex_campaign_start"},
   "steps": [
     {"id": "ask", "text": "Ask around town!", "done": {"flags": ["asked_dash", "asked_pip"]},
@@ -23,6 +24,8 @@ quest over.
 
 - **`start`**: the quest starts once these flags are set. `{"flag": "x"}` or `{"flags": ["x", "y"]}`. Usually an
   answer in someone's conversation sets it (Rex: `"set": "rex_campaign_start"`).
+- **`giver`** (optional): the character id of who gave it, for the quest card's picture and "From ..." line on the
+  Quests sheet. Without it, the card uses the first person a step sends you to (`where`).
 - **`steps`**, in order. Each has an `id` (dialogue and quest spots refer to it), the `text` shown in the quest log
   and the note, and `done`: the flags that finish it. When they're all set, the next step starts.
 

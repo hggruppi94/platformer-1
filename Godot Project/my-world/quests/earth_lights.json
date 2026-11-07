@@ -1,5 +1,6 @@
 {
   "name": "Lights for the Gazebo",
+  "giver": "palmer_earth",
   "start": {
     "flag": "earth_lights_start"
   },

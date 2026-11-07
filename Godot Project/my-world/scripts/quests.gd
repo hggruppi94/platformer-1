@@ -8,8 +8,10 @@ extends Node
 # back tomorrow), and can move someone for an event while it's on ("override": Rex's rally at the fountain, in the
 # evening; scripts/routine.gd asks override_for()). Finishing a quest can give an item and a new title.
 #
-# Progress is saved with the game (scripts/game.gd). A small note shows when a step updates, and the quest log
-# (the player menu's Quests sheet, scripts/player_menu.gd: Tab, or the "quest_log" key, Q) lists what to do next.
+# Progress is saved with the game (scripts/game.gd). A banner slides in when a quest starts, updates or finishes, and
+# the quest log (the player menu's Quests sheet, scripts/player_menu.gd: Tab, or the "quest_log" key, Q) shows each
+# quest as a card (cards_view()): its name, who gave it ("giver" in the file, or the first person a step sends you
+# to), a picture, the step with its ticks, and the reward. Both wear the shared menu look (scripts/ui_style.gd).
 
 signal changed(quest_id: String)
 signal skipped(quest_id: String, step_id: String)    # a step skipped from the quest log (scripts/playtest.gd notes it)
@@ -25,6 +27,10 @@ var _check_wait := 0.0
 var _note_layer: CanvasLayer
 var _note: PanelContainer
 var _note_label: Label
+var _note_title: Label
+var _note_body: Label
+var _note_tween: Tween
+var _names := {}                      # character id -> their name, from res://dialogue/<id>.json (for the cards)
 var _note_time := 0.0
 var _log_text: RichTextLabel         # shown on the player menu's Quests sheet
 
@@ -285,9 +291,29 @@ func reset() -> void:
 # The note and the quest log
 # -----------------------------------------------------------------------------
 func _announce(title: String, text: String) -> void:
-	_note_label.text = title + ("\n" + text if text != "" else "")
+	# The banner: a quest card that slides in from the right with a little bounce (or just appears, with Reduce motion)
+	_note_label.text = title + ("\n" + text if text != "" else "")    # (the whole note, for note_text())
+	var parts := title.split(": ", true, 1)
+	_note_title.text = (parts[0] + "!") if parts.size() > 1 else title
+	_note_body.text = (parts[1] if parts.size() > 1 else "") + ("\n" + text if text != "" else "")
 	_note_time = NOTE_TIME
 	_note.modulate.a = 1.0
+	if _note_tween:
+		_note_tween.kill()
+	_note.pivot_offset = Vector2(_note.size.x, 0)
+	if Settings.reduce_motion:
+		_note.position.x = _note_x()
+		return
+	_note.position.x = _note_x() + _note.size.x + 40.0
+	_note.scale = Vector2(0.9, 0.9)
+	_note_tween = create_tween().set_parallel()
+	_note_tween.tween_property(_note, "position:x", _note_x(), 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_note_tween.tween_property(_note, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _note_x() -> float:
+	var vp := _note.get_viewport_rect().size if _note.is_inside_tree() else Vector2(1280, 720)
+	return vp.x - _note.size.x - 16.0
 
 
 func note_text() -> String:
@@ -310,6 +336,139 @@ func log_view() -> RichTextLabel:
 	_note.modulate.a = 0.0
 	_log_text.text = log_text()
 	return _log_text
+
+
+func cards_view() -> VBoxContainer:
+	# The Quests sheet's cards, built fresh: the quests on the go first, then the finished ones (smaller)
+	var box := VBoxContainer.new()
+	box.name = "Quest Cards"
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", roundi(12 * Settings.text_scale))
+	var any := false
+	for done in [false, true]:
+		for id in _order:
+			if is_started(id) and is_done(id) == done:
+				box.add_child(card(id))
+				any = true
+	if not any:
+		var l := Label.new()
+		l.text = "No quests yet. Talk to people around town!"
+		box.add_child(l)
+	return box
+
+
+func card(id: String) -> PanelContainer:
+	# One quest as a card: a picture of who gave it, the name, who from, the step and its ticks, and the reward
+	var sc := Settings.text_scale
+	var q := quest(id)
+	var done := is_done(id)
+	var c := PanelContainer.new()
+	c.name = "Card " + id
+	c.theme_type_variation = "Card"
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if done:
+		c.add_theme_stylebox_override("panel", UiStyle.card(Color(0.16, 0.22, 0.24), Settings.high_contrast, sc))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(16 * sc))
+	c.add_child(row)
+	var who := giver(id)
+	var pic := QuestPicture.new()
+	pic.name = "Picture"
+	pic.letter = giver_name(who).substr(0, 1).to_upper() if who != "" else "?"
+	pic.colour = _colour_of(who if who != "" else id)
+	pic.done = done
+	pic.custom_minimum_size = Vector2.ONE * roundi((56 if done else 84) * sc)
+	pic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(pic)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.add_theme_constant_override("separation", roundi(2 * sc))
+	row.add_child(v)
+	var title := _card_label(v, str(q.get("name", id)) + ("  ✔ Done!" if done else ""), 26 if not done else 22, Color(0.7, 1.0, 0.75) if done else UiStyle.GOLD)
+	title.name = "Title"
+	title.add_theme_constant_override("outline_size", roundi(7 * sc))
+	if who != "":
+		_card_label(v, "From " + giver_name(who), 17, Color(0.8, 0.75, 0.95)).name = "From"
+	if done:
+		return c
+	var step := current_step(id)
+	var text := _card_label(v, str(step.get("text", "")), 20, UiStyle.TEXT)
+	text.name = "Step"
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for item in checklist(id):
+		var tick := _card_label(v, ("  ✔  " if item[1] else "  ○  ") + str(item[0]), 19, Color(0.6, 1.0, 0.7) if item[1] else UiStyle.TEXT)
+		tick.name = "Tick"
+		tick.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if is_waiting(id):
+		_card_label(v, str(step.get("wait", {}).get("text", "(Come back tomorrow.)")), 18, Color(0.96, 0.9, 0.64)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var reward := reward_text(id)
+	if reward != "":
+		_card_label(v, "Reward: " + reward, 18, Color(1.0, 0.88, 0.45)).name = "Reward"
+	return c
+
+
+func reward_text(id: String) -> String:
+	var r: Dictionary = quest(id).get("reward", {})
+	var bits: Array[String] = []
+	if r.has("sparkles"):
+		bits.append("✦ %d sparkles" % int(r.sparkles))
+	if r.has("item"):
+		bits.append("a surprise")
+	if not quest(id).get("titles", {}).is_empty():
+		bits.append("a new title")
+	return ", ".join(bits)
+
+
+func giver(id: String) -> String:
+	# Who gave the quest: "giver" in its file, or else the first person one of its steps sends you to
+	var q := quest(id)
+	if q.has("giver"):
+		return str(q.giver)
+	for step in q.get("steps", []):
+		for w in step.get("where", []):
+			if w is String and FileAccess.file_exists("%s/%s.json" % [Dialogue.DIR, w]):
+				return w
+			if w is Dictionary and w.has("who"):
+				return str(w.who)
+	return ""
+
+
+func giver_name(who: String) -> String:
+	if not _names.has(who):
+		var n := who.capitalize()
+		var f := FileAccess.open("%s/%s.json" % [Dialogue.DIR, who], FileAccess.READ)
+		if f:
+			var data = JSON.parse_string(f.get_as_text())
+			if data is Dictionary and data.has("name"):
+				n = str(data.name)
+		_names[who] = n
+	return display_name(who, str(_names[who]))
+
+
+func _colour_of(key: String) -> Color:
+	# Each person's picture gets its own colour from the alien palette, the same every time
+	var cols := [UiStyle.TEAL_DEEP, UiStyle.MAGENTA, Color(0.55, 0.45, 0.95), Color(0.95, 0.6, 0.25), Color(0.5, 0.85, 0.3),
+		Color(0.3, 0.6, 0.95)]
+	return cols[absi(hash(key)) % cols.size()]
+
+
+func _card_label(parent: Node, text: String, size: int, col: Color) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", roundi(size * Settings.text_scale))
+	l.add_theme_color_override("font_color", col)
+	l.custom_minimum_size.x = roundi(200 * Settings.text_scale)
+	parent.add_child(l)
+	return l
+
+
+func extras_text() -> String:
+	# What the cards don't cover, for under them on the sheet: tonight's requests, Earth's jobs, the festival
+	var lines: Array[String] = []
+	lines.append_array(Requests.log_lines())
+	lines.append_array(EarthJobs.log_lines())
+	lines.append_array(Festival.log_lines())
+	return "\n".join(lines).strip_edges()
 
 
 func log_view_node() -> RichTextLabel:
@@ -351,14 +510,21 @@ func _build_ui() -> void:
 	_note_layer.layer = 15
 	add_child(_note_layer)
 	_note = PanelContainer.new()
-	_note.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_note.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_note.offset_right = -16
-	_note.offset_top = 60
+	_note.name = "Quest Banner"
+	_note.position = Vector2(900, 60)
 	_note.modulate.a = 0.0
-	_note_label = Label.new()
-	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_note.add_child(_note_label)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 2)
+	_note.add_child(v)
+	_note_title = Label.new()
+	_note_title.uppercase = true
+	v.add_child(_note_title)
+	_note_body = Label.new()
+	_note_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	v.add_child(_note_body)
+	_note_label = Label.new()                          # the note as one text (note_text()), not shown
+	_note_label.visible = false
+	v.add_child(_note_label)
 	_note_layer.add_child(_note)
 	_log_text = RichTextLabel.new()
 	_log_text.bbcode_enabled = true
@@ -374,18 +540,19 @@ func _exit_tree() -> void:
 
 func _apply_look() -> void:
 	var hc := Settings.high_contrast
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.1, 0.08, 0.15, 0.9)
-	style.set_corner_radius_all(12)
-	style.set_content_margin_all(roundi(16 * Settings.text_scale))
-	if hc:
-		style.border_color = Color(1, 1, 1)
-		style.set_border_width_all(2)
-	_note.add_theme_stylebox_override("panel", style)
-	_note.custom_minimum_size.x = roundi(320 * Settings.text_scale)
-	_note_label.custom_minimum_size.x = roundi(300 * Settings.text_scale)
-	_note_label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
-	_note_label.add_theme_color_override("font_color", Color(1, 1, 0.8) if hc else Color(1, 0.95, 0.75))
+	var sc := Settings.text_scale
+	_note.theme = UiStyle.theme()
+	_note.add_theme_stylebox_override("panel", UiStyle.card(Color(0, 0, 0, 0.95) if hc else Color(0.2, 0.12, 0.34, 0.95), hc, sc))
+	_note.custom_minimum_size.x = roundi(340 * sc)
+	_note.size.x = _note.custom_minimum_size.x
+	_note_title.add_theme_font_size_override("font_size", roundi(22 * sc))
+	_note_title.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else UiStyle.GOLD)
+	_note_title.add_theme_constant_override("outline_size", roundi(7 * sc))
+	_note_body.custom_minimum_size.x = roundi(300 * sc)
+	_note_body.add_theme_font_size_override("font_size", roundi(19 * sc))
+	_note_body.add_theme_color_override("font_color", Color(1, 1, 0.8) if hc else UiStyle.TEXT)
 	_log_text.custom_minimum_size = Vector2(roundi(560 * Settings.text_scale), 0)
+	_log_text.add_theme_font_override("normal_font", UiStyle.font())
+	_log_text.add_theme_font_override("bold_font", UiStyle.font())
 	_log_text.add_theme_font_size_override("normal_font_size", roundi(20 * Settings.text_scale))
 	_log_text.add_theme_font_size_override("bold_font_size", roundi(24 * Settings.text_scale))

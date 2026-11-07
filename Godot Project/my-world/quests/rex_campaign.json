@@ -1,5 +1,6 @@
 {
   "name": "Rex for Mayor!",
+  "giver": "rex",
   "start": {
     "flag": "rex_campaign_start"
   },

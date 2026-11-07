@@ -307,8 +307,12 @@ func _focus_later(b: Control) -> void:
 func _fit_scroll() -> void:
 	# As tall as the rows, up to 60% of the screen; past that it scrolls
 	var want := _rows.get_combined_minimum_size().y
-	var most := get_viewport().get_visible_rect().size.y * 0.6
-	_scroll.custom_minimum_size.y = minf(want, most)
+	var vp := get_viewport().get_visible_rect().size.y
+	# ...and never so tall that the rest of the window (title, note, the Bye button) is pushed off the screen
+	_wallet.visible = _wallet.text != ""
+	var rest := _panel.get_combined_minimum_size().y - _scroll.get_combined_minimum_size().y
+	var most := minf(vp * 0.6, vp - rest - 48.0)
+	_scroll.custom_minimum_size.y = maxf(minf(want, most), 80.0)
 
 
 func decorate(part: String, step: int) -> void:
@@ -495,17 +499,14 @@ func _build() -> void:
 
 func _apply_look() -> void:
 	var hc := Settings.high_contrast
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0.12, 0.08, 0.18, 0.94)
-	style.set_corner_radius_all(14)
+	_panel.theme = UiStyle.theme()                      # the shared menu look (scripts/ui_style.gd)
+	var style := UiStyle.box(Color(0, 0, 0, 0.95) if hc else UiStyle.PANEL, 18, Color(1, 1, 1) if hc else UiStyle.EDGE, 3)
 	style.set_content_margin_all(roundi(22 * Settings.text_scale))
-	if hc:
-		style.border_color = Color(1, 1, 1)
-		style.set_border_width_all(2)
 	_panel.add_theme_stylebox_override("panel", style)
 	_panel.custom_minimum_size.x = roundi((1000 if _stall in ["Wardrobe", "Decorate"] else 640) * Settings.text_scale)
 	_title.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
-	_title.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+	_title.add_theme_color_override("font_color", UiStyle.GOLD)
+	_title.add_theme_constant_override("outline_size", roundi(8 * Settings.text_scale))
 	_blurb.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
 	_wallet.add_theme_font_size_override("font_size", roundi(20 * Settings.text_scale))
 	_wallet.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))

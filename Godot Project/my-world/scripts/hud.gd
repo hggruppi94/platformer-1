@@ -172,7 +172,11 @@ func _apply_look() -> void:
 	message_label.add_theme_font_override("font", Dialogue.font)     # same comic lettering as the subtitles
 	message_label.add_theme_font_size_override("font_size", _fs(26))
 	saved_label.add_theme_font_size_override("font_size", _fs(16))
-	var w := _fs(820)
+	var w := float(_fs(820))
+	if Settings.minimap:
+		# Clear of the round minimap in the bottom-right corner (scripts/map_screen.gd), both sides so it stays centred
+		var vp := get_viewport().get_visible_rect().size.x if is_inside_tree() else 1280.0
+		w = minf(w, vp - 2.0 * (TownMap.MINI_SIZE + TownMap.MINI_RING * 2.0 + 32.0))
 	message_label.offset_left = -w / 2.0
 	message_label.offset_right = w / 2.0
 	message_label.offset_bottom = -40

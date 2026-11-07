@@ -540,62 +540,7 @@ func _apply_theme() -> void:
 
 
 func make_theme() -> Theme:
-	# The menus' look (the player menu, scripts/player_menu.gd, wears it too): lavender panels, teal highlights
-	var t := Theme.new()
-	var hc := Settings.high_contrast
-	t.default_font_size = _fs(22)
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0, 0, 0, 0.97) if hc else Color(0.13, 0.08, 0.22, 0.95)
-	bg.set_corner_radius_all(14)
-	bg.border_color = Color(1, 1, 1) if hc else Color(0.55, 0.4, 0.9)
-	bg.set_border_width_all(3 if hc else 2)
-	t.set_stylebox("panel", "PanelContainer", bg)
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color(0.1, 0.1, 0.1) if hc else Color(0.25, 0.16, 0.42)
-	normal.set_corner_radius_all(8)
-	normal.set_content_margin_all(8)
-	normal.border_color = Color(1, 1, 1) if hc else Color(0.4, 0.3, 0.65)
-	normal.set_border_width_all(2 if hc else 1)
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.3, 0.3, 0.3) if hc else Color(0.36, 0.24, 0.6)
-	var focus := normal.duplicate() as StyleBoxFlat
-	focus.draw_center = false
-	focus.border_color = Color(1, 0.9, 0.1) if hc else Color(0.45, 1.0, 0.85)
-	focus.set_border_width_all(4 if hc else 3)
-	var on := normal.duplicate() as StyleBoxFlat           # a toggled-on button: bright fill
-	on.bg_color = Color(1, 0.9, 0.1) if hc else Color(0.25, 0.75, 0.62)
-	for cls in ["Button", "OptionButton"]:
-		t.set_stylebox("normal", cls, normal)
-		t.set_stylebox("hover", cls, hover)
-		t.set_stylebox("pressed", cls, on if cls == "Button" else hover)
-		t.set_stylebox("hover_pressed", cls, on)
-		t.set_stylebox("focus", cls, focus)
-	t.set_color("font_pressed_color", "Button", Color(0, 0, 0) if hc else Color(1, 1, 1))
-	t.set_color("font_hover_pressed_color", "Button", Color(0, 0, 0) if hc else Color(1, 1, 1))
-	t.set_color("font_color", "Label", Color(1, 1, 1) if hc else Color(0.95, 0.92, 1.0))
-	t.set_color("font_color", "Button", Color(1, 1, 1))
-	t.set_color("font_focus_color", "Button", Color(1, 0.9, 0.1) if hc else Color(0.6, 1.0, 0.9))
-	t.set_color("font_outline_color", "Label", Color(0, 0, 0))
-	t.set_constant("outline_size", "Label", 4 if hc else 0)
-	var grab := StyleBoxFlat.new()
-	grab.bg_color = Color(1, 0.9, 0.1) if hc else Color(0.45, 1.0, 0.85)
-	grab.set_corner_radius_all(10)
-	t.set_icon("grabber", "HSlider", _dot(_fs(18), grab.bg_color))
-	t.set_icon("grabber_highlight", "HSlider", _dot(_fs(22), grab.bg_color))
-	var track := StyleBoxFlat.new()
-	track.bg_color = Color(0.5, 0.5, 0.5) if hc else Color(0.35, 0.25, 0.55)
-	track.content_margin_top = _fs(4)
-	track.content_margin_bottom = _fs(4)
-	track.set_corner_radius_all(4)
-	t.set_stylebox("slider", "HSlider", track)
-	return t
+	# The menus' look, shared by every menu (scripts/ui_style.gd): the player menu and the title screen wear it too
+	return UiStyle.theme()
 
 
-func _dot(size: int, c: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var r := size / 2.0
-	for y in size:
-		for x in size:
-			var d := Vector2(x + 0.5 - r, y + 0.5 - r).length()
-			img.set_pixel(x, y, Color(c, clampf(r - d, 0.0, 1.0)))
-	return ImageTexture.create_from_image(img)
