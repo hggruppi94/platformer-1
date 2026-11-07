@@ -365,7 +365,7 @@ func _do(delta: float) -> void:
 			_play("idle", 0.35)
 			_face_rest(delta)
 		_:
-			_play("idle")
+			_play(str(b.get("anim", "idle")))
 			_face_rest(delta)
 
 
@@ -373,7 +373,7 @@ func _wander(b: Dictionary, delta: float) -> void:
 	# Little walks to random spots near the block's place, with a rest in between
 	if _wait > 0.0:
 		_wait -= delta
-		_play("idle")
+		_play(str(b.get("anim", "idle")))                # e.g. Melody dancing at the Market between little walks
 		return
 	if _path.is_empty():
 		var home := _paths.position_of(str(b.get("place", "")), _space, _skip)
@@ -405,7 +405,7 @@ func _patrol(b: Dictionary, delta: float) -> void:
 		return
 	if _wait > 0.0:
 		_wait -= delta
-		_play("idle")
+		_play(str(b.get("anim", "idle")))                # e.g. Melody dancing at the Market between little walks
 		return
 	if _path.is_empty():
 		_route_i = (_route_i + 1) % route.size()

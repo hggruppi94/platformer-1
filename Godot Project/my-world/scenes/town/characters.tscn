@@ -16,6 +16,9 @@
 [ext_resource type="PackedScene" path="res://models/characters/nina.glb" id="13_nina"]
 [ext_resource type="PackedScene" path="res://models/characters/astronaut.glb" id="14_astro"]
 [ext_resource type="PackedScene" path="res://models/characters/bruno.glb" id="19_bruno"]
+[ext_resource type="PackedScene" path="res://models/characters/melody.glb" id="20_melody"]
+[ext_resource type="PackedScene" path="res://models/characters/plant_girl.glb" id="21_plant"]
+[ext_resource type="Script" path="res://scripts/burrower.gd" id="22_burrow"]
 [ext_resource type="Script" path="res://scripts/little_aliens.gd" id="15_aliens"]
 [ext_resource type="PackedScene" path="res://models/characters/chaos_giant.glb" id="16_chaos"]
 [ext_resource type="Script" path="res://scripts/chaos_giant.gd" id="17_chaos"]
@@ -264,6 +267,55 @@ character_id = "bruno_alien"
 [node name="Body" type="StaticBody3D" parent="Bruno"]
 
 [node name="Shape" type="CollisionShape3D" parent="Bruno/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="Melody" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -66.0, 0.2, 40.0)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Melody" instance=ExtResource("20_melody")]
+
+[node name="Talk" type="Area3D" parent="Melody"]
+script = ExtResource("10_talk")
+character_id = "melody"
+display_name = "Melody"
+name_height = 1.85
+
+[node name="Routine" type="Node" parent="Melody"]
+script = ExtResource("11_routine")
+character_id = "melody"
+
+[node name="Body" type="StaticBody3D" parent="Melody"]
+
+[node name="Shape" type="CollisionShape3D" parent="Melody/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("CapsuleShape3D_kid")
+
+[node name="Plant Girl" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -80.0, 0.2, -30.0)
+script = ExtResource("1_npc")
+animation = "idle"
+
+[node name="Model" parent="Plant Girl" instance=ExtResource("21_plant")]
+
+[node name="Talk" type="Area3D" parent="Plant Girl"]
+script = ExtResource("10_talk")
+character_id = "plant_girl"
+display_name = "Sprout"
+name_height = 2.1
+
+[node name="Routine" type="Node" parent="Plant Girl"]
+script = ExtResource("11_routine")
+character_id = "plant_girl"
+
+[node name="Burrower" type="Node" parent="Plant Girl"]
+script = ExtResource("22_burrow")
+
+[node name="Body" type="StaticBody3D" parent="Plant Girl"]
+
+[node name="Shape" type="CollisionShape3D" parent="Plant Girl/Body"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
 shape = SubResource("CapsuleShape3D_kid")
 

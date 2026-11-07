@@ -1,0 +1,50 @@
+{
+  "name": "Sprout",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "(The ground in front of you bulges... and a girl made of leaves pops up, showering soil everywhere.) Oh! Hello! Sorry about the dirt.",
+        "I travel underground. It's quicker, and the worms give very good directions.",
+        "{player}: Who are you?",
+        "I'm Sprout! I grow wherever I'm needed. And this is Snappy.",
+        "(The flytrap on her arm opens wide and goes SNAP!)",
+        "Snappy, manners! ...She's friendly, really. She only eats bugs. And sometimes socks."
+      ]
+    },
+    {
+      "when": {"activity": "growing"},
+      "lines": [
+        "Bramble lets me help in the gardens. I wiggle my roots in, and everything grows a little happier.",
+        "Roots are like friends. You can't always see them, but they're the ones holding you up."
+      ]
+    },
+    {
+      "when": {"activity": "sunbathing"},
+      "lines": [
+        "(Sprout has her face turned up to the light, eyes closed, smiling.) Mmm. Sunshine is my breakfast.",
+        "Photosynthesis! It's a big word that means \"yum\"."
+      ]
+    },
+    {
+      "when": {"activity": "meadow"},
+      "lines": [
+        "Want to see how I get about? Watch the ground!",
+        "(She dives into the soil with a little twirl and pops up a few steps away.) Ta-daa!",
+        "When I'm under there, everything's quiet and cosy. Then I come up and say hello to the sky again."
+      ]
+    },
+    {
+      "when": {"activity": "evening"},
+      "lines": ["At night I plant myself in the gardens and dream about rain. Gentle rain. Not the splashy kind."]
+    },
+    {
+      "rotate": [
+        ["(Snappy snaps at a passing firefly. Misses.) She's still learning. We all are!"],
+        ["Whenever I feel wobbly, I think about my roots. Deep down, nice and steady. You've got roots too, you know. Your friends. Your home."],
+        ["Melody sings to my flowers every evening. I think they like the high notes best."],
+        ["The dewdrops on my antlers? I save them for thirsty bees."]
+      ]
+    }
+  ]
+}

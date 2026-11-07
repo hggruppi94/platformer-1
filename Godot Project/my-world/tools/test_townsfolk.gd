@@ -156,9 +156,14 @@ func _check_blastoffs() -> void:
 	check(nina.name == "Nina" and int(nina.look.hairstyle) == Hairstyles.NAMES.find("Bob") and int(nina.look.colors.hair) == 9,
 		"human Nina has a red bob")
 	var kinds := nina.extras.map(func(e: Dictionary) -> String: return str(e.kind))
-	check("bow" in kinds and "turtleneck" in kinds and int(nina.look.colors.top) == 6, "...her red bow and a black turtleneck")
+	# Her look from Hayden's picture (Nov 7): bow, fringe, freckles, gap teeth, hoops, a pink pinafore over a white tee,
+	# her yellow backpack, brown skin and eyes
+	var hers := ["bow", "fringe", "freckles", "gap_teeth", "hoops", "pinafore", "backpack"]
+	check(hers.all(func(k: String) -> bool: return k in kinds) and int(nina.look.colors.top) == 7
+		and int(nina.look.colors.fur) == 3 and int(nina.look.colors.eyes) == 4,
+		"...her red bow, fringe, freckles, gap teeth, hoops, pink pinafore over a white tee and yellow backpack")
 	var skel := Clothes._skeleton(nina.model)
-	check(skel.get_node_or_null("Own bow") != null and skel.get_node_or_null("Own turtleneck") != null, "...and she's wearing them")
+	check(hers.all(func(k: String) -> bool: return skel.get_node_or_null("Own " + k) != null), "...and she's wearing them")
 	check((_body("prue") as Townsfolk).placeholder and not (_body("bruno") as Townsfolk).placeholder and not nina.placeholder,
 		"Prue is marked as a placeholder (Nina and Bruno aren't)")
 	var bruno := _body("bruno") as Townsfolk
