@@ -12,7 +12,8 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer", "bruno_alien"]
+const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer", "bruno_alien", "melody",
+	"plant_girl"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
 
 var failures := 0
@@ -190,7 +191,8 @@ func _run() -> void:
 
 	# Dialogue that knows where they are and what they're doing
 	for c in [["rex", "11:00", 2, "Citizens of Galaxity"], ["dash", "12:45", 2, "Snack break"],
-			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"], ["bruno_alien", "10:00", 2, "leththon"]]:
+			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"], ["bruno_alien", "10:00", 2, "leththon"],
+			["melody", "10:00", 2, "YES"], ["plant_girl", "07:00", 2, "roots"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()
 		dialogue.talks[c[0]] = c[2]
@@ -206,6 +208,42 @@ func _run() -> void:
 			break
 	dialogue.talks["pip"] = 3
 	check(routines.pip.is_travelling() and _first_line("pip").contains("Can't stop"), "Pip setting off at dusk: \"%s\"" % _first_line("pip"))
+
+	# Melody dances at the Market between her little walks (her block's "anim")
+	clock.set_time(4, 10 * 60.0, true)
+	await _settle()
+	var melody := _body("melody")
+	player.global_position = melody.global_position + Vector3(6, 1, 0)
+	var mel_anim := melody.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	var danced := false
+	for i in 600:
+		await physics_frame
+		if mel_anim.current_animation == "dance":
+			danced = true
+			break
+	check(danced, "Melody busks at the Market: she dances between little walks")
+
+	# The plant girl gets about underground (scripts/burrower.gd): when she sets off she dives in and only a mound of
+	# soil shows; when she stops she sprouts back up
+	clock.set_time(4, 15 * 60.0, true)
+	await _settle()
+	var sprout := _body("plant_girl")
+	var burrower := sprout.get_node("Burrower")
+	var model := sprout.get_node("Model") as Node3D
+	player.global_position = sprout.global_position + Vector3(6, 1, 0)
+	var went_under := false
+	var hidden_under := false
+	var came_up := false
+	for i in 1500:
+		await physics_frame
+		if burrower.state == burrower.UNDER:
+			went_under = true
+			hidden_under = not model.visible and (sprout.get_node("Mound") as Node3D).visible
+		elif went_under and burrower.state == burrower.UP:
+			came_up = true
+			break
+	check(went_under and hidden_under, "the plant girl dives into the ground to move (only her mound shows)")
+	check(came_up and model.visible and absf(model.position.y) < 0.01, "...and sprouts back up when she stops")
 
 	# Save at 11 AM for the --check-load run
 	clock.set_time(5, 11 * 60.0, true)
@@ -250,6 +288,8 @@ func _check_files() -> void:
 						bad.append("can't reach '%s'" % n)
 				if b.get("do", "") == "follow" and not str(b.get("who", "")) in PEOPLE:
 					bad.append("follows nobody: '%s'" % b.get("who", ""))
+				if b.has("anim") and not str(b.get("do", "")) in ["idle", "wander"]:
+					bad.append("'anim' only works for idle and wander: %s" % b.get("do", ""))
 				if not str(b.get("do", "")) in ["idle", "wander", "nap", "patrol", "follow", "away"]:
 					bad.append("unknown 'do': %s" % b.get("do", ""))
 		check(ok and bad.is_empty(), "%s.json: %d blocks %s" % [id, res.data.blocks.size() if ok else 0, bad])

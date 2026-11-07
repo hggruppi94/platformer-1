@@ -1,0 +1,12 @@
+{
+  "speed": 1.4,
+  "move_anim": "walk",
+  "follow_anim": "run",
+  "blocks": [
+    {"at": "07:30", "place": "housing_north", "do": "idle", "face": [86.0, -20.0], "label": "morning"},
+    {"at": "09:30", "place": "market_south", "do": "wander", "radius": 4, "anim": "dance", "label": "busking"},
+    {"at": "13:00", "place": "town_square", "do": "wander", "radius": 6, "anim": "dance", "label": "dancing"},
+    {"at": "17:00", "place": "meadow", "do": "wander", "radius": 5, "label": "practising"},
+    {"at": "20:30", "place": "housing_north", "do": "away", "label": "asleep"}
+  ]
+}

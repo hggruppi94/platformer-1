@@ -1,0 +1,56 @@
+{
+  "name": "Melody",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "(A capybara girl in a purple dress bounces over, her ponytail swinging.) Eee! A new face! Hi hi hi! I'm Melody!",
+        "{player}: Are you... a capybara?",
+        "Capybara AND pop star. Well, pop star in training. Everybody gets along with capybaras, did you know? Even crocodillos. It's my gift.",
+        "I sing at the Market every morning. Come and dance with me sometime!"
+      ]
+    },
+    {
+      "when": {"activity": "busking"},
+      "lines": [
+        "(Melody's mid-song, spinning on her shiny Mary Janes.) ...and the stars all go YES, YES, YES! Oh, hi {player}!",
+        "That's my new song. It's called \"Yes!\" The whole thing is just happy words. Wanna be my backup dancer?",
+        "{player}: Maybe!",
+        "I'll take a maybe! Maybes are just yeses that are a little bit shy."
+      ]
+    },
+    {
+      "when": {"activity": "dancing"},
+      "lines": [
+        "Dance break! Doctor's orders. Well, Bramble's orders. She says a good wiggle is good for your heart.",
+        "Wiggle with me! Shoulders, hips, ponytail. Ponytail is the most important part."
+      ]
+    },
+    {
+      "when": {"activity": "practising", "every": 2},
+      "lines": [
+        "(She's singing scales to a row of very patient flowers.) La la LAAA. The flowers are my audience. They never leave early.",
+        "Sometimes I get nervous before I sing. So I breathe. In for four, out for four. Then I'm ready!",
+        "You can try it too, whenever your tummy feels fluttery."
+      ]
+    },
+    {
+      "when": {"activity": "practising"},
+      "lines": [
+        "Have you met Sprout? She pops right up out of the ground! I screamed SO loud.",
+        "Then we became best friends. I sing to her flowers and they grow twice as fast. Or maybe they're just dancing."
+      ]
+    },
+    {
+      "when": {"time": "night"},
+      "lines": ["(Melody does an enormous capybara yawn.) Even pop stars need their beauty sleep."]
+    },
+    {
+      "rotate": [
+        ["Mm-hm. (She crosses her arms and narrows her eyes.) ...Sorry, just practising my sassy face. How was it?"],
+        ["Capybara fact! We love a warm bath. The Hot Springs are basically my second home."],
+        ["Every song I write is about being happy. Even the sad ones. They're about being happy AGAIN."]
+      ]
+    }
+  ]
+}

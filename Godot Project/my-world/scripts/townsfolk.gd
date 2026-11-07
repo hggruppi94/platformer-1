@@ -21,6 +21,7 @@ const EXTRAS := {
 	"bow_tie": "chest", "scarf": "chest", "shawl": "chest", "headband": "head", "moustache": "head", "flower": "head",
 	"clipboard": "hand.L", "cardigan": "spine", "striped_beanie": "head", "freckles": "head",
 	"bruno_beanie": "head", "open_hoodie": "chest",
+	"fringe": "head", "hoops": "head", "gap_teeth": "head", "pinafore": "spine", "backpack": "chest",
 }
 
 @export var look := {}                     # a hero (Hero.blank()'s shape); empty for a model used as it is
@@ -46,6 +47,8 @@ func _enter_tree() -> void:
 		var hero := look.duplicate(true)
 		hero["body"] = own_body if Hero.BODIES.has(own_body) else "earth_kid"
 		Hero.apply(model, hero, outfit)
+		if look.has("hair_rgb"):
+			_tint_hair(look["hair_rgb"])
 	var skel := Clothes._skeleton(model)
 	if skel:
 		for e in extras:
@@ -58,6 +61,20 @@ func _ready() -> void:
 		_anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
 		_anim.play("idle")
 		_anim.seek(randf() * _anim.current_animation_length)
+
+
+func _tint_hair(c: Color) -> void:
+	# A hair colour of their own, beyond the creator's swatches (Nina's bright red-orange from Hayden's picture):
+	# every surface of the hairstyle takes it, the hair ties keep theirs
+	var style := model.find_child("Hairstyle", true, false)
+	if style == null:
+		return
+	for mi in style.find_children("*", "MeshInstance3D", true, false):
+		var m := (mi as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+		if m and m.albedo_color.r < 0.99:                  # (the ties are pink: 1.0, 0.5, 0.75)
+			var own := m.duplicate() as StandardMaterial3D
+			own.albedo_color = c
+			(mi as MeshInstance3D).material_override = own
 
 
 func height() -> float:
@@ -146,6 +163,32 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 				_mesh(g, _cyl(0.007, 0.007, 0.15), Color(0.95, 0.95, 0.95), Vector3(sd * 0.045, 0.76, 0.19))
 			_mesh(g, _torus(0.12, 0.2), c, Vector3(0, 0.86, -0.04), Vector3(0.25, 0, 0), Vector3(1.0, 1.6, 1.0))
 			_mesh(g, _ball(0.13), c, Vector3(0, 0.83, -0.16), Vector3.ZERO, Vector3(1.2, 0.8, 0.6))
+		"fringe":                                      # a side-swept fringe over the forehead (Nina's bob has bangs)
+			_mesh(g, _ball(0.2), c, Vector3(-0.03, 1.235, 0.16), Vector3(-0.25, 0, 0.14), Vector3(1.25, 0.42, 0.6))
+		"hoops":                                       # little gold hoop earrings peeking out under the hair
+			for s in [-1.0, 1.0]:
+				_mesh(g, _torus(0.014, 0.024), c, Vector3(s * 0.25, 0.915, 0.05), Vector3(0, 0, PI / 2))
+		"gap_teeth":                                   # two big front teeth with a gap between them
+			for s in [-1.0, 1.0]:
+				_mesh(g, _box(Vector3(0.022, 0.02, 0.01)), c, Vector3(s * 0.017, 0.982, 0.226), Vector3(-0.2, 0, 0))
+		"pinafore":                                    # a pink pinafore over the tee: bib, straps, a little flared skirt
+			_mesh(g, _box(Vector3(0.22, 0.17, 0.02)), c, Vector3(0, 0.68, 0.215), Vector3(-0.15, 0, 0))
+			for s in [-1.0, 1.0]:
+				_mesh(g, _box(Vector3(0.045, 0.2, 0.02)), c, Vector3(s * 0.08, 0.83, 0.17), Vector3(-0.6, 0, 0))
+				_mesh(g, _box(Vector3(0.045, 0.3, 0.02)), c, Vector3(s * 0.08, 0.74, -0.17), Vector3(0.12, 0, 0))
+				_mesh(g, _ball(0.016), Color(1.0, 0.85, 0.4), Vector3(s * 0.08, 0.755, 0.228))
+			_mesh(g, _cone(0.2, 0.27, 0.2), c, Vector3(0, 0.5, 0.0))
+		"backpack":                                    # her yellow backpack: a rounded pack with a front pocket and
+			# dark-edged straps over her shoulders
+			_mesh(g, _box(Vector3(0.3, 0.32, 0.13)), c, Vector3(0, 0.7, -0.24))
+			_mesh(g, _ball(0.15), c, Vector3(0, 0.86, -0.24), Vector3.ZERO, Vector3(1.0, 0.35, 0.43))
+			_mesh(g, _box(Vector3(0.22, 0.14, 0.05)), c.darkened(0.08), Vector3(0, 0.62, -0.32))
+			_mesh(g, _box(Vector3(0.23, 0.012, 0.012)), Color(0.12, 0.1, 0.1), Vector3(0, 0.69, -0.346))
+			for s in [-1.0, 1.0]:
+				_mesh(g, _box(Vector3(0.05, 0.36, 0.02)), Color(0.12, 0.1, 0.1), Vector3(s * 0.13, 0.72, 0.15),
+					Vector3(-0.15, 0, s * 0.12))
+				_mesh(g, _box(Vector3(0.05, 0.1, 0.18)), Color(0.12, 0.1, 0.1), Vector3(s * 0.13, 0.9, -0.03),
+					Vector3(0.1, 0, 0))
 		"freckles":                                    # a sprinkle across the nose and cheeks
 			for s in [-1.0, 1.0]:
 				for k in 4:

@@ -1,7 +1,7 @@
 # Routines: where people are during the day
 
 One schedule per character, named after their `character_id` (the same one as their dialogue file): `dash.json`,
-`rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `nina.json`, `mr_palmer.json`. `scripts/routine.gd` (the `Routine` node under
+`rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `nina.json`, `mr_palmer.json`, `bruno_alien.json`, `melody.json`, `plant_girl.json`. `scripts/routine.gd` (the `Routine` node under
 each character in `scenes/town/characters.tscn`) follows it, using the game clock.
 
 ```json
@@ -27,6 +27,9 @@ along the town's paths; otherwise (or after sleeping, loading, or coming out of 
 | `patrol` | go round the places in `route` in turn, stopping `pause` seconds at each (Dash's bike rides, Pip's lamp walks) |
 | `follow` | tag along behind someone: `"who": "rex"`. If they're away, wait at `place` |
 | `away` | not in town (asleep at home, inside). No one to see or talk to |
+
+**`anim`** (optional) is the animation they play while they stand about in an `idle` block or rest between little
+walks in a `wander` block, instead of `idle`: Melody dances at the Market (`"anim": "dance"`).
 
 **`label`** names what they're up to (`"riding"`, `"campaigning"`). Dialogue lines can depend on it:
 `"when": {"activity": "riding"}`, or on the place: `"when": {"place": "town_hall"}` (see `res://dialogue/README.md`).

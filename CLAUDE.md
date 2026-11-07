@@ -77,13 +77,48 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
   and Dash is his twin. The other characters are Bramble, Pip, Rook (says woof), Ivy and Theo (Earth), Madame
   Celeste (Earth dance studio) and the lonely centipede (Scary World).
-- In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (red bob, red
-  bow, black turtleneck: `nina_earth`) and stays her alien self in Galaxity. Since Nov 1, 2026 Bruno is too (`bruno` on
+- In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
+  since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in Galaxity. Since Nov 1, 2026 Bruno is too (`bruno` on
   Earth, `bruno_alien` in Galaxity, from Sofi's drawing). Prue's Earth look is still a placeholder.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
 
+- 2026-11-07: Human Nina's new look, and two new Galaxity kids, Melody and the plant girl (from Hayden's three pictures,
+  copied to `source_art/reference/`: "Nina - human form.jpg", "Melody - capybara girl.jpg", "Plant girl.jpg"; Hayden:
+  "Plant girl grows in and out of the ground to move around"). Built and tested in the cloud (own Godot user folders,
+  no save touched); the whole suite passes (62 runs).
+  - **Human Nina** (`tools/build_earth.gd`, `nina_earth`): brown skin and brown eyes, her red bob now a brighter
+    red-orange (`look.hair_rgb`: a hair colour of their own beyond the creator's swatches, `Townsfolk._tint_hair()`)
+    with a side fringe, her red bow, freckles, a gap-tooth smile, little gold hoops, a white tee under a pink pinafore,
+    dark leggings and her yellow backpack. New extras in `scripts/townsfolk.gd`: `fringe`, `hoops`, `gap_teeth`,
+    `pinafore`, `backpack`. The black turtleneck is gone. `earth.tscn` rebuilt (only Nina changed; the rest is
+    unique_id churn). test_townsfolk checks the new look.
+  - **Melody** (`tools/build_melody.py` -> `melody.blend` -> `models/characters/melody.glb`, id `melody`): the capybara
+    girl in purple from Sofi's show notes (upbeat pop): golden-brown fur, big blunt snout with a dark nose pad, blue
+    eyes with lashes, an auburn quiff and a big ponytail with a purple scrunchie (its own `ponytail` bone, bouncing),
+    a purple polo dress (collar, buttons, A-line skirt), white socks, black Mary Janes. Animations: idle (paws at her
+    chest, delighted, like the picture), walk, run, jump, fall, `dance` (her pop dance) and `sass` (arms crossed).
+    Routine (`routines/melody.json`): home at `housing_north`, busking (dancing) at `market_south` in the morning,
+    a dance break in the town square, singing to the flowers in the meadow in the evening. `dialogue/melody.json`.
+  - **The plant girl** (`tools/build_plant_girl.py` -> `plant_girl.glb`, id `plant_girl`, shown as "Sprout": a
+    working name until Hayden names her): round pale green face with closed happy eyes and purple blush, a cap of
+    layered leaves, bark antlers wrapped in vines with leaves and dewdrops, a dress of leaves, a branchy leaf hand, a
+    Venus flytrap on her other arm ("Snappy", its own `trap` bone so it snaps) and golden roots instead of legs.
+    Animations: idle (swaying, the trap breathing), `burrow`, `under`, `sprout`, `snap`, `wave`, plus walk/run/jump/
+    fall stand-ins. **She burrows to get about** (`scripts/burrower.gd`, a `Burrower` node next to her Routine): when
+    her routine moves her she dives into the ground (soil puff from `Juice.dust`, her model sinks out of sight), a
+    little mound of soil with a sprig travels along where she is, and when she stops she sprouts back up with a
+    springy pop. It never moves her body, so routines, talking and tests treat her like anyone else. Routine
+    (`routines/plant_girl.json`, `move_anim` "under", speed 2.2): the Secret Gardens with Bramble, sunbathing at the
+    spa, the meadow, planted in the gardens at night. `dialogue/plant_girl.json`.
+  - Routines can now say which animation someone plays while standing about or resting between little walks:
+    `"anim": "dance"` on an `idle` or `wander` block (`scripts/routine.gd`, README). Voices for both in
+    `scripts/soundscape.gd`. Tests: test_routines (both routines, Melody dancing, the plant girl going under and
+    coming up), test_dialogue, test_townsfolk. Previews: `tools/capture_new_friends.gd` (in `previews/new_friends/`
+    and the project files under characters/melody, characters/plant-girl, characters/nina-human).
+  - My choices Hayden may change: the plant girl's name, Melody's home and day, Nina's leggings and shoes (not in the
+    picture), the flytrap's name.
 - 2026-11-02: A game feel pass on skating and the Star Popper (the coordinator's suggestion, Hayden: "go"; the first
   try of the game-feel skill from awesome-gamedev-agent-skills and GodotPrompter's camera-system). Small, short touches
   on top of what `Juice` already did, all scaled by Settings > Assist > Screen shake and off with Reduce motion.

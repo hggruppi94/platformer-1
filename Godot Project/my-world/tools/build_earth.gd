@@ -1136,11 +1136,18 @@ func _people() -> void:
 		[{"kind": "headband", "color": Color(1.0, 0.45, 0.65)}, {"kind": "clipboard"}])
 	_person("Ozzie", "ozzie", Vector3(14.0, 0.2, -92.0), 0.0, _look(1, 10, 1, 9, 15, 6, 1.0),
 		[{"kind": "cap", "color": Color(0.85, 0.2, 0.2)}, {"kind": "skateboard", "color": Color(0.3, 0.75, 0.4)}])
-	# The Blastoffs: Nina, human on Earth (red bob, red bow, black turtleneck), and her sister and brother. Prue's look
+	# The Blastoffs: Nina, human on Earth (from Hayden's picture, Nov 7: a red-orange bob with a side fringe and her
+	# red bow, brown eyes, freckles, a gap-tooth smile, little gold hoops, a white tee under a pink pinafore and her
+	# yellow backpack), and her sister and brother. Prue's look
 	# is a PLACEHOLDER until there's a drawing of her as a person. Bruno is Sofi's drawing of him as a person: a mop
 	# of golden hair under his black SK8 beanie, an open blue zip hoodie over an olive tee, dark jeans, his board.
-	_person("Nina", "nina_earth", Vector3(-40.0, 0, 62.0), PI, _look(1, 9, 6, 6, 6, 9, 1.0, 1.0, 0.95),
-		[{"kind": "bow", "color": Color(0.85, 0.1, 0.14)}, {"kind": "turtleneck", "color": Color(0.1, 0.08, 0.1)}])
+	var nina := _look(3, 9, 6, 7, 6, 9, 1.0, 1.0, 0.95, {"hair_rgb": Color(0.86, 0.22, 0.08)})
+	nina.colors["eyes"] = 4                                            # warm brown eyes
+	_person("Nina", "nina_earth", Vector3(-40.0, 0, 62.0), PI, nina,
+		[{"kind": "bow", "color": Color(0.85, 0.1, 0.1)}, {"kind": "fringe", "color": Color(0.86, 0.22, 0.08)},
+		{"kind": "freckles", "color": Color(0.3, 0.15, 0.08)}, {"kind": "gap_teeth", "color": Color(0.98, 0.97, 0.94)},
+		{"kind": "hoops", "color": Color(1.0, 0.78, 0.3)}, {"kind": "pinafore", "color": Color(1.0, 0.58, 0.72)},
+		{"kind": "backpack", "color": Color(1.0, 0.75, 0.2)}])
 	_person("Prue", "prue", Vector3(-38.0, 0, 62.0), PI, _look(1, 4, 2, 17, 18, 18, 0.84, 1.06),
 		[{"kind": "flower", "color": Color(1.0, 0.6, 0.8)}]).set("placeholder", true)
 	_person("Bruno", "bruno", Vector3(-42.0, 0, 62.0), PI, _look(2, 11, 1, 15, 6, 6, 0.92, 1.05, 1.0, {"eyes": 1.08}),
