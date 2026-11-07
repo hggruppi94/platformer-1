@@ -95,6 +95,9 @@ func _ready() -> void:
 	Game.equipment_changed.connect(_refresh_clock)
 	Settings.changed.connect(_refresh_clock)
 	Audio.caption.connect(_on_caption)
+	# The subtitle banner sits where short messages go: keep messages out of the way while someone's talking
+	Dialogue.started.connect(func(_id: String) -> void: message_label.visible = false)
+	Dialogue.finished.connect(func(_id: String) -> void: message_label.visible = true)
 	Settings.changed.connect(_apply_look)
 	_apply_look()
 	_refresh()
@@ -166,7 +169,8 @@ func _apply_look() -> void:
 		l.add_theme_color_override("font_outline_color", Color(0, 0, 0) if hc else Color(0.1, 0.05, 0.15))
 		l.add_theme_constant_override("outline_size", 14 if hc else 8)
 		l.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(1, 1, 1))
-	message_label.add_theme_font_size_override("font_size", _fs(24))
+	message_label.add_theme_font_override("font", Dialogue.font)     # same comic lettering as the subtitles
+	message_label.add_theme_font_size_override("font_size", _fs(26))
 	saved_label.add_theme_font_size_override("font_size", _fs(16))
 	var w := _fs(820)
 	message_label.offset_left = -w / 2.0
@@ -255,7 +259,10 @@ func _on_caption(text: String) -> void:
 
 func _style_caption(l: Label) -> void:
 	var hc := Settings.high_contrast
-	l.add_theme_font_size_override("font_size", _fs(18))
+	l.add_theme_font_override("font", Dialogue.font)
+	l.add_theme_font_size_override("font_size", _fs(20))
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	l.add_theme_constant_override("outline_size", _fs(6))
 	var s := StyleBoxFlat.new()
 	s.bg_color = Color(0, 0, 0, 0.95) if hc else Color(0, 0, 0, 0.6)
 	s.set_content_margin_all(6)
