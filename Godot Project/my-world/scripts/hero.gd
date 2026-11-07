@@ -217,7 +217,7 @@ static func apply(model: Node3D, hero: Dictionary, outfit: Dictionary) -> void:
 	# Dress and shape a model as this hero: their outfit, colours, hairstyle, extras and size
 	var body := body_of(hero)
 	var who: String = body.char
-	var colors: Dictionary = hero.get("colors", {})
+	var colors: Dictionary = Skins.colors_of(hero)           # the creator's colours, with a skin on top (scripts/skins.gd)
 	# Their hair: their body's own, or a new style in their hair colour (and the body's own hair hidden). The clothes
 	# are fitted with these parts gone, and a hat goes over the hairstyle.
 	var hidden := []

@@ -52,6 +52,7 @@ var hero_ride := "board"         # what the hero rides (Rides.HERO_RIDES); other
 var home := {}                   # how the player's house is decorated: part -> colour number, spot -> item (scripts/home_decor.gd)
 var outfits := {"hero": {}}      # what everyone's wearing: who -> {slot -> shop item id} (scripts/clothes.gd)
 var looks := {}                  # how everyone looks: who -> {part -> colour number}; 0 or missing is their own
+var saved_outfits := []          # the quick outfit wheel's outfits (scripts/quick_outfits.gd): up to 6, null for an empty slot
 var outfit: Dictionary:          # the player's outfit; a missing slot is their own look
 	get:
 		if not outfits.has("hero"):
@@ -309,7 +310,7 @@ func save_game() -> void:
 		"saved_at": Time.get_datetime_string_from_system(),
 		"level": level, "xp": xp,
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
-		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "hero": hero, "needs_creator": needs_creator, "home": home,
+		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "saved_outfits": saved_outfits, "hero": hero, "needs_creator": needs_creator, "home": home,
 		"popper_colour": popper_colour, "play_time": play_time, "hero_ride": hero_ride,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
@@ -404,6 +405,8 @@ func load_game() -> void:
 	Races.load_data(races if races is Dictionary else {})
 	var runs = data.get("skate_runs", {})                    # saves from before the skate runs have none
 	SkateRuns.load_data(runs if runs is Dictionary else {})
+	# Saves from before the outfit wheel have no saved outfits
+	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
 	outfits = {"hero": {}}
 	var all_worn = data.get("outfits", {"hero": data.get("outfit", {})})
 	if all_worn is Dictionary:
@@ -539,6 +542,7 @@ func new_game() -> void:
 	riding = false
 	outfits = {"hero": {}}
 	looks = {}
+	saved_outfits = []
 	hero = Hero.blank()
 	needs_creator = true
 	home = {}
