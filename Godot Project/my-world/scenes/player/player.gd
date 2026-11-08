@@ -26,6 +26,12 @@ class_name Player
 @export var roll_cost: float = 25.0         # SP (stamina) per roll
 @export var roll_buffer: float = 0.15       # a roll pressed just before landing still happens
 
+@export_group("Sprint")
+# Keep holding the roll button and she comes out of the roll into a sprint (Hayden's playtest, 7 Nov 2026). Free: no
+# stamina, so little ones can run about town as much as they like. Let go (or stop steering) and she's back to a run.
+@export var sprint_scale: float = 1.65      # times her running speed
+@export var sprint_hold: float = 0.3        # seconds the roll button is held before she sprints (a tap is just a roll)
+
 @export_group("Getting hurt")
 @export var invulnerable_time: float = 1.2  # seconds of blinking after a hit, when nothing can hurt her
 @export var knockback: float = 7.0          # how hard a hit pushes her away
@@ -54,6 +60,9 @@ var _stun_timer := 0.0
 var _roll_timer := 0.0
 var _roll_dir := Vector3.ZERO
 var _roll_buffer_timer := 0.0
+var _dash_held := 0.0                       # how long the roll button's been held (sprinting after sprint_hold)
+var sprinting := false
+var _sprint_puff := 0.0
 var _air_jump_used := false
 var _spin_timer := 0.0                      # somersault (roll) or front flip (double jump) in progress
 var _spin_time := 1.0
@@ -265,6 +274,10 @@ func is_rolling() -> bool:
 	return _roll_timer > 0.0
 
 
+func is_sprinting() -> bool:
+	return sprinting
+
+
 func hurt(amount: int, from: Vector3) -> void:
 	# Called by enemies on touch. Knocks her away from the hit, then she blinks and can't be hurt for a moment.
 	if is_invulnerable():
@@ -385,6 +398,10 @@ func _physics_process(delta: float) -> void:
 	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") and not input_locked else _roll_buffer_timer - delta
 	if _roll_buffer_timer > 0.0 and on_floor:
 		_try_roll(direction)
+	# Sprint: still holding it once the roll's done, and steering somewhere
+	_dash_held = _dash_held + delta if Input.is_action_pressed("dash") and not input_locked else 0.0
+	sprinting = _dash_held >= sprint_hold and direction != Vector3.ZERO and _roll_timer <= 0.0 \
+		and _stun_timer <= 0.0 and not popper.aiming
 
 	var horizontal := Vector3(velocity.x, 0, velocity.z)
 	if _roll_timer > 0.0:
@@ -399,6 +416,14 @@ func _physics_process(delta: float) -> void:
 		if not on_floor:
 			rate *= air_control
 		var target := direction * speed * _zone_min("speed_scale", 1.0) * popper.move_scale()
+		if sprinting:
+			target *= sprint_scale
+			if on_floor:
+				rate = acceleration * 1.5
+				_sprint_puff -= delta
+				if _sprint_puff <= 0.0:                 # little dust puffs from her heels
+					_sprint_puff = 0.18
+					Juice.burst(get_parent(), global_position + Vector3(0, -0.7, 0), Color(0.95, 0.9, 0.8, 0.55), 3, 0.06, 0.8, 0.35)
 		if _rush_time > 0.0:
 			# Rushing from a booster: she shoots along the way she steers (or faces, with nothing held)
 			target = (direction if direction else facing_dir()) * (speed + _rush_speed)
@@ -564,6 +589,6 @@ func _update_animation(horizontal_speed: float) -> void:
 	if anim.assigned_animation != target:
 		anim.play(target, 0.15)
 	# Match the stride to how fast she's actually moving
-	anim.speed_scale = clampf(horizontal_speed / speed, 0.6, 1.4) if target == "run" else 1.0
+	anim.speed_scale = clampf(horizontal_speed / speed, 0.6, 1.8 if sprinting else 1.4) if target == "run" else 1.0
 	if target == "run" and popper.aiming:
 		anim.speed_scale = clampf(horizontal_speed / (speed * popper.AIM_MOVE), 0.6, 1.0)

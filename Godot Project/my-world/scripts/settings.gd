@@ -68,6 +68,11 @@ var minimap := true                   # the round map in the bottom-right corner
 var clock_style := "both"             # the HUD's clock once the hero has a watch: "both" (watch and words), "watch", "words"
 # --- Accessibility
 var text_scale := 1.0                 # HUD and menu text size
+var hud_size := 0.8                   # the on-screen stuff while playing (stats, clock, to-do list, quest banner, minimap,
+                                      # tips): 0.8 "Small" by default since Hayden's 7 Nov 2026 playtest, 1.0 the old size
+var talk_speed := 40.0                # letters a second when people talk (scripts/dialogue.gd); 0 = the whole line at once
+var talk_caps := true                 # people's lines in comic capitals (false: ordinary sentence case, easier to read)
+var objectives := true                # the "To do" list under the stats (scripts/objectives.gd)
 var high_contrast := false            # solid dark panels, bright text, heavy outlines
 var reduce_flashing := false          # no blinking/flashing on hits, calmer glows
 var reduce_motion := false            # no camera kick when rolling, calmer bobbing effects
@@ -104,9 +109,14 @@ func _ready() -> void:
 
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
-		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "clock_style", "text_scale", "high_contrast", "reduce_flashing",
+		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "clock_style", "text_scale", "hud_size", "talk_speed", "talk_caps", "objectives", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
 		"skate_assist", "screen_shake", "rumble", "playtest", "race_intros"]
+
+
+func hud(px: float) -> int:
+	# A size on the playing screen (the HUD): text size times the HUD size
+	return roundi(px * text_scale * hud_size)
 
 
 func set_value(prop: String, value) -> void:

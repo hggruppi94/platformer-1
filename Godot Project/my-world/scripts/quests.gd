@@ -33,6 +33,12 @@ var _note_tween: Tween
 var _names := {}                      # character id -> their name, from res://dialogue/<id>.json (for the cards)
 var _note_time := 0.0
 var _log_text: RichTextLabel         # shown on the player menu's Quests sheet
+var tracked := ""                    # the quest the HUD's to-do list follows: the last one that started or moved on
+
+# Words a quest step's "do this" sentence starts with, to pick it out of a longer step for the to-do list
+const DO_WORDS := ["go", "find", "tell", "talk", "say", "put", "fill", "get", "read", "bring", "take", "help", "pop",
+	"walk", "sleep", "hang", "ask", "meet", "enjoy", "explore", "visit", "follow", "cheer", "collect", "look", "head",
+	"ride", "win", "try", "give", "pick", "climb", "build", "catch", "deliver", "use", "show", "come", "check", "wait"]
 
 
 func _ready() -> void:
@@ -160,6 +166,59 @@ func display_name(character_id: String, default: String) -> String:
 	return default
 
 
+# -----------------------------------------------------------------------------
+# The HUD's to-do list (scripts/hud.gd): what to do right now for the quest being followed
+# -----------------------------------------------------------------------------
+func tracked_quest() -> String:
+	if tracked != "" and is_started(tracked) and not is_done(tracked):
+		return tracked
+	for id in _order:
+		if is_started(id) and not is_done(id):
+			return id
+	return ""
+
+
+func objectives() -> Dictionary:
+	# {"quest": id, "name": its name, "items": [[text, done], ...]}, or {} with nothing on. A step's checklist if it has
+	# one; otherwise its "goal" (a short line a quest file can give a step), or else the sentence of its text that says
+	# what to do ("Find the other Nina at Willow Pond.")
+	var id := tracked_quest()
+	if id == "":
+		return {}
+	var step := current_step(id)
+	var items: Array = []
+	for item in checklist(id):
+		items.append([item[0], item[1]])
+	if items.is_empty():
+		items.append([short_goal(step), false])
+	if is_waiting(id):
+		items = [[str(step.get("wait", {}).get("text", "Come back tomorrow.")).trim_prefix("(").trim_suffix(")"), false]]
+	return {"quest": id, "name": str(quest(id).get("name", id)), "items": items}
+
+
+static func short_goal(step: Dictionary) -> String:
+	if step.has("goal"):
+		return str(step["goal"])
+	var text := str(step.get("text", "")).strip_edges()
+	if text.length() <= 70:
+		return text
+	# Split into sentences (keeping their ! . ?), then the first that starts with a "do" word
+	var sentences: Array[String] = []
+	var cur := ""
+	for i in text.length():
+		cur += text[i]
+		if text[i] in ".!?" and (i + 1 >= text.length() or text[i + 1] == " "):
+			sentences.append(cur.strip_edges())
+			cur = ""
+	if cur.strip_edges() != "":
+		sentences.append(cur.strip_edges())
+	for sentence in sentences:
+		var first := sentence.get_slice(" ", 0).to_lower().trim_suffix(",")
+		if first in DO_WORDS:
+			return sentence
+	return sentences[-1] if not sentences.is_empty() else text
+
+
 func checklist(id: String) -> Array:
 	# [[label, done], ...] for the current step's checklist
 	var out := []
@@ -190,6 +249,7 @@ func check() -> void:
 			if _flags_ok(q.get("start", {})) and not q.get("start", {}).is_empty():
 				state[id] = {"step": 0, "since_day": Clock.day, "done": false}
 				_announce("New quest: %s" % q.get("name", id), current_step(id).get("text", ""))
+				tracked = id
 				changed.emit(id)
 			continue
 		var guard := 0
@@ -224,6 +284,7 @@ func _advance(id: String) -> void:
 			text += "\n" + str(step.get("wait", {}).get("text", "(Come back tomorrow.)"))
 		_announce("Quest updated: %s" % q.get("name", id), text)
 		Audio.play("pickup", -6.0)
+		tracked = id
 	changed.emit(id)
 	Game.save_game()
 
@@ -285,6 +346,7 @@ func load_data(data: Dictionary) -> void:
 
 func reset() -> void:
 	state.clear()
+	tracked = ""
 
 
 # -----------------------------------------------------------------------------
@@ -540,7 +602,7 @@ func _exit_tree() -> void:
 
 func _apply_look() -> void:
 	var hc := Settings.high_contrast
-	var sc := Settings.text_scale
+	var sc := Settings.text_scale * Settings.hud_size       # the banner's on the playing screen: the HUD size too
 	_note.theme = UiStyle.theme()
 	_note.add_theme_stylebox_override("panel", UiStyle.card(Color(0, 0, 0, 0.95) if hc else Color(0.2, 0.12, 0.34, 0.95), hc, sc))
 	_note.custom_minimum_size.x = roundi(340 * sc)

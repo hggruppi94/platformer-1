@@ -168,10 +168,21 @@ func _title(text: String) -> Label:
 	return l
 
 
+# A picture for each of the main page's buttons (scripts/ui_icons.gd), so little ones can find Resume without reading
+const ICONS := {"Resume": "resume", "Go ": "home", "Settings": "settings", "How-to tips again": "tips",
+	"Show me the menu": "tour", "New Game": "new_game", "Quit": "quit", "Skate lesson": "lesson", "Stop the skate lesson": "lesson"}
+
+
 func _button(text: String, cb: Callable, parent: Node = null) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(_fs(320), _fs(46))
+	b.custom_minimum_size = Vector2(_fs(320), _fs(50))
+	for key in ICONS:
+		if text == key or (key.ends_with(" ") and text.begins_with(key)):
+			b.icon = UiIcons.get_icon(ICONS[key])
+			b.add_theme_constant_override("icon_max_width", _fs(34))
+			b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			break
 	b.pressed.connect(func():
 		Audio.play("ui_accept", -4.0, 0.0)
 		cb.call())
@@ -198,6 +209,9 @@ func _show_main() -> void:
 				SkateLesson.stop()
 			else:
 				SkateLesson.start())
+	_button("Show me the menu", func():
+		close()
+		PlayerMenu.start_tour())                            # the guided look round the player menu (scripts/menu_tour.gd)
 	_button("How-to tips again", func():
 		close()
 		Tips.replay())
@@ -483,6 +497,9 @@ func _tab_display(tabs: TabContainer) -> void:
 	var g := _grid(tabs, "Display")
 	_check(g, "Fullscreen", "fullscreen")
 	_slider(g, "Field of view", "fov", 60, 100, 1, func(x): return "%d°" % x)
+	_choice(g, "Screen stuff size", "hud_size", [["Small", 0.8], ["Medium", 1.0], ["Big", 1.2]],
+		"How big the stats, clock, to-do list and minimap are while you play")
+	_check(g, "To-do list", "objectives", "A short list of what to do next for your quest, under your stats")
 	_check(g, "Corner minimap", "minimap", "A small map in the bottom-right corner (%s opens the big one)" % Settings.key_name("map"))
 	_choice(g, "Clock", "clock_style", [["Watch and words", "both"], ["Just the watch", "watch"], ["Just words", "words"]],
 		"Once you've got a watch, it's the clock at the top. %s holds it up to check it" % Settings.key_name("check_watch"))
@@ -492,6 +509,9 @@ func _tab_access(tabs: TabContainer) -> void:
 	var g := _grid(tabs, "Accessibility")
 	_choice(g, "Text size", "text_scale", [["Normal", 1.0], ["Large", 1.25], ["Larger", 1.5], ["Largest", 2.0]],
 		"Size of the on-screen stats, messages, captions and these menus")
+	_choice(g, "Talking speed", "talk_speed", [["Slow", 25.0], ["Normal", 40.0], ["Fast", 70.0], ["All at once", 0.0]],
+		"How fast people's words come out when they talk")
+	_check(g, "Comic capitals", "talk_caps", "People talk in big comic CAPITALS. Turn off for ordinary letters, easier to read")
 	_check(g, "High-contrast HUD", "high_contrast", "Solid dark panels, bright text and heavy outlines")
 	_check(g, "Sound captions", "captions", "Shows text for important sounds, like a Gloop giggling nearby")
 	_check(g, "Reduce flashing", "reduce_flashing", "No blinking or red flashes when hurt; calmer glowing effects")

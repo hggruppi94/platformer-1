@@ -39,6 +39,7 @@ var _typing := false
 var _shown := 0.0
 var _choosing := false
 var _data_cache := {}
+var _lines_in_convo := 0             # lines shown since the box opened (only the first fades in)
 
 var _layer: CanvasLayer
 var _panel: PanelContainer
@@ -90,10 +91,15 @@ func _process(delta: float) -> void:
 			_nearest.call("set_prompt", true)
 	# Typewriter
 	if _typing:
-		_shown += delta * (1000.0 if Settings.reduce_motion else CHARS_PER_SECOND)
+		_shown += delta * (1000.0 if Settings.reduce_motion else chars_per_second())
 		_text.visible_characters = int(_shown)
 		if _shown >= _text.get_total_character_count():
 			_finish_typing()
+
+
+func chars_per_second() -> float:
+	# How fast the words come out: Settings > Accessibility > Talking speed (Settings.talk_speed, 0 = all at once)
+	return Settings.talk_speed if Settings.talk_speed > 0.0 else 100000.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -142,6 +148,7 @@ func talk_to(talker: Node3D) -> void:
 		_nearest.call("set_prompt", false)
 	_set_player_locked(true)
 	talker.call("begin_talk")
+	_lines_in_convo = 0
 	_panel.visible = true
 	started.emit(id)
 	_next()
@@ -161,6 +168,7 @@ func say(talker: Node3D, speaker_name: String, lines: Array, id := "") -> void:
 		_nearest.call("set_prompt", false)
 	_set_player_locked(true)
 	talker.call("begin_talk")
+	_lines_in_convo = 0
 	_panel.visible = true
 	started.emit(id)
 	_next()
@@ -323,6 +331,7 @@ func _next() -> void:
 	_name_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.7) if is_player else Color(0.75, 0.9, 1.0))
 	_text.text = text
 	_text.visible_characters = 0
+	_lines_in_convo += 1
 	_pop_in()
 	_shown = 0.0
 	_typing = true
@@ -344,12 +353,14 @@ func current_line() -> String:
 
 
 func _pop_in() -> void:
-	# Each new line gives the banner a little bounce, like a comic panel landing
-	if Settings.reduce_motion:
+	# The banner fades up when a conversation starts; after that each new line just appears in place. (It used to give a
+	# squashy bounce on every line, which with the letters typing out made the text hard on the eyes: Hayden's playtest,
+	# 7 Nov 2026.)
+	if Settings.reduce_motion or _lines_in_convo > 1:
+		_panel.modulate.a = 1.0
 		return
-	_panel.pivot_offset = _panel.size / 2.0
-	_panel.scale = Vector2(1.04, 0.92)
-	create_tween().tween_property(_panel, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_panel.modulate.a = 0.0
+	create_tween().tween_property(_panel, "modulate:a", 1.0, 0.15)
 
 
 func player_name() -> String:
@@ -385,7 +396,8 @@ func _show_choice(options: Array) -> void:
 	var first: Button = null
 	for o in options:
 		var b := Button.new()
-		b.text = _fill(str(o.get("text", "..."))).to_upper()
+		b.text = _fill(str(o.get("text", "...")))
+		b.text = b.text.to_upper() if Settings.talk_caps else b.text
 		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_style_choice(b)
 		b.pressed.connect(choose.bind(o))
@@ -530,6 +542,10 @@ func _build_ui() -> void:
 	_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# Lay the whole line out first and then reveal it, so the letters type out in their final places. (Laid out as
+	# they appear, centred text slid sideways with every letter and words jumped between lines: the "hurts my eyes"
+	# in Hayden's playtest notes.)
+	_text.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(_text)
 	_choices = VBoxContainer.new()
@@ -560,8 +576,8 @@ func _apply_look() -> void:
 	style.shadow_color = Color(0, 0, 0, 0.45)
 	style.shadow_size = 0 if hc else 10
 	_panel.add_theme_stylebox_override("panel", style)
-	var w := _fs(980)
-	_panel.custom_minimum_size = Vector2(w, _fs(124))
+	var w := _fs(900)
+	_panel.custom_minimum_size = Vector2(w, _fs(112))
 	_panel.offset_left = -w / 2.0
 	_panel.offset_right = w / 2.0
 	_panel.offset_bottom = -24
@@ -570,10 +586,13 @@ func _apply_look() -> void:
 		l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
 	_name_label.add_theme_font_size_override("font_size", _fs(22))
 	_name_label.add_theme_constant_override("outline_size", _fs(8))
-	_text.add_theme_font_size_override("font_size", _fs(32))
-	_text.add_theme_constant_override("outline_size", _fs(14 if hc else 11))
-	_text.add_theme_constant_override("line_spacing", -_fs(6))
-	_text.add_theme_color_override("font_color", Color(1, 1, 0.85) if hc else Color(1, 1, 1))
+	# Calmer than the first comic look: a little smaller, a thinner outline, a touch of space between lines and a soft
+	# cream instead of glaring white (still the same chunky caps on the dark banner)
+	_text.uppercase = Settings.talk_caps
+	_text.add_theme_font_size_override("font_size", _fs(28))
+	_text.add_theme_constant_override("outline_size", _fs(12 if hc else 7))
+	_text.add_theme_constant_override("line_spacing", _fs(2))
+	_text.add_theme_color_override("font_color", Color(1, 1, 0.85) if hc else Color(1.0, 0.97, 0.88))
 	_hint.add_theme_font_size_override("font_size", _fs(17))
 	_hint.add_theme_constant_override("outline_size", _fs(6))
 	_hint.add_theme_color_override("font_color", Color(1, 1, 1, 0.7))

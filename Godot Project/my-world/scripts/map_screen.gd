@@ -203,6 +203,10 @@ func _process(delta: float) -> void:
 		and nina() != null and not (Races.intro and Races.intro.playing())
 	_mini_layer.visible = show_mini
 	if show_mini:
+		# Settings > Display > Screen stuff size: the whole corner map scales from the bottom-right corner
+		var hs := Settings.hud_size
+		_mini_layer.scale = Vector2(hs, hs)
+		_mini_layer.offset = _mini_layer.get_viewport().get_visible_rect().size * (1.0 - hs)
 		_mini_tex.visible = not on_earth()
 		_mini_tex.size = Vector2.ONE * _mini_scale_px()
 		var at := to_map(nina().global_position) * _mini_scale_px()

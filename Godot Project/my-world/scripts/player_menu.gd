@@ -17,6 +17,19 @@ signal sheet_changed(sheet: String)
 
 const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["calendar", "Calendar"], ["hero", "Hero"], ["bag", "Bag"],
 	["skate", "Skate"], ["settings", "Settings"], ["save", "Save"]]
+# A sentence for each sheet, under the tabs (and what the menu tour says about it: scripts/menu_tour.gd). Short words
+# for young players: the menus were made friendlier after Hayden's 7 Nov 2026 playtest.
+const ABOUT := {
+	"quests": "People who need your help. Each card says what to do next.",
+	"goals": "Fun things to aim for tonight and tomorrow.",
+	"map": "The whole town. Find where you are and where to go next.",
+	"calendar": "What day it is on Earth, and what's coming up.",
+	"hero": "That's you! Change your clothes or your look.",
+	"bag": "Everything you've found and collected.",
+	"skate": "Your rides, skate lessons and skate goals.",
+	"settings": "Sound, controls, text size and more.",
+	"save": "Save your game, or go home.",
+}
 const HOTKEYS := {"quest_log": "quests", "map": "map"}      # old keys that open the menu straight on their sheet
 const SCROLL_SPEED := 700.0                                 # pixels a second, scrolling a long sheet with the stick
 
@@ -33,6 +46,12 @@ var _note: Label                        # "Saved!" and the like on the Save shee
 var _confirm_new := false
 var _cal_page := 0                      # the Calendar sheet: seasons on from this one (0), or back (-1)
 var _suppress_sound := false
+var _about: Label                       # the sentence about this sheet, under the tabs
+var _hint_row: HBoxContainer            # the key "chips" along the bottom: [Q] [E] Change page  [Tab] Close
+var _close: Button                      # the round X in the corner
+var tour: MenuTour                      # the guided look round (scripts/menu_tour.gd)
+var auto_tour := true                   # the first open on a game starts the tour (not in headless test runs, which
+                                        # drive the menu themselves: tools/test_kid_ui.gd checks the tour)
 
 
 func _ready() -> void:
@@ -72,11 +91,40 @@ func open(at := "quests") -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Audio.play("ui_accept", -4.0, 0.0)
 	show_sheet(at)
+	# The first time it's opened with Tab (on Quests), the tour starts. Not in headless runs (the tests drive the menu
+	# themselves), nor when a key opened it straight on another sheet (M for the map).
+	if auto_tour and at == "quests" and DisplayServer.get_name() != "headless" and Settings.tips \
+			and not Dialogue.flags.has(MenuTour.FLAG):
+		start_tour()
+
+
+func start_tour() -> void:
+	# The guided look round: opens the menu if it isn't open, and walks through every sheet
+	if not is_open():
+		auto_tour = false                                   # (so open() doesn't start it a second time)
+		open("quests")
+		auto_tour = true
+		if not is_open():
+			return
+	var steps: Array = [["quests", "This is your menu! The game waits while it's open. Let's have a quick look round."]]
+	for pair in SHEETS:
+		var line := "%s: %s" % [pair[1], ABOUT[pair[0]]]
+		if pair[0] == "quests":
+			line += " Press %s (or click a picture) to see the next page." % ("RB" if Settings.last_device == "pad" else "E")
+		steps.append([pair[0], line])
+	steps.append(["quests", "That's everything! Press {player_menu} any time to open this menu again. Have fun!"])
+	tour.start(steps)
+
+
+func touring() -> bool:
+	return tour != null and tour.is_on()
 
 
 func close() -> void:
 	if not is_open():
 		return
+	if touring():
+		tour.stop(true)
 	_clear()
 	root.visible = false
 	get_tree().paused = false
@@ -126,6 +174,10 @@ func _input(event: InputEvent) -> void:
 	for action in HOTKEYS:
 		if event.is_action_pressed(action):
 			hot = HOTKEYS[action]
+	if by != 0 and touring():
+		get_viewport().set_input_as_handled()
+		tour.step(by)
+		return
 	if by != 0:
 		# Q is the quest log's key too: on the first sheet (Quests) there's nowhere back to go, so it closes, like
 		# the quest log always did. LB (the map) on the first sheet does nothing.
@@ -178,6 +230,7 @@ func show_sheet(which: String) -> void:
 	_confirm_new = false
 	for s in _tab_buttons:
 		(_tab_buttons[s] as Button).set_pressed_no_signal(s == sheet)
+	_about.text = ABOUT.get(sheet, "")
 	_fill()
 	if changed:
 		Audio.play("ui_move", -8.0, 0.0)
@@ -219,6 +272,8 @@ func _fill() -> void:
 		"save":
 			first = _sheet_save()
 	_focus(first if first else _tab_buttons[sheet])
+	if touring():
+		tour.call("_focus_next")
 	_update_hints()
 
 
@@ -784,6 +839,42 @@ func _update_hints() -> void:
 	_next_hint.text = ("RB" if pad else "E") + " ▶"
 	var pick := "A: pick" if pad else "Enter or click: pick"
 	_hint.text = "%s: change sheet      %s      %s: close" % [switch_prompts(), pick, Settings.prompt("player_menu")]
+	if _hint_row == null:
+		return
+	for c in _hint_row.get_children():
+		_hint_row.remove_child(c)
+		c.queue_free()
+	_chips([["LB", "RB"] if pad else ["Q", "E"], "Change page"])
+	_chips([["A"] if pad else ["Enter"], "Pick"])
+	_chips([["B"] if pad else [Settings.prompt("player_menu")], "Close"])
+
+
+func _chips(what: Array) -> void:
+	# [[keys...], words]: each key a little rounded "keycap", then the words
+	var group := HBoxContainer.new()
+	group.add_theme_constant_override("separation", _fs(5))
+	for key in what[0]:
+		var k := Label.new()
+		k.text = str(key)
+		k.add_theme_font_size_override("font_size", _fs(17))
+		k.add_theme_color_override("font_color", UiStyle.INK)
+		k.add_theme_constant_override("outline_size", 0)
+		var cap := UiStyle.box(Color(1, 1, 0.8) if Settings.high_contrast else UiStyle.TEXT, _fs(7), UiStyle.INK, 2)
+		cap.content_margin_left = _fs(8)
+		cap.content_margin_right = _fs(8)
+		cap.content_margin_top = _fs(1)
+		cap.content_margin_bottom = _fs(1)
+		cap.border_width_bottom = _fs(4)
+		k.add_theme_stylebox_override("normal", cap)
+		group.add_child(k)
+	var words := Label.new()
+	words.text = str(what[1])
+	words.add_theme_font_size_override("font_size", _fs(18))
+	group.add_child(words)
+	var gap := Control.new()
+	gap.custom_minimum_size.x = _fs(26)
+	group.add_child(gap)
+	_hint_row.add_child(group)
 
 
 # ----------------------------------------------------------------------------- look
@@ -827,6 +918,10 @@ func _build() -> void:
 		var b := Button.new()
 		b.name = "Tab " + which
 		b.text = pair[1]
+		b.icon = UiIcons.get_icon(which)                # a picture over the word, for players who can't read yet
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		b.tooltip_text = ABOUT.get(which, "")
 		b.toggle_mode = true
 		b.theme_type_variation = "SheetTab"             # a folder tab on the sheet's page (scripts/ui_style.gd)
 		b.size_flags_vertical = Control.SIZE_SHRINK_END
@@ -839,32 +934,61 @@ func _build() -> void:
 	_next_hint = Label.new()
 	_next_hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	top.add_child(_next_hint)
-	# The sheet itself: a page the open tab joins onto
+	# A big round X to close it, for the mouse (and little fingers on a trackpad)
+	_close = Button.new()
+	_close.name = "Close"
+	_close.icon = UiIcons.get_icon("close")
+	_close.flat = true
+	_close.focus_mode = Control.FOCUS_NONE
+	_close.tooltip_text = "Close the menu"
+	_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_close.pressed.connect(close)
+	top.add_child(_close)
+	# The sheet itself: a page the open tab joins onto, with a sentence at the top saying what's on it
 	var page := PanelContainer.new()
 	page.name = "Page"
 	page.theme_type_variation = "SheetPanel"
 	page.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(page)
+	var pv := VBoxContainer.new()
+	pv.add_theme_constant_override("separation", 6)
+	page.add_child(pv)
+	_about = Label.new()
+	_about.name = "About"
+	_about.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_about.modulate = Color(0.85, 1.0, 0.95)
+	pv.add_child(_about)
 	_body = VBoxContainer.new()
 	_body.name = "Sheet"
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_body.add_theme_constant_override("separation", 10)
-	page.add_child(_body)
-	_hint = Label.new()
+	pv.add_child(_body)
+	# Along the bottom: what to press, as little key pictures ("chips") with a word or two each
+	_hint_row = HBoxContainer.new()
+	_hint_row.name = "Hints"
+	_hint_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(_hint_row)
+	_hint = Label.new()                                     # the same as one line of text (tests read it)
 	_hint.name = "Hint"
-	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_hint.modulate = Color(1, 1, 1, 0.8)
+	_hint.visible = false
 	v.add_child(_hint)
+	tour = MenuTour.new(self)
+	root.add_child(tour)
 
 
 func _apply_look() -> void:
 	root.theme = PauseMenu.make_theme()
 	var outer := root.get_node("Outer") as MarginContainer
 	for side in ["left", "right"]:
-		outer.add_theme_constant_override("margin_" + side, _fs(48))
+		outer.add_theme_constant_override("margin_" + side, _fs(24))
 	for side in ["top", "bottom"]:
-		outer.add_theme_constant_override("margin_" + side, _fs(32))
+		outer.add_theme_constant_override("margin_" + side, _fs(24))
 	for b in _tab_buttons.values():
-		(b as Button).custom_minimum_size = Vector2(_fs(92), _fs(48))
+		(b as Button).custom_minimum_size = Vector2(_fs(84), _fs(76))
+		(b as Button).add_theme_constant_override("icon_max_width", _fs(38))
+		(b as Button).add_theme_font_size_override("font_size", _fs(19))
+	_close.add_theme_constant_override("icon_max_width", _fs(44))
+	_about.add_theme_font_size_override("font_size", _fs(20))
 	_hint.add_theme_font_size_override("font_size", _fs(17))
+	tour.apply_look()
 	_update_hints()
