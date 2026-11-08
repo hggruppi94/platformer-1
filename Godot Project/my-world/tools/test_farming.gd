@@ -90,14 +90,35 @@ func _check_placed() -> void:
 		check(g.get_node_or_null("Spot") != null and g.get_node("Spot").has_method("use"), "vein %s can be used" % v.id)
 	for p in rem.PARTS:
 		check(holder.get_node_or_null("Part " + str(p.id)) != null, "tool part %s is there" % p.id)
-	# The garden: on flat dry ground, clear of the house and the hedge
-	check(garden.global_position.y > -0.5 and garden.global_position.y < 0.5, "the garden is on the ground (y %.2f)" % garden.global_position.y)
-	var house := Vector2(66, 16)
-	check(Vector2(garden.global_position.x, garden.global_position.z).distance_to(house) > 4.5 + 3.0, "the garden is clear of My House")
-	var hedge := Vector2(80, 0)
-	for corner in [Vector2(-3.4, -2.3), Vector2(3.4, -2.3), Vector2(-3.4, 2.3), Vector2(3.4, 2.3)]:
-		var c: Vector2 = Vector2(garden.global_position.x, garden.global_position.z) + corner
-		check(c.distance_to(hedge) < 34.0 - 1.6, "the garden's corner %s is inside the Homes hedge" % corner)
+	# The garden: up on the Secret Gardens' hill (where the nursery is on Sofi's map), on its flat top, clear of the
+	# greenhouse, the gardens' Remnant vein and the cliff edge, with every corner on flat ground
+	check(garden.global_position.y > 10.0, "the garden is up on the hill (y %.2f)" % garden.global_position.y)
+	check(farm.BEDS >= 12, "the garden has room to grow (%d beds)" % farm.BEDS)
+	var half: Vector2 = farm.plot_half()
+	var greenhouse := Rect2(-86.5, -52.5, 13.0, 9.0)
+	var vein := Vector2(-70, -35)
+	for corner in [Vector3(-half.x, 0, -half.y), Vector3(half.x, 0, -half.y), Vector3(-half.x, 0, half.y), Vector3(half.x, 0, half.y)]:
+		var w: Vector3 = garden.to_global(corner)
+		var c := Vector2(w.x, w.z)
+		check(not greenhouse.has_point(c), "the garden's corner %s is clear of the greenhouse" % c)
+		check(c.distance_to(vein) > 4.0, "the garden's corner %s leaves room round the gardens' vein" % c)
+		check(c.distance_to(Vector2(-78, -42)) < 33.0 - 6.0, "the garden's corner %s is well back from the cliff" % c)
+		var dy := absf(rem.ground_at(c).y - garden.global_position.y)
+		check(dy < 0.3, "the garden's corner %s is level with the rest (%.2f)" % [c, dy])
+	# The gate faces south, to the path up the hill, where Bramble stands for the tour
+	var gate: Vector3 = garden.to_global(Vector3(half.x, 0, 0)) - garden.global_position
+	check(gate.z > 3.0 and absf(gate.x) < 0.1, "the gate faces south (%s)" % gate)
+	# The builder's old decorative beds there are hidden, the greenhouse isn't
+	var sg := current_scene.get_node("Secret Gardens")
+	var shown_rows := 0
+	var shown_glass := 0
+	for m in sg.find_children("*", "MeshInstance3D", true, false):
+		var mat: Material = (m as MeshInstance3D).get_active_material(0)
+		if mat and mat.resource_name in ["Garden Soil", "Garden Leaf"] and m.visible:
+			shown_rows += 1
+		if mat and mat.resource_name == "Greenhouse Glass" and m.visible:
+			shown_glass += 1
+	check(shown_rows == 0 and shown_glass > 0, "the old nursery rows make way, the greenhouse stays (%d, %d)" % [shown_rows, shown_glass])
 	var blocked := 0
 	for i in farm.BEDS:
 		var at: Vector3 = garden.to_global(farm.bed_local(i))

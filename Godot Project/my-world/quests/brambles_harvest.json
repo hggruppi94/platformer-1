@@ -32,11 +32,11 @@
     },
     {
       "id": "garden",
-      "text": "Meet Bramble at your garden, by My House in the Homes park.",
+      "text": "Meet Bramble at your garden, up the hill in the Secret Gardens.",
       "done": {"flag": "garden_tour"},
       "where": ["bramble"],
       "override": {
-        "bramble": {"place": "my_garden", "do": "idle", "face": [68.5, 24.0], "label": "garden_tour"}
+        "bramble": {"place": "my_garden", "do": "idle", "face": [-80.0, -34.5], "label": "garden_tour"}
       }
     },
     {
@@ -44,13 +44,13 @@
       "text": "Plant a seed in your garden, then water it.",
       "checklist": [["farm_planted", "Plant a seed"], ["farm_watered", "Water it"]],
       "done": {"flags": ["farm_planted", "farm_watered"]},
-      "where": [{"at": [68.5, 24.0]}]
+      "where": [{"at": [-80.0, -34.5]}]
     },
     {
       "id": "grow",
       "text": "Keep it watered until it's ripe, then pick it! (Plants only grow while they've got water.)",
       "done": {"flag": "farm_first_harvest"},
-      "where": [{"at": [68.5, 24.0]}]
+      "where": [{"at": [-80.0, -34.5]}]
     }
   ],
   "reward": {

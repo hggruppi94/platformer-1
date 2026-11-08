@@ -108,8 +108,10 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     override sends her to the new place `my_garden`), plant and water, then pick your first crop. Reward: Bramble's
     watering can (`watering_can`) and 10 sparkles. Flags: `harvest_start`, `harvest_later`, `harvest_part_*`,
     `harvest_tool_built`, `harvest_first_vein`, `garden_tour`, `farm_planted`, `farm_watered`, `farm_first_harvest`.
-  - **The garden** (`scripts/farm.gd`, autoload `Farm`): a fenced plot of six beds just south of My House in the
-    Homes park (`GARDEN`, between the house and the hedge), with a "Your Garden" sign, a rain barrel and a wheelbarrow.
+  - **The garden** (`scripts/farm.gd`, autoload `Farm`): a fenced plot of twelve beds up on the Secret Gardens' hill,
+    in front of the greenhouse where the nursery is on Sofi's town map (Hayden; `GARDEN`, gate turned to face south
+    to the ramp, `GARDEN_YAW`), with a "Your Garden" sign, a rain barrel and a wheelbarrow. The builder's decorative
+    soil rows there are hidden at play time (`_clear_nursery`).
     Bramble's tour (`"do": "Farm.tour"`) digs the first two beds and gives 3 Blinkberry and 1 Peekaroot seeds; the
     rest you dig yourself with the tool. Each bed is a spot that offers what makes sense: dig, plant (a little
     question when there's more than one kind of seed: `Dialogue.say` + `farm_plant_<crop>` flags), water, check on
@@ -135,7 +137,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     never dying, the can, the Remnant sprout, shop buy/sell/snacks/Remnant prices, the request kind, HUD, Bag, save,
     load and old saves). Previews: `tools/capture_farming.gd` (shots in the project files under
     world/previews/farming; the cloud can't push PNGs).
-  - My choices Hayden may change: the garden's spot and size (6 beds), crop names, growing times (within one visit
+  - My choices Hayden may change: the garden's size (12 beds), crop names, growing times (within one visit
     rather than "a few Void days", so kids see results), prices, the part spots, the tool looks, where the veins are.
     Seasons (item 20) can add a `"season"` to a crop or seed later. Portal time for Remnants waits for item 19.
 

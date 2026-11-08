@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Screenshots of Remnants and the garden (scripts/remnants.gd, scripts/farm.gd): the garden by My House, a bed
+# Screenshots of Remnants and the garden (scripts/remnants.gd, scripts/farm.gd): the garden on the Secret Gardens' hill, a bed
 # through every stage, the crops looking back at you, a thirsty plant, the Remnant veins (full and harvested),
 # Bramble popping up to help, a tool part, Bramble waiting at the garden, the HUD, the Bag and the market stalls.
 # Opens a window (not --headless):
@@ -77,8 +77,9 @@ func _town() -> void:
 	p.set_physics_process(false)
 	p.global_position = Vector3(0, -50, 0)
 
-	# 1. The plot as Bramble finds it: six beds of grass inside the fence, by My House
-	await _view("01_your_garden_before", g + Vector3(8.0, 5.0, 8.0), g + Vector3(0, 0.3, 0))
+	# 1. The plot as Bramble finds it: twelve beds of grass inside the fence, in front of the greenhouse on the hill
+	await _view("00_garden_on_the_hill", g + Vector3(16.0, 11.0, 24.0), g + Vector3(-1.0, 1.0, -5.0))
+	await _view("01_your_garden_before", g + Vector3(8.0, 6.0, 10.0), g + Vector3(0, 0.3, 0))
 
 	# 2-6. One bed through its stages: dug, seed, sprout, growing, ripe (a Goggle Gourd)
 	dialogue.set_flag("harvest_start")
@@ -101,17 +102,19 @@ func _town() -> void:
 	_set_bed(3, "remnant_sprout", 1440.0, false)
 	_set_bed(4, "peekaroot", 200.0, true)
 	_set_bed(5, "", 0.0, false)
+	for k in range(6, farm.BEDS):
+		_set_bed(k, ["blinkberry", "peekaroot", "gogglegourd"][k % 3], [720.0, 300.0, 600.0][k % 3], false)
 	p.global_position = g + Vector3(4.5, 0.3, 3.0)
 	for i in 30:
 		await physics_frame
 	hud.visible = true
 	rem.count = 7
 	rem.changed.emit()
-	await _view("07_garden_growing", g + Vector3(7.5, 4.0, 6.5), g + Vector3(0, 0.4, 0), 30)
+	await _view("07_garden_growing", g + Vector3(8.0, 6.0, 10.0), g + Vector3(0, 0.4, 0), 30)
 	hud.visible = false
 
 	# 8. Close up: the crops looking back
-	await _view("08_they_look_back", g + Vector3(1.3, 1.2, -2.2), g + Vector3(-0.6, 0.5, -0.6), 20)
+	await _view("08_they_look_back", g + Vector3(0.8, 1.3, 5.2), g + Vector3(0.0, 0.5, 1.6), 20)
 	# 9. A thirsty one waits, drooping, with a water drop
 	var b4: Vector3 = garden.to_global(farm.bed_local(4))
 	await _view("09_thirsty_waits", b4 + Vector3(1.5, 1.3, 1.8), b4 + Vector3(0, 0.6, 0), 14)
@@ -174,7 +177,7 @@ func _town() -> void:
 	p.global_position = g + Vector3(6.5, 0.3, 1.0)
 	for i in 20:
 		await physics_frame
-	await _view("16_bramble_at_your_garden", g + Vector3(9.5, 3.0, -2.5), bramble.global_position + Vector3(0, 0.8, 0), 20)
+	await _view("16_bramble_at_your_garden", g + Vector3(5.5, 3.0, 10.0), bramble.global_position + Vector3(0, 0.8, 0), 20)
 	dialogue.set_flag("garden_tour")
 
 	# 17-19. The Bag, and the market: seeds at the Flowers stall, selling at the Fruit stall

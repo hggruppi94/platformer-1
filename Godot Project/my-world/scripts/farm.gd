@@ -1,8 +1,11 @@
 extends Node
 
 # Autoload "Farm": the player's garden in the Void (plan item 18, from Hayden's 7 Nov 2026 notes), looked after with
-# Bramble, the plant girl. It's a fenced plot of six beds just south of "My House" in the Homes park, put into the
-# town at play time (like the lost watches: scripts/watches.gd), so town.tscn doesn't change.
+# Bramble, the plant girl. It's a fenced plot of twelve beds up on the Secret Gardens' hill, in front of the greenhouse
+# where the nursery is on Sofi's town map (source_art/reference/world/town - map with labels.jpg; Hayden, 8 Nov 2026),
+# put into the town at play time (like the lost watches: scripts/watches.gd), so town.tscn doesn't change. The
+# builder's own row-crop beds in that spot (tools/build_town.gd _plateau_features) are hidden while the garden's there,
+# so the player's garden IS the nursery rather than sitting on top of it.
 #
 # How it goes: Bramble's quest "Bramble's Harvest" (res://quests/brambles_harvest.json, with scripts/remnants.gd)
 # ends with her meeting the player at the garden. She digs the first two beds, hands over some seeds and explains the
@@ -30,8 +33,10 @@ signal changed
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 
 const TOWN := "res://scenes/town/town.tscn"
-const GARDEN := Vector2(68.5, 24.0)      # the plot's middle: between My House (66, 16) and the Homes hedge
-const BEDS := 6
+const GARDEN := Vector2(-80.0, -34.5)    # the plot's middle: on the Secret Gardens' hill, south of the greenhouse
+const GARDEN_YAW := -PI / 2.0           # turned so the gate (the plot's local +x side) faces south, to the hill's ramp
+const BEDS := 12
+const COLS := 3                          # beds across the plot's local x (north to south), rows along its local z
 const BED_SIZE := Vector2(1.4, 1.1)
 const WATER_LASTS := 360.0              # Void minutes a watering lasts (about 4 real minutes in the Shift)
 const DAY := 1440.0
@@ -416,10 +421,17 @@ func _process(delta: float) -> void:
 
 
 func bed_local(i: int) -> Vector3:
-	# Two rows of three, across the plot
-	var col := i % 3
-	var row := i / 3
-	return Vector3((col - 1) * 1.9, 0.0, (row - 0.5) * 1.7)
+	# Four rows of three, across the plot
+	var col := i % COLS
+	var row := i / COLS
+	var rows := ceili(float(BEDS) / COLS)
+	return Vector3((col - (COLS - 1) / 2.0) * 1.9, 0.0, (row - (rows - 1) / 2.0) * 1.7)
+
+
+func plot_half() -> Vector2:
+	# Half the fenced plot's size in its own space: the beds plus a path round them
+	var rows := ceili(float(BEDS) / COLS)
+	return Vector2((COLS - 1) * 0.95 + BED_SIZE.x / 2.0 + 0.95, (rows - 1) * 0.85 + BED_SIZE.y / 2.0 + 0.7)
 
 
 func _place_in(s: Node) -> void:
@@ -429,6 +441,8 @@ func _place_in(s: Node) -> void:
 	_holder.name = "Garden"
 	s.add_child(_holder)
 	_holder.global_position = Remnants.ground_at(GARDEN)
+	_holder.rotation.y = GARDEN_YAW
+	_clear_nursery(s)
 	_build_plot(_holder)
 	_shown.resize(BEDS)
 	_shown.fill("")
@@ -561,7 +575,7 @@ func _build_plot(g: Node3D) -> void:
 	# wheelbarrow of soil
 	var wood := _mat(Color(0.85, 0.75, 0.95))
 	var path := _mat(Color(0.82, 0.78, 0.7), 0.9)
-	var half := Vector2(3.4, 2.3)
+	var half := plot_half()
 	_mesh(g, _box(Vector3(half.x * 2.0, 0.04, half.y * 2.0)), path, Vector3(0, 0.02, 0))
 	for side in [-1, 1]:
 		for k in 15:                                    # along the north and south sides
@@ -569,8 +583,9 @@ func _build_plot(g: Node3D) -> void:
 			_mesh(g, _box(Vector3(0.1, 0.6, 0.06)), wood, Vector3(x, 0.3, side * half.y))
 		_mesh(g, _box(Vector3(half.x * 2.0, 0.07, 0.05)), wood, Vector3(0, 0.42, side * half.y))
 	for side in [-1, 1]:
-		for k in 10:                                    # west and east, with the gate gap in the east side's middle
-			var z := -half.y + k * (half.y * 2.0 / 9.0)
+		var posts := int(half.y * 4.0) + 1
+		for k in posts:                                 # west and east, with the gate gap in the east side's middle
+			var z := -half.y + k * (half.y * 2.0 / (posts - 1))
 			if side > 0 and absf(z) < 0.8:
 				continue
 			_mesh(g, _box(Vector3(0.06, 0.6, 0.1)), wood, Vector3(side * half.x, 0.3, z))
@@ -608,6 +623,18 @@ func _build_plot(g: Node3D) -> void:
 	body.position = Vector3(-half.x + 0.55, 0.4, -half.y + 0.55)
 	body.add_child(shape)
 	g.add_child(body)
+
+
+func _clear_nursery(s: Node) -> void:
+	# The builder's decorative soil rows and leafy balls in front of the greenhouse ("Garden Soil" and "Garden Leaf",
+	# tools/build_town.gd) are where the garden goes now, so they're hidden (the greenhouse and sign stay).
+	var g := s.get_node_or_null("Secret Gardens")
+	if g == null:
+		return
+	for m in g.find_children("*", "MeshInstance3D", true, false):
+		var mat := (m as MeshInstance3D).get_active_material(0)
+		if mat and mat.resource_name in ["Garden Soil", "Garden Leaf"]:
+			(m as MeshInstance3D).visible = false
 
 
 static func bed_look(st: int, crop: String, dry: bool) -> Node3D:

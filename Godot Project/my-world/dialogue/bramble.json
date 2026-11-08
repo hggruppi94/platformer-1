@@ -136,7 +136,7 @@
         "{player}, have you seen the glowing green crystals round the Void? Up by the castle, out in the woods, on the lake shore?",
         "They're Remnants. Sparkles that got squeezed together for ages and ages, until they turned into crystal. They grow in the ground like roots. Roots of time!",
         "Nobody can dig them out by hand. But plants can hear them humming, and so can I. With the right tool, I could coax some out for you.",
-        "And while we're digging... there's a little patch of ground by your house that's just BEGGING to be a garden.",
+        "And while we're digging... there's a patch of ground in the Secret Gardens, right in front of my greenhouse, that's just BEGGING to be your garden.",
         {
           "choice": [
             {
@@ -286,7 +286,7 @@
       },
       "rotate": [
         [
-          "How's your garden? The plants told me it's their favourite in town. Don't tell the Secret Gardens."
+          "How's your garden? The plants told me it's their favourite on the whole hill. Don't tell the greenhouse."
         ],
         [
           "The veins have grown back, I can hear them. Just use your {tool} on one and I'll pop up!"
