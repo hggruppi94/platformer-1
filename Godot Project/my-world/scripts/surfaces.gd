@@ -11,6 +11,8 @@ const BY_NAME := [
 	["Crystals", "crystal"],
 	["Foliage", "mushroom"],
 	["Terrain", "grass"], ["Far Ground", "grass"],
+	["Snowfield", "grass"],                              # the Frozen Moment's snow: soft and quiet underfoot
+	["Frozen Lake", "crystal"], ["Ice Slide", "crystal"],   # ...and its ice clinks
 ]
 
 
