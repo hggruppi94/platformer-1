@@ -11,7 +11,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "Look, look! I won a ribbon for the best snowman drawing! Mine's got a cape.",
+        "Bruno says the sleigh's for babies. He's been on it three times."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Look, look! I won a ribbon for the best scarecrow drawing! Mine's got a cape.",
@@ -86,7 +101,21 @@
     },
     {
       "when": {
-        "activity": "pumpkins"
+        "activity": "pumpkins",
+        "season": "winter"
+      },
+      "lines": [
+        "I'm making the biggest snowman in the whole patch. This one's big. But mine's going to be BIGGER."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "I'm looking for the biggest pumpkin in the whole patch. This one's big. But that one's BIGGER."
@@ -111,6 +140,22 @@
     {
       "rotate": [
         [
+          "I saw a little green alien making snow angels! Nina says it was a squirrel. Squirrels don't make snow angels!"
+        ],
+        [
+          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+        ],
+        [
+          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
           "I saw a little green alien in the pumpkin patch! Nina says it was a squash. Squashes don't wave!"
         ],
         [
@@ -119,7 +164,14 @@
         [
           "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

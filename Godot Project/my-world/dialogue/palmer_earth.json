@@ -66,7 +66,22 @@
     },
     {
       "when": {
-        "activity": "festival_lanterns_speech"
+        "activity": "festival_lanterns_speech",
+        "season": "winter"
+      },
+      "lines": [
+        "Ahem! Friends, neighbours, and anyone who's had too much gingerbread! In a moment, we let our lanterns go.",
+        "May they carry our wishes up... and wherever else they might be going. (He glances at the old oak.)"
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_lanterns_speech",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Ahem! Friends, neighbours, and anyone who's had too much kettle corn! In a moment, we let our lanterns go.",
@@ -99,7 +114,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "Ah, the Frost Fair! Every year since I was a boy. And every year, the sleigh goes round exactly once more than anyone expects.",
+        "Have you tried the ice fishing? Hank keeps the best fish for the third go."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Ah, the Autumn Festival! Every year since I was a boy. And every year, the hayride goes round exactly once more than anyone expects.",
@@ -143,7 +173,40 @@
     },
     {
       "when": {
-        "quest_not_started": "earth_lights"
+        "quest_not_started": "earth_lights",
+        "season": "winter"
+      },
+      "lines": [
+        "Oh dear, oh dear. The Frost Fair's coming, and I've lost the string lights for the gazebo!",
+        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        {
+          "choice": [
+            {
+              "text": "I'll find them!",
+              "set": "earth_lights_start",
+              "lines": [
+                "Would you? You're a star. Just like back home, eh?",
+                "No rush. You live just round the corner, after all."
+              ]
+            },
+            {
+              "text": "Maybe next time.",
+              "lines": [
+                "No rush. The festival can wait. The gazebo's very patient."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "earth_lights",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Oh dear, oh dear. The autumn festival's coming, and I've lost the string lights for the gazebo!",
@@ -178,7 +241,27 @@
     },
     {
       "when": {
-        "quest_step": "earth_lights:bring"
+        "quest_step": "earth_lights:bring",
+        "season": "winter"
+      },
+      "set": "earth_lights_given",
+      "lines": [
+        "{player}: Mr. Palmer! I found all three boxes!",
+        "You found them! Splendid! Let's get them up.",
+        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
+        "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
+        "There. Now it's a proper winter evening.",
+        "Come by tomorrow and you can help with the fair. There's gingerbread and hot cocoa."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "earth_lights:bring",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "set": "earth_lights_given",
       "lines": [
@@ -206,12 +289,32 @@
     {
       "rotate": [
         [
+          "Lovely evening for it. Winter's my favourite. Everything smells like snow and woodsmoke."
+        ],
+        [
+          "The portal by the old oak opens at midnight. But you didn't hear that from me."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Lovely evening for it. Autumn's my favourite. Everything smells like leaves."
         ],
         [
           "The portal by the old oak opens at midnight. But you didn't hear that from me."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

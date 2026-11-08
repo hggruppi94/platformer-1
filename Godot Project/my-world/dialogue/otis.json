@@ -11,7 +11,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
+        "Have you ridden the sleigh? Scarecrow Sam waved at me. I think. Probably the wind."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",

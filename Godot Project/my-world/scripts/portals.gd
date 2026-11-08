@@ -658,6 +658,8 @@ func flurry_hub_lines() -> Array:
 		lines = ["Oh! {player}! I... I came through after you. Is that OK?",
 			"It's so warm here. And green! My snow keeps following me about, look.",
 			"Dash says your Earth has seasons. Winter got stuck in my moment too, so now it can come to you.",
+			"Oh! And... I want to give you something. Here. Breathe in, then huff, like this. (A puff of frost sparkles out of her.)",
+			"Now you can do it too! Press {frost_breath}. It freezes water into ice you can walk on, and it makes Gloops go all slow.",
 			"I'll stay here by the portals. Come and say hi?"]
 	else:
 		lines = [["Tick, tick, tick. I keep listening to my watch. I missed it.",
@@ -667,14 +669,16 @@ func flurry_hub_lines() -> Array:
 			["If you go into another portal world... be careful, OK?",
 			"Time's broken in lots of places. You're good at fixing it, though."],
 			["It's winter in Stars Hollow when the calendar gets there. I made sure.",
-			"(She looks very pleased with herself, then very shy about it.)"]].pick_random()
+			"(She looks very pleased with herself, then very shy about it.)"],
+			["Have you tried your frost breath on a pond? {frost_breath}! Little ice islands, all the way across.",
+			"They melt after a bit, so don't stand about. Hop hop hop!"]].pick_random()
 	return lines
 
 
 func _talk_flurry() -> void:
 	var spot := _holder.get_node_or_null("Flurry/Spot") as Node3D if is_instance_valid(_holder) else null
 	if spot:
-		Dialogue.say(spot, "Flurry", flurry_hub_lines(), "hub_flurry")
+		Dialogue.say(spot, "Flurry", flurry_hub_lines().map(func(l: String) -> String: return Settings.fill(l)), "hub_flurry")
 
 
 func _process_flurry(delta: float) -> void:

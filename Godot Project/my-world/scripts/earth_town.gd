@@ -52,6 +52,10 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
+	# Winter fun and the quest "The First Snow" (scripts/first_snow.gd), reachable as "EarthTown/FirstSnow"
+	var snow := (load("res://scripts/first_snow.gd") as GDScript).new() as Node
+	snow.name = "FirstSnow"
+	add_child(snow)
 
 
 func _on_scene_changed() -> void:

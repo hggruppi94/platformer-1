@@ -12,6 +12,9 @@ extends "res://scripts/requests.gd"
 # - "cat": find someone's cat, hiding somewhere about town, glowing eyes and all. It follows you home.
 # - "bakery": pick pumpkins at the pumpkin patch for Poppy's pies, then take them to her.
 # - "grind" and "combo" (once there's a board to ride): the skating ones, as in the Void, done on Earth.
+# In winter (r.winter, set when the job's made) raking is shovelling snow drifts, Poppy wants winterberries from the
+# Snowman Field (the pumpkin patch under snow) instead of pumpkins, and there's a winter-only kind:
+# - "snowman": build snowmen on the town green for the Frost Fair: walk into a big snowball and up pops a snowman.
 # Talking to the person a delivery, cat or pumpkins are for finishes it (Dialogue.finished), and Interact at the board
 # turns finished jobs in. Saved as "earth_jobs" (scripts/game.gd). Leaf piles, pumpkins and the cat are put in the
 # Earth scene while a job wants them (scripts/earth_job_prop.gd), so the town's builder doesn't change.
@@ -24,7 +27,11 @@ const EARTH_KINDS := {
 	"bakery": {"easy": 3, "medium": 5, "hard": 7},           # pumpkins
 	"grind": {"medium": 10, "hard": 20},                     # metres, in one grind
 	"combo": {"medium": 1500, "hard": 3000},                 # points, in one combo
+	"snowman": {"easy": 2, "medium": 3, "hard": 4},          # snowmen on the green (winter only)
 }
+# Where the snowballs for the snowmen wait: round the town green, inside its ring of grass (x, z)
+const SNOWMAN_SPOTS := [Vector2(8.5, -3.0), Vector2(6.0, -8.5), Vector2(-1.5, -10.0), Vector2(-8.0, -6.5),
+	Vector2(-10.0, 1.0), Vector2(-8.0, 7.5), Vector2(4.0, 9.5), Vector2(9.5, 5.0)]
 # Who's who on Earth: dialogue id -> what the board calls them (names made up for Hayden to rename, like the people)
 const PEOPLE := {"gus": "Gus", "dottie": "Dottie", "barnaby": "Barnaby", "marigold": "Miss Marigold", "poppy": "Poppy",
 	"otis": "Mr. Gumdrop", "wren": "Mrs. Wren", "hank": "Hank", "kip": "Kip", "lionel": "Mr. Page", "juniper": "Juniper",
@@ -92,6 +99,18 @@ func kinds() -> Dictionary:
 	return EARTH_KINDS
 
 
+func kinds_for(tier: String) -> Array[String]:
+	# Snowmen only in winter
+	var out := super.kinds_for(tier)
+	if Clock.season() != "winter":
+		out.erase("snowman")
+	return out
+
+
+static func winter_of(r: Dictionary) -> bool:
+	return bool(r.get("winter", false))
+
+
 func _process(delta: float) -> void:
 	_check -= delta
 	if _check > 0.0:
@@ -121,7 +140,7 @@ func _announce() -> void:
 func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary:
 	var n: float = EARTH_KINDS[kind][tier]
 	var r := {"kind": kind, "tier": tier, "progress": 0.0, "done": false, "paid": false,
-		"sparkles": int(PAY[tier]) + mini(nights / 4, 3)}
+		"sparkles": int(PAY[tier]) + mini(nights / 4, 3), "winter": Clock.season() == "winter"}
 	match kind:
 		"deliver":
 			r.goal = 1
@@ -161,6 +180,12 @@ func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary
 			r.pumpkins = spots.slice(0, int(n))
 			r.picked = []
 			r.carrying = false
+		"snowman":
+			r.goal = int(n)
+			var spots := range(SNOWMAN_SPOTS.size())
+			_shuffle(spots, rng)
+			r.balls = spots.slice(0, int(n))
+			r.built = []
 		"grind":
 			r.goal = _nice(n * scale(), 1)
 		"combo":
@@ -183,13 +208,25 @@ static func _shuffle(a: Array, rng: RandomNumberGenerator) -> void:
 func text_of(r: Dictionary) -> String:
 	match str(r.kind):
 		"deliver":
-			return "Take %s from %s to %s" % [r.item_name, r.shop, friend_name(str(r.who))]
+			var what := str(r.item_name)
+			if winter_of(r) and what == "a pumpkin pie":
+				what = "a warm blueberry pie"
+			return "Take %s from %s to %s" % [what, r.shop, friend_name(str(r.who))]
 		"rake":
+			if winter_of(r):
+				return "Shovel the snow at the %s house (%d drifts)" % [r.family, int(r.goal)]
 			return "Rake up the leaves at the %s house (%d piles)" % [r.family, int(r.goal)]
 		"cat":
-			return "Find %s's cat %s (last seen %s)" % [friend_name(str(r.who)), r.cat, r.where]
+			var where := str(r.where)
+			if winter_of(r):
+				where = where.replace("in the pumpkin patch", "in the Snowman Field")
+			return "Find %s's cat %s (last seen %s)" % [friend_name(str(r.who)), r.cat, where]
 		"bakery":
+			if winter_of(r):
+				return "Pick %d bunches of winterberries in the Snowman Field for Poppy's tarts" % int(r.goal)
 			return "Pick %d pumpkins at the patch for Poppy's pies" % int(r.goal)
+		"snowman":
+			return "Build %d snowmen on the town green for the Frost Fair" % int(r.goal)
 	return super.text_of(r)
 
 
@@ -198,13 +235,16 @@ func progress_text(r: Dictionary) -> String:
 		return super.progress_text(r)
 	match str(r.kind):
 		"rake":
-			return "%d / %d piles" % [int(r.progress), int(r.goal)]
+			return "%d / %d %s" % [int(r.progress), int(r.goal), "drifts" if winter_of(r) else "piles"]
+		"snowman":
+			return "%d / %d snowmen" % [int(r.progress), int(r.goal)]
 		"cat":
 			return "found! Now take %s home to %s" % [r.cat, friend_name(str(r.who))] if r.get("carrying", false) else ""
 		"bakery":
 			if r.get("carrying", false):
 				return "got them all, now take them to Poppy"
-			return "%d / %d pumpkins" % [r.picked.size(), int(r.goal)] if not r.picked.is_empty() else ""
+			return "%d / %d %s" % [r.picked.size(), int(r.goal), "bunches" if winter_of(r) else "pumpkins"] \
+				if not r.picked.is_empty() else ""
 	return super.progress_text(r)
 
 
@@ -263,6 +303,13 @@ func collect(r: Dictionary, spot: int) -> void:
 			r.progress = float(r.raked.size())
 			Audio.play("rustle", -2.0)
 			_check_done(r)
+		"snowman":
+			if spot in r.built.map(func(v) -> int: return int(v)):
+				return
+			r.built.append(spot)
+			r.progress = float(r.built.size())
+			Audio.play("pickup", -5.0)
+			_check_done(r)
 		"bakery":
 			if r.carrying or spot in r.picked.map(func(v) -> int: return int(v)):
 				return
@@ -270,7 +317,8 @@ func collect(r: Dictionary, spot: int) -> void:
 			Audio.play("pickup", -5.0)
 			if r.picked.size() >= int(r.goal):
 				r.carrying = true
-				Game.message("That's %d pumpkins! Take them to Poppy at the bakery on Main Street." % int(r.goal))
+				Game.message("That's %d %s! Take them to Poppy at the bakery on Main Street." % [int(r.goal),
+					"bunches of winterberries" if winter_of(r) else "pumpkins"])
 		"cat":
 			if r.carrying:
 				return
@@ -301,7 +349,8 @@ func _on_talked(id: String) -> void:
 			"bakery":
 				r.carrying = false
 				r.progress = float(r.goal)
-				Game.message("Poppy takes the pumpkins: \"Perfect! These'll make the best pies in town!\"")
+				Game.message("Poppy takes the winterberries: \"Perfect! These'll make the best tarts in town!\"" if winter_of(r)
+					else "Poppy takes the pumpkins: \"Perfect! These'll make the best pies in town!\"")
 				_check_done(r)
 				changed.emit()
 				return
@@ -389,7 +438,7 @@ func _place_props() -> void:
 	var space := (scene as Node3D).get_world_3d().direct_space_state
 	var skip := TownPaths.skip_rids(scene)
 	for r in list:
-		if r.done:
+		if r.done and r.kind != "snowman":            # (snowmen built stay up all day)
 			continue
 		match str(r.kind):
 			"deliver":
@@ -409,7 +458,13 @@ func _place_props() -> void:
 						continue
 					var s: Vector2 = PILE_SPOTS[int(v)]
 					var at := house.global_transform * Vector3(s.x, 0, s.y)
-					_prop(scene, "leaves", r, int(v), TownPaths.ground_at(at, space, skip, 3.0))
+					_prop(scene, "drift" if winter_of(r) else "leaves", r, int(v), TownPaths.ground_at(at, space, skip, 3.0))
+			"snowman":
+				var built: Array = r.built.map(func(v) -> int: return int(v))
+				for v in r.balls:
+					var s: Vector2 = SNOWMAN_SPOTS[int(v)]
+					var p := _prop(scene, "snowball", r, int(v), TownPaths.ground_at(Vector3(s.x, 0, s.y), space, skip, 2.0))
+					p.set("built", int(v) in built)
 			"bakery":
 				var patch := scene.find_child("Pumpkin Patch", true, false) as Node3D
 				var picked: Array = r.picked.map(func(v) -> int: return int(v))
@@ -419,8 +474,8 @@ func _place_props() -> void:
 					if int(v) in picked:
 						continue
 					var s: Vector2 = PUMPKIN_SPOTS[int(v)]
-					_prop(scene, "pumpkin", r, int(v), TownPaths.ground_at(patch.global_transform * Vector3(s.x, 0, s.y), space,
-						skip, 2.0))
+					_prop(scene, "berries" if winter_of(r) else "pumpkin", r, int(v),
+						TownPaths.ground_at(patch.global_transform * Vector3(s.x, 0, s.y), space, skip, 2.0))
 			"cat":
 				var player := get_tree().get_first_node_in_group("player") as Node3D
 				if r.carrying and player:
@@ -449,7 +504,7 @@ func _prop(scene: Node, kind: String, r: Dictionary, spot: int, at: Vector3) -> 
 func load_data(data: Dictionary) -> void:
 	super.load_data(data)
 	for r in list:
-		for key in ["raked", "picked", "piles", "pumpkins"]:
+		for key in ["raked", "picked", "piles", "pumpkins", "balls", "built"]:
 			if r.has(key) and r[key] is Array:
 				r[key] = r[key].map(func(v) -> int: return int(v))
 	_told_day = rolled_visit                  # (no "new jobs" news for a day that was already going)

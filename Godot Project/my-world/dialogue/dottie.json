@@ -71,6 +71,26 @@
           "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
         ],
         [
+          "Have you tried Poppy's snowball cakes? They're blue inside! For winter! I had three. Don't tell my doctor."
+        ],
+        [
+          "Sometimes at midnight I hear a whoosh from the green. Probably the wind. Probably! Ha!"
+        ],
+        [
+          "You come back any time, sweetheart. The kettle's always on.",
+          "(She pats your hand. Twice.)"
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+        ],
+        [
           "Have you tried Poppy's cauldron cakes? They're green inside! For Halloween! I had three. Don't tell my doctor."
         ],
         [
@@ -80,7 +100,14 @@
           "You come back any time, sweetheart. The kettle's always on.",
           "(She pats your hand. Twice.)"
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

@@ -34,10 +34,11 @@ func _ready() -> void:
 	_star = Node3D.new()
 	_star.position = Vector3(0, 3.95, 0.1)
 	add_child(_star)
-	if earthy:
+	var pumpkin := earthy and Clock.season() != "winter"      # (in winter Stars Hollow's board has a star too)
+	if pumpkin:
 		_lantern()
 	var star_mat := _mat(Color(1.0, 0.85, 0.3), 2.5)
-	for k in (0 if earthy else 5):
+	for k in (0 if pumpkin else 5):
 		var spike := MeshInstance3D.new()
 		var prism := PrismMesh.new()
 		prism.size = Vector3(0.22, 0.32, 0.08)

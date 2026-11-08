@@ -90,7 +90,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				Arsenal.select(Arsenal.ORDER[i])
 	elif event is InputEventJoypadButton and event.pressed:
 		var b := (event as InputEventJoypadButton).button_index
-		if b in [JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT] and not b in Settings.pad_bindings.values():
+		if b in [JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_RIGHT] and (not b in Settings.pad_bindings.values()
+				or (Settings.pad_bindings.get("frost_breath", -1) == b and not Settings.action_shown("frost_breath"))):
 			Arsenal.cycle(-1 if b == JOY_BUTTON_DPAD_LEFT else 1)
 
 

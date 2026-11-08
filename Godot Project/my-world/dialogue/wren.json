@@ -36,6 +36,25 @@
           "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
         ],
         [
+          "The paper snowflakes in the window are for winter. They are not real snowflakes. I would never allow real snowflakes."
+        ],
+        [
+          "Kip tried to sell me my own lamp once. I have not forgotten."
+        ],
+        [
+          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+        ],
+        [
           "The cobwebs in the window are for Halloween. They are not real cobwebs. I would never allow real cobwebs."
         ],
         [
@@ -44,7 +63,14 @@
         [
           "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

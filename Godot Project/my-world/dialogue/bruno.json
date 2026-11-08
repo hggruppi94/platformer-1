@@ -41,7 +41,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "Thleigh rideth are for babieth.",
+        "...Okay, it'th kind of fun. Don't tell Prue."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Hayride'th for babieth.",

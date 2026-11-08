@@ -88,6 +88,39 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: **Winter in Stars Hollow, and Flurry's frost breath** (Frozen Moment slice two, part two). Hayden: "overhaul
+  the winter version of earth to have winter related quests instead of fall quests and anything fall-related needs to
+  be replaced by winter things ... add her frost breath as well". Built and tested in the cloud (own Godot user
+  folders, no save touched). Same PR as winter unlocks.
+  - **Lines:** every Earth townsfolk conversation that talked about autumn (pumpkins, cider, leaves, the Autumn
+    Festival) now has a winter copy (`"season": "winter"`, Frost Fair, cocoa, sleighs, snowmen, ice fishing) and the
+    old one says `"season": ["spring", "summer", "autumn"]`: 17 dialogue files, about 40 lines.
+  - **The town** (`seasons.gd _dress_rest()`): pumpkins, jack-o'-lanterns and scarecrows outside the Autumn Dressing
+    only show in autumn (scarecrows are found by their "Sack Head" material: the second one has a made-up node name).
+    In winter a snowman stands at each ground-level pumpkin spot (`snowman_model()`, static), the patch sign says
+    "Snowman Field", and the string lights and bunting turn red, green, white and blue (`_paint_lights()`).
+  - **Notice board** (`earth_jobs.gd`): in winter, rake leaves -> shovel snow drifts, pick pumpkins -> pick
+    winterberries in the Snowman Field, a new **build snowmen on the green** job (`"snowman"`, winter only:
+    `kinds_for()`; walk into a snowball to roll it into a snowman), pumpkin pie -> blueberry pie; the board wears a
+    star, not a jack-o'-lantern.
+  - **New quest "The First Snow"** (`quests/first_snow.json`, `scripts/first_snow.gd`, a "FirstSnow" node under
+    `EarthTown`): Nina offers it in winter once The First Night's done. Find a carrot at the Corner Market and Prue's old
+    scarf at the Blastoffs' door, build the snowman with Nina on the green's north side (it stays all winter), sled
+    down Lookout Hill (a red sled on the hilltop, any time in winter: `sled_down()`), then cocoa with Gus at the
+    Hollow Diner. 12 sparkles. Flags `first_snow_start`, `snow_carrot`, `snow_scarf`, `snow_built`, `snow_sledded`,
+    `snow_cocoa`.
+  - **Frost breath** (`scripts/frost_breath.gd`, a "FrostBreath" node on the player): new action **Frost breath** (V,
+    D-pad left; on-foot pad group), locked until the Frozen Moment is mended (hidden in Controls till then, and D-pad
+    left still picks gadgets). A cone of frost 8 m ahead: over any water (group `"water"`) it freezes round ice floes
+    (slippery, group `"ice"`) to walk across, each lasting 25 s (wobbling before it melts, at most 40); enemies in the
+    cone are chilled like the Freeze mod (`Arsenal.chill()`). 0.7 s between huffs. Flurry teaches it the first time
+    you talk to her in the Void.
+  - Tests: new `tools/test_winter.gd`; test_notice_board updated; seasons, festival, fairs, big_days, player_menu,
+    season_unlocks, burrow, dialogue, quests, frozen_moment and townsfolk pass. Previews: `tools/capture_winter.gd`
+    (shots in the project files under world/previews/winter).
+  - My choices Hayden may change: V and D-pad left, the quest's steps, the jobs, the winter lights' colours, how long
+    floes last. Not done: the season dial (story flag 48: switch to any unlocked season yourself).
+
 - 2026-11-08: **Winter unlocks, and Flurry comes to the Void** (the Frozen Moment's reward, slice two; plan item 20 for
   winter). Hayden: "Yes". Built and tested in the cloud (own Godot user folders, no save touched).
   - **Seasons unlock one by one** (`Clock.seasons_open`, saved as `"seasons_open"`): a **new game** only has autumn

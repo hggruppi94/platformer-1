@@ -13,7 +13,22 @@
     },
     {
       "when": {
-        "activity": "festival_stall"
+        "activity": "festival_stall",
+        "season": "winter"
+      },
+      "lines": [
+        "Gingerbread, toffee, hot cocoa! Everything's warm and everything's sticky!",
+        "Entering the pie contest? Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_stall",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Caramel apples, kettle corn, cider donuts! Everything's warm and everything's sticky!",
@@ -30,11 +45,44 @@
     },
     {
       "when": {
-        "activity": "fresh_air"
+        "activity": "fresh_air",
+        "season": "winter"
+      },
+      "lines": [
+        "Just getting some fresh air. Smell that? That's snow. And cinnamon. Mostly cinnamon. It's coming off me."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fresh_air",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Just getting some fresh air. Smell that? That's autumn. And cinnamon. Mostly cinnamon. It's coming off me."
       ]
+    },
+    {
+      "rotate": [
+        [
+          "Gus says my gingerbread's 'too gingery'. Too gingery! It's GINGERbread!"
+        ],
+        [
+          "For the festival I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer."
+        ],
+        [
+          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats."
+        ],
+        [
+          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
     },
     {
       "rotate": [
@@ -50,7 +98,14 @@
         [
           "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }
