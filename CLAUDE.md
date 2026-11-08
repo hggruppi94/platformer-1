@@ -32,6 +32,8 @@ Read this first in every session so each iteration builds on the last one and do
     handles Earth's full day and night.
   - `dialogue/*.json`, `quests/*.json`, `routines/`, `shop/`: content, each with its own README.
   - `tools/test_*.gd`: tests. `tools/capture_*.gd`: screenshot tools.
+  - `STATE_MACHINES.md`: where every "what's happening now" state lives, and the rule for shared ones (the
+    player's controls are named holds: `Game.hold_controls("who", on)`, never `input_locked = true/false`).
 - `source_art/`: Blender characters and Sofi's reference pictures (characters, enemies, world, floor plans). These
   are the source of truth for how things look.
 - `previews/`: screenshots of recent work, one folder per feature.
@@ -87,6 +89,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
+
+- 2026-11-08: Named holds on the player's controls, and a map of the game's state machines (Hayden: "find all of the
+  implicit state machines"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The bug:** `input_locked` on the player was one true/false that 13 systems set and cleared (talks, race and
+    skate-run countdowns, the creator, the zipline, the mothership, the hayride, the skate lesson, apple bobbing,
+    the Swap-o-Tron, the First Night's arrival, the oak's reveal). Whoever finished first handed the controls back
+    for everyone: a talk closes 0.15 s after its last line and unlocked her, so the Swap-o-Tron (started from a
+    talk) let her walk off mid-flash, and races and skate runs had to lock her again every frame to cope.
+  - **Now** each system holds the controls under its own name: `Game.hold_controls(&"race", true)` /
+    `false` (`scenes/player/player.gd lock_input()`, `unlock_input()`, `input_locks()` says who's holding,
+    `input_lock_changed` signal). `input_locked` still reads true while anyone holds them; setting it is only for
+    tools (true = a "legacy" hold, false = let go for everyone). The `not Dialogue.is_active()` workarounds in the
+    lab, the First Night and the oak are gone: a talk keeps its own hold.
+  - `STATE_MACHINES.md` lists every state machine (explicit enums, data-driven steps, and the implicit flag groups
+    left as they are, with why). Next candidate: `Input.mouse_mode`, which dialogue choices and the skate lesson
+    still set as a single switch.
+  - Tests: new `tools/test_controls_lock.gd`; `test_creator` now waits for the first landing's swirl to finish before
+    checking she can move (the creator closing used to free her mid-swirl). creator, dialogue, festival, first_night,
+    quick_fixes, race_intros, skate_help, shooting, skate_runs, mothership, time_watch, portals, rootmind, farming,
+    episodes, doors, map, walk_through pass; earth, first_hour, layout and races fail the same checks before and
+    after this change (not looked into here).
 
 - 2026-11-08: Portal worlds, part two: **the Rootmind**, Bramble's home world (plan items 19a world 1 and 22). Hayden:
   "Go ahead". Built and tested in the cloud (own Godot user folders, no save touched). Slice one of the world: the
