@@ -52,6 +52,7 @@ var _stickers: Node3D                             # market stickers on the sash
 @onready var anim: AnimationPlayer = visual.find_child("AnimationPlayer", true, false)
 
 const MODEL_Y := -0.8                       # feet at the bottom of the collision capsule
+const BURROW := preload("res://scripts/burrow.gd")   # no class_name: --script tools compile those before the autoloads
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
@@ -90,6 +91,7 @@ var input_locked: bool:
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
 var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
+var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 # Boosters (scripts/boosters.gd) work on foot too: a rush carries her past her running speed for a moment, the way a
@@ -144,6 +146,10 @@ func _ready() -> void:
 	add_child(popper)
 	popper.setup(self)
 	popper.popped.connect(skate.on_pop)        # pops on the board are tricks in the combo
+	burrow = BURROW.new()
+	burrow.name = "Burrow"
+	add_child(burrow)
+	burrow.setup(self)
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
@@ -300,7 +306,9 @@ func _add_sash() -> void:
 
 
 func is_invulnerable() -> bool:
-	# Nothing can hurt her: blinking after a hit, or the invulnerable frames of a roll
+	# Nothing can hurt her: blinking after a hit, the invulnerable frames of a roll, or underground
+	if burrow and burrow.active:
+		return true
 	return _invulnerable_timer > 0.0 or (_roll_timer > 0.0 and roll_time - _roll_timer < roll_iframes)
 
 
@@ -364,6 +372,8 @@ func facing_dir() -> Vector3:
 func _physics_process(delta: float) -> void:
 	if _hat and _hat.has_node("Propeller"):
 		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
+	if burrow.active and (carried or Game.riding):
+		burrow.stop(0.0)                        # onto a ride or a zipline: up she comes
 	if carried:
 		return
 	var on_floor := is_on_floor()
@@ -379,6 +389,11 @@ func _physics_process(delta: float) -> void:
 	_rush_fade -= delta
 	if Game.riding:
 		skate.physics(delta)
+		return
+	if burrow.active:
+		burrow.physics(delta)
+		return
+	if Input.is_action_just_pressed("burrow") and burrow.try_start():
 		return
 	if on_floor:
 		_air_jump_used = false

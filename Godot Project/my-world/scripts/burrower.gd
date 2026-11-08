@@ -36,7 +36,7 @@ func _ready() -> void:
 	_model = _body.get_node_or_null("Model") as Node3D
 	_anim = _body.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	_last = _body.global_position
-	_mound = _make_mound()
+	_mound = make_mound()
 	_mound.visible = false
 	_body.add_child.call_deferred(_mound)
 
@@ -127,8 +127,9 @@ func _puff() -> void:
 		juice.call("dust", _body.get_parent(), _body.global_position, 0.6, SOIL)
 
 
-func _make_mound() -> Node3D:
-	# A little hump of soil with a curly green sprig poking out of it, which is all you see of her underground
+static func make_mound() -> Node3D:
+	# A little hump of soil with a curly green sprig poking out of it, which is all you see of her underground. The
+	# player's own burrow (scripts/burrow.gd, Bramble's gift) uses the same one.
 	var g := Node3D.new()
 	g.name = "Mound"
 	var soil := StandardMaterial3D.new()
