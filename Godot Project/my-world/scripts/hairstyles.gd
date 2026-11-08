@@ -7,8 +7,19 @@ extends RefCounted
 # Made on Nina's head (her model's space: head bone at y 0.9, eyes at y 1.13, the front of her face at z 0.29, the top
 # of her hair at 1.46), then fitted to whoever wears it like a hat (scripts/clothes.gd, the "head" fit).
 
+# The first twelve are the older styles (Earth's townsfolk wear them: tools/build_earth.gd); from NEW on they're the
+# human kids' sculpted styles (scripts/hair_kit.gd), ten for girls then ten for boys, which the creator offers.
 const NAMES := ["Their own", "Short crop", "Pigtails", "Ponytail", "Space buns", "Long and flowy", "Bob", "Mohawk",
-	"Afro puffs", "Braids", "Curly top", "Bald"]
+	"Afro puffs", "Braids", "Curly top", "Bald",
+	"High ponytail", "Twin tails", "Space buns ", "Long and straight", "Long braid", "Bob with bangs", "Pixie cut",
+	"Big curls", "Afro puffs ", "Side ponytail",
+	"Hero spikes", "Swoop fringe", "Middle part", "Messy mop", "Quiff", "Faux-hawk", "Top knot", "Curly top ", "Afro",
+	"Buzz cut"]
+const NEW := 12
+const GIRL_STYLES := [12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+const BOY_STYLES := [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+# Old styles to the closest new one, for heroes made before the human kids (Hero.migrate)
+const TO_NEW := {0: -1, 1: 25, 2: 13, 3: 12, 4: 14, 5: 15, 6: 17, 7: 27, 8: 20, 9: 16, 10: 29, 11: 31}
 
 # The scalp: a shell over the top and back of the head, leaving the face clear
 const CROWN := Vector3(0, 1.2, -0.11)
@@ -18,6 +29,8 @@ const CROWN_R := 0.37
 static func build(style: int, color: Color) -> Node3D:
 	# The hairstyle in Nina's model space, or null for style 0 (their own) and Bald
 	var name: String = NAMES[clampi(style, 0, NAMES.size() - 1)]
+	if style >= NEW:
+		return HairKit.build(name.strip_edges(), color)
 	if style <= 0 or name == "Bald":
 		return null
 	var g := Node3D.new()
@@ -78,6 +91,11 @@ static func build(style: int, color: Color) -> Node3D:
 				var r := 0.12 + 0.12 * fmod(k * 0.37, 1.0)
 				_up(_ball(g, hair, CROWN + Vector3(cos(a) * r, 0.3 - r * 0.4, sin(a) * r - 0.02), 0.11, Vector3.ONE))
 	return g
+
+
+static func name_of(style: int) -> String:
+	# The style's name as the creator shows it (a few new ones share an old one's name: a space marks them apart)
+	return str(NAMES[clampi(style, 0, NAMES.size() - 1)]).strip_edges()
 
 
 static func _crown(g: Node3D, m: Material, size: float) -> void:

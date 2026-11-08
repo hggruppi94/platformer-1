@@ -77,7 +77,14 @@ var sparkles := 0
 var sparkles_taken := {}         # sparkle name -> the day she picked it up
 const HAPPY_PLACE_SPARKLES := 3  # for finding a happy place the first time
 
-const SAVE_PATH := "user://save.json"
+const SAVE_PATH := "user://save.json"   # slot 1's save (and the only one tools and tests ever touch)
+# Save slots: three games side by side (Hayden, 7 Nov 2026). Slot 1 is save.json, as it always was, so saves from
+# before slots are slot 1; the others are save_slot2.json and save_slot3.json. The slot last played is kept in
+# slots.cfg so Continue picks it up. Tools and tests (run with --script) always use slot 1 and never change slots.cfg.
+const SLOTS := 3
+const SLOTS_CFG := "user://slots.cfg"
+var slot := 1
+var hold_saves := false          # tools set this when they're done, so nothing saves over the save they put back
 const SAVE_VERSION := 2          # 2: the player lives on Earth, and Galaxity is visited in the Shift (scripts/clock.gd)
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
 const EARTH_LAYOUT := 2          # Earth's layout: 2 = the grown-up town (Main Street, Maple Lane, the park), Oct 30 2026
@@ -94,6 +101,7 @@ var play_time := 0.0             # seconds played, all told (shown on the title 
 
 
 func _ready() -> void:
+	slot = _last_slot()
 	load_game()
 	if not _resume.is_empty():
 		_go_to_saved_scene.call_deferred()
@@ -305,6 +313,8 @@ func _player_carried() -> bool:
 # -----------------------------------------------------------------------------
 func save_game() -> void:
 	_autosave_timer = AUTOSAVE_INTERVAL
+	if hold_saves:
+		return
 	var data := {
 		"version": SAVE_VERSION,
 		"layout": LAYOUT,
@@ -340,26 +350,26 @@ func save_game() -> void:
 	elif not _last_place.is_empty():
 		data.merge(_last_place)  # mid scene change: keep the last known place rather than losing it
 	# Write to a temp file first, then swap it in, so a crash mid-write can't corrupt the save
-	var tmp := SAVE_PATH + ".tmp"
+	var tmp := save_path() + ".tmp"
 	var f := FileAccess.open(tmp, FileAccess.WRITE)
 	if f == null:
 		push_warning("Couldn't write save: %s" % error_string(FileAccess.get_open_error()))
 		return
 	f.store_string(JSON.stringify(data, "  "))
 	f.close()
-	DirAccess.rename_absolute(tmp, SAVE_PATH)
+	DirAccess.rename_absolute(tmp, save_path())
 	saved.emit()
 
 
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(save_path()):
 		next_spawn = NEW_GAME_SPAWN                     # the very first start: wake up at home
 		pending_message = NEW_GAME_MESSAGE
 		return
-	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE_PATH))
+	var data = JSON.parse_string(FileAccess.get_file_as_string(save_path()))
 	if typeof(data) != TYPE_DICTIONARY:
 		# Unreadable: keep it aside for inspection and start fresh
-		DirAccess.rename_absolute(SAVE_PATH, "user://save.bad.json")
+		DirAccess.rename_absolute(save_path(), save_path().get_basename() + ".bad.json")
 		push_warning("Save file was unreadable; moved to save.bad.json and started a new game.")
 		pending_message = "Your save couldn't be read, so this is a new game."
 		return
@@ -427,6 +437,7 @@ func load_game() -> void:
 		# make one next time
 		needs_creator = bool(data.get("needs_creator", false))
 		hero.merge(data["hero"], true)
+		hero = Hero.migrate(hero)          # a hero from before the human kids becomes one (a girl or a boy)
 	elif outfits.has("nina") and outfits["hero"].is_empty():
 		outfits["hero"] = outfits["nina"]
 		outfits.erase("nina")
@@ -529,8 +540,96 @@ func take_resume_point(scene_path: String) -> Dictionary:
 	return r
 
 
+# -----------------------------------------------------------------------------
+# Save slots
+# -----------------------------------------------------------------------------
+static func slot_path(n: int) -> String:
+	return SAVE_PATH if n <= 1 else "user://save_slot%d.json" % n
+
+
+func save_path() -> String:
+	return slot_path(slot)
+
+
+static func _tool_run() -> bool:
+	# Tools and tests run the game with --script: they keep to slot 1 (whose save they put aside and back)
+	return "--script" in OS.get_cmdline_args() or "-s" in OS.get_cmdline_args()
+
+
+func _last_slot() -> int:
+	if _tool_run():
+		return 1
+	var cfg := ConfigFile.new()
+	if cfg.load(SLOTS_CFG) != OK:
+		return 1
+	return clampi(int(cfg.get_value("slots", "last", 1)), 1, SLOTS)
+
+
+func _remember_slot() -> void:
+	if _tool_run():
+		return
+	var cfg := ConfigFile.new()
+	cfg.set_value("slots", "last", slot)
+	cfg.save(SLOTS_CFG)
+
+
+func slot_info(n: int) -> Dictionary:
+	# What the title screen shows for a slot: {} for an empty one, else the hero's name, girl or boy, level, how long
+	# they've played, Earth's day and when it was saved
+	var path := slot_path(n)
+	if not FileAccess.file_exists(path):
+		return {}
+	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if typeof(data) != TYPE_DICTIONARY:
+		return {"broken": true}
+	var h: Dictionary = data.get("hero", {}) if data.get("hero", {}) is Dictionary else {}
+	if bool(data.get("needs_creator", false)) and str(h.get("name", "")).strip_edges() == "":
+		return {}                                    # a new game quit before the hero was made: as good as empty
+	return {"name": Hero.display_name(h), "girl": Hero.is_girl(Hero.migrate(h)), "level": int(data.get("level", 1)),
+		"play_time": float(data.get("play_time", 0.0)), "day": int(data.get("day", 1)),
+		"saved_at": str(data.get("saved_at", ""))}
+
+
+func use_slot(n: int) -> void:
+	# Play the game in slot n: the one being played is saved first, then everything is reset and slot n loaded
+	# (an empty slot loads as a fresh start). The title screen's Continue then takes them where it left off.
+	n = clampi(n, 1, SLOTS)
+	if n == slot:
+		return
+	slot = n
+	_remember_slot()
+	_reset_state()
+	load_game()
+
+
+func delete_slot(n: int) -> void:
+	DirAccess.remove_absolute(slot_path(n))
+	if n == slot:
+		_reset_state()
+		load_game()
+
+
+func new_game_in(n: int) -> void:
+	# A new game in slot n (whatever was in it is gone)
+	slot = clampi(n, 1, SLOTS)
+	_remember_slot()
+	new_game()
+
+
 func new_game() -> void:
-	DirAccess.remove_absolute(SAVE_PATH)
+	DirAccess.remove_absolute(save_path())
+	_reset_state()
+	hero = Hero.blank()
+	needs_creator = true
+	next_spawn = NEW_GAME_SPAWN                      # wake up at home
+	pending_message = NEW_GAME_MESSAGE
+	equipment_changed.emit()
+	stats_changed.emit()
+	get_tree().call_deferred("change_scene_to_file", START_SCENE)
+
+
+func _reset_state() -> void:
+	# Everything back to how a new game starts (no scene change, nothing saved)
 	level = 1
 	xp = 0
 	max_hp = 10
@@ -546,7 +645,6 @@ func new_game() -> void:
 	looks = {}
 	saved_outfits = []
 	hero = Hero.blank()
-	needs_creator = true
 	home = {}
 	popper_colour = "classic"
 	hero_ride = "board"
@@ -562,10 +660,8 @@ func new_game() -> void:
 	Arsenal.reset()
 	Races.reset()
 	SkateRuns.reset()
-	next_spawn = NEW_GAME_SPAWN                      # wake up at home
+	next_spawn = ""
 	_resume = {}
 	_last_place = {}
-	pending_message = NEW_GAME_MESSAGE
-	equipment_changed.emit()
-	stats_changed.emit()
-	get_tree().call_deferred("change_scene_to_file", START_SCENE)
+	pending_message = ""
+	needs_creator = false

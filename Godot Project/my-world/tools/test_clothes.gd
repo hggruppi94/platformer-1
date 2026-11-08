@@ -96,7 +96,8 @@ func _run() -> void:
 		var m := body.get_surface_override_material(i) as StandardMaterial3D
 		return m != null and m.albedo_color.a == 0.0)
 	check(hidden, "her backpack comes off for the wings")
-	var shirts := Clothes._surfaces(body, ["Shirt"])
+	var own_top: Array = Clothes.OWN_CLOTHES.get(Hero.body_of(game.hero).char, {}).get("top", ["Shirt"])
+	var shirts := Clothes._surfaces(body, [own_top[0]])     # (the hero's own top: a human kid's "Top")
 	var sm := body.get_surface_override_material(shirts[0]) as StandardMaterial3D if not shirts.is_empty() else null
 	check(sm != null and sm.albedo_texture != null, "the Galaxy Tee restyles her own shirt, with stars")
 
