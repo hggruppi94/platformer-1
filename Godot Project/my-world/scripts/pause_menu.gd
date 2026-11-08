@@ -34,6 +34,7 @@ func _ready() -> void:
 	root.add_child(center)
 	panel = PanelContainer.new()
 	center.add_child(panel)
+	UiStyle.keep_on_screen(panel)                  # shrinks to fit at the biggest text sizes (scripts/ui_style.gd)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 28)

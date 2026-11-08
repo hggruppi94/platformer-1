@@ -769,6 +769,7 @@ func _build_card() -> void:
 	_card_note = Label.new()
 	_card_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(_card_note)
+	UiStyle.keep_on_screen(_card_panel)               # shrinks to fit at the biggest text sizes (scripts/ui_style.gd)
 
 
 func _apply_card_look() -> void:
@@ -782,5 +783,5 @@ func _apply_card_look() -> void:
 	_card_panel.add_theme_stylebox_override("panel", box)
 	_card_title.add_theme_font_size_override("font_size", roundi(26 * k))
 	_card_note.add_theme_font_size_override("font_size", roundi(19 * k))
-	_card_note.custom_minimum_size.x = 520 * k
+	_card_note.custom_minimum_size.x = UiStyle.fit_width(_card_panel, 520 * k + 200.0) - 200.0   # (room for the watch)
 	(_card.get_node("Centre") as Control).offset_top = 90 * k

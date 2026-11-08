@@ -399,6 +399,7 @@ func _show_choice(options: Array) -> void:
 		b.text = _fill(str(o.get("text", "...")))
 		b.text = b.text.to_upper() if Settings.talk_caps else b.text
 		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # a long answer wraps inside the banner
 		_style_choice(b)
 		b.pressed.connect(choose.bind(o))
 		_choices.add_child(b)
@@ -554,6 +555,9 @@ func _build_ui() -> void:
 	_hint = Label.new()
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	v.add_child(_hint)
+	# Never wider than the screen, and shrunk to fit (from the bottom middle) if a big text size still makes it too tall
+	UiStyle.keep_on_screen(_panel, Vector2(0.5, 1.0))
+	_layer.get_viewport().size_changed.connect(_apply_look)
 
 
 func _fs(px: float) -> int:
@@ -576,7 +580,7 @@ func _apply_look() -> void:
 	style.shadow_color = Color(0, 0, 0, 0.45)
 	style.shadow_size = 0 if hc else 10
 	_panel.add_theme_stylebox_override("panel", style)
-	var w := _fs(900)
+	var w := UiStyle.fit_width(_panel, _fs(900))
 	_panel.custom_minimum_size = Vector2(w, _fs(112))
 	_panel.offset_left = -w / 2.0
 	_panel.offset_right = w / 2.0

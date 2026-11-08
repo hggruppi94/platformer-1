@@ -98,13 +98,14 @@ func _place() -> void:
 	if tab == null or not is_on():
 		return
 	_bubble.reset_size()
-	var r := tab.get_global_rect()
-	var vp := get_viewport_rect().size
+	# In the tour's own units: the menu may be shrunk to fit the screen (UiStyle.fit_full_screen)
+	var r := get_global_transform().affine_inverse() * tab.get_global_rect()
+	var vp := size
 	var w := _bubble.size.x
 	var x := clampf(r.get_center().x - w / 2.0, 16.0, vp.x - w - 16.0)
 	var y := r.end.y + _fs(26)
-	_bubble.position = Vector2(x, y) - get_global_rect().position
-	_arrow.position = Vector2(r.get_center().x - _fs(16), r.end.y + _fs(4)) - get_global_rect().position
+	_bubble.position = Vector2(x, y)
+	_arrow.position = Vector2(r.get_center().x - _fs(16), r.end.y + _fs(4))
 	_arrow.size = Vector2(_fs(32), _fs(24))
 	_arrow.queue_redraw()
 
