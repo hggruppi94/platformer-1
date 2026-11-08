@@ -51,8 +51,11 @@ const WORLDS := [
 		"blurb": "Bramble's home, where every plant has eyes, and time is running backwards.",
 		"reward_remnants": 6,
 		"cleared_text": "The Rootmind blinks in step again! Back in the Void, watching flowers have sprung up round its portal and your garden."},
-	{"id": "frozen_moment", "name": "The Frozen Moment", "owner": "Flurry", "scene": "", "at": Vector2(60, -128),
-		"yaw": 0.0, "preview": true, "colour": Color(0.7, 0.9, 1.0), "blurb": "A world where time has stopped."},
+	{"id": "frozen_moment", "name": "The Frozen Moment", "owner": "Flurry",
+		"scene": "res://scenes/portal_worlds/frozen_moment.tscn", "at": Vector2(46, -226), "yaw": 0.0, "preview": true,
+		"colour": Color(0.7, 0.9, 1.0), "blurb": "Flurry's home, where time has stopped mid-moment: snowflakes hang in the air.",
+		"reward_remnants": 7,
+		"cleared_text": "The Frozen Moment ticks again! Snow is falling for the first time in for ever."},
 	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "", "at": Vector2(-110, -120), "yaw": 0.0,
 		"preview": true, "colour": Color(0.75, 0.6, 1.0), "blurb": "Pip's home, where the sun won't rise."},
 	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "", "at": Vector2(-36, 64),
@@ -216,6 +219,8 @@ func quake_due(id: String) -> bool:
 		"rootmind":
 			# After the tutorial world, once Bramble's Harvest has begun (so you know her, and her garden's yours)
 			return is_cleared("shard_isle") and Quests.is_started(Remnants.QUEST)
+		"frozen_moment":
+			return is_cleared("rootmind")                 # the next world in the story, once Bramble's is mended
 	return false
 
 
@@ -265,6 +270,8 @@ func _near_words(id: String) -> String:
 			return "the field below Observatory Hill"
 		"rootmind":
 			return "the Secret Gardens, by your garden"
+		"frozen_moment":
+			return "the foot of the mountains, far north past the castle"
 	return "the town"
 
 

@@ -93,6 +93,7 @@ var _floor_node: Node = null
 const STEP_SOUNDS := {"grass": "step_grass", "wood": "step_wood", "stone": "step_stone", "water": "step_water",
 	"cloud": "step_cloud", "crystal": "step_crystal", "mushroom": "step_cloud"}
 const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
+const ICE_GRIP := 0.12                      # on ice (anything in the "ice" group) she speeds up and stops this much slower
 const MUSHROOM_BOUNCE := 9.5                # landing on a big mushroom cap bounces her up this fast
 
 
@@ -445,6 +446,8 @@ func _physics_process(delta: float) -> void:
 			rate = acceleration * (3.0 if on_floor else 1.0)
 		elif _rush_fade > 0.0 and horizontal.length() > speed:
 			rate = acceleration * 0.2                   # easing back down to a run, not a sudden stop
+		if on_floor and on_ice():
+			rate *= ICE_GRIP                            # slippy: a kid-safe slide, never a fall
 		horizontal = horizontal.move_toward(target, rate * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
@@ -458,6 +461,8 @@ func _physics_process(delta: float) -> void:
 			if c.get_normal().y > 0.6:
 				_floor_node = c.get_collider() as Node
 				break
+		if _floor_node == null:
+			_floor_node = _floor_below()           # running on the flat, floor snap keeps her down with no collision to read
 	RenderingServer.global_shader_parameter_set("nina_pos", global_position)   # plants lean away from her
 	_sounds(delta, horizontal.length())
 
@@ -572,6 +577,18 @@ func in_zone(kind: String) -> bool:
 		if is_instance_valid(z) and z.get("kind") == kind:
 			return true
 	return false
+
+
+func _floor_below() -> Node:
+	var q := PhysicsRayQueryParameters3D.create(global_position, global_position + Vector3(0, -1.3, 0))
+	q.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.collider as Node if not hit.is_empty() else null
+
+
+func on_ice() -> bool:
+	# Standing on ice (the Frozen Moment's lake and slides, scripts/frozen_moment.gd)
+	return _floor_node != null and is_instance_valid(_floor_node) and _floor_node.is_in_group("ice")
 
 
 func ground_kind() -> String:
