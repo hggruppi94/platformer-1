@@ -14,7 +14,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
+        "Try the hot cocoa. Then try it again. That's what I did."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Night off from the diner! I'm eating everything Poppy makes. Everything.",

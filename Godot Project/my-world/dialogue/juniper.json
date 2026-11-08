@@ -13,7 +13,22 @@
     },
     {
       "when": {
-        "activity": "festival"
+        "activity": "festival",
+        "season": "winter"
+      },
+      "lines": [
+        "Juniper Okafor, Old Oak Elementary Gazette, covering the Frost Fair LIVE! Any comment on the ice fishing?",
+        "My headline: 'Local Barrel Defeats Local Boy'. Ozzie caught zero fish. Zero!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Juniper Okafor, Old Oak Elementary Gazette, covering the festival LIVE! Any comment on the apple bobbing?",

@@ -13,7 +13,22 @@
     },
     {
       "when": {
-        "activity": "festival_hayride"
+        "activity": "festival_hayride",
+        "season": "winter"
+      },
+      "lines": [
+        "Sleigh ride! Sleigh ride! Hop on when it stops here, all the way round the green!",
+        "Job number seven: sleigh ride conductor! Scarecrow Sam drives. He's wearing a scarf now. He's still never once blinked."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_hayride",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green!",
@@ -38,7 +53,21 @@
     },
     {
       "when": {
-        "activity": "pumpkins"
+        "activity": "pumpkins",
+        "season": "winter"
+      },
+      "lines": [
+        "Snowmen! Build your snowmen here! Big ones, little ones, one that looks like Gus!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Pumpkins! Get your pumpkins! Big ones, little ones, one that looks like Gus!"

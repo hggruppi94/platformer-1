@@ -14,7 +14,22 @@
     },
     {
       "when": {
-        "activity": "festival_music"
+        "activity": "festival_music",
+        "season": "winter"
+      },
+      "lines": [
+        "(He's strumming a jolly tune about a snowman who wanted to see the summer.)",
+        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_music",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "(He's strumming a jolly tune about a pumpkin who wanted to be a moon.)",
@@ -52,7 +67,22 @@
     },
     {
       "when": {
-        "time": "morning"
+        "time": "morning",
+        "season": "winter"
+      },
+      "lines": [
+        "(Strum!) Good morning, good morning, the snow is soft and white! Good morning, good morning, and Gus is grumpy, right!",
+        "(From across the street, someone yells \"I HEARD THAT\".)"
+      ]
+    },
+    {
+      "when": {
+        "time": "morning",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "(Strum!) Good morning, good morning, the leaves are turning gold! Good morning, good morning, and Gus is being cold!",
@@ -68,12 +98,38 @@
           "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
         ],
         [
+          "(He plays a twinkly little tune.) That's my winter song. It's called 'The Snowflake Who Was Scared Of Heights'."
+        ],
+        [
+          "The festival's my big night! I'm playing the whole evening. Bring earmuffs! Joking. Bring dancing shoes."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+        ],
+        [
+          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+        ],
+        [
           "(He plays a spooky little tune.) That's my Halloween song. It's called 'The Pumpkin Who Wanted To Be A Pie'."
         ],
         [
           "The festival's my big night! I'm playing the whole evening. Bring earmuffs! Joking. Bring dancing shoes."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }
