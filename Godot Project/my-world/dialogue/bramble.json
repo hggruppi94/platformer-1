@@ -129,7 +129,7 @@
     {
       "when": {
         "quest_not_started": "brambles_harvest",
-        "min_talks": 2,
+        "min_talks": 3,
         "not_flag": "harvest_later"
       },
       "lines": [

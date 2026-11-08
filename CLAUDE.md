@@ -100,8 +100,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     it, Interact brings **Bramble**: a soil mound with a sprig races over, she sprouts up beside the vein (her own
     `plant_girl.glb`, "sprout" then "wave"), the crystals pop (+3 Remnants) and she burrows away. A harvested vein
     shows stubs and regrows the next Void day (`veins_taken`).
-  - **Quest "Bramble's Harvest"** (`quests/brambles_harvest.json`, offered by Bramble once you've met her, with a
-    "Maybe later" that she asks again every third talk): find the **three tool parts** (a rootwood handle in the Secret
+  - **Quest "Bramble's Harvest"** (`quests/brambles_harvest.json`, offered by Bramble from the fourth time you talk to
+    her, so her first chats stay as they were; "Maybe later" and she asks again every third talk): find the **three tool parts** (a rootwood handle in the Secret
     Gardens, a moonshell scoop by the dock, a hum crystal on the Observatory hill: glowing pickups that only show on
     that step), take them to Bramble and **choose the tool's look** (Leafy Trowel, Crystal Pick or Star Scoop; flags
     `harvest_look_*`, `{tool}` in dialogue), harvest a first vein, **meet Bramble at your garden** (her routine's
