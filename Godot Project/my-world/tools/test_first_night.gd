@@ -3,7 +3,7 @@ extends SceneTree
 # Walks the whole of "The First Night" (res://quests/first_night.json, scripts/first_night.gd), from a new game to
 # waking up at home the next night: the hero's made at 8 PM on Earth, Nina knocks, Mr. Palmer and two more people on
 # the green, the evening waits at 11 PM until that's done, the bed's "Until the Shift", the portal and the arrival
-# moment (the swirl, the watch on their wrist), Dash at the portal, the Galaxity day (Star Popper and three Gloops,
+# moment (the swirl, the watch on their wrist), Dash at the portal, the Void day (Star Popper and three Gloops,
 # Dash's gadget stall, Rex and Coach Bruno's first two lesson steps, a request, the fountain's lost watch, Zippy), the
 # Gloop King and the crown from Dash, then pulled home at the end of the Shift into bed, and Nina's "Same time
 # tomorrow?". The Shift is fast-forwarded. Then: every step can be skipped from the quest log, an old save is
@@ -132,7 +132,7 @@ func _run() -> void:
 	lines = []
 	for l in town.letter_lines():
 		lines.append(["", l])
-	check(dialogue.flags.has("read_palmer_letter") and _said(lines, "GALAXITY"), "Mr. Palmer's envelope, from Galaxity")
+	check(dialogue.flags.has("read_palmer_letter") and _said(lines, "THE VOID"), "Mr. Palmer's envelope, from the Void")
 	var felt: int = town.tremors_felt
 	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
 	for i in 3:
@@ -193,7 +193,7 @@ func _run() -> void:
 	check(p.get("input_locked") == true, "...and they stand still for it")
 	await create_timer(fn.WARP_TIME + 1.6).timeout
 	check(not fn.is_arriving() and not fn._warp_layer.visible and p.get("input_locked") == false, "then it clears, and off they go")
-	check(clock.in_shift() and clock.hour() == 7 or clock.hour() == 8, "it's dawn in Galaxity (%s)" % clock.time_string())
+	check(clock.in_shift() and clock.hour() == 7 or clock.hour() == 8, "it's dawn in the Void (%s)" % clock.time_string())
 	var piece: Node3D = Clothes.hat_or_piece("hands", "shift_watch")
 	check(piece != null, "the Shift Watch has a look of its own")
 	if piece:
@@ -203,9 +203,9 @@ func _run() -> void:
 	check(dash != null and _flat(dash.get_parent().global_position - _place("portal")) < 4.0, "Dash waits by the portal")
 	lines = await _talk("dash")
 	check(_said(lines, "outside of time") and _said(lines, "chosen"), "Dash: a planet outside time, and some people are chosen")
-	check(_step() == "day", "on to the Galaxity day")
+	check(_step() == "day", "on to the Void day")
 
-	# --- The Galaxity day ---
+	# --- The Void day ---
 	await _physics(30)
 	dash = _talker("dash")
 	check(_going(dash, "market"), "Dash heads to the Market Square, by his stall")

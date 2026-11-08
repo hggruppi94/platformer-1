@@ -1,7 +1,7 @@
 extends Node
 
 # Autoload "SkateRuns": timed skate runs, like Tony Hawk's two-minute sessions. At each skate park there's a Run Clock
-# (Galaxity's Skate Park and Stars Hollow's Hollow Skate Yard: RUNS). Interact with it and say go: a 3-2-1, then two
+# (The Void's Skate Park and Stars Hollow's Hollow Skate Yard: RUNS). Interact with it and say go: a 3-2-1, then two
 # minutes to score as much as you can, anywhere you like. Every combo you land in the two minutes counts (gaps too:
 # scripts/skate_gaps.gd), and when the clock runs out the combo you're in the middle of still counts if you land it.
 # Then the results: your score, your best, and the medals. Each park has a bronze, silver and gold score; the first
@@ -204,7 +204,7 @@ func lines(id: String) -> Array:
 	var r: Dictionary = RUNS[id]
 	if not Game.has_item("skateboard"):
 		return ["SKATE RUN: two minutes to score as much as you can!",
-			"You'll need something to ride first. There's a skateboard waiting at Galaxity's Skate Park."]
+			"You'll need something to ride first. There's a skateboard waiting at the Void's Skate Park."]
 	var m: Array = r.medals
 	var out: Array = ["SKATE RUN: you've got %d seconds to score as much as you can, anywhere you like. Combos count, gaps count, and the combo you're in when the buzzer goes counts if you land it!" % int(r.time),
 		"Bronze %s (✦ %d), Silver %s (✦ %d), Gold %s (✦ %d)." % [_num(m[0][1]), m[0][2], _num(m[1][1]), m[1][2], _num(m[2][1]), m[2][2]]]

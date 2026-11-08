@@ -5,7 +5,7 @@ extends SceneTree
 # time and takes you back where you were; the clock doesn't run and nothing autosaves while the title's up, and the
 # clock's put back as it was; Settings opens and closes; New Game asks first when there's a save; the opening plays
 # all the way through to the creator, or skips at once with a button; a new game starts at home on Earth; and the
-# loading screen shows between Earth and Galaxity (with a tip) but not for a door into a shop.
+# loading screen shows between Earth and the Void (with a tip) but not for a door into a shop.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_title.gd
 #
@@ -62,7 +62,7 @@ func _run() -> void:
 	var earth_before: float = clock.earth_minutes
 	game.play_time = 3960.0
 	check(t != null and t.scene_file_path == TITLE and t.cam != null and t.cam.current, "the title screen is up, with its own camera")
-	check(t._bg != null and t._bg.find_child("Player", true, false) == null, "...Galaxity behind it, with nobody playing")
+	check(t._bg != null and t._bg.find_child("Player", true, false) == null, "...the Void behind it, with nobody playing")
 	check(is_equal_approx(clock.minutes, t.DAWN), "...at dawn")
 	var cont: Button = t.continue_button
 	check(cont != null and cont.visible, "with a save there's a Continue button")
@@ -99,17 +99,17 @@ func _run() -> void:
 	await _wait_for_scene(EARTH)
 	check(current_scene.scene_file_path == EARTH, "Continue goes back where the save was")
 	check(absf(clock.earth_minutes - earth_before) < 3.0 and is_equal_approx(clock.minutes, minutes_before),
-		"...with the clock put back as it was (Earth %s; Galaxity %.1f, was %.1f)" % [clock.earth_time_string(), clock.minutes, minutes_before])
+		"...with the clock put back as it was (Earth %s; the Void %.1f, was %.1f)" % [clock.earth_time_string(), clock.minutes, minutes_before])
 	await create_timer(1.6).timeout
 	check(not loading.showing, "...and the loading screen's gone once it's there")
 
 	# --- The loading screen ---
-	game.go(TOWN, "FromPortaltoEarth", "Galaxity")
+	game.go(TOWN, "FromPortaltoEarth", "Void")
 	await _frames(1)
-	check(loading.showing and loading.tip != "" and loading._panel.visible, "Earth to Galaxity shows the loading screen, with a tip")
+	check(loading.showing and loading.tip != "" and loading._panel.visible, "Earth to the Void shows the loading screen, with a tip")
 	await _wait_for_scene(TOWN)
 	await create_timer(2.0).timeout
-	check(not loading.showing and not loading._panel.visible, "...and it goes once Galaxity's ready")
+	check(not loading.showing and not loading._panel.visible, "...and it goes once the Void's ready")
 	if ResourceLoader.exists(CAFE):
 		game.go(CAFE, "Entrance", "cafe")
 		await _frames(1)
@@ -134,7 +134,7 @@ func _run() -> void:
 		if not t.opening_shot in seen:
 			seen.append(t.opening_shot)
 	check(seen.has("earth") and seen.has("oak") and seen.has("galaxity") and seen.has("watches") and seen.has("you"),
-		"the opening shows Stars Hollow, the oak, Galaxity, the watches and \"you\" (%s)" % [seen])
+		"the opening shows Stars Hollow, the oak, the Void, the watches and \"you\" (%s)" % [seen])
 	await _wait_for_scene(EARTH)
 	check(current_scene.scene_file_path == EARTH and game.needs_creator and game.play_time < 10.0,
 		"...then a new game starts at home on Earth, ready to make a hero (%s, %s, %.1f)" % [current_scene.scene_file_path,

@@ -5,7 +5,7 @@ extends SceneTree
 # with its white gazebo and a street round it: the Hollow Diner, Turn the Page Books, the Corner Market, the Maple Inn,
 # the Town Hall (walk in: town meetings happen there) and the homes on the south side, the middle one the player's own
 # (walk in: their bed is inside, and a new game starts there). Past the green's southeast corner, the old red barn is
-# the dance studio. By the old oak is the portal to Galaxity, open during the Shift. Logic: scripts/earth_world.gd.
+# the dance studio. By the old oak is the portal to the Void, open during the Shift. Logic: scripts/earth_world.gd.
 #
 # Round it (since Oct 30, 2026):
 # - Main Street runs north from the green: Crumb & Cauldron Bakery, Gizmo & Gumdrop Toys (both walk-in), Cobweb
@@ -35,7 +35,7 @@ const STUDIO_AT := Vector3(35, 0, 35)             # the barn dance studio, past 
 const STUDIO_SIZE := Vector3(14, 6, 18)           # width, wall height, depth
 const GREEN_BENCH := Vector3(6.8, 0, 4.8)          # the bench on the green (two seats: "green_bench", "green_bench_2")
 const OAK_BACK := -1.6                             # the old oak's trunk, this far behind PORTAL_AT (the door's in its front)
-const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal to Galaxity, on the green's corner
+const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal to the Void, on the green's corner
 const HOME_SIZE := Vector3(10, 4.6, 9)            # the player's house: width, wall height, depth
 const MAIN_Z := Vector2(-36, -120)                # Main Street runs north along x = 0, from z -36 to -120
 const MAPLE_Z := 58.0                             # Maple Lane runs east-west along this z
@@ -1014,11 +1014,11 @@ func _lamps() -> void:
 
 
 func _portal() -> void:
-	# The old oak by the green, a great gnarled thing much older than the town, and the door to Galaxity is IN it: a
+	# The old oak by the green, a great gnarled thing much older than the town, and the door to the Void is IN it: a
 	# dark hollow in the front of the trunk, ringed with carved runes and roots. Most of the time it's just a tree. On
 	# the first day, three glowing acorns in its roots wake the runes, and at midnight it opens for the first time
 	# (scripts/humming_oak.gd: the reveal, the runes and the roots). After that the hollow swirls open every Shift
-	# (scripts/earth_world.gd shows its swirl and glow then). Coming home from Galaxity, the player arrives here.
+	# (scripts/earth_world.gd shows its swirl and glow then). Coming home from the Void, the player arrives here.
 	var toward := Vector3(-PORTAL_AT.x, 0, -PORTAL_AT.z).normalized()       # from the portal toward the green's middle
 	var g := group("Portal Home", PORTAL_AT, atan2(toward.x, toward.z))     # the hollow faces the green
 	var oak := Node3D.new()
@@ -1151,7 +1151,7 @@ func _portal() -> void:
 	exit.set_script(load("res://scripts/door.gd"))
 	exit.set("destination", TOWN)
 	exit.set("spawn", "FromPortaltoEarth")
-	exit.set("place_name", "Galaxity")
+	exit.set("place_name", "Void")
 	exit.position = Vector3(0, 1.2, OAK_BACK + 1.55)
 	var door_cs := CollisionShape3D.new()
 	var door_shape := BoxShape3D.new()

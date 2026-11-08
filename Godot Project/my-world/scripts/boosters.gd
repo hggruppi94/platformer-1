@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "Boosters": speed boosts all round Galaxity and Stars Hollow, not just on the race tracks (plan item 14).
+# Autoload "Boosters": speed boosts all round the Void and Stars Hollow, not just on the race tracks (plan item 14).
 # Three kinds, all working on foot and on every ride (on a ride through the same Skate.boost() the races' boost pads
 # use, on foot through Player.boost()):
 #
@@ -42,24 +42,24 @@ const RAMP_WAIT := 1.2               # seconds before the same strip or ramp boo
 # ground under it is found and not a roof) and which way it pushes ("to": a point on the ground it points at).
 # Coin lines go from "at" to "to" with "count" coins.
 const BOOSTERS := [
-	# --- Galaxity: round the lake (between the Lake Loop's own pads, scripts/races.gd) ---
+	# --- The Void: round the lake (between the Lake Loop's own pads, scripts/races.gd) ---
 	{"scene": "town", "kind": "strip", "at": Vector3(24, 0, 24.6), "to": Vector2(34, 24), "where": "the lake's south shore"},
 	{"scene": "town", "kind": "strip", "at": Vector3(-19, 0, -19.6), "to": Vector2(-28, -18), "where": "the lake's north shore"},
 	{"scene": "town", "kind": "strip", "at": Vector3(-30, 0, 19.6), "to": Vector2(-22, 23), "where": "the lake's west shore"},
-	# --- Galaxity: the streets ---
+	# --- The Void: the streets ---
 	{"scene": "town", "kind": "strip", "at": Vector3(72, 0, 3), "to": Vector2(90, 3), "where": "the Homes street"},
 	{"scene": "town", "kind": "strip", "at": Vector3(-42, 0, 42), "to": Vector2(-32, 41), "where": "the road out of the Market"},
 	{"scene": "town", "kind": "strip", "at": Vector3(43, 0, 44), "to": Vector2(43, 51), "where": "the way into the Skate Park"},
-	# --- Galaxity: coins along the rail line through the south meadow to the Skate Park and on east ---
+	# --- The Void: coins along the rail line through the south meadow to the Skate Park and on east ---
 	{"scene": "town", "kind": "coins", "at": Vector3(9, 0, 49.5), "to": Vector2(14, 51.5), "count": 3, "where": "between the meadow rails"},
 	{"scene": "town", "kind": "coins", "at": Vector3(23.5, 0, 53.8), "to": Vector2(31, 51.5), "count": 4, "where": "between the meadow rails"},
 	{"scene": "town", "kind": "coins", "at": Vector3(73, 0, 48.5), "to": Vector2(77.5, 52.5), "count": 3, "where": "past the Skate Park"},
 	{"scene": "town", "kind": "coins", "at": Vector3(86.5, 0, 53.5), "to": Vector2(94, 50.2), "count": 4, "where": "on to the courts"},
-	# --- Galaxity: coins down the rail line from the Library to the Spooky Woods ---
+	# --- The Void: coins down the rail line from the Library to the Spooky Woods ---
 	{"scene": "town", "kind": "coins", "at": Vector3(-20.5, 0, -52.5), "to": Vector2(-28.5, -52.8), "count": 4, "where": "the Library rail line"},
 	{"scene": "town", "kind": "coins", "at": Vector3(-44.5, 0, -73), "to": Vector2(-51, -71.8), "count": 3, "where": "the rail line to the woods"},
 	{"scene": "town", "kind": "coins", "at": Vector3(-69, 0, -93.2), "to": Vector2(-77.5, -93.8), "count": 4, "where": "the rail line to the woods"},
-	# --- Galaxity: big air ---
+	# --- The Void: big air ---
 	{"scene": "town", "kind": "ramp", "at": Vector3(14, 0, 64), "to": Vector2(24, 64), "where": "the south meadow"},
 	{"scene": "town", "kind": "ramp", "at": Vector3(66, 0, 74), "to": Vector2(74, 80), "where": "by the sports fields"},
 	{"scene": "town", "kind": "ramp", "at": Vector3(60, 0, 90), "to": Vector2(68, 90), "where": "by the soccer field"},

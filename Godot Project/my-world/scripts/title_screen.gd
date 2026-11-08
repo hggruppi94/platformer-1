@@ -1,6 +1,6 @@
 extends Node3D
 
-# The title screen (plan prompt F5), the game's first scene (scenes/title/title.tscn). Galaxity at dawn turns slowly
+# The title screen (plan prompt F5), the game's first scene (scenes/title/title.tscn). The Void at dawn turns slowly
 # behind the menu: the town is loaded as scenery with nobody to play it (its Player is taken out), the clock is
 # held still and set to dawn just for the view, and both are put back as they were when you leave. Buttons:
 #
@@ -12,12 +12,12 @@ extends Node3D
 #   Quit
 #
 # The opening (play_opening()) is about 35 seconds and can be skipped any time with Jump, Interact, Esc/Start or a
-# click: Stars Hollow asleep at midnight, the old oak humming, a flash of Galaxity outside time, and the watches some
+# click: Stars Hollow asleep at midnight, the old oak humming, a flash of the Void outside time, and the watches some
 # kids have that tick their own way. Nothing about how Dash's story ends. Tests: tools/test_title.gd.
 
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
-const DAWN := 6.6 * 60.0                      # Galaxity's minutes for the view: the sun just up
+const DAWN := 6.6 * 60.0                      # the Void's minutes for the view: the sun just up
 const ORBIT_CENTRE := Vector3(5, 0, -40)
 const ORBIT_RADIUS := 115.0
 const ORBIT_HEIGHT := 46.0
@@ -113,7 +113,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # The world behind the menu
 # -----------------------------------------------------------------------------
 func _show_world(which: String) -> void:
-	# Galaxity at dawn, or Stars Hollow at midnight, as scenery: nobody to play it
+	# The Void at dawn, or Stars Hollow at midnight, as scenery: nobody to play it
 	if _bg:
 		_bg.queue_free()
 		_bg = null
@@ -152,7 +152,7 @@ func _build_ui() -> void:
 	ui.add_child(root)
 
 	var title := Label.new()
-	title.text = "Galaxity"
+	title.text = "The Void"
 	title.add_theme_font_size_override("font_size", 104)
 	title.add_theme_color_override("font_color", Color(0.93, 0.86, 1.0))
 	title.add_theme_color_override("font_outline_color", Color(0.25, 0.12, 0.4))

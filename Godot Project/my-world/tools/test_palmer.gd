@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks Mr. Palmer's Galaxity form (models/characters/mr_palmer_alien.glb, scripts/palmer_trunk.gd): he's the alien
+# Checks Mr. Palmer's Void form (models/characters/mr_palmer_alien.glb, scripts/palmer_trunk.gd): he's the alien
 # with the trunk, his tea table stands in front of his spot by the Town Hall window, and when he sips he curls his trunk
 # round the teacup, lifts it off the table and puts it back. At bedtime he goes in and the table stays by the window.
 #

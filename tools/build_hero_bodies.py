@@ -6,7 +6,7 @@
 #   earth_kid   a kid from Earth (in the show, kids are people on Earth): round ears, button nose, T-shirt and jeans
 #   bunny       a bunny-kid: long ears, buck teeth, a pink nose, whiskers and a cotton tail, in dungarees
 #   cat         a cat-kid: pointed ears, a little pink nose, whiskers and a long curly tail, in a hoodie
-#   dino        a Galaxity dino-kid: a round snout with nostrils, little horns, spikes down the back and tail
+#   dino        a Void dino-kid: a round snout with nostrils, little horns, spikes down the back and tail
 #   human_girl  the creator's human kid, a girl: big bright eyes with lashes, a T-shirt and a flared skirt
 #   human_boy   the creator's human kid, a boy: big bright eyes, a T-shirt and shorts
 #
@@ -334,7 +334,7 @@ def cat():
 
 
 # =============================================================================
-# Dino-kid (Galaxity)
+# Dino-kid (the Void)
 # =============================================================================
 def dino():
     K.begin()

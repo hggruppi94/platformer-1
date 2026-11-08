@@ -21,7 +21,7 @@ extends Node
 # throws icy shards at enemies near it), and so on. A mod she owns can go in every gadget at once. The workbench also
 # sells upgrades for each gadget, three levels each (UPGRADES): a bigger tank (more ammo), quick hands (shorter
 # wait between shots) and a big splash (a bigger splash, dance floor, bubble, beam or reach).
-# Ammo crates round Galaxity (scripts/ammo_crate.gd, placed below) pop open for ammo.
+# Ammo crates round the Void (scripts/ammo_crate.gd, placed below) pop open for ammo.
 #
 # The gadget wheel (scripts/gadget_wheel.gd, hold R or D-pad up) picks one; 1-8 pick one straight away and a tap of the
 # wheel button swaps back to the last one. Shoot fires whichever is out.
@@ -96,7 +96,7 @@ const UPGRADES := {
 }
 const UPGRADE_MAX := 3
 const MAGNET_RANGE := 9.0                 # with a Sparkle Magnet: sparkles this close fly to her
-const CRATES := [                         # ammo crates round Galaxity (x, z; dropped onto the ground): ammo_crate.gd
+const CRATES := [                         # ammo crates round the Void (x, z; dropped onto the ground): ammo_crate.gd
 	Vector2(-60, 52), Vector2(-84, 30),                      # the Market Square
 	Vector2(-121, 16), Vector2(-136, 2), Vector2(-127, 24),   # by the Gloop King's court, out west
 	Vector2(47, 66),                                         # the Skate Park
@@ -603,7 +603,7 @@ func _on_scene_changed() -> void:
 
 
 func _place_crates(scene: Node) -> void:
-	# Ammo crates round Galaxity, each dropped onto the ground where it's listed (CRATES). They're added here like
+	# Ammo crates round the Void, each dropped onto the ground where it's listed (CRATES). They're added here like
 	# the stall, so the town scene doesn't change.
 	var space := (scene as Node3D).get_world_3d().direct_space_state if scene is Node3D else null
 	for i in CRATES.size():

@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Screenshots of the boosters (scripts/boosters.gd): strips, ramps and coin lines round Galaxity and Stars Hollow,
+# Screenshots of the boosters (scripts/boosters.gd): strips, ramps and coin lines round the Void and Stars Hollow,
 # the hero flying off a booster ramp on the board and rushing along a strip on foot, and the map and minimap with an
 # arrow for each. Opens a window (not --headless):
 #

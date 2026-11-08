@@ -1,4 +1,4 @@
-# Builds Bruno, Nina's little brother, as the hippo-like alien he is in Galaxity: model, materials, rig, weights and
+# Builds Bruno, Nina's little brother, as the hippo-like alien he is in the Void: model, materials, rig, weights and
 # animations. Reference: Sofi's drawings of him (the "Kids songvideo more ideas" notes, copied to
 # source_art/reference/Bruno - SK8 beanie.png): a grey hippo boy with a mop of golden hair, a black knit SK8 beanie
 # pulled down to his ears, an open blue zip hoodie over an olive tee, his tongue poking out of a cheeky grin, and a

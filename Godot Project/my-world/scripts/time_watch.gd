@@ -73,8 +73,8 @@ static func lines() -> Array[String]:
 	out.append("Earth: %s, %s (Year %d)" % [Clock.date_string(), Clock.earth_time_string(), Clock.year()])
 	if Clock.in_shift():
 		var left := Clock.shift_minutes_left()
-		out.append("Galaxity: day %d, %s" % [Clock.day, Clock.time_string()])
-		out.append("The Shift: %s of Galaxity's day left before the portal pulls you home" % _span(left))
+		out.append("The Void: day %d, %s" % [Clock.day, Clock.time_string()])
+		out.append("The Shift: %s of the Void's day left before the portal pulls you home" % _span(left))
 	elif Clock.on_earth:
 		out.append("The portal by the old oak opens at midnight: %s to go" % _span(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 		if Festival.is_festival_day() and not Festival.is_on() and Clock.earth_minutes < Festival.start_time():
@@ -87,12 +87,12 @@ static func lines() -> Array[String]:
 		if big != "":
 			out.append("Today it's %s: %s" % [Festival.BIG_DAYS[big].name, Festival.BIG_DAYS[big].where])
 	else:
-		out.append("Galaxity: day %d, %s (the portal's closed)" % [Clock.day, Clock.time_string()])
+		out.append("The Void: day %d, %s (the portal's closed)" % [Clock.day, Clock.time_string()])
 	var bearing = ripple_bearing()
 	if bearing != null:
 		out.append("It's humming: a time ripple, about %d m that way (follow the pink pointer)" % roundi(float(bearing.y)))
 	elif Clock.in_shift() and not Clock.on_earth:
-		out.append("Night %d in Galaxity" % Nights.night())
+		out.append("Night %d in the Void" % Nights.night())
 	return out
 
 

@@ -239,7 +239,7 @@ func _run() -> void:
 	var letter: Node = town.get_node_or_null("Palmer House/Palmer's Letter")
 	check(letter != null, "an envelope on Mr. Palmer's porch")
 	var said := " ".join(T.letter_lines())
-	check(said.contains("GALAXITY") and dialogue.flags.has("read_palmer_letter"), "...addressed to the Mayor, in Galaxity")
+	check(said.contains("THE VOID") and dialogue.flags.has("read_palmer_letter"), "...addressed to the Mayor, in the Void")
 	dialogue.flags["palmer_tremor_talk"] = true
 	check(" ".join(dialogue._pick("palmer_earth").get("lines", [])).contains("pen pal"), "...and he has an answer for that too")
 	clock.set_earth_time(10.0, true)

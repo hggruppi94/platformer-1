@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the timed skate runs (scripts/skate_runs.gd): a Run Clock stands at the Hollow Skate Yard on Earth and at
-# Galaxity's Skate Park, clear of the skating, talking to it reads out the medals and starts a run, the countdown
+# The Void's Skate Park, clear of the skating, talking to it reads out the medals and starts a run, the countdown
 # holds you still, combos and gaps landed in the run count (and ones before it don't), the clock runs down, a combo
 # you're in at the buzzer still counts once you land it, the results pay each medal's sparkles once, best scores and
 # medals are saved and load back, and stepping off your ride ends a run with no harm done.
@@ -62,7 +62,7 @@ func _run() -> void:
 	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
 	var c: Node3D = runs.clocks.get("skate_yard")
 	check(c != null and c.get_node_or_null("Run Talk") != null, "a Run Clock stands at the Hollow Skate Yard")
-	check(not runs.clocks.has("skate_park"), "...and Galaxity's isn't put on Earth")
+	check(not runs.clocks.has("skate_park"), "...and the Void's isn't put on Earth")
 	if c == null:
 		_finish()
 		return
@@ -161,11 +161,11 @@ func _run() -> void:
 	check(int(runs.best.skate_yard) == 21600 and int(runs.medals.skate_yard) == 2, "best scores and medals load back")
 	check(str((c.get_node("Best") as Label3D).text).contains("21,600"), "the Run Clock shows your best")
 
-	# Galaxity's
+	# The Void's
 	change_scene_to_file(TOWN)
 	await _frames(8)
 	var gc: Node3D = runs.clocks.get("skate_park")
-	check(gc != null, "a Run Clock stands at Galaxity's Skate Park")
+	check(gc != null, "a Run Clock stands at the Void's Skate Park")
 	if gc:
 		var park := current_scene.find_child("Skate Park", true, false) as Node3D
 		var off := Vector2(gc.global_position.x - park.global_position.x, gc.global_position.z - park.global_position.z).length()

@@ -72,7 +72,7 @@ func _run() -> void:
 	var earth_ids: Array = gaps.GAPS.keys().filter(func(id: String) -> bool: return gaps.GAPS[id].scene == EARTH)
 	var placed: Array = earth_ids.filter(func(id: String) -> bool: return not gaps.zone(id).is_empty())
 	check(placed.size() == earth_ids.size(), "every Earth gap's skate pieces are found (%d of %d)" % [placed.size(), earth_ids.size()])
-	check(gaps.zone("park_funbox_hop").is_empty(), "Galaxity's gaps aren't looked for on Earth")
+	check(gaps.zone("park_funbox_hop").is_empty(), "The Void's gaps aren't looked for on Earth")
 	check(gaps.all_ids().size() >= 10, "there are plenty of gaps to find (%d)" % gaps.all_ids().size())
 
 	# A jump that fits: off the yard's gap kicker onto the landing deck
@@ -130,11 +130,11 @@ func _run() -> void:
 	var best_hill := await _launch(p, s, "Big Air Kicker", [13.0, 15.0, 17.0, 19.0], "lookout_launch", landed)
 	check(best_hill != "", "riding off the Big Air Kicker fast lands the Lookout Launch (%s)" % best_hill)
 
-	# Galaxity's park has its own
+	# The Void's park has its own
 	game.riding = false
 	change_scene_to_file(TOWN)
 	await _frames(8)
-	check(not gaps.zone("park_funbox_hop").is_empty() and gaps.zone("hollow_yard_gap").is_empty(), "in Galaxity, the Skate Park's Funbox Hop is placed")
+	check(not gaps.zone("park_funbox_hop").is_empty() and gaps.zone("hollow_yard_gap").is_empty(), "in the Void, the Skate Park's Funbox Hop is placed")
 	# The Skate page lists them
 	root.get_node("PlayerMenu").open("skate")
 	await _frames(3)

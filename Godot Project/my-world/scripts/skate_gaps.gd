@@ -53,7 +53,7 @@ const GAPS := {
 		"where": "off the hardware store's loading dock"},
 	"park_funbox_hop": {"name": "Funbox Hop", "points": 250, "scene": TOWN, "piece": "Skate Park/Funbox",
 		"from": Vector3(0, -2.6, 2.6), "to": Vector3(0, 2.6, 2.6), "min_dist": 4.0, "both": true,
-		"where": "right over the funbox in Galaxity's Skate Park"},
+		"where": "right over the funbox in the Void's Skate Park"},
 }
 const ANYWHERE := {
 	"hang_time": {"name": "Hang Time", "points": 250, "where": "two seconds in the air (not straight up a quarter pipe)"},

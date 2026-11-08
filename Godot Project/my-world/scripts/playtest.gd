@@ -8,7 +8,7 @@ extends Node
 # What it notes: each First Night step (and each night's step after it) starting and how long the one before took;
 # being stuck (nothing new for STUCK seconds: no quest step, flag, sparkle, request or trick; noted once, with where they
 # were); bails; menus opened (the Tab menu's sheets, the pause menu, shops); steps skipped; races started and finished;
-# requests finished; and the scene (Earth, Galaxity...) every time it changes. Nothing ever leaves the PC: there's no
+# requests finished; and the scene (Earth, the Void...) every time it changes. Nothing ever leaves the PC: there's no
 # network code here, only a file. tools/playtest_report.gd turns the newest file into a short summary.
 
 const DIR := "user://playtest/"

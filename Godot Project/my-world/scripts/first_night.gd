@@ -5,21 +5,21 @@ extends Node
 # (overrides) and the map stars; the lines are in each character's own res://dialogue/<id>.json. This script only does
 # the bits a quest file can't: it turns things the player does elsewhere in the game into the quest's flags (Gloops
 # popped, Dash's gadget stall looked at, a request finished, the fountain's lost watch found, Zippy said hello to),
-# plays the arrival moment the first time they land in Galaxity (the screen warps and a watch appears on their wrist),
+# plays the arrival moment the first time they land in the Void (the screen warps and a watch appears on their wrist),
 # cheers when the Gloop King pops, and has the portal put them to bed at the end of the night instead of by the oak.
 #
 #   The Humming Oak, a whole first day on Earth (the oak itself, its acorns and its reveal: scripts/humming_oak.gd):
 #   1 morning  Earth, 9 AM: Nina knocks; meet Mr. Palmer and two more people on the green.
 #   2 oak      Nina says the old oak hums at midnight: listen to it, and something's ticking inside.
-#   3 clues    Mr. Page's book (The Legend of the Old Oak), Mr. Palmer's lilac envelope from Galaxity, and three
+#   3 clues    Mr. Page's book (The Legend of the Old Oak), Mr. Palmer's lilac envelope from the Void, and three
 #              glowing acorns round town (each one sets off a tremor). Earth's clock waits at 6 PM until steps 1 to 3
 #              are done, so nobody runs out of day.
 #   4 dusk     lay the acorns in the oak's roots: its runes wake. The clock waits at 11 PM until they're in.
 #   5 wait     until midnight (the bed's "Until the Shift" is offered from here on, not before).
 #   6 awaken   at midnight, walk up to the oak: it opens its door for the first time (the reveal).
-#   Then the first Galaxity day:
+#   Then the first Void day:
 #   7 shift    through the oak's door: the arrival moment, then Dash at the portal on the far side.
-#   8 day      Galaxity: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
+#   8 day      the Void: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
 #   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
 #   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
@@ -41,7 +41,7 @@ const FRESH_FLAG := "fresh_start"           # a game started since the Humming O
 const VERSION_FLAG := "fn_v2"                 # this save's First Night has the Humming Oak's steps (see migrate())
 # An old save's step (before the Humming Oak, Nov 2026) -> the same step now: evening, wait, shift, day, king, home
 const OLD_STEPS := {0: 0, 1: 4, 2: 6, 3: 7, 4: 8, 5: 9}
-const GLOOPS := 3                             # Gloops to pop on the Galaxity day
+const GLOOPS := 3                             # Gloops to pop on the Void day
 const FOLK := 2                               # townsfolk to say hello to on the evening
 const FOUNTAIN_WATCH := "water_clock"         # the lost watch on the Market Square fountain (scripts/watches.gd)
 const WATCH := "shift_watch"                  # the watch that appears on their wrist (res://shop/items.json)
@@ -206,7 +206,7 @@ func _on_scene_changed() -> void:
 
 
 func _arrive() -> void:
-	# The first landing in Galaxity: the screen swirls, a watch appears on their wrist, and dawn comes up
+	# The first landing in the Void: the screen swirls, a watch appears on their wrist, and dawn comes up
 	if _arriving:
 		return
 	_arriving = true
@@ -218,7 +218,7 @@ func _arrive() -> void:
 	var mat := _warp_rect.material as ShaderMaterial
 	var calm := Settings.reduce_motion
 	_warp_layer.visible = true
-	_warp_text.text = "Galaxity. Dawn.\nA watch has appeared on %s wrist. It ticks... differently here." % \
+	_warp_text.text = "The Void. Dawn.\nA watch has appeared on %s wrist. It ticks... differently here." % \
 		Hero.pronoun(Game.hero, "their")
 	_warp_text.modulate.a = 0.0
 	mat.set_shader_parameter("amount", 0.0 if calm else 1.0)
@@ -256,7 +256,7 @@ func _give_watch() -> void:
 
 
 # -----------------------------------------------------------------------------
-# 4. The Galaxity day
+# 4. The Void day
 # -----------------------------------------------------------------------------
 func popper_from_dash() -> Array:
 	# Dash's "do" (res://dialogue/dash.json): he shows off the Star Popper, and the shooting tip comes up

@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the hero's watch as the clock (scripts/watch_face.gd, scripts/time_watch.gd) and Rex and Dash's lab
-# quest (scripts/lab.gd): the Shift Watch on the HUD on an Earth evening, checking it, the watch in Galaxity during
+# quest (scripts/lab.gd): the Shift Watch on the HUD on an Earth evening, checking it, the watch in the Void during
 # the Shift, the Time Keeper, the lab from the front and inside (the Swap-o-Tron, the chalkboard, Hound Hero), a time
 # ripple with the watch's pointer, Rex and Rook in the pods, the flash, and the Lab Goggles.
 # Opens a window (not --headless):
@@ -73,7 +73,7 @@ func _run() -> void:
 	cam.queue_free()
 	cam = null
 
-	# --- Galaxity, in the Shift ---
+	# --- The Void, in the Shift ---
 	clock.set_earth_time(0.3 * 60.0, true)
 	change_scene_to_file(TOWN)
 	await _wait_for_scene(TOWN)

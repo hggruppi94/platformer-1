@@ -180,13 +180,13 @@ func _run() -> void:
 		"Settings > Audio has Music, Effects and Voices sliders")
 	tabs.queue_free()
 
-	# --- Galaxity ---
+	# --- The Void ---
 	clock.set_earth_time(0.5 * 60.0, true)                   # in the Shift
 	clock.set_time(clock.day, 10 * 60.0, true)
 	await _go(TOWN)
 	player.global_position = Vector3(-30, 3, 70)
 	await _settle()
-	check(audio.current_track() == "town_day", "Galaxity by day: town_day (%s)" % audio.current_track())
+	check(audio.current_track() == "town_day", "The Void by day: town_day (%s)" % audio.current_track())
 	check("alien_chirps" in S.pick_ambience(), "...with the little aliens chirping (%s)" % [S.pick_ambience()])
 	player.global_position = Vector3(-72, 2, 42)
 	await _settle()
@@ -212,7 +212,7 @@ func _run() -> void:
 	clock.set_time(clock.day, 23 * 60.0, true)
 	player.global_position = Vector3(-30, 3, 70)
 	await _settle()
-	check(audio.current_track() == "town_night", "Galaxity at night: town_night (%s)" % audio.current_track())
+	check(audio.current_track() == "town_night", "The Void at night: town_night (%s)" % audio.current_track())
 
 	# --- The Scary World ---
 	await _go(SCARY)

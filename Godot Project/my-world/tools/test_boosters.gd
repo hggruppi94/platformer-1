@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks the boosters round Galaxity and Stars Hollow (scripts/boosters.gd): strips, ramps and coin lines in both
+# Checks the boosters round the Void and Stars Hollow (scripts/boosters.gd): strips, ramps and coin lines in both
 # towns; every one is put in at play time on dry ground with nothing floating, room to come at it and nothing in the
 # way where it sends you; each strip and ramp boosts you on foot and on the board, past your usual speed, and the
 # boost wears off; a ramp pops you up; a coin goes when you take it and comes back; and the map has an arrow for each.

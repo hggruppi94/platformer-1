@@ -38491,7 +38491,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.05)
 script = ExtResource("14_qg5yw")
 destination = "res://scenes/town/town.tscn"
 spawn = "FromPortaltoEarth"
-place_name = "Galaxity"
+place_name = "Void"
 
 [node name="@CollisionShape3D@4173" type="CollisionShape3D" parent="Portal Home/PortalToGalaxity" unique_id=1815947256]
 shape = SubResource("BoxShape3D_3jxfe")

@@ -1,11 +1,11 @@
 extends Area3D
 
-# A bed (the player's on Earth in tools/build_earth.gd, and the ones in Galaxity's homes in tools/build_interiors.gd).
+# A bed (the player's on Earth in tools/build_earth.gd, and the ones in the Void's homes in tools/build_interiors.gd).
 # Stand next to it and press Interact to sleep, at any time of day. A small picker asks how long: 1 to 12 hours
 # (left/right to change), until morning, or (on Earth) until the Shift. It shows when she'll wake up.
 # On Earth, a nap that would run past midnight stops there, so the Shift is never skipped by accident; "until morning"
-# is a clear choice to sleep through the night, so it goes straight on to 7:00 AM. In Galaxity, sleep can't last past
-# the end of the Shift (Galaxity's 7 AM): sleeping until morning there ends the visit, and she wakes up back on Earth.
+# is a clear choice to sleep through the night, so it goes straight on to 7:00 AM. In the Void, sleep can't last past
+# the end of the Shift (the Void's 7 AM): sleeping until morning there ends the visit, and she wakes up back on Earth.
 # Sleeping fades the screen out, moves the clock on, refills HP/MP/SP (fully after 8 hours or more, a share of it for
 # a nap), saves, and fades back in.
 
@@ -271,7 +271,7 @@ func _rest(slept_hours: float) -> void:
 
 func _wake_message() -> String:
 	if Clock.on_earth and Clock.in_shift():
-		return "Wake up! It's midnight: the Shift has begun, and the portal to Galaxity is open."
+		return "Wake up! It's midnight: the Shift has begun, and the portal to the Void is open."
 	var h := Clock.hour()
 	if h >= 5 and h < 12:
 		return "Good morning! You feel well rested." if Clock.on_earth else \

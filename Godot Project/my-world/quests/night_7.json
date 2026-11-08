@@ -17,7 +17,7 @@
     },
     {
       "id": "explore",
-      "text": "The far corners of Galaxity, tonight. Be brave!",
+      "text": "The far corners of the Void, tonight. Be brave!",
       "checklist": [
         [
           "schematic_rainbow",
@@ -78,6 +78,6 @@
   ],
   "reward": {
     "sparkles": 20,
-    "message": "Night 7 done! That's every schematic in Galaxity. You found them all! (+20 sparkles)"
+    "message": "Night 7 done! That's every schematic in the Void. You found them all! (+20 sparkles)"
   }
 }

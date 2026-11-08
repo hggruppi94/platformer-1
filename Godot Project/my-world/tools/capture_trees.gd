@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Screenshots of Galaxity's sparkly alien trees (scenes/town/trees.gd): a wide view over town by day, a close-up of
+# Screenshots of the Void's sparkly alien trees (scenes/town/trees.gd): a wide view over town by day, a close-up of
 # each kind (orb, spire, parasol), dusk, and a grove at night when the canopies and twinkles light up the dark.
 # Opens a window (not --headless):
 #

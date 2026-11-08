@@ -226,9 +226,9 @@ func way_home() -> Array:
 	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
 		return [["Go home to town", func(): Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town")]]   # an easy way out, any time
 	if here and here.scene_file_path == Clock.EARTH:
-		# On Earth, home: in the Shift, a quick way through the portal to Galaxity
+		# On Earth, home: in the Shift, a quick way through the portal to the Void
 		if Clock.in_shift():
-			return [["Go through the portal to Galaxity", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Galaxity")]]
+			return [["Go through the portal to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
 		return []
 	if here and Clock.in_shift():
 		return [["Go home to Earth", func(): Game.go(Clock.EARTH, Clock.EARTH_ARRIVAL, "Earth")]]   # before the Shift ends

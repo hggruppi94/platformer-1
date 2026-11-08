@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the Shift the story's way round: a new game at home on Earth, the house on the green, the portal by
-# the old oak asleep in the evening and swirling open at midnight, arriving in Galaxity at its dawn, Galaxity's
+# the old oak asleep in the evening and swirling open at midnight, arriving in the Void at its dawn, the Void's
 # evening while Earth's clock has barely moved, being pulled home at 1 AM, and the bed at home. Opens a window (not
 # --headless):
 #
@@ -63,7 +63,7 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	await _shot("05_the_hud_on_earth_in_the_shift")
 
-	game.go(TOWN, "FromPortaltoEarth", "Galaxity")
+	game.go(TOWN, "FromPortaltoEarth", "Void")
 	await _wait_for_scene(TOWN)
 	await create_timer(2.0).timeout
 	await _shot("06_through_the_portal_galaxity_at_dawn")

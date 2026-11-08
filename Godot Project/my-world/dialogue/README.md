@@ -2,7 +2,7 @@
 
 One file per character, named after the `character_id` on their talk spot (the `Talk` node under them in
 `scenes/town/characters.tscn`): `dash.json`, `rex.json`, `rook.json`, `bramble.json`, `pip.json`, `green_man.json`, `astronaut.json` (by the Mothership Pad). The episode quests' visitors (scripts/episodes.gd) are `melanie.json`, `leo.json`,
-`goldwhistle.json` and `wizard_lizard.json` in Galaxity and `other_nina.json` on Earth. Mr. Palmer (`mr_palmer.json`)
+`goldwhistle.json` and `wizard_lizard.json` in the Void and `other_nina.json` on Earth. Mr. Palmer (`mr_palmer.json`)
 talks from behind his office window at the Town Hall. On Earth: Mr. Palmer (`palmer_earth.json`), Miss Ivy, Theo,
 Madame Celeste, Gus, Dottie, Barnaby, Miss Marigold, Poppy, Mr. Gumdrop (`otis`), Mrs. Wren, Hank, Kip, Mr. Page
 (`lionel`), Juniper, Ozzie, human Nina (`nina_earth.json`), Prue and Bruno; most of their lines depend on the time
@@ -27,7 +27,7 @@ plain one (no `when`) last, so there's always something to say.
 
 | Key | Fits when |
 | --- | --- |
-| `"time": "morning"` | the time of day where the player is (Earth's clock on Earth, Galaxity's in Galaxity) is that: `morning` (5-11 AM), `day` (11 AM-5 PM), `evening` (5-9 PM), `night` (9 PM-5 AM), `shift` (midnight-1 AM: on Earth the Shift itself, in Galaxity its midnight hour, when the portal glows brightest). `night` also fits then. Can be a list: `["evening", "night"]` |
+| `"time": "morning"` | the time of day where the player is (Earth's clock on Earth, the Void's in the Void) is that: `morning` (5-11 AM), `day` (11 AM-5 PM), `evening` (5-9 PM), `night` (9 PM-5 AM), `shift` (midnight-1 AM: on Earth the Shift itself, in the Void its midnight hour, when the portal glows brightest). `night` also fits then. Can be a list: `["evening", "night"]` |
 | `"season": "winter"` | Earth's season (`spring`, `summer`, `autumn`, `winter`: four weeks each, `scripts/clock.gd`). Can be a list |
 | `"weekday": "Saturday"` | Earth's day of the week. Can be a list: `["Saturday", "Sunday"]` |
 | `"weekend": true` / `"school_day": true` | it's a Saturday or Sunday / Old Oak Elementary is open today (a weekday outside the school holidays). `false` for the opposite |

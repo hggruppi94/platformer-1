@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Pictures of Bruno (tools/build_bruno.py, from Sofi's drawing): on Earth as a person (tools/build_earth.gd) with his
-# sisters and at the Skate Yard, then in Galaxity as his hippo self: close up, with Nina, about his day at the Skate
+# sisters and at the Skate Yard, then in the Void as his hippo self: close up, with Nina, about his day at the Skate
 # Park, riding his SK8 Deck (scripts/rides.gd), coaching the skate lesson with Rook (scripts/skate_lesson.gd), and when
 # the stress gets to him and his Godfather voice comes out.
 # Opens a window (not --headless):
@@ -73,7 +73,7 @@ func _run() -> void:
 	kids[1].global_rotation = Vector3(0, PI * 0.25, 0)
 	await _shot_at("03_earth_bruno_side_board", Vector3(-2.0, 1.2, -8.2), Vector3(0, 0.85, -6.5), 45.0)
 
-	# Galaxity: his hippo self, by the Blastoffs' house in the morning next to Nina
+	# The Void: his hippo self, by the Blastoffs' house in the morning next to Nina
 	game.next_spawn = ""
 	change_scene_to_file(TOWN)
 	await _frames(8)

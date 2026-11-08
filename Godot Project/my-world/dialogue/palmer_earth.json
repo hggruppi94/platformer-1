@@ -56,10 +56,10 @@
       },
       "lines": [
         "Well, hello there, neighbour! I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
-        "{player}: Mr. Palmer?! You look just like the mayor of Galaxity!",
+        "{player}: Mr. Palmer?! You look just like the mayor of the Void!",
         "(Mr. Palmer looks left. Then right. Then he leans down and whispers.)",
         "Shh! Nobody here knows about that. On this side of the portal I'm just plain old Mr. Palmer.",
-        "Lots of us have a Galaxity side, you know. You look a bit different over there yourself, I expect.",
+        "Lots of us have a Void side, you know. You look a bit different over there yourself, I expect.",
         "{player}: I do?",
         "Everyone does! That's the fun of it."
       ]
@@ -94,7 +94,7 @@
       "lines": [
         "Hm? You saw an envelope on my porch? Oh! That's from my... pen pal. Lives very far away. Terrible handwriting. Lovely person.",
         "(He tucks something lilac into his coat pocket, very quickly.)",
-        "Galaxity? Ha! Did it say Galaxity? It must have said... Galveston. Yes. Galveston. Well! Lovely weather for it."
+        "The Void? Ha! Did it say the Void? It must have said... Devon. Yes. Devon. Lovely place, Devon. Well! Lovely weather for it."
       ]
     },
     {

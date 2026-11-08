@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks Galaxity's sparkly alien trees (scenes/town/trees.gd): every tree is built, all three kinds (orb, spire,
+# Checks the Void's sparkly alien trees (scenes/town/trees.gd): every tree is built, all three kinds (orb, spire,
 # parasol) grow in town, a tree's kind comes from its spot, the canopies, spires, trunks and twinkles are all there,
 # every twinkle sits on its tree's canopy, and the twinkle sheet from pixelfx loads with its 16 frames.
 #

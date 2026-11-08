@@ -76,7 +76,7 @@ func _run() -> void:
 			break
 		await physics_frame
 	check(t.ready_to_race, "...and its racing line is worked out")
-	check(races.track_node("lake_loop") == null, "Galaxity's tracks aren't put on Earth")
+	check(races.track_node("lake_loop") == null, "The Void's tracks aren't put on Earth")
 	check(races.unlocked("pumpkin_run"), "it's open from the start (it's at home)")
 	await _check_line(t, p)
 
@@ -90,7 +90,7 @@ func _run() -> void:
 			"...and she's an Earth kid, not a little alien")
 	var lines: Array = races.lines("pumpkin_run")
 	check(str(lines).contains("Pepper") and not str(lines).contains("Sky Rings") and not str(lines).contains("Zippy"),
-		"Pepper talks about her own race, not Galaxity's")
+		"Pepper talks about her own race, not the Void's")
 	check(lines.any(func(l) -> bool: return l is Dictionary and str(l.get("choice", "")).contains("race_go_pumpkin_run")),
 		"...and asks if you're ready")
 

@@ -1,6 +1,6 @@
 extends "res://scripts/requests.gd"
 
-# Autoload "EarthJobs": the notice board on Earth's town green, by the gazebo's steps. It's Galaxity's nightly request
+# Autoload "EarthJobs": the notice board on Earth's town green, by the gazebo's steps. It's Void's nightly request
 # board (scripts/requests.gd) with Earth's own jobs: every Earth day three cards go up, one easy, one medium and one
 # harder, never the same kind twice, each paying sparkles (the one money the player has, on Earth too: Stars Hollow's
 # shops take them, see shop/items.json). Jobs left undone just come down at midnight, with no penalty; finished ones
@@ -11,7 +11,7 @@ extends "res://scripts/requests.gd"
 # - "rake": rake the leaf piles round a house on Maple Lane: walk (or skate) through each pile to sweep it up.
 # - "cat": find someone's cat, hiding somewhere about town, glowing eyes and all. It follows you home.
 # - "bakery": pick pumpkins at the pumpkin patch for Poppy's pies, then take them to her.
-# - "grind" and "combo" (once there's a board to ride): the skating ones, as in Galaxity, done on Earth.
+# - "grind" and "combo" (once there's a board to ride): the skating ones, as in the Void, done on Earth.
 # Talking to the person a delivery, cat or pumpkins are for finishes it (Dialogue.finished), and Interact at the board
 # turns finished jobs in. Saved as "earth_jobs" (scripts/game.gd). Leaf piles, pumpkins and the cat are put in the
 # Earth scene while a job wants them (scripts/earth_job_prop.gd), so the town's builder doesn't change.
@@ -241,7 +241,7 @@ func log_title() -> String:
 # Progress
 # -----------------------------------------------------------------------------
 func note(kind: String, amount := 1.0, how := "") -> void:
-	# Grinds count on Earth only (Galaxity has its own board)
+	# Grinds count on Earth only (the Void has its own board)
 	if Clock.on_earth:
 		super.note(kind, amount, how)
 
@@ -282,7 +282,7 @@ func collect(r: Dictionary, spot: int) -> void:
 
 
 func _on_talked(id: String) -> void:
-	# A cat home to its owner, pumpkins to Poppy; deliveries as on Galaxity's board
+	# A cat home to its owner, pumpkins to Poppy; deliveries as on the Void's board
 	if not is_live() or not Clock.on_earth:
 		return
 	for r in list:

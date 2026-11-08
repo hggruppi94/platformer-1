@@ -3,9 +3,9 @@ extends Node3D
 # Earth (scenes/earth/earth.tscn, built by tools/build_earth.gd): the small cozy town where the player lives. Their
 # house is on the south side of the green, with their bed (a new game starts there). Earth's clock is the one that
 # always runs (scripts/clock.gd). Every night from midnight to 1 AM, the Shift, the portal by the old oak opens to
-# Galaxity; the rest of the time it's a quiet ring and walking into it says when it opens.
+# The Void; the rest of the time it's a quiet ring and walking into it says when it opens.
 #
-# In the show, kids are people on Earth and creatures in Galaxity. The player keeps their Galaxity look here for now.
+# In the show, kids are people on Earth and creatures in the Void. The player keeps their Void look here for now.
 
 const PORTAL_OPEN_TIME := 2.5                      # seconds for the swirl to grow in or shrink away
 const SUN_HIGH := 58.0                              # degrees above the horizon at noon
@@ -75,7 +75,7 @@ func _process(delta: float) -> void:
 
 func _portal() -> void:
 	# The swirl and its glow grow in at midnight and fade away at 1 AM. Whether she can go through follows the clock
-	# itself, not the swirl (as in Galaxity's portal, scripts/portal.gd).
+	# itself, not the swirl (as in the Void's portal, scripts/portal.gd).
 	var k := smoothstep(0.0, 1.0, _open)
 	if _swirl:
 		_swirl.visible = k > 0.01
@@ -88,7 +88,7 @@ func _portal() -> void:
 			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
 		else:
 			_portal_door.set("closed_message", "" if Clock.in_shift() else
-				"The door in the old oak is asleep. It opens to Galaxity during the Shift, from midnight to 1 AM.")
+				"The door in the old oak is asleep. It opens to the Void during the Shift, from midnight to 1 AM.")
 
 
 func _door_open() -> bool:

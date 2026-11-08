@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the timed skate runs (scripts/skate_runs.gd): the Run Clock at the Hollow Skate Yard, the clock and
-# score across the top in a run, "Land it!" after the buzzer, the results with medals, the Run Clock at Galaxity's
+# score across the top in a run, "Land it!" after the buzzer, the results with medals, the Run Clock at the Void's
 # Skate Park, and the runs on the Skate page. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_skate_runs.gd -- <output folder>

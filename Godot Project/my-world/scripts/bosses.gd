@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "Bosses": the Agent of Chaos's side of Galaxity (Hayden, Nov 1, 2026: "Agent of Chaos is the game's final
+# Autoload "Bosses": the Agent of Chaos's side of the Void (Hayden, Nov 1, 2026: "Agent of Chaos is the game's final
 # boss... a new enemy called time goblins. Each enemy will have a larger boss version").
 #
 # Placed into the town at runtime (like the request board, scripts/requests.gd), so none of it needs the town rebuilt:

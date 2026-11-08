@@ -675,7 +675,7 @@ func _sheet_skate() -> Control:
 			" In the air, hold %s to fire the rockets and fly." % Settings.prompt("jump") if Rides.HERO_RIDES[Game.hero_ride].get("flight", false) else ""], true, box)
 	var locked := Rides.HERO_ORDER.size() - Schematics.rides_owned().size()
 	if locked > 0:
-		_line("%s ride%s still to unlock. Boards and bikes go up to hover and then rocket versions as you level up (you're Lv %d): find the schematics round Galaxity, and Zippy builds them at the Tune-Up." % [
+		_line("%s ride%s still to unlock. Boards and bikes go up to hover and then rocket versions as you level up (you're Lv %d): find the schematics round the Void, and Zippy builds them at the Tune-Up." % [
 			locked, "" if locked == 1 else "s", Game.level], true, box)
 	_gap(box)
 	_heading("Skate Park goals", box, 26)
@@ -696,7 +696,7 @@ func _sheet_skate() -> Control:
 		var names: Array = []
 		for k in run.medals.size():
 			names.append(("★ " if k < got else "○ ") + str(run.medals[k][0]) + " " + SkateRuns._num(int(run.medals[k][1])))
-		_line("%s (%s): best %s   %s" % [run.name, "Stars Hollow" if run.scene == SkateRuns.EARTH else "Galaxity",
+		_line("%s (%s): best %s   %s" % [run.name, "Stars Hollow" if run.scene == SkateRuns.EARTH else "The Void",
 			SkateRuns._num(int(SkateRuns.best[id])) if SkateRuns.best.has(id) else "not yet", "  ".join(names)], false, box)
 	_gap(box)
 	# Gaps (scripts/skate_gaps.gd): the ones found, and where to look for the rest

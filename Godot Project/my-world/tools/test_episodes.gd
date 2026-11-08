@@ -90,7 +90,7 @@ func _run() -> void:
 		var p := melanie.get_parent() as Node3D
 		check(Vector2(p.global_position.x, p.global_position.z).distance_to(Vector2(-72, 27.5)) < 10.0, "...near Mr. Palmer's window")
 		check(absf(p.global_position.y - _ground_y(p.global_position)) < 0.6, "...standing on the ground")
-		check(str(p.get("model_path")).ends_with("cat.glb"), "...and she's a creature, like kids are in Galaxity (the cat body)")
+		check(str(p.get("model_path")).ends_with("cat.glb"), "...and she's a creature, like kids are in the Void (the cat body)")
 	await _talk_to(melanie, [0])
 	check(_step("slide_mystery") == "ask", "Melanie asks for help: the slide quest starts")
 	await _talk_to(_talker("mr_palmer"))
@@ -246,7 +246,7 @@ func _run() -> void:
 
 
 func _to_town(galaxity_minutes: float) -> void:
-	# Each visit to Galaxity is in the Shift; Earth goes to the town scene to "arrive"
+	# Each visit to the Void is in the Shift; Earth goes to the town scene to "arrive"
 	clock.set_earth_time(0.25 * 60.0, true)
 	await _go(EARTH)
 	await _go(TOWN)
