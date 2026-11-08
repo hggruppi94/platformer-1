@@ -12,6 +12,7 @@ extends CanvasLayer
 var panel: PanelContainer
 var stats_label: Label
 var sparkle_label: Label                    # "✦ 12": sparkles, the money (scripts/game.gd)
+var remnant_label: Label                    # "◆ 3 Remnants", the rarer crystal money, once there are any (scripts/remnants.gd)
 var mp_bar: ProgressBar
 var sp_bar: ProgressBar                     # stamina, spent by rolling
 var hp_bar: ProgressBar
@@ -62,6 +63,10 @@ func _ready() -> void:
 	sparkle_label = Label.new()
 	sparkle_label.tooltip_text = "Sparkles: bits of broken time. Find them round town, spend them at the market"
 	v.add_child(sparkle_label)
+	remnant_label = Label.new()
+	remnant_label.name = "Remnants"
+	remnant_label.tooltip_text = "Remnants: sparkles squeezed into crystals. Harvest them from the glowing veins with Bramble"
+	v.add_child(remnant_label)
 	add_child(panel)
 	_build_todo()
 
@@ -112,6 +117,8 @@ func _ready() -> void:
 	Game.stats_changed.connect(_refresh)
 	Game.sp_changed.connect(_refresh_sp)
 	Game.sparkles_changed.connect(_refresh_sparkles)
+	Remnants.changed.connect(_refresh_sparkles)
+	Quests.changed.connect(func(_id: String) -> void: _refresh_sparkles())
 	Game.message_posted.connect(_show_message)
 	Quests.changed.connect(func(_id: String) -> void: _refresh_todo())
 	Game.saved.connect(_on_saved)
@@ -175,6 +182,9 @@ func _apply_look() -> void:
 	sparkle_label.add_theme_font_override("font", Dialogue.font)
 	sparkle_label.add_theme_font_size_override("font_size", _fs(18))
 	sparkle_label.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(1.0, 0.88, 0.45))
+	remnant_label.add_theme_font_override("font", Dialogue.font)
+	remnant_label.add_theme_font_size_override("font_size", _fs(18))
+	remnant_label.add_theme_color_override("font_color", Color(0.7, 1.0, 0.6) if hc else Color(0.55, 1.0, 0.45))
 	var back := StyleBoxFlat.new()
 	back.bg_color = Color(0.25, 0.25, 0.25) if hc else Color(0.2, 0.15, 0.3)
 	back.set_corner_radius_all(4)
@@ -254,6 +264,8 @@ func _refresh() -> void:
 
 func _refresh_sparkles() -> void:
 	sparkle_label.text = "✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
+	remnant_label.visible = Remnants.shown()
+	remnant_label.text = Remnants.words(Remnants.count)
 
 
 # -----------------------------------------------------------------------------

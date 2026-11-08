@@ -11,7 +11,10 @@ extends Node
 # scripts/clothes.gd build what they look like on her.
 # - Other systems can sell their own kinds of thing here too: register_kind() hands a kind (say "gadget" or "ammo",
 #   scripts/arsenal.gd) to whoever looks after it, and they say whether it can be bought and what buying it does. They
-#   keep what was bought in their own save, so those items aren't added to Game.items.
+#   keep what was bought in their own save, so those items aren't added to Game.items. A kind registered with
+#   "sells": true goes the other way: the player hands one over and is paid the item's price (the garden's crops at the
+#   Fruit stall, scripts/farm.gd).
+# - An item with "currency": "remnant" costs Remnants, the rarer crystal money (scripts/remnants.gd), not sparkles.
 
 signal bought(item_id: String)
 signal opened(stall: String)         # a stall opened (scripts/first_night.gd: looking at Dash's gadget stall)
@@ -80,8 +83,22 @@ static func _in_season(it: Dictionary) -> bool:
 func register_kind(kind: String, how: Dictionary) -> void:
 	# Another system sells this kind of item here. `how` has "can_buy" (item -> "" or why not), "buy" (item -> what
 	# to say after; it's already paid for) and, if it likes, "button" (what the Buy button says) and "show" (item ->
-	# whether to list it right now) and "note" (item -> a line to say under it, or "": where to find a schematic).
+	# whether to list it right now) and "note" (item -> a line to say under it, or "": where to find a schematic), and
+	# "sells": true when the player is selling, not buying (they're paid the price instead of paying it).
 	kinds[kind] = how
+
+
+func sells(it: Dictionary) -> bool:
+	return bool(kinds.get(str(it.kind), {}).get("sells", false))
+
+
+static func in_remnants(it: Dictionary) -> bool:
+	return str(it.get("currency", "")) == "remnant"
+
+
+static func price_text(it: Dictionary) -> String:
+	# "✦ 4", or "◆ 1" for something paid for in Remnants
+	return ("◆ %d" if in_remnants(it) else "✦ %d") % int(it.price)
 
 
 func owns(id: String) -> bool:
@@ -99,6 +116,10 @@ func can_buy(id: String) -> String:
 		return "You have this one"
 	if it.kind == "sticker" and not Game.has_item("campaign_sash"):
 		return "Needs Rex's VOTE REX sash"
+	if sells(it):
+		return ""
+	if in_remnants(it):
+		return "" if Remnants.count >= int(it.price) else "Not enough Remnants yet"
 	if Game.sparkles < int(it.price):
 		return "Not enough sparkles yet"
 	return ""
@@ -108,7 +129,10 @@ func buy(id: String) -> bool:
 	if can_buy(id) != "":
 		return false
 	var it: Dictionary = items[id]
-	Game.spend_sparkles(int(it.price))
+	if in_remnants(it):
+		Remnants.spend(int(it.price))
+	elif not sells(it):
+		Game.spend_sparkles(int(it.price))
 	var wrapped_for := Requests.wrap(id) if str(it.kind) == "snack" else ""
 	match str(it.kind):
 		"snack" when wrapped_for != "":
@@ -302,6 +326,8 @@ func _fill() -> void:
 	_title.text = str(TITLES.get(_stall, "%s Stall" % _stall))
 	_blurb.text = str(stall_blurbs.get(_stall, ""))
 	_wallet.text = "You have ✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
+	if Remnants.shown():
+		_wallet.text += "  and " + Remnants.words(Remnants.count)
 	for c in _rows.get_children():
 		_rows.remove_child(c)
 		c.queue_free()
@@ -310,7 +336,7 @@ func _fill() -> void:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 16)
 		var words := Label.new()
-		words.text = "%s   ✦ %d\n%s" % [it.name, int(it.price), it.text]
+		words.text = "%s   %s%s\n%s" % [it.name, "pays " if sells(it) else "", price_text(it), it.text]
 		var how: Dictionary = kinds.get(str(it.kind), {})
 		if how.has("note"):
 			var note := str(how.note.call(it))

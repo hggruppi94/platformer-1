@@ -48,7 +48,8 @@
     "lab": [91.5, -16.0],
     "lab_pod_rex": [100.8, -19.5],
     "lab_pod_rook": [100.8, -16.5],
-    "lab_bench": [101.4, -12.1]
+    "lab_bench": [101.4, -12.1],
+    "my_garden": [72.9, 24.0]
   },
   "links": [
     ["market", "market_south"],
@@ -85,6 +86,7 @@
     ["obs_path", "observatory"],
     ["home_park", "housing_south"],
     ["housing_south", "courts"],
+    ["housing_south", "my_garden"],
     ["courts", "soccer"],
     ["courts", "skate_park"],
     ["south_shore", "meadow"],

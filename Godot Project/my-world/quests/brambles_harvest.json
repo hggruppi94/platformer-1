@@ -1,0 +1,61 @@
+{
+  "name": "Bramble's Harvest",
+  "giver": "bramble",
+  "start": {"flag": "harvest_start"},
+  "steps": [
+    {
+      "id": "parts",
+      "text": "Find the three parts for Bramble's harvesting tool.",
+      "checklist": [
+        ["harvest_part_handle", "A rootwood handle in the Secret Gardens"],
+        ["harvest_part_scoop", "A moonshell scoop by the dock"],
+        ["harvest_part_crystal", "A hum crystal on the Observatory hill"]
+      ],
+      "done": {"flags": ["harvest_part_handle", "harvest_part_scoop", "harvest_part_crystal"]},
+      "where": [
+        {"at": [-88, -38], "unless": "harvest_part_handle"},
+        {"at": [17, 25], "unless": "harvest_part_scoop"},
+        {"at": [96, -74], "unless": "harvest_part_crystal"}
+      ]
+    },
+    {
+      "id": "build",
+      "text": "Take the three parts to Bramble.",
+      "done": {"flag": "harvest_tool_built"},
+      "where": ["bramble"]
+    },
+    {
+      "id": "vein",
+      "text": "Harvest a glowing Remnant vein with your new tool. There's one on the lake shore.",
+      "done": {"flag": "harvest_first_vein"},
+      "where": [{"at": [-40, 14]}]
+    },
+    {
+      "id": "garden",
+      "text": "Meet Bramble at your garden, by My House in the Homes park.",
+      "done": {"flag": "garden_tour"},
+      "where": ["bramble"],
+      "override": {
+        "bramble": {"place": "my_garden", "do": "idle", "face": [68.5, 24.0], "label": "garden_tour"}
+      }
+    },
+    {
+      "id": "plant",
+      "text": "Plant a seed in your garden, then water it.",
+      "checklist": [["farm_planted", "Plant a seed"], ["farm_watered", "Water it"]],
+      "done": {"flags": ["farm_planted", "farm_watered"]},
+      "where": [{"at": [68.5, 24.0]}]
+    },
+    {
+      "id": "grow",
+      "text": "Keep it watered until it's ripe, then pick it! (Plants only grow while they've got water.)",
+      "done": {"flag": "farm_first_harvest"},
+      "where": [{"at": [68.5, 24.0]}]
+    }
+  ],
+  "reward": {
+    "item": "watering_can",
+    "sparkles": 10,
+    "message": "Bramble gave you her old watering can: now one watering does the whole garden! (+10 sparkles)"
+  }
+}

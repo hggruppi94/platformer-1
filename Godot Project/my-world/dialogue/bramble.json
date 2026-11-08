@@ -128,6 +128,176 @@
     },
     {
       "when": {
+        "quest_not_started": "brambles_harvest",
+        "min_talks": 2,
+        "not_flag": "harvest_later"
+      },
+      "lines": [
+        "{player}, have you seen the glowing green crystals round the Void? Up by the castle, out in the woods, on the lake shore?",
+        "They're Remnants. Sparkles that got squeezed together for ages and ages, until they turned into crystal. They grow in the ground like roots. Roots of time!",
+        "Nobody can dig them out by hand. But plants can hear them humming, and so can I. With the right tool, I could coax some out for you.",
+        "And while we're digging... there's a little patch of ground by your house that's just BEGGING to be a garden.",
+        {
+          "choice": [
+            {
+              "text": "Let's make the tool!",
+              "set": "harvest_start",
+              "lines": [
+                "Hooray! We need three things. A rootwood handle: the old roots in the Secret Gardens drop one now and then.",
+                "A moonshell scoop. They wash up by the dock, near the portal.",
+                "And a hum crystal, from the Observatory hill. Hold it near the ground and it buzzes. Bring them all to me!"
+              ]
+            },
+            {
+              "text": "Maybe later.",
+              "set": "harvest_later",
+              "lines": [
+                "That's all right. Remnants are very patient. They've been waiting since forever."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_not_started": "brambles_harvest",
+        "flag": "harvest_later",
+        "every": 3
+      },
+      "lines": [
+        "The Remnants were humming again last night. I think they want to meet you. Shall we make that harvesting tool?",
+        {
+          "choice": [
+            {
+              "text": "Yes, let's!",
+              "set": "harvest_start",
+              "lines": [
+                "Yay! A rootwood handle from the Secret Gardens, a moonshell scoop from by the dock, and a hum crystal from the Observatory hill. Bring them to me!"
+              ]
+            },
+            {
+              "text": "Not yet.",
+              "lines": [
+                "Okay! Snappy says no rush. (Snappy says nothing. He's asleep.)"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:parts"
+      },
+      "rotate": [
+        [
+          "How's the hunt going? You've found {parts_found} of the three.",
+          "The handle's in the Secret Gardens, the scoop's by the dock, and the hum crystal's up on the Observatory hill. They glow a little, so look for a light."
+        ],
+        [
+          "(Bramble presses her ear to the ground.) The roots say the parts are still out there. They're very chatty today."
+        ]
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:build"
+      },
+      "lines": [
+        "{player}: I found all three parts!",
+        "You did! Let me see... handle, scoop, crystal. Oh, the crystal's humming like mad. It's excited!",
+        "(Bramble winds a vine round the handle, tucks the crystal in, and Snappy holds the scoop very still. Mostly still.)",
+        "Now, what should it look like? It's your tool, so you choose!",
+        {
+          "choice": [
+            {
+              "text": "Leafy, like you!",
+              "set": "harvest_look_leaf",
+              "lines": [
+                "(She tucks fresh leaves all round it. It's a Leafy Trowel!)"
+              ]
+            },
+            {
+              "text": "Crystal, all shiny!",
+              "set": "harvest_look_crystal",
+              "lines": [
+                "(She sets little crystals all along the handle. It's a Crystal Pick!)"
+              ]
+            },
+            {
+              "text": "With a star on top!",
+              "set": "harvest_look_star",
+              "lines": [
+                "(She twists a vine into a star at the end. It's a Star Scoop!)"
+              ]
+            }
+          ]
+        },
+        "There! Your very own {tool}. Now find a glowing vein, there's one on the lake shore, and use it there.",
+        "I'll hear the crystals humming and pop up to help. I'm very quick underground!"
+      ],
+      "set": "harvest_tool_built"
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:vein"
+      },
+      "lines": [
+        "Off you go! Any glowing vein will do. The one on the lake shore is closest. I'll be right there, I promise. Probably under your feet."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:garden"
+      },
+      "lines": [
+        "There you are! Welcome to your garden. Well, it will be.",
+        "Six beds, a fence, a barrel of rainwater. Everything a little plant could want."
+      ],
+      "do": "Farm.tour",
+      "set": "garden_tour"
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:plant"
+      },
+      "lines": [
+        "Pop a seed in one of the dug beds, then give it some water. A plant without water just waits. Very politely."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "brambles_harvest:grow"
+      },
+      "rotate": [
+        [
+          "Is it growing? If it's drooping with a little water drop over it, it's thirsty. Give it a drink and off it goes again!"
+        ],
+        [
+          "Blinkberries are the quickest. A Goggle Gourd takes ages, but it's SO worth it. And the Remnant sprout grows a whole Void day!"
+        ]
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "brambles_harvest",
+        "every": 3
+      },
+      "rotate": [
+        [
+          "How's your garden? The plants told me it's their favourite in town. Don't tell the Secret Gardens."
+        ],
+        [
+          "The veins have grown back, I can hear them. Just use your {tool} on one and I'll pop up!"
+        ],
+        [
+          "The Fruit stall in the Market buys your crops. And the Sweets stall makes them into snacks! Blinkberry tart is my favourite. Snappy likes the fries."
+        ]
+      ]
+    },
+    {
+      "when": {
         "time": "shift"
       },
       "lines": [

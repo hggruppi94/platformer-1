@@ -22,8 +22,15 @@ happy places.
   - `gadget` and `ammo`: Dash's gadget stall (`"stall": "Gadget"`, placed by `scripts/arsenal.gd`). `gadget` names
     the Arsenal gadget (`fizz`, `disco`): a `gadget` item gives it, an `ammo` item fills it up.
   - `contest_pie`: the bakery's pie for the Autumn Festival's pie contest (`scripts/festival.gd` sells it).
+  - `seed`, `crop_sell` and `crop_snack`: the garden (`scripts/farm.gd`). `seed` items name their `crop` and go in the
+    seed bag; `crop_sell` items (the Fruit stall) are the player **selling** one crop for the item's `price`;
+    `crop_snack` items (the Sweets stall) are made from crops (`Farm.RECIPES`) and eaten there and then. They only
+    show once Bramble has shown the player their garden.
   - Any other kind belongs to the system that called `Shop.register_kind(kind, {can_buy, buy, button})`, which
-    decides whether it can be bought, what buying it does and keeps it in its own save.
+    decides whether it can be bought, what buying it does and keeps it in its own save. With `"sells": true` the
+    player is paid the price instead of paying it.
+- `currency` (optional): `"remnant"` makes the price in Remnants, the rarer crystal money (`scripts/remnants.gd`),
+  shown as "◆ 1". Use it for big-ticket things.
 - What a new hat or sticker looks like is built in `scripts/cosmetics.gd` (add a `match` case for its id; stickers
   also need a spot in `STICKER_ANGLES`).
 

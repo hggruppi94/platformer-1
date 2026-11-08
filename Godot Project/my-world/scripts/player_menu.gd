@@ -487,6 +487,11 @@ func _sheet_bag() -> Control:
 	wallet.name = "Sparkles"
 	wallet.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
 	_line("Bits of broken time. Find them round town and from quests, and spend them at the Market.", true, box)
+	if Remnants.shown():
+		var rem := _heading(Remnants.words(Remnants.count), box)
+		rem.name = "Remnants"
+		rem.add_theme_color_override("font_color", Color(0.55, 1.0, 0.45))
+		_line("Sparkles squeezed into crystals: rarer, and worth more. Bramble helps you harvest them from the glowing veins, once a Void day each.", true, box)
 	var things := []
 	var clothes := []
 	var places := []
@@ -508,6 +513,11 @@ func _sheet_bag() -> Control:
 		_gap(box)
 		_heading("Happy places found (%d)" % places.size(), box, 26)
 		_line(", ".join(places), true, box)
+	if Farm.unlocked():
+		_gap(box)
+		_heading("Your garden", box, 26)
+		var g := _line(Farm.bag_text(), true, box)
+		g.name = "Garden"
 	_gap(box)
 	_gadgets_page(box)
 	_gap(box)

@@ -50,6 +50,8 @@ Bosses="*res://scripts/bosses.gd"
 Boosters="*res://scripts/boosters.gd"
 QuickOutfits="*res://scripts/quick_outfits.gd"
 RideUpgrades="*res://scripts/ride_upgrades.gd"
+Remnants="*res://scripts/remnants.gd"
+Farm="*res://scripts/farm.gd"
 
 [display]
 

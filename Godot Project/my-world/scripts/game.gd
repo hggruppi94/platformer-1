@@ -335,6 +335,8 @@ func save_game() -> void:
 		"arsenal": Arsenal.save_data(),
 		"races": Races.save_data(),
 		"skate_runs": SkateRuns.save_data(),
+		"remnants": Remnants.save_data(),
+		"farm": Farm.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -418,6 +420,10 @@ func load_game() -> void:
 	Races.load_data(races if races is Dictionary else {})
 	var runs = data.get("skate_runs", {})                    # saves from before the skate runs have none
 	SkateRuns.load_data(runs if runs is Dictionary else {})
+	var rem = data.get("remnants", {})                       # saves from before Remnants have none
+	Remnants.load_data(rem if rem is Dictionary else {})
+	var farm = data.get("farm", {})                          # ...and no garden yet
+	Farm.load_data(farm if farm is Dictionary else {})
 	# Saves from before the outfit wheel have no saved outfits
 	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
 	outfits = {"hero": {}}
@@ -661,6 +667,8 @@ func _reset_state() -> void:
 	Arsenal.reset()
 	Races.reset()
 	SkateRuns.reset()
+	Remnants.reset()
+	Farm.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}
