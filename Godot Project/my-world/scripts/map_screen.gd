@@ -409,6 +409,11 @@ func _draw_full() -> void:
 				c.draw_circle(at, 16.0, Color(0.6, 0.3, 1.0, 0.35 * glow))
 				c.draw_arc(at, 12.0, 0, TAU, 32, Color(0.75, 0.5, 1.0), 4.0)
 				_text(c, at + Vector2(0, -_fs(26)), "The portal is open!", _fs(18), Color(0.85, 0.7, 1.0))
+		for w in Portals.open_worlds():       # the portal worlds' portals (scripts/portals.gd)
+			var at := r.position + to_map(Vector3(w.at.x, 0, w.at.y)) * r.size
+			c.draw_circle(at, 9.0, Color(w.colour, 0.45))
+			c.draw_arc(at, 9.0, 0, TAU, 24, w.colour, 3.0)
+			_text(c, at + Vector2(0, -_fs(16)), str(w.name), _fs(15), w.colour.lightened(0.3), true, true)
 		_draw_races(c, r.position, r.size.x, true)
 		_draw_boosters(c, r.position, r.size.x, true)
 		for q in quest_markers():
@@ -422,6 +427,8 @@ func _draw_full() -> void:
 			where = "You're in the Scary World, behind the gate in the Spooky Woods. The gate behind you leads home."
 			var gate := r.position + to_map(Vector3(-128, 0, -150)) * r.size
 			_star(c, gate, 10.0)
+		elif s and Portals.is_world_scene(s.scene_file_path):
+			where = "You're in %s, through a portal. The way home takes you back to the Void any time." % Portals.world_for_scene(s.scene_file_path).name
 		elif s and s.scene_file_path == "res://scenes/earth/earth.tscn":
 			where = "You're at home on Earth. In the Shift, the portal by the old oak opens to the Void."
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size

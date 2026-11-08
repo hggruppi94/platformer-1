@@ -49,12 +49,17 @@ func _ready() -> void:
 func show_for(scene_path: String) -> void:
 	var here := get_tree().current_scene
 	var from := here.scene_file_path if here else ""
-	if scene_path == from or not scene_path in WORLDS or not (from in WORLDS or from == ""):
+	var worlds := WORLDS.duplicate()
+	for w in Portals.WORLDS:                     # the portal worlds count as worlds too (scripts/portals.gd)
+		if str(w.scene) != "":
+			worlds.append(str(w.scene))
+	if scene_path == from or not scene_path in worlds or not (from in worlds or from == ""):
 		return                                   # a door into a shop or a room, or back out of one: no loading screen
 	tip = TIPS[_rng.randi() % TIPS.size()]
 	_tip_label.text = tip
 	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to the Void...",
-		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path, "Loading...")
+		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path,
+		("Through the portal to %s..." % Portals.world_for_scene(scene_path).name) if Portals.is_world_scene(scene_path) else "Loading...")
 	_panel.visible = true
 	_panel.modulate.a = 1.0
 	showing = true

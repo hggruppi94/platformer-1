@@ -88,6 +88,47 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: Time quakes and portal worlds, part one (plan items 19 and 19a): the portal system and **Shard Isle**,
+  the tutorial world. Hayden agreed the nine worlds in 19a ("Absolutely perfect") and said yes to building the system
+  plus Shard Isle first. Built and tested in the cloud (own Godot user folders, no save touched). Nothing is built
+  into `town.tscn`: the portals and the plaza go in at play time.
+  - **`scripts/portals.gd`** (autoload `Portals`): `WORLDS` lists all of 19a in story order (only Shard Isle has a
+    `scene` yet; a world with no scene never quakes; the other spots are rough guesses to check when each is built).
+    **Time quakes:** `quake_due(id)` says when the story's got there (Shard Isle: once the First Night is done, so old
+    saves past it get theirs on their next visit), and `QUAKE_DELAY` seconds after arriving in the Void the camera
+    shakes, the pad rumbles, the Remnant veins flare, a glowing **crack** opens and a crystal-studded obsidian
+    **portal ring** rises out of it. Shard Isle's is in the field below Observatory Hill, (62, -58), facing the lake
+    (clear of the races, rails and the Crocodillo: checked). **Preview:** within `PREVIEW_NEAR` the portal's swirl
+    becomes a live window, a copy of the world's scene in its own SubViewport with its Player taken out and a slowly
+    circling camera (`preview_scene()`; the copy has the `preview` meta so its script only sets up the picture). A
+    world with `"preview": false` (Dark Hollow, later) keeps its plain swirl. **Going in** asks first (Dialogue.say:
+    step through, take extra time for 2 Remnants, not now): `enter(id, extra)`. Every trip gets `FREE_SECONDS` (4
+    minutes) and each Remnant buys `SECONDS_PER_REMNANT` (a minute). A **timer** card shows top-centre in a portal
+    world. The **Void's clock stands still** while you're away (`Clock.running`), so trips never eat the Shift. When
+    the time's up (`time_up()`), or you take the **way home** (`go_home()`), you land just in front of the portal
+    (`Game.go_to_point()`, new: like `go()` but to a spot, using the resume point) with everything you found.
+    `clear(id)` gives the reward and **changes the hub** (`_hub_changes()`: Shard Isle grows the **Portal Plaza**, a
+    round stone floor, crystal pillars and a sign round its portal). Found things are kept for good
+    (`note_found()` / `has_found()`), so nothing is ever done twice. Saved as `"portals"` (quakes, cleared, found,
+    and the time left if saved inside a world). The map shows open portals; the loading screen says "Through the
+    portal to ...".
+  - **`scripts/portal_world.gd`**: the root of every portal world; a world's own script extends it. It puts in, at
+    the builder's markers: the **way home** (`WayHome`, free, any time), the **Time Stone** (`TimeStone`: a Remnant
+    for a minute), small **Remnant veins** (`Vein*`: 2 Remnants a Void day with Bramble's tool), and catches the
+    player below `fall_below` and floats them back to where they last stood. `picture()` / `setup()` for the world.
+  - **Shard Isle** (`tools/build_shard_isle.gd` -> `scenes/portal_worlds/shard_isle.tscn`, logic
+    `scripts/shard_isle.gd`): a pale floating island in a teal-and-lilac sky with three islets, floating crystal
+    stepping stones out to each, crystal clusters, and little shards that **stutter** over it (time skipping) until
+    it's mended. Goal: the three **Echo Crystals** (one per islet) into the **Heart Stone** in the middle. Reward:
+    5 Remnants and the Portal Plaza. No boss.
+  - Tests: `tools/test_portals.gd` (77 checks: no quake before the First Night, the quake once, the portal on clear
+    dry ground, the preview waking and sleeping, the question, extra time, the frozen clock, the timer, the Time
+    Stone, the vein, falling off, every stepping stone a short hop, clearing, time running out, the plaza on flat
+    ground, the way home, save/load/old saves). Previews: `tools/capture_portals.gd` (shots in the project files
+    under world/previews/portals; the cloud can't push PNGs).
+  - My choices Hayden may change: 4 free minutes and a minute per Remnant, where Shard Isle's portal is, the island's
+    look, the reward. Next from 19a: the Rootmind (Bramble's world, plan item 22).
+
 - 2026-11-08: Farming with Bramble (plan item 18), with the parts of item 17 (Remnants) that it needs. Hayden: "Let's
   do the farming before working on portal worlds". Built and tested in the cloud (own Godot user folders, no save
   touched). Nothing is built into `town.tscn`: both new autoloads put their things in at play time.

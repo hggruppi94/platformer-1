@@ -281,6 +281,19 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 	get_tree().call_deferred("change_scene_to_file", scene_path)
 
 
+func go_to_point(scene_path: String, pos: Vector3, yaw: float, place_name := "") -> void:
+	# Like go(), but to a spot rather than a marker (coming home from a portal world: scripts/portals.gd). The player
+	# picks it up on arriving, the way a save puts her back where she was (take_resume_point()).
+	if not ResourceLoader.exists(scene_path):
+		message("The %s isn't open yet." % place_name if place_name != "" else "This way doesn't open yet.")
+		return
+	next_spawn = ""
+	_resume = {"scene": scene_path, "position": [pos.x, pos.y, pos.z], "yaw": yaw}
+	Audio.play("door", -4.0)
+	Loading.show_for(scene_path)
+	get_tree().call_deferred("change_scene_to_file", scene_path)
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Developer shortcut, only when run from the editor (not in exported builds): X for 10 XP
 	if OS.is_debug_build() and event.is_action_pressed("debug_xp"):
@@ -337,6 +350,7 @@ func save_game() -> void:
 		"skate_runs": SkateRuns.save_data(),
 		"remnants": Remnants.save_data(),
 		"farm": Farm.save_data(),
+		"portals": Portals.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -424,6 +438,8 @@ func load_game() -> void:
 	Remnants.load_data(rem if rem is Dictionary else {})
 	var farm = data.get("farm", {})                          # ...and no garden yet
 	Farm.load_data(farm if farm is Dictionary else {})
+	var portals = data.get("portals", {})                    # saves from before the time quakes have had none
+	Portals.load_data(portals if portals is Dictionary else {})
 	# Saves from before the outfit wheel have no saved outfits
 	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
 	outfits = {"hero": {}}
@@ -669,6 +685,7 @@ func _reset_state() -> void:
 	SkateRuns.reset()
 	Remnants.reset()
 	Farm.reset()
+	Portals.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}
