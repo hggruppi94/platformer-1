@@ -43,6 +43,7 @@ const KINDS := {
 	"deliver": {"easy": 1, "medium": 1, "hard": 1},          # easy/medium: from the market; hard: from Earth
 	"visit": {"easy": 1, "medium": 1, "hard": 1},
 	"watch": {"medium": 1, "hard": 2},
+	"harvest": {"easy": 2, "medium": 4, "hard": 6},          # crops picked in the player's garden (scripts/farm.gd)
 }
 const SKATE_KINDS := ["grind", "combo", "park_score"]
 const FRIENDS := {"pip": "Pip", "bramble": "Bramble", "rex": "Rex", "dash": "Dash", "mr_palmer": "Mr. Palmer",
@@ -151,6 +152,8 @@ func kinds_for(tier: String) -> Array[String]:
 			continue
 		if k == "watch" and not has_watches():
 			continue
+		if k == "harvest" and not has_garden():
+			continue
 		out.append(k)
 	return out
 
@@ -175,7 +178,7 @@ func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary
 			r.goal = _nice(n * scale(), 1)
 			if r.how != "any":
 				r.goal = maxi(int(r.goal * 0.7), 2)               # a particular way is a bit harder: fewer of them
-		"crocodillo", "watch":
+		"crocodillo", "watch", "harvest":
 			r.goal = int(n)                                       # one or two, however many nights
 		"grind":
 			r.goal = _nice(n * scale(), 1)
@@ -239,6 +242,8 @@ func text_of(r: Dictionary) -> String:
 			return "Go to %s" % place_name(str(r.place))
 		"watch":
 			return "Find a lost watch" if g == 1 else "Find %d lost watches" % g
+		"harvest":
+			return "Pick %d crops in your garden" % g
 	return str(r.kind)
 
 
@@ -338,7 +343,7 @@ func log_lines() -> Array[String]:
 # -----------------------------------------------------------------------------
 func note(kind: String, amount := 1.0, how := "") -> void:
 	# Something happened that a request might want: "gloop" (how: "bubble", "stomp" or "ram"), "crocodillo",
-	# "grind" (amount: metres in that one grind), "watch" (a lost watch found)
+	# "grind" (amount: metres in that one grind), "watch" (a lost watch found), "harvest" (amount: crops picked)
 	noted.emit(kind, amount, how)
 	if not is_live():
 		return
@@ -352,7 +357,7 @@ func note(kind: String, amount := 1.0, how := "") -> void:
 				if want == "any" or want == how:
 					r.progress += amount
 					any = true
-			["crocodillo", "crocodillo"], ["watch", "watch"]:
+			["crocodillo", "crocodillo"], ["watch", "watch"], ["harvest", "harvest"]:
 				r.progress += amount
 				any = true
 			["grind", "grind"]:
@@ -472,6 +477,12 @@ static func _the(item_name: String) -> String:
 		if item_name.begins_with(a):
 			return "the " + item_name.substr(a.length())
 	return "the " + item_name
+
+
+func has_garden() -> bool:
+	# The garden (an autoload named "Farm") once Bramble's shown the player round it
+	var f := get_node_or_null("/root/Farm")
+	return f != null and bool(f.call("unlocked"))
 
 
 func has_watches() -> bool:

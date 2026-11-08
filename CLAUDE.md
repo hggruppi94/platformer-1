@@ -88,6 +88,59 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: Farming with Bramble (plan item 18), with the parts of item 17 (Remnants) that it needs. Hayden: "Let's
+  do the farming before working on portal worlds". Built and tested in the cloud (own Godot user folders, no save
+  touched). Nothing is built into `town.tscn`: both new autoloads put their things in at play time.
+  - **Remnants** (`scripts/remnants.gd`, autoload `Remnants`): the rarer second money, sparkles squeezed into crystals
+    (glowing uranium green on obsidian). Sparkles stay the everyday money. `Remnants.count`, `add()`, `spend()`,
+    `words(n)` ("◆ 3 Remnants"). Shown on the HUD under the sparkles (`hud.gd remnant_label`) and in the Bag once the
+    quest has started or there are any (`Remnants.shown()`), and in the shop's wallet line. Saved as `"remnants"`.
+  - **Remnant veins**: five big crystal clusters (`VEINS`: the castle rock, the Spooky Woods, the lake shore, the Secret
+    Gardens, the rock wall), each a `use_spot.gd` spot. Without the tool they only say the crystals are too deep. With
+    it, Interact brings **Bramble**: a soil mound with a sprig races over, she sprouts up beside the vein (her own
+    `plant_girl.glb`, "sprout" then "wave"), the crystals pop (+3 Remnants) and she burrows away. A harvested vein
+    shows stubs and regrows the next Void day (`veins_taken`).
+  - **Quest "Bramble's Harvest"** (`quests/brambles_harvest.json`, offered by Bramble from the fourth time you talk to
+    her, so her first chats stay as they were; "Maybe later" and she asks again every third talk): find the **three tool parts** (a rootwood handle in the Secret
+    Gardens, a moonshell scoop by the dock, a hum crystal on the Observatory hill: glowing pickups that only show on
+    that step), take them to Bramble and **choose the tool's look** (Leafy Trowel, Crystal Pick or Star Scoop; flags
+    `harvest_look_*`, `{tool}` in dialogue), harvest a first vein, **meet Bramble at your garden** (her routine's
+    override sends her to the new place `my_garden`), plant and water, then pick your first crop. Reward: Bramble's
+    watering can (`watering_can`) and 10 sparkles. Flags: `harvest_start`, `harvest_later`, `harvest_part_*`,
+    `harvest_tool_built`, `harvest_first_vein`, `garden_tour`, `farm_planted`, `farm_watered`, `farm_first_harvest`.
+  - **The garden** (`scripts/farm.gd`, autoload `Farm`): a fenced plot of twelve beds up on the Secret Gardens' hill,
+    in front of the greenhouse where the nursery is on Sofi's town map (Hayden; `GARDEN`, gate turned to face south
+    to the ramp, `GARDEN_YAW`), with a "Your Garden" sign, a rain barrel and a wheelbarrow. The builder's decorative
+    soil rows there are hidden at play time (`_clear_nursery`).
+    Bramble's tour (`"do": "Farm.tour"`) digs the first two beds and gives 3 Blinkberry and 1 Peekaroot seeds; the
+    rest you dig yourself with the tool. Each bed is a spot that offers what makes sense: dig, plant (a little
+    question when there's more than one kind of seed: `Dialogue.say` + `farm_plant_<crop>` flags), water, check on
+    it ("about 3 more Void hours"), pick. **Watering** lasts `WATER_LASTS` (360 Void minutes, about 4 real minutes)
+    and plants only grow while they have water and the Void's clock runs (in the Shift). Dry ones droop with a water
+    drop over them and wait; **they never die** (Hayden's "never a chore wall"). With the watering can one watering
+    does every bed. Growth is counted in Void minutes (`Farm.now()` = day * 1440 + minutes), so it's safe across
+    saves and the clock going back.
+  - **Crops** (`Farm.CROPS`), all alien plants with a pair of eyes that blink and follow the player: Blinkberry
+    (4 Void hours, 3 berries, sells 2), Peekaroot (8 h, 2 roots, 5), Goggle Gourd (12 h, 1 gourd, 14) and the
+    **Remnant sprout** (a whole Void day, gives 2 Remnants; its seed costs 1 Remnant). Five looks per bed (dug, seed,
+    sprout, growing, nearly, ripe with a glow), rebuilt only when it changes.
+  - **Shops** (`shop/items.json`, `Shop.register_kind`): seeds at the Flowers stall, the Remnant sprout seed at the
+    Crystals stall; the Fruit stall **buys** crops (a kind registered with `"sells": true` pays the price instead of
+    taking it: new in `shop.gd`); the Sweets stall makes Blinkberry Tart, Peekaroot Fries and Goggle Gourd Soup from
+    your crops. Items can now cost Remnants (`"currency": "remnant"`, shown "◆ 1"). All only show once the garden's
+    yours. The Bag sheet has a "Your garden" line (seeds and crops).
+  - **Request board** (`requests.gd`): a new kind, "Pick N crops in your garden" (2 / 4 / 6), once the garden's yours
+    (`has_garden()`); `Farm.harvest()` calls `Requests.note("harvest", n)`.
+  - `scripts/use_spot.gd`: a reusable Interact spot made in code (an `offer` and an `act` Callable). No class_name on
+    purpose: `--script` tools compile class_name scripts before the autoloads exist. Load it with `preload`.
+  - Tests: `tools/test_farming.gd` (placement, the whole quest, Bramble's visit, veins regrowing, growing, thirst,
+    never dying, the can, the Remnant sprout, shop buy/sell/snacks/Remnant prices, the request kind, HUD, Bag, save,
+    load and old saves). Previews: `tools/capture_farming.gd` (shots in the project files under
+    world/previews/farming; the cloud can't push PNGs).
+  - My choices Hayden may change: the garden's size (12 beds), crop names, growing times (within one visit
+    rather than "a few Void days", so kids see results), prices, the part spots, the tool looks, where the veins are.
+    Seasons (item 20) can add a `"season"` to a crop or seed later. Portal time for Remnants waits for item 19.
+
 - 2026-11-07: The first hour, reworked from Hayden's playtest: the Humming Oak, a daytime start, people who stop to
   talk, the bench, fewer collectibles at first, and the camera after the portal. Built and tested in the cloud (own
   Godot user folders, no save touched).
