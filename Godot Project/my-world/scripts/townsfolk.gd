@@ -31,6 +31,7 @@ const EXTRAS := {
 @export var placeholder := false           # a stand-in look until there's a drawing (Prue)
 
 var model: Node3D
+var talking := false                       # set by their talk spot (scripts/talker.gd): their routine stops to listen
 var _anim: AnimationPlayer
 
 
@@ -61,6 +62,58 @@ func _ready() -> void:
 		_anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
 		_anim.play("idle")
 		_anim.seek(randf() * _anim.current_animation_length)
+
+
+# -----------------------------------------------------------------------------
+# Sitting down (a routine block's "do": "sit", on a bench: scripts/routine.gd)
+# -----------------------------------------------------------------------------
+var sitting := false
+var _model_y := NAN
+
+
+func sit(on: bool, seat_y := 0.0) -> void:
+	# The body has no sitting animation, so the legs are posed in code: thighs straight forward, shins straight down,
+	# and the whole model lifted or lowered so the hips rest just on a seat seat_y metres above where they stand (on a
+	# bench they stand on the seat itself, as people's paths find the ground under them: so 0).
+	# Short legs dangle; a grown-up's feet reach the ground. Getting up puts the animation back on.
+	var skel := Clothes._skeleton(model)
+	if skel == null or on == sitting:
+		return
+	sitting = on
+	if is_nan(_model_y):
+		_model_y = model.position.y
+	if not on:
+		model.position.y = _model_y
+		skel.reset_bone_poses()
+		if _anim:
+			_anim.play("idle")
+		return
+	if _anim:
+		_anim.play("idle")
+		_anim.seek(0.0, true)
+		_anim.pause()
+	var hips := skel.find_bone("hips")
+	for side in ["L", "R"]:
+		var thigh := skel.find_bone("thigh." + side)
+		var shin := skel.find_bone("shin." + side)
+		var foot := skel.find_bone("foot." + side)
+		if thigh < 0 or shin < 0:
+			continue
+		var t_rest := skel.get_bone_global_rest(thigh)
+		var s_rest := skel.get_bone_global_rest(shin)
+		var thigh_len := t_rest.origin.distance_to(s_rest.origin)
+		# Swing the thigh up to point forward (the body faces +Z), about the hip
+		var lift := Basis(Vector3.RIGHT, -PI / 2)
+		skel.set_bone_global_pose(thigh, Transform3D(lift * t_rest.basis, t_rest.origin))
+		# The shin hangs straight down from the knee, now out in front
+		var knee := t_rest.origin + Vector3(0, 0, thigh_len)
+		skel.set_bone_global_pose(shin, Transform3D(s_rest.basis, knee))
+		if foot >= 0:
+			var f_rest := skel.get_bone_global_rest(foot)
+			skel.set_bone_global_pose(foot, Transform3D(f_rest.basis, knee + (f_rest.origin - s_rest.origin)))
+	if hips >= 0:
+		var hip_y := (skel.global_transform * skel.get_bone_global_rest(hips).origin).y - global_position.y
+		model.position.y = _model_y + (seat_y + 0.04) - hip_y
 
 
 func _tint_hair(c: Color) -> void:

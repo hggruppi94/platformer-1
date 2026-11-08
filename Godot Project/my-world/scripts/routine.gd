@@ -10,7 +10,8 @@ extends Node
 # they simply are where they should be.
 #
 # Rex and Rook (scripts/wanderer.gd) keep their own wandering and barking for "wander" blocks; for everything else
-# the routine holds them. While someone is talking to Nina, the routine waits.
+# the routine holds them. While someone is talking to Nina, the routine waits: they stop, turn and listen. Only someone
+# busy in the middle of something (BUSY: skating, riding, flying a kite...; or a block with "busy": true) carries on.
 #
 # People in the Earth town have "world": "earth" at the top of their file: they keep Earth's clock (which always runs)
 # and walk Earth's paths (res://routines/earth_places.json, written by tools/build_earth.gd).
@@ -28,6 +29,9 @@ extends Node
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
 
+# Activities that carry on while the player talks to them (everyone else stops to listen): a block with "busy": true
+# counts too, and "busy": false keeps someone with one of these labels still
+const BUSY := ["skating", "riding", "scooting", "morning_skate", "kites", "festival_hayride"]
 const NEAR := 55.0                                  # metres: closer than this to Nina, people walk instead of popping
 const ARRIVE := 0.35
 const TURN_SPEED := 6.0
@@ -200,9 +204,10 @@ func _physics_process(delta: float) -> void:
 		_space = (_body as Node3D).get_world_3d().direct_space_state
 		_skip = TownPaths.skip_rids(get_tree().current_scene if get_tree().current_scene else _body.owner)
 		_ready_to_go = true
-	_hold(_body.get("talking") or _travelling or not _present or not _self_wandering())
-	if _body.get("talking"):
-		_play("idle")
+	_hold(_listening() or _travelling or not _present or not _self_wandering())
+	if _listening():
+		if not _body.get("sitting") == true:
+			_play("idle")
 		return
 	var list := today_blocks()
 	var i := block_index_at(list, now())
@@ -229,8 +234,21 @@ func _physics_process(delta: float) -> void:
 		_walk(delta)
 	else:
 		_do(delta)
-	_hold(_body.get("talking") or _travelling or not _present or not _self_wandering())
+	_hold(_listening() or _travelling or not _present or not _self_wandering())
 	_update_bike()
+
+
+func _listening() -> bool:
+	# Talking to the player, and not too busy to stop
+	return _body.get("talking") == true and not busy()
+
+
+func busy() -> bool:
+	# In the middle of something that carries on while they talk (scripts/talker.gd doesn't turn them either)
+	var b := current_block()
+	if b.has("busy"):
+		return bool(b.busy)
+	return str(b.get("label", "")) in BUSY
 
 
 func _self_wandering() -> bool:
@@ -314,7 +332,14 @@ func _start_path(dest_name: String) -> void:
 		_arrive()
 
 
+func _stand_up() -> void:
+	if _body.get("sitting") == true:
+		_body.call("sit", false)
+		_playing = ""
+
+
 func _walk(delta: float) -> void:
+	_stand_up()
 	if _path.is_empty():
 		_travelling = false
 		_arrive()
@@ -350,6 +375,8 @@ func _arrive() -> void:
 
 func _do(delta: float) -> void:
 	var b := current_block()
+	if str(b.get("do", "")) != "sit":
+		_stand_up()
 	match str(b.get("do", "idle")):
 		"away":
 			_play("idle")
@@ -364,6 +391,15 @@ func _do(delta: float) -> void:
 		"nap":
 			_play("idle", 0.35)
 			_face_rest(delta)
+		"sit":
+			# On a bench (townsfolk.gd poses the legs): straight round to face the way the bench does
+			if _body.has_method("sit"):
+				if not is_nan(_rest_yaw):
+					_body.rotation.y = _rest_yaw
+				_body.call("sit", true, float(b.get("seat", 0.0)))   # (they stand on the seat itself: paths land on it)
+			else:
+				_play("idle")
+				_face_rest(delta)
 		_:
 			_play(str(b.get("anim", "idle")))
 			_face_rest(delta)

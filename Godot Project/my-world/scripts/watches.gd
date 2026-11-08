@@ -328,6 +328,16 @@ func _give(r: Dictionary) -> void:
 # -----------------------------------------------------------------------------
 # Putting the pickups into the scene
 # -----------------------------------------------------------------------------
+func out_tonight(id: String) -> bool:
+	# A new game brings them out a few at a time (FirstNight.held_back): on the first night only the fountain's (the
+	# First Night asks for it), then the first OUT_BY_NIGHT[n] in the list, and every one from night 4
+	for n in OUT_BY_NIGHT:
+		if FirstNight.held_back(n + 1):
+			var i := WATCHES.find_custom(func(w: Dictionary) -> bool: return str(w.id) == id)
+			return i >= 0 and i < int(OUT_BY_NIGHT[n])
+	return true
+
+
 func _place_in(s: Node) -> void:
 	if not is_instance_valid(s) or not s is Node3D:
 		return
@@ -341,7 +351,7 @@ func _place_in(s: Node) -> void:
 	holder.name = "Lost Watches"
 	s.add_child(holder)
 	for w in WATCHES:
-		if w.scene == here and not is_found(w.id):
+		if w.scene == here and not is_found(w.id) and out_tonight(str(w.id)):
 			var p := WatchPickup.new()
 			p.id = w.id
 			p.name = "Watch " + str(w.id)
@@ -353,6 +363,7 @@ func _place_in(s: Node) -> void:
 # -----------------------------------------------------------------------------
 # How each one looks, built from shapes in the alien palette. About 0.3 m across, dial facing +Z.
 # -----------------------------------------------------------------------------
+const OUT_BY_NIGHT := {1: 1, 2: 8, 3: 14}     # night -> how many are out (the list's first ones), on a new game
 const GOLD := Color(1.0, 0.82, 0.3)
 const TEAL := Color(0.3, 0.9, 0.82)
 const LILAC := Color(0.75, 0.6, 1.0)

@@ -33,6 +33,8 @@ const EDGE := 64.0                                # (the old round edge: trees s
 const BOUNDS := Rect2(-152, -152, 244, 254)       # the invisible walls: x -152..92, z -152..102
 const STUDIO_AT := Vector3(35, 0, 35)             # the barn dance studio, past the southeast corner of the green
 const STUDIO_SIZE := Vector3(14, 6, 18)           # width, wall height, depth
+const GREEN_BENCH := Vector3(6.8, 0, 4.8)          # the bench on the green (two seats: "green_bench", "green_bench_2")
+const OAK_BACK := -1.6                             # the old oak's trunk, this far behind PORTAL_AT (the door's in its front)
 const PORTAL_AT := Vector3(-10, 0, 10)            # the old oak and the portal to Galaxity, on the green's corner
 const HOME_SIZE := Vector3(10, 4.6, 9)            # the player's house: width, wall height, depth
 const MAIN_Z := Vector2(-36, -120)                # Main Street runs north along x = 0, from z -36 to -120
@@ -447,6 +449,10 @@ func _foot(name: String, at: Vector3, yaw: float, size: Vector2, kind := "buildi
 
 func _gazebo() -> void:
 	var g := group("Gazebo")
+	# A real park bench on the grass by the gazebo, facing the middle of the green, for Theo's reading and Mr. Page's
+	# evenings (the "green_bench" place used to be the hay bale on the green's corner, and both of them stood in it)
+	var bench := group("Green Bench", GREEN_BENCH)
+	_bench(bench, Vector3.ZERO, atan2(-GREEN_BENCH.x, -GREEN_BENCH.z), mat("Bench Wood", Color(0.5, 0.33, 0.2), 0.7))
 	var white := mat("Gazebo White", Color(0.96, 0.95, 0.92), 0.6)
 	var roof := mat("Gazebo Roof", Color(0.45, 0.25, 0.22), 0.7)
 	mesh_at(cyl(4.2, 4.4, 0.6, 8), white, Vector3(0, 0.3, 0), g, PI / 8)
@@ -1008,37 +1014,150 @@ func _lamps() -> void:
 
 
 func _portal() -> void:
-	# The old oak by the green, and the portal to Galaxity beside it (open during the Shift: scripts/earth_world.gd shows
-	# its swirl and glow then). Coming home from Galaxity, the player arrives here.
+	# The old oak by the green, a great gnarled thing much older than the town, and the door to Galaxity is IN it: a
+	# dark hollow in the front of the trunk, ringed with carved runes and roots. Most of the time it's just a tree. On
+	# the first day, three glowing acorns in its roots wake the runes, and at midnight it opens for the first time
+	# (scripts/humming_oak.gd: the reveal, the runes and the roots). After that the hollow swirls open every Shift
+	# (scripts/earth_world.gd shows its swirl and glow then). Coming home from Galaxity, the player arrives here.
 	var toward := Vector3(-PORTAL_AT.x, 0, -PORTAL_AT.z).normalized()       # from the portal toward the green's middle
-	var g := group("Portal Home", PORTAL_AT, atan2(toward.x, toward.z))     # the ring faces the green
-	_autumn_tree(g, Vector3(-2.5, 0, -1.5), 6.0)
-	var ring := TorusMesh.new()
-	ring.inner_radius = 1.5
-	ring.outer_radius = 1.8
-	mesh_at(ring, mat("Portal Ring", Color(0.7, 0.5, 1.0), 0.3, 2.0), Vector3(0, 1.8, 0), g, 0.0, Vector3(PI / 2, 0, 0))
-	mesh_at(cyl(1.5, 1.5, 0.05, 32), mat("Portal Swirl", Color(0.6, 0.4, 1.0), 0.2, 1.5, 0.55), Vector3(0, 1.8, 0), g, 0.0,
-		Vector3(PI / 2, 0, 0)).name = "Portal Swirl"
+	var g := group("Portal Home", PORTAL_AT, atan2(toward.x, toward.z))     # the hollow faces the green
+	var oak := Node3D.new()
+	oak.name = "Old Oak"
+	oak.position = Vector3(0, 0, OAK_BACK)
+	g.add_child(oak)
+	var bark := mat("Old Oak Bark", Color(0.46, 0.33, 0.22), 0.95)
+	var dark := mat("Old Oak Hollow", Color(0.07, 0.04, 0.09), 1.0)
+	# The trunk: wide at the foot, a slight lean and twist, with knobbly burls
+	mesh_at(cyl(0.95, 1.5, 6.5, 14), bark, Vector3(0, 3.25, 0), oak, 0.2)
+	mesh_at(cyl(0.6, 0.95, 2.4, 12), bark, Vector3(0.15, 7.4, -0.1), oak, 0.5, Vector3(0.08, 0, -0.06))
+	for b in [[Vector3(-1.1, 2.6, 0.5), 0.45], [Vector3(1.15, 4.1, -0.3), 0.5], [Vector3(-0.6, 5.3, -0.8), 0.4]]:
+		mesh_at(ball(b[1], 10), bark, b[0], oak).scale = Vector3(1, 1.2, 0.8)
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = 1.35
+	shape.height = 6.5
+	cs.shape = shape
+	cs.position.y = 3.25
+	body.add_child(cs)
+	oak.add_child(body)
+	# Great boughs reaching out, and a big autumn crown
+	for k in 5:
+		var a := k * TAU / 5 + 0.4
+		var out := Vector3(cos(a), 0, sin(a))
+		mesh_at(cyl(0.18, 0.38, 4.0, 8), bark, Vector3(0, 7.2, 0) + out * 1.6 + Vector3(0, 0.6, 0), oak, 0.0,
+			Vector3(out.z * 0.9, 0, -out.x * 0.9))
+	var cols := [Color(0.95, 0.45, 0.15), Color(0.85, 0.25, 0.15), Color(0.95, 0.75, 0.2), Color(0.7, 0.35, 0.15)]
+	for k in 9:
+		var a := k * TAU / 9 + rng.randf_range(-0.2, 0.2)
+		var r := 2.3 if k % 3 == 0 else 3.3
+		var off := Vector3(cos(a) * r, 8.4 + rng.randf_range(-0.6, 1.2), sin(a) * r)
+		var c: Color = cols[k % cols.size()]
+		mesh_at(ball(rng.randf_range(2.0, 2.8), 12), mat("Leaves %s" % c, c, 0.9), off, oak)
+	mesh_at(ball(2.6, 12), mat("Leaves %s" % cols[2], cols[2], 0.9), Vector3(0, 10.2, 0), oak)
+	# The hollow in the front: a dark arch sunk into the bark, framed by a lip of thicker bark (two sides and an arch)
+	var hollow := Node3D.new()
+	hollow.name = "Hollow"
+	oak.add_child(hollow)
+	var lip := mat("Old Oak Lip", Color(0.36, 0.25, 0.17), 0.95)
+	mesh_at(box(Vector3(1.2, 1.8, 0.3)), dark, Vector3(0, 0.95, 1.3), hollow)
+	mesh_at(cyl(0.6, 0.6, 0.3, 16), dark, Vector3(0, 1.85, 1.3), hollow, 0.0, Vector3(PI / 2, 0, 0))
+	for sx in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.26, 1.9, 0.38)), lip, Vector3(sx * 0.72, 0.95, 1.36), hollow)
+	for k in 7:
+		var a := PI * k / 6.0
+		mesh_at(box(Vector3(0.3, 0.26, 0.38)), lip, Vector3(cos(a) * 0.72, 1.85 + sin(a) * 0.72, 1.36), hollow, 0.0,
+			Vector3(0, 0, a))
+	# The swirl fills the arch when it's open (earth_world.gd grows "Portal Swirl" in from nothing), just in front of
+	# the dark and inside the lip
+	var swirl := Node3D.new()
+	swirl.name = "Portal Swirl"
+	swirl.position = Vector3(0, 1.3, 1.48)
+	hollow.add_child(swirl)
+	mesh_at(box(Vector3(1.15, 1.1, 0.03)), mat("Portal Swirl", Color(0.6, 0.4, 1.0), 0.2, 1.5, 0.85), Vector3(0, -0.3, 0), swirl)
+	mesh_at(cyl(0.57, 0.57, 0.03, 24), mat("Portal Swirl", Color(0.6, 0.4, 1.0), 0.2, 1.5, 0.85), Vector3(0, 0.55, 0), swirl,
+		0.0, Vector3(PI / 2, 0, 0))
+	mesh_at(cyl(0.34, 0.34, 0.04, 20), mat("Portal Swirl Core", Color(0.85, 0.75, 1.0), 0.2, 3.0, 0.85), Vector3(0, 0.25, 0.01),
+		swirl, 0.0, Vector3(PI / 2, 0, 0))
+	# The light the runes give off, brightening as they wake (scripts/humming_oak.gd)
+	var rune_light := OmniLight3D.new()
+	rune_light.name = "Rune Glow"
+	rune_light.light_color = Color(0.55, 1.0, 0.75)
+	rune_light.light_energy = 0.0
+	rune_light.omni_range = 9.0
+	rune_light.position = Vector3(0, 2.6, 2.6)
+	oak.add_child(rune_light)
+	# Runes carved round the hollow and up the trunk: dark until the acorns wake them (scripts/humming_oak.gd lights
+	# the shared "Oak Rune" material)
+	var runes := Node3D.new()
+	runes.name = "Oak Runes"
+	oak.add_child(runes)
+	var rune := mat("Oak Rune", Color(0.55, 1.0, 0.75), 0.4, 0.0)
+	rune.emission_enabled = true
+	rune.emission = Color(0.55, 1.0, 0.75)
+	rune.emission_energy_multiplier = 0.0
+	rune.albedo_color = Color(0.22, 0.17, 0.13)
+	var arc: Array[Vector2] = []
+	for k in 9:                                                  # an arc of them over the arch
+		var a := PI * (0.05 + 0.9 * k / 8.0)
+		arc.append(Vector2(cos(a) * 1.12, 1.85 + sin(a) * 1.12))
+	for k in 4:                                                  # and down both sides of the door
+		arc.append(Vector2(-1.08, 1.45 - k * 0.38))
+		arc.append(Vector2(1.08, 1.45 - k * 0.38))
+	for k in arc.size():
+		var x := arc[k].x
+		var y := arc[k].y
+		var a := atan2(y - 1.85, x) if y > 1.85 else PI / 2
+		var at := Vector3(x, y, maxf(_oak_r(y) * _oak_r(y) - x * x, 0.0) ** 0.5 + 0.02)
+		mesh_at(box(Vector3(0.12, 0.28, 0.03)), rune, at, runes, atan2(at.x, at.z), Vector3(0, 0, a - PI / 2))
+		mesh_at(box(Vector3(0.2, 0.06, 0.03)), rune, at + Vector3(0, 0.05 * (k % 2 * 2 - 1), 0.005), runes, atan2(at.x, at.z), Vector3(0, 0, a))
+	for k in 12:                                                 # and a spiral up the trunk
+		var a := PI / 2 + k * 0.85
+		var y := 3.2 + k * 0.28
+		var r := _oak_r(y) + 0.02
+		var at := Vector3(cos(a) * r, y, sin(a) * r)
+		mesh_at(box(Vector3(0.14, 0.26, 0.03)), rune, at, runes, atan2(at.x, at.z))
+		mesh_at(ball(0.07, 6), rune, at + Vector3(0, 0.14, 0) + Vector3(cos(a), 0, sin(a)) * 0.01, runes)
+	# Roots: knotted round the foot, the front ones parted for the door. They lift and settle when it opens.
+	var roots := Node3D.new()
+	roots.name = "Oak Roots"
+	oak.add_child(roots)
+	for k in 9:
+		var a := k * TAU / 9 + PI / 2 + PI / 9
+		if absf(wrapf(a - PI / 2, -PI, PI)) < 0.45:
+			continue                                             # (nothing right in front of the hollow)
+		var root := Node3D.new()
+		root.name = "Root %d" % k
+		root.position = Vector3(cos(a), 0.05, sin(a)) * 1.25
+		root.rotation.y = -a + PI / 2
+		roots.add_child(root)
+		var len := rng.randf_range(1.6, 2.4)
+		mesh_at(cyl(0.08, 0.32, len, 8), bark, Vector3(0, 0.1, len / 2), root, 0.0, Vector3(PI / 2 - 0.12, 0, 0))
+	# Where the three acorns go: a little nook in the roots beside the hollow, with a mossy stone
+	var nook := Marker3D.new()
+	nook.name = "Acorn Nook"
+	nook.position = Vector3(1.05, 0.25, 1.35)
+	oak.add_child(nook)
+	mesh_at(cyl(0.35, 0.42, 0.22, 10), mat("Mossy Stone", Color(0.4, 0.48, 0.3), 0.9), Vector3(1.05, 0.11, 1.35), oak)
 	var l := OmniLight3D.new()
 	l.name = "Portal Glow"
 	l.light_color = Color(0.7, 0.5, 1.0)
-	l.light_energy = 1.5
-	l.omni_range = 7.0
-	l.position = Vector3(0, 1.8, 1.0)
+	l.light_energy = 2.0
+	l.omni_range = 8.0
+	l.position = Vector3(0, 1.4, OAK_BACK + 2.2)
 	g.add_child(l)
-	label(g, "Portal to Galaxity", Vector3(0, 4.0, 0), 56, Color(0.9, 0.8, 1.0)).billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	var exit := Area3D.new()
 	exit.name = "PortalToGalaxity"
 	exit.set_script(load("res://scripts/door.gd"))
 	exit.set("destination", TOWN)
 	exit.set("spawn", "FromPortaltoEarth")
 	exit.set("place_name", "Galaxity")
-	exit.position = Vector3(0, 1.6, 0)
-	var cs := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(3.0, 3.2, 0.6)
-	cs.shape = shape
-	exit.add_child(cs)
+	exit.position = Vector3(0, 1.2, OAK_BACK + 1.55)
+	var door_cs := CollisionShape3D.new()
+	var door_shape := BoxShape3D.new()
+	door_shape.size = Vector3(1.4, 2.4, 0.8)
+	door_cs.shape = door_shape
+	exit.add_child(door_cs)
 	g.add_child(exit)
 	var entrance := Marker3D.new()                               # arriving: a few steps out of the portal, facing the gazebo
 	entrance.name = "Entrance"
@@ -1049,6 +1168,11 @@ func _portal() -> void:
 	player.name = "Player"
 	player.position = entrance.position
 	world.add_child(player)
+
+
+func _oak_r(y: float) -> float:
+	# The old oak's trunk radius at height y (a cone from 1.5 m at the foot to 0.95 m at 6.5 m)
+	return lerpf(1.5, 0.95, clampf(y / 6.5, 0.0, 1.0))
 
 
 func _person(name: String, id: String, at: Vector3, yaw: float, look: Dictionary, extras := [], outfit := {}, has_routine := true,
@@ -2538,9 +2662,15 @@ func _write_places() -> void:
 	_walk(["green_e", "green_se", "green_s", "green_sw", "green_w", "green_nw", "green_n", "green_ne", "green_e"])
 	_place("gazebo", Vector2(0, 8.0))
 	_place("old_oak", Vector2(PORTAL_AT.x + 4.5, PORTAL_AT.z + 4.5))
-	_place("green_bench", Vector2(10.5, 10.5))
+	# The bench's two seats, 0.45 m either side of its middle (its seat faces the middle of the green)
+	var facing := Vector2(-GREEN_BENCH.x, -GREEN_BENCH.z).normalized()
+	var along := Vector2(-facing.y, facing.x)
+	var mid := Vector2(GREEN_BENCH.x, GREEN_BENCH.z)
+	_place("green_bench", mid + along * 0.45)
+	_place("green_bench_2", mid - along * 0.45)
 	_walk(["green_s", "gazebo", "old_oak", "green_s"])
 	_walk(["gazebo", "green_bench", "green_se"])
+	_walk(["green_bench", "green_bench_2"])
 	# The Autumn Festival (Saturday evenings): round the gazebo from its steps, and beside each stall
 	var ring := ["gazebo"]
 	for what in FESTIVAL:

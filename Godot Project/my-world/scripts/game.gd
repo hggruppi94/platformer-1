@@ -405,6 +405,7 @@ func load_game() -> void:
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
+	FirstNight.migrate()                          # an old save's First Night steps, moved to the Humming Oak's
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
 	var jobs = data.get("earth_jobs", {})                    # saves from before Earth's notice board have none

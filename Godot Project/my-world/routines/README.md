@@ -27,6 +27,11 @@ along the town's paths; otherwise (or after sleeping, loading, or coming out of 
 | `patrol` | go round the places in `route` in turn, stopping `pause` seconds at each (Dash's bike rides, Pip's lamp walks) |
 | `follow` | tag along behind someone: `"who": "rex"`. If they're away, wait at `place` |
 | `away` | not in town (asleep at home, inside). No one to see or talk to |
+| `sit` | sit down on a bench at `place` (Earth townsfolk: their legs are posed in code, scripts/townsfolk.gd). `"seat"` is the seat's height above where they stand (default 0: a bench's seat is what they stand on). The green's bench has two seats, `green_bench` and `green_bench_2` |
+
+**Talking:** when the player talks to someone, they stop and turn to listen, then carry on. Someone busy in the middle of
+something keeps going: blocks labelled `skating`, `riding`, `scooting`, `morning_skate`, `kites` or `festival_hayride`
+(`routine.gd` `BUSY`), or any block with `"busy": true` (`"busy": false` makes one of those stop after all).
 
 **`anim`** (optional) is the animation they play while they stand about in an `idle` block or rest between little
 walks in a `wander` block, instead of `idle`: Melody dances at the Market (`"anim": "dance"`).

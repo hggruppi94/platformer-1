@@ -55,7 +55,7 @@ func _ready() -> void:
 	_portal_glow = find_child("Portal Glow", true, false) as OmniLight3D
 	if _portal_glow:
 		_glow_energy = _portal_glow.light_energy
-	_open = 1.0 if Clock.in_shift() else 0.0
+	_open = 1.0 if _door_open() else 0.0
 	_light()
 	_portal()
 
@@ -69,7 +69,7 @@ func _process(delta: float) -> void:
 	if m != _last_minute:
 		_last_minute = m
 		_light()
-	_open = move_toward(_open, 1.0 if Clock.in_shift() else 0.0, delta / PORTAL_OPEN_TIME)
+	_open = move_toward(_open, 1.0 if _door_open() else 0.0, delta / PORTAL_OPEN_TIME)
 	_portal()
 
 
@@ -84,8 +84,17 @@ func _portal() -> void:
 		_portal_glow.light_energy = _glow_energy * k
 		_portal_glow.visible = k > 0.01
 	if _portal_door:
-		_portal_door.set("closed_message", "" if Clock.in_shift() else
-			"The portal is asleep. It opens to Galaxity during the Shift, from midnight to 1 AM.")
+		if not HummingOak.awake():
+			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
+		else:
+			_portal_door.set("closed_message", "" if Clock.in_shift() else
+				"The door in the old oak is asleep. It opens to Galaxity during the Shift, from midnight to 1 AM.")
+
+
+func _door_open() -> bool:
+	# The oak's door opens in the Shift, once it's awake (on a new game's first day it's woken at midnight:
+	# scripts/humming_oak.gd)
+	return Clock.in_shift() and HummingOak.awake()
 
 
 func _first_material(n: Node) -> StandardMaterial3D:

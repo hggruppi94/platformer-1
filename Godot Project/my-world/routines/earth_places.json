@@ -53,6 +53,10 @@
 			"green_se"
 		],
 		[
+			"green_bench",
+			"green_bench_2"
+		],
+		[
 			"fest_apples",
 			"fest_apples_stall"
 		],
@@ -529,8 +533,12 @@
 			8.0
 		],
 		"green_bench": [
-			10.5,
-			10.5
+			7.06,
+			4.43
+		],
+		"green_bench_2": [
+			6.54,
+			5.17
 		],
 		"green_e": [
 			21.0,

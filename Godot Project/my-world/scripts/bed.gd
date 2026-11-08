@@ -116,7 +116,7 @@ func open_picker() -> void:
 		"" if Clock.on_earth else ": home to Earth"],
 		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
 	var shift: Button = null
-	if Clock.on_earth and not Clock.in_shift():
+	if Clock.on_earth and not Clock.in_shift() and FirstNight.shift_sleep_ok():
 		shift = _option(box, "Until the Shift (midnight)",
 			func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	_option(box, "Not now", close_picker)

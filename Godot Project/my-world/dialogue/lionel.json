@@ -3,6 +3,32 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:clues",
+        "not_flag": "fn_book"
+      },
+      "set": "fn_book",
+      "lines": [
+        "The old oak? (Mr. Page's eyebrows shoot right up.) Funny you should ask. Wait right there.",
+        "(He climbs a wobbly ladder to the very top shelf, and comes down with a dusty green book: THE LEGEND OF THE OLD OAK.)",
+        "(He reads aloud.) 'Long ago, the oak was planted where two worlds touch. At midnight it hums, and for the chosen ones it opens a door.'",
+        "'Wake it with three acorns of light, laid in its roots at sundown. The chosen will know them: they glow, and they tick.'",
+        "Fiction, of course. Of course! ...Though I did see something glowing up by Mossy Falls on my morning walk.",
+        "{player}: Can I borrow it?",
+        "Keep it as long as you like. Theo's had the rest of the shop out on loan for years. (He winks.)"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:clues"
+      },
+      "lines": [
+        "'Three acorns of light, laid in its roots at sundown.' I've read it a hundred times. Never once found an acorn that glows."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

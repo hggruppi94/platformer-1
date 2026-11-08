@@ -8,13 +8,20 @@ extends Node
 # plays the arrival moment the first time they land in Galaxity (the screen warps and a watch appears on their wrist),
 # cheers when the Gloop King pops, and has the portal put them to bed at the end of the night instead of by the oak.
 #
-#   1 evening  Earth, 8 PM: Nina knocks; meet Mr. Palmer and two more people on the green. Earth's clock waits at 11 PM
-#              until this step's done, so a slow first look round never misses the first Shift.
-#   2 wait     until midnight (Nina suggests the bed's "Until the Shift").
-#   3 shift    through the portal: the arrival moment, then Dash at the portal on the far side.
-#   4 day      Galaxity: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch, Zippy.
-#   5 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
-#   6 home     pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
+#   The Humming Oak, a whole first day on Earth (the oak itself, its acorns and its reveal: scripts/humming_oak.gd):
+#   1 morning  Earth, 9 AM: Nina knocks; meet Mr. Palmer and two more people on the green.
+#   2 oak      Nina says the old oak hums at midnight: listen to it, and something's ticking inside.
+#   3 clues    Mr. Page's book (The Legend of the Old Oak), Mr. Palmer's lilac envelope from Galaxity, and three
+#              glowing acorns round town (each one sets off a tremor). Earth's clock waits at 6 PM until steps 1 to 3
+#              are done, so nobody runs out of day.
+#   4 dusk     lay the acorns in the oak's roots: its runes wake. The clock waits at 11 PM until they're in.
+#   5 wait     until midnight (the bed's "Until the Shift" is offered from here on, not before).
+#   6 awaken   at midnight, walk up to the oak: it opens its door for the first time (the reveal).
+#   Then the first Galaxity day:
+#   7 shift    through the oak's door: the arrival moment, then Dash at the portal on the far side.
+#   8 day      Galaxity: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
+#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
+#   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
 # A new game starts it when the hero's made (scripts/creator.gd closes). An old save never gets it forced on it: Nina
 # offers it on Earth, and the quest log has a button for it. Every step can be skipped from the quest log
@@ -25,8 +32,15 @@ const ID := "first_night"
 const START_FLAG := "first_night_start"
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
-const START_HOUR := 20.0                      # a new game's evening: 8 PM on Earth
-const HOLD_HOUR := 23.0                       # the evening waits here (Earth time) until the first step's done
+const START_HOUR := 9.0                       # a new game starts in the morning: 9 AM on Earth
+const DUSK_HOUR := 18.0                       # the day waits here (Earth time) until the town and the clues are done
+const HOLD_HOUR := 23.0                       # ...and here until the acorns are in the oak's roots
+const DAY_STEPS := ["morning", "oak", "clues"]
+const NO_SHIFT_SLEEP := ["morning", "oak", "clues", "dusk"]
+const FRESH_FLAG := "fresh_start"           # a game started since the Humming Oak (held_back())
+const VERSION_FLAG := "fn_v2"                 # this save's First Night has the Humming Oak's steps (see migrate())
+# An old save's step (before the Humming Oak, Nov 2026) -> the same step now: evening, wait, shift, day, king, home
+const OLD_STEPS := {0: 0, 1: 4, 2: 6, 3: 7, 4: 8, 5: 9}
 const GLOOPS := 3                             # Gloops to pop on the Galaxity day
 const FOLK := 2                               # townsfolk to say hello to on the evening
 const FOUNTAIN_WATCH := "water_clock"         # the lost watch on the Market Square fountain (scripts/watches.gd)
@@ -78,18 +92,56 @@ func flag(f: String) -> void:
 func start() -> void:
 	# Start it (a new game, Nina's offer or the quest log's button). The Quests autoload picks the flag up.
 	flag(START_FLAG)
+	flag(VERSION_FLAG)
 	Quests.check()
+
+
+func held_back(night: int) -> bool:
+	# A new game (started with the Humming Oak) brings the collectibles in gradually instead of all at once: lost
+	# watches, the S-K-A-T-E letters, booster coins and the Earth notice board wait for the night they're for.
+	# Old saves, and tests that don't start a new game this way, have everything out as before.
+	return Dialogue.flags.has(FRESH_FLAG) and Nights.night() < night
+
+
+func shift_sleep_ok() -> bool:
+	# The bed's "Until the Shift" (scripts/bed.gd) only once the oak's ready for midnight
+	return not running() or not step() in NO_SHIFT_SLEEP
+
+
+func migrate() -> void:
+	# A save from before the Humming Oak (scripts/game.gd calls this as it loads): its First Night step number is moved
+	# to the same step now, and if it was past the evening, the new Earth-day steps count as done (the oak's awake for
+	# it once it's through the door). Saves that never started it, or finished it, have nothing to move.
+	if not Quests.state.has(ID) or Dialogue.flags.has(VERSION_FLAG):
+		return
+	Dialogue.flags[VERSION_FLAG] = true
+	var st: Dictionary = Quests.state[ID]
+	if bool(st.get("done", false)):
+		return
+	var old := int(st.get("step", 0))
+	st["step"] = int(OLD_STEPS.get(old, old))
+	if old >= 1:
+		for f in ["fn_oak_listen", "fn_book", "fn_acorns", "fn_acorns_placed"]:
+			Dialogue.flags[f] = true
+	if old >= 2:
+		Dialogue.flags["oak_woken"] = true
 
 
 # -----------------------------------------------------------------------------
 # 1. The evening
 # -----------------------------------------------------------------------------
 func _on_creator_closed() -> void:
-	# A new game's hero is made: the evening starts at 8 PM (the clock kept going while they were in the creator), and
+	# A new game's hero is made: the day starts at 9 AM (the clock kept going while they were in the creator), and
 	# Nina knocks at the door. Changing the hero later doesn't start anything.
 	if not bool(Creator.get("_first_time")) or Quests.is_started(ID) or not Clock.on_earth:
 		return
 	Clock.set_earth_time(START_HOUR * 60.0, true)
+	flag(FRESH_FLAG)
+	# Earth was put together before the hero was made: take away what a new game's first day holds back
+	Boosters.drop_coins()
+	var board := get_tree().current_scene.get_node_or_null("Notice Board")
+	if board:
+		board.queue_free()
 	start()
 	_knock.call_deferred()
 
@@ -107,10 +159,11 @@ func _process(_delta: float) -> void:
 	if not running():
 		return
 	match step():
-		"evening":
-			# Earth's clock waits at 11 PM (just the clock: everyone carries on) until the evening's done
-			if Clock.on_earth and not Clock.in_shift() and Clock.earth_minutes >= HOLD_HOUR * 60.0:
-				Clock.earth_minutes = HOLD_HOUR * 60.0
+		"morning", "oak", "clues":
+			# Earth's clock waits at 6 PM (just the clock: everyone carries on) until the day's clues are found
+			_hold(DUSK_HOUR)
+		"dusk":
+			_hold(HOLD_HOUR)
 		"wait":
 			if Clock.in_shift():
 				flag("fn_midnight")
@@ -120,10 +173,15 @@ func _process(_delta: float) -> void:
 			Clock.pull_spawn = "HomeSpawn"            # the end of the Shift puts them to bed tonight (scripts/clock.gd)
 
 
+func _hold(hour: float) -> void:
+	if Clock.on_earth and not Clock.in_shift() and Clock.earth_minutes >= hour * 60.0:
+		Clock.earth_minutes = hour * 60.0
+
+
 func _on_talked(id: String) -> void:
 	if not running():
 		return
-	if step() == "evening" and id in EARTH_FOLK:
+	if step() == "morning" and id in EARTH_FOLK:
 		flag("fn_hi_" + id)
 		var met := EARTH_FOLK.filter(func(f: String) -> bool: return Dialogue.flags.has("fn_hi_" + f)).size()
 		if met >= FOLK:
@@ -280,8 +338,10 @@ func _on_quest_changed(id: String) -> void:
 func _on_flag(f: String) -> void:
 	if f == "popped_gloop_king" and running() and step() == "king":
 		_cheer()
-	elif f == START_FLAG and Dialogue.is_active():
-		flag("fn_nina")                           # said yes to Nina's offer (an old save): that's her talked to
+	elif f == START_FLAG:
+		flag(VERSION_FLAG)                        # (started now, so it's on today's steps: nothing for migrate() to move)
+		if Dialogue.is_active():
+			flag("fn_nina")                       # said yes to Nina's offer (an old save): that's her talked to
 
 
 func _cheer() -> void:

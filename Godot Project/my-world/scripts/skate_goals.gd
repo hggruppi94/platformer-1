@@ -190,7 +190,8 @@ func _make_letter(l: String, at: Node3D) -> Area3D:
 	label.outline_modulate = Color(0.45, 0.1, 0.4)
 	label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y      # always facing her, so it reads the right way round
 	look.add_child(label)
-	a.visible = not Dialogue.flags.has("skate_letter_" + l) and not is_done("letters")
+	# (On a new game's first night they're not out yet: night 2 asks for one. FirstNight.held_back)
+	a.visible = not Dialogue.flags.has("skate_letter_" + l) and not is_done("letters") and not FirstNight.held_back(2)
 	a.body_entered.connect(func(body: Node3D) -> void: _on_letter(l, a, body))
 	return a
 

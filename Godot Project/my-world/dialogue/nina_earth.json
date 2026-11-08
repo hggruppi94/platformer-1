@@ -27,30 +27,62 @@
     },
     {
       "when": {
-        "quest_step": "first_night:evening",
+        "quest_step": "first_night:morning",
         "not_flag": "fn_nina"
       },
       "set": "fn_nina",
       "lines": [
-        "Oh! Hi. You opened the door. I wasn't sure anyone lived here yet.",
+        "Oh! Hi. Good morning! You opened the door. I wasn't sure anyone lived here yet.",
         "I'm Nina. Nina Blastoff. I live on Maple Lane, with my sister Prue and my little brother Bruno.",
         "{player}: Hi Nina! I'm {player}.",
         "{player}. Cool name. So... can I tell you something weird?",
-        "(She looks over at the big old oak on the green, then back at you.)",
+        "(She looks over at the big old oak on the corner of the green, then back at you.)",
         "That tree hums. Every night, right at midnight. Nobody else seems to notice. But I think you will.",
-        "Before then, go and meet everyone! Mr. Palmer's by the gazebo. He knows everything about this town. Probably more than he says.",
+        "First, go and meet everyone! Mr. Palmer's by the gazebo. He knows everything about this town. Probably more than he says.",
         "Walk up to anyone and press {interact} to say hi. And {player_menu} opens your menu, with your quests and a map of town. {map} goes straight to the map.",
-        "See you at the oak? Maybe? No pressure. (She's already walking off.)"
+        "Then come and find me by the old oak. I want to show you something. (She's already walking off.)"
       ],
       "first_night": true
     },
     {
       "when": {
-        "quest_step": "first_night:evening"
+        "quest_step": "first_night:morning"
       },
       "lines": [
         "Have you met Mr. Palmer yet? Gazebo. Middle of the green. Can't miss him. He waves a lot.",
-        "And say hi to a couple of the others. Everyone round the green is nice. Mostly. Ozzie tells a lot of jokes."
+        "And say hi to a couple of the others. Theo and Mr. Page are on the bench by the gazebo. Ozzie tells a lot of jokes."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:oak"
+      },
+      "lines": [
+        "You came! OK. This is going to sound silly. Put your ear right up to the oak. Go on. Press {interact} by its roots.",
+        "(She bounces on her toes.) I want to know if it's just me."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:clues"
+      },
+      "lines": [
+        "Three things. Mr. Page at the bookshop, Turn the Page, on Main Street: he has a book about EVERYTHING.",
+        "Mr. Palmer had a funny purple envelope on his porch this morning. Very fancy. Very not-from-round-here.",
+        "And I saw something glowing out by Mossy Falls. Maybe more than one something. The map has stars on all of them.",
+        "I'll keep an eye on the oak. Go! Before it gets dark!"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:dusk"
+      },
+      "lines": [
+        "You found them? All three? They're TICKING. Like tiny watches!",
+        "The book said 'laid in its roots at sundown'. There's a little nook by the mossy stone. Press {interact} by the roots."
       ],
       "first_night": true
     },
@@ -59,9 +91,19 @@
         "quest_step": "first_night:wait"
       },
       "lines": [
-        "Not long now. Midnight. The oak.",
+        "The runes! They're glowing! I come here every day and I never even saw them.",
+        "Midnight. Whatever happens, it happens at midnight.",
         "If waiting's boring, have a nap. Your bed has a button for it: \"Until the Shift\". You'll wake up right on time.",
-        "Or keep exploring! The town's pretty at night. Just don't miss it. I'll... probably be there too."
+        "Or keep exploring! The town's pretty at night. Just don't miss it. I'll be right here."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:awaken"
+      },
+      "lines": [
+        "It's midnight! Can you hear it? Come closer, {player}. Closer! Something's happening!"
       ],
       "first_night": true
     },
@@ -70,9 +112,9 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "Can you hear it? The hum! The oak's glowing. Go on, walk right into it.",
+        "It opened! A door! In the TREE! Can you feel it humming? Go on, walk right into it.",
         "{player}: Is it safe?",
-        "I've been loads of times. You'll love it. Trust me. (She grins.) Go!"
+        "(She grins.) I've got a feeling it's been waiting for you. Go! I'll be right behind you. Probably."
       ],
       "first_night": true
     },

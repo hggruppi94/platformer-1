@@ -4,7 +4,7 @@
   "move_anim": "walk",
   "blocks": [
     {"at": "06:00", "place": "inn", "do": "wander", "label": "working", "radius": 2.5},
-    {"at": "11:00", "place": "green_bench", "do": "idle", "label": "chatting", "face": [0, 0]},
+    {"at": "11:00", "place": "green_bench_2", "do": "sit", "label": "chatting", "face": [0, 0]},
     {"at": "13:00", "place": "bakery_door", "do": "idle", "label": "chatting", "face": [-10.6, -46]},
     {"at": "14:00", "place": "inn", "do": "wander", "label": "working", "radius": 2.5},
     {"at": "19:00", "place": "gazebo", "do": "wander", "label": "evening", "radius": 3},
