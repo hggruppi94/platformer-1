@@ -16,6 +16,23 @@ extends RefCounted
 # and its slider goes away. "head" is the middle of the head, which noses and ears grow out from. Ears can be a list:
 # antennae or horns grow with them ("ears_name" says so on the slider).
 const BODIES := {
+	# The creator's one body: a human kid, a girl or a boy (Hayden, 7 Nov 2026). Their own hair is a close cap that
+	# stays on under every hairstyle ("hair_base"), so they're never bald under one (tools/build_hero_bodies.py).
+	"human_girl": {"name": "Girl", "char": "human_girl", "model": "res://models/characters/human_girl.glb",
+		"hair": ["Hair"], "hair_base": true, "extras": [], "extras_name": "", "human": true,
+		"face": {"head": Vector3(0, 1.1, 0),
+			"eyes": {"at": Vector3(0.098, 1.09, 0.2), "r": 0.1},
+			"nose": {"at": Vector3(0, 1.02, 0.23), "r": 0.05},
+			"mouth": {"at": Vector3(0, 0.945, 0.2), "r": 0.07},
+			"ears": {"at": Vector3(0.245, 1.09, -0.01), "r": 0.08, "parts": ["Skin", "Ear Inner"]}}},
+	"human_boy": {"name": "Boy", "char": "human_boy", "model": "res://models/characters/human_boy.glb",
+		"hair": ["Hair"], "hair_base": true, "extras": [], "extras_name": "", "human": true,
+		"face": {"head": Vector3(0, 1.1, 0),
+			"eyes": {"at": Vector3(0.098, 1.09, 0.2), "r": 0.1},
+			"nose": {"at": Vector3(0, 1.02, 0.23), "r": 0.05},
+			"mouth": {"at": Vector3(0, 0.945, 0.2), "r": 0.07},
+			"ears": {"at": Vector3(0.245, 1.09, -0.01), "r": 0.08, "parts": ["Skin", "Ear Inner"]}}},
+	# The older bodies: the creator doesn't offer them any more, but townsfolk, racers and episode guests wear them
 	"hippo": {"name": "Hippo", "char": "nina", "model": "res://models/characters/nina.glb",
 		"hair": ["Hair"], "extras": ["Bow"], "extras_name": "Hair bow",
 		"face": {"head": Vector3(0, 1.1, 0),
@@ -103,13 +120,17 @@ const BODIES := {
 			"mouth": {"at": Vector3(0, 0.96, 0.205), "r": 0.07},
 			"ears": {"at": Vector3(0.255, 1.085, -0.015), "r": 0.08}}},
 }
-# The bodies everyone can pick, in the creator's order
-const BODY_ORDER := ["hippo", "kid", "earth_kid", "bunny", "cat", "moth", "cow", "dino", "alien"]
-# Secret bodies, and how each one's found. They're kept by the save once found (Game.items "secret:<body>").
+# The bodies the creator offers: girl or boy
+const BODY_ORDER := ["human_girl", "human_boy"]
+# Secret bodies, and how each one's found (kept by the save once found: Game.items "secret:<body>"). The creator has
+# only the human kids now, so none are offered; the dog-kid's entry stays for saves that already found it.
 const SECRETS := {
 	"dog": {"flag": "skate_lesson_done", "hint": "Finish Coach Bruno's skate lesson"},
 }
-const SECRET_ORDER := ["dog"]
+const SECRET_ORDER := []
+# Older bodies that a hero made before the human kids becomes a girl from (the rest become a boy), unless their
+# pronouns say otherwise (migrate())
+const GIRLISH := ["hippo", "cow", "bunny", "moth", "cat"]
 const PRONOUNS := {
 	"they": {"they": "they", "them": "them", "their": "their", "theirs": "theirs", "themself": "themself", "are": "are"},
 	"she": {"they": "she", "them": "her", "their": "her", "theirs": "hers", "themself": "herself", "are": "is"},
@@ -123,7 +144,11 @@ const SWATCHES := [
 	Color(0.95, 0.3, 0.3), Color(1.0, 0.55, 0.25), Color(1.0, 0.85, 0.3), Color(0.55, 0.85, 0.35),
 	Color(0.3, 0.75, 0.6), Color(0.35, 0.8, 0.95), Color(0.35, 0.5, 1.0), Color(0.6, 0.45, 1.0),
 	Color(0.85, 0.5, 0.95), Color(1.0, 0.55, 0.75), Color(0.6, 0.55, 0.5), Color(0.75, 0.95, 0.85),
+	# 21 on: more skin tones for the human kids
+	Color(0.88, 0.68, 0.54), Color(0.68, 0.47, 0.33), Color(0.46, 0.31, 0.21), Color(0.29, 0.19, 0.13),
 ]
+# The skin tones a human kid can have (numbers into SWATCHES, from 1), lightest to darkest
+const SKIN_TONES := [1, 2, 21, 3, 22, 4, 23, 5, 24]
 const COLOR_PARTS := ["fur", "hair", "eyes", "accent", "blush", "brows", "top", "bottoms", "shoes"]
 const COLOR_NAMES := {"fur": "Fur / skin", "hair": "Hair", "eyes": "Eyes", "accent": "Accent", "blush": "Blush",
 	"brows": "Brows", "top": "Top", "bottoms": "Bottoms", "shoes": "Shoes"}
@@ -133,10 +158,44 @@ const BROWS := ["Brow"]
 const SIZES := {"height": [0.8, 1.2], "head": [0.8, 1.4], "build": [0.8, 1.3]}
 
 
-static func blank() -> Dictionary:
-	# A fresh hero to start from: a hippo body with short brown hair and none of Nina's own extras, named nothing yet
-	return {"name": "", "pronouns": "they", "body": "hippo", "colors": {"hair": 4}, "hairstyle": 1, "extras": false,
-		"height": 1.0, "head": 1.0, "build": 1.0, "eyes": 1.0, "eye_gap": 1.0, "nose": 1.0, "ears": 1.0, "mouth": 1.0}
+static func blank(girl := true) -> Dictionary:
+	# A fresh hero to start from: a human girl with a high ponytail (or a boy with a messy mop), brown hair, named
+	# nothing yet
+	return {"name": "", "pronouns": "she" if girl else "he", "body": "human_girl" if girl else "human_boy",
+		"colors": {"hair": 4}, "hairstyle": Hairstyles.GIRL_STYLES[0] if girl else Hairstyles.BOY_STYLES[3],
+		"extras": false, "height": 1.0, "head": 1.0, "build": 1.0, "eyes": 1.0, "eye_gap": 1.0, "nose": 1.0, "ears": 1.0,
+		"mouth": 1.0}
+
+
+static func is_girl(hero: Dictionary) -> bool:
+	return str(hero.get("body", "")) == "human_girl"
+
+
+static func styles_for(hero: Dictionary) -> Array:
+	# The hairstyles the creator offers them: the girls' ten or the boys' ten
+	return Hairstyles.GIRL_STYLES if is_girl(hero) else Hairstyles.BOY_STYLES
+
+
+static func migrate(hero: Dictionary) -> Dictionary:
+	# A hero made before the human kids (any other body) becomes a human kid: a girl or a boy by their pronouns (or,
+	# for they/them, by the body they had), with the nearest of the new hairstyles and a skin tone instead of a fur
+	# colour. Their name, pronouns, sizes, face, clothes colours and skin stay as they were.
+	var h := hero.duplicate(true)
+	var body := str(h.get("body", "hippo"))
+	if body in BODY_ORDER:
+		return h
+	var pronouns := str(h.get("pronouns", "they"))
+	var girl := pronouns == "she" or (pronouns == "they" and body in GIRLISH)
+	h["body"] = "human_girl" if girl else "human_boy"
+	var old := int(h.get("hairstyle", 0))
+	var style := int(Hairstyles.TO_NEW.get(old, -1)) if old < Hairstyles.NEW else old
+	h["hairstyle"] = style if style >= Hairstyles.NEW else (Hairstyles.GIRL_STYLES[0] if girl else Hairstyles.BOY_STYLES[3])
+	var colors: Dictionary = h.get("colors", {})
+	if colors.has("fur") and not int(colors.fur) in SKIN_TONES:
+		colors.erase("fur")                     # a purple fur colour isn't a skin tone: back to their own
+	h["colors"] = colors
+	h["extras"] = false
+	return h
 
 
 static func body_of(hero: Dictionary) -> Dictionary:
@@ -144,14 +203,11 @@ static func body_of(hero: Dictionary) -> Dictionary:
 
 
 static func choices(hero := {}) -> Array:
-	# The bodies the creator offers: everyone's, then the secrets found so far, and whatever body they have now
+	# The bodies the creator offers: a girl or a boy (and any secret body found, should one come back one day)
 	var out := BODY_ORDER.duplicate()
 	for id in SECRET_ORDER:
 		if found(id):
 			out.append(id)
-	var now := str(hero.get("body", ""))
-	if BODIES.has(now) and now not in out:
-		out.append(now)
 	return out
 
 
@@ -199,13 +255,13 @@ static func pronoun(hero: Dictionary, word: String) -> String:
 
 static func random() -> Dictionary:
 	# "Surprise me!": a whole new look (keeping their name and pronouns, which the creator puts back)
-	var h := blank()
-	var bodies := choices(h)
-	h.body = bodies[randi() % bodies.size()]
+	var h := blank(randf() < 0.5)
 	for part in COLOR_PARTS:
 		if randf() < 0.75:
 			h.colors[part] = 1 + randi() % SWATCHES.size()
-	h.hairstyle = randi() % Hairstyles.NAMES.size()
+	h.colors["fur"] = SKIN_TONES[randi() % SKIN_TONES.size()]
+	var styles := styles_for(h)
+	h.hairstyle = styles[randi() % styles.size()]
 	h.extras = randf() < 0.4
 	for s in SIZES:
 		h[s] = snappedf(randf_range(SIZES[s][0], SIZES[s][1]), 0.05)
@@ -222,7 +278,7 @@ static func apply(model: Node3D, hero: Dictionary, outfit: Dictionary) -> void:
 	# are fitted with these parts gone, and a hat goes over the hairstyle.
 	var hidden := []
 	var style := int(hero.get("hairstyle", 0))
-	if style > 0 and not body.hair.is_empty():
+	if style > 0 and not body.hair.is_empty() and not body.get("hair_base", false):
 		hidden.append_array(body.hair)
 	if not bool(hero.get("extras", false)):
 		hidden.append_array(body.extras)

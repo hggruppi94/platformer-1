@@ -1,7 +1,8 @@
 extends Node
 
 # Autoload "Creator": the character creator, like an RPG's. The player makes their own hero (scripts/hero.gd,
-# Game.hero) from the ground up: the body they start from, their size, hairstyle, every colour, their clothes, their
+# Game.hero): a human kid, a girl or a boy (big buttons on the Body tab), their skin tone and size, face, hairstyle
+# (ten for girls and ten for boys, scripts/hair_kit.gd, or all twenty with "Show every style"), colours, clothes,
 # name and pronouns. It opens when a new game starts (and once for a save from before heroes: scripts/player.gd),
 # and any time from the wardrobe (scripts/shop.gd).
 #
@@ -9,13 +10,12 @@ extends Node
 # changes them; every change shows straight away. The game carries on behind (it isn't paused), but the hero can't
 # move until it's done.
 #
-# Bodies that don't walk on two legs are secret (Hero.SECRETS): they join the list of bodies once they're found, and
-# finding one says so wherever the player is.
+# Secret bodies (Hero.SECRETS) aren't offered any more (Hero.SECRET_ORDER is empty): there's one body, a human kid.
 
 signal closed
 
 const TABS := ["Body", "Face", "Hair", "Colours", "Clothes", "Name"]
-const FACE_PARTS := ["fur", "eyes", "accent", "blush", "brows"]
+const FACE_PARTS := ["eyes", "blush", "brows"]          # (skin is on the Body tab, with the skin tones)
 const CLOTHES_PARTS := ["top", "bottoms", "shoes"]
 
 var _layer: CanvasLayer
@@ -27,6 +27,7 @@ var _tab := "Body"
 var _part := "fur"                     # the colour being picked on the Colours tab
 var _cloth_part := "top"               # ...and on the Clothes tab
 var _first_time := false
+var _all_hair := false                 # the Hair tab shows all twenty styles, not just the girls' or boys' ten
 var _cam: Camera3D
 var _old_cam: Camera3D
 var _player: Node3D
@@ -166,6 +167,30 @@ func step_body(step: int) -> void:
 	_changed()
 
 
+func set_girl(girl: bool) -> void:
+	# Girl or boy: the body, the pronouns that go with it (unless they picked they/them) and, if their hairstyle is
+	# one of the other's, the first of theirs
+	if Hero.is_girl(Game.hero) == girl and str(Game.hero.get("body", "")) in Hero.BODY_ORDER:
+		return
+	Game.hero["body"] = "human_girl" if girl else "human_boy"
+	if str(Game.hero.get("pronouns", "they")) != "they":
+		Game.hero["pronouns"] = "she" if girl else "he"
+	if not _all_hair and not int(Game.hero.get("hairstyle", 0)) in Hero.styles_for(Game.hero):
+		Game.hero["hairstyle"] = Hero.blank(girl).hairstyle
+	_player.call("set_rider", "hero", false)        # a new body is a new model
+	_changed()
+
+
+func step_hair(step: int) -> void:
+	var styles := _hair_list()
+	var i := styles.find(int(Game.hero.get("hairstyle", 0)))
+	set_value("hairstyle", styles[posmod(i + step, styles.size())] if i >= 0 else styles[0])
+
+
+func _hair_list() -> Array:
+	return Hairstyles.GIRL_STYLES + Hairstyles.BOY_STYLES if _all_hair else Hero.styles_for(Game.hero)
+
+
 func step_face(step: int) -> void:
 	# The ready-made faces, one after another (from a face of their own, the next one along from the start)
 	var i := FaceSculpt.preset_index(Game.hero)
@@ -178,8 +203,17 @@ func step_face(step: int) -> void:
 
 
 func surprise() -> void:
+	# A whole new look, but still them: their name, pronouns and girl or boy stay
 	var keep := {"name": Game.hero.get("name", ""), "pronouns": Game.hero.get("pronouns", "they")}
-	Game.hero = Hero.random()
+	var girl := Hero.is_girl(Game.hero)
+	for i in 8:
+		Game.hero = Hero.random()
+		if Hero.is_girl(Game.hero) == girl:
+			break
+	Game.hero["body"] = "human_girl" if girl else "human_boy"
+	if not int(Game.hero.hairstyle) in Hero.styles_for(Game.hero):
+		var styles := Hero.styles_for(Game.hero)
+		Game.hero["hairstyle"] = styles[randi() % styles.size()]
 	Game.hero.merge(keep, true)
 	_player.call("set_rider", "hero", false)
 	_changed()
@@ -187,7 +221,7 @@ func surprise() -> void:
 
 func start_over() -> void:
 	var keep := {"name": Game.hero.get("name", ""), "pronouns": Game.hero.get("pronouns", "they")}
-	Game.hero = Hero.blank()
+	Game.hero = Hero.blank(Hero.is_girl(Game.hero))
 	Game.hero.merge(keep, true)
 	_player.call("set_rider", "hero", false)
 	_changed()
@@ -296,31 +330,29 @@ func _fill() -> void:
 		b.button_pressed = t == _tab
 		_tabs.add_child(b)
 	for c in _content.get_children():
+		_content.remove_child(c)             # (out now, so the new rows keep their names)
 		c.queue_free()
 	var h: Dictionary = Game.hero
 	var body := Hero.body_of(h)
 	match _tab:
 		"Body":
-			var body_id := str(h.get("body", "hippo"))
-			_arrows("Body", body.name + ("  ★" if Hero.is_secret(body_id) else ""), step_body)
+			# Girl or boy: two big buttons
+			var pick := HBoxContainer.new()
+			pick.add_theme_constant_override("separation", 12)
+			for girl in [true, false]:
+				var b := _button("Girl" if girl else "Boy", set_girl.bind(girl), "Pick " + ("girl" if girl else "boy"))
+				b.toggle_mode = true
+				b.button_pressed = Hero.is_girl(h) == girl
+				b.custom_minimum_size = Vector2(0, 64)
+				b.add_theme_font_size_override("font_size", 26)
+				b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				pick.add_child(b)
+			_content.add_child(pick)
+			_content.add_child(_label("Skin", 20))
+			_swatches("fur", Hero.SKIN_TONES)
 			_slider("Height", "height", Hero.SIZES.height)
 			_slider("Head size", "head", Hero.SIZES.head)
 			_slider("Build", "build", Hero.SIZES.build)
-			if str(body.extras_name) != "":
-				var extras := CheckButton.new()
-				extras.name = "Extras"
-				extras.text = str(body.extras_name)
-				extras.button_pressed = bool(h.get("extras", false))
-				extras.toggled.connect(func(on: bool) -> void: set_value("extras", on))
-				_content.add_child(extras)
-			# The secret bodies: found ones are in the list above (with a star), the rest show a hint
-			var found := Hero.SECRET_ORDER.filter(func(id: String) -> bool: return Hero.found(id))
-			_content.add_child(_label("★ Secret heroes found: %d of %d" % [found.size(), Hero.SECRET_ORDER.size()], 20,
-				Color(1, 0.9, 0.6)))
-			for id in Hero.SECRET_ORDER:
-				var line := "%s: found! It's in the list of bodies." % Hero.BODIES[id].name if id in found \
-					else "???  Hint: %s." % Hero.SECRETS[id].hint
-				_content.add_child(_label(line, 17, Color(0.85, 0.85, 1.0)))
 		"Face":
 			var face: Dictionary = body.get("face", {})
 			var preset := FaceSculpt.preset_index(h)
@@ -329,11 +361,35 @@ func _fill() -> void:
 				if FaceSculpt.has_feature(face, key):
 					_slider(FaceSculpt.slider_name(face, key), key, FaceSculpt.RANGES[key], true)
 		"Hair":
-			var styles := Hairstyles.NAMES
-			_arrows("Hairstyle", styles[clampi(int(h.get("hairstyle", 0)), 0, styles.size() - 1)],
-				func(step: int) -> void: set_value("hairstyle", posmod(int(h.get("hairstyle", 0)) + step, styles.size())))
+			# The styles as big buttons with their names, two to a row; the one they have lit up
+			var styles := _hair_list()
+			var now := int(h.get("hairstyle", 0))
+			var grid := GridContainer.new()
+			grid.name = "Hair styles"
+			grid.columns = 2
+			grid.add_theme_constant_override("h_separation", 8)
+			grid.add_theme_constant_override("v_separation", 8)
+			for style in styles:
+				var b := _button(Hairstyles.name_of(style), set_value.bind("hairstyle", style), "Hair %d" % style)
+				b.toggle_mode = true
+				b.button_pressed = style == now
+				b.custom_minimum_size = Vector2(0, 40)
+				b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				grid.add_child(b)
+			_content.add_child(grid)
+			var about := _label(str(HairKit.ABOUT.get(Hairstyles.name_of(now), "")), 17, Color(0.85, 0.85, 1.0))
+			about.name = "Hair about"
+			_content.add_child(about)
 			_content.add_child(_label("Hair colour", 20))
 			_swatches("hair")
+			var all := CheckButton.new()
+			all.name = "All hair"
+			all.text = "Show every style (girls' and boys')"
+			all.button_pressed = _all_hair
+			all.toggled.connect(func(on: bool) -> void:
+				_all_hair = on
+				_fill())
+			_content.add_child(all)
 		"Colours":
 			_arrows("Colour of", Hero.COLOR_NAMES[_part], func(step: int) -> void:
 				_part = FACE_PARTS[posmod(FACE_PARTS.find(_part) + step, FACE_PARTS.size())]
@@ -423,15 +479,16 @@ func _face_label() -> void:
 		l.text = "Face:  " + (FaceSculpt.PRESETS[preset].name if preset >= 0 else "Your own")
 
 
-func _swatches(part: String) -> void:
-	# A grid of colours to click: the first is their own (as drawn), then the rest
+func _swatches(part: String, only := []) -> void:
+	# A grid of colours to click: the first is their own (as drawn), then the rest (or only these: skin tones)
 	var grid := GridContainer.new()
 	grid.name = "Swatches " + part
 	grid.columns = 7
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	var pick := int(Game.hero.get("colors", {}).get(part, 0))
-	for k in Hero.SWATCHES.size() + 1:
+	var order: Array = range(Hero.SWATCHES.size() + 1) if only.is_empty() else [0] + only
+	for k in order:
 		var b := Button.new()
 		b.name = "Swatch %d" % k
 		b.custom_minimum_size = Vector2(54, 44)
