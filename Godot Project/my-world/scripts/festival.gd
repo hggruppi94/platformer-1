@@ -104,7 +104,8 @@ func _pie_buy(_it: Dictionary) -> String:
 # -----------------------------------------------------------------------------
 func is_festival_day(on_day := TODAY) -> bool:
 	# Every Saturday: that season's fair (Earth's calendar: scripts/clock.gd)
-	return Clock.weekday(on_day) == DAY and (on_day != TODAY or not Clock.in_shift())
+	# (only in a season Stars Hollow has: plan item 20, Clock.is_open())
+	return Clock.weekday(on_day) == DAY and Clock.is_open(on_day) and (on_day != TODAY or not Clock.in_shift())
 
 
 func fair(on_day := TODAY) -> Dictionary:
@@ -144,7 +145,7 @@ func lanterns_up() -> bool:
 
 func is_hallows_eve(on_day := TODAY) -> bool:
 	return Clock.season(on_day) == HALLOWS.season and Clock.season_day(on_day) == HALLOWS.date \
-		and (on_day != TODAY or not Clock.in_shift())
+		and Clock.is_open(on_day) and (on_day != TODAY or not Clock.in_shift())
 
 
 func hallows_on() -> bool:
@@ -171,6 +172,8 @@ func days_until() -> int:
 func events_on(on_day: int) -> Array[String]:
 	# What's on in Stars Hollow that day, for the Calendar page (scripts/player_menu.gd)
 	var out: Array[String] = []
+	if not Clock.is_open(on_day):
+		return out                              # a locked season: the calendar skips it, so nothing's on
 	if is_hallows_eve(on_day):
 		out.append("Hallow's Eve, trick-or-treat 5-9 PM")
 	var big := big_day(on_day)
@@ -394,7 +397,7 @@ func big_day(on_day := TODAY) -> String:
 	# Which big day it is ("lights", "kites", "fireworks"), or ""
 	for id in BIG_DAYS:
 		if Clock.season(on_day) == BIG_DAYS[id].season and Clock.season_day(on_day) == BIG_DAYS[id].date \
-				and (on_day != TODAY or not Clock.in_shift()):
+				and Clock.is_open(on_day) and (on_day != TODAY or not Clock.in_shift()):
 			return id
 	return ""
 

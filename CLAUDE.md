@@ -88,6 +88,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: **Winter unlocks, and Flurry comes to the Void** (the Frozen Moment's reward, slice two; plan item 20 for
+  winter). Hayden: "Yes". Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Seasons unlock one by one** (`Clock.seasons_open`, saved as `"seasons_open"`): a **new game** only has autumn
+    (`Game.new_game()`); each other season waits in a portal world (`Portals.WORLDS` `"season"`: winter in the Frozen
+    Moment, summer in Rhythm Springs, spring in Glenmoor) and opens when it's mended (`Portals.open_seasons()`, also
+    run on load, so a mended world's season is always open). When Earth's day reaches a locked season the calendar
+    skips on a whole season at a time to the next open one (`Clock.skip_locked_seasons()`, from `_check_changes` when
+    Earth's day changes), so weekdays never move and a new game gets autumn after autumn (Year 2...) until winter's
+    unlocked. **Old saves** (no `"seasons_open"`) and tests (`Clock.reset()`) keep all four. Fairs, Hallow's Eve and
+    big days only happen on open days (`Clock.is_open()`, festival.gd). The **Calendar** shows a locked season's page
+    frosted over with a hint (`player_menu.gd _frosted_page()`, `season_hint()`: names the world once its portal's
+    open), and "Coming up" stops at a locked season.
+  - **Flurry in the Void** (`Portals._flurry_in_hub()`, once the Frozen Moment's mended): on the Portal Plaza beside
+    Shard Isle's portal (`FLURRY_SPOT` in the plaza's frame), on a little snow patch with her own snowfall falling
+    round her, turning to look at you. Her first talk says she followed you through; then she chats
+    (`flurry_hub_lines()`, found `flurry_in_hub`). `frozen_moment.gd flurry_model()` is static now.
+  - Tests: new `tools/test_season_unlocks.gd`; calendar, seasons, fairs, big_days, festival, portals, frozen_moment
+    pass. Previews: `tools/capture_season_unlocks.gd` (shots in the project files under world/previews/season_unlocks).
+  - My choices Hayden may change: skipping to another autumn (not repeating the same one), Flurry on the plaza, her
+    lines. Not done: the season dial (story flag 48), Flurry's frost breath, and winter-flavoured notice board jobs
+    (Earth's jobs still offer pumpkins and leaves in winter).
+
 - 2026-11-08: Portal worlds, part four: **the Frozen Moment**, Flurry's home world (plan items 19a world 2 and 23),
   slice one (the world; its reward, winter and Flurry coming to the hub, is slice two). Hayden: "Let's do it". Built
   and tested in the cloud (own Godot user folders, no save touched).

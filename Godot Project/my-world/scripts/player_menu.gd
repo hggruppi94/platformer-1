@@ -379,28 +379,76 @@ func _sheet_calendar() -> Control:
 			_cal_page = 0
 			_fill(), row)
 		now.custom_minimum_size.x = _fs(220)
-	var grid := GridContainer.new()
-	grid.name = "Calendar grid"
-	grid.columns = 7
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
-	box.add_child(grid)
-	for wd in Clock.WEEKDAYS:
-		var head := _line(str(wd).substr(0, 3), false, grid)
-		head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		head.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
-	for k in Clock.SEASON_DAYS:
-		grid.add_child(_cal_cell(first_day + k, today))
+	if not Clock.is_open(first_day):
+		_frosted_page(Clock.season(first_day), box)
+	else:
+		var grid := GridContainer.new()
+		grid.name = "Calendar grid"
+		grid.columns = 7
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
+		box.add_child(grid)
+		for wd in Clock.WEEKDAYS:
+			var head := _line(str(wd).substr(0, 3), false, grid)
+			head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			head.add_theme_color_override("font_color", Color(1, 0.9, 0.6))
+		for k in Clock.SEASON_DAYS:
+			grid.add_child(_cal_cell(first_day + k, today))
 	_gap(box)
 	_heading("Coming up", box, 26)
 	var shown := 0
 	for k in range(1, Clock.YEAR_DAYS):
+		if not Clock.is_open(today + k):
+			break                                # a locked season: the calendar skips on from here
 		for e in Festival.events_on(today + k):
 			_line("%s  (%s): %s" % [Clock.date_string(today + k), _in_days(k), e], true, box)
 			shown += 1
 		if shown >= 4:
 			break
 	return back
+
+
+func _frosted_page(season: String, box: Control) -> void:
+	# A season Stars Hollow hasn't got yet (plan item 20): a page frosted over, with a hint about the portal world
+	# it's waiting in (Portals.season_world())
+	var page := PanelContainer.new()
+	page.name = "Frosted page"
+	page.custom_minimum_size = Vector2(_fs(860), _fs(230))
+	var look := StyleBoxFlat.new()
+	look.set_corner_radius_all(14)
+	look.bg_color = Color(0.78, 0.86, 0.98, 0.85)
+	look.border_color = Color(1, 1, 1, 0.9)
+	look.set_border_width_all(4)
+	page.add_theme_stylebox_override("panel", look)
+	box.add_child(page)
+	var v := VBoxContainer.new()
+	v.alignment = BoxContainer.ALIGNMENT_CENTER
+	page.add_child(v)
+	var flake := Label.new()
+	flake.text = "❄"
+	flake.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	flake.add_theme_font_size_override("font_size", _fs(64))
+	flake.add_theme_color_override("font_color", Color(1, 1, 1))
+	v.add_child(flake)
+	var what := Label.new()
+	what.name = "Frosted hint"
+	what.text = season_hint(season)
+	what.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	what.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	what.add_theme_font_size_override("font_size", _fs(22))
+	what.add_theme_color_override("font_color", Color(0.2, 0.25, 0.45))
+	v.add_child(what)
+
+
+static func season_hint(season: String) -> String:
+	var w := Portals.season_world(season)
+	var hints := {"winter": "frozen in a moment, somewhere far north in the Void",
+		"summer": "where the music's stopped", "spring": "in misty hills where the seasons spin"}
+	var where: String = hints.get(season, "in the Void")
+	if w.is_empty() or w.get("scene", "") == "" or not str(w.id) in Portals.quakes:
+		return "%s hasn't come to Stars Hollow yet.\nIt's locked away in a portal world, %s." % [season.capitalize(), where]
+	return "%s hasn't come to Stars Hollow yet.\nIt's locked away in %s. Mend it and %s comes!" % [
+		season.capitalize(), str(w.name), season]
 
 
 func _cal_cell(on_day: int, today: int) -> Control:

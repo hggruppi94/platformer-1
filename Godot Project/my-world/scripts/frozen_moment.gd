@@ -339,7 +339,7 @@ func _add_flurry() -> void:
 	m.add_child(spot)
 
 
-func flurry_model() -> Node3D:
+static func flurry_model() -> Node3D:
 	# An arctic fox kid in a frosty blue-white coat with a puffy scarf, made like the townsfolk (scripts/townsfolk.gd)
 	# from the cat body, with a big bushy tail and her pocket watch, frozen on one tick, on a chain
 	var p := (load("res://scripts/townsfolk.gd") as GDScript).new() as Node3D
