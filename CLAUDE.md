@@ -88,6 +88,36 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: Portal worlds, part two: **the Rootmind**, Bramble's home world (plan items 19a world 1 and 22). Hayden:
+  "Go ahead". Built and tested in the cloud (own Godot user folders, no save touched). Slice one of the world: the
+  burrow ability (her reward) waits for slice two.
+  - **Its quake** (`Portals.quake_due`): once Shard Isle is mended and Bramble's Harvest has begun. The portal rises up
+    on the Secret Gardens hill east of your garden, (-70, -24), facing the ramp (checked flat and clear in a running
+    town). Coming home from any world now lands you on the ground in front of its portal (`Portals._land_by()`: the
+    resume point can't know the ground's height from inside a world, and this one's up a hill).
+  - **The world** (`tools/build_rootmind.gd` -> `scenes/portal_worlds/rootmind.tscn`, logic `scripts/rootmind.gd`): a
+    round clearing walled by giant stems (and an invisible fence), huge leaves overhead, clover, roots, a mossy Heart
+    Glade in the middle. **Every plant has eyes** (`Eyeplants`): their heads turn to watch you and they all blink
+    together in a wave out from the middle every `HIVE_BEAT` (4 s), the hive's heartbeat. **Time runs backwards**:
+    petals drift up, ten giant flowers are shut, and the hive's seedling shrinks back towards a seed while you're there.
+    Bramble waits by the way in (her own model, idle), quieter than in the Void; talking to her says what to do next.
+  - **Goal:** wake the three **Sun Blooms** (found `bloom_1..3`): on the top leaf of a spiral of leaves round a giant
+    stem (easy jumps, with a **leaf slide** down a curling vine: Interact at the top, `slide_down()`), hidden in the
+    middle of the **tall grass** (210 blades that bend away as you brush through, with a rustle), and at the end of a
+    **tunnel of roots** lined with watching flowers (a small Remnant vein there too). Then the **Thornknot**, a grumpy
+    tangle of thorny vines coiled round the seedling, out of step with the hive: walk up to it and it lashes a thorn
+    ring every beat (`ShockRing`, jump it); just after each hive blink one of its three knots glows, and humming along
+    (Interact, or a Star Popper bubble: `scripts/thorn_knot.gd`) calms it (`knot_1..3`). No hurting it: it rejoins.
+    All three calm: `Portals.clear()` (6 Remnants), the seedling grows into a flowering sapling, the giant flowers open,
+    petals fall the right way, the Thornknot is covered in flowers.
+  - **The Void changes** (`Portals._watching_flowers()`): flowers with eyes ring the Rootmind's portal and line the
+    south side of your garden (gate kept clear), turning to watch you go by.
+  - Tests: new `tools/test_rootmind.gd` (73 checks); `test_portals` still passes. Previews: `tools/capture_rootmind.gd`
+    (shots in the project files under world/previews/rootmind).
+  - My choices Hayden may change: the portal spot, the Sun Blooms and where they are, how the Thornknot is calmed, the
+    hive's beat, 6 Remnants, the watching flowers. Next: slice two (Bramble's burrow ability as the reward), then the
+    Frozen Moment (Flurry).
+
 - 2026-11-08: Time quakes and portal worlds, part one (plan items 19 and 19a): the portal system and **Shard Isle**,
   the tutorial world. Hayden agreed the nine worlds in 19a ("Absolutely perfect") and said yes to building the system
   plus Shard Isle first. Built and tested in the cloud (own Godot user folders, no save touched). Nothing is built
