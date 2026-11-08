@@ -46,8 +46,11 @@ const WORLDS := [
 		"blurb": "A little floating island of crystals: a broken bit of the brain land, humming out of tune.",
 		"reward_remnants": 5,
 		"cleared_text": "Shard Isle hums in tune again! Back in the Void, a Portal Plaza has grown round its portal."},
-	{"id": "rootmind", "name": "The Rootmind", "owner": "Bramble", "scene": "", "at": Vector2(-62, -44), "yaw": 0.0,
-		"preview": true, "colour": Color(0.5, 0.95, 0.4), "blurb": "Bramble's home, where every plant has eyes."},
+	{"id": "rootmind", "name": "The Rootmind", "owner": "Bramble", "scene": "res://scenes/portal_worlds/rootmind.tscn",
+		"at": Vector2(-70, -24), "yaw": -1.3, "preview": true, "colour": Color(0.5, 0.95, 0.4),
+		"blurb": "Bramble's home, where every plant has eyes, and time is running backwards.",
+		"reward_remnants": 6,
+		"cleared_text": "The Rootmind blinks in step again! Back in the Void, watching flowers have sprung up round its portal and your garden."},
 	{"id": "frozen_moment", "name": "The Frozen Moment", "owner": "Flurry", "scene": "", "at": Vector2(60, -128),
 		"yaw": 0.0, "preview": true, "colour": Color(0.7, 0.9, 1.0), "blurb": "A world where time has stopped."},
 	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "", "at": Vector2(-110, -120), "yaw": 0.0,
@@ -95,6 +98,7 @@ func _process(delta: float) -> void:
 	if s == null:
 		return
 	if s.scene_file_path == TOWN:
+		_process_flowers()
 		_in_town_for += delta
 		if not _quaking and _in_town_for >= QUAKE_DELAY and not Dialogue.is_active():
 			var due := next_due()
@@ -115,6 +119,7 @@ func _process(delta: float) -> void:
 func _arrived(s: Node) -> void:
 	_in_town_for = 0.0
 	_quaking = false
+	var came_from := here
 	var w := world_for_scene(s.scene_file_path if s else "")
 	if w.is_empty():
 		if here != "":
@@ -136,6 +141,20 @@ func _arrived(s: Node) -> void:
 			_froze_clock = true
 	if s and s.scene_file_path == TOWN:
 		_place_in.call_deferred(s)
+		if came_from != "":
+			_land_by.call_deferred(came_from)
+
+
+func _land_by(id: String) -> void:
+	# Back from a world: stand on the ground just in front of its portal. (go_home() can't measure the ground from
+	# inside the world, so the resume point is only roughly right: on a hill like the Rootmind's it'd be inside it.)
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var w := world(id)
+	if player == null or w.is_empty():
+		return
+	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw))) * 3.2
+	player.global_position = Remnants.ground_at(w.at + front) + Vector3(0, 0.3, 0)
+	player.velocity = Vector3.ZERO
 
 
 # -----------------------------------------------------------------------------
@@ -194,6 +213,9 @@ func quake_due(id: String) -> bool:
 	match id:
 		"shard_isle":
 			return Quests.is_done(FirstNight.ID)
+		"rootmind":
+			# After the tutorial world, once Bramble's Harvest has begun (so you know her, and her garden's yours)
+			return is_cleared("shard_isle") and Quests.is_started(Remnants.QUEST)
 	return false
 
 
@@ -241,6 +263,8 @@ func _near_words(id: String) -> String:
 	match id:
 		"shard_isle":
 			return "the field below Observatory Hill"
+		"rootmind":
+			return "the Secret Gardens, by your garden"
 	return "the town"
 
 
@@ -518,6 +542,50 @@ func _hub_changes(s: Node) -> void:
 		_holder.add_child(plaza)
 		plaza.global_position = Remnants.ground_at(w.at)
 		plaza.rotation.y = float(w.yaw)
+	if is_cleared("rootmind"):
+		_watching_flowers()
+
+
+func _watching_flowers() -> void:
+	# The Rootmind's reward: a ring of flowers with eyes round its portal, and a row along your garden's fence, that
+	# turn to watch you go by (scripts/rootmind.gd's eyeflower_model)
+	var rootmind := load("res://scripts/rootmind.gd")
+	var g := Node3D.new()
+	g.name = "Watching Flowers"
+	_holder.add_child(g)
+	var colours := [Color(1.0, 0.55, 0.75), Color(0.75, 0.55, 1.0), Color(1.0, 0.8, 0.35), Color(0.55, 0.8, 1.0)]
+	var w := world("rootmind")
+	var spots: Array = []
+	for k in 12:
+		var a := k * TAU / 12.0
+		if absf(wrapf(a - float(w.yaw), -PI, PI)) < 0.5:
+			continue                         # leave the front of the portal clear
+		spots.append(w.at + Vector2(sin(a), cos(a)) * 4.6)
+	var fence: Vector2 = Farm.plot_half()
+	for k in 8:
+		var x := -7.0 + k * 2.0
+		if absf(x) > 1.5:                    # the gate's in the middle of the south side: keep it clear
+			spots.append(Farm.GARDEN + Vector2(x, fence.x + 1.0))
+	for i in spots.size():
+		var f: Node3D = rootmind.eyeflower_model(colours[i % colours.size()], 1.0 + (i % 3) * 0.2)
+		f.name = "Watching Flower"
+		g.add_child(f)
+		f.global_position = Remnants.ground_at(spots[i])
+
+
+func _process_flowers() -> void:
+	# The watching flowers turn their heads to follow the player
+	var g := _holder.get_node_or_null("Watching Flowers") if is_instance_valid(_holder) else null
+	if g == null:
+		return
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	for f in g.get_children():
+		var head := f.get_node("Head") as Node3D
+		var to := player.global_position - head.global_position
+		if Vector2(to.x, to.z).length() < 25.0:
+			head.rotation.y = lerp_angle(head.rotation.y, atan2(to.x, to.z), 0.06)
 
 
 # -----------------------------------------------------------------------------
