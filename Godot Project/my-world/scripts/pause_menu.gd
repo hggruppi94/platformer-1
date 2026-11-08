@@ -453,6 +453,8 @@ func _tab_controls(tabs: TabContainer) -> void:
 		pad_actions.append(pair[0])
 	for pair in Settings.REBINDABLE:
 		var action: String = pair[0]
+		if not Settings.action_shown(action):
+			continue
 		_label(g, pair[1])
 		var cells := HBoxContainer.new()
 		cells.add_theme_constant_override("separation", 8)

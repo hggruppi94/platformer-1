@@ -117,6 +117,8 @@ func attach(model: Node3D) -> void:
 func can_shoot() -> bool:
 	if player == null or player.carried or player.input_locked:
 		return false
+	if player.get("burrow") and player.burrow.active:      # underground, scripts/burrow.gd
+		return false
 	if Game.riding and not player.skate.can_shoot():
 		return false
 	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused:

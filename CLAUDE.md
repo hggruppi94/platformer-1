@@ -88,6 +88,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-08: **Bramble's burrow**, the Rootmind's reward (Rootmind slice two). Hayden: "Go ahead but remember it
+  needs to be locked until completion of the world". Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Locked until the Rootmind is mended** (`Portals.is_cleared("rootmind")`): before that, pressing Burrow does
+    nothing and Settings > Controls doesn't list it (`Settings.action_shown()`, used by `pause_menu.gd`).
+  - **`scripts/burrow.gd`** (no class_name, preloaded by `player.gd` as `BURROW`, a "Burrow" node on the player like
+    Skate): new action **Burrow** (B, R3; on-foot pad group; old settings get it through `_claim`). On soft ground
+    (`soil()`: the Void's terrain, Stars Hollow's `EarthLand`, anything in group `"soil"`: the Rootmind's moss) the
+    hero dives in with a soil puff; underground they're hidden, a soil mound with a sprig (`burrower.gd make_mound()`,
+    now static and shared with Bramble's own) races along at 1.45x running speed, nothing can hurt them
+    (`is_invulnerable()`) and the popper won't fire. Jump (bigger hop) or Burrow again sprouts them up. Paving, wood,
+    water, a ledge, a ride, a zipline or someone talking pops them up by themselves.
+  - **Bramble teaches it** a moment after the Thornknot's calmed (`rootmind.gd mend()` -> `_teach_burrow()`,
+    `teach_lines()`), and her lines after say how.
+  - Tests: new `tools/test_burrow.gd` (30 checks); test_rootmind, test_portals, test_player_menu, test_ui_style,
+    test_quick_outfits, test_shooting pass. Previews: `tools/capture_burrow.gd` (shots in the project files under
+    world/previews/burrow).
+  - My choices Hayden may change: B and R3, press-to-dive (not hold), the speed, what counts as soft ground. Next:
+    the Frozen Moment (Flurry).
+
 - 2026-11-08: Portal worlds, part two: **the Rootmind**, Bramble's home world (plan items 19a world 1 and 22). Hayden:
   "Go ahead". Built and tested in the cloud (own Godot user folders, no save touched). Slice one of the world: the
   burrow ability (her reward) waits for slice two.
