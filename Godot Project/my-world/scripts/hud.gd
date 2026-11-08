@@ -335,11 +335,11 @@ func _refresh_todo() -> void:
 
 
 func _refresh_clock() -> void:
-	# On Earth, the day of the week, Earth's time and when the portal opens; in Galaxity, its own day and time, and Earth's crawling clock
+	# On Earth, the day of the week, Earth's time and when the portal opens; in the Void, its own day and time, and Earth's crawling clock
 	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
 	if Clock.on_earth:
 		text = "Earth, %s     %s\n%s" % [Clock.date_string(), Clock.earth_time_string(),
-			"The Shift! Galaxity: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight"]
+			"The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight"]
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text

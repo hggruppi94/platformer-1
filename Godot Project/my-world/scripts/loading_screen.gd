@@ -1,8 +1,8 @@
 extends CanvasLayer
 
-# Autoload "Loading": the loading screen between Earth and Galaxity (plan prompt F5). Game.go() and the title
+# Autoload "Loading": the loading screen between Earth and the Void (plan prompt F5). Game.go() and the title
 # screen's Continue call show_for(scene) just before they change scene; it only shows when the trip is from one world
-# to another (Earth, Galaxity, the Scary World, the title screen), never for a door into a shop or back out of one. A deep purple screen, a tip,
+# to another (Earth, the Void, the Scary World, the title screen), never for a door into a shop or back out of one. A deep purple screen, a tip,
 # and a little alien bobbing and waving (drawn in code), up for at least MIN_TIME so it can be read, and gone again
 # once the new place is ready. Tests: tools/test_title.gd.
 
@@ -10,7 +10,7 @@ const MIN_TIME := 1.4
 const WORLDS := ["res://scenes/earth/earth.tscn", "res://scenes/town/town.tscn",
 	"res://scenes/scary_world/scary_world.tscn", "res://scenes/title/title.tscn"]
 const TIPS := [
-	"An hour on Earth is a whole day in Galaxity. Make the most of every Shift!",
+	"An hour on Earth is a whole day in the Void. Make the most of every Shift!",
 	"Hold Aim to look over your shoulder, and Shoot to blow star bubbles.",
 	"Tally's board has three new requests every night you visit.",
 	"The Goals page in your menu always shows something to aim for.",
@@ -53,7 +53,7 @@ func show_for(scene_path: String) -> void:
 		return                                   # a door into a shop or a room, or back out of one: no loading screen
 	tip = TIPS[_rng.randi() % TIPS.size()]
 	_tip_label.text = tip
-	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to Galaxity...",
+	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to the Void...",
 		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path, "Loading...")
 	_panel.visible = true
 	_panel.modulate.a = 1.0

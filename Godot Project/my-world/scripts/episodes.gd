@@ -29,7 +29,7 @@ const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 const CHECK_EVERY := 0.3
 
-# Galaxity spots ([x, z]). The Haunted House is at (-112, -128) facing the town, with the old slide beside it
+# Void spots ([x, z]). The Haunted House is at (-112, -128) facing the town, with the old slide beside it
 # (tools/build_town.gd HAUNTED_HOUSE, _old_slide).
 const MELANIE_AT := Vector2(-67.0, 28.5)              # by the Town Hall steps, waiting to see Mr. Palmer
 const GOLDWHISTLE_AT := Vector2(-101.5, -114.5)        # on the path to the Haunted House
@@ -468,7 +468,7 @@ func _trick_message(flag: String) -> String:
 
 
 # -----------------------------------------------------------------------------
-# Props (made from shapes, in the alien palette in Galaxity and autumn colours on Earth)
+# Props (made from shapes, in the alien palette in the Void and autumn colours on Earth)
 # -----------------------------------------------------------------------------
 func _thing(kind: String) -> Node3D:
 	var g := Node3D.new()
@@ -578,7 +578,7 @@ func _bunker(holder: Node3D) -> void:
 
 
 func _turtles(holder: Node3D) -> void:
-	# Three little lake turtles. Galaxity's turtles use things as their shells, and today they get to choose their own
+	# Three little lake turtles. The Void's turtles use things as their shells, and today they get to choose their own
 	# (the quest's "give" step); until then they're shy, soft and shell-less, and blink up at you
 	var colours := [Color(0.45, 0.85, 0.6), Color(0.6, 0.8, 0.95), Color(0.95, 0.75, 0.5)]
 	var shells := ["cup", "bucket", "pot"]

@@ -6,7 +6,7 @@ extends SceneTree
 #     in the hay bale on the green's corner)
 #   - people stop and turn to listen when you talk to them (Earth's townsfolk never did); someone busy skating or
 #     riding carries on
-#   - the camera still turns with the mouse after going through the portal to Galaxity (the minimap used to eat every
+#   - the camera still turns with the mouse after going through the portal to the Void (the minimap used to eat every
 #     mouse move there)
 #   - the old oak: just a tree on a new game's first day (its door shut), awake for everyone else
 #   - a new game brings the collectibles in gradually; an old save has everything out as before
@@ -160,7 +160,7 @@ func _run() -> void:
 		e.position = root.get_visible_rect().size / 2.0
 		Input.parse_input_event(e)
 		await process_frame
-	check(absf(wrapf(arm.rotation.y - before, -PI, PI)) > 0.3, "in Galaxity the mouse still turns the camera (%.2f)" % (arm.rotation.y - before))
+	check(absf(wrapf(arm.rotation.y - before, -PI, PI)) > 0.3, "in the Void the mouse still turns the camera (%.2f)" % (arm.rotation.y - before))
 	var mini := root.get_node("TownMap").find_child("Minimap", true, false) as Control
 	check(mini != null and mini.mouse_filter == Control.MOUSE_FILTER_IGNORE and \
 		mini.find_children("*", "Control", true, false).all(func(c: Control) -> bool: return c.mouse_filter == Control.MOUSE_FILTER_IGNORE),

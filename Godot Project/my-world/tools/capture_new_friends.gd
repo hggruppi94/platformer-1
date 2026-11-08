@@ -2,7 +2,7 @@ extends SceneTree
 
 # Pictures of Nov 7's new looks and friends: human Nina on Earth in her new look (from Hayden's picture: red bob with a
 # fringe and her red bow, freckles, a gap-tooth smile, little gold hoops, a white tee under a pink pinafore and her
-# yellow backpack), then in Galaxity Melody (tools/build_melody.py) and the plant girl (tools/build_plant_girl.py),
+# yellow backpack), then in the Void Melody (tools/build_melody.py) and the plant girl (tools/build_plant_girl.py),
 # who burrows into the ground and sprouts up somewhere else (scripts/burrower.gd).
 # Opens a window (not --headless):
 #
@@ -90,7 +90,7 @@ func _earth() -> void:
 
 
 func _galaxity() -> void:
-	# Melody and the plant girl in Galaxity, in the morning
+	# Melody and the plant girl in the Void, in the morning
 	game.next_spawn = ""
 	change_scene_to_file(TOWN)
 	await _frames(8)

@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the race intros (scripts/race_intro.gd): for each track, the title over the swing round the start,
-# a moment of the flyover and one rival's hello; the Lake Loop, Meadow Wiggle and Observatory Hill in Galaxity, the
+# a moment of the flyover and one rival's hello; the Lake Loop, Meadow Wiggle and Observatory Hill in the Void, the
 # Pumpkin Run in Stars Hollow, and the Sky Rings. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_race_intros.gd -- <output folder>

@@ -1,8 +1,8 @@
 extends SceneTree
 
-# Checks the clocks and the Shift (scripts/clock.gd): Earth's clock always runs, Galaxity's only in the Shift (Earth's
-# midnight to 1 AM), which lasts one whole Galaxity day from dawn to dawn. Then sleeping in the player's bed on Earth,
-# sleeping in Galaxity until the Shift ends, old saves loading, and saving/loading the time (bed.gd, game.gd).
+# Checks the clocks and the Shift (scripts/clock.gd): Earth's clock always runs, the Void's only in the Shift (Earth's
+# midnight to 1 AM), which lasts one whole Void day from dawn to dawn. Then sleeping in the player's bed on Earth,
+# sleeping in the Void until the Shift ends, old saves loading, and saving/loading the time (bed.gd, game.gd).
 # Run it twice: the first run saves at home on Earth, the second starts up like the real game and checks it came back.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_clock.gd
@@ -51,20 +51,20 @@ func _run() -> void:
 	clock.shift_ended.connect(func() -> void: events.append("ended"))
 	clock.pulls_home = false     # (no scene changes while the clock is checked on its own)
 
-	# A new game: Earth's evening, Galaxity waiting at dawn on day 1
+	# A new game: Earth's evening, the Void waiting at dawn on day 1
 	clock.reset()
 	check(clock.earth_time_string() == "8:00 PM" and clock.day == 1 and clock.time_string() == "7:00 AM" and not clock.in_shift(),
-		"new game: Earth 8:00 PM, Galaxity day 1, 7:00 AM")
+		"new game: Earth 8:00 PM, Void day 1, 7:00 AM")
 
-	# On Earth outside the Shift: an Earth hour a real minute, and Galaxity waits
+	# On Earth outside the Shift: an Earth hour a real minute, and the Void waits
 	clock.on_earth = true
 	clock.set_earth_time(12 * 60.0, true)
 	clock._process(10.0)
 	check(is_equal_approx(clock.earth_minutes, 12 * 60.0 + 10.0) and clock.time_string() == "7:00 AM",
-		"Earth: 10 s = 10 Earth minutes; Galaxity's clock waits (%s)" % clock.time_string())
+		"Earth: 10 s = 10 Earth minutes; the Void's clock waits (%s)" % clock.time_string())
 	check(clock.hour() == 12 and clock.period() == "day", "on Earth the hour is Earth's (%d, %s)" % [clock.hour(), clock.period()])
 
-	# Midnight on Earth: the Shift starts, and Galaxity's day begins at dawn (moved on to it if it was elsewhere)
+	# Midnight on Earth: the Shift starts, and the Void's day begins at dawn (moved on to it if it was elsewhere)
 	clock.on_earth = false
 	clock.set_time(3, 15 * 60.0, true)
 	clock.on_earth = true
@@ -72,38 +72,38 @@ func _run() -> void:
 	events.clear()
 	clock._process(1.0)
 	check(clock.in_shift() and events == ["started"], "Earth's midnight: the Shift started (%s)" % [events])
-	check(clock.day == 4 and absf(clock.minutes - 7 * 60.0) < 1.0, "...and Galaxity's day 4 begins at dawn (%s)" % clock.time_string())
+	check(clock.day == 4 and absf(clock.minutes - 7 * 60.0) < 1.0, "...and the Void's day 4 begins at dawn (%s)" % clock.time_string())
 
-	# In the Shift: Galaxity's day runs at full speed, and Earth's clock crawls along with it, wherever she is
+	# In the Shift: the Void's day runs at full speed, and Earth's clock crawls along with it, wherever she is
 	var g0: float = clock.minutes
 	var e0: float = clock.earth_minutes
 	clock._process(10.0)
 	var gal_rate: float = 1440.0 / (clock.DAY_LENGTH_MINUTES * 60.0)
-	check(is_equal_approx(clock.minutes - g0, 10.0 * gal_rate), "Shift: 10 s = %.1f Galaxity minutes" % (clock.minutes - g0))
+	check(is_equal_approx(clock.minutes - g0, 10.0 * gal_rate), "Shift: 10 s = %.1f Void minutes" % (clock.minutes - g0))
 	check(is_equal_approx((clock.earth_minutes - e0) * clock.SHIFT_RATIO, clock.minutes - g0),
 		"...and Earth's clock goes %dx slower (%.2f min)" % [int(clock.SHIFT_RATIO), clock.earth_minutes - e0])
 	var shift_real_minutes: float = 60.0 / ((clock.earth_minutes - e0) / 10.0) / 60.0
 	check(is_equal_approx(shift_real_minutes, clock.DAY_LENGTH_MINUTES),
-		"one Earth hour in the Shift lasts a whole Galaxity day (%.0f real minutes)" % shift_real_minutes)
+		"one Earth hour in the Shift lasts a whole Void day (%.0f real minutes)" % shift_real_minutes)
 
-	# The end of the Shift: Earth's 1 AM is Galaxity's next dawn, exactly
+	# The end of the Shift: Earth's 1 AM is the Void's next dawn, exactly
 	clock.on_earth = false
 	clock.set_time(5, 6 * 60.0 + 59.0, true)                       # (one minute before the next dawn)
 	check(clock.in_shift() and absf(clock.earth_minutes - (60.0 - 1.0 / clock.SHIFT_RATIO)) < 0.01,
-		"Galaxity's 6:59 AM is Earth's 12:59 AM (%s)" % clock.earth_time_string())
+		"The Void's 6:59 AM is Earth's 12:59 AM (%s)" % clock.earth_time_string())
 	events.clear()
 	clock._process(5.0)
 	check(not clock.in_shift() and events == ["ended"], "1 AM: the Shift ended (%s)" % [events])
 	check(clock.day == 5 and clock.time_string() == "7:00 AM" and clock.earth_time_string() == "1:00 AM",
-		"...right at Galaxity's dawn: day %d, %s, Earth %s" % [clock.day, clock.time_string(), clock.earth_time_string()])
+		"...right at the Void's dawn: day %d, %s, Earth %s" % [clock.day, clock.time_string(), clock.earth_time_string()])
 	clock._process(10.0)
-	check(clock.time_string() == "7:00 AM", "Galaxity waits at dawn for the next Shift")
+	check(clock.time_string() == "7:00 AM", "The Void waits at dawn for the next Shift")
 
-	# Jumps in Galaxity keep Earth's clock in step
+	# Jumps in the Void keep Earth's clock in step
 	clock.set_time(5, 13 * 60.0, true)
 	check(clock.in_shift() and is_equal_approx(clock.earth_minutes, 15.0) and clock.hour() == 13,
-		"Galaxity's 1 PM is Earth's 12:15 AM (%s)" % clock.earth_time_string())
-	check(is_equal_approx(clock.shift_minutes_left(), 18 * 60.0), "18 Galaxity hours left of the Shift")
+		"The Void's 1 PM is Earth's 12:15 AM (%s)" % clock.earth_time_string())
+	check(is_equal_approx(clock.shift_minutes_left(), 18 * 60.0), "18 Void hours left of the Shift")
 	clock.set_time(5, 3 * 60.0, true)
 	clock.sleep_until_morning()
 	check(clock.day == 5 and clock.hour() == 7 and clock.minute() == 0, "sleep_until_morning at 3 AM -> day 5, 7:00 AM")
@@ -111,14 +111,14 @@ func _run() -> void:
 	clock.advance(12 * 60.0 + 30.0)
 	check(clock.day == 6 and clock.time_string() == "11:30 AM", "advance 12.5 hours from 11 PM -> day 6, 11:30 AM")
 
-	# How long a sleep lasts. In Galaxity: no further than the end of the Shift, which ends it.
+	# How long a sleep lasts. In the Void: no further than the end of the Shift, which ends it.
 	clock.set_time(6, 13 * 60.0, true)
-	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "Galaxity: an 8-hour sleep at 1 PM lasts 8 hours")
-	check(is_equal_approx(clock.sleep_length(20 * 60.0), 18 * 60.0), "Galaxity: 20 hours from 1 PM stops at dawn (18 hours)")
+	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "The Void: an 8-hour sleep at 1 PM lasts 8 hours")
+	check(is_equal_approx(clock.sleep_length(20 * 60.0), 18 * 60.0), "The Void: 20 hours from 1 PM stops at dawn (18 hours)")
 	events.clear()
 	clock.sleep(clock.sleep_length(20 * 60.0))
 	check(not clock.in_shift() and events == ["ended"] and clock.day == 7 and clock.time_string() == "7:00 AM",
-		"sleeping until dawn in Galaxity ends the Shift (day %d, %s, %s)" % [clock.day, clock.time_string(), events])
+		"sleeping until dawn in the Void ends the Shift (day %d, %s, %s)" % [clock.day, clock.time_string(), events])
 	# On Earth: a nap stops at midnight so the Shift isn't skipped, unless she's already in it
 	clock.on_earth = true
 	clock.set_earth_time(14 * 60.0, true)
@@ -128,16 +128,16 @@ func _run() -> void:
 	events.clear()
 	clock.sleep(150.0)
 	check(clock.in_shift() and events == ["started"] and clock.time_string() == "7:00 AM",
-		"...and wakes her for the Shift, with Galaxity at dawn (%s)" % [events])
+		"...and wakes her for the Shift, with the Void at dawn (%s)" % [events])
 	check(is_equal_approx(clock.minutes_until_hour(0), 1440.0), "'until the Shift' from its very start waits for the next one")
 
-	# Old saves: one made in Galaxity (before the player lived on Earth) carries on right there, in the Shift
+	# Old saves: one made in the Void (before the player lived on Earth) carries on right there, in the Shift
 	clock.on_earth = false
 	_write_save({"version": 1, "scene": TOWN, "position": [0, 2, 0], "day": 3, "minutes": 19 * 60.0,
 		"earth_minutes": 17 * 60.0})
 	game.load_game()
 	check(clock.day == 3 and clock.time_string() == "7:00 PM" and clock.in_shift() and is_equal_approx(clock.earth_minutes, 30.0),
-		"an old save in town: Galaxity day 3, 7 PM, in the Shift (Earth %s)" % clock.earth_time_string())
+		"an old save in town: Void day 3, 7 PM, in the Shift (Earth %s)" % clock.earth_time_string())
 	check(game._resume.get("scene", "") == TOWN, "...and she's back in town")
 	_write_save({"version": 1, "scene": EARTH, "position": [0, 2, 0], "day": 3, "minutes": 20.0, "earth_minutes": 19 * 60.0})
 	game.load_game()
@@ -205,17 +205,17 @@ func _run() -> void:
 	check(clock.earth_time_string() == "7:00 AM" and not clock.in_shift(), "'until morning' at 10 PM -> Earth %s" % clock.earth_time_string())
 	check(game.hp == game.max_hp, "a full night's sleep fills HP")
 
-	# A bed in Galaxity, in the Shift: sleeping until morning ends it, and she wakes up back home on Earth
+	# A bed in the Void, in the Shift: sleeping until morning ends it, and she wakes up back home on Earth
 	clock.set_earth_time(23 * 60.0 + 59.0, true)
 	clock.set_earth_time(10.0, true)
 	game.go(HOUSE, "BedSpawn")
 	await _wait_for_scene(HOUSE)
-	check(current_scene.scene_file_path == HOUSE and clock.in_shift() and not clock.on_earth, "in Galaxity, in the Shift (%s)" % clock.time_string())
+	check(current_scene.scene_file_path == HOUSE and clock.in_shift() and not clock.on_earth, "in the Void, in the Shift (%s)" % clock.time_string())
 	var gbed := current_scene.find_child("SleepSpot", true, false)
 	gbed.sleep_for(clock.minutes_until_hour(7))
 	await _wait_for_scene(EARTH, 600)
 	check(current_scene.scene_file_path == EARTH and not clock.in_shift() and clock.earth_time_string() == "1:00 AM",
-		"slept until morning in Galaxity: home on Earth at %s" % clock.earth_time_string())
+		"slept until morning in the Void: home on Earth at %s" % clock.earth_time_string())
 	await _frames(4)
 	player = current_scene.find_child("Player", true, false) as Node3D
 	var told: String = player.get_node("HUD").message_label.text

@@ -85,14 +85,14 @@ const SLOTS := 3
 const SLOTS_CFG := "user://slots.cfg"
 var slot := 1
 var hold_saves := false          # tools set this when they're done, so nothing saves over the save they put back
-const SAVE_VERSION := 2          # 2: the player lives on Earth, and Galaxity is visited in the Shift (scripts/clock.gd)
+const SAVE_VERSION := 2          # 2: the player lives on Earth, and the Void is visited in the Shift (scripts/clock.gd)
 const LAYOUT := 2                # the town's layout: 2 = market under the plateau, homes east of the lake
 const EARTH_LAYOUT := 2          # Earth's layout: 2 = the grown-up town (Main Street, Maple Lane, the park), Oct 30 2026
 const TOWN_SCENE := "res://scenes/town/town.tscn"
 const TITLE_SCENE := "res://scenes/title/title.tscn"   # the game opens on the title screen (scripts/title_screen.gd)...
 const START_SCENE := "res://scenes/earth/earth.tscn"   # ...and a game starts (or carries on) from Earth
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
-const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to Galaxity."
+const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to the Void."
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -277,7 +277,7 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 		return
 	next_spawn = spawn
 	Audio.play("door", -4.0)
-	Loading.show_for(scene_path)               # between Earth and Galaxity: a tip and a little alien (loading_screen.gd)
+	Loading.show_for(scene_path)               # between Earth and the Void: a tip and a little alien (loading_screen.gd)
 	get_tree().call_deferred("change_scene_to_file", scene_path)
 
 
@@ -386,9 +386,9 @@ func load_game() -> void:
 	for it in data.get("items", []):
 		items.append(str(it))
 	riding = bool(data.get("riding", false)) and has_item("skateboard")
-	# The clocks. Away from Earth it's always the Shift, so setting Galaxity's time puts Earth's at the matching moment
-	# of it. That's all a save from before the player lived on Earth (version 1) needs: one made in Galaxity carries on
-	# right there, in the Shift, until Galaxity's next dawn. Saves made on Earth, and newer ones, keep Earth's own time.
+	# The clocks. Away from Earth it's always the Shift, so setting the Void's time puts Earth's at the matching moment
+	# of it. That's all a save from before the player lived on Earth (version 1) needs: one made in the Void carries on
+	# right there, in the Shift, until the Void's next dawn. Saves made on Earth, and newer ones, keep Earth's own time.
 	var saved_scene := str(data.get("scene", ""))
 	if data.has("day") and data.has("minutes"):     # older saves have no clock: keep the new-game time
 		Clock.set_time(int(data["day"]), float(data["minutes"]), true)

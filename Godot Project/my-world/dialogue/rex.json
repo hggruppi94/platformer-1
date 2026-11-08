@@ -7,7 +7,7 @@
       },
       "set": "n6_hi",
       "lines": [
-        "Ahem! Citizens of Galaxity! Oh, it's you, {player}. Hi! I've been practising.",
+        "Ahem! Citizens of the Void! Oh, it's you, {player}. Hi! I've been practising.",
         "Tonight's campaign stop is the castle school. Every future voter goes to school! Well, every future voter's little brother, anyway.",
         "Come with me? Well, not with me. I'll meet you there. I'm faster on skates.",
         "Dash says there are schematics up there too. One on the hill path, one in the school garden. Vote Rex! Sorry. Habit."
@@ -20,7 +20,7 @@
       },
       "do": "FirstNight.lesson_from_rex",
       "lines": [
-        "Ah! A new citizen! Rex, future mayor of Galaxity. And yes, I'm a husky. For now. It's a long story with a lot of paperwork.",
+        "Ah! A new citizen! Rex, future mayor of the Void. And yes, I'm a husky. For now. It's a long story with a lot of paperwork.",
         "Dash says you need to learn to skate. Excellent. Every great citizen skates. It's in my plans for the town."
       ],
       "first_night": true
@@ -44,7 +44,7 @@
         "{player}! Citizen! I've been thinking. Deeply. Like a mayor.",
         "Since I got stuck in this husky body, I've noticed things. Nobody lets dogs in the bubble bath. Nobody asks dogs what they think about ANYTHING.",
         "When I was a person I never even thought about it. Now I think about it all day. Usually while scratching my ear.",
-        "I'm writing a Doggie Bill of Rights. For Rook, and every dog in Galaxity. Will you help me?",
+        "I'm writing a Doggie Bill of Rights. For Rook, and every dog in the Void. Will you help me?",
         {
           "choice": [
             {
@@ -318,7 +318,7 @@
         "talks": 0
       },
       "lines": [
-        "Ah, a citizen! Hello! Rex, future mayor of Galaxity, at your service.",
+        "Ah, a citizen! Hello! Rex, future mayor of the Void, at your service.",
         "{player}: A talking husky?",
         "Technically I'm Dash's twin. I'm just borrowing a husky right now. It's a long story with a lot of paperwork.",
         "{player}: Wait... aren't you Rook?",
@@ -343,7 +343,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -376,7 +376,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -406,7 +406,7 @@
               "set": "rex_campaign_start",
               "lines": [
                 "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what Galaxity needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
+                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
                 "(Press {quest_log} to see the quest log.)"
               ]
             },
@@ -479,7 +479,7 @@
         "activity": "rally"
       },
       "lines": [
-        "Citizens of Galaxity! Thank you for coming!",
+        "Citizens of the Void! Thank you for coming!",
         "(A few people stop to listen. A pigeon listens too.)",
         "I'm Rex, and I want to be your mayor! Bike lanes! Flowers! Lamps! And naps in the sun!",
         "(Rex leans over and whispers.) Campaign Manager, I need a big finish. What do I say?",
@@ -598,7 +598,7 @@
         "every": 2
       },
       "lines": [
-        "Citizens of Galaxity! Vote Rex! More parks! More snacks!",
+        "Citizens of the Void! Vote Rex! More parks! More snacks!",
         "{player}: Who are you talking to?",
         "The Town Hall. It's a practice speech. The Town Hall is a very good listener."
       ]

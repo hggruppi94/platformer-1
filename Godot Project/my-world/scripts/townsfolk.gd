@@ -7,7 +7,7 @@ extends Node3D
 # (EXTRAS: an apron, a guitar, Nina's red bow...). Grown-ups are the same body, taller, with a smaller head.
 # Mr. Palmer is the exception: he has his own human model (model_path), which is used as it is.
 # A look that names another hero body ("body": "cat") is made from that body instead: that's how the episode quests'
-# visitors in Galaxity (scripts/episodes.gd: Melanie, Leo, the Wizard Lizard...) are made, as creatures, the way kids
+# visitors in the Void (scripts/episodes.gd: Melanie, Leo, the Wizard Lizard...) are made, as creatures, the way kids
 # are there. EXTRAS are placed for the Earth kid body, so they're only for Earth kids.
 #
 # The model is made as they enter the scene, before their Routine (scripts/routine.gd) and Talk spot

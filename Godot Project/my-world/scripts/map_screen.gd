@@ -119,7 +119,7 @@ func people() -> Array:
 
 
 func _paths() -> TownPaths:
-	# The named places where she is: Earth's (written by tools/build_earth.gd) or Galaxity's
+	# The named places where she is: Earth's (written by tools/build_earth.gd) or the Void's
 	return TownPaths.get_shared(TownPaths.EARTH_FILE if on_earth() else TownPaths.FILE)
 
 
@@ -143,7 +143,7 @@ func quest_markers() -> Array:
 				continue
 			var pos = null
 			if entry.has("at"):
-				# A spot of its own ([x, z]: the Gloop King's court out in the west fields), in Galaxity unless it says
+				# A spot of its own ([x, z]: the Gloop King's court out in the west fields), in the Void unless it says
 				# "world": "earth" (the First Night's glowing acorns)
 				if (str(entry.get("world", "")) == "earth") == on_earth():
 					pos = Vector3(float(entry.at[0]), 0, float(entry.at[1]))
@@ -251,7 +251,7 @@ func _build() -> void:
 	_mini = Control.new()
 	_mini.name = "Minimap"
 	# The minimap never takes the mouse. Its map picture is far bigger than the circle (only clipped to it on screen),
-	# and with the mouse captured every mouse move lands in the middle of the screen: in Galaxity that was on the
+	# and with the mouse captured every mouse move lands in the middle of the screen: in the Void that was on the
 	# picture, so the minimap ate every mouse move and the camera wouldn't turn after coming through the portal.
 	_mini.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Round: the minimap draws a filled circle and everything in it is clipped to that circle
@@ -367,7 +367,7 @@ func _draw_full() -> void:
 	if on_earth():
 		_draw_earth_full(c, r)
 		return
-	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "Galaxity", _fs(34), Color(1, 0.95, 0.75))
+	_text(c, Vector2(r.position.x + r.size.x / 2, r.position.y + _fs(24)), "The Void", _fs(34), Color(1, 0.95, 0.75))
 	for d in DISTRICTS:
 		_text(c, r.position + to_map(Vector3(d[1].x, 0, d[1].y)) * r.size, d[0], _fs(24), Color(1, 1, 0.85))
 	if town_here:
@@ -423,7 +423,7 @@ func _draw_full() -> void:
 			var gate := r.position + to_map(Vector3(-128, 0, -150)) * r.size
 			_star(c, gate, 10.0)
 		elif s and s.scene_file_path == "res://scenes/earth/earth.tscn":
-			where = "You're at home on Earth. In the Shift, the portal by the old oak opens to Galaxity."
+			where = "You're at home on Earth. In the Shift, the portal by the old oak opens to the Void."
 			var portal := r.position + to_map(Vector3(36, 0, 13)) * r.size
 			_star(c, portal, 10.0)
 		_text(c, r.get_center(), where, _fs(22), Color(1, 0.95, 0.75))

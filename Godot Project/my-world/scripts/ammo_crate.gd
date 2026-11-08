@@ -1,6 +1,6 @@
 extends StaticBody3D
 
-# An ammo crate (Arsenal places them round Galaxity, CRATES in scripts/arsenal.gd): a lilac box wrapped in bubble wrap
+# An ammo crate (Arsenal places them round the Void, CRATES in scripts/arsenal.gd): a lilac box wrapped in bubble wrap
 # with a gold star on top. Pop it with any gadget, splash it, or just walk into it, and it bursts in a shower of
 # bubble-wrap bits and fills every gadget she has halfway back up (at least one shot each). It's back the next day
 # (and whenever the town loads again).

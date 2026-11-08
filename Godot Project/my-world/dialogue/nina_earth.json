@@ -140,7 +140,7 @@
             {
               "text": "Every night, if I can!",
               "lines": [
-                "Ha! That's the spirit. Galaxity's always there, waiting at dawn."
+                "Ha! That's the spirit. The Void's always there, waiting at dawn."
               ]
             }
           ]
@@ -156,7 +156,7 @@
       },
       "set": "fn_offered",
       "lines": [
-        "Hey, {player}. I was thinking. You know the old oak, and the Shift, and Galaxity?",
+        "Hey, {player}. I was thinking. You know the old oak, and the Shift, and the Void?",
         "I could show you round properly. Like it was your first night all over again. Everyone, everything, start to finish.",
         {
           "choice": [

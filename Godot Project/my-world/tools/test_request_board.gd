@@ -52,7 +52,7 @@ func _run() -> void:
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
 	R.reset()
-	# Into the Shift, in Galaxity
+	# Into the Shift, in the Void
 	clock.on_earth = false
 	clock.set_time(5, 8 * 60.0, true)
 	change_scene_to_file(TOWN)
@@ -60,7 +60,7 @@ func _run() -> void:
 	await _physics(4)
 	var town := current_scene as Node3D
 	var p := town.find_child("Player", true, false) as CharacterBody3D
-	check(clock.in_shift(), "it's the Shift (Galaxity day %d, %s)" % [clock.day, clock.time_string()])
+	check(clock.in_shift(), "it's the Shift (Void day %d, %s)" % [clock.day, clock.time_string()])
 
 	# --- The board and Tally are in the Market Square ---
 	var square := town.get_node("Market Square") as Node3D
@@ -218,7 +218,7 @@ func _run() -> void:
 	R.note("watch")
 	check(watch.done, "...two finish it")
 
-	# --- Earth: a parcel waits outside its building, and goes to the friend in Galaxity ---
+	# --- Earth: a parcel waits outside its building, and goes to the friend in the Void ---
 	var earth_req := _forced("deliver", "hard")
 	R.list = [earth_req]
 	change_scene_to_file(EARTH)
@@ -241,7 +241,7 @@ func _run() -> void:
 	p = town.find_child("Player", true, false) as CharacterBody3D
 	board = town.get_node("Request Board") as Node3D
 	dialogue.finished.emit(str(earth_req.who))
-	check(earth_req.done, "...and %s gets it back in Galaxity" % R.friend_name(str(earth_req.who)))
+	check(earth_req.done, "...and %s gets it back in the Void" % R.friend_name(str(earth_req.who)))
 
 	# --- Showing progress: the board and the Quests sheet ---
 	R.roll(7)
@@ -338,10 +338,10 @@ func _run() -> void:
 	check(R.rolled_visit == R.visit_day() and R.rolled_visit != last_visit, "the next Shift is a new visit (day %d)" % R.rolled_visit)
 	check(R.list.size() == 3 and R.nights == nights_before + 1, "...with three new requests, night %d" % R.nights)
 	var mid_visit: int = R.rolled_visit
-	clock.advance(15 * 60.0)                                 # past Galaxity's midnight: the day number goes up...
+	clock.advance(15 * 60.0)                                 # past the Void's midnight: the day number goes up...
 	R._check = 0.0
 	await _frames(3)
-	check(R.rolled_visit == mid_visit and R.nights == nights_before + 1, "...but the same visit keeps its requests after Galaxity's midnight")
+	check(R.rolled_visit == mid_visit and R.nights == nights_before + 1, "...but the same visit keeps its requests after the Void's midnight")
 
 	_end()
 

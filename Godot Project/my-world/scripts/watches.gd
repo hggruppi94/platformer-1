@@ -1,8 +1,8 @@
 extends Node
 
-# Autoload "Watches": the lost watches hunt. Everyone who arrives on Galaxity, the brain planet outside time, has a
+# Autoload "Watches": the lost watches hunt. Everyone who arrives on the Void, the brain planet outside time, has a
 # watch that tracks time the way it worked on their own planet or in their own time (story/how-it-fits.md, the time
-# arc), and twenty chosen kids have lost theirs round Galaxity. Each one is a small glowing model that spins where it
+# arc), and twenty chosen kids have lost theirs round the Void. Each one is a small glowing model that spins where it
 # fell (scripts/watch_pickup.gd), placed so finding them all takes every way of getting about: walking and jumping,
 # wading, climbing, the zipline, grinding, skating, beaming down from the mothership onto roofs and flying it high
 # into the sky, the school, and the edge of the Scary World.

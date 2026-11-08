@@ -1,10 +1,10 @@
-# Galaxity: Sofi's game
+# The Void: Sofi's game
 
 A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
 character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live on
 **Earth**, in a small Stars Hollow style town. During the Shift (midnight to 1 AM, Earth time) the portal by the old
-oak opens to **Galaxity**, the alien town, and that one Earth hour lasts a whole Galaxity day (7 AM to 7 AM). At 1 AM
-the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in Galaxity and visited Earth).
+oak opens to **the Void**, the alien town, and that one Earth hour lasts a whole Void day (7 AM to 7 AM). At 1 AM
+the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in the Void and visited Earth).
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
 
@@ -13,7 +13,7 @@ Read this first in every session so each iteration builds on the last one and do
 - `Godot Project/my-world/`: the Godot project (`project.godot`)
   - `tools/build_*.gd`: **builders**. They generate the scenes, so never hand-edit a built `.tscn`. Change the
     builder and re-run it.
-    - `build_town.gd` → `scenes/town/town.tscn`, plus the terrain, castle and garden `.res` files. Galaxity: the
+    - `build_town.gd` → `scenes/town/town.tscn`, plus the terrain, castle and garden `.res` files. The Void: the
       lake, Market, homes, Bojnice castle school on its hill, Observatory, Secret Gardens, Cloud Nest, mountains,
       green sky with cream cloud streaks, mothership.
     - `build_school.gd` → `scenes/school/school.tscn`, the castle school interior from Sofi's floor plans
@@ -22,13 +22,13 @@ Read this first in every session so each iteration builds on the last one and do
     - `build_earth.gd` → `scenes/earth/earth.tscn`, the Earth town (Stars Hollow style), where every game starts
       (`Game.START_SCENE`; the main scene is the title screen, `scenes/title/title.tscn`): the
       player's house with their bed (`My Home`, new games start at `HomeSpawn`), the town green and gazebo, shops,
-      the barn dance studio, the portal to Galaxity by the old oak, and the sky's clouds, stars and moon.
+      the barn dance studio, the portal to the Void by the old oak, and the sky's clouds, stars and moon.
     - `build_interiors.gd` (domed rooms: cafe, aquarium, restaurant, Nina's house), `build_scary_world.gd`, and
       `build_centipede/crocodillo/gloop/mothership.gd` for creatures and vehicles.
     - `theme.gd`: the shared look. `THEME = "alien"` maps every colour into the alien palette (oranges → teal,
       reds → magenta, greens → acid lime, whites → lavender). Builders call `tint()` / `light()` / `backdrop()`.
-  - `scripts/`: game logic. Autoloads include `Clock` (`clock.gd`: Earth's clock, which always runs, Galaxity's,
-    which only runs in the Shift, and the Shift), `Game`, `Dialogue` and `Quests`. `day_night.gd` handles Galaxity's sky and lamps, and `earth_world.gd`
+  - `scripts/`: game logic. Autoloads include `Clock` (`clock.gd`: Earth's clock, which always runs, the Void's,
+    which only runs in the Shift, and the Shift), `Game`, `Dialogue` and `Quests`. `day_night.gd` handles the Void's sky and lamps, and `earth_world.gd`
     handles Earth's full day and night.
   - `dialogue/*.json`, `quests/*.json`, `routines/`, `shop/`: content, each with its own README.
   - `tools/test_*.gd`: tests. `tools/capture_*.gd`: screenshot tools.
@@ -73,14 +73,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Names and story
 
-- The town and world is **Galaxity** (it was called "Galactopia" until Oct 2026, so don't bring that name back).
+- The town and world is **the Void** (or just "Void"). It was called "Galactopia" until Oct 2026 and "Galaxity" until
+  Nov 8, 2026 (Hayden renamed it); don't bring either name back in anything the player sees. Code ids, node names and
+  file names still say `galaxity` (e.g. `PortalToGalaxity`, the title screen's `"galaxity"` beat, capture file names):
+  they are internal and safe to leave.
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
   and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Clover (the
   horned cow girl: a working name, she was "Bramble" until Nov 7, 2026), Melody, Pip, Rook (says woof), Ivy and Theo
   (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (Scary World).
-- In the show, kids are people on Earth and creatures in Galaxity. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
-  since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in Galaxity. Since Nov 1, 2026 Bruno is too (`bruno` on
-  Earth, `bruno_alien` in Galaxity, from Sofi's drawing). Prue's Earth look is still a placeholder.
+- In the show, kids are people on Earth and creatures in the Void. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
+  since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in the Void. Since Nov 1, 2026 Bruno is too (`bruno` on
+  Earth, `bruno_alien` in the Void, from Sofi's drawing). Prue's Earth look is still a placeholder.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
@@ -89,7 +92,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   talk, the bench, fewer collectibles at first, and the camera after the portal. Built and tested in the cloud (own
   Godot user folders, no save touched).
   - **The Humming Oak** (Hayden chose "Yes, build it"): a new game now starts at **9 AM** on Earth and The First Night
-    (`quests/first_night.json`) has a whole first day before Galaxity: **morning** (Nina, Mr. Palmer, two hellos; Theo
+    (`quests/first_night.json`) has a whole first day before the Void: **morning** (Nina, Mr. Palmer, two hellos; Theo
     and Mr. Page on the bench), **oak** (listen at the old oak: something ticks inside), **clues** (Mr. Page's book,
     *The Legend of the Old Oak*, at Turn the Page; Mr. Palmer's lilac envelope; three glowing acorns by Mossy Falls, the
     pumpkin patch and on Lookout Hill, each with a tremor), **dusk** (lay them in the nook in its roots: the runes
@@ -103,7 +106,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `awake()`. The oak's door only opens once it's awake (`earth_world.gd _door_open()`); old saves and anyone not on
     the First Night's early steps find it awake. Flags: `fn_oak_listen`, `fn_book`, `fn_acorn_1..3`, `fn_acorns`,
     `fn_acorns_placed`, `oak_woken`.
-  - **The old oak** (`build_earth.gd _portal`): the ring and its "Portal to Galaxity" sign are gone. A great gnarled oak
+  - **The old oak** (`build_earth.gd _portal`): the ring and its "Portal to the Void" sign are gone. A great gnarled oak
     (`OAK_BACK` behind `PORTAL_AT`) with a dark arched hollow framed by thick bark in its front, the swirl inside it,
     runes over the arch, down its sides and spiralling up the trunk, roots round the foot and the Acorn Nook. The door
     area and Entrance marker kept their names. `EarthTown.OAK` follows it.
@@ -120,10 +123,10 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     they stop, turn and listen; someone busy skating, riding, scooting or flying a kite carries on (`routine.gd BUSY`,
     or `"busy"` on a block), routines/README.md.
   - **Camera locked after the portal:** the minimap's map picture is much bigger than its circle and the minimap took
-    the mouse, so in Galaxity (with the mouse captured in the middle of the screen) it ate every mouse move. The
+    the mouse, so in the Void (with the mouse captured in the middle of the screen) it ate every mouse move. The
     minimap and its picture now ignore the mouse (`map_screen.gd`).
   - Tests: `tools/test_first_night.gd` walks the new day; new `tools/test_first_hour.gd` (bench, stopping to talk,
-    busy, the oak asleep, held-back collectibles, the camera in Galaxity, old-save migration). Previews
+    busy, the oak asleep, held-back collectibles, the camera in the Void, old-save migration). Previews
     `tools/capture_humming_oak.gd`, shots in project files `world/previews/humming_oak/`.
   - My choices Hayden may change: the acorn spots, 9 AM, the 6 PM hold, what comes out on which night, the BUSY list.
 
@@ -226,7 +229,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: the colours, the font for menus, the button lip, the compass, the quest pictures.
 - 2026-11-07: Boosters everywhere (plan item 14). Built and tested in the cloud (own Godot user folders, no save
   touched).
-  - **`scripts/boosters.gd`** (autoload `Boosters`): boost strips, booster ramps and booster coins round Galaxity and
+  - **`scripts/boosters.gd`** (autoload `Boosters`): boost strips, booster ramps and booster coins round the Void and
     Stars Hollow, outside races too. Like the lost watches they're put into the scene at play time from `BOOSTERS`
     (no builder or `.tscn` change), each on the ground found under its spot. Strips: along the lakeside (between the
     Lake Loop's own pads), the Homes street, out of the Market, into the Skate Park; on Earth into the Big Air Kicker,
@@ -256,7 +259,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   "clover" on load (`game.gd`). **Snappy is a he, and badly trained** (Hayden): `scripts/snappy.gd` (a "Snappy" node
   under her) makes him lunge and SNAP at whoever she's talking to every other conversation (not the first), right
   after her first line; then she says sorry (`Dialogue.cut_in()` puts lines in next). test_dialogue checks it.
-- 2026-11-07: Human Nina's new look, and two new Galaxity kids, Melody and the plant girl (from Hayden's three pictures,
+- 2026-11-07: Human Nina's new look, and two new Void kids, Melody and the plant girl (from Hayden's three pictures,
   copied to `source_art/reference/`: "Nina - human form.jpg", "Melody - capybara girl.jpg", "Plant girl.jpg"; Hayden:
   "Plant girl grows in and out of the ground to move around"). Built and tested in the cloud (own Godot user folders,
   no save touched); the whole suite passes (62 runs).
@@ -308,7 +311,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   skate, skate_park, skate_popper, shooting, skate_help, gloop_king, arsenal, gaps, skate_runs and races pass, run
   one at a time on the PC with the save checked untouched. Clips: `tools/capture_game_feel.gd` (folders of frames for
   GIFs; stills in `previews/game_feel/`). My choices Hayden may change: every strength and time above.
-- 2026-11-01: Sparkly alien trees in Galaxity (Hayden). `scenes/town/trees.gd` builds them at load from the same
+- 2026-11-01: Sparkly alien trees in the Void (Hayden). `scenes/town/trees.gd` builds them at load from the same
   spots, sizes and colours as before, so `town.tscn` wasn't rebuilt. Three kinds, picked from each tree's spot
   (`kind_of()`, so a rebuild keeps them): **orb trees** (a leaning stalk, a big glowing ball and two little ones on
   side branches), **spire trees** (three faceted seven-sided cones, each turned and nudged off the last so the spire
@@ -391,7 +394,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   timings and camera moves.
 - 2026-11-01: Timed skate runs (plan item 7, slice 3). New autoload `SkateRuns` (`scripts/skate_runs.gd`), like Tony
   Hawk's two-minute sessions. A **Run Clock** (a post with a big clock face and a SKATE RUN sign, put up at play time,
-  talk spot `scripts/run_spot.gd`) stands at Galaxity's Skate Park (just outside the rings, south) and at the Hollow
+  talk spot `scripts/run_spot.gd`) stands at the Void's Skate Park (just outside the rings, south) and at the Hollow
   Skate Yard (northwest corner, by the Big Vert). Interact, say go: 3-2-1, then 120 s to score anywhere; every combo
   banked counts (gaps too, and they're counted), and a combo you're in at the buzzer counts if you land it within 8 s
   ("Land it!"). Results: score, best, medals (`RUNS`: Skate Park 5,000 / 15,000 / 35,000, Skate Yard 6,000 / 18,000 /
@@ -406,7 +409,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   a rail without a bail = landing), so `skate.gd` wasn't changed. A move of more than 3 m in one physics frame (a race
   start, a door, a respawn) cancels the jump, so teleports are never gaps. **Named gaps** (`GAPS`) are circles in the
   frame of a skate piece in the scene (`"piece"`, found by name at scene load, so they follow the builders): Hollow
-  Yard Gap (gap kicker onto the landing deck, 500), Yard Funbox Hop and Galaxity's Funbox Hop (either way, 250), Yard
+  Yard Gap (gap kicker onto the landing deck, 500), Yard Funbox Hop and the Void's Funbox Hop (either way, 250), Yard
   Stair Set and School Stair Set (300), Lookout Launch (off the Big Air Kicker, 9 m+, 750), Pond Path Hop (200), Dock
   Drop (off the hardware store's loading dock, 250). **Anywhere gaps** (`ANYWHERE`): Hang Time (2 s up, not a vert air),
   Long Gap (12 m), Big Drop (3.5 m), Rail Transfer (one rail straight onto another). The first landing of each finds it:
@@ -436,7 +439,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   SK8 beanie, golden hair, open blue zip hoodie over an olive tee, tongue out); a crop is in
   `source_art/reference/Bruno - SK8 beanie.png`. Built and tested in the cloud (each run with its own Godot user
   folder, so no save was touched).
-  - **Galaxity Bruno** (`tools/build_bruno.py` → `source_art/characters/bruno.blend` → `models/characters/bruno.glb`):
+  - **The Void Bruno** (`tools/build_bruno.py` → `source_art/characters/bruno.blend` → `models/characters/bruno.glb`):
     made like Nina (same head, snout and body code, so they look related), with his own spiky golden mop, the black
     knit beanie with a folded cuff and an SK8 patch (real text), ears out under the cuff, blue eyes, freckles on his
     snout, ONE front tooth (the gap is his lisp), the tongue poking out, the open hoodie (zips, drawstrings, pockets,
@@ -449,7 +452,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     new `bruno_beanie` extra (black, cuffed, SK8 patch) in `scripts/townsfolk.gd`, and his black board under his arm.
     `earth.tscn` was rebuilt (only Bruno changed; the rest is unique_id churn). New lines in `dialogue/bruno.json`.
   - **His lisp and his Godfather voice:** his lines lisp ("Thkate Park", "leththon"). Under stress his voice goes low,
-    slow and Italian: during the Aftershock quest (the other Nina's tricks), when Leo's alarm wails in Galaxity, and
+    slow and Italian: during the Aftershock quest (the other Nina's tricks), when Leo's alarm wails in the Void, and
     after two bails on one step of his skate lesson. Parody bursts in our own words, then he's himself again.
   - **His ride** (`scripts/rides.gd` "bruno", after Nina in `ORDER`): the SK8 Deck (`ride_kit.gd` kit `sk8`: Nina's
     board in black with golden wheels and SK8 on the deck). Snappier than Nina's board, steadier grinds, less glide,
@@ -543,7 +546,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `townsfolk.gd`): sweet-looking, mean tricks. Put right her three tricks (tangled gazebo lights, mud pies in the
     bakery, the Town Hall sign saying TOWN SMELL), tell the real Nina (she's not a part of Nina, just another Nina from
     another world), and face her at the pond: she goes back through, "ponds work both ways".
-  - `scripts/townsfolk.gd` can now make any hero body (a look with `"body": "cat"`), which is how the Galaxity visitors
+  - `scripts/townsfolk.gd` can now make any hero body (a look with `"body": "cat"`), which is how the Void visitors
     are made. Earth's townsfolk have no body key and are unchanged.
   - `tools/test_episodes.gd` (90 checks, plays all five through) and `tools/capture_episodes.gd` (17 shots, in the
     project files under world/previews/episodes). Full suite green in the cloud.
@@ -556,10 +559,10 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **The watch is the clock** (story/how-it-fits.md: "the watch can be the player's clock"). Once the hero has a watch
     (the Shift Watch on their first crossing), the HUD's clock is its face beside the old words
     (`scripts/watch_face.gd`, drawn in code; `scripts/time_watch.gd`, `TimeWatch`, says which watch, what it shows and
-    what it says). The **Shift Watch** "ticks Earth's way": its hands always show Earth's time, so in Galaxity they
+    what it says). The **Shift Watch** "ticks Earth's way": its hands always show Earth's time, so in the Void they
     crawl. The **Time Keeper** (all 20 lost watches, wrist or pendant) shows the time where you are, with the other
     world on a little dial. Round the rim: on Earth a moon at twelve and a lavender wedge filling up to it (the portal
-    opens when the hour hand gets there); in the Shift, Galaxity's dawn-to-dawn day with a sun or moon going round, the
+    opens when the hour hand gets there); in the Shift, the Void's dawn-to-dawn day with a sun or moon going round, the
     part still to come glowing. **Check your watch** (`check_watch`: T, D-pad down, rebindable) holds it up big with a
     few lines (Earth's day and time, the portal or how much Shift is left, the festival, the night). Settings > Display >
     Clock: watch and words, just the watch, or just words (`Settings.clock_style`). No watch yet: words only. The
@@ -705,7 +708,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     **Controller rumble**; Reduce motion turns shake and hit-pause off. `tools/test_juice.gd`.
   - **F3 sound:** `scripts/soundscape.gd` (autoload `Soundscape`) picks the music twice a second: a race, the Gloop
     King chasing you, the Autumn Festival on the green, a music zone, the Scary World, the Skate Park and Skate Yard,
-    then Galaxity or Earth by time of day; `Audio.wanted_track()` falls back to `SCENE_MUSIC` for a track that isn't
+    then the Void or Earth by time of day; `Audio.wanted_track()` falls back to `SCENE_MUSIC` for a track that isn't
     there. Ambience loops (birds, wind, water by the lake, creek and pond, the market, the little aliens, the
     mothership). Music ducks 9 dB under dialogue (`Audio.duck()`, kept apart from the Music slider). Voice blips per
     character on a new **Voices** bus with its own slider (Rook barks, the Green Man and the centipede hum). The barn
@@ -717,13 +720,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     stall; new rides for racing: Overboard, Bike, Rocket Board, Rocket Bike, Flying Saucer). The 7-night plan is in
     the plan doc. Built so far: `scripts/nights.gd` (autoload `Nights`: which night it is, from `Requests.nights`),
     **night 2, Pip's Lamps** (`quests/night_2.json`, skippable: Pip waits at the portal and starts the boardwalk
-    lamps, look at Dash's stall, find a S-K-A-T-E letter; 8 sparkles; starts on the first Galaxity landing after the
+    lamps, look at Dash's stall, find a S-K-A-T-E letter; 8 sparkles; starts on the first Void landing after the
     First Night is done, so an old save gets it once it's had the First Night it's offered), and the **Goals page** in the Tab menu between Quests and Map
     (tonight, next to aim for in watches, races, gadgets and skating, tomorrow's teaser). `tools/test_nights.gd`.
-  - **F5 start:** the main scene is now the title screen (`scripts/title_screen.gd`): Galaxity at dawn as scenery
+  - **F5 start:** the main scene is now the title screen (`scripts/title_screen.gd`): the Void at dawn as scenery
     (its Player taken out, the clock held and put back), Continue (hero, night, play time: new `Game.play_time`,
     saved), New Game (asks first with a save), Settings, Quit. The opening (about 35 s, skips with Jump, Interact,
-    Esc or a click): Stars Hollow at midnight, the humming oak, Galaxity outside time, five watches ticking their own
+    Esc or a click): Stars Hollow at midnight, the humming oak, the Void outside time, five watches ticking their own
     ways, "Tonight, one of them is you." `Game.continue_game()`, `Game.START_SCENE`. The loading screen
     (`scripts/loading_screen.gd`, autoload `Loading`) shows on trips between worlds from `Game.go()`, with a tip
     and a little waving alien drawn in code. `tools/test_title.gd`; tests that checked the main scene now check
@@ -742,7 +745,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   the oak hums at midnight; Mr. Palmer at the gazebo teaches talking, the menu and the map; then hello to two more
   people on the green (Dottie, Theo, Mr. Page and Ozzie are kept out by quest overrides). Earth's clock holds at 11 PM
   until this step's done, so a slow first look round never misses the first Shift. **2 wait:** Nina suggests the bed's
-  "Until the Shift". **3 shift:** through the oak; the first landing in Galaxity plays the arrival moment (a swirl
+  "Until the Shift". **3 shift:** through the oak; the first landing in the Void plays the arrival moment (a swirl
   shader over the screen, gentle with Reduce motion) and puts the new **Shift Watch** on the hero's left wrist
   (`shop:shift_watch`, clothes.gd); Dash waits by the portal: a planet outside time, and some people are "chosen".
   **4 day** (a checklist): Dash at the market hands over the Star Popper (shoot tip), pop 3 Gloops (from
@@ -762,7 +765,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 - 2026-10-31: Stars Hollow build-out, phase 3: things to do. Earth has days of the week now (`Clock.earth_day()`,
   `Clock.weekday()`: day 1 is a Friday; the HUD says "Earth, Monday"). Most of it is added at play time, so
   `earth.tscn` wasn't rebuilt (only `routines/earth_places.json`, for the festival's points).
-  - **Notice board** (`scripts/earth_jobs.gd`, autoload `EarthJobs`): Galaxity's request board with Earth's jobs. It
+  - **Notice board** (`scripts/earth_jobs.gd`, autoload `EarthJobs`): the Void's request board with Earth's jobs. It
     extends `requests.gd`, which now has hooks for that (`kinds()`, `board_title()`, `noun()`, the `noted` signal...),
     and `request_board.gd` / `request_spot.gd` / `request_parcel.gd` take a `jobs` source (the board is `earthy`: wood,
     cork cards, a jack-o'-lantern on top). It stands by the gazebo's steps; three jobs every Earth day: take a parcel
@@ -782,7 +785,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **Story hints** (`EarthTown`): the old oak hums (made in code with an AudioStreamGenerator: wav files are LFS)
     from 9 PM, louder to midnight and loudest in the Shift, with a green glow; one or two small tremors a night between
     10 PM and midnight (rumble, camera shake, falling leaves, flag `earth_tremor`: Mr. Palmer says "pipes"); a lilac
-    envelope on Mr. Palmer's porch addressed to the Mayor in Galaxity (flag `read_palmer_letter`: his "pen pal").
+    envelope on Mr. Palmer's porch addressed to the Mayor in the Void (flag `read_palmer_letter`: his "pen pal").
     Lots of new lines for the festival and the hints.
   - Tests: new `tools/test_notice_board.gd` and `tools/test_festival.gd`; `test_earth` checks it all loads;
     `test_townsfolk` runs on a Friday so the festival doesn't move people. Previews: `tools/capture_earth_fun.gd`
@@ -965,7 +968,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   the tall yellow little alien, a bit bigger than the crowd and holding a clipboard, walks a ring round the fountain
   between the benches and the stalls. Both are added at runtime by the `Requests` autoload (`scripts/requests.gd`,
   `request_board.gd`, `request_alien.gd`, `request_spot.gd`), not built into `town.tscn`. Every Shift the board rolls
-  three requests, once per visit (`Requests.visit_day()`: Galaxity's day at the Shift's dawn, so Galaxity's midnight
+  three requests, once per visit (`Requests.visit_day()`: the Void's day at the Shift's dawn, so the Void's midnight
   doesn't re-roll), seeded by the visit so a reload keeps them: one easy, one medium, one harder, never the same kind
   twice, asking for a bit more each night (+5% a night, at most +50% by night 11) and paying 3 / 5 / 8 sparkles (+1
   every 4 nights, at most +3). Kinds (`KINDS`): pop Gloops (any way, with the Star Popper only, or stomps only), pop a
@@ -984,8 +987,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   `tools/test_request_board.gd` (66 checks), `tools/capture_request_board.gd` (shots are in the project files under
   world/previews/request_board, made in the cloud, which can't upload LFS files).
 
-- 2026-10-29: Lost watches (Hayden, from the lore: everyone who lands on Galaxity has a watch that tracks time their
-  own planet's or era's way). Twenty chosen kids lost theirs round Galaxity (`scripts/watches.gd`, autoload `Watches`):
+- 2026-10-29: Lost watches (Hayden, from the lore: everyone who lands on the Void has a watch that tracks time their
+  own planet's or era's way). Twenty chosen kids lost theirs round the Void (`scripts/watches.gd`, autoload `Watches`):
   each a little spinning, glowing model built from shapes (`Watches.model()`: a drip clock, a tide shell, a cuckoo
   locket, a 1985 beep band, a sundial, a moon-nap dial, a robot's bolt watch, the Watch of Many Hands, a chef's egg
   timer, one that runs backwards, a candle clock, an hourglass, a railway pocket watch, a star chart, an orrery, a
@@ -1077,19 +1080,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 - 2026-10-28: The Shift flipped to match the story (Hayden). The player lives on Earth: a new game starts in their
   house on the south side of the green (`_my_home()` in `build_earth.gd`, with a bed, and the creator's rug), and
   `earth.tscn` is the main scene. Earth's clock always runs (an Earth hour a real minute). From Earth's midnight to
-  1 AM the portal by the old oak (`PortalToGalaxity`, opened by `earth_world.gd`) goes to Galaxity, and that hour is
-  one Galaxity day: Galaxity runs from dawn (7 AM) to the next dawn in 20 real minutes while Earth's clock crawls 24x
-  slower, wherever the player is. Galaxity's clock waits at dawn between Shifts and its day number goes up once per
-  visit. At 6 AM Galaxity warns, and when the Shift ends `Clock` pulls the player home to the old oak from any
-  Galaxity scene (`Clock.pulls_home`, off in tests that need it). Galaxity's portal and the pause menu go home early;
-  on Earth in the Shift the pause menu goes through to Galaxity. Beds: on Earth, naps stop at midnight and "Until the
-  Shift" waits for it; in Galaxity, sleep stops at dawn and ends the visit (`Clock.sleep()`, `end_shift()`).
+  1 AM the portal by the old oak (`PortalToGalaxity`, opened by `earth_world.gd`) goes to the Void, and that hour is
+  one Void day: the Void runs from dawn (7 AM) to the next dawn in 20 real minutes while Earth's clock crawls 24x
+  slower, wherever the player is. The Void's clock waits at dawn between Shifts and its day number goes up once per
+  visit. At 6 AM the Void warns, and when the Shift ends `Clock` pulls the player home to the old oak from any
+  Void scene (`Clock.pulls_home`, off in tests that need it). The Void's portal and the pause menu go home early;
+  on Earth in the Shift the pause menu goes through to the Void. Beds: on Earth, naps stop at midnight and "Until the
+  Shift" waits for it; in the Void, sleep stops at dawn and ends the visit (`Clock.sleep()`, `end_shift()`).
   `Clock.hour()` and `period()` are local (Earth's on Earth); `hours()`, `time_string()` and `daylight()` stay
-  Galaxity's. Saves are version 2; old ones still load: one made in Galaxity carries on there in the Shift (Earth's
-  time worked out from Galaxity's), one made on Earth keeps Earth's time. Mr. Palmer on Earth talks to a neighbour
+  The Void's. Saves are version 2; old ones still load: one made in the Void carries on there in the Shift (Earth's
+  time worked out from the Void's), one made on Earth keeps Earth's time. Mr. Palmer on Earth talks to a neighbour
   now. `tools/test_clock.gd` and `tools/test_earth.gd` were rewritten, `tools/capture_shift.gd` (`previews/shift/`).
 
-- 2026-10-28: Mr. Palmer's Galaxity form, an alien mayor with an elephant trunk (`tools/build_mr_palmer_alien.py` →
+- 2026-10-28: Mr. Palmer's Void form, an alien mayor with an elephant trunk (`tools/build_mr_palmer_alien.py` →
   `mr_palmer_alien.blend/.glb`; idle, walk, grab). He keeps his tummy, suit, red tie, sash, round glasses and grey
   moustache, with mint-teal spotted skin, lilac ear fins and crest, antennae with gold bobbles, three fingers and a
   stubby tail. The trunk runs on its own chain of bones (`trunk.0`-`trunk.7`): it sways in idle and swings in walk.
@@ -1197,7 +1200,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   white suit, black visor, antenna, grey backpack and hoses, chest controls, the big red button, US flag patch, blue
   gloves and grey boots, with a floaty idle and a bouncy moon walk. They stand by the Mothership Pad
   (`characters.tscn`, no routine yet) and talk (`dialogue/astronaut.json`): an Earth astronaut who flew up to see
-  the mothership and landed in Galaxity (`tools/capture_astronaut.gd`, `previews/astronaut/`).
+  the mothership and landed in the Void (`tools/capture_astronaut.gd`, `previews/astronaut/`).
 - 2026-10-23: Create-your-own hero, RPG style. The player is their own hero (`Game.hero`, `scripts/hero.gd`): a body to
   start from (Sofi's hippo, kid, dog-kid, moth, cow or alien bodies), 11 hairstyles (`scripts/hairstyles.gd`, fitted to
   each head), height, head size and build (`scripts/body_shape.gd`), 20-colour swatches for fur, hair, eyes, accent,
@@ -1250,7 +1253,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   (`tools/test_mothership.gd`, `previews/mothership/`).
 - 2026-10-23: The portal lets Nina through by the clock, not by its fade-in. It used to let her through for a
   moment after the Shift ended or after loading a save made during the Shift.
-- 2026-10-23: Renamed Galactopia → Galaxity. Earth got a full day/night sky (clouds, sunrise and sunset, stars,
+- 2026-10-23: Renamed Galactopia → Galaxity (now the Void). Earth got a full day/night sky (clouds, sunrise and sunset, stars,
   moon). The school's Entrance Garden got a greenhouse, vegetable beds, benches and a rose arch. The 3rd-floor
   window now shows the town's real mountains.
 - 2026-10-22: Earth barn dance studio. Lilac fairytale Bojnice castle, the Crocodillo enemy, the green sky and the

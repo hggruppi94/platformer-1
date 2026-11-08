@@ -3,7 +3,7 @@ extends Node3D
 # Builds the town's trees when the scene loads (MultiMesh data can't be baked from a headless build).
 # Positions/sizes/colors and the look (bark, glow, canopy shape) are written by tools/build_town.gd.
 #
-# Galaxity's trees are sparkly alien trees, in three kinds picked from each tree's spot so a rebuild keeps them:
+# The Void's trees are sparkly alien trees, in three kinds picked from each tree's spot so a rebuild keeps them:
 # orb trees (a leaning stalk with a glowing ball on top and two little ones on side branches), spire trees (three
 # twisted, faceted cones stacked up like a crystal fir) and parasol trees (a tall stalk under a wide flat cap with
 # glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with specks of light,

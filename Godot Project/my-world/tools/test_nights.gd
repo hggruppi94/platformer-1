@@ -2,7 +2,7 @@ extends SceneTree
 
 # Checks the nights after The First Night and the Goals page (scripts/nights.gd, quests/night_2.json, plan prompt F4):
 # the Goals page always has something for tonight, something to aim for in watches, races, gadgets and skating, and a
-# teaser for tomorrow night; night 2 starts the first time you land in Galaxity after The First Night (never during
+# teaser for tomorrow night; night 2 starts the first time you land in the Void after The First Night (never during
 # it), with "New tonight" and Pip waiting by the portal; Pip's lines start the boardwalk lamps; Dash's stall and a
 # S-K-A-T-E letter tick the list; it pays out; an old save that never had The First Night gets night 2 from its second
 # visit, but not on its first; and the Tab menu has a Goals sheet.
@@ -92,7 +92,7 @@ func _run() -> void:
 	await _go(EARTH)
 	await _go(TOWN)
 	check(dialogue.flags.has("night_2") and quests.is_started("night_2") and _step() == "pip",
-		"landing in Galaxity after The First Night starts night 2, on Pip's step")
+		"landing in the Void after The First Night starts night 2, on Pip's step")
 	await create_timer(3.4).timeout
 	check(messages.any(func(m: String) -> bool: return m.contains("Night 2")), "...with \"New tonight\" when you land")
 	check(str(N.goals()[0][1][0]).contains("Night 2"), "...and the Goals page says it's night 2")

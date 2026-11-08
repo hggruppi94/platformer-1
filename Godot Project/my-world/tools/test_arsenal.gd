@@ -583,7 +583,7 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 
 	# --- Ammo crates ---
 	var crates := get_nodes_in_group("ammo_crates")
-	check(crates.size() == arsenal.CRATES.size(), "%d ammo crates round Galaxity" % crates.size())
+	check(crates.size() == arsenal.CRATES.size(), "%d ammo crates round the Void" % crates.size())
 	var space := p.get_world_3d().direct_space_state
 	var bad := []
 	for c in crates:

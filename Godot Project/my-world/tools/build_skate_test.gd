@@ -2,7 +2,7 @@ extends SceneTree
 
 # Builds res://scenes/skate/test_park.tscn: a small practice park for trying out the skating (scenes/player/skate.gd).
 # A halfpipe, a big quarter pipe, a kicker, a funbox with ledges, flat rails, a ledge, and a platform with stairs and a
-# handrail going down, on a big flat lavender slab under the green Galaxity sky, and a Skaters' Corner by the start
+# handrail going down, on a big flat lavender slab under the green Void sky, and a Skaters' Corner by the start
 # for swapping who's skating. The pieces come from
 # tools/skate_kit.gd (the town's Skate Park uses the same ones). Logic: scripts/skate_test_park.gd.
 #

@@ -8,7 +8,7 @@ extends Node
 #
 # Music: res://audio/music/<name>.ogg (or .mp3/.wav) is used when it exists; otherwise the generated placeholder
 # in res://audio/music/placeholder/ plays. So dropping in town.ogg replaces the town placeholder, nothing else to do.
-# Which track plays where and when is picked by scripts/soundscape.gd (Earth and Galaxity by time of day, the Skate
+# Which track plays where and when is picked by scripts/soundscape.gd (Earth and the Void by time of day, the Skate
 # Park, races, the Gloop King, the festival...); scenes it has nothing for use SCENE_MUSIC below, and Area3D zones
 # can override both (see scripts/music_zone.gd). A track the Soundscape picks but that isn't in the project yet
 # falls back to SCENE_MUSIC too, so nothing goes quiet.

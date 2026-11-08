@@ -2,7 +2,7 @@ extends SceneTree
 
 # Screenshots of the shared menu look (scripts/ui_style.gd): the quest cards and the quest banner, the folder tabs of
 # the player menu and Settings, the pause menu, a shop and the wardrobe, and the round minimap with its compass in
-# Galaxity and on Earth. Opens a window (not --headless):
+# The Void and on Earth. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_ui_style.gd -- <output folder>
 #

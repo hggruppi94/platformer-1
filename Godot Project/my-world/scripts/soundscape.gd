@@ -9,11 +9,11 @@ extends Node
 #   a music zone you're standing in -> its own track    (scripts/music_zone.gd: interiors; the barn's is "barn_dance")
 #   the Skate Park / the Skate Yard -> "skate_park"
 #   the Scary World                 -> "scary_world"
-#   Galaxity                        -> "town_day" or "town_night", by Galaxity's daylight
+#   The Void                        -> "town_day" or "town_night", by the Void's daylight
 #   Earth outdoors                  -> "earth_day" or "earth_night", by Earth's clock
 #
 # Ambience loops quietly under it (res://audio/ambience, made by tools/make_soundscape.py): birds by day and the wind
-# at night, the little aliens' chirps in Galaxity's day, the creek and lake near water, the market's murmur round the
+# at night, the little aliens' chirps in the Void's day, the creek and lake near water, the market's murmur round the
 # Market Square, and the mothership's hum near it. The music ducks while someone's talking.
 #
 # Voices: each line in a conversation plays little blips as it types, pitched for whoever's talking (Rook barks, the
@@ -26,10 +26,10 @@ const DUCK_DB := -9.0                         # music under dialogue
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 const SCARY := "res://scenes/scary_world/scary_world.tscn"
-const SKATE_PARK := Vector3(50, 0, 58)        # Galaxity's Skate Park (tools/build_town.gd SKATE)
+const SKATE_PARK := Vector3(50, 0, 58)        # the Void's Skate Park (tools/build_town.gd SKATE)
 const SKATE_YARD := Vector3(30, 0, -100)      # Stars Hollow's Hollow Skate Yard (tools/build_earth.gd YARD)
-const MARKET := Vector3(-72, 0, 42)           # Galaxity's Market Square (tools/build_town.gd MARKET)
-const LAKE := Vector3(0, 0, 0)                # Galaxity's lake (LAKE_MAIN)
+const MARKET := Vector3(-72, 0, 42)           # the Void's Market Square (tools/build_town.gd MARKET)
+const LAKE := Vector3(0, 0, 0)                # the Void's lake (LAKE_MAIN)
 const SKATE_RADIUS := 30.0
 # Who sounds like what when they talk: [pitch, blip kind]. Anyone not here gets a pitch made from their name.
 const VOICES := {

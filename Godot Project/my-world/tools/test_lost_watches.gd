@@ -46,7 +46,7 @@ func _run() -> void:
 	dialogue.reset()
 	game.items.clear()
 	game.popper_colour = "classic"
-	# Midday in Galaxity, and no pull home to Earth partway through (a save near the end of the Shift used to end the
+	# Midday in the Void, and no pull home to Earth partway through (a save near the end of the Shift used to end the
 	# visit mid-test, so the town checks ran on Earth)
 	var clock := root.get_node("Clock")
 	clock.pulls_home = false

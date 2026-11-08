@@ -2,20 +2,20 @@ class_name WatchFace
 extends Control
 
 # The hero's own watch, drawn as the game's clock (the HUD's top middle, and big when they check it: scripts/hud.gd).
-# In the show everyone who lands on Galaxity has a watch that tracks time the way it worked where they came from
+# In the show everyone who lands on the Void has a watch that tracks time the way it worked where they came from
 # (story/how-it-fits.md, "the watches"), and the first time the hero crosses over one appears on their wrist
 # (scripts/first_night.gd). So from then on the watch IS the clock.
 #
 # Which watch it is follows what they're wearing (scripts/time_watch.gd):
 # - The Shift Watch "ticks Earth's way": its hands always show Earth's time. During the Shift Earth's clock crawls
-#   (one Earth hour is a whole Galaxity day), so in Galaxity its hands barely move and its second hand creeps round:
+#   (one Earth hour is a whole Void day), so in the Void its hands barely move and its second hand creeps round:
 #   that's the "it ticks... differently here" from the arrival.
 # - The Time Keeper (Dash's reward for all twenty lost watches, as a wrist watch or a pendant) "keeps your time": its
 #   hands show the time where they are, and a little dial in its face shows the other world's.
 #
 # Both have the Shift ring round the edge. Outside the Shift, on Earth, a moon sits at twelve and a lavender wedge
 # fills from the hour hand up to it as midnight comes: when the hand reaches the moon, the portal opens. During the
-# Shift the ring is Galaxity's whole day (dawn to dawn), with a sun or moon going round it, and the part still to come
+# Shift the ring is the Void's whole day (dawn to dawn), with a sun or moon going round it, and the part still to come
 # glows: when it's all gone, the portal pulls them home. While Rex and Dash's lab quest needs time ripples, a pink
 # pointer on the rim points the way to the nearest one (scripts/lab.gd) and pulses faster as they get close.
 
@@ -103,7 +103,7 @@ func _shift_ring(c: Vector2, rr: float, width: float, keeper: bool) -> void:
 	var lav := Color(0.8, 0.65, 1.0)
 	var dim := Color(0.35, 0.28, 0.5, 0.6) if not keeper else Color(0.25, 0.18, 0.4, 0.8)
 	if Clock.in_shift():
-		# Galaxity's whole day, dawn to dawn, starting at the top. What's left of it glows.
+		# The Void's whole day, dawn to dawn, starting at the top. What's left of it glows.
 		var gone := 1.0 - Clock.shift_minutes_left() / float(Clock.MINUTES_PER_DAY)
 		var start := -PI / 2.0
 		draw_arc(c, rr, start, start + TAU * gone, 48, dim, width, true)
@@ -111,7 +111,7 @@ func _shift_ring(c: Vector2, rr: float, width: float, keeper: bool) -> void:
 		var a := start + TAU * gone
 		var at := c + Vector2(cos(a), sin(a)) * rr
 		if Clock.daylight() > 0.4:
-			draw_circle(at, width * 0.9, Color(1.0, 0.85, 0.3))                       # Galaxity's sun...
+			draw_circle(at, width * 0.9, Color(1.0, 0.85, 0.3))                       # the Void's sun...
 		else:
 			draw_circle(at, width * 0.9, Color(0.9, 0.92, 1.0))                       # ...or its moon
 		return

@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "Nights": a reason to come back every night (plan prompt F4). Each Galaxity visit after The First Night
+# Autoload "Nights": a reason to come back every night (plan prompt F4). Each the Void visit after The First Night
 # shows off something new: a friend waiting by the portal, a place, a gadget, a race or a skate goal. Nothing is ever
 # locked behind a grind: a night's things are spotlighted ("Night 2! Pip's waiting for you by the portal..." when you
 # land, a short skippable quest with stars on the map, a line on the Goals page), and each night puts out one or two
@@ -8,7 +8,7 @@ extends Node
 #
 # The whole 7-night plan is in /mnt/project-files/roadmap/galaxity-plan.md (F4), and all seven are built. A night is
 # its own quest file (quests/night_<n>.json), started by the flag "night_<n>", which is set the first time you land
-# in Galaxity after the night before is done (one night a visit: _start_next()).
+# in the Void after the night before is done (one night a visit: _start_next()).
 #
 # The Goals page (the Tab menu, between Quests and Map: scripts/player_menu.gd) reads goals(): tonight's spotlight
 # and requests, the next thing to aim for in watches, races, gadgets and skate goals, and a teaser for tomorrow.
@@ -60,7 +60,7 @@ func _ready() -> void:
 # Which night it is
 # -----------------------------------------------------------------------------
 func night() -> int:
-	# Night 1 is the first Galaxity visit, night 2 the second... (the request board counts the visits it's put up)
+	# Night 1 is the first Void visit, night 2 the second... (the request board counts the visits it's put up)
 	return maxi(Requests.nights, 1)
 
 
@@ -92,7 +92,7 @@ func _on_scene_changed() -> void:
 	var s := get_tree().current_scene
 	if s == null or s.scene_file_path != TOWN or not Clock.in_shift():
 		return
-	# Landing in Galaxity after The First Night starts night 2's spotlight (the First Night ends at home on Earth, so
+	# Landing in the Void after The First Night starts night 2's spotlight (the First Night ends at home on Earth, so
 	# that's always a new visit). An old save that never had the First Night is offered that first (by Nina, or the
 	# Quests sheet's button), never forced, so the nights follow on from it there too.
 	var visit := Requests.visit_day()
@@ -105,7 +105,7 @@ func _on_scene_changed() -> void:
 
 func _start_next(visit: int) -> void:
 	# The next night starts the next time you land, once the night before it is done (or skipped), and never two on
-	# one visit: each Galaxity visit is one night. The visit a night started on is a flag ("night_visit_<visit>"), so
+	# one visit: each Void visit is one night. The visit a night started on is a flag ("night_visit_<visit>"), so
 	# that's kept in the save without anything new in it.
 	if Dialogue.flags.has("night_visit_%d" % visit):
 		return
@@ -217,7 +217,7 @@ func goals() -> Array:
 		for r in Requests.list:
 			tonight.append("%s %s  [color=#f5e6a3]✦ %d[/color]" % ["✓" if r.done else "○", Requests.text_of(r), int(r.sparkles)])
 	elif not Clock.in_shift():
-		tonight.append("Tally's board puts up three new requests every time you visit Galaxity.")
+		tonight.append("Tally's board puts up three new requests every time you visit the Void.")
 	out.append(["Tonight", tonight])
 
 	var aim: Array[String] = []
@@ -241,7 +241,7 @@ func goals() -> Array:
 	out.append(["Next to aim for", aim])
 
 	var tease := str(next_night().get("tease", ""))         # each night's own teaser, shown the night before
-	out.append(["Tomorrow night", [tease if tease != "" else "Every night in Galaxity there's something new to find."]])
+	out.append(["Tomorrow night", [tease if tease != "" else "Every night in the Void there's something new to find."]])
 	return out
 
 

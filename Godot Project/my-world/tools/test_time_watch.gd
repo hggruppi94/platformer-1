@@ -4,7 +4,7 @@ extends SceneTree
 # and Dash's lab quest (scripts/lab.gd, quests/rex_lab.json):
 # - no watch before the first crossing: the clock is just words; once they have one its face shows beside the words,
 #   and Settings > Display > Clock picks watch and words, just the watch, or just words
-# - the Shift Watch's hands show Earth's time even in Galaxity, the Time Keeper's the time where they are with the
+# - the Shift Watch's hands show Earth's time even in the Void, the Time Keeper's the time where they are with the
 #   other world on its little dial; checking the watch (T) holds it up with what it says
 # - the lab is in the yard past Dash's house; Rex offers the quest, Dash tunes the watch, three time ripples turn up (and only
 #   then), the watch points at the nearest and each is caught by walking into it; Rook comes for a ball; the lever
@@ -109,17 +109,17 @@ func _run() -> void:
 	hud.check_watch()
 	check(not hud.glance.visible, "pressing again puts it away")
 
-	# In Galaxity, in the Shift: the Shift Watch still shows Earth's (crawling) time
+	# In the Void, in the Shift: the Shift Watch still shows Earth's (crawling) time
 	clock.set_earth_time(0.25 * 60.0, true)
 	await _go(TOWN)
 	clock.set_time(clock.day, 13 * 60.0, true)
 	hud = current_scene.find_child("HUD", true, false)
-	check(not clock.on_earth and clock.in_shift(), "now in Galaxity, in the Shift")
+	check(not clock.on_earth and clock.in_shift(), "now in the Void, in the Shift")
 	check(is_equal_approx(TW.shown_minutes(), clock.earth_minutes) and clock.earth_minutes < 60.0,
-		"in Galaxity the Shift Watch still shows Earth's time (%s)" % clock.earth_time_string())
+		"in the Void the Shift Watch still shows Earth's time (%s)" % clock.earth_time_string())
 	hud.check_watch()
 	said = hud.glance_label.text
-	check(said.contains("Galaxity: day") and said.contains("left before the portal"), "it says how much of the Shift is left: \"%s\"" % said.replace("\n", " / "))
+	check(said.contains("The Void: day") and said.contains("left before the portal"), "it says how much of the Shift is left: \"%s\"" % said.replace("\n", " / "))
 	hud.check_watch()
 
 	# The Time Keeper keeps your own time, with the other world on its little dial
@@ -127,7 +127,7 @@ func _run() -> void:
 	game.outfit["hands"] = "time_keeper_watch"
 	game.equipment_changed.emit()
 	check(TW.style() == "keeper" and is_equal_approx(TW.shown_minutes(), clock.minutes) and
-		is_equal_approx(TW.other_minutes(), clock.earth_minutes), "the Time Keeper shows Galaxity's time here, Earth's on its little dial")
+		is_equal_approx(TW.other_minutes(), clock.earth_minutes), "the Time Keeper shows the Void's time here, Earth's on its little dial")
 	game.outfit["hands"] = "shift_watch"
 	game.outfit["neck"] = "time_keeper_pendant"
 	check(TW.style() == "shift", "wearing the Shift Watch, it's the Shift Watch's face")

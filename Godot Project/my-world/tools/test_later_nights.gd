@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks nights 3 to 7 (quests/night_3.json to night_7.json, scripts/nights.gd): each starts the next time you land
-# in Galaxity after the night before is done, and never two on one visit; each says what's new when you land and has
+# in the Void after the night before is done, and never two on one visit; each says what's new when you land and has
 # a friend to meet (Bramble, Dash and Rex wait by the portal, the Astronaut at the Mothership Pad, Mr. Palmer at his
 # window), whose lines tick the first step; then a list of the night's schematics and its spotlight (a race, the
 # Observatory, building a ride, flying the mothership, the castle school, the Scary World gate and the Agent of
@@ -215,7 +215,7 @@ func _stand_by(node_name: String, off: Vector3) -> void:
 
 
 func _new_visit() -> void:
-	# The next Shift: a new Galaxity day, landing in town from Earth
+	# The next Shift: a new Void day, landing in town from Earth
 	clock.set_earth_time(0.3 * 60.0, true)
 	clock.set_time(clock.day + 1, 9 * 60.0, true)
 	await _go(EARTH)

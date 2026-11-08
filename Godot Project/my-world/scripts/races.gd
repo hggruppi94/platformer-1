@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "Races": racing round Galaxity on whatever you ride (your board, or a friend's ride from the Skaters'
+# Autoload "Races": racing round the Void on whatever you ride (your board, or a friend's ride from the Skaters'
 # Corner: scripts/rides.gd). Each track (TRACKS) is placed in its scene at runtime by scripts/race_track.gd: a start
 # arch, Zippy the pink little alien who starts the races, a race board, boost pads that are there all the time, and,
 # while racing, glowing rings at the checkpoints, Star Boxes and goo puddles.

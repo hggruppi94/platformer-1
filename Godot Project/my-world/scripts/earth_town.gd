@@ -4,7 +4,7 @@ extends Node
 # town's builder doesn't need to change for them.
 #
 # - Shops: a "Press F to shop" spot at the counters of the bakery and the toy shop (walk in), and at the doors of the
-#   Hollow Diner and the Corner Market, for their stalls in shop/items.json. They take sparkles, like Galaxity's
+#   Hollow Diner and the Corner Market, for their stalls in shop/items.json. They take sparkles, like the Void's
 #   market: it's the one money the player has, it's earned in both worlds (Earth's notice board pays in it too), and
 #   nobody on Earth seems to think shiny bits of broken time are a strange way to pay. A second, Earth-only money
 #   would split what the player earns between two purses for no fun.
@@ -14,7 +14,7 @@ extends Node
 #   - Small tremors, once or twice a night between 10 PM and midnight, at times picked for each Earth day: a low
 #     rumble, a little shake of the camera and the oak's leaves falling. People talk about them after (Dialogue flag
 #     "earth_tremor") and Mr. Palmer says it's "the pipes".
-#   - A lilac envelope on Mr. Palmer's porch table, addressed to "His Honour the Mayor, Mr. Palmer ... Galaxity"
+#   - A lilac envelope on Mr. Palmer's porch table, addressed to "His Honour the Mayor, Mr. Palmer ... The Void"
 #     (Dialogue flag "read_palmer_letter"; he has a line about his "pen pal").
 # - The season (scripts/seasons.gd, a "Seasons" node): the town's leaves, ground, roofs and pond, and what's in the air.
 
@@ -296,6 +296,6 @@ func talk(spot: Node3D) -> void:
 func letter_lines() -> Array:
 	Dialogue.flags["read_palmer_letter"] = true
 	return ["(A lilac envelope on Mr. Palmer's porch table, sealed with a blob of green wax that glows, just a little.)",
-		"(It's addressed in swirly silver writing: \"To His Honour the Mayor, Mr. Palmer. Town Hall, Market Square, GALAXITY.\")",
-		"(Galaxity? The Mayor? How does Mr. Palmer get post from Galaxity?)",
+		"(It's addressed in swirly silver writing: \"To His Honour the Mayor, Mr. Palmer. Town Hall, Market Square, THE VOID.\")",
+		"(The Void? The Mayor? How does Mr. Palmer get post from the Void?)",
 		"(Better not open it. You put it back exactly how it was.)"]

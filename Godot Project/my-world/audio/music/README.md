@@ -7,15 +7,15 @@ No code changes, no editor setup; the game picks up `<name>.ogg` (or `.mp3` / `.
 |---------------------|--------------------------------------------------|--------------------------------------------------|
 | `earth_day.ogg`     | Stars Hollow by day (6:30 AM to 7:30 PM)         | Cosy autumn folk                                 |
 | `earth_night.ogg`   | Stars Hollow at night                            | Halloween-cosy music box                         |
-| `town_day.ogg`      | Galaxity in daylight                             | Dreamy, alien, wide-open; it plays a lot, so calm |
-| `town_night.ogg`    | Galaxity at night                                | Slow and twinkly                                 |
+| `town_day.ogg`      | the Void in daylight                             | Dreamy, alien, wide-open; it plays a lot, so calm |
+| `town_night.ogg`    | the Void at night                                | Slow and twinkly                                 |
 | `skate_park.ogg`    | The Skate Park and the Hollow Skate Yard         | Upbeat and punky                                 |
 | `race.ogg`          | Any race                                         | Fast, bright arps                                |
 | `gloop_king.ogg`    | The Gloop King chasing you                       | A bouncy, goofy boss march                       |
 | `scary_world.ogg`   | The Scary World                                  | Spooky but never scary                           |
 | `festival.ogg`      | The Autumn Festival on the green                 | A happy jig                                      |
 | `barn_dance.ogg`    | Madame Celeste's barn dance studio               | Four on the floor                                |
-| `town.ogg`          | Galaxity, if `town_day`/`town_night` are missing | (placeholder)                                    |
+| `town.ogg`          | the Void, if `town_day`/`town_night` are missing | (placeholder)                                    |
 | `interior.ogg`      | Aquarium, Cafe, Restaurant & Cafe, homes         | Cosy, small-room (placeholder)                   |
 | `school.ogg`        | Inside the castle school                         | Playful, a little odd (placeholder)              |
 | `behind_walls.ogg`  | Behind the Slivers (where the centipede lives)   | Unsettling: something is watching (placeholder)  |

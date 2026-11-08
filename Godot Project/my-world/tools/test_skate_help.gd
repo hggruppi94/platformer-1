@@ -412,7 +412,7 @@ func _coach() -> void:
 			town_rook = r.get_parent()
 		if r.get("character_id") == "bruno_alien":
 			town_bruno = r.get_parent()
-	check(town_bruno != null, "Bruno lives in Galaxity (his hippo self, with a routine)")
+	check(town_bruno != null, "Bruno lives in the Void (his hippo self, with a routine)")
 	lesson.start()
 	await _frames(3)
 	var coach := current_scene.find_child("Coach Bruno", true, false) as Node3D

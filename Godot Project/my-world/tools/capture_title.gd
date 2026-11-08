@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of the start of the game and the menus added with it (plan prompts F2 to F6): the title screen over
-# Galaxity at dawn (with a save, and its New Game question), each part of the opening, the loading screen, the Goals
+# The Void at dawn (with a save, and its New Game question), each part of the opening, the loading screen, the Goals
 # page, night 2's arrival and Pip at the portal, a pop with the new feedback, and the new settings (Screen shake,
 # Controller rumble, Playtest notes on Assist; Voices on Audio). Opens a window (not --headless):
 #
@@ -84,7 +84,7 @@ func _run() -> void:
 	await _frames(10)
 
 	# --- The loading screen ---
-	game.go(TOWN, "FromPortaltoEarth", "Galaxity")
+	game.go(TOWN, "FromPortaltoEarth", "Void")
 	await _shot("09_loading_screen", 0)
 	await _wait_for_scene(TOWN, 600)
 	await create_timer(2.0).timeout

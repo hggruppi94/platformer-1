@@ -1,8 +1,8 @@
 extends Node
 
-# Autoload "Requests": the nightly request board in Galaxity's Market Square (scripts/request_board.gd), and Tally, the
+# Autoload "Requests": the nightly request board in the Void's Market Square (scripts/request_board.gd), and Tally, the
 # little alien with a clipboard who walks round the square (scripts/request_alien.gd). Every Shift the board puts up
-# three requests from the people of Galaxity, new each Galaxity day (one roll per visit: Clock's day number at the
+# three requests from the people of the Void, new each Void day (one roll per visit: Clock's day number at the
 # Shift's dawn), each paying sparkles: one easy, one medium and one harder, never the same kind twice in a night, and
 # growing gently with the nights played.
 #
@@ -63,7 +63,7 @@ const PLACES := [
 const GLOOP_WAYS := ["any", "bubble", "stomp"]             # pop them any way, with the Star Popper, or by stomping
 
 var list: Array = []          # tonight's requests (see _make())
-var rolled_visit := 0         # the visit (Galaxity day at the Shift's dawn) they were rolled for; 0 = never
+var rolled_visit := 0         # the visit (Void day at the Shift's dawn) they were rolled for; 0 = never
 var nights := 0               # how many nights the board has put requests up
 var turned_in := 0            # how many requests the player has finished and been paid for, all told
 
@@ -91,7 +91,7 @@ func _refresh_log() -> void:
 # Rolling tonight's three
 # -----------------------------------------------------------------------------
 func visit_day() -> int:
-	# The Galaxity day this Shift began on: after Galaxity's midnight the day number has moved on, but it's the same visit
+	# The Void day this Shift began on: after the Void's midnight the day number has moved on, but it's the same visit
 	return Clock.day if Clock.minutes >= Clock.DAWN_HOUR * 60.0 else Clock.day - 1
 
 
@@ -133,7 +133,7 @@ func roll(seed_value := -1) -> void:
 
 
 func _announce() -> void:
-	# Once a visit, in Galaxity (on Earth the Shift has its own news to tell): there are new requests
+	# Once a visit, in the Void (on Earth the Shift has its own news to tell): there are new requests
 	if Clock.on_earth or _told == rolled_visit or not is_live():
 		return
 	_told = rolled_visit
@@ -546,7 +546,7 @@ func lines(talker: Node3D = null) -> Array:
 	if paid > 0:
 		out.append("Ooh, {player}, you did it! Tick, tick, tick! Here's ✦ %d, all yours." % paid)
 		if ready_to_turn_in().is_empty() and list.all(func(r: Dictionary) -> bool: return r.paid):
-			out.append("That's every request tonight! Everyone in Galaxity is talking about {them}.")
+			out.append("That's every request tonight! Everyone in the Void is talking about {them}.")
 			return out
 	else:
 		out.append("Hello, {player}! Tally's the name, requests are my game. Here's who needs a hand tonight:")

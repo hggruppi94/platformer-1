@@ -1,7 +1,7 @@
 {
   "name": "The First Night",
   "giver": "nina_earth",
-  "about": "The opening quest line for a new game: a whole first day on Earth (the Humming Oak: meeting the town, the oak's mystery, three clues and three glowing acorns, the oak's door opening at midnight), then the first Galaxity day. scripts/first_night.gd and scripts/humming_oak.gd glue it to the rest of the game. Every step can be skipped from the quest log.",
+  "about": "The opening quest line for a new game: a whole first day on Earth (the Humming Oak: meeting the town, the oak's mystery, three clues and three glowing acorns, the oak's door opening at midnight), then the first Void day. scripts/first_night.gd and scripts/humming_oak.gd glue it to the rest of the game. Every step can be skipped from the quest log.",
   "skippable": true,
   "start": {"flag": "first_night_start"},
   "steps": [
@@ -96,7 +96,7 @@
     },
     {
       "id": "day",
-      "text": "A whole day in Galaxity! Dash, Rex and Tally all have something to show you.",
+      "text": "A whole day in the Void! Dash, Rex and Tally all have something to show you.",
       "checklist": [
         ["fn_gloops", "Pop 3 Gloops with your Star Popper"],
         ["fn_stall", "Look at Dash's gadget stall by the fountain"],
@@ -136,7 +136,7 @@
     },
     {
       "id": "home",
-      "text": "What a day! Enjoy Galaxity till the Shift ends at 7 AM, when the portal pulls you home. Then find Nina.",
+      "text": "What a day! Enjoy the Void till the Shift ends at 7 AM, when the portal pulls you home. Then find Nina.",
       "done": {"flag": "fn_home_nina"},
       "where": [
         {"who": "nina_earth", "unless": "fn_home_nina"}

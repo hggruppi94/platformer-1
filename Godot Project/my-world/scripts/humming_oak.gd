@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "HummingOak": the old oak on the green, where the door to Galaxity is (tools/build_earth.gd _portal builds
+# Autoload "HummingOak": the old oak on the green, where the door to the Void is (tools/build_earth.gd _portal builds
 # the tree, its hollow, its runes and roots). On a new game's first day ("The First Night", res://quests/first_night.json)
 # it's just a tree with a secret: listen to it and something ticks inside; three glowing acorns turn up round town
 # (Mossy Falls, the pumpkin patch, Lookout Hill), and each one sets off a little tremor; laid in the nook in its roots
@@ -311,7 +311,7 @@ func lines() -> Array:
 	if not awake():
 		return ["(It's a big old oak tree, much older than the town. Its leaves are every colour of autumn.)"]
 	if Clock.in_shift():
-		return ["(The hollow in the old oak swirls with lilac light. The door to Galaxity is open. Walk in!)"]
+		return ["(The hollow in the old oak swirls with lilac light. The door to the Void is open. Walk in!)"]
 	return ["(The runes on the old oak glow faintly. Its hollow is dark and still. It opens again at midnight.)"]
 
 

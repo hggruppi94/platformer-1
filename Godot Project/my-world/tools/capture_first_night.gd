@@ -111,7 +111,7 @@ func _run() -> void:
 	await _physics(30)
 	await _view("06_midnight_at_the_old_oak", oak_at + Vector3(9.0, 3.0, 10.0), oak_at + Vector3(0, 2.5, 0), 30)
 
-	# --- Galaxity: the arrival moment ---
+	# --- The Void: the arrival moment ---
 	game.go(TOWN, "FromPortaltoEarth")
 	await _wait_for_scene(TOWN)
 	await create_timer(0.7).timeout
@@ -132,7 +132,7 @@ func _run() -> void:
 	await _end_talk()
 	await _frames(4)
 
-	# --- The Galaxity day ---
+	# --- The Void day ---
 	dash = _body("dash")
 	_snap("dash")
 	await _physics(6)

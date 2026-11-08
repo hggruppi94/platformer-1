@@ -1,4 +1,4 @@
-// The pixelfx effect behind Galaxity's tree twinkles (Godot Project/my-world/scenes/town/tree_twinkle.png).
+// The pixelfx effect behind the Void's tree twinkles (Godot Project/my-world/scenes/town/tree_twinkle.png).
 // To remake the sheet: put this file in a pixelfx checkout (https://github.com/patch-gg/pixelfx) as
 // src/fx/pickups/tree-twinkle.js, run `node tools/render.mjs pickups/tree-twinkle --sheet` and copy
 // records/pickups/tree-twinkle/tree-twinkle.png over scenes/town/tree_twinkle.png.

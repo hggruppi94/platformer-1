@@ -141,7 +141,7 @@ static func _read_blocks(list, default_at: String) -> Array:
 
 
 func today_blocks() -> Array:
-	# The day they're having on Earth's calendar: a school day, a weekend or a holiday (Galaxity's people: every day)
+	# The day they're having on Earth's calendar: a school day, a weekend or a holiday (the Void's people: every day)
 	if not earth or Clock.is_school_day():
 		return blocks
 	if Clock.is_weekend():
@@ -179,7 +179,7 @@ func is_present() -> bool:
 
 
 func now() -> float:
-	# The time of day their schedule follows: Earth's for people on Earth, Galaxity's for everyone else
+	# The time of day their schedule follows: Earth's for people on Earth, the Void's for everyone else
 	return Clock.earth_minutes if earth else Clock.minutes
 
 

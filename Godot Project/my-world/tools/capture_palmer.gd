@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Screenshots of Mr. Palmer's Galaxity form (scripts/palmer_trunk.gd): at his spot by the Town Hall window with his tea
+# Screenshots of Mr. Palmer's Void form (scripts/palmer_trunk.gd): at his spot by the Town Hall window with his tea
 # table, a close-up, mid-sip with the teacup up on his trunk, his evening stroll round the market, and the Town Hall at
 # night with him gone in to bed.
 # Opens a window (not --headless):

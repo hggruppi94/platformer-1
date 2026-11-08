@@ -13,9 +13,9 @@ Written as data and synthesized from scratch by `tools/make_soundscape.py` (nump
 |---|---|---|
 | `earth_day.ogg` | Stars Hollow from 6:30 AM to 7:30 PM | `tools/make_soundscape.py` |
 | `earth_night.ogg` | Stars Hollow at night | `tools/make_soundscape.py` |
-| `town_day.ogg` | Galaxity in daylight | `tools/make_soundscape.py` |
-| `town_night.ogg` | Galaxity at night | `tools/make_soundscape.py` |
-| `skate_park.ogg` | Galaxity's Skate Park and the Hollow Skate Yard | `tools/make_soundscape.py` |
+| `town_day.ogg` | the Void in daylight | `tools/make_soundscape.py` |
+| `town_night.ogg` | the Void at night | `tools/make_soundscape.py` |
+| `skate_park.ogg` | the Void's Skate Park and the Hollow Skate Yard | `tools/make_soundscape.py` |
 | `race.ogg` | Any race | `tools/make_soundscape.py` |
 | `gloop_king.ogg` | When the Gloop King's after you | `tools/make_soundscape.py` |
 | `scary_world.ogg` | The Scary World | `tools/make_soundscape.py` |

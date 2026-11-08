@@ -262,12 +262,12 @@ SONGS = {
                     "pad": "warm_pad", "bass": "bass", "bass_pattern": [0, None, None, None, None, None, None, None],
                     "arp": "bell", "arp_pattern": [0, 2, 1, 3], "arp_steps": 8, "lead": "bell", "lead_rest": 0.55,
                     "drums": {"x": "....x.......x..."}, "echo": 0.3},
-    # Galaxity by day: dreamy and alien, wide-open (it plays a lot, so it's calm)
+    # The Void by day: dreamy and alien, wide-open (it plays a lot, so it's calm)
     "town_day": {"bpm": 100, "key": "E", "scale": "lydian", "chords": [1, 2, 1, 7], "seed": 13,
                  "pad": "pad", "bass": "bass", "arp": "bell", "arp_pattern": [0, 1, 2, 4, 2, 1], "arp_steps": 12,
                  "lead": "soft_lead", "lead_rest": 0.4, "drums": {"k": "k.......k.......", "h": "..h...h...h...h."},
                  "echo": 0.25},
-    # Galaxity at night: slow and twinkly
+    # The Void at night: slow and twinkly
     "town_night": {"bpm": 70, "key": "A", "scale": "dorian", "chords": [1, 4, 1, 5], "seed": 14,
                    "pad": "pad", "bass": "bass", "bass_pattern": [0, None, None, None, 7, None, None, None],
                    "arp": "bell", "arp_pattern": [0, 2, 4, 2], "arp_steps": 8, "lead": "bell", "lead_rest": 0.6,

@@ -1,16 +1,16 @@
 extends Node
 
-# Autoload "Clock": the time of day on Earth and in Galaxity. Lives across every scene and keeps running indoors.
+# Autoload "Clock": the time of day on Earth and in the Void. Lives across every scene and keeps running indoors.
 #
 # The player lives on Earth (scenes/earth/earth.tscn), and Earth's clock (earth_minutes) is the one that always runs:
 # an Earth hour every EARTH_HOUR_SECONDS real seconds. Every night from midnight to 1 AM, Earth time, is the Shift:
-# the portal by the old oak opens to Galaxity, just like in the show.
+# the portal by the old oak opens to the Void, just like in the show.
 #
-# Galaxity's clock (day, minutes) only moves during the Shift. That one Earth hour lasts a whole Galaxity day: Galaxity
-# runs a day in DAY_LENGTH_MINUTES real minutes, and Earth's clock crawls along with it (SHIFT_RATIO Galaxity minutes
-# to each Earth minute), wherever the player is. Each Shift starts at dawn in Galaxity (DAWN_HOUR) and ends at dawn the
-# next day, so Galaxity is always waiting at dawn between visits, and its day number goes up by one each visit.
-# When the Shift ends, the portal pulls the player home to Earth from wherever they are in Galaxity.
+# The Void's clock (day, minutes) only moves during the Shift. That one Earth hour lasts a whole Void day: the Void
+# runs a day in DAY_LENGTH_MINUTES real minutes, and Earth's clock crawls along with it (SHIFT_RATIO Void minutes
+# to each Earth minute), wherever the player is. Each Shift starts at dawn in the Void (DAWN_HOUR) and ends at dawn the
+# next day, so the Void is always waiting at dawn between visits, and its day number goes up by one each visit.
+# When the Shift ends, the portal pulls the player home to Earth from wherever they are in the Void.
 #
 # The days and times are saved with the rest of the game (scripts/game.gd). Sleeping in a bed (scripts/bed.gd) moves
 # the clock on (Clock.sleep()). Other scripts read it (Clock.hour(), Clock.daylight(), Clock.in_shift()) or listen to
@@ -23,17 +23,17 @@ signal shift_started
 signal shift_ended
 signal jumped                        # the time jumped instead of ticking on (sleeping, loading a save)
 
-const DAY_LENGTH_MINUTES := 20.0     # real minutes for one whole Galaxity day (one Shift)
+const DAY_LENGTH_MINUTES := 20.0     # real minutes for one whole Void day (one Shift)
 const SHIFT_START_HOUR := 0          # the Shift, on Earth's clock: midnight...
 const SHIFT_END_HOUR := 1            # ...to 1 AM
-const DAWN_HOUR := 7                 # Galaxity's day in the Shift runs from 7 AM to 7 AM
-const START_HOUR := 7.0              # a new game's Galaxity is waiting at dawn on day 1
+const DAWN_HOUR := 7                 # the Void's day in the Shift runs from 7 AM to 7 AM
+const START_HOUR := 7.0              # a new game's Void is waiting at dawn on day 1
 const WAKE_HOUR := 7                 # sleeping until morning wakes her at 7:00 AM
 const MINUTES_PER_DAY := 24 * 60
-const SHIFT_RATIO := float(MINUTES_PER_DAY) / ((SHIFT_END_HOUR - SHIFT_START_HOUR) * 60.0)   # Galaxity min per Earth min
+const SHIFT_RATIO := float(MINUTES_PER_DAY) / ((SHIFT_END_HOUR - SHIFT_START_HOUR) * 60.0)   # Void min per Earth min
 const EARTH_HOUR_SECONDS := 60.0     # outside the Shift, an Earth hour takes a real minute
 const EARTH_START := 20 * 60.0       # a new game starts at 8:00 PM on Earth, a few hours before the first Shift
-const WARN_HOUR := 6                 # Galaxity's 6 AM in the Shift: "the portal will pull you home soon"
+const WARN_HOUR := 6                 # the Void's 6 AM in the Shift: "the portal will pull you home soon"
 const EARTH := "res://scenes/earth/earth.tscn"
 const EARTH_ARRIVAL := "Entrance"    # where the portal puts the player on Earth: by the old oak
 const WEEKDAYS := ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -47,12 +47,12 @@ const YEAR_DAYS := SEASON_DAYS * 4
 const CALENDAR_START := 2 * SEASON_DAYS + 18   # calendar days before Earth's day 1 (so day 1 is 19 Autumn, Year 1)
 const TODAY := -(1 << 40)            # "on_day" left out: today (any real number is a day, even before day 1)
 
-var day := 1                         # Galaxity's day
-var minutes := START_HOUR * 60.0     # Galaxity's time: minutes since midnight, 0..1440
+var day := 1                         # the Void's day
+var minutes := START_HOUR * 60.0     # the Void's time: minutes since midnight, 0..1440
 var running := true                  # false to stop the clock (e.g. during the sleep fade)
 var on_earth := false                # set by the Earth scene while she's there
 var earth_minutes := EARTH_START     # Earth's time of day (saved)
-var pulls_home := true               # when the Shift ends in Galaxity, the portal pulls her home (tests can turn it off)
+var pulls_home := true               # when the Shift ends in the Void, the portal pulls her home (tests can turn it off)
 var pull_spawn := ""                 # where on Earth that puts them, if not by the oak (the First Night: in bed, HomeSpawn)
 var calendar_offset := CALENDAR_START  # saved: older saves from before the calendar get one that puts them in autumn
 
@@ -72,7 +72,7 @@ func _process(delta: float) -> void:
 	if not running:
 		return
 	if in_shift():
-		# (no further than the end of the Shift, so it always ends right on Galaxity's dawn)
+		# (no further than the end of the Shift, so it always ends right on the Void's dawn)
 		var game_minutes := delta * MINUTES_PER_DAY / (DAY_LENGTH_MINUTES * 60.0)
 		if game_minutes >= shift_minutes_left() - 0.0001:
 			_finish_shift()
@@ -83,7 +83,7 @@ func _process(delta: float) -> void:
 	else:
 		earth_minutes = fposmod(earth_minutes + delta * 60.0 / EARTH_HOUR_SECONDS, MINUTES_PER_DAY)
 		if in_shift() and not _in_shift:
-			_to_dawn()                               # midnight on Earth: Galaxity's day begins
+			_to_dawn()                               # midnight on Earth: the Void's day begins
 		_check_changes()
 
 
@@ -112,7 +112,7 @@ func _check_changes(announce := true) -> void:
 		_in_shift = shift
 		if announce:
 			if shift:
-				Game.message("It's midnight: the Shift has begun! The portal by the old oak is open to Galaxity.")
+				Game.message("It's midnight: the Shift has begun! The portal by the old oak is open to the Void.")
 			elif on_earth:
 				Game.message("1 AM: the Shift is over, and the portal has closed until tomorrow night.")
 		(shift_started if shift else shift_ended).emit()
@@ -121,7 +121,7 @@ func _check_changes(announce := true) -> void:
 
 
 func _to_dawn() -> void:
-	# A Shift starts at Galaxity's dawn. It's already waiting there after the last one, but an old save (or a sleep
+	# A Shift starts at the Void's dawn. It's already waiting there after the last one, but an old save (or a sleep
 	# through a whole Shift on Earth) can leave it somewhere else: move it on to the next dawn.
 	var wait := fposmod(DAWN_HOUR * 60.0 - minutes, MINUTES_PER_DAY)
 	if wait > 0.01 and wait < MINUTES_PER_DAY - 0.01:
@@ -156,7 +156,7 @@ func _done_pulling() -> void:
 # Reading the time
 # -----------------------------------------------------------------------------
 func hour() -> int:
-	# The hour where she is: Earth's on Earth, Galaxity's in Galaxity
+	# The hour where she is: Earth's on Earth, the Void's in the Void
 	return int(local_minutes() / 60.0) % 24
 
 
@@ -165,7 +165,7 @@ func minute() -> int:
 
 
 func hours() -> float:
-	# Galaxity's time as a fraction of hours, e.g. 18.5 for 6:30 PM (its sky and lamps follow it)
+	# The Void's time as a fraction of hours, e.g. 18.5 for 6:30 PM (its sky and lamps follow it)
 	return minutes / 60.0
 
 
@@ -178,7 +178,7 @@ func earth_time_string() -> String:
 
 
 func earth_day() -> int:
-	# Earth's day number. Galaxity's day goes up once a Shift (at its own midnight, partway through), so from Earth's
+	# Earth's day number. The Void's day goes up once a Shift (at its own midnight, partway through), so from Earth's
 	# midnight until then Earth is already a day ahead of it. A new game starts on Earth's day 1, a Friday evening.
 	return day + 1 if in_shift() and minutes >= DAWN_HOUR * 60.0 else day
 
@@ -196,7 +196,7 @@ func calendar_index(on_day := TODAY) -> int:
 
 
 func season(on_day := TODAY) -> String:
-	# "spring", "summer", "autumn" or "winter" on Earth (Galaxity has no seasons: it's outside time)
+	# "spring", "summer", "autumn" or "winter" on Earth (the Void has no seasons: it's outside time)
 	return SEASONS[(calendar_index(on_day) / SEASON_DAYS) % 4]
 
 
@@ -259,19 +259,19 @@ func in_shift() -> bool:
 
 
 func shift_minutes_left() -> float:
-	# Galaxity minutes until the Shift ends (0 outside it)
+	# Void minutes until the Shift ends (0 outside it)
 	return maxf(SHIFT_END_HOUR * 60.0 - earth_minutes, 0.0) * SHIFT_RATIO if in_shift() else 0.0
 
 
 func daylight() -> float:
-	# Galaxity's light: 0 at night, 1 in the day, easing through dawn (5-8 AM) and dusk (5:30-8:30 PM)
+	# The Void's light: 0 at night, 1 in the day, easing through dawn (5-8 AM) and dusk (5:30-8:30 PM)
 	var h := hours()
 	return smoothstep(5.0, 8.0, h) * (1.0 - smoothstep(17.5, 20.5, h))
 
 
 func period() -> String:
 	# The part of the day where she is, by name: "morning" (5-11), "day" (11-5 PM), "evening" (5-9 PM), "night"
-	# (9 PM-5 AM), or "shift" (which is also night): on Earth, the Shift itself; in Galaxity, its midnight hour, when the
+	# (9 PM-5 AM), or "shift" (which is also night): on Earth, the Shift itself; in the Void, its midnight hour, when the
 	# portal glows its brightest. Dialogue lines can depend on it (scripts/dialogue.gd).
 	var h := hour()
 	if h == 0 and (in_shift() or not on_earth):
@@ -296,7 +296,7 @@ func is_night() -> bool:
 
 
 func time_string() -> String:
-	# Galaxity's 12-hour time, e.g. "7:05 PM"
+	# The Void's 12-hour time, e.g. "7:05 PM"
 	return format_time(minutes)
 
 
@@ -317,7 +317,7 @@ func minutes_until_hour(h: int) -> float:
 
 func sleep_length(want_minutes: float) -> float:
 	# How long a sleep of want_minutes really lasts. On Earth, one that would run past midnight stops there, so she
-	# never sleeps through the Shift without knowing (already in it, she can sleep on). In Galaxity, sleep can't last
+	# never sleeps through the Shift without knowing (already in it, she can sleep on). In the Void, sleep can't last
 	# past the end of the Shift: she wakes up back home on Earth.
 	if not on_earth:
 		return minf(want_minutes, shift_minutes_left()) if in_shift() else want_minutes
@@ -330,14 +330,14 @@ func sleep_length(want_minutes: float) -> float:
 # Changing the time
 # -----------------------------------------------------------------------------
 func set_time(new_day: int, new_minutes: float, quiet := false) -> void:
-	# Jump Galaxity's clock straight to a time. Signals for anything that changed fire (no Shift messages if quiet, e.g.
+	# Jump the Void's clock straight to a time. Signals for anything that changed fire (no Shift messages if quiet, e.g.
 	# on loading). Away from Earth it's always the Shift, so Earth's clock moves to the matching moment of it.
 	var old_day := day
 	day = maxi(new_day, 1)
 	minutes = fposmod(new_minutes, MINUTES_PER_DAY)
 	if not on_earth:
 		earth_minutes = SHIFT_START_HOUR * 60.0 + fposmod(minutes - DAWN_HOUR * 60.0, MINUTES_PER_DAY) / SHIFT_RATIO
-	_in_shift = in_shift()                           # (a jump inside Galaxity isn't a Shift starting)
+	_in_shift = in_shift()                           # (a jump inside the Void isn't a Shift starting)
 	if day != old_day:
 		day_changed.emit(day)
 	_check_changes(not quiet)
@@ -346,7 +346,7 @@ func set_time(new_day: int, new_minutes: float, quiet := false) -> void:
 
 
 func set_earth_time(new_minutes: float, quiet := false) -> void:
-	# Jump Earth's clock straight to a time. Galaxity's waits at dawn for the Shift; landing inside the Shift moves it
+	# Jump Earth's clock straight to a time. The Void's waits at dawn for the Shift; landing inside the Shift moves it
 	# on to the matching moment of that day.
 	var was_shift := in_shift()
 	earth_minutes = fposmod(new_minutes, MINUTES_PER_DAY)
@@ -361,19 +361,19 @@ func set_earth_time(new_minutes: float, quiet := false) -> void:
 
 
 func advance(game_minutes: float) -> void:
-	# Jump Galaxity's clock forward, into the next days if need be. Quiet: whoever jumped says what happened.
+	# Jump the Void's clock forward, into the next days if need be. Quiet: whoever jumped says what happened.
 	var total := minutes + game_minutes
 	set_time(day + int(total / MINUTES_PER_DAY), total, true)
 
 
 func sleep(length: float) -> void:
-	# Sleep for length minutes where she is (scripts/bed.gd works it out with sleep_length()). A sleep in Galaxity that
+	# Sleep for length minutes where she is (scripts/bed.gd works it out with sleep_length()). A sleep in the Void that
 	# reaches the end of the Shift ends it, and the portal brings her home.
 	if on_earth:
 		var before := earth_minutes
 		var was_shift := in_shift()
 		if was_shift:
-			# In the Shift, Earth's clock crawls: the sleep runs on Galaxity's time, and may end the Shift
+			# In the Shift, Earth's clock crawls: the sleep runs on the Void's time, and may end the Shift
 			var left := shift_minutes_left()
 			if length >= left:
 				end_shift()
@@ -394,7 +394,7 @@ func sleep(length: float) -> void:
 
 
 func end_shift() -> void:
-	# The Shift is over: Earth's 1 AM, Galaxity's dawn, and (in Galaxity) the portal pulls her home
+	# The Shift is over: Earth's 1 AM, the Void's dawn, and (in the Void) the portal pulls her home
 	if not in_shift():
 		return
 	_finish_shift()
@@ -403,7 +403,7 @@ func end_shift() -> void:
 
 
 func _finish_shift() -> void:
-	# Galaxity on to its dawn (exactly: no rounding left over to make it read 6:59), Earth to 1 AM
+	# The Void on to its dawn (exactly: no rounding left over to make it read 6:59), Earth to 1 AM
 	var wait := fposmod(DAWN_HOUR * 60.0 - minutes, MINUTES_PER_DAY)
 	if wait > MINUTES_PER_DAY - 0.01:
 		wait = 0.0                                   # (already there, give or take a rounding)
@@ -415,15 +415,15 @@ func _finish_shift() -> void:
 
 
 func sleep_until_morning() -> void:
-	# Galaxity's next WAKE_HOUR: later today if it's still before it (sleeping at 3 AM), otherwise tomorrow
+	# The Void's next WAKE_HOUR: later today if it's still before it (sleeping at 3 AM), otherwise tomorrow
 	var wait := fposmod(WAKE_HOUR * 60.0 - minutes, MINUTES_PER_DAY)
 	advance(wait if wait > 0.0 else float(MINUTES_PER_DAY))
 
 
 func reset() -> void:
-	# A new game: Galaxity waiting at dawn on day 1, an evening at home on Earth
+	# A new game: the Void waiting at dawn on day 1, an evening at home on Earth
 	var was_on_earth := on_earth
-	on_earth = true                                  # (so setting Galaxity's time leaves Earth's alone)
+	on_earth = true                                  # (so setting the Void's time leaves Earth's alone)
 	set_time(1, START_HOUR * 60.0, true)
 	on_earth = was_on_earth
 	earth_minutes = EARTH_START

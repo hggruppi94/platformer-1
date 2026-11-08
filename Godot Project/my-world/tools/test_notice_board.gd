@@ -1,6 +1,6 @@
 extends SceneTree
 
-# Checks Earth's notice board (scripts/earth_jobs.gd, which is Galaxity's request board, scripts/requests.gd, with
+# Checks Earth's notice board (scripts/earth_jobs.gd, which is the Void's request board, scripts/requests.gd, with
 # Earth's jobs) and Earth's shops (scripts/earth_town.gd, shop/items.json). Earth's days of the week (Clock.weekday()).
 # The board stands by the gazebo with today's jobs and the festival on it; each Earth day rolls three, one easy, one
 # medium and one harder, all different, the same ones after a reload and new ones the next day. Every kind moves along
@@ -68,7 +68,7 @@ func _run() -> void:
 	clock.day = 5
 	clock.minutes = 2 * 60.0
 	var later: int = clock.earth_day()
-	check(early == 5 and later == 5, "after Earth's midnight it's the next Earth day, before and after Galaxity's own midnight (%d, %d)" % [early, later])
+	check(early == 5 and later == 5, "after Earth's midnight it's the next Earth day, before and after the Void's own midnight (%d, %d)" % [early, later])
 	clock.day = 4                                                # a Monday
 	clock.minutes = 7 * 60.0
 	clock.set_earth_time(10 * 60.0, true)
@@ -197,7 +197,7 @@ func _run() -> void:
 	var grind: Dictionary = _only(_forced("grind", "medium"))
 	clock.on_earth = false
 	root.get_node("Requests").note("grind", 30.0)
-	check(int(grind.progress) == 0, "a grind in Galaxity doesn't count for Earth's board")
+	check(int(grind.progress) == 0, "a grind in the Void doesn't count for Earth's board")
 	clock.on_earth = true
 	root.get_node("Requests").note("grind", 6.0)
 	root.get_node("Requests").note("grind", 30.0)

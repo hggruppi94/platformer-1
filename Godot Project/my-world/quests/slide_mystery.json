@@ -5,7 +5,7 @@
   "steps": [
     {
       "id": "ask",
-      "text": "Melanie wants a water slide for Galaxity. Go with her to ask Mr. Palmer at his Town Hall window (he's in from morning till teatime).",
+      "text": "Melanie wants a water slide for the Void. Go with her to ask Mr. Palmer at his Town Hall window (he's in from morning till teatime).",
       "done": {"flag": "slide_asked"},
       "where": ["town_hall"]
     },

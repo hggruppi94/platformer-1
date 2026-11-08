@@ -24104,7 +24104,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1, 0.07)
 pixel_size = 0.01
 modulate = Color(1, 0.97, 0.88, 1)
 outline_modulate = Color(0.25, 0.13, 0.05, 1)
-text = "Welcome to Galaxity"
+text = "Welcome to the Void"
 font_size = 64
 
 [node name="Portal to Earth" type="Node3D" parent="." unique_id=1369835362]

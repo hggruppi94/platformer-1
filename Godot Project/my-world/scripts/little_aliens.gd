@@ -1,7 +1,7 @@
 class_name LittleAliens
 extends Node3D
 
-# The little aliens: Galaxity's background crowd of tiny space kids in shiny hooded suits (Hayden's sheet,
+# The little aliens: the Void's background crowd of tiny space kids in shiny hooded suits (Hayden's sheet,
 # 2026-10-27; models from tools/build_little_aliens.py). Some potter about on the ground, on roofs and up walls
 # (scripts/little_alien.gd), some zip round in tiny flying saucers, and a few just float along on boot jets
 # (scripts/mini_saucer.gd). Pure scenery: nothing to talk to, nothing that gets in the way.

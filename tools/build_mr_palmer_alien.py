@@ -1,4 +1,4 @@
-# Builds Mr. Palmer's Galaxity form: the mayor as an alien, the way the kids become creatures in Galaxity.
+# Builds Mr. Palmer's Void form: the mayor as an alien, the way the kids become creatures in the Void.
 # He keeps everything that makes him Mr. Palmer (round tummy, navy suit, red tie, yellow sash with the gold rosette,
 # round glasses, grey brows and big grey moustache, brown shoes, arms out in welcome) and gets mint-teal skin with
 # darker spots, a long bendy elephant trunk (its own chain of bones, so it sways, swings and grabs), lilac ear fins and head crest, two antennae with glowing gold tips,
