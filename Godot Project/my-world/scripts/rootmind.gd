@@ -22,6 +22,7 @@ const LASH_AT := 2.6               # seconds after a blink when the Thornknot la
 const KNOTS := 3
 const KNOT_RING := 4.6             # the Thornknot coils round the seedling this far out
 const FIGHT_NEAR := 14.0           # walking this close to it with all three blooms awake starts the calming
+const TEACH_AFTER := 2.5                 # seconds after mending before Bramble teaches the burrow
 const SLIDE_TIME := 3.4
 const THORN_PURPLE := Color(0.5, 0.25, 0.55)
 const KNOT_GLOW := Color(0.6, 1.0, 0.45)
@@ -74,6 +75,10 @@ func setup() -> void:
 	_add_thornknot()
 	_gather()
 	_refresh()
+	var floor_node := get_node_or_null("Floor")
+	if floor_node:
+		for b in floor_node.find_children("*", "StaticBody3D", true, false):
+			b.add_to_group("soil")                      # the moss is soft: once she can burrow, she can here (burrow.gd)
 	if not Portals.is_cleared(world_id) and blooms_awake() == 0:
 		Game.message.call_deferred("The Rootmind: every plant here is watching you, and blinking. Talk to Bramble, by the way in.")
 
@@ -275,6 +280,29 @@ func mend() -> void:
 	Juice.shake(0.15)
 	Juice.rumble(0.3, 0.3)
 	_refresh()
+	get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_burrow)
+
+
+func teach_lines() -> Array:
+	# Bramble's thank-you: the Rootmind's reward is her own way of getting about (scripts/burrow.gd)
+	return ["You did it, {player}. You didn't fight it. You listened.",
+		"Let me give you something. The way I get about: under the ground.",
+		"On soft ground, press {burrow} and dive in. Nothing can bump you down there, and you're quick.",
+		"Press {burrow} again, or {jump}, and pop back up. Paths and wood are too hard to dig, so you'll pop up there too.",
+		"Try it! Just here, on the moss."]
+
+
+func _teach_burrow(tries := 0) -> void:
+	if not is_inside_tree():
+		return
+	if Dialogue.is_active() and tries < 20:             # wait for a talk to finish first
+		get_tree().create_timer(1.0).timeout.connect(_teach_burrow.bind(tries + 1))
+		return
+	var spot := get_node_or_null("Bramble/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Bramble", teach_lines(), "rootmind_burrow")
+	else:
+		Game.message("New: Burrow! On soft ground press %s to dive under, and %s again to sprout up." % [Settings.prompt("burrow"), Settings.prompt("burrow")])
 
 
 func _start_calming() -> void:
@@ -427,7 +455,8 @@ func _add_bramble() -> void:
 func bramble_lines() -> Array:
 	# Bramble's quieter here: short, soft lines about what to do next
 	if Portals.is_cleared(world_id):
-		return ["Listen. Everything's blinking together again. Even the Thornknot.", "Thank you, {player}. Home feels like home."]
+		return ["Listen. Everything's blinking together again. Even the Thornknot.", "Thank you, {player}. Home feels like home.",
+			"Remember: soft ground, {burrow}, and down you go. {burrow} or {jump} to come back up."]
 	var n := blooms_awake()
 	if n == 0:
 		return ["Shh... this is home. Can you feel it? Everything blinks together. Almost.",
