@@ -25,6 +25,8 @@ var _bar: Node3D
 var _bar_fill: MeshInstance3D
 var _cross := false                           # under half his goo: quicker, flops more often, and a second wave
 var _base := []
+var title := NAME                             # the name over the meter (the Frost Gloop, scripts/frost_gloop.gd, has its own)
+var ring_colour := Color(0.6, 0.85, 0.15)     # the goo ring's colour: green goo for the King
 
 
 func _ready() -> void:
@@ -50,7 +52,7 @@ func _physics_process(delta: float) -> void:
 		_cross = true
 		chase_speed = _base[0] * 1.25
 		flop_every = _base[1] * 0.65
-		Game.message("The Gloop King is cross! He's flopping faster!")
+		Game.message("The %s is cross! Flopping faster!" % title)
 	# The belly-flop: only while chasing and on the ground
 	if _flopping:
 		if is_on_floor() and velocity.y <= 0.0:
@@ -79,7 +81,7 @@ func _land() -> void:
 	if _cross:                                    # cross: a second, wider wave of goo rolls out after the first
 		get_tree().create_timer(0.45).timeout.connect(func() -> void:
 			if not defeated and is_inside_tree():
-				ShockRing.spawn(get_parent(), global_position, reach * 1.6, Color(0.6, 0.85, 0.15), damage, 0.9))
+				ShockRing.spawn(get_parent(), global_position, reach * 1.6, ring_colour, damage, 0.9))
 	if player and not player.is_invulnerable() and player.is_on_floor():
 		var d := _flat(player.global_position - global_position)
 		if d < reach and d > 0.6 * size:
@@ -97,11 +99,11 @@ func _goo_ring(reach: float) -> void:
 	ring.mesh = tm
 	var m := StandardMaterial3D.new()
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = Color(0.6, 0.85, 0.15, 0.9)
+	m.albedo_color = Color(ring_colour, 0.9)
 	m.metallic = 0.3
 	m.roughness = 0.05
 	m.emission_enabled = true
-	m.emission = Color(0.55, 0.7, 0.15)
+	m.emission = ring_colour.darkened(0.15)
 	m.emission_energy_multiplier = 1.2
 	ring.material_override = m
 	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -189,13 +191,13 @@ func _make_bar() -> void:
 	fq.size = Vector2(1.0, 1.0)
 	_bar_fill.mesh = fq
 	var fm := bm.duplicate() as StandardMaterial3D
-	fm.albedo_color = Color(0.65, 0.85, 0.2)
+	fm.albedo_color = ring_colour.lightened(0.1)
 	fm.render_priority = 2
 	_bar_fill.position.z = 0.01
 	_bar_fill.material_override = fm
 	holder.add_child(_bar_fill)
 	var label := Label3D.new()
-	label.text = NAME
+	label.text = title
 	label.font_size = 40
 	label.pixel_size = 0.01
 	label.outline_size = 10

@@ -111,6 +111,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     episodes, doors, map, walk_through pass; earth, first_hour, layout and races fail the same checks before and
     after this change (not looked into here).
 
+- 2026-11-08: Portal worlds, part four: **the Frozen Moment**, Flurry's home world (plan items 19a world 2 and 23),
+  slice one (the world; its reward, winter and Flurry coming to the hub, is slice two). Hayden: "Let's do it". Built
+  and tested in the cloud (own Godot user folders, no save touched).
+  - **Its quake** once the Rootmind is mended. The portal rises at the foot of the mountains, far north past the
+    castle, (46, -226) (checked flat and clear).
+  - **The world** (`tools/build_frozen_moment.gd` -> `scenes/portal_worlds/frozen_moment.tscn`, logic
+    `scripts/frozen_moment.gd`): a snowy bowl ringed by ice crags and pines, where time has stopped mid-moment.
+    Snowflakes hang still in the air (a MultiMesh; `_flakes` keeps their places for tests), and a great clock in the
+    sky is stuck on one tick. There's a **frozen lake** (group `"ice"`: slippery, `player.gd on_ice()` / `ICE_GRIP`,
+    and any ride skates on it), **Snowball Hill** (four snowy steps) with an **ice slide** down (Interact at the top),
+    an **icicle cave**, the **Frost Throne**, and **snow drifts** that slow you (`soft_zone.gd` kind `"snow"`).
+    Surfaces: "Snowfield" sounds like soft ground, "Frozen Lake" and "Ice Slide" clink.
+  - **Goal:** thaw the three **frozen moments** (found `moment_1..3`): a fish leaping out of the lake, a snowball
+    fight on the hilltop, a snowbird in the cave. Three chips each (Interact, or Star Popper bubbles through the
+    new `scripts/shot_target.gd`), then the moment carries on. Then the **Frost Gloop** (`scripts/frost_gloop.gd`,
+    the Gloop King's scene with an icy look and a crown of icicles) cracks out of its ice block when you come
+    within 16 m. It flops a ring of frost, calls Snow Gloops, and takes 6 hits. Popping it mends the world: 7
+    Remnants, the snow falls, the clock ticks on. It doesn't set `popped_gloop_king` (`gloop_king.gd` now has `title`
+    and `ring_colour` for cousins).
+  - **Flurry** (working name), the arctic fox kid: made like the townsfolk from the cat body, white with a blue
+    hoodie and scarf, a bushy tail and her stopped pocket watch. She waits by the way in, turns to look at you, and
+    her lines (shy at first) say what to do next.
+  - `player.gd`: when running on the flat, floor snap leaves no collision to read, so `_floor_node` now falls back to
+    a short ray down (`_floor_below()`). Footstep sounds and `ground_kind()` are right while running too.
+  - Tests: new `tools/test_frozen_moment.gd`. test_portals (its "never built" check now uses Lanternmoor),
+    test_rootmind, test_burrow, test_gloop_king, test_boss_versions and test_walk_through pass. Previews:
+    `tools/capture_frozen_moment.gd` (shots in the project files under world/previews/ice_world).
+  - My choices Hayden may change: the portal spot, the three moments, three chips to thaw, the Frost Gloop's
+    numbers, 7 Remnants, Flurry's look (cat body for now). Next: slice two (winter unlocks, Flurry comes to the hub,
+    maybe her frost breath), then Lanternmoor (Pip).
+
 - 2026-11-08: **Bramble's burrow**, the Rootmind's reward (Rootmind slice two). Hayden: "Go ahead but remember it
   needs to be locked until completion of the world". Built and tested in the cloud (own Godot user folders, no save
   touched).
