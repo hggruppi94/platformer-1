@@ -10,6 +10,15 @@ extends RefCounted
 #   UiStyle.theme()                     # the theme, for Settings' text size and high contrast (menus set it on their root)
 #   UiStyle.card(Color)                 # a card's StyleBox (quest cards, banners)
 #   UiStyle.font()                      # the lettering
+#   UiStyle.fit_width(node, px)         # a window's width, but never wider than the screen
+#   UiStyle.shrink_to_fit(panel)        # a window that still won't fit (huge text, small screen) shrinks to fit
+#   UiStyle.keep_on_screen(panel)       # ...and again whenever it or the screen changes size
+#   UiStyle.fit_full_screen(root, box)  # the same for a menu that fills the screen
+#
+# Every menu fits on the screen at every text size and screen shape (16:9, 16:10, 4:3, 21:9): text wraps rather than
+# stretching a window, windows are no wider than the screen, and at the biggest text sizes a window too big for the
+# screen is shrunk to fit rather than cut off. tools/audit_ui.gd opens every menu and checks (Hayden, 8 Nov 2026:
+# Zippy's Tune-Up ran off the side of the screen).
 #
 # ui/theme.tres is the same theme at the usual size, saved by tools/make_ui_theme.gd. It's the project's theme
 # (project.godot, gui/theme/custom), so anything that doesn't set one of its own wears it too. Menus that follow
@@ -190,6 +199,68 @@ static func theme(scale := -1.0, hc := false, use_settings := true) -> Theme:
 	t.set_stylebox("background", "ProgressBar", pb_back)
 	t.set_stylebox("fill", "ProgressBar", pb_fill)
 	return t
+
+
+# ----------------------------------------------------------------------------- fitting on the screen
+const SCREEN_MARGIN := 20.0              # the gap kept between a window and the edge of the screen
+
+
+static func screen_size(node: Node) -> Vector2:
+	return node.get_viewport().get_visible_rect().size if node and node.is_inside_tree() else Vector2(1152, 648)
+
+
+static func fit_width(node: Node, px: float) -> float:
+	# The width a window would like, but never wider than the screen
+	return minf(px, screen_size(node).x - 2.0 * SCREEN_MARGIN)
+
+
+static func shrink_to_fit(c: Control, pivot := Vector2(0.5, 0.5)) -> void:
+	# Shrinks a window (scales it down round the pivot: the middle, or the bottom middle for a banner) when it's still
+	# bigger than the screen once its text has wrapped. Call it after the window's been filled and laid out.
+	if not is_instance_valid(c) or not c.is_inside_tree():
+		return
+	var room := screen_size(c) - Vector2.ONE * 2.0 * SCREEN_MARGIN
+	var need := c.get_combined_minimum_size()
+	var s := minf(1.0, minf(room.x / maxf(need.x, 1.0), room.y / maxf(need.y, 1.0)))
+	c.scale = Vector2(s, s)
+	c.pivot_offset = need * pivot
+	if s < 0.999:
+		# Shrunk round the pivot, then kept on the screen: a box too tall for the screen grows its centring box
+		# downwards (CenterContainer), so its middle isn't the screen's middle any more
+		var at := c.position                                # its top left corner at full size, on the screen
+		if c.get_parent() is Control:
+			at = (c.get_parent() as Control).get_global_transform() * at
+		var corner := at + need * pivot * (1.0 - s)
+		var lo := Vector2.ONE * SCREEN_MARGIN
+		corner = corner.clamp(lo, (screen_size(c) - lo - need * s).max(lo))
+		c.pivot_offset = (corner - at) / (1.0 - s)
+
+
+static func keep_on_screen(c: Control, pivot := Vector2(0.5, 0.5)) -> void:
+	# shrink_to_fit, again every time the window's contents or the screen change size
+	var fit := func() -> void: shrink_to_fit(c, pivot)
+	c.minimum_size_changed.connect(fit, CONNECT_DEFERRED)
+	c.resized.connect(fit, CONNECT_DEFERRED)
+	if c.is_inside_tree():
+		c.get_viewport().size_changed.connect(fit, CONNECT_DEFERRED)
+	else:
+		c.tree_entered.connect(func() -> void: c.get_viewport().size_changed.connect(fit, CONNECT_DEFERRED), CONNECT_ONE_SHOT)
+
+
+static func fit_full_screen(root: Control, content: Control) -> void:
+	# For a menu that fills the screen (root, a full-screen Control, with content in it): if the content needs more
+	# room than the screen has, root is laid out on a bigger page and shrunk down onto the screen
+	if not is_instance_valid(root) or not root.is_inside_tree():
+		return
+	var vp := screen_size(root)
+	root.scale = Vector2.ONE
+	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	root.position = Vector2.ZERO
+	root.size = vp
+	var need := content.get_combined_minimum_size()
+	var s := minf(1.0, minf(vp.x / maxf(need.x, 1.0), vp.y / maxf(need.y, 1.0)))
+	root.scale = Vector2(s, s)
+	root.size = vp / s
 
 
 static func box(c: Color, radius: int, border: Color, width: int) -> StyleBoxFlat:

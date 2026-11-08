@@ -61,6 +61,7 @@ func _ready() -> void:
 	Settings.changed.connect(_apply_look)
 	Settings.device_changed.connect(_update_hints)
 	_apply_look()
+	get_viewport().size_changed.connect(_fit)
 
 
 func is_open() -> bool:
@@ -275,6 +276,16 @@ func _fill() -> void:
 	if touring():
 		tour.call("_focus_next")
 	_update_hints()
+	_fit.call_deferred()
+
+
+func _fit() -> void:
+	# At the bigger text sizes (or on a small or square screen) the whole menu shrinks to fit rather than running off
+	# the edges (scripts/ui_style.gd)
+	if is_open():
+		UiStyle.fit_full_screen(root, root.get_node("Outer"))
+		if touring():
+			tour.call("_place")
 
 
 func _sheet_quests() -> Control:
@@ -992,3 +1003,4 @@ func _apply_look() -> void:
 	_hint.add_theme_font_size_override("font_size", _fs(17))
 	tour.apply_look()
 	_update_hints()
+	_fit.call_deferred()

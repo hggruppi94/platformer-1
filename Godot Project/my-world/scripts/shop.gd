@@ -20,6 +20,10 @@ const DATA := "res://shop/items.json"
 
 var items := {}                    # id -> item
 var stall_blurbs := {}
+# A window's title: "<name> Stall" for the market stalls, and these by name ("Tune-Up Stall" and "Diner Stall" read oddly)
+const TITLES := {"Boutique": "Clothing Boutique", "Tune-Up": "Zippy's Tune-Up", "Gadget": "Dash's Gadgets",
+	"Workbench": "Dash's Workbench", "Bakery": "Crumb & Cauldron Bakery", "Toy Shop": "Gizmo & Gumdrop Toys",
+	"Diner": "Hollow Diner", "Corner Market": "The Corner Market", "Festival Treats": "Festival Treats", "Cider Cart": "Gus's Cider Cart"}
 var _stall := ""
 var _opened_frame := -1               # (the frame it opened on: that press is done with)
 var _layer: CanvasLayer
@@ -47,6 +51,14 @@ func _ready() -> void:
 	_build()
 	Settings.changed.connect(_apply_look)
 	_apply_look()
+	get_viewport().size_changed.connect(_refit)
+
+
+func _refit() -> void:
+	# The window changed size (or went full screen) with a shop open: fit it to the new screen
+	if is_open():
+		_apply_look()
+		_fit_later.call_deferred()
 
 
 func for_stall(stall: String) -> Array:
@@ -287,7 +299,7 @@ func _fill() -> void:
 	if _stall == "Decorate":
 		_fill_decorate()
 		return
-	_title.text = ("%s Stall" % _stall) if _stall != "Boutique" else "Clothing Boutique"
+	_title.text = str(TITLES.get(_stall, "%s Stall" % _stall))
 	_blurb.text = str(stall_blurbs.get(_stall, ""))
 	_wallet.text = "You have ✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"]
 	for c in _rows.get_children():
@@ -305,10 +317,13 @@ func _fill() -> void:
 			if note != "":
 				words.text += "\n" + note
 		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # long lines wrap, never stretch the window
 		words.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
 		row.add_child(words)
 		var b := Button.new()
 		b.custom_minimum_size.x = roundi(170 * Settings.text_scale)
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART          # "Needs Lv 12" and the like wrap too
+		b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		b.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
 		var id := str(it.id)
 		if wearable(id) and owns(id):
@@ -326,7 +341,7 @@ func _fill() -> void:
 		_rows.add_child(row)
 		if first == null and not b.disabled:
 			first = b
-	_fit_scroll.call_deferred()
+	_fit_later.call_deferred()
 	_focus_later.call_deferred(first if first else _close)
 
 
@@ -334,6 +349,14 @@ func _focus_later(b: Control) -> void:
 	# (A buy refills the window straight away, so the button picked last time may be gone already)
 	if is_instance_valid(b) and b.is_inside_tree():
 		b.grab_focus()
+
+
+func _fit_later() -> void:
+	# Once now, and again when the wrapped text has been laid out at the window's real width
+	_fit_scroll()
+	await get_tree().process_frame
+	if is_open():
+		_fit_scroll()
 
 
 func _fit_scroll() -> void:
@@ -345,6 +368,8 @@ func _fit_scroll() -> void:
 	var rest := _panel.get_combined_minimum_size().y - _scroll.get_combined_minimum_size().y
 	var most := minf(vp * 0.6, vp - rest - 48.0)
 	_scroll.custom_minimum_size.y = maxf(minf(want, most), 80.0)
+	# Very big text on a small screen: the whole window shrinks to fit rather than running off the edge
+	UiStyle.shrink_to_fit(_panel)
 
 
 func decorate(part: String, step: int) -> void:
@@ -393,6 +418,7 @@ func _fill_decorate() -> void:
 		var label := Label.new()
 		label.text = line[1]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
 		for step in [-1, 1]:
 			var b := Button.new()
@@ -413,7 +439,7 @@ func _fill_decorate() -> void:
 		if kept:
 			first = kept
 	_keep_focus = ""
-	_fit_scroll.call_deferred()
+	_fit_later.call_deferred()
 	_focus_later.call_deferred(first if first else _close)
 
 
@@ -462,6 +488,7 @@ func _fill_wardrobe() -> void:
 		var label := Label.new()
 		label.text = line[1]
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
 		for step in [-1, 1]:
 			var b := Button.new()
@@ -502,7 +529,7 @@ func _fill_wardrobe() -> void:
 		if Skins.owned().size() < Skins.ORDER.size():
 			tip.text += " More skins come from requests, lost watches and races."
 		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		tip.custom_minimum_size.x = roundi(380 * Settings.text_scale)
+		tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tip.add_theme_font_size_override("font_size", roundi(15 * Settings.text_scale))
 		tip.modulate = Color(0.85, 0.95, 1.0)
 		right.add_child(tip)
@@ -516,7 +543,7 @@ func _fill_wardrobe() -> void:
 			Creator.open())
 		left.add_child(remake)
 	_keep_focus = ""
-	_fit_scroll.call_deferred()
+	_fit_later.call_deferred()
 	_focus_later.call_deferred(first if first else _close)
 
 
@@ -556,10 +583,12 @@ func _build() -> void:
 	_note = Label.new()
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_note)
+	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # Zippy's long hello wrapped, not off the screen
 	_close = Button.new()
 	_close.text = "Bye!"
 	_close.pressed.connect(close)
 	v.add_child(_close)
+	UiStyle.keep_on_screen(_panel)
 
 
 func _apply_look() -> void:
@@ -568,7 +597,7 @@ func _apply_look() -> void:
 	var style := UiStyle.box(Color(0, 0, 0, 0.95) if hc else UiStyle.PANEL, 18, Color(1, 1, 1) if hc else UiStyle.EDGE, 3)
 	style.set_content_margin_all(roundi(22 * Settings.text_scale))
 	_panel.add_theme_stylebox_override("panel", style)
-	_panel.custom_minimum_size.x = roundi((1000 if _stall in ["Wardrobe", "Decorate"] else 640) * Settings.text_scale)
+	_panel.custom_minimum_size.x = UiStyle.fit_width(_panel, roundi((1000 if _stall in ["Wardrobe", "Decorate"] else 640) * Settings.text_scale))
 	_title.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
 	_title.add_theme_color_override("font_color", UiStyle.GOLD)
 	_title.add_theme_constant_override("outline_size", roundi(8 * Settings.text_scale))
