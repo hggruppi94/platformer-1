@@ -59,7 +59,7 @@ func open(first_time := false) -> void:
 		return
 	_first_time = first_time
 	_tab = "Body" if first_time else _tab
-	_player.set("input_locked", true)
+	Game.hold_controls(&"creator", true, _player)
 	# Off the ride first: on it, the skating (scenes/player/skate.gd) keeps turning them back the way they're rolling
 	if Game.riding:
 		Game.toggle_skateboard()
@@ -115,7 +115,7 @@ func close() -> void:
 	if _old_cam and is_instance_valid(_old_cam):
 		_old_cam.make_current()
 	if _player and is_instance_valid(_player):
-		_player.set("input_locked", false)
+		Game.hold_controls(&"creator", false, _player)
 		var hud := _player.get_node_or_null("HUD") as CanvasLayer
 		if hud:
 			hud.visible = true

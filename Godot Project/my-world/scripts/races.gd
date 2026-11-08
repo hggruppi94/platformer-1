@@ -561,7 +561,7 @@ func start(id: String) -> bool:
 	skate.set("_boost_time", 0.0)                         # a boost from a booster on the way here (scripts/boosters.gd)
 	skate.set("_boost_fade", 0.0)                         # ...doesn't carry her over the line before GO
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
-	p.input_locked = true
+	Game.hold_controls(&"race", true, p)
 	# The friends lining up
 	var who: Array = []
 	for r in TRACKS[id].rivals:
@@ -644,7 +644,7 @@ func _physics_process(delta: float) -> void:
 				_end(false)
 			elif not track.sky:
 				p.velocity = Vector3.ZERO
-				p.input_locked = true
+				Game.hold_controls(&"race", true, p)
 		State.COUNTDOWN:
 			_countdown(delta)
 		State.RACING:
@@ -663,7 +663,7 @@ func _countdown(delta: float) -> void:
 		_end(false)
 		return
 	p.velocity = Vector3.ZERO
-	p.input_locked = true
+	Game.hold_controls(&"race", true, p)
 	var before := ceili(_count)
 	_count -= delta
 	var now := ceili(_count)
@@ -674,7 +674,7 @@ func _countdown(delta: float) -> void:
 		Juice.rumble(0.15, 0.06)
 	if _count <= 0.0:
 		state = State.RACING
-		p.input_locked = false
+		Game.hold_controls(&"race", false, p)
 		for r in rivals:
 			r.go()
 		hud.shout("GO!", Color(0.5, 1.0, 0.6), 0.5)
@@ -840,8 +840,8 @@ func _end(_done: bool) -> void:
 	if is_instance_valid(track):
 		track.show_race(false)
 	var p := _player()
-	if p and (state == State.COUNTDOWN or (state == State.INTRO and is_instance_valid(track) and not track.sky)):
-		p.input_locked = false
+	if p:
+		Game.hold_controls(&"race", false, p)
 	if state == State.INTRO:
 		intro.stop()
 		_set_ship_frozen(false)

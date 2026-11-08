@@ -71,7 +71,22 @@ var _spin_grounded := false                 # roll: keep the ball on the floor w
 var _was_on_floor := true
 var _fall_speed := 0.0
 var _step_timer := 0.0
-var input_locked := false                   # talking to someone (scripts/dialogue.gd): no moving, jumping or rolling
+# Who's holding the controls right now (talking, a countdown, the creator, a zipline...): no moving, jumping or
+# rolling while anyone is. Each system takes and lets go of its own hold with lock_input("who") and
+# unlock_input("who"), so one finishing never hands the controls back while another still needs them (a talk that
+# starts the Swap-o-Tron used to let her walk off mid-flash, because the talk's end unlocked everyone).
+signal input_lock_changed(locked: bool)
+var _input_locks := {}
+# Old-style switch, kept for tools and tests: true holds the controls as "legacy", false lets go for everyone.
+var input_locked: bool:
+	get:
+		return not _input_locks.is_empty()
+	set(on):
+		if on:
+			lock_input(&"legacy")
+		elif not _input_locks.is_empty():
+			_input_locks.clear()
+			input_lock_changed.emit(false)
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
 var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
@@ -136,6 +151,30 @@ func _ready() -> void:
 	# which run their own main loop.
 	if Game.needs_creator and get_tree().get_script() == null:
 		Creator.open.call_deferred(true)
+
+
+func lock_input(who: StringName) -> void:
+	# Hold the controls for "who" until it lets go. Taking a hold it already has does nothing (countdowns call this
+	# every frame).
+	if _input_locks.has(who):
+		return
+	var was := input_locked
+	_input_locks[who] = true
+	if not was:
+		input_lock_changed.emit(true)
+
+
+func unlock_input(who: StringName) -> void:
+	# Let go of "who"'s hold. She can move again once nobody's holding the controls.
+	if not _input_locks.erase(who):
+		return
+	if _input_locks.is_empty():
+		input_lock_changed.emit(false)
+
+
+func input_locks() -> Array:
+	# Who's holding the controls, for tests, the debugger and anyone asking "why can't she move?"
+	return _input_locks.keys()
 
 
 func _loop_animations() -> void:

@@ -352,9 +352,7 @@ func _show() -> void:
 
 
 func _lock(on: bool) -> void:
-	var player := get_tree().get_first_node_in_group("player")
-	if player and "input_locked" in player:
-		player.set("input_locked", on)
+	Game.hold_controls(&"skate_lesson", on)
 
 
 func _build() -> void:

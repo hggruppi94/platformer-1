@@ -251,7 +251,7 @@ func start(id: String) -> bool:
 	gaps = 0
 	state = State.COUNTDOWN
 	_count = COUNTDOWN
-	p.set("input_locked", true)
+	Game.hold_controls(&"skate_run", true, p)
 	p.set("velocity", Vector3.ZERO)
 	hud.clear()
 	_status()
@@ -292,7 +292,7 @@ func _countdown(delta: float) -> void:
 		_end()
 		return
 	p.set("velocity", Vector3.ZERO)
-	p.set("input_locked", true)
+	Game.hold_controls(&"skate_run", true, p)
 	var before := ceili(_count)
 	_count -= delta
 	var now := ceili(_count)
@@ -302,7 +302,7 @@ func _countdown(delta: float) -> void:
 		Juice.blip("tick", 1.0, -6.0)
 	if _count <= 0.0:
 		state = State.RUNNING
-		p.set("input_locked", false)
+		Game.hold_controls(&"skate_run", false, p)
 		hud.shout("GO!", Color(0.5, 1.0, 0.6), 0.5)
 		Audio.play("level_up")
 		Juice.shake(0.15)
@@ -389,8 +389,8 @@ func _finish() -> void:
 
 func _end() -> void:
 	var p := _player()
-	if p and state == State.COUNTDOWN:
-		p.set("input_locked", false)
+	if p:
+		Game.hold_controls(&"skate_run", false, p)
 	state = State.IDLE
 	run_id = ""
 	hud.clear()
