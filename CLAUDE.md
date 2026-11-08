@@ -85,6 +85,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-07: Character creator overhaul + save slots (Hayden's playtest notes: "only one body type, human, boy or
+  girl", "the top best 10 hair styles in video games for each gender", "multiple save slots", "the kid body in the
+  creator doesnt even have eyes"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **One body: a human kid, girl or boy** (`Hero.BODY_ORDER = ["human_girl", "human_boy"]`), new models from
+    `tools/build_hero_bodies.py human_girl human_boy` (Earth kid's head and rig, bigger brighter eyes, lashes for the
+    girl, tee + flared skirt / tee + shorts, and jump, fall and skate actions so the player animates). Their own
+    "Hair" is a close cap that stays on under every style (`"hair_base"`). The old bodies stay in `Hero.BODIES` for
+    townsfolk, racers and episode guests; the creator just doesn't offer them, and no secret bodies are offered
+    (`SECRET_ORDER` empty). The old "Kid" body was Dash's model, whose eyes are closed lines: that's the "no eyes".
+  - **Old heroes become human kids** on load (`Hero.migrate`): girl if she/her (or they/them on a hippo, cow, bunny,
+    moth or cat), else boy; old hairstyle to the nearest new one (`Hairstyles.TO_NEW`); a fur colour that isn't a skin
+    tone goes back to their own skin. Name, pronouns, sizes, face and clothes stay.
+  - **20 new hairstyles** (`scripts/hair_kit.gd`, `Hairstyles.NAMES` 12-31; 0-11 are the old ball styles townsfolk
+    still wear): girls High ponytail, Twin tails, Space buns, Long and straight, Long braid, Bob with bangs, Pixie cut,
+    Big curls, Afro puffs, Side ponytail; boys Hero spikes, Swoop fringe, Middle part, Messy mop, Quiff, Faux-hawk,
+    Top knot, Curly top, Afro, Buzz cut. Each is a kind of hair game heroes are known for (`HairKit.ABOUT`), not a copy.
+    Made from a scalp shell plus tapered locks (darker roots, sheen), round the human head, then moved into Nina's
+    space so `clothes.gd` fits them like the old ones; "up" parts tuck under covering hats, an invisible "crown" ball
+    sizes hats. If the human head changes, re-measure `HairKit.HEAD_BOX` (Clothes.fit_of head_box).
+  - **Creator** (`scripts/creator.gd`): Body tab has big Girl / Boy buttons and skin tones (`Hero.SKIN_TONES`, four new
+    swatches 21-24); Hair tab is a grid of named style buttons with a line about each and "Show every style";
+    Colours is eyes, blush and brows. Surprise me keeps girl or boy.
+  - **Save slots** (`scripts/game.gd`): 3 slots; slot 1 is still `save.json` (old saves are slot 1), others
+    `save_slot2.json` / `save_slot3.json`; last slot in `user://slots.cfg`. `use_slot`, `new_game_in`, `delete_slot`,
+    `slot_info`. Title screen has **Save Slots** (cards with name, level, day, time played; Empty starts a new game
+    there; Delete asks first) and New Game's question offers "Use a different save slot". Tools run with `--script`
+    always use slot 1 and never write slots.cfg. **`Game.hold_saves`**: set it in a tool's finish before putting the
+    save back (a new game started by a test saved over the restored save otherwise).
+  - Tests: `tools/test_creator.gd` (updated), new `tools/test_save_slots.gd`. Previews: `tools/capture_human_creator.gd`,
+    shots in project files `world/previews/human_creator/`.
+
 - 2026-11-07: Ride upgrades as you level up: hover and rocket boards and bikes, and the rocket ones FLY (plan item 29,
   Hayden: "new vehicle mechanics as you level up to hover and rocket boards/bikes, with the rocket ones capable of
   flight"). Built and tested in the cloud (own Godot user folders, no save touched); full suite 63/63 green.
