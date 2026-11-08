@@ -175,9 +175,17 @@ func _build_ui() -> void:
 	root.add_child(sub)
 
 	menu_box = VBoxContainer.new()
-	menu_box.add_theme_constant_override("separation", 12)
-	menu_box.set_anchors_preset(Control.PRESET_CENTER)
-	menu_box.position = Vector2(-210, -20)
+	menu_box.add_theme_constant_override("separation", 10)
+	# The menu hangs from the bottom of the screen and grows upwards, so however many buttons it has (Continue and
+	# the save line only show with a save) the last one never runs off the bottom. Placed from the middle, it did:
+	# at the game's own 1152x648 window the Quit button was cut in half.
+	menu_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	menu_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	menu_box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	menu_box.offset_left = -210
+	menu_box.offset_right = 210
+	menu_box.offset_top = -28
+	menu_box.offset_bottom = -28
 	menu_box.custom_minimum_size = Vector2(420, 0)
 	root.add_child(menu_box)
 	if has_save():
@@ -287,7 +295,7 @@ func _button(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.name = text
 	b.text = text
-	b.custom_minimum_size = Vector2(420, 58)
+	b.custom_minimum_size = Vector2(420, 52)
 	b.add_theme_font_size_override("font_size", 28)
 	b.pressed.connect(cb)
 	b.focus_entered.connect(func() -> void: Audio.play("ui_move", -10.0, 0.0))
