@@ -146,7 +146,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _back() -> void:
-	if page in ["settings", "confirm"]:
+	if page in ["settings", "confirm", "worlds"]:
 		_show_main()
 	else:
 		close()
@@ -201,6 +201,12 @@ func _show_main() -> void:
 		_button(way[0], func():
 			close()
 			(way[1] as Callable).call())
+	if Portals.practice:
+		_button("End practice trip", func():
+			close()
+			Portals.end_practice())
+	elif Settings.practice_trips and not Game.on_title():
+		_button("Visit a portal world", _show_worlds)
 	_button("Settings", func(): _tab = 0; _show_settings())
 	if Game.has_item("skateboard"):
 		# Coach Rook's skate lesson (scripts/skate_lesson.gd): start it (or carry on), or stop it
@@ -223,6 +229,8 @@ func _show_main() -> void:
 
 func way_home() -> Array:
 	# [button text, what it does] for a quick way home from where the player is (the player menu's Save sheet too)
+	if Portals.practice:
+		return []                                  # (the pause menu's "End practice trip" is the way home)
 	var here := get_tree().current_scene
 	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
 		return [["Go home to town", func(): Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town")]]   # an easy way out, any time
@@ -234,6 +242,29 @@ func way_home() -> Array:
 	if here and Clock.in_shift():
 		return [["Go home to Earth", func(): Game.go(Clock.EARTH, Clock.EARTH_ARRIVAL, "Earth")]]   # before the Shift ends
 	return []
+
+
+func _show_worlds() -> void:
+	# Practice trips (Settings > Assist > "Practice trips"; scripts/portals.gd): every built portal world, any time
+	page = "worlds"
+	_clear()
+	_title("Visit a portal world")
+	var l := Label.new()
+	l.text = "A practice trip: no time limit, and nothing\nyou do there is kept. Your game stays just as it is."
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(l)
+	var first: Control = null
+	for w in Portals.WORLDS:
+		var id := str(w.id)
+		if not Portals.is_built(id):
+			continue
+		var b := _button(str(w.name) + ("  (mended)" if Portals.is_cleared(id) else ""), func():
+			close()
+			Portals.practice_trip(id))
+		if first == null:
+			first = b
+	var back := _button("Back", _show_main)
+	_focus(first if first else back)
 
 
 func _show_confirm() -> void:
@@ -533,6 +564,8 @@ func _tab_assist(tabs: TabContainer) -> void:
 	_check(g, "Race intros", "race_intros", "A flyover of the track and your rivals before each race (Jump skips it)")
 	_check(g, "Playtest notes", "playtest",
 		"Notes what happens as you play, in a file in the save folder, for a grown-up to read. Nothing leaves this computer")
+	_check(g, "Practice trips", "practice_trips",
+		"Adds \"Visit a portal world\" to the pause menu: try any world, any time, with no time limit. Nothing done there is kept")
 	_check(g, "No damage", "no_damage", "Enemies still bump you, but you never lose HP")
 	_check(g, "Infinite stamina", "infinite_sp", "Rolling never runs out of SP")
 

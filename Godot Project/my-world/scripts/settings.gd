@@ -86,6 +86,7 @@ var no_damage := false
 var infinite_mp := false
 var infinite_sp := false
 var skate_assist := 1                 # 0 Relaxed, 1 Normal, 2 Pro (the strict first rules)
+var practice_trips := false           # Pause > "Visit a portal world": practice trips for playtesting (Portals.practice_trip())
 var race_intros := true               # the flyover of the track and the rivals before a race (scripts/race_intro.gd)
 
 var _defaults := {}
@@ -111,7 +112,7 @@ func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
 		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "clock_style", "text_scale", "hud_size", "talk_speed", "talk_caps", "objectives", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
-		"skate_assist", "screen_shake", "rumble", "playtest", "race_intros"]
+		"skate_assist", "screen_shake", "rumble", "playtest", "race_intros", "practice_trips"]
 
 
 func hud(px: float) -> int:
