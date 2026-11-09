@@ -13,6 +13,17 @@
     },
     {
       "when": {
+        "quest_step": "first_snow:cocoa"
+      },
+      "set": "snow_cocoa",
+      "lines": [
+        "Two cocoas. Nina told me. She tells me everything. Loudly.",
+        "(He puts down two steaming mugs, and drops a handful of tiny marshmallows on top. Then another handful.)",
+        "Don't tell anyone. I've got a reputation."
+      ]
+    },
+    {
+      "when": {
         "flag": "earth_tremor",
         "every": 3
       },
@@ -22,7 +33,22 @@
     },
     {
       "when": {
-        "activity": "festival_cider"
+        "activity": "festival_cider",
+        "season": "winter"
+      },
+      "lines": [
+        "Cocoa. Hot. Obviously hot. It's cocoa.",
+        "...Fine. There's extra marshmallows. Don't tell anybody I put them in."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_cider",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Cider. Hot or cold. Don't ask me for a pumpkin spice anything.",
@@ -59,6 +85,25 @@
           "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
         ],
         [
+          "Mr. Palmer wants me to make a pie for the Frost Fair. Shaped like a snowflake. A pie. Shaped like a snowflake. Pies are already round!"
+        ],
+        [
+          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+        ],
+        [
+          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+        ],
+        [
           "Mr. Palmer wants me to make a pie for the festival. Shaped like a pumpkin. A pie. Shaped like a pumpkin. Pies are already round!"
         ],
         [
@@ -67,7 +112,14 @@
         [
           "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

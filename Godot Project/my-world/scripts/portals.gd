@@ -54,16 +54,16 @@ const WORLDS := [
 	{"id": "frozen_moment", "name": "The Frozen Moment", "owner": "Flurry",
 		"scene": "res://scenes/portal_worlds/frozen_moment.tscn", "at": Vector2(46, -226), "yaw": 0.0, "preview": true,
 		"colour": Color(0.7, 0.9, 1.0), "blurb": "Flurry's home, where time has stopped mid-moment: snowflakes hang in the air.",
-		"reward_remnants": 7,
-		"cleared_text": "The Frozen Moment ticks again! Snow is falling for the first time in for ever."},
+		"reward_remnants": 7, "season": "winter",
+		"cleared_text": "The Frozen Moment ticks again! Snow is falling for the first time in for ever, and winter can come to Stars Hollow at last."},
 	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "", "at": Vector2(-110, -120), "yaw": 0.0,
 		"preview": true, "colour": Color(0.75, 0.6, 1.0), "blurb": "Pip's home, where the sun won't rise."},
 	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "", "at": Vector2(-36, 64),
-		"yaw": 0.0, "preview": true, "colour": Color(1.0, 0.6, 0.9), "blurb": "Melody's home, where the beat is broken."},
+		"yaw": 0.0, "preview": true, "colour": Color(1.0, 0.6, 0.9), "blurb": "Melody's home, where the beat is broken.", "season": "summer"},
 	{"id": "tide_reef", "name": "The Tide Reef", "owner": "the octopus", "scene": "", "at": Vector2(-48, 10),
 		"yaw": 0.0, "preview": true, "colour": Color(0.4, 0.8, 1.0), "blurb": "A reef city whose tide is stuck out."},
 	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "", "at": Vector2(-96, -38), "yaw": 0.0,
-		"preview": true, "colour": Color(1.0, 0.85, 0.5), "blurb": "Heather's misty hills, where the seasons spin."},
+		"preview": true, "colour": Color(1.0, 0.85, 0.5), "blurb": "Heather's misty hills, where the seasons spin.", "season": "spring"},
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "", "at": Vector2(84, 90),
 		"yaw": 0.0, "preview": true, "colour": Color(0.4, 1.0, 1.0), "blurb": "Dash and Rex's home, fading away."},
 ]
@@ -102,6 +102,7 @@ func _process(delta: float) -> void:
 		return
 	if s.scene_file_path == TOWN:
 		_process_flowers()
+		_process_flurry(delta)
 		_in_town_for += delta
 		if not _quaking and _in_town_for >= QUAKE_DELAY and not Dialogue.is_active():
 			var due := next_due()
@@ -350,6 +351,7 @@ func clear(id: String) -> void:
 		return
 	cleared_worlds.append(id)
 	var w := world(id)
+	open_seasons()
 	var n := int(w.get("reward_remnants", 0))
 	if n > 0:
 		Remnants.add(n)
@@ -358,6 +360,22 @@ func clear(id: String) -> void:
 	changed.emit()
 	cleared.emit(id)
 	Game.save_game()
+
+
+func open_seasons() -> void:
+	# Each season but autumn waits in a portal world (WORLDS "season", plan item 20): mending it opens it on Earth
+	for id in cleared_worlds:
+		var season := str(world(str(id)).get("season", ""))
+		if season != "":
+			Clock.open_season(season)
+
+
+func season_world(season: String) -> Dictionary:
+	# The world a locked season waits in (the Calendar sheet's hint)
+	for w in WORLDS:
+		if str(w.get("season", "")) == season:
+			return w
+	return {}
 
 
 func note_found(id: String, thing: String) -> void:
@@ -551,6 +569,8 @@ func _hub_changes(s: Node) -> void:
 		plaza.rotation.y = float(w.yaw)
 	if is_cleared("rootmind"):
 		_watching_flowers()
+	if is_cleared("frozen_moment"):
+		_flurry_in_hub()
 
 
 func _watching_flowers() -> void:
@@ -578,6 +598,108 @@ func _watching_flowers() -> void:
 		f.name = "Watching Flower"
 		g.add_child(f)
 		f.global_position = Remnants.ground_at(spots[i])
+
+
+# Flurry, in the Void once the Frozen Moment's mended -------------------------------------------------------------
+const FLURRY_SPOT := Vector2(3.3, 1.3)     # on the Portal Plaza, beside Shard Isle's portal (in the plaza's frame)
+const FLURRY_FLAKES := 40
+
+
+func _flurry_in_hub() -> void:
+	# She comes back with you and waits on the Portal Plaza, where the chosen ones' portals gather, in a little
+	# patch of snow with her own flurry falling over her (she's never without one now that snow can fall)
+	var w := world("shard_isle")
+	var at: Vector2 = w.at + FLURRY_SPOT.rotated(-float(w.yaw))
+	var g := Node3D.new()
+	g.name = "Flurry"
+	_holder.add_child(g)
+	g.global_position = Remnants.ground_at(at)
+	g.rotation.y = float(w.yaw)
+	var patch := MeshInstance3D.new()
+	patch.name = "Snow Patch"
+	var c := CylinderMesh.new()
+	c.top_radius = 1.1
+	c.bottom_radius = 1.25
+	c.height = 0.08
+	c.radial_segments = 24
+	patch.mesh = c
+	patch.material_override = _mat(Color(0.95, 0.97, 1.0), 0.9)
+	patch.position.y = 0.11                  # just over the plaza's floor
+	g.add_child(patch)
+	var model: Node3D = load("res://scripts/frozen_moment.gd").flurry_model()
+	model.position.y = 0.12
+	g.add_child(model)
+	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "talk to Flurry", _talk_flurry, 2.4, 2.4)
+	spot.name = "Spot"
+	g.add_child(spot)
+	var flakes := MultiMeshInstance3D.new()
+	flakes.name = "Her Flurry"
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	var q := QuadMesh.new()
+	q.size = Vector2(0.07, 0.07)
+	var fm := _mat(Color(1, 1, 1), 1.0, 0.6)
+	fm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	fm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	q.material = fm
+	mm.mesh = q
+	mm.instance_count = FLURRY_FLAKES
+	flakes.multimesh = mm
+	flakes.set_meta("seeds", range(FLURRY_FLAKES).map(func(k) -> Vector3:
+		return Vector3(randf_range(-1.5, 1.5), randf_range(0.0, 3.2), randf_range(-1.5, 1.5))))
+	g.add_child(flakes)
+
+
+func flurry_hub_lines() -> Array:
+	# Flurry in the Void: still a bit shy, but she found you first this time
+	var lines: Array = []
+	if not has_found("frozen_moment", "flurry_in_hub"):
+		note_found("frozen_moment", "flurry_in_hub")
+		lines = ["Oh! {player}! I... I came through after you. Is that OK?",
+			"It's so warm here. And green! My snow keeps following me about, look.",
+			"Dash says your Earth has seasons. Winter got stuck in my moment too, so now it can come to you.",
+			"Oh! And... I want to give you something. Here. Breathe in, then huff, like this. (A puff of frost sparkles out of her.)",
+			"Now you can do it too! Press {frost_breath}. It freezes water into ice you can walk on, and it makes Gloops go all slow.",
+			"I'll stay here by the portals. Come and say hi?"]
+	else:
+		lines = [["Tick, tick, tick. I keep listening to my watch. I missed it.",
+			"Do you have snow days on Earth? Real ones? With sledges?"],
+			["Bramble showed me her garden. The plants stared at me. I stared back.",
+			"I think we're friends now. The plants and me."],
+			["If you go into another portal world... be careful, OK?",
+			"Time's broken in lots of places. You're good at fixing it, though."],
+			["It's winter in Stars Hollow when the calendar gets there. I made sure.",
+			"(She looks very pleased with herself, then very shy about it.)"],
+			["Have you tried your frost breath on a pond? {frost_breath}! Little ice islands, all the way across.",
+			"They melt after a bit, so don't stand about. Hop hop hop!"]].pick_random()
+	return lines
+
+
+func _talk_flurry() -> void:
+	var spot := _holder.get_node_or_null("Flurry/Spot") as Node3D if is_instance_valid(_holder) else null
+	if spot:
+		Dialogue.say(spot, "Flurry", flurry_hub_lines().map(func(l: String) -> String: return Settings.fill(l)), "hub_flurry")
+
+
+func _process_flurry(delta: float) -> void:
+	# Her snow keeps falling round her, and she turns to look at you when you come near
+	var g := _holder.get_node_or_null("Flurry") as Node3D if is_instance_valid(_holder) else null
+	if g == null:
+		return
+	var flakes := g.get_node("Her Flurry") as MultiMeshInstance3D
+	var seeds: Array = flakes.get_meta("seeds")
+	var t := Time.get_ticks_msec() / 1000.0
+	for k in seeds.size():
+		var p: Vector3 = seeds[k]
+		var y := fposmod(p.y - t * 0.6, 3.2)
+		flakes.multimesh.set_instance_transform(k, Transform3D(Basis(), Vector3(p.x + sin(t + k) * 0.15, y, p.z)))
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	var m := g.get_node_or_null("Model") as Node3D
+	if player == null or m == null:
+		return
+	var to := player.global_position - m.global_position
+	if Vector2(to.x, to.z).length() < 9.0:
+		m.rotation.y = lerp_angle(m.rotation.y, atan2(to.x, to.z) - g.global_rotation.y, minf(1.0, delta * 4.0))
 
 
 func _process_flowers() -> void:

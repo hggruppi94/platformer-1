@@ -53,6 +53,7 @@ var _stickers: Node3D                             # market stickers on the sash
 
 const MODEL_Y := -0.8                       # feet at the bottom of the collision capsule
 const BURROW := preload("res://scripts/burrow.gd")   # no class_name: --script tools compile those before the autoloads
+const FROST_BREATH := preload("res://scripts/frost_breath.gd")
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
@@ -92,6 +93,7 @@ var carried := false                        # riding something that moves her it
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
 var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
 var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
+var frost_breath: Node                      # Flurry's frost breath, once the Frozen Moment's mended (scripts/frost_breath.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 # Boosters (scripts/boosters.gd) work on foot too: a rush carries her past her running speed for a moment, the way a
@@ -151,6 +153,10 @@ func _ready() -> void:
 	burrow.name = "Burrow"
 	add_child(burrow)
 	burrow.setup(self)
+	frost_breath = FROST_BREATH.new()
+	frost_breath.name = "FrostBreath"
+	add_child(frost_breath)
+	frost_breath.setup(self)
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
@@ -396,6 +402,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if Input.is_action_just_pressed("burrow") and burrow.try_start():
 		return
+	if Input.is_action_just_pressed("frost_breath"):
+		frost_breath.try_breathe()
 	if on_floor:
 		_air_jump_used = false
 

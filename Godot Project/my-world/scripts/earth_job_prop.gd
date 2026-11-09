@@ -12,6 +12,7 @@ var job: Dictionary
 var spot := 0
 var coat := "orange"
 var following := false
+var built := false                       # a "snowball" that's been made into a snowman
 
 var _look: Node3D
 var _tail: Node3D
@@ -37,14 +38,38 @@ func _ready() -> void:
 			_pumpkin()
 		"cat":
 			_cat()
+		"drift":
+			_drift()
+		"berries":
+			_berries()
+		"snowball":
+			if built:
+				_look.add_child(load("res://scripts/seasons.gd").snowman_model(0.75))
+			else:
+				_snowball()
 	body_entered.connect(_on_body)
 
 
 func _on_body(b: Node3D) -> void:
-	if not b.is_in_group("player") or following:
+	if not b.is_in_group("player") or following or built:
 		return
 	EarthJobs.collect(job, spot)
 	match kind:
+		"drift":
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.4, Color(0.95, 0.97, 1.0), 18, 0.1, 3.0, -3.0, 1.0)
+			queue_free()
+		"berries":
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.9, 0.15, 0.2), 10, 0.07, 2.0, -2.0, 0.8)
+			queue_free()
+		"snowball":
+			# Up pops a snowman, with a puff of snow and a little bounce
+			built = true
+			for c in _look.get_children():
+				c.queue_free()
+			var sm: Node3D = load("res://scripts/seasons.gd").snowman_model(0.75)
+			_look.add_child(sm)
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.6, Color(0.95, 0.97, 1.0), 20, 0.1, 3.0, -2.5, 1.0)
+			Juice.squash(sm, 0.3)
 		"leaves":
 			for c in [Color(0.95, 0.5, 0.15), Color(0.8, 0.25, 0.15), Color(0.95, 0.75, 0.25)]:
 				Fx.burst(get_parent(), global_position + Vector3.UP * 0.4, c, 12, 0.1, 3.0, -3.0, 1.1)
@@ -95,6 +120,42 @@ func _follow(delta: float) -> void:
 
 
 # --- Looks ---------------------------------------------------------------------
+func _drift() -> void:
+	# A heap of snow (winter's leaf piles): a soft white mound with lumps on it
+	var snow := Color(0.94, 0.96, 1.0)
+	_ball(0.6, Vector3(0, 0.1, 0), snow, Vector3(1.3, 0.5, 1.1))
+	for k in 5:
+		var a := k * 2.4
+		_ball(0.25, Vector3(cos(a) * 0.35, 0.25, sin(a) * 0.3), Color(0.9, 0.93, 0.99), Vector3(1.2, 0.6, 1.0))
+
+
+func _berries() -> void:
+	# A little winterberry bush in the snow: a dark green mound covered in bright red berries, with a soft glow
+	_ball(0.4, Vector3(0, 0.3, 0), Color(0.15, 0.35, 0.2), Vector3(1.1, 0.85, 1.1))
+	for k in 14:
+		var a := k * 2.39
+		var h := 0.15 + (k % 4) * 0.12
+		_ball(0.06, Vector3(cos(a) * 0.4, h + 0.1, sin(a) * 0.4), Color(0.95, 0.12, 0.18), Vector3.ONE, 0.6)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.4, 0.4)
+	glow.light_energy = 0.6
+	glow.omni_range = 2.0
+	glow.position.y = 0.6
+	_look.add_child(glow)
+
+
+func _snowball() -> void:
+	# A big rolled snowball waiting to become a snowman, with a carrot and a hat on top to show what it's for
+	_ball(0.45, Vector3(0, 0.4, 0), Color(0.96, 0.97, 1.0), Vector3.ONE)
+	_ball(0.06, Vector3(0, 0.9, 0), Color(1.0, 0.5, 0.1), Vector3(1.0, 1.0, 2.5))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.7, 0.85, 1.0)
+	glow.light_energy = 0.5
+	glow.omni_range = 2.5
+	glow.position.y = 0.8
+	_look.add_child(glow)
+
+
 func _leaves() -> void:
 	# A heap of autumn leaves: a squashed mound with leaf-coloured lumps on it
 	var cols := [Color(0.92, 0.45, 0.12), Color(0.78, 0.22, 0.12), Color(0.95, 0.72, 0.22), Color(0.6, 0.35, 0.15)]

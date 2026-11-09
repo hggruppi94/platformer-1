@@ -55,10 +55,16 @@ var earth_minutes := EARTH_START     # Earth's time of day (saved)
 var pulls_home := true               # when the Shift ends in the Void, the portal pulls her home (tests can turn it off)
 var pull_spawn := ""                 # where on Earth that puts them, if not by the oak (the First Night: in bed, HomeSpawn)
 var calendar_offset := CALENDAR_START  # saved: older saves from before the calendar get one that puts them in autumn
+# The seasons Stars Hollow has (plan item 20, saved). A new game only has autumn: each other season is locked away in a
+# portal world in the Void (Portals.WORLDS "season") and joins the year once that world is mended. When the calendar
+# reaches a locked season it skips on to the next open one (whole seasons, so the weekdays stay the same), so a
+# new game has autumn after autumn until winter's unlocked. Old saves, and tests, have all four.
+var seasons_open: Array = SEASONS.duplicate()
 
 var _in_shift := false
 var _last_minute := -1
 var _last_hour := -1
+var _last_earth_day := -1
 var _pulling := false
 
 
@@ -97,6 +103,10 @@ func _advance(game_minutes: float) -> void:
 
 
 func _check_changes(announce := true) -> void:
+	var d := earth_day()
+	if d != _last_earth_day:
+		_last_earth_day = d
+		skip_locked_seasons(announce)
 	var m := int(local_minutes())
 	if m != _last_minute:
 		_last_minute = m
@@ -223,6 +233,36 @@ func day_of(season_id: String, date: int, after_day := TODAY) -> int:
 	var from := earth_day() if after_day == TODAY else after_day
 	var want := SEASONS.find(season_id) * SEASON_DAYS + clampi(date, 1, SEASON_DAYS) - 1
 	return from + posmod(want - calendar_index(from) % YEAR_DAYS, YEAR_DAYS)
+
+
+func season_open(season_id: String) -> bool:
+	return season_id in seasons_open
+
+
+func is_open(on_day := TODAY) -> bool:
+	# Is that day in a season Stars Hollow has? (A day ahead in a locked season never really comes: the calendar
+	# skips past it. The Calendar sheet shows those pages frosted over, and nothing's on.)
+	return season_open(season(on_day))
+
+
+func open_season(season_id: String) -> void:
+	if season_id in SEASONS and not season_open(season_id):
+		seasons_open.append(season_id)
+
+
+func skip_locked_seasons(announce := false) -> void:
+	# Today's in a locked season: move the calendar on, a whole season at a time, to the next one that's open
+	if seasons_open.is_empty():
+		seasons_open = ["autumn"]
+	var skipped := false
+	for k in 4:
+		if season_open(season()):
+			break
+		calendar_offset += SEASON_DAYS
+		skipped = true
+	if skipped and announce:
+		Game.message("Winter's still frozen shut in a portal world in the Void, so Stars Hollow gets another autumn!"
+			if not season_open("winter") else "A new %s in Stars Hollow!" % season_name())
 
 
 func is_weekend(on_day := TODAY) -> bool:
@@ -428,5 +468,6 @@ func reset() -> void:
 	on_earth = was_on_earth
 	earth_minutes = EARTH_START
 	calendar_offset = CALENDAR_START
+	seasons_open = SEASONS.duplicate()               # (Game.new_game() locks them: tests keep every season)
 	_in_shift = in_shift()
 	_check_changes(false)

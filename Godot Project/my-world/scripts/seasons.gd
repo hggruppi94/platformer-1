@@ -40,6 +40,13 @@ var _fallen: MultiMeshInstance3D
 var _fallen_xf: Array[Transform3D] = []
 var _fallen_cols: Array[Color] = []
 var _dressing: Node3D
+var _pumpkins: Array[Node3D] = []        # pumpkins, jack-o'-lanterns and scarecrows outside the Autumn Dressing
+var _patch_sign: Label3D
+var _snowmen: Node3D                     # winter's: where the pumpkins and scarecrows were
+var _bulbs: MultiMeshInstance3D          # the string lights and bunting: Halloween colours, Christmassy in winter
+var _bulb_cols: Array[Color] = []
+var _bunting: MultiMeshInstance3D
+var _bunting_cols: Array[Color] = []
 var _land: Node
 var _air: CPUParticles3D
 var _air_kind := ""
@@ -85,6 +92,7 @@ func _ready() -> void:
 				(pair[2] as Array).append(cols[i] if i < cols.size() else Color.WHITE)
 			mmi.multimesh.instance_count = (pair[1] as Array).size()
 	_collect_materials(scene)
+	_collect_autumn_bits(scene)
 	_make_air()
 	apply(Clock.season())
 
@@ -146,6 +154,8 @@ func apply(new_season: String) -> void:
 	_paint_fallen()
 	_paint_materials()
 	_dress(season == "autumn")
+	_dress_rest()
+	_paint_lights()
 	_set_air()
 
 
@@ -242,6 +252,212 @@ func _dress(on: bool) -> void:
 	_dressing.visible = on
 	for cs in _dressing.find_children("*", "CollisionShape3D", true, false):
 		(cs as CollisionShape3D).disabled = not on
+
+
+# -----------------------------------------------------------------------------
+# The rest of autumn: pumpkins and scarecrows round town, and the lights
+# -----------------------------------------------------------------------------
+const PUMPKINY := ["Pumpkin", "Pumpkin Stem", "Jack Glow"]
+const BULBS_WINTER := [Color(1.0, 0.25, 0.25), Color(0.3, 0.95, 0.4), Color(1.0, 0.95, 0.85), Color(0.45, 0.65, 1.0)]
+const BUNTING_WINTER := [Color(0.85, 0.15, 0.2), Color(0.15, 0.55, 0.3), Color(0.97, 0.97, 1.0), Color(0.75, 0.8, 0.9)]
+
+
+func _collect_autumn_bits(scene: Node) -> void:
+	# The town as built has pumpkins on doorsteps, the gazebo's steps, mantels and in the pumpkin patch, and
+	# scarecrows in the patch. They only belong in autumn: in winter snowmen stand where they were.
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.material_override and m.material_override.resource_name in PUMPKINY \
+				and not (_dressing and _dressing.is_ancestor_of(m)):
+			_pumpkins.append(m)
+	# Scarecrows: found by their sack heads, since a second one in the same place got a made-up node name
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.material_override and m.material_override.resource_name == "Sack Head" \
+				and not (_dressing and _dressing.is_ancestor_of(m)) and not _pumpkins.has(m.get_parent()):
+			_pumpkins.append(m.get_parent() as Node3D)
+	var patch := scene.find_child("Pumpkin Patch", true, false)
+	if patch:
+		for l in patch.find_children("*", "Label3D", true, false):
+			if (l as Label3D).text == "Pumpkin Patch":
+				_patch_sign = l
+	_bulbs = scene.find_child("Bulbs", true, false) as MultiMeshInstance3D
+	_bunting = scene.find_child("Bunting", true, false) as MultiMeshInstance3D
+	for pair in [[_bulbs, _bulb_cols], [_bunting, _bunting_cols]]:
+		var mmi := pair[0] as MultiMeshInstance3D
+		if mmi == null or mmi.multimesh == null:
+			continue
+		var old := mmi.multimesh
+		var mm := MultiMesh.new()                                  # (its own copy, as for the leaves)
+		mm.transform_format = old.transform_format
+		mm.use_colors = old.use_colors
+		mm.mesh = old.mesh
+		var xf: PackedFloat32Array = mmi.get("transforms") if "transforms" in mmi else PackedFloat32Array()
+		var cols: PackedColorArray = mmi.get("colors") if "colors" in mmi else PackedColorArray()
+		mm.instance_count = xf.size() / 12
+		for i in mm.instance_count:
+			var k := i * 12
+			mm.set_instance_transform(i, Transform3D(Vector3(xf[k], xf[k + 1], xf[k + 2]), Vector3(xf[k + 3], xf[k + 4],
+				xf[k + 5]), Vector3(xf[k + 6], xf[k + 7], xf[k + 8]), Vector3(xf[k + 9], xf[k + 10], xf[k + 11])))
+			(pair[1] as Array).append(cols[i] if i < cols.size() else Color.WHITE)
+		mmi.multimesh = mm
+
+
+func _dress_rest() -> void:
+	var autumn := season == "autumn"
+	for n in _pumpkins:
+		if is_instance_valid(n):
+			n.visible = autumn
+	if _patch_sign:
+		_patch_sign.text = "Snowman Field" if season == "winter" else "Pumpkin Patch"
+	if _snowmen:
+		_snowmen.name = "Melting Snowmen"
+		_snowmen.queue_free()
+		_snowmen = null
+	if season != "winter":
+		return
+	# A snowman for each doorstep pumpkin (one for a cluster of them), and for each scarecrow
+	_snowmen = Node3D.new()
+	_snowmen.name = "Winter Snowmen"
+	add_child(_snowmen)
+	var spots: Array[Vector3] = []
+	for n in _pumpkins:
+		if not is_instance_valid(n) or (n is MeshInstance3D and (n as MeshInstance3D).material_override.resource_name != "Pumpkin"):
+			continue
+		var at := n.global_position
+		if n is MeshInstance3D:
+			at.y -= (n as MeshInstance3D).get_aabb().size.y * n.global_basis.get_scale().y * 0.35
+		var ground := EarthLand.height(at.x, at.z)
+		if absf(at.y - ground) > 0.4:
+			continue                          # (on a mantel, a hay bale, indoors up a step: no snowman there)
+		at.y = ground
+		if spots.any(func(p: Vector3) -> bool: return Vector2(p.x - at.x, p.z - at.z).length() < (2.5 if n is MeshInstance3D else 0.5)):
+			continue
+		spots.append(at)
+	for at in spots:
+		var sm := snowman_model(0.55 if spots.find(at) % 3 else 0.75)
+		_snowmen.add_child(sm)
+		sm.global_position = at
+		sm.rotation.y = fposmod(at.x * 1.7 + at.z, TAU)
+	shown_snowmen = spots.size()
+
+
+var shown_snowmen := 0                   # how many winter snowmen there are (for the tests)
+
+
+func _paint_lights() -> void:
+	for pair in [[_bulbs, _bulb_cols, BULBS_WINTER], [_bunting, _bunting_cols, BUNTING_WINTER]]:
+		var mmi := pair[0] as MultiMeshInstance3D
+		if mmi == null:
+			continue
+		var cols: Array = pair[1]
+		for i in cols.size():
+			mmi.multimesh.set_instance_color(i, pair[2][i % 4] if season == "winter" else cols[i])
+
+
+func lights_colour(i: int) -> Color:
+	# (for the tests: the colour string light i is showing)
+	return BULBS_WINTER[i % 4] if season == "winter" else (_bulb_cols[i] if i < _bulb_cols.size() else Color.WHITE)
+
+
+static func snowman_model(size := 0.7) -> Node3D:
+	# A friendly snowman: three snowballs, coal eyes and buttons, a carrot nose, stick arms, a red scarf and a hat
+	var g := Node3D.new()
+	g.name = "Snowman"
+	var snow := _m(Color(0.96, 0.97, 1.0), 0.9)
+	var coal := _m(Color(0.08, 0.08, 0.1), 0.6)
+	var y := 0.0
+	for k in 3:
+		var r: float = size * [0.5, 0.36, 0.26][k]
+		var b := MeshInstance3D.new()
+		var sp := SphereMesh.new()
+		sp.radius = r
+		sp.height = r * 2.0
+		b.mesh = sp
+		b.material_override = snow
+		b.position.y = y + r * 0.85
+		g.add_child(b)
+		y = b.position.y + r * 0.8
+	var head_y := y - size * 0.26 * 0.8
+	var hr := size * 0.26
+	for sx in [-1.0, 1.0]:
+		_bit(g, _sphere(hr * 0.12), coal, Vector3(sx * hr * 0.35, head_y + hr * 0.2, hr * 0.9))
+	var nose := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 0.0
+	c.bottom_radius = hr * 0.14
+	c.height = hr * 0.8
+	nose.mesh = c
+	nose.material_override = _m(Color(1.0, 0.5, 0.1), 0.6)
+	nose.rotation.x = PI / 2
+	nose.position = Vector3(0, head_y, hr * 1.2)
+	g.add_child(nose)
+	var mid_y := size * (0.5 * 1.65 + 0.36 * 0.85)
+	for k in 3:
+		_bit(g, _sphere(size * 0.035), coal, Vector3(0, mid_y + (k - 1) * size * 0.11, size * 0.35))
+	var scarf := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = hr * 0.8
+	t.outer_radius = hr * 1.12
+	scarf.mesh = t
+	scarf.material_override = _m(Color(0.85, 0.15, 0.2), 0.8)
+	scarf.position.y = head_y - hr * 0.85
+	g.add_child(scarf)
+	var hat := MeshInstance3D.new()
+	var hc := CylinderMesh.new()
+	hc.top_radius = hr * 0.6
+	hc.bottom_radius = hr * 0.6
+	hc.height = hr * 0.8
+	hat.mesh = hc
+	hat.material_override = coal
+	hat.position.y = head_y + hr * 1.1
+	g.add_child(hat)
+	var brim := MeshInstance3D.new()
+	var bc := CylinderMesh.new()
+	bc.top_radius = hr * 0.95
+	bc.bottom_radius = hr * 0.95
+	bc.height = hr * 0.08
+	brim.mesh = bc
+	brim.material_override = coal
+	brim.position.y = head_y + hr * 0.72
+	g.add_child(brim)
+	var stick := _m(Color(0.4, 0.26, 0.15), 0.9)
+	for sx in [-1.0, 1.0]:
+		var arm := MeshInstance3D.new()
+		var ac := CylinderMesh.new()
+		ac.top_radius = size * 0.015
+		ac.bottom_radius = size * 0.025
+		ac.height = size * 0.6
+		arm.mesh = ac
+		arm.material_override = stick
+		arm.position = Vector3(sx * size * 0.55, mid_y + size * 0.08, 0)
+		arm.rotation.z = sx * -1.0
+		g.add_child(arm)
+	return g
+
+
+static func _m(c: Color, rough := 0.8) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = c
+	m.roughness = rough
+	return m
+
+
+static func _sphere(r: float) -> SphereMesh:
+	var sp := SphereMesh.new()
+	sp.radius = r
+	sp.height = r * 2.0
+	sp.radial_segments = 8
+	sp.rings = 4
+	return sp
+
+
+static func _bit(parent: Node3D, mesh: Mesh, m: Material, at: Vector3) -> void:
+	var b := MeshInstance3D.new()
+	b.mesh = mesh
+	b.material_override = m
+	b.position = at
+	parent.add_child(b)
 
 
 # -----------------------------------------------------------------------------

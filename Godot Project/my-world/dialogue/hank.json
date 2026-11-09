@@ -11,7 +11,22 @@
     },
     {
       "when": {
-        "activity": "festival_apples"
+        "activity": "festival_apples",
+        "season": "winter"
+      },
+      "lines": [
+        "Step right up and go ice fishing! Line in the barrel, wait for the tug, and no grabbing the fish with your hands. Kip tried.",
+        "Three goes. The fish get sneakier every go. I've got mittens."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_apples",
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
       },
       "lines": [
         "Step right up and bob for apples! Hands behind your back, face in the barrel, and no biting the barrel. Kip tried.",
@@ -29,6 +44,25 @@
     {
       "rotate": [
         [
+          "Shovels are out front. Lot of snow this year. The town's going to need some help shovelling. Hint, hint."
+        ],
+        [
+          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+        ],
+        [
+          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+        ],
+        [
+          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+        ]
+      ],
+      "when": {
+        "season": "winter"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Rakes are out front. Lot of leaves this year. The town's going to need some help raking. Hint, hint."
         ],
         [
@@ -40,7 +74,14 @@
         [
           "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
         ]
-      ]
+      ],
+      "when": {
+        "season": [
+          "spring",
+          "summer",
+          "autumn"
+        ]
+      }
     }
   ]
 }

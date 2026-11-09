@@ -353,7 +353,7 @@ func save_game() -> void:
 		"popper_colour": popper_colour, "play_time": play_time, "hero_ride": hero_ride,
 		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
-		"calendar_offset": Clock.calendar_offset,
+		"calendar_offset": Clock.calendar_offset, "seasons_open": Clock.seasons_open.duplicate(),
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
 		"requests": Requests.save_data(),
@@ -431,6 +431,11 @@ func load_game() -> void:
 		Clock.calendar_offset = int(data["calendar_offset"])
 	else:
 		Clock.fit_calendar_to_old_save()
+	# Its seasons (plan item 20): a save from before seasons were unlocked one by one keeps all four
+	var open = data.get("seasons_open", null)
+	Clock.seasons_open = Clock.SEASONS.duplicate()
+	if open is Array and not (open as Array).is_empty():
+		Clock.seasons_open = Clock.SEASONS.filter(func(x) -> bool: return x in open)
 	var dialogue = data.get("dialogue", {})
 	Dialogue.load_data(dialogue if dialogue is Dictionary else {})
 	var quests = data.get("quests", {})
@@ -454,6 +459,8 @@ func load_game() -> void:
 	Farm.load_data(farm if farm is Dictionary else {})
 	var portals = data.get("portals", {})                    # saves from before the time quakes have had none
 	Portals.load_data(portals if portals is Dictionary else {})
+	Portals.open_seasons()                                     # (a mended world's season is always open)
+	Clock.skip_locked_seasons()
 	# Saves from before the outfit wheel have no saved outfits
 	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
 	outfits = {"hero": {}}
@@ -657,6 +664,7 @@ func new_game() -> void:
 	DirAccess.remove_absolute(save_path())
 	_reset_state()
 	hero = Hero.blank()
+	Clock.seasons_open = ["autumn"]                  # the other seasons wait in portal worlds (plan item 20)
 	needs_creator = true
 	next_spawn = NEW_GAME_SPAWN                      # wake up at home
 	pending_message = NEW_GAME_MESSAGE
