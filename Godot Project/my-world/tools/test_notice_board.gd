@@ -113,8 +113,8 @@ func _run() -> void:
 		J.roll(hash("earth_jobs:%d" % d))
 		for r in J.list:
 			seen[r.kind] = true
-	check(seen.size() == J.EARTH_KINDS.size() - 1 and not seen.has("snowman"),
-		"over a month every kind comes up (but snowmen, which wait for winter): %s" % [seen.keys()])
+	check(seen.size() == J.EARTH_KINDS.size() - 2 and not seen.has("snowman") and not seen.has("sandcastle"),
+		"over a month every kind comes up (but snowmen and sandcastles, which wait for winter and summer): %s" % [seen.keys()])
 	game.items.erase("skateboard")
 	var no_skate := true
 	for d in range(10, 40):

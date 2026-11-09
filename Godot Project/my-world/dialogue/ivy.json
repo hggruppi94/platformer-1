@@ -25,9 +25,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
+        "Try the ice lollies. The rainbow ones. Then try them again. That's what I did."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

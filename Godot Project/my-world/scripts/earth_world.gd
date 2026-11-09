@@ -15,6 +15,11 @@ const SUNSET := Color(1.0, 0.48, 0.26)              # deep orange
 const MOON_LIGHT := Color(0.58, 0.66, 1.0)
 const DAY_SKY := {"top": Color(0.2, 0.47, 0.9), "horizon": Color(0.72, 0.85, 0.98)}
 const NIGHT_SKY := {"top": Color(0.015, 0.02, 0.07), "horizon": Color(0.07, 0.09, 0.2)}
+# Summer (Earth's calendar, scripts/clock.gd): the sun climbs higher and shines brighter and whiter, a big glowing
+# disc in a deep clear blue sky, and the days are long (up before 5, still light at 9 in the evening)
+const SUMMER := {"high": 74.0, "energy": 1.45, "noon": Color(1.0, 0.98, 0.92), "ambient": 0.9,
+	"top": Color(0.12, 0.42, 0.95), "horizon": Color(0.62, 0.84, 1.0), "sun_size": 50.0, "sun_glow": 0.07,
+	"rise": [3.5, 6.0], "set": [19.5, 22.0]}
 # How see-through each part of the moon is at full night ("Earth Moon Glow" is its soft halo)
 const MOON_ALPHA := {"Earth Moon": 1.0, "Earth Moon Sea": 1.0, "Earth Moon Glow": 0.14}
 
@@ -31,6 +36,8 @@ var _swirl: Node3D
 var _portal_glow: OmniLight3D
 var _glow_energy := 1.5
 var _open := 0.0                                   # the portal's swirl: 0 closed .. 1 fully open
+var _sun_size := -1.0                              # the sky's sun disc as built (summer makes it bigger)
+var _sun_curve := 0.15
 
 
 func _ready() -> void:
@@ -42,6 +49,9 @@ func _ready() -> void:
 		_env = we.environment
 		if _env.sky:
 			_sky = _env.sky.sky_material as ProceduralSkyMaterial
+			if _sky:
+				_sun_size = _sky.sun_angle_max
+				_sun_curve = _sky.sun_curve
 	_moon = get_node_or_null("Sky/Moon") as Node3D
 	_cloud_mat = _first_material(get_node_or_null("Sky/Clouds"))
 	_star_mat = _first_material(get_node_or_null("Sky/Stars"))
@@ -115,17 +125,31 @@ func _light() -> void:
 	# night with stars and the moon. The sun crosses from east to west; the moon follows it round at night. The street
 	# lamps come on at dusk.
 	var h := Clock.earth_minutes / 60.0
-	var day := smoothstep(5.0, 7.5, h) * (1.0 - smoothstep(17.5, 20.0, h))     # 0 night .. 1 day
+	var summer := Clock.season() == "summer"
+	var rise: Array = SUMMER.rise if summer else [5.0, 7.5]
+	var dusk: Array = SUMMER.set if summer else [17.5, 20.0]
+	var day := smoothstep(rise[0], rise[1], h) * (1.0 - smoothstep(dusk[0], dusk[1], h))     # 0 night .. 1 day
 	var night := 1.0 - day
 	var low_sun := clampf(1.0 - absf(day - 0.5) * 2.0, 0.0, 1.0)              # strongest at sunrise and sunset
 	var glow: Color = SUNRISE if h < 12.0 else SUNSET
 	if _sun:
-		var arc := sin(PI * (h - 6.0) / 12.0)                                     # +1 at noon, -1 at midnight
-		var heading := 90.0 - (h - 6.0) / 12.0 * 180.0                            # east in the morning, west at evening
+		# The sun's up from 6 to 6 (in summer from half past four till 9 at night): +1 at its highest, 0 at the
+		# horizon, and below it all night, -1 deepest in the middle of the night
+		var up: float = 4.5 if summer else 6.0
+		var down: float = 21.0 if summer else 18.0
+		var arc: float
+		var heading: float                                                        # east in the morning, west at evening
+		if h >= up and h <= down:
+			arc = sin(PI * (h - up) / (down - up))
+			heading = 90.0 - (h - up) / (down - up) * 180.0
+		else:
+			var t := fposmod(h - down, 24.0) / (24.0 - (down - up))
+			arc = -sin(PI * t)
+			heading = -90.0 - t * 180.0
 		if arc >= 0.0:
-			_sun.rotation_degrees = Vector3(-maxf(arc * SUN_HIGH, 3.0), heading, 0.0)
-			_sun.light_color = SUN_NOON.lerp(glow, low_sun * 0.85)
-			_sun.light_energy = 1.15 * smoothstep(-0.02, 0.15, arc)
+			_sun.rotation_degrees = Vector3(-maxf(arc * (SUMMER.high if summer else SUN_HIGH), 3.0), heading, 0.0)
+			_sun.light_color = (SUMMER.noon if summer else SUN_NOON).lerp(glow, low_sun * (0.6 if summer else 0.85))
+			_sun.light_energy = (SUMMER.energy if summer else 1.15) * smoothstep(-0.02, 0.15, arc)
 		else:
 			_sun.rotation_degrees = Vector3(-maxf(-arc * 50.0, 8.0), heading + 180.0, 0.0)
 			_sun.light_color = MOON_LIGHT
@@ -137,15 +161,20 @@ func _light() -> void:
 			_moon.position = from.normalized() * 700.0
 			_moon.look_at(Vector3.ZERO)
 	if _sky:
-		var top: Color = DAY_SKY.top.lerp(glow.lerp(DAY_SKY.top, 0.6), low_sun * 0.5).lerp(NIGHT_SKY.top, night)
-		var horizon: Color = DAY_SKY.horizon.lerp(glow, low_sun * 0.85).lerp(NIGHT_SKY.horizon, night * (1.0 - low_sun * 0.5))
+		var day_top: Color = SUMMER.top if summer else DAY_SKY.top
+		var day_horizon: Color = SUMMER.horizon if summer else DAY_SKY.horizon
+		var top: Color = day_top.lerp(glow.lerp(day_top, 0.6), low_sun * 0.5).lerp(NIGHT_SKY.top, night)
+		var horizon: Color = day_horizon.lerp(glow, low_sun * 0.85).lerp(NIGHT_SKY.horizon, night * (1.0 - low_sun * 0.5))
 		_sky.sky_top_color = top
 		_sky.sky_horizon_color = horizon
 		_sky.ground_horizon_color = horizon
 		_sky.ground_bottom_color = Color(0.3, 0.24, 0.18).lerp(Color(0.03, 0.03, 0.06), night)
+		if _sun_size >= 0.0:
+			_sky.sun_angle_max = SUMMER.sun_size if summer else _sun_size
+			_sky.sun_curve = SUMMER.sun_glow if summer else _sun_curve
 	if _env:
 		_env.fog_light_color = Color(0.82, 0.86, 0.92).lerp(glow, low_sun * 0.6).lerp(Color(0.1, 0.11, 0.2), night * 0.9)
-		_env.ambient_light_energy = lerpf(0.32, 0.8, day)
+		_env.ambient_light_energy = lerpf(0.32, SUMMER.ambient if summer else 0.8, day)
 	# Clouds: white by day, rosy gold at sunrise and sunset, dim grey-blue at night
 	if _cloud_mat:
 		var c := Color.WHITE.lerp(glow.lightened(0.35), low_sun * 0.8).lerp(Color(0.24, 0.26, 0.38), night * (1.0 - low_sun * 0.6))

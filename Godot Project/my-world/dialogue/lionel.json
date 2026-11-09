@@ -48,9 +48,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
+        "Don't tell anyone, but I came for the ice lollies."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -89,6 +98,25 @@
     {
       "rotate": [
         [
+          "Theo's my best customer. Reads a book a day. In summer, two. Never buys one. I don't mind."
+        ],
+        [
+          "The cat? That's Footnote. She sleeps on the mystery shelf. In summer she sleeps in the window, in the sun."
+        ],
+        [
+          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+        ],
+        [
+          "Summer's my favourite season for books. Pirate stories, desert island stories, a pirate on a desert island..."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
         ],
         [
@@ -104,7 +132,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

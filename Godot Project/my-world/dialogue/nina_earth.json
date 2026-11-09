@@ -84,6 +84,62 @@
     },
     {
       "when": {
+        "season": "summer",
+        "quest_done": "first_night",
+        "quest_not_started": "summer_splash"
+      },
+      "set": "summer_splash_start",
+      "lines": [
+        "{player}! {player}! Feel that? The sun's actually HOT!",
+        "Mum says Stars Hollow's never had a proper summer. Not ever. It's like the whole year got its rhythm back.",
+        "(She's already wearing sunglasses. They're upside down.) We are having a BEACH DAY. At Willow Pond. Today.",
+        "Prue's got an old swim ring by our door, and Hank sells buckets and spades at the hardware store. Meet me by the dock!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "summer_splash:gather"
+      },
+      "lines": [
+        "Prue's swim ring from our door, and a bucket and spade from Hank's. Then the beach by the dock! Last one there's a soggy sandwich."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "summer_splash:build"
+      },
+      "lines": [
+        "You got them! OK. You dig, I'll do the towers. The beach is just there, by the dock. Four towers. And a flag. Non-negotiable."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "summer_splash:jump"
+      },
+      "lines": [
+        "Best sandcastle EVER. Now: cannonball off the end of the dock! Run all the way to the end. I'll do the scores."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "summer_splash:lemonade"
+      },
+      "lines": [
+        "That was a ten. A TEN! I'm soaked. Lemonade time. Gus does pink lemonade in summer, but only if you ask nicely. Ask him!"
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "summer_splash",
+        "season": "summer"
+      },
+      "every": 2,
+      "lines": [
+        "Our sandcastle's still on the beach. Prue's put a crab in charge of it. Well, a pebble. She says it's a crab."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "first_night:morning",
         "not_flag": "fn_nina"
       },
@@ -259,9 +315,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "{player}! Isn't the Summer Fair the best? I've had four ice lollies. Maybe five. My tongue's every colour.",
+        "Watch the lanterns at ten. Last year they all floated right over the old oak and... kind of shimmered. Green. Weird, right?"
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -329,9 +394,18 @@
     {
       "when": {
         "activity": "lunch",
+        "season": "summer"
+      },
+      "lines": [
+        "Gus does a grilled cheese on weekends that's shaped like the sun. Well. He says it is.",
+        "It's a grilled cheese with chips sticking out round it. But I like it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "lunch",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -415,13 +489,31 @@
           "If you're ever out at midnight... be careful. And be back by one. Trust me."
         ],
         [
+          "Prue thinks she saw a little green alien in the sunflowers. I told her it was a grasshopper. It was probably a grasshopper."
+        ],
+        [
+          "No school all summer! The pond, the skate yard, the pond again. Best. Season. Ever."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+        ],
+        [
+          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+        ],
+        [
           "Prue thinks she saw a little green alien in the pumpkin patch. I told her it was a squash. It was probably a squash."
         ]
       ],
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

@@ -55,6 +55,25 @@
           "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
         ],
         [
+          "The shells in the window are for summer. They are real shells. I collected them myself. In a sensible hat."
+        ],
+        [
+          "Kip tried to sell me my own lamp once. I have not forgotten."
+        ],
+        [
+          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+        ],
+        [
           "The cobwebs in the window are for Halloween. They are not real cobwebs. I would never allow real cobwebs."
         ],
         [
@@ -67,7 +86,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

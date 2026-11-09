@@ -52,9 +52,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "Hayride'th for babieth. It'th too hot for hay anyway.",
+        "...Okay, it'th kind of fun. Don't tell Prue."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

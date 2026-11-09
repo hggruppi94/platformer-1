@@ -22,9 +22,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "The Summer Fair! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
+        "Have you ridden the hayride? Scarecrow Sam's wearing sunglasses. I think he winked at me. Probably the heat."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

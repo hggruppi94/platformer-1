@@ -4,6 +4,9 @@ extends Area3D
 # leaves to rake ("leaves": walk or skate through it and it's swept up in a swirl), a pumpkin to pick ("pumpkin": a
 # soft glow round it so it stands out from the ones that stay), or a lost cat ("cat": sitting with its tail swishing
 # and its eyes glowing, a proper Halloween cat; find it and it trots along after you until it's home). Built from shapes.
+# Winter's: snow drifts to shovel, winterberries and snowballs that become snowmen. Summer's: thirsty flowers to water
+# ("thirsty": droopy, perking up when you walk into them), strawberries to pick, and heaps of sand on Willow Pond's beach
+# that become sandcastles ("sandpile").
 
 const COATS := {"orange": Color(0.95, 0.55, 0.2), "grey": Color(0.55, 0.55, 0.6), "black": Color(0.12, 0.11, 0.14)}
 
@@ -12,7 +15,7 @@ var job: Dictionary
 var spot := 0
 var coat := "orange"
 var following := false
-var built := false                       # a "snowball" that's been made into a snowman
+var built := false                       # a "snowball" made into a snowman, a "sandpile" into a sandcastle, a "thirsty" flower watered
 
 var _look: Node3D
 var _tail: Node3D
@@ -47,6 +50,15 @@ func _ready() -> void:
 				_look.add_child(load("res://scripts/seasons.gd").snowman_model(0.75))
 			else:
 				_snowball()
+		"strawberries":
+			_strawberries()
+		"sandpile":
+			if built:
+				_look.add_child(load("res://scripts/summer_splash.gd").sandcastle_model(0.9))
+			else:
+				_sandpile()
+		"thirsty":
+			_flower(built)
 	body_entered.connect(_on_body)
 
 
@@ -61,6 +73,26 @@ func _on_body(b: Node3D) -> void:
 		"berries":
 			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.9, 0.15, 0.2), 10, 0.07, 2.0, -2.0, 0.8)
 			queue_free()
+		"strawberries":
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.95, 0.2, 0.25), 10, 0.07, 2.0, -2.0, 0.8)
+			queue_free()
+		"sandpile":
+			# Up pops a sandcastle, in a puff of sand
+			built = true
+			for c in _look.get_children():
+				c.queue_free()
+			var sc: Node3D = load("res://scripts/summer_splash.gd").sandcastle_model(0.9)
+			_look.add_child(sc)
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.93, 0.82, 0.58), 18, 0.08, 2.5, -3.0, 0.9)
+			Juice.squash(sc, 0.3)
+		"thirsty":
+			# A shower of water, and the flower stands up straight and bright
+			built = true
+			Fx.burst(get_parent(), global_position + Vector3.UP * 1.0, Color(0.55, 0.8, 1.0), 16, 0.07, 2.5, -5.0, 0.8)
+			for c in _look.get_children():
+				c.queue_free()
+			_flower(true)
+			Juice.squash(_look, 0.3)
 		"snowball":
 			# Up pops a snowman, with a puff of snow and a little bounce
 			built = true
@@ -142,6 +174,98 @@ func _berries() -> void:
 	glow.omni_range = 2.0
 	glow.position.y = 0.6
 	_look.add_child(glow)
+
+
+func _strawberries() -> void:
+	# A strawberry plant: a low green mound with bright red berries and little white flowers, and a soft glow
+	_ball(0.4, Vector3(0, 0.2, 0), Color(0.25, 0.55, 0.2), Vector3(1.2, 0.6, 1.2))
+	for k in 10:
+		var a := k * 2.39
+		_ball(0.07, Vector3(cos(a) * 0.38, 0.18 + (k % 3) * 0.06, sin(a) * 0.38), Color(0.95, 0.15, 0.2), Vector3(1, 1.25, 1), 0.5)
+	for k in 4:
+		var a := k * 1.7 + 0.5
+		_ball(0.04, Vector3(cos(a) * 0.2, 0.42, sin(a) * 0.2), Color(1, 1, 0.95))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.5, 0.5)
+	glow.light_energy = 0.6
+	glow.omni_range = 2.0
+	glow.position.y = 0.6
+	_look.add_child(glow)
+
+
+func _sandpile() -> void:
+	# A heap of damp sand with a little spade stuck in it, waiting to be made into a sandcastle
+	_ball(0.5, Vector3(0, 0.1, 0), Color(0.88, 0.74, 0.5), Vector3(1.2, 0.55, 1.1))
+	var spade := MeshInstance3D.new()
+	var b := BoxMesh.new()
+	b.size = Vector3(0.05, 0.5, 0.05)
+	spade.mesh = b
+	spade.material_override = _mat(Color(1.0, 0.85, 0.2))
+	spade.position = Vector3(0.1, 0.45, 0)
+	spade.rotation.z = -0.35
+	_look.add_child(spade)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.85, 0.5)
+	glow.light_energy = 0.5
+	glow.omni_range = 2.5
+	glow.position.y = 0.8
+	_look.add_child(glow)
+
+
+func _flower(watered: bool) -> void:
+	# A pot of flowers: droopy and brown-ish at the edges while it's thirsty (with a soft blue glow to spot it by),
+	# standing tall and bright once it's watered
+	var pot := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 0.22
+	c.bottom_radius = 0.16
+	c.height = 0.32
+	pot.mesh = c
+	pot.material_override = _mat(Color(0.75, 0.4, 0.25))
+	pot.position.y = 0.16
+	_look.add_child(pot)
+	var cols := [Color(1.0, 0.45, 0.6), Color(1.0, 0.8, 0.2), Color(0.65, 0.5, 1.0)]
+	for k in 3:
+		var a := k * TAU / 3.0
+		var stem := Node3D.new()
+		stem.position = Vector3(cos(a) * 0.08, 0.3, sin(a) * 0.08)
+		# (thirsty: bent right over; watered: up, leaning out a little)
+		stem.rotation = Vector3(sin(a) * (0.25 if watered else 0.95), 0, -cos(a) * (0.25 if watered else 0.95))
+		_look.add_child(stem)
+		var s := MeshInstance3D.new()
+		var sc := CylinderMesh.new()
+		sc.top_radius = 0.015
+		sc.bottom_radius = 0.02
+		sc.height = 0.45
+		s.mesh = sc
+		s.material_override = _mat(Color(0.3, 0.6, 0.25) if watered else Color(0.5, 0.55, 0.25))
+		s.position.y = 0.22
+		stem.add_child(s)
+		var head := MeshInstance3D.new()
+		var sp := SphereMesh.new()
+		sp.radius = 0.12 if watered else 0.07
+		sp.height = sp.radius * 1.4
+		head.mesh = sp
+		head.material_override = _mat(cols[k] if watered else cols[k].lerp(Color(0.55, 0.45, 0.3), 0.5), 0.3 if watered else 0.0)
+		head.position.y = 0.47
+		stem.add_child(head)
+		if watered:                                   # (and a leaf on each stem, now it's perked up)
+			var leaf := MeshInstance3D.new()
+			var lp := SphereMesh.new()
+			lp.radius = 0.07
+			lp.height = 0.05
+			leaf.mesh = lp
+			leaf.material_override = _mat(Color(0.3, 0.6, 0.25))
+			leaf.position = Vector3(0.06, 0.25, 0)
+			leaf.scale = Vector3(1.6, 1.0, 0.8)
+			stem.add_child(leaf)
+	if not watered:
+		var glow := OmniLight3D.new()
+		glow.light_color = Color(0.5, 0.75, 1.0)
+		glow.light_energy = 0.6
+		glow.omni_range = 2.2
+		glow.position.y = 0.7
+		_look.add_child(glow)
 
 
 func _snowball() -> void:
