@@ -90,6 +90,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-09: **Rhythm Springs, Melody's world** (plan item 19a world 4, slice one). Hayden: "let's do rhythm springs
+  but let's add a summer element like fire or extreme heat to the challenge of the world". Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **The portal** (`Portals.WORLDS` "rhythm_springs"): quakes once Lanternmoor's mended, on the lake's south-west
+    shore at (-34, 34) (flat, clear, 15 m off the Lake Loop's track), facing the lake. 9 Remnants for mending it, and
+    mending it **opens summer** on Earth (its `"season"`).
+  - **The world** (`tools/build_rhythm_springs.gd` -> `scenes/portal_worlds/rhythm_springs.tscn`, logic
+    `scripts/rhythm_springs.gd`): a sunny sandstone valley with cool spring pools, boiling hot springs, parasol palms,
+    Waterfall Mesa with a water slide, a Dance Floor under a striped awning and the Bandstand. Music notes float about.
+    The beat's broken, so it drifts from quick to slow (`beat_len()`), and the sun's stuck at its hottest noon.
+  - **The heat** (Hayden's summer twist): a **Heat meter** top-centre, under the portal timer. The sun fills it
+    (about 45 s), shade cools it slowly (parasol palms, the awning, a parasol halfway up the mesa: `Shade*` markers),
+    wading in a cool pool cools it fast (`Cool Pools`, scripts/water.gd), and the hot springs heat you fast. When it's
+    full you're "too hot!" and pop out of the nearest cool pool. It never costs HP.
+  - **Three Song Shells:** the **Sizzle Steps** (stepping stones over hot coals; each stone flares with fire one beat
+    in three, glowing the beat before; touching the coals or a flaring stone sends you back to the start, hotter), the
+    top of **Waterfall Mesa** (climb the pads, then ride the water slide down into the pool: `ride_slide()`, carried
+    like the zipline), and **dancing with Melody** (press Jump on her steady beat, 8 times; `dance_press()`).
+  - **The Off-Beat** (`scripts/off_beat.gd`): a stage-sized wooden metronome with a grumpy face and a red-hot weight,
+    stuck between a slow and a quick tempo. Wakes when you come near with all 3 shells. Each tick rolls a heat ring
+    (ShockRing) across the stage and lights one of 4 drum pads: land on the lit drum, or bubble his weight (once a
+    second), 8 times. Then he shrinks to a happy little metronome, the heat breaks and the sun eases to a golden
+    evening (`set_cool()`, own sky per copy). Found ids: `met_melody`, `shell_1..3`, `slid`.
+  - Tests: new `tools/test_rhythm_springs.gd` (117 checks); portals (now checks the Tide Reef as the unbuilt world),
+    practice_trips (Rhythm Springs shows up by itself), season_unlocks, lanternmoor, frozen_moment, rootmind,
+    time_goblins, layout and walk_through pass. Previews: `tools/capture_rhythm_springs.gd` (shots in the project
+    files under world/previews/rhythm_springs).
+  - My choices Hayden may change: the heat speeds, the three shell tasks, the boss's name and fight, Melody's lines,
+    the portal spot. Slice two still to do: the reward (Melody's dance ability, a stage in the Void plaza, summer
+    things on Earth like the winter overhaul).
+
 - 2026-11-09: **Lanternmoor, Pip's world** (plan item 19a world 3, slice one). Hayden: "playtest went well, so lets start
   on lanternmoor". Built and tested in the cloud (own Godot user folders, no save touched).
   - **The portal** (`Portals.WORLDS` "lanternmoor"): quakes once the Frozen Moment's mended, in the Spooky Woods at

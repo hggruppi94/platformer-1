@@ -19,7 +19,7 @@ extends Node
 # Saved with the game as "portals" (scripts/game.gd). Saves from before have had no quakes; the first one comes
 # once the First Night is done, so old saves past it get theirs on their next visit to the Void.
 #
-# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment and Lanternmoor. The rest of 19a plug in
+# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor and Rhythm Springs. The rest of 19a plug in
 # by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
 
 signal changed
@@ -61,8 +61,11 @@ const WORLDS := [
 		"blurb": "Pip's home, a moor of lanterns and moths, where it's been night for ages: the sun won't rise.",
 		"reward_remnants": 8,
 		"cleared_text": "The sun's up over Lanternmoor for the first time in ages! Pip's moths are going to sleep, very happily."},
-	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "", "at": Vector2(-36, 64),
-		"yaw": 0.0, "preview": true, "colour": Color(1.0, 0.6, 0.9), "blurb": "Melody's home, where the beat is broken.", "season": "summer"},
+	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "res://scenes/portal_worlds/rhythm_springs.tscn",
+		"at": Vector2(-34, 34), "yaw": 2.36, "preview": true, "colour": Color(1.0, 0.6, 0.9),
+		"blurb": "Melody's home, a summer valley of springs and music, where the beat is broken and the sun's stuck at its hottest.",
+		"reward_remnants": 9, "season": "summer",
+		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
 	{"id": "tide_reef", "name": "The Tide Reef", "owner": "the octopus", "scene": "", "at": Vector2(-48, 10),
 		"yaw": 0.0, "preview": true, "colour": Color(0.4, 0.8, 1.0), "blurb": "A reef city whose tide is stuck out."},
 	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "", "at": Vector2(-96, -38), "yaw": 0.0,
@@ -232,6 +235,8 @@ func quake_due(id: String) -> bool:
 			return is_cleared("rootmind")                 # the next world in the story, once Bramble's is mended
 		"lanternmoor":
 			return is_cleared("frozen_moment")            # and then Pip's, once Flurry's ticks again
+		"rhythm_springs":
+			return is_cleared("lanternmoor")              # then Melody's, once Pip's sun is up
 	return false
 
 
@@ -285,6 +290,8 @@ func _near_words(id: String) -> String:
 			return "the foot of the mountains, far north past the castle"
 		"lanternmoor":
 			return "the Spooky Woods, on the way to the Haunted House"
+		"rhythm_springs":
+			return "the lake's south-west shore"
 	return "the town"
 
 
