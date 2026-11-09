@@ -95,6 +95,10 @@ var _floor_node: Node = null
 const STEP_SOUNDS := {"grass": "step_grass", "wood": "step_wood", "stone": "step_stone", "water": "step_water",
 	"cloud": "step_cloud", "crystal": "step_crystal", "mushroom": "step_cloud"}
 const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
+# Gliding: while glide_fall is over 0 (only in Lanternmoor, where Pip lends moth wings; the player is part of each
+# scene, so it's gone again everywhere else), holding Jump while falling slows the fall to this many metres a second.
+var glide_fall := 0.0
+var gliding := false
 const ICE_GRIP := 0.12                      # on ice (anything in the "ice" group) she speeds up and stops this much slower
 const MUSHROOM_BOUNCE := 9.5                # landing on a big mushroom cap bounces her up this fast
 
@@ -375,6 +379,12 @@ func _physics_process(delta: float) -> void:
 			gravity *= fall_gravity_multiplier
 		velocity += gravity * delta
 		velocity.y = maxf(velocity.y, -_zone_min("fall_cap", 1000.0))       # floaty in clouds and the bath
+		# Moth wings (Pip lends them in Lanternmoor, scripts/lanternmoor.gd): holding Jump on the way down glides
+		gliding = glide_fall > 0.0 and velocity.y < 0.0 and Input.is_action_pressed("jump") and not input_locked
+		if gliding:
+			velocity.y = maxf(velocity.y, -glide_fall)
+	else:
+		gliding = false
 
 	# Coyote time and jump buffering
 	_coyote_timer = coyote_time if on_floor else _coyote_timer - delta

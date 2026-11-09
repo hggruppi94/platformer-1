@@ -88,6 +88,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-09: **Lanternmoor, Pip's world** (plan item 19a world 3, slice one). Hayden: "playtest went well, so lets start
+  on lanternmoor". Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The portal** (`Portals.WORLDS` "lanternmoor"): quakes once the Frozen Moment's mended, in the Spooky Woods at
+    (-100, -104), on the way to the Haunted House (the old guess sat on the house itself), facing back towards town.
+    8 Remnants for mending it.
+  - **The world** (`tools/build_lanternmoor.gd` -> `scenes/portal_worlds/lanternmoor.tscn`, logic `scripts/lanternmoor.gd`):
+    a moor under a violet night sky with stars, a moon, lantern trees and glowing moths, where the sun won't rise.
+    Three beacons call the dawn back: the **Night Path** (light its 5 lanterns, Interact or a bubble), **Moon Rock**
+    (a 22 m gap from the top of the Tall Lantern Tree: only reachable by gliding) and the **Lantern Grove** (catch 3
+    runaway lights that flit away from you but never leave the grove; a bubble catches them too). With all three lit,
+    **the Dawn Snatcher** (`scripts/dawn_snatcher.gd`, a big Time Goblin built on Grandfather Tock, the dawn glowing in
+    his clock hat) wakes on Sunrise Hill when you come near. Pop him (8 hits) and the dawn floats out of his clock and
+    up into the sky while the night turns to morning (`set_dawn()`; each copy of the world gets its own sky so the
+    preview never changes). Found ids: `met_pip`, `lantern_1..5`, `beacon_1..3`, `light_1..3`.
+  - **Pip** waits by the way in and lends you **moth wings** the first time you talk: hold Jump while falling to glide
+    (`player.gd glide_fall`/`gliding`, 1.2 m/s; the wings are pink with yellow spots and spread while gliding). Only in
+    Lanternmoor: the player is part of each scene, so they're gone everywhere else.
+  - `time_goblin_boss.gd` gained `title`, `short_title`, `bar_colour` and `ring_colour` (Tock's are unchanged).
+  - Tests: new `tools/test_lanternmoor.gd` (97 checks); portals (now checks Rhythm Springs as the unbuilt world),
+    practice_trips (Lanternmoor shows in the list by itself), frozen_moment, rootmind, time_goblins, boss_versions,
+    season_unlocks, layout, walk_through, burrow and skate pass. Previews: `tools/capture_lanternmoor.gd` (shots in the
+    project files under world/previews/lanternmoor).
+  - My choices Hayden may change: the boss's name, the three beacon tasks, glide speed, Pip's lines. Slice two still to
+    do: the reward (Pip's glow lights dark caves, lanterns light the Void's paths at night).
+
 - 2026-11-08: **Winter in Stars Hollow, and Flurry's frost breath** (Frozen Moment slice two, part two). Hayden: "overhaul
   the winter version of earth to have winter related quests instead of fall quests and anything fall-related needs to
   be replaced by winter things ... add her frost breath as well". Built and tested in the cloud (own Godot user
