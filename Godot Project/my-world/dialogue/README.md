@@ -35,6 +35,7 @@ plain one (no `when`) last, so there's always something to say.
 | `"min_talks": 3` / `"max_talks": 5` | at least / at most this many times before |
 | `"every": 2` | every 2nd visit (handy so time-of-day lines take turns with the ordinary ones) |
 | `"flag": "voted_rex"` / `"not_flag": "..."` | an earlier answer set that flag / didn't |
+| `"mended": "rhythm_springs"` | that portal world has been put right (`Portals.is_cleared()`) |
 | `"activity": "riding"` | what they're up to in their daily routine (the block's `label` in `res://routines/<id>.json`). Can be a list |
 | `"place": "town_hall"` | where their routine has them (a point in `res://routines/places.json`). Can be a list |
 | `"travelling": true` | they're on their way somewhere |

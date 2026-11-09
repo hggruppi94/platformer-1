@@ -90,6 +90,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-09: **Melody's groove and Melody's Stage** (Rhythm Springs slice two, the reward). Hayden: "Yes". Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **Groove** (`scripts/groove.gd`, a "Groove" node on the player like Burrow and FrostBreath): new action **Groove**
+    (G, D-pad right; on-foot pad group), locked until Rhythm Springs is mended (hidden in Controls till then, and
+    D-pad right still picks gadgets: `Settings.SECRET_ACTIONS` now lists all three taught moves, `gadget_wheel.gd
+    _secret_on()`). Press it and the hero twirls and hops, and a ring of music notes bursts out; enemies it reaches
+    stop and dance on the spot for 4 s (like the Disco Ball). Melody's steady beat (0.8 s) is always ticking: grooving
+    on it beat after beat builds a streak (a beat card at the bottom pulses with it for 3 s), each one throws the ring
+    further (5 m up to 11 m), and from 4 in a row, if you're on the move, it's a speed rush (`Player.boost()`).
+  - **Melody teaches it** 3 s after the Off-Beat's back in time (`rhythm_springs.gd _teach_groove()`, `teach_lines()`);
+    her lines after are about it and her stage.
+  - **Melody's Stage** (`scripts/melody_stage.gd`, put in by `Portals._melody_stage()` once Rhythm Springs is mended) at
+    (-29, 43.2) beside her portal, facing the lake (checked flat, clear, 21 m off the Lake Loop): a round purple stage
+    with steps, a pink and cream striped canopy, speakers, footlights that pulse on the beat and flash when you groove
+    up there, and a sign. **Her evening show:** routines can now have `"mended"` blocks by world id that replace
+    their day once that world's mended (`routine.gd today_blocks()`); Melody's do a show on the stage 6 to 9 PM (new
+    places `stage_front`, `melody_stage`). Dialogue `when` can say `"mended": "<world>"` (`dialogue.gd`); she has show
+    lines. **Dance-off:** on the stage during her show, 8 grooves on the beat in a row is an encore, 6 sparkles once a
+    visit (`Portals.stage_prize_day`, saved in `"portals"`).
+  - Tests: new `tools/test_groove.gd` (61 checks); rhythm_springs (now expects the lesson), portals, routines,
+    dialogue, winter, burrow, player_menu, practice_trips, season_unlocks, ui_style, controls_lock, quick_fixes,
+    layout, walk_through, frozen_moment, lanternmoor and rootmind pass. Previews: `tools/capture_groove.gd` (shots in
+    the project files under world/previews/groove).
+  - My choices Hayden may change: G and D-pad right, the ring sizes, 4 in a row for the rush, the stage's spot and
+    look, the show's hours, 8 for an encore and its 6 sparkles. Still to do: summer things on Earth (like the winter
+    overhaul: summer lines instead of autumn ones, summer notice board jobs, maybe a summer quest).
+
 - 2026-11-09: **Rhythm Springs, Melody's world** (plan item 19a world 4, slice one). Hayden: "let's do rhythm springs
   but let's add a summer element like fire or extreme heat to the challenge of the world". Built and tested in the
   cloud (own Godot user folders, no save touched).

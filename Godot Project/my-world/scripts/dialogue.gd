@@ -261,6 +261,8 @@ func _matches(when: Dictionary, count: int, id := "") -> bool:
 		return false
 	if when.has("every") and count % maxi(int(when["every"]), 1) != 0:
 		return false
+	if when.has("mended") and not Portals.is_cleared(str(when["mended"])):
+		return false                                 # a portal world that's been put right (scripts/portals.gd)
 	if when.has("flag") and not flags.has(str(when["flag"])):
 		return false
 	if when.has("not_flag") and flags.has(str(when["not_flag"])):

@@ -38,6 +38,7 @@ const DANCE_BEAT := 0.8                  # Melody's beat: steady, unlike the wor
 const DANCE_WINDOW := 0.2                # seconds either side of her beat that count as on it
 const DANCE_NEEDED := 8
 const DANCE_LONGEST := 32                # beats before she needs a breather (then you can go again)
+const TEACH_AFTER := 3.0                 # seconds after he's back in time before Melody teaches her groove
 const SLIDE_START := 5.0
 const SLIDE_TOP := 15.0
 const SLIDE_ACCEL := 5.0
@@ -617,10 +618,19 @@ func _melody_play(anim: String) -> void:
 
 func melody_lines() -> Array:
 	# Melody's bouncy and musical, but the broken beat's got her flustered (and very hot)
-	if is_mended():
+	if is_mended() and not Portals.has_found(world_id, "thanked"):
+		Portals.note_found(world_id, "thanked")
 		return ["Hear that? Tick, tock, tick, tock... a STEADY beat! The springs are singing again!",
 			"And feel that breeze! Summer's supposed to be warm, not boiling.",
 			"Thank you, {player}! Come back for a soak in the hot springs any time. They're just right now."]
+	if is_mended():
+		return [["Hear that? Tick, tock, tick, tock... a STEADY beat! The springs are singing again!",
+			"And feel that breeze! Summer's supposed to be warm, not boiling.",
+			"Thank you, {player}! Come back for a soak in the hot springs any time. They're just right now."],
+			["How's your groove? Press {groove} on the beat, then again, and again! The more in a row, the bigger the ring.",
+			"Four in a row and the music carries you along. Wheee!"],
+			["I've got a stage in the Void now, by my portal! I do a show every evening.",
+			"Come up on the stage and groove with me. Eight on the beat and you get an encore prize!"]].pick_random()
 	if not Portals.has_found(world_id, "met_melody"):
 		Portals.note_found(world_id, "met_melody")
 		return ["{player}! You came! Welcome to Rhythm Springs! Isn't it... phew... HOT?",
@@ -689,6 +699,29 @@ func mend() -> void:
 	Juice.shake(0.15)
 	Juice.rumble(0.3, 0.3)
 	Juice.blip("chime", 0.8, -3.0)
+	get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_groove)
+
+
+func teach_lines() -> Array:
+	# Melody's thank-you: Rhythm Springs' reward is her groove (scripts/groove.gd)
+	return ["{player}! You did it! You put the beat back! (Melody bounces all the way over, ponytail flying.)",
+		"I want to give you something. My groove! Everybody has a beat inside, you just have to find it.",
+		"Press {groove} to dance. A ring of music bursts out, and anyone grumpy nearby can't help dancing too. Gloops, goblins, anyone!",
+		"Now press it ON the beat. Then again. And again! The more in a row, the bigger the ring.",
+		"Four in a row and the music carries you along. Try it! One, two, three, four..."]
+
+
+func _teach_groove(tries := 0) -> void:
+	if not is_inside_tree():
+		return
+	if Dialogue.is_active() and tries < 20:             # wait for a talk to finish first
+		get_tree().create_timer(1.0).timeout.connect(_teach_groove.bind(tries + 1))
+		return
+	var spot := get_node_or_null("Melody/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Melody", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "rhythm_springs_groove")
+	else:
+		Game.message("New: Groove! Press %s to dance, and press it on the beat for a bigger groove." % Settings.prompt("groove"))
 
 
 func set_cool(k: float) -> void:
