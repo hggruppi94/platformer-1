@@ -85,6 +85,8 @@ var _pulling := false
 var _ask_world := ""                    # the portal whose "go in?" question is open
 var _hud: CanvasLayer
 var _timer_label: Label
+var practice := false                   # on a practice trip (practice_trip()): no time limit, and nothing is kept
+var _held_before := false               # Game.hold_saves before the practice trip (tools set it), put back after
 
 
 func _ready() -> void:
@@ -110,7 +112,7 @@ func _process(delta: float) -> void:
 				quake(due)
 		_update_previews()
 	elif here != "" and not _pulling:
-		if not Dialogue.is_active() and not get_tree().paused:
+		if not Dialogue.is_active() and not get_tree().paused and not practice:
 			time_left = maxf(time_left - delta, 0.0)
 		if time_left <= WARN_AT and not _warned:
 			_warned = true
@@ -126,6 +128,9 @@ func _arrived(s: Node) -> void:
 	var came_from := here
 	var w := world_for_scene(s.scene_file_path if s else "")
 	if w.is_empty():
+		if practice and s != null:
+			end_practice.call_deferred()     # left a practice trip some other way: back to the save, just the same
+			return
 		if here != "":
 			here = ""
 			changed.emit()
@@ -322,6 +327,9 @@ func go_home(why := "") -> void:
 	var id := here
 	if id == "" or _pulling:
 		return
+	if practice:
+		end_practice()
+		return
 	_pulling = true
 	time_left = 0.0
 	Game.pending_message = why if why != "" else "Back in the Void, by the portal to %s." % world(id).name
@@ -341,6 +349,58 @@ static func time_words(seconds: float) -> String:
 	if s >= 60 and s % 60 == 0:
 		return "%d minute%s" % [s / 60, "" if s / 60 == 1 else "s"]
 	return "%d:%02d" % [s / 60, s % 60]
+
+
+# -----------------------------------------------------------------------------
+# Practice trips (playtesting, 9 Nov 2026: Hayden wanted to get into the worlds without waiting for the Shift, the
+# quakes or the story). Pause menu > "Visit a portal world", once Settings > Assist > "Practice trips" is on.
+# Any built world, from anywhere, at any time, played from the start (as if nothing was found there yet), with no
+# time limit. Nothing done on a practice trip is kept: the game is saved just before it, saving is held all the way
+# through (Game.hold_saves), and coming home loads that save again, back where they were. So a kid can try every
+# world on their real save and it's just the same afterwards.
+# -----------------------------------------------------------------------------
+const PRACTICE_SECONDS := 99.0 * 60.0       # (the timer doesn't run on a practice trip; this is just "lots")
+
+
+func can_practice(id: String) -> bool:
+	return is_built(id) and not _pulling
+
+
+func practice_trip(id: String) -> bool:
+	if not can_practice(id):
+		return false
+	var w := world(id)
+	if not practice:
+		Game.save_game()                    # everything up to now is kept...
+		_held_before = Game.hold_saves
+		Game.hold_saves = true              # ...and nothing from here on is
+		practice = true
+	# Played from the start: as if never found or mended (only in memory: the save on disk keeps the real ones)
+	found.erase(id)
+	cleared_worlds.erase(id)
+	if not id in quakes:
+		quakes.append(id)
+	here = ""
+	time_left = PRACTICE_SECONDS
+	_warned = false
+	Playtest.note("practice_trip", {"world": id})
+	Game.pending_message = "Practice trip to %s! No time limit, and nothing here is kept. The portal behind you, or Pause > End practice trip, takes you back." % w.name
+	Game.go(str(w.scene), "Entrance", str(w.name))
+	changed.emit()
+	return true
+
+
+func end_practice() -> void:
+	# Back to the save made just before the trip, exactly where they were
+	if not practice:
+		return
+	practice = false
+	Game.hold_saves = _held_before
+	Playtest.note("practice_end", {"world": here})
+	Game._reset_state()
+	Game.load_game()
+	Game.pending_message = "Back from your practice trip. Everything's just as it was."
+	Game.continue_game()
 
 
 # -----------------------------------------------------------------------------
@@ -744,7 +804,9 @@ func _show_timer() -> void:
 	box.visible = on
 	if on:
 		_timer_label.text = "⏳ %s  %s" % [world(here).name, time_words(time_left)]
-		var low := time_left <= WARN_AT
+		if practice:
+			_timer_label.text = "%s  practice: no time limit" % world(here).name
+		var low := time_left <= WARN_AT and not practice
 		_timer_label.modulate = Color(1.0, 0.7, 0.6) if low else Color(0.85, 1.0, 0.9)
 		box.position.x = box.get_parent_area_size().x / 2.0 - box.size.x / 2.0 if box.get_parent_area_size().x > 0 else box.position.x
 
@@ -947,6 +1009,9 @@ func load_data(data: Dictionary) -> void:
 
 
 func reset() -> void:
+	if practice:                            # (a new game started mid practice trip: saving goes back on)
+		practice = false
+		Game.hold_saves = _held_before
 	quakes.clear()
 	cleared_worlds.clear()
 	found.clear()
