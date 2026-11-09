@@ -31,6 +31,11 @@ var _clock_hand: Node3D
 var _cross := false
 var _warned := false
 var _base := []                                # chase speed, chime gap, blink cooldown, before he got cross
+# Who he is, for a boss built on him (Lanternmoor's Dawn Snatcher, scripts/dawn_snatcher.gd, sets these before _ready)
+var title := NAME
+var short_title := "Tock"
+var bar_colour := Color(0.3, 0.95, 0.85)
+var ring_colour := Color(0.45, 1.0, 0.9)
 
 
 func _ready() -> void:
@@ -38,7 +43,7 @@ func _ready() -> void:
 	add_to_group("bosses")
 	_pendulum = get_node_or_null("Visual/Head/Clock/Pendulum") as Node3D
 	_clock_hand = get_node_or_null("Visual/Head/Clock/Hand") as Node3D
-	_bar = BossBar.make(self, NAME, Color(0.3, 0.95, 0.85), 2.0 * size + 0.5)
+	_bar = BossBar.make(self, title, bar_colour, 2.0 * size + 0.5)
 	_base = [chase_speed, chime_every, blink_cooldown]
 
 
@@ -56,7 +61,7 @@ func _physics_process(delta: float) -> void:
 		chase_speed *= 1.15
 		chime_every *= 0.7
 		blink_cooldown *= 0.75
-		Game.message("Grandfather Tock is cross now! His clock ticks faster.")
+		Game.message("%s is cross now! His clock ticks faster." % title)
 	# The chimes: three strikes, each a ring to jump
 	if _chimes_left > 0:
 		_chime_gap -= delta
@@ -71,7 +76,7 @@ func _physics_process(delta: float) -> void:
 			_chime_gap = 0.5
 			if not _warned:
 				_warned = true
-				Game.message("BONG! Grandfather Tock's clock is striking! Jump the rings!")
+				Game.message("BONG! %s's clock is striking! Jump the rings!" % title)
 
 
 func _strike() -> void:
@@ -84,14 +89,14 @@ func _strike() -> void:
 	if player and global_position.distance_to(player.global_position) < 25.0:
 		Juice.shake(0.25)
 		Juice.rumble(0.3, 0.15, 0.3)
-	ShockRing.spawn(get_parent(), global_position, chime_reach, Color(0.45, 1.0, 0.9), damage, 1.0)
+	ShockRing.spawn(get_parent(), global_position, chime_reach, ring_colour, damage, 1.0)
 
 
 func _blinked() -> void:
 	# He rewinds his own clock too: the last hit is undone
 	if hits > 0:
 		hits -= 1
-		Game.message("Grandfather Tock rewound his clock! Pop him while he's dizzy.")
+		Game.message("%s rewound his clock! Pop him while he's dizzy." % title)
 	Fx.burst(get_parent(), global_position + Vector3(0, 1.6 * size, 0), Color(0.5, 1.0, 0.9), 18, 0.1, 3.0, 0.0, 0.7)
 
 
@@ -101,7 +106,7 @@ func _hurt_message(_stomped: bool) -> void:
 	Juice.burst(get_parent(), global_position + Vector3(0, 1.2 * size, 0), Color(0.5, 1.0, 0.9), 10, 0.1, 3.0, 0.6)
 	var left := stomps_to_defeat - hits
 	if state != State.DIZZY:
-		Game.message("Tock wobbles! %d more to pop him." % left if left > 1 else "One more and Tock pops!")
+		Game.message("%s wobbles! %d more to pop him." % [short_title, left] if left > 1 else "One more and %s pops!" % short_title)
 	var due := 0
 	if hits * 3 >= stomps_to_defeat * 2:
 		due = 2
@@ -143,7 +148,7 @@ func _call_helpers(count: int) -> void:
 		g.position = global_position + Vector3(cos(a), 0.4, sin(a)) * (1.2 * size)
 		get_parent().add_child(g)
 		_helpers.append(g)
-	Game.message("Grandfather Tock whistles for his goblins!")
+	Game.message("%s whistles for his goblins!" % title)
 	Audio.play_at("gloop_giggle", global_position, 4.0, 0.3)
 
 

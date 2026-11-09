@@ -19,8 +19,8 @@ extends Node
 # Saved with the game as "portals" (scripts/game.gd). Saves from before have had no quakes; the first one comes
 # once the First Night is done, so old saves past it get theirs on their next visit to the Void.
 #
-# Worlds so far: Shard Isle (the tutorial). The rest of 19a plug in by adding an entry to WORLDS, a builder for the
-# scene, and a script that extends portal_world.gd.
+# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment and Lanternmoor. The rest of 19a plug in
+# by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
 
 signal changed
 signal quaked(id: String)
@@ -38,7 +38,7 @@ const PREVIEW_NEAR := 14.0              # the preview window wakes up this close
 const PREVIEW_FAR := 22.0               # ...and goes to sleep again past this
 
 # The worlds, in story order (plan item 19a). "at" is the portal's spot in the Void ([x, z], the ground's height is
-# found at play time), "yaw" which way it faces. (Only Shard Isle's spot is checked; the others are rough guesses from
+# found at play time), "yaw" which way it faces. (The built worlds' spots are checked; the others are rough guesses from
 # 19a, to be checked against the town when each world is built.) "scene" is "" until a world is built: it never quakes before then.
 const WORLDS := [
 	{"id": "shard_isle", "name": "Shard Isle", "owner": "", "scene": "res://scenes/portal_worlds/shard_isle.tscn",
@@ -56,8 +56,11 @@ const WORLDS := [
 		"colour": Color(0.7, 0.9, 1.0), "blurb": "Flurry's home, where time has stopped mid-moment: snowflakes hang in the air.",
 		"reward_remnants": 7, "season": "winter",
 		"cleared_text": "The Frozen Moment ticks again! Snow is falling for the first time in for ever, and winter can come to Stars Hollow at last."},
-	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "", "at": Vector2(-110, -120), "yaw": 0.0,
-		"preview": true, "colour": Color(0.75, 0.6, 1.0), "blurb": "Pip's home, where the sun won't rise."},
+	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "res://scenes/portal_worlds/lanternmoor.tscn",
+		"at": Vector2(-100, -104), "yaw": 0.77, "preview": true, "colour": Color(0.75, 0.6, 1.0),
+		"blurb": "Pip's home, a moor of lanterns and moths, where it's been night for ages: the sun won't rise.",
+		"reward_remnants": 8,
+		"cleared_text": "The sun's up over Lanternmoor for the first time in ages! Pip's moths are going to sleep, very happily."},
 	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "", "at": Vector2(-36, 64),
 		"yaw": 0.0, "preview": true, "colour": Color(1.0, 0.6, 0.9), "blurb": "Melody's home, where the beat is broken.", "season": "summer"},
 	{"id": "tide_reef", "name": "The Tide Reef", "owner": "the octopus", "scene": "", "at": Vector2(-48, 10),
@@ -227,6 +230,8 @@ func quake_due(id: String) -> bool:
 			return is_cleared("shard_isle") and Quests.is_started(Remnants.QUEST)
 		"frozen_moment":
 			return is_cleared("rootmind")                 # the next world in the story, once Bramble's is mended
+		"lanternmoor":
+			return is_cleared("frozen_moment")            # and then Pip's, once Flurry's ticks again
 	return false
 
 
@@ -278,6 +283,8 @@ func _near_words(id: String) -> String:
 			return "the Secret Gardens, by your garden"
 		"frozen_moment":
 			return "the foot of the mountains, far north past the castle"
+		"lanternmoor":
+			return "the Spooky Woods, on the way to the Haunted House"
 	return "the town"
 
 
