@@ -90,27 +90,6 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
-- 2026-11-08: Named holds on the player's controls, and a map of the game's state machines (Hayden: "find all of the
-  implicit state machines"). Built and tested in the cloud (own Godot user folders, no save touched).
-  - **The bug:** `input_locked` on the player was one true/false that 13 systems set and cleared (talks, race and
-    skate-run countdowns, the creator, the zipline, the mothership, the hayride, the skate lesson, apple bobbing,
-    the Swap-o-Tron, the First Night's arrival, the oak's reveal). Whoever finished first handed the controls back
-    for everyone: a talk closes 0.15 s after its last line and unlocked her, so the Swap-o-Tron (started from a
-    talk) let her walk off mid-flash, and races and skate runs had to lock her again every frame to cope.
-  - **Now** each system holds the controls under its own name: `Game.hold_controls(&"race", true)` /
-    `false` (`scenes/player/player.gd lock_input()`, `unlock_input()`, `input_locks()` says who's holding,
-    `input_lock_changed` signal). `input_locked` still reads true while anyone holds them; setting it is only for
-    tools (true = a "legacy" hold, false = let go for everyone). The `not Dialogue.is_active()` workarounds in the
-    lab, the First Night and the oak are gone: a talk keeps its own hold.
-  - `STATE_MACHINES.md` lists every state machine (explicit enums, data-driven steps, and the implicit flag groups
-    left as they are, with why). Next candidate: `Input.mouse_mode`, which dialogue choices and the skate lesson
-    still set as a single switch.
-  - Tests: new `tools/test_controls_lock.gd`; `test_creator` now waits for the first landing's swirl to finish before
-    checking she can move (the creator closing used to free her mid-swirl). creator, dialogue, festival, first_night,
-    quick_fixes, race_intros, skate_help, shooting, skate_runs, mothership, time_watch, portals, rootmind, farming,
-    episodes, doors, map, walk_through pass; earth, first_hour, layout and races fail the same checks before and
-    after this change (not looked into here).
-
 - 2026-11-09: **Lanternmoor, Pip's world** (plan item 19a world 3, slice one). Hayden: "playtest went well, so lets start
   on lanternmoor". Built and tested in the cloud (own Godot user folders, no save touched).
   - **The portal** (`Portals.WORLDS` "lanternmoor"): quakes once the Frozen Moment's mended, in the Spooky Woods at
@@ -135,6 +114,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     project files under world/previews/lanternmoor).
   - My choices Hayden may change: the boss's name, the three beacon tasks, glide speed, Pip's lines. Slice two still to
     do: the reward (Pip's glow lights dark caves, lanterns light the Void's paths at night).
+
+- 2026-11-08: Named holds on the player's controls, and a map of the game's state machines (Hayden: "find all of the
+  implicit state machines"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The bug:** `input_locked` on the player was one true/false that 13 systems set and cleared (talks, race and
+    skate-run countdowns, the creator, the zipline, the mothership, the hayride, the skate lesson, apple bobbing,
+    the Swap-o-Tron, the First Night's arrival, the oak's reveal). Whoever finished first handed the controls back
+    for everyone: a talk closes 0.15 s after its last line and unlocked her, so the Swap-o-Tron (started from a
+    talk) let her walk off mid-flash, and races and skate runs had to lock her again every frame to cope.
+  - **Now** each system holds the controls under its own name: `Game.hold_controls(&"race", true)` /
+    `false` (`scenes/player/player.gd lock_input()`, `unlock_input()`, `input_locks()` says who's holding,
+    `input_lock_changed` signal). `input_locked` still reads true while anyone holds them; setting it is only for
+    tools (true = a "legacy" hold, false = let go for everyone). The `not Dialogue.is_active()` workarounds in the
+    lab, the First Night and the oak are gone: a talk keeps its own hold.
+  - `STATE_MACHINES.md` lists every state machine (explicit enums, data-driven steps, and the implicit flag groups
+    left as they are, with why). Next candidate: `Input.mouse_mode`, which dialogue choices and the skate lesson
+    still set as a single switch.
+  - Tests: new `tools/test_controls_lock.gd`; `test_creator` now waits for the first landing's swirl to finish before
+    checking she can move (the creator closing used to free her mid-swirl). creator, dialogue, festival, first_night,
+    quick_fixes, race_intros, skate_help, shooting, skate_runs, mothership, time_watch, portals, rootmind, farming,
+    episodes, doors, map, walk_through pass; earth, first_hour, layout and races fail the same checks before and
+    after this change (not looked into here).
 
 - 2026-11-08: **Winter in Stars Hollow, and Flurry's frost breath** (Frozen Moment slice two, part two). Hayden: "overhaul
   the winter version of earth to have winter related quests instead of fall quests and anything fall-related needs to
