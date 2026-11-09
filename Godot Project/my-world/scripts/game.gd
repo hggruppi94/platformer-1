@@ -321,6 +321,20 @@ func _player_carried() -> bool:
 	return player != null and player.get("carried") == true
 
 
+func hold_controls(who: StringName, on: bool, player: Node = null) -> void:
+	# Take or let go of who's hold on the player's controls (scenes/player/player.gd lock_input). Every system that
+	# stops her moving (talks, countdowns, cutscenes, rides) goes through here with its own name, so they never undo
+	# each other's holds.
+	if player == null and is_inside_tree():
+		player = get_tree().get_first_node_in_group("player")
+	if player == null or not is_instance_valid(player) or not player.has_method("lock_input"):
+		return
+	if on:
+		player.lock_input(who)
+	else:
+		player.unlock_input(who)
+
+
 # -----------------------------------------------------------------------------
 # Saving
 # -----------------------------------------------------------------------------

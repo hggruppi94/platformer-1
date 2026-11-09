@@ -484,9 +484,7 @@ func set_flag(flag: String) -> void:
 
 
 func _set_player_locked(on: bool) -> void:
-	var player := get_tree().get_first_node_in_group("player")
-	if player and "input_locked" in player:
-		player.set("input_locked", on)
+	Game.hold_controls(&"dialogue", on)
 
 
 # -----------------------------------------------------------------------------

@@ -285,7 +285,14 @@ func _run() -> void:
 		check(creator.is_open() and not shop2.is_open() and not paused, "...which closes the wardrobe and opens the creator")
 		creator.close()
 		await _frames(2)
-		check(not creator.is_open() and player_cam.current and not p.get("input_locked"), "...and Done goes back to the game")
+		# (The first landing's swirl, scripts/first_night.gd, may still be holding them still: let it finish)
+		var fn := root.get_node("FirstNight")
+		for i in 600:
+			if not fn.is_arriving():
+				break
+			await process_frame
+		check(not creator.is_open() and player_cam.current and not p.get("input_locked"),
+			"...and Done goes back to the game (held by: %s)" % [p.call("input_locks")])
 
 	# --- New Game from the pause menu while making a hero ---
 	creator.open()

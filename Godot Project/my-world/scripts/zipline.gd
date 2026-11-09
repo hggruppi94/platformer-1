@@ -73,7 +73,7 @@ func ride(player: CharacterBody3D) -> void:
 	_whir = 0.0
 	_prompt.visible = false
 	_player.set("carried", true)
-	_player.set("input_locked", true)
+	Game.hold_controls(&"zipline", true, _player)
 	_player.velocity = Vector3.ZERO
 	var anim := _player.get("anim") as AnimationPlayer
 	if anim and anim.has_animation("fall"):
@@ -112,7 +112,7 @@ func _let_go(dir: Vector3) -> void:
 	_player.velocity = Vector3(dir.x, 0, dir.z).normalized() * 3.0 + Vector3.UP * 1.5
 	get_tree().create_timer(0.3).timeout.connect(func() -> void:
 		if is_instance_valid(_player):
-			_player.set("input_locked", false))
+			Game.hold_controls(&"zipline", false, _player))
 	Audio.play("land")
 	# The handle slides back up to the top for next time
 	if _handle:

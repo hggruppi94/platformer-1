@@ -388,9 +388,7 @@ func start_reveal() -> void:
 	revealing = true
 	_reveal_t = 0.0
 	_rune_glow = 0.0
-	var p := get_tree().get_first_node_in_group("player") as Node3D
-	if p and "input_locked" in p:
-		p.set("input_locked", true)
+	Game.hold_controls(&"oak_reveal", true)
 	_old_cam = get_viewport().get_camera_3d()
 	_cam = Camera3D.new()
 	_cam.name = "Oak Reveal Camera"
@@ -452,9 +450,7 @@ func _end_reveal() -> void:
 	if _cam and is_instance_valid(_cam):
 		_cam.queue_free()
 	_cam = null
-	var p := get_tree().get_first_node_in_group("player") as Node3D
-	if p and "input_locked" in p and not Dialogue.is_active():
-		p.set("input_locked", false)
+	Game.hold_controls(&"oak_reveal", false)                   # (a talk going on keeps its own hold)
 	var tw := create_tween()
 	tw.tween_interval(1.2)
 	tw.tween_property(_caption, "modulate:a", 0.0, 0.5)

@@ -228,9 +228,7 @@ func run_machine() -> void:
 	if _running:
 		return
 	_running = true
-	var player := get_tree().get_first_node_in_group("player")
-	if player and "input_locked" in player:
-		player.set("input_locked", true)
+	Game.hold_controls(&"lab", true)
 	Audio.play("beam", -4.0, 0.0)
 	var tw := create_tween()
 	tw.tween_method(_charge, 0.0, 1.0, CHARGE_TIME).set_ease(Tween.EASE_IN)
@@ -272,9 +270,7 @@ func _bang() -> void:
 
 func _done_running() -> void:
 	_running = false
-	var player := get_tree().get_first_node_in_group("player")
-	if player and "input_locked" in player and not Dialogue.is_active():
-		player.set("input_locked", false)
+	Game.hold_controls(&"lab", false)                          # (a talk going on keeps its own hold)
 	Game.message("FZZZT! The pods hiss open, and Rex and Rook stagger out in a puff of lavender smoke. Did it work?")
 
 

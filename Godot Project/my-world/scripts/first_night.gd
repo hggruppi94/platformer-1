@@ -212,9 +212,7 @@ func _arrive() -> void:
 	_arriving = true
 	flag("fn_arrived")
 	_give_watch()
-	var player := get_tree().get_first_node_in_group("player")
-	if player and "input_locked" in player:
-		player.set("input_locked", true)
+	Game.hold_controls(&"first_night_arrival", true)
 	var mat := _warp_rect.material as ShaderMaterial
 	var calm := Settings.reduce_motion
 	_warp_layer.visible = true
@@ -234,9 +232,7 @@ func _arrive() -> void:
 	tw.tween_callback(func() -> void:
 		_warp_layer.visible = false
 		_arriving = false
-		var p := get_tree().get_first_node_in_group("player")
-		if p and "input_locked" in p and not Dialogue.is_active():
-			p.set("input_locked", false)
+		Game.hold_controls(&"first_night_arrival", false)        # (a talk going on keeps its own hold)
 		Audio.play("pickup", -6.0, 0.0)
 		if step() == "shift":
 			Game.message("Someone's waving at you from beside the portal..."))

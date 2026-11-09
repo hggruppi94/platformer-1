@@ -182,7 +182,7 @@ func hop_on() -> void:
 		return
 	riding = true
 	_player.set("carried", true)
-	_player.set("input_locked", true)
+	Game.hold_controls(&"hayride", true, _player)
 	_player.velocity = Vector3.ZERO
 	var anim := _player.get("anim") as AnimationPlayer
 	if anim and anim.has_animation("idle"):
@@ -202,7 +202,7 @@ func hop_off(lap_done := false) -> void:
 		var p := _player
 		get_tree().create_timer(0.25).timeout.connect(func() -> void:
 			if is_instance_valid(p):
-				p.set("input_locked", false))
+				Game.hold_controls(&"hayride", false, p))
 	if lap_done:
 		Festival.hayrides += 1
 		Game.message("Round the whole green! Scarecrow Sam tips his hat to you.")

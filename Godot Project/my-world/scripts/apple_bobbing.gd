@@ -145,9 +145,8 @@ func _exit_tree() -> void:
 
 
 func _lock(on: bool) -> void:
-	var player := get_tree().get_first_node_in_group("player") if is_inside_tree() else null
-	if player and "input_locked" in player:
-		player.set("input_locked", on)
+	if is_inside_tree():
+		Game.hold_controls(&"apple_bobbing", on)
 
 
 func _draw_bar() -> void:

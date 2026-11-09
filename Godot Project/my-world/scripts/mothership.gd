@@ -162,7 +162,7 @@ func board(player: CharacterBody3D) -> void:
 	if Game.riding:
 		Game.toggle_skateboard()                     # step off the skateboard first
 	pilot.set("carried", true)
-	pilot.set("input_locked", true)
+	Game.hold_controls(&"mothership", true, pilot)
 	pilot.velocity = Vector3.ZERO
 	pilot.set_meta("save_spot", _pad + Vector3(0, 0.9, 0))   # a save made up here puts her back on the pad
 	var anim := pilot.get("anim") as AnimationPlayer
@@ -258,7 +258,7 @@ func _let_off() -> void:
 		pilot.global_position = _beam_to
 		pilot.velocity = Vector3.ZERO
 		pilot.set("carried", false)
-		pilot.set("input_locked", false)
+		Game.hold_controls(&"mothership", false, pilot)
 		pilot.remove_meta("save_spot")
 		Audio.play("land")
 		_camera_to(_arm_length)
