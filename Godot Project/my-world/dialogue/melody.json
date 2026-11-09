@@ -11,6 +11,30 @@
       ]
     },
     {
+      "when": {"activity": "show", "every": 2},
+      "lines": [
+        "(Melody's mid-show, twirling under the striped canopy while the footlights flash.) Thank you, thank you! You're too kind! Oh, it's YOU!",
+        "Come up on the stage! Groove with me, {groove}, right on the beat. Eight in a row and you get an encore!",
+        "{player}: Eight?!",
+        "You can do it! Listen for the boom-tss. Boom... tss... BOOM!"
+      ]
+    },
+    {
+      "when": {"activity": "show"},
+      "lines": [
+        "My very own stage! Bramble grew the flowers round it, Dash wired up the speakers, and Rex... well, Rex barked at it. Supportively.",
+        "Every evening, right here, right by my portal. So if I miss home, I can hear the springs singing through it.",
+        "Hop up and dance with me! Press {groove} on the beat."
+      ]
+    },
+    {
+      "when": {"mended": "rhythm_springs", "every": 3},
+      "lines": [
+        "{player}! My favourite backup dancer! Have you been grooving? Shoulders, hips, ponytail!",
+        "Come to my show tonight, by my portal on the lake shore. Six o'clock till nine. Front row seats for you!"
+      ]
+    },
+    {
       "when": {"activity": "busking"},
       "lines": [
         "(Melody's mid-song, spinning on her shiny Mary Janes.) ...and the stars all go YES, YES, YES! Oh, hi {player}!",

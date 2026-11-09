@@ -429,6 +429,8 @@ func _check_off_beat() -> void:
 	s.beat_n = 0
 	check(not s.stone_hot(0) and not s.stone_hot(1) and not s.stone_hot(2), "the stepping stones stop flaring")
 	check(absf(s.beat_len() - s.beat_len()) < 0.001 and s.beat_len() == 0.7, "the beat's steady")
+	check(root.get_node("Dialogue").is_active(), "Melody teaches you her groove (scripts/groove.gd: test_groove checks it)")
+	root.get_node("Dialogue").end()
 	check("STEADY" in " ".join(s.melody_lines()), "Melody's thrilled")
 
 

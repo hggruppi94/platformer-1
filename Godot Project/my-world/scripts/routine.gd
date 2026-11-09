@@ -25,6 +25,9 @@ extends Node
 # when there are none), so kids lie in and play instead of going to Old Oak Elementary. "hallows" blocks take over on
 # Hallow's Eve evening (trick-or-treating up and down Maple Lane), like the festival's, and a file can have blocks
 # for each of the other big days by its id ("lights", "kites", "fireworks": Festival.BIG_DAYS) while it's on.
+#
+# In the Void, a file's "mended" blocks (by portal world id) replace its day once that world is mended
+# (scripts/portals.gd): Melody puts on a show on her new stage every evening once Rhythm Springs is.
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -49,6 +52,7 @@ var weekend: Array = []                             # Earth: Saturdays and Sunda
 var holiday: Array = []                             # Earth: the school holidays' weekdays (else weekend, else blocks)
 var hallows: Array = []                             # Earth: trick-or-treating on Hallow's Eve, while it's on
 var big_days := {}                                  # Earth: big day id -> its blocks, while it's on (Festival.BIG_DAYS)
+var mended := {}                                    # the Void: portal world id -> a new day, once that world's mended
 
 var _body: Node3D
 var _bike: Node3D
@@ -123,6 +127,10 @@ func _load() -> void:
 	weekend = _read_blocks(data.get("weekend", []), "00:00")
 	holiday = _read_blocks(data.get("holiday", []), "00:00")
 	hallows = _read_blocks(data.get("hallows", []), "17:00")
+	var m = data.get("mended", {})
+	if m is Dictionary:
+		for id in m:
+			mended[str(id)] = _read_blocks(m[id], "00:00")
 	for id in Festival.BIG_DAYS:
 		if data.has(id):
 			big_days[id] = _read_blocks(data[id], "%02d:%02d" % [int(Festival.BIG_DAYS[id].start / 60.0), int(Festival.BIG_DAYS[id].start) % 60])
@@ -141,8 +149,16 @@ static func _read_blocks(list, default_at: String) -> Array:
 
 
 func today_blocks() -> Array:
-	# The day they're having on Earth's calendar: a school day, a weekend or a holiday (the Void's people: every day)
-	if not earth or Clock.is_school_day():
+	# The day they're having on Earth's calendar: a school day, a weekend or a holiday. The Void's people have the same
+	# day every day, but a new one once their home world's mended ("mended": Melody's evening show on her stage)
+	if not earth:
+		var portals := get_node_or_null("/root/Portals")
+		if portals:
+			for id in mended:
+				if portals.is_cleared(id) and not (mended[id] as Array).is_empty():
+					return mended[id]
+		return blocks
+	if Clock.is_school_day():
 		return blocks
 	if Clock.is_weekend():
 		return weekend if not weekend.is_empty() else blocks

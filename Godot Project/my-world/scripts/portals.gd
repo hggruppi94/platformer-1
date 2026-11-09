@@ -91,6 +91,7 @@ var _pulling := false
 var _ask_world := ""                    # the portal whose "go in?" question is open
 var _hud: CanvasLayer
 var _timer_label: Label
+var stage_prize_day := -1              # the visit Melody's dance-off encore was last won (scripts/melody_stage.gd)
 var practice := false                   # on a practice trip (practice_trip()): no time limit, and nothing is kept
 var _held_before := false               # Game.hold_saves before the practice trip (tools set it), put back after
 
@@ -645,6 +646,8 @@ func _hub_changes(s: Node) -> void:
 		_watching_flowers()
 	if is_cleared("frozen_moment"):
 		_flurry_in_hub()
+	if is_cleared("rhythm_springs"):
+		_melody_stage()
 
 
 func _watching_flowers() -> void:
@@ -672,6 +675,21 @@ func _watching_flowers() -> void:
 		f.name = "Watching Flower"
 		g.add_child(f)
 		f.global_position = Remnants.ground_at(spots[i])
+
+
+# Melody's Stage, in the Void once Rhythm Springs is mended ------------------------------------------------------------
+const MELODY_STAGE := Vector2(-32.5, 42.5)  # just behind her portal on the lake's south-west shore (checked flat, clear, off the races and paths)
+const MELODY_STAGE_YAW := 2.49              # facing the lake over her portal
+
+
+func _melody_stage() -> void:
+	# Her stage by her portal, where she puts on a show every evening (scripts/melody_stage.gd)
+	var stage := Node3D.new()
+	stage.set_script(load("res://scripts/melody_stage.gd"))
+	stage.name = "Melody's Stage"
+	_holder.add_child(stage)
+	stage.global_position = Remnants.ground_at(MELODY_STAGE)
+	stage.rotation.y = MELODY_STAGE_YAW
 
 
 # Flurry, in the Void once the Frozen Moment's mended -------------------------------------------------------------
@@ -1002,7 +1020,7 @@ static func plaza_model(colour: Color) -> Node3D:
 # -----------------------------------------------------------------------------
 func save_data() -> Dictionary:
 	return {"quakes": quakes.duplicate(), "cleared": cleared_worlds.duplicate(), "found": found.duplicate(true),
-		"here": here, "time_left": time_left}
+		"here": here, "time_left": time_left, "stage_prize_day": stage_prize_day}
 
 
 func load_data(data: Dictionary) -> void:
@@ -1019,6 +1037,7 @@ func load_data(data: Dictionary) -> void:
 			if f[k] is Array:
 				found[str(k)] = (f[k] as Array).map(func(x) -> String: return str(x))
 	time_left = maxf(float(data.get("time_left", 0.0)), 0.0) if str(data.get("here", "")) != "" else 0.0
+	stage_prize_day = int(data.get("stage_prize_day", -1))
 	changed.emit()
 
 
@@ -1031,6 +1050,7 @@ func reset() -> void:
 	found.clear()
 	here = ""
 	time_left = 0.0
+	stage_prize_day = -1
 	_warned = false
 	_pulling = false
 	if _froze_clock:
