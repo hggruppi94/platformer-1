@@ -10,8 +10,11 @@ extends Node3D
 # - the ground and the countryside (scripts/earth_land.gd recolor()), the town green and the far hills,
 # - in winter, snow on every roof, and Willow Pond iced over (to look at: it's still water underneath),
 # - the Halloween dressing (jack-o'-lanterns, hay bales, scarecrows, cornstalks, sheet ghosts) only in autumn,
-# - and something in the air round the player outdoors: snow in winter, petals in spring, leaves in autumn, and on
-#   summer nights, fireflies.
+# - in summer, sunflowers where the pumpkins and scarecrows stood (the patch is the Sunflower Field), bright sunny
+#   string lights and bunting, Willow Pond a clear sparkly blue with no mist over it (its beach and the quest
+#   "Summer Splash" are scripts/summer_splash.gd), and the sun's high and bright (scripts/earth_world.gd),
+# - and something in the air round the player outdoors: snow in winter, petals in spring, leaves in autumn, dandelion
+#   fluff on summer days and fireflies on summer nights.
 # It checks every in-game hour, so the town changes at midnight on the first day of a season.
 
 const SNOW := Color(0.88, 0.91, 0.97)
@@ -42,8 +45,9 @@ var _fallen_cols: Array[Color] = []
 var _dressing: Node3D
 var _pumpkins: Array[Node3D] = []        # pumpkins, jack-o'-lanterns and scarecrows outside the Autumn Dressing
 var _patch_sign: Label3D
-var _snowmen: Node3D                     # winter's: where the pumpkins and scarecrows were
-var _bulbs: MultiMeshInstance3D          # the string lights and bunting: Halloween colours, Christmassy in winter
+var _snowmen: Node3D                     # winter's: where the pumpkins and scarecrows were (summer's sunflowers too)
+var _mist: Array[Node3D] = []            # the thin mist over Willow Pond (a Halloween-y touch: gone in summer)
+var _bulbs: MultiMeshInstance3D          # the string lights and bunting: Halloween colours, Christmassy in winter, sunny in summer
 var _bulb_cols: Array[Color] = []
 var _bunting: MultiMeshInstance3D
 var _bunting_cols: Array[Color] = []
@@ -240,6 +244,9 @@ func _paint_materials() -> void:
 			elif name == "Pond Water" and season == "winter":
 				c = Color(0.82, 0.9, 0.97, 0.97)     # iced over
 				mat.roughness = 0.15
+			elif name == "Pond Water" and season == "summer":
+				c = SUMMER_POND                      # clear and blue, glinting in the sun
+				mat.roughness = 0.02
 			elif (name == "Lily Pad" or name == "Lily Flower") and season == "winter":
 				c = Color(0.85, 0.92, 0.98)          # (under the ice)
 			mat.albedo_color = c if name == "Pond Water" and season == "winter" else Color(c, built.albedo.a)
@@ -252,6 +259,9 @@ func _dress(on: bool) -> void:
 	_dressing.visible = on
 	for cs in _dressing.find_children("*", "CollisionShape3D", true, false):
 		(cs as CollisionShape3D).disabled = not on
+	for m in _mist:
+		if is_instance_valid(m):
+			m.visible = season != "summer"
 
 
 # -----------------------------------------------------------------------------
@@ -260,6 +270,10 @@ func _dress(on: bool) -> void:
 const PUMPKINY := ["Pumpkin", "Pumpkin Stem", "Jack Glow"]
 const BULBS_WINTER := [Color(1.0, 0.25, 0.25), Color(0.3, 0.95, 0.4), Color(1.0, 0.95, 0.85), Color(0.45, 0.65, 1.0)]
 const BUNTING_WINTER := [Color(0.85, 0.15, 0.2), Color(0.15, 0.55, 0.3), Color(0.97, 0.97, 1.0), Color(0.75, 0.8, 0.9)]
+# Summer's: sunshine yellow, sea turquoise, watermelon pink and lime
+const BULBS_SUMMER := [Color(1.0, 0.85, 0.2), Color(0.2, 0.85, 0.85), Color(1.0, 0.45, 0.55), Color(0.6, 0.95, 0.3)]
+const BUNTING_SUMMER := [Color(1.0, 0.8, 0.15), Color(0.1, 0.65, 0.75), Color(0.95, 0.35, 0.45), Color(0.97, 0.97, 1.0)]
+const SUMMER_POND := Color(0.1, 0.38, 0.56)
 
 
 func _collect_autumn_bits(scene: Node) -> void:
@@ -276,6 +290,10 @@ func _collect_autumn_bits(scene: Node) -> void:
 		if m.material_override and m.material_override.resource_name == "Sack Head" \
 				and not (_dressing and _dressing.is_ancestor_of(m)) and not _pumpkins.has(m.get_parent()):
 			_pumpkins.append(m.get_parent() as Node3D)
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.material_override and m.material_override.resource_name == "Pond Mist":
+			_mist.append(m)
 	var patch := scene.find_child("Pumpkin Patch", true, false)
 	if patch:
 		for l in patch.find_children("*", "Label3D", true, false):
@@ -309,16 +327,19 @@ func _dress_rest() -> void:
 		if is_instance_valid(n):
 			n.visible = autumn
 	if _patch_sign:
-		_patch_sign.text = "Snowman Field" if season == "winter" else "Pumpkin Patch"
+		_patch_sign.text = {"winter": "Snowman Field", "summer": "Sunflower Field"}.get(season, "Pumpkin Patch")
 	if _snowmen:
 		_snowmen.name = "Melting Snowmen"
 		_snowmen.queue_free()
 		_snowmen = null
-	if season != "winter":
+	shown_snowmen = 0
+	shown_sunflowers = 0
+	if season != "winter" and season != "summer":
 		return
-	# A snowman for each doorstep pumpkin (one for a cluster of them), and for each scarecrow
+	# A snowman (in winter) or a big sunflower (in summer) for each doorstep pumpkin (one for a cluster of them), and
+	# for each scarecrow
 	_snowmen = Node3D.new()
-	_snowmen.name = "Winter Snowmen"
+	_snowmen.name = "Winter Snowmen" if season == "winter" else "Summer Sunflowers"
 	add_child(_snowmen)
 	var spots: Array[Vector3] = []
 	for n in _pumpkins:
@@ -329,35 +350,105 @@ func _dress_rest() -> void:
 			at.y -= (n as MeshInstance3D).get_aabb().size.y * n.global_basis.get_scale().y * 0.35
 		var ground := EarthLand.height(at.x, at.z)
 		if absf(at.y - ground) > 0.4:
-			continue                          # (on a mantel, a hay bale, indoors up a step: no snowman there)
+			continue                          # (on a mantel, a hay bale, indoors up a step: nothing there)
 		at.y = ground
-		if spots.any(func(p: Vector3) -> bool: return Vector2(p.x - at.x, p.z - at.z).length() < (2.5 if n is MeshInstance3D else 0.5)):
+		# (one snowman for a cluster of pumpkins; sunflowers are thinner, so they stand in little groups)
+		var apart := (2.5 if season == "winter" else 1.1) if n is MeshInstance3D else 0.5
+		if spots.any(func(p: Vector3) -> bool: return Vector2(p.x - at.x, p.z - at.z).length() < apart):
 			continue
 		spots.append(at)
 	for at in spots:
-		var sm := snowman_model(0.55 if spots.find(at) % 3 else 0.75)
-		_snowmen.add_child(sm)
-		sm.global_position = at
-		sm.rotation.y = fposmod(at.x * 1.7 + at.z, TAU)
-	shown_snowmen = spots.size()
+		var big := spots.find(at) % 3 == 0
+		var thing := snowman_model(0.75 if big else 0.55) if season == "winter" else sunflower_model(1.3 if big else 1.0)
+		_snowmen.add_child(thing)
+		thing.global_position = at
+		thing.rotation.y = fposmod(at.x * 1.7 + at.z, TAU)
+	if season == "winter":
+		shown_snowmen = spots.size()
+	else:
+		shown_sunflowers = spots.size()
 
 
 var shown_snowmen := 0                   # how many winter snowmen there are (for the tests)
+var shown_sunflowers := 0                # and summer sunflowers
 
 
 func _paint_lights() -> void:
-	for pair in [[_bulbs, _bulb_cols, BULBS_WINTER], [_bunting, _bunting_cols, BUNTING_WINTER]]:
+	for pair in [[_bulbs, _bulb_cols, BULBS_WINTER, BULBS_SUMMER], [_bunting, _bunting_cols, BUNTING_WINTER, BUNTING_SUMMER]]:
 		var mmi := pair[0] as MultiMeshInstance3D
 		if mmi == null:
 			continue
 		var cols: Array = pair[1]
 		for i in cols.size():
-			mmi.multimesh.set_instance_color(i, pair[2][i % 4] if season == "winter" else cols[i])
+			var c: Color = cols[i]
+			if season == "winter":
+				c = pair[2][i % 4]
+			elif season == "summer":
+				c = pair[3][i % 4]
+			mmi.multimesh.set_instance_color(i, c)
 
 
 func lights_colour(i: int) -> Color:
 	# (for the tests: the colour string light i is showing)
-	return BULBS_WINTER[i % 4] if season == "winter" else (_bulb_cols[i] if i < _bulb_cols.size() else Color.WHITE)
+	if season == "winter":
+		return BULBS_WINTER[i % 4]
+	if season == "summer":
+		return BULBS_SUMMER[i % 4]
+	return _bulb_cols[i] if i < _bulb_cols.size() else Color.WHITE
+
+
+static func sunflower_model(size := 1.0) -> Node3D:
+	# A tall sunflower: a green stem with two leaves, a big yellow flower head with a brown middle, turned to the sun
+	var g := Node3D.new()
+	g.name = "Sunflower"
+	var green := _m(Color(0.3, 0.55, 0.2), 0.8)
+	var tall := 1.6 * size
+	var stem := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 0.035 * size
+	c.bottom_radius = 0.05 * size
+	c.height = tall
+	c.radial_segments = 6
+	stem.mesh = c
+	stem.material_override = green
+	stem.position.y = tall / 2.0
+	g.add_child(stem)
+	for k in 2:
+		var leaf := MeshInstance3D.new()
+		leaf.mesh = _sphere(0.16 * size)
+		leaf.material_override = green
+		var sx := -1.0 if k == 0 else 1.0
+		leaf.position = Vector3(sx * 0.14 * size, tall * (0.35 + k * 0.2), 0)
+		leaf.scale = Vector3(1.4, 0.25, 0.8)
+		leaf.rotation.z = sx * -0.4
+		g.add_child(leaf)
+	var head := Node3D.new()
+	head.name = "Head"
+	head.position = Vector3(0, tall, 0.06 * size)
+	head.rotation.x = 0.35                 # nodding a little, face to the sky
+	g.add_child(head)
+	var petal := _m(Color(1.0, 0.8, 0.1), 0.7)
+	for k in 12:
+		var a := TAU * k / 12.0
+		var p := MeshInstance3D.new()
+		p.mesh = _sphere(0.09 * size)
+		p.material_override = petal
+		p.position = Vector3(cos(a) * 0.2 * size, sin(a) * 0.2 * size, 0)
+		p.rotation.z = a
+		p.scale = Vector3(1.7, 1.0, 0.3)          # (long along the way it points: out from the middle)
+		head.add_child(p)
+	var middle := MeshInstance3D.new()
+	var mc := CylinderMesh.new()
+	mc.top_radius = 0.15 * size
+	mc.bottom_radius = 0.15 * size
+	mc.height = 0.06 * size
+	mc.radial_segments = 14
+	middle.mesh = mc
+	middle.material_override = _m(Color(0.4, 0.24, 0.1), 0.9)
+	middle.rotation.x = PI / 2
+	middle.position.z = 0.02 * size
+	head.add_child(middle)
+	return g
 
 
 static func snowman_model(size := 0.7) -> Node3D:
@@ -501,7 +592,7 @@ func _make_air() -> void:
 
 
 func air_kind() -> String:
-	# What's falling or floating round the player now: "snow", "petals", "leaves", "fireflies" or ""
+	# What's falling or floating round the player now: "snow", "petals", "leaves", "fluff", "fireflies" or ""
 	match season:
 		"winter":
 			return "snow"
@@ -510,7 +601,8 @@ func air_kind() -> String:
 		"autumn":
 			return "leaves"
 		"summer":
-			return "fireflies" if Clock.earth_minutes >= 20 * 60.0 or Clock.earth_minutes < 5 * 60.0 else ""
+			# (summer evenings are long: the fireflies wait till it's dark at nine)
+			return "fireflies" if Clock.earth_minutes >= 21 * 60.0 or Clock.earth_minutes < 5 * 60.0 else "fluff"
 	return ""
 
 
@@ -544,6 +636,14 @@ func _set_air() -> void:
 			_air.initial_velocity_min = 0.3
 			_air.initial_velocity_max = 1.0
 			quad.size = Vector2(0.18, 0.13)
+		"fluff":
+			# Dandelion seeds drifting about in the sunshine, slowly, mostly sideways
+			_air.amount = 40
+			_air.color = Color(1.0, 1.0, 0.97, 0.85)
+			_air.gravity = Vector3(0.35, -0.12, 0.15)
+			_air.initial_velocity_min = 0.1
+			_air.initial_velocity_max = 0.4
+			quad.size = Vector2(0.09, 0.09)
 		"fireflies":
 			_air.amount = 70
 			_air.color = Color(1.0, 0.95, 0.45, 1.0)

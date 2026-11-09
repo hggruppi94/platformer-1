@@ -90,6 +90,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-09: **Summer in Stars Hollow** (Rhythm Springs' reward on Earth, like the winter overhaul). Hayden: "Lets do
+  summer in stars hollow replace all the winter themed things with summer themed and make the sun bright and whatever
+  else you can think of". Built and tested in the cloud (own Godot user folders, no save touched). Winter is unchanged.
+  - **Lines:** every Earth conversation that had autumn and winter copies now has a summer one too (`"season":
+    "summer"`: the Summer Fair, lemonade, ice lollies, sunflowers, swimming, no school); the autumn ones say
+    `["spring", "autumn"]`. 17 dialogue files, 35 conversations.
+  - **The town** (`seasons.gd`): a sunflower (`sunflower_model()`, static) at each ground-level pumpkin and scarecrow
+    spot, the patch sign says "Sunflower Field", sunny string lights and bunting (`BULBS_SUMMER`, `BUNTING_SUMMER`),
+    Willow Pond clear blue with no Halloween mist, dandelion fluff in the air by day ("fluff"), fireflies from 9 PM.
+  - **The sun** (`earth_world.gd SUMMER`): higher (74 degrees at noon), brighter (1.45, autumn 1.15) and whiter, a bigger glow in
+    a deeper blue sky, and long days: the sun's up from 4:30 AM till 9 PM.
+  - **Notice board** (`earth_jobs.gd`, `r.summer`): rake leaves -> water the thirsty flowers round a house ("thirsty"
+    props perk up and stay that way), pumpkins -> baskets of strawberries in the Sunflower Field, pumpkin pie ->
+    strawberry shortcake, and a summer-only **sandcastles on the beach** job (`"sandcastle"`, walk into a heap of
+    sand). The board wears a star in summer.
+  - **Willow Pond's beach and the quest "Summer Splash"** (`scripts/summer_splash.gd`, a "SummerSplash" node under
+    `EarthTown`, `quests/summer_splash.json`): all summer a sandy beach north of the dock with umbrellas, towels and a
+    beach ball, and a cannonball off the end of the dock (`cannonball()`, any time in summer). Nina offers the quest
+    once The First Night's done: Prue's swim ring by the Blastoffs' door, a bucket and spade at the hardware store,
+    build a sandcastle with her on the beach (it stays all summer), cannonball into the pond, pink lemonade with Gus.
+    12 sparkles. Flags `summer_splash_start`, `splash_ring`, `splash_bucket`, `splash_castle`, `splash_jumped`,
+    `splash_lemonade`.
+  - Tests: new `tools/test_summer.gd`; test_seasons and test_notice_board updated. Previews: `tools/capture_summer.gd`
+    (shots in the project files under world/previews/summer).
+  - My choices Hayden may change: the quest's steps, the jobs, the lights' colours, how long summer days are. Not done:
+    spring still uses the autumn lines (and its patch sign says Pumpkin Patch).
+
 - 2026-11-09: **Melody's groove and Melody's Stage** (Rhythm Springs slice two, the reward). Hayden: "Yes". Built and
   tested in the cloud (own Godot user folders, no save touched).
   - **Groove** (`scripts/groove.gd`, a "Groove" node on the player like Burrow and FrostBreath): new action **Groove**

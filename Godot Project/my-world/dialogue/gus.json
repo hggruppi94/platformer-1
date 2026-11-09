@@ -24,6 +24,17 @@
     },
     {
       "when": {
+        "quest_step": "summer_splash:lemonade"
+      },
+      "set": "splash_lemonade",
+      "lines": [
+        "Two pink lemonades. Nina told me. She tells me everything. Loudly. And wetly. She's dripping on my floor.",
+        "(He puts down two tall glasses, fizzing, with ice, a slice of lemon and a little paper umbrella in each.)",
+        "The umbrellas were Kip's idea. Don't tell anyone I said yes."
+      ]
+    },
+    {
+      "when": {
         "flag": "earth_tremor",
         "every": 3
       },
@@ -44,9 +55,18 @@
     {
       "when": {
         "activity": "festival_cider",
+        "season": "summer"
+      },
+      "lines": [
+        "Lemonade. Cold. Obviously cold. It's lemonade.",
+        "...Fine. There's pink lemonade too. Don't tell anybody it's my favourite."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_cider",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -104,6 +124,25 @@
           "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
         ],
         [
+          "Mr. Palmer wants a pie for the Summer Fair. Shaped like the sun. A pie. Shaped like the sun. Pies are already round!"
+        ],
+        [
+          "You look hot. Here. Ice water. Sit down. Don't tell anyone I was nice."
+        ],
+        [
+          "That big oak by the green hums at night. Even in summer. Trees shouldn't hum. Trees should be quiet. Like customers."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+        ],
+        [
           "Mr. Palmer wants me to make a pie for the festival. Shaped like a pumpkin. A pie. Shaped like a pumpkin. Pies are already round!"
         ],
         [
@@ -116,7 +155,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

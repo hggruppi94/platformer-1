@@ -22,9 +22,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "I got zero apples. ZERO. The barrel's rigged. Hank's rigged it.",
+        "I even brought a snorkel this time. A SNORKEL."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

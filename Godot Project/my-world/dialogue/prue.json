@@ -22,9 +22,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "Look, look! I won a ribbon for the best sunflower drawing! Mine's got a cape.",
+        "Bruno says the hayride's for babies. He's been on it three times."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -111,9 +120,17 @@
     {
       "when": {
         "activity": "pumpkins",
+        "season": "summer"
+      },
+      "lines": [
+        "I'm looking for the tallest sunflower in the whole field. This one's tall. But that one's TALLER."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -156,6 +173,22 @@
     {
       "rotate": [
         [
+          "I saw a little green alien in the sunflowers! Nina says it was a grasshopper. Grasshoppers don't wave!"
+        ],
+        [
+          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+        ],
+        [
+          "Mr. Palmer gave me an ice lolly. It was green. It fizzed. I don't know where he got it."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
           "I saw a little green alien in the pumpkin patch! Nina says it was a squash. Squashes don't wave!"
         ],
         [
@@ -168,7 +201,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

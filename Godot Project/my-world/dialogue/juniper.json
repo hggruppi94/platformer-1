@@ -24,9 +24,18 @@
     {
       "when": {
         "activity": "festival",
+        "season": "summer"
+      },
+      "lines": [
+        "Juniper Okafor, Old Oak Elementary Gazette, covering the Summer Fair LIVE! Any comment on the apple bobbing?",
+        "My headline: 'Local Barrel Defeats Local Boy, Again, In The Sunshine'. Ozzie got zero apples. Zero!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

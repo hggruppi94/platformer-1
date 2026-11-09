@@ -88,6 +88,26 @@
     {
       "rotate": [
         [
+          "Guests at the inn this week: a family of nine on a sunshine holiday, a man who collects spoons, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+        ],
+        [
+          "Have you tried Poppy's sunshine cakes? They're yellow inside! For summer! I had three. Don't tell my doctor."
+        ],
+        [
+          "Sometimes at midnight I hear a whoosh from the green. Probably the fireflies. Probably! Ha!"
+        ],
+        [
+          "You come back any time, sweetheart. There's always a jug of lemonade in the fridge.",
+          "(She pats your hand. Twice.)"
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
         ],
         [
@@ -104,7 +124,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

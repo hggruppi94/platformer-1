@@ -25,9 +25,18 @@
     {
       "when": {
         "activity": "festival_music",
+        "season": "summer"
+      },
+      "lines": [
+        "(He's strumming a jolly tune about an ice lolly who wanted to visit the moon.)",
+        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_music",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -78,9 +87,18 @@
     {
       "when": {
         "time": "morning",
+        "season": "summer"
+      },
+      "lines": [
+        "(Strum!) Good morning, good morning, the sun is big and bright! Good morning, good morning, and Gus is sunburnt white!",
+        "(From across the street, someone yells \"THAT DOESN'T EVEN MAKE SENSE\".)"
+      ]
+    },
+    {
+      "when": {
+        "time": "morning",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -117,6 +135,25 @@
           "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
         ],
         [
+          "(He plays a lazy, sunny little tune.) That's my summer song. It's called 'The Sunflower Who Was Scared Of The Dark'."
+        ],
+        [
+          "The Summer Fair's my big night! It doesn't even get dark till nine. Bring sun cream! Joking. Bring dancing shoes."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+        ],
+        [
+          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+        ],
+        [
           "(He plays a spooky little tune.) That's my Halloween song. It's called 'The Pumpkin Who Wanted To Be A Pie'."
         ],
         [
@@ -126,7 +163,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

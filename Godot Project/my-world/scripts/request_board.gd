@@ -34,7 +34,7 @@ func _ready() -> void:
 	_star = Node3D.new()
 	_star.position = Vector3(0, 3.95, 0.1)
 	add_child(_star)
-	var pumpkin := earthy and Clock.season() != "winter"      # (in winter Stars Hollow's board has a star too)
+	var pumpkin := earthy and Clock.season() not in ["winter", "summer"]   # (in winter and summer Stars Hollow's board has a star too)
 	if pumpkin:
 		_lantern()
 	var star_mat := _mat(Color(1.0, 0.85, 0.3), 2.5)

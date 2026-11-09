@@ -22,9 +22,18 @@
     {
       "when": {
         "activity": "festival_apples",
+        "season": "summer"
+      },
+      "lines": [
+        "Step right up and bob for apples! It's summer, so the water's nice and cold. You're welcome.",
+        "Three goes. The apples get sneakier every go. I've got towels. You'll dry off in about a minute in this sun."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_apples",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -63,6 +72,25 @@
     {
       "rotate": [
         [
+          "Watering cans are out front. Hot summer. The town's flowers are thirsty. Could use some help watering. Hint, hint."
+        ],
+        [
+          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+        ],
+        [
+          "Gus was in for a fan. Third one this month. I think he just likes the walk."
+        ],
+        [
+          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Rakes are out front. Lot of leaves this year. The town's going to need some help raking. Hint, hint."
         ],
         [
@@ -78,7 +106,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }

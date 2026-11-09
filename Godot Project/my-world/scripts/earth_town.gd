@@ -56,6 +56,11 @@ func _ready() -> void:
 	var snow := (load("res://scripts/first_snow.gd") as GDScript).new() as Node
 	snow.name = "FirstSnow"
 	add_child(snow)
+	# Summer fun (Willow Pond's beach, the dock jump) and the quest "Summer Splash" (scripts/summer_splash.gd),
+	# reachable as "EarthTown/SummerSplash"
+	var splash := (load("res://scripts/summer_splash.gd") as GDScript).new() as Node
+	splash.name = "SummerSplash"
+	add_child(splash)
 
 
 func _on_scene_changed() -> void:

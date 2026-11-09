@@ -1,0 +1,61 @@
+{
+  "name": "Summer Splash",
+  "giver": "nina_earth",
+  "start": {
+    "flag": "summer_splash_start"
+  },
+  "steps": [
+    {
+      "id": "gather",
+      "text": "It's summer! Nina wants a beach day at Willow Pond. Find something to float on and something to dig with.",
+      "checklist": [
+        ["splash_ring", "Prue's old swim ring, by the Blastoffs' door"],
+        ["splash_bucket", "A bucket and spade from Nuts & Bolts Hardware"]
+      ],
+      "where": [
+        {"place": "blastoff_door", "unless": "splash_ring"},
+        {"place": "hardware", "unless": "splash_bucket"}
+      ],
+      "done": {
+        "flags": ["splash_ring", "splash_bucket"]
+      }
+    },
+    {
+      "id": "build",
+      "text": "Build a sandcastle with Nina on the little beach at Willow Pond, by the dock.",
+      "where": ["nina_earth"],
+      "override": {
+        "nina_earth": {"place": "dock", "do": "idle", "label": "summer_splash"}
+      },
+      "done": {
+        "flag": "splash_castle"
+      }
+    },
+    {
+      "id": "jump",
+      "text": "Run to the end of the dock and do a cannonball into Willow Pond!",
+      "where": ["dock"],
+      "override": {
+        "nina_earth": {"place": "dock", "do": "idle", "label": "summer_splash"}
+      },
+      "done": {
+        "flag": "splash_jumped"
+      }
+    },
+    {
+      "id": "lemonade",
+      "text": "Cool off with a pink lemonade at the Hollow Diner. Ask Gus!",
+      "where": ["gus"],
+      "override": {
+        "nina_earth": {"place": "diner", "do": "idle", "label": "summer_splash"}
+      },
+      "done": {
+        "flag": "splash_lemonade"
+      }
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Summer Splash: a sandcastle, a cannonball and pink lemonade with Nina. Best beach day ever! (+12 sparkles)"
+  }
+}

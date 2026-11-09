@@ -96,7 +96,7 @@ func _run() -> void:
 	clock.set_earth_time(13 * 60.0, true)
 	await create_timer(1.3).timeout
 	check(s.season == "summer" and s.shown_leaves.all(func(c: Color) -> bool: return c.g > c.r), "summer: green leaves")
-	check(s.air_kind() == "" and not s._air.emitting, "...nothing in the air by day")
+	check(s.air_kind() == "fluff" and s._air.emitting, "...dandelion fluff drifting in the sunshine by day")
 	clock.set_earth_time(22 * 60.0, true)
 	await create_timer(0.2).timeout
 	check(s.air_kind() == "fireflies" and s._air.emitting, "...and fireflies at night")

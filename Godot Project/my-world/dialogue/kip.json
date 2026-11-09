@@ -24,9 +24,18 @@
     {
       "when": {
         "activity": "festival_hayride",
+        "season": "summer"
+      },
+      "lines": [
+        "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green! There's shade on the back!",
+        "Job number seven: hayride conductor! Scarecrow Sam drives. He's wearing a sun hat this week. He's never once blinked."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_hayride",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -63,9 +72,17 @@
     {
       "when": {
         "activity": "pumpkins",
+        "season": "summer"
+      },
+      "lines": [
+        "Sunflowers! Get your sunflowers! Big ones, little ones, one that's taller than Gus!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },

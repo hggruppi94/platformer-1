@@ -24,9 +24,18 @@
     {
       "when": {
         "activity": "festival_stall",
+        "season": "summer"
+      },
+      "lines": [
+        "Ice lollies, strawberry cups, blueberry muffins! Everything's cold and everything's sticky!",
+        "Entering the pie contest? It's blueberry this time. Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_stall",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -55,9 +64,17 @@
     {
       "when": {
         "activity": "fresh_air",
+        "season": "summer"
+      },
+      "lines": [
+        "Just getting some fresh air. Smell that? That's summer. And cinnamon. Mostly cinnamon. It's coming off me. Even in summer."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fresh_air",
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       },
@@ -87,6 +104,25 @@
     {
       "rotate": [
         [
+          "Gus says my blueberry pie's 'too blue'. Too blue! It's a BLUEBERRY pie!"
+        ],
+        [
+          "For the Summer Fair I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer in a sun hat."
+        ],
+        [
+          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats. In summer I put a flower on it."
+        ],
+        [
+          "Here, a broken cookie. Broken ones don't count, so it's free. Eat it quick, it's melting."
+        ]
+      ],
+      "when": {
+        "season": "summer"
+      }
+    },
+    {
+      "rotate": [
+        [
           "Gus says my pumpkin pie's 'too orange'. Too orange! It's a PUMPKIN pie!"
         ],
         [
@@ -102,7 +138,6 @@
       "when": {
         "season": [
           "spring",
-          "summer",
           "autumn"
         ]
       }
