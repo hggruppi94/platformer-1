@@ -1,0 +1,29 @@
+{
+  "name": "The Undergardens",
+  "giver": "bramble",
+  "start": {"flag": "undergardens_start"},
+  "steps": [
+    {
+      "id": "spores",
+      "text": "Find the four lost Glowcap spores in the Undergardens, the caves under the Secret Gardens. Pip's glow will light the way.",
+      "checklist": [
+        ["ug_spore_hall", "One in the Root Hall, high in the roots"],
+        ["ug_spore_grotto", "One in the Mushroom Grotto"],
+        ["ug_spore_chasm", "One across the Deep Crack"],
+        ["ug_spore_pool", "One on the island in the Crystal Pool"]
+      ],
+      "done": {"flags": ["ug_spore_hall", "ug_spore_grotto", "ug_spore_chasm", "ug_spore_pool"]},
+      "where": [{"at": [-97, -46]}]
+    },
+    {
+      "id": "taproot",
+      "text": "Take the spores to the Old Taproot, at the very bottom of the Undergardens.",
+      "done": {"flag": "ug_taproot_given"},
+      "where": [{"at": [-92, -34]}]
+    }
+  ],
+  "reward": {
+    "sparkles": 15,
+    "message": "The Old Taproot gave you Glowcap seeds: they glow in your garden at night! (+15 sparkles)"
+  }
+}

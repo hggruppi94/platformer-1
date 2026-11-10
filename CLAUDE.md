@@ -90,6 +90,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The Undergardens**, caves under the Secret Gardens hill in the Void (Hayden: "I want to make some of the
+  secret garden caves as well", next to Lanternmoor's caves). Built and tested in the cloud (own Godot user folders, no
+  save touched), on top of the shared cave pieces from the Lanternmoor thread (`scripts/cave_kit.gd`,
+  `scripts/pip_glow.gd`), so both sets of caves look and work the same.
+  - **`scripts/garden_caves.gd`** (node "Caves" under the Farm autoload: dialogue says `Farm/Caves.hand_in`): put in
+    at play time, nothing in a builder or `town.tscn` changed. The way in is **the Rootwell** at (-97, -46) on top of
+    the hill west of the greenhouse: the ground is cut (`scripts/ground_hole.gd`), a ring of fat roots round it, a sign.
+    Until Lanternmoor's mended (Pip's glow) a tangle of roots covers it and peering in says it's too dark. A spiral of
+    16 root steps goes down the shaft. One loop of caves (`SHAPES`, cave_kit build, about 0.3 s, built each time the
+    Void loads) under the whole hill, at least 0.9 m of rock under the ground everywhere: the **Root Hall** under the
+    greenhouse (roots with eyes through the ceiling, moth-dust steps that only Pip's glow shows up to a root ledge),
+    the **Mushroom Grotto** (four giant caps to climb to a shelf), the **Crystal Pool** (deep water round an island:
+    float or swim), the **Deep Crack** (a pit with a pillar in the middle, glow bridges out to it; falling in floats you
+    back), and **the Taproot's Hollow**, back to the shaft. A `cave_dark` zone covers it all and the sun's kept off the
+    rock (`shade_from_sun`). Big Gloops' homes near the hole are moved 13 m away, and any enemy in the cave is sent home.
+  - **The Old Taproot**, the hill's oldest root, asleep with his eyes shut; Pip's glow reaching him wakes him
+    (`scripts/taproot_waker.gd`, group `glow_wake`). Quest **The Undergardens** (`quests/undergardens.json`): find the four
+    Glowcap spores (walk into them), take them to him; he gives 3 **Glowcap** seeds (new crop in `Farm.CROPS`, look
+    "mushroom", glows a little always and properly when ripe, 600 Void minutes, sells for 9 at the Fruit stall; no stall
+    sells the seeds) and 15 sparkles. Bramble tells you about the caves once Lanternmoor's mended and the garden's
+    yours; going down there starts the quest too. Flags `undergardens_start`, `ug_spore_hall/grotto/pool/chasm`,
+    `ug_taproot_woken`, `ug_taproot_met`, `ug_taproot_given`, `ug_bramble_thanks`.
+  - Tests: new `tools/test_garden_caves.gd`. Previews: `tools/capture_garden_caves.gd` (shots in the project files
+    under world/previews/garden_caves).
+  - My choices Hayden may change: the name Undergardens, where the Rootwell is, the rooms, the Old Taproot and his
+    lines, the Glowcap crop and the reward.
+
 - 2026-11-10: **Pip's glow and the Glimmer Caves** (Lanternmoor slice two, the reward). Hayden: "Next I want to add
   large intricate caves to pips world for when you gain his ability" and "make pips ability". Built and tested in the
   cloud (own Godot user folders, no save touched).

@@ -3,6 +3,41 @@
   "conversations": [
     {
       "when": {
+        "mended": "lanternmoor",
+        "not_flag": "undergardens_start",
+        "flag": "garden_tour"
+      },
+      "lines": [
+        "{player}! Pip says you can glow now, like a little lantern! Oh, that's PERFECT.",
+        "Under my garden there are caves. The Undergardens. My roots go all the way down, but I've never seen them, it's too dark. Snappy won't go near.",
+        "The way in is the Rootwell, the root-ringed hole on top of the hill, west of the greenhouse. It's been tangled shut, but the roots will let a light in.",
+        "Something big has been snoring down there ever since the Void cracked. The plants say it's the Old Taproot. Could you go and see?"
+      ],
+      "set": "undergardens_start"
+    },
+    {
+      "when": {
+        "quest_step": "undergardens:spores",
+        "every": 2
+      },
+      "lines": [
+        "How are the Undergardens? The roots say you're stomping about down there. Nicely, though.",
+        "Four Glowcap spores, the plants whisper. In the Root Hall, the Mushroom Grotto, the Crystal Pool and the Deep Crack."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "undergardens",
+        "not_flag": "ug_bramble_thanks"
+      },
+      "lines": [
+        "The Old Taproot is AWAKE? He's every plant on this hill's great-great-great-grandroot! And he gave you Glowcaps!",
+        "Plant them up here and they'll glow all night. My garden's going to look like a little bit of the sky."
+      ],
+      "set": "ug_bramble_thanks"
+    },
+    {
+      "when": {
         "quest_step": "slide_mystery:why",
         "not_flag": "slide_ask_bramble"
       },

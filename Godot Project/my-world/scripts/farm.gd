@@ -56,8 +56,12 @@ const CROPS := {
 	"remnant_sprout": {"name": "Remnant Sprout", "plural": "Remnant Sprouts", "grow": 1440.0, "gives": 2,
 		"sells": 0, "colour": Color(0.45, 1.0, 0.3), "look": "crystal", "remnant_seed": 1,
 		"says": "Grows a tiny Remnant crystal at its tip. A whole Void day of growing, and it gives two back."},
+	# From the Old Taproot in the Undergardens (scripts/garden_caves.gd): no shop sells the seeds, only he has them
+	"glowcap": {"name": "Glowcap", "plural": "Glowcaps", "grow": 600.0, "gives": 2, "sells": 9,
+		"colour": Color(0.55, 0.95, 1.0), "look": "mushroom", "seed": 0,
+		"says": "A sleepy blue mushroom from the caves under the garden. It glows softly all night long."},
 }
-const ORDER := ["blinkberry", "peekaroot", "gogglegourd", "remnant_sprout"]
+const ORDER := ["blinkberry", "peekaroot", "gogglegourd", "remnant_sprout", "glowcap"]
 
 # Snacks made from crops at the Sweets stall: shop item -> what goes in (scripts/shop.gd sells them; they're eaten
 # there and then, like the other snacks)
@@ -83,6 +87,10 @@ var _blink := []
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	reset()
+	var caves := Node.new()                     # the Undergardens under the hill (scripts/garden_caves.gd): "Farm/Caves"
+	caves.name = "Caves"
+	caves.set_script(preload("res://scripts/garden_caves.gd"))
+	add_child(caves)
 	Dialogue.finished.connect(_on_talked)
 	Shop.register_kind.call_deferred("seed", {"can_buy": _can_buy_seed, "buy": _buy_seed, "show": _shop_show,
 		"note": _seed_note})
@@ -707,6 +715,24 @@ static func bed_look(st: int, crop: String, dry: bool) -> Node3D:
 			_mesh(head, _sph(r), fruit_mat, Vector3.ZERO, Vector3.ZERO, Vector3(1.1, 0.85, 1.1))
 			_mesh(head, _cyl(0.03, 0.05, 0.15), _mat(Color(0.3, 0.6, 0.3)), Vector3(0, r * 0.9, 0))
 			_eyes(head, Vector3(0, r * 0.2, r * 1.0), r * 0.32)
+		"mushroom":
+			# A fat stalk and a round glowing cap, eyes on the stalk under the cap. It glows a little all the time
+			# and properly once it's ripe (Pip's caves are dark: Glowcaps never learned to switch off).
+			r = 0.22 * size
+			head.position.y = 0.05
+			var cap := _mat(col, 0.3, 1.2 if ripe else 0.45)
+			_mesh(head, _cyl(r * 0.45, r * 0.6, r * 1.6), _mat(Color(0.92, 0.9, 1.0)), Vector3(0, r * 0.8, 0))
+			_mesh(head, _sph(r * 1.2, r * 0.7), cap, Vector3(0, r * 1.75, 0))
+			for k in 5:
+				var a := k * TAU / 5.0
+				_mesh(head, _sph(r * 0.16), _mat(Color(1, 1, 1), 0.3, 0.8), Vector3(cos(a) * r * 0.7, r * 2.15, sin(a) * r * 0.7))
+			_eyes(head, Vector3(0, r * 0.9, r * 0.55), r * 0.35)
+			var glow := OmniLight3D.new()
+			glow.light_color = col
+			glow.light_energy = 0.35
+			glow.omni_range = 1.4
+			glow.position.y = r * 1.8
+			head.add_child(glow)
 		_:
 			r = 0.15 * size
 			var gem := Remnants.remnant(1.6 * size + 0.2)
