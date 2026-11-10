@@ -287,6 +287,19 @@ SONGS = {
                    "bass": "tuba", "bass_pattern": [0, None, 7, None, 0, None, 7, 5], "pad": "organ",
                    "lead": "lead", "lead_rest": 0.2, "drums": {"k": "k...k...k...k...", "s": "..s...s...s...s.",
                                                               "c": "............c..."}},
+    # The Agent of Chaos: the final boss. Big and driving in a minor key, an organ and a ticking clock (the hats),
+    # clock-chime bells, and the tune comes in the second time round. Exciting, never scary
+    "chaos_boss": {"bpm": 144, "key": "D", "scale": "minor", "chords": [1, 6, 4, 5], "seed": 21,
+                   "pad": "organ", "pad_octave": 3, "bass": "synth_bass", "bass_pattern": [0, 0, 12, 0, 0, 0, 12, 7],
+                   "arp": "bell", "arp_pattern": [2, 1, 0, 1], "arp_steps": 8, "lead": "lead", "lead_rest": 0.2,
+                   "drums": {"k": "k..k..k.k..k..k.", "s": "....s.......s...", "h": "h.h.h.h.h.h.h.h."},
+                   "echo": 0.15},
+    # His ending: the clock's stopped and the sky's mended. Warm, slow and happy, bells like a music box
+    "chaos_ending": {"bpm": 84, "key": "G", "scale": "major", "chords": [1, 5, 6, 4], "seed": 22,
+                     "pad": "warm_pad", "bass": "bass", "bass_pattern": [0, None, None, None, 7, None, None, None],
+                     "arp": "bell", "arp_pattern": [0, 1, 2, 4, 2, 1], "arp_steps": 12, "lead": "soft_lead",
+                     "lead_rest": 0.35, "drums": {"k": "k.......k.......", "x": "....x.......x..."}, "drums_from": 1,
+                     "echo": 0.3},
     # The Scary World: spooky, but never scary. Whole-tone music box, slow
     "scary_world": {"bpm": 66, "key": "C", "scale": "whole", "chords": [1, 2, 1, 4], "seed": 18,
                     "pad": "warm_pad", "arp": "bell", "arp_pattern": [0, 1, 2, 1], "arp_steps": 6, "lead": "bell",
