@@ -14,7 +14,7 @@ const TOWN := "res://scenes/town/town.tscn"
 const WORLDS := ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef", "glenmoor",
 	"dark_hollow", "far_future"]
 const SHOTS := [[1.6, "01_his_clock_cracks"], [3.6, "02_it_shatters"], [8.0, "03_he_sinks_down"],
-	[11.2, "04_a_figure_of_light"], [16.6, "05_the_sky_mends"], [23.5, "06_the_friends_come"],
+	[11.2, "04_a_figure_of_light"], [15.3, "05_the_crack_in_the_sky"], [16.6, "05b_the_sky_mends"], [23.5, "06_the_friends_come"],
 	[28.0, "07_the_friends_talk"], [32.0, "08_the_title"]]
 
 var out_dir := "user://chaos_ending_shots"

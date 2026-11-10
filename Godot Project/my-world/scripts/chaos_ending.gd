@@ -115,6 +115,7 @@ func _ready() -> void:
 		l.grow_horizontal = Control.GROW_DIRECTION_BOTH
 		l.grow_vertical = Control.GROW_DIRECTION_BOTH
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_sub.grow_vertical = Control.GROW_DIRECTION_END              # (two lines grow down, clear of the title)
 	for c in [Color(0.62, 0.25, 0.95), Color(0.95, 0.35, 0.75), Color(0.35, 0.95, 0.9), Color(1.0, 0.82, 0.35)]:
 		var m := StandardMaterial3D.new()
 		m.albedo_color = c
@@ -359,6 +360,12 @@ func _mend_sky() -> void:
 func _bring_friends() -> void:
 	_title_out()
 	_spawn_friends()
+	# The hero turns round to see everyone (and so the camera, in front, sees their face too)
+	var p := _player()
+	var visual := p.get_node_or_null("Visual") as Node3D if p else null
+	if visual:
+		var to_him := _g - p.global_position
+		visual.global_rotation.y = atan2(to_him.x, to_him.z)
 
 
 func _title_card() -> void:
@@ -648,8 +655,8 @@ func _make_crack() -> void:
 	crack = Node3D.new()
 	crack.name = "Sky Crack"
 	root.add_child(crack)
-	crack.global_position = _g + _f * 10.0 + Vector3(0, CRACK_HEIGHT, 0)
-	crack.look_at(crack.global_position + _f, Vector3.UP)
+	crack.global_position = _g - _f * 10.0 + Vector3(0, CRACK_HEIGHT, 0)
+	crack.look_at(_sky_eye(), Vector3.UP)                    # (face on to the camera that watches it close)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.albedo_color = Color(0.85, 0.45, 1.0)
@@ -667,8 +674,8 @@ func _make_crack() -> void:
 		var bm := BoxMesh.new()
 		var a := Vector2(x, y)
 		var b := Vector2(nx, ny)
-		var thick := 1.6 - absf(x) / 40.0
-		bm.size = Vector3(a.distance_to(b) + 0.6, maxf(thick, 0.3), 0.2)
+		var thick := 3.2 - 2.0 * absf(x) / 40.0
+		bm.size = Vector3(a.distance_to(b) + 0.8, maxf(thick, 0.6), 0.3)
 		seg.mesh = bm
 		seg.material_override = m
 		seg.position = Vector3((a.x + b.x) / 2.0, (a.y + b.y) / 2.0, 0)
@@ -711,13 +718,13 @@ func _place_camera() -> void:
 		var target := _g + Vector3(0, lerpf(4.0, 1.2, k), 0)
 		if is_instance_valid(figure) and _t > T_LIGHT:
 			target = figure.global_position + Vector3(0, 1.0, 0)
-		_look(_g + _f * lerpf(14.0, 6.0, k) - side * 3.0 + Vector3(0, lerpf(3.0, 1.6, k), 0), target)
+		# (from up high, looking down: the field's crystals and trees are lower than the eye and can't get in the way)
+		_look(_g + _f * lerpf(14.0, 9.0, k) - side * 2.0 + Vector3(0, lerpf(11.0, 8.5, k), 0), target)
 	elif _t < T_FRIENDS:
 		# Up at the sky, where the crack zips shut
 		var k := smoothstep(0.0, 1.0, (_t - T_SKY) / 1.5)
 		var up_at := crack.global_position if is_instance_valid(crack) else _g + Vector3(0, CRACK_HEIGHT, 0)
-		var eye := _g + _f * 22.0 + Vector3(0, 2.5, 0)
-		_look(eye, (_g + Vector3(0, 3.0, 0)).lerp(up_at, k))
+		_look(_sky_eye(), (_g + Vector3(0, 3.0, 0)).lerp(up_at, k))
 	else:
 		# The hero and everyone who came, from in front, slowly drifting round
 		var k := (_t - T_FRIENDS) / (LENGTH - T_FRIENDS)
@@ -725,8 +732,14 @@ func _place_camera() -> void:
 		to_him.y = 0.0
 		to_him = to_him.normalized() if to_him.length() > 0.1 else -_f
 		var across := to_him.cross(Vector3.UP).normalized()
-		var eye := pp + to_him * 9.0 + across * lerpf(-4.0, 4.0, k) + Vector3(0, 3.2 + 1.5 * k, 0)
+		var eye := pp + to_him * 10.0 + across * lerpf(-4.0, 4.0, k) + Vector3(0, 7.5 + 1.0 * k, 0)
 		_look(eye, pp - to_him * 3.0 + Vector3(0, 1.0, 0))
+
+
+func _sky_eye() -> Vector3:
+	# Looking up from beside the hero (where there's room: it's where they stood to fight)
+	var p := _player()
+	return (p.global_position if p else _g + _f * 16.0) + Vector3(0, 2.0, 0)
 
 
 func _say(who: String, line: String) -> void:
