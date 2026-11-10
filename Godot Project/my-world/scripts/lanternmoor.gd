@@ -13,10 +13,15 @@ extends "res://scripts/portal_world.gd"
 # (Portals.clear): the dawn floats out of his clock and up into the sky, and the night turns to morning.
 # Pip, the moth kid, waits by the way in, and the first time you talk she lends you her moth wings. They only work here.
 # Nothing here hurts more than a normal bump; falling off the tree or the rock just lands you softly on the moor.
+# Slice two, the reward: as the sun comes up Pip teaches you Pip's glow (scripts/pip_glow.gd: in the dark you shine,
+# anywhere), and a hollow opens in the moor near the way in, down into the Glimmer Caves (scripts/glimmer_caves.gd),
+# which only the glow lights. They're there every visit once it's mended.
 
 const SNATCHER_SCENE := preload("res://scenes/enemies/time_goblin_boss.tscn")
 const SNATCHER_SCRIPT := preload("res://scripts/dawn_snatcher.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
+const GLIMMER_CAVES := preload("res://scripts/glimmer_caves.gd")
+const TEACH_AFTER := DAWN_TIME + 1.5      # seconds after the Snatcher's popped: Pip teaches the glow, the hollow opens
 const LANTERNS := 5
 const BEACON_NAMES := ["the Night Path's beacon", "the beacon on Moon Rock", "the Lantern Grove's beacon"]
 const LIGHTS := 3
@@ -50,6 +55,7 @@ var _moth_mm: MultiMesh
 var _moths: Array = []                    # [centre, radius, speed, phase, height] for each moth
 var _wings: Node3D
 var _t := 0.0
+var caves: Node3D                         # the Glimmer Caves, once it's mended (scripts/glimmer_caves.gd)
 
 
 func picture() -> void:
@@ -122,8 +128,10 @@ func setup() -> void:
 	if not Portals.is_cleared(world_id):
 		_add_snatcher()
 	set_dawn(1.0 if Portals.is_cleared(world_id) else 0.0)
-	if Portals.has_found(world_id, "met_pip"):
+	if Portals.has_found(world_id, "met_pip") or Portals.is_cleared(world_id):
 		give_wings()
+	if Portals.is_cleared(world_id):
+		open_caves()
 	if not Portals.is_cleared(world_id) and beacons_lit() == 0 and not Portals.has_found(world_id, "met_pip"):
 		Game.message.call_deferred("Lanternmoor: it's night, and the sun just won't come up. Someone's fluttering by the way in...")
 
@@ -400,9 +408,17 @@ func _add_pip() -> void:
 func pip_lines() -> Array:
 	# Pip's bubbly and a bit nervous in the endless dark (for once!), then says what's next
 	if Portals.is_cleared(world_id):
-		return ["Look! LOOK! The sun! It's coming up all pink and gold!",
-			"I've never been so happy to see a morning. I'm a moth, I'm supposed to like the night!",
-			"But nights are only cosy when you know the morning's coming. Thank you, {player}."]
+		var found: int = caves.moths_found() if caves else 0
+		if found >= GLIMMER_CAVES.MOTHS.size():
+			return ["All five moonmoths came home! Listen to them, they're humming. That's moth for thank you.",
+				"The Glimmer Caves are yours to explore whenever you like. Your glow knows the way now."]
+		if found > 0:
+			return ["%d moonmoth%s home, %d still lost in the Glimmer Caves." % [found, "" if found == 1 else "s",
+				GLIMMER_CAVES.MOTHS.size() - found],
+				"They only show up in your glow. Look high, look low, and look across the pool!"]
+		return ["Look at that morning! I'm a moth, I'm supposed to like the night, but nights are cosier when you know the morning's coming.",
+			"Don't forget the Glimmer Caves, down the hollow by the way in. Your glow lights them up.",
+			"There's a moth lift at the bottom: hold {jump} in it and it floats you back up."]
 	if not Portals.has_found(world_id, "met_pip"):
 		Portals.note_found(world_id, "met_pip")
 		give_wings()
@@ -528,6 +544,43 @@ func mend() -> void:
 	Juice.shake(0.15)
 	Juice.rumble(0.3, 0.3)
 	Juice.blip("chime", 0.8, -3.0)
+	get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_glow)
+
+
+# The reward: Pip's glow, and the Glimmer Caves ------------------------------------------------------------------------
+func open_caves() -> void:
+	# The hollow opens and the caves are made under the moor (a second or so: only ever once a visit)
+	if caves or has_meta("preview"):
+		return
+	caves = GLIMMER_CAVES.new()
+	caves.name = "Glimmer Caves"
+	add_child(caves)
+	caves.build(self)
+
+
+func teach_lines() -> Array:
+	return ["{player}, wait! Before you go, I want to give you something. My glow!",
+		"Moths are made of a little bit of moonlight. Now you are too.",
+		"Whenever it's dark, you'll glow. Caves, tunnels, the night time. No buttons, it just happens!",
+		"And look, the morning opened up the old hollow by the way in. It goes down into the Glimmer Caves.",
+		"It's SO dark down there, nobody's been in for ages. Five of my moonmoths got lost in there, too.",
+		"Your glow will light the way. Crystals wake up when it touches them, and there's a bridge only glow can see!"]
+
+
+func _teach_glow(tries := 0) -> void:
+	if not is_inside_tree():
+		return
+	if Dialogue.is_active() and tries < 20:             # wait for a talk to finish first
+		get_tree().create_timer(1.0).timeout.connect(_teach_glow.bind(tries + 1))
+		return
+	open_caves()
+	Juice.rumble(0.4, 0.5)
+	Juice.shake(0.2)
+	var spot := get_node_or_null("Pip/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Pip", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "lanternmoor_glow")
+	else:
+		Game.message("New: Pip's glow! In the dark you shine. The Glimmer Caves have opened by the way in.")
 
 
 func is_morning() -> bool:
