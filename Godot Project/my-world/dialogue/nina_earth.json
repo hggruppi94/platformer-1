@@ -42,6 +42,45 @@
     },
     {
       "when": {
+        "season": "summer",
+        "quest_done": "first_night",
+        "quest_not_started": "summer_splash"
+      },
+      "set": "summer_splash_start",
+      "lines": [
+        "{player}! {player}! Feel that? The sun's actually HOT!",
+        "Mum says Stars Hollow's never had a proper summer. Not ever. It's like the whole year got its rhythm back.",
+        "(She's already wearing sunglasses. They're upside down.) We are having a BEACH DAY. At Willow Pond. Today.",
+        "Prue's got an old swim ring by our door, and Hank sells buckets and spades at the hardware store. Meet me by the dock!"
+      ]
+    },
+    {
+      "when": {
+        "season": "spring",
+        "quest_done": "first_night",
+        "quest_not_started": "duckling_day"
+      },
+      "set": "duckling_day_start",
+      "lines": [
+        "{player}! Smell that? Rain AND flowers. Mum says Stars Hollow's never had a proper spring. Not ever.",
+        "But there was a big shower in the night, and Mother Duck's lost all five of her ducklings! She's on the bank of Willow Pond, quacking her head off.",
+        "They'll have waddled all over town. Find them and they'll follow you, ducklings follow ANYONE. Then we take them home. Go go go!"
+      ]
+    },
+    {
+      "when": {
+        "flag": "season_dial_turned",
+        "not_flag": "nina_dial_talk"
+      },
+      "set": "nina_dial_talk",
+      "lines": [
+        "You turned the old stone dial by the oak, didn't you? I KNEW it. The whole town went whoosh!",
+        "Mr. Page says it's in his book. When a season comes home from wherever seasons go, the oak lets you pick it. Like a radio, but for weather!",
+        "Prue wants to turn it every five minutes. Mum said once a day. Prue said that's not what the dial said."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "first_snow:gather"
       },
       "lines": [
@@ -84,20 +123,6 @@
     },
     {
       "when": {
-        "season": "summer",
-        "quest_done": "first_night",
-        "quest_not_started": "summer_splash"
-      },
-      "set": "summer_splash_start",
-      "lines": [
-        "{player}! {player}! Feel that? The sun's actually HOT!",
-        "Mum says Stars Hollow's never had a proper summer. Not ever. It's like the whole year got its rhythm back.",
-        "(She's already wearing sunglasses. They're upside down.) We are having a BEACH DAY. At Willow Pond. Today.",
-        "Prue's got an old swim ring by our door, and Hank sells buckets and spades at the hardware store. Meet me by the dock!"
-      ]
-    },
-    {
-      "when": {
         "quest_step": "summer_splash:gather"
       },
       "lines": [
@@ -136,19 +161,6 @@
       "every": 2,
       "lines": [
         "Our sandcastle's still on the beach. Prue's put a crab in charge of it. Well, a pebble. She says it's a crab."
-      ]
-    },
-    {
-      "when": {
-        "season": "spring",
-        "quest_done": "first_night",
-        "quest_not_started": "duckling_day"
-      },
-      "set": "duckling_day_start",
-      "lines": [
-        "{player}! Smell that? Rain AND flowers. Mum says Stars Hollow's never had a proper spring. Not ever.",
-        "But there was a big shower in the night, and Mother Duck's lost all five of her ducklings! She's on the bank of Willow Pond, quacking her head off.",
-        "They'll have waddled all over town. Find them and they'll follow you, ducklings follow ANYONE. Then we take them home. Go go go!"
       ]
     },
     {
