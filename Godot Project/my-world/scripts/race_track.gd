@@ -415,9 +415,10 @@ func _starter() -> void:
 		model = kid.model
 	else:
 		model = (load(str(track.starter.model)) as PackedScene).instantiate() as Node3D
-		model.scale = Vector3.ONE * 1.9
+		model.scale = Vector3.ONE * float(track.starter.get("scale", 1.9))
 		starter.add_child(model)
-		LittleAliens.vary_snout(model)
+		if not track.starter.has("scale"):                 # (a little alien; a friend's own model keeps its face)
+			LittleAliens.vary_snout(model)
 	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if anim and anim.has_animation("idle"):
 		anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR

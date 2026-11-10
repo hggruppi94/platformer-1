@@ -107,6 +107,8 @@ func _night() -> bool:
 	if clock == null:
 		return false
 	var scene := get_tree().current_scene
+	if scene and scene.has_meta("always_night"):
+		return true                                    # (Dark Hollow: it's always midnight there)
 	if scene and scene.get("world_id") != null:
 		return false                                   # a portal world keeps its own sky, whatever the clock says
 	if clock.get("on_earth"):
