@@ -33,6 +33,7 @@ var _day := {}                       # the scene's own (noon) look
 var _glow_mats := {}                 # material -> day emission energy
 var _cloud_mats := {}                # cloud material ("Sky Cloud") -> its daytime see-through-ness
 var _shift := 0.0                    # 0..1, eased in and out
+var eclipse := 0.0                   # 0..1: the Agent of Chaos has swallowed the daylight (scripts/chaos_trials.gd)
 
 
 func _ready() -> void:
@@ -80,7 +81,7 @@ func _process(delta: float) -> void:
 
 func _update(delta: float) -> void:
 	var h := Clock.hours()
-	var day := Clock.daylight()                          # 0 night .. 1 day
+	var day := Clock.daylight() * (1.0 - eclipse)        # 0 night .. 1 day
 	var night := 1.0 - day
 	# Dusk/dawn: strongest while the sun is low, gone at noon and midnight
 	var low_sun := clampf(1.0 - absf(day - 0.5) * 2.0, 0.0, 1.0)
@@ -101,6 +102,7 @@ func _update(delta: float) -> void:
 			_sun.rotation_degrees = Vector3(-maxf(-arc * 50.0, 4.0), heading + 180.0, 0.0)
 			_sun.light_color = MOON_COLOR.lerp(SHIFT_GLOW, _shift * 0.4)
 			_sun.light_energy = MOON_ENERGY * moon_up
+		_sun.light_energy *= 1.0 - eclipse * 0.9
 		_sun.shadow_enabled = _sun.light_energy > 0.02
 
 	if _env:

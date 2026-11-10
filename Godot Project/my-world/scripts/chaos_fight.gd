@@ -20,6 +20,9 @@ extends Node
 #   3. Rewind:        he winds his clock backwards: if it isn't hit three times while it spins, time rewinds, the
 #      player is pulled back to where they were a few seconds ago and he gets some chaos back. Breaking the rewind
 #      leaves him dazed with his clock glowing for longer. Bursts and minions keep coming, faster.
+# Between turns he also throws the portal worlds' broken time at you, one friend's section at a time
+# (scripts/chaos_trials.gd): each needs a move a friend taught you, and his chaos can't drop into the next phase until
+# that phase's sections are done (or given up). Doing one takes 2 chaos and leaves him dazed with his clock glowing.
 # When his chaos runs out his clock shatters into glitch cubes, he shrinks away out of time, and the game remembers it
 # (flag "beat_agent_of_chaos"). A rematch is always there next time he's about.
 # Kid-safe throughout: bursts and rings bump like any enemy, nothing is hurt or broken but his clock, and he isn't
@@ -39,8 +42,10 @@ const BOSS_FLAGS := ["popped_gloop_king", "popped_grandfather_tock", "popped_bou
 const GOBLIN := preload("res://scenes/enemies/time_goblin.tscn")
 const GLOOP := preload("res://scenes/enemies/gloop.tscn")
 const CROC := preload("res://scenes/enemies/crocodillo.tscn")
+const TRIALS := preload("res://scripts/chaos_trials.gd")
+const TRIAL_CHAOS := 2                       # what a friend's section done takes off him
 
-enum Step { IDLE, BURSTS, OPEN, MINIONS, WIND, DAZED, GONE }
+enum Step { IDLE, BURSTS, OPEN, MINIONS, WIND, DAZED, GONE, TRIAL }
 
 var giant: Node3D
 var active := false
@@ -51,6 +56,7 @@ var player: Player
 var minions: Array[Node] = []
 var rewinds_done := 0
 var rewind_breaks := 0
+var trials: Node                             # the friends' sections (scripts/chaos_trials.gd)
 
 var _t := 0.0
 var _volleys := 0
@@ -73,6 +79,10 @@ func _ready() -> void:
 	_bar = BossBar.make(giant, str(giant.get("NAME")), Color(0.95, 0.35, 0.5), 9.6, 3.0)
 	_bar.scale = Vector3.ONE * 2.2
 	_bar.show_within = 0.0                     # hidden until a fight starts
+	trials = TRIALS.new()
+	trials.name = "Trials"
+	trials.set("fight", self)
+	add_child(trials)
 
 
 static func unlocked() -> bool:
@@ -147,6 +157,8 @@ func drive(delta: float) -> bool:
 		Step.WIND:
 			if _t <= 0.0:
 				_rewind()
+		Step.TRIAL:
+			trials.update(delta)
 	return true
 
 
@@ -160,6 +172,7 @@ func start() -> void:
 	giant.add_to_group("enemies")              # so the Star Popper's hip fire looks his way...
 	giant.set("size", HEART_Y / 0.45)           # ...at his chest clock (it aims 0.45 x size up)
 	giant.add_to_group("bosses")
+	giant.set_meta("no_dance", true)             # the groove and the Disco Ball would stop him (and the fight) dead
 	_bar.show_within = GIVE_UP_FAR
 	Game.message("The Agent of Chaos turns to face you. Pop the glowing clock on his chest!")
 	Juice.shake(0.5)
@@ -178,11 +191,16 @@ func stop(won_it: bool) -> void:
 	_glow_light.visible = false
 	giant.remove_from_group("enemies")
 	giant.remove_from_group("bosses")
+	giant.remove_meta("no_dance")
 	giant.set("size", 1.0)
 	for m in minions:
 		if is_instance_valid(m):
 			m.queue_free()
 	minions.clear()
+	if won_it:
+		trials.cleanup()
+	else:
+		trials.reset()
 	if not won_it:
 		chaos = CHAOS_MAX
 		phase = 0
@@ -204,6 +222,7 @@ func _set_phase(p: int) -> void:
 
 func _next() -> void:
 	# What he does after his clock closes again
+	trials.cleanup()                                      # (a section's gear or tower stays up till now)
 	_glow.visible = false
 	_glow_light.visible = false
 	_volleys = 0
@@ -233,7 +252,10 @@ func _volley() -> void:
 	if _volleys >= per:
 		_cycles += 1
 		_tidy_minions()
-		if phase == 3 and _cycles % 2 == 1:
+		var section: String = trials.pending(phase)
+		if section != "":
+			_trial(section)
+		elif phase == 3 and _cycles % 2 == 1:
 			_wind()                                     # every other turn in the last phase he tries to rewind
 		elif phase >= 2 and minions.is_empty() and _cycles % (2 if phase == 2 else 3) == 0:
 			_summon()
@@ -265,6 +287,8 @@ func _open(secs: float) -> void:
 func shot(power: int, point: Vector3, _dir: Vector3) -> String:
 	if not active:
 		return "miss"
+	if step == Step.TRIAL:
+		return trials.shot(power, point)
 	var on_heart := point.distance_to(heart_position()) < HEART_RADIUS + 0.8
 	if not on_heart or not vulnerable():
 		return "bounce"
@@ -275,18 +299,81 @@ func shot(power: int, point: Vector3, _dir: Vector3) -> String:
 		if _wind_hits >= 3:
 			_break_rewind()
 		return "hit"
-	chaos = maxi(chaos - power, 0)
+	chaos = maxi(chaos - power, chaos_floor())
 	Juice.hitstop(0.05)
 	Juice.shake(0.25)
 	Fx.burst(giant.get_parent(), point, Color(1.0, 0.4, 0.6), 14, 0.12, 3.5, -1.0, 0.6)
 	if chaos <= 0:
 		_win()
 		return "hit"
+	_check_phase()
+	return "hit"
+
+
+func _check_phase() -> void:
 	if chaos <= CHAOS_MAX / 3:
 		_set_phase(3)
 	elif chaos <= CHAOS_MAX * 2 / 3:
 		_set_phase(2)
-	return "hit"
+
+
+func chaos_floor() -> int:
+	# His chaos can't drop into the next phase while this phase still has a friend's section to do
+	if trials == null or trials.pending(phase) == "":
+		return 0
+	return {1: CHAOS_MAX * 2 / 3, 2: CHAOS_MAX / 3}.get(phase, 0) + 1
+
+
+# --- The friends' sections (scripts/chaos_trials.gd) ----------------------------------------------------------------
+
+func _trial(id: String) -> void:
+	step = Step.TRIAL
+	_glow.visible = false
+	_glow_light.visible = false
+	trials.start(id)
+
+
+func trial_over(id: String, ok: bool) -> void:
+	# Called by the trials when a section's done (ok) or its time's run out
+	if ok:
+		chaos = maxi(chaos - TRIAL_CHAOS, chaos_floor())
+		Juice.hitstop(0.08)
+		Juice.shake(0.5)
+		Fx.burst(giant.get_parent(), heart_position(), Color(1.0, 0.85, 0.35), 20, 0.14, 4.0, -1.0, 0.8)
+		if chaos <= 0:
+			_win()
+			return
+		_check_phase()
+		step = Step.DAZED
+		_t = 7.0
+		_show_glow(true)
+		giant.call("_play", "idle", 0.5)
+		_stagger()
+	elif id == "watch":
+		_glow.visible = false
+		_glow_light.visible = false
+		_rewind()                                             # nobody held a watch up: the rewind goes through
+	else:
+		step = Step.BURSTS
+		_volleys = 0
+		_t = 1.5
+
+
+func _show_glow(on: bool) -> void:
+	_glow.visible = on
+	_glow_light.visible = on
+
+
+func _stagger() -> void:
+	# He lurches forward and back, dazed
+	var model := giant.get_node_or_null("Model") as Node3D
+	if model == null:
+		return
+	var was := model.rotation.x
+	var tw := model.create_tween()
+	tw.tween_property(model, "rotation:x", was + 0.18, 0.35).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(0.8)
+	tw.tween_property(model, "rotation:x", was, 0.6)
 
 
 # --- Minions -------------------------------------------------------------------------------------------------------
@@ -460,7 +547,7 @@ func _make_heart() -> void:
 func _animate_glow(delta: float) -> void:
 	if not _glow.visible:
 		return
-	var spin := step == Step.WIND
+	var spin: bool = step == Step.WIND or (step == Step.TRIAL and trials.spinning())
 	_glow.rotation.z += delta * (-9.0 if spin else 1.0)
 	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() / (90.0 if spin else 200.0))
 	_glow_mat.albedo_color = (Color(0.5, 1.0, 0.95) if spin else Color(1.0, 0.85, 0.35))

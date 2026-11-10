@@ -91,6 +91,40 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The Agent of Chaos's final fight gets a section for every friend's move** (Hayden: "let's expand his
+  current mechanics to include sections that require you to use all of the skills that you have learned"). Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/chaos_trials.gd`** (a "Trials" node under `ChaosFight`): all the broken time from the portal worlds is
+    knotted into his clock, so between turns he throws each world's trouble back at you, in the order you mended them.
+    While a section's on (`Step.TRIAL`) his clock is shut and bursts stop; doing it takes 2 chaos and leaves him dazed
+    7 s with his clock glowing (`trial_over()`). His chaos can't drop into the next phase while that phase has a
+    section left (`chaos_floor()`: 21, then 11, then 1). Running out of time: he tries again later; after 3 goes he
+    gives it up (`TRIES`). A section only comes up once its move's learned (`learned()`), so old saves that opened the
+    fight with the three bosses just get fewer. Calling the fight off resets them.
+    - Phase 1: **Bramble**, the Static Storm (static round his feet buzzes you back on foot; burrow to the Root Knot by
+      his feet and roots trip him). **Flurry**, the River of Melted Time (a ring of sludge, 16 `water.gd` pools, sweeps
+      you back; freeze it and cross on the floes to the Frost Knot). **Pip**, Lights Out (he swallows the daylight:
+      `day_night.gd` gained `eclipse`, plus a `cave_dark` zone; Pip's glow wakes three lantern stones,
+      `scripts/chaos_lantern.gd`; the third is on a floating rock 5 m up and 18 m across: ride the moth swirl up holding
+      Jump, then glide on Pip's moth wings, lent for the section only).
+    - Phase 2: **Melody**, the Off-Beat Stomp (rings to jump; three on-beat grooves close enough and he dances).
+      **Otto**, the Time Flood (the field floods 3.6 m deep; dive to the plug by his feet). **Heather**, Glitch Fires
+      (put out three with April Showers, then a clock gear rises 5 m up in front of his chest: higher than a jump and a
+      double jump, not a Spring Step and one, or a rainbow). **Dash**, Glitch Crystals (three shield him; bubbles
+      bounce, any other gadget shatters them, `scripts/chaos_crystal.gd`; he throws you ammo).
+    - Phase 3: **the centipede**, the Clock Tower (a 10 m tower of glitch cubes in front of his clock: wall crawl up it).
+      **Rex and Dash**, the Big Rewind (his clock spins too fast to touch; hold up your watch and the rewind can't take
+      you; miss it and time rewinds as before).
+  - Fixed: grooving or a Disco Ball near him in the fight used to stop his physics (and the fight) for 4 s; he now has a
+    `no_dance` meta that both skip.
+  - Tests: new `tools/test_chaos_trials.gd` (70 checks: really burrows, breathes frost, rides the swirl and glides,
+    swims, showers, shatters crystals with a Fizz splash, climbs the tower, checks the watch); `test_chaos_fight` turns
+    the sections off and passes as before; groove, arsenal, far_future and boss_versions pass. Previews:
+    `tools/capture_chaos_trials.gd` (shots in the project files under characters/chaos-giant/friend-sections).
+  - My choices Hayden may change: every section's idea, which phase each is in, the lines (first drafts), 2 chaos a
+    section, three goes before he gives one up, the gear and tower heights. The ending cutscene and boss music are
+    still to do.
+
 - 2026-11-10: **Rex's shot at his own body, and the way to the Agent of Chaos** (Far Future slice two, the reward).
   Hayden: "Sounds good". Built and tested in the cloud (own Godot user folders, no save touched).
   - After Rex's thank-you he heads for Dash's lab and **Rook comes through** to the Far Future (`far_future.gd
