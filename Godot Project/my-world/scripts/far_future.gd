@@ -13,8 +13,11 @@ extends "res://scripts/portal_world.gd"
 # Each core coming home brightens the city a little. With all three, Captain Glitch (scripts/captain_glitch.gd), the
 # Agent of Chaos's lieutenant, flickering on the clock's dais, wakes when you come near. Pop him and the future stops
 # fading (mend()): every light in the city comes on, there are fireworks, and he flees through a rift to the Void, where
-# his master is waiting. (Slice two, the reward: Rex's shot at his own body back in the mended Swap-o-Tron, and the
-# Agent of Chaos's final fight opening.)
+# his master is waiting.
+# Then Rex's shot at his own body back (slice two, try_swap()): once it's mended, Rex fetches Rook to Dash's lab, and
+# pulling the Swap-o-Tron's lever swaps them back... for a few seconds. Then they snap back again: the swap is knotted
+# into the crack in the Shift, and the other end of the knot is in the Agent of Chaos's cracked clock. That's what
+# opens his final fight in the Void (flag SWAP_FLAG, chaos_fight.gd unlocked(); quest "Stop His Clock").
 # Rex (in the husky's body) waits by the way in, Dash in his lab. Nothing here hurts more than a bump; falling off the
 # Skyway just lands you on the city floor (in the race it pops you back up onto the road).
 
@@ -38,6 +41,17 @@ const LIFT_TIME := 1.1                    # seconds a hover lift takes to carry 
 const FADED := 0.85                       # how faded the city is with no cores home (1 = all grey)
 const CORE_COLOURS := [Color(0.55, 1.0, 0.4), Color(1.0, 0.82, 0.35), Color(0.4, 1.0, 1.0)]
 const TRAFFIC := 16
+const ROOK_MODEL := "res://models/characters/rook.glb"
+const START_FLAG := "swap_try_start"     # the quest "Stop His Clock" (quests/stop_his_clock.json) starts with this
+const SWAP_FLAG := "swap_tried"           # Rex's shot at his body's been had: the Agent of Chaos's fight opens
+const SWAP_FLASH := 2.4                   # seconds into the try: the flash, and they're swapped back
+const SWAP_SNAP := 5.6                    # ...the knot pulls tight and they snap back again
+const SWAP_DONE := 8.0                    # ...Dash reads the machine
+const REX_IN_LAB := Vector3(0.8, 0, 4.2)  # where Rex and Rook wait in the lab once it's mended (from the lab's middle)
+const ROOK_IN_LAB := Vector3(2.4, 0, 4.8)
+# The lever stands beside Rook's pod, not in front of the pods, so it never hides who's inside
+const LEVER_AT := Vector3(2.9, 0, 1.2)
+const LAB_MIDDLE := Vector3(-30, 0, -4)   # (tools/build_far_future.gd LAB)
 
 var fade := 1.0                           # 0 = mended, bright; FADED = no cores
 var captain_awake := false
@@ -49,6 +63,8 @@ var _towers: Array = []                   # the skyline's towers (they flicker o
 var _traffic: Array = []                  # [pod, centre, radius, speed, phase, height]
 var _fireworks := 0.0
 var _lifting := false
+var swapping := false                     # the Swap-o-Tron's mid-try
+var _swapped := false                     # Rex and Rook are in each other's... in their OWN bodies, for a moment
 var _t := 0.0
 
 
@@ -68,6 +84,7 @@ func setup() -> void:
 	for i in 2:
 		_add_lift(i)
 	_add_swap_o_tron()
+	_add_lever()
 	_add_friend("Rex", "res://models/characters/wolf.glb", "talk to Rex", _talk_rex)
 	_add_friend("Dash", "res://models/characters/bike_boy.glb", "talk to Dash", _talk_dash)
 	for i in FOLK.size():
@@ -77,6 +94,9 @@ func setup() -> void:
 	_add_traffic()
 	if not Portals.is_cleared(world_id):
 		_add_captain()
+	else:
+		_to_the_lab()
+		Dialogue.set_flag(START_FLAG)
 	set_fade(0.0 if Portals.is_cleared(world_id) else _goal_fade())
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and cores() == 0 and not Portals.has_found(world_id, "met_rex"):
@@ -482,9 +502,19 @@ func _add_friend(n: String, model: String, verb: String, talk: Callable) -> void
 func rex_lines() -> Array:
 	# Rex is home, in the husky's body, and the place he's going to be mayor of one day is fading (first drafts)
 	if Portals.is_cleared(world_id):
+		if Dialogue.flags.has("beat_agent_of_chaos"):
+			return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
+				"Dash keeps doing sums and then staring at the sky. He goes quiet when I ask.",
+				"Something's about to change. I can smell it. Good change, I think. Mostly."]
+		if Dialogue.flags.has(SWAP_FLAG):
+			return ["For five whole seconds I had HANDS, {player}. My own hands. I waved them about like a weirdo.",
+				"Then the Agent of Chaos's clock yanked us back. While it runs backwards, nothing can come undone.",
+				"So we stop his clock. The far field behind the castle hill, in the Void. You, me, everyone.",
+				"(Rook's fine, by the way. He licked the pod.)"]
 		return ["Look at it, {player}. Lumen City, all lit up. Home.",
-			"One day I'm going to be mayor here. A mayor with four paws, maybe. We'll see.",
-			"Dash says the Swap-o-Tron's working better than ever now. I'm trying not to get my hopes up. My tail isn't listening."]
+			"And Rook's here! I fetched him. He followed the smell of fireworks, mostly.",
+			"Dash says the Swap-o-Tron's working better than ever. So... shall we try it? Me in one pod, Rook in the other.",
+			"Pull the big lever when you're ready. I'm trying not to get my hopes up. My tail isn't listening."]
 	if not Portals.has_found(world_id, "met_rex"):
 		Portals.note_found(world_id, "met_rex")
 		return ["{player}! You came! Welcome to the Far Future. Lumen City! This is where me and Dash are from.",
@@ -517,9 +547,15 @@ func _talk_rex() -> void:
 func dash_lines() -> Array:
 	# Dash in his own lab, where his time experiment went off the same night as Rex's swap (first drafts)
 	if Portals.is_cleared(world_id):
+		if Dialogue.flags.has("beat_agent_of_chaos"):
+			return ["His clock's stopped. The knot's come loose. The readings are all... quiet. For the first time.",
+				"Which means I know how to fix the crack in the Shift now. Properly. I think I always did.",
+				"I'll tell you all about it soon, {player}. Not today. Today the city's lit up and that's enough."]
+		if Dialogue.flags.has(SWAP_FLAG):
+			return swap_lines()
 		return ["Everything's humming again. The lab, the clock, the whole city. You did that, {player}.",
 			"And the Swap-o-Tron... it's working. Properly working. For the first time since that night.",
-			"I've been doing sums. If we got Rex in one pod and Rook in the other... No. Not yet. I need to check them again. And again."]
+			"Rex is here, and Rook too. I've checked the sums three times. Pull the lever when you're ready!"]
 	if not Portals.has_found(world_id, "met_dash"):
 		Portals.note_found(world_id, "met_dash")
 		return ["Oh! {player}! In MY lab! Sorry about the mess. And the fading. And the sparks.",
@@ -546,7 +582,8 @@ func thank_lines() -> Array:
 		"The Agent of Chaos is there. Waiting. This was his last trick before the big one.",
 		"But he's got us to deal with now. All of us. And the future's not fading any more!",
 		"And Dash says the Swap-o-Tron's mended. Properly mended. Which means maybe... me... my own body...",
-		"One thing at a time. THANK you, {player}. From the furthest future there is."]
+		"THANK you, {player}. From the furthest future there is.",
+		"Come to Dash's lab when you're ready. I'll fetch Rook. Let's TRY it!"]
 
 
 func _thank(tries := 0) -> void:
@@ -559,6 +596,204 @@ func _thank(tries := 0) -> void:
 	var spot := get_node_or_null("Rex/Spot") as Node3D
 	if spot:
 		Dialogue.say(spot, "Rex", thank_lines().map(func(l: String) -> String: return Settings.fill(l)), "far_future_thanks")
+	# Off he goes to fetch Rook (the lab's well out of sight from the way in)
+	_to_the_lab()
+	Dialogue.set_flag(START_FLAG)
+
+
+# Rex's shot at his own body back (slice two) ---------------------------------------------------------------------------
+func _to_the_lab() -> void:
+	# Rex waits in Dash's lab now, with Rook, who followed the fireworks through the portal
+	var rex := get_node_or_null("Rex") as Node3D
+	if rex:
+		rex.global_position = LAB_MIDDLE + REX_IN_LAB
+	if get_node_or_null("Rook") == null:
+		var m := Node3D.new()
+		m.name = "Rook"
+		add_child(m)
+		m.global_position = LAB_MIDDLE + ROOK_IN_LAB
+		_add_friend("Rook", ROOK_MODEL, "talk to Rook", _talk_rook)
+
+
+func rook_lines() -> Array:
+	# Rook is the dog, in Rex's human body. He only ever says woof
+	if Dialogue.flags.has(SWAP_FLAG):
+		return ["Woof!", "(Rook sniffs the pod he was in, sneezes, and looks very pleased with himself.)"]
+	return ["Woof! Woof woof!", "(Rook wags. Well, he wags his whole bottom. Rex's body hasn't got a tail.)"]
+
+
+func _talk_rook() -> void:
+	var spot := get_node_or_null("Rook/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Rook", rook_lines(), "far_future_rook")
+
+
+func swap_lines() -> Array:
+	# Dash reads the machine after the try (first drafts)
+	return ["It WORKED. For five seconds it worked! And then... something pulled them back.",
+		"Look at the readings. The swap's knotted into the crack in the Shift, the one our two experiments made.",
+		"And the other end of the knot goes... there. Into that cracked clock. HIS clock. The Agent of Chaos's.",
+		"While his clock runs backwards, nothing that broke that night can come undone.",
+		"Captain Glitch said his master was waiting in the Void. So we go and stop his clock. In the far field.",
+		"{player}... thank you for pulling the lever. Rex needed to know it could work."]
+
+
+func _add_lever() -> void:
+	# The big lever on the Swap-o-Tron: only once the city's mended, and only once
+	var m := get_node_or_null("SwapOTron") as Node3D
+	if m == null:
+		return
+	var lever := Node3D.new()
+	lever.name = "Lever"
+	var post := MeshInstance3D.new()
+	post.mesh = _box(Vector3(0.5, 1.0, 0.5))
+	post.material_override = _mat(Color(0.3, 0.3, 0.42), 0.0, 0.4)
+	post.position = Vector3(0, 0.5, 0)
+	lever.add_child(post)
+	var arm := MeshInstance3D.new()
+	arm.name = "Arm"
+	arm.mesh = _box(Vector3(0.1, 0.9, 0.1))
+	arm.material_override = _mat(Color(0.8, 0.8, 0.9), 0.0, 0.3)
+	arm.position = Vector3(0, 1.3, 0)
+	arm.rotation.x = -0.5
+	lever.add_child(arm)
+	var knob := MeshInstance3D.new()
+	knob.mesh = _ball(0.16)
+	knob.material_override = _mat(Color(1.0, 0.25, 0.4), 1.2)
+	knob.position = Vector3(0, 0.5, 0)
+	arm.add_child(knob)
+	lever.position = LEVER_AT
+	m.add_child(lever)
+	var spot := USE_SPOT.make(LEVER_AT, func() -> String:
+		return "pull the Swap-o-Tron's lever" if can_try_swap() else "", func() -> void: try_swap(), 2.0, 2.2)
+	spot.name = "Spot"
+	m.add_child(spot)
+
+
+func can_try_swap() -> bool:
+	return Portals.is_cleared(world_id) and not Dialogue.flags.has(SWAP_FLAG) and not swapping \
+		and get_node_or_null("Rook") != null
+
+
+func pod_at(k: int) -> Vector3:
+	var m := get_node("SwapOTron") as Node3D
+	return m.global_transform * Vector3(-1.5 + k * 3.0, 0.3, 0)
+
+
+func try_swap() -> bool:
+	# Rex steps into one pod and Rook into the other, the coil charges, ZAP... and for a moment Rex is himself again
+	if not can_try_swap():
+		return false
+	swapping = true
+	var player := get_tree().get_first_node_in_group("player")
+	Game.hold_controls(&"swap_try", true, player)
+	var rex := get_node("Rex") as Node3D
+	var rook := get_node("Rook") as Node3D
+	rex.global_position = pod_at(0)
+	rook.global_position = pod_at(1)
+	var arm := get_node_or_null("SwapOTron/Lever/Arm") as Node3D
+	if arm:
+		create_tween().tween_property(arm, "rotation:x", 0.5, 0.25)
+	var coil := get_node_or_null("SwapOTron/Swap-o-Tron/Coil") as MeshInstance3D
+	if coil:
+		var mat := coil.material_override as StandardMaterial3D
+		create_tween().tween_property(mat, "emission_energy_multiplier", 7.0, SWAP_FLASH)
+	Juice.rumble(0.3, SWAP_FLASH)
+	Juice.blip("whoosh", 0.6, -4.0)
+	_shout(rex, "Here goes... everything!")
+	get_tree().create_timer(SWAP_FLASH).timeout.connect(_swap_flash)
+	get_tree().create_timer(SWAP_SNAP).timeout.connect(_swap_snap)
+	get_tree().create_timer(SWAP_DONE).timeout.connect(_swap_done)
+	return true
+
+
+func _swap_models() -> void:
+	# Each one's own mind back in their own body: the two models change places
+	var rex := get_node("Rex") as Node3D
+	var rook := get_node("Rook") as Node3D
+	var a := rex.get_node("Model") as Node3D
+	var b := rook.get_node("Model") as Node3D
+	rex.remove_child(a)
+	rook.remove_child(b)
+	b.name = "Model"
+	a.name = "Model"
+	rex.add_child(b)
+	rook.add_child(a)
+	_swapped = not _swapped
+
+
+func _swap_flash() -> void:
+	if not is_inside_tree():
+		return
+	for k in 2:
+		Fx.burst(self, pod_at(k) + Vector3(0, 1.4, 0), Color(1.0, 0.95, 1.0), 40, 0.1, 5.0, 0.0, 1.0)
+	Juice.shake(0.35)
+	Juice.blip("sparkle", 1.0, -2.0)
+	_swap_models()
+	_shout(get_node("Rex"), "HANDS! I've got HANDS, {player}!")
+	_shout(get_node("Rook"), "WOOF?!", 2.0)
+
+
+func _swap_snap() -> void:
+	# The knot pulls tight: the Agent of Chaos's cracked clock flickers over the machine, running backwards
+	if not is_inside_tree():
+		return
+	var clock := knot_clock_model()
+	clock.name = "Knot Clock"
+	add_child(clock)
+	clock.global_position = (get_node("SwapOTron") as Node3D).global_position + Vector3(0, 4.6, 0)
+	for k in 2:
+		Fx.burst(self, pod_at(k) + Vector3(0, 1.4, 0), Color(0.6, 0.2, 0.9), 30, 0.14, 4.0, 0.0, 1.0)
+	Juice.blip("rewind", 0.8, -2.0)
+	Juice.shake(0.25)
+	if _swapped:
+		_swap_models()
+	_shout(get_node("Rex"), "No, no, no... it's pulling us BACK!")
+	_shout(get_node("Rook"), "Woof.", 2.0)
+
+
+func _swap_done() -> void:
+	if not is_inside_tree():
+		return
+	var clock := get_node_or_null("Knot Clock")
+	if clock:
+		clock.queue_free()
+	var coil := get_node_or_null("SwapOTron/Swap-o-Tron/Coil") as MeshInstance3D
+	if coil:
+		(coil.material_override as StandardMaterial3D).emission_energy_multiplier = 2.2
+	var arm := get_node_or_null("SwapOTron/Lever/Arm") as Node3D
+	if arm:
+		arm.rotation.x = -0.5
+	# Out of the pods again
+	(get_node("Rex") as Node3D).global_position = LAB_MIDDLE + REX_IN_LAB
+	(get_node("Rook") as Node3D).global_position = LAB_MIDDLE + ROOK_IN_LAB
+	Dialogue.set_flag(SWAP_FLAG)
+	swapping = false
+	Game.hold_controls(&"swap_try", false, get_tree().get_first_node_in_group("player"))
+	var spot := get_node_or_null("Dash/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Dash", swap_lines().map(func(l: String) -> String: return Settings.fill(l)), "far_future_swap")
+
+
+func _shout(who: Node3D, text: String, height := 2.7) -> void:
+	# Rook shouts lower than Rex, so two shouts side by side never sit on top of each other
+	if who == null:
+		return
+	var old := who.get_node_or_null("Shout")
+	if old:
+		old.free()
+	var l := Label3D.new()
+	l.name = "Shout"
+	l.text = Settings.fill(text)
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font_size = 56
+	l.pixel_size = 0.006
+	l.outline_size = 12
+	l.modulate = Color(1.0, 0.95, 1.0)
+	l.position.y = height
+	who.add_child(l)
+	# A tween on the label itself goes when the label does, so a shout cut short by the next one leaves nothing behind
+	l.create_tween().tween_callback(l.queue_free).set_delay(2.8)
 
 
 # Captain Glitch -----------------------------------------------------------------------------------------------------------
@@ -676,6 +911,9 @@ func _process(delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	_fade_folk(player)
 	_face_friends(player, delta)
+	var hand := get_node_or_null("Knot Clock/Hand") as Node3D
+	if hand:
+		hand.rotation.z += delta * 9.0                   # (backwards, like his)
 	if Portals.is_cleared(world_id):
 		_fireworks -= delta
 		if _fireworks <= 0.0 and fade < 0.5:
@@ -709,7 +947,7 @@ func _fade_folk(player: Node3D) -> void:
 func _face_friends(player: Node3D, delta: float) -> void:
 	# Rex and Dash turn to look at you when you come near (and stand aside while they race you on the Skyway)
 	var racing := Races.racing() and Races.track_id == RACE
-	for n in ["Rex", "Dash"]:
+	for n in ["Rex", "Dash", "Rook"]:
 		var m := get_node_or_null(n) as Node3D
 		if m == null:
 			continue
@@ -718,7 +956,7 @@ func _face_friends(player: Node3D, delta: float) -> void:
 		if model == null or player == null:
 			continue
 		var to := player.global_position - m.global_position
-		if Vector2(to.x, to.z).length() > 9.0:
+		if Vector2(to.x, to.z).length() > 9.0 or swapping:
 			continue
 		var want := atan2(to.x, to.z) - m.global_rotation.y
 		model.rotation.y = lerp_angle(model.rotation.y, want, minf(1.0, delta * 4.0))
@@ -865,6 +1103,43 @@ static func swap_o_tron_model() -> Node3D:
 	glow.omni_range = 7.0
 	glow.position.y = 2.5
 	g.add_child(glow)
+	return g
+
+
+static func knot_clock_model() -> Node3D:
+	# A flickering picture of the Agent of Chaos's cracked clock, its hand spinning backwards (the other end of the knot)
+	var g := Node3D.new()
+	var face := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 1.1
+	disc.bottom_radius = 1.1
+	disc.height = 0.08
+	face.mesh = disc
+	face.material_override = _mat(Color(0.55, 0.2, 0.85), 1.6, 0.4, 0.75)
+	face.rotation.x = PI / 2.0
+	g.add_child(face)
+	var rim := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 1.05
+	t.outer_radius = 1.25
+	rim.mesh = t
+	rim.material_override = _mat(Color(0.95, 0.75, 0.3), 1.0, 0.3)
+	rim.rotation.x = PI / 2.0
+	g.add_child(rim)
+	var hand := Node3D.new()
+	hand.name = "Hand"
+	g.add_child(hand)
+	var stick := MeshInstance3D.new()
+	stick.mesh = _box(Vector3(0.1, 0.85, 0.06))
+	stick.material_override = _mat(Color(1.0, 0.9, 0.6), 2.0)
+	stick.position = Vector3(0, 0.38, 0.08)
+	hand.add_child(stick)
+	var crack := MeshInstance3D.new()
+	crack.mesh = _box(Vector3(0.06, 1.9, 0.1))
+	crack.material_override = _mat(Color(0.05, 0.0, 0.1))
+	crack.position.z = 0.07
+	crack.rotation.z = 0.5
+	g.add_child(crack)
 	return g
 
 

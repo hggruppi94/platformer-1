@@ -1,0 +1,43 @@
+{
+  "name": "Stop His Clock",
+  "giver": "rex",
+  "start": {
+    "flag": "swap_try_start"
+  },
+  "steps": [
+    {
+      "id": "try",
+      "text": "Meet Rex and Rook in Dash's lab in the Far Future, and pull the Swap-o-Tron's lever. Rex wants his own body back.",
+      "done": {
+        "flag": "swap_tried"
+      },
+      "where": [
+        {
+          "at": [
+            117,
+            -18
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "text": "The swap's knotted into the Agent of Chaos's cracked clock. Stop his clock: he's in the far field behind the castle hill.",
+      "done": {
+        "flag": "beat_agent_of_chaos"
+      },
+      "where": [
+        {
+          "at": [
+            116,
+            -206
+          ]
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "His clock's stopped, and the knot in the Shift has come loose. Rex and Dash have something to tell you, soon... (+10 sparkles)"
+  }
+}

@@ -91,6 +91,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Rex's shot at his own body, and the way to the Agent of Chaos** (Far Future slice two, the reward).
+  Hayden: "Sounds good". Built and tested in the cloud (own Godot user folders, no save touched).
+  - After Rex's thank-you he heads for Dash's lab and **Rook comes through** to the Far Future (`far_future.gd
+    _to_the_lab()`: both wait in the lab whenever the city's mended). The quest **Stop His Clock**
+    (`quests/stop_his_clock.json`, flag `swap_try_start`) starts.
+  - **The Swap-o-Tron's lever** (`_add_lever()`, `can_try_swap()`, `try_swap()`, a `swap_try` hold): Rex and Rook step
+    into the pods, the coil charges and ZAP, for about three seconds each is back in his own body (the two "Model"
+    children change places: `_swap_models()`, "HANDS! I've got HANDS!"). Then the Agent of Chaos's cracked clock
+    flickers over the machine (`knot_clock_model()`) and snaps them back. Dash reads the machine (`swap_lines()`): the
+    swap is knotted into the crack in the Shift, and the other end of the knot is the Agent of Chaos's clock. Flag
+    `swap_tried`.
+  - **The Agent of Chaos's fight opens** after the try (`chaos_fight.gd unlocked()`: `swap_tried`, or the three old
+    boss flags as before, so old saves keep theirs). His hint now mentions the Far Future. The quest's second step is
+    popping him (`beat_agent_of_chaos`, 10 sparkles); Rex and Dash have lines for after ("the knot's come loose").
+  - Tests: `tools/test_far_future.gd` now checks the swap too; chaos_fight, portals, quests, dialogue and
+    practice_trips pass. Previews: `capture_far_future.gd -- <folder> swap` (shots in the project files under
+    world/previews/far_future_swap).
+  - My choices Hayden may change: the swap only lasting a moment (his body back for good waits for the ending), the knot
+    being in the Agent of Chaos's clock, opening the fight without the three bosses, Rook coming through, the quest's
+    name and every line (first drafts). Next: the Agent of Chaos ending cutscene and boss music.
+
 - 2026-11-10: **The Far Future, Dash and Rex's world** (plan item 19a world 8, the last portal world, slice one).
   Hayden: "Lets do far future". Built and tested in the cloud (own Godot user folders, no save touched).
   - **The portal** (`Portals.WORLDS` "far_future"): quakes once Glenmoor's mended, at (117, -18) just past the hedge

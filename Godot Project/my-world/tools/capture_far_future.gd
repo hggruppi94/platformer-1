@@ -7,6 +7,9 @@ extends SceneTree
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_far_future.gd -- <output folder>
 #
+# Add "swap" after the folder for slice two instead: the mended city, Rex and Rook in Dash's lab, the Swap-o-Tron's try,
+# the moment Rex has his own body back, and the Agent of Chaos's clock snapping them back again.
+#
 # Your own save and settings are put aside (under their own names) and put back afterwards.
 
 const SAVE := "user://save.json"
@@ -18,12 +21,14 @@ var out_dir := "user://far_future_shots"
 var cam: Camera3D
 var _had_save := false
 var portals: Node
+var swap_only := false
 
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		out_dir = args[0]
+	swap_only = args.size() > 1 and args[1] == "swap"
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
 	create_timer(300.0, true, false, true).timeout.connect(_finish)
@@ -50,8 +55,11 @@ func _run() -> void:
 	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef", "glenmoor"]:
 		portals.cleared_worlds.append(w)
 		portals.quakes.append(w)
-	await _portal()
-	await _inside()
+	if swap_only:
+		await _swap()
+	else:
+		await _portal()
+		await _inside()
 	_finish()
 
 
@@ -146,6 +154,39 @@ func _inside() -> void:
 	await _shot("11_lumen_city_bright_again")
 	_look(Vector3(40.0, 18.0, 30.0), Vector3(0, 6.0, -10.0))
 	await _shot("12_fireworks_over_the_city")
+
+
+func _swap() -> void:
+	# Slice two: the city's mended, so Rex and Rook wait in Dash's lab by the Swap-o-Tron
+	portals.cleared_worlds.append("far_future")
+	portals.quakes.append("far_future")
+	portals.enter("far_future")
+	await _frames(20)
+	var s := current_scene as Node3D
+	var p := s.find_child("Player", true, false) as CharacterBody3D
+	p.get_node("HUD").visible = false
+	_cam_in(s)
+	await _frames(10)
+	if root.get_node("Dialogue").is_active():
+		root.get_node("Dialogue").end()
+	var lab := (s.get_node("SwapOTron") as Node3D).global_position
+	p.global_position = lab + Vector3(9.0, 1.0, 6.0)
+	await create_timer(0.6).timeout
+	var mid := ((s.get_node("Rex") as Node3D).global_position + (s.get_node("Rook") as Node3D).global_position) / 2.0
+	_look(lab + Vector3(3.5, 2.4, 6.0), mid + Vector3(0, 1.0, 0))
+	await _shot("13_rex_and_rook_in_the_lab")
+	s.try_swap()
+	await create_timer(1.6).timeout
+	_look(lab + Vector3(3.5, 2.4, 6.0), lab + Vector3(0, 1.3, 0))
+	await _shot("14_into_the_pods_coil_charging")
+	await create_timer(s.SWAP_FLASH - 1.6 + 0.5).timeout
+	await _shot("15_zap_rex_has_hands_again")
+	await create_timer(s.SWAP_SNAP - s.SWAP_FLASH + 0.3).timeout
+	_look(lab + Vector3(3.0, 2.0, 6.5), lab + Vector3(0, 3.0, 0))
+	await _shot("16_his_clock_snaps_them_back")
+	await create_timer(s.SWAP_DONE - s.SWAP_SNAP + 0.5).timeout
+	_look(lab + Vector3(3.5, 2.4, 6.0), lab + Vector3(0, 1.3, 0))
+	await _shot("17_dash_reads_the_machine")
 
 
 func game_go(path: String) -> void:
