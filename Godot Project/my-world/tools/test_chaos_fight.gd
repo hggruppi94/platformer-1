@@ -54,6 +54,7 @@ func _run() -> void:
 	var fight := giant.get_node_or_null("ChaosFight")
 	check(fight != null and giant.get("fight") == fight, "the Agent of Chaos has his final fight hooked up")
 	check(giant.has_method("shot"), "...and can be shot at")
+	fight.trials.off = true                     # the friends' sections have their own test (test_chaos_trials.gd)
 	await _physics(4)
 
 	# --- Locked until the three bosses are popped ---

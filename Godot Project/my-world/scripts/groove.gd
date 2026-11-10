@@ -208,6 +208,8 @@ func _set_dancing(radius: float) -> void:
 		var flat := Vector2(n.global_position.x - player.global_position.x, n.global_position.z - player.global_position.z)
 		if flat.length() > radius or absf(n.global_position.y - player.global_position.y) > 4.0:
 			continue
+		if n.has_meta("no_dance"):
+			continue                                   # the Agent of Chaos in his fight (scripts/chaos_fight.gd)
 		if n.has_method("shelled") and n.shelled():
 			continue                                   # a rolled-up Crocodillo can't hear the music in its shell
 		if Arsenal.is_plush(n):
