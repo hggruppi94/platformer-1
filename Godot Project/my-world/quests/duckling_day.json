@@ -1,0 +1,81 @@
+{
+  "name": "Duckling Day",
+  "giver": "nina_earth",
+  "start": {
+    "flag": "duckling_day_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Spring's here! Last night's shower scattered Mother Duck's five ducklings round Stars Hollow. Find them all: walk up to one and it follows you.",
+      "checklist": [
+        ["duckling_1", "The duckling by the gazebo"],
+        ["duckling_2", "The duckling in the playground"],
+        ["duckling_3", "The duckling outside the bakery"],
+        ["duckling_4", "The duckling by the footbridge"],
+        ["duckling_5", "The duckling in the Tulip Field"]
+      ],
+      "where": [
+        {"at": [4.5, 9.5], "world": "earth", "unless": "duckling_1"},
+        {"at": [-51.0, 25.5], "world": "earth", "unless": "duckling_2"},
+        {"at": [-1.5, -44.5], "world": "earth", "unless": "duckling_3"},
+        {"at": [-89.0, -34.0], "world": "earth", "unless": "duckling_4"},
+        {"at": [-116.0, 33.0], "world": "earth", "unless": "duckling_5"}
+      ],
+      "override": {
+        "nina_earth": {"place": "green_s", "do": "idle", "label": "duckling_day"}
+      },
+      "done": {
+        "flags": ["duckling_1", "duckling_2", "duckling_3", "duckling_4", "duckling_5"]
+      }
+    },
+    {
+      "id": "home",
+      "text": "Lead the ducklings home to Mother Duck, on the bank of Willow Pond by the dock.",
+      "where": [
+        {"at": [-67.5, 9.0], "world": "earth"}
+      ],
+      "override": {
+        "nina_earth": {"place": "pond_path", "do": "idle", "label": "duckling_day"}
+      },
+      "done": {
+        "flag": "ducks_home"
+      }
+    },
+    {
+      "id": "puddles",
+      "text": "The shower left puddles on the green. Jump in three of them with Nina!",
+      "checklist": [
+        ["puddle_1", "A big puddle"],
+        ["puddle_2", "A bigger puddle"],
+        ["puddle_3", "The biggest puddle"]
+      ],
+      "where": [
+        {"at": [12.0, 13.0], "world": "earth", "unless": "puddle_1"},
+        {"at": [11.0, -9.0], "world": "earth", "unless": "puddle_2"},
+        {"at": [-9.5, -12.0], "world": "earth", "unless": "puddle_3"}
+      ],
+      "override": {
+        "nina_earth": {"place": "green_s", "do": "idle", "label": "duckling_day"}
+      },
+      "done": {
+        "flags": ["puddle_1", "puddle_2", "puddle_3"]
+      }
+    },
+    {
+      "id": "buns",
+      "text": "Dry off with warm honey buns at Crumb & Cauldron. Ask Poppy!",
+      "where": ["poppy"],
+      "override": {
+        "nina_earth": {"place": "bakery", "do": "idle", "label": "duckling_day"}
+      },
+      "done": {
+        "flag": "spring_buns"
+      }
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Duckling Day: five ducklings home, three puddles splashed and honey buns with Nina. Happy spring! (+12 sparkles)"
+  }
+}

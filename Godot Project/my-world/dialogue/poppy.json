@@ -3,6 +3,17 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "duckling_day:buns"
+      },
+      "set": "spring_buns",
+      "lines": [
+        "Two honey buns, warm from the oven! Nina told me all about the ducklings. Three times. She's dripping on my floor.",
+        "(She puts down two sticky golden buns, still steaming, with a little drizzle of honey on top.)",
+        "Five ducklings in a line behind you, all the way down Main Street? I'd have paid to see that. Have an extra bun. Have two!"
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
