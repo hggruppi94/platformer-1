@@ -117,6 +117,38 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: the name Undergardens, where the Rootwell is, the rooms, the Old Taproot and his
     lines, the Glowcap crop and the reward.
 
+- 2026-11-10: **Pip's glow and the Glimmer Caves** (Lanternmoor slice two, the reward). Hayden: "Next I want to add
+  large intricate caves to pips world for when you gain his ability" and "make pips ability". Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **Pip's glow** (`scripts/pip_glow.gd`, a "PipGlow" node on the player like Burrow): locked until Lanternmoor is
+    mended. **No button** (every pad button is taken, and it's kinder for small hands): it comes on by itself inside a
+    `"cave_dark"` zone (a warm light 9 m round the hero, motes of light circling) and softly at night out of doors in
+    the Void and on Earth (5 m). In a cave the screen's edges go dark (a "Cave Dark" vignette), nearly black without
+    it. Groups it drives: `"glow_reveal"` (only there while the glow reaches it), `"glow_solid"` (only there and solid
+    while it reaches: glow bridges grow ahead of you), `"glow_wake"` (`glow_wake()` the first time it reaches:
+    `scripts/glow_crystal.gd`, crystals that wake and keep shining). `shining()`, `lights(pos)`.
+  - **`scripts/cave_kit.gd`** (shared, no class_name, preload it; the Secret Gardens caves use it too): caves from
+    rooms, tunnels and shafts (a signed distance field turned into a mesh and a trimesh at load: about 0.4 s for the
+    whole Glimmer Caves), rock that never sees the sun (render layer 11, `shade_from_sun()`), `dark_zone()`, and
+    stalactites, crystals, mushrooms, glow moss and glow bridges.
+  - **The Glimmer Caves** (`scripts/glimmer_caves.gd`, put in by `lanternmoor.gd open_caves()` once it's mended): a
+    hollow opens in the moor behind the way in at (8, 37) ("The Glimmer Caves" sign, standing stones), and under it 7
+    rooms joined in loops: the Moth Hall, the Crystal Gallery, the Chasm (a glow bridge over a pit), the Echo Pool (a
+    lake 30 m down), the Mushroom Grotto (bouncy mushrooms), the Moonroot Chamber (a cache: 3 Remnants) and Lantern
+    Roots, reached by the Gloomie Squeeze (shy Gloomies scurry from the glow). **Moth lifts** (hold Jump in the
+    swirl) carry you up the hollow and out of the pit. Five lost **moonmoths** only show in the glow (found
+    `moth_1..5`); all five: 6 Remnants and 10 sparkles. Pip teaches the glow as the sun comes up
+    (`_teach_glow()`, `teach_lines()`), and talks about the caves after.
+  - `scripts/ground_hole.gd`: a big triangle that only grazes a hole is now split into small bits first (`_fine`,
+    `FINE` 0.6 m) instead of dropped whole, so a second hole near an earlier one (the hollow by the Moon Well) no
+    longer tears the ground open between them.
+  - Tests: new `tools/test_glimmer_caves.gd` (54 checks); lanternmoor, sunken_secrets (its paving check now samples
+    off the paving's seams), portals, practice_trips, burrow, groove, swim, layout, walk_through, player_menu,
+    dialogue, frozen_moment, rhythm_springs, rootmind and tide_reef pass. Previews: `tools/capture_glimmer_caves.gd`
+    (shots in the project files under world/previews/glimmer_caves).
+  - My choices Hayden may change: no button (automatic glow), its reach, the rooms and their names, the Gloomies,
+    6 + 3 Remnants, where the hollow is. The game calls Pip "she"; Hayden said "his", so the new lines avoid it.
+
 - 2026-11-10: **Sunken secrets** at the bottom of deep water, for swimmers. Hayden: "Can we bury some secrets underwater
   in most places? Maybe a watch or ... something that has meaning or impact on the lore", then "How about all of these"
   to my three ideas. Built and tested in the cloud (own Godot user folders, no save touched).

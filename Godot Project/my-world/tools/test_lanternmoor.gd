@@ -265,7 +265,11 @@ func _check_snatcher() -> void:
 	check(s.is_morning() and not (s.get_node("Stars") as Node3D).visible, "the sun comes up and the stars fade")
 	var sun := s.get_node("Sun") as DirectionalLight3D
 	check(sun.light_energy > 1.0, "...and the moor is bright (light %.2f)" % sun.light_energy)
-	check("sun" in " ".join(s.pip_lines()), "Pip's thrilled")
+	check("morning" in " ".join(s.pip_lines()), "Pip's thrilled")
+	await create_timer(s.TEACH_AFTER - s.DAWN_TIME).timeout
+	var dlg := root.get_node("Dialogue")
+	check(dlg.is_active() and s.caves != null, "then Pip teaches you the glow and the Glimmer Caves open (tools/test_glimmer_caves.gd)")
+	dlg.end()
 	await _physics(30)
 	var left := 0
 	for n in s.get_children():
