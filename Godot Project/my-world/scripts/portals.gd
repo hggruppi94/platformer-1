@@ -67,7 +67,7 @@ const WORLDS := [
 		"reward_remnants": 9, "season": "summer",
 		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
 	{"id": "tide_reef", "name": "The Tide Reef", "owner": "Otto", "scene": "res://scenes/portal_worlds/tide_reef.tscn",
-		"at": Vector2(-56, -6), "yaw": 1.46, "preview": true, "colour": Color(0.4, 0.8, 1.0),
+		"at": Vector2(50, 28), "yaw": -2.08, "preview": true, "colour": Color(0.4, 0.8, 1.0),
 		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
 		"reward_remnants": 10,
 		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
@@ -299,7 +299,7 @@ func _near_words(id: String) -> String:
 		"rhythm_springs":
 			return "the lake's south-west shore"
 		"tide_reef":
-			return "the lake's west shore"
+			return "the lake's south-east shore"
 	return "the town"
 
 

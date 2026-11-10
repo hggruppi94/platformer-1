@@ -1,8 +1,8 @@
 extends SceneTree
 
 # Checks the Tide Reef, Otto the octopus's portal world (scripts/tide_reef.gd, scripts/riptide_gloop.gd,
-# scenes/portal_worlds/tide_reef.tscn): its quake waits for Rhythm Springs to be mended, then its portal rises on the
-# lake's west shore on flat, clear ground; inside, the tide's out (dry pools, pale corals) and Otto waits by the way
+# scenes/portal_worlds/tide_reef.tscn): its quake waits for Rhythm Springs to be mended, then its portal rises by the
+# lake's south-east shore on flat, clear ground; inside, the tide's out (dry pools, pale corals) and Otto waits by the way
 # in; nothing only he can do works until you've met him, and then his bubble follows you; his eight arms open the Clam
 # Vault; in the Kelp Grotto a wrong hole finds junk and the one with the glint finds the pearl; his bubble steps go up
 # the Coral Spire in easy hops, pop after you stand on one and come back; the pearl on top is yours and a bubble
@@ -95,7 +95,7 @@ func _check_quake() -> void:
 	var w: Dictionary = portals.world("tide_reef")
 	var ground: Vector3 = rem.ground_at(w.at)
 	check(absf(p.global_position.y - ground.y) < 0.05, "...standing on the ground")
-	check(w.at.x < -40.0 and absf(w.at.y) < 30.0, "...on the lake's west shore (%s)" % w.at)
+	check(w.at.x > 40.0 and w.at.y > 17.0 and w.at.y < 36.0, "...by the lake's south-east shore (%s)" % w.at)
 	var worst := 0.0
 	for k in 12:
 		var a := k * TAU / 12.0
@@ -136,6 +136,14 @@ func _check_quake() -> void:
 		var k := 0.0 if a == b else clampf((w.at - a).dot(b - a) / (b - a).length_squared(), 0.0, 1.0)
 		path = minf(path, w.at.distance_to(a.lerp(b, k)))
 	check(path > 6.0, "...and off the townsfolk's paths (%.1f m)" % path)
+	# ...and no tree grows through it (scenes/town/trees.gd: they have nothing solid, so the shape check can't see them)
+	var trees := current_scene.find_child("Trees", true, false) as Node3D
+	var tree := INF
+	if trees:
+		for tp in trees.get("positions"):
+			var g: Vector3 = trees.global_transform * tp
+			tree = minf(tree, w.at.distance_to(Vector2(g.x, g.z)))
+	check(tree > 6.0, "...with no tree growing through it (nearest %.1f m)" % tree)
 	var apart := INF
 	for o in portals.WORLDS:
 		if o.id != "tide_reef" and portals.is_built(o.id):

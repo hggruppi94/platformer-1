@@ -92,11 +92,11 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 - 2026-11-09: **The Tide Reef, Otto's world** (plan item 19a world 5, slice one). Hayden: "Lets try the next part".
   Built and tested in the cloud (own Godot user folders, no save touched).
-  - **The portal** (`Portals.WORLDS` "tide_reef"): quakes once Rhythm Springs is mended, on the lake's west shore at
-    (-56, -6) (flat, clear, 12 m off the nearest race track, 15 m off the nearest routine path, 23 m from the
-    Rootmind's portal), facing the lake. (The first spot, (-56, 18), sat 1.7 m from a routine path: the test now
-    checks `routines/places.json` links too.)
-    10 Remnants for mending it. No season (the seasons left are spring, in Glenmoor).
+  - **The portal** (`Portals.WORLDS` "tide_reef"): quakes once Rhythm Springs is mended, by the lake's south-east
+    shore at (50, 28) (flat, clear, 13 m off the nearest race track, 22 m off the nearest routine path, 10 m from the
+    nearest tree), facing the lake. 10 Remnants for mending it. No season (the one left, spring, is Glenmoor's). The
+    west shore was tried first: one spot sat on a routine path and the next had a tree growing through it, so the
+    test now checks `routines/places.json` links and the Trees' `positions` too (trees have nothing solid).
   - **The world** (`tools/build_tide_reef.gd` -> `scenes/portal_worlds/tide_reef.tscn`, logic `scripts/tide_reef.gd`):
     a reef town of coral houses, bubble lamps and shell paths that should be under the sea. The tide's stuck out: a
     dusty sky, dry cracked tide pools, pale corals, a stranded boat. `set_tide(k)` takes everything from stuck out (0)
@@ -122,7 +122,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     you, and 6 hits pop it. Between holds it flops waves, calls Splash Gloops and now and then sucks the water in (a
     riptide that drags you along the ground for 2.2 s; jump to break free). Popping it mends the world
     (`mend()`: the tide comes in over 6 s) and doesn't set `popped_gloop_king`.
-  - Tests: new `tools/test_tide_reef.gd` (145 checks); portals (now checks Glenmoor as the unbuilt world),
+  - Tests: new `tools/test_tide_reef.gd` (147 checks); portals (now checks Glenmoor as the unbuilt world),
     practice_trips, groove, season_unlocks, rhythm_springs, frozen_moment, gloop_king, boss_versions, layout and
     walk_through pass. Previews: `tools/capture_tide_reef.gd` (shots in the project files under
     world/previews/tide_reef).

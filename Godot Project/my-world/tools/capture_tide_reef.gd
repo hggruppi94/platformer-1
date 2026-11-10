@@ -1,7 +1,7 @@
 extends SceneTree
 
-# Screenshots of the Tide Reef, Otto the octopus's portal world (scripts/tide_reef.gd): its portal on the lake's west
-# shore, arriving with the tide stuck out, Otto in his bubble chair, his eight arms opening the Clam Vault, the Kelp
+# Screenshots of the Tide Reef, Otto the octopus's portal world (scripts/tide_reef.gd): its portal by the lake's
+# south-east shore, arriving with the tide stuck out, Otto in his bubble chair, his eight arms opening the Clam Vault, the Kelp
 # Grotto's holes, his bubble steps up the Coral Spire, the bubble ride down, the Riptide Gloop asleep, Otto holding it
 # still, and the reef with the tide back in. Opens a window (not --headless):
 #
@@ -51,7 +51,8 @@ func _run() -> void:
 		portals.cleared_worlds.append(w)
 		portals.quakes.append(w)
 	await _portal()
-	await _inside()
+	if OS.get_cmdline_user_args().size() < 2 or OS.get_cmdline_user_args()[1] != "portal":       # ("portal": only its shot)
+		await _inside()
 	_finish()
 
 
@@ -68,7 +69,7 @@ func _portal() -> void:
 	_cam_in(s)
 	_look(portal.global_position + portal.global_basis.z * 10.0 + Vector3(0, 3.0, 3.5), portal.global_position + Vector3(0, 2.6, 0))
 	await _frames(30)
-	await _shot("01_portal_on_the_west_shore")
+	await _shot("01_portal_by_the_lake")
 
 
 func _inside() -> void:
