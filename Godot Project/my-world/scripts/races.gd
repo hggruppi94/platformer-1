@@ -29,6 +29,7 @@ enum State { IDLE, INTRO, COUNTDOWN, RACING, RESULTS }
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
+const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const COUNTDOWN := 3.0
 const RESULTS_TIME := 7.0
 const PASS_RADIUS := 6.0             # metres from a checkpoint's middle that counts as through its ring
@@ -145,6 +146,25 @@ const TRACKS := {
 		"prizes": [16, 11, 6, 3],
 		"rivals": ["rook", "green_man", "dash"],
 		"starter": {"name": "Pip", "model": "res://models/characters/moth_kid.glb", "scale": 1.0},
+	},
+	# In the Far Future (scripts/far_future.gd): the Skyway, a sky road ten metres up that rings Lumen City (built by
+	# tools/build_far_future.gd from these same points, so the line lies on its deck). Dash, Rex and Rook race; the
+	# starter, Countdown, waits on the ground under it, and saying go lifts you up onto the grid. The boost pads are
+	# rocket boosts. Open from the start; finishing it at all brings the second Time Core home.
+	"skyway_run": {
+		"name": "Skyway Run",
+		"blurb": "two rocket-fast laps of the sky road round Lumen City, ten metres up",
+		"scene": FAR_FUTURE,
+		"laps": 2,
+		"points": [Vector2(52, 8), Vector2(40, 32), Vector2(20, 47), Vector2(0, 50), Vector2(-24, 46), Vector2(-42, 32),
+			Vector2(-52, 10), Vector2(-50, -14), Vector2(-38, -36), Vector2(-16, -50), Vector2(10, -52), Vector2(34, -40),
+			Vector2(50, -18)],
+		"boosts": [[0.5, 0.0], [3.5, 0.0], [6.5, 0.0], [9.5, 0.0]],
+		"boxes": [[2.0], [5.0], [8.0], [11.0]],
+		"goo": [[4.2, -2.2], [10.2, 2.2]],
+		"prizes": [18, 12, 7, 4],
+		"rivals": ["dash", "rex", "rook"],
+		"starter": {"name": "Countdown", "model": "res://models/characters/little_alien_blue.glb"},
 	},
 }
 # Earth kids who race, and the ride from scripts/rides.gd each one rides (Nina's board, Bruno's SK8 Deck...)

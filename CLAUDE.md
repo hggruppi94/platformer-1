@@ -91,6 +91,40 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The Far Future, Dash and Rex's world** (plan item 19a world 8, the last portal world, slice one).
+  Hayden: "Lets do far future". Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The portal** (`Portals.WORLDS` "far_future"): quakes once Glenmoor's mended, at (117, -18) just past the hedge
+    behind Rex and Dash's lab, on a glowing **fault line** where their experiments cracked the ground
+    (`Portals.fault_line()`, short of the hedge). Checked flat, 33 m off the nearest race, 16 m off the nearest routine
+    path, 12.7 m from the nearest tree. 12 Remnants for mending it.
+  - **The world** (`tools/build_far_future.gd` -> `scenes/portal_worlds/far_future.tscn`, logic
+    `scripts/far_future.gd`): **Lumen City**, a neon city from the furthest future, round a city floor with the
+    **Tomorrow Clock** in the middle, Dash's lab (a round lab with a gallery and a glass dome roof), the Fading Plaza
+    (holo-globe fountain, a balcony up hover steps), towers, a skyline and hover-pod traffic. It's **fading**: all
+    the broken time in the other worlds is catching up with it (`set_fade(k)`: the colour drains, the neon dims, the
+    far towers flicker out; each copy has its own sky and materials). Three **Time Cores** bring it back, each a bit
+    brighter: **Core 1** Dash's lab: fit the Swap-o-Tron's three Chrono Fuses (Interact or a bubble; one by the
+    machine, one on the gallery and one on the roof, with hover lifts up: `fix_fuse()`, `lift()`), and it hums again.
+    **Core 2** the **Skyway Run** (`Races.TRACKS` "skyway_run", 2 laps of a road 10 m up in the sky; Countdown, a little
+    blue alien, starts it; Dash, Rex and Rook race): finish in any place. Falling off mid-race pops you back up.
+    **Core 3** the Fading Plaza: six folk (Juno, Pixel, Grandpa Gizmo, Vega, Bleep, Orla) are fading out of time; get
+    close or bubble them and your watch's tick pins them back (`pin()`). Found ids `met_rex`, `met_dash`, `fuse_1..3`,
+    `folk_1..6`, `core_1..3`, `thanked`.
+  - **Rex** (the husky body) waits by the way in, **Dash** in his lab; their lines say what to do next.
+  - **Captain Glitch** (`scripts/captain_glitch.gd`), the Agent of Chaos's lieutenant: a knight of purple glitch cubes
+    with a cracked clock on his chest, a flickering statue on the clock's dais until all three cores are home and you
+    come within 16 m. He floats and drops chaos bursts (his master's `ChaosBurst`), then crashes down with a ring to
+    jump; dazed, his clock glows and bubbles and stomps count (3 at most, then he's back up). Two Time Goblins at 3 and
+    6 hits; 9 hits pops him: he shouts that his master's waiting in the Void and blinks off through a rift. The city
+    comes back brighter than ever with fireworks (`mend()`).
+  - Tests: new `tools/test_far_future.gd` (about 170 checks); portals, practice_trips, earth_race, time_goblins,
+    chaos_fight, dark_hollow and glenmoor pass (races fails its vein check on main too; test_glenmoor now clears old
+    shouts before checking one Sunfolk cheers, which failed on main too). Previews: `tools/capture_far_future.gd`
+    (shots in the project files under world/previews/far_future).
+  - My choices Hayden may change: the names Lumen City, Captain Glitch and Countdown, the six folk, the three cores'
+    tasks, 9 hits, 12 Remnants, the portal's spot, and every line (first drafts). Slice two: the reward (Rex's shot at
+    his own body back in the mended Swap-o-Tron, and the Agent of Chaos's final fight opening from it).
+
 - 2026-11-10: **The centipede's gifts: wall crawl and her holes** (Dark Hollow slice two, the reward). Hayden: "Okay
   what is the centipedes ability?", then "Both" on the card (wall crawl as her ability, and her gulp as fast travel
   between places you've found). Built and tested in the cloud (own Godot user folders, no save touched).
