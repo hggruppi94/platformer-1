@@ -61,6 +61,11 @@ func _ready() -> void:
 	var splash := (load("res://scripts/summer_splash.gd") as GDScript).new() as Node
 	splash.name = "SummerSplash"
 	add_child(splash)
+	# Spring fun (puddles on the green, the duck family on Willow Pond) and the quest "Duckling Day"
+	# (scripts/duckling_day.gd), reachable as "EarthTown/DucklingDay"
+	var ducks := (load("res://scripts/duckling_day.gd") as GDScript).new() as Node
+	ducks.name = "DucklingDay"
+	add_child(ducks)
 
 
 func _on_scene_changed() -> void:

@@ -247,6 +247,9 @@ func _paint_materials() -> void:
 			elif name == "Pond Water" and season == "summer":
 				c = SUMMER_POND                      # clear and blue, glinting in the sun
 				mat.roughness = 0.02
+			elif name == "Pond Water" and season == "spring":
+				c = SPRING_POND                      # fresh and clear after the showers, for the ducks
+				mat.roughness = 0.04
 			elif (name == "Lily Pad" or name == "Lily Flower") and season == "winter":
 				c = Color(0.85, 0.92, 0.98)          # (under the ice)
 			mat.albedo_color = c if name == "Pond Water" and season == "winter" else Color(c, built.albedo.a)
@@ -261,7 +264,7 @@ func _dress(on: bool) -> void:
 		(cs as CollisionShape3D).disabled = not on
 	for m in _mist:
 		if is_instance_valid(m):
-			m.visible = season != "summer"
+			m.visible = season != "summer" and season != "spring"      # (a Halloween-y mist: not in the sunny seasons)
 
 
 # -----------------------------------------------------------------------------
@@ -278,6 +281,7 @@ const BULBS_SPRING := [Color(1.0, 0.7, 0.82), Color(1.0, 0.95, 0.55), Color(0.8,
 const BUNTING_SPRING := [Color(1.0, 0.72, 0.84), Color(1.0, 0.93, 0.5), Color(0.75, 0.65, 0.95), Color(0.97, 0.97, 1.0)]
 const TULIPS := [Color(0.95, 0.2, 0.3), Color(1.0, 0.85, 0.2), Color(1.0, 0.55, 0.75), Color(0.75, 0.45, 0.95), Color(1.0, 0.6, 0.2)]
 const SUMMER_POND := Color(0.1, 0.38, 0.56)
+const SPRING_POND := Color(0.14, 0.42, 0.5)
 
 
 func _collect_autumn_bits(scene: Node) -> void:

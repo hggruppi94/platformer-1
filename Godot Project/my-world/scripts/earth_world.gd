@@ -20,6 +20,11 @@ const NIGHT_SKY := {"top": Color(0.015, 0.02, 0.07), "horizon": Color(0.07, 0.09
 const SUMMER := {"high": 74.0, "energy": 1.45, "noon": Color(1.0, 0.98, 0.92), "ambient": 0.9,
 	"top": Color(0.12, 0.42, 0.95), "horizon": Color(0.62, 0.84, 1.0), "sun_size": 50.0, "sun_glow": 0.07,
 	"rise": [3.5, 6.0], "set": [19.5, 22.0]}
+# Spring: a fresh, soft morning light, a pale washed blue sky after the showers, and days a little longer than autumn's
+# (the sun's up from half past five till half past seven)
+const SPRING := {"high": 62.0, "energy": 1.25, "noon": Color(1.0, 0.97, 0.9), "ambient": 0.85,
+	"top": Color(0.28, 0.55, 0.92), "horizon": Color(0.8, 0.9, 1.0), "rise": [4.5, 7.0], "set": [18.5, 21.0],
+	"up": 5.5, "down": 19.5}
 # How see-through each part of the moon is at full night ("Earth Moon Glow" is its soft halo)
 const MOON_ALPHA := {"Earth Moon": 1.0, "Earth Moon Sea": 1.0, "Earth Moon Glow": 0.14}
 
@@ -126,17 +131,18 @@ func _light() -> void:
 	# lamps come on at dusk.
 	var h := Clock.earth_minutes / 60.0
 	var summer := Clock.season() == "summer"
-	var rise: Array = SUMMER.rise if summer else [5.0, 7.5]
-	var dusk: Array = SUMMER.set if summer else [17.5, 20.0]
+	var spring := Clock.season() == "spring"
+	var rise: Array = SUMMER.rise if summer else (SPRING.rise if spring else [5.0, 7.5])
+	var dusk: Array = SUMMER.set if summer else (SPRING.set if spring else [17.5, 20.0])
 	var day := smoothstep(rise[0], rise[1], h) * (1.0 - smoothstep(dusk[0], dusk[1], h))     # 0 night .. 1 day
 	var night := 1.0 - day
 	var low_sun := clampf(1.0 - absf(day - 0.5) * 2.0, 0.0, 1.0)              # strongest at sunrise and sunset
 	var glow: Color = SUNRISE if h < 12.0 else SUNSET
 	if _sun:
-		# The sun's up from 6 to 6 (in summer from half past four till 9 at night): +1 at its highest, 0 at the
-		# horizon, and below it all night, -1 deepest in the middle of the night
-		var up: float = 4.5 if summer else 6.0
-		var down: float = 21.0 if summer else 18.0
+		# The sun's up from 6 to 6 (in summer from half past four till 9 at night, in spring from half past five till half
+		# past seven): +1 at its highest, 0 at the horizon, and below it all night, -1 deepest in the middle of the night
+		var up: float = 4.5 if summer else (SPRING.up if spring else 6.0)
+		var down: float = 21.0 if summer else (SPRING.down if spring else 18.0)
 		var arc: float
 		var heading: float                                                        # east in the morning, west at evening
 		if h >= up and h <= down:
@@ -147,9 +153,9 @@ func _light() -> void:
 			arc = -sin(PI * t)
 			heading = -90.0 - t * 180.0
 		if arc >= 0.0:
-			_sun.rotation_degrees = Vector3(-maxf(arc * (SUMMER.high if summer else SUN_HIGH), 3.0), heading, 0.0)
-			_sun.light_color = (SUMMER.noon if summer else SUN_NOON).lerp(glow, low_sun * (0.6 if summer else 0.85))
-			_sun.light_energy = (SUMMER.energy if summer else 1.15) * smoothstep(-0.02, 0.15, arc)
+			_sun.rotation_degrees = Vector3(-maxf(arc * (SUMMER.high if summer else (SPRING.high if spring else SUN_HIGH)), 3.0), heading, 0.0)
+			_sun.light_color = (SUMMER.noon if summer else (SPRING.noon if spring else SUN_NOON)).lerp(glow, low_sun * (0.6 if summer else 0.85))
+			_sun.light_energy = (SUMMER.energy if summer else (SPRING.energy if spring else 1.15)) * smoothstep(-0.02, 0.15, arc)
 		else:
 			_sun.rotation_degrees = Vector3(-maxf(-arc * 50.0, 8.0), heading + 180.0, 0.0)
 			_sun.light_color = MOON_LIGHT
@@ -161,8 +167,8 @@ func _light() -> void:
 			_moon.position = from.normalized() * 700.0
 			_moon.look_at(Vector3.ZERO)
 	if _sky:
-		var day_top: Color = SUMMER.top if summer else DAY_SKY.top
-		var day_horizon: Color = SUMMER.horizon if summer else DAY_SKY.horizon
+		var day_top: Color = SUMMER.top if summer else (SPRING.top if spring else DAY_SKY.top)
+		var day_horizon: Color = SUMMER.horizon if summer else (SPRING.horizon if spring else DAY_SKY.horizon)
 		var top: Color = day_top.lerp(glow.lerp(day_top, 0.6), low_sun * 0.5).lerp(NIGHT_SKY.top, night)
 		var horizon: Color = day_horizon.lerp(glow, low_sun * 0.85).lerp(NIGHT_SKY.horizon, night * (1.0 - low_sun * 0.5))
 		_sky.sky_top_color = top
@@ -174,7 +180,7 @@ func _light() -> void:
 			_sky.sun_curve = SUMMER.sun_glow if summer else _sun_curve
 	if _env:
 		_env.fog_light_color = Color(0.82, 0.86, 0.92).lerp(glow, low_sun * 0.6).lerp(Color(0.1, 0.11, 0.2), night * 0.9)
-		_env.ambient_light_energy = lerpf(0.32, SUMMER.ambient if summer else 0.8, day)
+		_env.ambient_light_energy = lerpf(0.32, SUMMER.ambient if summer else (SPRING.ambient if spring else 0.8), day)
 	# Clouds: white by day, rosy gold at sunrise and sunset, dim grey-blue at night
 	if _cloud_mat:
 		var c := Color.WHITE.lerp(glow.lightened(0.35), low_sun * 0.8).lerp(Color(0.24, 0.26, 0.38), night * (1.0 - low_sun * 0.6))

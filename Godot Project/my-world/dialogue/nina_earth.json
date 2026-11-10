@@ -140,6 +140,61 @@
     },
     {
       "when": {
+        "season": "spring",
+        "quest_done": "first_night",
+        "quest_not_started": "duckling_day"
+      },
+      "set": "duckling_day_start",
+      "lines": [
+        "{player}! Smell that? Rain AND flowers. Mum says Stars Hollow's never had a proper spring. Not ever.",
+        "But there was a big shower in the night, and Mother Duck's lost all five of her ducklings! She's on the bank of Willow Pond, quacking her head off.",
+        "They'll have waddled all over town. Find them and they'll follow you, ducklings follow ANYONE. Then we take them home. Go go go!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "duckling_day:find"
+      },
+      "lines": [
+        "Five ducklings: by the gazebo, the playground, outside the bakery, the footbridge, and the Tulip Field. Walk right up to them. They'll follow you in a line!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "duckling_day:home"
+      },
+      "lines": [
+        "Look at them all, in a line behind you! Take them to Mother Duck, on the bank by the dock. Don't walk too fast, their legs are THIS long."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "duckling_day:puddles"
+      },
+      "lines": [
+        "They're home! Now the best bit of a spring shower: PUDDLES. There's three on the green. Jump in them. Properly. With both feet."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "duckling_day:buns"
+      },
+      "lines": [
+        "I'm wet up to my knees. Honey buns! Poppy makes them warm in spring. Ask her at the bakery, I'll be there!"
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "duckling_day",
+        "season": "spring"
+      },
+      "every": 2,
+      "lines": [
+        "The ducklings swim round the pond in a line behind their mum now. Prue's named them all. They're all called Gerald."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "first_night:morning",
         "not_flag": "fn_nina"
       },

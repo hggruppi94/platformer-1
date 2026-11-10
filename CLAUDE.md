@@ -91,6 +91,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Spring in Stars Hollow: the quest "Duckling Day", puddles, and a spring sun** (Hayden: "Okay let's work
+  on earth spring now"; spring's lines, tulips and jobs came with Glenmoor). Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **`scripts/duckling_day.gd`** (a "DucklingDay" node under `EarthTown`, `quests/duckling_day.json`): only in spring.
+    Nina offers it once The First Night's done: a shower in the night scattered Mother Duck's five ducklings round town
+    (`LOST_AT`: by the gazebo, in the playground, outside the bakery, by the footbridge, in the Tulip Field). Walk up to
+    one and it falls in behind you; they follow in a line along the path your feet took (`_trail`, `SPACING`). Lead
+    them to Mother Duck on Willow Pond's east bank (`MOTHER_AT`), then the whole family paddles round the pond in a line
+    for the rest of spring (`SWIM`). Then jump in three **puddles** on the green with Nina (`PUDDLES`; landing in one
+    splashes it any time in spring) and share honey buns with Poppy at Crumb & Cauldron. 12 sparkles. Flags
+    `duckling_day_start`, `duckling_1..5`, `ducks_home`, `puddle_1..3`, `spring_buns`. Poppy's bun line comes first in
+    her file so it plays even if you've never met her.
+  - **The spring sun** (`earth_world.gd SPRING`): higher and brighter than autumn's, a soft pale blue sky, up from 5:30
+    AM till 7:30 PM. Willow Pond is clear (`seasons.gd SPRING_POND`) and its Halloween mist is gone in spring, as in summer.
+  - Tests: `tools/test_spring.gd` now checks the sun and Duckling Day all the way through (every spot outdoors on dry,
+    open ground). Previews: `tools/capture_spring.gd` (shots in the project files under world/previews/spring).
+  - My choices Hayden may change: ducklings as the spring quest, where they hide, the puddles, honey buns, the sun.
+
 - 2026-11-10: **Glenmoor reworked to day and night, Heather's spring moves, her orchard and spring in Stars Hollow**
   (Glenmoor slice two). Hayden: "my idea with glenmoor was that it would be a sort of continuous looping between day
   and night with factions that prefer both warring over the unpredictable cycle", "we stripped Heather of her
