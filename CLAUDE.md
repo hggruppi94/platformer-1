@@ -91,6 +91,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The Agent of Chaos's ending cutscene, and his boss music** (Hayden: "Okay lets do it", the next step
+  after the friends' sections). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/chaos_ending.gd`** (an "Ending" node under `ChaosFight`, a CanvasLayer like `RaceIntro`): the first time
+    his chaos runs out (`chaos_fight.gd _win()`, before the flag is set) it plays about 34 s, skippable with
+    Jump/Interact/Accept: his chest clock cracks and shatters into glitch cubes with a golden ring rolling out; he sinks
+    down and his armour peels away till only a **small figure of light** is left, which looks at the hero and drifts
+    up into motes; the **crack in the sky** over his field (the crack in the Shift) zips shut in gold; **the friends
+    come through** (Dash, Rex, Rook, Bramble, Flurry, Pip, Melody, Otto, Heather: copies made for the scene, `FRIENDS`)
+    and Dash, Rex, Bramble and Pip talk (`LINES`); then the title "The Agent of Chaos is sent out of time. The Void is
+    safe... for now." Its own camera, a `chaos_ending` hold on the controls, the HUD hidden, and the minimap waits
+    (new group `"cutscene_playing"`, `map_screen.gd`). The friends stay till you walk 30 m off. He leaves **a little
+    pocket watch, stopped at midnight** in the grass (flag `chaos_watch_found`; it waits in his field on later visits
+    until it's found). Who the figure was is left a mystery on purpose. A rematch win just shrinks him away as before.
+  - **Music** (`tools/make_soundscape.py`): `chaos_boss` (D minor, 144 bpm, organ, ticking hats, clock-chime bells) in
+    the fight (`soundscape.gd`: ChaosFight is in group `"chaos_fight"`; falls back to `gloop_king` if the file's
+    missing) and `chaos_ending` (G major, slow, bells) while the cutscene plays.
+  - Tests: new `tools/test_chaos_ending.gd`; `test_chaos_fight` turns the ending off (`ending.off`) and passes;
+    chaos_trials, soundscape, far_future and map pass. Previews: `tools/capture_chaos_ending.gd` (shots in the project
+    files under characters/chaos-giant/ending).
+  - My choices Hayden may change: everything in the cutscene (first drafts), the figure of light and the watch (a hint
+    that he was someone once, nothing decided), the friends' lines, both tunes. Rex and Rook swapping back for good is
+    still to come (Dash says "soon").
+
 - 2026-11-10: **The Agent of Chaos's final fight gets a section for every friend's move** (Hayden: "let's expand his
   current mechanics to include sections that require you to use all of the skills that you have learned"). Built and
   tested in the cloud (own Godot user folders, no save touched).

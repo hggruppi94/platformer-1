@@ -201,7 +201,8 @@ func _process(delta: float) -> void:
 		_overlay.queue_redraw()
 	# The minimap is always up in a race (scripts/races.gd), to see the bends coming
 	var show_mini := (Settings.minimap or Races.racing()) and (in_town() or on_earth()) and not is_open() and not get_tree().paused \
-		and nina() != null and not (Races.intro and Races.intro.playing())
+		and nina() != null and not (Races.intro and Races.intro.playing()) \
+		and get_tree().get_nodes_in_group("cutscene_playing").is_empty()
 	_mini_layer.visible = show_mini
 	if show_mini:
 		# Settings > Display > Screen stuff size: the whole corner map scales from the bottom-right corner

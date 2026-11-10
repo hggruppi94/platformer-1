@@ -5,6 +5,7 @@ extends Node
 #
 #   a race                          -> "race"           (Races.racing())
 #   the Gloop King after you        -> "gloop_king"     (a boss in the "bosses" group chasing, close by)
+#   the Agent of Chaos's fight      -> "chaos_boss"     (and "chaos_ending" while his ending plays)
 #   a fair on the green (Saturdays) -> "festival"       (Festival.is_on(), on Earth)
 #   a music zone you're standing in -> its own track    (scripts/music_zone.gd: interiors; the barn's is "barn_dance")
 #   the Skate Park / the Skate Yard -> "skate_park"
@@ -99,6 +100,13 @@ func pick_track() -> String:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if Races.racing():
 		return "race"
+	for f in get_tree().get_nodes_in_group("chaos_fight"):
+		# The Agent of Chaos: his own music in the fight, and a gentler one for his ending
+		var end := f.get("ending") as Node
+		if end and end.call("playing"):
+			return "chaos_ending"
+		if f.get("active") and player and (f.get("giant") as Node3D).global_position.distance_to(player.global_position) < 80.0:
+			return "chaos_boss" if Audio.music_path("chaos_boss") != "" else "gloop_king"
 	if player:
 		for b in get_tree().get_nodes_in_group("bosses"):
 			if not b.get("defeated") and b.get("_was_chasing") and (b as Node3D).global_position.distance_to(player.global_position) < 30.0:

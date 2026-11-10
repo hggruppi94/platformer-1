@@ -44,6 +44,7 @@ const GLOOP := preload("res://scenes/enemies/gloop.tscn")
 const CROC := preload("res://scenes/enemies/crocodillo.tscn")
 const TRIALS := preload("res://scripts/chaos_trials.gd")
 const TRIAL_CHAOS := 2                       # what a friend's section done takes off him
+const ENDING := preload("res://scripts/chaos_ending.gd")
 
 enum Step { IDLE, BURSTS, OPEN, MINIONS, WIND, DAZED, GONE, TRIAL }
 
@@ -57,6 +58,7 @@ var minions: Array[Node] = []
 var rewinds_done := 0
 var rewind_breaks := 0
 var trials: Node                             # the friends' sections (scripts/chaos_trials.gd)
+var ending: CanvasLayer                      # the ending cutscene, the first time he's beaten (scripts/chaos_ending.gd)
 
 var _t := 0.0
 var _volleys := 0
@@ -83,6 +85,19 @@ func _ready() -> void:
 	trials.name = "Trials"
 	trials.set("fight", self)
 	add_child(trials)
+	ending = ENDING.new()
+	ending.name = "Ending"
+	ending.set("fight", self)
+	add_child(ending)
+	add_to_group("chaos_fight")
+	# The pocket watch he left behind waits in his field until it's found
+	if Dialogue.flags.has("beat_agent_of_chaos") and not Dialogue.flags.has(ENDING.WATCH_FLAG):
+		_place_old_watch.call_deferred()
+
+
+func _place_old_watch() -> void:
+	if giant.is_inside_tree():
+		ending.place_watch(giant.global_position + giant.global_basis.z.normalized() * 1.4)
 
 
 static func unlocked() -> bool:
@@ -477,6 +492,7 @@ func _flash() -> void:
 # --- Winning -------------------------------------------------------------------------------------------------------
 
 func _win() -> void:
+	var first := not Dialogue.flags.has("beat_agent_of_chaos")
 	step = Step.GONE
 	Game.message("His clock shatters! The Agent of Chaos is sent back out of time!")
 	Dialogue.set_flag("beat_agent_of_chaos")
@@ -497,6 +513,11 @@ func _win() -> void:
 	if body:
 		body.process_mode = Node.PROCESS_MODE_DISABLED
 	_heart.process_mode = Node.PROCESS_MODE_DISABLED
+	if first and not ending.get("off"):
+		# The first time: the whole ending (his clock, the figure of light, the sky, the friends)
+		ending.call("play")
+		won.emit()
+		return
 	if model:
 		var start := model.scale
 		var tw := giant.create_tween()
