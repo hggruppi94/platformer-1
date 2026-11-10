@@ -90,6 +90,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Sunken secrets** at the bottom of deep water, for swimmers. Hayden: "Can we bury some secrets underwater
+  in most places? Maybe a watch or ... something that has meaning or impact on the lore", then "How about all of these"
+  to my three ideas. Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/sunken_secrets.gd`** (node "Sunken" under the Watches autoload, like the Lab: dialogue says
+    `Watches/Sunken.hand_in`): 24 secrets, one of each of three kinds in each of 8 places. **Pieces of That Night**
+    (bits of Rex's pods and Dash's time core; each plays an echo of the lab night; Dash collects them,
+    `dialogue/dash.json`, and with all eight works out that both experiments together cracked the Shift: 6 Remnants
+    and 20 sparkles). **Watches of the First Chosen** (kids chosen long before Nina who went home safe and left their
+    watches in deep water; all eight: 5 Remnants). **Seer's Bottles** (vague notes from the future seer; all eight: a
+    last note and 5 Remnants). Read out with `Dialogue.say` when you swim down to one (`reached()`: only while
+    swimming, so floating on top before the Tide Reef's mended isn't enough). Found ones are flags `sunk_<id>`,
+    `sunk_given_<id>`, `sunk_pieces_done`; when-keys `sunk_to_give`, `sunk_given`; word `{pieces_given}`.
+  - **Where:** the flooded Tide Reef and Willow Pond's deep middle lie on their own beds (`NATURAL`; a secret only
+    shows with 2 m of water over it, so the reef's turn up once its sea's in). Everywhere else a **deep pool** is put in
+    at play time (`POOLS`, `build_pool()`): a round stone basin 3.4 m across inside, 3.6 m of water, four steps up its
+    outside, a ledge inside to stand on and jump out from, a glowing floor and its name on a sign. The Void's
+    **Wishing Well** at (50, -66) by the Portal Plaza, Shard Isle's **Crystal Basin**, the Rootmind's **Dew Cup**, the
+    Frozen Moment's **Thaw Pool**, Lanternmoor's **Moon Well**, Rhythm Springs' **Deep Spring**. Each spot checked
+    flat and clear (the Void's off races, paths, trees, portals and the plaza's friends). Otto's plaza lines hint at it.
+  - Tests: new `tools/test_sunken_secrets.gd`. Previews: `tools/capture_sunken_secrets.gd` (shots in the project
+    files under world/previews/sunken_secrets).
+  - **All the lore in them is my first draft** (story/flags-to-review.md flag 59): earlier chosen ones, Walter Hollis of
+    1893, Otto's Grandad's watch, and the seer's hint that the Agent of Chaos was someone once. Not done: a Bag page
+    listing them (the count shows each time you find one); Glenmoor, Dark Hollow and the Far Future aren't built yet.
+
 - 2026-11-10: **Otto's swimming, the Tide Reef's reward** (19a world 5, slice two). Hayden: "Maybe a quest that starts
   above water and allows you to unlock [Otto's] ability that allows you to swim underwater?" Built and tested in the
   cloud (own Godot user folders, no save touched).

@@ -213,6 +213,37 @@
     },
     {
       "when": {
+        "sunk_to_give": true,
+        "not_flag": "sunk_first_given"
+      },
+      "set": "sunk_first_given",
+      "do": "Watches/Sunken.hand_in",
+      "lines": [
+        "{player}: Dash, I found this at the bottom of the water. When I held it, I heard voices.",
+        "(Dash goes very quiet.)",
+        "That's from our lab. From the night it happened, back in the far future. How did it get all the way down there?",
+        "Time drops things, I think. Like a pocket with a hole in it. They fall out, and they sink, and the deep water holds them still.",
+        "Bring me every piece you find, {player}. I need to know exactly what happened that night."
+      ]
+    },
+    {
+      "when": {
+        "sunk_to_give": true
+      },
+      "do": "Watches/Sunken.hand_in",
+      "rotate": [
+        [
+          "{player}: Another piece of that night, Dash.",
+          "(Dash turns it over and over in his hands.) I remember this. I really do."
+        ],
+        [
+          "{player}: I found another one. It was right at the bottom.",
+          "(Dash holds it up to his ear, like it might still be humming.)"
+        ]
+      ]
+    },
+    {
+      "when": {
         "watches_to_give": true,
         "not_flag": "watches_first_given"
       },
