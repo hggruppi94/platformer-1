@@ -55,6 +55,7 @@ const MODEL_Y := -0.8                       # feet at the bottom of the collisio
 const BURROW := preload("res://scripts/burrow.gd")   # no class_name: --script tools compile those before the autoloads
 const FROST_BREATH := preload("res://scripts/frost_breath.gd")
 const GROOVE := preload("res://scripts/groove.gd")
+const PIP_GLOW := preload("res://scripts/pip_glow.gd")
 const SWIM := preload("res://scripts/swim.gd")
 
 var _coyote_timer := 0.0
@@ -97,6 +98,7 @@ var popper: StarPopper                      # her bubble blaster: aiming and sho
 var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
 var frost_breath: Node                      # Flurry's frost breath, once the Frozen Moment's mended (scripts/frost_breath.gd)
 var groove: Node                            # Melody's groove, once Rhythm Springs is mended (scripts/groove.gd)
+var pip_glow: Node                          # Pip's glow in the dark, once Lanternmoor is mended (scripts/pip_glow.gd)
 var swim: Node                              # swimming in deep water; diving once the Tide Reef's mended (scripts/swim.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
@@ -169,6 +171,10 @@ func _ready() -> void:
 	groove.name = "Groove"
 	add_child(groove)
 	groove.setup(self)
+	pip_glow = PIP_GLOW.new()
+	pip_glow.name = "PipGlow"
+	add_child(pip_glow)
+	pip_glow.setup(self)
 	swim = SWIM.new()
 	swim.name = "Swim"
 	add_child(swim)
