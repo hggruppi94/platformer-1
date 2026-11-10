@@ -20,8 +20,8 @@ extends Node
 # once the First Night is done, so old saves past it get theirs on their next visit to the Void.
 #
 # Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor, Rhythm Springs, the Tide Reef,
-# Glenmoor and Dark Hollow (no portal: the centipede gulps you down to it). The rest of 19a plug in
-# by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
+# Glenmoor, Dark Hollow (no portal: the centipede gulps you down to it) and the Far Future, the last. A new world plugs
+# in by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
 
 signal changed
 signal quaked(id: String)
@@ -89,8 +89,13 @@ const WORLDS := [
 		"blurb": "The centipede's home, a misty moonlit hollow where the shadows are eating up moments of time.",
 		"reward_remnants": 8,
 		"cleared_text": "The Moon Clock ticks past midnight in Dark Hollow! The mist thins, the stars come out, and the centipede's your friend for keeps."},
-	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "", "at": Vector2(84, 90),
-		"yaw": 0.0, "preview": true, "colour": Color(0.4, 1.0, 1.0), "blurb": "Dash and Rex's home, fading away."},
+	# The Far Future (19a world 8, the last): its portal rises out of the fault line Rex and Dash's experiments cracked,
+	# just past the hedge behind their lab (scripts/lab.gd), facing back past it towards town.
+	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "res://scenes/portal_worlds/far_future.tscn",
+		"at": Vector2(117, -18), "yaw": -1.42, "preview": true, "colour": Color(0.4, 1.0, 1.0),
+		"blurb": "Dash and Rex's home, Lumen City, a neon city from the furthest future, and it's fading away.",
+		"reward_remnants": 12,
+		"cleared_text": "Lumen City is lit up again! The future's stopped fading. But Captain Glitch has fled to the Void, where the Agent of Chaos is waiting..."},
 ]
 
 var quakes: Array = []                  # world ids whose quake has happened (their portal stands in the Void)
@@ -272,6 +277,8 @@ func quake_due(id: String) -> bool:
 			return is_cleared("rhythm_springs")           # then Otto's, once Melody's beat is back
 		"glenmoor":
 			return is_cleared("tide_reef")                # then Heather's, once Otto's tide is in
+		"far_future":
+			return is_cleared("glenmoor")                 # and last, Dash and Rex's (Dark Hollow's optional)
 	return false
 
 
@@ -331,6 +338,8 @@ func _near_words(id: String) -> String:
 			return "the lake's south-east shore"
 		"glenmoor":
 			return "the meadow past the farm, west of the Secret Gardens"
+		"far_future":
+			return "the hedge behind Rex and Dash's lab, right where their experiments cracked the ground"
 	return "the town"
 
 
@@ -550,6 +559,8 @@ func _place_portal(id: String, rising: bool) -> void:
 	var spot := USE_SPOT.make(Vector3(0, 0, 1.2), _portal_offer.bind(id), _use_portal.bind(id), 2.8, 4.2)
 	spot.name = "Spot"
 	g.add_child(spot)
+	if id == "far_future":
+		g.add_child(fault_line(w.colour))
 	if rising:
 		var ring := g.get_node("Ring") as Node3D
 		var crack := g.get_node("Crack") as Node3D
@@ -1111,6 +1122,40 @@ static func _mat(c: Color, rough := 0.6, emit := 0.0) -> StandardMaterial3D:
 		m.emission = c
 		m.emission_energy_multiplier = emit
 	return m
+
+
+static func fault_line(colour: Color) -> Node3D:
+	# The Far Future's portal stands on the fault line Rex and Dash's experiments cracked open: a long zigzag crack in
+	# the ground, glowing at its edges, running from the portal towards the back of their lab (the portal's front, +Z;
+	# it stops short of the yard fence)
+	var g := Node3D.new()
+	g.name = "Fault Line"
+	var dark := _mat(Color(0.04, 0.02, 0.08), 0.9)
+	var edge := _mat(colour, 0.3, 2.0)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	var at := Vector3(rng.randf_range(-0.3, 0.3), 0.0, 1.6)
+	while at.z < 5.2:
+		var to := Vector3(clampf(at.x + rng.randf_range(-0.9, 0.9), -1.4, 1.4), 0.0, at.z + rng.randf_range(1.0, 1.8))
+		var d := to - at
+		var seg := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3(rng.randf_range(0.3, 0.6), 0.05, d.length() + 0.2)
+		seg.mesh = b
+		seg.material_override = dark
+		seg.position = (at + to) / 2.0 + Vector3(0, 0.03, 0)
+		seg.rotation.y = atan2(d.x, d.z)
+		g.add_child(seg)
+		var lip := MeshInstance3D.new()
+		var lb := BoxMesh.new()
+		lb.size = Vector3(b.size.x + 0.12, 0.03, d.length() + 0.25)
+		lip.mesh = lb
+		lip.material_override = edge
+		lip.position = seg.position + Vector3(0, -0.005, 0)
+		lip.rotation.y = seg.rotation.y
+		g.add_child(lip)
+		at = to
+	return g
 
 
 static func portal_model(colour: Color) -> Node3D:

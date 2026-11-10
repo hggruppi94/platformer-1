@@ -251,7 +251,11 @@ func _check_daynight() -> void:
 	fresh.free()
 	check(own, "this copy's day and night don't change the portal's preview")
 	check(s.CYCLE[0] < s.CYCLE[1] and s.CYCLE[1] < s.CYCLE[2] and s.CYCLE[2] < s.CYCLE[3], "each Balance Charm steadies the loop")
-	# Whose time it is cheers
+	# Whose time it is cheers (shouts the loop itself made a moment ago are cleared first)
+	for n in ["Goldie", "Barley", "Sunny Jim"]:
+		var old := s.get_node(n).get_node_or_null("Shout")
+		if old:
+			old.free()
 	s._cheer(true)
 	var shouts := 0
 	for n in ["Goldie", "Barley", "Sunny Jim"]:

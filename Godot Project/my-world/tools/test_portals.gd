@@ -79,7 +79,7 @@ func _check_quake() -> void:
 	check(portals.next_due() == "", "no time quake before the First Night is done")
 	await create_timer(portals.QUAKE_DELAY + 1.0).timeout
 	check(current_scene.get_node_or_null("Portals/Portal shard_isle") == null, "...so no portal yet")
-	check(not portals.is_built("far_future") and not portals.quake_due("far_future"), "worlds that aren't built never quake")
+	check(not portals.is_built("no_such_world") and not portals.quake_due("no_such_world"), "a world that isn't built never quakes")
 	quests.state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	check(portals.next_due() == "shard_isle", "once the First Night's done, Shard Isle's quake is due")
 	var quaked := [""]
