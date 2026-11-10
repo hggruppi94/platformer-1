@@ -22,6 +22,8 @@ const Z1 := 110.0
 const WATER_Y := -0.35
 const POND := Vector4(-85, 0, 20, 14)    # centre x, centre z, radius x, radius z (where the bank starts to dip)
 const POND_DEPTH := 1.7
+# The pond's deep middle, out past the end of the dock: deep enough to swim and dive in (scripts/swim.gd)
+const POND_DEEP := 3.6
 const CREEK := [Vector2(-104, -77), Vector2(-100, -55), Vector2(-95, -35), Vector2(-90, -17), Vector2(-85, 0),
 	Vector2(-89, 16), Vector2(-95, 32), Vector2(-101, 46), Vector2(-103, 58), Vector2(-106, 80), Vector2(-108, 112)]
 const CREEK_HALF := 2.6                  # half the creek's width at the water line, about
@@ -133,6 +135,7 @@ static func height(x: float, z: float) -> float:
 	var h := hill(x, z) + rolls(x, z)
 	var dip := 0.0
 	dip = minf(dip, -POND_DEPTH * _ss(1.12, 0.55, pond_e(x, z)))
+	dip = minf(dip, -POND_DEEP * _ss(0.5, 0.15, pond_e(x, z)))
 	dip = minf(dip, -CREEK_DEPTH * _ss(CREEK_HALF + 1.6, CREEK_HALF - 0.8, creek_distance(x, z)))
 	dip = minf(dip, -1.6 * _ss(6.5, 3.0, Vector2(x - FALLS_POOL.x, z - FALLS_POOL.z).length()))
 	return h + dip

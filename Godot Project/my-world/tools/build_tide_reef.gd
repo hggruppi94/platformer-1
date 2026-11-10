@@ -293,8 +293,8 @@ func _edge() -> void:
 	for k in 52:
 		var a := k * TAU / 52.0
 		var b := BoxShape3D.new()
-		b.size = Vector3(6.2, 8.0, 0.6)
-		var body := solid(b, Vector3(cos(a), 0, sin(a)) * (FLOOR_R - 1.4) + Vector3(0, 4.0, 0), g, Vector3(0, -a + PI / 2.0, 0))
+		b.size = Vector3(6.2, 18.0, 0.6)        # tall enough that nobody swims over it once the sea's back (13 m)
+		var body := solid(b, Vector3(cos(a), 0, sin(a)) * (FLOOR_R - 1.4) + Vector3(0, 9.0, 0), g, Vector3(0, -a + PI / 2.0, 0))
 		body.name = "Fence"
 
 

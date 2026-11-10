@@ -90,6 +90,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Otto's swimming, the Tide Reef's reward** (19a world 5, slice two). Hayden: "Maybe a quest that starts
+  above water and allows you to unlock [Otto's] ability that allows you to swim underwater?" Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **The quest:** slice one stays above water. After his thank-you Otto blows a bubble round your head and teaches you
+    to swim (`tide_reef.gd teach_lines()`, found `swim_taught`), then the sea pours in over 10 s right over the houses
+    and the spire (`start_flood()`, `set_flood(k)`: a scripts/water.gd node "The Sea" up to `SEA_TOP` 13 m, its surface,
+    light shafts, bubbles streaming up, fish swimming loops). A mended reef is always flooded. Five **sea lanterns**
+    drifted in high up (`LAMPS`, found `lamp_1..5`): swim to each and it lights; then **Grandad's chest** washes into
+    the Deep Basin (found `chest`: 4 Remnants and 10 sparkles, once). Under the sea Otto's bubble floats up and down
+    with you, and the bubble steps and bubble ride are put away. The reef's fence is now 18 m tall.
+  - **Swim** (`scripts/swim.gd`, a "Swim" node on the player like Burrow): any scripts/water.gd water out of her depth
+    (1.45 m+) takes over her physics. Before the Tide Reef's mended she just floats up and paddles along the top (nobody
+    walks along the bottom). After: hold Jump to swim up, hold Roll to dive, steer as on foot, slow and floaty; she
+    stays at whatever depth she's left at; at the top Jump hops her out. No new button and **no breath meter: nobody
+    drowns** (my choice). Under: Otto's bubble on her head, bubbles trailing up, the camera comes down closer
+    (`CAM_DROP`), and whenever the camera's under water the view goes blue-green and wobbly
+    (`scripts/underwater.gdshader`, no wobble with Reduce motion), the fog thickens and sound is muffled (a low-pass on
+    Master, taken off again).
+  - **Willow Pond** has a deep middle now (`EarthLand.POND_DEEP`, about 3.2 m of water, out past the dock's end).
+  - **Otto in the Void** (`Portals._otto_in_hub()`): on the Portal Plaza across from Flurry, with his own lines
+    (`otto_hub_lines()`, found `otto_in_hub`). I looked for room for a reef pool by the lake (the old slice two plan):
+    nowhere near it is flat and clear of paths, races and trees. The Void's lake is only about 1 m deep, so you wade
+    there; deepening it means rebuilding the town's ground (an LFS file), so from the PC.
+  - Tests: new `tools/test_swim.gd`; `test_tide_reef.gd` now checks slice two too. Previews: `capture_tide_reef.gd --
+    <folder> swim` (shots in the project files under world/previews/tide_reef_swim).
+  - My choices Hayden may change: the name Swim, no breath meter, the sea's height, the five lanterns and the chest's
+    reward, Otto on the plaza, Willow Pond's depth.
+
 - 2026-11-09: **The Tide Reef, Otto's world** (plan item 19a world 5, slice one). Hayden: "Lets try the next part".
   Built and tested in the cloud (own Godot user folders, no save touched).
   - **The portal** (`Portals.WORLDS` "tide_reef"): quakes once Rhythm Springs is mended, by the lake's south-east

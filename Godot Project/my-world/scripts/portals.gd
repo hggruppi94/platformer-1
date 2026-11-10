@@ -655,6 +655,8 @@ func _hub_changes(s: Node) -> void:
 		_flurry_in_hub()
 	if is_cleared("rhythm_springs"):
 		_melody_stage()
+	if is_cleared("tide_reef"):
+		_otto_in_hub()
 
 
 func _watching_flowers() -> void:
@@ -697,6 +699,51 @@ func _melody_stage() -> void:
 	_holder.add_child(stage)
 	stage.global_position = Remnants.ground_at(MELODY_STAGE)
 	stage.rotation.y = MELODY_STAGE_YAW
+
+
+# Otto, in the Void once the Tide Reef's mended --------------------------------------------------------------------
+const OTTO_SPOT := Vector2(3.1, -1.8)      # on the Portal Plaza, round the side from Flurry and clear of the trees (in the plaza's frame)
+
+
+func _otto_in_hub() -> void:
+	# He came through in his bubble chair, with a friend floating it along, and waits on the Portal Plaza with the
+	# other chosen ones (I looked for room for a reef pool by the lake for him, but the lakeside's full)
+	var w := world("shard_isle")
+	var at: Vector2 = w.at + OTTO_SPOT.rotated(-float(w.yaw))
+	var g := Node3D.new()
+	g.name = "Otto"
+	_holder.add_child(g)
+	g.global_position = Remnants.ground_at(at)
+	g.rotation.y = float(w.yaw)
+	var model: Node3D = load("res://scripts/tide_reef.gd").otto_model()
+	model.name = "Model"
+	g.add_child(model)
+	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "talk to Otto", _talk_otto, 2.4, 2.4)
+	spot.name = "Spot"
+	g.add_child(spot)
+
+
+func otto_hub_lines() -> Array:
+	if not has_found("tide_reef", "otto_in_hub"):
+		note_found("tide_reef", "otto_in_hub")
+		return ["{player}! Over here! Dash floated my bubble through. He's very good at it. Not as good as you.",
+			"So THIS is the Void. It's very... dry. No offence.",
+			"Your bubble still works out here, you know. Any water deep enough to be over your head, you can swim in.",
+			"There's a deep bit in the middle of Willow Pond on your Earth. Go and have a dive! Hold {dash} to go down."]
+	return [["Flurry says it's cold where she's from. I said it's wet where I'm from. We're best friends now.",
+		"(Flurry, very quietly: \"We are.\")"],
+		["I'm practising holding things. Look: one, two, three... eight cups of tea. Don't drink them, they're seawater.",
+		"Nobody ever asked me to hold anything before. Now everyone does!"],
+		["Is your lake deep? It doesn't look deep. It looks like a puddle that's trying its best.",
+		"Willow Pond's the place for a swim. Hold {jump} to swim up and {dash} to dive."],
+		["I still need a friend to float my bubble along.",
+		"Lucky I've got lots now."]].pick_random()
+
+
+func _talk_otto() -> void:
+	var spot := _holder.get_node_or_null("Otto/Spot") as Node3D if is_instance_valid(_holder) else null
+	if spot:
+		Dialogue.say(spot, "Otto", otto_hub_lines().map(func(l: String) -> String: return Settings.fill(l)), "hub_otto")
 
 
 # Flurry, in the Void once the Frozen Moment's mended -------------------------------------------------------------

@@ -8,7 +8,10 @@ extends SceneTree
 # the Coral Spire in easy hops, pop after you stand on one and come back; the pearl on top is yours and a bubble
 # carries you down; the Riptide Gloop sleeps until all three pearls are found, then wakes when you come near; it's too
 # slippery to pop until Otto holds it; its riptide drags you along the ground; popping it mends the world (the tide
-# comes in, the pools fill, the corals bloom, Otto's proud); and it all stays done after leaving and loading.
+# comes in, the pools fill, the corals bloom, Otto's proud); slice two: Otto teaches you to swim and the sea floods
+# right over the reef, you can't walk along the bottom before then (only paddle), you swim up and dive, float where you
+# stop, hop out at the top, the view goes blue and muffled under, the five sea lanterns light when you swim to them
+# and then Grandad's chest pays out once; and it all stays done after leaving and loading.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_tide_reef.gd
 #
@@ -77,6 +80,7 @@ func _run() -> void:
 	await _check_spire()
 	await _check_riptide()
 	await _check_mended()
+	await _check_swim()
 	await _check_home()
 	_check_saving()
 	_finish()
@@ -457,6 +461,117 @@ func _check_mended() -> void:
 	check(chat.size() == 2 and not "no use, really" in " ".join(chat), "...and he's happy to chat")
 
 
+func _check_swim() -> void:
+	var s := current_scene
+	var player := s.get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var dialogue := root.get_node("Dialogue")
+	var t := 0
+	while not dialogue.is_active() and t < 600:
+		await process_frame
+		t += 1
+	check(dialogue.is_active() and portals.has_found("tide_reef", "swim_taught"), "after his thank-you, Otto teaches you to swim")
+	var lesson := " ".join(s.teach_lines())
+	check("{jump}" in lesson and "{dash}" in lesson and "never run out of air" in lesson, "...how to swim up, dive and hop out, and that you can't run out of air")
+	check(s.flood == 0.0, "...and the sea waits for him to finish")
+	dialogue.end()
+	await create_timer(s.FLOOD_TIME + 1.5).timeout
+	check(s.flood == 1.0 and absf(s.sea_level() - s.SEA_TOP) < 0.01, "then the sea comes right back in, over everything (%.1f m)" % s.sea_level())
+	var sea := s.get_node("The Sea")
+	check(sea.covers(0, 0) and sea.covers(40, 0) and float(sea.get("water_y")) > 12.0, "...the whole reef is water to swim in")
+	check(s.SEA_TOP < 18.0 - 1.0, "...and the reef's fence is taller than the sea, so nobody swims off the edge")
+	check((s.get_node("Light Shafts") as Node3D).visible and (s.get_node("Sea Surface") as Node3D).visible, "...with light shafts down through it")
+	check((s.get_node("Sea Lanterns/Sea Lantern 1") as Node3D).visible and not (s.get_node("Grandad's Chest") as Node3D).visible,
+		"five sea lanterns drifted in; the chest isn't here yet")
+	var swim: Node = player.get("swim")
+	# Swimming in open water, away from the houses
+	player.global_position = Vector3(4.0, 6.0, 22.0)
+	player.velocity = Vector3.ZERO
+	await _physics(20)
+	check(player.call("is_swimming"), "out of your depth, you swim")
+	check(swim.under and (swim.get("_helmet") as Node3D).visible, "...with Otto's bubble round your head")
+	await _frames(4)
+	var env := (s.get_node("WorldEnvironment") as WorldEnvironment).environment
+	check(swim.view_under and env.fog_density > 0.02, "the view goes blue-green and hazy under the water")
+	var master := AudioServer.get_bus_index("Master")
+	check(AudioServer.get_bus_effect_count(master) > 0 and AudioServer.get_bus_effect(master, AudioServer.get_bus_effect_count(master) - 1) is AudioEffectLowPassFilter,
+		"...and sounds go muffled")
+	var y0 := player.global_position.y
+	await _physics(90)
+	check(absf(player.global_position.y - y0) < 0.4, "let go of everything and you stay where you are (moved %.2f m)" % (player.global_position.y - y0))
+	Input.action_press("dash")
+	await _physics(60)
+	Input.action_release("dash")
+	var y1 := player.global_position.y
+	check(y1 < y0 - 1.5, "hold Roll to dive (%.1f m down)" % (y0 - y1))
+	Input.action_press("jump")
+	await _physics(70)
+	var y2 := player.global_position.y
+	check(y2 > y1 + 1.5, "hold Jump to swim up (%.1f m up)" % (y2 - y1))
+	var top := 0
+	while player.global_position.y < s.SEA_TOP - 0.8 and top < 400:
+		await physics_frame
+		top += 1
+	await _physics(40)
+	Input.action_release("jump")
+	await _physics(20)
+	check(player.call("is_swimming") and absf(player.global_position.y - (s.SEA_TOP - swim.FLOAT)) < 0.35 and not swim.under,
+		"swim up to the top and you float there, head out (%.2f m)" % player.global_position.y)
+	await _frames(4)
+	check(not swim.view_under and env.fog_density < 0.01, "...and the view's clear again")
+	Input.action_press("jump")
+	await _physics(3)
+	Input.action_release("jump")
+	check(not player.call("is_swimming") and player.velocity.y > 2.0, "press Jump at the top to hop out")
+	await _physics(90)
+	check(player.call("is_swimming"), "...and you splash back in")
+	# Moving about
+	player.global_position = Vector3(4.0, 5.0, 22.0)
+	player.velocity = Vector3.ZERO
+	await _physics(10)
+	var x0 := player.global_position
+	Input.action_press("move_forward")
+	await _physics(60)
+	Input.action_release("move_forward")
+	var moved := Vector2(player.global_position.x - x0.x, player.global_position.z - x0.z).length()
+	check(moved > 2.0 and moved < 5.5, "you swim along, slower than running (%.1f m in a second)" % moved)
+	# Otto comes with you, up and down
+	var h := 0
+	while absf(s.otto_at().y - (player.global_position.y - 0.4)) > 1.0 and h < 600:
+		await process_frame
+		h += 1
+	check(absf(s.otto_at().y - player.global_position.y) < 1.5, "Otto's bubble floats up and down with you")
+	# The sea lanterns
+	var before_r: int = rem.count
+	var before_s: int = game.sparkles
+	for i in s.LAMPS.size():
+		player.global_position = s.LAMPS[i] + Vector3(1.0, -0.6, 0)
+		player.velocity = Vector3.ZERO
+		await _physics(8)
+	check(s.lamps_lit() == 5, "swim up to each sea lantern and it lights (%d of 5)" % s.lamps_lit())
+	var chest := s.get_node("Grandad's Chest") as Node3D
+	check(chest.visible, "...then Grandad's chest has washed into the Deep Basin")
+	check("chest" in " ".join(s.otto_lines()), "...and Otto says to go and open it")
+	s.get_node("Grandad's Chest/Spot").use()
+	check(s.chest_open() and rem.count == before_r + s.CHEST_REMNANTS and game.sparkles == before_s + s.CHEST_SPARKLES,
+		"open it for %d Remnants and %d sparkles" % [s.CHEST_REMNANTS, s.CHEST_SPARKLES])
+	dialogue.end()
+	s.open_chest()
+	check(rem.count == before_r + s.CHEST_REMNANTS, "...only once")
+	# Before Otto's taught you, deep water is only for paddling along the top
+	portals.cleared_worlds.erase("tide_reef")
+	player.global_position = Vector3(4.0, 4.0, 22.0)
+	player.velocity = Vector3.ZERO
+	Input.action_press("dash")
+	await _physics(240)
+	Input.action_release("dash")
+	check(player.call("is_swimming") and absf(player.global_position.y - (s.SEA_TOP - swim.FLOAT)) < 0.4,
+		"before you can swim, deep water just floats you up to paddle along the top, and Roll doesn't dive (%.2f m)" % player.global_position.y)
+	portals.cleared_worlds.append("tide_reef")
+	player.global_position = Vector3(0, 13.6, 36)
+	player.velocity = Vector3.ZERO
+	await _physics(10)
+
+
 func _check_home() -> void:
 	portals.time_left = 0.4
 	await create_timer(1.0).timeout
@@ -472,6 +587,8 @@ func _check_home() -> void:
 	check(s.scene_file_path == WORLD and s.pearls() == 3 and s.get_node_or_null("The Riptide Gloop") == null and s.tide == 1.0
 		and s.vault_open() and s.get_node_or_null("Pearl3/Tide Pearl") == null,
 		"going back, it's all still done: the tide's in, the vault's open, and no Riptide Gloop")
+	check(s.flood == 1.0 and s.lamps_lit() == 5 and s.chest_open() and (s.get_node("Grandad's Chest/Lid") as Node3D).rotation.x < -1.0,
+		"...the reef's still under the sea, the lanterns lit and the chest open")
 	s.get_node("WayHome/Way Home/Spot").use()
 	await _frames(12)
 
