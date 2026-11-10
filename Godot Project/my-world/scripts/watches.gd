@@ -146,6 +146,10 @@ func _ready() -> void:
 	var episodes := (load("res://scripts/episodes.gd") as GDScript).new() as Node
 	episodes.name = "Episodes"
 	add_child(episodes)
+	# Secrets at the bottom of deep water, for swimmers (scripts/sunken_secrets.gd): "Watches/Sunken.hand_in"
+	var sunken := (load("res://scripts/sunken_secrets.gd") as GDScript).new() as Node
+	sunken.name = "Sunken"
+	add_child(sunken)
 
 
 func _process(delta: float) -> void:
@@ -217,6 +221,9 @@ func condition_ok(when: Dictionary) -> bool:
 	# Dialogue "when" keys (scripts/dialogue.gd): "watches_to_give" (true: she has some for Dash, false: none),
 	# "no_watches_yet" (none found at all), "watches_found" (at least this many found) and "watches_given" (at least
 	# this many handed in)
+	var sunken := get_node_or_null("Sunken")             # "sunk_to_give", "sunk_given": the sunken pieces for Dash
+	if sunken and not sunken.condition_ok(when):
+		return false
 	if when.has("watches_to_give") and bool(when["watches_to_give"]) != (not to_give().is_empty()):
 		return false
 	if when.has("no_watches_yet") and bool(when["no_watches_yet"]) != (found_count() == 0):
@@ -231,7 +238,11 @@ func condition_ok(when: Dictionary) -> bool:
 func fill() -> Dictionary:
 	# Words dialogue can use: {watches_new}, {watches_given}, {watches_left}
 	var given := given_count()
-	return {"watches_new": str(to_give().size()), "watches_given": str(given), "watches_left": str(WATCHES.size() - given)}
+	var words := {"watches_new": str(to_give().size()), "watches_given": str(given), "watches_left": str(WATCHES.size() - given)}
+	var sunken := get_node_or_null("Sunken")
+	if sunken:
+		words.merge(sunken.fill())                      # {pieces_given}
+	return words
 
 
 # -----------------------------------------------------------------------------
