@@ -150,7 +150,7 @@ func _check_pool(key: String, p: Dictionary) -> void:
 	var sunk := true
 	var level := true
 	for k in 8:
-		var a := k * TAU / 8.0
+		var a := (k + 0.1) * TAU / 8.0          # (a little off the paving's seams: a ray straight down a seam can slip through)
 		for r in [0.0, 1.0, 2.6]:
 			var from := pool.global_position + Vector3(cos(a) * r, 6.0, sin(a) * r)
 			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(from, from + Vector3(0, -40, 0)))

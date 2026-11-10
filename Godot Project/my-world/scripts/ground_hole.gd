@@ -15,6 +15,7 @@ extends RefCounted
 
 const SEGS := 64                     # round the hole
 const RINGS := 10                    # from the hole out to a slab's edge, so no triangle is too long and thin
+const FINE := 0.6                    # how small the bits of a big triangle that grazes a hole are cut down to
 const BIG := 25.0                    # anything wider than this is ground, never a little thing to hide
 
 
@@ -93,12 +94,21 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 					var a := verts[index[t]]
 					var b := verts[index[t + 1]]
 					var cc := verts[index[t + 2]]
-					if _touches(a, b, cc, h, r, lo, hi):
-						any = true
-						for v in [a, b, cc]:
-							reach = maxf(reach, Vector2(v.x, v.z).distance_to(h))
-					else:
+					if not _touches(a, b, cc, h, r, lo, hi):
 						kept.append_array([index[t], index[t + 1], index[t + 2]])
+						continue
+					any = true
+					# Split it into small bits (as weights of its three corners) and keep the bits outside the hole
+					var bits := []
+					_fine([Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)], h, r, lo, hi, bits, [a, b, cc])
+					for bit in bits:
+						if bit[3]:
+							for wv in [bit[0], bit[1], bit[2]]:
+								var v: Vector3 = a * wv.x + b * wv.y + cc * wv.z
+								reach = maxf(reach, Vector2(v.x, v.z).distance_to(h))
+							continue
+						for wv in [bit[0], bit[1], bit[2]]:
+							kept.append(_blend_vertex(arrays, index[t], index[t + 1], index[t + 2], wv))
 				arrays[Mesh.ARRAY_INDEX] = kept
 				made.add_surface_from_arrays(am.surface_get_primitive_type(i), arrays)
 				made.surface_set_material(i, am.surface_get_material(i))
@@ -172,17 +182,78 @@ static func _touches(a: Vector3, b: Vector3, c: Vector3, h: Vector2, r: float, l
 
 
 static func _cut_faces(faces: PackedVector3Array, h: Vector2, r: float, lo: float, hi: float) -> Dictionary:
+	# A big triangle that only grazes the hole is split up first (_fine), so a second hole cut near an earlier one
+	# (whose slab is all long triangles running out from it) only loses the little bits that are really in the way
 	var kept := PackedVector3Array()
 	var removed := false
 	var reach := r
 	for t in range(0, faces.size(), 3):
-		if _touches(faces[t], faces[t + 1], faces[t + 2], h, r, lo, hi):
-			removed = true
-			for k in 3:
-				reach = maxf(reach, Vector2(faces[t + k].x, faces[t + k].z).distance_to(h))
-		else:
+		if not _touches(faces[t], faces[t + 1], faces[t + 2], h, r, lo, hi):
 			kept.append_array([faces[t], faces[t + 1], faces[t + 2]])
+			continue
+		var bits := []
+		_fine([faces[t], faces[t + 1], faces[t + 2]], h, r, lo, hi, bits)
+		for tri in bits:
+			if tri[3]:
+				removed = true
+				for k in 3:
+					reach = maxf(reach, Vector2(tri[k].x, tri[k].z).distance_to(h))
+			else:
+				kept.append_array([tri[0], tri[1], tri[2]])
 	return {"faces": kept, "removed": removed, "reach": reach}
+
+
+# Splits a triangle touching the hole into quarters until each piece is small (FINE); pieces go into out as
+# [a, b, c, in_the_hole]. Works on anything that can be lerped (points, or weights for _cut_mesh).
+static func _fine(tri: Array, h: Vector2, r: float, lo: float, hi: float, out: Array, pts := []) -> void:
+	var a: Vector3 = tri[0] if pts.is_empty() else pts[0]
+	var b: Vector3 = tri[1] if pts.is_empty() else pts[1]
+	var c: Vector3 = tri[2] if pts.is_empty() else pts[2]
+	if not _touches(a, b, c, h, r, lo, hi):
+		out.append([tri[0], tri[1], tri[2], false])
+		return
+	var longest := maxf(Vector2(a.x - b.x, a.z - b.z).length(), maxf(Vector2(b.x - c.x, b.z - c.z).length(),
+		Vector2(c.x - a.x, c.z - a.z).length()))
+	if longest <= FINE:
+		out.append([tri[0], tri[1], tri[2], true])
+		return
+	var ab = tri[0].lerp(tri[1], 0.5)
+	var bc = tri[1].lerp(tri[2], 0.5)
+	var ca = tri[2].lerp(tri[0], 0.5)
+	var p := [] if pts.is_empty() else [pts[0], pts[1], pts[2], pts[0].lerp(pts[1], 0.5), pts[1].lerp(pts[2], 0.5),
+		pts[2].lerp(pts[0], 0.5)]
+	for q in [[tri[0], ab, ca, 0, 3, 5], [ab, tri[1], bc, 3, 1, 4], [ca, bc, tri[2], 5, 4, 2], [ab, bc, ca, 3, 4, 5]]:
+		_fine([q[0], q[1], q[2]], h, r, lo, hi, out, [] if p.is_empty() else [p[q[3]], p[q[4]], p[q[5]]])
+
+
+# Adds a vertex weighted between three of a surface's vertices (every per-vertex array that ground has) and returns
+# its index; a corner (weight 1) just reuses that vertex
+static func _blend_vertex(arrays: Array, i0: int, i1: int, i2: int, w: Vector3) -> int:
+	for k in 3:
+		if w[k] > 0.999:
+			return [i0, i1, i2][k]
+	var at: int = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	for slot in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL]:
+		if arrays[slot] != null:
+			var a: PackedVector3Array = arrays[slot]
+			var v: Vector3 = a[i0] * w.x + a[i1] * w.y + a[i2] * w.z
+			a.append(v.normalized() if slot == Mesh.ARRAY_NORMAL else v)
+			arrays[slot] = a
+	for slot in [Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2]:
+		if arrays[slot] != null:
+			var a: PackedVector2Array = arrays[slot]
+			a.append(a[i0] * w.x + a[i1] * w.y + a[i2] * w.z)
+			arrays[slot] = a
+	if arrays[Mesh.ARRAY_COLOR] != null:
+		var a: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		a.append(a[i0] * w.x + a[i1] * w.y + a[i2] * w.z)
+		arrays[Mesh.ARRAY_COLOR] = a
+	if arrays[Mesh.ARRAY_TANGENT] != null:
+		var a: PackedFloat32Array = arrays[Mesh.ARRAY_TANGENT]
+		for k in 4:
+			a.append(a[i0 * 4 + k] * w.x + a[i1 * 4 + k] * w.y + a[i2 * 4 + k] * w.z)
+		arrays[Mesh.ARRAY_TANGENT] = a
+	return at
 
 
 static func _side_crosses(c: CylinderMesh, h: Vector2, r: float, lo: float, hi: float) -> bool:
