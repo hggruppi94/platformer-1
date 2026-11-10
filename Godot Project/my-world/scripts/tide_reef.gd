@@ -19,8 +19,15 @@ extends "res://scripts/portal_world.gd"
 # With all three Tide Pearls the Riptide Gloop wakes in the Deep Basin. It's too slippery to pop until Otto wraps his
 # arms round it and holds it still (grab(), every few seconds): the friend who thought he was no use saves the day.
 # Popping it mends the world (Portals.clear): the tide comes back in, the pools fill, the corals bloom and the sky
-# clears. Slice two (not built yet) is the reward: Otto joins you (a reach-and-grab ability) and a reef pool by the
-# Void's lake.
+# clears.
+#
+# Slice two, the reward (Hayden: "a quest that starts above water and allows you to unlock [Otto's] ability that
+# allows you to swim underwater"): once Otto's said thank you he blows you a bubble for your head and teaches you to
+# swim (scripts/swim.gd: Jump to rise, Roll to dive), and then the sea comes right back in, over the houses and the
+# spire (set_flood()). The reef's under the sea again for good. Five sea lanterns drifted in with the tide, high up in
+# the water; swim up and nudge each one alight (found lamp_1..5), and the tide washes Otto's grandad's old chest into
+# the Deep Basin (found chest: Remnants and sparkles). Swimming works in any deep water after that (Willow Pond, and
+# Otto's Reef Pool by the Void's lake, scripts/reef_pool.gd).
 
 const RIPTIDE := preload("res://scripts/riptide_gloop.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
@@ -38,10 +45,23 @@ const GRAB_EVERY := 6.0                  # seconds between holds
 const HOLD_TIME := 5.0
 const PROUD_AFTER := 3.5
 const BUBBLES := 36
-const FISH := 8
+const FISH := 14
 const PEARL := Color(1.0, 0.86, 0.95)
 const SEA := Color(0.3, 0.75, 0.95)
 const OTTO_ORANGE := Color(1.0, 0.56, 0.36)
+const FLOOR_R := 48.0                    # the sea bed's radius (tools/build_tide_reef.gd)
+const SEA_TOP := 13.0                    # the sea's surface once it's right back in: over the houses and the spire
+const FLOOD_TIME := 10.0
+const TEACH_AFTER := 1.0
+# The sea lanterns, high up in the water once the reef's flooded: over a house, the spire, the basin...
+const LAMPS := [Vector3(-10.5, 8.0, 14.0), Vector3(26.0, 9.0, -22.0), Vector3(-36.0, 8.5, -6.0), Vector3(0.0, 10.5, -30.0),
+	Vector3(-23.0, 12.0, -19.0)]
+const LAMP_REACH := 1.9
+const LAMP_COLOURS := [Color(1.0, 0.5, 0.8), Color(0.4, 0.95, 1.0), Color(0.75, 0.55, 1.0), Color(1.0, 0.85, 0.4),
+	Color(0.5, 1.0, 0.7)]
+const CHEST_AT := Vector3(0, 0, -27.5)    # in the Deep Basin, where the Gloop sat
+const CHEST_REMNANTS := 4
+const CHEST_SPARKLES := 10
 const JUNK := ["an old boot. With a hole in it.", "a very cross crab! (It lets go. Eventually.)", "a rusty tin can.",
 	"a sock. Whose sock?"]
 
@@ -52,6 +72,8 @@ const WET := {"top": Color(0.2, 0.55, 0.9), "horizon": Color(0.65, 0.92, 0.95), 
 	"fog": Color(0.6, 0.9, 0.95), "density": 0.002, "light": Color(1.0, 0.98, 0.9), "energy": 0.95}
 
 var tide := 0.0                          # 0 = stuck out, 1 = back in
+var flood := 0.0                         # 0 = just the pools, 1 = the sea right in over everything
+var flooding := false
 var right_hole := 0                      # which of the grotto's holes the pearl's down
 var wrong_tries := 0
 var steps_up := false
@@ -78,6 +100,11 @@ var _grab_cd := 0.0
 var _bubbles: Array = []
 var _fish: Array = []
 var _glints: Array = []
+var _sea: Node3D                         # the flooded sea: a scripts/water.gd node over the whole reef
+var _sea_top: MeshInstance3D
+var _rays: Node3D
+var _lamps: Array = []                   # [node, its glow material, its light]
+var _chest: Node3D
 
 
 func picture() -> void:
@@ -86,7 +113,9 @@ func picture() -> void:
 	_own_corals()
 	_add_sea_life()
 	var mended := Portals.is_cleared(world_id)
+	_add_sea()
 	set_tide(1.0 if mended else 0.0)
+	set_flood(1.0 if mended else 0.0)
 	var o := get_node_or_null("Otto") as Node3D
 	if o:
 		_otto_model = otto_model()
@@ -111,7 +140,12 @@ func setup() -> void:
 	_add_spire_top()
 	if not is_mended():
 		_add_riptide()
+	_add_sea()
+	_add_lamps()
 	set_tide(1.0 if is_mended() else 0.0)
+	set_flood(1.0 if is_mended() else 0.0)
+	if is_mended() and not Portals.has_found(world_id, "swim_taught"):
+		get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_swim)    # mended before Otto could teach you
 	if not is_mended() and pearls() == 0 and not Portals.has_found(world_id, "met_otto"):
 		Game.message.call_deferred("The Tide Reef: a whole town under the sea... with no sea. Someone's sitting in a bubble by the way in.")
 
@@ -317,7 +351,12 @@ func _otto_step(player: Node3D, delta: float) -> void:
 	var moving := d > 0.15
 	if moving:
 		_otto.global_position += to / d * minf(minf(d * 2.5, OTTO_SPEED) * delta, d)
-	_otto.global_position.y = _otto_home.y
+	if flood > 0.5 and met_otto() and player:
+		# Under the sea his bubble floats up and down with you too
+		var want := clampf(player.global_position.y - 0.4, _otto_home.y, sea_level() - 1.2)
+		_otto.global_position.y = move_toward(_otto.global_position.y, want, OTTO_SPEED * 0.5 * delta)
+	else:
+		_otto.global_position.y = move_toward(_otto.global_position.y, _otto_home.y, OTTO_SPEED * delta)
 	# He looks at whatever he's doing: the Gloop in a fight, otherwise you
 	var look := player.global_position if player else Vector3.ZERO
 	if riptide_awake and riptide and is_instance_valid(riptide):
@@ -335,6 +374,20 @@ func otto_lines() -> Array:
 		return ["Listen. Hear that? That's the sea. It's coming HOME.",
 			"Everyone will be back by tonight. And when they ask who held the Riptide Gloop still... that was me.",
 			"I still need a friend to get my bubble about, {player}. That hasn't changed. But I'm not no use. I never was."]
+	if is_mended() and flood > 0.5:
+		if lamps_lit() < LAMPS.size():
+			return ["Isn't it lovely, being under the sea again? Look at the fish!",
+				"Five sea lanterns drifted in with the tide, way up high. Swim up and give them a nudge and they'll light. %d to go!" % (LAMPS.size() - lamps_lit()),
+				"Hold {jump} to swim up, hold {dash} to dive. I'll float along with you."]
+		if not chest_open():
+			return ["All the lanterns are lit! And look, down in the Deep Basin. Is that... Grandad's chest?",
+				"Swim down and open it, {player}! Go on!"]
+		return [["The whole reef's coming home. Everybody's swimming back in, a few at a time.",
+			"I still need a friend to float my bubble along. But I'm not no use. I never was."],
+			["Did you know you can swim in other places now? Any water deep enough. Even on your Earth!",
+			"Your bubble goes wherever you go."],
+			["Eight latches at once. Reaching where nobody else can. Holding on when it counts.",
+			"And a very good bubble, if I say so myself."]].pick_random()
 	if is_mended():
 		return [["Listen. Hear that? That's the sea. It's coming HOME.",
 			"I still need a friend to get my bubble about. But I'm not no use. I never was."],
@@ -609,7 +662,7 @@ func _add_steps() -> void:
 
 
 func _pad_offer() -> String:
-	if steps_up or riding:
+	if steps_up or riding or flood > 0.5:                # under the sea you can just swim up the spire
 		return ""
 	return "ask Otto to blow bubble steps" if met_otto() else "look at the Bubble Pad"
 
@@ -705,7 +758,7 @@ func _add_spire_top() -> void:
 	var top := get_node_or_null("RideTop") as Node3D
 	if top == null:
 		return
-	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "" if riding else "ride a bubble down",
+	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "" if riding or flood > 0.5 else "ride a bubble down",
 		func() -> void: ride_bubble(), 1.6, 2.2)
 	spot.name = "Spot"
 	top.add_child(spot)
@@ -900,7 +953,7 @@ func proud_lines() -> Array:
 		"Eight latches at once. Reaching where nobody else could. Holding on when it counted.",
 		"I thought I was no use, because I can't get about by myself. But I was looking at the wrong bit of me.",
 		"I'll always need a friend to float my bubble along. That's all right. Friends need me too. You did!",
-		"Look, the tide's coming in! By tonight the whole reef will be under the sea again. Thank you for taking me with you."]
+		"Look, the tide's coming in! And it isn't stopping at the pools. Thank you for taking me with you."]
 
 
 func _proud(tries := 0) -> void:
@@ -913,6 +966,283 @@ func _proud(tries := 0) -> void:
 	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
 	if spot:
 		Dialogue.say(spot, "Otto", proud_lines().map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_proud")
+	get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_swim)
+
+
+# Slice two: Otto teaches you to swim, and the sea comes right back in -------------------------------------------
+func teach_lines() -> Array:
+	# Otto's gift: a bubble for your head, so you can go under with him (scripts/swim.gd)
+	return ["{player}, the sea's coming right back in. ALL of it. Over the houses, over the spire, over us.",
+		"You can't breathe water, can you? Hang on. Hold still... (Otto blows a big bubble, and it settles round your head like a glass helmet.)",
+		"There! My best one. It'll go with you everywhere, the way my chair goes with my friends.",
+		"Now you can swim under. Hold {jump} to swim up, hold {dash} to dive down, and steer like walking. At the top, press {jump} to hop out.",
+		"And you'll never run out of air. It's a VERY good bubble. Here it comes, {player}. Hold on!"]
+
+
+func _teach_swim(tries := 0) -> void:
+	if not is_inside_tree() or Portals.has_found(world_id, "swim_taught"):
+		return
+	if Dialogue.is_active() and tries < 30:             # wait for his thank-you to finish first
+		get_tree().create_timer(1.0).timeout.connect(_teach_swim.bind(tries + 1))
+		return
+	teach_swim()
+	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Otto", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_swim")
+	else:
+		Game.message("New: Swim! In deep water hold %s to swim up and %s to dive." % [Settings.prompt("jump"), Settings.prompt("dash")])
+	_flood_when_quiet()
+
+
+func teach_swim() -> void:
+	Portals.note_found(world_id, "swim_taught")
+	Juice.blip("chime", 1.1, -3.0)
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player:
+		Fx.burst(self, player.global_position + Vector3(0, 0.7, 0), Color(0.85, 0.97, 1.0, 0.8), 24, 0.09, 2.0, 0.5, 1.0)
+
+
+func _flood_when_quiet(tries := 0) -> void:
+	if not is_inside_tree():
+		return
+	if Dialogue.is_active() and tries < 60:
+		get_tree().create_timer(0.5).timeout.connect(_flood_when_quiet.bind(tries + 1))
+		return
+	start_flood()
+
+
+func start_flood(seconds := FLOOD_TIME) -> void:
+	# The sea pours in from the reef walls and rises right over everything
+	if flooding or flood >= 1.0:
+		return
+	flooding = true
+	var tw := create_tween()
+	tw.tween_method(set_flood, flood, 1.0, seconds).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func() -> void:
+		flooding = false
+		Game.message("The Tide Reef's under the sea again! Five sea lanterns drifted in with the tide, up high. Swim up and light them."))
+	Audio.play("splash", 3.0)
+	Juice.rumble(0.35, 0.2, seconds * 0.5)
+	if not Settings.reduce_motion:
+		Juice.shake(0.12)
+
+
+func sea_level() -> float:
+	var pools := get_node_or_null("Tide Pools")
+	var low := float(pools.get("water_y")) if pools else 0.3
+	return lerpf(low, SEA_TOP, flood)
+
+
+func set_flood(k: float) -> void:
+	# From the pools full (0) to the whole reef under the sea (1): the sea's surface rises, light shafts come down
+	# through it, bubbles stream up from the sea bed and the fish swim about instead of leaping
+	flood = clampf(k, 0.0, 1.0)
+	var level := sea_level()
+	if _sea:
+		_sea.set("water_y", level)
+		var outline: Array[Vector4] = []
+		if flood > 0.02:
+			outline.append(Vector4(0, 0, FLOOR_R + 6.0, FLOOR_R + 6.0))
+		_sea.set("ellipses", outline)
+	if _sea_top:
+		_sea_top.visible = flood > 0.02
+		_sea_top.position.y = level
+	if _rays:
+		_rays.visible = flood > 0.6
+	if _sky and flood > 0.0:
+		_sky.sky_top_color = (WET.top as Color).lerp(Color(0.1, 0.35, 0.65), flood * 0.6)
+	var pools := get_node_or_null("Tide Pools")
+	if pools:
+		for p in pools.get_children():
+			var surface := p.get_node_or_null("Surface") as Node3D
+			if surface:
+				surface.visible = tide > 0.02 and flood < 0.1           # under the sea there's no telling them apart
+	_show_lamps()
+
+
+func _add_sea() -> void:
+	# The sea, ready to come in: a water node over the whole reef (scripts/water.gd, so you splash in and swim:
+	# scripts/swim.gd), its surface seen from below, and light shafts slanting down through it
+	_sea = Node3D.new()
+	_sea.name = "The Sea"
+	_sea.set_script(load("res://scripts/water.gd"))
+	_sea.set("water_y", -5.0)
+	_sea.set("speed_scale", 0.85)
+	add_child(_sea)
+	_sea_top = MeshInstance3D.new()
+	_sea_top.name = "Sea Surface"
+	_sea_top.mesh = _cyl(FLOOR_R + 8.0, FLOOR_R + 8.0, 0.05, 48)
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.45, 0.85, 0.95, 0.55)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.emission_enabled = true
+	m.emission = Color(0.3, 0.7, 0.85)
+	m.emission_energy_multiplier = 0.35
+	m.roughness = 0.05
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_sea_top.material_override = m
+	_sea_top.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_sea_top.visible = false
+	add_child(_sea_top)
+	_rays = Node3D.new()
+	_rays.name = "Light Shafts"
+	add_child(_rays)
+	var rm := StandardMaterial3D.new()
+	rm.albedo_color = Color(0.75, 0.95, 1.0, 0.07)
+	rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 31
+	for i in 14:
+		var a := rng.randf() * TAU
+		var d := rng.randf_range(4.0, FLOOR_R - 8.0)
+		var ray := _put(_rays, _cyl(rng.randf_range(0.6, 1.2), rng.randf_range(2.0, 3.4), SEA_TOP, 10), rm,
+			Vector3(cos(a) * d, SEA_TOP * 0.5, sin(a) * d), Vector3.ONE, Vector3(0.22, 0, 0.12))
+		ray.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ray.set_meta("phase", rng.randf() * TAU)
+	_rays.visible = false
+
+
+# The sea lanterns and Grandad's chest -------------------------------------------------------------------------------
+func lamp_lit(i: int) -> bool:
+	return Portals.has_found(world_id, "lamp_%d" % (i + 1))
+
+
+func lamps_lit() -> int:
+	var n := 0
+	for i in LAMPS.size():
+		if lamp_lit(i):
+			n += 1
+	return n
+
+
+func chest_open() -> bool:
+	return Portals.has_found(world_id, "chest")
+
+
+func _add_lamps() -> void:
+	var holder := Node3D.new()
+	holder.name = "Sea Lanterns"
+	add_child(holder)
+	_lamps = []
+	for i in LAMPS.size():
+		var g := Node3D.new()
+		g.name = "Sea Lantern %d" % (i + 1)
+		holder.add_child(g)
+		g.position = LAMPS[i]
+		var glow := StandardMaterial3D.new()
+		glow.albedo_color = Color(LAMP_COLOURS[i], 0.75)
+		glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		glow.emission_enabled = true
+		glow.emission = LAMP_COLOURS[i]
+		glow.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var dome := _put(g, _ball(0.7, 16), glow, Vector3.ZERO, Vector3(1.0, 0.65, 1.0))
+		dome.name = "Dome"
+		for k in 6:                                          # dangling tentacles, like a jellyfish
+			var a := k * TAU / 6.0
+			var t := _put(g, _cyl(0.05, 0.02, 1.3, 5), glow, Vector3(cos(a) * 0.4, -0.75, sin(a) * 0.4))
+			t.name = "Tentacle"
+		var light := OmniLight3D.new()
+		light.light_color = LAMP_COLOURS[i]
+		light.omni_range = 9.0
+		light.shadow_enabled = false
+		g.add_child(light)
+		_lamps.append([g, glow, light])
+	var c := Node3D.new()
+	c.name = "Grandad's Chest"
+	add_child(c)
+	c.position = CHEST_AT
+	var wood := _mat(Color(0.55, 0.36, 0.22), 0.0, 0.8)
+	var gold := _mat(Color(1.0, 0.8, 0.3), 0.3, 0.3)
+	_put(c, BoxMesh.new(), wood, Vector3(0, 0.45, 0), Vector3(1.6, 0.9, 1.0))
+	var lid := Node3D.new()
+	lid.name = "Lid"
+	lid.position = Vector3(0, 0.9, -0.5)
+	c.add_child(lid)
+	_put(lid, BoxMesh.new(), wood, Vector3(0, 0.15, 0.5), Vector3(1.65, 0.3, 1.05))
+	_put(lid, BoxMesh.new(), gold, Vector3(0, 0.1, 1.03), Vector3(0.3, 0.3, 0.06))
+	for x in [-0.6, 0.6]:
+		_put(c, BoxMesh.new(), gold, Vector3(x, 0.45, 0), Vector3(0.1, 0.94, 1.04))
+	var shine := _put(c, _ball(0.5, 10), _mat(Color(1.0, 0.9, 0.5), 1.5, 0.3), Vector3(0, 0.9, 0), Vector3(1.2, 0.4, 0.7))
+	shine.name = "Treasure"
+	var spot := USE_SPOT.make(Vector3(0, 0.6, 0), func() -> String: return "" if chest_open() else "open Grandad's chest",
+		open_chest, 2.4, 2.4)
+	spot.name = "Spot"
+	c.add_child(spot)
+	_show_lamps()
+
+
+func _show_lamps() -> void:
+	# The lanterns only drift in with the sea, and the chest only once they're all lit
+	var under_sea := flood > 0.9
+	for i in _lamps.size():
+		var g := _lamps[i][0] as Node3D
+		g.visible = under_sea
+		var lit := lamp_lit(i)
+		var glow := _lamps[i][1] as StandardMaterial3D
+		glow.emission_energy_multiplier = 2.2 if lit else 0.15
+		glow.albedo_color = Color(LAMP_COLOURS[i], 0.8) if lit else Color(0.5, 0.6, 0.7, 0.55)
+		(_lamps[i][2] as OmniLight3D).visible = lit
+	if _chest == null:
+		_chest = get_node_or_null("Grandad's Chest") as Node3D
+	if _chest:
+		_chest.visible = under_sea and lamps_lit() == LAMPS.size()
+		var lid := _chest.get_node("Lid") as Node3D
+		lid.rotation.x = -1.6 if chest_open() else 0.0
+		(_chest.get_node("Treasure") as Node3D).visible = not chest_open()
+
+
+func light_lamp(i: int) -> void:
+	if lamp_lit(i):
+		return
+	Portals.note_found(world_id, "lamp_%d" % (i + 1))
+	var g := _lamps[i][0] as Node3D
+	Fx.burst(self, g.global_position, LAMP_COLOURS[i], 26, 0.1, 3.0, 0.5, 1.2)
+	Juice.blip("chime", 1.0 + i * 0.12, -4.0)
+	Juice.squash(g, 0.3, 0.3)
+	var n := lamps_lit()
+	if n == LAMPS.size():
+		Game.message("All five sea lanterns are lit! Something's glinting down in the Deep Basin...")
+		Juice.blip("sparkle", 1.0, -2.0)
+	else:
+		Game.message("Sea lantern lit! %d of %d." % [n, LAMPS.size()])
+	_show_lamps()
+
+
+func _lamps_step(player: Node3D) -> void:
+	if flood < 0.9:
+		return
+	for i in _lamps.size():
+		var g := _lamps[i][0] as Node3D
+		g.position.y = (LAMPS[i] as Vector3).y + sin(_t * 1.1 + i) * 0.25           # bobbing gently
+		var dome := g.get_node("Dome") as Node3D
+		dome.scale = Vector3(1.0 + sin(_t * 2.0 + i) * 0.06, 0.65 - sin(_t * 2.0 + i) * 0.05, 1.0 + sin(_t * 2.0 + i) * 0.06)
+		if not lamp_lit(i) and player.global_position.distance_to(g.global_position) < LAMP_REACH:
+			light_lamp(i)
+
+
+func open_chest() -> void:
+	if chest_open() or lamps_lit() < LAMPS.size():
+		return
+	Portals.note_found(world_id, "chest")
+	Remnants.add(CHEST_REMNANTS, "Grandad's chest")
+	Game.add_sparkles(CHEST_SPARKLES, "Grandad's chest")
+	Fx.burst(self, CHEST_AT + Vector3(0, 1.2, 0), Color(1.0, 0.85, 0.4), 40, 0.1, 4.0, 0.5, 1.4)
+	Juice.blip("sparkle", 1.0, 0.0)
+	Juice.rumble(0.3, 0.15)
+	if _chest:
+		var lid := _chest.get_node("Lid") as Node3D
+		var tw := create_tween()
+		tw.tween_property(lid, "rotation:x", -1.6, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		(_chest.get_node("Treasure") as Node3D).visible = false
+	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
+	var lines := ["Grandad's chest! He always said the tide would bring it home one day.",
+		"(Inside: %s, and a note in wobbly octopus writing: \"For whoever helps our Otto. Love, Grandad.\")" % [Remnants.words(CHEST_REMNANTS)],
+		"...He knew. He knew someone would. Thank you, {player}."]
+	if spot:
+		Dialogue.say(spot, "Otto", lines.map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_chest")
 
 
 # Bubbles and fish, once the sea's back ---------------------------------------------------------------------------
@@ -962,14 +1292,30 @@ func _add_sea_life() -> void:
 func _move_sea_life() -> void:
 	if tide <= 0.5:
 		return
+	var rise := maxf(7.0, sea_level() - 0.5)                    # under the sea they stream all the way up
 	for b in _bubbles:
 		var n := b as Node3D
 		var home: Vector3 = n.get_meta("home")
-		var k := fmod(_t * 0.25 + float(n.get_meta("phase")), 1.0)
-		n.position = home + Vector3(sin(k * 9.0) * 0.3, k * 7.0, cos(k * 7.0) * 0.3)
+		var k := fmod(_t * (0.25 if flood < 0.5 else 0.12) + float(n.get_meta("phase")), 1.0)
+		n.position = home + Vector3(sin(k * 9.0) * 0.3, k * rise, cos(k * 7.0) * 0.3)
 		n.scale = Vector3.ONE * (0.6 + k * 0.8)
-	for f in _fish:
-		var n := f as Node3D
+	if _rays and _rays.visible:
+		for r in _rays.get_children():
+			var ph := float(r.get_meta("phase"))
+			r.scale = Vector3(1.0 + sin(_t * 0.7 + ph) * 0.15, 1.0, 1.0 + sin(_t * 0.7 + ph) * 0.15)
+	for i in _fish.size():
+		var n := _fish[i] as Node3D
+		if flood > 0.5:
+			# Under the sea: they swim in slow loops round the reef, at all heights
+			n.visible = true
+			var r := 8.0 + i * 3.2
+			var a := _t * (0.35 - i * 0.02) * (1.0 if i % 2 == 0 else -1.0) + i
+			var h := 1.5 + fmod(i * 1.7, 9.0) + sin(_t * 0.5 + i) * 0.8
+			n.position = Vector3(cos(a) * r, h, sin(a) * r)
+			var ahead := a + (0.1 if i % 2 == 0 else -0.1)
+			n.rotation.y = atan2(cos(ahead) * r - n.position.x, sin(ahead) * r - n.position.z)
+			n.rotation.x = 0.0
+			continue
 		var cycle := fmod(_t * 0.5 + float(n.get_meta("phase")), 3.0)     # a leap, then a rest under the water
 		n.visible = cycle < 1.0
 		if cycle < 1.0:
@@ -1003,6 +1349,7 @@ func _process(delta: float) -> void:
 	_boss_step(player, delta)
 	_otto_step(player, delta)
 	_move_reaches(delta)
+	_lamps_step(player)
 
 
 # Looks --------------------------------------------------------------------------------------------------------------

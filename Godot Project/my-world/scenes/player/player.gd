@@ -55,6 +55,7 @@ const MODEL_Y := -0.8                       # feet at the bottom of the collisio
 const BURROW := preload("res://scripts/burrow.gd")   # no class_name: --script tools compile those before the autoloads
 const FROST_BREATH := preload("res://scripts/frost_breath.gd")
 const GROOVE := preload("res://scripts/groove.gd")
+const SWIM := preload("res://scripts/swim.gd")
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
@@ -96,6 +97,7 @@ var popper: StarPopper                      # her bubble blaster: aiming and sho
 var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
 var frost_breath: Node                      # Flurry's frost breath, once the Frozen Moment's mended (scripts/frost_breath.gd)
 var groove: Node                            # Melody's groove, once Rhythm Springs is mended (scripts/groove.gd)
+var swim: Node                              # swimming in deep water; diving once the Tide Reef's mended (scripts/swim.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 # Boosters (scripts/boosters.gd) work on foot too: a rush carries her past her running speed for a moment, the way a
@@ -167,6 +169,10 @@ func _ready() -> void:
 	groove.name = "Groove"
 	add_child(groove)
 	groove.setup(self)
+	swim = SWIM.new()
+	swim.name = "Swim"
+	add_child(swim)
+	swim.setup(self)
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
@@ -334,6 +340,10 @@ func is_recovering() -> bool:
 	return _invulnerable_timer > 0.0
 
 
+func is_swimming() -> bool:
+	return swim != null and swim.active
+
+
 func is_rolling() -> bool:
 	return _roll_timer > 0.0
 
@@ -391,6 +401,8 @@ func _physics_process(delta: float) -> void:
 		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
 	if burrow.active and (carried or Game.riding):
 		burrow.stop(0.0)                        # onto a ride or a zipline: up she comes
+	if swim.active and (carried or Game.riding):
+		swim.stop()
 	if carried:
 		return
 	var on_floor := is_on_floor()
@@ -409,6 +421,9 @@ func _physics_process(delta: float) -> void:
 		return
 	if burrow.active:
 		burrow.physics(delta)
+		return
+	if swim.active or swim.check():
+		swim.physics(delta)
 		return
 	if Input.is_action_just_pressed("burrow") and burrow.try_start():
 		return

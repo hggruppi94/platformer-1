@@ -3,9 +3,11 @@ extends SceneTree
 # Screenshots of the Tide Reef, Otto the octopus's portal world (scripts/tide_reef.gd): its portal by the lake's
 # south-east shore, arriving with the tide stuck out, Otto in his bubble chair, his eight arms opening the Clam Vault, the Kelp
 # Grotto's holes, his bubble steps up the Coral Spire, the bubble ride down, the Riptide Gloop asleep, Otto holding it
-# still, and the reef with the tide back in. Opens a window (not --headless):
+# still, and the reef with the tide back in. With "swim" as a second argument, only slice two's shots: the sea
+# flooding in, swimming under it with Otto's bubble round your head, the sea lanterns, Grandad's chest, a dive in Willow
+# Pond and Otto on the Portal Plaza. Opens a window (not --headless):
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_tide_reef.gd -- <output folder>
+#   godot --path "Godot Project/my-world" --script res://tools/capture_tide_reef.gd -- <output folder> [portal|swim]
 #
 # Your own save and settings are put aside (under their own names) and put back afterwards.
 
@@ -50,8 +52,13 @@ func _run() -> void:
 	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs"]:
 		portals.cleared_worlds.append(w)
 		portals.quakes.append(w)
+	var mode: String = OS.get_cmdline_user_args()[1] if OS.get_cmdline_user_args().size() > 1 else ""
+	if mode == "swim":
+		await _swim()
+		_finish()
+		return
 	await _portal()
-	if OS.get_cmdline_user_args().size() < 2 or OS.get_cmdline_user_args()[1] != "portal":       # ("portal": only its shot)
+	if mode != "portal":       # ("portal": only its shot)
 		await _inside()
 	_finish()
 
@@ -185,6 +192,104 @@ func _inside() -> void:
 	await create_timer(3.0).timeout
 	_look(pool + Vector3(-5.0, 2.4, 6.0), pool + Vector3(1.0, 0.8, 0))
 	await _shot("20_paddling_with_otto")
+
+
+func _swim() -> void:
+	# Slice two: the reef mended, Otto's thank-you said, and the sea about to come in
+	portals.quakes.append("tide_reef")
+	portals.cleared_worlds.append("tide_reef")
+	for f in ["met_otto", "thanked", "swim_taught", "pearl_1", "pearl_2", "pearl_3", "vault_open"]:
+		portals.note_found("tide_reef", f)
+	portals.enter("tide_reef")
+	await _frames(20)
+	var s := current_scene as Node3D
+	var p := s.find_child("Player", true, false) as CharacterBody3D
+	p.get_node("HUD").visible = false
+	_cam_in(s)
+	s.set_flood(0.0)
+	p.global_position = Vector3(2.0, 0.9, 24.0)
+	await create_timer(1.5).timeout
+	s.start_flood(5.0)
+	_look(Vector3(-6.0, 4.0, 44.0), Vector3(0, 2.0, 0.0))
+	await create_timer(2.6).timeout
+	await _shot("21_the_sea_comes_right_back_in")
+	await create_timer(3.5).timeout
+	# Under the sea
+	p.global_position = Vector3(3.0, 5.5, 20.0)
+	p.velocity = Vector3.ZERO
+	await create_timer(2.5).timeout
+	_look(Vector3(-4.0, 7.0, 34.0), Vector3(0, 3.0, 4.0))
+	await _frames(10)
+	await _shot("22_the_reef_under_the_sea")
+	_look(p.global_position + Vector3(2.6, 0.8, 2.6), p.global_position + Vector3(0, 0.4, 0))
+	await _frames(10)
+	await _shot("23_swimming_with_ottos_bubble")
+	Input.action_press("move_forward")
+	Input.action_press("dash")
+	await create_timer(0.8).timeout
+	Input.action_release("dash")
+	await create_timer(0.4).timeout
+	_look(p.global_position + Vector3(-3.5, 1.5, 2.0), p.global_position)
+	await _frames(4)
+	await _shot("24_diving_down")
+	Input.action_release("move_forward")
+	# A sea lantern, lit
+	var lamp: Vector3 = s.LAMPS[0]
+	p.global_position = lamp + Vector3(1.0, -0.6, 0.0)
+	p.velocity = Vector3.ZERO
+	await create_timer(1.0).timeout
+	_look(lamp + Vector3(4.0, 1.0, 5.0), lamp + Vector3(0, -0.5, 0))
+	await _frames(10)
+	await _shot("25_a_sea_lantern_lit")
+	for i in s.LAMPS.size():
+		s.light_lamp(i)
+	root.get_node("Dialogue").end()
+	p.global_position = s.CHEST_AT + Vector3(2.2, 1.0, 2.2)
+	await create_timer(2.0).timeout
+	_look(s.CHEST_AT + Vector3(4.0, 2.5, 5.0), s.CHEST_AT + Vector3(0, 0.6, 0))
+	await _frames(10)
+	await _shot("26_grandads_chest_in_the_deep_basin")
+	s.open_chest()
+	await create_timer(1.2).timeout
+	await _shot("27_grandads_chest_open")
+	root.get_node("Dialogue").end()
+	# From up top
+	p.global_position = Vector3(0.0, 12.4, 18.0)
+	await create_timer(1.5).timeout
+	_look(Vector3(8.0, 15.0, 30.0), Vector3(0, 11.0, 12.0))
+	await _frames(10)
+	await _shot("28_bobbing_at_the_top")
+	# Willow Pond's deep middle
+	game_go("res://scenes/earth/earth.tscn")
+	await _frames(30)
+	s = current_scene as Node3D
+	p = s.find_child("Player", true, false) as CharacterBody3D
+	p.get_node("HUD").visible = false
+	_cam_in(s)
+	var pond := Vector3(EarthLand.POND.x, EarthLand.WATER_Y - 2.0, EarthLand.POND.y)
+	p.global_position = pond
+	p.velocity = Vector3.ZERO
+	await create_timer(1.5).timeout
+	_look(pond + Vector3(3.5, 0.4, 3.0), pond)
+	await _frames(10)
+	await _shot("29_a_dive_in_willow_pond")
+	_look(pond + Vector3(9.0, 4.0, 9.0), pond + Vector3(0, 0.5, 0))
+	await _frames(10)
+	await _shot("30_willow_pond_from_the_bank")
+	# Otto on the Portal Plaza
+	game_go("res://scenes/town/town.tscn")
+	await _frames(30)
+	s = current_scene as Node3D
+	p = s.find_child("Player", true, false) as CharacterBody3D
+	p.get_node("HUD").visible = false
+	_cam_in(s)
+	var otto := s.find_child("Otto", true, false) as Node3D
+	if otto:
+		p.global_position = otto.global_position + otto.global_basis.z * 3.0 + Vector3(0, 1.0, 0)
+		await create_timer(1.0).timeout
+		_look(otto.global_position + otto.global_basis.z * 6.0 + Vector3(2.0, 2.5, 0), otto.global_position + Vector3(0, 1.0, 0))
+		await _frames(10)
+		await _shot("31_otto_on_the_portal_plaza")
 
 
 func _otto_here(s: Node, at: Vector3) -> void:
