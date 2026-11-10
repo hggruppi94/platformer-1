@@ -708,6 +708,16 @@ func _hub_changes(s: Node) -> void:
 		_otto_in_hub()
 	if is_cleared("glenmoor"):
 		_blossom_orchard()
+	if is_cleared("dark_hollow"):
+		_centipede_holes()
+
+
+func _centipede_holes() -> void:
+	# Dark Hollow's reward: the centipede's holes round the Void, to knock on and travel by her gulp
+	# (scripts/centipede_holes.gd; her other gift, wall crawl, is the player's own: scripts/wall_crawl.gd)
+	var h: Node3D = (load("res://scripts/centipede_holes.gd") as GDScript).new()
+	h.name = "Centipede Holes"
+	_holder.add_child(h)
 
 
 func _watching_flowers() -> void:

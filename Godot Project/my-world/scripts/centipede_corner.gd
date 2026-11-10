@@ -16,6 +16,7 @@ extends Node3D
 # Put into the school scene at play time by Portals (scripts/portals.gd _arrived), so school.tscn isn't rebuilt.
 
 const FRIEND := preload("res://scripts/centipede_friend.gd")
+const HOLES := preload("res://scripts/centipede_holes.gd")
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const RECORD := "dark_hollow_gulp"
 # In the passage's own frame ("Floor 2/Behind The Walls", tools/build_school.gd: X_W -30, Z_N -24, the lane runs from
@@ -36,6 +37,7 @@ var shown := false
 var gulping := false
 var gulps := 0                             # (tests read these)
 var _log_before := 0
+var _going := "dark_hollow"                # where this gulp's going: Dark Hollow, or one of her holes round the Void
 var _overlay: CanvasLayer
 var _t := 0.0
 
@@ -127,9 +129,22 @@ func lines() -> Array:
 		{"text": "No, not today.", "answer": "no", "record": RECORD, "set": "dark_hollow_said_no",
 			"lines": ["That's okay. Saying no is brave too. I'll be right here, in my corner."]}]}
 	if Portals.is_cleared("dark_hollow"):
-		return ["{player}! My friend! Have you come to visit?",
-			"The Moon Clock's still ticking. I check it every night.",
-			"Want to come home with me? Gulp, slide, ptoo!", ask]
+		var out_: Array = ["{player}! My friend! Have you come to visit?",
+			"The Moon Clock's still ticking. I check it every night."]
+		var holes := HOLES.travel_choices("corner")
+		if holes.is_empty():
+			out_.append_array(["Want to come home with me? Gulp, slide, ptoo!",
+				"(My holes round the Void are waiting for you too. Find one and knock!)", ask])
+			return out_
+		# Once you've found some of her holes she can take you to those too
+		out_.append("Where shall I take you? Gulp, slide, ptoo!")
+		var choice: Array = [{"text": "Dark Hollow, please!", "answer": "yes", "record": RECORD, "set": "dark_hollow_said_yes",
+			"lines": ["Home sweet home! Here we go..."]}]
+		choice.append_array(holes)
+		choice.append({"text": "Nowhere, just visiting.", "answer": "no", "record": HOLES.RECORD,
+			"lines": ["Visiting's the best. Come back any time."]})
+		out_.append({"choice": choice})
+		return out_
 	var said_no := Dialogue.flags.has("dark_hollow_said_no")
 	var been := Dialogue.flags.has("dark_hollow_said_yes")
 	if been:
@@ -158,13 +173,18 @@ func _on_talked(id: String) -> void:
 		if str(e.get("what", "")) == RECORD and str(e.get("answer", "")) == "yes":
 			gulp.call_deferred()
 			return
+		if str(e.get("what", "")) == HOLES.RECORD and str(e.get("answer", "")) in HOLES.ids():
+			gulp.call_deferred(str(e.get("answer")))
+			return
 
 
-func gulp() -> void:
-	# She circles round you, lifts her head... GULP! Then the long glowy slide down to Dark Hollow.
+func gulp(to := "dark_hollow") -> void:
+	# She circles round you, lifts her head... GULP! Then the long glowy slide down to Dark Hollow (or, once you're
+	# friends, along her tunnels to one of her holes round the Void: scripts/centipede_holes.gd).
 	if gulping:
 		return
 	gulping = true
+	_going = to
 	gulps += 1
 	Game.hold_controls(&"gulp", true)
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -203,10 +223,13 @@ func _slide() -> void:
 
 
 func _arrive() -> void:
-	Game.hold_controls(&"gulp", false)
 	gulping = false
 	var o := _overlay
 	_overlay = null
+	if _going != "dark_hollow":
+		HOLES.arrive(_going, o)
+		return
+	Game.hold_controls(&"gulp", false)
 	if o:
 		get_tree().create_timer(0.8, true, false, true).timeout.connect(func() -> void:
 			if is_instance_valid(o):
@@ -359,6 +382,19 @@ class Gulp extends CanvasLayer:
 		sliding = true
 		_word.text = "Wheeeee..."
 		_word.add_theme_font_size_override("font_size", 72)
+
+	func open_up(secs: float) -> void:
+		# Out she spits you, somewhere in the same place: the mouth opens again on the world ("PTOO!")
+		sliding = false
+		_word.text = "PTOO!"
+		_word.add_theme_font_size_override("font_size", 110)
+		var tw := create_tween()
+		tw.tween_interval(0.25)
+		tw.tween_callback(func() -> void: _word.visible = false)
+		tw.tween_method(func(k: float) -> void:
+			open = k
+			canvas.queue_redraw(), 0.0, 1.0, secs).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_callback(queue_free)
 
 	func _process(delta: float) -> void:
 		_t += delta
