@@ -47,12 +47,14 @@ func _run() -> void:
 	clock.set_time(3, 11 * 60.0, true)
 	root.get_node("Quests").state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	root.get_node("Portals").cleared_worlds.append("dark_hollow")
-	await _town()
-	await _school()
+	var only_wall := OS.get_cmdline_user_args().has("wall")
+	await _town(only_wall)
+	if not only_wall:
+		await _school()
 	_finish()
 
 
-func _town() -> void:
+func _town(only_wall := false) -> void:
 	change_scene_to_file(TOWN)
 	await _frames(30)
 	var s := current_scene as Node3D
@@ -60,7 +62,11 @@ func _town() -> void:
 	p.get_node("HUD").visible = false
 	var crawl: Node = p.get("wall_crawl")
 	# Up a wall: the first tall climbable wall found round the market
-	var hit := _find_wall(s, Vector2(-72, 49))
+	var hit := {}
+	for c in [Vector2(-12, -15), Vector2(80, 6), Vector2(-72, 49)]:      # the town square, the homes, the market
+		hit = _find_wall(s, c)
+		if not hit.is_empty():
+			break
 	if not hit.is_empty():
 		var n: Vector3 = hit.normal
 		n.y = 0.0
@@ -81,6 +87,8 @@ func _town() -> void:
 		await _frames(20)
 	else:
 		print("NO WALL")
+	if only_wall:
+		return
 	# A hole, and her head popping out
 	var holes := s.get_node_or_null("Portals/Centipede Holes") as Node3D
 	if holes == null:
@@ -171,11 +179,11 @@ func _find_wall(s: Node3D, around: Vector2) -> Dictionary:
 				var q := PhysicsRayQueryParameters3D.create(from, to)
 				q.exclude = [p.get_rid()]
 				var hit := space.intersect_ray(q)
-				if hit.is_empty() or absf((hit.normal as Vector3).y) > 0.3 or not wc.climbable(hit.collider):
+				if hit.is_empty() or absf((hit.normal as Vector3).y) > 0.1 or not wc.climbable(hit.collider):
 					continue
 				var hp: Vector3 = hit.position
 				var n: Vector3 = hit.normal
-				var q2 := PhysicsRayQueryParameters3D.create(hp + n * 0.3 + Vector3(0, 3.5, 0), hp - n * 0.6 + Vector3(0, 3.5, 0))
+				var q2 := PhysicsRayQueryParameters3D.create(hp + n * 0.3 + Vector3(0, 2.6, 0), hp - n * 0.8 + Vector3(0, 2.6, 0))
 				q2.exclude = [p.get_rid()]
 				if not space.intersect_ray(q2).is_empty():
 					return hit                          # still wall 3.5 m up: tall enough to show a climb
