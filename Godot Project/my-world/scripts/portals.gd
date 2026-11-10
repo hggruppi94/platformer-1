@@ -19,8 +19,8 @@ extends Node
 # Saved with the game as "portals" (scripts/game.gd). Saves from before have had no quakes; the first one comes
 # once the First Night is done, so old saves past it get theirs on their next visit to the Void.
 #
-# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor, Rhythm Springs, the Tide Reef
-# and Glenmoor. The rest of 19a plug in
+# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor, Rhythm Springs, the Tide Reef,
+# Glenmoor and Dark Hollow (no portal: the centipede gulps you down to it). The rest of 19a plug in
 # by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
 
 signal changed
@@ -30,6 +30,8 @@ signal cleared(id: String)
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 
 const TOWN := "res://scenes/town/town.tscn"
+const SCHOOL := "res://scenes/school/school.tscn"
+const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
 const FREE_SECONDS := 240.0             # every trip starts with 4 free minutes...
 const SECONDS_PER_REMNANT := 60.0       # ...and each Remnant spent adds one more
 const EXTRA_AT_PORTAL := 2              # the portal's "take extra time" choice spends this many
@@ -77,10 +79,19 @@ const WORLDS := [
 		"blurb": "Heather's home, misty highland hills of heather and stone walls, where the seasons spin round too fast for anything to grow.",
 		"reward_remnants": 11, "season": "spring",
 		"cleared_text": "The seasons have stopped spinning in Glenmoor! Blossom's out, the Fluffkins are frolicking, and spring can come to Stars Hollow at last."},
+	# Dark Hollow (plan items 19a world 7 and 21) has no portal and never quakes: its way in is a secret, through the
+	# centipede in her corner Behind the Walls in the castle school (scripts/centipede_corner.gd), who gulps you down to
+	# it (enter_dark_hollow()). Going home comes out at the school's front gate ("home_spawn"), never back through the
+	# dark passage. Opt-in and fully optional. ("at" is the school gate, for anything that asks where it is.)
+	{"id": "dark_hollow", "name": "Dark Hollow", "owner": "the centipede", "scene": "res://scenes/portal_worlds/dark_hollow.tscn",
+		"at": Vector2(15, -84), "yaw": 0.0, "preview": false, "portal": false, "home_spawn": "FromSchool",
+		"colour": Color(0.6, 0.5, 1.0),
+		"blurb": "The centipede's home, a misty moonlit hollow where the shadows are eating up moments of time.",
+		"reward_remnants": 8,
+		"cleared_text": "The Moon Clock ticks past midnight in Dark Hollow! The mist thins, the stars come out, and the centipede's your friend for keeps."},
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "", "at": Vector2(84, 90),
 		"yaw": 0.0, "preview": true, "colour": Color(0.4, 1.0, 1.0), "blurb": "Dash and Rex's home, fading away."},
 ]
-# (Dark Hollow isn't here: you get in through the Sliver in the castle school, not a crevice. Plan item 21.)
 
 var quakes: Array = []                  # world ids whose quake has happened (their portal stands in the Void)
 var cleared_worlds: Array = []          # world ids whose time is fixed
@@ -164,8 +175,15 @@ func _arrived(s: Node) -> void:
 			_froze_clock = true
 	if s and s.scene_file_path == TOWN:
 		_place_in.call_deferred(s)
-		if came_from != "":
+		if came_from != "" and has_portal(came_from):
 			_land_by.call_deferred(came_from)
+	if s and s.scene_file_path == SCHOOL:
+		_place_corner.call_deferred(s)                   # the secret way into Dark Hollow
+
+
+func _place_corner(s: Node) -> void:
+	if is_instance_valid(s):
+		CENTIPEDE_CORNER.place(s)
 
 
 func _land_by(id: String) -> void:
@@ -208,6 +226,11 @@ func is_built(id: String) -> bool:
 	return not w.is_empty() and str(w.scene) != "" and ResourceLoader.exists(str(w.scene))
 
 
+func has_portal(id: String) -> bool:
+	# Every world but Dark Hollow has a portal in the Void
+	return bool(world(id).get("portal", true))
+
+
 func is_open(id: String) -> bool:
 	return id in quakes
 
@@ -217,7 +240,7 @@ func is_cleared(id: String) -> bool:
 
 
 func open_worlds() -> Array:
-	return WORLDS.filter(func(w: Dictionary) -> bool: return is_open(str(w.id)))
+	return WORLDS.filter(func(w: Dictionary) -> bool: return is_open(str(w.id)) and has_portal(str(w.id)))
 
 
 func spot(id: String) -> Vector3:
@@ -342,6 +365,19 @@ func enter(id: String, extra_remnants := 0) -> bool:
 	return true
 
 
+func enter_dark_hollow() -> bool:
+	# The centipede's gulp (scripts/centipede_corner.gd): no portal, no question here (she asked), just the free stretch
+	var id := "dark_hollow"
+	if not is_built(id):
+		return false
+	time_left = FREE_SECONDS
+	_warned = false
+	var w := world(id)
+	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s. You've got %s here. The way home takes you to the school's front gate." % [w.name, time_words(time_left)]
+	Game.go(str(w.scene), "Entrance", str(w.name))
+	return true
+
+
 func add_time(remnants: int) -> bool:
 	# The Time Stone inside a world: Remnants for more time
 	if remnants <= 0 or not Remnants.spend(remnants):
@@ -362,8 +398,13 @@ func go_home(why := "") -> void:
 		return
 	_pulling = true
 	time_left = 0.0
-	Game.pending_message = why if why != "" else "Back in the Void, by the portal to %s." % world(id).name
 	var w := world(id)
+	if not has_portal(id):
+		# No portal to land by (Dark Hollow): out at its "home_spawn", the castle school's front gate
+		Game.pending_message = why if why != "" else "Back in the Void, out at the castle school's front gate."
+		Game.go(TOWN, str(w.get("home_spawn", "")), "the Void")
+		return
+	Game.pending_message = why if why != "" else "Back in the Void, by the portal to %s." % w.name
 	var face := float(w.yaw)
 	var out := Vector3(sin(face), 0, cos(face)) * 3.2           # just in front of the portal
 	# (a little above the ground, which can't be measured from here: the player drops gently onto it)
@@ -498,7 +539,7 @@ func _place_in(s: Node) -> void:
 
 
 func _place_portal(id: String, rising: bool) -> void:
-	if not is_instance_valid(_holder) or _holder.get_node_or_null("Portal " + id) != null:
+	if not is_instance_valid(_holder) or _holder.get_node_or_null("Portal " + id) != null or not has_portal(id):
 		return
 	var w := world(id)
 	var g := portal_model(w.colour)

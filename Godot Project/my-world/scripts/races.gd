@@ -28,6 +28,7 @@ enum State { IDLE, INTRO, COUNTDOWN, RACING, RESULTS }
 
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
+const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
 const COUNTDOWN := 3.0
 const RESULTS_TIME := 7.0
 const PASS_RADIUS := 6.0             # metres from a checkpoint's middle that counts as through its ring
@@ -126,6 +127,24 @@ const TRACKS := {
 		"starter": {"name": "Pepper", "look": {"colors": {"fur": 3, "hair": 6, "brows": 6, "top": 9, "bottoms": 6,
 			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
 			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]},
+	},
+	# In Dark Hollow (scripts/dark_hollow.gd): a spooky lap round the misty hollow, past the crooked trees and the glow
+	# mushrooms, lit by little lamp posts. Pip starts it (their glow knows the way in the dark). Open from the start;
+	# finishing it at all gives you the third Moon Piece. (tools/build_dark_hollow.gd keeps everything off these points.)
+	"hollow_run": {
+		"name": "Hollow Run",
+		"blurb": "two spooky laps round Dark Hollow, past the crooked trees and the glowing mushrooms",
+		"scene": DARK_HOLLOW,
+		"laps": 2,
+		"points": [Vector2(8, 40), Vector2(-14, 40), Vector2(-32, 30), Vector2(-43, 12), Vector2(-45, -8),
+			Vector2(-38, -28), Vector2(-22, -41), Vector2(0, -45), Vector2(22, -41), Vector2(38, -28), Vector2(45, -8),
+			Vector2(43, 12), Vector2(32, 30), Vector2(18, 39)],
+		"boosts": [[0.5, 0.0], [4.5, 0.0], [7.5, 0.0], [10.5, 0.0]],
+		"boxes": [[2.5], [6.5], [11.5]],
+		"goo": [[3.5, -1.8], [8.5, 1.8], [12.4, -1.6]],
+		"prizes": [16, 11, 6, 3],
+		"rivals": ["rook", "green_man", "dash"],
+		"starter": {"name": "Pip", "model": "res://models/characters/moth_kid.glb", "scale": 1.0},
 	},
 }
 # Earth kids who race, and the ride from scripts/rides.gd each one rides (Nina's board, Bruno's SK8 Deck...)

@@ -91,6 +91,42 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Dark Hollow, the centipede's world** (plan items 19a world 7 and 21, slice one). Hayden: "The entrance
+  to dark hollow will actually be hidden until you interact with the centipede in the sliver. She will eat you and that
+  will transport you there". Built and tested in the cloud (own Godot user folders, no save touched).
+  - **No portal, no quake** (`Portals.WORLDS` "dark_hollow": `"portal": false`, `has_portal()`; `open_worlds()`,
+    `_place_portal()` and `_land_by()` skip it, so it's never on the map). **The way in** (`scripts/centipede_corner.gd`,
+    put in the school at play time by `Portals._arrived()` at "Floor 2/Behind The Walls/Centipede's Corner"): at the
+    west end of the north passage (`CORNER`) the centipede drops down into her nest when you come within 9 m (the
+    ceiling crawler hides meanwhile), with roots, glowing fungi and her lost-and-found nest ("my corner (plees nock)").
+    Talking to her asks "Go to Dark Hollow? Yes / No", recorded both ways in `Dialogue.choice_log` as
+    `dark_hollow_gulp` (flags `dark_hollow_said_yes` / `_no`). Yes: she circles you (`gulp()`, a `gulp` hold), an oval
+    of black closes in with "GULP!", a ringed glowy slide ("Wheeeee..."), then `Portals.enter_dark_hollow()`. The
+    timer still runs; the **way home** (`go_home`) comes out at the castle school's front gate (`"home_spawn":
+    "FromSchool"`), never back through the passage.
+  - **The world** (`tools/build_dark_hollow.gd` -> `scenes/portal_worlds/dark_hollow.tscn`, logic
+    `scripts/dark_hollow.gd`, meta `always_night` so Pip's glow shines): a misty moonlit hollow stuck at midnight; the
+    **Moon Clock** in the sky has lost three **Moon Pieces** (found `piece_1..3`). The **Ghost Glade**: eight
+    **shadow ghosts** (`scripts/shadow_ghost.gd`, our own design: inky teardrops with glowing eyes that skitter,
+    flicker and sometimes dodge a bubble; a stomp, a roll or a bubble pops them into a wisp; found `ghost_1..8`): all
+    eight bring out the first piece. **The Big Hole** in the middle: fall in and it spits you out (`spit()`) on top of
+    the 14 m **Crooked Spire** (the second piece), then round three little spouts (`SPIT_ORDER`). **The Hollow Run**
+    (`Races.TRACKS` "hollow_run", 2 laps round the hollow; Pip starts it, Rook, the Green Man and Dash race; a starter
+    can now have a `"scale"`): finishing in any place gives the third piece.
+  - **The Hush** (`scripts/the_hush.gd`): a big shadow ghost asleep on Hush Hill until you come within 16 m with all
+    three pieces. In the dark it's only shadow (bubbles and stomps go through); within 6 m of a lit **moon lamp** (four
+    round the hill, `lights_hush()`, Pip's glow counts too) it goes pale and can be popped. It hushes out lamps it gets
+    right up to (light them with Interact or a bubble; they come back after 14 s), darts off after each hit, breathes a
+    "Shhhh" ring to jump every 7 s and calls little ghosts at 3 and 6 hits. 8 hits mends the hollow (`mend()`): 8
+    Remnants, the clock ticks on, the stars come out, and the centipede's your friend (flag `dark_hollow_friend`; in her
+    corner she says so after).
+  - Tests: new `tools/test_dark_hollow.gd`; portals, practice_trips, earth_race, scary_world, lanternmoor,
+    glimmer_caves and doors pass (races and layout fail the same checks on main too). Previews:
+    `tools/capture_dark_hollow.gd` (shots in the project files under world/previews/dark_hollow).
+  - My choices Hayden may change: the corner at the end of the passage that's there (not a new twisting Sliver), the
+    Moon Clock and its three pieces, the Hush and its lamps, Pip starting the race, 8 Remnants. The old Scary World
+    gate is unchanged. Slice two still to do: the centipede's ability as your reward.
+
 - 2026-11-10: **The Season Dial** by the old oak (story flag 48: each season's unlocked once, then you can switch to
   any season you've opened). Hayden picked it from the "what's next" card. Built and tested in the cloud (own Godot
   user folders, no save touched).
