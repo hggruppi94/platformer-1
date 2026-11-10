@@ -62,14 +62,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Hayride'th for babieth.",
         "...Okay, it'th kind of fun. Don't tell Prue."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "Hook-a-duck ith for babieth.",
+        "...Okay, I hooked four. Don't tell Prue. She got five."
       ]
     },
     {

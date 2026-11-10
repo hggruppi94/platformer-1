@@ -32,14 +32,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
         "Have you ridden the hayride? Scarecrow Sam waved at me. I think. Probably the wind."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "The Spring Fair! The best night of the spring, after the day new yo-yos come in.",
+        "Have you ridden the hayride? Scarecrow Sam waved at me. I think. Probably the breeze."
       ]
     },
     {

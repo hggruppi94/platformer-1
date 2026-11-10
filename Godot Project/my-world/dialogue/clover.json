@@ -14,6 +14,18 @@
     },
     {
       "when": {
+        "mended": "glenmoor",
+        "every": 2
+      },
+      "lines": [
+        "{player}! Did you see? My blossom trees came through the portal after you! There's a whole orchard by Glenmoor's door now.",
+        "And two of the Fluffkins snuck through with 'em. Little rascals. They seem happy grazin' under the blossom though.",
+        "And Isla says the Moonfolk are teachin' my Sunfolk the stars. Ain't that somethin'?",
+        "Don't forget your April Showers, sugar: {showers_how} and there's a rainbow after. And hop as you land for a Spring Step!"
+      ]
+    },
+    {
+      "when": {
         "activity": "grazing",
         "every": 2
       },

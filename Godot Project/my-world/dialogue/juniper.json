@@ -34,14 +34,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Juniper Okafor, Old Oak Elementary Gazette, covering the festival LIVE! Any comment on the apple bobbing?",
         "My headline: 'Local Barrel Defeats Local Boy'. Ozzie got zero apples. Zero!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "Juniper Okafor, Old Oak Elementary Gazette, covering the Spring Fair LIVE! Any comment on the duck pond?",
+        "My headline: 'Local Duck Outsmarts Local Boy'. Ozzie hooked zero ducks. Zero!"
       ]
     },
     {

@@ -91,6 +91,47 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **Glenmoor reworked to day and night, Heather's spring moves, her orchard and spring in Stars Hollow**
+  (Glenmoor slice two). Hayden: "my idea with glenmoor was that it would be a sort of continuous looping between day
+  and night with factions that prefer both warring over the unpredictable cycle", "we stripped Heather of her
+  growing/healing ability to give it to bramble", then "Lets do April showers and the spring step. I want there to be a
+  sort of yin and yang theme and after the boss is defeated, the day and night cycles return to normal". Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **Day and night loop** instead of the seasons spinning (`glenmoor.gd set_daylight(k)`, `day_k` 0 noon, 0.5
+    midnight; `DAY`/`DUSK`/`NIGHT` looks: sky, fog, sun, ambient, grass and rowans; a moon and stars, "Night Sky").
+    **The flux:** `_loop()` picks a new speed every 2 to 5 s, sometimes backwards (`FLUX_SPEEDS`, `BACKWARDS`), a whole
+    day in `CYCLE` 10/14/20/28 s by charms. The card says Day, Dusk, Night or Dawn. Snow caps are hidden for good.
+  - **Two sides** (`_add_camps()`): the **Sunfolk** (Heather's, by the croft: Goldie, Barley, Sunny Jim, gold banner)
+    and the **Moonfolk** (Isla's, up the glen: Morag, Wee Dougal, Nessa, night-blue banner with a crescent), townsfolk
+    bodies in their side's colours. Whose time comes round cheers over their heads, the other side grumbles
+    (`_cheer()`); each has lines (`folk_lines()`). Heather and Isla are still best friends, on opposite sides.
+  - **Three Balance Charms** (ids still `bell_1..3`): the **Sun Charm** (the Fluffkins, for Heather), the **Twilight
+    Charm** (the shared garden: sunflowers on beds 1, 3, 5 open by day, moonflowers on 2, 4 open in the dark,
+    `is_moonflower()`, `grow_phase()` from the daylight; sing to each while it's open) and the **Moon Charm** (the
+    hill race, for Isla). The Stormram's unchanged.
+  - **Mended:** the loop eases into a normal day (`NORMAL_DAY` 240 s, steady, from a spring morning), the camps' banners
+    come down and a **yin and yang Peace Banner** goes up between them (`_make_peace()`, `PEACE_AT`), everyone gathered
+    round it. Spring still opens on Earth.
+  - **April Showers** (`scripts/showers.gd`, a "Showers" node on the player): H, or **hold Interact** with nothing in
+    reach (no pad button: all taken). A rain cloud comes over the hero for 2.5 s and follows them, then a solid
+    **rainbow** arches 14 m ahead the way the camera looks, 3 m high, walkable, for 20 s (two at once). Rain waters
+    your Void garden (no faster growing: that's Bramble's) and cools Rhythm Springs' heat. `{showers_how}` in lines.
+  - **Spring Step** (`scripts/spring_step.gd`, a "SpringStep" node): no button. Jump again within 0.2 s of landing (the
+    jump buffer counts) and it goes 1.3x higher, a third in a row 1.65x with a flip (`player.gd` asks `bound()`).
+  - Both locked until Glenmoor's mended (`Settings.SECRET_ACTIONS` "showers"); Heather teaches them in her thank-you.
+    The first try, a grow move (`grow.gd`), is gone: growing's Bramble's.
+  - **Heather's Blossom Orchard** in the Void (`Portals._blossom_orchard()`, `ORCHARD` (-124, -62), beside Glenmoor's
+    portal): nine blossom trees, two Fluffkins, petals and a sign; Heather mentions it in town.
+  - **Spring in Stars Hollow** (like summer and winter): 33 spring copies of Earth conversations (the autumn ones now
+    say just `"autumn"`); `seasons.gd`: tulips at the pumpkin and scarecrow spots ("Spring Tulips"), the patch sign
+    says "Tulip Field", pastel lights and bunting; notice board (`earth_jobs.gd r.spring`): plant tulip bulbs round a
+    house ("bulb" props: a tulip pops up), rhubarb for Poppy, rhubarb crumble. No spring quest yet.
+  - Tests: new `tools/test_heather_moves.gd` and `tools/test_spring.gd`; `test_glenmoor` rewritten for day and night.
+    Previews: `tools/capture_glenmoor.gd` and `tools/capture_heather_moves.gd` (shots in the project files under
+    world/previews/glenmoor_daynight and world/previews/heather_moves).
+  - My choices Hayden may change: the folk's names and looks, the flux speeds, which task is which charm, the Peace
+    Banner, H and hold Interact, the rainbow's size and time, the Spring Step window and heights, the orchard's spot.
+
 - 2026-11-10: **Glenmoor, Heather's world** (plan item 19a world 6, slice one). Hayden: "Lets do glenmoor".
   Built and tested in the cloud (own Godot user folders, no save touched).
   - **Heather:** the cattle girl is called Heather everywhere the player sees (her talk name, race rider name, town
@@ -123,8 +164,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     practice_trips, dialogue, season_unlocks, routines and tide_reef pass (races fails one vein check on main too).
     Previews: `tools/capture_glenmoor.gd` (shots in the project files under world/previews/glenmoor).
   - My choices Hayden may change: Isla's name and look, the Fluffkins, the three bells and their tasks, the hill
-    race, the Stormram's numbers, 11 Remnants, the portal's spot. Slice two still to do: the reward (Heather's grow
-    ability, a blossom orchard in the Void, spring in Stars Hollow like summer and winter).
+    race, the Stormram's numbers, 11 Remnants, the portal's spot. (Slice two reworked the spinning seasons into day and
+    night: see the entry above.)
 
 - 2026-11-10: **The Undergardens**, caves under the Secret Gardens hill in the Void (Hayden: "I want to make some of the
   secret garden caves as well", next to Lanternmoor's caves). Built and tested in the cloud (own Godot user folders, no

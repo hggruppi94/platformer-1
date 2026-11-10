@@ -32,13 +32,20 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Look, look! I won a ribbon for the best scarecrow drawing! Mine's got a cape.",
+        "Bruno says the hayride's for babies. He's been on it three times."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "Look, look! I won a ribbon for the best duck drawing! Mine's got a cape.",
         "Bruno says the hayride's for babies. He's been on it three times."
       ]
     },
@@ -129,13 +136,19 @@
     {
       "when": {
         "activity": "pumpkins",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "I'm looking for the biggest pumpkin in the whole patch. This one's big. But that one's BIGGER."
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
+        "season": "spring"
+      },
+      "lines": [
+        "I'm looking for the prettiest tulip in the whole field. This one's pretty. But that one's PRETTIER."
       ]
     },
     {
@@ -199,10 +212,23 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "I saw a little green alien in the tulip field! Nina says it was a frog. Frogs don't wave!"
+        ],
+        [
+          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+        ],
+        [
+          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

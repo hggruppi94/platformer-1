@@ -34,14 +34,21 @@
     {
       "when": {
         "activity": "festival_stall",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Caramel apples, kettle corn, cider donuts! Everything's warm and everything's sticky!",
         "Entering the pie contest? Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_stall",
+        "season": "spring"
+      },
+      "lines": [
+        "Strawberry tarts, lemon buns, honey cakes! Everything's fresh and everything's sticky!",
+        "Entering the baking contest? Contest tarts are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of tart-erest'."
       ]
     },
     {
@@ -73,13 +80,19 @@
     {
       "when": {
         "activity": "fresh_air",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Just getting some fresh air. Smell that? That's autumn. And cinnamon. Mostly cinnamon. It's coming off me."
+      ]
+    },
+    {
+      "when": {
+        "activity": "fresh_air",
+        "season": "spring"
+      },
+      "lines": [
+        "Just getting some fresh air. Smell that? That's spring. And lemon. Mostly lemon. It's coming off me."
       ]
     },
     {
@@ -136,10 +149,26 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Gus says my strawberry tart's 'too pink'. Too pink! It's a STRAWBERRY tart!"
+        ],
+        [
+          "For the Spring Fair I'm baking a cake shaped like the gazebo. With little sugar blossoms. And a little sugar Mr. Palmer."
+        ],
+        [
+          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats. I put a daisy in it for spring."
+        ],
+        [
+          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

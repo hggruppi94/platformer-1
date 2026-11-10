@@ -665,6 +665,8 @@ func _hub_changes(s: Node) -> void:
 		_melody_stage()
 	if is_cleared("tide_reef"):
 		_otto_in_hub()
+	if is_cleared("glenmoor"):
+		_blossom_orchard()
 
 
 func _watching_flowers() -> void:
@@ -707,6 +709,139 @@ func _melody_stage() -> void:
 	_holder.add_child(stage)
 	stage.global_position = Remnants.ground_at(MELODY_STAGE)
 	stage.rotation.y = MELODY_STAGE_YAW
+
+
+# Heather's blossom orchard, in the Void once Glenmoor's mended ----------------------------------------------------
+const ORCHARD := Vector2(-124.0, -62.0)     # just south-west of Glenmoor's portal (checked flat, clear, off the races, paths and trees)
+const ORCHARD_GAP := 4.5                    # metres between the trees
+const ORCHARD_PETALS := [Color(1.0, 0.75, 0.85), Color(1.0, 0.86, 0.92), Color(0.98, 0.66, 0.8)]
+
+
+func _blossom_orchard() -> void:
+	# Glenmoor's spring came through with you: nine blossom trees in rows in the meadow by its portal, petals drifting
+	# down, two Fluffkins grazing under them and a sign
+	var g := Node3D.new()
+	g.name = "Blossom Orchard"
+	_holder.add_child(g)
+	g.global_position = _still_ground(ORCHARD)
+	# (Find every spot's ground first: new trunks aren't where they belong to the physics until the next step)
+	var spots: Array[Vector3] = []
+	for ix in [-1, 0, 1]:
+		for iz in [-1, 0, 1]:
+			spots.append(_still_ground(ORCHARD + Vector2(ix, iz) * ORCHARD_GAP + Vector2(0.4 * ((ix + iz) % 2), 0.3 * ix)))
+	var grazing: Array[Vector3] = []
+	for i in 2:
+		grazing.append(_still_ground(ORCHARD + Vector2(-2.2 + i * 4.4, 2.3 - i * 4.6)))
+	for k in spots.size():
+		var t := blossom_tree_model(ORCHARD_PETALS[k % ORCHARD_PETALS.size()], 1.0 + 0.12 * ((k * 5) % 3))
+		t.name = "Blossom Tree %d" % (k + 1)
+		t.position = spots[k] - g.global_position
+		t.rotation.y = k * 1.7
+		g.add_child(t)
+	var glen := load("res://scripts/glenmoor.gd")
+	for i in 2:
+		var f: Node3D = glen.fluffkin_model(i)
+		f.name = "Fluffkin %d" % (i + 1)
+		f.position = grazing[i] - g.global_position
+		f.rotation.y = 0.8 + i * 2.5
+		g.add_child(f)
+	var petals := CPUParticles3D.new()
+	petals.name = "Petals"
+	petals.amount = 60
+	petals.lifetime = 6.0
+	petals.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	petals.emission_box_extents = Vector3(ORCHARD_GAP * 1.6, 0.5, ORCHARD_GAP * 1.6)
+	petals.position.y = 4.5
+	petals.direction = Vector3(0.3, -1, 0.1)
+	petals.spread = 25.0
+	petals.gravity = Vector3(0.2, -0.35, 0)
+	petals.initial_velocity_min = 0.2
+	petals.initial_velocity_max = 0.5
+	petals.angular_velocity_min = -90.0
+	petals.angular_velocity_max = 90.0
+	var pm := QuadMesh.new()
+	pm.size = Vector2(0.12, 0.1)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = ORCHARD_PETALS[0]
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	pm.material = mat
+	petals.mesh = pm
+	g.add_child(petals)
+	var sign := Label3D.new()
+	sign.name = "Sign"
+	sign.text = "Heather's Blossom Orchard"
+	sign.font_size = 64
+	sign.pixel_size = 0.01
+	sign.outline_size = 12
+	sign.modulate = Color(1.0, 0.9, 0.95)
+	sign.position = Vector3(0, 5.6, 0)
+	sign.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+	g.add_child(sign)
+
+
+func _still_ground(at: Vector2) -> Vector3:
+	# The ground there, looking past anyone who happens to be walking by (a Gloop, the player)
+	var space := (_holder as Node3D).get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(Vector3(at.x, 300.0, at.y), Vector3(at.x, -60.0, at.y))
+	var skip: Array[RID] = []
+	for i in 6:
+		q.exclude = skip
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			break
+		if hit.collider is StaticBody3D:
+			return hit.position
+		skip.append(hit.rid)
+	return Remnants.ground_at(at)
+
+
+static func blossom_tree_model(petal: Color, size := 1.0) -> Node3D:
+	# A round blossom tree: a short twisty trunk (solid, so you go round it) and a big soft crown of pink puffs
+	var t := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var cy := CylinderShape3D.new()
+	cy.radius = 0.28 * size
+	cy.height = 2.2 * size
+	cs.shape = cy
+	cs.position.y = 1.1 * size
+	t.add_child(cs)
+	var bark := StandardMaterial3D.new()
+	bark.albedo_color = Color(0.42, 0.3, 0.24)
+	bark.roughness = 0.9
+	var trunk := MeshInstance3D.new()
+	var tm := CylinderMesh.new()
+	tm.top_radius = 0.18 * size
+	tm.bottom_radius = 0.3 * size
+	tm.height = 2.4 * size
+	tm.radial_segments = 8
+	trunk.mesh = tm
+	trunk.material_override = bark
+	trunk.position.y = 1.2 * size
+	trunk.rotation.z = 0.08
+	t.add_child(trunk)
+	var bloom := StandardMaterial3D.new()
+	bloom.albedo_color = petal
+	bloom.roughness = 0.85
+	bloom.emission_enabled = true
+	bloom.emission = petal
+	bloom.emission_energy_multiplier = 0.12
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(petal.r * 1000.0) + int(size * 100.0)
+	for k in 7:
+		var p := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = rng.randf_range(0.7, 1.0) * size
+		sm.height = sm.radius * 1.7
+		sm.radial_segments = 10
+		sm.rings = 5
+		p.mesh = sm
+		p.material_override = bloom
+		var a := k * TAU / 6.0
+		p.position = (Vector3(cos(a) * 0.9, 2.9 + rng.randf_range(-0.2, 0.3), sin(a) * 0.9) if k < 6 else Vector3(0, 3.5, 0)) * size
+		t.add_child(p)
+	return t
 
 
 # Otto, in the Void once the Tide Reef's mended --------------------------------------------------------------------

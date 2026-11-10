@@ -35,13 +35,20 @@
     {
       "when": {
         "activity": "festival_music",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "(He's strumming a jolly tune about a pumpkin who wanted to be a moon.)",
+        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_music",
+        "season": "spring"
+      },
+      "lines": [
+        "(He's strumming a bouncy tune about a duck who wanted to be a swan.)",
         "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
       ]
     },
@@ -97,14 +104,21 @@
     {
       "when": {
         "time": "morning",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "(Strum!) Good morning, good morning, the leaves are turning gold! Good morning, good morning, and Gus is being cold!",
         "(From across the street, someone yells \"I HEARD THAT\".)"
+      ]
+    },
+    {
+      "when": {
+        "time": "morning",
+        "season": "spring"
+      },
+      "lines": [
+        "(Strum!) Good morning, good morning, the blossom's on the trees! Good morning, good morning, and Gus is going to sneeze!",
+        "(From across the street, someone yells \"I HEARD THAT\". Then sneezes.)"
       ]
     },
     {
@@ -161,10 +175,26 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+        ],
+        [
+          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+        ],
+        [
+          "(He plays a chirpy little tune.) That's my spring song. It's called 'The Tulip Who Wanted To Be A Trumpet'."
+        ],
+        [
+          "The Spring Fair's my big night! I'm playing the whole evening. Bring dancing shoes. And a duck. Joking. Maybe."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

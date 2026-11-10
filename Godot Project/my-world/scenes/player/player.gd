@@ -55,6 +55,8 @@ const MODEL_Y := -0.8                       # feet at the bottom of the collisio
 const BURROW := preload("res://scripts/burrow.gd")   # no class_name: --script tools compile those before the autoloads
 const FROST_BREATH := preload("res://scripts/frost_breath.gd")
 const GROOVE := preload("res://scripts/groove.gd")
+const SHOWERS := preload("res://scripts/showers.gd")
+const SPRING_STEP := preload("res://scripts/spring_step.gd")
 const PIP_GLOW := preload("res://scripts/pip_glow.gd")
 const SWIM := preload("res://scripts/swim.gd")
 
@@ -98,6 +100,8 @@ var popper: StarPopper                      # her bubble blaster: aiming and sho
 var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
 var frost_breath: Node                      # Flurry's frost breath, once the Frozen Moment's mended (scripts/frost_breath.gd)
 var groove: Node                            # Melody's groove, once Rhythm Springs is mended (scripts/groove.gd)
+var showers: Node                           # Heather's April Showers, once Glenmoor is mended (scripts/showers.gd)
+var spring_step: Node                       # and her Spring Step (scripts/spring_step.gd)
 var pip_glow: Node                          # Pip's glow in the dark, once Lanternmoor is mended (scripts/pip_glow.gd)
 var swim: Node                              # swimming in deep water; diving once the Tide Reef's mended (scripts/swim.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
@@ -171,6 +175,14 @@ func _ready() -> void:
 	groove.name = "Groove"
 	add_child(groove)
 	groove.setup(self)
+	showers = SHOWERS.new()
+	showers.name = "Showers"
+	add_child(showers)
+	showers.setup(self)
+	spring_step = SPRING_STEP.new()
+	spring_step.name = "SpringStep"
+	add_child(spring_step)
+	spring_step.setup(self)
 	pip_glow = PIP_GLOW.new()
 	pip_glow.name = "PipGlow"
 	add_child(pip_glow)
@@ -437,6 +449,8 @@ func _physics_process(delta: float) -> void:
 		frost_breath.try_breathe()
 	if Input.is_action_just_pressed("groove"):
 		groove.try_groove()
+	if Input.is_action_just_pressed("showers"):
+		showers.try_shower()
 	if on_floor:
 		_air_jump_used = false
 
@@ -461,7 +475,8 @@ func _physics_process(delta: float) -> void:
 
 	# Jump. Jumping out of a roll is allowed and ends it.
 	if _jump_buffer_timer > 0 and _coyote_timer > 0:
-		velocity.y = jump_velocity
+		# (a Spring Step, jumping again just as you land, bounces higher once Heather's taught it)
+		velocity.y = jump_velocity * (spring_step.bound() if spring_step else 1.0)
 		_jump_buffer_timer = 0
 		_coyote_timer = 0
 		_end_roll()

@@ -273,6 +273,10 @@ const BUNTING_WINTER := [Color(0.85, 0.15, 0.2), Color(0.15, 0.55, 0.3), Color(0
 # Summer's: sunshine yellow, sea turquoise, watermelon pink and lime
 const BULBS_SUMMER := [Color(1.0, 0.85, 0.2), Color(0.2, 0.85, 0.85), Color(1.0, 0.45, 0.55), Color(0.6, 0.95, 0.3)]
 const BUNTING_SUMMER := [Color(1.0, 0.8, 0.15), Color(0.1, 0.65, 0.75), Color(0.95, 0.35, 0.45), Color(0.97, 0.97, 1.0)]
+# Spring's: soft pastels, blossom pink, primrose, lilac and mint
+const BULBS_SPRING := [Color(1.0, 0.7, 0.82), Color(1.0, 0.95, 0.55), Color(0.8, 0.7, 1.0), Color(0.65, 1.0, 0.8)]
+const BUNTING_SPRING := [Color(1.0, 0.72, 0.84), Color(1.0, 0.93, 0.5), Color(0.75, 0.65, 0.95), Color(0.97, 0.97, 1.0)]
+const TULIPS := [Color(0.95, 0.2, 0.3), Color(1.0, 0.85, 0.2), Color(1.0, 0.55, 0.75), Color(0.75, 0.45, 0.95), Color(1.0, 0.6, 0.2)]
 const SUMMER_POND := Color(0.1, 0.38, 0.56)
 
 
@@ -327,19 +331,20 @@ func _dress_rest() -> void:
 		if is_instance_valid(n):
 			n.visible = autumn
 	if _patch_sign:
-		_patch_sign.text = {"winter": "Snowman Field", "summer": "Sunflower Field"}.get(season, "Pumpkin Patch")
+		_patch_sign.text = {"winter": "Snowman Field", "summer": "Sunflower Field", "spring": "Tulip Field"}.get(season, "Pumpkin Patch")
 	if _snowmen:
 		_snowmen.name = "Melting Snowmen"
 		_snowmen.queue_free()
 		_snowmen = null
 	shown_snowmen = 0
 	shown_sunflowers = 0
-	if season != "winter" and season != "summer":
+	shown_tulips = 0
+	if season == "autumn":
 		return
-	# A snowman (in winter) or a big sunflower (in summer) for each doorstep pumpkin (one for a cluster of them), and
-	# for each scarecrow
+	# A snowman (in winter), a big sunflower (in summer) or a little bunch of tulips (in spring) for each doorstep
+	# pumpkin (one for a cluster of them), and for each scarecrow
 	_snowmen = Node3D.new()
-	_snowmen.name = "Winter Snowmen" if season == "winter" else "Summer Sunflowers"
+	_snowmen.name = {"winter": "Winter Snowmen", "summer": "Summer Sunflowers"}.get(season, "Spring Tulips")
 	add_child(_snowmen)
 	var spots: Array[Vector3] = []
 	for n in _pumpkins:
@@ -359,22 +364,32 @@ func _dress_rest() -> void:
 		spots.append(at)
 	for at in spots:
 		var big := spots.find(at) % 3 == 0
-		var thing := snowman_model(0.75 if big else 0.55) if season == "winter" else sunflower_model(1.3 if big else 1.0)
+		var thing: Node3D
+		match season:
+			"winter":
+				thing = snowman_model(0.75 if big else 0.55)
+			"summer":
+				thing = sunflower_model(1.3 if big else 1.0)
+			_:
+				thing = tulip_bunch_model(spots.find(at), 1.2 if big else 1.0)
 		_snowmen.add_child(thing)
 		thing.global_position = at
 		thing.rotation.y = fposmod(at.x * 1.7 + at.z, TAU)
 	if season == "winter":
 		shown_snowmen = spots.size()
-	else:
+	elif season == "summer":
 		shown_sunflowers = spots.size()
+	else:
+		shown_tulips = spots.size()
 
 
 var shown_snowmen := 0                   # how many winter snowmen there are (for the tests)
 var shown_sunflowers := 0                # and summer sunflowers
+var shown_tulips := 0                    # and spring tulip bunches
 
 
 func _paint_lights() -> void:
-	for pair in [[_bulbs, _bulb_cols, BULBS_WINTER, BULBS_SUMMER], [_bunting, _bunting_cols, BUNTING_WINTER, BUNTING_SUMMER]]:
+	for pair in [[_bulbs, _bulb_cols, BULBS_WINTER, BULBS_SUMMER, BULBS_SPRING], [_bunting, _bunting_cols, BUNTING_WINTER, BUNTING_SUMMER, BUNTING_SPRING]]:
 		var mmi := pair[0] as MultiMeshInstance3D
 		if mmi == null:
 			continue
@@ -385,6 +400,8 @@ func _paint_lights() -> void:
 				c = pair[2][i % 4]
 			elif season == "summer":
 				c = pair[3][i % 4]
+			elif season == "spring":
+				c = pair[4][i % 4]
 			mmi.multimesh.set_instance_color(i, c)
 
 
@@ -394,7 +411,56 @@ func lights_colour(i: int) -> Color:
 		return BULBS_WINTER[i % 4]
 	if season == "summer":
 		return BULBS_SUMMER[i % 4]
+	if season == "spring":
+		return BULBS_SPRING[i % 4]
 	return _bulb_cols[i] if i < _bulb_cols.size() else Color.WHITE
+
+
+static func tulip_model(size := 1.0, k := 0) -> Node3D:
+	# One tulip: a green stem with a long leaf, and a cup-shaped flower head in one of the spring colours
+	var g := Node3D.new()
+	g.name = "Tulip"
+	var green := _m(Color(0.3, 0.6, 0.25), 0.8)
+	var tall := 0.5 * size
+	var stem := MeshInstance3D.new()
+	var c := CylinderMesh.new()
+	c.top_radius = 0.018 * size
+	c.bottom_radius = 0.025 * size
+	c.height = tall
+	c.radial_segments = 6
+	stem.mesh = c
+	stem.material_override = green
+	stem.position.y = tall / 2.0
+	g.add_child(stem)
+	var leaf := MeshInstance3D.new()
+	leaf.mesh = _sphere(0.08 * size)
+	leaf.material_override = green
+	leaf.position = Vector3(0.04 * size, tall * 0.3, 0)
+	leaf.scale = Vector3(0.6, 2.4, 0.3)
+	leaf.rotation.z = -0.3
+	g.add_child(leaf)
+	var cup := _m(TULIPS[posmod(k, TULIPS.size())], 0.6)
+	for p in 3:
+		var a := TAU * p / 3.0
+		var petal := MeshInstance3D.new()
+		petal.mesh = _sphere(0.055 * size)
+		petal.material_override = cup
+		petal.position = Vector3(cos(a) * 0.03 * size, tall + 0.05 * size, sin(a) * 0.03 * size)
+		petal.scale = Vector3(0.9, 1.6, 0.9)
+		g.add_child(petal)
+	return g
+
+
+static func tulip_bunch_model(k: int, size := 1.0) -> Node3D:
+	# A little clump of tulips, mixed colours, where a pumpkin stood in autumn
+	var g := Node3D.new()
+	g.name = "Tulips"
+	for i in 5:
+		var a := i * 2.4 + k
+		var t := tulip_model(size * (0.85 + 0.1 * (i % 3)), k + i)
+		t.position = Vector3(cos(a), 0, sin(a)) * (0.0 if i == 0 else 0.16 * size)
+		g.add_child(t)
+	return g
 
 
 static func sunflower_model(size := 1.0) -> Node3D:

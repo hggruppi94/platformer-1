@@ -34,14 +34,21 @@
     {
       "when": {
         "activity": "festival_hayride",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green!",
         "Job number seven: hayride conductor! Scarecrow Sam drives. He's very good. He's never once crashed. He's never once blinked either."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_hayride",
+        "season": "spring"
+      },
+      "lines": [
+        "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green!",
+        "Job number seven: hayride conductor! Scarecrow Sam drives. He's got a daisy in his hat for spring. He's never once crashed. He's never once blinked either."
       ]
     },
     {
@@ -81,13 +88,19 @@
     {
       "when": {
         "activity": "pumpkins",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Pumpkins! Get your pumpkins! Big ones, little ones, one that looks like Gus!"
+      ]
+    },
+    {
+      "when": {
+        "activity": "pumpkins",
+        "season": "spring"
+      },
+      "lines": [
+        "Tulips! Get your tulips! Red ones, yellow ones, one that looks like Gus!"
       ]
     },
     {
