@@ -104,8 +104,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `sunk_given_<id>`, `sunk_pieces_done`; when-keys `sunk_to_give`, `sunk_given`; word `{pieces_given}`.
   - **Where:** the flooded Tide Reef and Willow Pond's deep middle lie on their own beds (`NATURAL`; a secret only
     shows with 2 m of water over it, so the reef's turn up once its sea's in). Everywhere else a **deep pool** is put in
-    at play time (`POOLS`, `build_pool()`): a round stone basin 3.4 m across inside, 3.6 m of water, four steps up its
-    outside, a ledge inside to stand on and jump out from, a glowing floor and its name on a sign. The Void's
+    at play time (`POOLS`, `build_pool()`), **sunk into the ground** (Hayden: "Could you just bury the current
+    pools?"): `scripts/ground_hole.gd` cuts a round hole through whatever ground is there, on copies (the Void's
+    terrain mesh and trimesh lose the triangles touching it, so its edge is ragged; a portal world's round slab floor
+    is made again with a neat hole, and Shard Isle's rock cone has its side pushed out round the basin; little things
+    in the hole are hidden, and foliage instances shrunk away). Then a round stone basin 3.4 m across inside sits in
+    it: 3.6 m of water with its surface 0.15 m under the ground, a ring of paving over the cut edge following the
+    ground (out to `meta rim`), a ledge inside to stand on and jump out from, a glowing floor and its name on a sign.
+    You walk straight in. Headless runs keep no mesh data, so only the collision is cut there. The Void's
     **Wishing Well** at (50, -66) by the Portal Plaza, Shard Isle's **Crystal Basin**, the Rootmind's **Dew Cup**, the
     Frozen Moment's **Thaw Pool**, Lanternmoor's **Moon Well**, Rhythm Springs' **Deep Spring**. Each spot checked
     flat and clear (the Void's off races, paths, trees, portals and the plaza's friends). Otto's plaza lines hint at it.

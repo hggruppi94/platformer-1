@@ -55,7 +55,7 @@ func _run() -> void:
 	await _go("res://scenes/town/town.tscn")
 	var well := current_scene.find_child("The Wishing Well", true, false) as Node3D
 	_cam_in(current_scene)
-	_look(well.global_position + Vector3(-9, 6, 8), well.global_position + Vector3(0, 2, 0))
+	_look(well.global_position + Vector3(-9, 5, 8), well.global_position + Vector3(0, -0.5, 0))
 	await _frames(20)
 	await _shot("01_the_wishing_well_by_the_portal_plaza")
 	_look(well.global_position + Vector3(0, 9, 1.5), well.global_position)
@@ -99,10 +99,15 @@ func _run() -> void:
 		await _go(p.scene)
 		var pool := current_scene.find_child(str(p.name), true, false) as Node3D
 		_cam_in(current_scene)
-		_look(pool.global_position + Vector3(8, 6, 8), pool.global_position + Vector3(0, 2, 0))
+		_look(pool.global_position + Vector3(7, 5, 7), pool.global_position + Vector3(0, -0.5, 0))
 		await _frames(30)
 		await _shot("%02d_%s" % [n, str(p.name).to_lower().replace(" ", "_")])
 		n += 1
+		if key == "shard_isle":                      # under the island, where the basin sits in its rock
+			_look(pool.global_position + Vector3(14, -9, 10), pool.global_position + Vector3(-3, -3, 0))
+			await _frames(10)
+			await _shot("%02d_under_shard_isle" % n)
+			n += 1
 	# Willow Pond's three, from under the water
 	await _go("res://scenes/earth/earth.tscn")
 	player = current_scene.get_tree().get_first_node_in_group("player") as CharacterBody3D

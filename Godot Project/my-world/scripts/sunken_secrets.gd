@@ -12,9 +12,10 @@ extends Node
 #   - "bottle": the eight Seer's Bottles. Notes from the future seer, kept vague on purpose (talking about the future
 #     makes time ripples), hinting at what's coming.
 # Where the water's deep already (the flooded Tide Reef, Willow Pond's middle) they lie on the bottom. Everywhere else
-# this puts in a deep pool at play time (`build_pool()`: a round stone basin with steps up its side, a water.gd node
-# and a surface), so no builder or scene changed. Found ones are Dialogue flags (`sunk_<id>`, `sunk_given_<id>`), so
-# nothing new in the save. A secret only shows while there's water over it (the Tide Reef's floods once it's mended).
+# this puts in a deep pool at play time (`build_pool()`: the ground under it is cut away by scripts/ground_hole.gd and a
+# round stone basin is sunk into the hole, with a water.gd node and a surface), so no builder or scene changed. Found
+# ones are Dialogue flags (`sunk_<id>`, `sunk_given_<id>`), so nothing new in the save. A secret only shows while
+# there's water over it (the Tide Reef's floods once it's mended).
 #
 # It lives under the Watches autoload ("Watches/Sunken"), like the Lab and the Episodes, so dialogue can reach it.
 
@@ -42,8 +43,10 @@ const POOL_R := 3.4                 # inside the wall
 const POOL_WALL := 0.5
 const POOL_DEEP := 3.6              # the water's depth (out of her depth: she swims)
 const LEDGE := 1.0                  # an inside ledge this far under the surface, to stand on and jump out from
-const POOL_TOP := 3.9               # the wall's top over the ground
-const STEPS := 4                    # up the outside of the wall, each a jump's height
+const SURFACE_DROP := 0.15         # the water's surface, this far under the ground
+const LEDGE_AT := 2.02              # which way round the ledge is
+const RIM_SEGS := 48                # the paving round the pool
+const RIM_ROWS := 6                 # (0.6 m apart: it reaches out at most 3.6 m past the hole)
 
 # The places with deep water of their own: the scene, and each kind's spot on the bottom (x, z)
 const NATURAL := {
@@ -227,7 +230,7 @@ func _place_in(s: Node) -> void:
 	_reader.set_script(PICKUP)
 	_holder.add_child(_reader)
 	if POOLS.has(here):
-		var pool := build_pool(POOLS[here], (s as Node3D).get_world_3d())
+		var pool := build_pool(POOLS[here], (s as Node3D).get_world_3d(), s)
 		_holder.add_child(pool)
 	_show_waiting()
 
@@ -268,19 +271,47 @@ func _ground(from: Vector3) -> float:
 const SWIM := preload("res://scripts/swim.gd")
 const WATER := preload("res://scripts/water.gd")
 const PICKUP := preload("res://scripts/sunken_pickup.gd")
+const HOLE := preload("res://scripts/ground_hole.gd")
 
 
-func build_pool(p: Dictionary, world: World3D) -> Node3D:
-	# A round stone basin standing on the ground, deep enough to swim down in: a wall all round, a rim, steps up
-	# its outside, the water (scripts/water.gd, so she splashes in and swims), its surface, and a glow at the bottom
+func _height(space: PhysicsDirectSpaceState3D, at: Vector2) -> float:
+	var q := PhysicsRayQueryParameters3D.create(Vector3(at.x, 80, at.y), Vector3(at.x, -60, at.y))
+	var player := get_tree().get_first_node_in_group("player") as CollisionObject3D if is_inside_tree() else null
+	if player:
+		q.exclude = [player.get_rid()]
+	var hit := space.intersect_ray(q)
+	return (hit.position as Vector3).y if not hit.is_empty() else 0.0
+
+
+func build_pool(p: Dictionary, world: World3D, scene: Node = null) -> Node3D:
+	# A round stone basin sunk into the ground, deep enough to swim down in. The ground under it is cut away
+	# (scripts/ground_hole.gd), so the water's surface lies just under the ground and you can walk straight in. A stone
+	# wall lines the hole, a ring of paving covers the cut edge, a ledge inside lets you climb back out, and there's the
+	# water (scripts/water.gd, so she splashes in and swims), its surface, and a glow at the bottom.
 	var root := Node3D.new()
 	root.name = str(p.name)
 	var at: Vector2 = p.at
-	var q := PhysicsRayQueryParameters3D.create(Vector3(at.x, 80, at.y), Vector3(at.x, -60, at.y))
-	var hit := world.direct_space_state.intersect_ray(q)
-	var g: float = (hit.position as Vector3).y if not hit.is_empty() else 0.0
+	var space := world.direct_space_state
+	var g := _height(space, at)
 	root.position = Vector3(at.x, g, at.y)
 	root.set_meta("ground", g)
+	var bed := -(POOL_DEEP + SURFACE_DROP)          # the bottom, under the ground
+	root.set_meta("bed", g + bed)
+	# The paving's heights, read before the ground's cut
+	var rim_in := POOL_R + POOL_WALL * 0.5
+	var heights: Array = []
+	for i in RIM_SEGS:
+		var a := i * TAU / RIM_SEGS
+		var row: Array = []
+		for k in RIM_ROWS + 1:
+			var d := rim_in + k * 0.6
+			row.append(_height(space, at + Vector2(cos(a), sin(a)) * d) - g)
+		heights.append(row)
+	var reach := rim_in
+	if scene:
+		reach = HOLE.cut(scene, at, rim_in, g + bed - 1.0, g + 0.5)
+	var rim_out := minf(maxf(reach + 0.4, POOL_R + POOL_WALL + 0.6), rim_in + RIM_ROWS * 0.6)
+	root.set_meta("rim", rim_out)
 	var stone := _mat(p.stone)
 	var trim := _mat(p.trim, 0.4)
 	var body := StaticBody3D.new()
@@ -289,32 +320,29 @@ func build_pool(p: Dictionary, world: World3D) -> Node3D:
 	var n := 24
 	var mid := POOL_R + POOL_WALL * 0.5
 	var seg := TAU * mid / n * 1.08
+	var wall_h := -bed + 0.5
 	for i in n:
 		var a := i * TAU / n
-		var t := Transform3D(Basis(Vector3.UP, -a + PI * 0.5), Vector3(cos(a) * mid, POOL_TOP * 0.5, sin(a) * mid))
-		_box(root, body, Vector3(seg, POOL_TOP, POOL_WALL), t, stone)
-		var rim := Transform3D(t.basis, Vector3(cos(a) * mid, POOL_TOP + 0.06, sin(a) * mid))
-		_box(root, null, Vector3(seg, 0.12, POOL_WALL + 0.16), rim, trim)
-	# Steps up the outside, curling round the wall (so the whole pool stays inside a small round spot)
-	for k in STEPS:
-		var a := 1.6 + k * 0.42
-		var h := (k + 1) * (POOL_TOP - 0.1) / STEPS
-		var r := POOL_R + POOL_WALL + 0.65
-		var t := Transform3D(Basis(Vector3.UP, -a + PI * 0.5), Vector3(cos(a) * r, h * 0.5, sin(a) * r))
-		_box(root, body, Vector3(1.35, h, 1.3), t, stone)
-	# A ledge just inside, under the water by the steps: swim onto it, stand, and jump out over the wall
-	var la := 1.6 + 0.42
+		var t := Transform3D(Basis(Vector3.UP, -a + PI * 0.5), Vector3(cos(a) * mid, -wall_h * 0.5, sin(a) * mid))
+		_box(root, body, Vector3(seg, wall_h, POOL_WALL), t, stone)
+		var lip := Transform3D(t.basis, Vector3(cos(a) * mid, 0.04, sin(a) * mid))
+		_box(root, null, Vector3(seg, 0.08, POOL_WALL + 0.12), lip, trim)
+	_box(root, body, Vector3(POOL_R * 2.0 + 0.4, 0.5, POOL_R * 2.0 + 0.4), Transform3D(Basis(), Vector3(0, bed - 0.25, 0)), stone)
+	# The paving round it, following the ground, out over wherever the ground's edge was cut ragged
+	_rim(root, body, heights, rim_in, rim_out, (p.stone as Color).darkened(0.12))
+	# A ledge just inside, under the water: swim onto it, stand, and jump out
+	var la := LEDGE_AT
 	var lr := POOL_R - 0.6
 	var lh := POOL_DEEP - LEDGE
 	_box(root, body, Vector3(1.2, lh, 1.6), Transform3D(Basis(Vector3.UP, -la + PI * 0.5),
-		Vector3(cos(la) * lr, lh * 0.5, sin(la) * lr)), stone)
+		Vector3(cos(la) * lr, bed + lh * 0.5, sin(la) * lr)), stone)
 	# The water
 	var water := Node3D.new()
 	water.name = "Water"
 	water.set_script(WATER)
-	var outline: Array[Vector4] = [Vector4(at.x, at.y, POOL_R * 0.9, POOL_R * 0.9)]
+	var outline: Array[Vector4] = [Vector4(at.x, at.y, POOL_R + 0.05, POOL_R + 0.05)]   # (right up to the wall)
 	water.set("ellipses", outline)
-	water.set("water_y", g + POOL_DEEP)
+	water.set("water_y", g - SURFACE_DROP)
 	root.add_child(water)
 	var surf := MeshInstance3D.new()
 	surf.name = "Surface"
@@ -332,7 +360,7 @@ func build_pool(p: Dictionary, world: World3D) -> Node3D:
 	wm.cull_mode = BaseMaterial3D.CULL_DISABLED
 	surf.material_override = wm
 	surf.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	surf.position.y = POOL_DEEP
+	surf.position.y = -SURFACE_DROP
 	root.add_child(surf)
 	var bottom := MeshInstance3D.new()             # a glowing floor, so the secrets show from the top
 	bottom.name = "Floor"
@@ -345,13 +373,13 @@ func build_pool(p: Dictionary, world: World3D) -> Node3D:
 	fm.emission_enabled = true
 	fm.emission = (p.glow as Color) * 0.25
 	bottom.material_override = fm
-	bottom.position.y = 0.05
+	bottom.position.y = bed + 0.05
 	root.add_child(bottom)
 	var light := OmniLight3D.new()
 	light.light_color = p.glow
 	light.light_energy = 1.4
 	light.omni_range = 5.0
-	light.position.y = 1.0
+	light.position.y = bed + 1.0
 	root.add_child(light)
 	var sign := Label3D.new()                       # its name on the top step
 	sign.name = "Name"
@@ -362,9 +390,57 @@ func build_pool(p: Dictionary, world: World3D) -> Node3D:
 	sign.modulate = p.trim
 	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	var a0 := 1.6
-	sign.position = Vector3(cos(a0) * (POOL_R + 2.1), 1.6, sin(a0) * (POOL_R + 2.1))
+	sign.position = Vector3(cos(a0) * (rim_out + 0.5), 1.5, sin(a0) * (rim_out + 0.5))
 	root.add_child(sign)
 	return root
+
+
+func _rim(root: Node3D, body: StaticBody3D, heights: Array, r_in: float, r_out: float, c: Color) -> void:
+	# A ring of paving from the wall's top out to r_out, a few centimetres over the ground it covers, with a little
+	# skirt down at its outside edge so it never floats. Its collision is the same triangles.
+	var rows := maxi(int(ceil((r_out - r_in) / 0.6)), 1)
+	var pts: Array = []
+	for i in RIM_SEGS:
+		var a := i * TAU / RIM_SEGS
+		var row: Array = []
+		for k in rows + 1:
+			var d := lerpf(r_in, r_out, float(k) / rows)
+			var f := clampf((d - r_in) / 0.6, 0.0, RIM_ROWS - 0.001)
+			var y := lerpf(float(heights[i][int(f)]), float(heights[i][int(f) + 1]), f - int(f)) + 0.04
+			row.append(Vector3(cos(a) * d, y, sin(a) * d))
+		pts.append(row)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	var quad := func(a: Vector3, b: Vector3, cc: Vector3, d: Vector3, n: Vector3, solid: bool) -> void:
+		for tri in [[a, b, cc], [a, cc, d]]:
+			var v: Array = tri
+			if (v[2] - v[0]).cross(v[1] - v[0]).dot(n) < 0.0:
+				v = [v[0], v[2], v[1]]
+			for q in v:
+				st.set_normal(n)
+				st.add_vertex(q)
+				if solid:
+					faces.append(q)
+	for i in RIM_SEGS:
+		var j := (i + 1) % RIM_SEGS
+		for k in rows:
+			quad.call(pts[i][k], pts[j][k], pts[j][k + 1], pts[i][k + 1], Vector3.UP, true)
+		var o0: Vector3 = pts[i][rows]
+		var o1: Vector3 = pts[j][rows]
+		var out := Vector3(o0.x, 0, o0.z).normalized()
+		quad.call(o0, o1, o1 + Vector3(0, -0.35, 0), o0 + Vector3(0, -0.35, 0), out, false)   # (only to look at)
+	var mi := MeshInstance3D.new()
+	mi.name = "Paving"
+	mi.mesh = st.commit()
+	mi.material_override = _mat(c)
+	root.add_child(mi)
+	var cs := CollisionShape3D.new()
+	var shape := ConcavePolygonShape3D.new()
+	shape.backface_collision = true
+	shape.set_faces(faces)
+	cs.shape = shape
+	body.add_child(cs)
 
 
 func _box(parent: Node3D, body: StaticBody3D, size: Vector3, t: Transform3D, m: Material) -> void:

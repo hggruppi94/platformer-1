@@ -1,11 +1,12 @@
 extends SceneTree
 
 # Checks the secrets at the bottom of deep water (scripts/sunken_secrets.gd): 24 of them, three kinds, one of each
-# in every place with deep water. Each deep pool put in at play time stands on flat, clear ground (in the Void, off
-# the races, paths, trees, portals and the plaza's friends), has steps a jump apart up its side and water deep enough
-# to swim in; every secret lies under at least 2 m of water; the Tide Reef's only turn up once its sea is in; you can
-# only reach one by swimming down (floating on the top before Otto's taught you isn't enough); finding one reads it
-# out and counts it once; you can hop back out of a pool; a whole set of watches or bottles pays out once; and Dash
+# in every place with deep water. Each deep pool put in at play time is sunk into flat, clear ground (in the Void, off
+# the races, paths, trees, portals and the plaza's friends): the ground over it is cut away (scripts/ground_hole.gd),
+# paving round it is level with the ground, you can walk straight in, and its water is deep enough to swim in; every
+# secret lies under at least 2 m of water; the Tide Reef's only turn up once its sea is in; you can only reach one by
+# swimming down (floating on the top before Otto's taught you isn't enough); finding one reads it out and counts it
+# once; you can climb back out of a pool; a whole set of watches or bottles pays out once; and Dash
 # takes the pieces and, with all eight, works out what cracked the Shift.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_sunken_secrets.gd
@@ -131,17 +132,35 @@ func _check_pool(key: String, p: Dictionary) -> void:
 	var space := (current_scene as Node3D).get_world_3d().direct_space_state
 	var g: float = pool.get_meta("ground")
 	var walls := pool.get_node("Walls") as StaticBody3D
-	# Flat under the whole pool, steps and all (rays that skip the pool's own walls)
+	# Flat all round it (rays that skip the pool's own walls and paving)
 	var flat := true
+	var rim: float = pool.get_meta("rim")
 	for k in 16:
 		var a := k * TAU / 16.0
-		for r in [2.0, 4.3, 5.4]:
+		for r in [rim + 0.4, rim + 1.0]:
 			var from := pool.global_position + Vector3(cos(a) * r, 30.0, sin(a) * r)
 			var q := PhysicsRayQueryParameters3D.create(from, from + Vector3(0, -60, 0))
 			q.exclude = [walls.get_rid()]
 			var hit := space.intersect_ray(q)
-			flat = flat and not hit.is_empty() and absf((hit.position as Vector3).y - g) < 0.4
+			if hit.is_empty() or absf((hit.position as Vector3).y - g) >= 0.8:      # (the paving follows a gentle slope)
+				flat = false
 	check(flat, "...on flat ground")
+	# Sunk into it: the ground over the pool is gone, and the paving round it is level with the ground
+	var bed: float = pool.get_meta("bed")
+	var sunk := true
+	var level := true
+	for k in 8:
+		var a := k * TAU / 8.0
+		for r in [0.0, 1.0, 2.6]:
+			var from := pool.global_position + Vector3(cos(a) * r, 6.0, sin(a) * r)
+			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(from, from + Vector3(0, -40, 0)))
+			sunk = sunk and not hit.is_empty() and (hit.position as Vector3).y < g - 2.0
+		for r in [sunken.POOL_R + sunken.POOL_WALL + 0.1, rim - 0.2]:
+			var from := pool.global_position + Vector3(cos(a) * r, 6.0, sin(a) * r)
+			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(from, from + Vector3(0, -40, 0)))
+			level = level and not hit.is_empty() and absf((hit.position as Vector3).y - g) < 0.2
+	check(sunk, "...sunk into the ground: no ground left over it, the bottom %.1f m down" % (g - bed))
+	check(level, "...with paving round it level with the ground (out to %.1f m)" % rim)
 	# Nothing else in the way
 	var cq := PhysicsShapeQueryParameters3D.new()
 	var cyl := CylinderShape3D.new()
@@ -166,27 +185,47 @@ func _check_pool(key: String, p: Dictionary) -> void:
 			var gp: Vector3 = trees.global_transform * tp
 			tree = minf(tree, Vector2(gp.x, gp.z).distance_to(at))
 		check(tree > 6.0, "...with no tree growing through it (%.1f m)" % tree)
-	# Steps: each a jump up from the last (she jumps about 1.8 m), the top one up to the rim
-	var tops: Array = [0.0]
-	for k in sunken.STEPS:
-		tops.append((k + 1) * (sunken.POOL_TOP - 0.1) / sunken.STEPS)
-	var ok := true
-	for i in range(1, tops.size()):
-		ok = ok and tops[i] - tops[i - 1] < 1.2
-	check(ok and sunken.POOL_TOP - tops[tops.size() - 1] < 0.5, "...steps a jump apart up to the rim")
+	check(absf(float(pool.get_node("Water").get("water_y")) - (g - sunken.SURFACE_DROP)) < 0.01,
+		"...its water's surface just under the ground")
 	var water := pool.get_node("Water")
-	check(float(water.get("water_y")) - g >= 3.0, "...water deep enough to swim down in (%.1f m)" % (float(water.get("water_y")) - g))
+	check(float(water.get("water_y")) - bed >= 3.0, "...water deep enough to swim down in (%.1f m)" % (float(water.get("water_y")) - bed))
 	var holder := current_scene.find_child("Sunken Secrets", true, false)
 	var n := 0
 	for s in sunken.SECRETS:
 		if s.place == key and holder.get_node_or_null("Secret " + str(s.id)):
 			var pick := holder.get_node("Secret " + str(s.id)) as Node3D
 			var flat_d := Vector2(pick.global_position.x, pick.global_position.z).distance_to(at)
-			if flat_d < sunken.POOL_R - 0.5 and pick.global_position.y < g + 0.6:
+			if flat_d < sunken.POOL_R - 0.5 and pick.global_position.y < bed + 0.6:
 				n += 1
 	check(n == 3, "...and its three secrets on the bottom (%d)" % n)
 	if key == "town":
 		_check_town_spot(at)
+	await _check_walk_in(pool)
+
+
+func _check_walk_in(pool: Node3D) -> void:
+	# Walk up to it across the paving and straight in: she drops in with a splash and swims
+	var player := current_scene.get_tree().get_first_node_in_group("player") as CharacterBody3D
+	if player == null:
+		return
+	var g: float = pool.get_meta("ground")
+	var out := Vector3(1, 0, 0)
+	player.global_position = pool.global_position + out * (sunken.POOL_R + sunken.POOL_WALL + 1.2) + Vector3(0, 1.0, 0)
+	player.velocity = Vector3.ZERO
+	var stood := false
+	for i in 30:
+		await physics_frame
+		stood = stood or (player.is_on_floor() and absf(player.global_position.y - g) < 1.2)
+	var t := 0
+	while t < 240 and not player.call("is_swimming"):
+		if player.is_on_floor():
+			player.global_position -= out * 0.05          # (walking in: 3 m/s towards the middle)
+		await physics_frame
+		t += 1
+	check(stood and player.call("is_swimming"), "...and you can walk straight in off the paving and swim")
+	player.global_position = pool.global_position + out * 12.0 + Vector3(0, 1.0, 0)
+	player.velocity = Vector3.ZERO
+	await _physics(10)
 
 
 func _check_town_spot(at: Vector2) -> void:
@@ -256,13 +295,13 @@ func _check_swimming() -> void:
 	check(sunken.found_of("watch") == 1 and " ".join(again).contains("1 of 8"), "...counted once: 1 of 8")
 	# Out again over the side: swim onto the ledge inside by the steps, stand up and jump out over the wall
 	var mid := Vector3(pool.global_position.x, 0, pool.global_position.z)
-	var la := 1.6 + 0.42
+	var la: float = sunken.LEDGE_AT
 	var ledge: Vector3 = mid + Vector3(cos(la), 0, sin(la)) * (sunken.POOL_R - 0.6)
 	var g: float = pool.get_meta("ground")
 	player.global_position = mid + Vector3(0, top - 0.5, 0)
 	player.velocity = Vector3.ZERO
 	await _physics(10)
-	player.global_position = Vector3(ledge.x, g + sunken.POOL_DEEP - sunken.LEDGE + 1.0, ledge.z)
+	player.global_position = Vector3(ledge.x, top - sunken.LEDGE + 1.0, ledge.z)
 	player.velocity = Vector3.ZERO
 	await _physics(40)
 	check(not player.call("is_swimming") and player.is_on_floor(), "swim onto the ledge inside and you can stand up on it")
@@ -281,7 +320,8 @@ func _check_swimming() -> void:
 	Input.action_release("jump")
 	await _physics(60)
 	var out := Vector2(player.global_position.x - mid.x, player.global_position.z - mid.z).length()
-	check(not player.call("is_swimming") and out > r_out, "...and jump out over the wall (%.1f m out)" % out)
+	check(not player.call("is_swimming") and out > r_out and player.is_on_floor() and absf(player.global_position.y - g) < 1.0,
+		"...and jump out onto the paving (%.1f m out)" % out)
 
 
 func _check_sets() -> void:
