@@ -66,8 +66,11 @@ const WORLDS := [
 		"blurb": "Melody's home, a summer valley of springs and music, where the beat is broken and the sun's stuck at its hottest.",
 		"reward_remnants": 9, "season": "summer",
 		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
-	{"id": "tide_reef", "name": "The Tide Reef", "owner": "the octopus", "scene": "", "at": Vector2(-48, 10),
-		"yaw": 0.0, "preview": true, "colour": Color(0.4, 0.8, 1.0), "blurb": "A reef city whose tide is stuck out."},
+	{"id": "tide_reef", "name": "The Tide Reef", "owner": "Otto", "scene": "res://scenes/portal_worlds/tide_reef.tscn",
+		"at": Vector2(50, 28), "yaw": -2.08, "preview": true, "colour": Color(0.4, 0.8, 1.0),
+		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
+		"reward_remnants": 10,
+		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
 	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "", "at": Vector2(-96, -38), "yaw": 0.0,
 		"preview": true, "colour": Color(1.0, 0.85, 0.5), "blurb": "Heather's misty hills, where the seasons spin.", "season": "spring"},
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "", "at": Vector2(84, 90),
@@ -238,6 +241,8 @@ func quake_due(id: String) -> bool:
 			return is_cleared("frozen_moment")            # and then Pip's, once Flurry's ticks again
 		"rhythm_springs":
 			return is_cleared("lanternmoor")              # then Melody's, once Pip's sun is up
+		"tide_reef":
+			return is_cleared("rhythm_springs")           # then Otto's, once Melody's beat is back
 	return false
 
 
@@ -293,6 +298,8 @@ func _near_words(id: String) -> String:
 			return "the Spooky Woods, on the way to the Haunted House"
 		"rhythm_springs":
 			return "the lake's south-west shore"
+		"tide_reef":
+			return "the lake's south-east shore"
 	return "the town"
 
 

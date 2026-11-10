@@ -90,6 +90,48 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-09: **The Tide Reef, Otto's world** (plan item 19a world 5, slice one). Hayden: "Lets try the next part".
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The portal** (`Portals.WORLDS` "tide_reef"): quakes once Rhythm Springs is mended, by the lake's south-east
+    shore at (50, 28) (flat, clear, 13 m off the nearest race track, 22 m off the nearest routine path, 10 m from the
+    nearest tree), facing the lake. 10 Remnants for mending it. No season (the one left, spring, is Glenmoor's). The
+    west shore was tried first: one spot sat on a routine path and the next had a tree growing through it, so the
+    test now checks `routines/places.json` links and the Trees' `positions` too (trees have nothing solid).
+  - **The world** (`tools/build_tide_reef.gd` -> `scenes/portal_worlds/tide_reef.tscn`, logic `scripts/tide_reef.gd`):
+    a reef town of coral houses, bubble lamps and shell paths that should be under the sea. The tide's stuck out: a
+    dusty sky, dry cracked tide pools, pale corals, a stranded boat. `set_tide(k)` takes everything from stuck out (0)
+    to back in (1): sky, haze, corals (materials named "Coral N"), pool water rising, bubbles and leaping fish; the
+    pools only become water to wade in (`scripts/water.gd`) once it's right in.
+  - **Otto the octopus** (a working name and my own look: orange, goggles pushed up, in a bubble chair he blew
+    himself). From the story notes: he has a disability, thinks he's no use, and his strengths turn out to be the
+    answer. In the game his bubble chair only floats along when a friend goes with it, so once you've said hello he
+    follows you (`otto_goal()`), and nothing only he can do works until you've met him and he's caught up
+    (`_need_otto()`). Nothing about him is "fixed" at the end: he still needs a friend, and he knows he was never no
+    use (`proud_lines()`). **The story notes say to get input from disabled advisors: his lines are a first draft.**
+  - **Three Tide Pearls:** the **Clam Vault** (eight latches that must turn at once: he has eight arms,
+    `open_vault()`), the **Kelp Grotto** (three deep holes: you're the eyes, one has a glint and the others have eyes
+    blinking back; he's the reach, `try_hole()`; a wrong hole finds a boot or a cross crab, nothing's lost) and the top
+    of the **Coral Spire** (at the Bubble Pad he blows eight bubble steps up it, `blow_steps()`; each pops 2 s after
+    you land on it and he blows it again 2.5 s later; then a bubble carries you down along the `BubbleRide` path,
+    `ride_bubble()`, carried like the zipline). Found ids: `met_otto`, `pearl_1..3`, `vault_open`, `rode_bubble`,
+    `thanked`.
+  - **The Riptide Gloop** (`scripts/riptide_gloop.gd`, the Gloop King's scene in sea-blue with a coral crown, asleep
+    in the Deep Basin, swollen with the tide): wakes when you come near with all 3 pearls. It's too slippery to pop
+    (bubbles slide off, stomps bounce) until Otto, from his perch at the basin's edge, wraps his arms round it and
+    holds it still (`grab()` -> `hold()`: 5 s into the fight, then 5 s held every 11 s); held, it can't move or bump
+    you, and 6 hits pop it. Between holds it flops waves, calls Splash Gloops and now and then sucks the water in (a
+    riptide that drags you along the ground for 2.2 s; jump to break free). Popping it mends the world
+    (`mend()`: the tide comes in over 6 s) and doesn't set `popped_gloop_king`.
+  - Tests: new `tools/test_tide_reef.gd` (147 checks); portals (now checks Glenmoor as the unbuilt world),
+    practice_trips, groove, season_unlocks, rhythm_springs, frozen_moment, gloop_king, boss_versions, layout and
+    walk_through pass. Previews: `tools/capture_tide_reef.gd` (shots in the project files under
+    world/previews/tide_reef).
+  - Builder gotcha: the builders' `cyl()` snaps heights to 0.1, so a 0.04-high disc became a cylinder with no height
+    (no normals, a warning each, and invisible). `build_tide_reef.gd` keeps at least 0.04.
+  - My choices Hayden may change: Otto's name, look and lines, the three pearl puzzles, the hold and riptide timings,
+    the portal's spot, 10 Remnants. Slice two still to do: the reward (Otto joins you with a reach-and-grab ability,
+    and a reef pool by the Void's lake). The plan's "bubble-ride race" became the bubble ride down the spire.
+
 - 2026-11-09: **Summer in Stars Hollow** (Rhythm Springs' reward on Earth, like the winter overhaul). Hayden: "Lets do
   summer in stars hollow replace all the winter themed things with summer themed and make the sun bright and whatever
   else you can think of". Built and tested in the cloud (own Godot user folders, no save touched). Winter is unchanged.
