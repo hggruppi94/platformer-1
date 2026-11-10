@@ -126,16 +126,9 @@ func _run() -> void:
 	await _section("swim")
 	for i in 220:
 		await physics_frame
-	await _stand(trials.knot.global_position + trials._out * 3.5)
-	for i in 30:
-		await physics_frame
-	p.global_position = trials.knot.global_position + trials._out * 1.8 + Vector3(0, 0.6, 0)
-	for i in 10:
-		await physics_frame
-	var surf := trials.flood.get_node_or_null("Surface") as Node3D
-	print("FLOOD water_y ", trials.flood.water_y, " surface ", surf.global_position if surf else null, " base ", trials._base)
-	await _snap("06_otto_time_flood", trials._base + trials._out * 20.0 + trials._side * 6.0 + Vector3(0, 9, 0),
-		trials.knot.global_position, 10)
+	await _stand(trials._base + trials._out * 26.0)                   # on the shore, looking in
+	await _snap("06_otto_time_flood", trials._base + trials._out * 30.0 + trials._side * 4.0 + Vector3(0, 9, 0),
+		trials._base + Vector3(0, 3, 0), 10)
 
 	# Heather: Glitch Fires, then the clock gear
 	await _section("spring")
