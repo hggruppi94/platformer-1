@@ -82,14 +82,22 @@
       "when": {
         "weekend": true,
         "activity": "reading",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
         "I've read fourteen books about knights this autumn. Ask me anything about castles."
+      ]
+    },
+    {
+      "when": {
+        "weekend": true,
+        "activity": "reading",
+        "season": "spring"
+      },
+      "lines": [
+        "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
+        "I've read fourteen books about knights this spring. Ask me anything about castles."
       ]
     },
     {

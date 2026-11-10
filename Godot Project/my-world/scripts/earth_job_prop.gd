@@ -6,7 +6,8 @@ extends Area3D
 # and its eyes glowing, a proper Halloween cat; find it and it trots along after you until it's home). Built from shapes.
 # Winter's: snow drifts to shovel, winterberries and snowballs that become snowmen. Summer's: thirsty flowers to water
 # ("thirsty": droopy, perking up when you walk into them), strawberries to pick, and heaps of sand on Willow Pond's beach
-# that become sandcastles ("sandpile").
+# that become sandcastles ("sandpile"). Spring's: little dug holes with a tulip bulb in each ("bulb": walk into one and
+# a tulip pops up) and rhubarb to pick.
 
 const COATS := {"orange": Color(0.95, 0.55, 0.2), "grey": Color(0.55, 0.55, 0.6), "black": Color(0.12, 0.11, 0.14)}
 
@@ -59,6 +60,13 @@ func _ready() -> void:
 				_sandpile()
 		"thirsty":
 			_flower(built)
+		"bulb":
+			if built:
+				_look.add_child(load("res://scripts/seasons.gd").tulip_model(1.0, spot))
+			else:
+				_bulb()
+		"rhubarb":
+			_rhubarb()
 	body_entered.connect(_on_body)
 
 
@@ -85,6 +93,18 @@ func _on_body(b: Node3D) -> void:
 			_look.add_child(sc)
 			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.93, 0.82, 0.58), 18, 0.08, 2.5, -3.0, 0.9)
 			Juice.squash(sc, 0.3)
+		"rhubarb":
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.5, Color(0.9, 0.3, 0.4), 10, 0.07, 2.0, -2.0, 0.8)
+			queue_free()
+		"bulb":
+			# Pop! A tulip, in a puff of soil and petals
+			built = true
+			for c in _look.get_children():
+				c.queue_free()
+			var t: Node3D = load("res://scripts/seasons.gd").tulip_model(1.0, spot)
+			_look.add_child(t)
+			Fx.burst(get_parent(), global_position + Vector3.UP * 0.4, Color(1.0, 0.6, 0.75), 14, 0.07, 2.5, -3.0, 0.8)
+			Juice.squash(t, 0.3)
 		"thirsty":
 			# A shower of water, and the flower stands up straight and bright
 			built = true
@@ -187,6 +207,33 @@ func _strawberries() -> void:
 		_ball(0.04, Vector3(cos(a) * 0.2, 0.42, sin(a) * 0.2), Color(1, 1, 0.95))
 	var glow := OmniLight3D.new()
 	glow.light_color = Color(1.0, 0.5, 0.5)
+	glow.light_energy = 0.6
+	glow.omni_range = 2.0
+	glow.position.y = 0.6
+	_look.add_child(glow)
+
+
+func _bulb() -> void:
+	# A little hole dug in the ground with a tulip bulb waiting in it, a heap of soil beside it and a soft glow
+	_ball(0.3, Vector3(0.3, 0.06, 0), Color(0.38, 0.26, 0.16), Vector3(1.2, 0.45, 1.0))
+	_ball(0.26, Vector3(0, 0.0, 0), Color(0.2, 0.13, 0.08), Vector3(1.0, 0.2, 1.0))
+	_ball(0.09, Vector3(0, 0.08, 0), Color(0.85, 0.7, 0.5), Vector3(1, 1.3, 1))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.7, 0.85)
+	glow.light_energy = 0.6
+	glow.omni_range = 2.0
+	glow.position.y = 0.6
+	_look.add_child(glow)
+
+
+func _rhubarb() -> void:
+	# A rhubarb plant: big floppy green leaves on bright red stalks, and a soft glow
+	for k in 5:
+		var a := k * TAU / 5.0
+		_ball(0.05, Vector3(cos(a) * 0.15, 0.25, sin(a) * 0.15), Color(0.85, 0.2, 0.3), Vector3(1, 5.0, 1))
+		_ball(0.25, Vector3(cos(a) * 0.3, 0.55, sin(a) * 0.3), Color(0.3, 0.6, 0.22), Vector3(1.2, 0.3, 1.0))
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.55, 0.6)
 	glow.light_energy = 0.6
 	glow.omni_range = 2.0
 	glow.position.y = 0.6

@@ -65,14 +65,21 @@
     {
       "when": {
         "activity": "festival_cider",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Cider. Hot or cold. Don't ask me for a pumpkin spice anything.",
         "...Fine. There's a pumpkin spice donut. Don't tell anybody I made it."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_cider",
+        "season": "spring"
+      },
+      "lines": [
+        "Lemonade. Pink or yellow. Don't ask me for a sparkly unicorn anything.",
+        "...Fine. There's a sparkly unicorn lemonade. Don't tell anybody I made it."
       ]
     },
     {
@@ -153,10 +160,26 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+        ],
+        [
+          "Mr. Palmer wants me to make a tart for the Spring Fair. Shaped like a flower. A tart. Shaped like a flower. Tarts are already round!"
+        ],
+        [
+          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+        ],
+        [
+          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

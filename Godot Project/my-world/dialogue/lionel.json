@@ -58,14 +58,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
         "Don't tell anyone, but I came for the kettle corn."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
+        "Don't tell anyone, but I came for the strawberry tarts."
       ]
     },
     {
@@ -130,10 +137,26 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
+        ],
+        [
+          "The cat? That's Footnote. She sleeps on the mystery shelf. She's solved most of them."
+        ],
+        [
+          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+        ],
+        [
+          "Spring's my favourite season for books. Garden books, bird books, a bird who's a gardener..."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

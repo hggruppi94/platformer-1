@@ -32,14 +32,21 @@
     {
       "when": {
         "activity": "festival_apples",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Step right up and bob for apples! Hands behind your back, face in the barrel, and no biting the barrel. Kip tried.",
         "Three goes. The apples get sneakier every go. I've got towels."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival_apples",
+        "season": "spring"
+      },
+      "lines": [
+        "Step right up and hook a duck! Every duck's got a number on the bottom. Some numbers win. Some numbers are just numbers.",
+        "Three goes. The ducks get sneakier every go. I don't know how ducks get sneaky. They just do."
       ]
     },
     {
@@ -104,10 +111,26 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Seed packets are out front. Everybody's planting this spring. The window boxes on Maple Lane look like a rainbow."
+        ],
+        [
+          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+        ],
+        [
+          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+        ],
+        [
+          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

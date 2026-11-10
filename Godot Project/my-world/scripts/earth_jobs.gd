@@ -20,6 +20,9 @@ extends "res://scripts/requests.gd"
 # there's a summer-only kind:
 # - "sandcastle": build sandcastles on the beach at Willow Pond for the Summer Fair (scripts/summer_splash.gd
 #   CASTLE_SPOTS): walk into a heap of sand and up pops a sandcastle.
+# In spring (r.spring) raking is planting tulip bulbs round a house (walk into each little dug hole and a tulip pops
+# up), Poppy wants bundles of rhubarb from the Tulip Field (the pumpkin patch in spring) for her rhubarb tarts, and the
+# diner's pumpkin pie is a rhubarb crumble.
 # Talking to the person a delivery, cat or pumpkins are for finishes it (Dialogue.finished), and Interact at the board
 # turns finished jobs in. Saved as "earth_jobs" (scripts/game.gd). Leaf piles, pumpkins and the cat are put in the
 # Earth scene while a job wants them (scripts/earth_job_prop.gd), so the town's builder doesn't change.
@@ -124,6 +127,10 @@ static func summer_of(r: Dictionary) -> bool:
 	return bool(r.get("summer", false))
 
 
+static func spring_of(r: Dictionary) -> bool:
+	return bool(r.get("spring", false))
+
+
 func _process(delta: float) -> void:
 	_check -= delta
 	if _check > 0.0:
@@ -154,7 +161,7 @@ func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary
 	var n: float = EARTH_KINDS[kind][tier]
 	var r := {"kind": kind, "tier": tier, "progress": 0.0, "done": false, "paid": false,
 		"sparkles": int(PAY[tier]) + mini(nights / 4, 3), "winter": Clock.season() == "winter",
-		"summer": Clock.season() == "summer"}
+		"summer": Clock.season() == "summer", "spring": Clock.season() == "spring"}
 	match kind:
 		"deliver":
 			r.goal = 1
@@ -227,12 +234,16 @@ func text_of(r: Dictionary) -> String:
 				what = "a warm blueberry pie"
 			elif summer_of(r) and what == "a pumpkin pie":
 				what = "a strawberry shortcake"
+			elif spring_of(r) and what == "a pumpkin pie":
+				what = "a rhubarb crumble"
 			return "Take %s from %s to %s" % [what, r.shop, friend_name(str(r.who))]
 		"rake":
 			if winter_of(r):
 				return "Shovel the snow at the %s house (%d drifts)" % [r.family, int(r.goal)]
 			if summer_of(r):
 				return "Water the thirsty flowers at the %s house (%d flowers)" % [r.family, int(r.goal)]
+			if spring_of(r):
+				return "Plant tulip bulbs at the %s house (%d bulbs)" % [r.family, int(r.goal)]
 			return "Rake up the leaves at the %s house (%d piles)" % [r.family, int(r.goal)]
 		"cat":
 			var where := str(r.where)
@@ -240,12 +251,16 @@ func text_of(r: Dictionary) -> String:
 				where = where.replace("in the pumpkin patch", "in the Snowman Field")
 			elif summer_of(r):
 				where = where.replace("in the pumpkin patch", "in the Sunflower Field")
+			elif spring_of(r):
+				where = where.replace("in the pumpkin patch", "in the Tulip Field")
 			return "Find %s's cat %s (last seen %s)" % [friend_name(str(r.who)), r.cat, where]
 		"bakery":
 			if winter_of(r):
 				return "Pick %d bunches of winterberries in the Snowman Field for Poppy's tarts" % int(r.goal)
 			if summer_of(r):
 				return "Pick %d baskets of strawberries in the Sunflower Field for Poppy's shortcakes" % int(r.goal)
+			if spring_of(r):
+				return "Pick %d bundles of rhubarb in the Tulip Field for Poppy's rhubarb tarts" % int(r.goal)
 			return "Pick %d pumpkins at the patch for Poppy's pies" % int(r.goal)
 		"snowman":
 			return "Build %d snowmen on the town green for the Frost Fair" % int(r.goal)
@@ -259,7 +274,7 @@ func progress_text(r: Dictionary) -> String:
 		return super.progress_text(r)
 	match str(r.kind):
 		"rake":
-			return "%d / %d %s" % [int(r.progress), int(r.goal), "drifts" if winter_of(r) else ("flowers" if summer_of(r) else "piles")]
+			return "%d / %d %s" % [int(r.progress), int(r.goal), "drifts" if winter_of(r) else ("flowers" if summer_of(r) else ("bulbs" if spring_of(r) else "piles"))]
 		"snowman":
 			return "%d / %d snowmen" % [int(r.progress), int(r.goal)]
 		"sandcastle":
@@ -269,7 +284,7 @@ func progress_text(r: Dictionary) -> String:
 		"bakery":
 			if r.get("carrying", false):
 				return "got them all, now take them to Poppy"
-			return "%d / %d %s" % [r.picked.size(), int(r.goal), "bunches" if winter_of(r) else ("baskets" if summer_of(r) else "pumpkins")] \
+			return "%d / %d %s" % [r.picked.size(), int(r.goal), "bunches" if winter_of(r) else ("baskets" if summer_of(r) else ("bundles" if spring_of(r) else "pumpkins"))] \
 				if not r.picked.is_empty() else ""
 	return super.progress_text(r)
 
@@ -327,7 +342,7 @@ func collect(r: Dictionary, spot: int) -> void:
 				return
 			r.raked.append(spot)
 			r.progress = float(r.raked.size())
-			Audio.play("splash" if summer_of(r) else "rustle", -6.0 if summer_of(r) else -2.0)
+			Audio.play("splash" if summer_of(r) else ("pickup" if spring_of(r) else "rustle"), -6.0 if summer_of(r) or spring_of(r) else -2.0)
 			_check_done(r)
 		"snowman", "sandcastle":
 			if spot in r.built.map(func(v) -> int: return int(v)):
@@ -344,7 +359,8 @@ func collect(r: Dictionary, spot: int) -> void:
 			if r.picked.size() >= int(r.goal):
 				r.carrying = true
 				Game.message("That's %d %s! Take them to Poppy at the bakery on Main Street." % [int(r.goal),
-					"bunches of winterberries" if winter_of(r) else ("baskets of strawberries" if summer_of(r) else "pumpkins")])
+					"bunches of winterberries" if winter_of(r) else ("baskets of strawberries" if summer_of(r)
+					else ("bundles of rhubarb" if spring_of(r) else "pumpkins"))])
 		"cat":
 			if r.carrying:
 				return
@@ -377,7 +393,8 @@ func _on_talked(id: String) -> void:
 				r.progress = float(r.goal)
 				Game.message("Poppy takes the winterberries: \"Perfect! These'll make the best tarts in town!\"" if winter_of(r)
 					else ("Poppy takes the strawberries: \"Perfect! These'll make the best shortcakes in town!\"" if summer_of(r)
-					else "Poppy takes the pumpkins: \"Perfect! These'll make the best pies in town!\""))
+					else ("Poppy takes the rhubarb: \"Perfect! These'll make the best rhubarb tarts in town!\"" if spring_of(r)
+					else "Poppy takes the pumpkins: \"Perfect! These'll make the best pies in town!\"")))
 				_check_done(r)
 				changed.emit()
 				return
@@ -465,8 +482,8 @@ func _place_props() -> void:
 	var space := (scene as Node3D).get_world_3d().direct_space_state
 	var skip := TownPaths.skip_rids(scene)
 	for r in list:
-		if r.done and r.kind != "snowman" and r.kind != "sandcastle" and not (r.kind == "rake" and summer_of(r)):
-			# (snowmen and sandcastles built stay up all day, and so do the flowers you watered)
+		if r.done and r.kind != "snowman" and r.kind != "sandcastle" and not (r.kind == "rake" and (summer_of(r) or spring_of(r))):
+			# (snowmen and sandcastles built stay up all day, and so do the flowers you watered and the tulips you planted)
 			continue
 		match str(r.kind):
 			"deliver":
@@ -482,13 +499,13 @@ func _place_props() -> void:
 				var house := scene.get_node_or_null(str(r.house)) as Node3D
 				var raked: Array = r.raked.map(func(v) -> int: return int(v))
 				for v in r.piles:
-					if house == null or (int(v) in raked and not summer_of(r)):
+					if house == null or (int(v) in raked and not summer_of(r) and not spring_of(r)):
 						continue
 					var s: Vector2 = PILE_SPOTS[int(v)]
 					var at := house.global_transform * Vector3(s.x, 0, s.y)
-					var kind := "drift" if winter_of(r) else ("thirsty" if summer_of(r) else "leaves")
+					var kind := "drift" if winter_of(r) else ("thirsty" if summer_of(r) else ("bulb" if spring_of(r) else "leaves"))
 					var p := _prop(scene, kind, r, int(v), TownPaths.ground_at(at, space, skip, 3.0))
-					p.set("built", int(v) in raked)                 # (a flower that's been watered stays perked up)
+					p.set("built", int(v) in raked)                 # (a flower that's been watered stays perked up, a tulip planted stays)
 			"snowman":
 				var built: Array = r.built.map(func(v) -> int: return int(v))
 				for v in r.balls:
@@ -510,7 +527,7 @@ func _place_props() -> void:
 					if int(v) in picked:
 						continue
 					var s: Vector2 = PUMPKIN_SPOTS[int(v)]
-					_prop(scene, "berries" if winter_of(r) else ("strawberries" if summer_of(r) else "pumpkin"), r, int(v),
+					_prop(scene, "berries" if winter_of(r) else ("strawberries" if summer_of(r) else ("rhubarb" if spring_of(r) else "pumpkin")), r, int(v),
 						TownPaths.ground_at(patch.global_transform * Vector3(s.x, 0, s.y), space, skip, 2.0))
 			"cat":
 				var player := get_tree().get_first_node_in_group("player") as Node3D

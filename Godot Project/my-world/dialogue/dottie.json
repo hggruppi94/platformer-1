@@ -122,10 +122,27 @@
         ]
       ],
       "when": {
-        "season": [
-          "spring",
-          "autumn"
+        "season": "autumn"
+      }
+    },
+    {
+      "rotate": [
+        [
+          "Guests at the inn this week: a man who collects teaspoons, two ladies who only eat salad, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+        ],
+        [
+          "Have you tried Poppy's strawberry tarts? Pink all the way through! I had three. Don't tell my doctor."
+        ],
+        [
+          "Sometimes at midnight I hear a whoosh from the green. Probably the spring breeze. Probably! Ha!"
+        ],
+        [
+          "You come back any time, sweetheart. The kettle's always on.",
+          "(She pats your hand. Twice.)"
         ]
+      ],
+      "when": {
+        "season": "spring"
       }
     }
   ]

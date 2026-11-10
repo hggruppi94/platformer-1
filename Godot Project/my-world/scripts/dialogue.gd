@@ -372,7 +372,8 @@ func player_name() -> String:
 func _fill(text: String) -> String:
 	# Fills in {player} (the name they chose), their pronouns ({they}, {them}, {their}, and capitalised), and more
 	var words := {"time": Clock.time_string(), "day": Clock.day, "talks": int(talks.get(_id, 0)),
-		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.prompt("quest_log")}
+		"name": _name, "player": player_name(), "nina": player_name(), "quest_log": Settings.prompt("quest_log"),
+		"grow_how": Settings.grow_how()}
 	words.merge(Watches.fill())                      # {watches_new}, {watches_given}, {watches_left}
 	words.merge(Remnants.fill())                     # {remnants}, {tool}, {parts_found}
 	for pair in Settings.REBINDABLE:                 # what to press: {shoot}, {map}, {player_menu}, {interact}...

@@ -32,14 +32,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "I got zero apples. ZERO. The barrel's rigged. Hank's rigged it.",
         "Next year I'm bringing a snorkel."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "I hooked zero ducks. ZERO. The pond's rigged. Hank's rigged it.",
+        "Next year I'm bringing a fishing rod."
       ]
     },
     {

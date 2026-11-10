@@ -14,6 +14,17 @@
     },
     {
       "when": {
+        "mended": "glenmoor",
+        "every": 2
+      },
+      "lines": [
+        "{player}! Did you see? My blossom trees came through the portal after you! There's a whole orchard by Glenmoor's door now.",
+        "And two of the Fluffkins snuck through with 'em. Little rascals. They seem happy grazin' under the blossom though.",
+        "Don't forget your growin', sugar: on any grass, {grow_how} and a big springy flower'll fling you up high!"
+      ]
+    },
+    {
+      "when": {
         "activity": "grazing",
         "every": 2
       },

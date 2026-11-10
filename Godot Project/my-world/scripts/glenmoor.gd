@@ -87,6 +87,7 @@ func picture() -> void:
 
 func setup() -> void:
 	_own_looks()
+	_soft_ground()
 	_add_fluffkins()
 	_add_garden()
 	_add_heather()
@@ -100,6 +101,16 @@ func setup() -> void:
 	_show_season()
 	if not is_mended() and bells() == 0 and not Portals.has_found(world_id, "met_heather"):
 		Game.message.call_deferred("Glenmoor: whoa, the seasons are spinning! Blossom, sun, leaves, snow... Heather's waiting by the way in.")
+
+
+func _soft_ground() -> void:
+	# The glen's grass and Ben Bonnie's slopes are soil: Bramble's burrow digs into them and Heather's grow sprouts
+	# from them (scripts/burrow.gd soil())
+	for holder in ["Glen", "Ben Bonnie"]:
+		var h := get_node_or_null(holder)
+		if h:
+			for b in h.find_children("*", "StaticBody3D", true, false):
+				b.add_to_group("soil")
 
 
 func is_mended() -> bool:
@@ -634,6 +645,8 @@ func heather_lines() -> Array:
 			"Thank you, sugar. You and Isla and them Fluffkins saved the whole glen."],
 			["The Fluffkins have wandered out of the Fold again. That's how you know it's spring: they get frisky.",
 			"Leave 'em be. They'll come home for supper."],
+			["Remember your growin'! Stand on the grass and {grow_how}, and up you go on a big ol' flower.",
+			"Try it on the hills here. Or by your garden back in the Void: your crops'll love it."],
 			["My plants are just growin' now, nice and slow, like plants are meant to.",
 			"Back home my mama always said: you can't hurry a seed. Turns out you can, with a big ol' whirlwind. You just shouldn't."]].pick_random()
 	if not Portals.has_found(world_id, "met_heather"):
@@ -662,7 +675,10 @@ func thank_lines() -> Array:
 	return ["{player}! You did it! Look: blossom on the rowans, the Fluffkins frolickin', and it's STAYIN' spring!",
 		"The Stormram's just a big ol' sheepish lump now. He'll be fine. Grumpy, but fine.",
 		"And back on your Earth, spring can come round too now, in its turn. Y'all are gonna love it.",
-		"Thank you, sugar. From me, Isla, and every last Fluffkin."]
+		"Oh! Before you go: hold out your hands. Back home we say a friend who helps the glen grow gets a bit of the glen's growin' in 'em.",
+		"There. Now YOU can grow things! Stand on grass or soil and {grow_how} for a moment.",
+		"A great big springy flower'll shoot up under you and fling you high! Land back on it and it bounces you again.",
+		"And near your garden it'll give your crops a growin' boost. Thank you, sugar. From me, Isla, and every last Fluffkin."]
 
 
 func _talk_heather() -> void:

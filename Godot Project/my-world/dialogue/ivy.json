@@ -35,14 +35,21 @@
     {
       "when": {
         "activity": "festival",
-        "season": [
-          "spring",
-          "autumn"
-        ]
+        "season": "autumn"
       },
       "lines": [
         "Night off from the diner! I'm eating everything Poppy makes. Everything.",
         "Try the cider donuts. Then try them again. That's what I did."
+      ]
+    },
+    {
+      "when": {
+        "activity": "festival",
+        "season": "spring"
+      },
+      "lines": [
+        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
+        "Try the strawberry tarts. Then try them again. That's what I did."
       ]
     },
     {
