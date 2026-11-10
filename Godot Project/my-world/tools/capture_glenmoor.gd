@@ -1,9 +1,10 @@
 extends SceneTree
 
 # Screenshots of Glenmoor, Heather's portal world (scripts/glenmoor.gd): its portal in the meadow past the farm, the
-# glen with its seasons spinning (spring, autumn and winter), Heather and Isla, herding the Fluffkins into the Fold,
-# the garden in bloom, the hill race up Ben Bonnie, the Stormram asleep on the Standing Stones and then charging in its
-# whirlwind, and the glen settled into spring once it's mended. Opens a window (not --headless):
+# glen looping between day and night (day, dusk and night), the Sunfolk and Moonfolk camps cheering their own time,
+# Heather and Isla, herding the Fluffkins into the Fold, the garden's moonflowers open at night, the hill race up Ben
+# Bonnie, the Stormram asleep on the Standing Stones and then charging in its whirlwind, and a normal morning with the
+# two sides at peace once it's mended. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_glenmoor.gd -- <output folder>
 #
@@ -78,25 +79,40 @@ func _inside() -> void:
 	var p := s.find_child("Player", true, false) as CharacterBody3D
 	p.get_node("HUD").visible = false
 	_cam_in(s)
+	_hold_time(s)
 	await _frames(10)
-	# The seasons spinning: the same view in spring, autumn and winter
-	for pair in [[0.3, "02_the_glen_in_spring"], [2.3, "03_seconds_later_autumn"], [3.3, "04_and_then_winter"]]:
-		s.set_season(pair[0])
+	# Day and night looping: the same view by day, at dusk and at night
+	for pair in [[0.05, "02_the_glen_by_day"], [0.27, "03_seconds_later_dusk"], [0.5, "04_and_then_night"]]:
+		s.set_daylight(pair[0])
 		_look(Vector3(-4.0, 9.0, 44.0), Vector3(0, 2.0, -10.0))
 		await _frames(2)
 		await _shot(pair[1])
-	s.set_season(0.3)
+	# The two camps, each cheering its own time
+	var sun := (s.get_node("Sunfolk") as Node3D).global_position
+	var moon := (s.get_node("Moonfolk") as Node3D).global_position
+	var mid := (sun + moon) / 2.0
+	s.set_daylight(0.05)
+	s._cheer(true)
+	_look(sun + (sun - mid).normalized() * -2.0 + Vector3(0, 3.0, 9.0), sun + Vector3(0, 1.2, 0))
+	await create_timer(0.3).timeout
+	await _shot("04b_the_sunfolk_cheer_the_day")
+	s.set_daylight(0.5)
+	s._cheer(false)
+	_look(moon + Vector3(0, 3.0, 9.0), moon + Vector3(0, 1.2, 0))
+	await create_timer(0.3).timeout
+	await _shot("04c_the_moonfolk_cheer_the_night")
+	s.set_daylight(0.05)
 	# Heather, and Isla
 	var hz := (s.get_node("Heather") as Node3D).global_position
 	var hb := (s.get_node("Heather") as Node3D).global_basis.z
 	p.global_position = hz + hb * 3.0 + Vector3(2.5, 0.9, 0)
 	await create_timer(0.6).timeout
-	s.set_season(1.3)
+	s.set_daylight(0.1)
 	_look(hz + hb * 3.4 + Vector3(-0.6, 1.5, 0), hz + Vector3(0, 1.0, 0))
 	await _shot("05_heather_at_home")
 	var isla := s.get_node("Isla Runner") as Node3D
 	var iz := isla.global_position
-	s.set_season(0.4)
+	s.set_daylight(0.05)
 	_look(iz + isla.global_basis.z * 3.4 + Vector3(0.8, 1.4, 0), iz + Vector3(0, 0.9, 0))
 	await _shot("06_isla_her_best_friend")
 	# Herding the Fluffkins into the Fold
@@ -110,16 +126,17 @@ func _inside() -> void:
 	f4.global_position = fold + Vector3(8.5, 0, 1.0)
 	p.global_position = fold + Vector3(12.0, 0.9, 1.5)
 	await _frames(3)
-	s.set_season(0.5)
+	s.set_daylight(0.08)
 	_look(fold + Vector3(14.0, 6.0, 10.0), fold + Vector3(3.0, 0.5, 0))
 	await _shot("07_herding_fluffkins_into_the_fold")
 	p.global_position = Vector3(0, 0.9, 30)
 	# The garden: plants growing, blooming and wilting at different times
 	var bed := (s.get_node("Bed3") as Node3D).global_position
-	s.set_season(1.4)
+	s.set_daylight(0.5)
 	_look(bed + Vector3(-3.0, 3.0, 6.0), bed + Vector3(0, 0.4, 0))
 	await _frames(2)
-	await _shot("08_the_garden_growing_and_wilting_too_fast")
+	await _shot("08_the_garden_at_night_moonflowers_open")
+	s.set_daylight(0.05)
 	# The hill race
 	s.start_race()
 	await create_timer(4.2).timeout
@@ -128,7 +145,7 @@ func _inside() -> void:
 	p.global_position = at + Vector3(0.8, 1.0, 0.8)
 	s._isla_d = line.curve.get_baked_length() * 0.33
 	await _frames(3)
-	s.set_season(0.6)
+	s.set_daylight(0.12)
 	var hill := (s.get_node("Hill") as Node3D).global_position
 	_look(at + (at - hill).normalized() * 9.0 + Vector3(0, 4.0, 0), at + Vector3(0, 1.0, 0))
 	await _shot("09_racing_isla_up_ben_bonnie")
@@ -168,7 +185,16 @@ func _inside() -> void:
 		root.get_node("Dialogue").end()
 	await _frames(4)
 	_look(Vector3(-4.0, 9.0, 44.0), Vector3(0, 2.0, -10.0))
-	await _shot("13_spring_comes_to_stay_in_glenmoor")
+	await _shot("13_a_normal_morning_in_glenmoor")
+	var peace := (s.get_node("Peace Banner") as Node3D).global_position
+	_look(peace + Vector3(0, 2.5, 8.0), peace + Vector3(0, 2.4, 0))
+	await _shot("14_peace_one_banner_half_day_half_night")
+
+
+func _hold_time(s: Node) -> void:
+	# (the flux would move the sky on between setting it and the shot)
+	s.set("_flux", 0.0)
+	s.set("_flux_left", 9999.0)
 
 
 func game_go(path: String) -> void:

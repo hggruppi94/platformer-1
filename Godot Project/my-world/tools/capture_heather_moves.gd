@@ -1,19 +1,19 @@
 extends SceneTree
 
-# Screenshots of Glenmoor's reward: Heather's grow (a Bloomstalk shooting up and flinging the hero high, on the glen's
-# grass), her blossom orchard by Glenmoor's portal in the Void, and spring in Stars Hollow (tulips where the pumpkins
+# Screenshots of Glenmoor's reward: Heather's April Showers (a rain cloud, then a rainbow to walk on) and Spring Step
+# (bounding higher and higher), her blossom orchard by Glenmoor's portal in the Void, and spring in Stars Hollow (tulips where the pumpkins
 # were, the Tulip Field, pastel lights, a tulip-planting job). Opens a window (not --headless):
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_grow.gd -- <output folder>
+#   godot --path "Godot Project/my-world" --script res://tools/capture_heather_moves.gd -- <output folder>
 #
 # Your own save and settings are put aside (under their own names) and put back afterwards.
 
 const SAVE := "user://save.json"
-const BACKUP := "user://save.grow_capture_backup.json"
+const BACKUP := "user://save.heather_moves_capture_backup.json"
 const SETTINGS := "user://settings.cfg"
-const SETTINGS_BACKUP := "user://settings.grow_capture_backup.cfg"
+const SETTINGS_BACKUP := "user://settings.heather_moves_capture_backup.cfg"
 
-var out_dir := "user://grow_shots"
+var out_dir := "user://heather_moves_shots"
 var cam: Camera3D
 var _had_save := false
 var portals: Node
@@ -48,13 +48,13 @@ func _run() -> void:
 	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef", "glenmoor"]:
 		portals.cleared_worlds.append(w)
 		portals.quakes.append(w)
-	await _grow()
+	await _moves()
 	await _orchard()
 	await _spring_town()
 	_finish()
 
 
-func _grow() -> void:
+func _moves() -> void:
 	clock.set_time(3, 11 * 60.0, true)
 	portals.enter("glenmoor")
 	await _frames(30)
@@ -64,29 +64,52 @@ func _grow() -> void:
 	var dlg := root.get_node("Dialogue")
 	if dlg.is_active():
 		dlg.end()
-	p.global_position = Vector3(6.0, 0.9, 14.0)
+	s.set("_flux", 0.0)                                   # (hold the sky still for the shots)
+	s.call("set_daylight", 0.05)
+	p.global_position = Vector3(6.0, 0.9, 12.0)
 	await create_timer(1.0).timeout
 	_cam_in(s)
-	var g := p.get_node("Grow")
-	g.try_grow()
-	# Frame from the hero's spot each time: they're moving fast, so fixed angles miss them.
-	await create_timer(0.08).timeout
-	var base := Vector3(6.0, p.global_position.y - 0.8, 14.0)
-	_look(base + Vector3(5.0, 2.5, 6.5), (base + p.global_position) / 2.0 + Vector3(0, 0.6, 0))
-	await _shot("01_grow_a_bloomstalk_shoots_up")
-	await create_timer(0.35).timeout
-	_look(base + Vector3(10.0, 2.0, 13.0), (base + p.global_position) / 2.0 + Vector3(0, 1.0, 0))
-	await _shot("02_and_flings_you_up_high")
-	for k in 2:
-		await create_timer(1.6).timeout
-		p.global_position = Vector3(-1.0 + k * 3.5, 0.9, 9.0 - k * 2.0)
-		p.velocity = Vector3.ZERO
-		await create_timer(0.8).timeout
-		g.cooldown = 0.0
-		g.try_grow()
-	await create_timer(2.5).timeout
-	_look(Vector3(14.0, 5.0, 26.0), Vector3(2.0, 2.0, 12.0))
-	await _shot("03_bloomstalks_on_the_glen")
+	# A camera behind the hero looking north, so the rainbow arches away from us
+	_look(Vector3(9.0, 3.5, 20.0), Vector3(6.0, 2.5, 12.0))
+	var sh := p.get_node("Showers")
+	sh.try_shower()
+	await create_timer(1.2).timeout
+	_look(Vector3(9.0, 3.5, 20.0), sh.cloud.global_position + Vector3(0, -1.5, 0))
+	await _shot("01_april_showers_a_rain_cloud_comes_over")
+	await create_timer(sh.RAIN).timeout
+	await create_timer(0.6).timeout
+	var bow := sh.bridges[0] as Node3D
+	var mid: Vector3 = sh.arch(Vector3(6.0, 0, 12.0), Vector3(6.0, 0, 12.0) + sh.ahead() * sh.LENGTH, 0.5)
+	_look(mid + Vector3(8.0, 3.0, 7.0), mid + Vector3(0, 0.5, 0))
+	await _shot("02_then_a_rainbow_you_can_walk_on")
+	p.global_position = mid + Vector3(0, 1.2, 0)
+	p.velocity = Vector3.ZERO
+	await create_timer(0.8).timeout
+	_look(p.global_position + Vector3(6.5, 2.0, 5.0), p.global_position + Vector3(0, -0.4, 0))
+	await _shot("03_up_on_the_rainbow")
+	bow.queue_free()
+	# The Spring Step: three bounds in a row, each higher
+	p.global_position = Vector3(-4.0, 0.9, 16.0)
+	p.velocity = Vector3.ZERO
+	await create_timer(1.0).timeout
+	var tops: Array = []
+	for k in 3:
+		Input.action_press("jump")
+		await physics_frame
+		var top := p.global_position
+		for i in 240:
+			await physics_frame
+			if p.global_position.y > top.y:
+				top = p.global_position
+			if k == 2 and i == 18:
+				_look(Vector3(4.0, 3.0, 24.0), Vector3(-4.0, p.global_position.y - 0.5, 16.0))
+				await _shot("04_spring_step_the_third_bound_is_the_biggest")
+			if p.is_on_floor() and i > 3:
+				break
+		Input.action_release("jump")
+		await physics_frame
+		tops.append(top.y)
+	print("spring step tops: ", tops)
 
 
 func _orchard() -> void:
@@ -101,10 +124,10 @@ func _orchard() -> void:
 	await create_timer(1.0).timeout
 	_cam_in(s)
 	_look(o.global_position + Vector3(12.0, 5.0, 12.0), o.global_position + Vector3(0, 2.0, 0))
-	await _shot("04_heathers_blossom_orchard")
+	await _shot("05_heathers_blossom_orchard")
 	var portal := s.get_node("Portals/Portal glenmoor") as Node3D
 	_look(portal.global_position + portal.global_basis.z * 14.0 + Vector3(0, 5.0, 0), (portal.global_position + o.global_position) / 2.0 + Vector3(0, 2.0, 0))
-	await _shot("05_the_orchard_by_glenmoors_portal")
+	await _shot("06_the_orchard_by_glenmoors_portal")
 
 
 func _spring_town() -> void:
@@ -120,14 +143,14 @@ func _spring_town() -> void:
 	await create_timer(1.0).timeout
 	_cam_in(s)
 	_look(Vector3(3, 11, 27), Vector3(0, 0.5, 2))
-	await _shot("06_the_green_in_spring")
+	await _shot("07_the_green_in_spring")
 	var patch := s.find_child("Pumpkin Patch", true, false) as Node3D
 	_look(patch.global_position + Vector3(4, 4.5, 11), patch.global_position + Vector3(0, 1.0, 0))
-	await _shot("07_the_tulip_field")
+	await _shot("08_the_tulip_field")
 	var seasons := s.get_node("Seasons")
 	var bunch := s.get_node("Seasons/Spring Tulips").get_child(0) as Node3D
 	_look(bunch.global_position + Vector3(1.6, 1.0, 1.6), bunch.global_position + Vector3(0, 0.3, 0))
-	await _shot("08_tulips_where_the_pumpkins_were")
+	await _shot("09_tulips_where_the_pumpkins_were")
 	var jobs := root.get_node("EarthJobs")
 	for d in 60:
 		jobs.roll(hash("grow_capture:%d" % d))
@@ -165,7 +188,7 @@ func _spring_town() -> void:
 		var back := mid * 2.0 - spot
 		back.y = mid.y + 3.5
 		_look(back, mid + Vector3(0, 0.2, 0))
-		await _shot("09_planting_tulip_bulbs")
+		await _shot("10_planting_tulip_bulbs")
 
 
 func game_go(path: String) -> void:
@@ -196,6 +219,7 @@ func _shot(file: String) -> void:
 
 
 func _finish() -> void:
+	Input.action_release("jump")
 	root.get_node("Game").hold_saves = true
 	if FileAccess.file_exists(BACKUP):
 		DirAccess.rename_absolute(BACKUP, SAVE)

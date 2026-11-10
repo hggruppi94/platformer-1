@@ -1,21 +1,22 @@
 extends SceneTree
 
-# Checks Heather's grow and her blossom orchard, Glenmoor's reward (scripts/grow.gd, Portals._blossom_orchard(),
-# glenmoor.gd thank_lines()): before Glenmoor's mended the move's a secret (not on the Controls list, pressing it does
-# nothing) and there's no orchard; once it's mended Heather teaches it, saying how; on grass a Bloomstalk shoots up
-# under the hero and flings them high, it's solid to stand on and its cap bounces you again, only three at once, and
-# they wilt after a while; on paving nothing grows; holding Interact with nothing near grows too, but not next to
-# someone to talk to; near your garden it gives the crops a boost, once a Void hour; the orchard stands by Glenmoor's
-# portal on flat, clear ground off the races and paths; and Heather talks about it in town.
+# Checks Heather's two spring moves and her blossom orchard, Glenmoor's reward (scripts/showers.gd,
+# scripts/spring_step.gd, Portals._blossom_orchard(), glenmoor.gd thank_lines()): before Glenmoor's mended both are
+# secret (April Showers isn't on the Controls list and does nothing, a quick jump on landing is just a jump) and
+# there's no orchard; once it's mended Heather teaches them, saying how; April Showers brings a rain cloud over the
+# hero that follows them, then a solid rainbow arches out ahead that you can walk up and stand on, only two at once,
+# fading after a while; holding Interact with nothing near calls it too, but not next to someone to talk to; jumping
+# again just as you land bounces higher, three in a row higher still, and a jump after a pause is ordinary again; the
+# orchard stands by Glenmoor's portal on flat, clear ground off the races and paths; and Heather talks about it in town.
 #
-#   godot --headless --path "Godot Project/my-world" --script res://tools/test_grow.gd
+#   godot --headless --path "Godot Project/my-world" --script res://tools/test_heather_moves.gd
 #
 # Your own save and settings are put aside (under their own names) and put back at the end.
 
 const SAVE := "user://save.json"
-const BACKUP := "user://save.grow_test_backup.json"
+const BACKUP := "user://save.heather_moves_test_backup.json"
 const SETTINGS := "user://settings.cfg"
-const SETTINGS_BACKUP := "user://settings.grow_test_backup.cfg"
+const SETTINGS_BACKUP := "user://settings.heather_moves_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
 
 var failures := 0
@@ -65,8 +66,9 @@ func _run() -> void:
 
 	await _check_locked()
 	await _check_teaching()
-	await _check_grow()
+	await _check_showers()
 	await _check_hold()
+	await _check_spring_step()
 	await _check_orchard()
 	_finish()
 
@@ -80,12 +82,13 @@ func _check_locked() -> void:
 	await _frames(10)
 	await _physics(4)
 	var p := _player()
-	var g := p.get_node_or_null("Grow")
-	check(g != null, "the player has a Grow node")
-	check(settings.default_bindings().get("grow") == KEY_H and settings.default_pad_bindings().get("grow") == -1,
-		"Grow is on H (and holding Interact: no pad button of its own)")
-	check(not settings.action_shown("grow"), "Grow isn't on the Controls list before Glenmoor is mended")
-	check(not g.try_grow() and g.grows == 0, "pressing it does nothing yet")
+	var g := p.get_node_or_null("Showers")
+	check(g != null and p.get_node_or_null("SpringStep") != null, "the player has Showers and SpringStep nodes")
+	check(settings.default_bindings().get("showers") == KEY_H and settings.default_pad_bindings().get("showers") == -1,
+		"April Showers is on H (and holding Interact: no pad button of its own)")
+	check(not settings.action_shown("showers"), "April Showers isn't on the Controls list before Glenmoor is mended")
+	check(not g.try_shower() and g.showers == 0, "pressing it does nothing yet")
+	check(p.get_node("SpringStep").bound() == 1.0, "and a jump's just a jump")
 	check(current_scene.get_node_or_null("Portals/Blossom Orchard") == null, "and there's no orchard in the Void yet")
 
 
@@ -94,137 +97,158 @@ func _check_teaching() -> void:
 	await _frames(14)
 	await _physics(4)
 	var s := current_scene
-	check(s.thank_lines().any(func(l: String) -> bool: return l.contains("{grow_how}")), "Heather's thank-you says how to grow")
+	check(s.thank_lines().any(func(l: String) -> bool: return l.contains("{showers_how}")), "Heather's thank-you says how to call April Showers")
 	settings.last_device = "keys"
-	check(settings.grow_how() == "press H, or hold %s" % settings.prompt("interact"), "...on a keyboard: %s" % settings.grow_how())
+	check(settings.showers_how() == "Press H, or hold %s," % settings.prompt("interact"), "...on a keyboard: %s" % settings.showers_how())
 	settings.last_device = "pad"
-	check(settings.grow_how() == "hold %s" % settings.prompt("interact"), "...on a controller: %s" % settings.grow_how())
+	check(settings.showers_how() == "Hold %s" % settings.prompt("interact"), "...on a controller: %s" % settings.showers_how())
 	settings.last_device = "keys"
 	s.mend()
 	check(portals.is_cleared("glenmoor"), "mending Glenmoor...")
-	check(settings.action_shown("grow"), "...puts Grow on the Controls list")
+	check(settings.action_shown("showers"), "...puts April Showers on the Controls list")
 	await create_timer(s.TEACH_AFTER + 0.6).timeout
-	check(dialogue.is_active(), "...and Heather teaches it a moment after")
+	check(dialogue.is_active(), "...and Heather teaches her moves a moment after")
 	check(not dialogue.current_line().contains("{"), "(her lines are filled in: %s)" % dialogue.current_line())
 	dialogue.end()
 	await _frames(4)
 
 
-func _check_grow() -> void:
-	# On the glen's grass
-	var s := current_scene
-	var p := _player()
-	var g := p.get_node("Grow")
-	p.global_position = Vector3(8.0, 0.9, 20.0)
-	p.velocity = Vector3.ZERO
-	await _physics(20)
-	check(p.is_on_floor() and g.on_soil(), "the glen's grass is soil")
-	check(g.try_grow(), "Grow works on the grass")
-	check(g.stalks.size() == 1 and is_instance_valid(g.stalks[0]), "...a Bloomstalk shoots up")
-	var stalk: Node3D = g.stalks[0]
-	check(Vector2(stalk.global_position.x - 8.0, stalk.global_position.z - 20.0).length() < 0.6, "...right under the hero (%s)" % stalk.global_position)
-	var y0 := p.global_position.y
-	var top := y0
-	for i in 60:
-		await physics_frame
-		top = maxf(top, p.global_position.y)
-	check(top > y0 + 5.0, "...and flings them up high (%.1f m)" % (top - y0))
-	# It's solid: land back on it and the cap bounces you
-	var bounces: int = g.bounces
+func _land(p: CharacterBody3D) -> void:
 	for i in 300:
 		await physics_frame
-		if g.bounces > bounces:
-			break
-	check(g.bounces > bounces, "landing back on its cap bounces you up again")
-	g.cooldown = 0.0
-	p.global_position = Vector3(-6.0, 0.9, 22.0)
+		if p.is_on_floor() and i > 2:
+			return
+
+
+func _check_showers() -> void:
+	var p := _player()
+	var g := p.get_node("Showers")
+	p.global_position = Vector3(8.0, 0.9, 16.0)
 	p.velocity = Vector3.ZERO
-	await _physics(10)
-	for k in 3:
-		p.global_position = Vector3(-6.0 + k * 4.0, 0.9, 22.0)
-		p.velocity = Vector3.ZERO
-		for i in 120:
-			await physics_frame
-			if p.is_on_floor() and i > 4:
-				break
-		g.cooldown = 0.0
-		g.try_grow()
-	check(g.stalks.size() == g.MAX_STALKS and g.grows == 4, "only %d Bloomstalks at once (the oldest wilts) (%d out, %d grown)" % [g.MAX_STALKS, g.stalks.size(), g.grows])
+	await _land(p)
+	check(g.try_shower(), "April Showers works")
+	check(is_instance_valid(g.cloud) and g.cloud.get_node_or_null("Rain") != null, "...a rain cloud comes over")
+	check(absf(g.cloud.global_position.x - p.global_position.x) < 0.5 and g.cloud.global_position.y > p.global_position.y + 2.0, "...right over the hero")
+	check(not g.try_shower(), "(one shower at a time)")
+	p.global_position = Vector3(10.0, 0.9, 16.0)
+	await create_timer(0.8).timeout
+	check(absf(g.cloud.global_position.x - p.global_position.x) < 0.8, "...and it follows them about")
+	p.global_position = Vector3(8.0, 0.9, 16.0)
+	await _land(p)
+	await create_timer(g.RAIN).timeout
+	check(g.bridges.size() == 1, "when the rain stops, a rainbow arches out")
+	var bow: Node3D = g.bridges[0]
+	# Walk it: stand on the middle of it, high up
+	var dir: Vector3 = g.ahead()
+	var top: Vector3 = Vector3(8.0, 0, 16.0) + dir * g.LENGTH / 2.0
+	var space := p.get_world_3d().direct_space_state
+	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(top + Vector3(0, 10, 0), top + Vector3(0, -5, 0)))
+	check(not hit.is_empty() and hit.collider == bow and hit.position.y > 2.0, "...it's solid, arching up high in the middle (%.1f m)" % (hit.position.y if hit else -1.0))
+	# Walk up it from its foot
+	p.global_position = Vector3(8.0, 0.9, 16.0) + dir * 1.0
+	p.velocity = Vector3.ZERO
+	await _physics(6)
+	var best := p.global_position.y
+	for i in 120:
+		p.velocity.x = dir.x * 5.0
+		p.velocity.z = dir.z * 5.0
+		await physics_frame
+		best = maxf(best, p.global_position.y)
+	check(best > 2.5, "...and you can walk right up it (%.1f m up)" % best)
+	await _land(p)
+	g.cooldown = 0.0
+	g.raining = 0.0
+	g.shower()
+	g.raining = 0.01
+	await _frames(3)
+	g.cooldown = 0.0
+	g.shower()
+	g.raining = 0.01
+	await _frames(3)
+	check(g.bridges.size() == g.MAX_BRIDGES and g.showers == 3, "only %d rainbows at once (the oldest fades)" % g.MAX_BRIDGES)
 	await create_timer(0.6).timeout
-	check(not is_instance_valid(stalk), "...and it's gone")
-	var last: Node3D = g.stalks[g.stalks.size() - 1]
+	check(not is_instance_valid(bow), "...and it's gone")
+	var last: Node3D = g.bridges[g.bridges.size() - 1]
 	last.set_meta("until", Time.get_ticks_msec() / 1000.0 + 0.1)
 	await create_timer(0.8).timeout
-	check(not is_instance_valid(last) and g.stalks.size() == g.MAX_STALKS - 1, "Bloomstalks wilt away after a while")
-	# On paving nothing grows
-	for i in 200:
-		await physics_frame
-		if p.is_on_floor():
-			break
-	var paving := StaticBody3D.new()
-	paving.name = "Paving"
-	var cs := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(4, 0.4, 4)
-	cs.shape = box
-	paving.add_child(cs)
-	s.add_child(paving)
-	paving.global_position = Vector3(20.0, 0.2, 30.0)
-	p.global_position = Vector3(20.0, 1.3, 30.0)
-	p.velocity = Vector3.ZERO
-	await _physics(20)
-	g.cooldown = 0.0
-	var before: int = g.grows
-	check(p.is_on_floor() and not g.on_soil(), "(standing on paving)")
-	check(not g.try_grow() and g.grows == before, "nothing grows on paving")
-	paving.queue_free()
-	# Not while burrowed, riding or swimming, or while someone's holding the controls
-	p.global_position = Vector3(8.0, 0.9, 16.0)
-	await _physics(20)
-	g.cooldown = 0.0
+	check(not is_instance_valid(last) and g.bridges.size() == g.MAX_BRIDGES - 1, "rainbows fade away after a while")
 	game.hold_controls(&"test", true, p)
-	check(not g.can_grow(), "not while the controls are held")
+	g.cooldown = 0.0
+	check(not g.can_shower(), "not while the controls are held")
 	game.hold_controls(&"test", false, p)
-	check(g.can_grow(), "(and fine again after)")
+	check(g.can_shower(), "(and fine again after)")
 
 
 func _check_hold() -> void:
 	var p := _player()
-	var g := p.get_node("Grow")
-	for i in 200:
-		await physics_frame
-		if p.is_on_floor():
-			break
+	var g := p.get_node("Showers")
+	p.global_position = Vector3(8.0, 0.9, 16.0)
+	await _land(p)
 	g.cooldown = 0.0
-	var before: int = g.grows
+	g.raining = 0.0
+	var before: int = g.showers
 	Input.action_press("interact")
 	await process_frame
 	await create_timer(g.HOLD + 0.3).timeout
 	Input.action_release("interact")
 	await _frames(2)
-	check(g.grows == before + 1, "holding Interact with nothing near grows a Bloomstalk")
+	check(g.showers == before + 1, "holding Interact with nothing near calls April Showers")
+	await create_timer(g.RAIN + 0.3).timeout
 	# ...but not standing by Heather (Interact talks to her)
 	var heather := current_scene.get_node("Heather") as Node3D
-	for i in 300:
-		await physics_frame
-		if p.is_on_floor():
-			break
 	p.global_position = heather.global_position + Vector3(1.2, 0.9, 0.8)
 	p.velocity = Vector3.ZERO
 	await _physics(10)
 	await _frames(4)
 	g.cooldown = 0.0
-	before = g.grows
+	before = g.showers
 	check(not g.nothing_near(), "(Heather's in reach)")
 	Input.action_press("interact")
 	await process_frame
 	await create_timer(g.HOLD + 0.3).timeout
 	Input.action_release("interact")
 	await _frames(2)
-	check(g.grows == before, "...holding Interact by someone to talk to doesn't grow anything")
+	check(g.showers == before, "...holding Interact by someone to talk to doesn't")
 	if dialogue.is_active():
 		dialogue.end()
 	await _frames(4)
+
+
+func _jump_peak(p: CharacterBody3D, again_on_landing: bool) -> float:
+	# Jump (holding Jump all the way up), and say how high it went; land, then (if asked) jump again straight away
+	Input.action_press("jump")
+	await physics_frame
+	var y0 := p.global_position.y
+	var top := y0
+	for i in 240:
+		await physics_frame
+		top = maxf(top, p.global_position.y)
+		if p.is_on_floor() and i > 3:
+			break
+	Input.action_release("jump")
+	if not again_on_landing:
+		await _physics(30)
+	else:
+		await physics_frame
+	return top - y0
+
+
+func _check_spring_step() -> void:
+	var p := _player()
+	var st := p.get_node("SpringStep")
+	p.global_position = Vector3(-4.0, 0.9, 16.0)
+	p.velocity = Vector3.ZERO
+	await _land(p)
+	await _physics(30)
+	var h0: float = await _jump_peak(p, true)
+	check(st.chain == 0, "a jump from standing is ordinary (%.2f m)" % h0)
+	var h1: float = await _jump_peak(p, true)
+	check(st.chain == 1 and h1 > h0 * 1.4, "jump again as you land: a Spring Step, higher (%.2f m)" % h1)
+	var h2: float = await _jump_peak(p, false)
+	check(h2 > h1 * 1.3, "...and a third in a row is the biggest (%.2f m)" % h2)
+	var h3: float = await _jump_peak(p, false)
+	check(st.chain == 0 and absf(h3 - h0) < 0.3, "after a pause it's an ordinary jump again (%.2f m)" % h3)
+	check(st.steps >= 2, "(%d Spring Steps)" % st.steps)
 
 
 func _check_orchard() -> void:
@@ -286,14 +310,15 @@ func _check_orchard() -> void:
 		var gp: Vector3 = town_trees.global_transform * tp
 		tree = minf(tree, c.distance_to(Vector2(gp.x, gp.z)))
 	check(tree > 8.0, "...with no town tree in the middle of it (nearest %.0f m)" % tree)
-	# Grow on the Void's grass, by the orchard
+	# April Showers in the Void, by the orchard
 	var p := _player()
-	var gr := p.get_node("Grow")
+	var gr := p.get_node("Showers")
 	p.global_position = rem.ground_at(c + Vector2(0, 9.0)) + Vector3(0, 1.0, 0)
 	p.velocity = Vector3.ZERO
 	await _physics(20)
 	gr.cooldown = 0.0
-	check(gr.try_grow(), "Grow works on the Void's grass too")
+	gr.raining = 0.0
+	check(gr.try_shower(), "April Showers works in the Void too")
 	# Heather talks about it in town
 	clock.set_time(3, 10 * 60.0, true)
 	var lines: Array = []
@@ -303,7 +328,7 @@ func _check_orchard() -> void:
 		if " ".join(l.map(func(x) -> String: return str(x))).contains("orchard"):
 			lines = l
 			break
-	check(not lines.is_empty(), "Heather talks about the orchard and her grow in the Void")
+	check(not lines.is_empty(), "Heather talks about the orchard and her moves in the Void")
 
 
 func _frames(n: int) -> void:
@@ -317,6 +342,8 @@ func _physics(n: int) -> void:
 
 
 func _finish() -> void:
+	Input.action_release("jump")
+	Input.action_release("interact")
 	if game:
 		game.hold_saves = true
 	if FileAccess.file_exists(BACKUP):

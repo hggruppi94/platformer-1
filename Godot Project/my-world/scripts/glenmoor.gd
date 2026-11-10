@@ -5,31 +5,36 @@ extends "res://scripts/portal_world.gd"
 # Isla. (Heather's from the farm in Glenmoor's lowlands and Isla from up the glen: one Southern, one Scottish, the
 # story's two Highland cattle girl best friends.)
 #
-# The time problem: the Stormram's whirlwind (scripts/stormram.gd) has set the seasons SPINNING. Spring, summer,
-# autumn and winter come round every few seconds (the grass, the rowan trees, the snow on the hills and the light all
-# turn with them, and a card at the top says which season it is), so crops grow and wilt before anyone can pick them.
-# Each Spring Bell rung slows the spin a little. Three Spring Bells settle it:
-#   bell 1  the Fold: herd the five Fluffkins (fluffy highland calves) into the stone pen. They trot away from you, so
-#           walk round behind one to send it where you want; they only go in through the gate.
-#   bell 2  Heather's garden: her five plants grow, bloom and wilt round and round. Catch each one in full bloom and
-#           sing it still (Interact): a healing-and-growing game.
-#   bell 3  the hill race: race Isla up Ben Bonnie, past the six cairns in order, to the summit cairn first.
-# With all three rung, the Stormram wakes on the Standing Stones when you come near. Popping it mends the world
-# (Portals.clear, which also opens spring on Earth): the seasons settle on spring for good, and blossom comes out.
-# Heather's reward (her grow ability) is slice two.
+# The time problem (Hayden, 10 Nov 2026: "a sort of continuous looping between day and night with factions that
+# prefer both warring over the unpredictable cycle", "a sort of yin and yang theme"): the Stormram's whirlwind
+# (scripts/stormram.gd) has set day and night LOOPING. The sun races up and down, sometimes fast, sometimes slow,
+# sometimes backwards (the flux), and a card at the top says whether it's day, dusk, night or dawn. The glen's split
+# in two over it: the Sunfolk (Heather's side, by the croft) want it always day, and the Moonfolk (Isla's side, up
+# the glen) want it always night. Each side cheers when its time comes round and grumbles when it goes.
+# Three Balance Charms (a yin and yang charm in three parts) set it right. Each one makes the loop a little steadier:
+#   charm 1  the Sun Charm, for Heather and the Sunfolk: herd the five Fluffkins (fluffy highland calves) into the
+#            stone Fold. They trot away from you, so walk round behind one; they only go in through the gate.
+#   charm 2  the Twilight Charm, for both sides: the shared garden. Sunflowers open by day and moonflowers by night;
+#            catch each one open and sing it still (Interact).
+#   charm 3  the Moon Charm, for Isla and the Moonfolk: race Isla up Ben Bonnie, past the six cairns in order.
+# With all three, the Stormram wakes on the Standing Stones when you come near. Popping it mends the world
+# (Portals.clear, which also opens spring on Earth): day and night go back to a normal, steady day, the two sides
+# make peace, and Heather teaches her spring moves (scripts/showers.gd, scripts/spring_step.gd).
 
 const STORMRAM := preload("res://scripts/stormram.gd")
 const CROC := "res://scenes/enemies/crocodillo.tscn"
-const SEASONS := ["spring", "summer", "autumn", "winter"]
-const SEASON_WORDS := ["🌸 Spring", "☀ Summer", "🍂 Autumn", "❄ Winter"]
-const SPIN := [4.0, 6.0, 9.0, 14.0]          # seconds a season lasts, by how many bells are rung (each one slows it)
+const CYCLE := [10.0, 14.0, 20.0, 28.0]      # seconds for a day and a night, by how many charms you have (each slows it)
+const NORMAL_DAY := 240.0                    # once it's mended: a steady day and night in four minutes
+const FLUX_EVERY := [2.0, 5.0]               # the flux picks a new speed this often (seconds, at random)...
+const FLUX_SPEEDS := [0.35, 2.2]             # ...from this range (times the cycle's own speed)
+const BACKWARDS := [0.25, 0.15, 0.05, 0.0]   # the chance each new speed runs time backwards, by charms
+const OPEN_FROM := 0.68                      # a sunflower's open in this much daylight (a moonflower in this much dark)
 const FLUFFS := 5
 const FLEE_NEAR := 5.0                       # a Fluffkin trots away from you inside this...
 const FLEE_SPEED := 3.6                      # ...this fast (you run at 5, so you can always get round behind)
 const GRAZE_SPEED := 0.6
 const ROAM_R := 44.0                         # they stay inside this (the fence is at 48.6)
 const BEDS := 5
-const GROW_CYCLE := 8.0                      # seconds for a plant to sprout, grow, bloom and wilt
 const BLOOM_FROM := 0.5                      # full bloom is this part of the cycle...
 const BLOOM_TO := 0.85                       # ...to this (2.8 seconds: plenty of time to sing to it)
 const CAIRN_REACH := 3.2
@@ -39,20 +44,38 @@ const WAKE_NEAR := 18.0
 const TEACH_AFTER := 3.0
 const BELL_GOLD := Color(1.0, 0.82, 0.35)
 const BLOSSOM := Color(1.0, 0.75, 0.85)
-
-# Each season's look: the grass, the rowan leaves, the hills, the sky and the light
-const LOOKS := [
-	{"grass": Color(0.5, 0.78, 0.38), "leaves": Color(1.0, 0.78, 0.86), "hill": Color(0.45, 0.68, 0.38), "top": Color(0.5, 0.68, 0.9),
-		"horizon": Color(0.9, 0.9, 0.92), "light": Color(1.0, 0.96, 0.88), "energy": 1.0, "fog": Color(0.72, 0.8, 0.86)},
-	{"grass": Color(0.36, 0.66, 0.26), "leaves": Color(0.25, 0.55, 0.22), "hill": Color(0.35, 0.58, 0.28), "top": Color(0.35, 0.6, 0.95),
-		"horizon": Color(0.95, 0.92, 0.82), "light": Color(1.0, 0.95, 0.8), "energy": 1.2, "fog": Color(0.78, 0.82, 0.8)},
-	{"grass": Color(0.62, 0.58, 0.3), "leaves": Color(0.9, 0.42, 0.18), "hill": Color(0.58, 0.45, 0.3), "top": Color(0.55, 0.62, 0.78),
-		"horizon": Color(0.95, 0.8, 0.65), "light": Color(1.0, 0.8, 0.6), "energy": 0.9, "fog": Color(0.8, 0.72, 0.64)},
-	{"grass": Color(0.82, 0.85, 0.9), "leaves": Color(0.45, 0.38, 0.35), "hill": Color(0.78, 0.82, 0.88), "top": Color(0.62, 0.7, 0.82),
-		"horizon": Color(0.9, 0.92, 0.96), "light": Color(0.9, 0.94, 1.0), "energy": 0.8, "fog": Color(0.8, 0.84, 0.9)},
+const SUN_GOLD := Color(1.0, 0.78, 0.3)
+const MOON_BLUE := Color(0.55, 0.62, 1.0)
+const CHARMS := ["the Sun Charm", "the Twilight Charm", "the Moon Charm"]
+# The two sides of the glen: where each camp stands, and who's in it (made like the townsfolk; working names)
+const SUN_CAMP := Vector3(12.0, 0.0, 9.0)
+const MOON_CAMP := Vector3(-12.0, 0.0, 2.0)
+const PEACE_AT := Vector3(-4.0, 0.0, 5.5)              # between the camps, just off the path
+const SUNFOLK := [
+	{"name": "Goldie", "body": "cow", "colors": {"fur": 3, "hair": 11, "eyes": 4, "accent": 11, "top": 11, "bottoms": 10, "shoes": 4}},
+	{"name": "Barley", "body": "bunny", "colors": {"fur": 2, "hair": 10, "eyes": 12, "accent": 10, "top": 10, "bottoms": 11, "shoes": 3}},
+	{"name": "Sunny Jim", "body": "cat", "colors": {"fur": 10, "hair": 11, "eyes": 11, "accent": 9, "top": 9, "bottoms": 11, "shoes": 4}},
+]
+const MOONFOLK := [
+	{"name": "Morag", "body": "cat", "colors": {"fur": 8, "hair": 6, "eyes": 14, "accent": 15, "top": 15, "bottoms": 16, "shoes": 6}},
+	{"name": "Wee Dougal", "body": "bunny", "colors": {"fur": 7, "hair": 8, "eyes": 15, "accent": 16, "top": 16, "bottoms": 15, "shoes": 6}},
+	{"name": "Nessa", "body": "cow", "colors": {"fur": 6, "hair": 7, "eyes": 13, "accent": 14, "top": 14, "bottoms": 16, "shoes": 8}},
 ]
 
-var season_k := 0.0                          # 0..4 round the year (0 spring, 1 summer, 2 autumn, 3 winter)
+# Day and night: the grass, the rowans' spring blossom, the hills, the sky and the light
+const DAY := {"grass": Color(0.5, 0.78, 0.38), "leaves": Color(1.0, 0.78, 0.86), "hill": Color(0.45, 0.68, 0.38),
+	"top": Color(0.42, 0.62, 0.92), "horizon": Color(0.92, 0.9, 0.86), "light": Color(1.0, 0.95, 0.85), "energy": 1.1,
+	"fog": Color(0.74, 0.8, 0.86), "ambient": 0.4}
+const DUSK := {"top": Color(0.4, 0.38, 0.62), "horizon": Color(1.0, 0.6, 0.45), "light": Color(1.0, 0.62, 0.42),
+	"fog": Color(0.72, 0.55, 0.55)}
+const NIGHT := {"grass": Color(0.18, 0.3, 0.32), "leaves": Color(0.5, 0.45, 0.62), "hill": Color(0.16, 0.26, 0.3),
+	"top": Color(0.03, 0.04, 0.14), "horizon": Color(0.14, 0.16, 0.3), "light": Color(0.55, 0.65, 1.0), "energy": 0.28,
+	"fog": Color(0.12, 0.14, 0.24), "ambient": 0.25}
+
+var day_k := 0.0                             # 0..1 round a day: 0 noon, 0.25 dusk, 0.5 midnight, 0.75 dawn
+var _flux := 1.0                             # how fast (and which way) the flux is running it just now
+var _flux_left := 0.0
+var _was_day := true
 var racing := false
 var race_go := false                         # past the countdown
 var race_next := 0                           # the next cairn to reach
@@ -63,6 +86,11 @@ var _sky: ProceduralSkyMaterial
 var _sun: DirectionalLight3D
 var _mats := {}                              # material name -> this copy's own material (so the preview never changes)
 var _snow: Array = []
+var _night_sky: Node3D
+var _star_mat: StandardMaterial3D
+var _sunfolk: Array = []
+var _moonfolk: Array = []
+var _sun_tilt := Vector3.ZERO
 var _fluffs: Array = []                      # [node, target] for each Fluffkin
 var _plants: Array = []
 var _held_pose: Array = []                   # (the phase each plant was held at)
@@ -73,12 +101,12 @@ var _countdown := 0.0
 var _race_line: Path3D
 var _heather_anim: AnimationPlayer
 var _hud: CanvasLayer
-var _season_label: Label
+var _sky_label: Label
 var _race_label: Label
 
 
 func picture() -> void:
-	# In the portal's preview: the seasons spinning over the glen, the Fluffkins out in the meadow and the garden
+	# In the portal's preview: day and night looping over the glen, the Fluffkins out in the meadow and the garden
 	_own_looks()
 	_add_fluffkins()
 	_add_garden()
@@ -92,20 +120,21 @@ func setup() -> void:
 	_add_garden()
 	_add_heather()
 	_add_isla()
+	_add_camps()
 	_race_line = get_node_or_null("RaceLine") as Path3D
 	_make_hud()
 	if is_mended():
-		season_k = 0.0
+		set_daylight(0.85)                                   # a fresh spring morning
 	else:
 		_add_stormram()
-	_show_season()
+	_was_day = is_day()
+	_show_sky()
 	if not is_mended() and bells() == 0 and not Portals.has_found(world_id, "met_heather"):
-		Game.message.call_deferred("Glenmoor: whoa, the seasons are spinning! Blossom, sun, leaves, snow... Heather's waiting by the way in.")
+		Game.message.call_deferred("Glenmoor: whoa, day and night are racing round and round! Heather's waiting by the way in.")
 
 
 func _soft_ground() -> void:
-	# The glen's grass and Ben Bonnie's slopes are soil: Bramble's burrow digs into them and Heather's grow sprouts
-	# from them (scripts/burrow.gd soil())
+	# The glen's grass and Ben Bonnie's slopes are soil: Bramble's burrow digs into them (scripts/burrow.gd soil())
 	for holder in ["Glen", "Ben Bonnie"]:
 		var h := get_node_or_null(holder)
 		if h:
@@ -117,15 +146,17 @@ func is_mended() -> bool:
 	return Portals.is_cleared(world_id)
 
 
-# The spinning seasons ----------------------------------------------------------------------------------------------
+# Day and night, looping --------------------------------------------------------------------------------------------
 func _own_looks() -> void:
-	# Each copy of the world gets its own sky and its own seasonal materials
+	# Each copy of the world gets its own sky and its own materials, so the preview never changes with this one
 	var we := get_node_or_null("WorldEnvironment") as WorldEnvironment
 	if we and we.environment:
 		_env = we.environment.duplicate(true) as Environment
 		we.environment = _env
 		_sky = _env.sky.sky_material as ProceduralSkyMaterial
 	_sun = get_node_or_null("Sun") as DirectionalLight3D
+	if _sun:
+		_sun_tilt = _sun.rotation
 	_mats = {}
 	_snow = []
 	for mi in find_children("*", "MeshInstance3D", true, false):
@@ -138,55 +169,117 @@ func _own_looks() -> void:
 			(mi as MeshInstance3D).material_override = _mats[m.resource_name]
 		if str(mi.name).begins_with("Snow Cap"):
 			_snow.append(mi)
-	set_season(season_k)
+			(mi as Node3D).visible = false                   # (it's spring in the glen, so no snow)
+	_add_night_sky()
+	set_daylight(day_k)
 
 
-func spin_len() -> float:
-	return SPIN[bells()]
+func _add_night_sky() -> void:
+	# A moon and a sky full of stars that fade in at night (made here: the builder's sky is a daytime one)
+	_night_sky = Node3D.new()
+	_night_sky.name = "Night Sky"
+	add_child(_night_sky)
+	_star_mat = _mat(Color(1.0, 1.0, 0.95), 3.0, 1.0)
+	_star_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_star_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	if "disable_fog" in _star_mat:
+		_star_mat.set("disable_fog", true)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = _ball(1.0, 4)
+	mm.instance_count = 160
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 6
+	for i in mm.instance_count:
+		var a := rng.randf() * TAU
+		var up := rng.randf_range(0.2, 1.0)
+		var dir := Vector3(cos(a) * sqrt(1.0 - up * up), up, sin(a) * sqrt(1.0 - up * up))
+		mm.set_instance_transform(i, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * rng.randf_range(0.5, 1.3)), dir * 260.0))
+	var stars := MultiMeshInstance3D.new()
+	stars.name = "Stars"
+	stars.multimesh = mm
+	stars.material_override = _star_mat
+	stars.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_night_sky.add_child(stars)
+	var moon := _put(_night_sky, _ball(9.0, 16), _star_mat, Vector3(-120, 150, -170))
+	moon.name = "Moon"
+	moon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-func season() -> String:
-	return SEASONS[int(floor(season_k)) % 4]
+func daylight() -> float:
+	# 1 at noon, 0 at midnight
+	return 0.5 + 0.5 * cos(day_k * TAU)
 
 
-func set_season(k: float) -> void:
-	# Blends from one season's look to the next over the last fifth of each (so the turn is quick but not a snap)
-	season_k = fposmod(k, 4.0)
-	var i := int(floor(season_k)) % 4
-	var f := clampf((season_k - floor(season_k) - 0.8) / 0.2, 0.0, 1.0)
-	var a: Dictionary = LOOKS[i]
-	var b: Dictionary = LOOKS[(i + 1) % 4]
+func is_day() -> bool:
+	return daylight() >= 0.5
+
+
+func cycle_len() -> float:
+	return NORMAL_DAY if is_mended() else CYCLE[bells()]
+
+
+func time_words() -> String:
+	var l := daylight()
+	if l >= 0.65:
+		return "☀ Day"
+	if l <= 0.35:
+		return "🌙 Night"
+	return "🌅 Dusk" if day_k < 0.5 else "🌄 Dawn"
+
+
+func set_daylight(k: float) -> void:
+	day_k = fposmod(k, 1.0)
+	var l := daylight()
+	var dusk := clampf(1.0 - absf(l - 0.5) / 0.3, 0.0, 1.0)           # the sky blushes on the way through
 	for key in [["Glen Grass", "grass"], ["Leaves", "leaves"], ["Hill Grass", "hill"]]:
 		var m := _mats.get(key[0]) as StandardMaterial3D
 		if m:
-			m.albedo_color = (a[key[1]] as Color).lerp(b[key[1]], f)
-	var snowy := i == 3 and f < 0.5 or i == 2 and f > 0.5
-	for s in _snow:
-		if is_instance_valid(s):
-			(s as Node3D).visible = snowy
+			m.albedo_color = (NIGHT[key[1]] as Color).lerp(DAY[key[1]], l)
+	var top := (NIGHT.top as Color).lerp(DAY.top, l).lerp(DUSK.top, dusk * 0.6)
+	var horizon := (NIGHT.horizon as Color).lerp(DAY.horizon, l).lerp(DUSK.horizon, dusk * 0.7)
 	if _sky:
-		_sky.sky_top_color = (a.top as Color).lerp(b.top, f)
-		_sky.sky_horizon_color = (a.horizon as Color).lerp(b.horizon, f)
-		_sky.ground_horizon_color = _sky.sky_horizon_color
+		_sky.sky_top_color = top
+		_sky.sky_horizon_color = horizon
+		_sky.ground_horizon_color = horizon
 	if _env:
-		_env.fog_light_color = (a.fog as Color).lerp(b.fog, f)
+		_env.fog_light_color = (NIGHT.fog as Color).lerp(DAY.fog, l).lerp(DUSK.fog, dusk * 0.5)
+		_env.ambient_light_energy = lerpf(NIGHT.ambient, DAY.ambient, l)
 	if _sun:
-		_sun.light_color = (a.light as Color).lerp(b.light, f)
-		_sun.light_energy = lerpf(a.energy, b.energy, f)
+		_sun.light_color = (NIGHT.light as Color).lerp(DAY.light, l).lerp(DUSK.light, dusk * 0.6)
+		_sun.light_energy = lerpf(NIGHT.energy, DAY.energy, l)
+		_sun.rotation = _sun_tilt + Vector3(lerpf(0.75, 0.0, l), day_k * 0.6, 0)      # low by night (the moon's light)
+	if _star_mat:
+		_star_mat.albedo_color.a = clampf((0.45 - l) / 0.3, 0.0, 1.0)
+	if _night_sky:
+		_night_sky.visible = l < 0.45
 
 
-func _spin(delta: float) -> void:
+func _loop(delta: float) -> void:
+	# The flux: day and night keep looping, at a speed that keeps changing (and now and then running backwards).
+	# Each Balance Charm makes it steadier; mended, it's a normal day at a steady pace.
 	if is_mended():
-		return
-	var was := int(floor(season_k))
-	set_season(season_k + delta / spin_len())
-	if int(floor(season_k)) != was:
-		_show_season()
+		_flux = 1.0
+	else:
+		_flux_left -= delta
+		if _flux_left <= 0.0:
+			_flux_left = randf_range(FLUX_EVERY[0], FLUX_EVERY[1])
+			var steady := bells() / 3.0
+			_flux = lerpf(randf_range(FLUX_SPEEDS[0], FLUX_SPEEDS[1]), 1.0, steady * 0.6)
+			if randf() < BACKWARDS[bells()]:
+				_flux = -_flux
+	set_daylight(day_k + _flux * delta / cycle_len())
+	var now := is_day()
+	if now != _was_day:
+		_was_day = now
+		_show_sky()
 		if not has_meta("preview"):
-			Juice.blip("whoosh", 1.3, -16.0)
+			_cheer(now)
+			if not is_mended():
+				Juice.blip("whoosh", 1.3 if now else 0.8, -16.0)
 
 
-# The Spring Bells --------------------------------------------------------------------------------------------------
+# The Balance Charms (their ids are still bell_1..3) --------------------------------------------------------------
 func has_bell(i: int) -> bool:
 	return is_mended() or Portals.has_found(world_id, "bell_%d" % (i + 1))
 
@@ -203,14 +296,13 @@ func ring_bell(i: int, at: Vector3) -> void:
 	if has_bell(i):
 		return
 	Portals.note_found(world_id, "bell_%d" % (i + 1))
-	Fx.burst(self, at + Vector3(0, 1.5, 0), BELL_GOLD, 36, 0.1, 4.5, -1.0, 1.2)
+	Fx.burst(self, at + Vector3(0, 1.5, 0), [SUN_GOLD, BELL_GOLD, MOON_BLUE][i], 36, 0.1, 4.5, -1.0, 1.2)
 	Juice.blip("chime", 0.9 + bells() * 0.15, -2.0)
 	Juice.rumble(0.3, 0.2)
 	var n := bells()
-	var what: String = ["the Fold's Spring Bell", "the garden's Spring Bell", "the hill's Spring Bell"][i]
-	Game.message(("You rang %s! (%d of 3) The seasons slow down a little..." % [what, n]) if n < 3
-		else "That's all three Spring Bells! Over at the Standing Stones, something big and woolly lets out a grumpy BLEAT.")
-	_show_season()
+	Game.message(("You've got %s! (%d of 3) Day and night loop a little steadier..." % [CHARMS[i], n]) if n < 3
+		else "All three Balance Charms click together, light and dark! Over at the Standing Stones, something big and woolly lets out a grumpy BLEAT.")
+	_show_sky()
 
 
 # The Fluffkins ------------------------------------------------------------------------------------------------------
@@ -373,11 +465,20 @@ func held() -> int:
 	return n
 
 
+func is_moonflower(i: int) -> bool:
+	# The shared garden: Heather's sunflowers (1, 3, 5) and the Moonfolk's moonflowers (2, 4) side by side
+	return i % 2 == 1
+
+
 func grow_phase(i: int) -> float:
-	# 0 sprout, then growing, full bloom (BLOOM_FROM to BLOOM_TO), then wilting, and round again. Held: always in bloom.
+	# How open a flower is: a shut bud (0) opening up to full bloom (BLOOM_FROM to BLOOM_TO). Sunflowers open in the
+	# daylight and moonflowers in the dark, so the flux opens and shuts them. Held: always open.
 	if is_held(i):
 		return 0.65
-	return fposmod(_t / GROW_CYCLE + i * 0.23, 1.0)
+	var light := 1.0 - daylight() if is_moonflower(i) else daylight()
+	if light < OPEN_FROM:
+		return light / OPEN_FROM * BLOOM_FROM * 0.98
+	return lerpf(BLOOM_FROM, BLOOM_TO - 0.01, (light - OPEN_FROM) / (1.0 - OPEN_FROM))
 
 
 func in_bloom(i: int) -> bool:
@@ -417,8 +518,8 @@ func tend(i: int) -> bool:
 	var m := get_node_or_null("Bed%d" % (i + 1)) as Node3D
 	if not in_bloom(i):
 		Juice.blip("tick", 0.7, -8.0)
-		Game.message("Not yet: it's only a sprout! Wait till it's in full bloom, then sing." if p < BLOOM_FROM
-			else "Oh no, it's wilting already! It'll come round again. Catch it when it's in full bloom.")
+		Game.message("It's shut tight! Moonflowers only open in the dark. Wait for night, then sing." if is_moonflower(i)
+			else "It's shut tight! Sunflowers only open in the daylight. Wait for day, then sing.")
 		return false
 	Portals.note_found(world_id, "bed_%d" % (i + 1))
 	if m:
@@ -427,7 +528,7 @@ func tend(i: int) -> bool:
 	_show_plants()
 	var n := held()
 	if n < BEDS:
-		Game.message("You sing, Heather hums along, and the plant stays in bloom! (%d of %d)" % [n, BEDS])
+		Game.message("You sing, and the %s stays open! (%d of %d)" % ["moonflower" if is_moonflower(i) else "sunflower", n, BEDS])
 	else:
 		ring_bell(1, m.global_position if m else Vector3.ZERO)
 	return true
@@ -476,22 +577,26 @@ func _use_isla() -> void:
 
 
 func isla_lines() -> Array:
-	# Isla's from up the glen: bouncy, cheeky and a wee bit competitive (a first draft for Hayden)
+	# Isla's from up the glen: bouncy, cheeky, a wee bit competitive, and a night owl who leads the Moonfolk
+	# (a first draft for Hayden)
 	if not Portals.has_found(world_id, "met_isla"):
 		Portals.note_found(world_id, "met_isla")
 		return ["Och, hiya! You must be Heather's pal from the Void. I'm Isla! Her best friend. Since we were wee calves.",
-			"See that hill? That's Ben Bonnie. Every spring there's a race up it, and the winner rings the hill's Spring Bell.",
-			"Only spring keeps whizzing past before anyone can start! Summer, autumn, winter, spring, summer...",
-			"So we'll race right now. Past all six cairns, in order, up to the cairn on the top. Ready when you are!"]
+			"Well. Mostly best friends. Since the days started racin' round, the glen's gone and split in two.",
+			"Heather's lot, the Sunfolk, want it day for ever. My lot, the Moonfolk, love the night: stars, moonflowers, owls!",
+			"And now we just shout across the burn at each other. 'DAY!' 'NIGHT!' It's daft, really.",
+			"Here, you want the Moon Charm? Then race me up Ben Bonnie. Past all six cairns, in order, to the top. Ready when you are!"]
 	if is_mended():
-		return [["Spring's stopped spinning! Spring's STAYING! I could do cartwheels. I am doing cartwheels. Look!",
+		return [["Day and night are takin' turns again, nice and slow! Proper days! Proper nights! I could do cartwheels. I am doing cartwheels!",
 			"(She does one cartwheel and falls over in the heather, giggling.)"],
-			["Heather says your Earth has a whole spring all to itself, in turn with the other seasons. Fancy!",
-			"Here we just had all four in a minute. Very tiring. Very."],
-			["Rematch up Ben Bonnie some time? I've been practising. Mostly the falling over bit."]].pick_random()
+			["Heather and me had a big hug and a wee cry. Then a picnic. At sunset. Half day, half night. Perfect.",
+			"Turns out the glen needs both. Like her and me: she's the sunny one and I'm the starry one."],
+			["The Moonfolk are teachin' the Sunfolk the names of the stars, and the Sunfolk are teachin' us how to make jam.",
+			"I'm not saying which is going better. (It's the stars.)"],
+			["Rematch up Ben Bonnie some time? By moonlight! I've been practising. Mostly the falling over bit."]].pick_random()
 	if has_bell(2):
-		return ["You're FAST. I'm telling everyone. I'm telling the Fluffkins first.",
-			"The hill's bell is rung! Heather's got the other two to sort out with you."]
+		return ["You're FAST. I'm telling everyone. I'm telling the Moonfolk first, then the owls.",
+			"The Moon Charm's yours. Heather's got the Sun Charm for you, and the garden needs the both of us."]
 	return ["Back for another go? Past the six cairns, in order, then the top!", "On your marks..."]
 
 
@@ -615,6 +720,148 @@ func _show_race() -> void:
 	_race_label.text = "Cairns %d / %d   ·   Isla's %s" % [race_next, total, "behind you!" if mine >= hers else "ahead!"]
 
 
+# The Sunfolk and the Moonfolk ---------------------------------------------------------------------------------------
+func _add_camps() -> void:
+	# Two little camps across the glen from each other, each with its banner and three folk. Mended, they make peace:
+	# the two banners come down and one that's half sun, half moon goes up between them (_make_peace()).
+	_sunfolk = _camp("Sunfolk", SUN_CAMP, SUNFOLK, false)
+	_moonfolk = _camp("Moonfolk", MOON_CAMP, MOONFOLK, true)
+	if is_mended():
+		_make_peace()
+
+
+func _camp(camp: String, at: Vector3, folk: Array, moon: bool) -> Array:
+	var g := Node3D.new()
+	g.name = camp
+	add_child(g)
+	g.position = _ground(at)
+	var face := (_ground((SUN_CAMP + MOON_CAMP) / 2.0) - g.position)
+	var banner := banner_model(moon)
+	banner.name = "Banner"
+	g.add_child(banner)
+	banner.rotation.y = 0.0                                  # (its flag faces the way in, so you see it coming)
+	var out: Array = []
+	for i in folk.size():
+		var who: Dictionary = folk[i]
+		var a := (i - 1) * 0.9 + atan2(face.x, face.z)
+		var spot := g.position + Vector3(sin(a), 0, cos(a)) * 3.2
+		var p := Node3D.new()
+		p.name = str(who.name)
+		add_child(p)
+		p.position = _ground(spot)
+		p.rotation.y = atan2(face.x, face.z)
+		p.add_child(folk_model(who))
+		var talk := USE_SPOT.make(Vector3.ZERO, func() -> String: return "talk to %s" % who.name, _talk_folk.bind(p, moon, i), 2.0, 2.2)
+		talk.name = "Spot"
+		p.add_child(talk)
+		out.append(p)
+	return out
+
+
+func _ground(at: Vector3) -> Vector3:
+	# The ground under a spot (the glen rolls a little)
+	var space := get_world_3d().direct_space_state if is_inside_tree() else null
+	if space:
+		var q := PhysicsRayQueryParameters3D.create(Vector3(at.x, 30.0, at.z), Vector3(at.x, -10.0, at.z))
+		var hit := space.intersect_ray(q)
+		if hit:
+			return hit.position
+	return Vector3(at.x, 0.0, at.z)
+
+
+func folk_lines(moon: bool, i: int) -> Array:
+	# The two sides' talk: cross with each other before it's mended, friends after (first drafts for Hayden)
+	if is_mended():
+		return ([["We had the Sunfolk over for a midnight feast. They fell asleep by ten. Bless 'em.", "Still. Nice to have the company."],
+			["Goldie showed me how they make heather honey. I showed her the Plough. The stars, I mean."],
+			["Turns out the night's no fun without a day to rest up in. Who knew?"]] if moon else
+			[["The Moonfolk showed us shooting stars last night. I stayed up past my bedtime! Worth it."],
+			["Day's lovely. Night's lovely too, now it waits its turn. Like a good neighbour."],
+			["We put up a banner that's half sun, half moon. Took us all afternoon to agree on the colours."]])[i % 3]
+	if moon:
+		return [["Night's the bonniest time in the glen. Stars! Moonflowers! Owls! Why would anyone want it bright?",
+			"And then the sun barges in again. RUDE."],
+			["Wee Dougal here. Shh. I'm watchin' for shootin' stars. When it's night. Which it was. A second ago."],
+			["Those Sunfolk shout 'HOORAY, DAY!' every time the sun comes up. Every time! It's comin' up every ten seconds!",
+			"So we shout back. Fair's fair."]][i % 3]
+	return [["Day's the best! Sunshine on the heather, Fluffkins grazin', washing on the line. Why would anyone want it dark?",
+		"And then the night sneaks back in. Every few seconds! I can't get a single sock dry."],
+		["Barley's my name, and haymaking's my game. Only you can't make hay while the moon shines. Can you?"],
+		["The Moonfolk cheer every time it gets dark. So we cheer louder when it's light. That'll show 'em.",
+		"...Heather says it's daft. Heather might be right."]][i % 3]
+
+
+func _talk_folk(p: Node3D, moon: bool, i: int) -> void:
+	var spot := p.get_node_or_null("Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, str(p.name), folk_lines(moon, i), "glenmoor_folk")
+
+
+func _cheer(day: bool) -> void:
+	# Whose time it is cheers, and the other side grumbles (a shout over their heads for a moment)
+	if is_mended():
+		return
+	var happy: Array = _sunfolk if day else _moonfolk
+	var cross: Array = _moonfolk if day else _sunfolk
+	if not happy.is_empty():
+		_shout(happy.pick_random(), ["HOORAY, DAY!", "Sunshine!", "Good mornin'!"].pick_random() if day
+			else ["HOORAY, NIGHT!", "Stars!", "Bonnie night!"].pick_random(), SUN_GOLD if day else MOON_BLUE)
+	if not cross.is_empty() and randf() < 0.6:
+		_shout(cross.pick_random(), ["Boo!", "Not AGAIN!", "Och, away!", "Hmph!"].pick_random(), Color(0.9, 0.9, 0.95))
+
+
+func _shout(p: Node3D, text: String, colour: Color) -> void:
+	if not is_instance_valid(p):
+		return
+	var old := p.get_node_or_null("Shout")
+	if old:
+		old.free()
+	var l := Label3D.new()
+	l.name = "Shout"
+	l.text = text
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font_size = 64
+	l.pixel_size = 0.006
+	l.outline_size = 12
+	l.modulate = colour
+	l.position.y = 2.3
+	p.add_child(l)
+	var tw := l.create_tween()
+	tw.tween_property(l, "position:y", 2.8, 1.6)
+	tw.parallel().tween_property(l, "modulate:a", 0.0, 1.6).set_delay(0.6)
+	tw.tween_callback(l.queue_free)
+
+
+func _make_peace() -> void:
+	# Both banners come down and one half-and-half banner goes up between the camps; everyone turns to face it
+	for camp in ["Sunfolk", "Moonfolk"]:
+		var b := get_node_or_null("%s/Banner" % camp) as Node3D
+		if b:
+			b.visible = false
+	if get_node_or_null("Peace Banner") == null:
+		var p := peace_banner_model()
+		p.name = "Peace Banner"
+		add_child(p)
+		p.position = _ground(PEACE_AT)
+	# Everyone gathers round it, Sunfolk and Moonfolk side by side
+	var all: Array = []
+	for i in maxi(_sunfolk.size(), _moonfolk.size()):
+		if i < _sunfolk.size():
+			all.append(_sunfolk[i])
+		if i < _moonfolk.size():
+			all.append(_moonfolk[i])
+	for i in all.size():
+		var f := all[i] as Node3D
+		if not is_instance_valid(f):
+			continue
+		var shout := f.get_node_or_null("Shout")
+		if shout:
+			shout.free()
+		var a := PI * 0.15 + i * TAU / (all.size() + 1)        # (a gap in the ring on the path side)
+		f.position = _ground(PEACE_AT + Vector3(sin(a), 0, cos(a)) * 3.4)
+		f.rotation.y = a + PI
+
+
 # Heather ------------------------------------------------------------------------------------------------------------
 func _add_heather() -> void:
 	var m := get_node_or_null("Heather") as Node3D
@@ -635,50 +882,52 @@ func _add_heather() -> void:
 
 
 func heather_lines() -> Array:
-	# Heather's the farm girl from the lowlands of Glenmoor: warm, stubborn and Southern ("sugar", "y'all").
-	# A first draft for Hayden.
+	# Heather's the farm girl from the lowlands of Glenmoor: warm, stubborn and Southern ("sugar", "y'all"). She loves
+	# a sunny day, so the Sunfolk look to her. A first draft for Hayden.
 	if is_mended() and not Portals.has_found(world_id, "thanked"):
 		Portals.note_found(world_id, "thanked")
 		return thank_lines()
 	if is_mended():
-		return [["Smell that? Blossom. Real, stay-put, spring blossom. I could cry. I might! Don't look.",
-			"Thank you, sugar. You and Isla and them Fluffkins saved the whole glen."],
-			["The Fluffkins have wandered out of the Fold again. That's how you know it's spring: they get frisky.",
-			"Leave 'em be. They'll come home for supper."],
-			["Remember your growin'! Stand on the grass and {grow_how}, and up you go on a big ol' flower.",
-			"Try it on the hills here. Or by your garden back in the Void: your crops'll love it."],
-			["My plants are just growin' now, nice and slow, like plants are meant to.",
-			"Back home my mama always said: you can't hurry a seed. Turns out you can, with a big ol' whirlwind. You just shouldn't."]].pick_random()
+		return [["Look at that sky, sugar. A real day, that'll turn into a real night, and back again. Nice and slow.",
+			"Me and Isla are speakin' again. We had a picnic at sunset. Best of both."],
+			["Remember your April Showers! {showers_how} and a wee rain cloud comes over. When the sun peeks out, there's a rainbow you can walk on.",
+			"Rain's good for gardens too. Try it by yours back in the Void."],
+			["And your Spring Step: jump again just as you land, and you bounce higher. Three in a row, and boing!",
+			"Like a spring lamb in a field. That's where the name comes from, sugar."],
+			["The Sunfolk and the Moonfolk took the banners down and put up one that's half and half.",
+			"Mama always said: there ain't no sunrise without a night before it."]].pick_random()
 	if not Portals.has_found(world_id, "met_heather"):
 		Portals.note_found(world_id, "met_heather")
 		return ["{player}! You came all the way to Glenmoor! Welcome to my home, sugar!",
-			"Well... it's usually prettier than this. Hold your hat: here comes summer. And there it goes. Autumn. Brrr, winter!",
-			"The Stormram's been at it again. He's a big woolly grump who curls up and charges in a WHIRLWIND, and he's got the seasons spinnin' round with him.",
-			"My crops come up and wilt before I can blink, and spring hasn't stayed put in for ever.",
-			"There's an old tale here: ring the three Spring Bells and spring comes back to stay. One's at the Fold, one's in my garden, one's on top of Ben Bonnie.",
-			"Round up the Fluffkins into the Fold, help me catch my plants in bloom, and beat Isla up the hill. Y'all can do it!"]
+			"Well... it's usually calmer than this. Look up: here comes the night. And there it goes! Mornin'! And... evenin' again.",
+			"The Stormram's been at it again. He's a big woolly grump who curls up and charges in a WHIRLWIND, and he's got day and night spinnin' round with him.",
+			"And it's split the whole glen. My Sunfolk want it day for ever, and Isla's Moonfolk want it night for ever. Even me and Isla ain't speakin' much.",
+			"There's an old tale here: make the Balance Charm whole, light and dark together, and the days go back to normal.",
+			"Round up the Fluffkins for the Sun Charm. Help our garden for the Twilight Charm. And Isla's got the Moon Charm, if you can beat her up Ben Bonnie."]
 	var left: Array = []
 	for i in 3:
 		if not has_bell(i):
-			left.append(["herd the Fluffkins into the Fold (%d of %d in: walk round behind 'em, they trot away from you)" % [penned(), FLUFFS],
-				"sing to my plants when they're in full bloom (%d of %d)" % [held(), BEDS], "beat Isla up Ben Bonnie"][i])
+			left.append(["herd the Fluffkins into the Fold for the Sun Charm (%d of %d in: walk round behind 'em, they trot away from you)" % [penned(), FLUFFS],
+				"sing to the garden's flowers while they're open, sunflowers by day and moonflowers by night (%d of %d)" % [held(), BEDS],
+				"beat Isla up Ben Bonnie for the Moon Charm"][i])
 	if left.size() > 0:
-		return ["%s Feel that? The seasons are slowin' down a touch." % ("Two bells rung!" if left.size() == 1 else "One bell rung!")
-			if left.size() < 3 else "Every bell you ring slows the seasons a little. Ain't that somethin'?",
+		return ["%s Feel that? The days are steadyin' a touch." % ("Two charms!" if left.size() == 1 else "One charm!")
+			if left.size() < 3 else "Every charm you find steadies the days a little. Ain't that somethin'?",
 			"Still to do: %s." % "; and ".join(left)]
-	return ["All three bells! The Stormram's wakin' up over at the Standing Stones...",
+	return ["The Balance Charm's whole! The Stormram's wakin' up over at the Standing Stones...",
 		"When he curls up and charges, get out of the way of that whirlwind! When he hits the ground he sends out a gust: jump it!",
 		"After a charge he's all dizzy. That's when you pop him, sugar! His wool's too thick any other time."]
 
 
 func thank_lines() -> Array:
-	return ["{player}! You did it! Look: blossom on the rowans, the Fluffkins frolickin', and it's STAYIN' spring!",
+	return ["{player}! You did it! Day's stayin' day and night's stayin' night, each in its turn, like they ought to.",
+		"And look over yonder: the Sunfolk and the Moonfolk, all in one bunch. Isla's comin' over for supper. Can you believe it?",
 		"The Stormram's just a big ol' sheepish lump now. He'll be fine. Grumpy, but fine.",
 		"And back on your Earth, spring can come round too now, in its turn. Y'all are gonna love it.",
-		"Oh! Before you go: hold out your hands. Back home we say a friend who helps the glen grow gets a bit of the glen's growin' in 'em.",
-		"There. Now YOU can grow things! Stand on grass or soil and {grow_how} for a moment.",
-		"A great big springy flower'll shoot up under you and fling you high! Land back on it and it bounces you again.",
-		"And near your garden it'll give your crops a growin' boost. Thank you, sugar. From me, Isla, and every last Fluffkin."]
+		"Now, I got somethin' for you. Two somethings! Spring things.",
+		"First, April Showers: {showers_how} and a wee rain cloud comes over you. When the sun peeks out after, it leaves a rainbow you can walk right up!",
+		"And second, your Spring Step: jump again just as you land and you bounce higher. Do it three times in a row and you'll really fly.",
+		"Thank you, sugar. From me, Isla, the Sunfolk, the Moonfolk and every last Fluffkin."]
 
 
 func _talk_heather() -> void:
@@ -720,20 +969,21 @@ func wake_stormram() -> void:
 
 
 func mend() -> void:
-	# The Stormram's popped: the seasons stop spinning and settle on spring, and blossom bursts out everywhere
+	# The Stormram's popped: day and night ease into a normal, steady day (a fresh spring morning), the two sides
+	# make peace, and blossom bursts out on the rowans
 	Portals.clear(world_id)
 	racing = false
-	var to: float = ceil(season_k / 4.0) * 4.0
+	_flux = 1.0
+	var to := 0.85 if day_k <= 0.85 else 1.85
 	var tw := create_tween()
-	tw.tween_method(set_season, season_k, to, 3.0).set_trans(Tween.TRANS_SINE)
-	tw.tween_callback(func() -> void:
-		set_season(0.0)
-		_show_season())
+	tw.tween_method(set_daylight, day_k, to, 3.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(_show_sky)
 	for t in get_children():
 		if str(t.name).begins_with("Rowan"):
 			Fx.burst(self, (t as Node3D).global_position + Vector3(0, 4.5, 0), BLOSSOM, 16, 0.08, 3.0, -1.0, 1.4)
+	_make_peace()
 	_show_plants()
-	_show_season()
+	_show_sky()
 	Juice.shake(0.15)
 	Juice.rumble(0.3, 0.3)
 	Juice.blip("chime", 0.8, -3.0)
@@ -752,22 +1002,22 @@ func _thank(tries := 0) -> void:
 		Dialogue.say(spot, "Heather", thank_lines().map(func(l: String) -> String: return Settings.fill(l)), "glenmoor_thanks")
 
 
-# The HUD: which season it is, and the race ------------------------------------------------------------------------
+# The HUD: day or night, and the race ------------------------------------------------------------------------
 func _make_hud() -> void:
 	_hud = CanvasLayer.new()
 	_hud.name = "Glen HUD"
 	_hud.layer = 5
 	add_child(_hud)
 	var box := PanelContainer.new()
-	box.name = "Season"
+	box.name = "Sky"
 	box.add_theme_stylebox_override("panel", UiStyle.card(Color(0.15, 0.22, 0.18, 0.85)))
 	box.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	box.custom_minimum_size = Vector2(280, 0)
 	box.position = Vector2(-140, 64)
-	_season_label = Label.new()
-	_season_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_season_label.add_theme_font_size_override("font_size", 20)
-	box.add_child(_season_label)
+	_sky_label = Label.new()
+	_sky_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_sky_label.add_theme_font_size_override("font_size", 20)
+	box.add_child(_sky_label)
 	_hud.add_child(box)
 	var race := PanelContainer.new()
 	race.name = "Race"
@@ -783,18 +1033,17 @@ func _make_hud() -> void:
 	_hud.add_child(race)
 
 
-func season_words() -> String:
-	var i := int(floor(season_k)) % 4
+func sky_words() -> String:
 	if is_mended():
-		return "%s  (here to stay!)" % SEASON_WORDS[0]
-	return "%s  · spinning!  (%d of 3 bells)" % [SEASON_WORDS[i], bells()]
+		return "%s  (a normal day again!)" % time_words()
+	return "%s  · the flux!  (%d of 3 charms)" % [time_words(), bells()]
 
 
-func _show_season() -> void:
-	if _season_label == null:
+func _show_sky() -> void:
+	if _sky_label == null:
 		return
-	_season_label.text = season_words()
-	var box := _season_label.get_parent() as Control
+	_sky_label.text = sky_words()
+	var box := _sky_label.get_parent() as Control
 	box.position.x = box.get_parent_area_size().x / 2.0 - box.size.x / 2.0 if box.get_parent_area_size().x > 0 else box.position.x
 	var race := _race_label.get_parent() as Control
 	race.position.x = race.get_parent_area_size().x / 2.0 - race.size.x / 2.0 if race.get_parent_area_size().x > 0 else race.position.x
@@ -803,7 +1052,7 @@ func _show_season() -> void:
 # Every frame ---------------------------------------------------------------------------------------------------------
 func _process(delta: float) -> void:
 	_t += delta
-	_spin(delta)
+	_loop(delta)
 	_show_plants()
 	if has_meta("preview"):
 		for i in _fluffs.size():                            # (the Fluffkins graze about in the preview too)
@@ -818,7 +1067,7 @@ func _process(delta: float) -> void:
 	var m := get_node_or_null("Stormram") as Node3D
 	if player and not is_mended() and bells() == 3 and m and player.global_position.distance_to(m.global_position) < WAKE_NEAR:
 		wake_stormram()
-	_show_season()
+	_show_sky()
 
 
 # Looks ---------------------------------------------------------------------------------------------------------------
@@ -899,7 +1148,8 @@ static func plant_model(k: int) -> Node3D:
 	# One of Heather's plants: a stem with two leaves and a big round bloom (colours by bed), which set_plant() grows,
 	# opens and wilts
 	var g := Node3D.new()
-	var blooms := [Color(1.0, 0.55, 0.7), Color(1.0, 0.85, 0.3), Color(0.7, 0.5, 1.0), Color(1.0, 0.6, 0.3), Color(0.5, 0.75, 1.0)]
+	# Sunflowers on the even beds (gold and orange), moonflowers on the odd ones (pale silver and lilac, glowing)
+	var blooms := [Color(1.0, 0.82, 0.25), Color(0.85, 0.9, 1.0), Color(1.0, 0.6, 0.25), Color(0.8, 0.72, 1.0), Color(1.0, 0.9, 0.35)]
 	var stem := Node3D.new()
 	stem.name = "Stem"
 	g.add_child(stem)
@@ -912,7 +1162,7 @@ static func plant_model(k: int) -> Node3D:
 	flower.name = "Bloom"
 	flower.position.y = 1.05
 	stem.add_child(flower)
-	var petal := _mat(blooms[k % blooms.size()], 0.15, 0.6)
+	var petal := _mat(blooms[k % blooms.size()], 0.15 if k % 2 == 0 else 0.6, 0.6)
 	petal.resource_name = "Petal"
 	for p in 6:
 		var a := p * TAU / 6.0
@@ -939,7 +1189,7 @@ static func set_plant(p: Node3D, phase: float) -> void:
 		var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
 		if m and m.resource_name == "Petal":
 			m.albedo_color = c.lerp(Color(0.45, 0.32, 0.2), wilt)
-			m.emission_energy_multiplier = 0.15 * (1.0 - wilt)
+			m.emission_energy_multiplier = (0.15 if c.b < 0.6 else 0.6) * (1.0 - wilt)
 	var leaf := (stem.get_child(0) as MeshInstance3D).material_override as StandardMaterial3D
 	if leaf:
 		leaf.albedo_color = Color(0.35, 0.65, 0.3).lerp(Color(0.55, 0.45, 0.25), wilt)
@@ -954,3 +1204,84 @@ static func isla_model() -> Node3D:
 		"extras": true, "height": 0.95})
 	p.set("extras", [{"kind": "scarf", "color": Color(0.75, 0.2, 0.25)}])
 	return p
+
+
+static func folk_model(who: Dictionary) -> Node3D:
+	# One of the Sunfolk or Moonfolk: made like the townsfolk from a hero body, in their side's colours, with a scarf
+	var p := (load("res://scripts/townsfolk.gd") as GDScript).new() as Node3D
+	p.name = "Model"
+	p.set("look", {"body": who.body, "colors": who.colors, "extras": true, "height": 0.9})
+	var cols: Dictionary = who.colors
+	var hero := load("res://scripts/hero.gd") as GDScript
+	var swatches: Array = hero.get("SWATCHES") if hero else []
+	var scarf: Color = swatches[(int(cols.accent) - 1) % swatches.size()] if not swatches.is_empty() else Color.WHITE
+	p.set("extras", [{"kind": "scarf", "color": scarf}])
+	return p
+
+
+static func banner_model(moon: bool) -> Node3D:
+	# A camp's banner on a tall pole: the Sunfolk's gold with a sun, the Moonfolk's deep blue with a crescent moon
+	var g := Node3D.new()
+	var wood := _mat(Color(0.45, 0.32, 0.22))
+	_put(g, _cyl(0.07, 0.08, 4.2, 8), wood, Vector3(0, 2.1, 0))
+	_put(g, _ball(0.14, 8), _mat(SUN_GOLD if not moon else Color(0.85, 0.88, 1.0), 0.5), Vector3(0, 4.25, 0))
+	var cloth := _mat(Color(1.0, 0.75, 0.3) if not moon else Color(0.16, 0.18, 0.42), 0.0, 0.9)
+	var flag := BoxMesh.new()
+	flag.size = Vector3(1.5, 1.1, 0.05)
+	_put(g, flag, cloth, Vector3(0.8, 3.4, 0)).name = "Flag"
+	if moon:
+		var glow := _mat(Color(0.9, 0.92, 1.0), 0.8)
+		_put(g, _cyl(0.32, 0.32, 0.06, 16), glow, Vector3(0.8, 3.4, 0.05), Vector3.ONE, Vector3(PI / 2, 0, 0))
+		_put(g, _cyl(0.27, 0.27, 0.06, 16), cloth, Vector3(0.92, 3.47, 0.07), Vector3.ONE, Vector3(PI / 2, 0, 0))   # bites the crescent
+		for k in 3:
+			_put(g, _ball(0.05, 6), glow, Vector3(0.3 + k * 0.45, 3.85 - (k % 2) * 0.75, 0.06))
+	else:
+		var sun := _mat(Color(1.0, 0.95, 0.5), 0.6)
+		_put(g, _cyl(0.25, 0.25, 0.06, 16), sun, Vector3(0.8, 3.4, 0.05), Vector3.ONE, Vector3(PI / 2, 0, 0))
+		for k in 8:
+			var a := k * TAU / 8.0
+			var ray := BoxMesh.new()
+			ray.size = Vector3(0.06, 0.16, 0.04)
+			_put(g, ray, sun, Vector3(0.8 + cos(a) * 0.38, 3.4 + sin(a) * 0.38, 0.06), Vector3.ONE, Vector3(0, 0, a - PI / 2))
+	return g
+
+
+static func peace_banner_model() -> Node3D:
+	# Peace between the two sides: one banner, a yin and yang of sun gold and night blue, each with a dot of the other
+	var g := Node3D.new()
+	var wood := _mat(Color(0.45, 0.32, 0.22))
+	_put(g, _cyl(0.08, 0.09, 4.6, 8), wood, Vector3(0, 2.3, 0))
+	var gold := _mat(Color(1.0, 0.8, 0.35), 0.3)
+	var night := _mat(Color(0.16, 0.18, 0.42), 0.2)
+	night.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var at := Vector3(0, 3.6, 0.1)
+	var disc := func(r: float, m: Material, off: Vector3) -> void:
+		_put(g, _cyl(r, r, 0.05, 32), m, at + off, Vector3.ONE, Vector3(PI / 2, 0, 0))
+	# Two halves (a gold disc with a night half laid over it), the two small round heads of the swirl, then the dots
+	_put(g, _cyl(0.85, 0.85, 0.05, 32), gold, at, Vector3.ONE, Vector3(PI / 2, 0, 0))
+	var h := MeshInstance3D.new()
+	h.name = "Night Half"
+	h.mesh = _half_disc(0.85)
+	h.material_override = night
+	h.position = at + Vector3(0, 0, 0.03)
+	g.add_child(h)
+	disc.call(0.425, gold, Vector3(0, 0.425, 0.03))
+	disc.call(0.425, night, Vector3(0, -0.425, 0.03))
+	disc.call(0.12, night, Vector3(0, 0.425, 0.04))
+	disc.call(0.12, gold, Vector3(0, -0.425, 0.04))
+	_put(g, _cyl(0.92, 0.92, 0.04, 32), _mat(Color(0.95, 0.95, 0.98)), at - Vector3(0, 0, 0.02), Vector3.ONE, Vector3(PI / 2, 0, 0))
+	return g
+
+
+static func _half_disc(r: float, seg := 24) -> ArrayMesh:
+	# The right half of a flat disc facing +Z (for the peace banner's yin and yang)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in seg:
+		var a0 := -PI / 2.0 + PI * k / seg
+		var a1 := -PI / 2.0 + PI * (k + 1) / seg
+		st.set_normal(Vector3.BACK)
+		st.add_vertex(Vector3.ZERO)
+		st.add_vertex(Vector3(cos(a1), sin(a1), 0) * r)
+		st.add_vertex(Vector3(cos(a0), sin(a0), 0) * r)
+	return st.commit()

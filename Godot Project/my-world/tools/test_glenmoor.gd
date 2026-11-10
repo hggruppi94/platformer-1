@@ -2,12 +2,14 @@ extends SceneTree
 
 # Checks Glenmoor, Heather's portal world (scripts/glenmoor.gd, scripts/stormram.gd, scenes/portal_worlds/glenmoor.tscn):
 # its quake waits for the Tide Reef to be mended, then its portal rises in the meadow past the farm on flat, clear
-# ground; inside, the seasons spin (grass, leaves, snow) and each Spring Bell slows them; Heather and Isla say what to
-# do; Fluffkins trot away from you, only get into the Fold through its gate, and five in rings the first bell; a plant
-# sung to in full bloom stays, out of bloom it doesn't, and five rings the second; the hill race needs the cairns in
-# order, Isla wins if you dawdle, and beating her rings the third; Ben Bonnie can be stood on; the Stormram sleeps
-# until all three bells are rung, then wakes when you come near, shrugs off bubbles unless dizzy, and popping it mends
-# the world (spring opens on Earth, the seasons settle on spring); and it all stays done after leaving and loading.
+# ground; inside, day and night loop in the flux (the sky, the light, the grass, stars at night) and each Balance
+# Charm steadies it; the Sunfolk and Moonfolk camps face each other and cheer their own time; Heather and Isla say
+# what to do; Fluffkins trot away from you, only get into the Fold through its gate, and five in is the Sun Charm;
+# sunflowers open by day and moonflowers by night, a flower sung to while open stays, a shut one doesn't, and five is
+# the Twilight Charm; the hill race needs the cairns in order, Isla wins if you dawdle, and beating her is the Moon
+# Charm; the Stormram sleeps until all three, then wakes when you come near, shrugs off bubbles unless dizzy, and
+# popping it mends the world (spring opens on Earth, a normal steady day, the two sides make peace); and it all stays
+# done after leaving and loading.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_glenmoor.gd
 #
@@ -71,7 +73,7 @@ func _run() -> void:
 	await _physics(4)
 	await _check_quake()
 	await _check_inside()
-	await _check_seasons()
+	await _check_daynight()
 	await _check_fluffkins()
 	await _check_garden()
 	await _check_race()
@@ -161,55 +163,84 @@ func _check_inside() -> void:
 	check(s.scene_file_path == WORLD and portals.here == "glenmoor", "stepping through takes you to Glenmoor")
 	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Heather/Model", "Heather/Spot",
 		"Isla Runner/Model", "Isla Runner/Spot", "Fluffkins", "Fold", "RaceLine", "RaceStart", "Hill", "Ben Bonnie/Slope",
-		"The Stormram", "The Stormram/Visual/Whirlwind", "The Stormram/Visual/Storm Cloud", "Glen HUD/Season", "Glen HUD/Race",
+		"The Stormram", "The Stormram/Visual/Whirlwind", "The Stormram/Visual/Storm Cloud", "Glen HUD/Sky", "Glen HUD/Race",
 		"Wee Loch", "Heather's Croft", "Standing Stones"]
 	for i in 5:
 		names.append("Bed%d/Plant" % (i + 1))
 		names.append("Bed%d/Spot" % (i + 1))
 		names.append("Fluffkins/Fluffkin %d" % (i + 1))
+	for n2 in ["Sunfolk/Banner", "Moonfolk/Banner", "Goldie/Spot", "Barley", "Sunny Jim", "Morag/Spot", "Wee Dougal", "Nessa", "Night Sky/Moon"]:
+		names.append(n2)
 	for i in 6:
 		names.append("Cairn%d" % (i + 1))
 	for n in names:
 		check(s.get_node_or_null(n) != null, "Glenmoor has %s" % n)
 	var player := s.get_tree().get_first_node_in_group("player") as CharacterBody3D
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
-	check(not s.is_mended() and s.bells() == 0, "no Spring Bells rung yet")
+	check(not s.is_mended() and s.bells() == 0, "no Balance Charms yet")
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["TimeStone", "WayHome", "Vein1", "Heather", "Isla", "Fold", "RaceStart", "Stormram", "Bed1", "Bed5", "Cairn1", "Cairn3", "Cairn6"]:
+	for n in ["TimeStone", "WayHome", "Vein1", "Heather", "Isla", "Fold", "RaceStart", "Stormram", "Bed1", "Bed5", "Cairn1", "Cairn3", "Cairn6",
+			"Sunfolk", "Moonfolk", "Goldie", "Morag", "Nessa", "Sunny Jim"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.2, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
 	var first: Array = s.heather_lines()
-	check("Glenmoor" in str(first[0]) and "Stormram" in " ".join(first) and "Spring Bells" in " ".join(first),
-		"Heather says hello, what's wrong, and the three bells")
+	check("Glenmoor" in str(first[0]) and "Stormram" in " ".join(first) and "Balance Charm" in " ".join(first)
+		and "Sunfolk" in " ".join(first) and "Moonfolk" in " ".join(first), "Heather says hello, what's wrong, the two sides and the charms")
 	check("Still to do" in " ".join(s.heather_lines()), "...and after that, what's left to do")
 	var isla: Array = s.isla_lines()
-	check("Isla" in str(isla[0]) and "Ben Bonnie" in " ".join(isla) and "cairns" in " ".join(isla), "Isla says hello and explains the hill race")
+	check("Isla" in str(isla[0]) and "Ben Bonnie" in " ".join(isla) and "cairns" in " ".join(isla) and "Moon Charm" in " ".join(isla),
+		"Isla says hello and explains the hill race for the Moon Charm")
+	# The two sides, each with something to say, facing each other across the glen
+	check(s.folk_lines(false, 0).size() > 0 and "day" in " ".join(s.folk_lines(false, 0)).to_lower(), "the Sunfolk want it day")
+	check("night" in " ".join(s.folk_lines(true, 0)).to_lower(), "...and the Moonfolk want it night")
+	check(s.get_node("Goldie/Spot").what() == "talk to Goldie", "you can talk to them")
+	var sun := (s.get_node("Sunfolk") as Node3D).global_position
+	var moon := (s.get_node("Moonfolk") as Node3D).global_position
+	check(sun.distance_to(moon) > 15.0, "the two camps stand well apart (%.0f m)" % sun.distance_to(moon))
+	for n in ["Goldie", "Barley", "Sunny Jim", "Morag", "Wee Dougal", "Nessa"]:
+		var at := (s.get_node(n) as Node3D).global_position + Vector3(0, 1.0, 0)
+		var q := PhysicsShapeQueryParameters3D.new()
+		var ball := SphereShape3D.new()
+		ball.radius = 0.35
+		q.shape = ball
+		q.transform = Transform3D(Basis.IDENTITY, at)
+		q.exclude = [player.get_rid()]
+		check(space.intersect_shape(q, 4).is_empty(), "%s isn't standing inside anything" % n)
 	check(s.get_node("Isla Runner/Spot").what() == "race Isla up Ben Bonnie", "after hello, Isla offers a race up Ben Bonnie")
 	var storm := s.get_node("The Stormram") as Node
 	check(storm.get("asleep") and storm.process_mode == Node.PROCESS_MODE_DISABLED, "the Stormram's fast asleep on the Standing Stones")
 
 
-func _check_seasons() -> void:
+func _check_daynight() -> void:
 	var s := current_scene
-	# They spin round: in a few seconds it's another season
-	var was: String = s.season()
-	var k0: float = s.season_k
-	await create_timer(s.spin_len() * 1.1).timeout
-	check(s.season() != was or absf(s.season_k - k0) > 0.9, "the seasons spin round (%s -> %s)" % [was, s.season()])
-	check("spinning" in s.season_words(), "the season card says they're spinning (%s)" % s.season_words())
-	# Each season looks different: snow on the hills only in winter, the grass and leaves change colour
+	# Day and night loop round: in a few seconds it's the other one
+	var k0: float = s.day_k
+	await create_timer(2.0).timeout
+	var moved := absf(wrapf(s.day_k - k0, -0.5, 0.5))
+	check(moved > 0.02, "day and night race round (%.0f%% of a day in 2 seconds)" % (moved * 100.0))
+	var speeds := {}
+	for i in 30:
+		s._flux_left = 0.0
+		s._loop(0.01)
+		speeds[snappedf(s._flux, 0.1)] = true
+	check(speeds.size() > 5, "...at a speed that keeps changing (the flux)")
+	check("the flux" in s.sky_words(), "the card says it's the flux (%s)" % s.sky_words())
+	# Day and night look different: a dark blue sky and dim light at night, stars and a moon
 	var grass := s._mats["Glen Grass"] as StandardMaterial3D
-	var leaves := s._mats["Leaves"] as StandardMaterial3D
-	s.set_season(0.3)
-	var spring_grass := grass.albedo_color
-	var spring_leaves := leaves.albedo_color
-	var snow_spring: bool = (s._snow[0] as Node3D).visible
-	s.set_season(3.3)
-	check(not snow_spring and (s._snow[0] as Node3D).visible and s.season() == "winter", "snow on the hills in winter, not in spring (%d caps)" % s._snow.size())
-	check(grass.albedo_color.s < 0.15 and grass.albedo_color.v > 0.85 and spring_grass.s > 0.4, "the glen goes white in winter")
-	s.set_season(2.3)
-	check(leaves.albedo_color.r > spring_leaves.r - 0.2 and leaves.albedo_color.g < 0.6 and s.season() == "autumn", "the rowans turn red and gold in autumn")
+	s.set_daylight(0.0)
+	var day_grass := grass.albedo_color
+	var day_sky: Color = s._sky.sky_top_color
+	var day_sun: float = s._sun.light_energy
+	check(s.is_day() and "Day" in s.time_words() and not s._night_sky.visible, "noon is day, with no stars")
+	s.set_daylight(0.5)
+	check(not s.is_day() and "Night" in s.time_words() and s._night_sky.visible and s._star_mat.albedo_color.a > 0.9, "midnight is night, with stars out")
+	check(s._sky.sky_top_color.v < day_sky.v - 0.3 and s._sun.light_energy < day_sun * 0.5 and grass.albedo_color.v < day_grass.v - 0.2,
+		"the night sky, the light and the grass are all darker")
+	s.set_daylight(0.25)
+	check("Dusk" in s.time_words(), "between them it's dusk (%s)..." % s.time_words())
+	s.set_daylight(0.75)
+	check("Dawn" in s.time_words(), "...or dawn (%s)" % s.time_words())
 	# And the preview's copy never changes: this world has its own materials
 	var fresh := (load(WORLD) as PackedScene).instantiate()
 	var own := true
@@ -218,8 +249,16 @@ func _check_seasons() -> void:
 		if m and m.resource_name == "Glen Grass":
 			own = own and m != grass
 	fresh.free()
-	check(own, "this copy's seasons don't change the portal's preview")
-	check(s.SPIN[0] < s.SPIN[1] and s.SPIN[1] < s.SPIN[2] and s.SPIN[2] < s.SPIN[3], "each Spring Bell slows the spin")
+	check(own, "this copy's day and night don't change the portal's preview")
+	check(s.CYCLE[0] < s.CYCLE[1] and s.CYCLE[1] < s.CYCLE[2] and s.CYCLE[2] < s.CYCLE[3], "each Balance Charm steadies the loop")
+	# Whose time it is cheers
+	s._cheer(true)
+	var shouts := 0
+	for n in ["Goldie", "Barley", "Sunny Jim"]:
+		var l := s.get_node(n).get_node_or_null("Shout") as Label3D
+		if l and l.text != "":
+			shouts += 1
+	check(shouts == 1, "when day comes, one of the Sunfolk cheers")
 
 
 func _check_fluffkins() -> void:
@@ -266,32 +305,31 @@ func _check_fluffkins() -> void:
 	check(Vector2(f.global_position.x - c.x, f.global_position.z - c.z).length() < r - 1.0, "...and it stays in the Fold")
 	for i in range(1, 5):
 		s.pen_fluff(i)
-	check(s.has_bell(0) and s.bells() == 1, "all five Fluffkins in: the Fold's Spring Bell rings")
-	check(s.spin_len() == s.SPIN[1], "...and the seasons slow down")
+	check(s.has_bell(0) and s.bells() == 1, "all five Fluffkins in: the Sun Charm")
+	check(s.cycle_len() == s.CYCLE[1], "...and day and night loop a little slower")
 
 
 func _check_garden() -> void:
 	var s := current_scene
 	var spot := s.get_node("Bed1/Spot")
-	check(spot.what() == "sing to the plant", "each bed offers a song for its plant")
-	# Out of bloom: too early, or too late
-	s._t = 0.2 * s.GROW_CYCLE                              # (bed 1's a sprout...)
-	check(not s.in_bloom(0) and not s.tend(0) and not s.is_held(0), "singing to a sprout doesn't work")
-	s._t = 0.92 * s.GROW_CYCLE                             # (...then wilting)
-	check(s.grow_phase(0) > s.BLOOM_TO and not s.tend(0), "nor to a wilting plant")
-	# In bloom it stays
+	check(spot.what() == "sing to the plant", "each bed offers a song for its flower")
+	check(not s.is_moonflower(0) and s.is_moonflower(1), "sunflowers and moonflowers side by side")
+	# Shut: a sunflower at night, a moonflower by day
+	s.set_daylight(0.5)
+	check(not s.in_bloom(0) and not s.tend(0) and not s.is_held(0), "singing to a sunflower at night doesn't work: it's shut")
+	check(s.in_bloom(1), "...but the moonflower's open")
+	s.set_daylight(0.0)
+	check(s.in_bloom(0) and not s.in_bloom(1) and not s.tend(1), "by day the sunflower opens and the moonflower shuts")
+	# Open, it stays
 	for b in 5:
-		var tries := 0
-		while not s.in_bloom(b) and tries < 200:
-			s._t += 0.05
-			tries += 1
-		check(s.in_bloom(b) and s.tend(b) and s.is_held(b), "plant %d, sung to in full bloom, stays in bloom" % (b + 1))
+		s.set_daylight(0.5 if s.is_moonflower(b) else 0.0)
+		check(s.in_bloom(b) and s.tend(b) and s.is_held(b), "flower %d, sung to while it's open, stays open" % (b + 1))
 		if b == 0:
 			var plant := s.get_node("Bed1/Plant") as Node3D
-			s._t += s.GROW_CYCLE * 0.4
+			s.set_daylight(0.5)
 			s._show_plants()
-			check(s.grow_phase(0) == 0.65 and (plant.get_node("Stem/Bloom") as Node3D).scale.x > 0.9, "...for good, even as time goes on")
-	check(s.has_bell(1) and s.bells() == 2, "all five in bloom: the garden's Spring Bell rings")
+			check(s.grow_phase(0) == 0.65 and (plant.get_node("Stem/Bloom") as Node3D).scale.x > 0.9, "...for good, even at night")
+	check(s.has_bell(1) and s.bells() == 2, "all five open: the Twilight Charm")
 	check(s.get_node("Bed2/Spot").what() == "", "...and the beds have nothing more to ask")
 
 
@@ -339,7 +377,7 @@ func _check_race() -> void:
 		var at := (s.get_node("Cairn%d" % (i + 1)) as Node3D).global_position
 		player.global_position = at + Vector3(0.6, 1.0, 0)
 		await _physics(3)
-	check(not s.racing and s.has_bell(2) and s.bells() == 3, "past all six cairns to the top before Isla: the hill's Spring Bell rings")
+	check(not s.racing and s.has_bell(2) and s.bells() == 3, "past all six cairns to the top before Isla: the Moon Charm")
 	check(not player.input_locked, "...and you can move")
 	# A race where you dawdle: Isla wins
 	await create_timer(2.7).timeout
@@ -363,7 +401,7 @@ func _check_stormram() -> void:
 	check(storm.get("asleep"), "the Stormram sleeps on until you come near")
 	player.global_position = (s.get_node("Stormram") as Node3D).global_position + Vector3(0, 0.6, 14)
 	await _frames(4)
-	check(not storm.get("asleep") and storm.process_mode == Node.PROCESS_MODE_INHERIT, "with all three bells, it wakes up")
+	check(not storm.get("asleep") and storm.process_mode == Node.PROCESS_MODE_INHERIT, "with all three charms, it wakes up")
 	check(str(storm.get("title")) == "Stormram" and storm.get_node_or_null("BossMeter") != null, "...with its own name over it")
 	# Its charges: a whirlwind spins up round it
 	storm.set("_cooldown", 0.0)
@@ -392,12 +430,17 @@ func _check_stormram() -> void:
 	check(clock.season_open("spring"), "...and spring opens on Earth")
 	check(not root.get_node("Dialogue").flags.has("popped_boulderdillo"), "(it's not the Boulderdillo)")
 	await create_timer(3.4).timeout
-	check(s.season() == "spring" and s.season_k < 0.01, "the seasons stop spinning and settle on spring")
-	var k: float = s.season_k
+	check(s.is_day() and s.cycle_len() == s.NORMAL_DAY and "normal" in s.sky_words(), "day and night go back to normal: a fresh morning (%s)" % s.sky_words())
+	var k: float = s.day_k
 	await create_timer(1.0).timeout
-	check(s.season_k == k and "here to stay" in s.season_words(), "...and stay there")
+	var step := fposmod(s.day_k - k, 1.0)
+	check(step > 0.0 and step < 2.0 / s.NORMAL_DAY, "...turning slowly and steadily on (%.4f in a second)" % step)
 	for b in 5:
-		check(s.in_bloom(b), "plant %d's in bloom" % (b + 1))
+		check(s.in_bloom(b), "flower %d's open" % (b + 1))
+	check(s.get_node_or_null("Peace Banner") != null and not (s.get_node("Sunfolk/Banner") as Node3D).visible
+		and not (s.get_node("Moonfolk/Banner") as Node3D).visible, "the two sides make peace: one half-and-half banner")
+	check("Sunfolk" in " ".join(s.thank_lines()) and "{showers_how}" in " ".join(s.thank_lines()) and "Spring Step" in " ".join(s.thank_lines()),
+		"Heather's thank-you teaches April Showers and the Spring Step")
 	check(root.get_node("Dialogue").is_active(), "Heather thanks you")
 	root.get_node("Dialogue").end()
 	check(not s.racing, "(no race going)")
@@ -415,11 +458,10 @@ func _check_home() -> void:
 	portals.enter("glenmoor")
 	await _frames(14)
 	var s := current_scene
-	check(s.scene_file_path == WORLD and s.bells() == 3 and s.get_node_or_null("The Stormram") == null and s.season() == "spring",
-		"going back, it's all still done, and it's spring")
-	await create_timer(1.0).timeout
-	check(s.season() == "spring", "...staying spring")
-	check(s.penned() == 5 and s.held() == 5, "the Fluffkins are in the Fold and the plants in bloom")
+	check(s.scene_file_path == WORLD and s.bells() == 3 and s.get_node_or_null("The Stormram") == null and s.is_day()
+		and s.cycle_len() == s.NORMAL_DAY, "going back, it's all still done, and it's a normal morning")
+	check(s.get_node_or_null("Peace Banner") != null, "...and still peace")
+	check(s.penned() == 5 and s.held() == 5, "the Fluffkins are in the Fold and the flowers open")
 	s.get_node("WayHome/Way Home/Spot").use()
 	await _frames(12)
 
