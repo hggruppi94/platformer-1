@@ -872,7 +872,7 @@ static func _cape(fit: Dictionary) -> Dictionary:
 	var lo: float = fit.cape_back[0]
 	var reach: PackedFloat32Array = fit.cape_back[1]
 	var hair: PackedFloat32Array = fit.cape_back[2]
-	# Hair only counts if it's long, hanging well down over where the cape goes (Clover's). A bob that ends at the
+	# Hair only counts if it's long, hanging well down over where the cape goes (Heather's). A bob that ends at the
 	# shoulders (Nina's) just lies over the top of the cape.
 	var k_long := int((y_top - 0.3 * kt - lo) / 0.01)
 	var long_hair := k_long >= 0 and k_long < hair.size() and is_finite(hair[k_long])
