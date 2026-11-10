@@ -265,6 +265,19 @@ func skip_locked_seasons(announce := false) -> void:
 			if not season_open("winter") else "A new %s in Stars Hollow!" % season_name())
 
 
+func dial_to(season_id: String) -> bool:
+	# The Season Dial by the old oak (scripts/season_dial.gd, story flag 48): jump the calendar on to the same date
+	# in another season that's open. It moves forward a whole season at a time, like skip_locked_seasons(), so the
+	# day of the week never changes and the calendar never runs backwards (the year goes up when it goes round).
+	if not season_id in SEASONS or not season_open(season_id) or season() == season_id:
+		return false
+	for k in 3:
+		calendar_offset += SEASON_DAYS
+		if season() == season_id:
+			break
+	return true
+
+
 func is_weekend(on_day := TODAY) -> bool:
 	return calendar_index(on_day) % 7 >= 5
 

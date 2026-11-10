@@ -91,6 +91,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The Season Dial** by the old oak (story flag 48: each season's unlocked once, then you can switch to
+  any season you've opened). Hayden picked it from the "what's next" card. Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **`scripts/season_dial.gd`** (node "SeasonDial" under the EarthTown autoload): an old stone sundial grown up out of
+    the oak's roots at `DIAL_AT` (-14, 5), beside the old oak, facing the green (off every path, nothing solid round it).
+    Its brass face has a quarter per season in its colour with a sign (blossom, sun, leaf, snowflake); a locked season's
+    quarter is frosted over and dim. It only shows once a second season's open and the oak's awake (`available()`), and
+    the first time it appears a message says so (flag `season_dial_seen`). Interact asks which season (every open one but
+    this one, and "Leave it"); the pointer spins round, the screen washes over in the season's colour, and Stars Hollow
+    is loaded again where you stood (`Game.go_to_point`), so every seasonal thing is set up fresh. Today's notice board
+    jobs are paid if finished and picked again for the new season.
+  - **`Clock.dial_to(season)`**: moves the calendar on a whole season at a time (never back) to the same date and
+    weekday in that season; the year goes up when it goes round. Left alone, the calendar runs on as before.
+  - The Calendar sheet says where the dial is ("Dial hint"); Nina has a line after you first turn it (flag
+    `season_dial_turned`). Nina's three seasonal quest offers now come before her other lines in her file.
+  - Tests: new `tools/test_season_dial.gd`; dialogue, season_unlocks, calendar, seasons, winter, summer, spring,
+    notice_board, first_night, player_menu, quests, townsfolk, earth and ui_style pass (first_hour fails one Void camera
+    check on main too). Previews: `tools/capture_season_dial.gd` (shots in the project files under
+    world/previews/season_dial).
+  - My choices Hayden may change: where it stands, its look, moving the calendar forward (not back), reloading the town.
+
 - 2026-11-10: **Spring in Stars Hollow: the quest "Duckling Day", puddles, and a spring sun** (Hayden: "Okay let's work
   on earth spring now"; spring's lines, tulips and jobs came with Glenmoor). Built and tested in the cloud (own Godot
   user folders, no save touched).

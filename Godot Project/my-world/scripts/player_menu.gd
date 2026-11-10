@@ -359,6 +359,8 @@ func _sheet_calendar() -> Control:
 	var first_day := today - Clock.season_day() + 1 + _cal_page * Clock.SEASON_DAYS
 	_heading("%s, Year %d" % [Clock.season_name(first_day), Clock.year(first_day)], box)
 	_line("Today is %s. %s" % [Clock.date_string(), _school_line()], true, box)
+	if Clock.seasons_open.size() >= 2 and HummingOak.awake():
+		_line("Turn the Season Dial by the old oak to switch to any season you've opened.", true, box).name = "Dial hint"
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	box.add_child(row)
@@ -443,7 +445,7 @@ func _frosted_page(season: String, box: Control) -> void:
 static func season_hint(season: String) -> String:
 	var w := Portals.season_world(season)
 	var hints := {"winter": "frozen in a moment, somewhere far north in the Void",
-		"summer": "where the music's stopped", "spring": "in misty hills where the seasons spin"}
+		"summer": "where the music's stopped", "spring": "in misty hills where day and night won't settle"}
 	var where: String = hints.get(season, "in the Void")
 	if w.is_empty() or w.get("scene", "") == "" or not str(w.id) in Portals.quakes:
 		return "%s hasn't come to Stars Hollow yet.\nIt's locked away in a portal world, %s." % [season.capitalize(), where]
