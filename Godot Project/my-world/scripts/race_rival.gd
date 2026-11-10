@@ -1,7 +1,7 @@
 class_name RaceRival
 extends Node3D
 
-# A friend racing against you (scripts/races.gd): Dash on his BMX, Rex on his paw skates, Clover on her scooter and
+# A friend racing against you (scripts/races.gd): Dash on his BMX, Rex on his paw skates, Heather on her scooter and
 # so on, each on their own ride from scripts/rides.gd. They follow the track's racing line (scripts/race_track.gd),
 # each in a lane of their own that drifts a little, at a speed that suits their ride. They're good sports: when
 # they're far ahead they ease off, and when they're far behind they pedal harder, so a race is close and

@@ -80,9 +80,9 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   file names still say `galaxity` (e.g. `PortalToGalaxity`, the title screen's `"galaxity"` beat, capture file names):
   they are internal and safe to leave.
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
-  and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Clover (the
-  horned cow girl: a working name, she was "Bramble" until Nov 7, 2026), Melody, Pip (they/them: Hayden, "sort of
-  androgynous"), Rook (says woof), Ivy and Theo
+  and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Heather (the
+  horned cattle girl: Hayden named her Nov 8, 2026; she was "Clover" before that and "Bramble" until Nov 7, and her
+  code id is still `clover`), Melody, Pip (they/them: Hayden, "sort of androgynous"), Rook (says woof), Ivy and Theo
   (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (Scary World).
 - In the show, kids are people on Earth and creatures in the Void. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
   since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in the Void. Since Nov 1, 2026 Bruno is too (`bruno` on
@@ -90,6 +90,41 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 - The player's hero is whoever the player makes; dialogue never assumes their name or gender (use `{player}`, `{they}`).
 
 ## Log (newest first)
+
+- 2026-11-10: **Glenmoor, Heather's world** (plan item 19a world 6, slice one). Hayden: "Lets do glenmoor".
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Heather:** the cattle girl is called Heather everywhere the player sees (her talk name, race rider name, town
+    display name). Her id stays `clover` (dialogue/clover.json, routines, outfits), so saves are untouched.
+  - **The portal** (`Portals.WORLDS` "glenmoor"): quakes once the Tide Reef's mended, in the meadow past the farm, west
+    of the Secret Gardens, at (-120, -48) (flat, 88 m off the nearest race, 37 m off the nearest routine path, 8 m from
+    the nearest tree, 23 m from the Undergardens' Rootwell). 11 Remnants for mending it, and mending it **opens spring**
+    on Earth (its `"season"`).
+  - **The world** (`tools/build_glenmoor.gd` -> `scenes/portal_worlds/glenmoor.tscn`, logic `scripts/glenmoor.gd`): a
+    misty highland glen of dry stone walls, rowan trees, heather and gorse, a wee loch, Heather's croft, barn and
+    garden, the Fold (a round stone pen), the Standing Stones and **Ben Bonnie**, a big hill with six cairns spiralling
+    up it. **The seasons spin**: spring, summer, autumn, winter round and round (`set_season(k)`: grass, leaves, hills,
+    sky, fog, sun, snow caps in winter; each copy has its own materials and sky), a season card under the portal timer.
+  - **Three Spring Bells**, each slowing the spin (4, 6, 9 then 14 s a season): **herd the five Fluffkins** (fluffy
+    sheep-ish critters that trot away from you, so walk round behind; they only get into the Fold through its gate:
+    `fluff_step()`, found `fluff_1..5`), **sing to Heather's plants in full bloom** (five beds that sprout, bloom and
+    wilt every 8 s; Interact while one's in bloom keeps it that way: `tend()`, `bed_1..5`) and **race Isla up Ben
+    Bonnie** (past the six cairns in order before she gets to the top: `start_race()`, a 3 s countdown with a
+    `hill_race` hold). Found ids also `met_heather`, `met_isla`, `bell_1..3`, `thanked`.
+  - **Isla**, Heather's best friend from up the glen (working name and look: the cow body in shaggy ginger with a red
+    scarf, Scottish; Heather stays Southern as in her town lines).
+  - **The Stormram** (`scripts/stormram.gd`, extends `crocodillo_boss.gd`, which gained `title`, `minion_name` and
+    `bar_colour`): the Boulderdillo's wild highland cousin, wool and curly horns over its shell and its own storm
+    cloud, asleep on the Standing Stones until all three bells ring and you come within 18 m. It curls up and charges
+    in a **whirlwind** (see-through spinning cones), each charge ends in a gust ring to jump, and its wool's too thick
+    for bubbles or stomps until it's dizzy. Rolling into it bounces you off unless it's dizzy. Squalldillos (little
+    ones with cloud puffs) at a third and two-thirds. 8 hits. Popping it mends the world (`mend()`: the seasons settle
+    on spring, blossom bursts from the rowans, Heather thanks you) and doesn't set `popped_boulderdillo`.
+  - Tests: new `tools/test_glenmoor.gd`; portals (now checks the Far Future as the unbuilt world), boss_versions,
+    practice_trips, dialogue, season_unlocks, routines and tide_reef pass (races fails one vein check on main too).
+    Previews: `tools/capture_glenmoor.gd` (shots in the project files under world/previews/glenmoor).
+  - My choices Hayden may change: Isla's name and look, the Fluffkins, the three bells and their tasks, the hill
+    race, the Stormram's numbers, 11 Remnants, the portal's spot. Slice two still to do: the reward (Heather's grow
+    ability, a blossom orchard in the Void, spring in Stars Hollow like summer and winter).
 
 - 2026-11-10: **The Undergardens**, caves under the Secret Gardens hill in the Void (Hayden: "I want to make some of the
   secret garden caves as well", next to Lanternmoor's caves). Built and tested in the cloud (own Godot user folders, no

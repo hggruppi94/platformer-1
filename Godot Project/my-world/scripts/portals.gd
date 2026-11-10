@@ -19,7 +19,8 @@ extends Node
 # Saved with the game as "portals" (scripts/game.gd). Saves from before have had no quakes; the first one comes
 # once the First Night is done, so old saves past it get theirs on their next visit to the Void.
 #
-# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor and Rhythm Springs. The rest of 19a plug in
+# Worlds so far: Shard Isle (the tutorial), the Rootmind, the Frozen Moment, Lanternmoor, Rhythm Springs, the Tide Reef
+# and Glenmoor. The rest of 19a plug in
 # by adding an entry to WORLDS, a builder for the scene, and a script that extends portal_world.gd.
 
 signal changed
@@ -71,8 +72,11 @@ const WORLDS := [
 		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
 		"reward_remnants": 10,
 		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
-	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "", "at": Vector2(-96, -38), "yaw": 0.0,
-		"preview": true, "colour": Color(1.0, 0.85, 0.5), "blurb": "Heather's misty hills, where the seasons spin.", "season": "spring"},
+	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "res://scenes/portal_worlds/glenmoor.tscn",
+		"at": Vector2(-120, -48), "yaw": 1.19, "preview": true, "colour": Color(1.0, 0.75, 0.85),
+		"blurb": "Heather's home, misty highland hills of heather and stone walls, where the seasons spin round too fast for anything to grow.",
+		"reward_remnants": 11, "season": "spring",
+		"cleared_text": "The seasons have stopped spinning in Glenmoor! Blossom's out, the Fluffkins are frolicking, and spring can come to Stars Hollow at last."},
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "", "at": Vector2(84, 90),
 		"yaw": 0.0, "preview": true, "colour": Color(0.4, 1.0, 1.0), "blurb": "Dash and Rex's home, fading away."},
 ]
@@ -243,6 +247,8 @@ func quake_due(id: String) -> bool:
 			return is_cleared("lanternmoor")              # then Melody's, once Pip's sun is up
 		"tide_reef":
 			return is_cleared("rhythm_springs")           # then Otto's, once Melody's beat is back
+		"glenmoor":
+			return is_cleared("tide_reef")                # then Heather's, once Otto's tide is in
 	return false
 
 
@@ -300,6 +306,8 @@ func _near_words(id: String) -> String:
 			return "the lake's south-west shore"
 		"tide_reef":
 			return "the lake's south-east shore"
+		"glenmoor":
+			return "the meadow past the farm, west of the Secret Gardens"
 	return "the town"
 
 

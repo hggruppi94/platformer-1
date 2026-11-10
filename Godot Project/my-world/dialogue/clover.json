@@ -1,5 +1,5 @@
 {
-  "name": "Clover",
+  "name": "Heather",
   "conversations": [
     {
       "when": {
@@ -7,7 +7,7 @@
       },
       "lines": [
         "Well, hey there, sugar! Ain't you just the sweetest thing.",
-        "I'm Clover. I came up from a little farm a long, long way from here. Or a long, long WHEN from here. I'm still workin' that out.",
+        "I'm Heather. I came up from a little farm a long, long way from here. Or a long, long WHEN from here. I'm still workin' that out.",
         "{player}: Do you like it here?",
         "I sure do! The grass tastes like candy floss, and Bramble lets me help in the gardens on her busy days."
       ]
@@ -28,7 +28,7 @@
         "every": 2
       },
       "lines": [
-        "Watch this! (Clover kicks off on her scooter and spins round.) Ha! Moo-ve over, Dash!",
+        "Watch this! (Heather kicks off on her scooter and spins round.) Ha! Moo-ve over, Dash!",
         "Zippy says I'm a natural. I say I'm just stubborn. Same thing, mostly."
       ]
     },

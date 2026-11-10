@@ -209,7 +209,7 @@ const RIDERS := {
 		},
 	},
 	"clover": {
-		"rider": "Clover", "name": "Scooter", "model": "res://models/characters/cattle_girl.glb", "kit": "scooter",
+		"rider": "Heather", "name": "Scooter", "model": "res://models/characters/cattle_girl.glb", "kit": "scooter",
 		"stance": 0.0, "deck": 0.12, "anim": "idle",
 		"push_speed": 9.0, "carve": 3.0, "ollie_min": 4.3, "ollie_max": 6.3, "spin_speed": 7.5,
 		"tricks": {

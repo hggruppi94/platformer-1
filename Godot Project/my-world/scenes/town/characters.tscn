@@ -58,7 +58,7 @@ animation = "idle"
 [node name="Talk" type="Area3D" parent="CattleGirl"]
 script = ExtResource("10_talk")
 character_id = "clover"
-display_name = "Clover"
+display_name = "Heather"
 name_height = 2.0
 
 [node name="Routine" type="Node" parent="CattleGirl"]

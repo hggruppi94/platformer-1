@@ -27,12 +27,15 @@ var _pebbles: Array[Node] = []
 var _bar: BossBar
 var _cross := false
 var _base := []
+var title := NAME                                     # its cousins (the Stormram, scripts/stormram.gd) set their own
+var minion_name := "Pebbledillos"
+var bar_colour := Color(0.75, 0.6, 0.45)
 
 
 func _ready() -> void:
 	super()
 	add_to_group("bosses")
-	_bar = BossBar.make(self, NAME, Color(0.75, 0.6, 0.45), 2.3 * size + 0.4, 2.0)
+	_bar = BossBar.make(self, title, bar_colour, 2.3 * size + 0.4, 2.0)
 	_base = [roll_speed, rolls_in_a_row]
 	_boulders()
 
@@ -100,9 +103,9 @@ func _hurt_message(_stomped: bool) -> void:
 		_cross = true
 		roll_speed *= 1.25
 		rolls_in_a_row += 1
-		Game.message("The Boulderdillo is cross now! It rolls faster!")
+		Game.message("The %s is cross now! It rolls faster!" % title)
 	elif left > 0:
-		Game.message("The Boulderdillo wobbles! %d more to pop it." % left if left > 1 else "One more and it pops!")
+		Game.message("The %s wobbles! %d more to pop it." % [title, left] if left > 1 else "One more and it pops!")
 	var due := 0
 	if hits * 3 >= stomps_to_defeat * 2:
 		due = 2
@@ -130,7 +133,7 @@ func _call_pebbles(count: int) -> void:
 		c.position = global_position + Vector3(cos(a), 0.4, sin(a)) * (1.4 * size)
 		get_parent().add_child(c)
 		_pebbles.append(c)
-	Game.message("The Boulderdillo calls the Pebbledillos!")
+	Game.message("The %s calls the %s!" % [title, minion_name])
 	Audio.play_at("fwump", global_position, 4.0, -0.2)
 
 
