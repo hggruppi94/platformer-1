@@ -81,7 +81,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   they are internal and safe to leave.
 - Mr. Palmer is the mayor (on Earth he's just plain old Mr. Palmer). Rex is the skating husky who wants to be mayor,
   and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Clover (the
-  horned cow girl: a working name, she was "Bramble" until Nov 7, 2026), Melody, Pip, Rook (says woof), Ivy and Theo
+  horned cow girl: a working name, she was "Bramble" until Nov 7, 2026), Melody, Pip (they/them: Hayden, "sort of
+  androgynous"), Rook (says woof), Ivy and Theo
   (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (Scary World).
 - In the show, kids are people on Earth and creatures in the Void. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
   since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in the Void. Since Nov 1, 2026 Bruno is too (`bruno` on
@@ -147,7 +148,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     dialogue, frozen_moment, rhythm_springs, rootmind and tide_reef pass. Previews: `tools/capture_glimmer_caves.gd`
     (shots in the project files under world/previews/glimmer_caves).
   - My choices Hayden may change: no button (automatic glow), its reach, the rooms and their names, the Gloomies,
-    6 + 3 Remnants, where the hollow is. The game calls Pip "she"; Hayden said "his", so the new lines avoid it.
+    6 + 3 Remnants, where the hollow is. Pip is they/them (Hayden, Nov 10: "Pip is sort of androgynous").
 
 - 2026-11-10: **Sunken secrets** at the bottom of deep water, for swimmers. Hayden: "Can we bury some secrets underwater
   in most places? Maybe a watch or ... something that has meaning or impact on the lore", then "How about all of these"

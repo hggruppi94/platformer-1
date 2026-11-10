@@ -85,7 +85,7 @@ func _run() -> void:
 	await _view("%02d_mr_palmer_big_wave" % n, p.global_position + Vector3(-3.2, 0.4, -2.4), p.global_position)
 	p.set_physics_process(true)
 	n += 1
-	# Pip gliding down on her wings
+	# Pip gliding down on their wings
 	p.set_rider("pip")
 	_place(Vector3(-30, 5.0, 30), PI)
 	s._pop()

@@ -11,7 +11,7 @@ extends "res://scripts/portal_world.gd"
 #            Catch them (run into them, or pop a bubble at them) and they fly home into it
 # With all three lit, the Dawn Snatcher wakes on Sunrise Hill when you come near. Pop him and the world mends
 # (Portals.clear): the dawn floats out of his clock and up into the sky, and the night turns to morning.
-# Pip, the moth kid, waits by the way in, and the first time you talk she lends you her moth wings. They only work here.
+# Pip, the moth kid, waits by the way in, and the first time you talk they lend you their moth wings. They only work here.
 # Nothing here hurts more than a normal bump; falling off the tree or the rock just lands you softly on the moor.
 # Slice two, the reward: as the sun comes up Pip teaches you Pip's glow (scripts/pip_glow.gd: in the dark you shine,
 # anywhere), and a hollow opens in the moor near the way in, down into the Glimmer Caves (scripts/glimmer_caves.gd),
@@ -747,7 +747,7 @@ func _flap_wings(player: Node3D, delta: float) -> void:
 
 
 func _face_player(player: Node3D, delta: float) -> void:
-	# Pip turns to look at you when you come near, bobbing in the air as she flutters
+	# Pip turns to look at you when you come near, bobbing in the air as they flutter
 	var m := get_node_or_null("Pip/Model") as Node3D
 	if m == null:
 		return
