@@ -60,14 +60,14 @@ func _run() -> void:
 		await physics_frame
 	fight._open(3.0)
 	giant.shot(40, fight.heart_position(), Vector3.FORWARD)
-	var start := Time.get_ticks_msec()
+	var ending: Node = fight.ending
 	for s in SHOTS:
-		while (Time.get_ticks_msec() - start) / 1000.0 < float(s[0]):
+		# (by the cutscene's own clock: a slow window would put real seconds out of step)
+		while ending.playing() and float(ending.get("_t")) < float(s[0]):
 			await process_frame
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(out_dir.path_join(str(s[1]) + ".png"))
 		print("SHOT ", s[1])
-	var ending: Node = fight.ending
 	while ending.playing():
 		await process_frame
 	var watch: Node3D = ending.watch
