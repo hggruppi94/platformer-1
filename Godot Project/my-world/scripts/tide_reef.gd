@@ -46,10 +46,10 @@ const JUNK := ["an old boot. With a hole in it.", "a very cross crab! (It lets g
 	"a sock. Whose sock?"]
 
 # The tide out (stuck) and in (mended): the sky, the light and the haze lerp between these (set_tide)
-const DRY := {"top": Color(0.62, 0.68, 0.7), "horizon": Color(0.92, 0.85, 0.7), "ambient": Color(0.95, 0.9, 0.8),
-	"fog": Color(0.9, 0.84, 0.7), "density": 0.008, "light": Color(1.0, 0.93, 0.8), "energy": 0.85}
+const DRY := {"top": Color(0.62, 0.68, 0.7), "horizon": Color(0.86, 0.78, 0.62), "ambient": Color(0.9, 0.84, 0.74),
+	"fog": Color(0.82, 0.74, 0.58), "density": 0.004, "light": Color(1.0, 0.93, 0.8), "energy": 0.8}
 const WET := {"top": Color(0.2, 0.55, 0.9), "horizon": Color(0.65, 0.92, 0.95), "ambient": Color(0.8, 0.95, 1.0),
-	"fog": Color(0.6, 0.9, 0.95), "density": 0.003, "light": Color(1.0, 0.98, 0.9), "energy": 1.1}
+	"fog": Color(0.6, 0.9, 0.95), "density": 0.002, "light": Color(1.0, 0.98, 0.9), "energy": 0.95}
 
 var tide := 0.0                          # 0 = stuck out, 1 = back in
 var right_hole := 0                      # which of the grotto's holes the pearl's down
@@ -155,6 +155,7 @@ func set_tide(k: float) -> void:
 		_sky.sky_top_color = (DRY.top as Color).lerp(WET.top, tide)
 		_sky.sky_horizon_color = (DRY.horizon as Color).lerp(WET.horizon, tide)
 		_sky.ground_horizon_color = (DRY.horizon as Color).lerp(WET.horizon, tide)
+		_sky.ground_bottom_color = Color(0.7, 0.62, 0.5).lerp(Color(0.25, 0.6, 0.8), tide)
 	if _env:
 		_env.ambient_light_color = (DRY.ambient as Color).lerp(WET.ambient, tide)
 		_env.fog_light_color = (DRY.fog as Color).lerp(WET.fog, tide)
@@ -189,7 +190,7 @@ func set_tide(k: float) -> void:
 
 static func pale(c: Color) -> Color:
 	# A coral's colour when it's drying out: washed nearly to bone
-	return c.lerp(Color(0.9, 0.87, 0.8), 0.72)
+	return c.lerp(Color(0.8, 0.76, 0.68), 0.66)
 
 
 func in_tide_pool(p: Vector3) -> bool:
@@ -681,7 +682,7 @@ func _steps_step(player: CharacterBody3D, delta: float) -> void:
 				_step_show(i, true)
 		elif s.t > 0.0:
 			s.t -= delta
-			var k := 1.0 - s.t / STEP_HOLD                         # it wobbles harder as it's about to go
+			var k: float = 1.0 - s.t / STEP_HOLD                         # it wobbles harder as it's about to go
 			(s.mesh as Node3D).scale = Vector3(1.0 + sin(_t * 22.0) * 0.06 * k, 0.42 - 0.08 * k, 1.0 - sin(_t * 22.0) * 0.06 * k)
 			if s.t <= 0.0:
 				s.t = -1.0
@@ -860,7 +861,7 @@ func _boss_step(player: Node3D, delta: float) -> void:
 		return
 	if not riptide_awake:
 		var m := get_node_or_null("RiptideGloop") as Node3D
-		if pearls() == 3 and m and player.global_position.distance_to(m.global_position) < WAKE_NEAR:
+		if pearls() == 3 and not riding and m and player.global_position.distance_to(m.global_position) < WAKE_NEAR:
 			wake_riptide()
 		return
 	# Otto grabs it every few seconds, once his bubble's at the edge of the basin

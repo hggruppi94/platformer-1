@@ -140,7 +140,7 @@ func solid(shape: Shape3D, pos: Vector3, parent: Node, rot := Vector3.ZERO) -> S
 func cyl(top: float, bottom: float, h: float, seg := 10) -> CylinderMesh:
 	top = snappedf(top, 0.05)
 	bottom = snappedf(bottom, 0.05)
-	h = snappedf(h, 0.1)
+	h = maxf(snappedf(h, 0.1), 0.04)                  # (never flat: a cylinder with no height has no normals)
 	var key := "c%s/%s/%s/%d" % [top, bottom, h, seg]
 	if meshes.has(key):
 		return meshes[key]
@@ -197,8 +197,8 @@ func _environment() -> void:
 	# clears it to a bright sea-blue once the tide's back)
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = Color(0.62, 0.68, 0.7)
-	sky_mat.sky_horizon_color = Color(0.92, 0.85, 0.7)
-	sky_mat.ground_horizon_color = Color(0.92, 0.85, 0.7)
+	sky_mat.sky_horizon_color = Color(0.86, 0.78, 0.62)
+	sky_mat.ground_horizon_color = Color(0.86, 0.78, 0.62)
 	sky_mat.ground_bottom_color = Color(0.7, 0.62, 0.5)
 	sky_mat.sun_angle_max = 14.0
 	var sky := Sky.new()
@@ -207,16 +207,16 @@ func _environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.95, 0.9, 0.8)
-	env.ambient_light_energy = 0.45
+	env.ambient_light_color = Color(0.9, 0.84, 0.74)
+	env.ambient_light_energy = 0.38
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = 0.85
 	env.glow_enabled = true
 	env.glow_intensity = 0.3
 	env.glow_bloom = 0.08
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.9, 0.84, 0.7)
-	env.fog_density = 0.008
+	env.fog_light_color = Color(0.82, 0.74, 0.58)
+	env.fog_density = 0.004
 	env.fog_sky_affect = 0.0
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -225,7 +225,7 @@ func _environment() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = Color(1.0, 0.93, 0.8)
-	sun.light_energy = 0.85
+	sun.light_energy = 0.8
 	sun.shadow_enabled = true
 	sun.rotation_degrees = Vector3(-48, 35, 0)
 	world.add_child(sun)
@@ -236,9 +236,9 @@ func _floor() -> void:
 	var g := Node3D.new()
 	g.name = "Sea Bed"
 	world.add_child(g)
-	mesh_at(cyl(FLOOR_R + 6.0, FLOOR_R + 6.0, 1.0, 48), mat("Sea Sand", Color(0.86, 0.78, 0.6), 0.95), Vector3(0, -0.5, 0), g)
+	mesh_at(cyl(FLOOR_R + 6.0, FLOOR_R + 6.0, 1.0, 48), mat("Sea Sand", Color(0.76, 0.66, 0.47), 0.95), Vector3(0, -0.5, 0), g)
 	cyl_solid(FLOOR_R + 6.0, 1.0, Vector3(0, -0.5, 0), g)
-	var damp := mat("Damp Sand", Color(0.74, 0.68, 0.54), 0.9)
+	var damp := mat("Damp Sand", Color(0.64, 0.56, 0.42), 0.9)
 	for k in 22:
 		var a := rng.randf() * TAU
 		var d := rng.randf_range(6.0, FLOOR_R - 6.0)
@@ -248,7 +248,7 @@ func _floor() -> void:
 			continue
 		mesh_at(cyl(r, r, 0.04, 16), damp, p, g)
 	# Ripple marks the sea left behind
-	var ripple := mat("Sand Ripple", Color(0.92, 0.85, 0.68), 0.95)
+	var ripple := mat("Sand Ripple", Color(0.84, 0.75, 0.56), 0.95)
 	for k in 46:
 		var a := rng.randf() * TAU
 		var d := rng.randf_range(5.0, FLOOR_R - 5.0)
@@ -312,8 +312,8 @@ func _pools() -> void:
 	g.set_meta("beds", beds)
 	world.add_child(g)
 	var water := mat("Tide Water", Color(0.3, 0.75, 0.9), 0.1, 0.25, 0.8)
-	var bed := mat("Dry Bed", Color(0.7, 0.66, 0.56), 0.95)
-	var crack := mat("Bed Crack", Color(0.45, 0.4, 0.34), 0.95)
+	var bed := mat("Dry Bed", Color(0.6, 0.54, 0.43), 0.95)
+	var crack := mat("Bed Crack", Color(0.36, 0.31, 0.25), 0.95)
 	var pebble := mat("Pool Pebble", Color(0.9, 0.88, 0.84), 0.8)
 	for i in POOLS.size():
 		var e: Vector4 = POOLS[i]
@@ -467,11 +467,11 @@ func _grotto() -> void:
 	g.name = "Kelp Grotto"
 	g.position = GROTTO
 	world.add_child(g)
-	var rock := mat("Grotto Rock", Color(0.36, 0.38, 0.46), 0.95)
+	var rock := mat("Grotto Rock", Color(0.42, 0.45, 0.54), 0.95)
 	var dark := mat("Grotto Hole", Color(0.05, 0.05, 0.1), 1.0)
 	var rim := mat("Grotto Rim", Color(0.55, 0.56, 0.62), 0.9)
-	var hump := mesh_at(ball(1.0, 16), rock, Vector3(1.5, 1.2, 0), g)
-	hump.scale = Vector3(5.5, 4.6, 7.0)
+	var hump := mesh_at(ball(1.0, 16), rock, Vector3(2.2, 1.2, 0), g)
+	hump.scale = Vector3(4.7, 4.6, 7.0)                         # (it stops short of the face, so no hole's hidden)
 	var face := mesh_at(box(Vector3(1.2, 3.4, 9.0)), rock, Vector3(-2.6, 1.7, 0), g)
 	face.name = "Face"
 	var b := BoxShape3D.new()
