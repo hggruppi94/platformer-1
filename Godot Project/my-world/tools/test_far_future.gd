@@ -82,6 +82,7 @@ func _run() -> void:
 	await _check_folk()
 	await _check_race()
 	await _check_captain()
+	await _check_swap()
 	await _check_home()
 	_check_saving()
 	_finish()
@@ -475,6 +476,60 @@ func _check_captain() -> void:
 	check("Swap-o-Tron" in " ".join(s.dash_lines()) and "Lumen City" in " ".join(s.rex_lines()), "they talk about the mended city after")
 
 
+func _check_swap() -> void:
+	# Slice two: Rex's shot at his own body back in the mended Swap-o-Tron, which opens the Agent of Chaos's fight
+	var s := current_scene
+	var dialogue := root.get_node("Dialogue")
+	var fight := load("res://scripts/chaos_fight.gd")
+	if dialogue.is_active():
+		dialogue.end()
+	check(dialogue.flags.has(s.START_FLAG) and quests.state.has("stop_his_clock") and quests.state["stop_his_clock"].step == 0,
+		"after his thanks, the quest Stop His Clock starts (try the Swap-o-Tron)")
+	var rex := s.get_node("Rex") as Node3D
+	var rook := s.get_node_or_null("Rook") as Node3D
+	var lab: Vector3 = s.LAB_MIDDLE
+	check(rook != null and rook.get_node_or_null("Model") != null and rook.global_position.distance_to(lab) < 9.0,
+		"Rook's come through to Dash's lab")
+	check(rex.global_position.distance_to(lab) < 9.0, "...and Rex waits there with him")
+	check(not fight.unlocked(), "the Agent of Chaos's fight isn't open yet (no bosses popped in this test)")
+	var lever := s.get_node_or_null("SwapOTron/Spot")
+	check(lever != null and s.can_try_swap(), "the Swap-o-Tron's lever can be pulled")
+	var player := _player()
+	player.global_position = (s.get_node("SwapOTron") as Node3D).global_position + Vector3(0, 1.0, 3.5)
+	await _physics(4)
+	lever.use()
+	check(s.swapping and player.input_locks().has(&"swap_try"), "pulling it starts the try (and holds your controls)")
+	check(rex.global_position.distance_to(s.pod_at(0)) < 0.1 and rook.global_position.distance_to(s.pod_at(1)) < 0.1,
+		"Rex steps into one pod and Rook the other")
+	check(not s.can_try_swap(), "(and it can't be pulled twice at once)")
+	var husky := rex.get_node("Model")
+	await create_timer(s.SWAP_FLASH + 0.4).timeout
+	check(s._swapped and rook.get_node("Model") == husky and rex.get_node("Model") != husky,
+		"ZAP: they're swapped back, each in their own body")
+	check(rex.get_node_or_null("Shout") != null and "HANDS" in (rex.get_node("Shout") as Label3D).text, "Rex shouts about his hands")
+	await create_timer(s.SWAP_SNAP - s.SWAP_FLASH).timeout
+	check(not s._swapped and rex.get_node("Model") == husky, "then the knot pulls tight and they snap back again")
+	check(s.get_node_or_null("Knot Clock") != null, "...as the Agent of Chaos's cracked clock flickers over the machine")
+	await create_timer(s.SWAP_DONE - s.SWAP_SNAP + 0.3).timeout
+	check(not s.swapping and not player.input_locks().has(&"swap_try"), "the try ends and your controls come back")
+	check(s.get_node_or_null("Knot Clock") == null and rex.global_position.distance_to(lab + s.REX_IN_LAB) < 0.1,
+		"the clock's gone and they step out of the pods")
+	check(dialogue.is_active() and "clock" in " ".join(s.swap_lines()) and "Agent of Chaos" in " ".join(s.swap_lines()),
+		"Dash reads the machine: the swap's knotted into the Agent of Chaos's clock")
+	dialogue.end()
+	check(dialogue.flags.has(s.SWAP_FLAG) and fight.unlocked(), "and now the Agent of Chaos's fight is open")
+	await _frames(2)
+	check(quests.state["stop_his_clock"].step == 1, "the quest moves on: stop his clock in the far field")
+	check(not s.can_try_swap(), "the lever's done its job")
+	check("hands" in " ".join(s.rex_lines()).to_lower() and "Agent of Chaos" in " ".join(s.dash_lines()), "Rex and Dash talk about it after")
+	check(rook.get_node("Model").name == "Model" and rex.get_node("Model").name == "Model", "(both models are named Model again)")
+	dialogue.set_flag("beat_agent_of_chaos")
+	await _frames(3)
+	check(quests.state["stop_his_clock"].get("done", false), "popping the Agent of Chaos finishes the quest")
+	check("loose" in " ".join(s.dash_lines()), "and Dash says the knot's come loose")
+	dialogue.flags.erase("beat_agent_of_chaos")
+
+
 func _check_home() -> void:
 	portals.time_left = 0.4
 	await create_timer(1.0).timeout
@@ -489,6 +544,8 @@ func _check_home() -> void:
 	check(s.scene_file_path == WORLD and s.cores() == 3 and s.get_node_or_null("Captain Glitch") == null and s.fade < 0.01,
 		"going back, it's all still done, and the city's bright")
 	check(s.swap_o_tron_on() and s.pinned() == 6, "the Swap-o-Tron's on and everyone's in time")
+	check(s.get_node_or_null("Rook") != null and (s.get_node("Rex") as Node3D).global_position.distance_to(s.LAB_MIDDLE) < 9.0
+		and not s.can_try_swap(), "Rex and Rook are still in the lab, and the try's been had")
 	s.get_node("WayHome/Way Home/Spot").use()
 	await _frames(12)
 

@@ -5,8 +5,10 @@ extends Node
 # (scripts/chaos_giant.gd) by the Bosses autoload (scripts/bosses.gd); while a fight is on it drives him instead of his
 # patrol.
 #
-# Unlocking: the fight only starts once the player has popped the three bosses (the Gloop King, Grandfather Tock and
-# the Boulderdillo). Before that, walking up to him just gets a hint. Once they're done, coming close starts it, and
+# Unlocking: the fight starts once Rex has had his shot at his body back in the mended Far Future (flag "swap_tried",
+# scripts/far_future.gd try_swap(): the swap's knotted into his clock), or once the player has popped the three bosses
+# (the Gloop King, Grandfather Tock and the Boulderdillo), as it always could. Before that, walking up to him just gets
+# a hint. Once they're done, coming close starts it, and
 # walking well away calls it off (he gets all his chaos back).
 #
 # His weak spot is the cracked backwards clock on his chest. It's shielded except when it GLOWS: then bubbles that hit
@@ -27,6 +29,7 @@ signal phase_changed(phase: int)
 signal won
 
 const CHAOS_MAX := 30
+const SWAP_FLAG := "swap_tried"              # the Far Future's Swap-o-Tron try: the other way his fight opens
 const START_NEAR := 24.0                     # metres from him that starts the fight (once it's unlocked)
 const GIVE_UP_FAR := 70.0                    # this far away and the fight's called off
 const HEART_Y := 7.2                         # the chest clock, above his feet (the model is about 11 m tall)
@@ -73,6 +76,8 @@ func _ready() -> void:
 
 
 static func unlocked() -> bool:
+	if Dialogue.flags.has(SWAP_FLAG):
+		return true
 	for f in BOSS_FLAGS:
 		if not Dialogue.flags.has(f):
 			return false
@@ -116,7 +121,7 @@ func drive(delta: float) -> bool:
 			if not _hinted:
 				_hinted = true
 				var left := bosses_left()
-				Game.message("The Agent of Chaos ignores you. Beat his champions first: %s." % ", ".join(left))
+				Game.message("The Agent of Chaos ignores you. Beat his champions first (%s), or find out what Rex and Dash's machine knows, deep in the Far Future." % ", ".join(left))
 		elif d > START_NEAR * 2.0:
 			_hinted = false
 		return false

@@ -3,6 +3,16 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "stop_his_clock:clock"
+      },
+      "lines": [
+        "{player}. For five seconds in that pod I had my own hands. Then HIS clock yanked me back.",
+        "The Agent of Chaos. The far field, behind the castle hill. While his clock runs backwards, I'm a husky. Forever, maybe.",
+        "So we stop it. Pop his chest clock when it glows. I'll be cheering. Loudly. With my whole tail."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "night_6:hi"
       },
       "set": "n6_hi",
