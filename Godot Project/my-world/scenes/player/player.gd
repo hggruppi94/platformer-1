@@ -59,6 +59,7 @@ const SHOWERS := preload("res://scripts/showers.gd")
 const SPRING_STEP := preload("res://scripts/spring_step.gd")
 const PIP_GLOW := preload("res://scripts/pip_glow.gd")
 const SWIM := preload("res://scripts/swim.gd")
+const WALL_CRAWL := preload("res://scripts/wall_crawl.gd")
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
@@ -104,6 +105,7 @@ var showers: Node                           # Heather's April Showers, once Glen
 var spring_step: Node                       # and her Spring Step (scripts/spring_step.gd)
 var pip_glow: Node                          # Pip's glow in the dark, once Lanternmoor is mended (scripts/pip_glow.gd)
 var swim: Node                              # swimming in deep water; diving once the Tide Reef's mended (scripts/swim.gd)
+var wall_crawl: Node                        # up walls and along ceilings once Dark Hollow's mended (scripts/wall_crawl.gd)
 var rider := "nina"                         # who this is (scripts/rides.gd): the player's own "hero", or a friend skating
 var _on_board := false
 # Boosters (scripts/boosters.gd) work on foot too: a rush carries her past her running speed for a moment, the way a
@@ -191,6 +193,10 @@ func _ready() -> void:
 	swim.name = "Swim"
 	add_child(swim)
 	swim.setup(self)
+	wall_crawl = WALL_CRAWL.new()
+	wall_crawl.name = "WallCrawl"
+	add_child(wall_crawl)
+	wall_crawl.setup(self)
 	set_rider("hero", false)                    # the player's own character (scripts/hero.gd) takes the stand-in's place
 	Game.equipment_changed.connect(_on_equipment_changed)
 	_on_equipment_changed()
@@ -421,6 +427,8 @@ func _physics_process(delta: float) -> void:
 		burrow.stop(0.0)                        # onto a ride or a zipline: up she comes
 	if swim.active and (carried or Game.riding):
 		swim.stop()
+	if wall_crawl.active and (carried or Game.riding):
+		wall_crawl.stop()
 	if carried:
 		return
 	var on_floor := is_on_floor()
@@ -442,6 +450,9 @@ func _physics_process(delta: float) -> void:
 		return
 	if swim.active or swim.check():
 		swim.physics(delta)
+		return
+	if wall_crawl.active or wall_crawl.check(delta):
+		wall_crawl.physics(delta)
 		return
 	if Input.is_action_just_pressed("burrow") and burrow.try_start():
 		return

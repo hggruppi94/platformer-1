@@ -91,6 +91,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-10: **The centipede's gifts: wall crawl and her holes** (Dark Hollow slice two, the reward). Hayden: "Okay
+  what is the centipedes ability?", then "Both" on the card (wall crawl as her ability, and her gulp as fast travel
+  between places you've found). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Wall crawl** (`scripts/wall_crawl.gd`, a "WallCrawl" node on the player like Swim): locked until Dark Hollow's
+    mended. **No button**: keep walking into a wall for 0.22 s (`GRAB_HOLD`), or jump at one, and you're on it. Push
+    towards the wall to climb, away to climb down, sideways to scuttle along (inside corners take you onto the next
+    wall); at the top you pull yourself over (`MANTLE_UP`). Climb up into a ceiling and you carry on along it upside
+    down (`Mode.CEILING`, `tumble.rotation.z` PI), dropping where it ends. Jump hops off, Roll lets go, a bump knocks
+    you off. Only still, solid things (StaticBody3D / CSG) can be climbed, never the invisible walls round a world
+    (`CLIMB_NOT`: names starting "WorldBounds", "Edge", "Fence", "Garden Wall", or group `"no_climb"`; `climbable()`).
+  - **Her holes** (`scripts/centipede_holes.gd`, put in by `Portals._hub_changes()` -> `_centipede_holes()` once Dark
+    Hollow's mended): six burrows in the Void (`HOLES`: by the Market, the Skate Park, the Secret Gardens, Observatory
+    Hill, the homes' park and the castle gate; each checked flat, dry and clear of races, paths, trees and portals).
+    Walk up to one and you've found it (`Portals.note_found("dark_hollow", "hole_<id>")`) and her head pops up. Knock
+    (Interact) and she offers Dark Hollow, her corner in the school and every other hole you've found
+    (`travel_choices()`, recorded in `Dialogue.choice_log` as `centipede_travel`), then the same cartoon gulp as her
+    corner, a shorter slide and "PTOO!" (`centipede_corner.gd`'s `Gulp` gained `open_up()`): within the Void you're
+    put straight there; her corner goes by `Game.go_to_point()` (`CORNER_AT`). Her corner's talk offers the holes you've
+    found too (`gulp(to)`, `HOLES.arrive()`).
+  - She teaches both in her thank-you (`dark_hollow.gd thank_lines()`), and talks about them after.
+  - Tests: new `tools/test_wall_crawl.gd` (a climbing frame high over the Void: locked, a bump doesn't grab, up and
+    over, down, sideways, Jump, Roll, ceiling and drop, fence, held controls; then the holes, finding, knocking, travel
+    within the Void, to her corner and back from it). dark_hollow, burrow, swim, portals, walk_through, heather_moves and
+    controls_lock pass. Previews: `tools/capture_wall_crawl.gd` (shots in the project files under
+    world/previews/centipede_gifts).
+  - My choices Hayden may change: no button (walk into a wall), the climb speed, ceilings, where the six holes are, the
+    holes not being on the map, Dark Hollow reachable from any hole.
+
 - 2026-11-10: **Dark Hollow, the centipede's world** (plan items 19a world 7 and 21, slice one). Hayden: "The entrance
   to dark hollow will actually be hidden until you interact with the centipede in the sliver. She will eat you and that
   will transport you there". Built and tested in the cloud (own Godot user folders, no save touched).
@@ -125,7 +153,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `tools/capture_dark_hollow.gd` (shots in the project files under world/previews/dark_hollow).
   - My choices Hayden may change: the corner at the end of the passage that's there (not a new twisting Sliver), the
     Moon Clock and its three pieces, the Hush and its lamps, Pip starting the race, 8 Remnants. The old Scary World
-    gate is unchanged. Slice two still to do: the centipede's ability as your reward.
+    gate is unchanged. Slice two (her gifts) is the entry above.
 
 - 2026-11-10: **The Season Dial** by the old oak (story flag 48: each season's unlocked once, then you can switch to
   any season you've opened). Hayden picked it from the "what's next" card. Built and tested in the cloud (own Godot

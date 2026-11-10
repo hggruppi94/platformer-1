@@ -720,8 +720,12 @@ func thank_lines() -> Array:
 		"The Moon Clock's going again! It's past midnight in Dark Hollow for the first time in forever.",
 		"Everyone always ran away from me. You didn't. You jumped down a hole for me!",
 		"I'm your friend now, for keeps. That's a centipede promise, and I've got a LOT of feet to keep it with.",
-		"Come back whenever you like. Same way: my corner behind the school walls. Gulp, slide, ptoo!",
-		"And the way home always takes you straight out to the school's front gate. No dark passage, I promise."]
+		"And friends share their best tricks. Here's mine: walk at a wall and keep going. Don't stop! Just... go UP.",
+		"Push towards the wall to climb, away to climb down, sideways to scuttle along. Climb right up into a ceiling and you can walk along it upside down, like me!",
+		"Jump to hop off, or roll to let go. (You can't climb the invisible walls at the edge of a world. Nobody can. Not even me.)",
+		"One more thing. I've dug holes all round the Void, by the places everyone likes best. Find one and knock!",
+		"I'll gulp you up and take you along my tunnels to any other hole you've found. Or to my corner, or back home here.",
+		"Come back whenever you like. Gulp, slide, ptoo! And the way home always takes you straight out to the school's front gate."]
 
 
 # The centipede ----------------------------------------------------------------------------------------------------
@@ -747,7 +751,9 @@ func _add_centipede() -> void:
 func centipede_lines() -> Array:
 	if Portals.is_cleared(world_id):
 		return ["Tick, tock! Isn't it lovely? I used to hide from the moon. Now I sit and watch it.",
-			"Race the Hollow Run again, if you like. Or jump in the Big Hole for fun. Ptoo!"]
+			"Race the Hollow Run again, if you like. Or jump in the Big Hole for fun. Ptoo!",
+			"Been climbing? Walk at a wall and keep going, and up you go. Into a ceiling and you're upside down!",
+			"And knock on my holes round the Void. I can hear a knock from anywhere in my tunnels."]
 	if not Portals.has_found(world_id, "met_centipede"):
 		Portals.note_found(world_id, "met_centipede")
 		return ["Ptoo! Sorry about that. Spitting out is the only way out of a gulp. Are you all right? Not a scratch?",
