@@ -92,7 +92,7 @@ const TOWN_SCENE := "res://scenes/town/town.tscn"
 const TITLE_SCENE := "res://scenes/title/title.tscn"   # the game opens on the title screen (scripts/title_screen.gd)...
 const START_SCENE := "res://scenes/earth/earth.tscn"   # ...and a game starts (or carries on) from Earth
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
-const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to the Void."
+const NEW_GAME_MESSAGE := "Welcome home to Stars Hollow!"                    # no spoilers: the oak keeps its secret till midnight
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -356,6 +356,7 @@ func save_game() -> void:
 		"calendar_offset": Clock.calendar_offset, "seasons_open": Clock.seasons_open.duplicate(),
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
+		"followed": Quests.follow_save(),                # what the player follows (the Quests sheet's Follow buttons)
 		"requests": Requests.save_data(),
 		"earth_jobs": EarthJobs.save_data(),
 		"festival": Festival.save_data(),
@@ -441,6 +442,7 @@ func load_game() -> void:
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
 	FirstNight.migrate()                          # an old save's First Night steps, moved to the Humming Oak's
+	Quests.follow_load(data.get("followed", null))  # (a save from before following follows its to-do list's quest)
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
 	var jobs = data.get("earth_jobs", {})                    # saves from before Earth's notice board have none

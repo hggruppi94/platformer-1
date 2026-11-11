@@ -10,6 +10,8 @@ extends Node
 #
 #   The Humming Oak, a whole first day on Earth (the oak itself, its acorns and its reveal: scripts/humming_oak.gd):
 #   1 morning  Earth, 9 AM: Nina knocks; meet Mr. Palmer and two more people on the green.
+#   1b board   Nina shows the notice board by the gazebo: read it, follow a job (a star on the map), do one and turn
+#              it in (the job board tutorial, Hayden's 11 Nov 2026 playtest; it carries over to Tally's board).
 #   2 oak      Nina says the old oak hums at midnight: listen to it, and something's ticking inside.
 #   3 clues    Mr. Page's book (The Legend of the Old Oak), Mr. Palmer's lilac envelope from the Void, and three
 #              glowing acorns round town (each one sets off a tremor). Earth's clock waits at 6 PM until steps 1 to 3
@@ -18,9 +20,10 @@ extends Node
 #   5 wait     until midnight (the bed's "Until the Shift" is offered from here on, not before).
 #   6 awaken   at midnight, walk up to the oak: it opens its door for the first time (the reveal).
 #   Then the first Void day:
-#   7 shift    through the oak's door: the arrival moment, then Dash at the portal on the far side.
+#   7 shift    through the oak's door: the arrival moment, a short flight over the Void that ends on Tally's request
+#              board (the first time only: scripts/place_intro.gd, void_intro()), then Dash at the portal.
 #   8 day      the Void: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
-#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
+#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown, and something far off makes him go quiet).
 #   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
 # A new game starts it when the hero's made (scripts/creator.gd closes). An old save never gets it forced on it: Nina
@@ -35,11 +38,15 @@ const EARTH := "res://scenes/earth/earth.tscn"
 const START_HOUR := 9.0                       # a new game starts in the morning: 9 AM on Earth
 const DUSK_HOUR := 18.0                       # the day waits here (Earth time) until the town and the clues are done
 const HOLD_HOUR := 23.0                       # ...and here until the acorns are in the oak's roots
-const DAY_STEPS := ["morning", "oak", "clues"]
-const NO_SHIFT_SLEEP := ["morning", "oak", "clues", "dusk"]
+const DAY_STEPS := ["morning", "board", "oak", "clues"]
+const NO_SHIFT_SLEEP := ["morning", "board", "oak", "clues", "dusk"]
+const BOARD_FLAG := "fn_v3"                    # this save's First Night has the notice board step (migrate())
+const PlaceIntro := preload("res://scripts/place_intro.gd")
+const INTRO_SEEN := "void_intro_seen"
 const FRESH_FLAG := "fresh_start"           # a game started since the Humming Oak (held_back())
 const VERSION_FLAG := "fn_v2"                 # this save's First Night has the Humming Oak's steps (see migrate())
-# An old save's step (before the Humming Oak, Nov 2026) -> the same step now: evening, wait, shift, day, king, home
+# An old save's step (before the Humming Oak, Nov 2026) -> the same step in the Humming Oak's list (before the board
+# step went in after "morning": _migrate_v2() adds one for that)
 const OLD_STEPS := {0: 0, 1: 4, 2: 6, 3: 7, 4: 8, 5: 9}
 const GLOOPS := 3                             # Gloops to pop on the Void day
 const FOLK := 2                               # townsfolk to say hello to on the evening
@@ -57,6 +64,7 @@ var _warp_rect: ColorRect
 var _warp_text: Label
 var _arriving := false
 var _woke_home := false                       # the portal put them to bed tonight: say so once Earth's up
+var intro: CanvasLayer                        # the first look round the Void (scripts/place_intro.gd)
 
 
 func _ready() -> void:
@@ -70,7 +78,12 @@ func _ready() -> void:
 	Quests.changed.connect(_on_quest_changed)
 	Dialogue.flag_set.connect(_on_flag)
 	get_tree().scene_changed.connect(_on_scene_changed)
+	Quests.follow_changed.connect(_check_board)
+	EarthJobs.changed.connect(_check_board)
 	_build_warp()
+	intro = PlaceIntro.new()
+	intro.name = "Void Intro"
+	add_child(intro)
 
 
 # -----------------------------------------------------------------------------
@@ -93,12 +106,14 @@ func start() -> void:
 	# Start it (a new game, Nina's offer or the quest log's button). The Quests autoload picks the flag up.
 	flag(START_FLAG)
 	flag(VERSION_FLAG)
+	flag(BOARD_FLAG)
 	Quests.check()
 
 
 func held_back(night: int) -> bool:
 	# A new game (started with the Humming Oak) brings the collectibles in gradually instead of all at once: lost
-	# watches, the S-K-A-T-E letters, booster coins and the Earth notice board wait for the night they're for.
+	# watches, the S-K-A-T-E letters and booster coins wait for the night they're for. (The Earth notice board is out
+	# from the first morning now: Nina shows it to them on the board step.)
 	# Old saves, and tests that don't start a new game this way, have everything out as before.
 	return Dialogue.flags.has(FRESH_FLAG) and Nights.night() < night
 
@@ -112,16 +127,33 @@ func migrate() -> void:
 	# A save from before the Humming Oak (scripts/game.gd calls this as it loads): its First Night step number is moved
 	# to the same step now, and if it was past the evening, the new Earth-day steps count as done (the oak's awake for
 	# it once it's through the door). Saves that never started it, or finished it, have nothing to move.
+	_migrate_v2()
+	if not Quests.state.has(ID) or Dialogue.flags.has(BOARD_FLAG):
+		return
+	# (Nov 11 2026: the notice board step went in after "morning": a save past the morning moves one step on, and
+	# the board's tutorial counts as done)
+	Dialogue.flags[BOARD_FLAG] = true
+	var st: Dictionary = Quests.state[ID]
+	if not bool(st.get("done", false)) and int(st.get("step", 0)) >= 1:
+		st["step"] = int(st.get("step", 0)) + 1
+		for f in ["fn_board_look", "fn_board_follow", "fn_board_job"]:
+			Dialogue.flags[f] = true
+
+
+func _migrate_v2() -> void:
+	# Before the Humming Oak: straight to today's steps (the board's in them too, so nothing more to move after)
 	if not Quests.state.has(ID) or Dialogue.flags.has(VERSION_FLAG):
 		return
 	Dialogue.flags[VERSION_FLAG] = true
+	Dialogue.flags[BOARD_FLAG] = true
 	var st: Dictionary = Quests.state[ID]
 	if bool(st.get("done", false)):
 		return
 	var old := int(st.get("step", 0))
-	st["step"] = int(OLD_STEPS.get(old, old))
+	var now := int(OLD_STEPS.get(old, old))
+	st["step"] = now + (1 if now >= 1 else 0)
 	if old >= 1:
-		for f in ["fn_oak_listen", "fn_book", "fn_acorns", "fn_acorns_placed"]:
+		for f in ["fn_oak_listen", "fn_book", "fn_acorns", "fn_acorns_placed", "fn_board_look", "fn_board_follow", "fn_board_job"]:
 			Dialogue.flags[f] = true
 	if old >= 2:
 		Dialogue.flags["oak_woken"] = true
@@ -139,10 +171,7 @@ func _on_creator_closed() -> void:
 	flag(FRESH_FLAG)
 	# Earth was put together before the hero was made: take away what a new game's first day holds back
 	Boosters.drop_coins()
-	var board := get_tree().current_scene.get_node_or_null("Notice Board")
-	if board:
-		board.queue_free()
-	start()
+	start()                                      # (the notice board stays: Nina shows it to them this morning)
 	_knock.call_deferred()
 
 
@@ -159,7 +188,7 @@ func _process(_delta: float) -> void:
 	if not running():
 		return
 	match step():
-		"morning", "oak", "clues":
+		"morning", "board", "oak", "clues":
 			# Earth's clock waits at 6 PM (just the clock: everyone carries on) until the day's clues are found
 			_hold(DUSK_HOUR)
 		"dusk":
@@ -186,8 +215,36 @@ func _on_talked(id: String) -> void:
 		var met := EARTH_FOLK.filter(func(f: String) -> bool: return Dialogue.flags.has("fn_hi_" + f)).size()
 		if met >= FOLK:
 			flag("fn_folk")
+	elif step() == "board" and id == "notice_board":
+		flag("fn_board_look")
+		_check_board()
 	elif step() == "day" and id == "race_starter":
 		flag("fn_zippy")                          # Zippy at the Lake Loop (scripts/races.gd)
+
+
+func _check_board() -> void:
+	# The notice board tutorial's ticks: a job followed (the board's choice or the Quests sheet's Follow button), and a
+	# job finished and turned in
+	if not running() or step() != "board":
+		return
+	if Dialogue.flags.has("fn_board_look"):
+		for key in Quests.followed:
+			if key.begins_with(EarthJobs.key_prefix() + ":"):
+				flag("fn_board_follow")
+	if EarthJobs.turned_in > 0 or EarthJobs.list.any(func(r: Dictionary) -> bool: return r.paid):
+		flag("fn_board_job")
+
+
+func board_tutorial_lines() -> Array:
+	# Nina, the first time they read the board on the board step (EarthJobs.lines() puts these first)
+	if not running() or step() != "board" or Dialogue.flags.has("fn_board_look"):
+		return []
+	return [
+		{"speaker": "Nina", "text": "This is the notice board! Everyone in Stars Hollow pins up little jobs they need a hand with."},
+		{"speaker": "Nina", "text": "Do one, then come back and press %s here to turn it in. They pay sparkles!" % Settings.prompt("interact")},
+		{"speaker": "Nina", "text": "Pick one to FOLLOW and a star shows you where to go, on your map and your minimap. You can follow more than one!"},
+		{"speaker": "Nina", "text": "You can change your mind any time in your Quests, too (%s). Each job and quest has a Follow button." % Settings.prompt("player_menu")},
+	]
 
 
 # -----------------------------------------------------------------------------
@@ -201,7 +258,7 @@ func _on_scene_changed() -> void:
 		_arrive.call_deferred()
 	elif scene.scene_file_path == EARTH and _woke_home:
 		_woke_home = false
-		Game.message("%s wakes up in bed, back on Earth. Was it all a dream? The watch on %s wrist is still ticking..." %
+		Game.message("%s wakes up in bed, back on Earth. Was it all a dream? The watch on %s wrist is still ticking... Go and find Nina!" %
 			[Dialogue.player_name(), Hero.pronoun(Game.hero, "their")])
 
 
@@ -234,8 +291,44 @@ func _arrive() -> void:
 		_arriving = false
 		Game.hold_controls(&"first_night_arrival", false)        # (a talk going on keeps its own hold)
 		Audio.play("pickup", -6.0, 0.0)
-		if step() == "shift":
-			Game.message("Someone's waving at you from beside the portal..."))
+		void_intro(func() -> void:
+			if step() == "shift":
+				Game.message("Someone's waving at you from beside the portal...")))
+
+
+func void_intro(after: Callable = Callable(), force := false) -> void:
+	# The first look round the Void: up over the portal, across the lake to the Market Square, and down to Tally's
+	# request board, where the notice board's tutorial carries on. Once only (flag void_intro_seen). Headless runs
+	# (the tests) skip it unless they ask for it.
+	var scene := get_tree().current_scene
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	var square := scene.get_node_or_null("Market Square") as Node3D if scene else null
+	var board := scene.get_node_or_null("Request Board") as Node3D if scene else null
+	var skip := Dialogue.flags.has(INTRO_SEEN) or (DisplayServer.get_name() == "headless" and not force)
+	if skip or player == null or square == null:
+		if after.is_valid():
+			after.call()
+		return
+	flag(INTRO_SEEN)
+	var p := player.global_position
+	var to_sq := (square.global_position - p) * Vector3(1, 0, 1)
+	var shots: Array = [
+		{"from": p + Vector3.UP * 22.0 - to_sq.normalized() * 18.0, "look": p + to_sq * 0.25, "time": 3.2,
+			"title": "The Void", "caption": "{player}'s first morning on the other side of the oak."},
+		{"from": square.global_position + Vector3(18, 26, 26), "look": square.global_position, "time": 4.0,
+			"title": "", "caption": "The Market Square, right in the middle of town."},
+	]
+	if board:
+		var b := board.global_position
+		var out := ((square.global_position - b) * Vector3(1, 0, 1)).normalized()
+		shots.append({"from": b + out * 6.5 + Vector3.UP * 2.8, "look": b + Vector3.UP * 1.6, "time": 4.0,
+			"title": "Tally's Request Board",
+			"caption": "Folks in the Void pin up requests here every night. Follow one and a star shows the way!"})
+		shots.append({"from": b + out * 5.5 + Vector3.UP * 2.4, "look": b + Vector3.UP * 1.5, "time": 2.2,
+			"title": "Tally's Request Board", "caption": "Just like the notice board back home."})
+	if after.is_valid():
+		intro.done.connect(after, CONNECT_ONE_SHOT)
+	intro.play(shots)
 
 
 func is_arriving() -> bool:
@@ -336,6 +429,7 @@ func _on_flag(f: String) -> void:
 		_cheer()
 	elif f == START_FLAG:
 		flag(VERSION_FLAG)                        # (started now, so it's on today's steps: nothing for migrate() to move)
+		flag(BOARD_FLAG)
 		if Dialogue.is_active():
 			flag("fn_nina")                       # said yes to Nina's offer (an old save): that's her talked to
 

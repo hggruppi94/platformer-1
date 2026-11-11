@@ -77,6 +77,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	Clock.shift_ended.connect(_on_shift_ended)
 	Dialogue.finished.connect(_on_talked)
+	Dialogue.finished.connect(_on_follow_picked)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
 	changed.connect(_refresh_log)
@@ -306,6 +307,86 @@ func left_over_text() -> String:
 
 func log_title() -> String:
 	return "[b]Tonight's requests[/b] (the board in the Market Square)"
+
+
+# --- Following a request (scripts/quests.gd: the Quests sheet's Follow buttons, map stars, the to-do list) ------
+func key_prefix() -> String:
+	# (EarthJobs has its own, and its own board_name() and job_title())
+	return "req"
+
+
+func key_of(r: Dictionary) -> String:
+	# Never two of the same kind on one night, so the kind says which one it is
+	return "%s:%s" % [key_prefix(), r.get("kind", "")]
+
+
+func board_name() -> String:
+	return "request board in the Market Square"
+
+
+func job_title() -> String:
+	return "Tally's request"
+
+
+func home_scene() -> String:
+	return TOWN
+
+
+func markers(r: Dictionary) -> Array:
+	# Where a followed request wants the player in the scene that's up: [Vector3, ...] (scripts/map_screen.gd stars).
+	# A finished one points at the board; the rest at the people, parcels, props and places they need.
+	var scene := get_tree().current_scene
+	var out: Array = []
+	if scene == null or r.get("paid", false):
+		return out
+	var here := scene.scene_file_path
+	if r.get("done", false):
+		var board := scene.get_node_or_null(board_node()) as Node3D
+		if board:
+			out.append(board.global_position)
+		return out
+	if r.get("carrying", false) and r.has("who"):
+		var who = _talker_pos(scene, str(r.who))
+		if who != null:
+			out.append(who)
+		return out
+	for n in get_tree().get_nodes_in_group("earth_job_props"):
+		if n is Node3D and is_same(n.get("job"), r) and not bool(n.get("built")) and not n.is_queued_for_deletion():
+			out.append((n as Node3D).global_position)
+	var parcel := scene.get_node_or_null("Parcel " + str(r.get("item", ""))) as Node3D
+	if parcel and str(r.get("kind", "")) == "deliver":
+		out.append(parcel.global_position)
+	if here != TOWN:
+		return out
+	match str(r.get("kind", "")):
+		"visit":
+			for pl in PLACES:
+				var spot := scene.get_node_or_null(str(pl[3])) as Node3D
+				if pl[0] == r.place and spot:
+					out.append(spot.global_position)
+		"deliver":
+			if str(r.get("from", "")) == "market":
+				var square := scene.get_node_or_null("Market Square") as Node3D
+				if square:
+					out.append(square.global_position)
+		"park_score":
+			var park := scene.find_child("Skate Park", true, false) as Node3D
+			if park:
+				out.append(park.global_position)
+		"harvest":
+			out.append(Vector3(Farm.GARDEN.x, 0, Farm.GARDEN.y))
+	return out
+
+
+func board_node() -> String:
+	return "Request Board"
+
+
+static func _talker_pos(scene: Node, id: String):
+	for t in scene.find_children("Talk", "Area3D", true, false):
+		if t.get("character_id") == id:
+			return (t.get_parent() as Node3D).global_position
+	return null
 
 
 func board_text() -> String:
@@ -546,7 +627,46 @@ func _on_shift_ended() -> void:
 
 # --- Tally and the board: what they say ---------------------------------------
 func talk(talker: Node3D) -> void:
-	Dialogue.say(talker, CLERK, lines(talker), "tally")
+	Dialogue.say(talker, CLERK, lines(talker) + follow_choice(), "tally")
+
+
+func follow_choice() -> Array:
+	# The end of a talk at the board: pick a job to follow (a star on the map and a line on the to-do list, like the
+	# Follow buttons on the Quests sheet), or all of them. Picking one that's followed already stops following it.
+	var choice: Array = []
+	for i in list.size():
+		var r: Dictionary = list[i]
+		if r.paid or r.done:
+			continue
+		var on := Quests.is_followed(key_of(r))
+		choice.append({"text": ("Stop following: %s" if on else "Follow: %s") % text_of(r),
+			"set": "%s_follow_%d" % [key_prefix(), i], "say": false})
+	if choice.is_empty():
+		return []
+	if choice.size() > 1:
+		choice.append({"text": "Follow them all!", "set": key_prefix() + "_follow_all", "say": false})
+	choice.append({"text": "That's all, thanks.", "say": false})
+	return [{"choice": choice}]
+
+
+func _on_follow_picked(id: String) -> void:
+	if id == "tally" and not Dialogue.flags.has("tally_hi") and is_live():
+		Dialogue.set_flag("tally_hi")
+	# (after any talk: the flags follow_choice() set, if it was this board's)
+	var all := Dialogue.flags.has(key_prefix() + "_follow_all")
+	Dialogue.flags.erase(key_prefix() + "_follow_all")
+	for i in list.size():
+		var f := "%s_follow_%d" % [key_prefix(), i]
+		var r: Dictionary = list[i]
+		if all and not r.paid and not r.done:
+			Quests.follow(key_of(r), true)
+		elif Dialogue.flags.has(f):
+			Quests.follow(key_of(r), not Quests.is_followed(key_of(r)))
+			if Quests.is_followed(key_of(r)):
+				Game.message("Following: %s. Look for the star on your map!" % text_of(r))
+		Dialogue.flags.erase(f)
+	if all:
+		Game.message("Following all of them. Look for the stars on your map!")
 
 
 func lines(talker: Node3D = null) -> Array:
@@ -559,6 +679,12 @@ func lines(talker: Node3D = null) -> Array:
 		if ready_to_turn_in().is_empty() and list.all(func(r: Dictionary) -> bool: return r.paid):
 			out.append("That's every request tonight! Everyone in the Void is talking about {them}.")
 			return out
+	elif not Dialogue.flags.has("tally_hi"):
+		# The first hello: the notice board's tutorial carries on here (the board works just like Earth's)
+		out.append("Oh! A new face! Hello, hello! Tally's the name, requests are my game. (They wave the clipboard.)")
+		out.append("Folks in the Void pin their requests on my board every night. Just like the notice board back on Earth, I hear!")
+		out.append("Pick one to follow and it gets a star on your map. Finish it, come back to me or the board, and I pay you in sparkles.")
+		out.append("Here's who needs a hand tonight:")
 	else:
 		out.append("Hello, {player}! Tally's the name, requests are my game. Here's who needs a hand tonight:")
 	for r in list:

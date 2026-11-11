@@ -116,6 +116,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     (/mnt/project-files/world/previews/day1_polish/). `test_arsenal`'s Plush Party / Rainbow Ray checks are shaky: in its
     staging one Gloop ends up sitting on the other's head, and which one the shot aims at depends on tiny distances
     (main fails other checks in the same test).
+- 2026-11-11: **Follow any quests and side jobs you like, the notice board tutorial, and a first look round the Void**
+  (Hayden's day 1 playtest: "all quests and side jobs should be selectable allowing you to change back and forth and
+  even showing multiple location markers simultaneously"; "a tutorial for the jobs board that happens at the beginning
+  of the game and carries over into the void with a cutscene showing the location when you enter for the first
+  time"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Following** (`Quests.followed`, saved as `"followed"`): quests by id, board jobs by `key_of(r)` (`"req:<kind>"`
+    for Tally's, `"job:<kind>"` for Earth's). Every quest card on the Quests sheet, and a new card for each of tonight's
+    requests and today's jobs (`Quests.job_card()`), has a **Follow** button. Only followed things get stars on the
+    map and minimap (`map_screen.gd quest_markers()`, several at once, each labelled), and the HUD's to-do list shows
+    up to three (`Quests.objectives_all()`). A new quest is followed by itself only when nothing else is, so it never
+    steals the player's pick; a finished quest or a paid job drops off. Unfollowing everything (`chose_none`) shows
+    nothing. Jobs know where they want you (`Requests.markers(r)`: the place, the parcel, the props, who it's for,
+    the board once it's done). Talking to either board ends with a choice: follow a job, "Follow them all!", or stop
+    following one (`follow_choice()`). Old saves follow the quest their to-do list was on.
+  - **Notice board tutorial:** The First Night has a new step `board` after the morning: Nina waits by the gazebo, the
+    board (now up from a new game's first morning) has her how-to (`FirstNight.board_tutorial_lines()`), and the
+    checklist is read it, follow a job, finish one and turn it in (`fn_board_look`, `fn_board_follow`,
+    `fn_board_job`). Saves part way through move on a step (`migrate()`, flag `fn_v3`). Tally's first hello explains
+    the Void's board the same way (flag `tally_hi`).
+  - **First look round the Void** (`scripts/place_intro.gd`, `FirstNight.void_intro()`): after the arrival swirl, the
+    first time only (flag `void_intro_seen`), black bars and a camera of its own glide up over the portal, across to
+    the Market Square and down to Tally's board, with captions. Skippable; skipped in headless runs.
+  - Tests: new `tools/test_following.gd`; `test_first_night` walks the board step; `test_kid_ui` and `test_first_hour`
+    updated; playthrough does the board. Previews: `tools/capture_following.gd` (shots in the project files under
+    world/previews/following).
 
 - 2026-11-11: **A whole-game playtest, start to ending, and what it fixed** (Hayden: "Playtest"). Played in the cloud
   (own Godot user folders, no save touched).

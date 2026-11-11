@@ -534,7 +534,7 @@ func rex_lines() -> Array:
 			if left.size() < 3 else "The city's fading, {player}. We have to hurry.",
 			"Still to do: %s." % ", and ".join(left)]
 	return ["All three cores! The clock's holding... but there's someone on its dais. Someone glitchy.",
-		"I know that look. Purple. Cubes. Grumpy. That's one of the Agent of Chaos's lot!",
+		"Purple. Cubes. Grumpy. I don't know who he is, but he's NOT from round here.",
 		"Pop him when his chest clock glows. Jump the rings. And keep off the glowing marks!"]
 
 
@@ -578,9 +578,9 @@ func _talk_dash() -> void:
 
 func thank_lines() -> Array:
 	return ["{player}! You did it! The whole city's lit up! Look at the TOWERS!",
-		"Captain Glitch got away, though. Through a rift. I saw where it went... the Void.",
-		"The Agent of Chaos is there. Waiting. This was his last trick before the big one.",
-		"But he's got us to deal with now. All of us. And the future's not fading any more!",
+		"Captain Glitch got away, though. Through a rift. Where does a rift like that even GO?",
+		"He kept on about his master. Someone with a clock that runs backwards. I didn't like the sound of that.",
+		"But whoever it is, they've got us to deal with now. All of us. And the future's not fading any more!",
 		"And Dash says the Swap-o-Tron's mended. Properly mended. Which means maybe... me... my own body...",
 		"THANK you, {player}. From the furthest future there is.",
 		"Come to Dash's lab when you're ready. I'll fetch Rook. Let's TRY it!"]
@@ -632,9 +632,9 @@ func swap_lines() -> Array:
 	# Dash reads the machine after the try (first drafts)
 	return ["It WORKED. For five seconds it worked! And then... something pulled them back.",
 		"Look at the readings. The swap's knotted into the crack in the Shift, the one our two experiments made.",
-		"And the other end of the knot goes... there. Into that cracked clock. HIS clock. The Agent of Chaos's.",
+		"And the other end of the knot goes... there. Into that cracked clock. Somebody's clock. A giant somebody. I've only ever seen him in the oldest time-sums: the Agent of Chaos.",
 		"While his clock runs backwards, nothing that broke that night can come undone.",
-		"Captain Glitch said his master was waiting in the Void. So we go and stop his clock. In the far field.",
+		"That's who Captain Glitch kept calling his master. And I'd bet my lab his rift went straight back to the Void. So we go and stop his clock. In the far field.",
 		"{player}... thank you for pulling the lever. Rex needed to know it could work."]
 
 

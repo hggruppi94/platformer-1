@@ -69,7 +69,8 @@ func _run() -> void:
 		"Earth 8:00 PM, before the Shift; the Void waits on day 1")
 	await _frames(4)
 	var hud := player.get_node("HUD")
-	check(str(hud.message_label.text).contains("At midnight the portal"), "\"%s\"" % hud.message_label.text)
+	check(str(hud.message_label.text).contains("Welcome home") and not str(hud.message_label.text).contains("portal"),
+		"no spoilers on a new game: \"%s\"" % hud.message_label.text)
 	hud._refresh_clock()
 	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("opens at midnight"),
 		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))

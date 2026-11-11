@@ -199,9 +199,12 @@ func _do(n: int, flag: String) -> void:
 		"n7_gate":
 			await _stand_by("Scary World Gate", Vector3(0, 0, 6))
 		"n7_giant":
+			# Nobody's in the far field yet (the Agent of Chaos only turns up after Rex and Dash's swap): just go and look
 			var giant := current_scene.find_child("ChaosGiant", true, false) as Node3D
-			if giant and player:
-				player.global_position = giant.global_position + Vector3(25, 1, 25)
+			check(giant == null or not giant.visible, "night 7: the Agent of Chaos isn't in the far field yet")
+			if player:
+				player.global_position = Vector3(112, 12, -200)
+				player.velocity = Vector3.ZERO
 				await _frames(40)
 
 

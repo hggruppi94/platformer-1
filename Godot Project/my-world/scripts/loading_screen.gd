@@ -28,6 +28,17 @@ const TIPS := [
 	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
 ]
 
+# Before the old oak has opened for them (a new game's first day), only tips that don't give the Void away
+# (Hayden's day 1 playtest, 11 Nov 2026: no spoilers before things happen)
+const FIRST_DAY_TIPS := [
+	"The Goals page in your menu always shows something to aim for.",
+	"Feeling stuck? Open the map: the stars show where to go.",
+	"Every Saturday evening there's a fair on the green: a different one each season.",
+	"On the last day of autumn it's Hallow's Eve. Knock on every door on Maple Lane!",
+	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
+	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
+]
+
 var tip := ""
 var showing := false
 var _panel: Control
@@ -55,7 +66,8 @@ func show_for(scene_path: String) -> void:
 			worlds.append(str(w.scene))
 	if scene_path == from or not scene_path in worlds or not (from in worlds or from == ""):
 		return                                   # a door into a shop or a room, or back out of one: no loading screen
-	tip = TIPS[_rng.randi() % TIPS.size()]
+	var tips: Array = TIPS if HummingOak.awake() else FIRST_DAY_TIPS
+	tip = tips[_rng.randi() % tips.size()]
 	_tip_label.text = tip
 	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to the Void...",
 		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path,

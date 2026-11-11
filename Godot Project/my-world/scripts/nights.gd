@@ -40,12 +40,16 @@ const NIGHTS := [
 		"new": "Rex by the portal, the castle school, the Plushinator's schematic and the Rocket Bike's",
 		"arrive": "Night 6! Rex is waiting by the portal with a campaign speech, and there's a schematic at the castle school.",
 		"tease": "Rex is practising a speech. Something about the castle school..."},
-	{"n": 7, "quest": "night_7", "title": "The Agent of Chaos",
-		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the Agent of Chaos and the last two schematics",
-		"arrive": "Night 7! Mr. Palmer wants a word at his office window, and he looks worried. The Agent of Chaos has come closer.",
+	{"n": 7, "quest": "night_7", "title": "The Far Corners",
+		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the far field and the last two schematics",
+		"arrive": "Night 7! Mr. Palmer wants a word at his office window, and he looks worried.",
 		"tease": "Mr. Palmer wants a quiet word. Something about the far field..."},
 ]
-const GIANT_NEAR := 45.0                   # night 7: this close to the Agent of Chaos is close enough to see him
+# Night 7: the far field behind the castle hill, and how close counts as having a look round it. (The flag's still
+# "n7_giant" so old saves keep their tick, but nobody's out there yet: the Agent of Chaos only turns up after Rex and
+# Dash try to swap back, scripts/chaos_giant.gd present(). Hayden's day 1 playtest, 11 Nov 2026.)
+const FAR_FIELD := Vector2(116, -206)
+const FAR_FIELD_NEAR := 30.0
 
 var _told_visit := -1                       # the visit this session already said "New tonight" for
 
@@ -170,10 +174,9 @@ func _check_later_nights() -> void:
 			and s.scene_file_path == str(Schematics.SCENES.school):
 		Dialogue.set_flag("n6_school")
 	if _step("night_7") == "explore":
-		if not Dialogue.flags.has("n7_giant"):
-			var giant := s.find_child("ChaosGiant", true, false) as Node3D
-			if giant and _near_node(giant, GIANT_NEAR):
-				Dialogue.set_flag("n7_giant")
+		if not Dialogue.flags.has("n7_giant") and s.scene_file_path == TOWN and _near_point(FAR_FIELD, FAR_FIELD_NEAR):
+			Dialogue.set_flag("n7_giant")
+			Game.message("The far field is very quiet. The grass is pressed flat in huge, strange shapes, and your watch stutters. Something BIG was here...")
 		if not Dialogue.flags.has("n7_gate") and _near(s, "Scary World Gate", 10.0):
 			Dialogue.set_flag("n7_gate")
 
@@ -186,6 +189,11 @@ func _on_race_finished(_track: String, _place: int) -> void:
 func _near(s: Node, node_name: String, metres: float) -> bool:
 	var n := s.find_child(node_name, true, false) as Node3D
 	return n != null and _near_node(n, metres)
+
+
+func _near_point(at: Vector2, metres: float) -> bool:
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	return p != null and Vector2(p.global_position.x, p.global_position.z).distance_to(at) < metres
 
 
 func _near_node(n: Node3D, metres: float) -> bool:
