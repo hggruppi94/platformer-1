@@ -24,7 +24,7 @@ func _initialize() -> void:
 		out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(900.0, true, false, true).timeout.connect(_finish)
+	create_timer(1700.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
@@ -60,18 +60,20 @@ func _run() -> void:
 	await _view("01_the_wren_on_the_hill", wren.global_position + Vector3(1.2, 0.8, 1.6), wren.global_position + Vector3(0, 0.3, 0))
 	var door: Vector2 = way.DOOR
 	var base: Vector3 = root.get_node("Bosses").ground(current_scene, door.x, door.y - 3.0)
-	for k in way.TRAIL.size() - 1:
-		way.hop_on()
-		await _frames(140)
+	# (straight to the end of its trail: the flights themselves are slow to wait for in a capture)
+	var last: int = way.TRAIL.size() - 1
+	way.set("_wren_at", last)
+	wren.global_position = root.get_node("Bosses").ground(current_scene, way.TRAIL[last].x, way.TRAIL[last].y)
+	way.call("_show_key")
 	p.global_position = base + Vector3(3, 1, -6)
-	await _view("02_the_old_ivy_wall", base + Vector3(2.5, 2.4, -9), base + Vector3(0, 2.0, 2.0))
+	await _view("02_the_old_ivy_wall", base + Vector3(-1.0, 1.9, -5.0), base + Vector3(0, 2.0, 3.0))
 	await _view("03_the_wren_pecking", wren.global_position + Vector3(1.5, 1.0, -1.5), wren.global_position + Vector3(0, 0.2, 0))
 	var mound := wall.get_node("Key Mound")
 	mound.find_child("Key Spot", true, false).act.call()
 	var spot := wall.find_child("Wall Spot", true, false)
 	spot.act.call()
-	await _frames(120)
-	await _view("04_the_door_open", base + Vector3(1.5, 2.0, -6.5), base + Vector3(0, 1.8, 2.0))
+	await _frames(30)
+	await _view("04_the_door_open", base + Vector3(0.6, 1.8, -4.5), base + Vector3(0, 1.8, 3.0))
 
 	# In
 	spot.act.call()
@@ -89,7 +91,7 @@ func _run() -> void:
 	await _view("11_the_great_tree", Vector3(-30, 5, 104), Vector3(-44, 7, 118))
 	for id in sg.seeds:
 		sg.wake_seed(id)
-	await _frames(220)
+	await _frames(60)
 	await _view("12_the_garden_awake", Vector3(14, 9, 30), Vector3(0, 2.5, 60), 10)
 	_finish()
 

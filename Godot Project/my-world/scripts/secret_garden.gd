@@ -62,6 +62,7 @@ var _petals: MultiMeshInstance3D
 var _petal_pos: Array[Vector3] = []
 var _glows: Array[StandardMaterial3D] = []
 var _sky: ProceduralSkyMaterial
+var _env: Environment
 var _home_spot: Area3D
 
 
@@ -214,14 +215,17 @@ func _environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.6
+	env.ambient_light_energy = 0.35
+	env.adjustment_enabled = true                                  # asleep the colours are a little faded (_set_awake)
+	env.adjustment_saturation = 0.9
+	_env = env
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
 	env.glow_intensity = 0.5
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.75, 0.7, 0.8)
-	env.fog_density = 0.004
-	env.fog_sky_affect = 0.15
+	env.fog_light_color = Color(0.6, 0.55, 0.72)
+	env.fog_density = 0.0012
+	env.fog_sky_affect = 0.1
 	var we := WorldEnvironment.new()
 	we.name = "Garden Sky"
 	we.environment = env
@@ -846,6 +850,8 @@ func _set_awake(k: float) -> void:
 	# Asleep the garden's a little dim and dusty; awake, every flower glows and the sky's brighter
 	for m in _glows:
 		m.emission_energy_multiplier = lerpf(0.12, 0.7, k)
+	if _env:
+		_env.adjustment_saturation = lerpf(0.9, 1.35, k)
 	if _sky:
 		_sky.sky_top_color = Color(0.34, 0.3, 0.6).lerp(Color(0.36, 0.5, 0.85), k)
 		_sky.sky_horizon_color = Color(0.96, 0.82, 0.72).lerp(Color(1.0, 0.85, 0.9), k)
