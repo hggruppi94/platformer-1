@@ -8,7 +8,11 @@ extends Node
 #     where the Time Goblins (scripts/time_goblin.gd) live, plus a few goblins roaming towards the Observatory.
 #     Their boss, Grandfather Tock (scripts/time_goblin_boss.gd), keeps the middle of it.
 #   - Boulder Hollow, in the far northwest: a ring of big boulders where the Boulderdillo (scripts/crocodillo_boss.gd),
-#     the Crocodillos' boss, rolls about. (The Gloops' boss is the Gloop King, built into the town.)
+#     the Crocodillos' boss, rolls about.
+#   - The Gloop Gate, out in the west fields where the Gloop King used to hold court: since Nov 11, 2026 (Hayden: "I
+#     want the gloop king to have his own domain instead of just being in a field") he lives in the Gloop Kingdom, a
+#     level of his own (scripts/gloop_kingdom.gd), and the gate is the way in. The King the town builder still puts in
+#     the field is taken out when the town loads.
 #   - The final boss fight (scripts/chaos_fight.gd), hung under the Agent of Chaos (scripts/chaos_giant.gd).
 #
 # Every enemy's boss is remembered here once beaten (Dialogue flags, so it's saved with everything else).
@@ -19,6 +23,11 @@ const TOCK := "res://scenes/enemies/time_goblin_boss.tscn"
 const CROC := "res://scenes/enemies/crocodillo.tscn"
 const HOLLOW := Vector2(-118, -180)             # x, z: Boulder Hollow, flat open ground in the northwest
 const HOLLOW_RADIUS := 17.0
+
+const KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
+const GATE := Vector2(-134, -3)                # x, z: the Gloop Gate's mound, where the Gloop King held court (flat, clear of trees)
+const GATE_RADIUS := 5.0
+const GATE_FACING := Vector2(1, 0)             # its mouth looks east, back towards the town
 
 const CLOCKYARD := Vector2(128, -150)          # x, z: open, flat ground east of the Agent's field (the world's east
                                               # wall is at x 146, so it keeps well in from that)
@@ -43,7 +52,11 @@ func _on_scene_changed() -> void:
 		return
 	_place_clockyard(scene)
 	_place_hollow(scene)
+	_place_gloop_gate(scene)
 	_arm_the_agent(scene)
+	if coming_out:
+		coming_out = false
+		_land_by_gate.call_deferred()
 
 
 func ground(scene: Node3D, x: float, z: float) -> Vector3:
@@ -255,3 +268,162 @@ func _cyl(parent: Node3D, r: float, h: float, pos: Vector3, m: Material) -> Mesh
 	mi.position = pos
 	parent.add_child(mi)
 	return mi
+
+
+# -----------------------------------------------------------------------------
+# The Gloop Gate: the way into the Gloop Kingdom
+# -----------------------------------------------------------------------------
+var coming_out := false                        # on the way home from the Gloop Kingdom (set by its go_home())
+
+
+func _land_by_gate() -> void:
+	# The kingdom can't measure the town's ground, so the resume point is only roughly right: stand on the ground
+	await get_tree().physics_frame
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var scene := get_tree().current_scene as Node3D
+	if player == null or scene == null:
+		return
+	var out: Dictionary = gate_out()
+	var at: Vector3 = out.position
+	player.global_position = ground(scene, at.x, at.z) + Vector3(0, 1.0, 0)        # (her middle: a capsule on the ground)
+	player.velocity = Vector3.ZERO
+
+
+func gate_out() -> Dictionary:
+	# Where you come out, back from the Gloop Kingdom: just in front of the gate's mouth, facing the town
+	var at := GATE + GATE_FACING * (GATE_RADIUS + 3.0)
+	return {"position": Vector3(at.x, 2.0, at.y), "yaw": atan2(GATE_FACING.x, GATE_FACING.y)}
+
+
+func _place_gloop_gate(scene: Node) -> void:
+	# The King lives in his kingdom now: the one built into the field goes (so nothing finds him out here)
+	var old := scene.find_child("The Gloop King", true, false)
+	if old:
+		old.get_parent().remove_child(old)
+		old.free()
+	var gate := Node3D.new()
+	gate.name = "Gloop Gate"
+	gate.set_script(load("res://scripts/landmark.gd"))
+	gate.set("label", "Gloop Kingdom")
+	scene.add_child(gate)
+	gate.global_position = ground(scene, GATE.x, GATE.y)
+	gate.rotation.y = atan2(GATE_FACING.x, GATE_FACING.y)     # (its +Z, where the mouth is, faces the town)
+	var goo := StandardMaterial3D.new()
+	goo.resource_name = "Gate Goo"
+	goo.albedo_color = Color(0.55, 0.78, 0.2)
+	goo.roughness = 0.12
+	goo.clearcoat_enabled = true
+	goo.rim_enabled = true
+	goo.emission_enabled = true
+	goo.emission = Color(0.55, 0.78, 0.2)
+	goo.emission_energy_multiplier = 0.2
+	var gold := _mat(Color(1.0, 0.78, 0.25))
+	gold.metallic = 0.8
+	gold.roughness = 0.25
+	# The mound: a big dome of goo, solid, with gold drips running down it
+	var mound := StaticBody3D.new()
+	mound.name = "Gate Mound"
+	gate.add_child(mound)
+	var dome := SphereMesh.new()
+	dome.radius = GATE_RADIUS
+	dome.height = GATE_RADIUS * 1.5
+	var mi := MeshInstance3D.new()
+	mi.mesh = dome
+	mi.material_override = goo
+	mi.position.y = GATE_RADIUS * 0.15
+	mound.add_child(mi)
+	var cs := CollisionShape3D.new()
+	var ss := SphereShape3D.new()
+	ss.radius = GATE_RADIUS * 0.8
+	cs.shape = ss
+	cs.position.y = 0.4
+	mound.add_child(cs)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1029
+	for k in 9:
+		var a := -PI / 2.0 + (k - 4) * 0.42 + PI
+		var drip := MeshInstance3D.new()
+		var cap := CapsuleMesh.new()
+		cap.radius = 0.32
+		cap.height = rng.randf_range(1.6, 3.0)
+		drip.mesh = cap
+		drip.material_override = gold
+		drip.position = Vector3(cos(a) * GATE_RADIUS * 0.85, GATE_RADIUS * 0.55, sin(a) * GATE_RADIUS * 0.85)
+		drip.rotation.x = 0.4 * signf(sin(a))
+		gate.add_child(drip)
+	# The mouth: a dark gooey hollow with a gold arch round it
+	var hole := MeshInstance3D.new()
+	var hm := CylinderMesh.new()
+	hm.top_radius = 1.9
+	hm.bottom_radius = 1.9
+	hm.height = 0.2
+	hole.mesh = hm
+	hole.material_override = _mat(Color(0.1, 0.16, 0.05))
+	hole.rotation.x = PI / 2.0
+	hole.position = Vector3(0, 1.7, GATE_RADIUS * 0.82)
+	gate.add_child(hole)
+	var arch := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 1.9
+	tm.outer_radius = 2.4
+	arch.mesh = tm
+	arch.material_override = gold
+	arch.rotation.x = PI / 2.0
+	arch.position = Vector3(0, 1.7, GATE_RADIUS * 0.84)
+	gate.add_child(arch)
+	# His crown on top
+	var crown := Node3D.new()
+	crown.name = "Gate Crown"
+	crown.position = Vector3(0, GATE_RADIUS * 0.9 + 0.6, 0)
+	gate.add_child(crown)
+	var band := MeshInstance3D.new()
+	var bm := CylinderMesh.new()
+	bm.top_radius = 1.6
+	bm.bottom_radius = 1.6
+	bm.height = 0.9
+	band.mesh = bm
+	band.material_override = gold
+	crown.add_child(band)
+	for k in 5:
+		var a := TAU * k / 5.0
+		var spike := MeshInstance3D.new()
+		var sm := CylinderMesh.new()
+		sm.top_radius = 0.0
+		sm.bottom_radius = 0.5
+		sm.height = 1.2
+		spike.mesh = sm
+		spike.material_override = gold
+		spike.position = Vector3(cos(a) * 1.35, 1.0, sin(a) * 1.35)
+		crown.add_child(spike)
+	var gem := MeshInstance3D.new()
+	var gm := SphereMesh.new()
+	gm.radius = 0.35
+	gm.height = 0.7
+	gem.mesh = gm
+	var ruby := _mat(Color(0.95, 0.15, 0.25))
+	ruby.emission_enabled = true
+	ruby.emission = Color(0.95, 0.15, 0.25)
+	ruby.emission_energy_multiplier = 0.8
+	gem.material_override = ruby
+	gem.position = Vector3(0, 0.1, 1.62)
+	crown.add_child(gem)
+	# A sign, and the way in
+	var sign := Label3D.new()
+	sign.name = "Gate Sign"
+	sign.text = "THE GLOOP KINGDOM\n(knock first)"
+	sign.font_size = 48
+	sign.pixel_size = 0.01
+	sign.modulate = Color(1.0, 0.85, 0.35)
+	sign.outline_size = 12
+	sign.outline_modulate = Color(0.12, 0.08, 0.05)
+	sign.position = Vector3(0, 4.3, GATE_RADIUS * 0.9)
+	gate.add_child(sign)
+	var spot = (load("res://scripts/use_spot.gd") as GDScript).call("make", Vector3(0, 0, GATE_RADIUS + 0.8),
+		func() -> String: return "go in to the Gloop Kingdom", enter_kingdom, 2.6, 2.6)
+	spot.name = "Gate Spot"
+	gate.add_child(spot)
+
+
+func enter_kingdom() -> void:
+	Game.pending_message = ""
+	Game.go(KINGDOM, "Entrance", "the Gloop Kingdom")

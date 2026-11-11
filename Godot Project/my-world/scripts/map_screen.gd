@@ -440,6 +440,9 @@ func _draw_full() -> void:
 			where = "You're in the Scary World, behind the gate in the Spooky Woods. The gate behind you leads home."
 			var gate := r.position + to_map(Vector3(-128, 0, -150)) * r.size
 			_star(c, gate, 10.0)
+		elif s and s.scene_file_path == Bosses.KINGDOM:
+			where = "You're in the Gloop Kingdom, through the gooey gate in the west fields. A goo bubble by the way in takes you home."
+			_star(c, r.position + to_map(Vector3(Bosses.GATE.x, 0, Bosses.GATE.y)) * r.size, 10.0)
 		elif s and Portals.is_world_scene(s.scene_file_path):
 			where = "You're in %s, through a portal. The way home takes you back to the Void any time." % Portals.world_for_scene(s.scene_file_path).name
 		elif s and s.scene_file_path == "res://scenes/earth/earth.tscn":

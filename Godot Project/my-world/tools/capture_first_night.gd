@@ -186,6 +186,12 @@ func _run() -> void:
 	await _frames(4)
 
 	# --- The Gloop King ---
+	# (in his own kingdom, through the Gloop Gate: scripts/gloop_kingdom.gd)
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(12)
+	await _physics(4)
+	current_scene.call("wake")
+	await _physics(60)
 	var king := current_scene.find_child("The Gloop King", true, false) as Node3D
 	player = _player()
 	player.global_position = king.global_position + Vector3(6.0, 0.8, 6.0)
@@ -200,6 +206,10 @@ func _run() -> void:
 	await _frames(8)
 	await _view("16_hooray", player.global_position + Vector3(3.0, 2.5, 5.0), player.global_position + Vector3(0, 1.2, 0), 4)
 	await create_timer(1.0).timeout
+	current_scene.call("go_home")
+	await _frames(12)
+	await _physics(10)
+	player = _player()
 	_snap("dash")
 	await _physics(6)
 	dash = _body("dash")

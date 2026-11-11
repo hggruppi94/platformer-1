@@ -622,8 +622,8 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 			bad.append("%s %s" % [c.name, at])
 	check(bad.is_empty(), "...each on open ground, out of the water %s" % str(bad))
 	var near_king: int = crates.filter(func(c: Node) -> bool:
-		return (c as Node3D).global_position.distance_to(Vector3(-128, 0, 8)) < 20.0).size()
-	check(near_king >= 3, "...%d of them near the Gloop King" % near_king)
+		return (c as Node3D).global_position.distance_to(Vector3(-126, 0, 5)) < 20.0).size()
+	check(near_king >= 3, "...%d of them out by the Gloop Gate" % near_king)
 	arsenal.ammo["fizz"] = 0
 	arsenal.ammo["jelly"] = 0
 	var crate := crates[0] as Node3D

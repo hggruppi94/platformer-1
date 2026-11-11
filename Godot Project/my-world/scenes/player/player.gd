@@ -728,7 +728,7 @@ func on_ice() -> bool:
 
 func ground_kind() -> String:
 	# Water and clouds she's in come first; otherwise whatever is under her feet
-	for k in ["water", "bath", "spring", "cloud"]:
+	for k in ["water", "bath", "spring", "goo", "cloud"]:
 		if in_zone(k):
 			return "cloud" if k == "cloud" else "water"
 	return Surfaces.kind_of(_floor_node)

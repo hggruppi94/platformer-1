@@ -25,7 +25,8 @@ extends Node
 #   8 day      the Void: a request from Tally's board, Rex and Coach Bruno's first two lesson steps, three Gloops
 #              (stomped: the Star Popper's Dash's, later), the fountain's watch. After the ollie Rex sends them after
 #              his twin, Dash: "The Bike Boy" (res://quests/bike_boy.json, scripts/meetings.gd), which can run
-#              alongside and has the Gloop King in it now.
+#              alongside and has the Gloop King in it now (in his own kingdom, through the Gloop Gate
+#              in the west fields: scripts/gloop_kingdom.gd).
 #   9 home     pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
 # (Nov 11 2026, Hayden's meeting order: Dash isn't waiting at the portal any more and the King step moved to The
@@ -480,7 +481,7 @@ func _cheer() -> void:
 		var at := player.global_position + Vector3(0, 2.0, 0)
 		for c in [Color(1.0, 0.85, 0.3), Color(0.7, 0.55, 1.0), Color(0.4, 0.95, 0.8), Color(1.0, 0.5, 0.75)]:
 			Fx.burst(player.get_parent(), at, c, 14, 0.09, 4.0, -4.0, 1.6)
-	Game.message("HOORAY! You popped the Gloop King! Dash is cheering at the edge of the fields. Go and tell him!")
+	Game.message("HOORAY! You popped the Gloop King! Dash is waiting out by the west fields. Take the goo bubble home and tell him!")
 
 
 func crown_from_dash() -> Array:

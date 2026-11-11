@@ -109,7 +109,12 @@ func _run() -> void:
 	check(town.find_children("Pebbledillo *", "", true, false).is_empty(), "popped Pebbledillos are gone for good")
 	check(not boss._cross and boss.rolls_in_a_row == 3, "it calms down again for next time")
 
-	# --- The Gloop King gets cross ---
+	# --- The Gloop King gets cross (in his own kingdom: scripts/gloop_kingdom.gd) ---
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
+	town = current_scene as Node3D
+	town.call("wake")
 	var king := town.find_child("The Gloop King", true, false)
 	king.set_physics_process(false)
 	var flop: float = king.flop_every

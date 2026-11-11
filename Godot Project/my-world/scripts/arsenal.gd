@@ -102,7 +102,7 @@ const UPGRADE_MAX := 3
 const MAGNET_RANGE := 9.0                 # with a Sparkle Magnet: sparkles this close fly to her
 const CRATES := [                         # ammo crates round the Void (x, z; dropped onto the ground): ammo_crate.gd
 	Vector2(-60, 52), Vector2(-84, 30),                      # the Market Square
-	Vector2(-121, 16), Vector2(-136, 2), Vector2(-127, 24),   # by the Gloop King's court, out west
+	Vector2(-121, 16), Vector2(-118, 4), Vector2(-127, 24),  # by the Gloop Gate, out west
 	Vector2(47, 66),                                         # the Skate Park
 	Vector2(116, 12),                                        # under the tree house
 	Vector2(-112, -100),                                     # the Spooky Woods

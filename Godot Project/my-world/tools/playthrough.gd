@@ -281,13 +281,25 @@ func _ch_first_night() -> void:
 	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
 	await _frames(30)
 	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
+	# He's in his own kingdom now, through the Gloop Gate in the west fields (scripts/gloop_kingdom.gd)
+	var gate := current_scene.get_node_or_null("Gloop Gate") as Node3D
+	check(gate != null, "the Gloop Gate's in the west fields")
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
+	check(current_scene.scene_file_path == root.get_node("Bosses").KINGDOM, "through it to the Gloop Kingdom")
 	var king := current_scene.find_child("The Gloop King", true, false)
-	_player().global_position = (king as Node3D).global_position + Vector3(0, 1, 9)
-	await _physics(10)
+	_player().global_position = Vector3(0, 1, 80)
+	await _physics(20)
+	check(bool(current_scene.get("awake")), "into his court: he's up off his throne")
 	await shot("gloop_king")
 	await _pop(king)
 	check(dialogue.flags.has("popped_gloop_king"), "the Gloop King popped")
-	await _physics(30)
+	current_scene.call("go_home")
+	await _frames(10)
+	await _physics(20)
+	check(current_scene.scene_file_path == TOWN, "the goo bubble takes you back to the Void")
+	await _physics(10)
 	await _talk("dash")                               # (the fountain's lost watch first: Dash always takes those first)
 	await _frames(10)
 	if not quests.is_done("bike_boy"):
@@ -1498,7 +1510,9 @@ func _talker(id: String) -> Area3D:
 
 func _starter(track: String) -> Node3D:
 	for t in current_scene.find_children("*", "Area3D", true, false):
-		if t.get_parent() and str(t.get_parent().get_meta("track_id", "")) == track and t.has_method("begin_talk"):
+		# (the starter's at the race gate: scripts/races.gd HUBS; any open race can be picked there)
+		if t.get_parent() and (str(t.get_parent().get_meta("track_id", "")) == track \
+				or str(t.get_parent().get_meta("hub_id", "")) == root.get_node("Races").hub_of(track)) and t.has_method("begin_talk"):
 			return t
 	return null
 

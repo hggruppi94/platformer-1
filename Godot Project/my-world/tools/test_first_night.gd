@@ -371,9 +371,9 @@ func _talker(id: String) -> Area3D:
 
 
 func _starter() -> Node3D:
-	# Zippy's talk spot at the Lake Loop (scripts/races.gd)
+	# Zippy's talk spot at the race gate by the lake (scripts/races.gd HUBS: the races have circuits of their own)
 	for t in current_scene.find_children("*", "Area3D", true, false):
-		if t.get_parent() and str(t.get_parent().get_meta("track_id", "")) == "lake_loop" and t.has_method("begin_talk"):
+		if t.get_parent() and str(t.get_parent().get_meta("hub_id", "")) == "void" and t.has_method("begin_talk"):
 			return t
 	return null
 

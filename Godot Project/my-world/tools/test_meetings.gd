@@ -171,9 +171,14 @@ func _run() -> void:
 	# --- The Gloop King ---
 	await _physics(30)
 	stars = root.get_node("TownMap").quest_markers()
-	check(stars.any(func(s: Dictionary) -> bool: return Vector2(s.pos.x + 134, s.pos.z - 2).length() < 1.0), "a star on the King's court")
+	check(stars.any(func(s: Dictionary) -> bool: return Vector2(s.pos.x + 128, s.pos.z + 3).length() < 1.0), "a star on the Gloop Gate")
+	# He's in his own kingdom (scripts/gloop_kingdom.gd), through the Gloop Gate in the west fields
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
 	var king := current_scene.find_child("The Gloop King", true, false)
-	check(king != null, "the Gloop King is there")
+	check(king != null, "the Gloop King is there, through his gate")
+	current_scene.call("wake")
 	messages.clear()
 	var guard := 40
 	while king and not king.defeated and guard > 0:
@@ -183,6 +188,9 @@ func _run() -> void:
 	await _frames(4)
 	check(dialogue.flags.has("popped_gloop_king") and messages.any(func(m: String) -> bool: return m.contains("HOORAY")),
 		"the Gloop King popped, with a cheer")
+	current_scene.call("go_home")
+	await _frames(10)
+	await _physics(30)
 	dash = _talker("dash")
 	lines = await _talk_to(dash)
 	check(game.has_item("shop:gloop_crown") and str(game.outfit.get("head", "")) == "gloop_crown", "Dash gives the Gloop Crown")
