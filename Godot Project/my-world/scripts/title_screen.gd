@@ -70,6 +70,7 @@ func _ready() -> void:
 	cam.make_current()
 	_show_world("galaxity")
 	_build_ui()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE   # the menu needs the cursor (the game grabs it once you're playing)
 	Audio.music("town_day" if Audio.music_path("town_day") != "" else "town")
 
 
@@ -81,6 +82,8 @@ func _exit_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE   # ...and keeps it, whatever else tries to grab it
 	if opening_on:
 		_cam_t = minf(_cam_t + delta / _cam_len, 1.0)
 		var k := _cam_t * _cam_t * (3.0 - 2.0 * _cam_t)

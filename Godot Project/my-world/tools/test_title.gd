@@ -64,6 +64,8 @@ func _run() -> void:
 	check(t != null and t.scene_file_path == TITLE and t.cam != null and t.cam.current, "the title screen is up, with its own camera")
 	check(t._bg != null and t._bg.find_child("Player", true, false) == null, "...the Void behind it, with nobody playing")
 	check(is_equal_approx(clock.minutes, t.DAWN), "...at dawn")
+	check(DisplayServer.get_name() == "headless" or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "...and the mouse cursor shows")
+	check(not root.get_node("Races").hud.choice_box.visible, "...and the race HUD's choices start hidden (hiding them grabs the mouse)")
 	var cont: Button = t.continue_button
 	check(cont != null and cont.visible, "with a save there's a Continue button")
 	var info := t.menu_box.get_node_or_null("SaveInfo") as Label

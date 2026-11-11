@@ -75,6 +75,8 @@ func _ready() -> void:
 	choice_box = HBoxContainer.new()
 	choice_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	choice_box.add_theme_constant_override("separation", 24)
+	choice_box.visible = false     # hidden from the start: hiding it again later hands the mouse back to the game,
+	                               # and doing that as the game loads hid the cursor on the title screen
 	col.add_child(choice_box)
 
 	warn_label = _label(26, Color(1.0, 0.75, 0.85))
