@@ -70,6 +70,11 @@ var _roll_dir := Vector3.ZERO
 var _roll_buffer_timer := 0.0
 var _dash_held := 0.0                       # how long the roll button's been held (sprinting after sprint_hold)
 var sprinting := false
+# Sprinting needs the roll button pressed fresh, on foot, and held ever since. Anything else she does in between (a
+# ride, burrowing, swimming, climbing, being carried, a talk or menu holding the controls, the window losing focus)
+# ends it, and it won't come back until the button's let go and pressed again. (Hayden's day 1 playtest, 11 Nov
+# 2026: "some actions trigger sprint to be stuck toggled on".)
+var _sprint_armed := false
 var _sprint_puff := 0.0
 var _air_jump_used := false
 var _spin_timer := 0.0                      # somersault (roll) or front flip (double jump) in progress
@@ -376,6 +381,18 @@ func is_sprinting() -> bool:
 	return sprinting
 
 
+func stop_sprint() -> void:
+	# Out of a sprint until the roll button's pressed again (see _sprint_armed)
+	sprinting = false
+	_sprint_armed = false
+	_dash_held = 0.0
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		stop_sprint()
+
+
 func hurt(amount: int, from: Vector3) -> void:
 	# Called by enemies on touch. Knocks her away from the hit, then she blinks and can't be hurt for a moment.
 	if is_invulnerable():
@@ -429,6 +446,8 @@ func _physics_process(delta: float) -> void:
 		swim.stop()
 	if wall_crawl.active and (carried or Game.riding):
 		wall_crawl.stop()
+	if carried or Game.riding or burrow.active or swim.active or wall_crawl.active:
+		stop_sprint()
 	if carried:
 		return
 	var on_floor := is_on_floor()
@@ -527,7 +546,11 @@ func _physics_process(delta: float) -> void:
 	if _roll_buffer_timer > 0.0 and on_floor:
 		_try_roll(direction)
 	# Sprint: still holding it once the roll's done, and steering somewhere
-	_dash_held = _dash_held + delta if Input.is_action_pressed("dash") and not input_locked else 0.0
+	if Input.is_action_just_pressed("dash") and not input_locked:
+		_sprint_armed = true
+	if not Input.is_action_pressed("dash") or input_locked or _stun_timer > 0.0:
+		_sprint_armed = false
+	_dash_held = _dash_held + delta if _sprint_armed else 0.0
 	sprinting = _dash_held >= sprint_hold and direction != Vector3.ZERO and _roll_timer <= 0.0 \
 		and _stun_timer <= 0.0 and not popper.aiming
 

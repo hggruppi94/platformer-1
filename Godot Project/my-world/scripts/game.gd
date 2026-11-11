@@ -304,15 +304,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _board_button_free(event: InputEvent) -> bool:
-	# On a controller, Y is both the board and Grind (scenes/player/skate.gd). While she's riding it only steps her off
-	# when she's rolling on the ground with no rail in reach; the keyboard has its own Grind key, so E always works on
-	# the ground.
+	# Y on a controller and E on the keyboard are both the board and Grind (scenes/player/skate.gd). While she's riding
+	# the button only steps her off when she's rolling on the ground with no rail in reach. (If the player gives Grind
+	# a key of its own, the board key always works on the ground.)
 	var player := get_tree().get_first_node_in_group("player")
 	if not riding or player == null or player.get("skate") == null:
 		return true
 	if not player.skate.can_step_off():
 		return false
-	return not (event is InputEventJoypadButton and player.skate.rail_in_reach())
+	return not (event.is_action("skate_grind") and player.skate.rail_in_reach())
 
 
 func _player_carried() -> bool:

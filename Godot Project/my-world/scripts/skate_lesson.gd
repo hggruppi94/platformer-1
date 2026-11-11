@@ -34,8 +34,12 @@ const STEPS := [
 	{"id": "combo", "woof": "WOOF!", "says": "Latht one. Link three trickth before you land. Thith is where it getth good.",
 		"text": "Combo: link three tricks before you land and roll away (a flip, a grab and a spin, or a grind into a manual). Popping a Gloop with {shoot} counts too!"},
 ]
-const PRAISE := ["Thick! (Rook wags his whole back end.)", "YETH! (Rook does a proud little spin.)",
-	"Nithe one. (Rook gives you a paw bump.)", "Okay that wath actually good. (Awoooo!)"]
+# Rook's the dog in Rex's human body (Rex is the husky): a boy on his hands and knees who thinks he's still a dog. No
+# tail to wag and no paws, so his cheering is a boy's body doing dog things. (Hayden's day 1 playtest: the lesson had
+# Rex and Rook mixed up, describing the husky.)
+const PRAISE := ["Thick! (Rook wiggles his whole bottom, since he hasn't got a tail any more.)",
+	"YETH! (Rook chases his own back in a proud little circle.)",
+	"Nithe one. (Rook licks your hand. Ew. Nice, though.)", "Okay that wath actually good. (Rook howls: \"AWOOOO!\")"]
 # Under stress (two bails on one step): his Godfather voice, our own parody lines, then he's himself again
 const STRESSED := [
 	"(Bruno's voice goes low and slow and very Italian.) You come to MY thkate park... and you fall on MY ramp... (Normal again.) It'th fine. Again.",
