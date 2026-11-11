@@ -257,6 +257,8 @@ func _finish() -> void:
 	if is_instance_valid(_old_cam):
 		_old_cam.make_current()
 	Game.hold_controls(&"chaos_ending", false)
+	# Rex and Dash's last loose ends start now that it's over (quests/loose_ends.json, scripts/after_the_ending.gd)
+	(load("res://scripts/after_the_ending.gd") as GDScript).call("start_if_due")
 	var p := _player()
 	if p and _friends_from != Vector3.ZERO:
 		Game.message("The friends who taught you every move are here with you. Go and say hi... or just look at the sky.")

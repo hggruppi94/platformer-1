@@ -142,7 +142,8 @@ func _process(delta: float) -> void:
 				quake(due)
 		_update_previews()
 	elif here != "" and not _pulling:
-		if not Dialogue.is_active() and not get_tree().paused and not practice:
+		if not Dialogue.is_active() and not get_tree().paused and not practice \
+				and get_tree().get_first_node_in_group("cutscene_playing") == null:
 			time_left = maxf(time_left - delta, 0.0)
 		if time_left <= WARN_AT and not _warned:
 			_warned = true
@@ -721,6 +722,8 @@ func _hub_changes(s: Node) -> void:
 		_blossom_orchard()
 	if is_cleared("dark_hollow"):
 		_centipede_holes()
+	# The story's ending: Rex and Rook back in their own bodies, and Dash gone home (scripts/after_the_ending.gd)
+	(load("res://scripts/after_the_ending.gd") as GDScript).call("void_changes", s)
 
 
 func _centipede_holes() -> void:
@@ -1097,6 +1100,8 @@ func _show_timer() -> void:
 	var box := _timer_label.get_parent() as Control
 	var on := here != "" and not _pulling and get_tree().current_scene != null
 	box.visible = on
+	# Out of the way while a cutscene plays (the timer stands still then anyway), still there to read
+	box.modulate.a = 0.0 if get_tree().get_first_node_in_group("cutscene_playing") else 1.0
 	if on:
 		_timer_label.text = "⏳ %s  %s" % [world(here).name, time_words(time_left)]
 		if practice:

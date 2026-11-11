@@ -3,6 +3,27 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "loose_ends:lab",
+        "watches_to_give": false
+      },
+      "lines": [
+        "(Dash is scribbling sums on his arm. He stops when he sees you.)",
+        "His clock's stopped. Nothing's pulling on the Swap-o-Tron any more. Nothing at ALL.",
+        "Come to my lab in the Far Future, {player}. Rex is getting his hands back. For good, this time."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "loose_ends:clock",
+        "watches_to_give": false
+      },
+      "lines": [
+        "(Dash is looking up at the sky. He waves when he sees you, but he doesn't say anything for a while.)",
+        "I'll be at the Tomorrow Clock, {player}. Don't be long. Well. Be as long as you like. Actually, no. Don't be long."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "slide_mystery:why",
         "not_flag": "slide_ask_dash"
       },

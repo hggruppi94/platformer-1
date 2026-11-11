@@ -1,0 +1,58 @@
+{
+  "name": "Loose Ends",
+  "giver": "dash",
+  "start": {
+    "flag": "loose_ends_start"
+  },
+  "steps": [
+    {
+      "id": "lab",
+      "text": "His clock's stopped and the knot's come loose. Rex and Dash want you in Dash's lab, in the Far Future.",
+      "done": {
+        "flag": "rex_home"
+      },
+      "where": [
+        {
+          "at": [
+            117,
+            -18
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "text": "Dash wants everyone at the Tomorrow Clock, in the middle of Lumen City.",
+      "done": {
+        "flag": "dash_goodbye"
+      },
+      "where": [
+        {
+          "at": [
+            117,
+            -18
+          ]
+        }
+      ]
+    },
+    {
+      "id": "letter",
+      "text": "Rex says Dash left something for you in his lab.",
+      "done": {
+        "flag": "dash_letter_read"
+      },
+      "where": [
+        {
+          "at": [
+            117,
+            -18
+          ]
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 20,
+    "message": "Dash's letter is yours to keep: it waits on his workbench whenever you want to read it again. (+20 sparkles)"
+  }
+}

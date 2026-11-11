@@ -100,6 +100,8 @@ func pick_track() -> String:
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if Races.racing():
 		return "race"
+	if not get_tree().get_nodes_in_group("goodbye_playing").is_empty():
+		return "chaos_ending"                 # Dash's goodbye at the Tomorrow Clock (scripts/dash_goodbye.gd): the gentle one
 	for f in get_tree().get_nodes_in_group("chaos_fight"):
 		# The Agent of Chaos: his own music in the fight, and a gentler one for his ending
 		var end := f.get("ending") as Node
