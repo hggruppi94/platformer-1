@@ -1,5 +1,5 @@
 {
-  "name": "Night 7: The Agent of Chaos",
+  "name": "Night 7: The Far Corners",
   "skippable": true,
   "start": {
     "flag": "night_7"
@@ -33,7 +33,7 @@
         ],
         [
           "n7_giant",
-          "Get a look at the Agent of Chaos, from a safe distance"
+          "Have a careful look round the far field, behind the castle hill"
         ]
       ],
       "done": {

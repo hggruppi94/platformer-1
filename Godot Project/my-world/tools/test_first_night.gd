@@ -180,7 +180,7 @@ func _run() -> void:
 	await _frames(4)
 	check(_step() == "wait" and not oak_mod.awake(), "on to waiting for midnight (the oak's not open yet)")
 	lines = await _talk("nina_earth")
-	check(_said(lines, "Until the Shift") and root.get_node("FirstNight").shift_sleep_ok(), "Nina suggests the bed's \"Until the Shift\"")
+	check(_said(lines, "Until midnight") and root.get_node("FirstNight").shift_sleep_ok(), "Nina suggests the bed's \"Until midnight\"")
 
 	# --- The bed: Until the Shift ---
 	var bed := current_scene.find_child("SleepSpot", true, false)
@@ -302,7 +302,7 @@ func _run() -> void:
 	check(messages.any(func(m: String) -> bool: return m.contains("HOORAY")), "...with a cheer")
 	var sparkles: int = game.sparkles
 	lines = await _talk("dash")
-	check(_said(lines, "Agent of Chaos"), "Dash hints at the Agent of Chaos, watching from the far field")
+	check(not _said(lines, "Agent of Chaos") and _said(lines, "flickers"), "Dash only hints (the sky flickers): no Agent of Chaos yet")
 	check(game.has_item("shop:gloop_crown") and str(game.outfit.get("head", "")) == "gloop_crown" and game.sparkles == sparkles + 15,
 		"the reward: the Gloop Crown, worn straight away, and 15 sparkles")
 	var crown: Node3D = Cosmetics.hat("gloop_crown")
