@@ -91,6 +91,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **The hero changes a little in the Void: their watch, glowing eyes and an alien feature** (Hayden: "maybe
+  there is another way we can change the characters when they enter the void? Adding watches to their wrists etc",
+  then "Yes to the void changes"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/void_look.gd`** (no class_name, preload it; `scenes/player/player.gd` puts it on after `Hero.apply()`):
+    in the Void (`in_void()`: any scene but Stars Hollow, the title screen and the Earth race circuit) the hero gets
+    their **watch on the left wrist** (the Time Keeper once they have it, else the Shift Watch; nothing before they
+    have one, and no second one if they're wearing one in the hands slot; made round the human kids' wrist, `WRIST_R`),
+    **a soft glow in their eyes** (the Iris parts) and **one alien feature**: antennae, little horns, pointy ears or a
+    tail (`FEATURES`), skin-coloured with glowing tips in their **Void colour** (`GLOWS`, six). Built in code on the
+    head bone (the tail on the hips, swishing), in holders named "Void Look ...". On Earth they look just as made.
+  - Saved in `Game.hero` as `"void_feature"` and `"void_glow"`. A hero has none until **their first time in the Void**:
+    then one's picked at random and, 5 s after landing, a message says what they've got and where to change it (so the
+    creator never gives the Void away before they've been: Hayden's no-spoilers rule).
+  - **The creator's Void tab** (`Creator.tabs()`: only once they have a Void look): the four features as buttons, a
+    line about each, and the six glow colours. While the Void tab is open the hero on the turntable shows their Void
+    look, even on Earth (`Creator.previewing_void()`). Surprise me and Start over keep it (`_keep()`).
+  - Tests: new `tools/test_void_look.gd`. Previews: `tools/capture_void_look.gd` (shots in the project files under
+    world/previews/void_look).
+  - My choices Hayden may change: the four features and how they look, the six colours, a random feature on the first
+    visit, the watch showing even when they didn't put it on.
+
 - 2026-11-11: **The story's ending: Rex's body back for good, and Dash's goodbye** (Hayden: "we can add the ending
   next", gap 2 of the game-vs-lore audit; the story docs: "Dash learns he must repair the Shift, and the cost is never
   seeing his friends again", "bittersweet with hope"). Built and tested in the cloud (own Godot user folders, no save

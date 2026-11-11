@@ -60,6 +60,7 @@ const SPRING_STEP := preload("res://scripts/spring_step.gd")
 const PIP_GLOW := preload("res://scripts/pip_glow.gd")
 const SWIM := preload("res://scripts/swim.gd")
 const WALL_CRAWL := preload("res://scripts/wall_crawl.gd")
+const VOID_LOOK := preload("res://scripts/void_look.gd")   # the hero's watch, eye glow and alien feature in the Void
 
 var _coyote_timer := 0.0
 var _jump_buffer_timer := 0.0
@@ -313,11 +314,26 @@ func _on_equipment_changed() -> void:
 	# wardrobe (scripts/clothes.gd)
 	if rider == "hero":
 		Hero.apply(model, Game.hero, Game.outfits.get("hero", {}))
+		# In the Void they change a little (scripts/void_look.gd); the first time, they find out what they've got
+		var in_void := VOID_LOOK.shown_on(self)
+		if in_void and not VOID_LOOK.has_look(Game.hero):
+			VOID_LOOK.pick_random(Game.hero)
+			_tell_void_look.call_deferred()
+		VOID_LOOK.apply(model, Game.hero, Game.outfits.get("hero", {}), in_void)
 	else:
 		Clothes.dress(model, rider, Game.outfits.get(rider, {}), Game.looks.get(rider, {}))
 	_hat = model.find_child("Hat", true, false) as Node3D
 	model.position.y = MODEL_Y + (float(skate.ride.deck) if Game.riding else 0.0)
 	model.rotation.y = float(skate.ride.stance) if Game.riding else 0.0
+
+
+func _tell_void_look() -> void:
+	# A few seconds after they first land in the Void (past the arrival swirl), they notice they've changed
+	await get_tree().create_timer(5.0).timeout
+	if not is_inside_tree():
+		return
+	var what := str(VOID_LOOK.FEATURE_NAMES[VOID_LOOK.feature(Game.hero)]).to_lower()
+	Game.message("Whoa, you've changed in the Void: glowing eyes and %s! Change it any time: \"Change your hero...\" in your menu, on the Void tab." % what)
 
 
 func _add_sash() -> void:
