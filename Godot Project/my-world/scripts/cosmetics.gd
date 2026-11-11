@@ -67,6 +67,20 @@ static func hat(id: String) -> Node3D:
 	h.name = "Hat"
 	h.position.y = HAT_Y
 	match id:
+		"dash_cap":
+			# What Dash leaves you when he goes home (scripts/dash_goodbye.gd): his cap, worn a bit soft, with a little gold
+			# clock badge on the front, its hands stopped at midnight like the watch the Agent of Chaos left
+			var cloth := _mat(Color(0.2, 0.62, 0.55))
+			var trim := _mat(Color(0.55, 1.0, 0.4), 0.6)
+			_mesh(h, _sphere(0.3), cloth, Vector3(0, -0.05, 0), Vector3.ZERO, Vector3(1, 0.52, 1))
+			_mesh(h, _torus(0.27, 0.31), trim, Vector3(0, -0.07, 0), Vector3.ZERO, Vector3(1, 0.5, 1))
+			_mesh(h, _cyl(0.21, 0.21, 0.02), cloth, Vector3(0, -0.075, 0.31), Vector3.ZERO, Vector3(1, 1, 0.75))
+			_mesh(h, _sphere(0.035), trim, Vector3(0, 0.1, 0))
+			var badge := _mat(Color(1.0, 0.8, 0.3), 0.3, 0.8)
+			_mesh(h, _cyl(0.06, 0.06, 0.02), badge, Vector3(0, 0.02, 0.265), Vector3(PI / 2.0 - 0.35, 0, 0))
+			var tick := BoxMesh.new()
+			tick.size = Vector3(0.008, 0.045, 0.006)
+			_mesh(h, tick, _mat(Color(0.15, 0.1, 0.25)), Vector3(0, 0.035, 0.28), Vector3(-0.35, 0, 0))
 		"propeller_cap":
 			var cap := _mat(Color(0.95, 0.3, 0.3))
 			var stripe := _mat(Color(0.3, 0.55, 1.0))

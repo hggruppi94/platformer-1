@@ -13,6 +13,103 @@
     },
     {
       "when": {
+        "quest_step": "loose_ends:lab",
+        "watches_to_give": false
+      },
+      "lines": [
+        "You felt that, right? The knot in my tummy's GONE, {player}.",
+        "Dash ran off to his lab in the Far Future. The real one. He says the Swap-o-Tron can finish what it started.",
+        "Meet us there? I'll bring Rook. And a ball. Rook works better with a ball."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "loose_ends:clock",
+        "watches_to_give": false
+      },
+      "lines": [
+        "(Rex flexes his fingers. He keeps doing that.)",
+        "Hands, {player}. Still hands. I keep checking.",
+        "Dash is at the Tomorrow Clock. Everyone's going. I'll be there. Will you?"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "loose_ends:letter",
+        "watches_to_give": false
+      },
+      "lines": [
+        "He left you something, {player}. On his workbench, in the Far Future. He made me promise not to read it. I didn't. Nearly didn't."
+      ]
+    },
+    {
+      "when": {
+        "flag": "dash_goodbye",
+        "watches_to_give": true,
+        "not_flag": "rex_watches_first"
+      },
+      "set": "rex_watches_first",
+      "do": "Watches.watches_hand_in",
+      "lines": [
+        "{player}: Rex... I found another lost watch.",
+        "(Rex takes it very carefully. With both hands. His own hands.)",
+        "Dash told me to keep collecting them for him. He left a list. A LONG list. With drawings.",
+        "That's {watches_given} of 20."
+      ]
+    },
+    {
+      "when": {
+        "flag": "dash_goodbye",
+        "watches_to_give": true
+      },
+      "do": "Watches.watches_hand_in",
+      "rotate": [
+        [
+          "{player}: More watches, Rex!",
+          "Dash would have held this up to his ear. (Rex holds it up to his ear.) Huh. It IS ticking in a hurry.",
+          "{watches_given} of 20!"
+        ],
+        [
+          "{player}: Here. For Dash's collection.",
+          "For Dash's collection. I like that. {watches_given} down, {watches_left} to go."
+        ]
+      ]
+    },
+    {
+      "when": {
+        "flag": "dash_goodbye",
+        "not_flag": "rex_after_goodbye"
+      },
+      "set": "rex_after_goodbye",
+      "lines": [
+        "{player}. Hi. Look at me, walking about on two legs like I own them. Which I do. Again.",
+        "It's weird without him. The lab's too quiet. Nobody's blowing anything up.",
+        "But he said see you later, so that's what I say too. See you later, Dash. Every morning. Out loud.",
+        "Want to go skating sometime? I'm rubbish on legs now. You can laugh. He'd want you to."
+      ]
+    },
+    {
+      "when": {
+        "flag": "dash_goodbye",
+        "every": 3
+      },
+      "rotate": [
+        [
+          "I swept Dash's lab today. He never did. It's not the same. It's cleaner. It's AWFUL."
+        ],
+        [
+          "Mr. Palmer let me sit in his chair today. For practice. I didn't even spin in it. Much."
+        ],
+        [
+          "Rook's taken up my old paw skates. He's better at it than I ever was. Don't tell him."
+        ],
+        [
+          "Sometimes at midnight my watch goes tick, really loud, all on its own. I say hi back. Just in case."
+        ]
+      ]
+    },
+    {
+      "when": {
         "quest_step": "night_6:hi"
       },
       "set": "n6_hi",

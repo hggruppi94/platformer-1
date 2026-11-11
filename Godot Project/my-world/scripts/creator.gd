@@ -14,7 +14,8 @@ extends Node
 
 signal closed
 
-const TABS := ["Body", "Face", "Hair", "Colours", "Clothes", "Name"]
+const TABS := ["Body", "Face", "Hair", "Colours", "Clothes", "Void", "Name"]
+const VOID_LOOK := preload("res://scripts/void_look.gd")   # (the Void tab only shows once they've been to the Void)
 const FACE_PARTS := ["eyes", "blush", "brows"]          # (skin is on the Body tab, with the skin tones)
 const CLOTHES_PARTS := ["top", "bottoms", "shoes"]
 
@@ -32,6 +33,7 @@ var _cam: Camera3D
 var _old_cam: Camera3D
 var _player: Node3D
 var _dragging := false
+var _void_shown := false               # the turntable's hero has their Void look on for the Void tab
 
 
 func _ready() -> void:
@@ -51,6 +53,15 @@ func check_secrets() -> void:
 
 func is_open() -> bool:
 	return _layer.visible
+
+
+func previewing_void() -> bool:
+	# On the Void tab the hero on the turntable shows their Void look, even on Earth (scenes/player/player.gd)
+	return is_open() and _tab == "Void"
+
+
+func tabs() -> Array:
+	return TABS.filter(func(t: String) -> bool: return t != "Void" or VOID_LOOK.has_look(Game.hero))
 
 
 func open(first_time := false) -> void:
@@ -106,6 +117,7 @@ func close() -> void:
 		_warn.text = "What's your name? Type it in before you go!"
 		return
 	_layer.visible = false
+	_show_void()
 	Game.needs_creator = false
 	if _player and is_instance_valid(_player) and _player.tree_exiting.is_connected(_abandon):
 		_player.tree_exiting.disconnect(_abandon)
@@ -133,6 +145,7 @@ func _abandon() -> void:
 	# saving. A new game's player opens it again when it arrives (scenes/player/player.gd).
 	_layer.visible = false
 	_dragging = false
+	_void_shown = false
 	_cam = null
 	_old_cam = null
 	_player = null
@@ -204,7 +217,9 @@ func step_face(step: int) -> void:
 
 func surprise() -> void:
 	# A whole new look, but still them: their name, pronouns and girl or boy stay
-	var keep := {"name": Game.hero.get("name", ""), "pronouns": Game.hero.get("pronouns", "they")}
+	var keep := _keep()
+	if VOID_LOOK.has_look(Game.hero):
+		VOID_LOOK.pick_random(keep)              # (only once they've been to the Void)
 	var girl := Hero.is_girl(Game.hero)
 	for i in 8:
 		Game.hero = Hero.random()
@@ -219,8 +234,17 @@ func surprise() -> void:
 	_changed()
 
 
-func start_over() -> void:
+func _keep() -> Dictionary:
+	# What stays through Surprise me and Start over: their name and pronouns, and their Void look once they have one
 	var keep := {"name": Game.hero.get("name", ""), "pronouns": Game.hero.get("pronouns", "they")}
+	for k in ["void_feature", "void_glow"]:
+		if Game.hero.has(k):
+			keep[k] = Game.hero[k]
+	return keep
+
+
+func start_over() -> void:
+	var keep := _keep()
 	Game.hero = Hero.blank(Hero.is_girl(Game.hero))
 	Game.hero.merge(keep, true)
 	_player.call("set_rider", "hero", false)
@@ -318,11 +342,20 @@ func _build() -> void:
 	bottom.add_child(done)
 
 
+func _show_void() -> void:
+	# On and off the Void tab, the hero on the turntable puts their Void look on or takes it off
+	if previewing_void() != _void_shown:
+		_void_shown = previewing_void()
+		Game.equipment_changed.emit()
+
+
 func _fill() -> void:
 	_warn.text = ""
 	for c in _tabs.get_children():
 		c.queue_free()
-	for t in TABS:
+	if not _tab in tabs():
+		_tab = "Body"
+	for t in tabs():
 		var b := _button(t, func() -> void:
 			_tab = t
 			_fill(), "Tab " + t)
@@ -411,6 +444,27 @@ func _fill() -> void:
 					_fill())
 				for b in row.find_children("*", "Button", false, false):
 					(b as Button).disabled = Shop.owned_for(slot).is_empty()
+		"Void":
+			_content.add_child(_label("When you cross into the Void you change a little: your watch on your wrist, a glow in your eyes and one alien feature. Pick yours!", 18, Color(0.85, 0.85, 1.0)))
+			var grid := GridContainer.new()
+			grid.name = "Void features"
+			grid.columns = 2
+			grid.add_theme_constant_override("h_separation", 8)
+			grid.add_theme_constant_override("v_separation", 8)
+			var now := VOID_LOOK.feature(h)
+			for f in VOID_LOOK.FEATURES:
+				var b := _button(VOID_LOOK.FEATURE_NAMES[f], set_value.bind("void_feature", f), "Void " + f)
+				b.toggle_mode = true
+				b.button_pressed = f == now
+				b.custom_minimum_size = Vector2(0, 44)
+				b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				grid.add_child(b)
+			_content.add_child(grid)
+			var about := _label(str(VOID_LOOK.FEATURE_ABOUT[now]), 17, Color(0.85, 0.85, 1.0))
+			about.name = "Void about"
+			_content.add_child(about)
+			_content.add_child(_label("Glow colour", 20))
+			_glow_swatches()
 		"Name":
 			_content.add_child(_label("Your name", 20))
 			var edit := LineEdit.new()
@@ -431,6 +485,7 @@ func _fill() -> void:
 				b.button_pressed = str(h.get("pronouns", "they")) == p
 				row.add_child(b)
 			_content.add_child(row)
+	_show_void()
 	var first := _content.find_children("*", "Button", true, false)
 	if not first.is_empty():
 		(first[0] as Control).grab_focus.call_deferred()
@@ -507,6 +562,36 @@ func _swatches(part: String, only := []) -> void:
 				s2.set_border_width_all(3 if k != pick else 5)
 			b.add_theme_stylebox_override(state, s2)
 		b.pressed.connect(set_color.bind(part, k))
+		grid.add_child(b)
+	_content.add_child(grid)
+
+
+func _glow_swatches() -> void:
+	# The Void glow colours (eyes, and the tips of their feature)
+	var grid := GridContainer.new()
+	grid.name = "Swatches glow"
+	grid.columns = 6
+	grid.add_theme_constant_override("h_separation", 6)
+	var pick := posmod(int(Game.hero.get("void_glow", 0)), VOID_LOOK.GLOWS.size())
+	for k in VOID_LOOK.GLOWS.size():
+		var b := Button.new()
+		b.name = "Glow %d" % k
+		b.custom_minimum_size = Vector2(60, 44)
+		b.tooltip_text = VOID_LOOK.GLOW_NAMES[k]
+		var st := StyleBoxFlat.new()
+		st.bg_color = VOID_LOOK.GLOWS[k]
+		st.set_corner_radius_all(8)
+		if k == pick:
+			st.border_color = Color(1, 1, 1)
+			st.set_border_width_all(4)
+		for state in ["normal", "hover", "pressed", "focus"]:
+			var s2 := st.duplicate() as StyleBoxFlat
+			if state in ["hover", "focus"]:
+				s2.border_color = Color(1, 0.9, 0.5)
+				s2.set_border_width_all(3 if k != pick else 5)
+			b.add_theme_stylebox_override(state, s2)
+		b.pressed.connect(set_value.bind("void_glow", k))
+		b.pressed.connect(func() -> void: Audio.play("ui_move", -8.0, 0.0))
 		grid.add_child(b)
 	_content.add_child(grid)
 

@@ -92,6 +92,70 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **The hero changes a little in the Void: their watch, glowing eyes and an alien feature** (Hayden: "maybe
+  there is another way we can change the characters when they enter the void? Adding watches to their wrists etc",
+  then "Yes to the void changes"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/void_look.gd`** (no class_name, preload it; `scenes/player/player.gd` puts it on after `Hero.apply()`):
+    in the Void (`in_void()`: any scene but Stars Hollow, the title screen and the Earth race circuit) the hero gets
+    their **watch on the left wrist** (the Time Keeper once they have it, else the Shift Watch; nothing before they
+    have one, and no second one if they're wearing one in the hands slot; made round the human kids' wrist, `WRIST_R`),
+    **a soft glow in their eyes** (the Iris parts) and **one alien feature**: antennae, little horns, pointy ears or a
+    tail (`FEATURES`), skin-coloured with glowing tips in their **Void colour** (`GLOWS`, six). Built in code on the
+    head bone (the tail on the hips, swishing), in holders named "Void Look ...". On Earth they look just as made.
+  - Saved in `Game.hero` as `"void_feature"` and `"void_glow"`. A hero has none until **their first time in the Void**:
+    then one's picked at random and, 5 s after landing, a message says what they've got and where to change it (so the
+    creator never gives the Void away before they've been: Hayden's no-spoilers rule).
+  - **The creator's Void tab** (`Creator.tabs()`: only once they have a Void look): the four features as buttons, a
+    line about each, and the six glow colours. While the Void tab is open the hero on the turntable shows their Void
+    look, even on Earth (`Creator.previewing_void()`). Surprise me and Start over keep it (`_keep()`).
+  - Tests: new `tools/test_void_look.gd`. Previews: `tools/capture_void_look.gd` (shots in the project files under
+    world/previews/void_look).
+  - My choices Hayden may change: the four features and how they look, the six colours, a random feature on the first
+    visit, the watch showing even when they didn't put it on.
+
+- 2026-11-11: **The story's ending: Rex's body back for good, and Dash's goodbye** (Hayden: "we can add the ending
+  next", gap 2 of the game-vs-lore audit; the story docs: "Dash learns he must repair the Shift, and the cost is never
+  seeing his friends again", "bittersweet with hope"). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Quest "Loose Ends"** (`quests/loose_ends.json`, flag `loose_ends_start`): starts as the Agent of Chaos's ending
+    finishes (`chaos_ending.gd _finish()`; old saves that beat him get it when the Void or the Far Future loads:
+    `after_the_ending.gd start_if_due()`). Steps only say what's next: Dash's lab, then the Tomorrow Clock, then his
+    letter. 20 sparkles.
+  - **The lever, for good** (`far_future.gd swap_for_good()`, slice three): with his clock stopped the Swap-o-Tron's
+    lever is back; the same ZAP, and at the moment the knot pulled them back last time a ring of gold and "It's
+    HOLDING!" (flag `rex_home`). Rex is the boy (rook.glb) and Rook the husky from then on, in the Far Future and in the
+    Void. In his own body Rex stands up and walks like a boy (`after_the_ending.gd upright()`: his twin's idle,
+    walk and run from bike_boy.glb, same 17 bones, copied into that one model; Rook's crawl is untouched).
+  - **Dash's twist** (`twist_lines()`, flag `dash_told`): the crack in the Shift has two ends; the far end is inside the
+    Tomorrow Clock, it can only be stitched from the inside, and whoever does it stays in the furthest future when it
+    shuts. Rex offers; Dash says it was his time experiment, and the Void needs Rex as its mayor one day. Then all three
+    wait at the Tomorrow Clock (`_to_the_clock()`).
+  - **The goodbye** (`scripts/dash_goodbye.gd`, a CanvasLayer "Goodbye" under the Far Future, like chaos_ending.gd):
+    walking up to Dash on the clock's dais plays about a minute, skippable: everyone comes through (Bramble, Pip,
+    Melody, Heather, Flurry, Otto as copies; Rex and Rook are the world's own), twelve lines (Dash's goodbyes, Rex,
+    Pip's "it's see you later"), **Dash's Cap** for the hero (`dash_cap`, a hat: `cosmetics.gd`, shop/items.json), he
+    walks into a door of light in the spire, waves, steps through, a gold beam goes up and a golden seam draws across
+    the sky, then "SEE YOU LATER". Own camera, a `dash_goodbye` hold, the HUD hidden, the minimap waiting, **the portal
+    trip's timer stands still and is hidden** while any cutscene plays (`portals.gd`), the gentle `chaos_ending` tune (group
+    `goodbye_playing`, `soundscape.gd`). Flag `dash_goodbye`.
+  - **His letter** waits where he stood in his lab (`_add_letter()`, `letter_lines()`, flag `dash_letter_read`): the
+    hope (Lumen City is built where the Void is, so he's "not that far away, just LATER"; every goodbye's a
+    see-you-later; the midnight tick is him saying hi, probably).
+  - **After** (`scripts/after_the_ending.gd`, no class_name, preload/load it; called from `Portals._hub_changes()`): in
+    the Void Rex and Rook swap models (`routine.gd use_model()`: Rex walks, Rook skates on the paw skates; new
+    `dress_as` so each is dressed as whose body it is), Dash and his bike are taken out, races (`races.gd _gone_home()`)
+    and delivery requests leave him out, and **Rex takes the lost watches** (`dialogue/rex.json`; `watches.gd`
+    `REX_REWARD_LINES`: what Dash left ready). His gadget stall stays open. Rex, Rook and Dash have lines for each step
+    and after.
+  - Not done (another thread had those files): the sunken Pieces of That Night still go to Dash (`sunken_secrets.gd`),
+    so after the goodbye nobody takes them; races still show Rex as the husky on paw skates.
+  - Tests: new `tools/test_dash_goodbye.gd` (82 checks: nothing before he's beaten, the lever, the twist, the clock,
+    the whole goodbye beat by beat and skipped, the cap, the letter, the Void after, races, requests, save and load).
+    Previews: `tools/capture_dash_goodbye.gd` (shots in the project files under characters/dash/goodbye).
+  - My choices Hayden may change: every line (first drafts), Rex staying in the Void (not going home with Dash), the
+    cap and the letter as what he leaves, "Lumen City is built where the Void is", the door of light and the seam,
+    reusing the chaos_ending tune.
+
 - 2026-11-11: **The centipede's story goes in order, and she's only ever in one place** (Hayden: "now he is in 3 spots
   at the same time. The events need to go in order", then: walk the ceiling before the gulp, full size in the corner,
   "she can follow you to scary world", "a boss fight herself in her own world and she fully befriends you after").
