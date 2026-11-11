@@ -118,6 +118,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     themselves the Star Popper.
   - My choices Hayden may change: which world has which gadget, where in each world, 3 sparkles for the Star Popper,
     the Frozen Moment, Dark Hollow and the Far Future having none.
+
 - 2026-11-11: **Day 1 playtest polish: sprint, skate keys, the skate lesson, oak runes, plants, grass, rails** (Hayden's
   day 1 playtest notes; other threads took the rest). Built and tested in the cloud (own Godot user folders, no save
   touched).
