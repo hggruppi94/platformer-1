@@ -387,17 +387,23 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 	arsenal.xp["buzz"] = 0
 
 	# Rainbow Ray
+	_clean()                                              # (no bot bubbles still flying to pop it first)
 	arsenal.select("rainbow")
 	_fresh(g0)
 	_stage(p, g0, flat, Vector3(0, 0, 6))
+	g0.set_physics_process(false)                         # (it waddles up and bumps into her otherwise, and that pops it)
 	await _physics(2)
 	var ammo_was: int = arsenal.ammo_of("rainbow")
+	# (Watched each frame: the fill goes by the real frame time, so on a slow machine it can fill and pop within 20)
+	var filling := false
 	for k in 20:
 		popper.shine(1.0 / 60.0)
 		await physics_frame
-	var ray = popper.ray
-	check(ray != null and ray.fills.has(g0) and float(ray.fills[g0]) > 0.1 and g0.find_child("RainbowFill", false, false) != null,
-		"the Rainbow Ray fills a Gloop with colour")
+		var r = popper.ray
+		if r != null and r.fills.has(g0) and float(r.fills[g0]) > 0.1 and g0.find_child("RainbowFill", false, false) != null:
+			filling = true
+			break
+	check(filling, "the Rainbow Ray fills a Gloop with colour")
 	check(arsenal.ammo_of("rainbow") < ammo_was, "...using ammo while it shines")
 	for k in 100:
 		popper.shine(1.0 / 60.0)
@@ -651,6 +657,10 @@ func _fresh(g: CharacterBody3D) -> void:
 	for t in get_processed_tweens():
 		t.kill()
 	arsenal.unplush(g)
+	# ...and any respawn still waiting from an earlier pop, which would put it back at its home mid-check
+	var respawn: Timer = g.get("_respawn_timer")
+	if respawn:
+		respawn.stop()
 	if g.has_meta("chill_until"):
 		g.remove_meta("chill_until")
 	g.defeated = false
@@ -780,7 +790,13 @@ func _stage(p: CharacterBody3D, enemy: CharacterBody3D, at: Vector3, offset: Vec
 
 func _place(p: CharacterBody3D, enemy: CharacterBody3D, spot: Vector3) -> void:
 	var q := PhysicsRayQueryParameters3D.create(spot + Vector3(0, 20, 0), spot + Vector3(0, -20, 0))
-	q.exclude = [p.get_rid(), enemy.get_rid()]
+	# Onto the ground, never onto another enemy's head (one still standing there from the check before would carry
+	# this one off on its back like a moving floor)
+	var skip: Array[RID] = [p.get_rid()]
+	for e in get_nodes_in_group("enemies"):
+		if e is CollisionObject3D:
+			skip.append((e as CollisionObject3D).get_rid())
+	q.exclude = skip
 	var hit := p.get_world_3d().direct_space_state.intersect_ray(q)
 	enemy.global_position = hit.position if not hit.is_empty() else spot
 	enemy.velocity = Vector3.ZERO
