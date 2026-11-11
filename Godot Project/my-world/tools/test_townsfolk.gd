@@ -15,6 +15,7 @@ const SAVE := "user://save.json"
 const BACKUP := "user://save.townsfolk_backup.json"
 const EARTH := "res://scenes/earth/earth.tscn"
 const FAR_AWAY := Vector3(80, 1, 95)                # the empty southeast corner, out of everyone's sight
+const WORK_JOB := preload("res://scripts/work_job.gd")
 # Everyone with a routine, and Madame Celeste, who stays in her studio
 const PEOPLE := ["palmer_earth", "ivy", "theo", "gus", "dottie", "barnaby", "marigold", "poppy", "otis", "wren", "hank", "kip",
 	"lionel", "juniper", "ozzie", "nina_earth", "prue", "bruno"]
@@ -245,8 +246,13 @@ func _check_day() -> void:
 					wrong.append("%s should be in (%s)" % [id, b.place])
 			else:
 				out += 1
+				if b.do == "work":
+					# At work they go round the job's spots (scripts/work_job.gd), so near any one of them will do
+					far = INF
+					for spot in _work_spots(str(b.job)):
+						far = minf(far, Vector2(body.global_position.x - spot.x, body.global_position.z - spot.z).length())
 				if not body.visible or far > float(b.get("radius", 0.0)) + 1.5:
-					wrong.append("%s is %.1f m from %s" % [id, far, b.place])
+					wrong.append("%s is %.1f m from %s" % [id, far, b.get("job", b.place)])
 		check(wrong.is_empty(), "%s: everyone's where they should be (%d out and about) %s" % [t, out, wrong])
 	clock.set_earth_time(clock.parse_time("03:00"), true)
 	await _settle()
@@ -405,3 +411,16 @@ func _put_save_back() -> void:
 	if FileAccess.file_exists(BACKUP):
 		DirAccess.remove_absolute(SAVE)
 		DirAccess.rename_absolute(BACKUP, SAVE)
+
+
+func _work_spots(job_id: String) -> Array[Vector3]:
+	# Every spot of a job's, and every corner on the way between them, in the world
+	var out: Array[Vector3] = []
+	var frame: Node3D = WORK_JOB.frame_of(job_id, current_scene)
+	if frame == null:
+		return out
+	for st in WORK_JOB.jobs()[job_id].steps:
+		for v in st.get("via", []):
+			out.append(frame.global_transform * WORK_JOB.local_point(v))
+		out.append(frame.global_transform * WORK_JOB.local_point(st.to))
+	return out
