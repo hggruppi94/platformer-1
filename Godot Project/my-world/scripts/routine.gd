@@ -50,6 +50,7 @@ const BIKE_PARK := Vector3(1.1, 0.0, 0.5)           # where the bike stands next
 var blocks: Array = []                              # {at, place, do, radius, route, pause, who, face, label}
 var speed := 1.4
 var move_anim := "walk"
+var dress_as := ""                                  # whose clothes fit the body they're in (use_model())
 var follow_anim := "run"
 var rides := false                                  # rides the bike whenever he's moving
 var earth := false                                  # lives in the Earth town: Earth's clock and paths
@@ -108,10 +109,27 @@ func _ready() -> void:
 
 
 func _dress() -> void:
-	# What Nina's dressed them in at her wardrobe, and the looks she picked (scripts/clothes.gd)
+	# What Nina's dressed them in at her wardrobe, and the looks she picked (scripts/clothes.gd). Dressed as whose
+	# body it is (dress_as), which is only ever someone else's for Rex and Rook after they swap back
 	var model := _body.get_node_or_null("Model") as Node3D
-	if model and character_id in Clothes.WHO:
-		Clothes.dress(model, character_id, Game.outfits.get(character_id, {}), Game.looks.get(character_id, {}))
+	var who := dress_as if dress_as != "" else character_id
+	if model and who in Clothes.WHO:
+		Clothes.dress(model, who, Game.outfits.get(who, {}), Game.looks.get(who, {}))
+
+
+func use_model(body_of: String, walk: String, run: String) -> void:
+	# A new Model under the body (scripts/after_the_ending.gd: Rex and Rook back in their own bodies): find its
+	# AnimationPlayer again, walk and run the way that body does, and dress it as whose body it is
+	dress_as = body_of
+	move_anim = walk
+	follow_anim = run
+	_anim = _body.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if _anim:
+		for a in _anim.get_animation_list():
+			if a != "bark" and a != "growl":
+				_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
+	_playing = ""
+	_dress()
 
 
 func _load() -> void:

@@ -18,6 +18,13 @@ extends "res://scripts/portal_world.gd"
 # pulling the Swap-o-Tron's lever swaps them back... for a few seconds. Then they snap back again: the swap is knotted
 # into the crack in the Shift, and the other end of the knot is in the Agent of Chaos's cracked clock. That's what
 # opens his final fight in the Void (flag SWAP_FLAG, chaos_fight.gd unlocked(); quest "Stop His Clock").
+# Then the story's ending (slice three, Hayden Nov 11, 2026: "we can add the ending next"; the quest "Loose Ends",
+# quests/loose_ends.json, scripts/after_the_ending.gd). With the Agent of Chaos's clock stopped, the lever swaps Rex and
+# Rook back for good (swap_for_good(); flag REX_HOME). Then Dash reads the machine and tells everyone what's left: the
+# crack in the Shift has two ends, and the far end, in the Tomorrow Clock, can only be stitched from the inside, by
+# someone who stays on this side when it shuts (twist_lines(); flag TWIST_FLAG). It has to be him. He waits on the
+# clock's dais, and walking up to him plays the goodbye (scripts/dash_goodbye.gd): everyone comes, he leaves you his
+# cap, and he goes into the clock. After that, his letter waits on his workbench (letter_lines()).
 # Rex (in the husky's body) waits by the way in, Dash in his lab. Nothing here hurts more than a bump; falling off the
 # Skyway just lands you on the city floor (in the race it pops you back up onto the road).
 
@@ -52,6 +59,15 @@ const ROOK_IN_LAB := Vector3(2.4, 0, 4.8)
 # The lever stands beside Rook's pod, not in front of the pods, so it never hides who's inside
 const LEVER_AT := Vector3(2.9, 0, 1.2)
 const LAB_MIDDLE := Vector3(-30, 0, -4)   # (tools/build_far_future.gd LAB)
+const AFTER := preload("res://scripts/after_the_ending.gd")
+const GOODBYE := preload("res://scripts/dash_goodbye.gd")
+const CLOCK_AT := Vector3(0, 0, -4)       # the Tomorrow Clock (tools/build_far_future.gd CLOCK)
+const DASH_AT_CLOCK := Vector3(0, 0, 5.0) # where Dash waits on the clock's dais, from the clock (facing the way in)
+const REX_AT_CLOCK := Vector3(-3.2, 0, 7.5)
+const ROOK_AT_CLOCK := Vector3(-4.8, 0, 8.4)
+const GOODBYE_NEAR := 8.0                 # walking this close to Dash at the clock plays the goodbye
+const LETTER_AT := Vector3(4.2, 0, 1.0)   # Dash's letter, where he stood in his lab (from the lab's middle)
+const FOR_GOOD_HOLD := 5.6                # seconds into the swap for good: it holds, in a ring of gold
 
 var fade := 1.0                           # 0 = mended, bright; FADED = no cores
 var captain_awake := false
@@ -65,6 +81,8 @@ var _fireworks := 0.0
 var _lifting := false
 var swapping := false                     # the Swap-o-Tron's mid-try
 var _swapped := false                     # Rex and Rook are in each other's... in their OWN bodies, for a moment
+var for_good := false                     # the lever's been pulled for the last time (swap_for_good())
+var goodbye: CanvasLayer                  # Dash's goodbye at the Tomorrow Clock (scripts/dash_goodbye.gd)
 var _t := 0.0
 
 
@@ -97,6 +115,7 @@ func setup() -> void:
 	else:
 		_to_the_lab()
 		Dialogue.set_flag(START_FLAG)
+		_the_ending()
 	set_fade(0.0 if Portals.is_cleared(world_id) else _goal_fade())
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and cores() == 0 and not Portals.has_found(world_id, "met_rex"):
@@ -502,7 +521,24 @@ func _add_friend(n: String, model: String, verb: String, talk: Callable) -> void
 func rex_lines() -> Array:
 	# Rex is home, in the husky's body, and the place he's going to be mayor of one day is fading (first drafts)
 	if Portals.is_cleared(world_id):
+		if AFTER.dash_gone():
+			if not Dialogue.flags.has(AFTER.LETTER_FLAG):
+				return ["(Rex is sitting on the edge of the Swap-o-Tron, swinging his legs. His own legs.)",
+					"He left you something, {player}. On his workbench. He made me promise not to read it. I didn't. Nearly didn't.",
+					"I'm OK. I think. Ask me again tomorrow."]
+			return ["I keep turning round to tell him things. Then I tell Rook instead. Rook's a good listener. Bad at sums.",
+				"Every lamp in Lumen City's on, {player}. He'd have liked that. He'd have measured it.",
+				"See you later, Dash. That's what I say now. Every time."]
+		if Dialogue.flags.has(AFTER.TWIST_FLAG):
+			return ["I tried to talk him out of it, {player}. I'm going to be a mayor. I'm supposed to be good at talking people out of things.",
+				"He's at the Tomorrow Clock. Everyone's coming. Will you come too? He'll want you there most of all."]
+		if AFTER.rex_home():
+			return twist_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
+			if not for_good and get_node_or_null("Rook") != null:
+				return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
+					"Dash checked the Swap-o-Tron nine times. He says there's nothing pulling on it now. Nothing at all.",
+					"So... one more go? For good this time? Pull the big lever. My tail's wagging so hard it hurts."]
 			return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
 				"Dash keeps doing sums and then staring at the sky. He goes quiet when I ask.",
 				"Something's about to change. I can smell it. Good change, I think. Mostly."]
@@ -541,16 +577,22 @@ func rex_lines() -> Array:
 func _talk_rex() -> void:
 	var spot := get_node_or_null("Rex/Spot") as Node3D
 	if spot:
-		Dialogue.say(spot, "Rex", rex_lines().map(func(l: String) -> String: return Settings.fill(l)), "far_future_rex")
+		Dialogue.say(spot, "Rex", talk_steps(rex_lines()), "far_future_rex")
 
 
 func dash_lines() -> Array:
 	# Dash in his own lab, where his time experiment went off the same night as Rex's swap (first drafts)
 	if Portals.is_cleared(world_id):
+		if Dialogue.flags.has(AFTER.TWIST_FLAG):
+			return ["(Dash is sitting on the edge of the dais with his knees up, looking at the clock.)",
+				"Everyone's on their way. I asked them to come. I didn't want to just... vanish. That's what time does to people. Not me.",
+				"Come and stand with me, {player}. Just for a bit."]
+		if AFTER.rex_home():
+			return twist_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
 			return ["His clock's stopped. The knot's come loose. The readings are all... quiet. For the first time.",
-				"Which means I know how to fix the crack in the Shift now. Properly. I think I always did.",
-				"I'll tell you all about it soon, {player}. Not today. Today the city's lit up and that's enough."]
+				"Which means the Swap-o-Tron can finish what it started. Nothing's pulling on it now. Pull the lever, {player}. For good.",
+				"And then... then I know how to fix the crack in the Shift. Properly. I'll tell you after. Rex first."]
 		if Dialogue.flags.has(SWAP_FLAG):
 			return swap_lines()
 		return ["Everything's humming again. The lab, the clock, the whole city. You did that, {player}.",
@@ -573,7 +615,7 @@ func dash_lines() -> Array:
 func _talk_dash() -> void:
 	var spot := get_node_or_null("Dash/Spot") as Node3D
 	if spot:
-		Dialogue.say(spot, "Dash", dash_lines().map(func(l: String) -> String: return Settings.fill(l)), "far_future_dash")
+		Dialogue.say(spot, "Dash", talk_steps(dash_lines()), "far_future_dash")
 
 
 func thank_lines() -> Array:
@@ -617,6 +659,8 @@ func _to_the_lab() -> void:
 
 func rook_lines() -> Array:
 	# Rook is the dog, in Rex's human body. He only ever says woof
+	if AFTER.rex_home():
+		return ["WOOF! Woof woof woof!", "(Rook chases his tail round and round. He's got one again, and he is THRILLED about it.)"]
 	if Dialogue.flags.has(SWAP_FLAG):
 		return ["Woof!", "(Rook sniffs the pod he was in, sneezes, and looks very pleased with himself.)"]
 	return ["Woof! Woof woof!", "(Rook wags. Well, he wags his whole bottom. Rex's body hasn't got a tail.)"]
@@ -665,7 +709,12 @@ func _add_lever() -> void:
 	lever.position = LEVER_AT
 	m.add_child(lever)
 	var spot := USE_SPOT.make(LEVER_AT, func() -> String:
-		return "pull the Swap-o-Tron's lever" if can_try_swap() else "", func() -> void: try_swap(), 2.0, 2.2)
+		return "pull the Swap-o-Tron's lever" if can_try_swap() or can_swap_for_good() else "",
+		func() -> void:
+			if can_swap_for_good():
+				swap_for_good()
+			else:
+				try_swap(), 2.0, 2.2)
 	spot.name = "Spot"
 	m.add_child(spot)
 
@@ -720,6 +769,9 @@ func _swap_models() -> void:
 	rex.add_child(b)
 	rook.add_child(a)
 	_swapped = not _swapped
+	# In his own body Rex stands up like a boy; back in it, Rook goes on all fours again
+	AFTER.upright(rex.get_node("Model"), _swapped)
+	AFTER.upright(rook.get_node("Model"), false)
 
 
 func _swap_flash() -> void:
@@ -794,6 +846,269 @@ func _shout(who: Node3D, text: String, height := 2.7) -> void:
 	who.add_child(l)
 	# A tween on the label itself goes when the label does, so a shout cut short by the next one leaves nothing behind
 	l.create_tween().tween_callback(l.queue_free).set_delay(2.8)
+
+
+# The ending (slice three) ----------------------------------------------------------------------------------------------
+func _the_ending() -> void:
+	# Where everyone is, as the ending stands: Rex and Rook in their own bodies once they've swapped for good, all three
+	# at the clock once Dash has told them, and Dash gone (and his letter on the bench) once he's said goodbye
+	AFTER.start_if_due()
+	if AFTER.rex_home():
+		_swap_models()
+		_swapped = false
+		_name_heights()
+	if AFTER.dash_gone():
+		var dash := get_node_or_null("Dash")
+		if dash:
+			dash.free()
+		_add_letter()
+	elif Dialogue.flags.has(AFTER.TWIST_FLAG):
+		_to_the_clock(false)
+	goodbye = GOODBYE.new()
+	goodbye.name = "Goodbye"
+	goodbye.set("world", self)
+	add_child(goodbye)
+
+
+func _name_heights() -> void:
+	# Rex's name sits over a boy's head now, and Rook's over a husky's
+	var rl := get_node_or_null("Rex/Name") as Node3D
+	var kl := get_node_or_null("Rook/Name") as Node3D
+	if rl:
+		rl.position.y = 2.0 if AFTER.rex_home() else 1.6
+	if kl:
+		kl.position.y = 1.6
+
+
+func can_swap_for_good() -> bool:
+	return Portals.is_cleared(world_id) and Dialogue.flags.has("beat_agent_of_chaos") and not AFTER.rex_home() \
+		and not swapping and not for_good and get_node_or_null("Rook") != null
+
+
+func swap_for_good() -> bool:
+	# The lever, the last time: the same pods, the same ZAP, and this time nothing pulls them back
+	if not can_swap_for_good():
+		return false
+	swapping = true
+	for_good = true
+	var player := get_tree().get_first_node_in_group("player")
+	Game.hold_controls(&"swap_try", true, player)
+	(get_node("Rex") as Node3D).global_position = pod_at(0)
+	(get_node("Rook") as Node3D).global_position = pod_at(1)
+	var arm := get_node_or_null("SwapOTron/Lever/Arm") as Node3D
+	if arm:
+		create_tween().tween_property(arm, "rotation:x", 0.5, 0.25)
+	var coil := get_node_or_null("SwapOTron/Swap-o-Tron/Coil") as MeshInstance3D
+	if coil:
+		var mat := coil.material_override as StandardMaterial3D
+		create_tween().tween_property(mat, "emission_energy_multiplier", 7.0, SWAP_FLASH)
+	Juice.rumble(0.3, SWAP_FLASH)
+	Juice.blip("whoosh", 0.6, -4.0)
+	_shout(get_node("Rex"), "One more time... for keeps!")
+	get_tree().create_timer(SWAP_FLASH).timeout.connect(_swap_flash)
+	get_tree().create_timer(FOR_GOOD_HOLD).timeout.connect(_for_good_hold)
+	get_tree().create_timer(SWAP_DONE).timeout.connect(_for_good_done)
+	return true
+
+
+func _for_good_hold() -> void:
+	# Where the knot pulled them back last time: a ring of gold instead, and it holds
+	if not is_inside_tree():
+		return
+	var at := (get_node("SwapOTron") as Node3D).global_position + Vector3(0, 1.4, 0)
+	for k in 2:
+		Fx.burst(self, pod_at(k) + Vector3(0, 1.4, 0), Color(1.0, 0.85, 0.4), 36, 0.12, 4.0, 0.0, 1.2)
+	Fx.burst(self, at + Vector3(0, 2.0, 0), Color(1.0, 0.9, 0.55), 50, 0.1, 7.0, 0.5, 1.4)
+	Juice.blip("chime", 1.0, -2.0)
+	_shout(get_node("Rex"), "It's HOLDING! {player}, it's HOLDING!")
+	_shout(get_node("Rook"), "AWOOOO!", 2.0)
+
+
+func _for_good_done() -> void:
+	if not is_inside_tree():
+		return
+	var coil := get_node_or_null("SwapOTron/Swap-o-Tron/Coil") as MeshInstance3D
+	if coil:
+		(coil.material_override as StandardMaterial3D).emission_energy_multiplier = 2.2
+	var arm := get_node_or_null("SwapOTron/Lever/Arm") as Node3D
+	if arm:
+		arm.rotation.x = -0.5
+	(get_node("Rex") as Node3D).global_position = LAB_MIDDLE + REX_IN_LAB
+	(get_node("Rook") as Node3D).global_position = LAB_MIDDLE + ROOK_IN_LAB
+	if not _swapped:
+		_swap_models()                           # (in case the flash was missed: they're in their own bodies now)
+	_swapped = false
+	_name_heights()
+	Dialogue.set_flag(AFTER.REX_HOME)
+	swapping = false
+	Game.hold_controls(&"swap_try", false, get_tree().get_first_node_in_group("player"))
+	var spot := get_node_or_null("Dash/Spot") as Node3D
+	if spot:
+		Dialogue.say(spot, "Dash", talk_steps(twist_lines()), "far_future_twist")
+		Dialogue.finished.connect(_after_twist, CONNECT_ONE_SHOT)
+	else:
+		_after_twist("far_future_twist")
+
+
+func twist_lines() -> Array:
+	# Dash reads the machine one last time, and tells them what fixing the Shift will cost (first drafts). Nothing
+	# before this says it: the Pieces of That Night only have him "think he knows how it could be fixed"
+	return ["Rex. Look at you. Your own face. It's a good face. It's my face, mostly.",
+		"Rex: HANDS! For KEEPS! And Rook's got his tail back. Look at him go!",
+		"And the readings are holding. The knot's gone. Everything that broke that night is coming undone, the way it should.",
+		"...Nearly everything.",
+		"{player}: Dash? What's wrong?",
+		"The crack in the Shift. We shut it from the Void's side, in the far field. But a crack has two ends, {player}.",
+		"The other end is here, in our time. Inside the Tomorrow Clock. Our two experiments tore it at both ends at once.",
+		"If nobody stitches the far end, one day it pulls open again. Worlds stop. Kids get lost in time.",
+		"It can only be stitched from the inside. And whoever does it stays in here, in the furthest future, when it shuts.",
+		"Rex: Then I'll do it. I built the Swap-o-Tron. It's my mess.",
+		"My time experiment's what dragged us all to the Void, Rex. And you've got somewhere to be. I've done the sums.",
+		"The Void's going to need a mayor one day. A good one. With hands.",
+		"Rex: ...So you'd be in here. And I'd be out there. And the Shift would be shut in between.",
+		"Yeah.",
+		"I'm going to the Tomorrow Clock, {player}. I've asked everyone to come. I want to do this properly."]
+
+
+static func talk_steps(lines: Array) -> Array:
+	# Lines for Dialogue.say(): "Rex: ..." and the like become that friend's line (the talk box's name changes), and
+	# Dialogue fills in {player} and the rest itself (so "{player}: ..." stays the hero's own line)
+	var out: Array = []
+	for l in lines:
+		var line := str(l)
+		var said := false
+		for who in ["Rex", "Dash", "Rook", "Bramble", "Pip", "Melody", "Flurry", "Otto", "Heather"]:
+			if line.begins_with(who + ": "):
+				out.append({"speaker": who, "text": line.substr(who.length() + 2)})
+				said = true
+				break
+		if not said:
+			out.append(line)
+	return out
+
+
+func _after_twist(_id := "") -> void:
+	if not is_inside_tree():
+		return
+	Dialogue.set_flag(AFTER.TWIST_FLAG)
+	_to_the_clock(true)
+
+
+func _to_the_clock(sparkle: bool) -> void:
+	# Dash waits on the clock's dais, facing the way in; Rex and Rook stand with him
+	for pair in [["Dash", DASH_AT_CLOCK], ["Rex", REX_AT_CLOCK], ["Rook", ROOK_AT_CLOCK]]:
+		var n := get_node_or_null(str(pair[0])) as Node3D
+		if n == null:
+			continue
+		if sparkle:
+			Fx.burst(self, n.global_position + Vector3(0, 1.0, 0), Color(1.0, 0.9, 0.5), 14, 0.1, 2.5, -1.0, 0.8)
+		var at: Vector3 = CLOCK_AT + pair[1]
+		n.global_position = ground_below(at + Vector3(0, 1.0, 0))
+		n.rotation.y = 0.0
+		var model := n.get_node_or_null("Model") as Node3D
+		if model:
+			model.rotation.y = 0.0
+
+
+func dash_at_clock() -> bool:
+	var dash := get_node_or_null("Dash") as Node3D
+	return dash != null and dash.global_position.distance_to(CLOCK_AT + DASH_AT_CLOCK) < 1.5
+
+
+func _check_goodbye(player: Node3D) -> void:
+	# Walking up to Dash at the clock plays the goodbye
+	if player == null or goodbye == null or goodbye.call("playing") or AFTER.dash_gone() or Dialogue.is_active():
+		return
+	if not Dialogue.flags.has(AFTER.TWIST_FLAG) or not dash_at_clock():
+		return
+	var dash := get_node("Dash") as Node3D
+	var to := player.global_position - dash.global_position
+	if Vector2(to.x, to.z).length() < GOODBYE_NEAR and absf(to.y) < 3.0:
+		goodbye.call("play")
+
+
+func said_goodbye() -> void:
+	# The goodbye's over (scripts/dash_goodbye.gd): Dash has gone into the clock, and his letter's on his bench
+	Dialogue.set_flag(AFTER.DASH_GOODBYE)
+	var dash := get_node_or_null("Dash")
+	if dash:
+		dash.queue_free()
+	_add_letter()
+	Game.save_game()
+
+
+# His letter ----------------------------------------------------------------------------------------------------------
+func _add_letter() -> void:
+	if get_node_or_null("Letter") != null:
+		return
+	var m := Node3D.new()
+	m.name = "Letter"
+	add_child(m)
+	m.global_position = ground_below(LAB_MIDDLE + LETTER_AT + Vector3(0, 1.0, 0))
+	var stand := MeshInstance3D.new()
+	stand.mesh = _box(Vector3(0.5, 0.9, 0.5))
+	stand.material_override = _mat(Color(0.3, 0.3, 0.42), 0.0, 0.4)
+	stand.position = Vector3(0, 0.45, 0)
+	m.add_child(stand)
+	var env := Node3D.new()
+	env.name = "Envelope"
+	env.position = Vector3(0, 1.25, 0)
+	m.add_child(env)
+	var paper := MeshInstance3D.new()
+	paper.mesh = _box(Vector3(0.5, 0.34, 0.03))
+	paper.material_override = _mat(Color(1.0, 0.96, 0.85), 0.25)
+	env.add_child(paper)
+	var seal := MeshInstance3D.new()
+	seal.mesh = _ball(0.06)
+	seal.material_override = _mat(Color(0.55, 1.0, 0.4), 1.2)
+	seal.position = Vector3(0, 0, 0.03)
+	seal.scale = Vector3(1, 1, 0.4)
+	env.add_child(seal)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(1.0, 0.92, 0.7)
+	glow.light_energy = 1.2
+	glow.omni_range = 3.0
+	env.add_child(glow)
+	var l := Label3D.new()
+	l.name = "Name"
+	l.text = "For {player}"
+	l.text = Settings.fill(l.text)
+	l.font_size = 26
+	l.pixel_size = 0.01
+	l.outline_size = 8
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.position.y = 1.75
+	m.add_child(l)
+	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "read Dash's letter", read_letter, 2.2, 2.4)
+	spot.name = "Spot"
+	m.add_child(spot)
+
+
+func _spin_letter(delta: float) -> void:
+	var env := get_node_or_null("Letter/Envelope") as Node3D
+	if env:
+		env.rotation.y += delta * 0.8
+		env.position.y = 1.25 + sin(_t * 1.6) * 0.06
+
+
+func letter_lines() -> Array:
+	# What Dash wrote before he went (first drafts). The hope: he's not gone, just later
+	return ["(The envelope says FOR {player} in Dash's scratchy writing. There's a tiny drawing of a bike on the back.)",
+		"\"Dear {player}. If you're reading this, I went in, and the Shift's whole again. Nobody's getting lost in time. You did that too.\"",
+		"\"I did the sums one last time before I went. Lumen City gets built a long, long time from now... right where the Void is.\"",
+		"\"So every lamp you light, every friend you help, every Gloop you pop, that's a brick in my home. I'm not that far away. I'm just LATER.\"",
+		"\"Look after Rex. He'll say he's fine. He isn't, quite, not yet. Take him skating. He's rubbish on legs. Laugh at him a bit.\"",
+		"\"Keep the cap. A time detective needs one.\"",
+		"\"Every goodbye's a see-you-later. I've checked. Love, Dash.\"",
+		"\"P.S. When your watch ticks at midnight, that's me, saying hi from the far end. Probably. Science isn't sure.\""]
+
+
+func read_letter() -> void:
+	var spot := get_node_or_null("Letter/Spot") as Node3D
+	if spot == null:
+		return
+	Dialogue.say(spot, "Dash's letter", letter_lines(), "dash_letter")
+	Dialogue.set_flag(AFTER.LETTER_FLAG)
 
 
 # Captain Glitch -----------------------------------------------------------------------------------------------------------
@@ -915,6 +1230,8 @@ func _process(delta: float) -> void:
 	if hand:
 		hand.rotation.z += delta * 9.0                   # (backwards, like his)
 	if Portals.is_cleared(world_id):
+		_check_goodbye(player)
+		_spin_letter(delta)
 		_fireworks -= delta
 		if _fireworks <= 0.0 and fade < 0.5:
 			_fireworks = randf_range(0.6, 1.6)
@@ -956,7 +1273,7 @@ func _face_friends(player: Node3D, delta: float) -> void:
 		if model == null or player == null:
 			continue
 		var to := player.global_position - m.global_position
-		if Vector2(to.x, to.z).length() > 9.0 or swapping:
+		if Vector2(to.x, to.z).length() > 9.0 or swapping or (goodbye and goodbye.call("playing")):
 			continue
 		var want := atan2(to.x, to.z) - m.global_rotation.y
 		model.rotation.y = lerp_angle(model.rotation.y, want, minf(1.0, delta * 4.0))

@@ -91,6 +91,48 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **The story's ending: Rex's body back for good, and Dash's goodbye** (Hayden: "we can add the ending
+  next", gap 2 of the game-vs-lore audit; the story docs: "Dash learns he must repair the Shift, and the cost is never
+  seeing his friends again", "bittersweet with hope"). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Quest "Loose Ends"** (`quests/loose_ends.json`, flag `loose_ends_start`): starts as the Agent of Chaos's ending
+    finishes (`chaos_ending.gd _finish()`; old saves that beat him get it when the Void or the Far Future loads:
+    `after_the_ending.gd start_if_due()`). Steps only say what's next: Dash's lab, then the Tomorrow Clock, then his
+    letter. 20 sparkles.
+  - **The lever, for good** (`far_future.gd swap_for_good()`, slice three): with his clock stopped the Swap-o-Tron's
+    lever is back; the same ZAP, and at the moment the knot pulled them back last time a ring of gold and "It's
+    HOLDING!" (flag `rex_home`). Rex is the boy (rook.glb) and Rook the husky from then on, in the Far Future and in the
+    Void.
+  - **Dash's twist** (`twist_lines()`, flag `dash_told`): the crack in the Shift has two ends; the far end is inside the
+    Tomorrow Clock, it can only be stitched from the inside, and whoever does it stays in the furthest future when it
+    shuts. Rex offers; Dash says it was his time experiment, and the Void needs Rex as its mayor one day. Then all three
+    wait at the Tomorrow Clock (`_to_the_clock()`).
+  - **The goodbye** (`scripts/dash_goodbye.gd`, a CanvasLayer "Goodbye" under the Far Future, like chaos_ending.gd):
+    walking up to Dash on the clock's dais plays about a minute, skippable: everyone comes through (Bramble, Pip,
+    Melody, Heather, Flurry, Otto as copies; Rex and Rook are the world's own), twelve lines (Dash's goodbyes, Rex,
+    Pip's "it's see you later"), **Dash's Cap** for the hero (`dash_cap`, a hat: `cosmetics.gd`, shop/items.json), he
+    walks into a door of light in the spire, waves, steps through, a gold beam goes up and a golden seam draws across
+    the sky, then "SEE YOU LATER". Own camera, a `dash_goodbye` hold, the HUD hidden, the minimap waiting, **the portal
+    trip's timer stands still** while any cutscene plays (`portals.gd`), the gentle `chaos_ending` tune (group
+    `goodbye_playing`, `soundscape.gd`). Flag `dash_goodbye`.
+  - **His letter** waits where he stood in his lab (`_add_letter()`, `letter_lines()`, flag `dash_letter_read`): the
+    hope (Lumen City is built where the Void is, so he's "not that far away, just LATER"; every goodbye's a
+    see-you-later; the midnight tick is him saying hi, probably).
+  - **After** (`scripts/after_the_ending.gd`, no class_name, preload/load it; called from `Portals._hub_changes()`): in
+    the Void Rex and Rook swap models (`routine.gd use_model()`: Rex walks, Rook skates on the paw skates; new
+    `dress_as` so each is dressed as whose body it is), Dash and his bike are taken out, races (`races.gd _gone_home()`)
+    and delivery requests leave him out, and **Rex takes the lost watches** (`dialogue/rex.json`; `watches.gd`
+    `REX_REWARD_LINES`: what Dash left ready). His gadget stall stays open. Rex, Rook and Dash have lines for each step
+    and after.
+  - Not done (another thread had those files): the sunken Pieces of That Night still go to Dash (`sunken_secrets.gd`),
+    so after the goodbye nobody takes them; races still show Rex as the husky on paw skates.
+  - Tests: new `tools/test_dash_goodbye.gd` (82 checks: nothing before he's beaten, the lever, the twist, the clock,
+    the whole goodbye beat by beat and skipped, the cap, the letter, the Void after, races, requests, save and load).
+    Previews: `tools/capture_dash_goodbye.gd` (shots in the project files under characters/dash/goodbye).
+  - My choices Hayden may change: every line (first drafts), Rex staying in the Void (not going home with Dash), the
+    cap and the letter as what he leaves, "Lumen City is built where the Void is", the door of light and the seam,
+    reusing the chaos_ending tune.
+
 - 2026-11-11: **The big map zooms, moves, and has a list of what's on it to switch on and off** (Hayden: "I want to
   rework the map with a zoom and legend with togglable icons"). Built and tested in the cloud (own Godot user folders,
   no save touched). All in `scripts/map_screen.gd` (TownMap).

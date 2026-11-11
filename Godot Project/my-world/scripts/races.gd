@@ -905,12 +905,13 @@ func start(id: String, with_intro := true) -> bool:
 	Game.hold_controls(&"race", true, p)
 	# The friends lining up
 	var who: Array = []
+	var gone := _gone_home()
 	for r in TRACKS[id].rivals:
-		who.append(r if r != p.get("rider") else "")
+		who.append(r if r != p.get("rider") and not r in gone else "")
 	for k in who.size():
 		if who[k] == "":
 			for spare in TRACKS[id].get("spares", SPARE_RIVALS):
-				if not spare in who and spare != p.get("rider"):
+				if not spare in who and spare != p.get("rider") and not spare in gone:
 					who[k] = spare
 					break
 	who = who.filter(func(w) -> bool: return str(w) != "")
@@ -1462,6 +1463,11 @@ func _rival_pads(r: RaceRival) -> void:
 
 
 # -----------------------------------------------------------------------------
+func _gone_home() -> Array:
+	# Friends who can't race any more: Dash, once he's gone home to the furthest future (scripts/after_the_ending.gd)
+	return ["dash"] if Dialogue.flags.has("dash_goodbye") else []
+
+
 func _show_npc(id: String, on: bool) -> void:
 	# A friend racing steps out of their usual place in town while they race (the same as scenes/player/player.gd)
 	var scene := get_tree().current_scene

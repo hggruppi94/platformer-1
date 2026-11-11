@@ -262,7 +262,8 @@ func pick_up(id: String, at := Vector3.ZERO) -> void:
 		Fx.burst(s, at, Color(1.0, 0.85, 0.35), 18, 0.07, 3.5, -2.0, 0.8)
 		Fx.burst(s, at, Color(0.5, 1.0, 0.9), 10, 0.05, 2.5, -1.0, 0.7)
 	var n := found_count()
-	var tail := "Dash collects these." if given_count() == 0 and n == 1 else "%d of %d found." % [n, WATCHES.size()]
+	var tail := ("Rex collects these now, for Dash." if Dialogue.flags.has("dash_goodbye") else "Dash collects these.") \
+		if given_count() == 0 and n == 1 else "%d of %d found." % [n, WATCHES.size()]
 	show_card(w, tail)
 	found_watch.emit(id)
 	var board := get_node_or_null("/root/Requests")      # "Find a lost watch" on the nightly request board
@@ -299,7 +300,8 @@ func watches_hand_in() -> Array:
 		if given >= int(r.at) and not Dialogue.flags.has("watch_reward_%d" % int(r.at)):
 			Dialogue.set_flag("watch_reward_%d" % int(r.at))
 			_give(r)
-			lines.append(REWARD_LINES.get(int(r.at), "Here, this is for you."))
+			var said: Dictionary = REX_REWARD_LINES if Dialogue.flags.has("dash_goodbye") else REWARD_LINES
+			lines.append(said.get(int(r.at), "Here, this is for you."))
 			lines.append("(You got %s!)" % r.text)
 	if given == WATCHES.size():
 		lines.append("That's all twenty. Every watch back where it can be looked after. Thanks, {player}.")
@@ -320,9 +322,19 @@ const REWARD_LINES := {
 }
 
 
+# After Dash has gone home (scripts/after_the_ending.gd), Rex takes the watches for him, and hands over what Dash left
+# ready for each count (first drafts)
+const REX_REWARD_LINES := {
+	5: "Five! Dash left a jar of sparkles for this. He labelled it FOR FIVE. Of course he did.",
+	10: "Ten! He left me instructions for your Star Popper. I followed them. Mostly. It ticks now.",
+	15: "Fifteen! A Tick-Tock Sticker. Dash made it before he went. He made a LOT of things before he went.",
+	20: "Twenty. All of them. He left this in a box marked TWENTY: the Time Keeper. He knew you'd do it.",
+}
+
+
 func _give(r: Dictionary) -> void:
 	if r.has("sparkles"):
-		Game.add_sparkles(int(r.sparkles), "Dash's thank-you:")
+		Game.add_sparkles(int(r.sparkles), "Rex's thank-you, from Dash:" if Dialogue.flags.has("dash_goodbye") else "Dash's thank-you:")
 	if r.has("popper"):
 		Game.give_item("popper_colour:" + str(r.popper))
 		Game.popper_colour = str(r.popper)

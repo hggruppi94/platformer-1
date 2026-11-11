@@ -3,6 +3,22 @@
   "conversations": [
     {
       "when": {
+        "flag": "rex_home",
+        "every": 2
+      },
+      "rotate": [
+        [
+          "WOOF!",
+          "(Rook chases his tail round and round. He's got one again, and he is THRILLED about it.)"
+        ],
+        [
+          "Awoooo!",
+          "(Rook zooms past on Rex's old paw skates, tongue flapping.)"
+        ]
+      ]
+    },
+    {
+      "when": {
         "quest_step": "dog_rights:sign",
         "not_flag": "dogs_sign_rook"
       },

@@ -188,6 +188,8 @@ func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary
 		"deliver":
 			r.goal = 1
 			var friends := FRIENDS.keys()
+			if Dialogue.flags.has("dash_goodbye"):
+				friends.erase("dash")                             # he's gone home (scripts/after_the_ending.gd)
 			r.who = friends[rng.randi() % friends.size()]
 			r.carrying = false
 			if tier == "hard":
