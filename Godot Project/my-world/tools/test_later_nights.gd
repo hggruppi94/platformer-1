@@ -93,7 +93,10 @@ func _run() -> void:
 		await _night(n)
 
 	check(N.current().is_empty(), "after night 7 nothing's spotlighted")
-	check(S.found_count() == S.LIST.size(), "...and every schematic's been found (%d of %d)" % [S.found_count(), S.LIST.size()])
+	# (The gadgets' blueprints are in the Void on night 1 and in the portal worlds, not on the nights: Hayden, 11 Nov)
+	var night_ones: Array = S.LIST.filter(func(e: Dictionary) -> bool: return str(e.kind) == "ride")
+	check(night_ones.all(func(e: Dictionary) -> bool: return S.is_found(str(e.id))),
+		"...and every ride's schematic's been found (%d of %d)" % [S.found_count(), night_ones.size()])
 	await _new_visit()
 	check(not dialogue.flags.has("night_8"), "...and there's no night 8 to start")
 
@@ -199,9 +202,12 @@ func _do(n: int, flag: String) -> void:
 		"n7_gate":
 			await _stand_by("Scary World Gate", Vector3(0, 0, 6))
 		"n7_giant":
+			# Nobody's in the far field yet (the Agent of Chaos only turns up after Rex and Dash's swap): just go and look
 			var giant := current_scene.find_child("ChaosGiant", true, false) as Node3D
-			if giant and player:
-				player.global_position = giant.global_position + Vector3(25, 1, 25)
+			check(giant == null or not giant.visible, "night 7: the Agent of Chaos isn't in the far field yet")
+			if player:
+				player.global_position = Vector3(112, 12, -200)
+				player.velocity = Vector3.ZERO
 				await _frames(40)
 
 

@@ -110,7 +110,13 @@ func _run() -> void:
 		dialogue.flags["rex_campaign_start"] = true
 		quests.check()
 		await _frames(25)
-		check(hud.todo_title.text.contains("Rex"), "a newer quest: the list follows it (%s)" % hud.todo_title.text)
+		check(hud.todo_title.text.contains("Flowers"), "a newer quest doesn't steal the list: still the followed one (%s)" % hud.todo_title.text)
+		quests.follow("rex_campaign", true)
+		await _frames(25)
+		check(hud.todo_items().size() > items.size(), "following the newer one too: both on the list (%d)" % hud.todo_items().size())
+		quests.follow_only("rex_campaign")
+		await _frames(25)
+		check(hud.todo_title.text.contains("Rex"), "follow just the newer one: the list switches (%s)" % hud.todo_title.text)
 		settings.objectives = false
 		await _frames(25)
 		check(not hud.todo.visible, "To-do list off in Settings: hidden")

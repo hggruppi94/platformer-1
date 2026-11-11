@@ -92,7 +92,7 @@ const TOWN_SCENE := "res://scenes/town/town.tscn"
 const TITLE_SCENE := "res://scenes/title/title.tscn"   # the game opens on the title screen (scripts/title_screen.gd)...
 const START_SCENE := "res://scenes/earth/earth.tscn"   # ...and a game starts (or carries on) from Earth
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
-const NEW_GAME_MESSAGE := "Welcome home! At midnight the portal by the old oak opens to the Void."
+const NEW_GAME_MESSAGE := "Welcome home to Stars Hollow!"                    # no spoilers: the oak keeps its secret till midnight
 const AUTOSAVE_INTERVAL := 30.0
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
@@ -304,15 +304,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _board_button_free(event: InputEvent) -> bool:
-	# On a controller, Y is both the board and Grind (scenes/player/skate.gd). While she's riding it only steps her off
-	# when she's rolling on the ground with no rail in reach; the keyboard has its own Grind key, so E always works on
-	# the ground.
+	# Y on a controller and E on the keyboard are both the board and Grind (scenes/player/skate.gd). While she's riding
+	# the button only steps her off when she's rolling on the ground with no rail in reach. (If the player gives Grind
+	# a key of its own, the board key always works on the ground.)
 	var player := get_tree().get_first_node_in_group("player")
 	if not riding or player == null or player.get("skate") == null:
 		return true
 	if not player.skate.can_step_off():
 		return false
-	return not (event is InputEventJoypadButton and player.skate.rail_in_reach())
+	return not (event.is_action("skate_grind") and player.skate.rail_in_reach())
 
 
 func _player_carried() -> bool:
@@ -356,6 +356,7 @@ func save_game() -> void:
 		"calendar_offset": Clock.calendar_offset, "seasons_open": Clock.seasons_open.duplicate(),
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
+		"followed": Quests.follow_save(),                # what the player follows (the Quests sheet's Follow buttons)
 		"requests": Requests.save_data(),
 		"earth_jobs": EarthJobs.save_data(),
 		"festival": Festival.save_data(),
@@ -441,6 +442,7 @@ func load_game() -> void:
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
 	FirstNight.migrate()                          # an old save's First Night steps, moved to the Humming Oak's
+	Quests.follow_load(data.get("followed", null))  # (a save from before following follows its to-do list's quest)
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
 	var jobs = data.get("earth_jobs", {})                    # saves from before Earth's notice board have none
@@ -449,6 +451,8 @@ func load_game() -> void:
 	Festival.load_data(festival if festival is Dictionary else {})
 	var arsenal = data.get("arsenal", {})                    # saves from before gadgets have none: just the popper
 	Arsenal.load_data(arsenal if arsenal is Dictionary else {})
+	if not data.has("arsenal"):
+		Arsenal.old_save()
 	var races = data.get("races", {})                        # saves from before the races have none
 	Races.load_data(races if races is Dictionary else {})
 	var runs = data.get("skate_runs", {})                    # saves from before the skate runs have none

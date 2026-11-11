@@ -43,7 +43,7 @@ func _run() -> void:
 	game._resume = {}
 	game.pending_message = ""
 	game.message_posted.connect(func(t: String) -> void: said.append(t))
-	for f in FLAGS + ["beat_agent_of_chaos"]:
+	for f in FLAGS + ["beat_agent_of_chaos", "swap_tried"]:
 		dialogue.flags.erase(f)
 	change_scene_to_file(TOWN)
 	await _frames(6)
@@ -58,20 +58,22 @@ func _run() -> void:
 	fight.ending.off = true                     # ...and so does his ending cutscene (test_chaos_ending.gd)
 	await _physics(4)
 
-	# --- Locked until the three bosses are popped ---
-	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
-	await _physics(10)
-	check(not fight.active, "he won't fight before his three champions are popped")
-	check(said.any(func(t: String) -> bool: return t.contains("Beat his champions first")), "...and says who's left")
-
-	# --- Unlocked: coming close starts it ---
+	# --- Not even there until Rex and Dash try to swap back (popping the three bosses isn't enough) ---
 	for f in FLAGS:
 		dialogue.flags[f] = true
+	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
+	await _physics(10)
+	check(not fight.active and not giant.visible and not giant.is_in_group("map_landmarks"),
+		"before the swap he isn't in the Void at all: no fight, not seen, not on the map, even with the bosses popped")
+
+	# --- Unlocked by the swap: coming close starts it ---
+	dialogue.flags["swap_tried"] = true
 	p.global_position = giant.global_position + Vector3(0, 40, 60)       # step away and back in
 	await _physics(4)
 	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
 	await _physics(6)
-	check(fight.active and fight.phase == 1, "with all three popped, coming close starts the fight")
+	check(giant.visible and giant.is_in_group("map_landmarks"), "after the swap he's in his field, and on the map")
+	check(fight.active and fight.phase == 1, "after the swap, coming close starts the fight")
 	check(giant.is_in_group("enemies") and giant.is_in_group("bosses"), "...he's a target now")
 	check(giant.get_node_or_null("BossMeter") != null, "...with a big meter")
 

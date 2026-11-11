@@ -38,6 +38,8 @@ func _run() -> void:
 	game.riding = false
 	game._resume = {}
 	game.pending_message = ""
+	var dialogue := root.get_node("Dialogue")
+	dialogue.flags.erase("swap_tried")
 	change_scene_to_file(TOWN)
 	await _frames(6)
 	await _physics(4)
@@ -48,6 +50,17 @@ func _run() -> void:
 	if g == null:
 		_end()
 		return
+	# He isn't in the Void until Rex and Dash try to swap back (Hayden's day 1 playtest, 11 Nov 2026)
+	var giant_body := g.get_node_or_null("Body")
+	check(not g.visible and not g.is_in_group("map_landmarks") and giant_body and not giant_body.can_process(),
+		"before Rex and Dash's swap he isn't there: not seen, not solid, not on the map")
+	var asleep_at := g.global_position
+	await _physics(30)
+	check(g.global_position.distance_to(asleep_at) < 0.01, "...and he doesn't walk about")
+	dialogue.flags["swap_tried"] = true
+	await _physics(4)
+	check(g.visible and g.is_in_group("map_landmarks") and giant_body.can_process(), "after the swap he's there, solid and on the map")
+	dialogue.flags.erase("swap_tried")    # he stays now, but with the flag gone his fight stays shut: this test is his patrol
 	check(g.call("map_name") == GiantScript.NAME and GiantScript.NAME != "", "he's called \"%s\"" % GiantScript.NAME)
 	var anim := g.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	check(anim != null and anim.has_animation("idle") and anim.has_animation("walk") and anim.has_animation("chaos"),

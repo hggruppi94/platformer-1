@@ -2,14 +2,16 @@ extends Node
 
 # Autoload "Schematics": the real unlocks (Hayden, Oct 31: "I want the weapon and skateboard unlocks to be
 # significant"). Dash's gadget stall is open from The First Night, but a gadget only goes on sale once its
-# schematic's been found, and the new rides (the Overboard, the Bike, the Rocket Board, the Rocket Bike and the Flying
-# Saucer) are the same at Zippy's Tune-Up. One or two schematics turn up each night, in the place that night shows off
-# (the 7-night plan in /mnt/project-files/roadmap/galaxity-plan.md, F4), and they stay there until they're found.
+# blueprint's been found (every gadget, the Star Popper too: nobody starts with one), and the new rides (the Overboard,
+# the Bike, the Rocket Board, the Rocket Bike and the Flying Saucer) are the same at Zippy's Tune-Up. The rides'
+# schematics turn up on their nights, in the place that night shows off (the 7-night plan in
+# /mnt/project-files/roadmap/galaxity-plan.md, F4); the gadgets' blueprints are in the portal worlds (LIST). They stay
+# where they are until they're found. In code they're all "schematics"; the player sees "blueprint" for a gadget.
 #
 # Like the lost watches (scripts/watches.gd), the pickups are put into whichever scene is showing at play time
 # (scripts/schematic_pickup.gd), so no builder or .tscn changed. What's been found is a Dialogue flag
 # ("schematic_<id>"), so a save needs nothing new and an old save just has none. Gadgets an old save already owns
-# stay owned. Rides that have been bought are items ("ride:<id>"), and the one the hero rides is Game.hero_ride.
+# stay owned (and a save from before gadgets keeps the Star Popper it started with). Rides that have been bought are items ("ride:<id>"), and the one the hero rides is Game.hero_ride.
 
 signal found_one(id: String)
 
@@ -19,29 +21,36 @@ const SKY_RADIUS := 10.0                  # ...or the mothership's, for the one 
 
 # kind: "gadget" (its id in Arsenal.GADGETS) or "ride" (its id in Rides.HERO_RIDES). "at" is x, z, dropped onto the
 # ground when it's placed; "sky" is a point in the air that only the mothership can reach.
+# Gadgets (Hayden, 11 Nov playtest: "weapons should not be unlocked until you purchase them, including your starting
+# blaster ... weapon blueprints being found in the world where they make the most sense"): the Star Popper's
+# blueprint is in the Void on the First Night, and every other gadget's is in the portal world it fits ("world": its
+# id in Portals.WORLDS; "at" is then in that world's own scene). A world's blueprint is there from your first trip, and
+# its hint only names the world once that world's portal is open. Rides stay on their nights.
 const LIST := [
-	{"id": "fizz", "kind": "gadget", "what": "fizz", "night": 2, "scene": "town", "at": Vector2(28, 21),
-		"hint": "On the promenade by the portal, where Pip looks after the lamps."},
-	{"id": "disco", "kind": "gadget", "what": "disco", "night": 3, "scene": "town", "at": Vector2(-8, 58),
-		"hint": "Out in the south meadow, beside the Meadow Wiggle."},
+	{"id": "popper", "kind": "gadget", "what": "popper", "night": 1, "scene": "town", "at": Vector2(-84, 55),
+		"hint": "In the Market Square, by the stalls, not far from Dash's gadget stall."},
+	{"id": "fizz", "kind": "gadget", "what": "fizz", "world": "shard_isle", "at": Vector2(-3.5, -25.5),
+		"hint": "On Shard Isle, up on the highest of the little islands."},
+	{"id": "buzz", "kind": "gadget", "what": "buzz", "world": "rootmind", "at": Vector2(19, -1),
+		"hint": "In the Rootmind, where the hive hums loudest: in the tall grass."},
+	{"id": "rainbow", "kind": "gadget", "what": "rainbow", "world": "lanternmoor", "at": Vector2(32, -20),
+		"hint": "In Lanternmoor, on Moon Rock. Only a glide will get you there."},
+	{"id": "disco", "kind": "gadget", "what": "disco", "world": "rhythm_springs", "at": Vector2(16, 22),
+		"hint": "In Rhythm Springs, on the Dance Floor."},
+	{"id": "jelly", "kind": "gadget", "what": "jelly", "world": "tide_reef", "at": Vector2(28, 6),
+		"hint": "In the Tide Reef, by the Kelp Grotto, where the jellies drift."},
+	{"id": "plush", "kind": "gadget", "what": "plush", "world": "glenmoor", "at": Vector2(-26, 17),
+		"hint": "In Glenmoor, in the Fold, with the Fluffkins."},
 	{"id": "overboard", "kind": "ride", "what": "overboard", "night": 3, "scene": "town", "at": Vector2(34, 58),
-		"hint": "In the south meadow too, on the side nearest the lake."},
-	{"id": "jelly", "kind": "gadget", "what": "jelly", "night": 4, "scene": "town", "at": Vector2(97, -63),
-		"hint": "Halfway up Observatory Hill."},
+		"hint": "In the south meadow, on the side nearest the lake."},
 	{"id": "bike", "kind": "ride", "what": "bike", "night": 4, "scene": "town", "at": Vector2(84, -98),
 		"hint": "Round the far side of Observatory Hill."},
-	{"id": "buzz", "kind": "gadget", "what": "buzz", "night": 5, "scene": "town", "at": Vector2(122, -36),
-		"hint": "Right beside the Mothership Pad."},
 	{"id": "rocket_board", "kind": "ride", "what": "rocket_board", "night": 5, "scene": "town",
 		"sky": Vector3(60, 46, 24), "hint": "Floating high over town, on the Sky Rings' way. Only a ship can reach it."},
-	{"id": "plush", "kind": "gadget", "what": "plush", "night": 6, "scene": "school", "at": Vector2(-4, 30),
-		"hint": "At the castle school, in the Entrance Garden."},
 	{"id": "rocket_bike", "kind": "ride", "what": "rocket_bike", "night": 6, "scene": "town", "at": Vector2(-20, -108),
 		"hint": "On the way up to the castle school, by the long rail."},
-	{"id": "rainbow", "kind": "gadget", "what": "rainbow", "night": 7, "scene": "town", "at": Vector2(-114, -104),
-		"hint": "Deep in the Spooky Woods."},
 	{"id": "saucer", "kind": "ride", "what": "saucer", "night": 7, "scene": "town", "at": Vector2(112, -186),
-		"hint": "In the far field, near someone very, very big."},
+		"hint": "In the far field, a long way out."},
 ]
 
 # What each ride costs at Zippy's Tune-Up (the shop keeps prices at 20 or under)
@@ -83,9 +92,23 @@ func is_found(id: String) -> bool:
 
 
 func out_tonight(id: String) -> bool:
-	# A schematic is out from its own night on (an old save on a later night gets every one up to it at once)
+	# A schematic is out from its own night on (an old save on a later night gets every one up to it at once). One in a
+	# portal world is always there, for whenever you get there.
 	var e := entry(id)
-	return not e.is_empty() and Nights.night() >= int(e.night)
+	if e.is_empty():
+		return false
+	return e.has("world") or Nights.night() >= int(e.night)
+
+
+func hint_ready(id: String) -> bool:
+	# Whether to say where it is: one in a portal world only once that world's portal has opened (so the hint never
+	# gives away a world before it turns up), the rest from their night
+	var e := entry(id)
+	if e.is_empty():
+		return false
+	if e.has("world"):
+		return Portals.is_open(str(e.world)) or Portals.is_cleared(str(e.world))
+	return out_tonight(id)
 
 
 func for_thing(kind: String, what: String) -> Dictionary:
@@ -96,7 +119,7 @@ func for_thing(kind: String, what: String) -> Dictionary:
 
 
 func gadget_unlocked(g: String) -> bool:
-	# A gadget can be bought once its schematic's found (the Star Popper's given; one she has stays hers)
+	# A gadget can be bought once its schematic's found (one she has stays hers)
 	var e := for_thing("gadget", g)
 	return e.is_empty() or is_found(str(e.id)) or Arsenal.owns(g)
 
@@ -117,7 +140,7 @@ func found_count() -> int:
 func next_hint() -> Dictionary:
 	# The first schematic that's out and not found yet (for the Goals page), or {}
 	for e in LIST:
-		if out_tonight(str(e.id)) and not is_found(str(e.id)):
+		if hint_ready(str(e.id)) and not is_found(str(e.id)):
 			return e
 	return {}
 
@@ -133,8 +156,10 @@ func note_for(kind: String, what: String) -> String:
 	var e := for_thing(kind, what)
 	if e.is_empty() or is_found(str(e.id)) or (kind == "gadget" and Arsenal.owns(what)) or (kind == "ride" and owns_ride(what)):
 		return ""
-	if out_tonight(str(e.id)):
-		return "[Schematic] " + str(e.hint)
+	if hint_ready(str(e.id)):
+		return "[Blueprint] " + str(e.hint) if kind == "gadget" else "[Schematic] " + str(e.hint)
+	if e.has("world"):
+		return "[Blueprint] Not found yet. Dash says it blew somewhere far away..."
 	return "[Schematic] Not out yet. Maybe on night %d..." % int(e.night)
 
 
@@ -152,7 +177,7 @@ func pick_up(id: String, at := Vector3.ZERO) -> void:
 		Fx.burst(s, at, Color(0.45, 0.75, 1.0), 20, 0.07, 3.5, -2.0, 0.8)
 		Fx.burst(s, at, Color(1.0, 1.0, 1.0), 10, 0.05, 2.5, -1.0, 0.7)
 	if str(e.kind) == "gadget":
-		Game.message("A schematic for the %s! Dash can build it now: find his gadget stall in the Market Square." % thing_name(e))
+		Game.message("A blueprint for the %s! Take it to Dash's gadget stall in the Void's Market Square and he can build it for you." % thing_name(e))
 	else:
 		Game.message("A schematic for the %s! Zippy can build it now, at the Tune-Up by the race board." % thing_name(e))
 	found_one.emit(id)
@@ -225,16 +250,15 @@ func use_ride(r: String) -> void:
 func _place_in(scene: Node) -> void:
 	if not is_instance_valid(scene) or not scene is Node3D:
 		return
-	var key := ""
-	for k in SCENES:
-		if scene.scene_file_path == SCENES[k]:
-			key = k
+	var key := scene_key(scene.scene_file_path)
 	if key == "":
 		return
 	for e in LIST:
 		var id := str(e.id)
-		if str(e.scene) != key or is_found(id) or not out_tonight(id) or scene.get_node_or_null("Schematic " + id):
+		if where(e) != key or is_found(id) or not out_tonight(id) or scene.get_node_or_null("Schematic " + id):
 			continue
+		if e.has("world") and (Portals.practice or scene.has_meta("preview")):
+			continue                    # nothing found on a practice trip is kept, and a portal's preview is just a picture
 		var p := (load("res://scripts/schematic_pickup.gd") as GDScript).new() as Node3D
 		p.name = "Schematic " + id
 		p.set("id", id)
@@ -246,6 +270,19 @@ func _place_in(scene: Node) -> void:
 			var xz: Vector2 = e.at
 			p.global_position = Vector3(xz.x, 0.0, xz.y)
 			p.call("drop")
+
+
+func where(e: Dictionary) -> String:
+	# Which scene it's in: "town", "school" or a portal world's id
+	return str(e.world) if e.has("world") else str(e.scene)
+
+
+func scene_key(path: String) -> String:
+	for k in SCENES:
+		if path == SCENES[k]:
+			return k
+	var w: Dictionary = Portals.world_for_scene(path)
+	return str(w.get("id", ""))
 
 
 func refresh() -> void:

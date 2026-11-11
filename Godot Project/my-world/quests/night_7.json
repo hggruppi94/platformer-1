@@ -1,5 +1,5 @@
 {
-  "name": "Night 7: The Agent of Chaos",
+  "name": "Night 7: The Far Corners",
   "skippable": true,
   "start": {
     "flag": "night_7"
@@ -20,10 +20,6 @@
       "text": "The far corners of the Void, tonight. Be brave!",
       "checklist": [
         [
-          "schematic_rainbow",
-          "Find the Rainbow Ray's schematic, deep in the Spooky Woods"
-        ],
-        [
           "n7_gate",
           "Peek at the Scary World gate (you don't have to go in)"
         ],
@@ -33,25 +29,17 @@
         ],
         [
           "n7_giant",
-          "Get a look at the Agent of Chaos, from a safe distance"
+          "Have a careful look round the far field, behind the castle hill"
         ]
       ],
       "done": {
         "flags": [
-          "schematic_rainbow",
           "n7_gate",
           "schematic_saucer",
           "n7_giant"
         ]
       },
       "where": [
-        {
-          "at": [
-            -114,
-            -104
-          ],
-          "unless": "schematic_rainbow"
-        },
         {
           "at": [
             -128,

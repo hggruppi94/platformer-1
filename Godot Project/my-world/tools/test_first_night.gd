@@ -107,7 +107,34 @@ func _run() -> void:
 	check(_step() == "morning" and not dialogue.flags.has("fn_folk"), "one hello isn't two")
 	lines = await _talk("lionel")
 	await _frames(4)
-	check(dialogue.flags.has("fn_folk") and _step() == "oak", "two hellos on the green: on to the old oak")
+	check(dialogue.flags.has("fn_folk") and _step() == "board", "two hellos on the green: on to the notice board")
+
+	# --- The notice board tutorial (Hayden's 11 Nov 2026 playtest) ---
+	var jobs := root.get_node("EarthJobs")
+	var nb := current_scene.get_node_or_null("Notice Board") as Node3D
+	check(nb != null, "the notice board is up on a new game's first morning")
+	check(jobs.is_live() and jobs.list.size() == 3, "...with three jobs on it (%d)" % jobs.list.size())
+	await _physics(30)
+	nina = _talker("nina_earth")
+	check(nina != null and _going(nina, "gazebo"), "Nina goes to the board by the gazebo")
+	lines = await _talk("nina_earth")
+	check(_said(lines, "notice board"), "Nina: come and see the notice board")
+	stars = root.get_node("TownMap").quest_markers()
+	check(stars.any(func(q: Dictionary) -> bool: return _flat(q.pos - nb.global_position) < 1.0), "a star on the board")
+	lines = await _talk_to(nb.get_node("Request Talk"), [0])
+	check(_said(lines, "FOLLOW") and dialogue.flags.has("fn_board_look"), "reading it: Nina explains following and turning in")
+	var first_key: String = jobs.key_of(jobs.list[0])
+	check(quests.is_followed(first_key) and dialogue.flags.has("fn_board_follow"), "...and the board's choice follows a job (%s)" % first_key)
+	check(not root.get_node("TownMap").quest_markers().is_empty(), "the followed job has stars on the map")
+	jobs.list[0].progress = jobs.list[0].goal
+	jobs.list[0].done = true
+	jobs.changed.emit()
+	await _frames(2)
+	check(_step() == "board", "a finished job still has to be turned in")
+	lines = await _talk_to(nb.get_node("Request Talk"), [-1])
+	await _frames(4)
+	check(jobs.list[0].paid and dialogue.flags.has("fn_board_job"), "turned in at the board: paid")
+	check(_step() == "oak", "on to the old oak")
 
 	# --- The Humming Oak: listen, three clues, three acorns ---
 	await _physics(30)
@@ -153,7 +180,7 @@ func _run() -> void:
 	await _frames(4)
 	check(_step() == "wait" and not oak_mod.awake(), "on to waiting for midnight (the oak's not open yet)")
 	lines = await _talk("nina_earth")
-	check(_said(lines, "Until the Shift") and root.get_node("FirstNight").shift_sleep_ok(), "Nina suggests the bed's \"Until the Shift\"")
+	check(_said(lines, "Until midnight") and root.get_node("FirstNight").shift_sleep_ok(), "Nina suggests the bed's \"Until midnight\"")
 
 	# --- The bed: Until the Shift ---
 	var bed := current_scene.find_child("SleepSpot", true, false)
@@ -275,7 +302,7 @@ func _run() -> void:
 	check(messages.any(func(m: String) -> bool: return m.contains("HOORAY")), "...with a cheer")
 	var sparkles: int = game.sparkles
 	lines = await _talk("dash")
-	check(_said(lines, "Agent of Chaos"), "Dash hints at the Agent of Chaos, watching from the far field")
+	check(not _said(lines, "Agent of Chaos") and _said(lines, "flickers"), "Dash only hints (the sky flickers): no Agent of Chaos yet")
 	check(game.has_item("shop:gloop_crown") and str(game.outfit.get("head", "")) == "gloop_crown" and game.sparkles == sparkles + 15,
 		"the reward: the Gloop Crown, worn straight away, and 15 sparkles")
 	var crown: Node3D = Cosmetics.hat("gloop_crown")
@@ -333,7 +360,7 @@ func _run() -> void:
 			break
 		skip.pressed.emit()
 		await _frames(3)
-	check(quests.is_done(Q) and seen == ["morning", "oak", "clues", "dusk", "wait", "awaken", "shift", "day", "king", "home"],
+	check(quests.is_done(Q) and seen == ["morning", "board", "oak", "clues", "dusk", "wait", "awaken", "shift", "day", "king", "home"],
 		"every step skips, one at a time (%s)" % ", ".join(seen))
 	menu.close()
 	await _frames(2)
