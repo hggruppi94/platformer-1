@@ -130,6 +130,82 @@ func _run() -> void:
 	_press("map")
 	await _frames(2)
 
+	# Zoom and move (Hayden, 11 Nov 2026): the whole map at 1, closer up to ZOOM_MAX, never off its edges
+	var hide_was: Array = settings.map_hide.duplicate()
+	settings.map_hide = []
+	_press("map")
+	await _frames(4)
+	map.zoom = 1.0
+	map.find_me()
+	var area: Rect2 = map._area()
+	var whole: Rect2 = map._map_rect()
+	check(absf(whole.size.x - minf(area.size.x, area.size.y)) < 1.0 and area.grow(1.0).encloses(whole), "zoom 1: the whole map fits beside the list")
+	check(map._legend_box.visible and map._area().end.x <= map._legend_box.position.x + 1.0, "the list sits to the right of the map, not on it")
+	map.zoom_by(2.0)
+	check(is_equal_approx(map.zoom, 2.0) and map._map_rect().size.x > whole.size.x * 1.9, "zooming in makes the map twice as big")
+	map.zoom_by(100.0)
+	check(is_equal_approx(map.zoom, map.ZOOM_MAX), "zoom stops at %.0fx" % map.ZOOM_MAX)
+	map.move_by(Vector2(-100000, -100000))
+	check(map._map_rect().grow(1.0).encloses(map._area()), "dragging far away stops at the map's edge (the map still fills the view)")
+	map.find_me()
+	var me: Vector2 = map._map_rect().position + map.to_map(player.global_position) * map._map_rect().size.x
+	check(map._area().has_point(me), "Find me brings her back into view")
+	map.zoom_by(0.001)
+	check(is_equal_approx(map.zoom, 1.0), "zooming out stops at the whole map")
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	wheel.position = map._area().get_center()
+	map._on_map_input(wheel)
+	check(map.zoom > 1.1, "the mouse wheel zooms in")
+	var plus := InputEventKey.new()
+	plus.physical_keycode = KEY_EQUAL
+	plus.pressed = true
+	var z0: float = map.zoom
+	map._input(plus)
+	check(map.zoom > z0, "+ zooms in")
+
+	# The list: a row for each kind there is, each followed quest's star with its own colour, switching them off
+	quests.load_data({"rex_campaign": {"step": 0, "since_day": 1}, "pip_lamps": {"step": 0, "since_day": 1}})
+	quests.follow("rex_campaign")
+	quests.follow("pip_lamps")
+	dialogue.flags.erase("asked_dash")
+	map._legend_sig = ""
+	map._refresh_legend()
+	var row_rex: Button = map._legend_list.find_child("Show_quest_rex_campaign", true, false)
+	var row_pip: Button = map._legend_list.find_child("Show_quest_pip_lamps", true, false)
+	check(row_rex != null and row_pip != null, "each followed quest has its own row in the list")
+	check(map.star_colour("rex_campaign") != map.star_colour("pip_lamps"), "...and its own star colour")
+	var keys := {}
+	for q in map.quest_markers():
+		keys[q.key] = true
+	check(keys.has("rex_campaign") and keys.has("pip_lamps"), "both quests' stars are on the map at once")
+	row_pip.button_pressed = false
+	check("quest:pip_lamps" in settings.map_hide and not map.shows_star("pip_lamps") and map.shows_star("rex_campaign"), "clicking a quest's row hides just its stars")
+	var row_people: Button = map._legend_list.find_child("Show_people", true, false)
+	dialogue.talks.clear()
+	map._legend_sig = ""
+	map._refresh_legend()
+	check(map._legend_list.find_child("Show_people", true, false) == null, "nobody met yet: no People row (nobody shown)")
+	check(map.people().all(func(p: Dictionary) -> bool: return not p.met), "...people not met yet aren't named on the map")
+	dialogue.talks["dash"] = 1
+	map._legend_sig = ""
+	map._refresh_legend()
+	row_people = map._legend_list.find_child("Show_people", true, false)
+	check(row_people != null, "met Dash: the People row is there")
+	row_people.button_pressed = false
+	check(not map.shows("people"), "clicking People hides them")
+	await _frames(2)
+	row_people = map._legend_list.find_child("Show_people", true, false)
+	row_people.button_pressed = true
+	check(map.shows("people"), "...and clicking again shows them")
+	check(map.open_tracks().all(func(t: Dictionary) -> bool: return t.open), "races not open yet aren't on the map")
+	check(map._legend_list.find_child("FindMe", true, false) != null and map._legend_list.find_child("ZoomIn", true, false) != null,
+		"the list has zoom buttons and Find me")
+	_press("map")
+	await _frames(2)
+	settings.map_hide = hide_was
+
 	# Minimap: only when switched on, only outdoors
 	settings.minimap = false
 	await _frames(2)
@@ -147,6 +223,17 @@ func _run() -> void:
 	_press("map")
 	await _frames(3)
 	check(map.is_open() and not map.in_town(), "the map opens indoors too (says to step outside)")
+	_press("map")
+	await _frames(2)
+	# A portal world gets its own picture from above (none in a headless run: it says where you are instead)
+	change_scene_to_file("res://scenes/portal_worlds/shard_isle.tscn")
+	await _frames(10)
+	check(map.snap_scene() and map.place_name() == "Shard Isle", "Shard Isle is a place with its own map")
+	_press("map")
+	await _frames(6)
+	check(map.is_open(), "the map opens in a portal world")
+	var b: Dictionary = map.snap_bounds(current_scene)
+	check(float(b.size) >= 80.0 and float(b.size) <= 420.0, "the world's picture covers its reachable part (%.0f m)" % float(b.size))
 	_press("map")
 	await _frames(2)
 	settings.minimap = minimap_was
