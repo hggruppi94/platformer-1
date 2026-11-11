@@ -102,7 +102,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **The lever, for good** (`far_future.gd swap_for_good()`, slice three): with his clock stopped the Swap-o-Tron's
     lever is back; the same ZAP, and at the moment the knot pulled them back last time a ring of gold and "It's
     HOLDING!" (flag `rex_home`). Rex is the boy (rook.glb) and Rook the husky from then on, in the Far Future and in the
-    Void.
+    Void. In his own body Rex stands up and walks like a boy (`after_the_ending.gd upright()`: his twin's idle,
+    walk and run from bike_boy.glb, same 17 bones, copied into that one model; Rook's crawl is untouched).
   - **Dash's twist** (`twist_lines()`, flag `dash_told`): the crack in the Shift has two ends; the far end is inside the
     Tomorrow Clock, it can only be stitched from the inside, and whoever does it stays in the furthest future when it
     shuts. Rex offers; Dash says it was his time experiment, and the Void needs Rex as its mayor one day. Then all three
@@ -113,7 +114,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     Pip's "it's see you later"), **Dash's Cap** for the hero (`dash_cap`, a hat: `cosmetics.gd`, shop/items.json), he
     walks into a door of light in the spire, waves, steps through, a gold beam goes up and a golden seam draws across
     the sky, then "SEE YOU LATER". Own camera, a `dash_goodbye` hold, the HUD hidden, the minimap waiting, **the portal
-    trip's timer stands still** while any cutscene plays (`portals.gd`), the gentle `chaos_ending` tune (group
+    trip's timer stands still and is hidden** while any cutscene plays (`portals.gd`), the gentle `chaos_ending` tune (group
     `goodbye_playing`, `soundscape.gd`). Flag `dash_goodbye`.
   - **His letter** waits where he stood in his lab (`_add_letter()`, `letter_lines()`, flag `dash_letter_read`): the
     hope (Lumen City is built where the Void is, so he's "not that far away, just LATER"; every goodbye's a
