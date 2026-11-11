@@ -28,7 +28,7 @@
       "id": "vein",
       "text": "Harvest a glowing Remnant vein with your new tool. There's one on the lake shore.",
       "done": {"flag": "harvest_first_vein"},
-      "where": [{"at": [-40, 14]}]
+      "where": [{"at": [-45, 20]}]
     },
     {
       "id": "garden",

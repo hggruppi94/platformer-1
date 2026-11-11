@@ -160,7 +160,11 @@ func _run() -> void:
 		e.position = root.get_visible_rect().size / 2.0
 		Input.parse_input_event(e)
 		await process_frame
-	check(absf(wrapf(arm.rotation.y - before, -PI, PI)) > 0.3, "in the Void the mouse still turns the camera (%.2f)" % (arm.rotation.y - before))
+	# (Headless there's no window to capture the mouse in, so the camera never sees it move: only check with a window)
+	if DisplayServer.get_name() != "headless":
+		check(absf(wrapf(arm.rotation.y - before, -PI, PI)) > 0.3, "in the Void the mouse still turns the camera (%.2f)" % (arm.rotation.y - before))
+	else:
+		print("SKIP  in the Void the mouse still turns the camera (needs a window: run without --headless)")
 	var mini := root.get_node("TownMap").find_child("Minimap", true, false) as Control
 	check(mini != null and mini.mouse_filter == Control.MOUSE_FILTER_IGNORE and \
 		mini.find_children("*", "Control", true, false).all(func(c: Control) -> bool: return c.mouse_filter == Control.MOUSE_FILTER_IGNORE),

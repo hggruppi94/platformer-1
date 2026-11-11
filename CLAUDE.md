@@ -91,6 +91,20 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **A whole-game playtest, start to ending, and what it fixed** (Hayden: "Playtest"). Played in the cloud
+  (own Godot user folders, no save touched).
+  - **`tools/playthrough.gd`** plays the whole story as a player would, chapter by chapter: the First Night, nights 2
+    to 7, Bramble's Harvest, all nine portal worlds in order (Dark Hollow through the centipede's gulp), Rex's swap,
+    the Agent of Chaos's final fight with every friend's section, and the ending. Each chapter saves to
+    `user://playthrough_<chapter>.json` and the next starts from it. Run `-- all` (or one chapter name) headless, or in
+    a window with a folder after it for pictures. It puts Hayden's save and settings aside and back like the tests.
+  - **Fixed:** that night's schematics sometimes didn't show (the board rolls the night a moment after you land, so
+    `schematics.gd` now places them again when the night changes); the lake shore Remnant vein sat in the Lake Loop's
+    lanes (moved to (-45, 20), and Bramble's Harvest points there; `test_races` passes again); in the final fight the
+    centipede's glitch-cube tower stood so close that his chest clock poked through it and you got stuck halfway up
+    (`chaos_trials.gd TOWER_OUT` 5.6). `test_first_hour`'s mouse camera check only runs with a window (it passes there).
+  - The full suite passes in the cloud.
+
 - 2026-11-10: **The Agent of Chaos's ending cutscene, and his boss music** (Hayden: "Okay lets do it", the next step
   after the friends' sections). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/chaos_ending.gd`** (an "Ending" node under `ChaosFight`, a CanvasLayer like `RaceIntro`): the first time
