@@ -54,6 +54,7 @@ func show_for(scene_path: String) -> void:
 		if str(w.scene) != "":
 			worlds.append(str(w.scene))
 	worlds.append(Bosses.KINGDOM)                # ...and the Gloop King's kingdom (scripts/gloop_kingdom.gd)
+	worlds.append(Farm.SECRET_GARDEN)            # ...and the real Secret Garden (scripts/secret_garden.gd)
 	for id in Races.TRACKS:                      # ...and the race circuits (scripts/races.gd)
 		if Races.TRACKS[id].has("circuit"):
 			worlds.append(str(Races.TRACKS[id].scene))
@@ -65,7 +66,7 @@ func show_for(scene_path: String) -> void:
 		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path,
 		("Through the portal to %s..." % Portals.world_for_scene(scene_path).name) if Portals.is_world_scene(scene_path) \
 		else ("Off to the race..." if Races.is_circuit(scene_path) else ("Into the Gloop Kingdom..." if scene_path == Bosses.KINGDOM \
-		else "Loading...")))
+		else ("Into the Secret Garden..." if scene_path == Farm.SECRET_GARDEN else "Loading..."))))
 	_panel.visible = true
 	_panel.modulate.a = 1.0
 	showing = true

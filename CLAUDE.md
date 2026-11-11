@@ -91,6 +91,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **A real Secret Garden, hidden behind an ivy wall** (Hayden's day 1 playtest: "the secret garden needs to
+  be much larger, and it's not very secret right now; maybe we can fix that somehow"). Built and tested in the cloud (own
+  Godot user folders, no save touched). The Secret Gardens on the hill (your plot, the greenhouse) stay as they were.
+  - **The way in** (`scripts/secret_garden_way.gd`, node "SecretGarden" under the Farm autoload, put in at play time; no
+    `town.tscn` change): a little **wren** waits up on the Secret Gardens' hill (`TRAIL`) and hops on each time you
+    catch up (`CATCH_UP`), then flies down the north cliff to an **old brick wall thick with ivy** at its foot
+    (`Farm.SECRET_DOOR` (-74, -75.6), facing north; checked flat, dry, 34 m off the paths, 7 m from the nearest tree)
+    and pecks at the ground. Dig there for an **old iron key** (flag `sg_key`); with it the ivy parts and a little door
+    opens (`sg_found`). Before that the wall is just a wall. Once found, the door shows open, it's on the map
+    ("Secret Garden") and takes you in any time. Flags also `sg_wren_seen`.
+  - **The garden** (`scenes/secret_garden/secret_garden.tscn` from `tools/build_secret_garden.gd`; everything built at
+    load by `scripts/secret_garden.gd`): 140 by 150 m inside old ivy-covered walls. The **Rose Walk** (rose arches from
+    the door, an alcove with a bench), the **Fountain Lawn** (a stone wren on the fountain), the **Hedge Maze** (a real
+    7x7 maze, the same every time: seed 77), the **Lily Pond** (wade it; an island with a summerhouse), the **Giant
+    Flowers** (a ring of eight, each 0.9 m higher, up to one 8.2 m up in the middle) and the **Great Tree** with a
+    swing. Five **sleeping seeds** (rose alcove, maze heart, pond island, tallest flower, behind the tree,
+    `sg_seed_<id>`) wake into glowing flowers as you reach them; all five wake the garden (brighter, more petals) for
+    20 sparkles and 2 Remnants, once (`sg_awake`). The old door takes you home onto the ground in front of the wall.
+    Loading screen "Into the Secret Garden...", and the map says where you are.
+  - Tests: new `tools/test_secret_garden.gd` (the wall's spot, really following the wren, the key, the door, the size,
+    really walking up the Rose Walk and through the maze to its heart, the flower hops, the seeds, waking once, saving
+    inside, the way home). Previews: `tools/capture_secret_garden.gd` (shots in the project files under
+    world/previews/secret_garden).
+  - My choices Hayden may change: the wren and the key, where the wall is, the garden's layout and what's in it, the
+    five seeds and their reward.
+
 - 2026-11-11: **The Gloop King gets a kingdom of his own** (Hayden's day 1 playtest: "I want the gloop king to have his
   own domain instead of just being in a field"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **The Gloop Gate** (`Bosses._place_gloop_gate()`, at play time): a goo dome with gold drips, a crown and a
