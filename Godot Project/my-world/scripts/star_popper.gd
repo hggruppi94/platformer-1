@@ -19,6 +19,8 @@ extends Node3D
 # Her right arm points the popper where the bubbles go (PopperArm below), and the popper shows in her hand while she
 # aims and for a moment after each shot. Keys and buttons are in Settings > Controls ("aim", "shoot").
 #
+# Nobody starts with it: it's bought at Dash's stall once its blueprint's found (scripts/schematics.gd), and until
+# she has a gadget (Arsenal.armed()) Shoot and Aim do nothing but say so.
 # The Star Popper is the first of her gadgets (scripts/arsenal.gd). Shoot fires whichever one is out: the Fizz
 # Flinger lobs a fizz bomb (scripts/fizz_bomb.gd) and the Disco Ball throws a mirror ball (scripts/disco_ball.gd) at
 # what she's aiming at, or at an enemy in front of her. Only the Star Popper charges a big bubble. Each gadget shows
@@ -123,10 +125,26 @@ func can_shoot() -> bool:
 		return false
 	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused:
 		return false
+	if not Arsenal.armed():
+		return false
 	# The click that grabs the mouse back into the game window isn't a shot
 	if Settings.last_device == "keyboard" and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not _in_test():
 		return false
 	return true
+
+
+func _unarmed_ok() -> bool:
+	# Shoot pressed with no gadget yet, somewhere a shot would have counted: worth saying why nothing happened
+	if player == null or player.carried or player.input_locked:
+		return false
+	return not (Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused)
+
+
+static func no_gadget_line() -> String:
+	# What Shoot says before she has a gadget (nothing about where blueprints come from: that's for Dash to say)
+	if Schematics.is_found("popper"):
+		return "No blaster yet! Take the Star Popper's blueprint to Dash's gadget stall and he'll build it for you."
+	return "You haven't got a blaster yet. Jump on enemies to pop them!"
 
 
 func _in_test() -> bool:
@@ -147,13 +165,16 @@ func _physics_process(delta: float) -> void:
 	if player == null:
 		return
 	var ok := can_shoot()
+	_told_empty -= delta
+	if not Arsenal.armed() and Input.is_action_just_pressed("shoot") and _unarmed_ok() and _told_empty <= 0.0:
+		_told_empty = 4.0
+		Game.message(no_gadget_line())
 	# Aiming works on a ride too (the board then steers from where she's going, not the camera: skate.gd
 	# _camera_dir), except in a race, where Aim uses the power-up (scripts/races.gd)
 	aiming = ok and Input.is_action_pressed("aim") and not (Game.riding and Races.racing())
 	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
 	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
 	_cooldown -= delta
-	_told_empty -= delta
 	_raise = maxf(_raise - delta, 0.0)
 	if not ok:
 		_held = 0.0

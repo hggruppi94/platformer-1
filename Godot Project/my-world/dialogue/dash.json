@@ -42,83 +42,94 @@
       "lines": [
         "There you are, {player}! Look up. No, really, look up.",
         "The stars over Observatory Hill keep blinking in a pattern. Tick, tick, tick. Like a clock. I don't like it.",
-        "Go up to the Observatory and have a look, will you? And keep your eyes open on the way. I dropped... I mean, I think there are schematics on that hill. Two of them!",
-        "If you find a ride schematic, take it to Zippy. Zippy builds rides faster than I can say \"tailwhip\"."
+        "Go up to the Observatory and have a look, will you? And keep your eyes open on the way. I dropped... I mean, I think there's a schematic round the far side of that hill!",
+        "It's for a ride, so take it to Zippy. Zippy builds rides faster than I can say \"tailwhip\"."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:lab"
+      },
+      "do": "FirstNight/Meetings.meet_dash",
+      "lines": [
+        "BZZZT! (Sparks fly. A boy in a cap and goggles pops up from behind the workbench.) Oh! Hi! You found my lab!",
+        "{player}: Rex said you dropped these. (You hand over the coil, the bulb and the cog.)",
+        "My bits! THANK you. I'm Dash! Rex's twin. The one who isn't a husky right now. That's a long story.",
+        "I'm building a Buzz Bot: a little helper that blows bubbles at Gloops. It's nearly done. I just need to pop the cog... in... (CLICK.)",
+        "(The Buzz Bot whirrs, blinks its teal eye, and zooms straight out of the lab.)",
+        "NO NO NO! Come back! {player}, can you catch it? Just walk right into it. It doesn't bite. It barely even buzzes."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:bot"
+      },
+      "lines": [
+        "It's zooming round and round out the front! Walk right into it and it'll stop. Probably."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:thanks"
+      },
+      "do": "FirstNight/Meetings.thanks_from_dash",
+      "lines": [
+        "You caught it! (Dash hugs the Buzz Bot. It buzzes happily.) You're a natural!",
+        "OK, you've earned it. I've got a gadget stall in the Market Square, by the fountain. Gadgets do even sillier things than bubbles!",
+        "My best one's the Star Popper. It blows bubbles that pop Gloops from a long way off. But I can only build one from its blueprint...",
+        "...and SOMEBODY left the window open. (He looks at the Buzz Bot. The Buzz Bot looks away.) It blew off towards the Market.",
+        "It glows blue. Find it, and meet me at my stall!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:stall",
+        "not_flag": "bb_popper"
+      },
+      "lines": [
+        "Found the blueprint yet? It glows blue, somewhere near the Market. Bring it to my stall and I'll build you a Star Popper for a few sparkles."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:stall",
+        "not_flag": "fn_popper"
+      },
+      "do": "FirstNight.popper_from_dash",
+      "lines": [
+        "Your very own Star Popper! Press {shoot} to blow a bubble, and hold {aim} to aim.",
+        "Have a look round my stall while you're here. New gadgets need their own blueprints. They blow about all over the Void, glowing blue!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:stall"
+      },
+      "lines": [
+        "Have a look at my stall! Gadgets, refills, the lot. That's my workbench next to it, for mods."
       ]
     },
     {
       "when": {
         "watches_to_give": false,
-        "quest_step": "first_night:shift"
-      },
-      "set": "fn_met_dash",
-      "lines": [
-        "WHOA. Hey! {player}! You made it! I knew you'd come. Well. I hoped. Mostly knew.",
-        "{player}: Where... am I? Who are you?",
-        "I'm Dash! And this is the Void! A planet that's sort of... outside of time. Time goes all stretchy here.",
-        "One hour of your Earth night is a whole day here. Dawn to dawn. Isn't that the best?",
-        "{player}: And this watch? It just appeared on my wrist!",
-        "Everyone who comes here gets one. It keeps time your own planet's way. It means you're... (He lowers his voice.) chosen.",
-        "{player}: Chosen for what?",
-        "Ah. Um. Can't say! Time ripples! Little wobbly ones! (He wobbles his hands.)",
-        "Come on! I'll be at the Market Square, by the fountain. I've got loads to show you!"
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "watches_to_give": false,
-        "quest_step": "first_night:day",
-        "not_flag": "fn_popper"
-      },
-      "do": "FirstNight.popper_from_dash",
-      "lines": [
-        "There you are! OK, first things first. Gloops.",
-        "They're little goo blobs. Totally harmless, just really, really bouncy. And they bump into you. A lot.",
-        "That's what your Star Popper's for! It blows bubbles. Press {shoot} to blow one, and hold {aim} to aim. Pop three Gloops and you're a natural!",
-        "And this is my gadget stall, right here by the fountain! Gadgets do even sillier things than bubbles. I can only build one from its schematic, though. They blow about all over the Void, glowing blue. Find one and bring it here!",
-        "Oh, and Rex is at the Skate Park. He's my twin. He's a husky right now. Long story. He'll teach you to skate!",
-        "Tally has the request board in the square: people who need a hand. And Zippy runs the races, round the Lake Loop.",
-        "Oh! And see the fountain? Something shiny's stuck right on top of its water ball. A lost watch, I bet. I collect those!"
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "watches_to_give": false,
-        "quest_step": "first_night:day"
-      },
-      "lines": [
-        "How's it going, {player}? Gloops, my stall, Rex at the Skate Park, Tally's board, the watch on the fountain, and Zippy at the Lake Loop!",
-        "No rush! There's a whole day. And if you're out of time, there's always tomorrow night.",
-        "Check your quest log with {quest_log} to see what's left."
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "watches_to_give": false,
-        "quest_step": "first_night:king",
+        "quest_step": "bike_boy:king",
         "flag": "popped_gloop_king",
         "not_flag": "fn_told_dash"
       },
-      "do": "FirstNight.crown_from_dash",
+      "do": "FirstNight/Meetings.king_from_dash",
       "lines": [
         "YOU DID IT! You popped the GLOOP KING! I saw the whole thing! Bubbles everywhere!",
         "{player}: He was SO bouncy.",
         "And look what he dropped. His crown! It's yours. Champion of the west fields!",
-        "(Dash looks past you, out over the far fields. His smile goes a bit wobbly.)",
-        "{player}: What is it?",
-        "Nothing! Probably nothing. Just... sometimes there's someone out there. Really, really big. Watching.",
-        "They call him the Agent of Chaos. Don't worry about him tonight. Tonight's a good night.",
-        "Enjoy the rest of the day! When the sky goes light, the portal will pull you home. See you next Shift?"
+        "(The Buzz Bot does a little loop-the-loop over your head.) See? Even Buzzy's impressed.",
+        "Oh! I nearly forgot. My friend Pip's been waiting by the portal ALL day. They've got something to show you. Go on!"
       ],
       "first_night": true
     },
     {
       "when": {
         "watches_to_give": false,
-        "quest_step": "first_night:king"
+        "quest_step": "bike_boy:king"
       },
       "lines": [
         "Everyone's whispering about the Gloop King. Biggest, goldest Gloop there is. He's got a whole kingdom, through a gooey gate in the west fields, just past here.",
@@ -129,13 +140,20 @@
     },
     {
       "when": {
-        "watches_to_give": false,
-        "quest_step": "first_night:home"
+        "quest_step": "night_2:pip"
       },
       "lines": [
-        "Champion of the west fields! (Dash bows.) Have fun till the sky goes light. The portal pulls you home at the end of the Shift."
-      ],
-      "first_night": true
+        "Pip's by the portal! Go on, go on! They glow when they're happy. You'll see."
+      ]
+    },
+    {
+      "when": {
+        "flag": "fresh_start",
+        "not_flag": "bb_met_dash"
+      },
+      "lines": [
+        "(A boy in a cap and goggles zooms past on a bike, a box of wires bouncing in the basket.) Can't stop! Experiment! Big one! Bye!"
+      ]
     },
     {
       "when": {

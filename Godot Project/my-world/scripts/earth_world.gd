@@ -7,6 +7,9 @@ extends Node3D
 #
 # In the show, kids are people on Earth and creatures in the Void. The player keeps their Void look here for now.
 
+const PlantClearance := preload("res://scripts/plant_clearance.gd")
+var trees_left_out := 0                             # trees left out because something solid stood where they grow
+
 const PORTAL_OPEN_TIME := 2.5                      # seconds for the swirl to grow in or shrink away
 const SUN_HIGH := 58.0                              # degrees above the horizon at noon
 const SUN_NOON := Color(1.0, 0.96, 0.88)
@@ -73,6 +76,13 @@ func _ready() -> void:
 	_open = 1.0 if _door_open() else 0.0
 	_light()
 	_portal()
+	# Trees standing in something solid (a shop, a fence, a bench...) are left out (Hayden's day 1 playtest)
+	trees_left_out = PlantClearance.prune_earth_trees(get_node_or_null("Autumn Trees") as Node3D)
+	# ...and again once everything put in just after loading is there (boosters, stalls, seasonal things, quest props)
+	for wait in [1.0, 4.0]:
+		get_tree().create_timer(wait).timeout.connect(func() -> void:
+			if is_inside_tree():
+				trees_left_out += PlantClearance.prune_earth_trees(get_node_or_null("Autumn Trees") as Node3D))
 
 
 func _exit_tree() -> void:

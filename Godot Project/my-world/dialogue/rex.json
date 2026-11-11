@@ -20,7 +20,7 @@
         "Ahem! Citizens of the Void! Oh, it's you, {player}. Hi! I've been practising.",
         "Tonight's campaign stop is the castle school. Every future voter goes to school! Well, every future voter's little brother, anyway.",
         "Come with me? Well, not with me. I'll meet you there. I'm faster on skates.",
-        "Dash says there are schematics up there too. One on the hill path, one in the school garden. Vote Rex! Sorry. Habit."
+        "Dash says there's a schematic up there too, on the hill path by the long rail. Vote Rex! Sorry. Habit."
       ]
     },
     {
@@ -31,19 +31,41 @@
       "do": "FirstNight.lesson_from_rex",
       "lines": [
         "Ah! A new citizen! Rex, future mayor of the Void. And yes, I'm a husky. For now. It's a long story with a lot of paperwork.",
-        "Dash says you need to learn to skate. Excellent. Every great citizen skates. It's in my plans for the town."
+        "Tally says you need to learn to skate. Excellent. Every great citizen skates. It's in my plans for the town."
       ],
       "first_night": true
     },
     {
       "when": {
-        "quest_step": "first_night:king"
+        "quest_step": "first_night:day",
+        "flag": "skate_lesson_ollie",
+        "not_flag": "bike_boy_start"
+      },
+      "set": "bike_boy_start",
+      "first_night": true,
+      "lines": [
+        "What an ollie! You're a natural, citizen. I'm putting it in my speech.",
+        "Say, have you seen my twin? Dash. Cap, goggles, never stops moving. He zoomed off on his bike this morning with a box of gadget bits.",
+        "He drops them everywhere. Follow his tyre tracks: they glow! They start right here by the Skate Park.",
+        "He'll want to meet you. He just doesn't know it yet. Mayors know these things."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:tracks"
+      },
+      "lines": [
+        "Found Dash's tracks? They glow! Start by the Skate Park and pick up all the bits he dropped. He drops EVERYTHING."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "bike_boy:king"
       },
       "lines": [
         "Citizen! Have you heard? The Gloop King is holding court in his kingdom again. The gooey gate in the west fields, past the Market.",
         "Pop him and you'll be the talk of the town. Possibly a statue. I'll put it on my list."
-      ],
-      "first_night": true
+      ]
     },
     {
       "when": {

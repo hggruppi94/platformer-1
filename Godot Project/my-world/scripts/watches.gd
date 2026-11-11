@@ -69,7 +69,7 @@ const WATCHES := [
 		"hint": "Out west, near a big gooey gate with a crown on top.",
 		"note": "Chef Pepper's, from the year 3000. It dings when the soup is ready, and when someone needs a hug."},
 	{"id": "backwards", "name": "Backwards Watch", "scene": "town", "pos": Vector3(122, 0.8, -196), "how": "walk",
-		"place": "In the far field, where the Agent of Chaos stomps",
+		"place": "In the far field, behind the castle hill",
 		"hint": "Near someone very big, whose clock runs the wrong way too.",
 		"note": "Its owner says they got here tomorrow. Nobody knows what that means. Its hands go round backwards."},
 	{"id": "candle", "name": "Candle Clock", "scene": "town", "pos": Vector3(-120, 0.8, -110), "how": "walk",

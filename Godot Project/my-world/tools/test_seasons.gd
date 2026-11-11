@@ -88,8 +88,8 @@ func _run() -> void:
 	await create_timer(1.3).timeout
 	var blossom: int = s.shown_leaves.filter(func(c: Color) -> bool: return c.r > 0.9).size()
 	var flowers: int = s.shown_fallen_sizes.filter(func(x: float) -> bool: return x > 0.1).size()
-	check(s.season == "spring" and blossom > 100 and s.shown_leaf_sizes.all(func(x: float) -> bool: return x > 0.5),
-		"spring: every tree in leaf, with blossom (%d)" % blossom)
+	check(s.season == "spring" and blossom > 100 and s.shown_leaf_sizes.all(func(x: float) -> bool: return x > 0.5 or is_zero_approx(x)),
+		"spring: every tree in leaf (bar any left out for growing through things), with blossom (%d)" % blossom)
 	check(flowers > 1000 and flowers < s.shown_fallen.size() / 2, "...flowers in the grass instead of fallen leaves (%d)" % flowers)
 	check(s.air_kind() == "petals" and not dressing.visible, "...petals in the air, no Halloween")
 	clock.day = clock.day_of("summer", 3)

@@ -217,7 +217,7 @@ func _show_main() -> void:
 		_button("Visit a portal world", _show_worlds)
 	_button("Settings", func(): _tab = 0; _show_settings())
 	if Game.has_item("skateboard"):
-		# Coach Rook's skate lesson (scripts/skate_lesson.gd): start it (or carry on), or stop it
+		# Coach Bruno's skate lesson (scripts/skate_lesson.gd): start it (or carry on), or stop it
 		_button("Stop the skate lesson" if SkateLesson.active else "Skate lesson", func():
 			close()
 			if SkateLesson.active:

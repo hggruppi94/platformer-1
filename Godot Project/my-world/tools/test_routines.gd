@@ -12,6 +12,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.test_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
+const WORK_JOB := preload("res://scripts/work_job.gd")
 const PEOPLE := ["dash", "rex", "rook", "bramble", "pip", "green_man", "nina", "mr_palmer", "bruno_alien", "melody",
 	"clover"]
 const FAR_AWAY := Vector3(-140, 2, 100)            # the empty southwest corner, far from everyone's places
@@ -286,11 +287,13 @@ func _check_files() -> void:
 						bad.append("no place '%s'" % n)
 					elif paths.route("ninas_house", str(n)).is_empty():
 						bad.append("can't reach '%s'" % n)
+				if b.get("do", "") == "work" and not WORK_JOB.jobs().has(str(b.get("job", ""))):
+					bad.append("no job '%s' in routines/jobs.json" % b.get("job", ""))
 				if b.get("do", "") == "follow" and not str(b.get("who", "")) in PEOPLE:
 					bad.append("follows nobody: '%s'" % b.get("who", ""))
 				if b.has("anim") and not str(b.get("do", "")) in ["idle", "wander"]:
 					bad.append("'anim' only works for idle and wander: %s" % b.get("do", ""))
-				if not str(b.get("do", "")) in ["idle", "wander", "nap", "patrol", "follow", "away"]:
+				if not str(b.get("do", "")) in ["idle", "wander", "nap", "patrol", "follow", "away", "work"]:
 					bad.append("unknown 'do': %s" % b.get("do", ""))
 		check(ok and bad.is_empty(), "%s.json: %d blocks %s" % [id, res.data.blocks.size() if ok else 0, bad])
 
@@ -312,6 +315,13 @@ func _check_where(id: String, when: String) -> void:
 		for n in b.route:
 			d = minf(d, _flat_dist(body.global_position, str(n)))
 		slack = 3.0
+	elif doing == "work":
+		# At work they go round the job's spots (scripts/work_job.gd), so near any one of them will do
+		d = INF
+		for spot in _work_spots(str(b.job)):
+			d = minf(d, Vector2(body.global_position.x - spot.x, body.global_position.z - spot.z).length())
+		where = "work (%s)" % b.job
+		slack = 1.5
 	elif doing == "follow":
 		var leader := routines[str(b.who)] as Node
 		if leader.is_present():
@@ -320,6 +330,19 @@ func _check_where(id: String, when: String) -> void:
 			slack = 6.0
 	var ground_ok := absf(body.global_position.y - TownPaths.ground_at(body.global_position, current_scene.get_world_3d().direct_space_state, TownPaths.skip_rids(current_scene), 1.0).y) < 0.6
 	check(body.visible and d < slack and ground_ok, "%s %s: %s at %s (%.1f m)%s" % [when, id, r.activity(), where, d, "" if ground_ok else " NOT ON THE GROUND"])
+
+
+func _work_spots(job_id: String) -> Array[Vector3]:
+	# Every spot of a job's, and every corner on the way between them, in the world
+	var out: Array[Vector3] = []
+	var frame: Node3D = WORK_JOB.frame_of(job_id, current_scene)
+	if frame == null:
+		return out
+	for st in WORK_JOB.jobs()[job_id].steps:
+		for v in st.get("via", []):
+			out.append(frame.global_transform * WORK_JOB.local_point(v))
+		out.append(frame.global_transform * WORK_JOB.local_point(st.to))
+	return out
 
 
 func _first_line(id: String) -> String:

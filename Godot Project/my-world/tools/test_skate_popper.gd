@@ -60,6 +60,7 @@ func _run() -> void:
 			dialogue.flags.erase(f)
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
+	root.get_node("Arsenal").give("popper", false)   # nobody starts with a blaster any more: here she's bought one
 
 	# --- The controls: Shoot never shares a button with a skate trick ---
 	var board_actions := ["jump", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab"]

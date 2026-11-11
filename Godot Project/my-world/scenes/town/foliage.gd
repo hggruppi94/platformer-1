@@ -7,6 +7,11 @@ extends Node3D
 #
 # Walking through them: leaves, ferns and tall grass lean away from Nina and spring back (the shader reads her
 # position from the "nina_pos" shader global), rustle or swish as she pushes through, and the odd leaf flutters off.
+# Only what she's right next to parts, and not far (Hayden's day 1 playtest, 11 Nov 2026: the gap she left in the
+# grass was far too big): grass within about 0.75 m bends, leaves and ferns within about 1 m.
+#
+# A plant that would grow through something solid (a building, a fence, a bench, a rail...) is left out when the
+# world loads (scripts/plant_clearance.gd), so nothing pokes through walls.
 # Small mushrooms light up with a "bloop" when she brushes them.
 
 enum { LEAVES, FERN, MUSHROOM, GRASS }
@@ -24,6 +29,7 @@ enum { LEAVES, FERN, MUSHROOM, GRASS }
 @export var solid_cap_size := 2.2           # mushrooms at least this tall get a solid cap
 @export var grass_glow := 0.12
 
+const PlantClearance := preload("res://scripts/plant_clearance.gd")
 const CELL := 6.0                           # metres: the grid used to find plants near her quickly
 const SOUND_GAP := 0.28                     # seconds between rustles
 var _grid := {}                             # Vector2i cell -> plant indices
@@ -35,12 +41,18 @@ var _touching := {}                         # plants she's in right now
 var _flash := {}                            # cap index -> seconds of glow left
 var _sound_wait := 0.0
 var _player: CharacterBody3D
+var left_out := 0                           # plants not grown because something solid is in their way
+const RECHECK := [1.0, 4.0]                 # seconds after loading to look again (recheck())
+var _parts := {}                            # plant index -> [[first instance in each MultiMesh], [one past its last]]
+var _mms: Array = [null, null, null, null, null]      # leaves, ferns, stems, caps, grass
+var _extras := {}                           # plant index -> its solid cap and light, if it has them
 
 const PLANT_SHADER := """shader_type spatial;
 render_mode cull_disabled;
 uniform float glow = 0.1;
 uniform float sway = 0.06;
 uniform float push = 0.9;
+uniform float reach = 1.4;
 global uniform vec3 nina_pos;
 void vertex() {
 	// Gentle wind: tips move more than the base, each plant on its own beat
@@ -52,8 +64,8 @@ void vertex() {
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec2 away = wp.xz - nina_pos.xz;
 	float d = length(away);
-	float near = (1.0 - smoothstep(0.3, 1.4, d)) * step(abs(wp.y - nina_pos.y), 2.2) * UV.y;
-	vec3 shove = vec3(away.x / max(d, 0.001), -0.5, away.y / max(d, 0.001)) * near * push;
+	float near = (1.0 - smoothstep(reach * 0.25, reach, d)) * step(abs(wp.y - nina_pos.y), 2.2) * UV.y;
+	vec3 shove = vec3(away.x / max(d, 0.001), -0.35, away.y / max(d, 0.001)) * near * push;
 	VERTEX += (inverse(MODEL_MATRIX) * vec4(shove, 0.0)).xyz;
 }
 void fragment() {
@@ -101,17 +113,23 @@ func _ready() -> void:
 	var blade_cols: Array[Color] = []
 	var lights := 0
 	_reach.resize(positions.size())
+	left_out = 0
 	for i in positions.size():
 		var p := positions[i]
 		var s := sizes[i]
+		_reach[i] = s * [0.75, 0.6, 0.5, 0.55][kinds[i]]
+		if not _clear(i):
+			_reach[i] = 0.0                                     # (never touched: it isn't there)
+			left_out += 1
+			continue
 		var base := Basis(Vector3.UP, yaws[i])
 		var rng := RandomNumberGenerator.new()
 		rng.seed = i * 7919 + 13
-		_reach[i] = s * [0.75, 0.6, 0.5, 0.55][kinds[i]]
 		var cell := Vector2i(floori(p.x / CELL), floori(p.z / CELL))
 		if not _grid.has(cell):
 			_grid[cell] = []
 		_grid[cell].append(i)
+		var had := [leaves.size(), fronds.size(), stems.size(), caps.size(), blades.size()]
 		match kinds[i]:
 			GRASS:
 				blades.append(Transform3D(base * Basis.from_scale(Vector3(s, s, s)), p + Vector3(0, -0.05, 0)))
@@ -163,6 +181,7 @@ func _ready() -> void:
 					cs2.position = p + Vector3(0, h / 2, 0)
 					body.add_child(cs2)
 					add_child(body)
+					_extras[i] = [body]
 				if s >= solid_cap_size and lights < max_lights:
 					var light := OmniLight3D.new()
 					light.light_color = colors[i].lightened(0.3)
@@ -170,11 +189,13 @@ func _ready() -> void:
 					light.omni_range = cap_r * 4.0
 					light.position = top - Vector3(0, 0.6, 0)
 					add_child(light)
+					_extras[i] = _extras.get(i, []) + [light]
 					lights += 1
+		_parts[i] = [had, [leaves.size(), fronds.size(), stems.size(), caps.size(), blades.size()]]
 
-	_add_multimesh(_leaf_mesh(), leaves, leaf_cols, _plant_material(leaf_glow, 0.05))
-	_add_multimesh(_fern_mesh(), fronds, frond_cols, _plant_material(fern_glow, 0.08))
-	_add_multimesh(_grass_mesh(), blades, blade_cols, _plant_material(grass_glow, 0.1))
+	_mms[0] = _add_multimesh(_leaf_mesh(), leaves, leaf_cols, _plant_material(leaf_glow, 0.05, 1.0, 0.55), "Leaves")
+	_mms[1] = _add_multimesh(_fern_mesh(), fronds, frond_cols, _plant_material(fern_glow, 0.08, 1.0, 0.5), "Ferns")
+	_mms[4] = _add_multimesh(_grass_mesh(), blades, blade_cols, _plant_material(grass_glow, 0.1, 0.75, 0.35), "Grass")
 	var stem_mat := StandardMaterial3D.new()
 	stem_mat.albedo_color = stem_color
 	stem_mat.roughness = 0.5
@@ -190,7 +211,7 @@ func _ready() -> void:
 	var stem_cols: Array[Color] = []
 	stem_cols.resize(stems.size())
 	stem_cols.fill(Color.WHITE)
-	_add_multimesh(stem_mesh, stems, stem_cols, stem_mat)
+	_mms[2] = _add_multimesh(stem_mesh, stems, stem_cols, stem_mat, "Stems")
 	var cap_mesh := SphereMesh.new()
 	cap_mesh.radius = 1.0
 	cap_mesh.height = 1.0
@@ -202,8 +223,41 @@ func _ready() -> void:
 	cap_sh.code = CAP_SHADER
 	cap_mat.shader = cap_sh
 	cap_mat.set_shader_parameter("glow", cap_glow)
-	_caps_mm = _add_multimesh(cap_mesh, caps, cap_cols, cap_mat)
+	_caps_mm = _add_multimesh(cap_mesh, caps, cap_cols, cap_mat, "Caps")
+	_mms[3] = _caps_mm
 	_cap_cols = cap_cols
+	# Lots of things are put into the world just after it loads (boosters, the bosses' yards, quest props...): look
+	# again once they're in, and take away any plant they've landed on
+	for wait in RECHECK:
+		get_tree().create_timer(wait).timeout.connect(recheck)
+
+
+func recheck() -> void:
+	if not is_inside_tree():
+		return
+	for i in _parts:
+		if _reach[i] > 0.0 and not _clear(i):
+			_take_away(i)
+
+
+func _take_away(i: int) -> void:
+	# Plant i goes: its leaves, fronds, stem, cap or blades shrink to nothing, and its solid cap and light go
+	var hidden := Transform3D(Basis().scaled(Vector3.ZERO), Vector3(0, -500, 0))
+	var from: Array = _parts[i][0]
+	var to: Array = _parts[i][1]
+	for k in _mms.size():
+		var mm: MultiMesh = _mms[k]
+		if mm == null:
+			continue
+		for j in range(from[k], to[k]):
+			mm.set_instance_transform(j, hidden)
+	for n in _extras.get(i, []):
+		if is_instance_valid(n):
+			(n as Node).queue_free()
+	_cap_index.erase(i)
+	_touching.erase(i)
+	_reach[i] = 0.0
+	left_out += 1
 
 
 func _physics_process(delta: float) -> void:
@@ -261,17 +315,36 @@ func touching_kinds() -> Array:
 	return out
 
 
-func _plant_material(glow: float, sway: float) -> ShaderMaterial:
+func _plant_material(glow: float, sway: float, reach: float, push: float) -> ShaderMaterial:
+	# reach: how near she has to be before it bends (metres); push: how far its tips lean away
 	var m := ShaderMaterial.new()
 	var sh := Shader.new()
 	sh.code = PLANT_SHADER
 	m.shader = sh
 	m.set_shader_parameter("glow", glow)
 	m.set_shader_parameter("sway", sway)
+	m.set_shader_parameter("reach", reach)
+	m.set_shader_parameter("push", push)
 	return m
 
 
-func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], material: Material) -> MultiMesh:
+func _clear(i: int) -> bool:
+	# Is there room for plant i, with nothing solid where its leaves, fronds, stalk or blades would be? A box round
+	# the middle of the plant (a bit inside its outline, so a leaf tip brushing a wall is fine)
+	var p := positions[i]
+	var s := sizes[i]
+	var half := _reach[i] * 0.6
+	var low := 0.25
+	var high := maxf(s * 0.75, low + 0.2)
+	if kinds[i] == MUSHROOM:
+		half = s * 0.3
+		high = s
+	var xf := Transform3D(Basis(), p + Vector3(0, (low + high) / 2.0, 0))
+	return PlantClearance.box_clear(self, xf, Vector3(half * 2.0, high - low, half * 2.0), self)
+
+
+func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], material: Material,
+		node_name := "") -> MultiMesh:
 	if xforms.is_empty():
 		return null
 	var mm := MultiMesh.new()
@@ -283,6 +356,8 @@ func _add_multimesh(mesh: Mesh, xforms: Array[Transform3D], cols: Array[Color], 
 		mm.set_instance_transform(i, xforms[i])
 		mm.set_instance_color(i, cols[i])
 	var mmi := MultiMeshInstance3D.new()
+	if node_name != "":
+		mmi.name = node_name
 	mmi.multimesh = mm
 	mmi.material_override = material
 	add_child(mmi)

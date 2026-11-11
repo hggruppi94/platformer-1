@@ -2,11 +2,13 @@ extends SceneTree
 
 # Checks the schematics and the new rides (scripts/schematics.gd, scripts/schematic_pickup.gd, Rides.HERO_RIDES,
 # scenes/player/ride_kit.gd; Hayden: "the weapons can stay locked until they are unlocked and purchased"):
-# Dash's stall lists every gadget from the start, but each one says "Find its schematic" until it's found; Zippy's
-# Tune-Up has the five new rides the same way; a schematic is only out from its own night; every one lands on open
-# ground (or, the sky one, in open air); walking into one finds it and the gadget can be bought; an old save's gadgets
-# stay its own; each new ride builds, rides, saves and swaps on the Skate page; rocket rides boost harder; the Goals
-# page points to the next schematic; and night 2 sends you to the first one.
+# Dash's stall lists every gadget from the start, the Star Popper too, but each one says "Find its blueprint" until
+# it's found (Hayden, 11 Nov: nobody starts with a blaster, and each gadget's blueprint is in the portal world it
+# fits); Zippy's Tune-Up has the five new rides the same way; a ride's schematic is only out from its own night, and
+# the Star Popper's from the first; every one lands on open ground (or, the sky one, in open air), in the town and in
+# each portal world; walking into one finds it and the gadget can be bought; a world's blueprint isn't hinted at
+# before its portal opens, and isn't put out on a practice trip; an old save's gadgets stay its own; each new ride
+# builds, rides, saves and swaps on the Skate page; rocket rides boost harder; and the Goals page points to the next.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_schematics.gd
 #
@@ -15,7 +17,6 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.schematics_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const SCHOOL := "res://scenes/school/school.tscn"
 
 var failures := 0
 var S: Node
@@ -68,9 +69,10 @@ func _run() -> void:
 
 	# --- Everything's on the shelf, but locked ---
 	var gadgets: Array = shop.items.values().filter(func(it: Dictionary) -> bool: return str(it.kind) == "gadget")
-	check(gadgets.size() == 6, "Dash's stall lists all six gadgets (%d)" % gadgets.size())
-	check(gadgets.all(func(it: Dictionary) -> bool: return shop.can_buy(str(it.id)) == "Find its schematic"),
-		"...and every one says \"Find its schematic\" on the first night")
+	check(gadgets.size() == 7, "Dash's stall lists all seven gadgets, the Star Popper too (%d)" % gadgets.size())
+	check(gadgets.all(func(it: Dictionary) -> bool: return shop.can_buy(str(it.id)) == "Find its blueprint"),
+		"...and every one says \"Find its blueprint\" at the start")
+	check(arsenal.owned.is_empty(), "...and she has none")
 	game.sparkles = 999
 	check(not shop.buy("fizz_flinger") and not arsenal.owns("fizz") and game.sparkles == 999,
 		"...so even with lots of sparkles you can't buy one yet")
@@ -81,27 +83,42 @@ func _run() -> void:
 	check(rides.all(func(it: Dictionary) -> bool: return shop.can_buy(str(it.id)) == ("Needs the Bike first" if str(it.ride) == "hover_bike" else "Find its schematic")),
 		"...each locked behind its schematic")
 	check(rides.all(func(it: Dictionary) -> bool: return int(it.price) > 0 and int(it.price) <= 20), "...each 20 sparkles or less")
-	check(str(shop.kinds.gadget.note.call(shop.items["fizz_flinger"])).contains("night 2"),
-		"a locked gadget teases which night its schematic turns up (%s)" % shop.kinds.gadget.note.call(shop.items["fizz_flinger"]))
+	var portals := root.get_node("Portals")
+	portals.reset()
+	var disco_note := str(shop.kinds.gadget.note.call(shop.items["disco_ball"]))
+	check(disco_note.contains("Not found yet") and not disco_note.contains("Rhythm"),
+		"a gadget whose blueprint is in a portal world doesn't name the world before its portal's open (%s)" % disco_note)
+	check(str(shop.kinds.gadget.note.call(shop.items["star_popper"])).contains("Market Square"),
+		"the Star Popper's says where it is from the start (%s)" % shop.kinds.gadget.note.call(shop.items["star_popper"]))
 	var whats := {}
 	for e in S.LIST:
-		whats[str(e.kind) + ":" + str(e.what)] = int(e.night)
+		whats[str(e.kind) + ":" + str(e.what)] = e
+	check(int(whats.get("gadget:popper", {}).get("night", 0)) == 1 and S.where(whats.get("gadget:popper", {})) == "town",
+		"the Star Popper's blueprint is in the Void from the first night")
 	for g in arsenal.ORDER:
+		var e: Dictionary = whats.get("gadget:" + g, {})
+		check(not e.is_empty(), "the %s has a blueprint (%s)" % [g, S.where(e) if not e.is_empty() else "none"])
 		if g != "popper":
-			check(whats.has("gadget:" + g), "the %s has a schematic (night %d)" % [g, int(whats.get("gadget:" + g, 0))])
+			check(e.has("world") and portals.is_built(str(e.get("world", ""))), "...in a portal world that's built (%s)" % str(e.get("world", "")))
+	check(S.where(whats.get("gadget:disco", {})) == "rhythm_springs", "the Disco Ball's is in Melody's music world")
 	for r in ["overboard", "bike", "rocket_board", "rocket_bike", "saucer"]:
-		check(whats.has("ride:" + r), "the %s has a schematic (night %d)" % [r, int(whats.get("ride:" + r, 0))])
+		check(whats.has("ride:" + r), "the %s has a schematic (night %d)" % [r, int(whats.get("ride:" + r, {}).get("night", 0))])
+	for n in range(2, 8):
+		var nq: Dictionary = root.get_node("Quests").quest("night_%d" % n)
+		var flags: Array = []
+		for st in nq.steps:
+			for c in st.get("checklist", []):
+				flags.append(str(c[0]))
+		check(not flags.any(func(f: String) -> bool: return f.begins_with("schematic_") and str(S.entry(f.trim_prefix("schematic_")).get("kind", "")) == "gadget"),
+			"night %d's list doesn't send you for a gadget's blueprint (they're in the portal worlds now)" % n)
 
 	# --- Only from their own night ---
 	await _go(TOWN)
-	check(_pickups().is_empty(), "on the first night there are no schematics out")
-	requests.nights = 2
-	await _go(TOWN)
 	var names: Array = _pickups().map(func(n: Node) -> String: return str(n.name))
-	check(names == ["Schematic fizz"], "on night 2 the Fizz Flinger's is out, and only that one (%s)" % str(names))
+	check(names == ["Schematic popper"], "on the first night only the Star Popper's blueprint is out (%s)" % str(names))
 	requests.nights = 7
 	await _go(TOWN)
-	var town_ones: Array = S.LIST.filter(func(e: Dictionary) -> bool: return str(e.scene) == "town")
+	var town_ones: Array = S.LIST.filter(func(e: Dictionary) -> bool: return S.where(e) == "town")
 	check(_pickups().size() == town_ones.size(), "by night 7 all %d of the town's are out (%d)" % [town_ones.size(), _pickups().size()])
 
 	# --- Each lands somewhere you can get to ---
@@ -119,26 +136,29 @@ func _run() -> void:
 		check(_clear(space, at + Vector3(0, 0.9, 0), 0.45), "%s: not inside a wall, a tree or a building" % e.id)
 
 	# --- Finding one ---
-	var fizz := current_scene.get_node_or_null("Schematic fizz") as Node3D
+	var pop := current_scene.get_node_or_null("Schematic popper") as Node3D
 	var player := current_scene.find_child("Player", true, false) as CharacterBody3D
 	messages.clear()
-	if fizz and player:
-		player.global_position = fizz.global_position + Vector3(0, 0.5, 0)
+	if pop and player:
+		player.global_position = pop.global_position + Vector3(0, 0.5, 0)
 		player.velocity = Vector3.ZERO
 		await _frames(6)
-	check(S.is_found("fizz") and dialogue.flags.has("schematic_fizz"), "walking into the Fizz Flinger's schematic finds it")
-	check(messages.any(func(m: String) -> bool: return m.contains("Fizz Flinger") and m.contains("Dash")),
+	check(S.is_found("popper") and dialogue.flags.has("schematic_popper"), "walking into the Star Popper's blueprint finds it")
+	check(messages.any(func(m: String) -> bool: return m.contains("Star Popper") and m.contains("Dash") and m.contains("blueprint")),
 		"...and says Dash can build it now")
 	await _frames(2)
-	check(current_scene.get_node_or_null("Schematic fizz") == null, "...and it's gone from the ground")
-	check(shop.can_buy("fizz_flinger") == "", "now the Fizz Flinger can be bought")
-	check(str(shop.kinds.gadget.note.call(shop.items["disco_ball"])).contains("meadow"),
-		"a locked gadget whose schematic is out says where to look (%s)" % shop.kinds.gadget.note.call(shop.items["disco_ball"]))
+	check(current_scene.get_node_or_null("Schematic popper") == null, "...and it's gone from the ground")
+	check(shop.can_buy("star_popper") == "", "now the Star Popper can be bought")
 	game.sparkles = 40
-	check(shop.buy("fizz_flinger") and arsenal.owns("fizz"), "...and bought")
+	check(shop.buy("star_popper") and arsenal.owns("popper") and arsenal.armed() and game.sparkles == 37,
+		"...and bought, for 3 sparkles")
 	await _go(TOWN)
-	check(current_scene.get_node_or_null("Schematic fizz") == null, "a found schematic doesn't come back")
+	check(current_scene.get_node_or_null("Schematic popper") == null, "a found blueprint doesn't come back")
 	player = current_scene.find_child("Player", true, false) as CharacterBody3D
+	portals.quake("rhythm_springs", true)
+	disco_note = str(shop.kinds.gadget.note.call(shop.items["disco_ball"]))
+	check(disco_note.contains("Rhythm Springs"), "once its world's portal is open, a locked gadget says where to look (%s)" % disco_note)
+	portals.reset()
 
 	# --- An old save's gadgets stay its own ---
 	arsenal.give("disco", false)
@@ -228,24 +248,45 @@ func _run() -> void:
 	f.store_string(JSON.stringify(data))
 	f.close()
 	game.load_game()
-	check(game.hero_ride == "board" and S.is_found("fizz"), "a save from before the rides rides the board, and keeps what it found")
+	check(game.hero_ride == "board" and S.is_found("popper"), "a save from before the rides rides the board, and keeps what it found")
 
-	# --- Night 2 sends you to the first one ---
-	var q: Dictionary = root.get_node("Quests").quest("night_2")
-	var items: Array = q.steps[1].checklist.map(func(c: Array) -> String: return str(c[0]))
-	check(items.has("schematic_fizz"), "night 2's list has finding the Fizz Flinger's schematic")
-
-	# --- The school's ---
+	# --- The portal worlds' blueprints ---
 	requests.nights = 7
 	game.riding = false
-	await _go(SCHOOL)
-	var plush := current_scene.get_node_or_null("Schematic plush") as Node3D
-	check(plush != null, "the Plushinator's schematic is at the castle school")
-	if plush:
+	for e in S.LIST:
+		if not e.has("world"):
+			continue
+		var w: Dictionary = portals.world(str(e.world))
+		await _go(str(w.scene))
+		var bp := current_scene.get_node_or_null("Schematic " + str(e.id)) as Node3D
+		check(bp != null, "the blueprint for the %s is in %s" % [S.thing_name(e), w.name])
+		if bp == null:
+			continue
+		await _frames(4)
 		var sp := (current_scene as Node3D).get_world_3d().direct_space_state
-		var hit := sp.intersect_ray(PhysicsRayQueryParameters3D.create(plush.global_position + Vector3(0, 0.3, 0), plush.global_position + Vector3(0, -0.4, 0)))
-		check(not hit.is_empty() and _clear(sp, plush.global_position + Vector3(0, 0.9, 0), 0.45),
-			"...on the floor, in the open (%s)" % str(plush.global_position))
+		var at := bp.global_position
+		var hit := sp.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -0.4, 0)))
+		check(not hit.is_empty() and at.y > -2.0, "...on the ground at (%.1f, %.1f, %.1f)" % [at.x, at.y, at.z])
+		check(_clear(sp, at + Vector3(0, 0.9, 0), 0.45), "...not inside a wall, a tree or a rock")
+		var pl := current_scene.find_child("Player", true, false) as CharacterBody3D
+		if pl:
+			pl.global_position = at + Vector3(0, 0.5, 0)
+			pl.velocity = Vector3.ZERO
+			await _frames(6)
+		check(S.is_found(str(e.id)), "...and walking into it finds it")
+		var item_id := ""
+		for id in shop.items:
+			if str(shop.items[id].kind) == "gadget" and str(shop.items[id].gadget) == str(e.what):
+				item_id = id
+		game.sparkles = 40
+		if not arsenal.owns(str(e.what)):           # (the Disco Ball's already hers, from the old-save check above)
+			check(shop.can_buy(item_id) == "" and shop.buy(item_id) and arsenal.owns(str(e.what)), "...and then Dash builds it")
+	# A practice trip keeps nothing, so nothing to find is put out on one
+	dialogue.flags.erase("schematic_disco")
+	portals.practice = true
+	await _go(str(portals.world("rhythm_springs").scene))
+	check(current_scene.get_node_or_null("Schematic disco") == null, "no blueprint is put out on a practice trip")
+	portals.practice = false
 
 	_put_save_back()
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
