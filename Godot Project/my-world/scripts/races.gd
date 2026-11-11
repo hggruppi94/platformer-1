@@ -43,36 +43,53 @@ const BEST_BONUS := 5                # sparkles for beating your best time
 # boost pads, Star Boxes (three across the track) and goo puddles are, as a checkpoint number plus how far on to the
 # next one (2.5 is halfway from checkpoint 2 to 3) and metres to the right of the racing line.
 const TRACKS := {
+	# The Void's three ground races and Stars Hollow's are circuits of their own (scripts/race_circuit.gd builds them,
+	# scenes/races/<id>.tscn): you start them at a race gate in town ("hub", HUBS) and the game takes you there. Their
+	# points are x, height, z (the road climbs and dips), and they have obstacles: [where, kind, metres to the right].
+	# Eight racers (seven friends) in the Void, seven in Stars Hollow.
 	"lake_loop": {
 		"name": "Lake Loop",
-		"blurb": "three laps round the lake",
-		"scene": TOWN,
+		"blurb": "three laps round the lake, over the bridge hump and through the zappers",
+		"scene": "res://scenes/races/lake_loop.tscn",
+		"hub": "void",
+		"circuit": {"theme": "void", "feature": "lake"},
+		"width": 14.0,
+		"ring": 8.6,
 		"laps": 3,
-		"points": [Vector2(-4, 24), Vector2(16, 25), Vector2(34, 24), Vector2(43, 17), Vector2(42.3, 6),
-			Vector2(42.3, -5), Vector2(36, -18), Vector2(16, -22), Vector2(0, -21), Vector2(-12, -21),
-			Vector2(-28, -18), Vector2(-42, -8), Vector2(-46, 4), Vector2(-38, 16), Vector2(-22, 23)],
-		"boosts": [[0.5, 0.0], [4.4, 0.0], [7.5, 0.0], [11.5, 0.0]],
-		"boxes": [[2.5], [9.4], [13.0]],
-		"goo": [[5.5, -2.0], [8.6, 2.0], [12.3, -1.6]],
-		"prizes": [15, 10, 6, 3],
-		"rivals": ["dash", "rex", "clover"],
+		"points": [Vector3(-40, 0.2, 48), Vector3(0, 0.2, 50), Vector3(40, 0.2, 48), Vector3(72, 0.2, 36), Vector3(88, 0.2, 8),
+			Vector3(84, 1.5, -22), Vector3(62, 3.0, -42), Vector3(34, 3.0, -50), Vector3(14, 1.5, -42), Vector3(-4, 0.2, -46),
+			Vector3(-26, 0.2, -56), Vector3(-54, 0.2, -48), Vector3(-76, 0.2, -26), Vector3(-84, 0.2, 4), Vector3(-72, 0.2, 32)],
+		"boosts": [[0.5, 0.0], [3.5, -3.0], [7.5, 0.0], [10.5, 3.0], [13.5, 0.0]],
+		"boxes": [[1.5], [5.0], [8.5], [12.0]],
+		"goo": [[4.4, -3.0], [9.4, 3.0], [11.4, -2.5], [14.3, 2.0]],
+		"obstacles": [[2.5, "bumper", -3.5], [2.6, "bumper", 3.5], [6.0, "ramp", 0.0], [6.8, "zapper", -3.4],
+			[7.2, "zapper", 3.4], [9.0, "sweeper", 0.0], [11.0, "bumper", 0.0], [13.0, "ramp", 0.0], [14.6, "bumper", -3.0]],
+		"prizes": [20, 15, 11, 8, 6, 4, 3, 2],
+		"rivals": ["dash", "rex", "clover", "rook", "pip", "green_man", "nina"],
 		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
-		"tune_up": true,
 	},
 	"meadow_wiggle": {
 		"name": "Meadow Wiggle",
-		"blurb": "two laps of wiggly bends through the south meadow",
-		"scene": TOWN,
-		"laps": 2,
+		"blurb": "three laps of wiggly bends through the flower meadow, with ramps and a spinning sweeper",
+		"scene": "res://scenes/races/meadow_wiggle.tscn",
+		"hub": "void",
+		"circuit": {"theme": "void", "feature": "meadow"},
+		"width": 14.0,
+		"ring": 8.6,
+		"laps": 3,
 		"after": "lake_loop",
-		"points": [Vector2(-18, 50), Vector2(4, 46), Vector2(21, 50), Vector2(25, 62), Vector2(14, 72),
-			Vector2(0, 65), Vector2(-14, 72), Vector2(-6, 85), Vector2(12, 92), Vector2(0, 99), Vector2(-24, 96),
-			Vector2(-38, 82), Vector2(-30, 68), Vector2(-38, 56)],
-		"boosts": [[0.5, 0.0], [5.5, 0.0], [9.5, 0.0]],
-		"boxes": [[2.5], [7.5], [11.5]],
-		"goo": [[3.6, 1.8], [6.4, -1.8], [10.5, 1.6]],
-		"prizes": [18, 12, 7, 4],
-		"rivals": ["rook", "pip", "green_man"],
+		"points": [Vector3(-62, 0.2, 62), Vector3(-20, 0.2, 59), Vector3(11, 0.2, 61), Vector3(33, 0.2, 66), Vector3(58, 0.2, 62),
+			Vector3(69, 0.2, 43), Vector3(64, 0.2, 19), Vector3(74, 0.2, -4), Vector3(65, 0.2, -30), Vector3(43, 0.2, -37),
+			Vector3(20, 0.2, -32), Vector3(-1, 0.2, -38), Vector3(-26, 0.2, -32), Vector3(-49, 0.2, -39), Vector3(-72, 0.2, -30),
+			Vector3(-80, 0.2, -3), Vector3(-70, 0.2, 20), Vector3(-75, 0.2, 47)],
+		"boosts": [[0.5, 0.0], [4.5, 0.0], [8.5, 0.0], [12.5, 0.0], [16.5, 0.0]],
+		"boxes": [[2.0], [6.0], [10.0], [14.0]],
+		"goo": [[3.5, 2.5], [7.5, -2.5], [11.5, 2.5], [15.5, -2.5]],
+		"obstacles": [[1.3, "bumper", -2.5], [1.5, "bumper", 3.0], [3.0, "ramp", 0.0], [5.3, "bumper", 0.0], [6.6, "sweeper", 0.0],
+			[9.3, "ramp", 0.0], [10.6, "bumper", -3.5], [10.8, "bumper", 3.5], [13.3, "zapper", 3.4], [13.6, "zapper", -3.4],
+			[15.0, "sweeper", 0.0], [17.3, "ramp", 0.0]],
+		"prizes": [22, 16, 12, 9, 6, 4, 3, 2],
+		"rivals": ["rook", "pip", "green_man", "clover", "bruno", "mr_palmer", "nina"],
 		"starter": {"name": "Dart", "model": "res://models/characters/little_alien_orange.glb"},
 	},
 	"sky_rings": {
@@ -95,36 +112,50 @@ const TRACKS := {
 	},
 	"observatory_hill": {
 		"name": "Observatory Hill",
-		"blurb": "two laps up and down the slopes of the Observatory's hill",
-		"scene": TOWN,
-		"laps": 2,
+		"blurb": "three laps up round the Observatory's hill and down again, fast",
+		"scene": "res://scenes/races/observatory_hill.tscn",
+		"hub": "void",
+		"circuit": {"theme": "void", "feature": "hill"},
+		"width": 14.0,
+		"ring": 8.6,
+		"laps": 3,
 		"after": "meadow_wiggle",
-		"points": [Vector2(104, -51), Vector2(88, -54), Vector2(80, -70), Vector2(82, -90), Vector2(92, -108),
-			Vector2(112, -112), Vector2(128, -100), Vector2(132, -80), Vector2(134, -62), Vector2(124, -51)],
-		"boosts": [[0.5, 0.0], [5.5, 0.0], [8.5, 0.0]],
-		"boxes": [[2.5], [4.5], [7.3]],
-		"goo": [[3.5, -1.6], [6.5, 1.6]],
-		"prizes": [20, 14, 8, 4],
-		"rivals": ["dash", "rex", "mr_palmer"],
+		"points": [Vector3(4, 0.2, 69), Vector3(36, 0.2, 62), Vector3(72, 2.0, 53), Vector3(86, 5.0, 17), Vector3(81, 9.0, -8),
+			Vector3(59, 12.0, -38), Vector3(31, 14.0, -47), Vector3(-1, 14.0, -46), Vector3(-26, 12.0, -41), Vector3(-42, 8.0, -13),
+			Vector3(-46, 5.0, 8), Vector3(-62, 3.0, 24), Vector3(-73, 1.0, 49), Vector3(-58, 0.2, 68), Vector3(-22, 0.2, 73)],
+		"boosts": [[0.5, 0.0], [3.5, 0.0], [7.5, 0.0], [10.5, 0.0], [13.5, 0.0]],
+		"boxes": [[1.6], [5.0], [8.6], [12.0]],
+		"goo": [[4.3, -2.5], [6.4, 2.5], [11.3, -2.5]],
+		"obstacles": [[2.4, "bumper", 0.0], [4.7, "zapper", -3.4], [5.6, "zapper", 3.4], [7.0, "sweeper", 0.0], [8.0, "ramp", 0.0],
+			[9.4, "bumper", -3.0], [9.6, "bumper", 3.0], [11.7, "ramp", 0.0], [12.6, "sweeper", 0.0], [14.3, "bumper", 0.0]],
+		"prizes": [24, 17, 12, 9, 6, 4, 3, 2],
+		"rivals": ["dash", "rex", "mr_palmer", "bruno", "pip", "clover", "green_man"],
 		"starter": {"name": "Comet", "model": "res://models/characters/little_alien_blue.glb"},
 	},
-	# On Earth, round Stars Hollow: kids are people here, so the friends racing are Earth kids from town (copied from
-	# the townsfolk in the scene, scripts/townsfolk.gd) on the rides in TOWNSFOLK_RIDES, and the starter is an Earth kid
-	# too ("look", the same hero-style look tools/build_earth.gd gives townsfolk). Open from the start: it's at home.
+	# Stars Hollow's: kids are people on Earth, so the friends racing are Earth kids from town (copied from the townsfolk
+	# when you set off from there, scripts/race_rival.gd) on the rides in TOWNSFOLK_RIDES, and the starter is an Earth
+	# kid too ("look", the same hero-style look tools/build_earth.gd gives townsfolk). Open from the start: it's at home.
 	"pumpkin_run": {
 		"name": "Pumpkin Run",
-		"blurb": "two laps of Stars Hollow: Maple Lane, past the barn, behind Main Street and home by the green",
-		"scene": EARTH,
-		"laps": 2,
-		"points": [Vector2(-6, 58), Vector2(20, 58), Vector2(44, 57), Vector2(55, 44), Vector2(56, 22),
-			Vector2(48, 0), Vector2(34, -26), Vector2(28, -46), Vector2(14, -53.5), Vector2(0, -53.5), Vector2(-14, -53.5),
-			Vector2(-30, -46), Vector2(-30, -30), Vector2(-24, -8), Vector2(-24, 16), Vector2(-26, 36), Vector2(-22, 54)],
-		"boosts": [[0.5, 0.0], [4.4, 0.0], [9.5, 0.0], [14.3, 0.0]],
-		"boxes": [[2.5], [7.4], [12.5]],
-		"goo": [[3.5, -1.8], [10.6, 1.8], [15.5, -1.6]],
-		"prizes": [16, 11, 6, 3],
-		"rivals": ["nina_earth", "bruno", "ozzie"],
-		"spares": ["juniper", "theo"],
+		"blurb": "three laps of the farm lanes outside Stars Hollow, past the barn, the windmill and the sprinklers",
+		"scene": "res://scenes/races/pumpkin_run.tscn",
+		"hub": "earth",
+		"circuit": {"theme": "earth", "feature": "farm"},
+		"width": 14.0,
+		"ring": 8.6,
+		"laps": 3,
+		"points": [Vector3(-50, 0.2, 61), Vector3(-13, 0.2, 59), Vector3(28, 0.2, 59), Vector3(60, 0.2, 42), Vector3(67, 0.2, 17),
+			Vector3(60, 0.2, -5), Vector3(66, 0.2, -30), Vector3(49, 0.2, -56), Vector3(18, 0.2, -55), Vector3(-4, 0.2, -48),
+			Vector3(-24, 0.2, -55), Vector3(-55, 0.2, -57), Vector3(-73, 0.2, -32), Vector3(-66, 0.2, -3), Vector3(-72, 0.2, 26)],
+		"boosts": [[0.5, 0.0], [4.5, 0.0], [8.5, 0.0], [12.5, 0.0]],
+		"boxes": [[2.0], [6.0], [10.0], [13.5]],
+		"goo": [[3.4, -2.5], [7.4, 2.5], [11.4, -2.5], [14.4, 2.5]],
+		"obstacles": [[1.4, "bumper", -3.0], [1.6, "bumper", 3.0], [3.0, "ramp", 0.0], [5.0, "sweeper", 0.0], [6.6, "bumper", 0.0],
+			[8.0, "zapper", -3.4], [9.4, "ramp", 0.0], [10.7, "bumper", -3.5], [10.9, "bumper", 3.5], [12.0, "sweeper", 0.0],
+			[13.0, "zapper", 3.4], [14.6, "ramp", 0.0]],
+		"prizes": [20, 15, 11, 8, 5, 3, 2],
+		"rivals": ["nina_earth", "bruno", "ozzie", "juniper", "theo", "prue"],
+		"spares": [],
 		"starter": {"name": "Pepper", "look": {"colors": {"fur": 3, "hair": 6, "brows": 6, "top": 9, "bottoms": 6,
 			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
 			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]},
@@ -167,19 +198,48 @@ const TRACKS := {
 		"starter": {"name": "Countdown", "model": "res://models/characters/little_alien_blue.glb"},
 	},
 }
+# The race gates: where the circuits are started from, out in the world. Each stands where the old track's start was
+# (the arch, the starter, the board, and at the Void's, Zippy's Tune-Up): "at" is the arch, "toward" the way it faces.
+# Talking to the starter offers every circuit there that's open, and takes you to it (enter_circuit()).
+const HUBS := {
+	"void": {"name": "Races", "scene": TOWN, "at": Vector2(-4, 24), "toward": Vector2(16, 25), "tune_up": true,
+		"place": "the Void", "starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"}},
+	"earth": {"name": "Races", "scene": EARTH, "at": Vector2(-6, 58), "toward": Vector2(20, 58), "place": "Stars Hollow",
+		"starter": {"name": "Pepper", "look": {"colors": {"fur": 3, "hair": 6, "brows": 6, "top": 9, "bottoms": 6,
+			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
+			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]}},
+}
 # Earth kids who race, and the ride from scripts/rides.gd each one rides (Nina's board, Bruno's SK8 Deck...)
-const TOWNSFOLK_RIDES := {"nina_earth": "nina", "bruno": "bruno", "ozzie": "nina", "juniper": "nina", "theo": "nina"}
+const TOWNSFOLK_RIDES := {"nina_earth": "nina", "bruno": "bruno", "ozzie": "nina", "juniper": "nina", "theo": "nina", "prue": "nina"}
+# What an Earth kid looks like if they can't be copied from town (a race started some other way, like a test)
+const KID_LOOKS := {
+	"nina_earth": {"name": "Nina", "colors": {"fur": 2, "hair": 4, "brows": 4, "top": 12, "bottoms": 6, "shoes": 7}, "hairstyle": 3},
+	"bruno": {"name": "Bruno", "colors": {"fur": 2, "hair": 11, "brows": 4, "top": 15, "bottoms": 6, "shoes": 6}, "hairstyle": 5},
+	"ozzie": {"name": "Ozzie", "colors": {"fur": 1, "hair": 10, "brows": 1, "top": 9, "bottoms": 15, "shoes": 6}, "hairstyle": 1},
+	"juniper": {"name": "Juniper", "colors": {"fur": 5, "hair": 6, "brows": 8, "top": 11, "bottoms": 15, "shoes": 18}, "hairstyle": 2},
+	"theo": {"name": "Theo", "colors": {"fur": 4, "hair": 6, "brows": 10, "top": 12, "bottoms": 15, "shoes": 7}, "hairstyle": 0},
+	"prue": {"name": "Prue", "colors": {"fur": 1, "hair": 4, "brows": 2, "top": 17, "bottoms": 18, "shoes": 18}, "hairstyle": 4},
+}
 # Who rides in a friend's place when you're riding as them (a track can say its own: "spares")
-const SPARE_RIVALS := ["nina", "green_man", "pip"]
+const SPARE_RIVALS := ["nina", "green_man", "pip", "bruno", "mr_palmer", "rook", "dash", "rex", "clover"]
 # How fast each rival rides on the flat (metres per second), front of the grid to back. The player's board pushes at 9.
 const RIVAL_PACE := [9.2, 8.8, 8.4]
+const CIRCUIT_PACE := [9.5, 9.3, 9.1, 8.9, 8.7, 8.5, 8.3]
 # Settings > Assist > Skating landings also sets how hard the races are: Relaxed, Normal, Pro
 const PACE_BY_ASSIST := [0.9, 1.0, 1.1]
+# On a circuit you start in the middle of the pack (the fifth place on the grid), so there's racing to do
+const GRID := [[-4.0, -3.0], [-4.0, 3.0], [-10.0, -3.0], [-10.0, 3.0], [-16.0, -3.0], [-16.0, 3.0], [-22.0, -3.0], [-22.0, 3.0]]
+const OLD_GRID := [[-4.0, -2.2], [-4.0, 2.2], [-9.0, -2.2], [-9.0, 2.2]]
 
+# Power-ups from the Star Boxes. Since 11 Nov 2026 (Hayden: "more powerups that attack/defend with racers that attack
+# you") there are three to throw at the others as well (scripts/race_attacks.gd), and the friends use them too.
 const POWERS := {
 	"zoom": {"name": "Zoom Star", "say": "Zoom!"},
 	"shield": {"name": "Bubble Shield", "say": "Bubble Shield!"},
 	"spring": {"name": "Super Spring", "say": "Boing!"},
+	"goo": {"name": "Goo Bomb", "say": "Splat!"},
+	"seeker": {"name": "Bubble Seeker", "say": "Bubble away!"},
+	"zap": {"name": "Zap Ring", "say": "ZAP!"},
 }
 # What each level of an upgrade adds, as a share of the ride's own number (Speedy Wheels 2 = 10% faster)
 const UPGRADES := {
@@ -198,6 +258,9 @@ const SPRING_POWER := 11.0
 const PAD_SPEED := 6.5
 const PAD_TIME := 1.3
 const SKY_BOOST := 2.0
+const RAMP_POP := 8.0                # a circuit's jump ramp (metres a second up)
+const KNOCK_SAFE := 2.5              # after being knocked over, a moment when nothing can knock you again
+const ATTACKS := preload("res://scripts/race_attacks.gd")
 
 var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
@@ -230,6 +293,15 @@ var _rival_pad := {}                 # rival -> the last pad they were boosted b
 var _along := 0.0                    # the player's last side of the next checkpoint (- before it, + past it)
 var _rng := RandomNumberGenerator.new()
 var _sky_side := {}                  # sky track -> which side of its start ring the mothership was last frame
+var attacks: Node                    # the thrown power-ups and the obstacles (scripts/race_attacks.gd)
+var circuit := ""                    # the circuit we're in ("" when out in the world)
+var _pending := ""                   # a circuit to start the race on as soon as it's ready
+var _pending_intro := true           # ...and whether to play its intro (not when it's "race again")
+var _return := {}                    # where to go back to from a circuit: {scene, position, yaw}
+var _kids := {}                      # Earth kids to race, copied from town on the way out: id -> their look
+var _froze_clock := false
+var _knock_safe := 0.0
+var _choosing := false               # the results' (or a race called off's) "race again / go back" is up
 
 
 func _ready() -> void:
@@ -241,6 +313,9 @@ func _ready() -> void:
 	intro.name = "RaceIntro"
 	add_child(intro)
 	intro.done.connect(_after_intro)
+	attacks = ATTACKS.new()
+	attacks.name = "Attacks"
+	add_child(attacks)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
 	Dialogue.finished.connect(_on_talked)
@@ -359,6 +434,7 @@ func reset() -> void:
 func _on_scene_changed() -> void:
 	if racing():
 		_end(false)                                   # the scene the race was in is gone: no harm done
+	_close_choice()
 	var scene := get_tree().current_scene
 	if scene == null:
 		return
@@ -369,12 +445,60 @@ func _on_scene_changed() -> void:
 			t.setup(TRACKS[id])
 			t.set_meta("track_id", id)
 			scene.add_child(t)
+	for id in HUBS:
+		if HUBS[id].scene == scene.scene_file_path and scene.get_node_or_null("Race Gate " + id) == null:
+			var g := RaceTrack.new()
+			g.name = "Race Gate " + id
+			var cfg: Dictionary = HUBS[id].duplicate()
+			cfg["hub_gate"] = true
+			g.setup(cfg)
+			g.set_meta("hub_id", id)
+			scene.add_child(g)
+	# In a circuit the clocks wait (a race doesn't use up the Shift, and the portal can't pull you home mid-lap)
+	circuit = ""
+	for id in TRACKS:
+		if TRACKS[id].has("circuit") and TRACKS[id].scene == scene.scene_file_path:
+			circuit = id
+	if circuit != "":
+		if Clock.running:
+			Clock.running = false
+			_froze_clock = true
+		if _pending == "":
+			_pending = circuit                        # (loaded straight in: race anyway)
+	else:
+		_pending = ""
+		_return = {}
+		if _froze_clock:
+			_froze_clock = false
+			Clock.running = true
 	_refresh_boards.call_deferred()
 
 
 func track_node(id: String) -> RaceTrack:
 	var scene := get_tree().current_scene
 	return scene.get_node_or_null("Race " + id) as RaceTrack if scene else null
+
+
+func hub_node(id: String) -> RaceTrack:
+	var scene := get_tree().current_scene
+	return scene.get_node_or_null("Race Gate " + id) as RaceTrack if scene else null
+
+
+func is_circuit(scene_path: String) -> bool:
+	for id in TRACKS:
+		if TRACKS[id].has("circuit") and TRACKS[id].scene == scene_path:
+			return true
+	return false
+
+
+func hub_of(id: String) -> String:
+	return str(TRACKS[id].get("hub", ""))
+
+
+func starter_name(id: String) -> String:
+	# Who to talk to for this race: a circuit's is started at its race gate
+	var h := hub_of(id)
+	return str(HUBS[h].starter.name) if h != "" else str(TRACKS[id].get("starter", {}).get("name", "the starter"))
 
 
 func _refresh_boards() -> void:
@@ -385,6 +509,10 @@ func _refresh_boards() -> void:
 		if t == null or t.board_text == null:
 			continue
 		t.board_text.text = board_text(id)
+	for id in HUBS:
+		var g := hub_node(id)
+		if g and g.board_text:
+			g.board_text.text = hub_board_text(id)
 
 
 func board_text(id: String) -> String:
@@ -396,6 +524,21 @@ func board_text(id: String) -> String:
 	out += "Best time: %s" % (RaceHud.clock(float(best[id])) if best.has(id) else "not yet!")
 	out += "\nBeat it for ✦ %d more" % BEST_BONUS if best.has(id) else ""
 	out += "\nWins: %d" % int(wins.get(id, 0))
+	return out
+
+
+func hub_board_text(hub: String) -> String:
+	# The race gate's board: every circuit started there, open or not, with its best time
+	var out := "RACES\nTalk to %s to race!\n" % HUBS[hub].starter.name
+	for id in TRACKS:
+		if hub_of(id) != hub:
+			continue
+		var tr: Dictionary = TRACKS[id]
+		out += "\n%s  (1st ✦ %d)\n" % [str(tr.name).to_upper(), int(tr.prizes[0])]
+		if not unlocked(id):
+			out += "Opens after the %s" % TRACKS[str(tr.after)].name
+		else:
+			out += "Best: %s   Wins: %d" % [RaceHud.clock(float(best[id])) if best.has(id) else "not yet!", int(wins.get(id, 0))]
 	return out
 
 
@@ -496,6 +639,11 @@ func map_tracks() -> Array:
 			continue
 		out.append({"name": TRACKS[id].name, "line": t.line, "start": t.point_at(0.0), "open": unlocked(id),
 			"racing": racing() and track_id == id})
+	for id in HUBS:                                   # the race gates: a flag, no route (the races are elsewhere)
+		var g := hub_node(id)
+		if g and g.ready_to_race:
+			out.append({"name": "Races", "line": PackedVector3Array(), "start": g.point_at(g.cp_dist[0]), "open": true,
+				"racing": false})
 	return out
 
 
@@ -519,17 +667,58 @@ func unlocked(id: String) -> bool:
 func talk(talker: Node3D) -> void:
 	if racing():
 		return
-	var id := str(talker.get_parent().get_meta("track_id", "lake_loop"))     # the talk spot is on the starter
+	var holder := talker.get_parent()                                       # the talk spot is on the starter
+	if holder.has_meta("hub_id") and str(holder.get_meta("hub_id")) != "":
+		var hub := str(holder.get_meta("hub_id"))
+		Dialogue.say(talker, str(HUBS[hub].starter.name), hub_lines(hub), "race_starter")
+		return
+	var id := str(holder.get_meta("track_id", "lake_loop"))
 	Dialogue.say(talker, str(TRACKS[id].starter.name), lines(id), "race_starter")
+
+
+func hub_lines(hub: String) -> Array:
+	# The starter at a race gate: every circuit started here that's open, and off you go to it
+	var me := str(HUBS[hub].starter.name)
+	if not Game.has_item("skateboard"):
+		return ["Vroom vroom, {player}! I'm %s, and I start the races." % me,
+			"But {they}'ll need something to ride first! There's a skateboard waiting at the Skate Park."]
+	var mine: Array = TRACKS.keys().filter(func(k: String) -> bool: return hub_of(k) == hub)
+	var out: Array = []
+	if raced == 0:
+		out.append("Vroom vroom, {player}! I'm %s, and I start the races. Each race has a whole track of its own: say which and I'll whizz you there!" % me)
+		out.append("Ride through every ring, in order: the next one glows gold. Star Boxes give you a power-up: a Zoom Star, a Bubble Shield, a Super Spring, or something to throw. Press %s to use it!" % Settings.prompt("aim"))
+		out.append("Watch out: the others have power-ups too, and they'll throw them at you! A Bubble Shield stops one.")
+	else:
+		out.append("Back for more, {player}? Which one?")
+	var choice: Array = []
+	for id in mine:
+		if unlocked(id):
+			choice.append({"text": "The %s!" % TRACKS[id].name, "set": "race_go_" + id})
+	var locked: Array = mine.filter(func(k: String) -> bool: return not unlocked(k))
+	if not locked.is_empty():
+		out.append("The %s opens once you've finished the %s." % [TRACKS[locked[0]].name, TRACKS[str(TRACKS[locked[0]].after)].name])
+	if HUBS[hub].scene == TOWN and unlocked("sky_rings") and not best.has("sky_rings"):
+		out.append("And the Sky Rings are open! Fly the mothership through the big gold ring over the lake to start.")
+	choice.append({"text": "Not right now."})
+	out.append({"choice": choice})
+	return out
 
 
 func lines(id := "lake_loop") -> Array:
 	var tr: Dictionary = TRACKS[id]
+	if tr.has("hub") and circuit != id:
+		return hub_lines(str(tr.hub))
 	var me := str(tr.starter.name)
 	if not Game.has_item("skateboard"):
 		return ["Vroom vroom, {player}! I'm %s, and I start the races here." % me,
 			"But {they}'ll need something to ride first! There's a skateboard waiting at the Skate Park."]
 	var out: Array = []
+	if circuit == id:
+		# On a circuit: race again, or back to town
+		out.append("Another go round the %s, {player}?" % tr.name)
+		out.append({"choice": [{"text": "Race again!", "set": "race_again"},
+			{"text": "Back to %s, please." % HUBS[str(tr.hub)].place, "set": "race_leave"}, {"text": "Not yet."}]})
+		return out
 	if raced == 0:
 		out.append("Vroom vroom, {player}! I'm %s, and I start the %s: %s!" % [me, tr.name, tr.blurb])
 		out.append("Ride through every ring, in order: the next one glows gold. Boost pads zoom you along, and the Star Boxes give you a power-up. Press %s to use it!" % Settings.prompt("aim"))
@@ -540,20 +729,11 @@ func lines(id := "lake_loop") -> Array:
 			out.append("Your best time here is %s. Beat it for ✦ %d more!" % [RaceHud.clock(float(best[id])), BEST_BONUS])
 	if not unlocked(id):
 		out.append("This one opens once you've finished the %s. %s starts that one!" % [TRACKS[str(tr.after)].name,
-			TRACKS[str(tr.after)].starter.name])
+			starter_name(str(tr.after))])
 	var choice: Array = []
 	if unlocked(id):
 		choice.append({"text": "Let's race!", "set": "race_go_" + id})
-	# The other tracks you can race: the starter whistles up a mini saucer to whizz you over to the line
-	for other in TRACKS:
-		if other != id and unlocked(other) and TRACKS[other].scene == tr.scene and not TRACKS[other].get("sky", false):
-			choice.append({"text": "Take me to the %s!" % TRACKS[other].name, "set": "race_go_" + other})
 	choice.append({"text": "Not right now."})
-	var news := TRACKS.keys().filter(func(k: String) -> bool: return unlocked(k) and k != id and not str(TRACKS[k].get("after", "")) == "" and not best.has(k) and not TRACKS[k].get("sky", false) and TRACKS[k].scene == tr.scene)
-	if not news.is_empty() and raced > 0:
-		out.append("Ooh, and the %s is open now! I can whizz you over." % TRACKS[news[0]].name)
-	if tr.scene == TOWN and unlocked("sky_rings") and not best.has("sky_rings"):
-		out.append("And the Sky Rings are open! Fly the mothership through the big gold ring over the lake to start.")
 	out.append({"choice": choice})
 	return out
 
@@ -561,11 +741,129 @@ func lines(id := "lake_loop") -> Array:
 func _on_talked(id: String) -> void:
 	if id != "race_starter":
 		return
+	if Dialogue.flags.has("race_again"):
+		Dialogue.flags.erase("race_again")
+		restart.call_deferred()
+		return
+	if Dialogue.flags.has("race_leave"):
+		Dialogue.flags.erase("race_leave")
+		leave_circuit.call_deferred()
+		return
 	for f in Dialogue.flags.keys():
 		if str(f).begins_with("race_go_"):
 			Dialogue.flags.erase(f)
-			start.call_deferred(str(f).trim_prefix("race_go_"))
+			var tid := str(f).trim_prefix("race_go_")
+			if TRACKS.has(tid) and TRACKS[tid].has("circuit"):
+				enter_circuit.call_deferred(tid)
+			else:
+				start.call_deferred(tid)
 			return
+
+
+# -----------------------------------------------------------------------------
+# Circuits: off to a race's own track, and back
+# -----------------------------------------------------------------------------
+func enter_circuit(id: String) -> bool:
+	# From a race gate to the circuit (the game loads it; the race starts as soon as it's laid out)
+	var p := _player()
+	var scene := get_tree().current_scene
+	if racing() or not TRACKS.has(id) or not TRACKS[id].has("circuit") or not unlocked(id) or p == null \
+			or not Game.has_item("skateboard") or not ResourceLoader.exists(str(TRACKS[id].scene)):
+		return false
+	if circuit == "" and scene:
+		_return = {"scene": scene.scene_file_path, "position": p.global_position,
+			"yaw": (p.get_node("Visual") as Node3D).rotation.y}
+		_copy_kids(id)
+	_pending = id
+	_pending_intro = Settings.race_intros
+	Game.pending_message = ""
+	Game.go(str(TRACKS[id].scene), "Entrance", str(TRACKS[id].name))
+	return true
+
+
+func _copy_kids(id: String) -> void:
+	# Earth kids race as themselves: their looks are copied from town on the way out (the circuit has no townsfolk)
+	_kids.clear()
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var want: Array = TRACKS[id].rivals + TRACKS[id].get("spares", [])
+	for r in scene.find_children("Routine", "", true, false):
+		var who := str(r.get("character_id"))
+		if who in want and r.get_parent() is Townsfolk:
+			var t := r.get_parent() as Townsfolk
+			_kids[who] = {"look": t.look, "outfit": t.outfit, "model_path": t.model_path, "extras": t.extras, "name": str(t.name)}
+
+
+func kid_look(id: String) -> Dictionary:
+	# An Earth kid's look for racing: copied from town if we can, else a stand-in (KID_LOOKS)
+	if _kids.has(id):
+		return _kids[id]
+	var k: Dictionary = KID_LOOKS.get(id, KID_LOOKS.nina_earth)
+	return {"look": {"colors": k.colors, "hairstyle": int(k.hairstyle), "extras": false, "height": 0.95, "head": 1.0,
+		"build": 1.0}, "outfit": {}, "model_path": "", "extras": [], "name": str(k.name)}
+
+
+func leave_circuit() -> void:
+	# Back to where you set off from (the race gate), whatever's going on
+	if circuit == "":
+		return
+	if racing():
+		_end(false)
+	_close_choice()
+	var hub: Dictionary = HUBS[hub_of(circuit)]
+	var to := _return.duplicate()
+	if to.is_empty():                                  # (came straight in: back to the race gate)
+		var at: Vector2 = hub.at
+		var f := (Vector2(hub.toward) - at).normalized()
+		var side := Vector2(-f.y, f.x)
+		var spot := at - f * 2.0 + side * 6.0
+		to = {"scene": hub.scene, "position": Vector3(spot.x, 2.0, spot.y), "yaw": atan2(f.x, f.y)}
+	_pending = ""
+	Game.pending_message = "Back in %s, by the race gate." % hub.place
+	Game.go_to_point(str(to.scene), to.position, float(to.yaw), str(hub.place))
+
+
+func restart() -> bool:
+	# "Race again": the same circuit, straight to the countdown (no intro the second time)
+	if circuit == "":
+		return false
+	if racing():
+		_end(false)
+	_close_choice()
+	return start(circuit, false)
+
+
+func save_place() -> Dictionary:
+	# Saving on a circuit saves you back at the race gate (scripts/game.gd): loading never drops you mid-race
+	if circuit == "":
+		return {}
+	var to := _return
+	if to.is_empty():
+		var hub: Dictionary = HUBS[hub_of(circuit)]
+		to = {"scene": hub.scene, "position": Vector3(Vector2(hub.at).x, 2.0, Vector2(hub.at).y + 6.0), "yaw": 0.0}
+	var pos: Vector3 = to.position
+	return {"scene": str(to.scene), "position": [pos.x, pos.y, pos.z], "yaw": float(to.yaw)}
+
+
+func _offer_choice(text: String) -> void:
+	# The results (or "race called off") with buttons: race again, or go back
+	_choosing = true
+	var p := _player()
+	if p:
+		Game.hold_controls(&"race_results", true, p)
+	hud.show_choices(text, [["Race again", func() -> void: restart()],
+		["Back to %s" % HUBS[hub_of(circuit)].place, func() -> void: leave_circuit()]])
+
+
+func _close_choice() -> void:
+	if not _choosing:
+		return
+	_choosing = false
+	hud.hide_choices()
+	var p := _player()
+	if p:
+		Game.hold_controls(&"race_results", false, p)
 
 
 # -----------------------------------------------------------------------------
@@ -575,19 +873,23 @@ func _player() -> Player:
 	return get_tree().get_first_node_in_group("player") as Player
 
 
-func start(id: String) -> bool:
+func start(id: String, with_intro := true) -> bool:
 	var t := track_node(id)
 	var p := _player()
 	if racing() or t == null or not t.ready_to_race or p == null or not Game.has_item("skateboard") or not unlocked(id):
 		return false
+	_close_choice()
 	track_id = id
 	track = t
 	if not Game.riding:
 		Game.riding = true
 		Game.equipment_changed.emit()
-	# The grid, just behind the line: the player at the front on the left, the others beside and behind
-	var grid := [[-4.0, -2.2], [-4.0, 2.2], [-9.0, -2.2], [-9.0, 2.2]]
-	var start_at := t.point_at(grid[0][0]) + t.side_at(grid[0][0]) * float(grid[0][1])
+	# The grid, just behind the line. On a circuit you're fifth of eight, in the middle of the pack; on the old tracks
+	# you're at the front on the left, the others beside and behind.
+	var big: bool = TRACKS[id].rivals.size() > 3
+	var grid: Array = GRID if big else OLD_GRID
+	var mine := 4 if big else 0
+	var start_at := t.point_at(grid[mine][0]) + t.side_at(grid[mine][0]) * float(grid[mine][1])
 	var ground := t.ground_at(Vector2(start_at.x, start_at.z))
 	var f := t.dir_at(0.0)
 	p.global_position = ground + Vector3.UP * 0.85
@@ -611,12 +913,16 @@ func start(id: String) -> bool:
 				if not spare in who and spare != p.get("rider"):
 					who[k] = spare
 					break
+	who = who.filter(func(w) -> bool: return str(w) != "")
 	var pace := float(PACE_BY_ASSIST[clampi(Settings.skate_assist, 0, PACE_BY_ASSIST.size() - 1)])
+	var paces: Array = CIRCUIT_PACE if big else RIVAL_PACE
+	var slots: Array = range(grid.size()).filter(func(k: int) -> bool: return k != mine)
 	for k in who.size():
 		var rival := RaceRival.new()
 		rival.name = "Racer " + str(who[k])
 		var push := float(ride_of(who[k]).push_speed)
-		rival.setup(who[k], t, float(grid[k + 1][0]), float(grid[k + 1][1]), RIVAL_PACE[k] * pace / push)
+		var slot: int = slots[k]
+		rival.setup(who[k], t, float(grid[slot][0]), float(grid[slot][1]), float(paces[mini(k, paces.size() - 1)]) * pace / push)
 		get_tree().current_scene.add_child(rival)
 		rivals.append(rival)
 		_show_npc(who[k], false)
@@ -626,15 +932,18 @@ func start(id: String) -> bool:
 	time = 0.0
 	power = "zoom" if level("starter") > 0 else ""
 	place = 1
-	progress = 0.0
+	progress = grid[mine][0]
 	_shield = 0.0
 	_wrong = 0.0
 	_last_d = 0.0
 	_along = -1.0
+	_knock_safe = 0.0
 	_rival_pad.clear()
+	attacks.clear()
 	t.show_race(true)
 	hud.clear()
-	if Settings.race_intros:
+	hud.show_map(t)
+	if Settings.race_intros and with_intro:
 		state = State.INTRO                       # the cutscene first (scripts/race_intro.gd), then the countdown
 		intro.play(t, rivals, str(TRACKS[id].name), str(TRACKS[id].blurb))
 	else:
@@ -674,8 +983,16 @@ func _set_ship_frozen(on: bool) -> void:
 
 func _physics_process(delta: float) -> void:
 	_tick_pads(delta)
+	_knock_safe -= delta
 	if state == State.IDLE:
 		_watch_sky()
+		if _pending != "" and not _choosing:
+			var t := track_node(_pending)
+			if t and t.ready_to_race and _player() != null:
+				var id := _pending
+				_pending = ""
+				start(id, _pending_intro)
+				_pending_intro = Settings.race_intros
 	match state:
 		State.INTRO:
 			var p := _player()
@@ -692,7 +1009,8 @@ func _physics_process(delta: float) -> void:
 			_results -= delta
 			for r in rivals:
 				r.race(delta, progress)
-			if _results <= 0.0:
+			attacks.tick(delta, true)
+			if _results <= 0.0 and circuit == "":
 				_end(true)
 
 
@@ -736,9 +1054,13 @@ func _race(delta: float) -> void:
 			_end(false)
 			return
 	elif not Game.riding:
-		Game.message("You stepped off your ride, so the race is off. Talk to the starter to race again!")
-		_end(false)
-		return
+		if circuit != "":
+			Game.riding = true                        # (on a circuit there's nowhere to walk to: straight back on)
+			Game.equipment_changed.emit()
+		else:
+			Game.message("You stepped off your ride, so the race is off. Talk to the starter to race again!")
+			_end(false)
+			return
 	time += delta
 	var L := t.length
 	var cps := t.cp_dist
@@ -762,8 +1084,9 @@ func _race(delta: float) -> void:
 	# How far round: between the last checkpoint passed and the next
 	var lo := cps[last_cp]
 	var hi := cps[next_cp] if next_cp != 0 else L
-	var here := t.nearest(pos, (lo + hi) / 2.0, (hi - lo) / 2.0 + 20.0)
-	here = lo + clampf(wrapf(here - lo, -L / 2.0, L / 2.0), 0.0, hi - lo)     # the loop wraps round at the line
+	var raw := t.nearest(pos, (lo + hi) / 2.0, (hi - lo) / 2.0 + 20.0)
+	var round_d := wrapf(raw - lo, -L / 2.0, L / 2.0)          # the loop wraps round at the line
+	var here := lo + clampf(round_d, 0.0, hi - lo)
 	progress = (lap - 1) * L + here
 	# Going the wrong way for a while?
 	var speed := Vector2(vel.x, vel.z).length()
@@ -772,7 +1095,13 @@ func _race(delta: float) -> void:
 	if _wrong > 1.2:
 		_wrong = -2.0
 		hud.shout("Wrong way!", Color(1.0, 0.55, 0.6), 0.6)
-	if t.off_line(pos, here) > WANDER * (3.0 if t.sky else 1.0):
+	# (How far off the road is measured from the nearest bit of road, even behind the last ring: on the grid you're
+	# behind the line, and that's fine.)
+	var near := fposmod(lo + clampf(round_d, -20.0, hi - lo), L)
+	if circuit != "" and (t.off_line(pos, near) > t.width / 2.0 + 4.0 or pos.y < t.point_at(near).y - 5.0):
+		# Over a wall, or off the edge: popped back on the road, a little short of the next ring so it isn't passed
+		_back_on_track(p, fposmod(lo + clampf(round_d, -10.0, maxf(0.0, hi - lo - PASS_RADIUS - 2.0)), L))
+	elif t.off_line(pos, here) > WANDER * (3.0 if t.sky else 1.0):
 		Game.message("You went off the track, so the race is off. %s" % ("Fly through the gold ring to race again!" if t.sky else "Talk to the starter to race again!"))
 		_end(false)
 		return
@@ -782,6 +1111,7 @@ func _race(delta: float) -> void:
 		_pick_up(p, t)
 		_use_power(p)
 		_tick_shield(p, delta)
+		attacks.tick(delta)
 	for r in rivals:
 		r.race(delta, progress)
 		_rival_pads(r)
@@ -840,7 +1170,7 @@ func _finish() -> void:
 	var rows: Array = [["You", time]]
 	for r in rivals:
 		var t_est := r.finish_time if r.finished else time + maxf(laps_l - r.d, 0.0) / maxf(r.speed, 4.0)
-		rows.append([r.display_name(), t_est])
+		rows.append([r.display_name(), maxf(t_est, time + 0.1) if not r.finished else t_est])
 	rows.sort_custom(func(a: Array, b: Array) -> bool: return float(a[1]) < float(b[1]))
 	# Your row stays where you really finished, whatever the guesses say
 	rows.erase(rows.filter(func(row: Array) -> bool: return row[0] == "You")[0])
@@ -856,7 +1186,10 @@ func _finish() -> void:
 	for k in opens:
 		text += "\nThe %s is open now!" % TRACKS[k].name
 	hud.shout("FINISH!", Color(1.0, 0.85, 0.3), 0.8)
-	hud.show_results(text)
+	if circuit != "":
+		_offer_choice(text)                           # on a circuit: race again, or go back (no hurry)
+	else:
+		hud.show_results(text)
 	Audio.play("level_up")
 	state = State.RESULTS
 	_results = RESULTS_TIME
@@ -876,6 +1209,8 @@ func _end(_done: bool) -> void:
 			r.queue_free()
 	rivals.clear()
 	_clear_power()
+	attacks.clear()
+	hud.show_map(null)
 	if is_instance_valid(track):
 		track.show_race(false)
 	var p := _player()
@@ -925,7 +1260,6 @@ func _over(a: Vector3, b: Vector3, radius: float, height: float) -> bool:
 
 
 func _pick_up(p: Player, t: RaceTrack) -> void:
-	var skate = p.get("skate")
 	for box in t.boxes:
 		if float((box as Node3D).get_meta("gone", 0.0)) > 0.0 or not _over(p.global_position, (box as Node3D).global_position, BOX_RADIUS, 2.5):
 			continue
@@ -938,26 +1272,49 @@ func _pick_up(p: Player, t: RaceTrack) -> void:
 		Juice.blip("sparkle", 1.2, -9.0)
 		Juice.burst(p.get_parent(), (box as Node3D).global_position, Color(1.0, 0.85, 0.35), 14, 0.07, 3.0, 0.6)
 		Juice.rumble(0.2, 0.08)
-	if _goo_wait <= 0.0:
-		for g in t.goo:
-			if _over(p.global_position, (g as Node3D).global_position, GOO_RADIUS, 1.0) and bool(skate.call("is_on_ground")):
-				_goo_wait = 1.5
-				if _shield > 0.0 or bool(skate.call("boosting")):
-					skate.hud.shout("Whoosh!", Color(0.7, 0.95, 1.0))
-				else:
-					skate.call("gooed", 1.3)
-					skate.hud.shout("Gloopy!", Color(0.7, 0.95, 0.35))
-					Audio.play("stomp", -4.0)
-				break
+	for g in t.goo:
+		if _over(p.global_position, (g as Node3D).global_position, GOO_RADIUS, 1.0):
+			goo_hit(p)
+			break
+
+
+func goo_hit(p: Player) -> void:
+	# Rolling through goo (the track's own, or a Goo Bomb): slow going, unless shielded or boosting
+	var skate = p.get("skate")
+	if _goo_wait > 0.0 or not bool(skate.call("is_on_ground")):
+		return
+	_goo_wait = 1.5
+	if _shield > 0.0 or bool(skate.call("boosting")):
+		skate.hud.shout("Whoosh!", Color(0.7, 0.95, 1.0))
+	else:
+		skate.call("gooed", 1.3)
+		skate.hud.shout("Gloopy!", Color(0.7, 0.95, 0.35))
+		Audio.play("stomp", -4.0)
 
 
 func _roll_power() -> String:
-	# Further back, more Zoom Stars: they help you catch up
-	var behind := place > 2
-	var roll := _rng.randf()
-	if roll < (0.55 if behind else 0.35):
-		return "zoom"
-	return "shield" if roll < (0.8 if behind else 0.7) else "spring"
+	# Further back, more Zoom Stars and Bubble Seekers: they help you catch up. Out in front, more Goo Bombs to drop
+	# behind you and Bubble Shields.
+	var weights: Dictionary
+	var racers := rivals.size() + 1
+	if racers <= 4:
+		weights = {"zoom": 40, "seeker": 20, "shield": 20, "spring": 10, "goo": 5, "zap": 5} if place > 2 \
+			else {"zoom": 25, "shield": 30, "spring": 20, "goo": 15, "zap": 10}
+	elif place <= 2:
+		weights = {"goo": 30, "shield": 30, "zap": 18, "zoom": 12, "spring": 10}
+	elif place >= racers - 1:
+		weights = {"zoom": 35, "seeker": 35, "shield": 12, "zap": 12, "spring": 6}
+	else:
+		weights = {"seeker": 28, "zoom": 22, "goo": 16, "shield": 14, "zap": 14, "spring": 6}
+	var total := 0
+	for k in weights:
+		total += int(weights[k])
+	var roll := _rng.randi() % total
+	for k in weights:
+		roll -= int(weights[k])
+		if roll < 0:
+			return k
+	return "zoom"
 
 
 func _use_power(p: Player) -> void:
@@ -986,10 +1343,58 @@ func use_power() -> bool:
 				return false
 			skate.call("spring", SPRING_POWER)
 			Audio.play("boing")
+		"goo", "seeker", "zap":
+			attacks.fire(p, power)                    # thrown at the others (scripts/race_attacks.gd)
 	skate.hud.shout(POWERS[power].say, Color(1.0, 0.85, 0.3))
 	power = ""
 	hud.show_power("")
 	return true
+
+
+func knock_player(why := "Bonk!") -> bool:
+	# Something got you: a friend's Bubble Seeker or Zap Ring, a sweeper, a zapper. The Bubble Shield takes it for
+	# you (and pops); otherwise it's a comedy wipeout (no harm, you're up again in a moment).
+	var p := _player()
+	if p == null or _knock_safe > 0.0 or not Game.riding:
+		return false
+	var skate = p.get("skate")
+	if _shield > 0.0:
+		_clear_shield(p)
+		_knock_safe = 1.0
+		skate.hud.shout("Shield popped!", Color(0.6, 0.9, 1.0))
+		Audio.play("bubbles", -2.0)
+		return false
+	if bool(skate.call("is_bailing")):
+		return false
+	_knock_safe = KNOCK_SAFE
+	skate.call("bail")
+	hud.shout(why, Color(1.0, 0.55, 0.6), 0.5)
+	return true
+
+
+func knock_safe() -> bool:
+	return _knock_safe > 0.0
+
+
+func shielded() -> bool:
+	return _shield > 0.0
+
+
+func _back_on_track(p: Player, d: float) -> void:
+	# Off the road on a circuit (over a wall after a ramp, say): back on it, facing the right way, still going
+	var t := track
+	var at := t.point_at(d)
+	var f := t.dir_at(d)
+	p.global_position = t.ground_at(Vector2(at.x, at.z)) + Vector3.UP * 0.9
+	p.velocity = f * 5.0
+	var yaw := atan2(f.x, f.z)
+	p.visual.rotation.y = yaw
+	var skate = p.get("skate")
+	skate.set("_yaw", yaw)
+	skate.set("_shown_yaw", yaw)
+	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
+	hud.shout("Back on track!", Color(0.75, 0.9, 1.0), 0.4)
+	_along = -1.0
 
 
 func _tick_shield(p: Player, delta: float) -> void:

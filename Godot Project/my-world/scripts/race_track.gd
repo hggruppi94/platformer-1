@@ -7,6 +7,12 @@ extends Node3D
 # at each checkpoint (the next one gold), the Star Boxes that give power-ups, and goo puddles that slow you down.
 # Built from shapes, in the town's alien palette, so it needs no model and the town scene isn't rebuilt.
 #
+# Since Hayden's day 1 playtest (11 Nov 2026) the big ground races are circuits of their own (scripts/race_circuit.gd
+# builds the road; "circuit" in their TRACKS entry): a wide road with walls, and on it the obstacles ("obstacles":
+# bumpers that bounce you off, sweepers that spin round and knock you over, zappers that switch on and off across half
+# the road, and jump ramps). Out in the Void and Stars Hollow only a race gate is left ("hub" mode, Races.HUBS): the
+# arch, the starter, the board and Zippy's Tune-Up, with no track at all.
+#
 # A sky track ("sky" in its TRACKS entry: the mothership race) is different: its checkpoints are points in the air,
 # the line isn't laid on the ground, the rings are big enough for the mothership, and instead of boost pads it has
 # smaller cyan boost rings. Its start ring floats there all the time (once the race is open) and starts the race when
@@ -36,6 +42,10 @@ var starter: Node3D
 var ready_to_race := false
 var sky := false
 var ring_radius := RING_RADIUS
+var hub := false                     # only the race gate (Races.HUBS): arch, starter, board, Tune-Up, no track
+var width := 0.0                     # a circuit's road width (0: no road, the old tracks over open ground)
+var earth := false                   # Earth-looking obstacles (hay bales, a windmill, sprinklers)
+var obstacles: Array[Node3D] = []    # bumpers, sweepers, zappers and ramps (circuits): see Races / race_attacks.gd
 var _t := 0.0
 var _ring_mats: Array[StandardMaterial3D] = []
 
@@ -44,19 +54,30 @@ func setup(t: Dictionary) -> void:
 	track = t
 	sky = bool(t.get("sky", false))
 	ring_radius = float(t.get("ring", RING_RADIUS))
+	hub = bool(t.get("hub_gate", false))
+	width = float(t.get("width", 0.0))
+	earth = str(t.get("circuit", {}).get("theme", "")) == "earth"
 
 
 func _ready() -> void:
 	# The ground is only there to feel for once physics has had a frame with the town in it
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	_make_line()
+	if hub:
+		_make_gate_line()
+	else:
+		_make_line()
 	if not sky:
 		_arch()
 		_starter()
 		_board()
 	if track.get("tune_up", false):
 		_tune_up()
+	if hub:
+		ready_to_race = true
+		if board_text:
+			board_text.text = Races.hub_board_text(str(get_meta("hub_id", "")))
+		return
 	for b in track.get("boosts", []):
 		if sky:
 			pads.append(_boost_ring(at(float(b[0]))))
@@ -64,11 +85,16 @@ func _ready() -> void:
 			pads.append(_pad(at(float(b[0])), float(b[1]) if b.size() > 1 else 0.0))
 	for i in cp_dist.size():
 		rings.append(_ring(i))
+	var across := maxi(3, int(width / 3.5)) if width > 0.0 else 3
+	var spacing := minf(BOX_SPACING * 1.2, (width - 2.0) / across) if width > 0.0 else BOX_SPACING
 	for b in track.get("boxes", []):
-		for k in 3:
-			boxes.append(_box(at(float(b[0])), (k - 1) * BOX_SPACING))
+		for k in across:
+			boxes.append(_box(at(float(b[0])), (k - (across - 1) / 2.0) * spacing))
 	for g in track.get("goo", []):
 		goo.append(_goo(at(float(g[0])), float(g[1])))
+	for k in track.get("obstacles", []).size():
+		var o: Array = track.obstacles[k]
+		obstacles.append(_obstacle(str(o[1]), at(float(o[0])), float(o[2]), k))
 	show_race(false)
 	ready_to_race = true
 	if board_text:
@@ -78,14 +104,11 @@ func _ready() -> void:
 # -----------------------------------------------------------------------------
 # The racing line
 # -----------------------------------------------------------------------------
-func _make_line() -> void:
-	# A smooth loop through the checkpoints (Catmull-Rom, so it passes right through each one), then each point is
-	# dropped onto whatever's under it
-	# (A sky track's points are in the air: x, height, z; they're used as they are.)
-	var pts: Array = track.points
+static func spline(pts: Array, cp_index: Array[int] = []) -> Array[Vector3]:
+	# A smooth loop through the checkpoints (Catmull-Rom, so it passes right through each one), a point about every
+	# STEP metres. cp_index gets where each checkpoint is in it. (scripts/race_circuit.gd lays its road along the same.)
 	var n := pts.size()
 	var flat: Array[Vector3] = []
-	var cp_index: Array[int] = []
 	for i in n:
 		var p0 := _point3(pts[(i - 1 + n) % n])
 		var p1 := _point3(pts[i])
@@ -96,6 +119,30 @@ func _make_line() -> void:
 		for s in steps:
 			var t := float(s) / steps
 			flat.append(_catmull(p0, p1, p2, p3, t))
+	return flat
+
+
+func _make_gate_line() -> void:
+	# A race gate (hub mode) has no track: a short straight "line" through where its arch stands, the way the old
+	# track's start went, so the arch, the starter, the board and the Tune-Up stand just where they always did
+	var at: Vector2 = track.at
+	var f := (Vector2(track.toward) - at).normalized()
+	line.resize(41)
+	dist.resize(41)
+	for i in 41:
+		var xz := at + f * (i - 20)
+		line[i] = ground_at(xz)
+		dist[i] = float(i)
+	length = 40.0
+	cp_dist.clear()
+	cp_dist.append(20.0)
+
+
+func _make_line() -> void:
+	# The smooth loop through the checkpoints, then each point is dropped onto whatever's under it
+	# (A sky track's points are in the air: x, height, z; they're used as they are.)
+	var cp_index: Array[int] = []
+	var flat := spline(track.points, cp_index)
 	line.resize(flat.size())
 	dist.resize(flat.size())
 	var total := 0.0
@@ -268,6 +315,8 @@ func _process(delta: float) -> void:
 	for r in rings:
 		if r.visible:
 			r.get_node("Ring").rotation.z = _t * 0.4
+	for o in obstacles:
+		_animate(o, delta)
 
 
 func _mat(c: Color, glow := 0.0, rough := 0.5) -> StandardMaterial3D:
@@ -314,7 +363,7 @@ func _ring(i: int) -> Node3D:
 	place_on(holder, cp_dist[i])
 	var ring := Node3D.new()
 	ring.name = "Ring"
-	ring.position.y = RING_HEIGHT
+	ring.position.y = maxf(RING_HEIGHT, ring_radius * 0.55)     # (a circuit's big hoops stand like arches over the road)
 	holder.add_child(ring)
 	var torus := TorusMesh.new()
 	var thick := 0.25 if not sky else 1.2
@@ -348,7 +397,7 @@ func _arch() -> void:
 	arch.name = "Start Arch"
 	add_child(arch)
 	place_on(arch, cp_dist[0])
-	var half := 6.2
+	var half := maxf(6.2, width / 2.0 + 1.3)          # (on a circuit, outside its walls)
 	var tower := _mat(Color(0.62, 0.5, 0.95))
 	var gold := _mat(Color(1.0, 0.82, 0.35), 0.4, 0.3)
 	for side in [-1.0, 1.0]:
@@ -401,8 +450,10 @@ func _starter() -> void:
 	starter = Node3D.new()
 	starter.name = str(track.starter.name)
 	starter.set_meta("track_id", get_meta("track_id", ""))
+	if hub:
+		starter.set_meta("hub_id", get_meta("hub_id", ""))
 	add_child(starter)
-	place_on(starter, d, 8.5)                         # on the town side of the line, away from the lake
+	place_on(starter, d, maxf(8.5, width / 2.0 + 3.5))   # on the town side of the line, away from the lake
 	_face(starter, point_at(d))
 	var model: Node3D
 	if track.starter.has("look"):
@@ -457,7 +508,7 @@ func _board() -> void:
 	var board := Node3D.new()
 	board.name = "Race Board"
 	add_child(board)
-	place_on(board, cp_dist[0] - 9.0, 9.5)
+	place_on(board, cp_dist[0] - 9.0, maxf(9.5, width / 2.0 + 4.5))
 	_face(board, point_at(cp_dist[0] - 9.0))
 	var wood := _mat(Color(0.36, 0.22, 0.42))
 	for side in [-1.0, 1.0]:
@@ -470,7 +521,7 @@ func _board() -> void:
 	var top := BoxMesh.new()
 	top.size = Vector3(3.1, 0.12, 0.16)
 	_mesh(board, top, Vector3(0, 3.25, 0.01), _mat(Color(1.0, 0.82, 0.35), 0.4, 0.3))
-	board_text = _label(board, "", 24, Vector3(0, 2.0, 0.07))
+	board_text = _label(board, "", 18 if hub else 24, Vector3(0, 2.0, 0.07))
 	board_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	board_text.width = 270
 	var body := StaticBody3D.new()
@@ -660,3 +711,234 @@ func _goo(d: float, side: float) -> Node3D:
 		_mesh(puddle, bubble, Vector3(cos(a * 2.0) * 0.9, 0.06, sin(a * 2.0) * 0.9), _mat(Color(0.7, 0.95, 0.35, 0.8), 0.6))
 	puddle.set_meta("d", d)
 	return puddle
+
+
+
+# -----------------------------------------------------------------------------
+# Obstacles (circuits). They have no collision: Races (scripts/race_attacks.gd) works out who they hit, so a bumper
+# can bounce you off instead of stopping you dead, and the friends can be knocked about by them too.
+# -----------------------------------------------------------------------------
+const BUMPER_RADIUS := 1.4
+const SWEEP_SPEED := 1.1             # radians a second (a little faster for every third one)
+const ZAP_PERIOD := 3.2              # seconds: a zapper's whole on-and-off
+const ZAP_ON := 1.3                  # ...of which it's on
+const ZAP_WARN := 0.6                # ...and it flickers this long before
+
+
+func zap_on(o: Node3D) -> bool:
+	return fposmod(_t + float(o.get_meta("phase", 0.0)), ZAP_PERIOD) < ZAP_ON
+
+
+func zap_warning(o: Node3D) -> bool:
+	return fposmod(_t + float(o.get_meta("phase", 0.0)), ZAP_PERIOD) > ZAP_PERIOD - ZAP_WARN
+
+
+func arm_angle(o: Node3D) -> float:
+	var arm := o.get_node_or_null("Arm") as Node3D
+	return arm.rotation.y if arm else 0.0
+
+
+func squash(o: Node3D) -> void:
+	# A bumper's boing: it squashes down and springs back up
+	o.set_meta("squash", 0.35)
+
+
+func drop_goo(d: float, side: float) -> Node3D:
+	# A Goo Bomb dropped in a race (scripts/race_attacks.gd): a puddle like the track's own, until it dries up
+	var g := _goo(d, side)
+	g.name = "Dropped Goo"
+	g.visible = true
+	g.scale = Vector3.ONE * 0.2
+	g.create_tween().tween_property(g, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	return g
+
+
+func _obstacle(kind: String, d: float, side: float, k: int) -> Node3D:
+	var o := Node3D.new()
+	o.name = kind.capitalize() + " %d" % k
+	add_child(o)
+	place_on(o, d, side)
+	o.set_meta("kind", kind)
+	o.set_meta("d", d)
+	o.set_meta("side", side)
+	match kind:
+		"bumper":
+			_bumper(o)
+		"sweeper":
+			_sweeper(o, k)
+		"zapper":
+			_zapper(o, k)
+		"ramp":
+			_ramp(o)
+	return o
+
+
+func _animate(o: Node3D, delta: float) -> void:
+	match str(o.get_meta("kind")):
+		"sweeper":
+			var arm := o.get_node("Arm") as Node3D
+			arm.rotation.y = fposmod(arm.rotation.y + float(o.get_meta("speed")) * delta, TAU)
+		"zapper":
+			var on := zap_on(o)
+			var warn := zap_warning(o)
+			var beam := o.get_node("Beam") as Node3D
+			beam.visible = on or (warn and fmod(_t, 0.2) < 0.1 and not Settings.reduce_flashing)
+			beam.scale = Vector3(1.0, 1.0 if on else 0.35, 1.0 if on else 0.35)
+			for lamp in [o.get_node("Lamp0"), o.get_node("Lamp1")]:
+				((lamp as MeshInstance3D).material_override as StandardMaterial3D).emission_energy_multiplier = \
+					3.0 if on else (1.6 if warn else 0.3)
+		"bumper":
+			var sq := float(o.get_meta("squash", 0.0))
+			var top := o.get_node("Top") as Node3D
+			if sq > 0.0:
+				sq -= delta
+				o.set_meta("squash", sq)
+				var k := sin(clampf(sq / 0.35, 0.0, 1.0) * PI)
+				top.scale = Vector3(1.0 + 0.25 * k, 1.0 - 0.35 * k, 1.0 + 0.25 * k)
+			else:
+				top.scale = Vector3.ONE
+				if not earth:
+					top.position.y = 1.0 + sin(_t * 3.0 + float(o.get_meta("d"))) * 0.05
+
+
+func _bumper(o: Node3D) -> void:
+	# Void: a bouncy pink mushroom of a bumper with a teal ring round its foot. Earth: a big round hay bale.
+	o.set_meta("radius", BUMPER_RADIUS)
+	var top := Node3D.new()
+	top.name = "Top"
+	o.add_child(top)
+	if earth:
+		top.position.y = 0.0
+		var bale := CylinderMesh.new()
+		bale.top_radius = 1.0
+		bale.bottom_radius = 1.0
+		bale.height = 1.5
+		var b := _mesh(top, bale, Vector3(0, 1.0, 0), _mat(Color(0.86, 0.7, 0.34), 0.0, 0.95))
+		b.rotation.z = PI / 2.0
+		for x in [-0.45, 0.45]:
+			var band := TorusMesh.new()
+			band.inner_radius = 0.98
+			band.outer_radius = 1.04
+			var bb := _mesh(top, band, Vector3(x, 1.0, 0), _mat(Color(0.55, 0.2, 0.15)))
+			bb.rotation.z = PI / 2.0
+		var pump := SphereMesh.new()
+		pump.radius = 0.35
+		pump.height = 0.55
+		_mesh(top, pump, Vector3(0.2, 2.15, 0), _mat(Color(0.95, 0.5, 0.12)))
+		return
+	top.position.y = 1.0
+	var stalk := CylinderMesh.new()
+	stalk.top_radius = 0.35
+	stalk.bottom_radius = 0.5
+	stalk.height = 1.0
+	_mesh(o, stalk, Vector3(0, 0.5, 0), _mat(Color(0.95, 0.9, 0.8)))
+	var cap := SphereMesh.new()
+	cap.radius = BUMPER_RADIUS
+	cap.height = BUMPER_RADIUS * 1.3
+	_mesh(top, cap, Vector3(0, 0.3, 0), _mat(Color(1.0, 0.45, 0.75), 0.6, 0.3))
+	for k in 5:
+		var spot := SphereMesh.new()
+		spot.radius = 0.22
+		spot.height = 0.2
+		var a := TAU * k / 5.0
+		_mesh(top, spot, Vector3(cos(a) * 0.85, 0.75, sin(a) * 0.85), _mat(Color(1.0, 0.95, 0.85), 0.4))
+	var ring := TorusMesh.new()
+	ring.inner_radius = BUMPER_RADIUS - 0.1
+	ring.outer_radius = BUMPER_RADIUS + 0.1
+	_mesh(o, ring, Vector3(0, 0.08, 0), _mat(Color(0.3, 0.95, 0.95), 1.5))
+
+
+func _sweeper(o: Node3D, k: int) -> void:
+	# A post in the road with two long arms going round and round: ride through the gap. Void: glowing crystal arms.
+	# Earth: a little windmill's wooden sails, turned on their side.
+	var reach := (width / 2.0 if width > 0.0 else 6.0) - 0.4
+	o.set_meta("arm", reach)
+	o.set_meta("speed", (SWEEP_SPEED + 0.2 * (k % 3)) * (1.0 if k % 2 == 0 else -1.0))
+	var post := CylinderMesh.new()
+	post.top_radius = 0.3
+	post.bottom_radius = 0.45
+	post.height = 2.4
+	_mesh(o, post, Vector3(0, 1.2, 0), _mat(Color(0.55, 0.35, 0.2) if earth else Color(0.62, 0.5, 0.95)))
+	var arm := Node3D.new()
+	arm.name = "Arm"
+	arm.position.y = 0.85
+	arm.rotation.y = k * 1.3
+	o.add_child(arm)
+	var bar := BoxMesh.new()
+	bar.size = Vector3(reach * 2.0, 0.3, 0.45)
+	_mesh(arm, bar, Vector3.ZERO, _mat(Color(0.75, 0.55, 0.32), 0.0, 0.9) if earth else _mat(Color(0.3, 0.95, 0.95), 1.4, 0.2))
+	for s in [-1.0, 1.0]:
+		if earth:
+			var sail := BoxMesh.new()
+			sail.size = Vector3(1.6, 0.9, 0.12)
+			_mesh(arm, sail, Vector3(s * (reach - 0.8), 0.35, 0), _mat(Color(0.95, 0.92, 0.85) if s > 0 else Color(0.8, 0.2, 0.18)))
+		else:
+			var tip := SphereMesh.new()
+			tip.radius = 0.4
+			tip.height = 0.8
+			_mesh(arm, tip, Vector3(s * reach, 0, 0), _mat(Color(1.0, 0.82, 0.35), 2.0))
+	var hub_cap := SphereMesh.new()
+	hub_cap.radius = 0.5
+	hub_cap.height = 1.0
+	_mesh(o, hub_cap, Vector3(0, 2.5, 0), _mat(Color(0.8, 0.2, 0.18) if earth else Color(1.0, 0.82, 0.35), 0.0 if earth else 1.0))
+
+
+func _zapper(o: Node3D, k: int) -> void:
+	# Two posts with a beam across half the road that switches on and off. Void: crackling yellow static.
+	# Earth: a garden sprinkler's sheet of water.
+	o.set_meta("half", 3.6)
+	o.set_meta("phase", k * 0.9)
+	for i in 2:
+		var x := -3.6 if i == 0 else 3.6
+		var post := CylinderMesh.new()
+		post.top_radius = 0.18
+		post.bottom_radius = 0.25
+		post.height = 2.2
+		_mesh(o, post, Vector3(x, 1.1, 0), _mat(Color(0.35, 0.4, 0.45) if earth else Color(0.22, 0.16, 0.34)))
+		var lamp := SphereMesh.new()
+		lamp.radius = 0.3
+		lamp.height = 0.6
+		var l := _mesh(o, lamp, Vector3(x, 2.3, 0), _mat(Color(0.4, 0.75, 1.0) if earth else Color(1.0, 0.95, 0.4), 1.0))
+		l.name = "Lamp%d" % i
+	var beam := Node3D.new()
+	beam.name = "Beam"
+	beam.position.y = 1.0
+	o.add_child(beam)
+	if earth:
+		var sheet := BoxMesh.new()
+		sheet.size = Vector3(7.0, 1.8, 0.12)
+		var m := _mat(Color(0.55, 0.85, 1.0, 0.55), 0.6, 0.1)
+		_mesh(beam, sheet, Vector3.ZERO, m)
+	else:
+		for y in [-0.35, 0.0, 0.35]:
+			var bolt := BoxMesh.new()
+			bolt.size = Vector3(7.0, 0.08, 0.08)
+			var m := _mat(Color(1.0, 0.95, 0.5), 3.0)
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			var b := _mesh(beam, bolt, Vector3(0, y, 0), m)
+			b.rotation.z = y * 0.15
+
+
+func _ramp(o: Node3D) -> void:
+	# A jump ramp right across the road: ride up it and fly (Races springs you off its foot). Void: lilac with gold
+	# chevrons. Earth: wooden planks between two hay bales.
+	var w := (width if width > 0.0 else 8.0) - 0.6
+	var plank := BoxMesh.new()
+	plank.size = Vector3(w, 0.18, 4.3)
+	var p := _mesh(o, plank, Vector3(0, 0.55, 2.0), _mat(Color(0.62, 0.42, 0.25), 0.0, 0.9) if earth else _mat(Color(0.62, 0.5, 0.95)))
+	p.rotation.x = -atan2(1.1, 4.2)
+	for x in [-w / 2.0, w / 2.0]:
+		var side := PrismMesh.new()
+		side.size = Vector3(4.2, 1.1, 0.2)
+		side.left_to_right = 1.0
+		var sm := _mesh(o, side, Vector3(x, 0.55, 2.1), _mat(Color(0.45, 0.3, 0.18)) if earth else _mat(Color(0.22, 0.16, 0.34)))
+		sm.rotation.y = PI / 2.0
+	var chev_m := _mat(Color(1.0, 0.85, 0.35), 2.0)
+	chev_m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for k in 3:
+		for s in [-1.0, 1.0]:
+			var bar := BoxMesh.new()
+			bar.size = Vector3(1.4, 0.04, 0.3)
+			var b := _mesh(o, bar, Vector3(s * 0.55, 0.32 + k * 0.33, 0.6 + k * 1.25), chev_m)
+			b.rotation = Vector3(-atan2(1.1, 4.2), s * 0.7, 0)
+	o.set_meta("half", w / 2.0)

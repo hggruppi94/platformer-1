@@ -8,6 +8,11 @@ extends Node3D
 # anyone can win it with a clean run. Boost pads work for them too. They don't bump into anything: they ride
 # through each other and the player, so nobody gets knocked off.
 #
+# Since 11 Nov 2026 they race for real: they pick up power-ups from the Star Boxes and throw them (at each other and at
+# you: scripts/race_attacks.gd), put up Bubble Shields, steer round bumpers, goo and zappers they see coming (lane_goal),
+# fly off jump ramps, and get knocked about too: a Bubble Seeker, a Zap Ring, a sweeper or a zapper spins them round
+# and slows them right down for a moment (hit()), goo slows them (slow_down()), a bumper bounces them aside.
+#
 # In the sky race they're little aliens in their mini saucers (scripts/mini_saucer.gd, made bigger so they can be
 # seen beside the mothership), flown along the line in the air by this script instead of their own wandering.
 
@@ -30,6 +35,17 @@ var _t := 0.0
 var _running := 0.0
 var _model: Node3D
 var _anim: AnimationPlayer
+var item := ""                       # a power-up they're holding (scripts/race_attacks.gd uses it)
+var item_wait := 0.0                 # ...and how long before they think about using it
+var item_held := 0.0                 # ...and how long they've had it
+var lane_goal := 0.0                 # the lane they're steering for
+var _stun := 0.0                     # spinning round after a knock
+var _slow := 0.0                     # slow going in goo
+var _shield := 0.0
+var _bubble: Node3D
+var _hop := 0.0                      # off a jump ramp: how far through the hop (0: on the ground)
+var _say: Label3D
+var _say_time := 0.0
 var saucer := {}                     # a sky racer: {"name", "colour"} (a little alien in a mini saucer)
 var _name := ""                      # an Earth kid's name (from the townsfolk they're copied from)
 
@@ -39,6 +55,7 @@ func setup(who: String, t: RaceTrack, start_d: float, start_lane: float, how_goo
 	track = t
 	d = start_d
 	lane = start_lane
+	lane_goal = start_lane
 	skill = how_good
 	_t = randf() * TAU
 
@@ -61,7 +78,7 @@ func _ready() -> void:
 	ride.name = "Ride"
 	visual.add_child(ride)
 	if kid:
-		_name = str(_townsfolk_of(id).name)
+		_name = str(_townsfolk_of(id).name) if _townsfolk_of(id) else str(Races.kid_look(id).name)
 		RideKit.build(str(_ride.kit), ride, kid.model)
 	else:
 		if id != "hero":
@@ -82,6 +99,17 @@ func _ready() -> void:
 	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	tag.position.y = 2.3
 	add_child(tag)
+	_say = Label3D.new()
+	_say.name = "Says"
+	_say.font_size = 34
+	_say.pixel_size = 0.01
+	_say.outline_size = 12
+	_say.modulate = Color(1.0, 0.85, 0.35)
+	_say.outline_modulate = Color(0.15, 0.08, 0.2)
+	_say.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_say.position.y = 2.75
+	_say.visible = false
+	add_child(_say)
 	_place()
 
 
@@ -127,11 +155,20 @@ func _townsfolk_of(who: String) -> Node3D:
 
 func _townsfolk_copy() -> Townsfolk:
 	# On Earth the friends racing are people: a copy of their Earth self from town (scripts/townsfolk.gd), with the
-	# things they carry round town left at home (their board is under their feet now, and a book won't help)
-	var them := _townsfolk_of(id) as Townsfolk
-	if them == null:
+	# things they carry round town left at home (their board is under their feet now, and a book won't help). On a
+	# circuit there's no town: Races copied their looks on the way out (Races.kid_look()).
+	if not Races.TOWNSFOLK_RIDES.has(id):
 		return null
+	var them := _townsfolk_of(id) as Townsfolk
 	var kid := Townsfolk.new()
+	if them == null:
+		var k := Races.kid_look(id)
+		kid.look = k.look
+		kid.outfit = k.outfit
+		if str(k.model_path) != "":
+			kid.model_path = k.model_path
+		kid.extras = (k.extras as Array).filter(func(e: Dictionary) -> bool: return not str(e.get("kind", "")) in ["skateboard", "book", "clipboard", "guitar"])
+		return kid
 	kid.look = them.look
 	kid.outfit = them.outfit
 	kid.model_path = them.model_path
@@ -145,6 +182,93 @@ func go() -> void:
 
 func boost(seconds: float) -> void:
 	_boost = maxf(_boost, seconds)
+	_slow = 0.0
+
+
+func stunned() -> bool:
+	return _stun > 0.0
+
+
+func shielded() -> bool:
+	return _shield > 0.0
+
+
+func hit(seconds: float) -> bool:
+	# Knocked by a Bubble Seeker, a Zap Ring, a sweeper or a zapper: a spin and a moment of slow going. A shield takes
+	# it instead (and pops). Says whether it got them.
+	if _shield > 0.0:
+		_shield = 0.0
+		_pop_bubble()
+		say("Phew!")
+		return false
+	if _stun > 0.0:
+		return false
+	_stun = seconds
+	_boost = 0.0
+	say(["Whoa!", "Hey!", "Oof!", "Nooo!", "Bonk!"][randi() % 5])
+	return true
+
+
+func slow_down(seconds: float) -> void:
+	if _shield > 0.0 or _boost > 0.0:
+		return
+	if _slow <= 0.0:
+		say("Gloopy!")
+	_slow = maxf(_slow, seconds)
+
+
+func bumped(out: Vector3) -> bool:
+	# A bumper they didn't steer round: thrown aside into the next lane, a little slower
+	if _stun > 0.0 or _hop > 0.0:
+		return false
+	var side := track.side_at(d)
+	lane += signf(out.dot(side)) * 1.5 if absf(out.dot(side)) > 0.1 else 1.5
+	lane_goal = lane
+	speed *= 0.7
+	say("Boing!")
+	return true
+
+
+func hop() -> void:
+	if _hop <= 0.0:
+		_hop = 0.001
+
+
+func shield_up(seconds: float) -> void:
+	_shield = seconds
+	if _bubble == null and saucer.is_empty():
+		_bubble = MeshInstance3D.new()
+		_bubble.name = "Bubble Shield"
+		var s := SphereMesh.new()
+		s.radius = 1.2
+		s.height = 2.4
+		(_bubble as MeshInstance3D).mesh = s
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(0.6, 0.9, 1.0, 0.25)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.emission_enabled = true
+		m.emission = Color(0.6, 0.9, 1.0)
+		m.emission_energy_multiplier = 0.6
+		m.rim_enabled = true
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		(_bubble as MeshInstance3D).material_override = m
+		_bubble.position.y = 1.0
+		add_child(_bubble)
+	say("Shield up!")
+
+
+func _pop_bubble() -> void:
+	if is_instance_valid(_bubble):
+		_bubble.queue_free()
+	_bubble = null
+
+
+func say(text: String) -> void:
+	if _say == null:
+		return
+	_say.text = text
+	_say.visible = true
+	_say_time = 1.2
 
 
 func race(delta: float, player_progress: float) -> void:
@@ -165,10 +289,35 @@ func race(delta: float, player_progress: float) -> void:
 	if _boost > 0.0:
 		base += 6.0 if saucer.is_empty() else 12.0
 	base *= clampf(_running / START_TIME, 0.15, 1.0)
-	speed = move_toward(speed, base, (14.0 if _boost > 0.0 else (5.0 if saucer.is_empty() else 10.0)) * delta)
+	# Knocked about: spinning round slows right down, goo halves it
+	_stun -= delta
+	_slow -= delta
+	_shield -= delta
+	if _shield <= 0.0 and _bubble:
+		_pop_bubble()
+	if _say_time > 0.0 and _say:
+		_say_time -= delta
+		_say.visible = _say_time > 0.0
+	if _stun > 0.0:
+		base *= 0.15
+	elif _slow > 0.0:
+		base *= 0.5
+	speed = move_toward(speed, base, (14.0 if _boost > 0.0 or _stun > 0.0 else (5.0 if saucer.is_empty() else 10.0)) * delta)
 	d += speed * delta
 	var wide := 2.4 if saucer.is_empty() else 14.0
-	lane = clampf(lane + sin(_t * 0.37) * 0.25 * delta * (1.0 if saucer.is_empty() else 4.0), -wide, wide)    # drifting about their lane a little
+	if saucer.is_empty() and track.width > 0.0:
+		wide = track.width / 2.0 - 1.2
+	if saucer.is_empty():
+		# Steering for their lane (scripts/race_attacks.gd picks it clear of trouble), with a little wander
+		lane_goal = clampf(lane_goal + sin(_t * 0.37) * 0.25 * delta, -wide, wide)
+		lane = move_toward(lane, lane_goal, 3.5 * delta)
+	else:
+		lane = clampf(lane + sin(_t * 0.37) * 0.25 * delta * 4.0, -wide, wide)    # drifting about their lane a little
+	lane = clampf(lane, -wide, wide)
+	if _hop > 0.0:
+		_hop += delta / 0.8
+		if _hop >= 1.0:
+			_hop = 0.0
 	_place()
 
 
@@ -188,4 +337,5 @@ func _place() -> void:
 	if visual:
 		visual.rotation.z = clampf(-turn * 1.2, -0.35, 0.35) * clampf(speed / 8.0, 0.0, 1.0)
 		if saucer.is_empty():
-			visual.position.y = absf(sin(_t * 7.0)) * 0.03 * clampf(speed / 8.0, 0.0, 1.0)
+			visual.position.y = absf(sin(_t * 7.0)) * 0.03 * clampf(speed / 8.0, 0.0, 1.0) + sin(_hop * PI) * 2.2
+			visual.rotation.y = TAU * clampf(_stun / 1.6, 0.0, 1.0) * 2.0 if _stun > 0.0 else 0.0

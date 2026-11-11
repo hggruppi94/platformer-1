@@ -194,13 +194,6 @@ func _run() -> void:
 	player.global_position = Vector3(50, 2, 58)
 	await _settle()
 	check(audio.current_track() == "skate_park", "the Skate Park: skate_park (%s)" % audio.current_track())
-	var races := root.get_node("Races")
-	root.get_node("Settings").race_intros = false
-	var started: bool = races.start("lake_loop")
-	await _settle()
-	check(started and audio.current_track() == "race", "a race: race (%s)" % audio.current_track())
-	races._end(false)
-	await _frames(3)
 	var king := current_scene.find_child("The Gloop King", true, false) as Node3D
 	check(king != null, "the Gloop King is in town")
 	if king:
@@ -213,6 +206,20 @@ func _run() -> void:
 	player.global_position = Vector3(-30, 3, 70)
 	await _settle()
 	check(audio.current_track() == "town_night", "The Void at night: town_night (%s)" % audio.current_track())
+
+	# --- A race, on its own circuit ---
+	var races := root.get_node("Races")
+	root.get_node("Settings").race_intros = false
+	root.get_node("Game").riding = true
+	await _go(races.TRACKS.lake_loop.scene)
+	for i in 300:
+		if races.racing():
+			break
+		await physics_frame
+	await _settle()
+	check(races.racing() and audio.current_track() == "race", "a race: race (%s)" % audio.current_track())
+	races._end(false)
+	await _frames(3)
 
 	# --- The Scary World ---
 	await _go(SCARY)

@@ -1,0 +1,659 @@
+extends Node3D
+
+# The root of a race circuit: a level of its own for one race (Hayden's day 1 playtest, 11 Nov 2026: "Instead of having
+# the races baked into the map, maybe have a separate instance with option to back out, restart the race"). The scenes
+# (scenes/races/<id>.tscn, made by tools/build_race_circuits.gd) hold only this script, the player and an Entrance
+# marker: everything else is built here when the circuit loads, from the track's entry in Races.TRACKS, so a track can
+# be changed by changing its points and nothing has to be rebuilt.
+#
+# What's built: the sky, the light and the ground; the road, a wide ribbon laid along the same smooth line the racers
+# follow (RaceTrack.spline()), with low walls both sides so nobody rolls off, striped kerbs and dashes down it, built
+# up on banks where it climbs; and the scenery round it, by the circuit's "theme" (the Void's alien look, or autumn on
+# Earth) and "feature" (a lake in the middle, a flower meadow, a hill with an observatory on top, a farm).
+# Races (scripts/races.gd) puts the race itself on it as everywhere else (scripts/race_track.gd: the arch, the
+# starter, rings, boost pads, Star Boxes, goo and the obstacles), and starts the race once it's ready.
+
+const WALL_H := 1.1                   # how high the walls stand above the road
+const WALL_T := 0.5                   # ...and how thick
+const KERB := 0.9                     # the striped strip along each edge
+const GROUND_SIZE := 900.0
+
+@export var circuit_id := ""
+
+var track: Dictionary
+var line: Array[Vector3] = []          # the middle of the road, about a metre between points, all the way round
+var _samples: PackedVector2Array      # every third point of the line, flat, for "how far from the road?"
+var _rng := RandomNumberGenerator.new()
+var _mats := {}
+
+
+func _enter_tree() -> void:
+	# Before the player's _ready: the way in (and the player) stand at the start, facing down the straight
+	track = Races.TRACKS.get(circuit_id, {})
+	if track.is_empty():
+		push_error("race_circuit.gd: no track called %s" % circuit_id)
+		return
+	line = RaceTrack.spline(track.points)
+	for i in range(0, line.size(), 3):
+		_samples.append(Vector2(line[i].x, line[i].z))
+	var a := line[line.size() - 8]
+	var b := line[0]
+	for n in [get_node_or_null("Entrance"), get_node_or_null("Player")]:
+		if n is Node3D:
+			(n as Node3D).position = a + Vector3.UP * 1.0
+			(n as Node3D).rotation.y = atan2(b.x - a.x, b.z - a.z)
+
+
+func _ready() -> void:
+	if track.is_empty():
+		return
+	_rng.seed = hash(circuit_id)
+	var c: Dictionary = track.get("circuit", {})
+	_environment(str(c.get("theme", "void")))
+	_ground(str(c.get("theme", "void")))
+	_road(str(c.get("theme", "void")))
+	match str(c.get("feature", "")):
+		"lake":
+			_lake()
+		"hill":
+			_hill()
+		"meadow":
+			_meadow()
+		"farm":
+			_farm()
+	if str(c.get("theme", "void")) == "earth":
+		_earth_scenery()
+	else:
+		_void_scenery()
+	_crowd(str(c.get("theme", "void")))
+
+
+func half_width() -> float:
+	return float(track.get("width", 14.0)) / 2.0
+
+
+func off_road(xz: Vector2) -> float:
+	# How far from the middle of the road a spot is (roughly, to the nearest few metres of line)
+	var best := INF
+	for s in _samples:
+		best = minf(best, xz.distance_squared_to(s))
+	return sqrt(best)
+
+
+func _mat(name: String, c: Color, rough := 0.85, glow := 0.0) -> StandardMaterial3D:
+	if _mats.has(name):
+		return _mats[name]
+	var m := StandardMaterial3D.new()
+	m.resource_name = name
+	m.albedo_color = c
+	m.roughness = rough
+	if glow > 0.0:
+		m.emission_enabled = true
+		m.emission = c
+		m.emission_energy_multiplier = glow
+	if c.a < 1.0:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_mats[name] = m
+	return m
+
+
+func _mesh(parent: Node3D, mesh: Mesh, at: Vector3, m: Material, shadow := true) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = m
+	mi.position = at
+	if not shadow:
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mi)
+	return mi
+
+
+# -----------------------------------------------------------------------------
+# Sky, light and ground
+# -----------------------------------------------------------------------------
+func _environment(theme: String) -> void:
+	var env := Environment.new()
+	var sky := Sky.new()
+	var sm := ProceduralSkyMaterial.new()
+	if theme == "earth":
+		sm.sky_top_color = Color(0.32, 0.55, 0.88)
+		sm.sky_horizon_color = Color(0.86, 0.85, 0.78)
+		sm.ground_horizon_color = Color(0.7, 0.62, 0.45)
+		sm.ground_bottom_color = Color(0.35, 0.3, 0.2)
+	else:
+		sm.sky_top_color = Color(0.28, 0.62, 0.5)              # the Void's green sky with a creamy horizon
+		sm.sky_horizon_color = Color(0.93, 0.9, 0.72)
+		sm.ground_horizon_color = Color(0.6, 0.75, 0.6)
+		sm.ground_bottom_color = Color(0.2, 0.3, 0.3)
+	sm.sun_angle_max = 20.0
+	sky.sky_material = sm
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	env.ambient_light_energy = 0.9
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.glow_enabled = true
+	env.glow_intensity = 0.5
+	env.fog_enabled = true
+	env.fog_light_color = sm.sky_horizon_color
+	env.fog_density = 0.0025
+	env.fog_sky_affect = 0.3
+	var we := WorldEnvironment.new()
+	we.name = "WorldEnvironment"
+	we.environment = env
+	add_child(we)
+	var sun := DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.rotation = Vector3(deg_to_rad(-52), deg_to_rad(35), 0)
+	sun.light_energy = 1.15
+	sun.light_color = Color(1.0, 0.96, 0.88) if theme == "earth" else Color(1.0, 0.97, 0.85)
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 140.0
+	add_child(sun)
+
+
+func _ground(theme: String) -> void:
+	var g := Node3D.new()
+	g.name = "Ground"
+	add_child(g)
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(GROUND_SIZE, GROUND_SIZE)
+	plane.subdivide_width = 8
+	plane.subdivide_depth = 8
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Ground"
+	var noise := NoiseTexture2D.new()
+	noise.width = 256
+	noise.height = 256
+	noise.seamless = true
+	var n := FastNoiseLite.new()
+	n.frequency = 0.03
+	noise.noise = n
+	var grad := Gradient.new()
+	if theme == "earth":
+		grad.set_color(0, Color(0.42, 0.52, 0.22))
+		grad.set_color(1, Color(0.62, 0.6, 0.28))
+	else:
+		grad.set_color(0, Color(0.42, 0.78, 0.38))               # the Void's acid-lime grass
+		grad.set_color(1, Color(0.3, 0.66, 0.5))
+	noise.color_ramp = grad
+	m.albedo_texture = noise
+	m.uv1_scale = Vector3(40, 40, 1)
+	m.roughness = 0.95
+	_mesh(g, plane, Vector3.ZERO, m, false)
+	var body := StaticBody3D.new()
+	body.name = "Ground Body"
+	var cs := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(GROUND_SIZE, 2.0, GROUND_SIZE)
+	cs.shape = box
+	cs.position.y = -1.0
+	body.add_child(cs)
+	g.add_child(body)
+	# Hills all round the edge, far off, so the world doesn't just stop
+	var hill_m := _mat("Far Hills", Color(0.5, 0.55, 0.3) if theme == "earth" else Color(0.38, 0.55, 0.62))
+	for k in 26:
+		var a := TAU * k / 26.0 + _rng.randf_range(-0.08, 0.08)
+		var r := _rng.randf_range(250.0, 320.0)
+		var cone := CylinderMesh.new()
+		cone.top_radius = _rng.randf_range(0.0, 10.0) if theme == "earth" else 0.0
+		cone.bottom_radius = _rng.randf_range(45.0, 80.0)
+		cone.height = _rng.randf_range(35.0, 90.0) if theme != "earth" else _rng.randf_range(20.0, 45.0)
+		cone.radial_segments = 10
+		_mesh(g, cone, Vector3(cos(a) * r, cone.height / 2.0 - 2.0, sin(a) * r), hill_m, false)
+
+
+# -----------------------------------------------------------------------------
+# The road
+# -----------------------------------------------------------------------------
+func _road(theme: String) -> void:
+	var hw := half_width()
+	var n := line.size()
+	var road_c := Color(0.36, 0.33, 0.42) if theme == "earth" else Color(0.3, 0.26, 0.42)
+	var dash_c := Color(0.95, 0.92, 0.8)
+	var kerb_a := Color(0.85, 0.2, 0.18) if theme == "earth" else Color(1.0, 0.45, 0.75)
+	var kerb_b := Color(0.97, 0.95, 0.9)
+	var wall_c := Color(0.62, 0.5, 0.95) if theme != "earth" else Color(0.78, 0.68, 0.55)
+	var top_c := Color(1.0, 0.82, 0.35) if theme != "earth" else Color(0.6, 0.42, 0.25)
+	var bank_c := Color(0.36, 0.42, 0.3) if theme == "earth" else Color(0.32, 0.36, 0.5)
+	# The road's cross-section, left to right: [metres to the right, metres up (or "down" to the ground), colour]
+	var sides: Array[Vector3] = []
+	for i in n:
+		var f := line[(i + 1) % n] - line[(i - 1 + n) % n]
+		f.y = 0.0
+		sides.append(f.normalized().cross(Vector3.UP).normalized())
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	for i in n:
+		var j := (i + 1) % n
+		var kerb := kerb_a if (i / 2) % 2 == 0 else kerb_b
+		var profile := [
+			[-hw - WALL_T, -1, bank_c], [-hw - WALL_T, WALL_H, top_c], [-hw, WALL_H, wall_c], [-hw, 0.0, kerb],
+			[-hw + KERB, 0.0, road_c], [hw - KERB, 0.0, kerb], [hw, 0.0, wall_c], [hw, WALL_H, top_c],
+			[hw + WALL_T, WALL_H, bank_c], [hw + WALL_T, -1, null]]
+		for k in profile.size() - 1:
+			var a: Array = profile[k]
+			var b: Array = profile[k + 1]
+			var ai := _at(i, sides[i], a)
+			var aj := _at(j, sides[j], a)
+			var bi := _at(i, sides[i], b)
+			var bj := _at(j, sides[j], b)
+			var c: Color = a[2]
+			# Winding: clockwise seen from the face's outside (the road's top from above)
+			for v in [ai, aj, bj, ai, bj, bi]:
+				st.set_color(c)
+				st.add_vertex(v)
+			faces.append_array(PackedVector3Array([ai, aj, bj, ai, bj, bi]))
+	st.generate_normals()
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Road"
+	m.vertex_color_use_as_albedo = true
+	m.roughness = 0.8
+	var road := MeshInstance3D.new()
+	road.name = "Road"
+	road.mesh = st.commit()
+	road.material_override = m
+	add_child(road)
+	var body := StaticBody3D.new()
+	body.name = "Road Body"
+	var cs := CollisionShape3D.new()
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	shape.backface_collision = true
+	cs.shape = shape
+	body.add_child(cs)
+	road.add_child(body)
+	# Dashes down the road, a lane either side of the middle
+	var dashes := SurfaceTool.new()
+	dashes.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(0, n - 3, 6):
+		for lane: float in [-hw / 3.0, hw / 3.0]:
+			var a := line[i] + sides[i] * (lane - 0.12) + Vector3.UP * 0.03
+			var b := line[i] + sides[i] * (lane + 0.12) + Vector3.UP * 0.03
+			var c := line[i + 3] + sides[i + 3] * (lane - 0.12) + Vector3.UP * 0.03
+			var d := line[i + 3] + sides[i + 3] * (lane + 0.12) + Vector3.UP * 0.03
+			for v in [a, c, d, a, d, b]:
+				dashes.add_vertex(v)
+	dashes.generate_normals()
+	_mesh(self, dashes.commit(), Vector3.ZERO, _mat("Road Dash", dash_c, 0.6), false).name = "Dashes"
+
+
+func _at(i: int, side: Vector3, p: Array) -> Vector3:
+	# A point of the cross-section at line point i: "-1" for the height means down into the ground
+	var c := line[i]
+	var y := c.y + float(p[1]) if float(p[1]) >= 0.0 else -0.4
+	return Vector3(c.x, y, c.z) + side * float(p[0])
+
+
+# -----------------------------------------------------------------------------
+# Features
+# -----------------------------------------------------------------------------
+func _inside() -> Vector2:
+	# The middle of the loop (the average of its points)
+	var sum := Vector2.ZERO
+	for p in line:
+		sum += Vector2(p.x, p.z)
+	return sum / line.size()
+
+
+func _lake() -> void:
+	# A lake in the middle of the Lake Loop, as far out as it can go and still leave a bank before the road
+	var mid := _inside()
+	var r := INF
+	for s in _samples:
+		r = minf(r, s.distance_to(mid))
+	r -= half_width() + 7.0
+	var water := CylinderMesh.new()
+	water.top_radius = r
+	water.bottom_radius = r
+	water.height = 0.1
+	water.radial_segments = 48
+	var m := _mat("Lake", Color(0.35, 0.8, 0.85, 0.85), 0.05, 0.15)
+	m.metallic = 0.3
+	var lake := _mesh(self, water, Vector3(mid.x, 0.06, mid.y), m, false)
+	lake.name = "Lake"
+	lake.scale = Vector3(1.0, 1.0, 1.0)
+	var shore := CylinderMesh.new()
+	shore.top_radius = r + 2.0
+	shore.bottom_radius = r + 2.5
+	shore.height = 0.08
+	shore.radial_segments = 48
+	_mesh(self, shore, Vector3(mid.x, 0.03, mid.y), _mat("Shore", Color(0.95, 0.88, 0.7)), false)
+	# Lily pads and a little island with an orb tree
+	for k in 14:
+		var a := _rng.randf() * TAU
+		var d := _rng.randf_range(4.0, r - 2.0)
+		var pad := CylinderMesh.new()
+		pad.top_radius = _rng.randf_range(0.6, 1.2)
+		pad.bottom_radius = pad.top_radius
+		pad.height = 0.04
+		_mesh(self, pad, Vector3(mid.x + cos(a) * d, 0.13, mid.y + sin(a) * d), _mat("Lily Pad", Color(0.5, 0.9, 0.35)), false)
+	_orb_tree(Vector3(mid.x, 0.0, mid.y), 1.6)
+	var isle := CylinderMesh.new()
+	isle.top_radius = 4.0
+	isle.bottom_radius = 5.0
+	isle.height = 0.6
+	_mesh(self, isle, Vector3(mid.x, 0.1, mid.y), _mat("Island", Color(0.45, 0.8, 0.4)))
+
+
+func _hill() -> void:
+	# A big round hill in the middle with the Observatory's dome on top; the road climbs round its flanks
+	var mid := _inside()
+	var top := 0.0
+	for p in line:
+		top = maxf(top, p.y)
+	var h := top + 6.0
+	var r := INF
+	for s in _samples:
+		r = minf(r, s.distance_to(mid))
+	r -= half_width() + 3.0
+	var hill := SphereMesh.new()
+	hill.radius = r
+	hill.height = h * 2.0
+	hill.radial_segments = 48
+	hill.rings = 24
+	_mesh(self, hill, Vector3(mid.x, 0.0, mid.y), _mat("Hill", Color(0.4, 0.74, 0.4)))
+	var base := CylinderMesh.new()
+	base.top_radius = 6.0
+	base.bottom_radius = 6.5
+	base.height = 5.0
+	_mesh(self, base, Vector3(mid.x, h + 2.0, mid.y), _mat("Observatory", Color(0.92, 0.88, 0.98)))
+	var dome := SphereMesh.new()
+	dome.radius = 6.0
+	dome.height = 6.0
+	_mesh(self, dome, Vector3(mid.x, h + 4.5, mid.y), _mat("Dome", Color(0.62, 0.5, 0.95), 0.3))
+	var scope := CylinderMesh.new()
+	scope.top_radius = 0.9
+	scope.bottom_radius = 1.2
+	scope.height = 7.0
+	var sc := _mesh(self, scope, Vector3(mid.x + 2.0, h + 8.0, mid.y), _mat("Telescope", Color(1.0, 0.82, 0.35), 0.4, 0.3))
+	sc.rotation.z = -0.7
+	for k in 3:
+		var star := SphereMesh.new()
+		star.radius = 1.4
+		star.height = 2.8
+		_mesh(self, star, Vector3(mid.x + cos(k * 2.1) * 30.0, h + 30.0 + k * 6.0, mid.y + sin(k * 2.1) * 30.0),
+			_mat("Day Star", Color(1.0, 0.95, 0.6), 0.5, 3.0), false)
+
+
+func _meadow() -> void:
+	# The south meadow: flowers everywhere, in every colour the Void has
+	var cols := [Color(1.0, 0.45, 0.75), Color(1.0, 0.85, 0.3), Color(0.6, 0.5, 1.0), Color(0.3, 0.95, 0.95), Color(1.0, 0.98, 0.9)]
+	for ci in cols.size():
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		var s := SphereMesh.new()
+		s.radius = 0.28
+		s.height = 0.4
+		s.radial_segments = 6
+		s.rings = 3
+		mm.mesh = s
+		var spots: Array[Transform3D] = []
+		for k in 900:
+			var p := Vector2(_rng.randf_range(-170, 170), _rng.randf_range(-170, 170))
+			if off_road(p) < half_width() + 2.0:
+				continue
+			spots.append(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * _rng.randf_range(0.7, 1.4)), Vector3(p.x, 0.35, p.y)))
+		mm.instance_count = spots.size()
+		for k in spots.size():
+			mm.set_instance_transform(k, spots[k])
+		var mi := MultiMeshInstance3D.new()
+		mi.name = "Flowers %d" % ci
+		mi.multimesh = mm
+		mi.material_override = _mat("Flower %d" % ci, cols[ci], 0.6, 0.3)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mi)
+	for k in 10:                                         # giant mushrooms to wiggle round
+		var p := _free_spot(half_width() + 6.0, 140.0)
+		_mushroom(Vector3(p.x, 0, p.y), _rng.randf_range(1.5, 3.0))
+
+
+func _farm() -> void:
+	# Stars Hollow's farms in autumn: a red barn and a silo, a windmill, pumpkins and hay
+	var mid := _inside()
+	var barn := Node3D.new()
+	barn.name = "Barn"
+	barn.position = Vector3(mid.x + 10, 0, mid.y - 6)
+	add_child(barn)
+	var walls := BoxMesh.new()
+	walls.size = Vector3(14, 8, 18)
+	_mesh(barn, walls, Vector3(0, 4, 0), _mat("Barn", Color(0.72, 0.16, 0.12)))
+	var roof := PrismMesh.new()
+	roof.size = Vector3(15, 5, 19)
+	_mesh(barn, roof, Vector3(0, 10.5, 0), _mat("Barn Roof", Color(0.3, 0.28, 0.3)))
+	var door := BoxMesh.new()
+	door.size = Vector3(5, 5.5, 0.2)
+	_mesh(barn, door, Vector3(0, 2.75, 9.05), _mat("Barn Door", Color(0.95, 0.92, 0.85)))
+	var silo := CylinderMesh.new()
+	silo.top_radius = 3.0
+	silo.bottom_radius = 3.0
+	silo.height = 16
+	_mesh(barn, silo, Vector3(10, 8, -4), _mat("Silo", Color(0.75, 0.75, 0.78)))
+	var cap := SphereMesh.new()
+	cap.radius = 3.0
+	cap.height = 3.0
+	_mesh(barn, cap, Vector3(10, 16, -4), _mat("Silo Cap", Color(0.45, 0.45, 0.5)))
+	# Rows of pumpkins
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	var s := SphereMesh.new()
+	s.radius = 0.55
+	s.height = 0.8
+	mm.mesh = s
+	var spots: Array[Transform3D] = []
+	for k in 500:
+		var p := Vector2(_rng.randf_range(-170, 170), _rng.randf_range(-170, 170))
+		if off_road(p) < half_width() + 3.0 or p.distance_to(Vector2(barn.position.x, barn.position.z)) < 16.0:
+			continue
+		spots.append(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.6, 1.3)), Vector3(p.x, 0.3, p.y)))
+	mm.instance_count = spots.size()
+	for k in spots.size():
+		mm.set_instance_transform(k, spots[k])
+	var mi := MultiMeshInstance3D.new()
+	mi.name = "Pumpkins"
+	mi.multimesh = mm
+	mi.material_override = _mat("Pumpkin", Color(0.95, 0.5, 0.12), 0.7)
+	add_child(mi)
+
+
+# -----------------------------------------------------------------------------
+# Scenery
+# -----------------------------------------------------------------------------
+func _free_spot(near: float, far: float) -> Vector2:
+	# Somewhere off the road (at least "near" from its middle) and not too far out
+	for k in 60:
+		var p := Vector2(_rng.randf_range(-far - 60.0, far + 60.0), _rng.randf_range(-far - 60.0, far + 60.0))
+		var d := off_road(p)
+		if d > near and d < far:
+			return p
+	return Vector2(far, far)
+
+
+func _void_scenery() -> void:
+	for k in 46:
+		var p := _free_spot(half_width() + 6.0, 90.0)
+		if str(track.circuit.get("feature", "")) in ["lake", "hill"] and p.distance_to(_inside()) < 50.0 and _inside_loop(p):
+			continue                                     # (the lake or the hill's there)
+		match k % 3:
+			0, 1:
+				_orb_tree(Vector3(p.x, 0, p.y), _rng.randf_range(0.8, 1.5))
+			2:
+				_crystals(Vector3(p.x, 0, p.y))
+
+
+func _inside_loop(p: Vector2) -> bool:
+	return Geometry2D.is_point_in_polygon(p, _samples)
+
+
+func _earth_scenery() -> void:
+	var leaf := [Color(0.92, 0.45, 0.12), Color(0.85, 0.25, 0.12), Color(0.95, 0.75, 0.2), Color(0.55, 0.6, 0.2)]
+	for k in 54:
+		var p := _free_spot(half_width() + 5.0, 95.0)
+		var tree := Node3D.new()
+		tree.name = "Tree"
+		tree.position = Vector3(p.x, 0, p.y)
+		add_child(tree)
+		var size := _rng.randf_range(0.8, 1.4)
+		var trunk := CylinderMesh.new()
+		trunk.top_radius = 0.3 * size
+		trunk.bottom_radius = 0.45 * size
+		trunk.height = 4.0 * size
+		_mesh(tree, trunk, Vector3(0, 2.0 * size, 0), _mat("Bark", Color(0.4, 0.27, 0.18)))
+		var c: Color = leaf[k % leaf.size()]
+		for b in 3:
+			var ball := SphereMesh.new()
+			ball.radius = (1.8 - b * 0.3) * size
+			ball.height = ball.radius * 1.8
+			ball.radial_segments = 10
+			ball.rings = 6
+			_mesh(tree, ball, Vector3(_rng.randf_range(-0.7, 0.7), (4.2 + b * 1.0) * size, _rng.randf_range(-0.7, 0.7)),
+				_mat("Leaves %d" % (k % leaf.size()), c))
+	# Hay bales and fences along the road's outside
+	for k in 30:
+		var p := _free_spot(half_width() + 3.0, half_width() + 9.0)
+		var bale := CylinderMesh.new()
+		bale.top_radius = 0.8
+		bale.bottom_radius = 0.8
+		bale.height = 1.3
+		var b := _mesh(self, bale, Vector3(p.x, 0.8, p.y), _mat("Hay", Color(0.86, 0.7, 0.34)))
+		b.rotation = Vector3(0, _rng.randf() * TAU, PI / 2.0)
+	# A windmill on a hill, turning
+	var mill := Node3D.new()
+	mill.name = "Windmill"
+	var at := _free_spot(40.0, 80.0)
+	mill.position = Vector3(at.x, 0, at.y)
+	add_child(mill)
+	var tower := CylinderMesh.new()
+	tower.top_radius = 2.0
+	tower.bottom_radius = 3.4
+	tower.height = 14.0
+	_mesh(mill, tower, Vector3(0, 7, 0), _mat("Mill", Color(0.95, 0.92, 0.85)))
+	var sails := Node3D.new()
+	sails.name = "Sails"
+	sails.position = Vector3(0, 13, 2.4)
+	mill.add_child(sails)
+	for k in 4:
+		var sail := BoxMesh.new()
+		sail.size = Vector3(1.4, 7.0, 0.15)
+		var s := _mesh(sails, sail, Vector3.ZERO, _mat("Sail", Color(0.75, 0.55, 0.35)))
+		s.rotation.z = k * PI / 2.0
+		s.position = Vector3(sin(k * PI / 2.0) * -3.5, cos(k * PI / 2.0) * 3.5, 0)
+	set_meta("sails", sails)
+
+
+func _process(delta: float) -> void:
+	var sails: Node3D = get_meta("sails") if has_meta("sails") else null
+	if sails:
+		sails.rotation.z += delta * 0.6
+
+
+func _orb_tree(at: Vector3, size: float) -> void:
+	# The Void's orb trees: a leaning stalk and a big glowing ball (like scenes/town/trees.gd's, in shapes)
+	var cols := [Color(1.0, 0.45, 0.75), Color(0.3, 0.95, 0.95), Color(0.75, 0.6, 1.0), Color(1.0, 0.82, 0.35)]
+	var tree := Node3D.new()
+	tree.name = "Orb Tree"
+	tree.position = at
+	tree.rotation.y = _rng.randf() * TAU
+	add_child(tree)
+	var stalk := CylinderMesh.new()
+	stalk.top_radius = 0.18 * size
+	stalk.bottom_radius = 0.32 * size
+	stalk.height = 5.0 * size
+	var s := _mesh(tree, stalk, Vector3(0, 2.4 * size, 0), _mat("Stalk", Color(0.55, 0.4, 0.7)))
+	s.rotation.z = 0.12
+	var c: Color = cols[_rng.randi() % cols.size()]
+	var orb := SphereMesh.new()
+	orb.radius = 1.7 * size
+	orb.height = 3.4 * size
+	_mesh(tree, orb, Vector3(-0.6 * size, 5.4 * size, 0), _mat("Orb %s" % c.to_html(), c, 0.35, 0.7))
+	for k in 2:
+		var small := SphereMesh.new()
+		small.radius = 0.6 * size
+		small.height = 1.2 * size
+		_mesh(tree, small, Vector3((k * 2 - 1) * 1.4 * size, 3.6 * size, 0.4), _mat("Orb %s" % c.to_html(), c, 0.35, 0.7))
+
+
+func _crystals(at: Vector3) -> void:
+	var holder := Node3D.new()
+	holder.name = "Crystals"
+	holder.position = at
+	add_child(holder)
+	for k in 5:
+		var c := CylinderMesh.new()
+		c.top_radius = 0.0
+		c.bottom_radius = _rng.randf_range(0.4, 0.9)
+		c.height = _rng.randf_range(2.0, 5.0)
+		c.radial_segments = 6
+		var m := _mesh(holder, c, Vector3(_rng.randf_range(-1.2, 1.2), c.height * 0.4, _rng.randf_range(-1.2, 1.2)),
+			_mat("Crystal", Color(0.45, 1.0, 0.6), 0.2, 1.2))
+		m.rotation = Vector3(_rng.randf_range(-0.4, 0.4), 0, _rng.randf_range(-0.4, 0.4))
+
+
+func _mushroom(at: Vector3, size: float) -> void:
+	var holder := Node3D.new()
+	holder.name = "Mushroom"
+	holder.position = at
+	add_child(holder)
+	var stalk := CylinderMesh.new()
+	stalk.top_radius = 0.5 * size
+	stalk.bottom_radius = 0.7 * size
+	stalk.height = 3.0 * size
+	_mesh(holder, stalk, Vector3(0, 1.5 * size, 0), _mat("Mushroom Stalk", Color(0.98, 0.95, 0.88)))
+	var cap := SphereMesh.new()
+	cap.radius = 2.0 * size
+	cap.height = 2.0 * size
+	_mesh(holder, cap, Vector3(0, 3.2 * size, 0), _mat("Mushroom Cap", Color(0.62, 0.5, 0.95), 0.5, 0.3))
+
+
+func _crowd(theme: String) -> void:
+	# A stand full of friends cheering beside the start straight
+	var i := line.size() - 30
+	var side := (line[(i + 1) % line.size()] - line[i - 1]).normalized().cross(Vector3.UP).normalized()
+	var stand := Node3D.new()
+	stand.name = "Stand"
+	add_child(stand)
+	var at := line[i] - side * (half_width() + 8.0)
+	stand.position = Vector3(at.x, 0, at.z)
+	stand.look_at(Vector3(line[i].x, 0, line[i].z), Vector3.UP)
+	stand.rotate_y(PI)                                   # (its +Z faces the road)
+	var wood := _mat("Stand", Color(0.55, 0.38, 0.25) if theme == "earth" else Color(0.62, 0.5, 0.95))
+	for step in 3:
+		var bench := BoxMesh.new()
+		bench.size = Vector3(22, 0.9, 2.2)
+		_mesh(stand, bench, Vector3(0, 0.45 + step * 0.9, -step * 2.2), wood)
+	var roof := BoxMesh.new()
+	roof.size = Vector3(23, 0.25, 8.0)
+	_mesh(stand, roof, Vector3(0, 6.0, -2.4), _mat("Stand Roof", Color(0.85, 0.2, 0.18) if theme == "earth" else Color(0.3, 0.85, 0.85)))
+	for x in [-11.0, 11.0]:
+		var post := BoxMesh.new()
+		post.size = Vector3(0.3, 6.0, 0.3)
+		_mesh(stand, post, Vector3(x, 3.0, -5.5), wood)
+	if theme == "earth":
+		var shirts := [Color(0.85, 0.25, 0.2), Color(0.25, 0.45, 0.85), Color(0.95, 0.75, 0.2), Color(0.35, 0.65, 0.35)]
+		for k in 18:
+			var fan := Node3D.new()
+			fan.position = Vector3(-10 + (k % 9) * 2.5, 1.0 + (k / 9) * 0.9 + 0.9, -(k / 9) * 2.2 - 2.2)
+			stand.add_child(fan)
+			var body := CapsuleMesh.new()
+			body.radius = 0.3
+			body.height = 1.1
+			_mesh(fan, body, Vector3(0, 0.55, 0), _mat("Fan %d" % (k % 4), shirts[k % 4]))
+			var head := SphereMesh.new()
+			head.radius = 0.25
+			head.height = 0.5
+			_mesh(fan, head, Vector3(0, 1.3, 0), _mat("Fan Face", Color(0.95, 0.78, 0.62)))
+		return
+	var colours := ["pink", "orange", "blue", "green", "purple", "yellow"]
+	for k in 12:
+		var path := "res://models/characters/little_alien_%s.glb" % colours[k % colours.size()]
+		if not ResourceLoader.exists(path):
+			continue
+		var a := (load(path) as PackedScene).instantiate() as Node3D
+		a.scale = Vector3.ONE * 1.6
+		a.position = Vector3(-9 + (k % 6) * 3.6, 0.9 + (k / 6) * 0.9 + 0.9, -(k / 6) * 2.2 - 0.6)
+		stand.add_child(a)
+		var anim := a.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		if anim and anim.has_animation("idle"):
+			anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
+			anim.play("idle")

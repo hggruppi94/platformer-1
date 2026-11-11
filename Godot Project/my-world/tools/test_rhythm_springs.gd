@@ -115,8 +115,10 @@ func _check_quake() -> void:
 	# Well off the Lake Loop race's track (its props are put in at play time, but the track itself has none)
 	var loop: Array = []
 	var tracks: Dictionary = root.get_node("Races").TRACKS
-	if tracks.has("lake_loop"):
-		loop = tracks.lake_loop.points
+	if tracks.has("lake_loop") and str(tracks.lake_loop.get("scene", "")) == "res://scenes/town/town.tscn":
+		loop = tracks.lake_loop.points                          # (since Nov 11, 2026 it's a circuit of its own)
+	var gate: Vector2 = root.get_node("Races").HUBS.void.at
+	check(w.at.distance_to(gate) > 12.0, "...well away from Zippy's race gate (%.1f m)" % w.at.distance_to(gate))
 	var nearest := INF
 	for i in loop.size():
 		var a: Vector2 = loop[i]

@@ -372,6 +372,8 @@ func save_game() -> void:
 	var scene := get_tree().current_scene
 	if not _resume.is_empty():
 		data.merge(_resume)      # still on the way back to where she saved: keep that place
+	elif not Races.save_place().is_empty():
+		data.merge(Races.save_place())     # on a race circuit: saved back at its race gate (scripts/races.gd)
 	elif player and scene and scene.scene_file_path != "" and player.is_inside_tree():
 		# Up in the mothership she saves as if back on its pad (scripts/mothership.gd), not in mid-air
 		var p: Vector3 = player.get_meta("save_spot", player.global_position)

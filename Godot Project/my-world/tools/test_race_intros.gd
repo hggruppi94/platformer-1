@@ -1,9 +1,9 @@
 extends SceneTree
 
-# Checks the race intros (scripts/race_intro.gd, played by scripts/races.gd): starting a race plays the cutscene first,
-# with its own camera, the track's name, and nobody moving; the camera flies the course above the ground and says
-# hello to each rival by name and ride; when it ends (or Jump skips it) the player's camera is back and the countdown
-# starts; every track has one, the Pumpkin Run on Earth and the Sky Rings (the mothership holds still for it, then the
+# Checks the race intros (scripts/race_intro.gd, played by scripts/races.gd): going through a race gate to a circuit
+# plays the cutscene first (racing again on the same circuit doesn't), with its own camera, the track's name, and nobody moving; the camera flies the course above the ground and says
+# hello to each rival by name and ride (all seven on a circuit, more quickly); when it ends (or Jump skips it) the player's camera is back and the countdown
+# starts; every circuit has one, the Pumpkin Run from Stars Hollow and the Sky Rings (the mothership holds still for it, then the
 # race is on); calling a race off mid-intro cleans up; and Settings > Assist > "Race intros" off goes straight to the
 # countdown.
 #
@@ -31,7 +31,7 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
-	create_timer(300.0, true, false, true).timeout.connect(func() -> void:
+	create_timer(600.0, true, false, true).timeout.connect(func() -> void:
 		print("RESULT FAILED (timed out)")
 		_finish())
 	_run.call_deferred()
@@ -63,18 +63,17 @@ func _run() -> void:
 	change_scene_to_file(TOWN)
 	await _frames(6)
 	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
-	var player_cam := p.get_node("SpringArm3D/Camera3D") as Camera3D
-	for id in ["lake_loop", "meadow_wiggle", "observatory_hill", "sky_rings"]:
-		var tn: Node3D = races.track_node(id)
-		for i in 60:
-			if tn and tn.ready_to_race:
-				break
-			await physics_frame
+	var gate: Node3D = races.hub_node("void")
+	await _until(func() -> bool: return gate != null and gate.ready_to_race, 60)
 	var intro: Node = races.intro
 
-	# The Lake Loop: the whole intro, played out
-	check(races.start("lake_loop"), "a race starts")
-	check(races.state == races.State.INTRO and intro.playing(), "...with its intro first")
+	# The Lake Loop: through the gate, the whole intro played out
+	check(races.enter_circuit("lake_loop"), "off through the race gate")
+	var lake: String = races.TRACKS.lake_loop.scene
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == lake and races.racing(), 300)
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	var player_cam := p.get_node("SpringArm3D/Camera3D") as Camera3D
+	check(races.state == races.State.INTRO and intro.playing(), "the race starts with its intro")
 	check(root.get_viewport().get_camera_3d() == intro.cam, "...seen through the intro's own camera")
 	check(intro._title.text == "LAKE LOOP", "...with the track's name up (%s)" % intro._title.text)
 	check(p.input_locked, "nobody moves in the intro")
@@ -82,15 +81,17 @@ func _run() -> void:
 	await _ground_ok("lake_loop", intro)
 	check(races.rivals[0].d == d0, "...and the friends wait on the grid")
 	await _watch_rivals(intro)
+	check(intro.length() < 20.0, "...and it's not too long, even with seven friends (%.1f s)" % intro.length())
 	await _physics(int((intro.length() - intro._t) * 60.0) + 10)
 	check(not intro.playing() and races.state == races.State.COUNTDOWN, "when it ends, the countdown starts")
 	check(root.get_viewport().get_camera_3d() == player_cam, "...back through the player's camera")
 	check(current_scene.find_child("Race Intro Camera", true, false) == null or not is_instance_valid(intro.cam), "...and the intro's camera is gone")
+	check(races.restart() and races.state == races.State.COUNTDOWN and not intro.playing(), "racing again goes straight to the countdown")
 	races._end(false)
 	await _physics(3)
 
 	# Skipping
-	races.start("meadow_wiggle")
+	races.start("lake_loop")
 	await _physics(30)
 	Input.action_press("jump")
 	await _frames(2)
@@ -100,14 +101,12 @@ func _run() -> void:
 	races._end(false)
 	await _physics(3)
 	# Calling it off mid-intro
-	races.start("observatory_hill")
+	races.start("lake_loop")
 	await _physics(20)
 	races._end(false)
 	await _physics(2)
 	check(not intro.playing() and not p.input_locked and root.get_viewport().get_camera_3d() == player_cam,
 		"a race called off mid-intro cleans up (camera back, free to move)")
-	await _ground_ok_all(["meadow_wiggle", "observatory_hill"], intro)
-
 	# Intros off
 	settings.race_intros = false
 	races.start("lake_loop")
@@ -115,6 +114,23 @@ func _run() -> void:
 	races._end(false)
 	settings.race_intros = true
 	await _physics(3)
+	# The other two circuits in the Void
+	for id in ["meadow_wiggle", "observatory_hill"]:
+		check(races.enter_circuit(id), "off to the %s" % races.TRACKS[id].name)
+		var path: String = races.TRACKS[id].scene
+		await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == path and races.racing(), 300)
+		check(intro.playing() and intro._title.text == str(races.TRACKS[id].name).to_upper(), "...with its own intro (%s)" % intro._title.text)
+		await _ground_ok(id, intro)
+		intro.skip()
+		races._end(false)
+		await _physics(2)
+	races.leave_circuit()
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == TOWN, 300)
+	await _frames(6)
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	player_cam = p.get_node("SpringArm3D/Camera3D") as Camera3D
+	var sky_t: Node3D = races.track_node("sky_rings")
+	await _until(func() -> bool: return sky_t != null and sky_t.ready_to_race, 60)
 
 	# The Sky Rings: the mothership holds still for it, then the race is on
 	var sky: Node3D = races.track_node("sky_rings")
@@ -145,23 +161,30 @@ func _run() -> void:
 	ship.beam_down()
 	await _physics(30)
 
-	# The Pumpkin Run on Earth
+	# The Pumpkin Run, from Stars Hollow
 	game.riding = false
 	clock.day = 1
 	clock.set_earth_time(14 * 60.0, true)
 	change_scene_to_file(EARTH)
 	await _frames(8)
-	var et: Node3D = races.track_node("pumpkin_run")
-	for i in 60:
-		if et.ready_to_race:
-			break
-		await physics_frame
-	check(races.start("pumpkin_run") and intro.playing() and intro._title.text == "PUMPKIN RUN", "the Pumpkin Run has its intro too")
+	var eg: Node3D = races.hub_node("earth")
+	await _until(func() -> bool: return eg != null and eg.ready_to_race, 60)
+	check(races.enter_circuit("pumpkin_run"), "off through Pepper's gate")
+	var pr: String = races.TRACKS.pumpkin_run.scene
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == pr and races.racing(), 300)
+	check(intro.playing() and intro._title.text == "PUMPKIN RUN", "the Pumpkin Run has its intro too")
 	await _ground_ok("pumpkin_run", intro)
 	await _watch_rivals(intro)
 	intro.skip()
 	races._end(false)
 	_finish()
+
+
+func _until(cond: Callable, frames: int) -> void:
+	for i in frames:
+		if cond.call():
+			return
+		await physics_frame
 
 
 func _ground_ok(id: String, intro: Node) -> void:
@@ -195,14 +218,14 @@ func _watch_rivals(intro: Node) -> void:
 	# Says hello to each rival, by name and ride
 	var names: Array = []
 	for k in races.rivals.size():
-		intro._t = intro.TITLE_TIME + intro.FLY_TIME + intro.RIVAL_TIME * (k + 0.5)
+		intro._t = intro.TITLE_TIME + intro.FLY_TIME + intro._rival_time() * (k + 0.5)
 		intro._place_camera()
 		names.append(intro._caption.text.replace("\n", ", "))
 	var all_named := true
 	for k in races.rivals.size():
 		if not names[k].begins_with(races.rivals[k].display_name()):
 			all_named = false
-	check(all_named and names.size() == 3, "...and says hello to each rival (%s)" % "; ".join(names))
+	check(all_named and names.size() == races.TRACKS[races.track_id].rivals.size(), "...and says hello to each rival (%s)" % "; ".join(names))
 	await physics_frame
 
 

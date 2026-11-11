@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/race_circuit.gd" id="1_u4atl"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_xqi4q"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="3_ue30x"]
+
+[node name="MeadowWiggleCircuit" type="Node3D" unique_id=20401371]
+script = ExtResource("1_u4atl")
+circuit_id = "meadow_wiggle"
+
+[node name="Entrance" type="Marker3D" parent="." unique_id=1275483410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=75278954 instance=ExtResource("2_xqi4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("3_ue30x")

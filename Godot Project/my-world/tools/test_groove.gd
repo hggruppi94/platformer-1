@@ -231,9 +231,13 @@ func _check_stage() -> void:
 			and not (c.get_parent() != null and c.get_parent().name == "Melody")))
 	check(others.is_empty(), "nothing else stands on the stage (%s)" % str(others.map(func(h): return str(h.collider.name))))
 	var tracks: Dictionary = root.get_node("Races").TRACKS
-	for id in ["lake_loop", "meadow_wiggle"]:
+	for id in tracks:                                           # (the races have their own circuits now, so only the
+		if str(tracks[id].get("scene", "")) != "res://scenes/town/town.tscn" or tracks[id].get("sky", false):   # sky)
+			continue
 		var d := _off_line(at, tracks[id].points, true)
 		check(d > 11.0, "...well off the %s's racing line (%.1f m)" % [tracks[id].get("name", id), d])
+	var gate: Vector2 = root.get_node("Races").HUBS.void.at
+	check(at.distance_to(gate) > 14.0, "...and well away from Zippy's race gate (%.1f m)" % at.distance_to(gate))
 	# ...and off the paths people walk along (routines/places.json), apart from the way up to it
 	var places: Dictionary = (load("res://routines/places.json") as JSON).data
 	var pts: Dictionary = places.points
