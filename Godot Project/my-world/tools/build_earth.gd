@@ -1104,20 +1104,24 @@ func _portal() -> void:
 	for k in 4:                                                  # and down both sides of the door
 		arc.append(Vector2(-1.08, 1.45 - k * 0.38))
 		arc.append(Vector2(1.08, 1.45 - k * 0.38))
+	# Each spot gets a glyph: angular strokes cut into the bark, like old runes nobody can read (Hayden's day 1
+	# playtest: "more runic, unintelligible symbols"). They're made up, not letters of any alphabet, and picked by
+	# spot so the oak always reads the same. Each stroke is its own mesh straight under "Oak Runes", sharing the "Oak
+	# Rune" material that scripts/humming_oak.gd lights.
+	var glyph_n := 0
 	for k in arc.size():
 		var x := arc[k].x
 		var y := arc[k].y
-		var a := atan2(y - 1.85, x) if y > 1.85 else PI / 2
 		var at := Vector3(x, y, maxf(_oak_r(y) * _oak_r(y) - x * x, 0.0) ** 0.5 + 0.02)
-		mesh_at(box(Vector3(0.12, 0.28, 0.03)), rune, at, runes, atan2(at.x, at.z), Vector3(0, 0, a - PI / 2))
-		mesh_at(box(Vector3(0.2, 0.06, 0.03)), rune, at + Vector3(0, 0.05 * (k % 2 * 2 - 1), 0.005), runes, atan2(at.x, at.z), Vector3(0, 0, a))
+		_rune_glyph(runes, rune, at, atan2(at.x, at.z), 0.3, glyph_n)
+		glyph_n += 1
 	for k in 12:                                                 # and a spiral up the trunk
 		var a := PI / 2 + k * 0.85
 		var y := 3.2 + k * 0.28
 		var r := _oak_r(y) + 0.02
 		var at := Vector3(cos(a) * r, y, sin(a) * r)
-		mesh_at(box(Vector3(0.14, 0.26, 0.03)), rune, at, runes, atan2(at.x, at.z))
-		mesh_at(ball(0.07, 6), rune, at + Vector3(0, 0.14, 0) + Vector3(cos(a), 0, sin(a)) * 0.01, runes)
+		_rune_glyph(runes, rune, at, atan2(at.x, at.z), 0.26, glyph_n)
+		glyph_n += 1
 	# Roots: knotted round the foot, the front ones parted for the door. They lift and settle when it opens.
 	var roots := Node3D.new()
 	roots.name = "Oak Roots"
@@ -1168,6 +1172,45 @@ func _portal() -> void:
 	player.name = "Player"
 	player.position = entrance.position
 	world.add_child(player)
+
+
+# The old oak's runes: made-up glyphs on a grid 2 wide and 4 high (x -1..1, y -2..2), each a list of strokes
+# [x1, y1, x2, y2]. A tall stave with angled branches and hooks, the way old carved runes look, but none of them a
+# real letter.
+const RUNE_GLYPHS := [
+	[[0, -2, 0, 2], [0, 2, 1, 1], [0, 0, 1, -1]],
+	[[0, -2, 0, 2], [-1, 1, 1, -1], [-1, -1, 1, 1]],
+	[[-1, -2, -1, 2], [1, -2, 1, 2], [-1, 2, 1, 0], [1, 2, -1, 0]],
+	[[0, -2, 0, 2], [0, 1, -1, 2], [0, 1, 1, 2], [0, -1, 1, -2]],
+	[[-1, 2, 1, 0], [1, 0, -1, -2], [0, -2, 0, 2]],
+	[[0, -2, 0, 2], [0, 2, 1, 1], [1, 1, 0, 0], [0, 0, 1, -1], [1, -1, 0, -2]],
+	[[-1, -2, -1, 2], [-1, 1, 1, 2], [-1, -1, 1, 0], [1, 0, 1, -2]],
+	[[0, -2, 0, 0], [0, 0, -1, 2], [0, 0, 1, 2], [-1, -1, 1, -1]],
+	[[-1, 2, 1, 2], [0, 2, 0, -2], [-1, -2, 1, 0]],
+	[[0, -2, 0, 2], [0, 1, 1, 0], [1, 0, 0, -1], [-1, 2, 0, 1]],
+	[[-1, -2, 0, 2], [0, 2, 1, -2], [-1, -1, 1, 0]],
+	[[0, -2, 0, 2], [-1, 0, 0, 1], [0, -1, 1, 0], [-1, -2, -1, -1]],
+	[[-1, -2, -1, 2], [-1, 0, 1, 2], [-1, 0, 1, -2]],
+	[[0, -2, 0, 2], [-1, 2, 0, 1], [1, -2, 0, -1], [0, 0, 1, 1]],
+	[[-1, 1, 1, 1], [-1, -1, 1, -1], [-1, 2, 1, -2]],
+	[[0, -2, 0, 2], [0, 2, -1, 1], [-1, 1, 0, 0], [0, -1, 1, -2], [1, -2, 1, -1]],
+]
+
+
+func _rune_glyph(parent: Node3D, m: Material, at: Vector3, yaw: float, h: float, n: int) -> void:
+	# One glyph flat on the bark at `at`, facing out along yaw, h metres tall. Strokes are thin boxes, each from one
+	# grid point to another; each gets a nub at its ends so the joins look carved, not stuck on.
+	var glyph: Array = RUNE_GLYPHS[(n * 7 + 3) % RUNE_GLYPHS.size()]
+	var unit := h / 4.0
+	var basis := Basis(Vector3.UP, yaw)
+	for st in glyph:
+		var p1 := Vector2(st[0], st[1]) * unit
+		var p2 := Vector2(st[2], st[3]) * unit
+		var d := p2 - p1
+		var mid := (p1 + p2) / 2.0
+		var pos := at + basis * Vector3(mid.x, mid.y, 0.0)
+		mesh_at(box(Vector3(d.length() + unit * 0.3, unit * 0.32, 0.03)), m, pos, parent, yaw,
+			Vector3(0, 0, atan2(d.y, d.x)))
 
 
 func _oak_r(y: float) -> float:

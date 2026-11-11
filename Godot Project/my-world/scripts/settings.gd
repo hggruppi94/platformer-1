@@ -259,7 +259,7 @@ func rebind_pad(action: String, button: int) -> String:
 
 func _shares_on_purpose(a: String, b: String) -> bool:
 	# The skateboard button is Grind too while riding (scripts/game.gd, _board_button_free), so those two may share
-	return [a, b].has("toggle_skateboard") and [a, b].has("skate_grind")
+	return ([a, b].has("toggle_skateboard") and [a, b].has("skate_grind")) or ([a, b].has("dash") and [a, b].has("skate_flip"))
 
 
 func _bind_pad(action: String, button: int) -> void:
@@ -289,24 +289,46 @@ func _bind_pad(action: String, button: int) -> void:
 
 
 # ----------------------------------------------------------------------------- key bindings
+# The skate tricks' keys used to be J, K and L, out under the hand that holds the mouse, so combos were hard to hit
+# (Hayden's day 1 playtest, 11 Nov 2026). Now they're all under the left hand, the way the controller shares its
+# buttons: Shift flips (it rolls on foot), Ctrl grabs, E grinds (it's the board key too: on a ride, E only steps off on
+# the ground with no rail in reach, scripts/game.gd). Settings saved with the old keys move over once (load_settings).
+const OLD_SKATE_KEYS := {"skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K}
+
+
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "outfit_wheel": KEY_C, "burrow": KEY_B, "frost_breath": KEY_V, "groove": KEY_G, "showers": KEY_H, "toggle_skateboard": KEY_E, "skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab": KEY_K,
+		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "outfit_wheel": KEY_C, "burrow": KEY_B, "frost_breath": KEY_V, "groove": KEY_G, "showers": KEY_H, "toggle_skateboard": KEY_E, "skate_grind": KEY_E, "skate_flip": KEY_SHIFT, "skate_grab": KEY_CTRL,
 		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "check_watch": KEY_T, "pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:
-	# Returns the name of another action that already used this key (it gets swapped onto the old key), or "".
+	# Returns the name of another action that already used this key (it gets swapped onto the old key), or "". Like
+	# the controller, a key only clashes with actions used at the same time (PAD_GROUPS: on foot, riding), so Shift can
+	# roll on foot and flip on the board. Keys for actions in neither group (moving) clash with everything.
 	var old: int = bindings.get(action, 0)
 	var clash := ""
 	for other in bindings:
-		if other != action and bindings[other] == physical_keycode:
+		if other != action and bindings[other] == physical_keycode and _key_clash(action, other):
 			clash = other
 			bindings[other] = old
 	bindings[action] = physical_keycode
 	apply()
 	save_settings()
 	return clash
+
+
+func _key_clash(a: String, b: String) -> bool:
+	if _shares_on_purpose(a, b):
+		return false
+	var in_a := PAD_GROUPS.filter(func(g: Array) -> bool: return a in g)
+	var in_b := PAD_GROUPS.filter(func(g: Array) -> bool: return b in g)
+	if in_a.is_empty() or in_b.is_empty():
+		return true
+	for g in in_a:
+		if b in g:
+			return true
+	return false
 
 
 func key_name(action: String) -> String:
@@ -381,6 +403,7 @@ func save_settings() -> void:
 	for p in _props():
 		cf.set_value("settings", p, get(p))
 	cf.set_value("settings", "minimap_v2", true)
+	cf.set_value("settings", "skate_keys_v2", true)
 	for a in bindings:
 		cf.set_value("keys", a, bindings[a])
 	for a in pad_bindings:
@@ -418,6 +441,16 @@ func load_settings() -> void:
 		for a in pad_bindings.keys():
 			if not cf.has_section_key("pad", a):
 				_claim(pad_bindings, a, default_pad_bindings(), -1)
+	if not cf.has_section_key("settings", "skate_keys_v2"):
+		for a in OLD_SKATE_KEYS:
+			if bindings.get(a, 0) == OLD_SKATE_KEYS[a]:
+				var want: int = default_bindings()[a]
+				for other in bindings:
+					if other != a and bindings[other] == want and _key_clash(a, other):
+						want = 0                            # the player's put something else there: leave this one
+						break
+				if want != 0:
+					bindings[a] = want
 	_free_board_shoot()
 
 

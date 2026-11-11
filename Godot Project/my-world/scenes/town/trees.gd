@@ -9,6 +9,9 @@ extends Node3D
 # glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with specks of light,
 # and twinkles from a pixelfx sprite sheet (scenes/town/tree_twinkle.png, effect pickups/tree-twinkle) wink on and
 # off round each one. Nothing here is solid, as before.
+#
+# A tree whose stalk or canopy would stand in something solid (a building, a fence, a rail...) is left out when the
+# world loads (scripts/plant_clearance.gd; Hayden's day 1 playtest, 11 Nov 2026: trees clipping through things).
 
 @export var positions: PackedVector3Array
 @export var sizes: PackedFloat32Array
@@ -16,6 +19,8 @@ extends Node3D
 @export var bark_color := Color(0.45, 0.3, 0.18)
 @export var glow := 0.0                    # how much the canopies light up in their own colour
 @export var canopy_stretch := 1.15         # canopy height / width
+
+const PlantClearance := preload("res://scripts/plant_clearance.gd")
 
 enum Kind { ORB, SPIRE, PARASOL }
 const TWINKLES_PER_TREE := 8
@@ -95,6 +100,12 @@ void fragment() {
 # empty when headless).
 var kinds: PackedInt32Array
 var twinkle_spots: PackedVector3Array
+var left_out: PackedInt32Array            # trees not grown because something solid is where they'd stand
+const RECHECK := [1.0, 4.0]               # seconds after loading to look again (recheck())
+var _parts := {}                          # tree index -> its [first, one past last] instance in each MultiMesh
+var _orbs: Array[Transform3D] = []
+var _cones: Array[Transform3D] = []
+var _stalks: Array[Transform3D] = []
 
 
 static func kind_of(p: Vector3) -> Kind:
@@ -123,6 +134,7 @@ func _ready() -> void:
 		kinds[i] = kind
 		var spin := rng.randf() * TAU
 		var surface: Array[Vector3] = []      # points on this tree's canopy for its twinkles
+		var had := [orbs.size(), cones.size(), stalks.size()]
 		match kind:
 			Kind.ORB:
 				# A stalk leaning a little, a big ball on top, and two short branches with little balls
@@ -181,6 +193,15 @@ func _ready() -> void:
 					orb_colors.append(bulb_color)
 					if b % 2 == 0:
 						surface.append(hang)
+		if not _room_for(orbs.slice(had[0]), cones.slice(had[1]), stalks.slice(had[2])):
+			orbs.resize(had[0])
+			orb_colors.resize(had[0])
+			cones.resize(had[1])
+			cone_colors.resize(had[1])
+			stalks.resize(had[2])
+			left_out.append(i)
+			continue
+		var tw_from := twinkles.size()
 		# Twinkles: on the canopy, each with its own start and a cycle of 1.4 to 3 s, a bit bigger on big trees
 		for t in mini(surface.size(), TWINKLES_PER_TREE):
 			var at: Vector3 = surface[t]
@@ -188,6 +209,7 @@ func _ready() -> void:
 			twinkle_colors.append(c.lightened(0.4))
 			twinkle_custom.append(Color(rng.randf(), rng.randf_range(1.4, 3.0), 0, 0))
 			twinkle_spots.append(at)
+		_parts[i] = [[had[0], orbs.size()], [had[1], cones.size()], [had[2], stalks.size()], [tw_from, twinkles.size()]]
 
 	var leaves := ShaderMaterial.new()
 	leaves.shader = Shader.new()
@@ -227,6 +249,28 @@ func _ready() -> void:
 	_add("Trunks", stalk, stalks, [], bark)
 	var tw := _add("Twinkles", quad, twinkles, twinkle_colors, sparkle, twinkle_custom)
 	tw.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_orbs = orbs
+	_cones = cones
+	_stalks = stalks
+	# Things put into the world just after it loads (boosters, the bosses' yards, quest props...): look again once
+	# they're in, and take away any tree they've landed on
+	for wait in RECHECK:
+		get_tree().create_timer(wait).timeout.connect(recheck)
+
+
+func recheck() -> void:
+	if not is_inside_tree():
+		return
+	var hidden := Transform3D(Basis().scaled(Vector3.ZERO), Vector3(0, -500, 0))
+	for i in _parts.keys():
+		var r: Array = _parts[i]
+		if not _room_for(_orbs.slice(r[0][0], r[0][1]), _cones.slice(r[1][0], r[1][1]), _stalks.slice(r[2][0], r[2][1])):
+			for k in 4:
+				var mm := (get_node(["Canopies", "Spires", "Trunks", "Twinkles"][k]) as MultiMeshInstance3D).multimesh
+				for j in range(r[k][0], r[k][1]):
+					mm.set_instance_transform(j, hidden)
+			_parts.erase(i)
+			left_out.append(i)
 
 
 func _add(node_name: String, mesh: Mesh, xforms: Array[Transform3D], cols: Array, mat: Material,
@@ -249,6 +293,20 @@ func _add(node_name: String, mesh: Mesh, xforms: Array[Transform3D], cols: Array
 	inst.material_override = mat
 	add_child(inst)
 	return inst
+
+
+func _room_for(balls: Array, spires: Array, sticks: Array) -> bool:
+	# Nothing solid where this tree's balls, cones or stalks would be (boxes a bit inside each shape)
+	for xf in balls:
+		if not PlantClearance.instance_clear(self, xf, Vector3(1.1, 1.1, 1.1)):
+			return false
+	for xf in spires:
+		if not PlantClearance.instance_clear(self, xf, Vector3(1.0, 0.8, 1.0)):
+			return false
+	for xf in sticks:
+		if not PlantClearance.instance_clear(self, xf, Vector3(0.3, 0.85, 0.3)):
+			return false
+	return true
 
 
 func _stalk(from: Vector3, to: Vector3, thick: float) -> Transform3D:

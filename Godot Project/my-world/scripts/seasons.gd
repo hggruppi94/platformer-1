@@ -163,6 +163,15 @@ func apply(new_season: String) -> void:
 	_set_air()
 
 
+func hide_leaf(i: int) -> void:
+	# A tree that's left out because it would grow through something (scripts/plant_clearance.gd): its leaves stay
+	# gone whatever the season
+	if i >= 0 and i < _leaf_xf.size():
+		_leaf_xf[i] = Transform3D(Basis().scaled(Vector3.ZERO), Vector3(0, -500, 0))
+		if _leaves and _leaves.multimesh and i < _leaves.multimesh.instance_count:
+			_leaves.multimesh.set_instance_transform(i, _leaf_xf[i])
+
+
 func _paint_trees() -> void:
 	if _leaves == null or _leaf_xf.is_empty():
 		return

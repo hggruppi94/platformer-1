@@ -209,7 +209,7 @@ func skaters_corner(parent: Node, pos: Vector3) -> Node3D:
 
 
 func lesson_pad(parent: Node, pos: Vector3) -> Node3D:
-	# Another glowing pad, for Coach Rook's skate lesson (scripts/lesson_pad.gd, scripts/skate_lesson.gd). Rook stands
+	# Another glowing pad, for Coach Bruno's skate lesson (scripts/lesson_pad.gd, scripts/skate_lesson.gd). Rook stands
 	# beside it while the lesson's on.
 	var g := skaters_corner(parent, pos)
 	g.name = "Lesson Pad"

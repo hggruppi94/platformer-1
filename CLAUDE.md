@@ -91,6 +91,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **Day 1 playtest polish: sprint, skate keys, the skate lesson, oak runes, plants, grass, rails** (Hayden's
+  day 1 playtest notes; other threads took the rest). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Sprint** (`player.gd`): it only starts from a fresh press of Sprint, and stops when she's carried, rides, burrows,
+    swims or wall-crawls, when she's stunned or the controls are locked, and when the window loses focus. It couldn't
+    be made to stick in a test, so this is a guard; ask Hayden which actions did it if it happens again.
+  - **Skate keys on PC** (`settings.gd`, `project.godot`): flip Shift, grab Ctrl, grind E (were J, K, L, under the mouse
+    hand). Old J/K/L settings move over once (`skate_keys_v2`). `rebind` only counts a clash inside a button group
+    (PAD_GROUPS), so on foot E (use) and on the board E (grind) can share. E steps off the board only with no rail in
+    reach (`game.gd _board_button_free`).
+  - **Skate lesson:** Coach Bruno runs it (the First Night checklist said "Coach Rook"). Rook's praise now fits a dog
+    in Rex's human body (no tail or paws).
+  - **Old oak runes** (`build_earth.gd _rune_glyph`, `RUNE_GLYPHS`): 16 made-up runic glyphs built from thin strokes.
+  - **Plants don't grow through things** (`scripts/plant_clearance.gd`, preload it): as a world loads (and again at 1 s
+    and 4 s, for things placed at runtime) each Void tree and plant (`trees.gd`, `foliage.gd`) and each Earth tree
+    (`earth_world.gd prune_earth_trees`) checks for solid bodies and built meshes where it would be, and leaves itself
+    out if so. `blocked_by` says what stopped them. Seasons keeps a left-out tree's leaves hidden (`hide_leaf`).
+  - **Grass push** smaller (`foliage.gd`: reach 0.75, push 0.35 for grass; leaves and ferns 1.0).
+  - **Grind rails** (`build_town.gd _town_rails`): no more scattered meadow rails; rails only beside straight path
+    stretches and as boardwalk railings, never on the courts, soccer field or skate park, nor within 6 to 7 m of a race
+    line (`_race_lines` reads races.gd TRACKS). Big mushrooms (solid caps) keep out of race lanes too. 22 rails.
+  - New `tools/test_plant_clearance.gd`; `tools/capture_day1_polish.gd` for pictures
+    (/mnt/project-files/world/previews/day1_polish/). `test_arsenal`'s Plush Party / Rainbow Ray checks are shaky: in its
+    staging one Gloop ends up sitting on the other's head, and which one the shot aims at depends on tiny distances
+    (main fails other checks in the same test).
+
 - 2026-11-11: **Follow any quests and side jobs you like, the notice board tutorial, and a first look round the Void**
   (Hayden's day 1 playtest: "all quests and side jobs should be selectable allowing you to change back and forth and
   even showing multiple location markers simultaneously"; "a tutorial for the jobs board that happens at the beginning

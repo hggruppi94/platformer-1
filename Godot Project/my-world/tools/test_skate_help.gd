@@ -268,7 +268,7 @@ func _controls() -> void:
 	settings._input(k)
 	check(settings.last_device == "keyboard", "...and a key switches them back")
 	settings.use_layout("classic")
-	check(_pad_buttons("jump") == [JOY_BUTTON_A] and settings.prompt("skate_flip") == "J", "picking a layout puts the buttons and keys back")
+	check(_pad_buttons("jump") == [JOY_BUTTON_A] and settings.prompt("skate_flip") == OS.get_keycode_string(KEY_SHIFT), "picking a layout puts the buttons and keys back")
 
 
 func _pad_buttons(action: String) -> Array:
