@@ -157,6 +157,11 @@ func _run() -> void:
 		if quests.is_done("first_night"):
 			break
 		quests.skip("first_night")
+	quests.check()                       # (then The Bike Boy, where you meet Dash: scripts/meetings.gd)
+	for i in 30:
+		if quests.is_done("bike_boy"):
+			break
+		quests.skip("bike_boy")
 	var rex := _talker("rex")
 	check(rex != null, "Rex is in town")
 	await _talk_to(rex)          # (the first talk is his hello)

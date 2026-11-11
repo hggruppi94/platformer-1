@@ -1,0 +1,92 @@
+{
+  "name": "The Bike Boy",
+  "giver": "rex",
+  "story": true,
+  "skippable": true,
+  "about": "Building up to meeting Dash (Hayden's day 1 playtest, 11 Nov 2026): Rex's twin is always off on his bike tinkering. Follow his tyre tracks and the gadget bits he dropped to his lab, catch his runaway Buzz Bot, then his gadget stall opens: find the Star Popper's blueprint and buy one. Then the Gloop King, and Dash sends you on to Pip. scripts/meetings.gd puts the tracks, parts and bot in at play time.",
+  "start": {"flag": "bike_boy_start"},
+  "steps": [
+    {
+      "id": "tracks",
+      "text": "Rex says his twin Dash zoomed off on his bike and dropped bits of gadget everywhere. Follow the glowing tyre tracks from the Skate Park and pick up what he dropped.",
+      "checklist": [
+        ["bb_part_1", "A springy coil, by the Skate Park"],
+        ["bb_part_2", "A fizzing bulb, by the gate to the houses"],
+        ["bb_part_3", "A tiny cog, outside Dash's house"]
+      ],
+      "done": {"flags": ["bb_part_1", "bb_part_2", "bb_part_3"]},
+      "where": [
+        {"at": [44.0, 50.0], "unless": "bb_part_1"},
+        {"at": [52.5, 3.5], "unless": "bb_part_2"},
+        {"at": [84.0, -6.0], "unless": "bb_part_3"}
+      ],
+      "override": {
+        "dash": {"place": "lab", "do": "away", "label": "bike_boy"}
+      }
+    },
+    {
+      "id": "lab",
+      "text": "The tracks end at a shed past Dash's house. Something inside is going BZZZT. Go and see who's in there.",
+      "done": {"flag": "bb_met_dash"},
+      "where": ["dash"],
+      "override": {
+        "dash": {"place": "lab", "do": "idle", "label": "bike_boy", "face": [99, -16]}
+      }
+    },
+    {
+      "id": "bot",
+      "text": "Dash's Buzz Bot has got loose and it's zooming round the lab! Catch it: walk right into it.",
+      "done": {"flag": "bb_bot_caught"},
+      "where": [{"at": [95.0, -16.0]}],
+      "override": {
+        "dash": {"place": "lab", "do": "idle", "label": "bike_boy", "face": [99, -16]}
+      }
+    },
+    {
+      "id": "thanks",
+      "text": "You caught it! Tell Dash.",
+      "done": {"flag": "bb_thanked"},
+      "where": ["dash"],
+      "override": {
+        "dash": {"place": "lab", "do": "idle", "label": "bike_boy", "face": [99, -16]}
+      }
+    },
+    {
+      "id": "stall",
+      "text": "Dash's gadget stall in the Market Square is open! His Star Popper blueprint blew out of the window. Find it, then take it to his stall and he'll build you one.",
+      "checklist": [
+        ["bb_stall", "Have a look at Dash's gadget stall in the Market Square"],
+        ["schematic_popper", "Find the Star Popper's blueprint (it glows, near the Market)"],
+        ["bb_popper", "Buy the Star Popper at Dash's stall"]
+      ],
+      "done": {"flags": ["bb_stall", "schematic_popper", "bb_popper"]},
+      "where": [
+        {"at": [-84.0, 55.0], "unless": "schematic_popper"},
+        {"who": "dash", "unless": "bb_popper"}
+      ],
+      "override": {
+        "dash": {"place": "market", "do": "idle", "label": "bike_boy", "face": [-72, 42]}
+      }
+    },
+    {
+      "id": "king",
+      "text": "Dash says there's a big golden Gloop holding court in the west fields, past the Market. Pop the Gloop King, then tell Dash!",
+      "checklist": [
+        ["popped_gloop_king", "Pop the Gloop King in the west fields"],
+        ["fn_told_dash", "Tell Dash all about it"]
+      ],
+      "done": {"flags": ["popped_gloop_king", "fn_told_dash"]},
+      "where": [
+        {"at": [-134, 2], "unless": "popped_gloop_king"},
+        {"who": "dash", "unless": "fn_told_dash"}
+      ],
+      "override": {
+        "dash": {"place": "market_far_west", "do": "idle", "label": "bike_boy", "face": [-134, 2]}
+      }
+    }
+  ],
+  "reward": {
+    "message": "You met Dash, and the Void's got a new Gloop King champion! Dash says Pip's been waiting by the portal for you! (+10 sparkles)",
+    "sparkles": 10
+  }
+}

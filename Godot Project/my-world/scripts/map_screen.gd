@@ -14,6 +14,8 @@ extends Node
 # Markers for quests come from the quest spots that are open right now (scripts/quest_spot.gd) and from a step's
 # "where" in res://quests/<id>.json: people (a character id) or places (a point in res://routines/places.json), each
 # optionally {"who": "dash", "unless": "asked_dash"} to drop off once done.
+# Only what the player follows gets stars (Quests.followed: the Follow buttons on the Quests sheet), several at once
+# if they like, side jobs from the boards too (Requests/EarthJobs markers()). Each star is labelled with its quest.
 
 const MAP_TEXTURE := "res://ui/town_map.png"
 const MAP_INFO := "res://ui/town_map.json"
@@ -124,12 +126,22 @@ func _paths() -> TownPaths:
 
 
 func quest_markers() -> Array:
-	# [{pos, label}] for every quest step that's ready to be done right now
+	# [{pos, label}] for every followed quest step that's ready to be done right now, and every followed side job
 	var out := []
 	var s := get_tree().current_scene
 	if s == null:
 		return out
+	var follow := Quests.live_followed()
+	for key in follow:
+		var job := Quests.job_of(key)
+		if not job.is_empty():
+			for pos in job.board.markers(job.r):
+				out.append({"pos": pos, "label": str(job.board.text_of(job.r))})
 	for id in Quests._order:
+		if not follow.is_empty() and not id in follow:
+			continue
+		if follow.is_empty() and id != Quests.tracked_quest():
+			continue
 		var step: Dictionary = Quests.current_step(id)
 		if step.is_empty() or Quests.is_waiting(id):
 			continue

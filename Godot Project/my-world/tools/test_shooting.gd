@@ -124,6 +124,25 @@ func _run() -> void:
 	check(not (g0.get_node("Visual") as Node3D).visible and g0.find_child("CaughtBubble", false, false) == null,
 		"...then the bubble pops and it's gone")
 
+	# --- Before she has a blaster (Hayden, 11 Nov: nobody starts with one; tools/test_schematics.gd buys it) ---
+	var arsenal := root.get_node("Arsenal")
+	arsenal.reset()
+	var said: Array = []
+	var hear := func(t: String) -> void: said.append(t)
+	game.message_posted.connect(hear)
+	settings.last_device = "pad"
+	Input.action_press("aim")
+	Input.action_press("shoot")
+	await _physics(20)
+	Input.action_release("shoot")
+	Input.action_release("aim")
+	await _physics(4)
+	check(not popper.aiming and not popper.can_shoot(), "with no blaster, Aim and Shoot do nothing")
+	check(said.any(func(t: String) -> bool: return t.contains("blaster")), "...but Shoot says why (%s)" % str(said))
+	game.message_posted.disconnect(hear)
+	arsenal.give("popper", false)
+	check(arsenal.armed(), "with the Star Popper bought, it's out")
+
 	# --- Aiming ---
 	var g1 := gloops[1] as CharacterBody3D
 	_stage(p, g1, flat, Vector3(0, 0, 12))

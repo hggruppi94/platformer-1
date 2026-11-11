@@ -43,6 +43,7 @@ func _run() -> void:
 	game.pending_message = ""
 	for f in FLAGS:
 		dialogue.flags[f] = true
+	dialogue.flags["swap_tried"] = true                  # he's only in the Void after Rex and Dash's swap
 	dialogue.flags.erase("beat_agent_of_chaos")
 	dialogue.flags.erase("chaos_watch_found")
 	var town := await _load_town()

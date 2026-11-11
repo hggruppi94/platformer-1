@@ -469,8 +469,8 @@ func _check_captain() -> void:
 	for t in s._towers:
 		all_on = all_on and (t as Node3D).visible
 	check(all_on, "...and the far towers stop flickering")
-	check("Void" in " ".join(s.thank_lines()) and "Agent of Chaos" in " ".join(s.thank_lines()) and "body" in " ".join(s.thank_lines()),
-		"Rex thanks you: the captain's fled to the Void, his master's waiting, and maybe his own body")
+	check("master" in " ".join(s.thank_lines()) and not "Agent of Chaos" in " ".join(s.thank_lines()) and "body" in " ".join(s.thank_lines()),
+		"Rex thanks you: the captain's got away, there's a master somewhere (not named yet), and maybe his own body")
 	check(root.get_node("Dialogue").is_active(), "Rex thanks you")
 	root.get_node("Dialogue").end()
 	check("Swap-o-Tron" in " ".join(s.dash_lines()) and "Lumen City" in " ".join(s.rex_lines()), "they talk about the mended city after")

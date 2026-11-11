@@ -95,7 +95,7 @@ func wake() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("buzz", 0.6, -2.0)
-	_say("I am CAPTAIN GLITCH! First officer of the Agent of Chaos!")
+	_say("I am CAPTAIN GLITCH! And my master's clock runs BACKWARDS!")
 	Game.message("Captain Glitch wakes up! Dodge the glowing marks. When he crashes down, jump the ring, then pop the clock on his chest while it glows!")
 
 
@@ -327,7 +327,7 @@ func defeat() -> void:
 		if is_instance_valid(m) and m.get("defeated") != true and m.has_method("shot"):
 			m.shot(99, m.global_position, Vector3.UP)
 	Game.add_xp(80)
-	_say("This isn't over! My master is waiting for you... in the VOID!")
+	_say("This isn't over! Tick... tock... TICK!")
 	var tw := create_tween()
 	tw.tween_property(visual, "scale", Vector3(1.3, 0.7, 1.3), 0.25).set_trans(Tween.TRANS_BACK)
 	tw.tween_property(visual, "scale", Vector3(0.05, 2.0, 0.05), 0.35)

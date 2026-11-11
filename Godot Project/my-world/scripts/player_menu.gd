@@ -11,7 +11,7 @@ extends CanvasLayer
 # The sheets show the game's own screens rather than copies of them: the quest log (scripts/quests.gd log_view()),
 # the big map (scripts/map_screen.gd map_view()), the pause menu's settings tabs (scripts/pause_menu.gd
 # settings_into()), and buttons that open the wardrobe (scripts/shop.gd) and the character creator, start Coach
-# Rook's skate lesson and show the how-to tips again.
+# Bruno's skate lesson and show the how-to tips again.
 
 signal sheet_changed(sheet: String)
 

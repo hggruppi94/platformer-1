@@ -128,6 +128,148 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: the circuits' shapes and scenery, three laps, which obstacles go where, the new
     power-ups, how often friends attack, starting fifth.
 
+- 2026-11-11: **Who you meet, and in what order, and a quest to meet Dash** (Hayden's day 1 playtest: "more build-up to
+  meeting Dash and his gadgets via a quest", then on the order: "I don't want to lock meeting people behind days spent
+  in-game ... it should not be a mystery of who to talk to next"). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **The order** (`scripts/meetings.gd`, a "Meetings" node under `FirstNight`: dialogue says `FirstNight/Meetings.*`):
+    the First Night, then **The Bike Boy**, Pip's Lamps (night_2), The Meadow in Bloom (night_3), **Melody and Heather**
+    (`quests/meet_friends.json`), then nights 4 to 7. Each story quest starts **as soon as the one before is done**
+    (`advance()`), never waiting for a new visit, and the friend you just helped sends you on (reward messages and the
+    first step's text, "Dash says...", "Pip says..."). Story quests (`"story": true`) are followed by themselves. The
+    night quests keep their ids but their names no longer say "Night N", the "Night N!" landing messages are gone, and
+    the Goals page says "Right now" / "Coming up". A night's schematics and held-back things come out when its quest
+    starts (`Schematics.out_tonight()`, `FirstNight.held_back()`).
+  - **The First Night's Void day**: no Dash at the portal. You land and **Tally** waves you over (flag `fn_met_tally`);
+    their first hello sends you to Rex at the Skate Park and says Gloops pop if you jump on them. The day is a request,
+    Coach Bruno's push and ollie, three Gloops and the fountain's watch. After the ollie Rex asks you to find his twin.
+    The Gloop King step moved to The Bike Boy. Old saves move (`_migrate_v4()`, flag `fn_v4`).
+  - **The Bike Boy** (`quests/bike_boy.json`): follow Dash's glowing gold tyre tracks from the Skate Park, pick up the
+    three bits he dropped (a coil, a bulb, a cog), find him in the lab (he's out of sight till then), catch his runaway
+    **Buzz Bot** (walk into it), and his **gadget stall opens**: it's shut with a "GONE TINKERING" sign till then
+    (`shop_stall.gd`, `Meetings.stall_open()`; saves from before the new first day keep it open). Then the Star
+    Popper's blueprint and buying it (for the weapons thread's blueprints; already ticked without them), the Gloop King
+    and the Gloop Crown, and Dash sends you to Pip. Dash zooms past ("Can't stop! Experiment!") until you meet him.
+    Old saves that met Dash the old way have it done (or wait on the King step).
+  - **Melody and Heather**: Bramble points to Melody singing in the Market, Melody sends you for her best friend
+    Heather in the green meadow, then sings her new song and sends you to Dash.
+  - Tests: new `tools/test_meetings.gd`; first_night, nights, later_nights, time_watch, episodes and playthrough updated.
+    Previews: `tools/capture_meetings.gd` (shots in the project files under world/previews/meeting_order).
+  - My choices Hayden may change: the Bike Boy's steps, the Buzz Bot, every line (first drafts), Melody's song.
+
+- 2026-11-11: **People really do their jobs** (Hayden's day 1 playtest: "I want characters who are performing actions
+  to actually be in the locations and performing those actions (librarian climbing a ladder and grabbing a book from a
+  bookshelf)"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Routine `"do": "work"`** with `"job": "<id>"` (`scripts/routine.gd`) hands someone to `scripts/work_job.gd`: they
+    walk round the job's steps in `routines/jobs.json` (in the workplace's own frame, +Z its front) over and over for
+    the whole block. A step can say where to stand (`to`, `via`), what to face, a pose and for how long, climb a ladder
+    first, hold a tool, and take, drop, pick or put things; a job can have `in` and `out` corners walked once. Talking
+    stops them (arms down, then back to it); a time jump puts them mid-step carrying what they'd carry; when the block
+    ends they put everything back. routines/README.md says how.
+  - **Poses** (`scripts/work_pose.gd`, a SkeletonModifier3D put on each person's skeleton when needed): 25 of them
+    (reach_high, shelve, knead, stir, sweep, hammer, saw, water, wash, rake, carry...) posed in code on the bones every
+    body shares (two-bone IK for the arms, lean, crouch with the feet kept down), on top of their idle animation, eased
+    in and out. **Props** (`scripts/work_props.gd`): a library ladder, book cart, kneading table, café tables, a menu
+    board, crates, a sawhorse, a bucket and hose, window boxes, produce stands, a grandfather clock, flower beds and
+    a watering can rest, plus things held in a hand (books, a broom, a duster, a sponge, a hammer, a saw...) or carried
+    in both arms (a crate, a tray, a pie tray: raw dough going into the oven, baked coming out). Put in at play time, so
+    no builder or `.tscn` changed.
+  - **15 jobs:** Miss Marigold (Library: stamps books, fills her cart, shelves, climbs the ladder for a book off the top
+    shelf and hands it over), Poppy (Bakery: kneads, oven in and out, fills the case, wipes up), Mr. Gumdrop (Toy
+    Shop), Mr. Palmer (Earth Town Hall), Gus (diner deliveries, the menu board, sweeping), Miss Ivy (the diner's tables
+    out front), Hank (sawing and hammering at the hardware store), Kip (the Corner Market's produce stands at 6 AM, the
+    fire truck at 10), Dottie (the inn's window boxes), Mr. Page (bookshop cart), Mrs. Wren (antiques out front), and in
+    the Void Bramble (her own flower beds by the Secret Gardens path, clear of your garden, and behind her flower stall:
+    `places.json` `flower_stall` moved up to it) and Pip (lighting the Market's eight lamps at dusk).
+    Patrols can strike a pose at each stop (`"stop_pose"`).
+  - Tests: new `tools/test_work.gd` (every spot on its floor with room to stand, every walk goes round things, nothing on
+    a path or a race line, everyone goes round their steps holding the right things, the ladder, talking, home time);
+    `test_routines` and `test_townsfolk` count "near any spot of their job" for work blocks. routines, townsfolk,
+    dialogue, layout, earth, earth_race, races, farming, walk_through, doors, map, first_hour and first_night pass.
+    Previews: `tools/capture_work.gd` (shots in the project files under world/previews/npc_jobs).
+  - My choices Hayden may change: who does what and when, every pose and prop. The castle school has no staff yet
+    (plan item 30, the school overhaul), so nobody works there.
+
+- 2026-11-11: **No weapon until you've found its blueprint and bought it, the Star Popper too** (Hayden's day 1
+  playtest: "weapons should not be unlocked until you purchase them, including your starting blaster ... weapon
+  blueprints being found in the world where they make the most sense (disco ball in melodys music world)").
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **A new game owns no gadgets** (`Arsenal.owned` starts empty; `Arsenal.armed()`). Shoot and Aim do nothing but
+    say "You haven't got a blaster yet. Jump on enemies to pop them!" (`StarPopper.no_gadget_line()`); stomping still
+    pops everything. `Arsenal.current` stays "popper" with nothing owned, so code that reads it doesn't break. The first
+    gadget bought goes straight into her hand. Mods at the workbench need a gadget first.
+  - **The Star Popper has a blueprint** like the rest: in the Market Square at (-84, 55), a few metres from Dash's stall,
+    from the first night (`Schematics.LIST` "popper", flag `schematic_popper`), and costs 3 sparkles at his stall (shop
+    item `star_popper`). The "Rework quests, the job board and Dash's intro" thread is making Dash's intro quest lead
+    to it.
+  - **Every other gadget's blueprint is in a portal world** (`"world"` in `Schematics.LIST`, placed in that world's
+    scene; `Schematics.where()`, `scene_key()`): Fizz Flinger on Shard Isle's highest islet, Buzz Bots in the
+    Rootmind's tall grass (the hive), Rainbow Ray on Lanternmoor's Moon Rock (glide there), Disco Ball on Rhythm
+    Springs' Dance Floor, Jelly Mines by the Tide Reef's Kelp Grotto, Plushinator in Glenmoor's Fold with the
+    Fluffkins. A world's blueprint is there from your first trip, but its hint (shop note, Goals page) only names the
+    world once that world's portal is open (`Schematics.hint_ready()`). None are put out on a practice trip.
+  - The rides' schematics stay on their nights. The gadget lines came out of nights 2 to 7 (`quests/night_N.json`,
+    `nights.gd` texts, and the friends' lines about them); night 2's Dash's-stall step (`n2_fizz`) is gone. Players see
+    "blueprint" for gadgets; the code still says schematic.
+  - **Old saves** keep every gadget they own (a save from before gadgets keeps the Star Popper: `Arsenal.old_save()`).
+  - Tests: `test_arsenal`, `test_schematics` (every world's blueprint on the ground, clear, found by walking into it,
+    bought; no hint before the portal; nothing on a practice trip) and `test_nights` updated; tests that shoot give
+    themselves the Star Popper.
+  - My choices Hayden may change: which world has which gadget, where in each world, 3 sparkles for the Star Popper,
+    the Frozen Moment, Dark Hollow and the Far Future having none.
+
+- 2026-11-11: **Day 1 playtest polish: sprint, skate keys, the skate lesson, oak runes, plants, grass, rails** (Hayden's
+  day 1 playtest notes; other threads took the rest). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Sprint** (`player.gd`): it only starts from a fresh press of Sprint, and stops when she's carried, rides, burrows,
+    swims or wall-crawls, when she's stunned or the controls are locked, and when the window loses focus. It couldn't
+    be made to stick in a test, so this is a guard; ask Hayden which actions did it if it happens again.
+  - **Skate keys on PC** (`settings.gd`, `project.godot`): flip Shift, grab Ctrl, grind E (were J, K, L, under the mouse
+    hand). Old J/K/L settings move over once (`skate_keys_v2`). `rebind` only counts a clash inside a button group
+    (PAD_GROUPS), so on foot E (use) and on the board E (grind) can share. E steps off the board only with no rail in
+    reach (`game.gd _board_button_free`).
+  - **Skate lesson:** Coach Bruno runs it (the First Night checklist said "Coach Rook"). Rook's praise now fits a dog
+    in Rex's human body (no tail or paws).
+  - **Old oak runes** (`build_earth.gd _rune_glyph`, `RUNE_GLYPHS`): 16 made-up runic glyphs built from thin strokes.
+  - **Plants don't grow through things** (`scripts/plant_clearance.gd`, preload it): as a world loads (and again at 1 s
+    and 4 s, for things placed at runtime) each Void tree and plant (`trees.gd`, `foliage.gd`) and each Earth tree
+    (`earth_world.gd prune_earth_trees`) checks for solid bodies and built meshes where it would be, and leaves itself
+    out if so. `blocked_by` says what stopped them. Seasons keeps a left-out tree's leaves hidden (`hide_leaf`).
+  - **Grass push** smaller (`foliage.gd`: reach 0.75, push 0.35 for grass; leaves and ferns 1.0).
+  - **Grind rails** (`build_town.gd _town_rails`): no more scattered meadow rails; rails only beside straight path
+    stretches and as boardwalk railings, never on the courts, soccer field or skate park, nor within 6 to 7 m of a race
+    line (`_race_lines` reads races.gd TRACKS). Big mushrooms (solid caps) keep out of race lanes too. 22 rails.
+  - New `tools/test_plant_clearance.gd`; `tools/capture_day1_polish.gd` for pictures
+    (/mnt/project-files/world/previews/day1_polish/). `test_arsenal`'s Plush Party / Rainbow Ray checks are shaky: in its
+    staging one Gloop ends up sitting on the other's head, and which one the shot aims at depends on tiny distances
+    (main fails other checks in the same test).
+
+- 2026-11-11: **Follow any quests and side jobs you like, the notice board tutorial, and a first look round the Void**
+  (Hayden's day 1 playtest: "all quests and side jobs should be selectable allowing you to change back and forth and
+  even showing multiple location markers simultaneously"; "a tutorial for the jobs board that happens at the beginning
+  of the game and carries over into the void with a cutscene showing the location when you enter for the first
+  time"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Following** (`Quests.followed`, saved as `"followed"`): quests by id, board jobs by `key_of(r)` (`"req:<kind>"`
+    for Tally's, `"job:<kind>"` for Earth's). Every quest card on the Quests sheet, and a new card for each of tonight's
+    requests and today's jobs (`Quests.job_card()`), has a **Follow** button. Only followed things get stars on the
+    map and minimap (`map_screen.gd quest_markers()`, several at once, each labelled), and the HUD's to-do list shows
+    up to three (`Quests.objectives_all()`). A new quest is followed by itself only when nothing else is, so it never
+    steals the player's pick; a finished quest or a paid job drops off. Unfollowing everything (`chose_none`) shows
+    nothing. Jobs know where they want you (`Requests.markers(r)`: the place, the parcel, the props, who it's for,
+    the board once it's done). Talking to either board ends with a choice: follow a job, "Follow them all!", or stop
+    following one (`follow_choice()`). Old saves follow the quest their to-do list was on.
+  - **Notice board tutorial:** The First Night has a new step `board` after the morning: Nina waits by the gazebo, the
+    board (now up from a new game's first morning) has her how-to (`FirstNight.board_tutorial_lines()`), and the
+    checklist is read it, follow a job, finish one and turn it in (`fn_board_look`, `fn_board_follow`,
+    `fn_board_job`). Saves part way through move on a step (`migrate()`, flag `fn_v3`). Tally's first hello explains
+    the Void's board the same way (flag `tally_hi`).
+  - **First look round the Void** (`scripts/place_intro.gd`, `FirstNight.void_intro()`): after the arrival swirl, the
+    first time only (flag `void_intro_seen`), black bars and a camera of its own glide up over the portal, across to
+    the Market Square and down to Tally's board, with captions. Skippable; skipped in headless runs.
+  - Tests: new `tools/test_following.gd`; `test_first_night` walks the board step; `test_kid_ui` and `test_first_hour`
+    updated; playthrough does the board. Previews: `tools/capture_following.gd` (shots in the project files under
+    world/previews/following).
+
 - 2026-11-11: **A whole-game playtest, start to ending, and what it fixed** (Hayden: "Playtest"). Played in the cloud
   (own Godot user folders, no save touched).
   - **`tools/playthrough.gd`** plays the whole story as a player would, chapter by chapter: the First Night, nights 2

@@ -26,8 +26,14 @@ extends Node
 # Hallow's Eve evening (trick-or-treating up and down Maple Lane), like the festival's, and a file can have blocks
 # for each of the other big days by its id ("lights", "kites", "fireworks": Festival.BIG_DAYS) while it's on.
 #
+# "do": "work" puts them to work at a real place (scripts/work_job.gd, res://routines/jobs.json): the librarian up her
+# ladder for a book, the baker kneading and taking pies out of the oven, Bramble planting her beds. Their arms and legs
+# are posed in code for it (scripts/work_pose.gd), and they hold the things they're using.
+#
 # In the Void, a file's "mended" blocks (by portal world id) replace its day once that world is mended
 # (scripts/portals.gd): Melody puts on a show on her new stage every evening once Rhythm Springs is.
+
+const WORK_JOB := preload("res://scripts/work_job.gd")
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -74,6 +80,8 @@ var _wait := 0.0                                    # pausing (at a patrol stop,
 var _route_i := 0
 var _rest_yaw := NAN
 var _playing := ""
+var _job: RefCounted = null                         # at work (scripts/work_job.gd), while a "work" block is on
+var _snapping := false
 
 
 func _ready() -> void:
@@ -220,8 +228,11 @@ func _physics_process(delta: float) -> void:
 		_space = (_body as Node3D).get_world_3d().direct_space_state
 		_skip = TownPaths.skip_rids(get_tree().current_scene if get_tree().current_scene else _body.owner)
 		_ready_to_go = true
+		_put_out_work_things()
 	_hold(_listening() or _travelling or not _present or not _self_wandering())
 	if _listening():
+		if _job:
+			_job.listen()
 		if not _body.get("sitting") == true:
 			_play("idle")
 		return
@@ -296,6 +307,7 @@ func _destination(b: Dictionary) -> Vector3:
 
 func snap() -> void:
 	# Be wherever the current block says, straight away
+	_end_job()
 	var b := current_block()
 	_travelling = false
 	_path.clear()
@@ -316,11 +328,16 @@ func snap() -> void:
 	_body.global_position = pos
 	if _body is CharacterBody3D:
 		(_body as CharacterBody3D).velocity = Vector3.ZERO
+	_snapping = true
 	_arrive()
+	_snapping = false
 
 
 func _go_to(b: Dictionary) -> void:
-	# Walk to the block's place along the town's paths
+	# Walk to the block's place along the town's paths (out round a job's corners first, so nobody walks through
+	# the stall they were standing behind)
+	var way_out: Array[Vector3] = _job.way_out() if _job else ([] as Array[Vector3])
+	_end_job()
 	_wait = 0.0
 	_route_i = 0
 	if b.get("do", "") == "follow":
@@ -333,6 +350,10 @@ func _go_to(b: Dictionary) -> void:
 		dest_name = str(b.route[0])
 	_set_present(true)
 	_start_path(dest_name)
+	if not way_out.is_empty() and _travelling:
+		way_out.append_array(_path)
+		_path = way_out
+		_travelling = true
 
 
 func _start_path(dest_name: String) -> void:
@@ -387,6 +408,18 @@ func _arrive() -> void:
 	if doing == "wander" and "_home" in _body:
 		_body.set("_home", _body.global_position)                # Rex and Rook wander on their own
 		_body.set("wander_radius", float(b.get("radius", 5.0)))
+	if doing == "work":
+		_end_job()
+		if _space == null:
+			return                                          # (before the first frame: the first frame snaps)
+		_job = WORK_JOB.new(self, b)
+		if not _job.ok():
+			push_warning("Routine: %s has no job '%s' here" % [character_id, b.get("job", "")])
+			_job = null
+		elif _snapping:
+			_job.snap()
+		else:
+			_job.begin()
 
 
 func _do(delta: float) -> void:
@@ -402,6 +435,11 @@ func _do(delta: float) -> void:
 			_wander(b, delta)
 		"patrol":
 			_patrol(b, delta)
+		"work":
+			if _job:
+				_job.tick(delta)
+			else:
+				_play("idle")
 		"follow":
 			_follow(b, delta)
 		"nap":
@@ -458,7 +496,9 @@ func _patrol(b: Dictionary, delta: float) -> void:
 	if _wait > 0.0:
 		_wait -= delta
 		_play(str(b.get("anim", "idle")))                # e.g. Melody dancing at the Market between little walks
+		_stop_pose(b, _wait > 0.3)
 		return
+	_stop_pose(b, false)
 	if _path.is_empty():
 		_route_i = (_route_i + 1) % route.size()
 		var from := _paths.nearest(_body.global_position)
@@ -504,6 +544,33 @@ func _follow(b: Dictionary, delta: float) -> void:
 	else:
 		_face(to, delta)
 		_play("idle")
+
+
+func _stop_pose(b: Dictionary, on: bool) -> void:
+	# A patrol's "stop_pose": what they do at each stop (Pip reaching up to look at a lamp)
+	if not b.has("stop_pose"):
+		return
+	var p: Node = WORK_JOB.pose_of(_body)
+	if p:
+		p.set_pose(str(b.stop_pose) if on else "")
+
+
+func _end_job() -> void:
+	if _job:
+		_job.stop()
+		_job = null
+	var pose := _body.find_child("WorkPose", true, false)        # (a patrol's stop pose, if a block ended mid-stop)
+	if pose:
+		pose.set_pose("")
+
+
+func _put_out_work_things() -> void:
+	# The things every job of theirs needs at its workplace (a ladder, a kneading table...), there all day
+	var scene := get_tree().current_scene
+	for list in [blocks, weekend, holiday, festival, hallows] + mended.values() + big_days.values():
+		for b in list:
+			if str(b.get("do", "")) == "work":
+				WORK_JOB.ensure_props(str(b.get("job", "")), scene)
 
 
 func _leader(b: Dictionary) -> Node:

@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the hero's gadgets (scripts/arsenal.gd) in the town: the Gadget wheel is on R and D-pad up and can be
-# remapped; she starts with just the Star Popper; Dash's gadget stall stands in the Market Square and sells the Fizz
+# remapped; she starts with no gadgets and buys the Star Popper once its blueprint's found; Dash's gadget stall stands in the Market Square and sells the Fizz
 # Flinger and the Disco Ball for sparkles (through the Shop, as kinds "gadget" and "ammo") and refills them. The Fizz
 # Flinger lobs a fizz bomb that pops every Gloop in its splash and uses ammo; empty, it won't fire. The Disco Ball
 # floats up and sets nearby Gloops dancing on the spot (not chasing), then lets them go. Gadgets grow versions with
@@ -73,7 +73,18 @@ func _run() -> void:
 	settings.use_layout("classic")
 
 	# --- Starting out ---
-	check(arsenal.owned == ["popper"] and arsenal.current == "popper", "she starts with just the Star Popper")
+	check(arsenal.owned.is_empty() and not arsenal.armed(), "she starts with no gadgets at all, not even the Star Popper")
+	check(shop.can_buy("star_popper") == "Find its blueprint", "...the Star Popper needs its blueprint first (%s)"
+		% shop.can_buy("star_popper"))
+	root.get_node("Dialogue").set_flag("schematic_popper")
+	game.sparkles = 1
+	check(shop.can_buy("star_popper") == "Not enough sparkles yet", "...and then sparkles")
+	game.sparkles = 10
+	check(shop.can_buy("mod_bounce") == "Needs a gadget first", "...and mods need a gadget to go in")
+	shop.open("Gadget")
+	check(shop.buy("star_popper") and arsenal.owned == ["popper"] and arsenal.current == "popper" and arsenal.armed(),
+		"buying the Star Popper: it's her first gadget, and it's out")
+	shop.close()
 	check(arsenal.ammo_of("popper") < 0 and arsenal.has_ammo("popper"), "...which never runs out")
 	var stall_items: Array = shop.for_stall("Gadget")
 	check(stall_items.size() >= 4, "Dash's stall sells gadgets and refills (%d things)" % stall_items.size())
@@ -249,8 +260,11 @@ func _run() -> void:
 		and arsenal.upgrade_level("fizz", "ammo") == 1 and arsenal.max_ammo("fizz") == int(saved_max),
 		"...and so do the mods, the slots and the upgrades")
 	arsenal.load_data({})
+	arsenal.old_save()
 	check(arsenal.owned == ["popper"] and arsenal.mods_owned.is_empty() and arsenal.mods("popper").is_empty(),
-		"an old save starts with just the Star Popper, and no mods")
+		"a save from before gadgets keeps the Star Popper it always had, and no mods")
+	arsenal.load_data({"owned": [], "current": "popper"})
+	check(arsenal.owned.is_empty() and not arsenal.armed(), "...but a new save with none bought still has none")
 
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	_finish()
@@ -373,17 +387,23 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 	arsenal.xp["buzz"] = 0
 
 	# Rainbow Ray
+	_clean()                                              # (no bot bubbles still flying to pop it first)
 	arsenal.select("rainbow")
 	_fresh(g0)
 	_stage(p, g0, flat, Vector3(0, 0, 6))
+	g0.set_physics_process(false)                         # (it waddles up and bumps into her otherwise, and that pops it)
 	await _physics(2)
 	var ammo_was: int = arsenal.ammo_of("rainbow")
+	# (Watched each frame: the fill goes by the real frame time, so on a slow machine it can fill and pop within 20)
+	var filling := false
 	for k in 20:
 		popper.shine(1.0 / 60.0)
 		await physics_frame
-	var ray = popper.ray
-	check(ray != null and ray.fills.has(g0) and float(ray.fills[g0]) > 0.1 and g0.find_child("RainbowFill", false, false) != null,
-		"the Rainbow Ray fills a Gloop with colour")
+		var r = popper.ray
+		if r != null and r.fills.has(g0) and float(r.fills[g0]) > 0.1 and g0.find_child("RainbowFill", false, false) != null:
+			filling = true
+			break
+	check(filling, "the Rainbow Ray fills a Gloop with colour")
 	check(arsenal.ammo_of("rainbow") < ammo_was, "...using ammo while it shines")
 	for k in 100:
 		popper.shine(1.0 / 60.0)
@@ -637,6 +657,10 @@ func _fresh(g: CharacterBody3D) -> void:
 	for t in get_processed_tweens():
 		t.kill()
 	arsenal.unplush(g)
+	# ...and any respawn still waiting from an earlier pop, which would put it back at its home mid-check
+	var respawn: Timer = g.get("_respawn_timer")
+	if respawn:
+		respawn.stop()
 	if g.has_meta("chill_until"):
 		g.remove_meta("chill_until")
 	g.defeated = false
@@ -766,7 +790,13 @@ func _stage(p: CharacterBody3D, enemy: CharacterBody3D, at: Vector3, offset: Vec
 
 func _place(p: CharacterBody3D, enemy: CharacterBody3D, spot: Vector3) -> void:
 	var q := PhysicsRayQueryParameters3D.create(spot + Vector3(0, 20, 0), spot + Vector3(0, -20, 0))
-	q.exclude = [p.get_rid(), enemy.get_rid()]
+	# Onto the ground, never onto another enemy's head (one still standing there from the check before would carry
+	# this one off on its back like a moving floor)
+	var skip: Array[RID] = [p.get_rid()]
+	for e in get_nodes_in_group("enemies"):
+		if e is CollisionObject3D:
+			skip.append((e as CollisionObject3D).get_rid())
+	q.exclude = skip
 	var hit := p.get_world_3d().direct_space_state.intersect_ray(q)
 	enemy.global_position = hit.position if not hit.is_empty() else spot
 	enemy.velocity = Vector3.ZERO

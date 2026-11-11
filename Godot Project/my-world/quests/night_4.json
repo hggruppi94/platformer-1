@@ -1,5 +1,6 @@
 {
-  "name": "Night 4: Stars Over Observatory Hill",
+  "name": "Stars Over Observatory Hill",
+  "story": true,
   "skippable": true,
   "start": {
     "flag": "night_4"
@@ -7,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Dash is waiting for you by the portal. Go and say hi!",
+      "text": "Melody and Heather say Dash came looking for you. He's waiting by the portal. Go and say hi!",
       "done": {
         "flag": "n4_hi"
       },
@@ -31,10 +32,6 @@
           "Go up the hill to the Observatory"
         ],
         [
-          "schematic_jelly",
-          "Find the Jelly Mines' schematic, halfway up Observatory Hill"
-        ],
-        [
           "schematic_bike",
           "Find the Bike's schematic, round the far side of the hill"
         ],
@@ -46,7 +43,6 @@
       "done": {
         "flags": [
           "n4_observatory",
-          "schematic_jelly",
           "schematic_bike",
           "n4_ride"
         ]
@@ -58,13 +54,6 @@
             -80
           ],
           "unless": "n4_observatory"
-        },
-        {
-          "at": [
-            97,
-            -63
-          ],
-          "unless": "schematic_jelly"
         },
         {
           "at": [
@@ -85,6 +74,6 @@
   ],
   "reward": {
     "sparkles": 12,
-    "message": "Night 4 done! Pick which ride you're on from the Skate page of your menu. (+12 sparkles)"
+    "message": "Stars Over Observatory Hill done! Pick which ride you're on from the Skate page of your menu. Dash says the Astronaut's waving from the Mothership Pad! (+12 sparkles)"
   }
 }
