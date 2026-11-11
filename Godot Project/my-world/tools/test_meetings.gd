@@ -152,8 +152,19 @@ func _run() -> void:
 		check(shop.is_open(), "...and his stall opens its shop")
 		shop.close()
 		await _frames(4)
+	# The Star Popper's blueprint is in the Market Square (Schematics.LIST "popper"): walk into it, then buy it
+	var bp := current_scene.get_node_or_null("Schematic popper") as Node3D
+	check(bp != null or dialogue.flags.has("schematic_popper"), "the Star Popper's blueprint is out in the Market Square")
+	if bp:
+		_stand_at(bp.global_position)
+		await _physics(8)
+	if not root.get_node("Arsenal").owns("popper"):
+		game.sparkles = maxi(game.sparkles, 3)
+		check(shop.buy("star_popper"), "...and Dash builds the Star Popper")
+	await _frames(30)
 	check(dialogue.flags.has("bb_stall") and dialogue.flags.has("schematic_popper") and dialogue.flags.has("bb_popper"),
-		"looked at the stall, found the blueprint and got a Star Popper")
+		"looked at the stall, found the blueprint and got a Star Popper (%s %s %s, owns %s)" % [dialogue.flags.has("bb_stall"),
+		dialogue.flags.has("schematic_popper"), dialogue.flags.has("bb_popper"), root.get_node("Arsenal").owns("popper")])
 	await _frames(30)
 	check(_step() == "king", "on to the Gloop King (%s)" % _step())
 

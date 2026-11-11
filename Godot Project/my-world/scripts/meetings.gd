@@ -63,6 +63,7 @@ var _since := 0.0                              # seconds since this scene came i
 func _ready() -> void:
 	Quests.changed.connect(func(_id: String) -> void: advance())
 	Shop.opened.connect(_on_shop)
+	Arsenal.changed.connect(_check_popper.call_deferred)   # (buying the Star Popper ticks it off; the gadget's in a frame later)
 	Dialogue.flag_set.connect(func(_f: String) -> void: _check_popper())
 
 

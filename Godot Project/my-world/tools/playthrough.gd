@@ -265,7 +265,7 @@ func _ch_first_night() -> void:
 	await _talk("dash")
 	await _frames(20)
 	var bot := current_scene.get_node_or_null("Runaway Buzz Bot") as Node3D
-	check(bot != null, "Dash's Buzz Bot gets loose")
+	check(bot != null or dialogue.flags.has("bb_bot_caught"), "Dash's Buzz Bot gets loose")   # (or it's bumped into you already)
 	for k in 20:
 		if not is_instance_valid(bot):
 			break
@@ -278,6 +278,7 @@ func _ch_first_night() -> void:
 	shop.open("Gadget")
 	await _frames(2)
 	shop.close()
+	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
 	await _frames(30)
 	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
 	var king := current_scene.find_child("The Gloop King", true, false)
