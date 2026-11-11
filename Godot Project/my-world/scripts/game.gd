@@ -356,6 +356,7 @@ func save_game() -> void:
 		"calendar_offset": Clock.calendar_offset, "seasons_open": Clock.seasons_open.duplicate(),
 		"dialogue": Dialogue.save_data(),
 		"quests": Quests.save_data(),
+		"followed": Quests.follow_save(),                # what the player follows (the Quests sheet's Follow buttons)
 		"requests": Requests.save_data(),
 		"earth_jobs": EarthJobs.save_data(),
 		"festival": Festival.save_data(),
@@ -441,6 +442,7 @@ func load_game() -> void:
 	var quests = data.get("quests", {})
 	Quests.load_data(quests if quests is Dictionary else {})
 	FirstNight.migrate()                          # an old save's First Night steps, moved to the Humming Oak's
+	Quests.follow_load(data.get("followed", null))  # (a save from before following follows its to-do list's quest)
 	var requests = data.get("requests", {})                  # saves from before the request board have none
 	Requests.load_data(requests if requests is Dictionary else {})
 	var jobs = data.get("earth_jobs", {})                    # saves from before Earth's notice board have none

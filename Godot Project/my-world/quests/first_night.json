@@ -29,6 +29,22 @@
       }
     },
     {
+      "id": "board",
+      "text": "Nina wants to show you the notice board on the green, by the gazebo. People in Stars Hollow pin up jobs there, and they pay sparkles!",
+      "checklist": [
+        ["fn_board_look", "Read the notice board by the gazebo"],
+        ["fn_board_follow", "Follow a job, to put a star on your map"],
+        ["fn_board_job", "Finish a job and turn it in at the board"]
+      ],
+      "done": {"flags": ["fn_board_look", "fn_board_follow", "fn_board_job"]},
+      "where": [
+        {"at": [-3.7, 6.6], "world": "earth", "unless": "fn_board_look"}
+      ],
+      "override": {
+        "nina_earth": {"place": "gazebo", "do": "idle", "label": "first_night", "face": [-3.7, 6.6]}
+      }
+    },
+    {
       "id": "oak",
       "text": "Nina says the old oak on the green hums every midnight. Go and listen to it.",
       "done": {"flag": "fn_oak_listen"},
