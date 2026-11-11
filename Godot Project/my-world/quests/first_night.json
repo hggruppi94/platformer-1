@@ -120,14 +120,14 @@
     },
     {
       "id": "king",
-      "text": "Everyone's whispering about a big golden Gloop out in the west fields, past the Market. Pop the Gloop King, then tell Dash!",
+      "text": "Everyone's whispering about a big golden Gloop with a kingdom of his own, through a gooey gate in the west fields past the Market. Pop the Gloop King, then tell Dash!",
       "checklist": [
-        ["popped_gloop_king", "Pop the Gloop King in the west fields"],
+        ["popped_gloop_king", "Pop the Gloop King in his kingdom (the gate's in the west fields)"],
         ["fn_told_dash", "Tell Dash all about it"]
       ],
       "done": {"flags": ["popped_gloop_king", "fn_told_dash"]},
       "where": [
-        {"at": [-134, 2], "unless": "popped_gloop_king"},
+        {"at": [-128, -3], "unless": "popped_gloop_king"},
         {"who": "dash", "unless": "fn_told_dash"}
       ],
       "override": {

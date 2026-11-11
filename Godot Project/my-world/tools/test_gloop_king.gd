@@ -2,8 +2,9 @@ extends SceneTree
 
 # Checks the Gloop King and the restyled Gloops (tools/build_gloop.gd, scripts/gloop.gd, scripts/gloop_king.gd):
 # every Gloop wears the new goo (its own copy, so a hit only flashes that one), has big glassy eyes, stubby feet and
-# no old grin, and keeps dripping (a drop swells, falls, splats and starts again). The King is in town in his crown,
-# much bigger than a Gloop, with his court about him. Bubbles pop him only after six (a big bubble counts for three),
+# no old grin, and keeps dripping (a drop swells, falls, splats and starts again). The King's not in town any more: he's
+# in his own kingdom (scripts/gloop_kingdom.gd, tools/test_gloop_kingdom.gd) in his crown, much bigger than a Gloop,
+# with his court about him. Bubbles pop him only after six (a big bubble counts for three),
 # he calls in more Gloops as he goes, and those don't come back once popped. His belly-flop ring bumps you on the
 # ground but not if you jump over it, and he comes back later with all his goo.
 #
@@ -76,24 +77,7 @@ func _run() -> void:
 	var big := town.find_child("Big Gloop *", true, false)
 	check(big != null and absf(float(big.get("goldness")) - 0.6) < 0.01, "big Gloops have goldier goo")
 
-	# --- The King ---
-	var king := enemies.get_node_or_null("The Gloop King") as CharacterBody3D
-	check(king != null, "the Gloop King is in town")
-	if king == null:
-		_end()
-		return
-	check(king.find_child("Crown", true, false) != null and king.find_child("Gem", true, false) != null,
-		"...wearing his gold crown with its red gem")
-	check(gloops[0].find_child("Crown", true, false) == null, "ordinary Gloops have no crown")
-	var kh := _height(king)
-	var gh := _height(gloops[0])
-	check(kh > gh * 1.8, "he's much bigger than a Gloop (%.1f m to %.1f m)" % [kh, gh])
-	check(king.global_position.y > -0.2, "he's on dry land, not in the lake")
-	var court := 0
-	for g in gloops:
-		if (g as Node3D).global_position.distance_to(king.global_position) < 20.0:
-			court += 1
-	check(court >= 2, "he holds court with Gloops near him (%d)" % court)
+	check(town.find_child("The Gloop King", true, false) == null, "the King's not out in town (he's in his kingdom)")
 
 	# --- Dripping ---
 	# Hold one Gloop still where the player can see it, and watch a drop go round its loop
@@ -127,9 +111,39 @@ func _run() -> void:
 	check(again, "...and the next one starts (it loops)")
 	g0.set_physics_process(true)
 
+	# --- Reduce motion calms the oozing ---
+	var settings := root.get_node("Settings")
+	var was: bool = settings.reduce_motion
+	settings.reduce_motion = true
+	g0._animate(1.0 / 60.0, 0.0, false)
+	check(absf(float(m0.get_shader_parameter("ooze")) - 0.35) < 0.01, "Reduce motion slows the oozing")
+	settings.reduce_motion = was
+
+	# --- The King, in his kingdom (scripts/gloop_kingdom.gd) ---
+	var g0_look := gloops[0] as Node3D
+	var gh := _height(g0_look)
+	check(g0_look.find_child("Crown", true, false) == null, "ordinary Gloops have no crown")
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
+	town = current_scene as Node3D
+	p = town.find_child("Player", true, false) as CharacterBody3D
+	var king := town.get_node_or_null("The Gloop King") as CharacterBody3D
+	check(king != null, "the Gloop King is in his kingdom")
+	if king == null:
+		_end()
+		return
+	check(king.find_child("Crown", true, false) != null and king.find_child("Gem", true, false) != null,
+		"...wearing his gold crown with its red gem")
+	var kh := _height(king)
+	check(kh > gh * 1.8, "he's much bigger than a Gloop (%.1f m to %.1f m)" % [kh, gh])
+	town.call("wake")
+	await _physics(30)
+	check(king.global_position.y > 0.0, "he hops down into his court")
+	var court := town.find_children("Gloop Guard *", "", true, false).size() + town.find_children("Courtier *", "", true, false).size()
+	check(court >= 2, "he holds court with Gloops about him (%d)" % court)
+
 	# --- Popping the King with bubbles ---
-	for g in gloops:
-		(g as Node3D).set_physics_process(false)
 	king.set_physics_process(false)
 	var xp: int = game.xp
 	var level: int = game.level
@@ -148,16 +162,23 @@ func _run() -> void:
 	await create_timer(3.2).timeout
 	check(town.find_children("Courtier Gloop *", "", true, false).is_empty(),
 		"popped courtiers are gone for good (they don't respawn)")
-	# He comes back later with all his goo
-	p.global_position = king.home + Vector3(40, 0, 40)
-	king._try_respawn()
-	await _frames(2)
-	check(not king.defeated and king.hits == 0, "the King comes back later with all his goo")
+	# He comes back next time you visit his kingdom, with all his goo
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
+	town = current_scene as Node3D
+	p = town.find_child("Player", true, false) as CharacterBody3D
+	king = town.get_node("The Gloop King") as CharacterBody3D
+	check(not king.defeated and king.hits == 0, "the King's back next visit with all his goo")
+	town.call("wake")
+	await _physics(60)
+	king.set_physics_process(false)
 	king.shot(3, king.global_position, Vector3.FORWARD)
 	check(king.hits == 3 and not king.defeated, "a big bubble counts for three")
 	king.hits = 0
 
-	# --- The belly-flop ring ---
+	# --- The belly-flop ring (in the middle of his court) ---
+	king.global_position = Vector3(0, 1.2, 88)
 	king.player = p
 	var hp: int = game.hp
 	p.global_position = king.global_position + Vector3(4.0, 3.0, 0.0)       # in the air over the ring
@@ -165,7 +186,7 @@ func _run() -> void:
 	await _physics(1)
 	king._land()
 	check(game.hp == hp, "jumping over the goo ring is safe")
-	p.global_position = king.global_position + Vector3(4.0, 0.6, 0.0)
+	p.global_position = Vector3(4.0, 1.0, 88.0)
 	for i in 60:
 		await physics_frame
 		if p.is_on_floor():
@@ -178,13 +199,6 @@ func _run() -> void:
 	check(town.find_children("GooRing", "", true, false).size() > 0, "the ring of goo spreads across the ground")
 	game.hp = hp
 
-	# --- Reduce motion calms the oozing ---
-	var settings := root.get_node("Settings")
-	var was: bool = settings.reduce_motion
-	settings.reduce_motion = true
-	g0._animate(1.0 / 60.0, 0.0, false)
-	check(absf(float(m0.get_shader_parameter("ooze")) - 0.35) < 0.01, "Reduce motion slows the oozing")
-	settings.reduce_motion = was
 	_end()
 
 

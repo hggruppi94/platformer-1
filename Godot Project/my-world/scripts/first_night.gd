@@ -20,7 +20,7 @@ extends Node
 #   Then the first Void day:
 #   7 shift    through the oak's door: the arrival moment, then Dash at the portal on the far side.
 #   8 day      the Void: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
-#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
+#   9 king     the Gloop King in his kingdom (the Gloop Gate's in the west fields), then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
 #   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
 # A new game starts it when the hero's made (scripts/creator.gd closes). An old save never gets it forced on it: Nina
@@ -348,7 +348,7 @@ func _cheer() -> void:
 		var at := player.global_position + Vector3(0, 2.0, 0)
 		for c in [Color(1.0, 0.85, 0.3), Color(0.7, 0.55, 1.0), Color(0.4, 0.95, 0.8), Color(1.0, 0.5, 0.75)]:
 			Fx.burst(player.get_parent(), at, c, 14, 0.09, 4.0, -4.0, 1.6)
-	Game.message("HOORAY! You popped the Gloop King! Dash is cheering at the edge of the fields. Go and tell him!")
+	Game.message("HOORAY! You popped the Gloop King! Dash is waiting out by the west fields. Take the goo bubble home and tell him!")
 
 
 func crown_from_dash() -> Array:

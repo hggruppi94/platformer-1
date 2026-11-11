@@ -247,7 +247,7 @@ func _run() -> void:
 	lines = await _talk("dash")
 	check(watches.given_count() >= 1, "...and Dash takes it first, before anything else he has to say")
 	var zippy := _starter()
-	check(zippy != null, "Zippy is at the Lake Loop")
+	check(zippy != null, "Zippy is at the race gate by the lake")
 	if zippy:
 		lines = await _talk_to(zippy, [-1])
 		check(_said(lines, "Zippy") or _said(lines, "Vroom"), "Zippy says hi")
@@ -259,11 +259,16 @@ func _run() -> void:
 	dash = _talker("dash")
 	check(_going(dash, "market_far_west"), "Dash waits at the edge of the west fields")
 	stars = root.get_node("TownMap").quest_markers()
-	check(stars.any(func(s: Dictionary) -> bool: return _flat(s.pos - Vector3(-134, 0, 2)) < 1.0), "a star on the King's court")
+	check(stars.any(func(s: Dictionary) -> bool: return _flat(s.pos - Vector3(-128, 0, -3)) < 1.0), "a star on the Gloop Gate")
 	lines = await _talk("rex")
 	check(_said(lines, "west fields"), "rumours lead to the west fields")
+	# He's in his own kingdom (scripts/gloop_kingdom.gd), through the Gloop Gate
+	root.get_node("Bosses").enter_kingdom()
+	await _frames(10)
+	await _physics(4)
 	var king := current_scene.find_child("The Gloop King", true, false)
-	check(king != null, "the Gloop King is there")
+	check(king != null, "the Gloop King is there, through his gate")
+	current_scene.call("wake")
 	messages.clear()
 	var guard := 40
 	while king and not king.defeated and guard > 0:
@@ -273,6 +278,9 @@ func _run() -> void:
 	await _frames(4)
 	check(dialogue.flags.has("popped_gloop_king"), "the Gloop King popped")
 	check(messages.any(func(m: String) -> bool: return m.contains("HOORAY")), "...with a cheer")
+	current_scene.call("go_home")
+	await _frames(10)
+	await _physics(30)
 	var sparkles: int = game.sparkles
 	lines = await _talk("dash")
 	check(_said(lines, "Agent of Chaos"), "Dash hints at the Agent of Chaos, watching from the far field")
@@ -380,9 +388,9 @@ func _talker(id: String) -> Area3D:
 
 
 func _starter() -> Node3D:
-	# Zippy's talk spot at the Lake Loop (scripts/races.gd)
+	# Zippy's talk spot at the race gate by the lake (scripts/races.gd HUBS: the races have circuits of their own)
 	for t in current_scene.find_children("*", "Area3D", true, false):
-		if t.get_parent() and str(t.get_parent().get_meta("track_id", "")) == "lake_loop" and t.has_method("begin_talk"):
+		if t.get_parent() and str(t.get_parent().get_meta("hub_id", "")) == "void" and t.has_method("begin_talk"):
 			return t
 	return null
 

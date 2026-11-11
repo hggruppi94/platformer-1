@@ -91,6 +91,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **The Gloop King gets a kingdom of his own** (Hayden's day 1 playtest: "I want the gloop king to have his
+  own domain instead of just being in a field"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The Gloop Gate** (`Bosses._place_gloop_gate()`, at play time): a goo dome with gold drips, a crown and a
+    "THE GLOOP KINGDOM (knock first)" sign at `Bosses.GATE` (-134, -3) in the west fields, where he used to hold court
+    (checked flat, dry, 9.8 m from the nearest tree, 27 m off the nearest path). It's on the map. The King the town
+    builder still puts in the field is taken out when the town loads, so `town.tscn` wasn't rebuilt.
+  - **The Gloop Kingdom** (`scenes/bosses/gloop_kingdom.tscn` from `tools/build_gloop_kingdom.gd`; everything is built
+    at load by `scripts/gloop_kingdom.gd`, like the race circuits): a purple sky over a bog, the **Bog Road** (a gold
+    flagstone causeway between sticky goo bogs, `soft_zone.gd` kind `"goo"`: slow going, never harmful), four
+    **Royal Guards** in gold helmets, the **Goo Moat** (four bouncy pads to hop, or wade), the **Palace Gate**, and the
+    round **Royal Court** with goo-falls and ten courtiers watching from the stands. Everything you walk on is flush
+    with the ground (the player can't step up a ledge on foot). The King sits still on his golden throne until you
+    come into his court (`WAKE_RANGE`), then hops down and the usual fight is on (`gloop_king.gd`, unchanged). Popped:
+    the **Royal Treasure** opens (12 sparkles, once a Void visit: flag `gloop_treasure_<visit day>`) and a goo bubble
+    home appears by the throne. There's one by the way in too, any time (`go_home()`: you land on the ground in front
+    of the gate, `Bosses.coming_out`). He's back on his throne next visit.
+  - The First Night's king step, Rex's and Dash's lines and its map star point to the gate (`quests/first_night.json`).
+    The loading screen says "Into the Gloop Kingdom...". An ammo crate moved off the gate's doorstep.
+  - Tests: new `tools/test_gloop_kingdom.gd` (the gate's spot, really walking from the way in to his court, the fight,
+    the treasure once, the way home, saving inside); test_gloop_king, boss_versions, first_night, soundscape, arsenal
+    and `tools/playthrough.gd` now go through the gate. Previews: `tools/capture_gloop_kingdom.gd` (shots in the project
+    files under world/previews/gloop_kingdom).
+  - My choices Hayden may change: the gate's look and spot, the kingdom's layout and colours, the guards, 12 sparkles,
+    the treasure once a visit.
+
 - 2026-11-11: **Races get their own circuits, longer, with obstacles, eight racers and attacks** (Hayden's day 1
   playtest: "a separate instance with option to back out, restart the race", "longer, with more obstacles, more
   racers, and more powerups that attack/defend with racers that attack you"). Built and tested in the cloud (own Godot

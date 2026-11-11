@@ -7,8 +7,9 @@ extends Area3D
 #   bath:   a splash going in, bubbles bursting round her and popping, a bubbly gurgle while she's in
 #   spring: steam puffs and bubbling; warms her up (+1 HP every heal_every seconds)
 #   snow:   a soft crunch going in, little puffs of snow as she wades through (the Frozen Moment's drifts)
+#   goo:    a squelch going in, blobs of goo flicking up as she wades (the Gloop Kingdom's bog and moat)
 
-@export_enum("cloud", "bath", "spring", "snow") var kind := "cloud"
+@export_enum("cloud", "bath", "spring", "snow", "goo") var kind := "cloud"
 @export var speed_scale := 0.75
 @export var gravity_scale := 0.6
 @export var fall_cap := 6.0
@@ -16,7 +17,7 @@ extends Area3D
 @export var heal_every := 0.0
 
 const FX_EVERY := 0.18                              # seconds between puffs while she moves
-const ENTER_SOUND := {"cloud": "fwump", "bath": "splash", "spring": "splash", "snow": "fwump"}
+const ENTER_SOUND := {"cloud": "fwump", "bath": "splash", "spring": "splash", "snow": "fwump", "goo": "splash"}
 const LOOP_SOUND := {"bath": "bubbles", "spring": "steam"}
 const LOOP_EVERY := {"bath": 1.3, "spring": 1.8}
 
@@ -71,6 +72,8 @@ func _physics_process(delta: float) -> void:
 				Fx.burst(get_parent(), _feet() + Vector3(0, 0.4, 0), color, 4, 0.25, 0.7, 1.0, 1.4, 30.0)
 			"snow":
 				Fx.burst(get_parent(), _feet() + Vector3(0, 0.2, 0), color, 4, 0.12, 1.0, 1.5, 0.8)
+			"goo":
+				Fx.burst(get_parent(), _feet() + Vector3(0, 0.15, 0), color, 4, 0.1, 1.4, 2.0, 0.7)
 	if LOOP_SOUND.has(kind):
 		_loop -= delta
 		if _loop <= 0.0:

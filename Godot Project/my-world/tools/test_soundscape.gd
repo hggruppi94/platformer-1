@@ -194,18 +194,21 @@ func _run() -> void:
 	player.global_position = Vector3(50, 2, 58)
 	await _settle()
 	check(audio.current_track() == "skate_park", "the Skate Park: skate_park (%s)" % audio.current_track())
+	clock.set_time(clock.day, 23 * 60.0, true)
+	player.global_position = Vector3(-30, 3, 70)
+	await _settle()
+	check(audio.current_track() == "town_night", "The Void at night: town_night (%s)" % audio.current_track())
+	# The Gloop King, in his own kingdom (scripts/gloop_kingdom.gd)
+	await _go(root.get_node("Bosses").KINGDOM)
 	var king := current_scene.find_child("The Gloop King", true, false) as Node3D
-	check(king != null, "the Gloop King is in town")
+	check(king != null, "the Gloop King is in his kingdom")
 	if king:
+		current_scene.call("wake")
 		player.global_position = king.global_position + Vector3(6, 1, 0)
 		king.set("_was_chasing", true)
 		await _settle()
 		check(audio.current_track() == "gloop_king", "the Gloop King after you: gloop_king (%s)" % audio.current_track())
 		king.set("_was_chasing", false)
-	clock.set_time(clock.day, 23 * 60.0, true)
-	player.global_position = Vector3(-30, 3, 70)
-	await _settle()
-	check(audio.current_track() == "town_night", "The Void at night: town_night (%s)" % audio.current_track())
 
 	# --- A race, on its own circuit ---
 	var races := root.get_node("Races")
