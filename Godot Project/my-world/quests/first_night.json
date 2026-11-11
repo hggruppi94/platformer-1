@@ -85,13 +85,13 @@
     },
     {
       "id": "wait",
-      "text": "The runes on the old oak are glowing! Something will happen at midnight. Sleep in your bed \"Until the Shift\" to get there quicker, or explore till then.",
+      "text": "The runes on the old oak are glowing, and the hum keeps getting louder. Nina's sure it's all about midnight. Sleep in your bed \"Until midnight\" to get there quicker, or explore till then.",
       "done": {"flag": "fn_midnight"},
       "where": ["old_oak"]
     },
     {
       "id": "awaken",
-      "text": "It's midnight! Go to the old oak and see what happens.",
+      "text": "It's midnight! Go to the old oak.",
       "done": {"flag": "oak_woken"},
       "where": ["old_oak"],
       "override": {
@@ -100,7 +100,7 @@
     },
     {
       "id": "shift",
-      "text": "The door in the old oak is open! Walk into the swirl to cross over, then find out who's waiting on the other side.",
+      "text": "The door in the old oak is open! Walk into the swirl, and see where it takes you.",
       "done": {"flag": "fn_met_dash"},
       "where": [
         "old_oak",
@@ -152,7 +152,7 @@
     },
     {
       "id": "home",
-      "text": "What a day! Enjoy the Void till the Shift ends at 7 AM, when the portal pulls you home. Then find Nina.",
+      "text": "What a day! Enjoy the Void while it lasts. Your new watch seems to be counting something down... (Then find Nina.)",
       "done": {"flag": "fn_home_nina"},
       "where": [
         {"who": "nina_earth", "unless": "fn_home_nina"}

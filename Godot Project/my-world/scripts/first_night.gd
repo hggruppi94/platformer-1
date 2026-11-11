@@ -23,7 +23,7 @@ extends Node
 #   7 shift    through the oak's door: the arrival moment, a short flight over the Void that ends on Tally's request
 #              board (the first time only: scripts/place_intro.gd, void_intro()), then Dash at the portal.
 #   8 day      the Void: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
-#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown and hints at the Agent of Chaos).
+#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown, and something far off makes him go quiet).
 #   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
 #
 # A new game starts it when the hero's made (scripts/creator.gd closes). An old save never gets it forced on it: Nina
@@ -258,7 +258,7 @@ func _on_scene_changed() -> void:
 		_arrive.call_deferred()
 	elif scene.scene_file_path == EARTH and _woke_home:
 		_woke_home = false
-		Game.message("%s wakes up in bed, back on Earth. Was it all a dream? The watch on %s wrist is still ticking..." %
+		Game.message("%s wakes up in bed, back on Earth. Was it all a dream? The watch on %s wrist is still ticking... Go and find Nina!" %
 			[Dialogue.player_name(), Hero.pronoun(Game.hero, "their")])
 
 

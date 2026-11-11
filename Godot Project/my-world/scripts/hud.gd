@@ -368,8 +368,11 @@ func _refresh_clock() -> void:
 	# On Earth, the day of the week, Earth's time and when the portal opens; in the Void, its own day and time, and Earth's crawling clock
 	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
 	if Clock.on_earth:
-		text = "Earth, %s     %s\n%s" % [Clock.date_string(), Clock.earth_time_string(),
-			"The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight"]
+		text = "Earth, %s     %s" % [Clock.date_string(), Clock.earth_time_string()]
+		# Nothing about the portal until they've seen the old oak open for themselves (Hayden's day 1 playtest, 11 Nov
+		# 2026: the game mustn't give away what's going to happen)
+		if HummingOak.awake():
+			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight")
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text

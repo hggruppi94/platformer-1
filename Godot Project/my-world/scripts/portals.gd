@@ -95,7 +95,7 @@ const WORLDS := [
 		"at": Vector2(117, -18), "yaw": -1.42, "preview": true, "colour": Color(0.4, 1.0, 1.0),
 		"blurb": "Dash and Rex's home, Lumen City, a neon city from the furthest future, and it's fading away.",
 		"reward_remnants": 12,
-		"cleared_text": "Lumen City is lit up again! The future's stopped fading. But Captain Glitch has fled to the Void, where the Agent of Chaos is waiting..."},
+		"cleared_text": "Lumen City is lit up again! The future's stopped fading. But Captain Glitch slipped away through a rift..."},
 ]
 
 var quakes: Array = []                  # world ids whose quake has happened (their portal stands in the Void)

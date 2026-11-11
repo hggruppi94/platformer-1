@@ -116,12 +116,18 @@ func _check_changes(announce := true) -> void:
 		_last_hour = h
 		hour_changed.emit(h)
 		if announce and h == WARN_HOUR and in_shift() and not on_earth:
-			Game.message("The sky's getting light. At 7 AM the Shift ends, and the portal will pull you home to Earth.")
+			# The very first night, only a hint: they find out what the end of the Shift does when it happens
+			Game.message("The sky's getting light... and your new watch has started to tingle. Something's about to happen."
+				if FirstNight.running() else "The sky's getting light. At 7 AM the Shift ends, and the portal will pull you home to Earth.")
 	var shift := in_shift()
 	if shift != _in_shift:
 		_in_shift = shift
 		if announce:
-			if shift:
+			if not HummingOak.awake():
+				# The first midnight, before the oak's opened: a hint, never what's about to happen
+				if shift and on_earth:
+					Game.message("Midnight. Over on the green, the old oak is humming louder than ever...")
+			elif shift:
 				Game.message("It's midnight: the Shift has begun! The portal by the old oak is open to the Void.")
 			elif on_earth:
 				Game.message("1 AM: the Shift is over, and the portal has closed until tomorrow night.")
@@ -261,7 +267,7 @@ func skip_locked_seasons(announce := false) -> void:
 		calendar_offset += SEASON_DAYS
 		skipped = true
 	if skipped and announce:
-		Game.message("Winter's still frozen shut in a portal world in the Void, so Stars Hollow gets another autumn!"
+		Game.message("Winter should be here by now... but something, somewhere, is holding it back. Stars Hollow gets another autumn!"
 			if not season_open("winter") else "A new %s in Stars Hollow!" % season_name())
 
 
