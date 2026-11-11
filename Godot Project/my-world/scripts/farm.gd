@@ -34,6 +34,8 @@ const USE_SPOT := preload("res://scripts/use_spot.gd")
 
 const TOWN := "res://scenes/town/town.tscn"
 const GARDEN := Vector2(-80.0, -34.5)    # the plot's middle: on the Secret Gardens' hill, south of the greenhouse
+const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"   # the real one (scripts/secret_garden.gd)
+const SECRET_DOOR := Vector2(-74.0, -75.6)  # its way in: an old ivy wall at the foot of the hill's north cliff
 const GARDEN_YAW := -PI / 2.0           # turned so the gate (the plot's local +x side) faces south, to the hill's ramp
 const BEDS := 12
 const COLS := 3                          # beds across the plot's local x (north to south), rows along its local z
@@ -91,6 +93,10 @@ func _ready() -> void:
 	caves.name = "Caves"
 	caves.set_script(preload("res://scripts/garden_caves.gd"))
 	add_child(caves)
+	var secret := Node.new()                    # the real Secret Garden's hidden door and the wren (secret_garden_way.gd)
+	secret.name = "SecretGarden"
+	secret.set_script(preload("res://scripts/secret_garden_way.gd"))
+	add_child(secret)
 	Dialogue.finished.connect(_on_talked)
 	Shop.register_kind.call_deferred("seed", {"can_buy": _can_buy_seed, "buy": _buy_seed, "show": _shop_show,
 		"note": _seed_note})
