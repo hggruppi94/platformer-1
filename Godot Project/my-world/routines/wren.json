@@ -3,9 +3,9 @@
   "speed": 1.5,
   "move_anim": "walk",
   "blocks": [
-    {"at": "08:00", "place": "antiques", "do": "idle", "label": "working", "face": [0, -46]},
+    {"at": "08:00", "place": "antiques", "do": "work", "job": "antiques", "label": "working"},
     {"at": "12:00", "place": "antiques", "do": "away", "label": "inside"},
-    {"at": "13:00", "place": "antiques", "do": "idle", "label": "working", "face": [0, -46]},
+    {"at": "13:00", "place": "antiques", "do": "work", "job": "antiques", "label": "working"},
     {"at": "18:00", "place": "antiques", "do": "away", "label": "asleep"}
   ]
 }

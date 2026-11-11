@@ -27,6 +27,7 @@ along the town's paths; otherwise (or after sleeping, loading, or coming out of 
 | `patrol` | go round the places in `route` in turn, stopping `pause` seconds at each (Dash's bike rides, Pip's lamp walks) |
 | `follow` | tag along behind someone: `"who": "rex"`. If they're away, wait at `place` |
 | `away` | not in town (asleep at home, inside). No one to see or talk to |
+| `work` | really do a job there: `"job": "librarian"` (one of `jobs.json`, see below). `place` is where they arrive (the workplace's door) |
 | `sit` | sit down on a bench at `place` (Earth townsfolk: their legs are posed in code, scripts/townsfolk.gd). `"seat"` is the seat's height above where they stand (default 0: a bench's seat is what they stand on). The green's bench has two seats, `green_bench` and `green_bench_2` |
 
 **Talking:** when the player talks to someone, they stop and turn to listen, then carry on. Someone busy in the middle of
@@ -35,6 +36,32 @@ something keeps going: blocks labelled `skating`, `riding`, `scooting`, `morning
 
 **`anim`** (optional) is the animation they play while they stand about in an `idle` block or rest between little
 walks in a `wander` block, instead of `idle`: Melody dances at the Market (`"anim": "dance"`).
+
+**Jobs** (`jobs.json`, run by `scripts/work_job.gd`; Hayden, day 1 playtest: "characters who are performing actions
+should actually be in the locations and performing those actions"). A `work` block sends someone round the job's
+steps, over and over, for as long as the block lasts: Miss Marigold wheels the book cart, climbs the library ladder and
+comes down with a book off the top shelf, Poppy kneads pies and puts them in the oven, Kip washes the fire truck,
+Bramble waters her flower beds and Pip lights the Market's lamps at dusk. Each job has:
+
+- a `frame`: a building or thing in the scene by name (`"Library"`, `"Flowers Stall"`), or a spot of its own
+  (`"at": [x, z]` and `"yaw"`). Everything else is in the frame's own coordinates, with +Z its front;
+- `props` it needs there (`scripts/work_props.gd`: a ladder, a book cart, a kneading table, café tables, crates...),
+  put in when the scene loads and there all day, whoever's at work;
+- `steps`: `to` (where to stand; `[x, y, z]` for up a floor), `via` (corners to walk round first), `look` (what to face),
+  `pose` (`scripts/work_pose.gd`: `reach_high`, `knead`, `sweep`, `water`... arms, back and knees posed in code on the
+  bones every body shares, on top of their idle animation), `time` (seconds), `climb` (metres up a ladder first),
+  `hold` (in hand for that step only: a broom, a duster), `take` and `drop` (picked up at the end of a step and carried
+  to a later one: a book, a crate, a pie tray), `pick` and `put` (the same, but a part of a prop: Bramble's watering
+  can off its rest);
+- `in` and `out` (optional): corners walked only on the way into the workplace and out of it (round to the back of the
+  flower stall), not on every lap.
+
+When someone talks to them they put their arms down and listen, then carry on. With nobody watching (a time jump,
+loading) they're simply somewhere in the middle of a step, carrying what they'd carry. `tools/test_work.gd` checks
+every spot is on its floor with room to stand, every walk between spots goes round things, nothing put out stands on a
+path or a race line, and everyone really goes round their steps.
+
+**`stop_pose`** (optional, on a `patrol` block): a pose they strike at each stop (Pip reaching up to a lamp).
 
 **`label`** names what they're up to (`"riding"`, `"campaigning"`). Dialogue lines can depend on it:
 `"when": {"activity": "riding"}`, or on the place: `"when": {"place": "town_hall"}` (see `res://dialogue/README.md`).

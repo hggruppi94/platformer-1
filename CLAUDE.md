@@ -91,6 +91,39 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **People really do their jobs** (Hayden's day 1 playtest: "I want characters who are performing actions
+  to actually be in the locations and performing those actions (librarian climbing a ladder and grabbing a book from a
+  bookshelf)"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Routine `"do": "work"`** with `"job": "<id>"` (`scripts/routine.gd`) hands someone to `scripts/work_job.gd`: they
+    walk round the job's steps in `routines/jobs.json` (in the workplace's own frame, +Z its front) over and over for
+    the whole block. A step can say where to stand (`to`, `via`), what to face, a pose and for how long, climb a ladder
+    first, hold a tool, and take, drop, pick or put things; a job can have `in` and `out` corners walked once. Talking
+    stops them (arms down, then back to it); a time jump puts them mid-step carrying what they'd carry; when the block
+    ends they put everything back. routines/README.md says how.
+  - **Poses** (`scripts/work_pose.gd`, a SkeletonModifier3D put on each person's skeleton when needed): 25 of them
+    (reach_high, shelve, knead, stir, sweep, hammer, saw, water, wash, rake, carry...) posed in code on the bones every
+    body shares (two-bone IK for the arms, lean, crouch with the feet kept down), on top of their idle animation, eased
+    in and out. **Props** (`scripts/work_props.gd`): a library ladder, book cart, kneading table, café tables, a menu
+    board, crates, a sawhorse, a bucket and hose, window boxes, produce stands, a grandfather clock, flower beds and
+    a watering can rest, plus things held in a hand (books, a broom, a duster, a sponge, a hammer, a saw...) or carried
+    in both arms (a crate, a tray, a pie tray: raw dough going into the oven, baked coming out). Put in at play time, so
+    no builder or `.tscn` changed.
+  - **15 jobs:** Miss Marigold (Library: stamps books, fills her cart, shelves, climbs the ladder for a book off the top
+    shelf and hands it over), Poppy (Bakery: kneads, oven in and out, fills the case, wipes up), Mr. Gumdrop (Toy
+    Shop), Mr. Palmer (Earth Town Hall), Gus (diner deliveries, the menu board, sweeping), Miss Ivy (the diner's tables
+    out front), Hank (sawing and hammering at the hardware store), Kip (the Corner Market's produce stands at 6 AM, the
+    fire truck at 10), Dottie (the inn's window boxes), Mr. Page (bookshop cart), Mrs. Wren (antiques out front), and in
+    the Void Bramble (her own flower beds by the Secret Gardens path, clear of your garden, and behind her flower stall:
+    `places.json` `flower_stall` moved up to it) and Pip (lighting the Market's eight lamps at dusk).
+    Patrols can strike a pose at each stop (`"stop_pose"`).
+  - Tests: new `tools/test_work.gd` (every spot on its floor with room to stand, every walk goes round things, nothing on
+    a path or a race line, everyone goes round their steps holding the right things, the ladder, talking, home time);
+    `test_routines` and `test_townsfolk` count "near any spot of their job" for work blocks. routines, townsfolk,
+    dialogue, layout, earth, earth_race, races, farming, walk_through, doors, map, first_hour and first_night pass.
+    Previews: `tools/capture_work.gd` (shots in the project files under world/previews/npc_jobs).
+  - My choices Hayden may change: who does what and when, every pose and prop. The castle school has no staff yet
+    (plan item 30, the school overhaul), so nobody works there.
+
 - 2026-11-11: **A whole-game playtest, start to ending, and what it fixed** (Hayden: "Playtest"). Played in the cloud
   (own Godot user folders, no save touched).
   - **`tools/playthrough.gd`** plays the whole story as a player would, chapter by chapter: the First Night, nights 2
