@@ -168,7 +168,18 @@ func _ch_first_night() -> void:
 	await _talk("theo")
 	await _talk("lionel")
 	await _frames(4)
-	check(_step("first_night") == "oak", "two hellos on the green: on to the oak (%s)" % _step("first_night"))
+	check(_step("first_night") == "board", "two hellos on the green: on to the notice board (%s)" % _step("first_night"))
+	var nb := current_scene.get_node_or_null("Notice Board") as Node3D
+	var jobs := root.get_node("EarthJobs")
+	if nb:
+		await _talk("nina_earth")
+		await _talk_to(nb.get_node("Request Talk"), [0])          # read it with Nina, and follow the first job
+		jobs.list[0].progress = jobs.list[0].goal                 # (the job itself: the board's own test does each kind)
+		jobs.list[0].done = true
+		jobs.changed.emit()
+		await _talk_to(nb.get_node("Request Talk"), [-1])         # turn it in
+		await _frames(4)
+	check(_step("first_night") == "oak", "a job followed, done and turned in: on to the oak (%s)" % _step("first_night"))
 	await _physics(30)
 	var spot := current_scene.find_child("Oak Spot", true, false)
 	await _talk_to(spot)
@@ -205,16 +216,15 @@ func _ch_first_night() -> void:
 	check(game.has_item("shop:shift_watch"), "a watch on the hero's wrist")
 	await shot("first_landing")
 	await _physics(30)
-	await _talk("dash")
-	check(_step("first_night") == "day", "Dash at the portal: on to the Void day (%s)" % _step("first_night"))
+	var tally := current_scene.get_node_or_null("Tally/Request Talk") as Node3D
+	check(tally != null, "Tally's in the Market Square")
+	if tally:
+		await _talk_to(tally, [-1])
+	await _frames(4)
+	check(_step("first_night") == "day", "Tally's hello: on to the Void day (%s)" % _step("first_night"))
 	await _physics(30)
-	await _talk("dash")
 	for i in 3:
-		requests.note("gloop", 1.0, "bubble")
-	shop.open("Gadget")
-	await _frames(2)
-	shop.close()
-	await _frames(2)
+		requests.note("gloop", 1.0, "stomp")
 	await _talk("rex")
 	await _frames(6)
 	if lesson.active:
@@ -224,20 +234,53 @@ func _ch_first_night() -> void:
 		await _frames(4)
 		lesson.stop()
 	game.riding = false
+	await _talk("rex")
+	check(quests.is_started("bike_boy"), "after the ollie, Rex sends you after Dash: The Bike Boy")
 	if requests.list.size() > 0:
 		requests.list[0].done = true
 		requests.changed.emit()
 	await _frames(2)
 	watches.pick_up("water_clock")
 	await _frames(2)
-	await _talk("dash")
 	var zippy := _starter("lake_loop")
 	if zippy:
 		await _talk_to(zippy, [-1])
 	await _frames(4)
-	check(_step("first_night") == "king", "the Void day's list done: on to the Gloop King (%s)" % _step("first_night"))
-	if _step("first_night") != "king":
-		print("    (still to do: %s)" % str(quests.current_step("first_night")))
+	check(_step("first_night") == "home", "the Void day's list done: on to going home (%s)" % _step("first_night"))
+
+	# --- The Bike Boy: meeting Dash ---
+	await _physics(30)
+	await _frames(30)
+	for i in 3:
+		var part := current_scene.get_node_or_null("Dash's Gadget Bit %d" % (i + 1)) as Node3D
+		check(part != null, "Dash's dropped bit %d is out" % (i + 1))
+		if part:
+			_player().global_position = part.global_position + Vector3(0, 0.3, 0)
+			_player().velocity = Vector3.ZERO
+			await _physics(4)
+			await _frames(3)
+	await _frames(30)
+	check(_step("bike_boy") == "lab", "his three bits picked up: on to his lab (%s)" % _step("bike_boy"))
+	await _physics(30)
+	await _talk("dash")
+	await _frames(20)
+	var bot := current_scene.get_node_or_null("Runaway Buzz Bot") as Node3D
+	check(bot != null or dialogue.flags.has("bb_bot_caught"), "Dash's Buzz Bot gets loose")   # (or it's bumped into you already)
+	for k in 20:
+		if not is_instance_valid(bot):
+			break
+		_player().global_position = bot.global_position + Vector3(0, 0.3, 0)
+		await _physics(2)
+	await _frames(30)
+	await _talk("dash")
+	await _frames(30)
+	check(_step("bike_boy") == "stall", "the bot caught: Dash's stall opens (%s)" % _step("bike_boy"))
+	shop.open("Gadget")
+	await _frames(2)
+	shop.close()
+	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
+	await _frames(30)
+	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
 	# He's in his own kingdom now, through the Gloop Gate in the west fields (scripts/gloop_kingdom.gd)
 	var gate := current_scene.get_node_or_null("Gloop Gate") as Node3D
 	check(gate != null, "the Gloop Gate's in the west fields")
@@ -256,8 +299,13 @@ func _ch_first_night() -> void:
 	await _frames(10)
 	await _physics(20)
 	check(current_scene.scene_file_path == TOWN, "the goo bubble takes you back to the Void")
-	await _talk("dash")
-	check(_step("first_night") == "home", "Dash's crown: on to going home (%s)" % _step("first_night"))
+	await _physics(10)
+	await _talk("dash")                               # (the fountain's lost watch first: Dash always takes those first)
+	await _frames(10)
+	if not quests.is_done("bike_boy"):
+		await _talk("dash")
+	await _frames(30)
+	check(quests.is_done("bike_boy") and game.has_item("shop:gloop_crown"), "Dash's crown: The Bike Boy is done")
 	await _end_shift()
 	check(current_scene.scene_file_path == EARTH, "pulled home to Earth at 1 AM")
 	await _physics(30)
@@ -268,17 +316,21 @@ func _ch_first_night() -> void:
 
 
 # =============================================================================
-# Chapter 2: nights 2 to 7, one a visit
+# Chapter 2: nights 2 to 7 (and Melody and Heather), each straight after the last (scripts/meetings.gd)
 # =============================================================================
 const FRIENDS := {2: "pip", 3: "bramble", 4: "dash", 5: "astronaut", 6: "rex", 7: "mr_palmer"}
 
 
 func _ch_nights() -> void:
 	var S := root.get_node("Schematics")
+	await _next_visit()
 	for n in range(2, 8):
-		await _next_visit()
+		if n == 2 and not root.get_node("Arsenal").owns("popper"):
+			await _get_blueprint("popper")     # (if The Bike Boy didn't already: the Market Square, from night 1)
 		var q := "night_%d" % n
-		check(quests.is_started(q), "night %d starts when you land (visit %d)" % [n, root.get_node("Requests").nights])
+		if n == 4:
+			await _meet_friends()
+		check(quests.is_started(q), "night %d's story quest is on" % n)
 		if not quests.is_started(q):
 			continue
 		var friend := _talker(FRIENDS[n])
@@ -295,8 +347,20 @@ func _ch_nights() -> void:
 		check(quests.is_done(q), "night %d is done" % n)
 		if n == 2:
 			await shot("night_2")
-	check(S.found_count() == S.LIST.size(), "every schematic found by night 7 (%d of %d)" % [S.found_count(), S.LIST.size()])
+	var rides: Array = S.LIST.filter(func(e: Dictionary) -> bool: return str(e.kind) == "ride")
+	check(rides.all(func(e: Dictionary) -> bool: return S.is_found(str(e.id))), "every ride's schematic found by night 7")
 	await _end_shift()
+
+
+func _meet_friends() -> void:
+	check(quests.is_started("meet_friends"), "after Bramble, Melody and Heather")
+	await _talk("melody")
+	await _frames(30)
+	await _talk("clover")
+	await _frames(30)
+	await _talk("melody")
+	await _frames(30)
+	check(quests.is_done("meet_friends"), "Melody's song for Heather: done")
 
 
 func _night_do(n: int, flag: String, S: Node) -> void:
@@ -368,9 +432,12 @@ func _night_do(n: int, flag: String, S: Node) -> void:
 		"n7_gate":
 			await _stand_by("Scary World Gate", Vector3(0, 0, 6))
 		"n7_giant":
+			# Nobody's in the far field yet (the Agent of Chaos only turns up after Rex and Dash's swap): just go and look
 			var giant := current_scene.find_child("ChaosGiant", true, false) as Node3D
-			if giant and player:
-				player.global_position = giant.global_position + Vector3(25, 1, 25)
+			check(giant == null or not giant.visible, "night 7: the Agent of Chaos isn't in the far field yet")
+			if player:
+				player.global_position = Vector3(112, 12, -200)
+				player.velocity = Vector3.ZERO
 				await _frames(40)
 				await shot("night_7_giant")
 		_:
@@ -490,7 +557,35 @@ func _quake_and_enter(id: String, extra := 0) -> bool:
 	check(current_scene.scene_file_path == str(portals.world(id).scene) and portals.here == id, "stepped through to %s" % id)
 	await _physics(20)
 	await shot(id + "_inside")
+	for e in root.get_node("Schematics").LIST:
+		if str(e.get("world", "")) == id:
+			await _get_blueprint(str(e.id))
 	return portals.here == id
+
+
+func _get_blueprint(id: String) -> void:
+	# Walk into a gadget's blueprint where it lies, then have Dash build it (buying it right away, as a player would on
+	# their next visit to his stall: Hayden, 11 Nov, every gadget needs its blueprint and buying)
+	var S := root.get_node("Schematics")
+	await _physics(4)
+	var bp := current_scene.get_node_or_null("Schematic " + id) as Node3D
+	check(bp != null or S.is_found(id), "the %s's blueprint is out (%s)" % [id, current_scene.scene_file_path.get_file()])
+	if bp:
+		var back := _player().global_position
+		_player().global_position = bp.global_position + Vector3(0, 0.5, 0)
+		_player().velocity = Vector3.ZERO
+		await _physics(8)
+		_player().global_position = back
+		_player().velocity = Vector3.ZERO
+		await _physics(4)
+	check(S.is_found(id), "...and walking into it finds it")
+	var shop := root.get_node("Shop")
+	var e: Dictionary = S.entry(id)
+	for item in shop.items:
+		var it: Dictionary = shop.items[item]
+		if str(it.kind) == "gadget" and str(it.gadget) == str(e.what) and not root.get_node("Arsenal").owns(str(e.what)):
+			game.sparkles = maxi(game.sparkles, int(it.price))
+			check(shop.buy(item), "...and Dash builds the %s" % it.name)
 
 
 func _answer(picks: Array = []) -> void:
@@ -1098,6 +1193,8 @@ var _giant: Node3D
 
 func _ch_chaos() -> void:
 	await _in_void()
+	var ars := root.get_node("Arsenal")
+	check(ars.ORDER.all(func(g: String) -> bool: return ars.owns(g)), "every gadget's been found and bought by now (%s)" % str(ars.owned))
 	_giant = current_scene.find_child("ChaosGiant", true, false) as Node3D
 	check(_giant != null, "the Agent of Chaos is in his field")
 	if _giant == null:

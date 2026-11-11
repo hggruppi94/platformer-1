@@ -1,0 +1,217 @@
+{
+  "_about": "Jobs people really do at real places (scripts/work_job.gd). A routine block with \"do\": \"work\" and \"job\": \"<id>\" sends them round the job's steps. Coordinates are in the frame's own space: +Z is a building's front (the way out of its door), y up. See routines/README.md.",
+  "librarian": {
+    "frame": "Library",
+    "who": "Miss Marigold, Lantern Hill Library",
+    "props": [
+      {"kind": "ladder", "at": [-6.93, 1.6], "yaw": 90, "height": 2.8},
+      {"kind": "book_cart", "at": [2.6, 1.9]}
+    ],
+    "steps": [
+      {"to": [5.5, 3.6], "look": [5.5, 6.0], "pose": "stamp", "hold": "stamp", "time": 6},
+      {"to": [2.6, 1.15], "look": [2.6, 1.9], "pose": "bend", "time": 2.5, "take": "book", "via": [[3.9, 1.1]]},
+      {"to": [5.0, 0.65], "look": [5.0, -1.0], "pose": "shelve", "time": 3.5, "drop": true},
+      {"to": [-6.45, 1.6], "via": [[2.0, 1.0]], "look": [-8.0, 1.6], "climb": 1.1, "pose": "reach_high", "time": 3.5, "take": "book"},
+      {"to": [-1.15, -1.0], "via": [[-3.0, 0.9]], "look": [0.0, -1.0], "pose": "hand_out", "time": 2.5, "drop": true},
+      {"to": [-5.4, -1.35], "look": [-5.4, -2.6], "pose": "low_shelf", "time": 4},
+      {"to": [5.5, 3.6], "via": [[-3.0, -1.3], [-1.6, 0.6], [1.0, 0.9], [4.2, 1.2]], "look": [5.5, 6.0], "pose": "write", "time": 4}
+    ]
+  },
+  "baker": {
+    "frame": "Bakery",
+    "who": "Poppy Crumb, Crumb & Cauldron Bakery",
+    "props": [
+      {"kind": "kneading_table", "at": [-4.5, -1.1], "yaw": 90}
+    ],
+    "steps": [
+      {"to": [-3.6, -1.1], "look": [-4.5, -1.1], "pose": "knead", "time": 6, "take": "pie_tray"},
+      {"to": [-3.7, -2.95], "look": [-3.7, -4.5], "pose": "shelve", "time": 2.5, "drop": true, "into_oven": true},
+      {"to": [2.5, -3.55], "via": [[-2.6, -3.2]], "look": [2.5, -4.6], "pose": "arrange", "time": 5},
+      {"to": [-3.7, -2.95], "via": [[-2.6, -3.2]], "look": [-3.7, -4.5], "pose": "shelve", "time": 2.5, "take": "pie_tray"},
+      {"to": [-1.0, -3.25], "via": [[-2.6, -3.2]], "look": [-1.0, -2.0], "pose": "shelve", "time": 3, "drop": true},
+      {"to": [2.6, 2.2], "via": [[-2.6, -3.12], [-3.55, -3.12], [-3.55, -2.4], [-3.4, -0.4]], "look": [2.6, 3.0], "pose": "wipe", "hold": "cloth", "time": 4},
+      {"to": [-2.6, 2.2], "look": [-2.6, 3.0], "pose": "wipe", "hold": "cloth", "time": 4}
+    ]
+  },
+  "toymaker": {
+    "frame": "Toy Shop",
+    "who": "Mr. Gumdrop, Gizmo & Gumdrop Toys",
+    "steps": [
+      {"to": [0.0, -2.2], "look": [0.0, -3.0], "pose": "arrange", "time": 5},
+      {"to": [-3.55, -1.2], "look": [-4.4, -1.2], "pose": "shelve", "hold": "toy", "time": 4},
+      {"to": [2.25, 0.9], "look": [1.55, 0.9], "pose": "low_shelf", "time": 4},
+      {"to": [2.5, 2.6], "look": [3.7, 3.7], "pose": "dust_high", "hold": "duster", "time": 4},
+      {"to": [3.55, -1.6], "look": [4.4, -1.6], "pose": "low_shelf", "hold": "toy", "time": 4}
+    ]
+  },
+  "hall_keeper": {
+    "frame": "Earth Town Hall",
+    "who": "Mr. Palmer, Town Hall",
+    "steps": [
+      {"to": [0.0, -3.85], "via": [[0.0, -2.4], [1.0, -2.5], [1.0, -3.8]], "look": [0.0, -2.0], "pose": "write", "time": 7},
+      {"to": [2.9, -3.3], "via": [[1.0, -3.8]], "look": [3.6, -3.7], "pose": "reach_high", "time": 3},
+      {"to": [0.0, 0.0], "via": [[1.0, -2.5], [0.0, -2.4]], "look": [-2.0, 0.7], "pose": "wipe", "hold": "cloth", "time": 4},
+      {"to": [0.0, 1.4], "look": [2.0, 2.1], "pose": "wipe", "hold": "cloth", "time": 4}
+    ]
+  },
+  "diner_cook": {
+    "frame": "Hollow Diner",
+    "who": "Gus, Hollow Diner (out front: deliveries, the menu board, the sidewalk)",
+    "props": [
+      {"kind": "crates", "at": [-4.6, 4.5]},
+      {"kind": "chalkboard", "at": [1.5, 4.5], "text": "TODAY\nPumpkin Pie\n& Cocoa"}
+    ],
+    "steps": [
+      {"to": [-4.3, 5.3], "look": [-4.3, 4.5], "pose": "bend", "time": 2.5, "take": "crate", "via": [[-2.6, 5.75]]},
+      {"to": [0.0, 4.5], "look": [0.0, 3.5], "pose": "carry_low", "time": 1.5, "drop": true, "via": [[-2.6, 5.75]]},
+      {"to": [1.5, 5.2], "look": [1.5, 4.5], "pose": "write", "hold": "chalk", "time": 5},
+      {"to": [-0.8, 5.9], "look": [-2.0, 6.2], "pose": "sweep", "hold": "broom", "time": 6},
+      {"to": [0.0, 4.6], "look": [0.0, 6.0], "time": 3}
+    ]
+  },
+  "waitress": {
+    "frame": "Hollow Diner",
+    "who": "Miss Ivy, the Hollow Diner's tables out front",
+    "props": [
+      {"kind": "cafe_table", "at": [-2.6, 4.75]},
+      {"kind": "cafe_table", "at": [2.9, 4.65]}
+    ],
+    "steps": [
+      {"to": [0.5, 4.55], "look": [0.5, 3.5], "pose": "shelve", "time": 2.5, "take": "tray"},
+      {"to": [-2.6, 5.6], "look": [-2.6, 4.75], "pose": "hand_out", "time": 2.5, "drop": true},
+      {"to": [2.9, 5.5], "look": [2.9, 4.65], "pose": "wipe", "hold": "cloth", "time": 4},
+      {"to": [0.8, 4.7], "look": [0.8, 7.0], "time": 3}
+    ]
+  },
+  "hardware": {
+    "frame": "Hardware Store",
+    "who": "Hank, Nuts & Bolts Hardware (out front)",
+    "props": [
+      {"kind": "sawhorse", "at": [-2.6, 5.5]},
+      {"kind": "crates", "at": [3.0, 5.35]}
+    ],
+    "steps": [
+      {"to": [-2.6, 6.1], "look": [-2.6, 5.5], "pose": "saw", "hold": "saw", "time": 6},
+      {"to": [-2.1, 6.1], "look": [-2.1, 5.5], "pose": "hammer", "hold": "hammer", "time": 5},
+      {"to": [2.2, 5.45], "via": [[-1.2, 6.3]], "look": [3.2, 5.35], "pose": "bend", "time": 2, "take": "crate"},
+      {"to": [0.5, 5.6], "look": [0.5, 4.0], "pose": "carry_low", "time": 1.5, "drop": true},
+      {"to": [-4.7, 5.9], "via": [[-1.2, 6.3], [-3.9, 6.3]], "look": [-4.7, 5.0], "pose": "arrange", "time": 4}
+    ]
+  },
+  "grocer": {
+    "frame": "Corner Market",
+    "who": "Kip, mornings at the Corner Market's produce stands",
+    "props": [
+      {"kind": "produce_stand", "at": [-2.8, 5.0]},
+      {"kind": "produce_stand", "at": [-4.6, 5.0], "text": "APPLES 1 ✦"},
+      {"kind": "crates", "at": [3.9, 4.45]}
+    ],
+    "steps": [
+      {"to": [-2.8, 5.95], "look": [-2.8, 5.0], "pose": "arrange", "time": 5, "via": [[-1.2, 5.9]]},
+      {"to": [4.2, 5.25], "look": [4.2, 4.45], "pose": "bend", "time": 2, "take": "crate", "via": [[1.0, 6.3], [3.7, 6.3]]},
+      {"to": [-4.6, 5.95], "via": [[3.7, 6.3], [1.0, 6.3]], "look": [-4.6, 5.0], "pose": "carry_low", "time": 2, "drop": true},
+      {"to": [-4.6, 5.95], "look": [-4.6, 5.0], "pose": "arrange", "time": 5},
+      {"to": [0.0, 4.75], "look": [0.0, 7.0], "time": 3, "via": [[-1.2, 5.9]]}
+    ]
+  },
+  "truck_wash": {
+    "frame": "Fire Station",
+    "who": "Kip, washing Fire Station No. 1's truck",
+    "props": [
+      {"kind": "bucket", "at": [-0.55, 8.8]}
+    ],
+    "steps": [
+      {"to": [-1.25, 7.4], "look": [-2.5, 7.4], "pose": "wash", "hold": "sponge", "time": 6},
+      {"to": [-0.55, 9.4], "look": [-0.55, 8.8], "pose": "bend", "time": 2},
+      {"to": [-1.25, 10.3], "look": [-2.5, 10.3], "pose": "wash", "hold": "sponge", "time": 6},
+      {"to": [-1.25, 8.9], "look": [-2.5, 8.9], "pose": "wash", "hold": "sponge", "time": 5}
+    ]
+  },
+  "innkeeper": {
+    "frame": "Maple Inn",
+    "who": "Dottie Pennywhistle, Maple Inn (out front)",
+    "props": [
+      {"kind": "window_box", "at": [-3.3, 0.85, 4.18]},
+      {"kind": "window_box", "at": [3.3, 0.85, 4.18]}
+    ],
+    "steps": [
+      {"to": [-3.3, 4.95], "look": [-3.3, 4.0], "pose": "water", "hold": "can", "time": 4},
+      {"to": [3.3, 4.95], "look": [3.3, 4.0], "pose": "water", "hold": "can", "time": 4},
+      {"to": [1.0, 5.3], "look": [2.0, 6.0], "pose": "sweep", "hold": "broom", "time": 6},
+      {"to": [0.0, 4.6], "look": [0.0, 5.5], "time": 3}
+    ]
+  },
+  "bookseller": {
+    "frame": "Bookshop",
+    "who": "Mr. Page, Turn the Page Books (the bargain cart out front)",
+    "props": [
+      {"kind": "book_cart", "at": [-2.7, 4.75]}
+    ],
+    "steps": [
+      {"to": [-2.7, 5.55], "look": [-2.7, 4.75], "pose": "arrange", "time": 5},
+      {"to": [-2.2, 5.55], "look": [-2.2, 4.75], "pose": "bend", "time": 2, "take": "book"},
+      {"to": [1.6, 5.3], "look": [2.6, 6.2], "pose": "read", "time": 7},
+      {"to": [-2.9, 5.55], "look": [-2.9, 4.75], "pose": "shelve", "time": 2.5, "drop": true},
+      {"to": [0.0, 4.6], "look": [0.0, 6.0], "time": 3}
+    ]
+  },
+  "antiques": {
+    "frame": "Antiques",
+    "who": "Mrs. Wren, Cobweb Corner Antiques (the display out front)",
+    "props": [
+      {"kind": "grandfather_clock", "at": [-3.8, 4.85]},
+      {"kind": "lamp_table", "at": [-1.5, 5.0], "yaw": 180}
+    ],
+    "steps": [
+      {"to": [-3.8, 5.6], "look": [-3.8, 4.85], "pose": "dust_high", "hold": "duster", "time": 5, "via": [[-1.4, 6.0]]},
+      {"to": [-1.3, 5.65], "look": [-1.5, 5.0], "pose": "wipe", "hold": "cloth", "time": 4},
+      {"to": [0.3, 5.2], "look": [0.3, 7.0], "time": 3}
+    ]
+  },
+  "flower_stall": {
+    "frame": "Flowers Stall",
+    "world": "void",
+    "who": "Bramble, behind her flower stall in the Market",
+    "steps": [
+      {"to": [0.0, -1.15], "look": [0.0, 0.5], "pose": "arrange", "time": 6},
+      {"to": [-0.8, -1.15], "look": [-0.8, 0.5], "pose": "arrange", "time": 5},
+      {"to": [0.8, -1.15], "look": [0.8, 1.5], "pose": "hand_out", "hold": "flowers", "time": 3}
+    ],
+    "in": [[1.9, 1.0], [1.9, -1.1]],
+    "out": [[1.9, -1.1], [1.9, 1.0]]
+  },
+  "garden_beds": {
+    "at": [-88.5, -31.0],
+    "yaw": 0,
+    "world": "void",
+    "who": "Bramble, her own flower beds by your garden on the Secret Gardens' hill",
+    "props": [
+      {"kind": "flower_bed", "at": [-2.2, 0.0], "radius": 1.0},
+      {"kind": "flower_bed", "at": [2.2, 0.0], "radius": 1.0},
+      {"kind": "can_rest", "at": [0.0, -1.4]}
+    ],
+    "steps": [
+      {"to": [-2.2, 1.45], "look": [-2.2, 0.0], "pose": "bend", "hold": "seedling", "time": 5},
+      {"to": [0.0, -0.65], "look": [0.0, -1.4], "pose": "bend", "time": 1.5, "take": "can", "pick": "Can"},
+      {"to": [-2.2, 1.45], "look": [-2.2, 0.0], "pose": "water", "time": 4},
+      {"to": [2.2, 1.45], "look": [2.2, 0.0], "pose": "water", "time": 4},
+      {"to": [0.0, -0.65], "look": [0.0, -1.4], "pose": "bend", "time": 1.5, "drop": true, "put": "Can"},
+      {"to": [2.2, 1.45], "look": [2.2, 0.0], "pose": "bend", "time": 5}
+    ]
+  },
+  "lamplighter": {
+    "frame": "Market Square",
+    "world": "void",
+    "who": "Pip, round the Market's eight lamps at night",
+    "steps": [
+      {"to": [16.81, 6.96], "look": [17.55, 7.27], "pose": "reach_both", "time": 4},
+      {"to": [6.96, 16.81], "look": [7.27, 17.55], "pose": "reach_both", "time": 4},
+      {"to": [-6.96, 16.81], "look": [-7.27, 17.55], "pose": "reach_both", "time": 4},
+      {"to": [-16.81, 6.96], "look": [-17.55, 7.27], "pose": "reach_both", "time": 4},
+      {"to": [-16.81, -6.96], "look": [-17.55, -7.27], "pose": "reach_both", "time": 4},
+      {"to": [-6.96, -16.81], "look": [-7.27, -17.55], "pose": "reach_both", "time": 4, "via": [[-12.87, -12.87]]},
+      {"to": [6.96, -16.81], "look": [7.27, -17.55], "pose": "reach_both", "time": 4},
+      {"to": [16.81, -6.96], "look": [17.55, -7.27], "pose": "reach_both", "time": 4}
+    ]
+  }
+}

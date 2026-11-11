@@ -305,25 +305,43 @@ func todo_items() -> Array:
 	# What the list says now: the lines as shown (for tests)
 	var out: Array = []
 	for row in todo_list.get_children():
-		out.append(row.get_meta("text", ""))
+		if str(row.get_meta("text", "")) != "":           # (not the name over a second followed quest)
+			out.append(row.get_meta("text", ""))
 	return out
 
 
 func _refresh_todo() -> void:
 	if todo == null:
 		return
-	var o := Quests.objectives() if Settings.objectives else {}
-	var key := str(o)
+	# One block for each thing the player follows (Quests.objectives_all(): quests and board jobs, up to three)
+	var all: Array = Quests.objectives_all() if Settings.objectives else []
+	var key := str(all)
 	if key == _todo_key:
 		return
 	_todo_key = key
 	for c in todo_list.get_children():
 		c.queue_free()
 		todo_list.remove_child(c)
-	_has_todo = not o.is_empty()
-	if o.is_empty():
+	_has_todo = not all.is_empty()
+	if all.is_empty():
 		return
-	todo_title.text = "To do: %s" % o.name
+	todo_title.text = "To do: %s" % all[0].name
+	for i in all.size():
+		var o: Dictionary = all[i]
+		if i > 0:
+			var head := Label.new()
+			head.set_meta("text", "")
+			head.text = o.name
+			head.add_theme_font_override("font", Dialogue.font)
+			head.add_theme_font_size_override("font_size", _fs(15))
+			head.add_theme_color_override("font_color", UiStyle.GOLD)
+			head.add_theme_color_override("font_outline_color", UiStyle.INK)
+			head.add_theme_constant_override("outline_size", _fs(4))
+			todo_list.add_child(head)
+		_todo_rows(o)
+
+
+func _todo_rows(o: Dictionary) -> void:
 	for item in o.items:
 		var row := HBoxContainer.new()
 		row.set_meta("text", str(item[0]))
@@ -350,8 +368,11 @@ func _refresh_clock() -> void:
 	# On Earth, the day of the week, Earth's time and when the portal opens; in the Void, its own day and time, and Earth's crawling clock
 	var text := "Day %d     %s" % [Clock.day, Clock.time_string()]
 	if Clock.on_earth:
-		text = "Earth, %s     %s\n%s" % [Clock.date_string(), Clock.earth_time_string(),
-			"The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight"]
+		text = "Earth, %s     %s" % [Clock.date_string(), Clock.earth_time_string()]
+		# Nothing about the portal until they've seen the old oak open for themselves (Hayden's day 1 playtest, 11 Nov
+		# 2026: the game mustn't give away what's going to happen)
+		if HummingOak.awake():
+			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The portal opens at midnight")
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text

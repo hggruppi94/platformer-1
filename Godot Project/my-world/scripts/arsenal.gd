@@ -3,7 +3,7 @@ extends Node
 # Autoload "Arsenal": the hero's toy gadgets, Ratchet and Clank style. Every gadget is a toy and nothing is ever hurt:
 # enemies get bubbled and pop, or dance, like everywhere else in the game.
 #
-#   Star Popper   (scripts/star_popper.gd, star_bubble.gd) the bubble blaster she starts with. It never runs out.
+#   Star Popper   (scripts/star_popper.gd, star_bubble.gd) the bubble blaster. It never runs out.
 #   Fizz Flinger  (scripts/fizz_bomb.gd) lobs a fizzy soda bomb in an arc that pops everything close to where it lands.
 #   Disco Ball    (scripts/disco_ball.gd) floats up and spins, and every enemy near it dances till the music stops.
 #   Plushinator   (scripts/plush_bolt.gd) a fluffy bolt that turns an enemy into a soft toy for a few seconds. A
@@ -30,6 +30,10 @@ extends Node
 # grows a version, V1 to V5. Each version means more ammo and a stronger gadget (stat() below), and V5 is a Mega
 # version with a trick of its own. Ammo comes from Dash's gadget stall in the Market Square (Shop, stall "Gadget",
 # shop/items.json), and popped enemies sometimes leave a little ammo bubble behind (scripts/ammo_drop.gd).
+#
+# Nobody starts with a gadget, not even the Star Popper (Hayden, 11 Nov playtest): each one is bought at Dash's stall
+# once its blueprint's been found (scripts/schematics.gd). Until then Shoot just says so (armed()), and stomping still
+# pops things. `current` stays a gadget id even with none owned ("popper"), so nothing that reads it breaks.
 #
 # Saved with the game (Game.save_game: "arsenal").
 
@@ -109,7 +113,7 @@ const STALL_ANGLE := 105.0                # Dash's stall: degrees round the foun
 const STALL_RING := 15.5                  # ...out past the market stalls' ring (12 m), so it's in nobody's way
 const DROP_CHANCE := 0.35                 # a gadget pop leaves an ammo bubble this often (for a gadget that isn't full)
 
-var owned: Array[String] = ["popper"]
+var owned: Array[String] = []
 var current := "popper"
 var last := "popper"                      # the one before, for a quick swap
 var ammo := {}                            # id -> how many shots are left
@@ -131,12 +135,21 @@ func owns(id: String) -> bool:
 	return id in owned
 
 
+func armed() -> bool:
+	# Has she a gadget to fire? (None at the start of a new game: scripts/star_popper.gd checks this)
+	return owns(current)
+
+
 func give(id: String, say := true) -> void:
 	if owns(id) or not GADGETS.has(id):
 		return
 	owned.append(id)
 	owned.sort_custom(func(a: String, b: String) -> bool: return ORDER.find(a) < ORDER.find(b))
 	ammo[id] = max_ammo(id)
+	if not owns(current):
+		current = id                          # her first gadget: straight into her hand
+		last = id
+		changed.emit()
 	select(id)
 	Tips.show_tip("gadgets")                  # the first time there's a wheel to pick from (scripts/tips.gd)
 	if say:
@@ -158,6 +171,8 @@ func quick_swap() -> void:
 
 
 func cycle(step: int) -> void:
+	if owned.is_empty():
+		return
 	var i := owned.find(current)
 	select(owned[(i + step + owned.size()) % owned.size()])
 
@@ -540,7 +555,9 @@ func _register_shop() -> void:
 
 
 func _can_buy_mod(it: Dictionary) -> String:
-	return "You have this one" if owns_mod(str(it.mod)) else ""
+	if owns_mod(str(it.mod)):
+		return "You have this one"
+	return "Needs a gadget first" if owned.is_empty() else ""
 
 
 func _buy_mod(it: Dictionary) -> String:
@@ -567,15 +584,20 @@ func _buy_upgrade(it: Dictionary) -> String:
 
 
 func _can_buy_gadget(it: Dictionary) -> String:
-	# A gadget's on Dash's stall from the start, but he can only build it once its schematic's been found
+	# A gadget's on Dash's stall from the start, but he can only build it once its blueprint's been found
 	# (scripts/schematics.gd)
 	if owns(str(it.gadget)):
 		return "You have this one"
-	return "" if Schematics.gadget_unlocked(str(it.gadget)) else "Find its schematic"
+	return "" if Schematics.gadget_unlocked(str(it.gadget)) else "Find its blueprint"
 
 
 func _buy_gadget(it: Dictionary) -> String:
+	var first := owned.is_empty()
 	give(str(it.gadget), false)
+	if first:
+		Tips.show_tip("shoot")
+		return "You got the %s! Press %s to use it, and hold %s to aim." % [str(it.name), Settings.prompt("shoot"),
+			Settings.prompt("aim")]
 	return "You got the %s! Hold %s to pick it, then %s to use it." % [str(it.name), Settings.prompt("gadget_wheel"),
 		Settings.prompt("shoot")]
 
@@ -642,6 +664,8 @@ func save_data() -> Dictionary:
 
 
 func load_data(d: Dictionary) -> void:
+	# d is the save's "arsenal" ({} for a save from before gadgets: Game.load_game gives those the Star Popper they
+	# always had, old_save())
 	reset()
 	for id in d.get("owned", []):
 		if GADGETS.has(str(id)) and not owns(str(id)):
@@ -678,8 +702,16 @@ func load_data(d: Dictionary) -> void:
 	last = str(d.get("last", "popper")) if owns(str(d.get("last", "popper"))) else "popper"
 
 
+func old_save() -> void:
+	# A save from before gadgets: everyone had the Star Popper back then, so they keep it
+	if not owns("popper"):
+		owned.insert(0, "popper")
+		ammo["popper"] = max_ammo("popper")
+		changed.emit()
+
+
 func reset() -> void:
-	owned = ["popper"]
+	owned = []
 	current = "popper"
 	last = "popper"
 	ammo = {}

@@ -7,6 +7,9 @@ extends Node3D
 # anyone, but he's solid, so nobody can walk through his legs. Models face +Z.
 # He's also the game's FINAL BOSS (Nov 1, 2026): once the player has popped the Gloop King, Grandfather Tock and the
 # Boulderdillo, coming close starts the fight in scripts/chaos_fight.gd, which drives him while it's on.
+# He doesn't exist in the Void until Rex and Dash try to swap back in the Far Future (flag "swap_tried", Hayden's
+# day 1 playtest, 11 Nov 2026: "he shouldn't even exist in the field until after Dash and Rex try to swap back").
+# Until then he's switched off: not drawn, not solid, not on the map, not walking (present(), _sleep()).
 
 # Hayden may rename him "Agent of Time": this is the one place his name lives (the town map reads it from here).
 const NAME := "Agent of Chaos"
@@ -21,6 +24,7 @@ const NAME := "Agent of Chaos"
 const STRIDE_PER_SECOND := 0.77
 const TURN_SPEED := 0.8
 const CHAOS_LOOPS := 2                              # times through the 2.5 s chaos action each outburst
+const ARRIVE_FLAG := "swap_tried"                   # the Far Future's Swap-o-Tron try: the first anyone sees of him
 
 enum State { WALK, BROOD, CHAOS }
 
@@ -34,6 +38,15 @@ var _body: CollisionObject3D
 var _player: Node3D
 var fight: Node                                     # his final boss fight (scripts/chaos_fight.gd, added by Bosses)
 var size := 1.0                                     # only used while fighting: the Star Popper aims at 0.45 x size up
+var awake := true                                   # false until he's arrived in the Void (present())
+
+
+static func present() -> bool:
+	# Is he in the Void yet? Only once Rex and Dash have tried to swap back (scripts/far_future.gd try_swap())
+	# (Looked up rather than named, so tools that preload this script before the autoloads exist still compile.)
+	var tree := Engine.get_main_loop() as SceneTree
+	var d := tree.root.get_node_or_null("Dialogue") if tree else null
+	return d != null and (d.get("flags") as Dictionary).has(ARRIVE_FLAG)
 
 
 func _ready() -> void:
@@ -43,12 +56,16 @@ func _ready() -> void:
 	_anim = find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if _anim == null:
 		push_warning("%s: no AnimationPlayer in its model" % name)
+		if not present():
+			_sleep()
 		return
 	for a in ["idle", "walk", "chaos"]:
 		if _anim.has_animation(a):
 			_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 	_snap_to_ground()
 	_brood(randf_range(1.0, 3.0))
+	if not present():
+		_sleep()
 
 
 func map_name() -> String:
@@ -60,7 +77,32 @@ func shot(power: int, point: Vector3, dir: Vector3) -> String:
 	return str(fight.call("shot", power, point, dir)) if fight else "miss"
 
 
+func _sleep() -> void:
+	awake = false
+	visible = false
+	remove_from_group("map_landmarks")
+	if _body:
+		_body.process_mode = Node.PROCESS_MODE_DISABLED        # a disabled body leaves the physics world: not solid
+	if _anim:
+		_anim.pause()
+
+
+func _wake() -> void:
+	awake = true
+	visible = true
+	add_to_group("map_landmarks")
+	if _body:
+		_body.process_mode = Node.PROCESS_MODE_INHERIT
+	if _anim:
+		_snap_to_ground()
+		_brood(randf_range(1.0, 3.0))
+
+
 func _physics_process(delta: float) -> void:
+	if not awake:
+		if not present():
+			return
+		_wake()
 	if _anim == null:
 		return
 	if _player == null or not is_instance_valid(_player):

@@ -6,10 +6,9 @@ extends Node
 # patrol.
 #
 # Unlocking: the fight starts once Rex has had his shot at his body back in the mended Far Future (flag "swap_tried",
-# scripts/far_future.gd try_swap(): the swap's knotted into his clock), or once the player has popped the three bosses
-# (the Gloop King, Grandfather Tock and the Boulderdillo), as it always could. Before that, walking up to him just gets
-# a hint. Once they're done, coming close starts it, and
-# walking well away calls it off (he gets all his chaos back).
+# scripts/far_future.gd try_swap(): the swap's knotted into his clock). He isn't in the Void at all before that
+# (scripts/chaos_giant.gd present(), Hayden's day 1 playtest 11 Nov 2026). Coming close starts it, and walking well
+# away calls it off (he gets all his chaos back).
 #
 # His weak spot is the cracked backwards clock on his chest. It's shielded except when it GLOWS: then bubbles that hit
 # near it count (a big bubble counts for three). His chaos meter has CHAOS_MAX points, in three phases:
@@ -101,12 +100,9 @@ func _place_old_watch() -> void:
 
 
 static func unlocked() -> bool:
-	if Dialogue.flags.has(SWAP_FLAG):
-		return true
-	for f in BOSS_FLAGS:
-		if not Dialogue.flags.has(f):
-			return false
-	return true
+	# Only once Rex and Dash have tried to swap back (Hayden, 11 Nov 2026: he doesn't exist in the Void before that,
+	# scripts/chaos_giant.gd present()). Popping the three bosses alone no longer opens it.
+	return Dialogue.flags.has(SWAP_FLAG)
 
 
 static func bosses_left() -> Array[String]:
@@ -145,8 +141,7 @@ func drive(delta: float) -> bool:
 				return true
 			if not _hinted:
 				_hinted = true
-				var left := bosses_left()
-				Game.message("The Agent of Chaos ignores you. Beat his champions first (%s), or find out what Rex and Dash's machine knows, deep in the Far Future." % ", ".join(left))
+				Game.message("He looks straight through you. Not yet, it seems.")
 		elif d > START_NEAR * 2.0:
 			_hinted = false
 		return false

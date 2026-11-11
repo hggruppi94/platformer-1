@@ -117,7 +117,7 @@ func open_picker() -> void:
 		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
 	var shift: Button = null
 	if Clock.on_earth and not Clock.in_shift() and FirstNight.shift_sleep_ok():
-		shift = _option(box, "Until the Shift (midnight)",
+		shift = _option(box, "Until the Shift (midnight)" if HummingOak.awake() else "Until midnight",
 			func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	_option(box, "Not now", close_picker)
 	_preview = _label(box, "", 18)
@@ -271,6 +271,8 @@ func _rest(slept_hours: float) -> void:
 
 func _wake_message() -> String:
 	if Clock.on_earth and Clock.in_shift():
+		if not HummingOak.awake():
+			return "Wake up! It's midnight... and something out on the green is humming."
 		return "Wake up! It's midnight: the Shift has begun, and the portal to the Void is open."
 	var h := Clock.hour()
 	if h >= 5 and h < 12:

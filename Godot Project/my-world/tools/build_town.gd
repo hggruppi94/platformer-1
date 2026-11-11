@@ -49,8 +49,7 @@ const OBS_HILL := Vector3(105, -88, 16)           # x, z, height
 const OBS_HILL_TOP := 10.0
 const OBS_HILL_FOOT := 42.0
 const SKATE := Vector2(50, 58)
-const RAIL_GAP := 16.0                              # metres between the rails along the town's paths (_town_rails)
-const RAIL_TOTAL := 70                              # ...and more scattered over open ground, up to this many in all
+const RAIL_GAP := 10.0                              # metres between the rails along the town's paths (_town_rails)
 const MOTHERSHIP_PAD := Vector2(118, -42)          # x, z: open ground just east of the Observatory path
 # Main paths, painted on the ground: polylines of (x, z)
 const MAIN_PATHS := [
@@ -118,6 +117,9 @@ var castle_outline := PackedVector2Array()  # the castle's outline in town coord
 var castle_spots: Array[Vector3] = []        # x, z, radius: its domed halls, kept clear of the gardens
 var castle_gate := Vector3.ZERO              # where she stands in front of the gate
 var keep_clear: Array = []      # circles (x, z, r) where no trees are scattered
+var _races: Array = []          # the town's race tracks' checkpoints (_race_lines), for keeping rails out of them
+var boardwalk_sides: Array = []  # [a, b, width] of each boardwalk: their railings are town rails (_town_rails)
+var no_rails: Array = []        # circles (x, z, r) no town rail may cross: courts, fields, the skate park (_town_rails)
 
 
 func _initialize() -> void:
@@ -589,6 +591,7 @@ func boardwalk(name: String, a: Vector2, b: Vector2, width := 3.0) -> void:
 	var yaw := atan2(dir.x, dir.y)
 	var mid := (a + b) / 2
 	var y := 0.15
+	boardwalk_sides.append([a, b, width])
 	mesh_at(box(Vector3(width, 0.3, length)), wood, Vector3(mid.x, y, mid.y), g, yaw)
 	solid(box_shape(Vector3(width, 0.3, length)), Vector3(mid.x, y, mid.y), g, yaw)
 	var n := int(length / 4.0)
@@ -1552,6 +1555,7 @@ func court(name: String, x: float, z: float, size: Vector2, color: Color, basket
 	var label := "Basketball Court" if basketball else ("Tennis & Pickleball" if pickleball else "Tennis Court")
 	sign_post(g, label, Vector3(0, 0, size.y / 2 + 2.5), 0.0)
 	keep_clear.append(Vector3(x, z, maxf(size.x, size.y) / 2 + 3))
+	no_rails.append(Vector3(x, z, maxf(size.x, size.y) / 2 + 4))
 	own(g)
 
 
@@ -1583,7 +1587,7 @@ func _skate_park() -> void:
 	kit.flat_rail(g, "Flat Rail", Vector3(0, floor_y, 5), Vector3(1, 0, 0), 10.0, 0.5)
 	kit.ledge(g, "Ledge", Vector3(0, floor_y, 9.5), Vector3(1, 0, 0), 8.0, 0.5)
 	kit.skaters_corner(g, Vector3(-4.5, floor_y, 12.3))   # swap who's skating (scripts/rider_select.gd)
-	kit.lesson_pad(g, Vector3(4.5, floor_y, 12.3))        # Coach Rook's skate lesson (scripts/skate_lesson.gd)
+	kit.lesson_pad(g, Vector3(4.5, floor_y, 12.3))        # Coach Bruno's skate lesson (scripts/skate_lesson.gd)
 	sign_post(g, "Skate Park", Vector3(9, 0, 10), -0.4)
 	# The goals board, and the letters of S-K-A-T-E hidden round the park (high over the quarter pipes, over the
 	# funbox rail, over the flat rail, along the ledge)
@@ -1626,17 +1630,22 @@ func _skate_park() -> void:
 	pick.add_child(skateboard)
 	g.add_child(pick)
 	keep_clear.append(Vector3(SKATE.x, SKATE.y, r0 + 2.0))
+	no_rails.append(Vector3(SKATE.x, SKATE.y, r0 + 3.0))      # the park has its own rails
 	own(g)
 
 
 func _town_rails() -> void:
-	# Rails to grind all round town (scenes/player/skate.gd), beside the main paths: one every RAIL_GAP metres along
-	# each, on alternating sides, following the ground (so some run down hills), and a long one now and then. Only
-	# on open ground: not in the lake, on a path, in a building's space or up a cliff. (Every edge of every box is
-	# grindable too, at play time: scripts/edge_rails.gd.)
+	# Rails to grind round town (scenes/player/skate.gd), only where a rail makes sense: handrails running alongside
+	# the main paths, one every RAIL_GAP metres on alternating sides, following the ground (so some run down hills).
+	# Never across a court, the soccer field or the skate park, in the lake, on a path, in a building's space or up a
+	# cliff. (Hayden's day 1 playtest, 11 Nov 2026: "the current grinding rails are pretty random and should only be
+	# in spots that make sense (not in the middle of a sport court)". The rails that used to be scattered over open
+	# meadows, pointing every which way, are gone.) Every edge of every box is grindable too, at play time:
+	# scripts/edge_rails.gd.
 	var g := group("Town Rails", Vector3.ZERO)
 	var kit := SkateKit.new(func(n: String, col: Color, rough: float, metal: float) -> Material:
 		return mat("Skate " + n, col, rough, metal))
+	_races = _race_lines()
 	var count := 0
 	var side := 1.0
 	for line in MAIN_PATHS:
@@ -1650,49 +1659,80 @@ func _town_rails() -> void:
 			while walked < seg.length():
 				var at := a + dir * walked
 				var length := 12.0 if count % 4 == 3 else 7.0
-				var mid := at + out * side * 3.2
-				var ea := mid - dir * length / 2.0
-				var eb := mid + dir * length / 2.0
-				if not _rail_spot_ok(ea, eb, mid):
-					# Try the other side of the path instead
-					side = -side
-					mid = at + out * side * 3.2
-					ea = mid - dir * length / 2.0
-					eb = mid + dir * length / 2.0
-				if _rail_spot_ok(ea, eb, mid):
-					kit.ground_rail(g, "Town Rail %d" % count, ground(ea.x, ea.y), ground(eb.x, eb.y), 0.55,
-						ground(mid.x, mid.y))
-					keep_clear.append(Vector3(mid.x, mid.y, length / 2.0 + 1.0))
-					count += 1
+				# Only where the path runs straight on for the whole rail, so it lines up with the path
+				if walked - length / 2.0 >= 0.0 and walked + length / 2.0 <= seg.length():
+					var mid := at + out * side * 3.2
+					var ea := mid - dir * length / 2.0
+					var eb := mid + dir * length / 2.0
+					if not _rail_spot_ok(ea, eb, mid):
+						# Try the other side of the path instead
+						side = -side
+						mid = at + out * side * 3.2
+						ea = mid - dir * length / 2.0
+						eb = mid + dir * length / 2.0
+					if _rail_spot_ok(ea, eb, mid):
+						kit.ground_rail(g, "Town Rail %d" % count, ground(ea.x, ea.y), ground(eb.x, eb.y), 0.55,
+							ground(mid.x, mid.y))
+						keep_clear.append(Vector3(mid.x, mid.y, length / 2.0 + 1.0))
+						count += 1
 				side = -side
 				walked += RAIL_GAP
 			walked -= seg.length()
-	# And more out in the open: on lawns and meadows all over town, pointing every which way
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 2610
-	var tries := 0
-	while count < RAIL_TOTAL and tries < 4000:
-		tries += 1
-		var mid := Vector2(rng.randf_range(X_MIN + 20, X_MAX - 20), rng.randf_range(-140.0, 120.0))
-		var dir := Vector2.from_angle(rng.randf() * TAU)
-		var length: float = [6.0, 8.0, 10.0, 14.0][rng.randi() % 4]
-		var ea := mid - dir * length / 2.0
-		var eb := mid + dir * length / 2.0
-		if _rail_spot_ok(ea, eb, mid):
-			kit.ground_rail(g, "Town Rail %d" % count, ground(ea.x, ea.y), ground(eb.x, eb.y), rng.randf_range(0.4, 0.8),
-				ground(mid.x, mid.y))
-			keep_clear.append(Vector3(mid.x, mid.y, length / 2.0 + 1.0))
+	# Railings along the boardwalks over the lake, on the side without lamps (boardwalk(): the lamps are on its +x
+	# side), in lengths with a step between them
+	for bw in boardwalk_sides:
+		var a: Vector2 = bw[0]
+		var b: Vector2 = bw[1]
+		var yaw := atan2((b - a).x, (b - a).y)
+		var off := -Vector2(cos(yaw), -sin(yaw)) * (float(bw[2]) / 2.0 - 0.2)
+		var pieces := maxi(1, ceili(a.distance_to(b) / 9.0))
+		for k in pieces:
+			var ea := a.lerp(b, (k + 0.06) / pieces) + off
+			var eb := a.lerp(b, (k + 0.94) / pieces) + off
+			if _near_race(ea, 6.0) or _near_race(eb, 6.0) or _near_race((ea + eb) / 2.0, 6.0):
+				continue                                      # the Lake Loop runs along the east boardwalk
+			kit.ground_rail(g, "Town Rail %d" % count, Vector3(ea.x, 0.3, ea.y), Vector3(eb.x, 0.3, eb.y), 0.7)
 			count += 1
 	print("TOWN RAILS ", count)
 	own(g)
 
 
+func _race_lines() -> Array:
+	# The town's race tracks (scripts/races.gd TRACKS: checkpoints in x, z), as closed loops, so rails keep out of
+	# their lanes
+	var out := []
+	var tracks: Dictionary = (load("res://scripts/races.gd") as GDScript).get_script_constant_map().get("TRACKS", {})
+	for id in tracks:
+		var t: Dictionary = tracks[id]
+		if String(t.get("scene", "")).ends_with("town.tscn") and t.has("points") and not t.get("sky", false):
+			out.append(t.points)
+	return out
+
+
+func _near_race(p: Vector2, gap: float) -> bool:
+	for pts in _races:
+		for k in pts.size():
+			var a: Vector2 = pts[k]
+			var b: Vector2 = pts[(k + 1) % pts.size()]
+			var t := clampf((p - a).dot(b - a) / maxf((b - a).length_squared(), 0.001), 0.0, 1.0)
+			if p.distance_to(a.lerp(b, t)) < gap:
+				return true
+	return false
+
+
 func _rail_spot_ok(a: Vector2, b: Vector2, mid: Vector2) -> bool:
-	for p in [a, b, mid]:
-		if lake_f(p.x, p.y) < 4.0 or p.x < X_MIN + 8 or p.x > X_MAX - 8 or p.y < Z_MIN + 8 or p.y > Z_MAX - 8:
+	var n := ceili(a.distance_to(b))
+	for i in n + 1:
+		var p := a.lerp(b, float(i) / n)                   # all along it, not just its ends and middle
+		if _near_race(p, 7.0):
+			return false
+		if lake_f(p.x, p.y) < 2.2 or p.x < X_MIN + 8 or p.x > X_MAX - 8 or p.y < Z_MIN + 8 or p.y > Z_MAX - 8:
 			return false
 		if on_path(p.x, p.y, 1.6):
 			return false
+		for c in no_rails:
+			if Vector2(p.x - c.x, p.y - c.y).length() < c.z:
+				return false
 		for c in keep_clear:
 			# Buildings and props keep their space; the big circles round whole districts (the Market, the homes)
 			# don't stop a rail by the path through them
@@ -2015,6 +2055,8 @@ func _foliage() -> void:
 		yaws.append(rng.randf() * TAU)
 		colors.append(color)
 		counts[kind] += 1
+	if _races.is_empty():
+		_races = _race_lines()
 	var leaves: Array = pal.leaves
 	var ferns: Array = pal.ferns
 	var caps: Array = pal.mushroom_caps
@@ -2051,6 +2093,8 @@ func _foliage() -> void:
 						plant.call(1, x, z, rng.randf_range(0.9, 1.8), fern_col if rng.randf() < 0.7 else ferns[rng.randi() % ferns.size()])
 					2:
 						var s := rng.randf_range(2.4, 4.2) if big_mushroom and k == 0 else rng.randf_range(0.5, 1.6)
+						if s >= 2.2 and _near_race(Vector2(x, z), 5.0):
+							continue                       # a big one has a solid cap: not in a racer's lane
 						plant.call(2, x, z, s, cap_col)
 	# Loose ferns and leaf clumps in between
 	tries = 0
@@ -2798,6 +2842,7 @@ void fragment() {
 	mesh_at(sphere(0.3, -1, 14), mat("Soccer Ball", Color(1, 1, 1), 0.5), Vector3(0, 0.55, 0), g)
 	sign_post(g, "Soccer Field", Vector3(0, 0, size.y / 2 + 2.5), 0.0)
 	keep_clear.append(Vector3(SOCCER.x, SOCCER.y, maxf(size.x, size.y) / 2 + 3))
+	no_rails.append(Vector3(SOCCER.x, SOCCER.y, maxf(size.x, size.y) / 2 + 4))
 	own(g)
 
 

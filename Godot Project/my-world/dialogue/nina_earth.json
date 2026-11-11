@@ -236,6 +236,28 @@
     },
     {
       "when": {
+        "quest_step": "first_night:board",
+        "not_flag": "fn_board_look"
+      },
+      "lines": [
+        "You've met everyone! Well, nearly. Before we go poking at old trees, I want to show you something.",
+        "This is the notice board, right here by the gazebo. Go on, press {interact} on it. I'll tell you how it works."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:board"
+      },
+      "lines": [
+        "Pick a job and follow it, and a star shows you where to go. You can follow two, or all three!",
+        "When it's done, come back to the board and press {interact} to turn it in. Sparkles!",
+        "(She grins.) Then I'll tell you about the oak. Deal?"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "quest_step": "first_night:oak"
       },
       "lines": [
@@ -273,7 +295,7 @@
       "lines": [
         "The runes! They're glowing! I come here every day and I never even saw them.",
         "Midnight. Whatever happens, it happens at midnight.",
-        "If waiting's boring, have a nap. Your bed has a button for it: \"Until the Shift\". You'll wake up right on time.",
+        "If waiting's boring, have a nap. Your bed has a button for it: \"Until midnight\". You'll wake up right on time.",
         "Or keep exploring! The town's pretty at night. Just don't miss it. I'll be right here."
       ],
       "first_night": true
@@ -305,7 +327,7 @@
       "set": "fn_home_nina",
       "lines": [
         "{player}! You're back! I saw you go through. So? SO?",
-        "{player}: There were aliens! And a talking husky! And a big golden Gloop with a crown!",
+        "{player}: There were aliens! And a talking husky! And a tall yellow alien with a clipboard!",
         "(Nina laughs.) Told you it was the best. And the watch? Let me see. Yep. You're one of the chosen ones now.",
         "Everyone there has something they're amazing at. Even if they haven't found it yet. You'll find yours.",
         "Same time tomorrow?",

@@ -7,8 +7,10 @@ extends Node
 # schematics (scripts/schematics.gd): the real unlocks, for Dash's gadgets and the new rides at Zippy's Tune-Up.
 #
 # The whole 7-night plan is in /mnt/project-files/roadmap/galaxity-plan.md (F4), and all seven are built. A night is
-# its own quest file (quests/night_<n>.json), started by the flag "night_<n>", which is set the first time you land
-# in the Void after the night before is done (one night a visit: _start_next()).
+# its own quest file (quests/night_<n>.json), started by the flag "night_<n>". Since Hayden's meeting order (11 Nov
+# 2026: "I don't want to lock meeting people behind days spent in-game") they no longer wait for the next visit:
+# each starts as soon as the story quest before it is done, with the friend you just helped sending you on
+# (scripts/meetings.gd has the order). The ids still say "night", but nothing the player sees does.
 #
 # The Goals page (the Tab menu, between Quests and Map: scripts/player_menu.gd) reads goals(): tonight's spotlight
 # and requests, the next thing to aim for in watches, races, gadgets and skate goals, and a teaser for tomorrow.
@@ -19,40 +21,36 @@ const TOWN := "res://scenes/town/town.tscn"
 # Night 1 is The First Night (quests/first_night.json, scripts/first_night.gd).
 const NIGHTS := [
 	{"n": 1, "quest": "first_night", "title": "The First Night",
-		"new": "the Market, the Star Popper, the Skate Park, Tally's board, the Lake Loop and the Gloop King"},
+		"new": "the Market, Dash's gadget stall, the Skate Park, Tally's board, the Lake Loop and the Gloop King"},
 	{"n": 2, "quest": "night_2", "title": "Pip's Lamps",
-		"new": "Pip's waiting by the portal, the Fizz Flinger's schematic, and S-K-A-T-E letters in the Skate Park",
-		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and there's a schematic glowing on the promenade.",
+		"new": "Pip's waiting by the portal, Pip's lamps, and S-K-A-T-E letters in the Skate Park",
 		"tease": "Pip has something to show you by the boardwalk..."},
 	{"n": 3, "quest": "night_3", "title": "The Meadow in Bloom",
-		"new": "Bramble by the portal, two schematics in the south meadow (the Disco Ball and the Overboard), and a race",
-		"arrive": "Night 3! Bramble's waiting by the portal, and two schematics have blown into the south meadow.",
+		"new": "Bramble by the portal, the Overboard's schematic in the south meadow, and a race",
 		"tease": "Bramble says the south meadow's about to bloom. Something's glowing out there..."},
 	{"n": 4, "quest": "night_4", "title": "Stars Over Observatory Hill",
-		"new": "Dash by the portal, the Observatory, the Jelly Mines' and the Bike's schematics, and a ride of your own",
-		"arrive": "Night 4! Dash is waiting by the portal. He says the stars are doing something funny over Observatory Hill.",
+		"new": "Dash by the portal, the Observatory, the Bike's schematic, and a ride of your own",
 		"tease": "Dash wants to show you the stars from Observatory Hill."},
 	{"n": 5, "quest": "night_5", "title": "Up in the Mothership",
 		"new": "the Astronaut at the Mothership Pad, flying the mothership, and a schematic up in the sky",
-		"arrive": "Night 5! The Astronaut's waving from the Mothership Pad. Something's floating high over town tonight...",
 		"tease": "The Astronaut keeps looking up. Is something floating up there?"},
 	{"n": 6, "quest": "night_6", "title": "Rex for Mayor",
-		"new": "Rex by the portal, the castle school, the Plushinator's schematic and the Rocket Bike's",
-		"arrive": "Night 6! Rex is waiting by the portal with a campaign speech, and there's a schematic at the castle school.",
+		"new": "Rex by the portal, the castle school and the Rocket Bike's schematic",
 		"tease": "Rex is practising a speech. Something about the castle school..."},
-	{"n": 7, "quest": "night_7", "title": "The Agent of Chaos",
-		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the Agent of Chaos and the last two schematics",
-		"arrive": "Night 7! Mr. Palmer wants a word at his office window, and he looks worried. The Agent of Chaos has come closer.",
+	{"n": 7, "quest": "night_7", "title": "The Far Corners",
+		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the far field and the last schematic",
 		"tease": "Mr. Palmer wants a quiet word. Something about the far field..."},
 ]
-const GIANT_NEAR := 45.0                   # night 7: this close to the Agent of Chaos is close enough to see him
+# Night 7: the far field behind the castle hill, and how close counts as having a look round it. (The flag's still
+# "n7_giant" so old saves keep their tick, but nobody's out there yet: the Agent of Chaos only turns up after Rex and
+# Dash try to swap back, scripts/chaos_giant.gd present(). Hayden's day 1 playtest, 11 Nov 2026.)
+const FAR_FIELD := Vector2(116, -206)
+const FAR_FIELD_NEAR := 30.0
 
-var _told_visit := -1                       # the visit this session already said "New tonight" for
 
 
 func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
-	Shop.opened.connect(_on_shop)
 	Races.finished.connect(_on_race_finished)
 
 
@@ -95,30 +93,8 @@ func _on_scene_changed() -> void:
 	# Landing in the Void after The First Night starts night 2's spotlight (the First Night ends at home on Earth, so
 	# that's always a new visit). An old save that never had the First Night is offered that first (by Nina, or the
 	# Quests sheet's button), never forced, so the nights follow on from it there too.
-	var visit := Requests.visit_day()
-	_start_next(visit)
-	var c := current()
-	if not c.is_empty() and c.has("arrive") and _told_visit != visit:
-		_told_visit = visit
-		get_tree().create_timer(3.0).timeout.connect(func() -> void: Game.message(str(c.arrive)))
-
-
-func _start_next(visit: int) -> void:
-	# The next night starts the next time you land, once the night before it is done (or skipped), and never two on
-	# one visit: each Void visit is one night. The visit a night started on is a flag ("night_visit_<visit>"), so
-	# that's kept in the save without anything new in it.
-	if Dialogue.flags.has("night_visit_%d" % visit):
-		return
-	for d in NIGHTS:
-		var n := int(d.n)
-		if n < 2 or Dialogue.flags.has("night_%d" % n):
-			continue
-		var before := str(info(n - 1).get("quest", ""))
-		if Quests.is_done(before):
-			Dialogue.set_flag("night_visit_%d" % visit)
-			Dialogue.set_flag("night_%d" % n)
-			Schematics.refresh()
-		return
+	# (the story quests start themselves now, as soon as the one before is done: scripts/meetings.gd)
+	FirstNight.meetings.advance()
 
 
 # -----------------------------------------------------------------------------
@@ -126,11 +102,6 @@ func _start_next(visit: int) -> void:
 # -----------------------------------------------------------------------------
 func _step(quest_id: String) -> String:
 	return str(Quests.current_step(quest_id).get("id", "")) if Quests.is_started(quest_id) else ""
-
-
-func _on_shop(stall: String) -> void:
-	if stall == "Gadget" and _step("night_2") == "explore" and Schematics.is_found("fizz"):
-		Dialogue.set_flag("n2_fizz")
 
 
 func _check_letters() -> void:
@@ -170,10 +141,9 @@ func _check_later_nights() -> void:
 			and s.scene_file_path == str(Schematics.SCENES.school):
 		Dialogue.set_flag("n6_school")
 	if _step("night_7") == "explore":
-		if not Dialogue.flags.has("n7_giant"):
-			var giant := s.find_child("ChaosGiant", true, false) as Node3D
-			if giant and _near_node(giant, GIANT_NEAR):
-				Dialogue.set_flag("n7_giant")
+		if not Dialogue.flags.has("n7_giant") and s.scene_file_path == TOWN and _near_point(FAR_FIELD, FAR_FIELD_NEAR):
+			Dialogue.set_flag("n7_giant")
+			Game.message("The far field is very quiet. The grass is pressed flat in huge, strange shapes, and your watch stutters. Something BIG was here...")
 		if not Dialogue.flags.has("n7_gate") and _near(s, "Scary World Gate", 10.0):
 			Dialogue.set_flag("n7_gate")
 
@@ -186,6 +156,11 @@ func _on_race_finished(_track: String, _place: int) -> void:
 func _near(s: Node, node_name: String, metres: float) -> bool:
 	var n := s.find_child(node_name, true, false) as Node3D
 	return n != null and _near_node(n, metres)
+
+
+func _near_point(at: Vector2, metres: float) -> bool:
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	return p != null and Vector2(p.global_position.x, p.global_position.z).distance_to(at) < metres
 
 
 func _near_node(n: Node3D, metres: float) -> bool:
@@ -203,22 +178,22 @@ func goals() -> Array:
 	# [[heading, [line, ...]], ...] for the Goals sheet (and tools/test_nights.gd). Lines may use BBCode colours.
 	var out := []
 	var tonight: Array[String] = []
-	var c := current()
-	if not c.is_empty():
-		var q := Quests.quest(str(c.quest))
-		var st := _step(str(c.quest))
-		tonight.append("[b]Night %d: %s[/b]" % [int(c.n), str(c.title)])
+	var story: String = FirstNight.meetings.story_now()
+	if story != "":
+		var q := Quests.quest(story)
+		var st := _step(story)
+		tonight.append("[b]%s[/b]" % str(q.get("name", story)))
 		for s in q.get("steps", []):
 			if str(s.id) == st:
 				tonight.append(Dialogue._fill(str(s.text)))
-	else:
-		tonight.append("[b]Night %d[/b]" % night())
 	if Requests.is_live():
 		for r in Requests.list:
 			tonight.append("%s %s  [color=#f5e6a3]✦ %d[/color]" % ["✓" if r.done else "○", Requests.text_of(r), int(r.sparkles)])
 	elif not Clock.in_shift():
 		tonight.append("Tally's board puts up three new requests every time you visit the Void.")
-	out.append(["Tonight", tonight])
+	if tonight.is_empty():
+		tonight.append("Tally's board, the notice board and your friends always have something going on.")
+	out.append(["Right now", tonight])
 
 	var aim: Array[String] = []
 	var w := _watch_goal()
@@ -240,8 +215,8 @@ func goals() -> Array:
 		aim.append("You've done everything there is so far. Wow! Hayden's making more.")
 	out.append(["Next to aim for", aim])
 
-	var tease := str(next_night().get("tease", ""))         # each night's own teaser, shown the night before
-	out.append(["Tomorrow night", [tease if tease != "" else "Every night in the Void there's something new to find."]])
+	var tease := str(next_night().get("tease", ""))         # the next story quest's teaser
+	out.append(["Coming up", [tease if tease != "" else "Every visit to the Void there's something new to find."]])
 	return out
 
 
@@ -289,7 +264,11 @@ func _gadget_goal() -> String:
 			" (you can afford it!)" if have >= int(cheapest.price) else " (you have %d)" % have]
 	var sch := Schematics.next_hint()
 	if not sch.is_empty():
+		if str(sch.kind) == "gadget":
+			return "Gadgets: find the %s's blueprint. %s" % [Schematics.thing_name(sch), str(sch.hint)]
 		return "Schematic: find the %s's. %s" % [Schematics.thing_name(sch), str(sch.hint)]
+	if not Arsenal.armed():
+		return "Gadgets: none yet. Dash builds them from blueprints, at his stall"
 	var id := str(Arsenal.current)
 	if Arsenal.level(id) < Arsenal.MAX_LEVEL:
 		var need: int = Arsenal.LEVEL_XP[Arsenal.level(id)] - int(Arsenal.xp.get(id, 0))

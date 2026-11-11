@@ -3,6 +3,25 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "meet_friends:heather"
+      },
+      "set": "mf_heather",
+      "lines": [
+        "Well, hey there, sugar! Ain't you just the sweetest thing. I'm Heather.",
+        "{player}: Melody's written a new song, and she won't sing it without you!",
+        "A new song? Well, why didn't you say so! Hold onto your hat, I'm comin'! (She hops on her scooter.) Meet you at the Market, hon!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "meet_friends:song"
+      },
+      "lines": [
+        "Go on, sugar, the Market Square! Melody gets awful nervous if I'm not in the front row."
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
