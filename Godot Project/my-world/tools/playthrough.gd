@@ -23,6 +23,7 @@ const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.playthrough_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
+const SCARY := "res://scenes/scary_world/scary_world.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const CHAPTERS := ["first_night", "nights", "harvest", "shard_isle", "rootmind", "frozen_moment", "lanternmoor",
 	"rhythm_springs", "tide_reef", "glenmoor", "dark_hollow", "far_future", "chaos"]
@@ -431,6 +432,11 @@ func _night_do(n: int, flag: String, S: Node) -> void:
 			await _go(TOWN, "FromSchool")
 		"n7_gate":
 			await _stand_by("Scary World Gate", Vector3(0, 0, 6))
+			# The first step of the centipede's story: say yes at the old gate (it won't open; a whisper sends you on)
+			var gate := _find_talker("scary_gate")
+			if gate:
+				var heard := await _talk_to(gate, [1])
+				check(_said(heard, "won't open") and dialogue.flags.has("scary_world_said_yes"), "night 7: yes at the old gate, but it won't open; a whisper sends you to the school")
 		"n7_giant":
 			# Nobody's in the far field yet (the Agent of Chaos only turns up after Rex and Dash's swap): just go and look
 			var giant := current_scene.find_child("ChaosGiant", true, false) as Node3D
@@ -1002,9 +1008,13 @@ func _ch_dark_hollow() -> void:
 	check(corner != null, "the centipede's corner is in the castle school")
 	if corner == null:
 		return
+	if not dialogue.flags.has("scary_world_said_yes"):
+		dialogue.set_flag("scary_world_said_yes")           # (if night 7 didn't run in this playthrough)
 	_player().global_position = corner.to_global(Vector3(-21.0, 1.0, -22.45))
 	await _physics(10)
-	check(corner.shown, "come near and she drops into her nest")
+	check(corner.shown and corner.arriving, "come near and she comes walking along the ceiling")
+	await create_timer(corner.WALK_FROM / corner.WALK_SPEED + 1.0).timeout
+	check(corner.shown and not corner.arriving, "...and drops into her nest")
 	await shot("centipede_corner")
 	_player().global_position = corner.to_global(corner.SPOT_AT) + Vector3(1.0, 1.0, 0)
 	await _physics(6)
@@ -1085,11 +1095,31 @@ func _ch_dark_hollow() -> void:
 	await _frames(4)
 	check(portals.is_cleared("dark_hollow"), "popped in a moon lamp's light: Dark Hollow's mended")
 	var lines := await _wait_talk(12.0)
-	check(_said(lines, "wall") or _said(lines, "climb"), "the centipede's thank-you teaches the wall crawl")
+	check(_said(lines, "old gate"), "the centipede cheers and asks you to come to her home, behind the old gate")
 	await create_timer(2.0).timeout
 	await shot("dark_hollow_mended")
-	await _home_from("dark_hollow")
-	check(current_scene.scene_file_path == TOWN, "home at the castle school's gate")
+	# The way home takes you to her home this first time: her scary game, then friends for keeps and her gifts
+	current_scene.get_node("WayHome/Way Home/Spot").use()
+	await _wait_for_scene(SCARY)
+	await _physics(10)
+	check(current_scene.scene_file_path == SCARY, "the way home takes you to her home, behind the old gate")
+	var her := _find_talker("centipede")
+	if her:
+		await _talk_to(her, [0])
+	await _frames(4)
+	var boss := current_scene.get_node_or_null("Centipede Boss")
+	check(boss != null, "she asks to play her scary game, and it's on")
+	if boss:
+		await create_timer(3.0).timeout
+		await shot("centipede_boss")
+		while not boss.defeated:
+			boss.state = "dizzy"
+			boss.hurt(1)
+		var thanks := await _wait_talk(12.0)
+		check(_said(thanks, "climb") and _said(thanks, "knock"), "you stayed: friends for keeps, and she teaches the wall crawl and her holes")
+	await create_timer(1.0).timeout
+	await _go(TOWN, "FromScaryWorld")
+	check(current_scene.scene_file_path == TOWN, "home to the Void")
 
 
 func _ch_far_future() -> void:
@@ -1592,3 +1622,10 @@ func _frames(n: int) -> void:
 func _physics(n: int) -> void:
 	for i in n:
 		await physics_frame
+
+
+func _find_talker(id: String) -> Node3D:
+	for t in current_scene.find_children("Talk", "Area3D", true, false):
+		if t.get("character_id") == id:
+			return t
+	return null

@@ -83,7 +83,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   and Dash is his twin. The other characters are Bramble (the plant girl, with Snappy the flytrap), Heather (the
   horned cattle girl: Hayden named her Nov 8, 2026; she was "Clover" before that and "Bramble" until Nov 7, and her
   code id is still `clover`), Melody, Pip (they/them: Hayden, "sort of androgynous"), Rook (says woof), Ivy and Theo
-  (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (Scary World).
+  (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (she/her; her school corner, Dark Hollow, and her home
+  by the hollow log behind the old Scary World gate, one place at a time).
 - In the show, kids are people on Earth and creatures in the Void. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
   since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in the Void. Since Nov 1, 2026 Bruno is too (`bruno` on
   Earth, `bruno_alien` in the Void, from Sofi's drawing). Prue's Earth look is still a placeholder.
@@ -154,6 +155,39 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: every line (first drafts), Rex staying in the Void (not going home with Dash), the
     cap and the letter as what he leaves, "Lumen City is built where the Void is", the door of light and the seam,
     reusing the chaos_ending tune.
+
+- 2026-11-11: **The centipede's story goes in order, and she's only ever in one place** (Hayden: "now he is in 3 spots
+  at the same time. The events need to go in order", then: walk the ceiling before the gulp, full size in the corner,
+  "she can follow you to scary world", "a boss fight herself in her own world and she fully befriends you after").
+  Built and tested in the cloud (own Godot user folders, no save touched). Branch `claude/centipede-order`.
+  1. **The old gate** (`dialogue/scary_gate.json`): asks yes or no (recorded either way, as before), but a yes no longer
+     opens it: it rattles, and a whisper says "...behind the walls... at the school... the far, far corner...". Asked
+     again after a yes, it's shut with the whisper. Once Dark Hollow is mended it stands open a crack (her home).
+  2. **Her school corner** (`scripts/centipede_corner.gd`): only after that yes (`CentipedeHoles.gate_said_yes()`, which
+     also counts old saves' `scary_world_visited` / `dark_hollow_said_yes`). Come near and she walks along the ceiling
+     over your head (`Ceiling Walk`, `scripts/centipede_walker.gd` upside down), then drops into her nest at full size
+     (`NEST_SCALE` 1.0, coiled tight: `coil()`), and gulps you down to Dark Hollow on a yes. Once Dark Hollow's mended
+     the corner's empty: no ceiling crawler, a "gone home!" note.
+  3. **Dark Hollow** (`scripts/dark_hollow.gd`): she comes too and follows you round (`centipede_walker.gd`: her head
+     follows your path a few steps back, her body follows her head; she keeps further back while the Hush is awake);
+     talk to her for what to do. When it's mended she cheers, asks you to come to her home behind the old gate, and
+     burrows off. The way home takes you there the first time (`Portals.go_home()`), the school's front gate after.
+  4. **Her home** (`scripts/scary_world.gd`, `dialogue/centipede.json`): she's only there once Dark Hollow's mended.
+     She asks to play her scary game (will you stay when she's at her scariest? yes or no, recorded as
+     `centipede_scary_game`). Her **boss game** (`scripts/centipede_boss.gd`): she scuttles round you, rears up with a
+     line on the ground and charges, then she's dizzy: bop her head or bubble her (bubbles boing off otherwise); from
+     3 hits she also burrows and pops up under you (a ring warns you). 6 hits and she flops over giggling (flag
+     `centipede_fought`), then straight into friends for keeps: her thanks, wall crawl and her holes (flag
+     `centipede_gifts`), then naming her. Knock on her hollow log (`LogKnock`) to travel to Dark Hollow or any hole.
+     Wall crawl and the holes now wait for `centipede_gifts` (`CentipedeHoles.gifts_given()`; old saves' "thanked"
+     counts).
+  - Also: Seer's bottle `seer_giant` is open-ended now ("Not everything that seems strange was always strange..."),
+    and Pip's "He's asleep standing up" is "They're asleep standing up".
+  - Tests: `test_scary_world` (rewritten for the order and her game), `test_dark_hollow`, `test_wall_crawl`,
+    `tools/playthrough.gd` updated; portals, practice_trips, sunken_secrets, dialogue, chaos_trials, layout and
+    later_nights pass. lost_watches fails one grind-rail watch check (Bolt Watch), nothing to do with this.
+  - My choices Hayden may change: the boss game's story (a friendship test, "only a game"), its moves and 6 hits,
+    the whisper's words, her following in Dark Hollow, the knock on her log.
 
 - 2026-11-11: **The big map zooms, moves, and has a list of what's on it to switch on and off** (Hayden: "I want to
   rework the map with a zoom and legend with togglable icons"). Built and tested in the cloud (own Godot user folders,

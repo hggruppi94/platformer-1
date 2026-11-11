@@ -16,15 +16,16 @@ extends "res://scripts/portal_world.gd"
 # With all three, the Hush (scripts/the_hush.gd, a big shadow ghost) wakes over Hush Hill when you come near. It's
 # only shadow in the dark, so lure it into the light of the four moon lamps round the hill (or your own Pip's glow) and
 # pop it there. Then the pieces fly home, the Moon Clock ticks past midnight, the mist thins and the stars come out.
-# The centipede (her own name if you gave her one at the Scary World) waits by her hollow log near where you land,
-# and says what to do next. Mending it makes her your friend for good (flag "dark_hollow_friend").
+# The centipede gulps you in but doesn't stay (she's only ever in one place: Hayden, 11 Nov 2026): by the hollow log
+# where you land she's left a note saying what to do. Mending it makes her your friend for good (flag
+# "dark_hollow_friend"), and she thanks you at home, by her hollow log behind the old Scary World gate.
 # The way home never takes you back through the scary bit: it comes out at the castle school's front gate in the Void.
 # Nothing here hurts more than a normal bump.
 
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 const THE_HUSH := preload("res://scripts/the_hush.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
-const CENTIPEDE_FRIEND := preload("res://scripts/centipede_friend.gd")
+const CENTIPEDE_WALKER := preload("res://scripts/centipede_walker.gd")
 const GHOSTS := 8
 const PIECE_NAMES := ["the Ghost Glade's Moon Piece", "the Moon Piece on the Crooked Spire", "the Hollow Run's Moon Piece"]
 const HOLE_R := 4.5
@@ -92,7 +93,7 @@ func setup() -> void:
 	set_mended(1.0 if Portals.is_cleared(world_id) else 0.0)
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and pieces_found() == 0 and not Portals.has_found(world_id, "met_centipede"):
-		Game.message.call_deferred("Dark Hollow. Misty, moonlit and very quiet... The centipede's waiting by her hollow log.")
+		Game.message.call_deferred("Dark Hollow. Misty, moonlit and very quiet... The centipede scuttles out of the mist behind you. She's coming too!")
 
 
 func _own_sky() -> void:
@@ -704,31 +705,51 @@ func mend() -> void:
 
 
 func _thank_you(tries := 0) -> void:
+	# She cheers, then asks you to come and find her at home, behind the old gate (scripts/scary_world.gd), and
+	# burrows off up her tunnels: the way home takes you there this first time (Portals.go_home()).
 	if not is_inside_tree():
 		return
 	if Dialogue.is_active() and tries < 20:
 		get_tree().create_timer(1.0).timeout.connect(_thank_you.bind(tries + 1))
 		return
-	Portals.note_found(world_id, "thanked")
-	var spot := get_node_or_null("Centipede/Spot") as Node3D
-	if spot:
-		Dialogue.say(spot, centipede_name(), thank_lines().map(func(l: String) -> String: return Settings.fill(l)), "dark_hollow_thanks")
+	var spot := get_node_or_null("Centipede/Model/Head/Spot") as Node3D
+	if spot == null:
+		return
+	Dialogue.say(spot, centipede_name(), thank_lines().map(func(l: String) -> String: return Settings.fill(l)), "dark_hollow_thanks")
+	Dialogue.finished.connect(_burrow_home, CONNECT_ONE_SHOT)
 
 
 func thank_lines() -> Array:
 	return ["{player}! Listen. Can you hear it? Tick... tick... tick...",
 		"The Moon Clock's going again! It's past midnight in Dark Hollow for the first time in forever.",
-		"Everyone always ran away from me. You didn't. You jumped down a hole for me!",
-		"I'm your friend now, for keeps. That's a centipede promise, and I've got a LOT of feet to keep it with.",
-		"And friends share their best tricks. Here's mine: walk at a wall and keep going. Don't stop! Just... go UP.",
-		"Push towards the wall to climb, away to climb down, sideways to scuttle along. Climb right up into a ceiling and you can walk along it upside down, like me!",
-		"Jump to hop off, or roll to let go. (You can't climb the invisible walls at the edge of a world. Nobody can. Not even me.)",
-		"One more thing. I've dug holes all round the Void, by the places everyone likes best. Find one and knock!",
-		"I'll gulp you up and take you along my tunnels to any other hole you've found. Or to my corner, or back home here.",
-		"Come back whenever you like. Gulp, slide, ptoo! And the way home always takes you straight out to the school's front gate."]
+		"You stayed with me. All the way through. Even with the shadows.",
+		"Will you come to my home? Up in the Void, behind the old gate in the woods. It'll be open now.",
+		"There's... one more thing I need to know. Before we're friends for keeps. I'll tell you there!",
+		"The way home will take you. See you there! (Gulp, slide, scuttle...)"]
 
 
-# The centipede ----------------------------------------------------------------------------------------------------
+func _burrow_home(_id := "") -> void:
+	# Off she goes, down into the ground and up her tunnels towards home
+	var m := get_node_or_null("Centipede/Model") as Node3D
+	if m == null:
+		return
+	m.set("follow", null)
+	var spot := m.get_node_or_null("Head/Spot")
+	if spot:
+		spot.queue_free()
+	var head := m.get_node_or_null("Head") as Node3D
+	Fx.burst(self, (head.global_position if head else _player_pos()), Color(0.5, 0.4, 0.55), 16, 0.08, 3.0, -1.0, 0.6)
+	Juice.blip("whoosh", 0.7, -4.0)
+	var tw := m.create_tween()
+	tw.tween_property(m, "scale", Vector3.ONE * 0.05, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.tween_callback(m.queue_free)
+
+
+# The centipede, following you round ----------------------------------------------------------------------------------
+# She gulped you down here and came too (Hayden, 11 Nov 2026: "she can follow you to scary world"): she scuttles
+# along behind you wherever you go (scripts/centipede_walker.gd), and talking to her says what to do next. She isn't
+# anywhere else meanwhile (her school corner's empty while you're here). Once Dark Hollow's mended she goes home,
+# behind the old gate, so she isn't down here any more.
 func centipede_name() -> String:
 	var n := str(Dialogue.names.get("centipede", ""))
 	return n if n != "" else "The Centipede"
@@ -736,29 +757,30 @@ func centipede_name() -> String:
 
 func _add_centipede() -> void:
 	var m := get_node_or_null("Centipede") as Node3D
-	if m == null:
+	if m == null or Portals.is_cleared(world_id):
 		return
-	var c := CENTIPEDE_FRIEND.new() as Node3D
-	c.name = "Model"
-	c.set("head_height", 1.1)
-	m.add_child(c)
-	var spot := USE_SPOT.make(Vector3(0, 0, 2.2), func() -> String: return "talk to %s" % centipede_name().replace("The C", "the c"),
-		_talk_centipede, 2.8, 2.6)
+	var w := CENTIPEDE_WALKER.new() as Node3D
+	w.name = "Model"
+	w.set("head_height", 1.1)
+	m.add_child(w)
+	w.call("place", m.global_position, m.global_rotation.y)
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player:
+		w.set("follow", player)
+	var head := w.get_node("Head") as Node3D
+	var spot := USE_SPOT.make(Vector3(0, -1.0, 0.6), func() -> String: return "talk to %s" % centipede_name().replace("The C", "the c"),
+		_talk_centipede, 1.6, 2.2)
 	spot.name = "Spot"
-	m.add_child(spot)
+	head.add_child(spot)
 
 
 func centipede_lines() -> Array:
-	if Portals.is_cleared(world_id):
-		return ["Tick, tock! Isn't it lovely? I used to hide from the moon. Now I sit and watch it.",
-			"Race the Hollow Run again, if you like. Or jump in the Big Hole for fun. Ptoo!",
-			"Been climbing? Walk at a wall and keep going, and up you go. Into a ceiling and you're upside down!",
-			"And knock on my holes round the Void. I can hear a knock from anywhere in my tunnels."]
 	if not Portals.has_found(world_id, "met_centipede"):
 		Portals.note_found(world_id, "met_centipede")
 		return ["Ptoo! Sorry about that. Spitting out is the only way out of a gulp. Are you all right? Not a scratch?",
-			"Welcome to Dark Hollow, {player}. My home. It looks spooky, I know. It's meant to be cosy.",
-			"But look up. The Moon Clock. It's stuck at midnight, and three pieces of it have gone dark.",
+			"Welcome to Dark Hollow, {player}. My home, deep down. It looks spooky, I know. It's meant to be cosy.",
+			"I'm coming with you! I know every corner. And it's much less scary with two. (Well. With one and a lot of legs.)",
+			"Look up. The Moon Clock. It's stuck at midnight, and three pieces of it have gone dark.",
 			"The shadows have been eating our moments. Little bits of time, gone dark and flittery. Shadow ghosts.",
 			"One Moon Piece is in the Ghost Glade, where the shadow ghosts are. Pop them all!",
 			"One's on top of the Crooked Spire. Nobody can climb it... but the Big Hole spits things out in funny places.",
@@ -774,11 +796,11 @@ func centipede_lines() -> Array:
 			"Still to do: %s." % ", and ".join(left)]
 	return ["All three Moon Pieces! But the Hush is waking up on Hush Hill. It's the one that swallowed our moments.",
 		"In the dark it's only shadow: nothing can touch it. But it can't hide in the light!",
-		"Lure it into a moon lamp's light, then pop it. If it puts a lamp out, light it again. Shhh, it's coming!"]
+		"Lure it into a moon lamp's light, then pop it. If it puts a lamp out, light it again. I'll stay back and cheer. Shhh, it's coming!"]
 
 
 func _talk_centipede() -> void:
-	var spot := get_node_or_null("Centipede/Spot") as Node3D
+	var spot := get_node_or_null("Centipede/Model/Head/Spot") as Node3D
 	if spot:
 		Dialogue.say(spot, centipede_name(), centipede_lines().map(func(l: String) -> String: return Settings.fill(l)), "dark_hollow_centipede")
 
@@ -801,6 +823,9 @@ func _process(delta: float) -> void:
 			_relight[i] -= delta
 			if _relight[i] <= 0.0:
 				light_lamp(i)
+	var cw := get_node_or_null("Centipede/Model")
+	if cw:
+		cw.set("gap", 6.0 if hush_awake and hush() else 3.2)       # she keeps back while the Hush is awake
 	if player:
 		_watch_hole(player)
 		if not hush_awake and hush() and pieces_found() >= 3:
