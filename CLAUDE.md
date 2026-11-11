@@ -116,6 +116,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     (/mnt/project-files/world/previews/day1_polish/). `test_arsenal`'s Plush Party / Rainbow Ray checks are shaky: in its
     staging one Gloop ends up sitting on the other's head, and which one the shot aims at depends on tiny distances
     (main fails other checks in the same test).
+
 - 2026-11-11: **Follow any quests and side jobs you like, the notice board tutorial, and a first look round the Void**
   (Hayden's day 1 playtest: "all quests and side jobs should be selectable allowing you to change back and forth and
   even showing multiple location markers simultaneously"; "a tutorial for the jobs board that happens at the beginning
