@@ -168,7 +168,18 @@ func _ch_first_night() -> void:
 	await _talk("theo")
 	await _talk("lionel")
 	await _frames(4)
-	check(_step("first_night") == "oak", "two hellos on the green: on to the oak (%s)" % _step("first_night"))
+	check(_step("first_night") == "board", "two hellos on the green: on to the notice board (%s)" % _step("first_night"))
+	var nb := current_scene.get_node_or_null("Notice Board") as Node3D
+	var jobs := root.get_node("EarthJobs")
+	if nb:
+		await _talk("nina_earth")
+		await _talk_to(nb.get_node("Request Talk"), [0])          # read it with Nina, and follow the first job
+		jobs.list[0].progress = jobs.list[0].goal                 # (the job itself: the board's own test does each kind)
+		jobs.list[0].done = true
+		jobs.changed.emit()
+		await _talk_to(nb.get_node("Request Talk"), [-1])         # turn it in
+		await _frames(4)
+	check(_step("first_night") == "oak", "a job followed, done and turned in: on to the oak (%s)" % _step("first_night"))
 	await _physics(30)
 	var spot := current_scene.find_child("Oak Spot", true, false)
 	await _talk_to(spot)

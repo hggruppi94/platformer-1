@@ -88,6 +88,7 @@ var _told_day := 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	Dialogue.finished.connect(_on_talked)
+	Dialogue.finished.connect(_on_follow_picked)
 	Requests.noted.connect(note)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
@@ -301,6 +302,26 @@ func left_over_text() -> String:
 	return "Sparkles for yesterday's jobs!"
 
 
+func key_prefix() -> String:
+	return "job"
+
+
+func board_name() -> String:
+	return "notice board by the gazebo"
+
+
+func job_title() -> String:
+	return "Notice board job"
+
+
+func home_scene() -> String:
+	return EARTH
+
+
+func board_node() -> String:
+	return "Notice Board"
+
+
 func board_title() -> String:
 	return "%s'S JOBS" % Clock.weekday().to_upper()
 
@@ -422,13 +443,13 @@ func wants_parcel(item_id: String) -> bool:
 # The board and what it says
 # -----------------------------------------------------------------------------
 func talk(talker: Node3D) -> void:
-	Dialogue.say(talker, "Notice Board", lines(talker), "notice_board")
+	Dialogue.say(talker, "Notice Board", lines(talker) + follow_choice(), "notice_board")
 
 
 func lines(talker: Node3D = null) -> Array:
 	if not is_live():
 		return ["(The notice board's empty, apart from a note in Mr. Palmer's tidy writing: \"New jobs every morning!\")"]
-	var out: Array = []
+	var out: Array = FirstNight.board_tutorial_lines()          # (Nina's how-to, on the First Night's board step)
 	var paid := turn_in(talker)
 	if paid > 0:
 		out.append("(You pin your finished job cards in the \"Done!\" box. A little envelope drops out: ✦ %d!)" % paid)
@@ -454,8 +475,8 @@ func _on_scene_changed() -> void:
 		return
 	_hook_skater.call_deferred()
 	if scene.scene_file_path == EARTH:
-		if scene.get_node_or_null("Notice Board") == null and not FirstNight.held_back(2):
-			_place_board(scene)                           # (a new game's first day is the Humming Oak's)
+		if scene.get_node_or_null("Notice Board") == null:
+			_place_board(scene)                           # (out from a new game's first morning: Nina shows it)
 		_place_props.call_deferred()
 
 

@@ -138,7 +138,7 @@ func _run() -> void:
 
 	# --- Fewer things to collect at first ---
 	check(fn.held_back(2), "a new game holds things back on the first night")
-	check(current_scene.get_node_or_null("Notice Board") == null, "no notice board on the first day")
+	check(current_scene.get_node_or_null("Notice Board") != null, "the notice board's up on the first day (Nina shows it)")
 	var boosters := current_scene.get_node_or_null("Boosters")
 	check(boosters != null and boosters.find_children("Coins*", "", false, false).is_empty(), "no booster coins yet (strips and ramps stay)")
 	game.go(TOWN, "FromPortaltoEarth")
@@ -187,7 +187,7 @@ func _run() -> void:
 	dialogue.flags.erase("fn_v2")
 	dialogue.flags.erase("oak_woken")
 	fn.migrate()
-	check(int(quests.state["first_night"].step) == 6 and fn.step() == "shift", "an old save on the old Shift step is on the Shift step now")
+	check(int(quests.state["first_night"].step) == 7 and fn.step() == "shift", "an old save on the old Shift step is on the Shift step now")
 	check(dialogue.flags.has("oak_woken") and oak.awake(), "...with the oak already awake")
 	quests.state["first_night"] = {"step": 1, "since_day": 1, "done": false}       # the old "wait" step
 	dialogue.flags.erase("fn_v2")

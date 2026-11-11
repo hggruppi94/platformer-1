@@ -12,6 +12,13 @@ extends Node
 # the quest log (the player menu's Quests sheet, scripts/player_menu.gd: Tab, or the "quest_log" key, Q) shows each
 # quest as a card (cards_view()): its name, who gave it ("giver" in the file, or the first person a step sends you
 # to), a picture, the step with its ticks, and the reward. Both wear the shared menu look (scripts/ui_style.gd).
+#
+# **Following** (Hayden's 11 Nov 2026 playtest: "all quests and side jobs should be selectable allowing you to change
+# back and forth and even showing multiple location markers simultaneously"): `followed` is the list of what the player
+# has chosen to follow, quests by id and side jobs by their board key (Requests/EarthJobs key_of(): "req:gloops",
+# "job:rake"). Each card on the Quests sheet has a Follow button; only followed things get stars on the map and minimap
+# (scripts/map_screen.gd) and lines on the HUD's to-do list (objectives_all()). A new quest is followed by itself only
+# when nothing else is, so it never steals the player's choice; a finished quest or a job that's gone drops off.
 
 signal changed(quest_id: String)
 signal skipped(quest_id: String, step_id: String)    # a step skipped from the quest log (scripts/playtest.gd notes it)
@@ -34,6 +41,10 @@ var _names := {}                      # character id -> their name, from res://d
 var _note_time := 0.0
 var _log_text: RichTextLabel         # shown on the player menu's Quests sheet
 var tracked := ""                    # the quest the HUD's to-do list follows: the last one that started or moved on
+var followed: Array[String] = []     # what the player follows (see the top): quest ids and job keys, in the order chosen
+
+signal follow_changed
+const TODO_MAX := 3                  # how many followed things the HUD's to-do list shows at once
 
 # Words a quest step's "do this" sentence starts with, to pick it out of a longer step for the to-do list
 const DO_WORDS := ["go", "find", "tell", "talk", "say", "put", "fill", "get", "read", "bring", "take", "help", "pop",
@@ -170,6 +181,13 @@ func display_name(character_id: String, default: String) -> String:
 # The HUD's to-do list (scripts/hud.gd): what to do right now for the quest being followed
 # -----------------------------------------------------------------------------
 func tracked_quest() -> String:
+	if followed_lock:
+		return tracked
+	for key in live_followed():
+		if _data.has(key):
+			return key                                  # the first quest the player follows
+	if not followed.is_empty() or chose_none:
+		return ""                                       # (they follow only jobs, or nothing at all)
 	if tracked != "" and is_started(tracked) and not is_done(tracked):
 		return tracked
 	for id in _order:
@@ -194,6 +212,125 @@ func objectives() -> Dictionary:
 	if is_waiting(id):
 		items = [[str(step.get("wait", {}).get("text", "Come back tomorrow.")).trim_prefix("(").trim_suffix(")"), false]]
 	return {"quest": id, "name": str(quest(id).get("name", id)), "items": items}
+
+
+func objectives_all() -> Array:
+	# One objectives() block for each thing followed (at most TODO_MAX), quests and jobs alike, for the HUD
+	var out: Array = []
+	var keys := live_followed()
+	if keys.is_empty():
+		var o := objectives()
+		return [] if o.is_empty() else [o]
+	for key in keys:
+		var o := objectives_of(key)
+		if not o.is_empty():
+			out.append(o)
+		if out.size() >= TODO_MAX:
+			break
+	return out
+
+
+func objectives_of(key: String) -> Dictionary:
+	if _data.has(key):
+		if not is_started(key) or is_done(key):
+			return {}
+		var keep := tracked
+		tracked = key
+		followed_lock = true
+		var o := objectives()
+		followed_lock = false
+		tracked = keep
+		return o
+	var job := job_of(key)
+	if job.is_empty():
+		return {}
+	var board: Object = job.board
+	var r: Dictionary = job.r
+	var line := str(board.call("text_of", r))
+	var extra := str(board.call("progress_text", r))
+	var items: Array = [[line + (" (%s)" % extra if extra != "" and not r.done else ""), bool(r.done)]]
+	if r.done:
+		items.append(["Turn it in at the %s" % board.call("board_name"), false])
+	return {"quest": key, "name": str(board.call("job_title")), "items": items}
+
+
+# --- Following -----------------------------------------------------------------
+var chose_none := false               # the player unfollowed everything: no stars or to-do list till they pick again
+var followed_lock := false            # (objectives_of() borrows objectives(): it mustn't read the followed list then)
+
+
+func job_of(key: String) -> Dictionary:
+	# {"board": Requests or EarthJobs, "r": the job} for a job key that's up and not paid yet, else {}
+	for board in [Requests, EarthJobs]:
+		if not board.is_live():
+			continue
+		for r in board.list:
+			if board.key_of(r) == key and not r.paid:
+				return {"board": board, "r": r}
+	return {}
+
+
+func is_followed(key: String) -> bool:
+	return key in followed
+
+
+func follow(key: String, on := true) -> void:
+	if on and not key in followed:
+		followed.append(key)
+	elif not on:
+		followed.erase(key)
+	chose_none = followed.is_empty() and not on
+	follow_changed.emit()
+
+
+func follow_only(key: String) -> void:
+	followed.clear()
+	follow(key, true)
+
+
+func live_followed() -> Array[String]:
+	# What's followed and still on: a started, unfinished quest, or a job that's up and not paid
+	var out: Array[String] = []
+	for key in followed:
+		if _data.has(key):
+			if is_started(key) and not is_done(key):
+				out.append(key)
+		elif not job_of(key).is_empty():
+			out.append(key)
+	return out
+
+
+func _drop_finished() -> void:
+	# A finished quest stops being followed; if that leaves nothing, the next quest on the go is followed instead
+	var keep: Array[String] = []
+	for key in followed:
+		if not (_data.has(key) and is_done(key)):
+			keep.append(key)
+	followed = keep
+	if live_followed().is_empty():
+		for id in _order:
+			if is_started(id) and not is_done(id):
+				followed.append(id)
+				break
+	follow_changed.emit()
+
+
+func follow_save() -> Array:
+	return followed.duplicate()
+
+
+func follow_load(data) -> void:
+	# A save from before following: whatever the to-do list followed then
+	followed.clear()
+	chose_none = data is Array and data.is_empty()
+	if data is Array:
+		for k in data:
+			followed.append(str(k))
+	else:
+		var id := tracked_quest()
+		if id != "":
+			followed.append(id)
+	follow_changed.emit()
 
 
 static func short_goal(step: Dictionary) -> String:
@@ -250,6 +387,8 @@ func check() -> void:
 				state[id] = {"step": 0, "since_day": Clock.day, "done": false}
 				_announce("New quest: %s" % q.get("name", id), current_step(id).get("text", ""))
 				tracked = id
+				if live_followed().is_empty():
+					follow(id, true)
 				changed.emit(id)
 			continue
 		var guard := 0
@@ -275,6 +414,7 @@ func _advance(id: String) -> void:
 		if reward.has("sparkles"):
 			Game.add_sparkles(int(reward.sparkles))
 		_announce("Quest complete: %s" % q.get("name", id), str(reward.get("message", "")))
+		_drop_finished()
 		Audio.play("level_up", -4.0)
 		_celebrate()
 	else:
@@ -347,6 +487,8 @@ func load_data(data: Dictionary) -> void:
 func reset() -> void:
 	state.clear()
 	tracked = ""
+	followed.clear()
+	chose_none = false
 
 
 # -----------------------------------------------------------------------------
@@ -406,17 +548,98 @@ func cards_view() -> VBoxContainer:
 	box.name = "Quest Cards"
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", roundi(12 * Settings.text_scale))
-	var any := false
-	for done in [false, true]:
-		for id in _order:
-			if is_started(id) and is_done(id) == done:
-				box.add_child(card(id))
-				any = true
-	if not any:
-		var l := Label.new()
-		l.text = "No quests yet. Talk to people around town!"
-		box.add_child(l)
+	_fill_cards(box)
 	return box
+
+
+func _fill_cards(box: VBoxContainer) -> void:
+	# (made again in place when a Follow button's pressed, so the buttons and stars show the change at once)
+	for c in box.get_children():
+		box.remove_child(c)
+		c.queue_free()
+	var any := false
+	var hint := _card_label(box, "Press Follow on a quest or a job to put it on your map and to-do list. Follow as many as you like!", 17, Color(0.8, 0.75, 0.95))
+	hint.name = "Follow Hint"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for id in _order:
+		if is_started(id) and not is_done(id):
+			box.add_child(card(id))
+			any = true
+	for board in [Requests, EarthJobs]:
+		if board.is_live():
+			for r in board.list:
+				if not r.paid:
+					box.add_child(job_card(board, r))
+					any = true
+	for id in _order:
+		if is_started(id) and is_done(id):
+			box.add_child(card(id))
+			any = true
+	if not any:
+		hint.text = "No quests yet. Talk to people around town!"
+
+
+func follow_button(key: String) -> Button:
+	# ☆ Follow / ★ Following: toggles whether this quest or job is on the map and the to-do list
+	var b := Button.new()
+	b.name = "Follow"
+	b.toggle_mode = true
+	b.button_pressed = is_followed(key)
+	b.text = "★ Following" if b.button_pressed else "☆ Follow"
+	b.focus_mode = Control.FOCUS_ALL
+	b.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	b.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
+	b.toggled.connect(func(on: bool) -> void:
+		follow(key, on)
+		Audio.play("ui_accept" if on else "ui_back", -6.0)
+		var box := b.get_parent()
+		while box and box.name != "Quest Cards":
+			box = box.get_parent()
+		if box:
+			_fill_cards.call_deferred(box)
+			_refocus.call_deferred(box, key))
+	return b
+
+
+func _refocus(box: Node, key: String) -> void:
+	# The cards are new: put a controller's focus back on the same Follow button
+	if not is_instance_valid(box):
+		return
+	var c := box.get_node_or_null(_card_name(key))
+	if c:
+		var b := c.find_child("Follow", true, false) as Button
+		if b:
+			b.grab_focus()
+
+
+static func _card_name(key: String) -> String:
+	return "Card " + key.replace(":", "_")
+
+
+func job_card(board: Object, r: Dictionary) -> PanelContainer:
+	# A side job from Tally's board or Earth's notice board, as a smaller card with its own Follow button
+	var sc := Settings.text_scale
+	var key: String = board.call("key_of", r)
+	var c := PanelContainer.new()
+	c.name = _card_name(key)
+	c.theme_type_variation = "Card"
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", roundi(16 * sc))
+	c.add_child(row)
+	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(v)
+	_card_label(v, str(board.call("job_title")), 17, Color(0.8, 0.75, 0.95)).name = "From"
+	var t := _card_label(v, str(board.call("text_of", r)), 22, UiStyle.GOLD)
+	t.name = "Title"
+	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var extra := str(board.call("progress_text", r))
+	if extra != "":
+		_card_label(v, extra.capitalize() if not r.done else "Done! Turn it in at the %s." % board.call("board_name"), 18, Color(0.6, 1.0, 0.7) if r.done else UiStyle.TEXT).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_card_label(v, "Reward: ✦ %d sparkles" % int(r.sparkles), 18, Color(1.0, 0.88, 0.45)).name = "Reward"
+	row.add_child(follow_button(key))
+	return c
 
 
 func card(id: String) -> PanelContainer:
@@ -425,7 +648,7 @@ func card(id: String) -> PanelContainer:
 	var q := quest(id)
 	var done := is_done(id)
 	var c := PanelContainer.new()
-	c.name = "Card " + id
+	c.name = _card_name(id)
 	c.theme_type_variation = "Card"
 	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if done:
@@ -466,6 +689,7 @@ func card(id: String) -> PanelContainer:
 	var reward := reward_text(id)
 	if reward != "":
 		_card_label(v, "Reward: " + reward, 18, Color(1.0, 0.88, 0.45)).name = "Reward"
+	row.add_child(follow_button(id))
 	return c
 
 
@@ -526,9 +750,7 @@ func _card_label(parent: Node, text: String, size: int, col: Color) -> Label:
 
 func extras_text() -> String:
 	# What the cards don't cover, for under them on the sheet: tonight's requests, Earth's jobs, the festival
-	var lines: Array[String] = []
-	lines.append_array(Requests.log_lines())
-	lines.append_array(EarthJobs.log_lines())
+	var lines: Array[String] = []                         # (tonight's requests and today's jobs are cards now)
 	lines.append_array(Festival.log_lines())
 	return "\n".join(lines).strip_edges()
 

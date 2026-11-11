@@ -236,6 +236,28 @@
     },
     {
       "when": {
+        "quest_step": "first_night:board",
+        "not_flag": "fn_board_look"
+      },
+      "lines": [
+        "You've met everyone! Well, nearly. Before we go poking at old trees, I want to show you something.",
+        "This is the notice board, right here by the gazebo. Go on, press {interact} on it. I'll tell you how it works."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
+        "quest_step": "first_night:board"
+      },
+      "lines": [
+        "Pick a job and follow it, and a star shows you where to go. You can follow two, or all three!",
+        "When it's done, come back to the board and press {interact} to turn it in. Sparkles!",
+        "(She grins.) Then I'll tell you about the oak. Deal?"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "quest_step": "first_night:oak"
       },
       "lines": [
