@@ -13,6 +13,7 @@ signal done
 const TITLE_TIME := 2.6
 const FLY_TIME := 5.5                    # the whole course, however long it is
 const RIVAL_TIME := 1.3
+const RIVAL_TIME_MANY := 0.8             # (seven friends on a circuit: quicker hellos)
 const BAR := 0.11                        # the black bars' height, as a share of the screen
 const SKIP_ACTIONS := ["jump", "interact", "ui_accept"]
 
@@ -69,7 +70,11 @@ func playing() -> bool:
 
 
 func length() -> float:
-	return TITLE_TIME + FLY_TIME + RIVAL_TIME * rivals.size()
+	return TITLE_TIME + FLY_TIME + _rival_time() * rivals.size()
+
+
+func _rival_time() -> float:
+	return RIVAL_TIME if rivals.size() <= 4 else RIVAL_TIME_MANY
 
 
 func play(on: RaceTrack, who: Array, name: String, what: String) -> void:
@@ -175,7 +180,7 @@ func _place_camera() -> void:
 		_look(at, track.point_at(d + 16.0 * size) + Vector3.UP * up)
 	else:
 		# Hello to each rival on the grid, one at a time
-		var i := clampi(int((_t - TITLE_TIME - FLY_TIME) / RIVAL_TIME), 0, rivals.size() - 1)
+		var i := clampi(int((_t - TITLE_TIME - FLY_TIME) / _rival_time()), 0, rivals.size() - 1)
 		var r := rivals[i] as Node3D
 		if not is_instance_valid(r):
 			return

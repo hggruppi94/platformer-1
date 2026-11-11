@@ -262,8 +262,9 @@ func _race_goal() -> String:
 	for id in Races.TRACKS:
 		if Races.unlocked(id) and not Races.finished_once.has(id):
 			var t: Dictionary = Races.TRACKS[id]
-			var who := str(t.get("starter", {}).get("name", "the starter"))
-			return "Races: try the %s (talk to %s%s)" % [str(t.name), who, " in Stars Hollow" if t.scene == Races.EARTH else ""] if not t.get("sky", false) \
+			var who := Races.starter_name(id)
+			var earth: bool = t.scene == Races.EARTH or Races.hub_of(id) == "earth"
+			return "Races: try the %s (talk to %s%s)" % [str(t.name), who, " in Stars Hollow" if earth else ""] if not t.get("sky", false) \
 				else "Races: fly the mothership through the Sky Rings' start ring"
 	for id in Races.TRACKS:
 		if not Races.unlocked(id):

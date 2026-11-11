@@ -1,11 +1,10 @@
 extends SceneTree
 
-# Checks the Pumpkin Run, the race round Stars Hollow on Earth (scripts/races.gd TRACKS "pumpkin_run"): it's placed in
-# the Earth town at play time, its line is on dry ground with nothing in the way in any lane and no step too high,
-# it stays clear of the old oak's portal, Pepper (an Earth kid made like the townsfolk) and the race board stand off
-# the track, it's open from the start, the friends who race are Earth kids from town (Nina, Bruno and Ozzie, copied
-# from the townsfolk, on their own rides) and step out of their usual places while they race, and a whole race
-# finishes and pays out.
+# Checks the Pumpkin Run, Stars Hollow's race (scripts/races.gd TRACKS "pumpkin_run"). Since Nov 11, 2026 it's a
+# circuit of its own (scenes/races/pumpkin_run.tscn, laid out by scripts/race_circuit.gd): in town there's only Pepper's
+# race gate (the arch, Pepper and the board), on dry ground, clear of the old oak and of everyone's paths. Saying yes
+# takes you to the farm-lane circuit, where six Earth kids from town race you (copied from the townsfolk, so they look
+# like themselves), three laps round, and going back puts you by the gate in Stars Hollow again.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_earth_race.gd
 #
@@ -31,7 +30,7 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
-	create_timer(300.0, true, false, true).timeout.connect(func() -> void:
+	create_timer(400.0, true, false, true).timeout.connect(func() -> void:
 		print("RESULT FAILED (timed out)")
 		_finish())
 	_run.call_deferred()
@@ -66,111 +65,118 @@ func _run() -> void:
 	await _frames(8)
 	var earth := current_scene
 	var p := earth.find_child("Player", true, false) as CharacterBody3D
-	var t: Node3D = races.track_node("pumpkin_run")
-	check(t != null, "the Pumpkin Run is placed in Stars Hollow at play time")
-	if t == null:
+	check(races.track_node("pumpkin_run") == null, "the Pumpkin Run isn't laid out round town any more")
+	var gate: Node3D = races.hub_node("earth")
+	check(gate != null, "Pepper's race gate is put up in Stars Hollow at play time")
+	if gate == null:
 		_finish()
 		return
-	for k in 30:
-		if t.ready_to_race:
-			break
-		await physics_frame
-	check(t.ready_to_race, "...and its racing line is worked out")
-	check(races.track_node("lake_loop") == null, "The Void's tracks aren't put on Earth")
+	await _until(func() -> bool: return gate.ready_to_race, 60)
+	check(races.hub_node("void") == null, "Zippy's gate isn't put on Earth")
 	check(races.unlocked("pumpkin_run"), "it's open from the start (it's at home)")
-	await _check_line(t, p)
-
-	# Pepper, the board and the arch
-	var st := t.get_node_or_null("Pepper") as Node3D
-	check(st != null and t.get_node_or_null("Race Board") != null and t.get_node_or_null("Start Arch") != null,
-		"Pepper, the race board and the start arch are by the line")
+	await _check_gate(gate, p)
+	var st := gate.get_node_or_null("Pepper") as Node3D
+	check(st != null and gate.get_node_or_null("Race Board") != null and gate.get_node_or_null("Start Arch") != null,
+		"Pepper, the race board and the arch are at the gate")
 	if st:
-		check(st.global_position.distance_to(t.point_at(0.0)) > 6.0, "Pepper stands off the track")
 		check(st.find_children("*", "Townsfolk", true, false).size() == 1 or st.get_child(0) is Townsfolk,
 			"...and she's an Earth kid, not a little alien")
-	var lines: Array = races.lines("pumpkin_run")
+	var lines: Array = races.hub_lines("earth")
 	check(str(lines).contains("Pepper") and not str(lines).contains("Sky Rings") and not str(lines).contains("Zippy"),
 		"Pepper talks about her own race, not the Void's")
-	check(lines.any(func(l) -> bool: return l is Dictionary and str(l.get("choice", "")).contains("race_go_pumpkin_run")),
-		"...and asks if you're ready")
+	var choice: Array = []
+	for l in lines:
+		if l is Dictionary and l.has("choice"):
+			choice = l.choice
+	check(choice.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_pumpkin_run"), "...and asks if you're ready")
+	check(choice.size() == 2, "...and only offers her own race (and \"not now\")")
 
-	# A race: three Earth kids line up
+	# Off to the circuit
 	var nina := _townsfolk(earth, "nina_earth")
-	check(races.start("pumpkin_run"), "saying yes starts the race")
-	check(races.rivals.map(func(r) -> String: return r.id) == ["nina_earth", "bruno", "ozzie"],
-		"...against Nina, Bruno and Ozzie (%s)" % ", ".join(races.rivals.map(func(r) -> String: return r.id)))
+	var from: Vector3 = p.global_position
+	check(races.enter_circuit("pumpkin_run"), "saying yes takes you to the Pumpkin Run")
+	var path: String = races.TRACKS.pumpkin_run.scene
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == path, 240)
+	await _until(func() -> bool: return races.racing(), 240)
+	check(current_scene.scene_file_path == path and races.racing(), "...its own circuit, and the race starts by itself")
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	var t: Node3D = races.track_node("pumpkin_run")
+	check(t != null and t.earth, "the track has Earth's look (hay bales and windmills, not crystals)")
+	var ids: Array = races.rivals.map(func(r) -> String: return r.id)
+	check(ids == ["nina_earth", "bruno", "ozzie", "juniper", "theo", "prue"], "six Earth kids race you (%s)" % ", ".join(ids))
 	var r0: Node = races.rivals[0]
 	check(r0.find_children("*", "Townsfolk", true, false).size() > 0, "the friends are Earth kids (made like the townsfolk)")
 	check(r0.display_name() == "Nina" and races.rivals[1].display_name() == "Bruno", "...called by their Earth names")
+	if nina:
+		var copy := r0.find_children("*", "Townsfolk", true, false)[0] as Townsfolk
+		check(copy.look.get("colors", {}) == (nina as Townsfolk).look.get("colors", {}), "...and Nina looks just like she does in town")
 	check(races.rivals[1].find_child("Ride", true, false).get_child_count() > 0, "...on their rides")
-	check(nina != null and not nina.visible, "Nina steps out of her usual place while she races")
 	var held: Array = r0.find_children("skateboard", "", true, false)
 	check(held.is_empty(), "...and the board she carries round town is under her feet, not in her hand")
 	await _physics(int(races.COUNTDOWN * 60) + 10)
 	check(races.state == races.State.RACING, "GO: the race is on")
 	await _physics(120)
-	var moved: float = races.rivals[0].d + 9.0
-	check(moved > 6.0 and moved < 30.0, "the friends ride round at a fair pace (%.1f m in 2 s)" % moved)
+	check(races.rivals.all(func(r) -> bool: return r.d > -16.0), "everyone sets off (%s)" % ", ".join(races.rivals.map(func(r) -> String: return "%.0f" % r.d)))
 
-	# Round the rings: two laps
+	# Round the rings: three laps
+	for r in races.rivals:
+		r.d = -80.0
+		r.speed = 0.0
+		r.skill = 0.0
+	races.attacks._aim_wait = 999.0
 	var laps := int(races.TRACKS.pumpkin_run.laps)
+	check(laps == 3, "three laps")
 	for lap in laps:
 		for i in range(1, t.cp_dist.size() + 1):
 			var d: float = t.cp_dist[i % t.cp_dist.size()]
-			p.global_position = t.point_at(d - 2.0) + Vector3.UP * 0.85
-			p.velocity = t.dir_at(d) * 7.0
-			await _physics(4)
-			p.global_position = t.point_at(d) + Vector3.UP * 0.85
-			await _physics(3)
+			p.global_position = t.point_at(d - 2.5) + Vector3.UP * 0.9
+			p.velocity = t.dir_at(d) * 6.0
+			await _physics(2)
+			p.global_position = t.point_at(d + 1.0) + Vector3.UP * 0.9
+			await _physics(2)
 			if races.state != races.State.RACING:
 				break
-	check(races.state == races.State.RESULTS, "two laps and it's finished")
+	check(races.state == races.State.RESULTS, "three laps and it's finished")
 	check(races.best.has("pumpkin_run"), "...and the best time is kept")
 	check(races.hud.results.visible and str(races.hud.results_label.text).contains("Bruno"), "the results name the Earth kids")
-	await _physics(int(races.RESULTS_TIME * 60) + 20)
-	check(not races.racing() and nina.visible, "after the results Nina's back in her usual place")
+	check(races.hud.choosing() and str((races.hud.choice_box.get_child(1) as Button).text).contains("Stars Hollow"),
+		"...with a button back to Stars Hollow")
+	(races.hud.choice_box.get_child(1) as Button).pressed.emit()
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == EARTH, 240)
+	await _frames(4)
+	check(current_scene.scene_file_path == EARTH and races.circuit == "", "back to Stars Hollow")
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	await _physics(10)
+	check(p.global_position.distance_to(from) < 3.0, "...by Pepper's gate, where you set off (%.1f m)" % p.global_position.distance_to(from))
 	_finish()
 
 
-func _check_line(t: Node3D, p: CharacterBody3D) -> void:
-	var tr: Dictionary = races.TRACKS.pumpkin_run
-	var L: float = t.length
-	check(L > 120.0 and L < 420.0, "a lap is a good length (%.0f m)" % L)
-	var wet := 0
-	var steep_at: Array[String] = []
-	var blocked: Array[String] = []
+func _check_gate(gate: Node3D, p: CharacterBody3D) -> void:
+	# The gate's spot: dry, flat, clear of the old oak, nothing built through it, off everyone's paths
+	var hub: Dictionary = races.HUBS.earth
+	var at: Vector2 = hub.at
+	check(not EarthLand.is_water(at.x, at.y) and EarthLand.height(at.x, at.y) > EarthLand.WATER_Y + 0.3, "the gate's on dry ground")
+	check(at.distance_to(PORTAL) > 12.0, "...well clear of the old oak (%.0f m)" % at.distance_to(PORTAL))
 	var space: PhysicsDirectSpaceState3D = p.get_world_3d().direct_space_state
-	var near_portal := INF
-	for i in t.line.size():
-		var a: Vector3 = t.line[i]
-		var b: Vector3 = t.line[(i + 1) % t.line.size()]
-		if EarthLand.is_water(a.x, a.z) or a.y < EarthLand.WATER_Y:
-			wet += 1
-		var run := Vector2(b.x - a.x, b.z - a.z).length()
-		if b.y - a.y > 0.32 and (b.y - a.y) / maxf(run, 0.01) > 0.7 and steep_at.size() < 8:
-			steep_at.append("(%.0f, %.0f) %.2f m" % [a.x, a.z, b.y - a.y])
-		near_portal = minf(near_portal, Vector2(a.x, a.z).distance_to(PORTAL))
-		for side in [-2.2, 0.0, 2.2]:
-			var off: Vector3 = t.side_at(t.dist[i]) * side
-			var la: Vector3 = t.ground_at(Vector2(a.x + off.x, a.z + off.z))
-			var lb: Vector3 = t.ground_at(Vector2(b.x + off.x, b.z + off.z))
-			for h in [0.6, 1.3]:
-				var q := PhysicsRayQueryParameters3D.create(la + Vector3.UP * h, lb + Vector3.UP * (h + maxf(lb.y - la.y, 0.0)))
-				q.exclude = [p.get_rid()]
-				var hit: Dictionary = space.intersect_ray(q)
-				if not hit.is_empty() and hit.collider is StaticBody3D and blocked.size() < 12:
-					blocked.append("%s/%s at (%.0f, %.0f) lane %+.0f" % [(hit.collider as Node).get_parent().name, (hit.collider as Node).name, a.x, a.z, side])
-	check(wet == 0, "the whole line is on dry ground (%d points in water)" % wet)
-	check(steep_at.is_empty(), "no steps too high to roll up (%s)" % ", ".join(steep_at))
-	check(blocked.is_empty(), "nothing in the way, in any lane (%s)" % ", ".join(blocked))
-	check(near_portal > 6.5, "the line stays clear of the old oak's portal (%.1f m)" % near_portal)
+	var blocked: Array[String] = []
+	for i in gate.line.size():
+		var a: Vector3 = gate.line[i]
+		var q := PhysicsRayQueryParameters3D.create(a + Vector3.UP * 0.6, a + Vector3.UP * 0.6 + gate.side_at(gate.dist[i]) * 0.01 + gate.dir_at(gate.dist[i]))
+		q.exclude = [p.get_rid()]
+		var hit: Dictionary = space.intersect_ray(q)
+		if not hit.is_empty() and hit.collider is StaticBody3D and blocked.size() < 6:
+			blocked.append("%s at (%.0f, %.0f)" % [(hit.collider as Node).name, a.x, a.z])
+	check(blocked.is_empty(), "...and nothing stands in its way through the arch (%s)" % ", ".join(blocked))
 	var bounds := Rect2(-152, -152, 244, 254).grow(-6.0)
-	var outside := 0
-	for a in t.line:
-		if not bounds.has_point(Vector2(a.x, a.z)):
-			outside += 1
-	check(outside == 0, "...and inside the town's walls (%d outside)" % outside)
+	check(bounds.has_point(at), "...and it's inside the town's walls")
 	await physics_frame
+
+
+func _until(cond: Callable, frames: int) -> void:
+	for i in frames:
+		if cond.call():
+			return
+		await physics_frame
 
 
 func _townsfolk(scene: Node, id: String) -> Node3D:

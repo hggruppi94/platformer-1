@@ -91,6 +91,43 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **Races get their own circuits, longer, with obstacles, eight racers and attacks** (Hayden's day 1
+  playtest: "a separate instance with option to back out, restart the race", "longer, with more obstacles, more
+  racers, and more powerups that attack/defend with racers that attack you"). Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **Circuits** (`scenes/races/<id>.tscn`, made by `tools/build_race_circuits.gd`; re-run it only when a circuit is
+    added or renamed): the Lake Loop, Meadow Wiggle, Observatory Hill and Pumpkin Run are levels of their own. Each
+    scene is just `scripts/race_circuit.gd`, an Entrance and the player: the sky, ground, a 14 m road with walls and
+    kerbs (one ribbon with its own collision, "Road Body"), the lake/meadow/hill/farm in the middle, scenery and a
+    grandstand are built at load from the track's `Races.TRACKS` entry (`"circuit"`, `"width"`, Vector3 `"points"`
+    with heights). Three laps of 460 to 540 m each. The tests check no bend is tighter than the road can take.
+  - **Race gates** (`Races.HUBS`): in the Void and Stars Hollow only an arch, the starter (Zippy by the lake, Pepper
+    on Maple Lane), the race board and (in the Void) Zippy's Tune-Up are left, where the old starts were
+    (`race_track.gd` "hub_gate" mode). The starter offers every open race (`hub_lines()`); saying which takes you
+    there (`enter_circuit()`), the race starts by itself, and the results have **Race again** and **Back to ...**
+    buttons (`race_hud.gd show_choices()`). Pause > **Restart the race** / **Leave the race** any time. The clocks
+    stand still on a circuit; saving there saves you back at the gate (`save_place()`). Riding off or over a wall
+    pops you back on the road (`_back_on_track()`); stepping off just puts you back on.
+  - **Obstacles** (`"obstacles"` per track, `race_track.gd`): bumpers (bounce you back; hay bales on Earth),
+    sweepers (a turning arm; a windmill on Earth), zappers (an arc across part of the road that's on 1.3 s in every
+    3.2, with a warning glow; a sprinkler on Earth) and ramps (a big hop). All of it (and every hit) is worked out in
+    `scripts/race_attacks.gd`, nothing has collision.
+  - **Eight racers** (seven friends; Pumpkin Run: Nina, Bruno, Ozzie, Juniper, Theo and Prue, copied from town so
+    they look like themselves, `kid_look()`), you start fifth. New **power-ups**: Goo Bomb (drops a puddle behind
+    you), Bubble Seeker (chases whoever's ahead) and Zap Ring (knocks everyone close round), with Zoom Star, Bubble
+    Shield and Super Spring. Rivals pick up boxes too, steer round obstacles and goo, shield up, and **attack you**,
+    but only now and then (`ASSIST_WAIT`: 18 / 11 / 7 s between attacks on Relaxed / Normal / Pro). A hit is a
+    comedy wipeout, never damage. A track map shows on the right during a race.
+  - The Hollow Run and Skyway Run stay in their portal worlds but get the new power-ups and rival attacks; the Sky
+    Rings (the mothership race) are unchanged.
+  - Tests: `test_races` (rewritten), `test_earth_race` (rewritten), `test_race_intros` (circuits); boosters, nights,
+    later_nights, ride_upgrades, dark_hollow, far_future, map, layout, walk_through, dialogue, earth, glenmoor,
+    sunken_secrets, portals, practice_trips, groove, rhythm_springs, soundscape pass (wall_crawl fails one mantle check
+    on main too). Previews: `tools/capture_race_circuits.gd` (shots in the project files under
+    world/previews/race_circuits).
+  - My choices Hayden may change: the circuits' shapes and scenery, three laps, which obstacles go where, the new
+    power-ups, how often friends attack, starting fifth.
+
 - 2026-11-11: **A whole-game playtest, start to ending, and what it fixed** (Hayden: "Playtest"). Played in the cloud
   (own Godot user folders, no save touched).
   - **`tools/playthrough.gd`** plays the whole story as a player would, chapter by chapter: the First Night, nights 2
@@ -2093,6 +2130,6 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 ## Open ideas / next up
 
 - Skating (Hayden, Oct 23): THPS-style, every character playable with their own ride and moves, on controller and
-  keyboard. Steps 1 to 4 are in (see the log). Bruno rides his SK8 Deck and coaches the lesson (Nov 1). Gap bonuses and timed runs are in (Nov 1). Later: more grindable spots round town (boardwalk edges, castle steps).
+  keyboard. Steps 1 to 4 are in (see the log). Bruno rides his SK8 Deck and coaches the lesson (Nov 1). Gap bonuses and timed runs are in (Nov 1). Races have their own circuits (Nov 11). Later: more grindable spots round town (boardwalk edges, castle steps).
 - Clothes (Hayden, Oct 23): more clothes later. Mr. Palmer's town self could wear his outfit too.
 - Add new requests here as they come in, and move them to the log when they're done.

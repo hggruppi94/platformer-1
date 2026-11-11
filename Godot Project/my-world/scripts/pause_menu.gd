@@ -197,6 +197,14 @@ func _show_main() -> void:
 	_clear()
 	_title("Paused")
 	var first := _button("Resume", close)
+	if Races.circuit != "":
+		# On a race circuit (scripts/races.gd): start the race again, or go back to the race gate
+		_button("Restart the race", func():
+			close()
+			Races.restart())
+		_button("Leave the race", func():
+			close()
+			Races.leave_circuit())
 	for way in way_home():
 		_button(way[0], func():
 			close()

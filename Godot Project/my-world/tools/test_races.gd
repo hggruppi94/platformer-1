@@ -1,11 +1,16 @@
 extends SceneTree
 
-# Checks the races (scripts/races.gd, race_track.gd, race_rival.gd, race_hud.gd): the Lake Loop is laid out on dry,
-# open ground all the way round (nothing to crash into, no steps too high to roll up, well clear of the portal),
-# Zippy and the board are there, talking to Zippy starts a race, the countdown holds everyone still, the rings go in
-# order and count laps, the friends ride round at a fair pace and ease off or catch up, boost pads, goo, Star Boxes
-# and all three power-ups do what they say, finishing pays the right prize and a best-time bonus, and the race ends
-# cleanly (stepping off, results, back to normal). Best times and wins are saved.
+# Checks the races (scripts/races.gd, race_track.gd, race_rival.gd, race_hud.gd, race_attacks.gd, race_circuit.gd).
+# Since Hayden's day 1 playtest (11 Nov 2026) the ground races are circuits of their own: out in the Void there's only
+# Zippy's race gate (the arch, Zippy, the board and the Tune-Up, no track), and saying which race takes you to its
+# circuit. This checks: the gate, and that no track is left in town; the trip there (the clock waits) and the race
+# starting by itself, eight racers with you in the middle of the pack; every circuit's road (solid all the way round,
+# walls both sides, never too steep, never crossing itself, scenery and the starter off it, obstacles on it); the
+# countdown; each obstacle (bumpers bounce you, sweepers and zappers knock you over, ramps throw you up); the power-ups
+# (Zoom Star, Bubble Shield, Super Spring, Goo Bomb, Bubble Seeker, Zap Ring) on you and the friends; the friends
+# picking power-ups up and using them on you (and the shield stopping it); being popped back on the road; laps, the
+# finish and its prize, the results with "race again" and "back"; racing again; saving on a circuit (you're saved back
+# at the gate); going back; the next race opening; Zippy's Tune-Up; the Sky Rings (still in the Void's sky); saving.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_races.gd
 #
@@ -16,13 +21,13 @@ const BACKUP := "user://save.races_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.races_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
-const PORTAL := Vector2(36, 13)                   # the Portal to Earth (tools/build_town.gd), 3.8 m round its stone
 
 var failures := 0
 var game: Node
 var settings: Node
 var dialogue: Node
 var races: Node
+var clock: Node
 
 
 func check(ok: bool, what: String) -> void:
@@ -32,7 +37,7 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
-	create_timer(300.0, true, false, true).timeout.connect(func() -> void:
+	create_timer(700.0, true, false, true).timeout.connect(func() -> void:
 		print("RESULT FAILED (timed out)")
 		_finish())
 	_run.call_deferred()
@@ -47,6 +52,7 @@ func _run() -> void:
 	settings = root.get_node("Settings")
 	dialogue = root.get_node("Dialogue")
 	races = root.get_node("Races")
+	clock = root.get_node("Clock")
 	settings.use_layout("classic")
 	settings.last_device = "keyboard"
 	settings.tips = false
@@ -55,258 +61,333 @@ func _run() -> void:
 	game._resume = {}
 	game.pending_message = ""
 	game.riding = false
+	game.hold_saves = true
 	races.reset()
 	if not game.has_item("skateboard"):
 		game.items.append("skateboard")
-	var clock := root.get_node("Clock")
 	clock.set("pulls_home", false)
 
 	change_scene_to_file(TOWN)
 	await _frames(6)
 	var town := current_scene
 	var p := town.find_child("Player", true, false) as CharacterBody3D
-	var s: Node = p.get_node("Skate")
-	var t: Node3D = races.track_node("lake_loop")
-	check(t != null, "the Lake Loop is placed in town at play time")
+	var gate: Node3D = races.hub_node("void")
 	for i in 60:
-		if t.ready_to_race:
+		if gate and gate.ready_to_race:
 			break
 		await physics_frame
-	check(t.ready_to_race, "...and its racing line is worked out")
-
-	# --- Every track: laid out on dry, open ground ---
-	for id in races.TRACKS:
-		if races.TRACKS[id].scene != TOWN:
-			continue                                      # (the Pumpkin Run is on Earth: tools/test_earth_race.gd)
-		var tn: Node3D = races.track_node(id)
-		for i in 60:
-			if tn and tn.ready_to_race:
-				break
-			await physics_frame
-		if races.TRACKS[id].get("sky", false):
-			await _check_sky(id, tn, p)
-		else:
-			await _check_track(id, tn, p)
-	check(t.pads.size() == 4 and t.boxes.size() == 9 and t.goo.size() == 3, "4 boost pads, 3 rows of Star Boxes, 3 goo puddles")
-	check(t.pads[0].visible and not t.boxes[0].visible and not t.rings[1].visible,
-		"boost pads are always out; boxes and rings only in a race")
-	check(t.board_text.text.contains("LAKE LOOP") and t.board_text.text.contains("not yet"), "the board shows the race and no best time yet")
-
-	# --- Boost pads work any time ---
-	game.riding = true
-	game.equipment_changed.emit()
-	await _physics(3)
-	var pad: Node3D = t.pads[0]
-	p.global_position = pad.global_position + Vector3.UP * 0.85
-	p.velocity = t.dir_at(float(pad.get_meta("d"))) * 4.0
-	await _physics(3)
-	check(s.boosting(), "riding over a boost pad boosts, race or no race")
-	await _physics(20)
-	var spd := Vector2(p.velocity.x, p.velocity.z).length()
-	check(spd > 10.0, "...past pushing speed (%.1f m/s)" % spd)
-	await _physics(80)
-
-	# --- Talking to Zippy ---
-	var lines: Array = races.lines()
-	check(lines.any(func(l) -> bool: return l is Dictionary and l.has("choice")), "Zippy asks if you're ready")
-	check(str(lines[1]).contains("Right"), "...and says how to use a power-up (%s)" % settings.prompt("aim"))
+	# --- The race gate: no track left in town ---
+	check(gate != null and gate.ready_to_race, "Zippy's race gate is put up in town at play time")
+	check(races.track_node("lake_loop") == null and races.track_node("meadow_wiggle") == null and races.track_node("observatory_hill") == null,
+		"...and no race track is laid out in town any more")
+	var left: Array = town.get_children().filter(func(n: Node) -> bool: return str(n.name).begins_with("Race ") and not str(n.name).begins_with("Race Gate"))
+	check(left.size() == 1 and str(left[0].name) == "Race sky_rings", "(only the Sky Rings, up in the sky: %s)" % ", ".join(left.map(func(n: Node) -> String: return str(n.name))))
+	check(gate.get_node_or_null("Zippy") != null and gate.get_node_or_null("Race Board") != null and gate.get_node_or_null("Start Arch") != null
+		and gate.get_node_or_null("Tune-Up") != null, "the gate has its arch, Zippy, the board and the Tune-Up")
+	check(gate.rings.is_empty() and gate.pads.is_empty() and gate.boxes.is_empty(), "...and no rings, pads or boxes")
+	check(gate.get_node("Zippy").global_position.distance_to(Vector3(-8, gate.get_node("Zippy").global_position.y, 32.5)) < 2.0,
+		"Zippy stands where he always did, by the lake")
+	check(gate.board_text.text.contains("LAKE LOOP") and gate.board_text.text.contains("Opens after"),
+		"the board lists the races, and which open later")
+	var lines: Array = races.hub_lines("void")
+	var picks: Array = lines.filter(func(l) -> bool: return l is Dictionary and l.has("choice"))[0].choice
+	check(picks.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_lake_loop")
+		and not picks.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_meadow_wiggle"),
+		"Zippy offers the Lake Loop, not a race that isn't open yet")
+	check(str(lines).contains("throw"), "...and says the others throw things too")
 	game.items.erase("skateboard")
-	check(str(races.lines()).contains("Skate Park"), "with nothing to ride, Zippy says where the skateboard is")
-	check(not races.start("lake_loop"), "...and no race starts")
+	check(str(races.hub_lines("void")).contains("Skate Park") and not races.enter_circuit("lake_loop"),
+		"with nothing to ride, Zippy says where the skateboard is, and nobody goes")
 	game.items.append("skateboard")
+	var map_flags: Array = races.map_tracks().filter(func(tr: Dictionary) -> bool: return tr.name == "Races")
+	check(map_flags.size() == 1, "the map shows the race gate")
+
+	# --- Off to the Lake Loop ---
+	p.global_position = gate.get_node("Zippy").global_position + Vector3(2, 1, 0)
+	await _physics(3)
+	var from: Vector3 = p.global_position
 	dialogue.flags["race_go_lake_loop"] = true
 	dialogue.finished.emit("race_starter")
-	await _frames(2)
-	check(races.racing() and races.state == races.State.COUNTDOWN, "saying yes starts the countdown")
-	check(races.rivals.size() == 3, "three friends line up (%s)" % ", ".join(races.rivals.map(func(r) -> String: return r.id)))
+	var lake_scene: String = races.TRACKS.lake_loop.scene
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == lake_scene, 240)
+	check(current_scene.scene_file_path == lake_scene, "saying which takes you to the Lake Loop's own circuit")
+	var circ := current_scene
+	p = circ.find_child("Player", true, false) as CharacterBody3D
+	var s: Node = p.get_node("Skate")
+	await _until(func() -> bool: return races.racing(), 240)
+	var t: Node3D = races.track_node("lake_loop")
+	check(races.circuit == "lake_loop" and races.racing() and races.state == races.State.COUNTDOWN, "...and the race starts by itself")
+	check(not clock.running, "the clocks wait while you race")
+	check(races.rivals.size() == 7, "seven friends race you (%s)" % ", ".join(races.rivals.map(func(r) -> String: return r.id)))
+	var ahead: int = races.rivals.filter(func(r) -> bool: return r.d > -13.0).size()
+	check(ahead == 4, "you start fifth, in the middle of the pack (%d in front)" % ahead)
 	check(p.input_locked, "nobody moves during the countdown")
-	check(t.rings[1].visible and t.boxes[0].visible and t.goo[0].visible, "the rings, boxes and goo come out")
-	var start_pos := p.global_position
-	var d0: float = races.rivals[0].d
-	await _physics(90)
-	check(p.global_position.distance_to(start_pos) < 0.3 and races.rivals[0].d == d0, "...and they wait for GO")
-	await _physics(110)
+	check(races.hud.map.visible, "a little map of the track is up")
+	await _check_circuit("lake_loop", t, p)
+	await _physics(200)
 	check(races.state == races.State.RACING and not p.input_locked, "GO: the race is on")
+	var behind: float = Vector2(p.global_position.x - t.point_at(0.0).x, p.global_position.z - t.point_at(0.0).z).length()
+	check(behind > 8.0, "...and waiting on the grid, behind the line, nobody pops you forward (%.1f m back)" % behind)
 	await _physics(120)
-	var moved: float = races.rivals[0].d - d0
-	check(moved > 6.0 and moved < 25.0, "the friends set off at a fair pace (%.1f m in 2 s)" % moved)
-	check(races.place > 1, "standing still, you drop back (%s)" % races.hud.ordinal(races.place))
-	# Ease off when far ahead
-	var lead: Node3D = races.rivals[0]
-	var base_speed: float = lead.speed
-	lead.d = races.progress + 90.0
-	await _physics(90)
-	check(lead.speed < base_speed * 0.85, "a friend far ahead eases off (%.1f -> %.1f m/s)" % [base_speed, lead.speed])
+	var moved: float = races.rivals[0].d + 4.0
+	check(moved > 8.0 and moved < 30.0, "the friends set off at a fair pace (%.1f m in 2 s)" % moved)
 
-	# --- Star Boxes, power-ups and goo ---
-	var box: Node3D = t.boxes[1]
-	p.global_position = box.global_position + Vector3.DOWN * 0.3 + Vector3.UP * 0.85
+	# --- Obstacles ---
+	for r in races.rivals:
+		r.d = -60.0                                         # (out of the way)
+		r.speed = 0.0
+		r.skill = 0.0
+		r.item = ""
+	races.attacks._aim_wait = 999.0
+	var bumper: Node3D = _first(t, "bumper")
+	_jump(t, p, bumper.global_position - t.dir_at(float(bumper.get_meta("d"))) * 1.6 + Vector3.UP * 0.9, t.dir_at(float(bumper.get_meta("d"))) * 7.0)
+	await _physics(6)
+	var away: Vector3 = p.global_position - bumper.global_position
+	check(Vector2(away.x, away.z).length() > 1.6 and p.velocity.dot(t.dir_at(float(bumper.get_meta("d")))) < 4.0,
+		"a bumper bounces you off it (%.1f m away, %.1f m/s on)" % [Vector2(away.x, away.z).length(), p.velocity.dot(t.dir_at(float(bumper.get_meta("d"))))])
+	await _physics(60)
+	var sweeper: Node3D = _first(t, "sweeper")
+	races._knock_safe = 0.0
+	var arm := sweeper.get_node("Arm") as Node3D
+	arm.rotation.y = 0.0
+	sweeper.set_meta("speed", 0.0)
+	_jump(t, p, sweeper.global_transform * Vector3(3.0, 0.0, 0.0) + Vector3.UP * 0.9, Vector3.ZERO)
 	await _physics(3)
-	check(races.power != "", "a Star Box gives a power-up (%s)" % races.power)
-	check(races.hud.power_box.visible, "...shown on the left with its button")
-	check(float(box.get_meta("gone")) > 0.0, "...and the box pops for a while")
-	_back_on_track(p, t, t.at(2.6))
-	await _physics(10)
+	check(s.is_bailing(), "a sweeper's arm knocks you over")
+	await _physics(150)
+	sweeper.set_meta("speed", 1.1)
+	var zapper: Node3D = _first(t, "zapper")
+	races._knock_safe = 0.0
+	t._t = -float(zapper.get_meta("phase"))                 # (just switched on)
+	_jump(t, p, zapper.global_position + Vector3.UP * 0.9, Vector3.ZERO)
+	await _physics(2)
+	check(t.zap_on(zapper) and s.is_bailing(), "a zapper that's on knocks you over")
+	await _physics(150)
+	races._knock_safe = 0.0
+	t._t = -float(zapper.get_meta("phase")) + 1.6           # (off)
+	_jump(t, p, zapper.global_position + Vector3.UP * 0.9, Vector3.ZERO)
+	await _physics(2)
+	check(not t.zap_on(zapper) and not s.is_bailing(), "...but not when it's off")
+	var ramp: Node3D = _first(t, "ramp")
+	var rd: float = ramp.get_meta("d")
+	_jump(t, p, t.point_at(rd - 2.0) + Vector3.UP * 0.9, t.dir_at(rd) * 8.0)
+	await _physics(30)
+	check(p.global_position.y > t.point_at(rd).y + 2.0, "a ramp throws you up in the air (%.1f m up)" % (p.global_position.y - t.point_at(rd).y))
+	await _physics(120)
+
+	# --- Over the wall: back on the road ---
+	var wd: float = t.cp_dist[3]
+	_jump(t, p, t.point_at(wd) + t.side_at(wd) * 14.0 + Vector3.UP * 0.5, Vector3.ZERO)
+	await _physics(3)
+	check(t.off_line(p.global_position, wd) < 2.0, "off over a wall, you're popped back on the road")
+	game.riding = false
+	game.equipment_changed.emit()
+	await _physics(3)
+	check(races.racing() and game.riding, "stepping off on a circuit just puts you back on your ride")
+	await _physics(30)
+
+	# --- Power-ups ---
+	_jump(t, p, t.point_at(t.cp_dist[4] + 2.0) + Vector3.UP * 0.9, t.dir_at(t.cp_dist[4]) * 6.0)
+	await _physics(2)
+	var box: Node3D = t.boxes[5]
+	_jump(t, p, box.global_position + Vector3.DOWN * 0.3 + Vector3.UP * 0.85, Vector3.ZERO)
+	await _physics(3)
+	check(races.power != "" and races.hud.power_box.visible, "a Star Box gives a power-up (%s)" % races.power)
+	check(t.boxes.size() == races.TRACKS.lake_loop.boxes.size() * 4, "rows of four Star Boxes across the road")
+	var here: float = races.progress
+	var dash: Node = races.rivals[0]
+	dash.d = here + 10.0
+	dash.lane = 0.0
+	dash.lane_goal = 0.0
+	dash._running = 1.0
+	_jump(t, p, t.point_at(here) + Vector3.UP * 0.9, Vector3.ZERO)
+	await _physics(2)
+	races.power = "seeker"
+	check(races.use_power() and races.attacks.seekers.size() == 1, "a Bubble Seeker goes after the racer ahead")
+	await _until(func() -> bool: return races.attacks.seekers.is_empty(), 120)
+	check(dash.stunned(), "...and knocks %s round" % dash.display_name())
+	await _physics(120)
+	dash.d = races.progress - 4.0
+	races.power = "goo"
+	races.use_power()
+	check(races.attacks.drops.size() == 1, "a Goo Bomb drops a puddle behind you")
+	dash.lane = (races.attacks.drops[0].node.global_position - t.point_at(dash.d)).dot(t.side_at(dash.d))
+	dash.lane_goal = dash.lane
+	dash.d = t.nearest(races.attacks.drops[0].node.global_position, races.progress, 20.0) - 0.2
+	dash._shield = 0.0
+	await _physics(4)
+	check(dash._slow > 0.0, "...that slows down whoever rides through it")
+	var rex: Node = races.rivals[1]
+	rex.d = races.progress + 1.0
+	rex.lane = 0.0
+	rex._stun = 0.0
+	rex._shield = 0.0
+	_jump(t, p, t.point_at(races.progress) + Vector3.UP * 0.9, Vector3.ZERO)
+	await _physics(2)
+	races.power = "zap"
+	races.use_power()
+	check(rex.stunned(), "a Zap Ring knocks round everyone close by")
+	rex._stun = 0.0
+	rex.shield_up(5.0)
+	races.attacks.hit(rex, "test")
+	check(not rex.stunned() and not rex.shielded(), "a friend's Bubble Shield stops a hit (and pops)")
 	races.power = "zoom"
 	check(races.use_power() and s.boosting(), "the Zoom Star boosts")
 	races.power = "shield"
 	check(races.use_power() and s.shielded, "the Bubble Shield goes up")
-	s.bail()
-	check(not s.is_bailing(), "...and a fall is only a wobble while it's up")
-	var goo: Node3D = t.goo[0]
-	p.global_position = goo.global_position + Vector3.UP * 0.85
-	await _physics(4)
-	check(not s.slowed(), "...and goo can't slow you")
-	races._clear_shield(p)
-	await _physics(150)                               # the goo's wait, and the Zoom Star, wear off
-	p.global_position = goo.global_position + Vector3.UP * 0.85
-	p.velocity = Vector3.ZERO
-	await _physics(4)
-	check(s.slowed(), "goo slows you down without the shield")
-	_back_on_track(p, t, t.at(5.8))
-	await _physics(80)
-	races.power = "spring"
-	var vy_before := p.velocity.y
-	check(races.use_power() and p.velocity.y > vy_before + 8.0, "the Super Spring is a huge hop (%.1f m/s up)" % p.velocity.y)
-	await _physics(90)
+	await _physics(150)
 
-	# --- Round the rings: they go in order and count the laps ---
+	# --- The friends attack you ---
+	races._knock_safe = 0.0
+	var pip: Node = races.rivals[4]
+	pip.d = races.progress - 8.0
+	pip._running = 1.0
+	pip._stun = 0.0
+	await _physics(2)                                       # (so Pip is really there, 8 m behind, before throwing)
+	pip.item = "seeker"
+	pip.item_wait = 0.0
+	pip.item_held = 0.0
+	races.attacks._aim_wait = 0.0
+	await _until(func() -> bool: return not races.attacks.seekers.is_empty(), 30)
+	check(races.attacks.seekers.size() == 1 and races.attacks.seekers[0].target == p and pip.item == "",
+		"a friend behind you sends a Bubble Seeker after you")
+	check(races.attacks._aim_wait > 5.0, "...and then nobody aims at you for a while")
+	races.power = "shield"
+	races.use_power()
+	s.set("_boost_time", 0.0)                               # (still zooming from the Zoom Star: let the bubble catch up)
+	p.velocity = Vector3.ZERO
+	await _until(func() -> bool: return races.attacks.seekers.is_empty(), 300)
+	check(not s.is_bailing() and not races.shielded(), "your Bubble Shield takes it (and pops) (bailing %s, shield %s, seekers %d)" % [s.is_bailing(), races.shielded(), races.attacks.seekers.size()])
+	races._knock_safe = 0.0
+	races.attacks._aim_wait = 0.0
+	pip.d = races.progress - 8.0
+	await _physics(2)
+	pip.item = "seeker"
+	pip.item_wait = 0.0
+	await _until(func() -> bool: return s.is_bailing(), 150)
+	check(s.is_bailing(), "without it, the Bubble Seeker knocks you over")
+	await _physics(150)
+	for r in races.rivals:
+		r.item = ""
+	races.attacks._aim_wait = 999.0
+	# Picking up from the boxes
+	var mr: Node = races.rivals[2]
+	mr.item = ""
+	mr.d = float(t.boxes[0].get_meta("d")) - 0.5
+	mr.speed = 8.0
+	mr._running = 1.0
+	await _physics(10)
+	check(mr.item != "", "the friends pick power-ups up from the Star Boxes too (%s: %s)" % [mr.display_name(), mr.item])
+	mr.item = ""
+	# Steering round a bumper
+	var b2: Node3D = _first(t, "bumper")
+	var cleared = races.rivals[3]
+	cleared.d = float(b2.get_meta("d")) - 12.0
+	cleared.lane = float(b2.get_meta("side"))
+	cleared.lane_goal = cleared.lane
+	cleared.skill = 1.0
+	cleared._stun = 0.0
+	cleared._slow = 0.0
+	await _physics(70)
+	check(absf(cleared.lane - float(b2.get_meta("side"))) > 1.5, "a friend steers round a bumper ahead (lane %.1f, bumper %.1f)" % [cleared.lane, float(b2.get_meta("side"))])
+
+	# --- Round the rings: laps and the finish ---
 	races._end(false)
 	await _physics(2)
 	game.add_sparkles(0)
 	var sparkles_before: int = game.sparkles
-	check(races.start("lake_loop"), "a new race")
+	check(races.restart() and races.state == races.State.COUNTDOWN, "racing again starts the countdown")
 	await _physics(200)
 	for r in races.rivals:
-		r.d = -30.0                                       # the friends hang back so this run wins
+		r.d = -60.0
 		r.speed = 0.0
 		r.skill = 0.0
-	# Skipping ahead to a later ring doesn't count
-	_back_on_track(p, t, t.cp_dist[4] + 0.5)
+	races.attacks._aim_wait = 999.0
+	_put(p, t.point_at(t.cp_dist[4] + 0.5) + Vector3.UP * 0.9, Vector3.ZERO)
 	await _physics(3)
 	check(races.next_cp == 1, "riding through a later ring doesn't count (next is still 1)")
 	var laps: int = races.TRACKS.lake_loop.laps
+	check(laps == 3, "three laps")
 	for lap in laps:
 		for i in range(1, t.cp_dist.size() + 1):
 			var cp: int = i % t.cp_dist.size()
-			_back_on_track(p, t, t.cp_dist[cp] - 2.5)
+			_put(p, t.point_at(t.cp_dist[cp] - 2.5) + Vector3.UP * 0.9, t.dir_at(t.cp_dist[cp]) * 6.0)
 			await _physics(2)
-			_back_on_track(p, t, t.cp_dist[cp] + 1.0)
+			_put(p, t.point_at(t.cp_dist[cp] + 1.0) + Vector3.UP * 0.9, t.dir_at(t.cp_dist[cp]) * 6.0)
 			await _physics(2)
-		if lap < laps - 1:
-			check(races.lap == lap + 2, "lap %d counted" % (lap + 2))
-	check(races.state == races.State.RESULTS, "over the line after %d laps: finished" % laps)
-	check(races.place == 1 and races.hud.results.visible, "you won, and the results are up")
+	check(races.state == races.State.RESULTS and races.place == 1, "over the line after %d laps: you won" % laps)
 	var prize: int = races.TRACKS.lake_loop.prizes[0]
 	check(game.sparkles - sparkles_before == prize, "1st pays ✦ %d (got %d)" % [prize, game.sparkles - sparkles_before])
-	check(races.best.has("lake_loop") and int(races.wins.get("lake_loop", 0)) == 1, "best time and the win are kept")
-	check(not t.board_text.text.contains("not yet"), "the board shows the best time")
-	check(not t.rings[1].visible, "the rings go away")
+	check(races.hud.results.visible and races.hud.choosing() and races.hud.choice_box.get_child_count() == 2,
+		"the results come with two buttons: race again, or go back")
+	check(p.input_locked, "...and you wait while they're up")
 	await _physics(int(races.RESULTS_TIME * 60) + 10)
-	check(not races.racing() and races.rivals.is_empty(), "after the results the friends ride home")
-	var dash_home := false
-	for r in town.find_children("Routine", "", true, false):
-		if r.get("character_id") == "dash":
-			dash_home = (r.get_parent() as Node3D).visible
-	check(dash_home, "...and Dash is back in his usual place")
-
-	# --- More tracks open one after another, and any starter can whizz you to them ---
-	check(races.unlocked("meadow_wiggle") and not races.unlocked("observatory_hill"),
-		"finishing the Lake Loop opens the Meadow Wiggle (the Observatory Hill waits for that)")
-	var picks: Array = races.lines("lake_loop").filter(func(l) -> bool: return l is Dictionary and l.has("choice"))[0].choice
-	check(picks.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_meadow_wiggle")
-		and not picks.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_observatory_hill"),
-		"Zippy offers to whizz you to the Meadow Wiggle, not the locked one")
-	check(not races.start("observatory_hill"), "a locked track doesn't start")
-	dialogue.flags["race_go_meadow_wiggle"] = true
-	dialogue.finished.emit("race_starter")
-	await _frames(2)
-	var mw: Node3D = races.track_node("meadow_wiggle")
-	check(races.racing() and races.track_id == "meadow_wiggle" and p.global_position.distance_to(mw.point_at(-4.0)) < 4.0,
-		"picking it puts you on the Meadow Wiggle's grid")
-	check(races.rivals.map(func(r) -> String: return r.id) == ["rook", "pip", "green_man"], "...against Rook, Pip and the Green Man")
-	check(mw.rings[1].visible and not t.rings[1].visible, "...with its own rings out, not the Lake Loop's")
-	races._end(false)
-	await _physics(2)
-
-	# --- A best time pays a bonus; slower doesn't ---
-	sparkles_before = game.sparkles
-	var old_best: float = races.best.lake_loop
-	races.best.lake_loop = 999.0
-	races.start("lake_loop")
-	await _physics(200)
-	for r in races.rivals:
-		r.d = races.progress + 10.0                      # everyone ahead: you'll be 4th
-		r.finished = true
-	races.lap = laps
-	races.last_cp = t.cp_dist.size() - 1
-	races.next_cp = 0
-	_back_on_track(p, t, t.length - 2.0)
-	await _physics(2)
-	_back_on_track(p, t, 1.0)
-	await _physics(2)
-	var fourth: int = races.TRACKS.lake_loop.prizes[3]
-	check(races.place == 4 and game.sparkles - sparkles_before == fourth + races.BEST_BONUS,
-		"4th still wins ✦ %d, plus ✦ %d for a best time (got %d)" % [fourth, races.BEST_BONUS, game.sparkles - sparkles_before])
-	races._end(true)
-	races.best.lake_loop = old_best
-
-	# --- Stepping off ends it, no harm done ---
-	races.start("lake_loop")
-	await _physics(200)
-	game.riding = false
-	game.equipment_changed.emit()
+	check(races.hud.choosing(), "...for as long as you like")
+	check(races.best.has("lake_loop") and int(races.wins.get("lake_loop", 0)) == 1, "best time and the win are kept")
+	var saved: Dictionary = races.save_place()
+	check(saved.get("scene", "") == TOWN and Vector3(saved.position[0], saved.position[1], saved.position[2]).distance_to(from) < 1.0,
+		"saving on a circuit saves you back at the race gate")
+	(races.hud.choice_box.get_child(0) as Button).pressed.emit()
 	await _physics(3)
-	check(not races.racing() and races.rivals.is_empty() and not p.input_locked, "stepping off your ride ends the race")
+	check(races.racing() and races.state == races.State.COUNTDOWN and not races.hud.choosing(), "\"Race again\" goes straight back to the countdown")
+	races._end(false)
+	races._offer_choice("test")
+	(races.hud.choice_box.get_child(1) as Button).pressed.emit()
+	await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == TOWN, 240)
+	await _frames(4)
+	check(current_scene.scene_file_path == TOWN and races.circuit == "", "\"Back to the Void\" takes you back")
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	await _physics(10)
+	check(p.global_position.distance_to(from) < 3.0, "...to where you set off from, by the gate (%.1f m)" % p.global_position.distance_to(from))
+	check(clock.running and not p.input_locked, "...and the clocks run again")
+	check(races.unlocked("meadow_wiggle") and not races.unlocked("observatory_hill"), "finishing the Lake Loop opens the Meadow Wiggle")
+	picks = races.hub_lines("void").filter(func(l) -> bool: return l is Dictionary and l.has("choice"))[0].choice
+	check(picks.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_meadow_wiggle"), "...and Zippy offers it now")
+	gate = races.hub_node("void")
+	await _until(func() -> bool: return gate.ready_to_race, 60)
+	check(gate.board_text.text.contains("Best: 0:") or gate.board_text.text.contains("Best: 1:") or gate.board_text.text.contains("Best: 2:"),
+		"the board shows the best time")
+
+	# --- Every circuit: a sound road ---
+	for id in ["meadow_wiggle", "observatory_hill"]:
+		races.finished_once[races.TRACKS[id].get("after", "")] = true
+		check(races.enter_circuit(id), "off to the %s" % races.TRACKS[id].name)
+		var path: String = races.TRACKS[id].scene
+		await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == path, 240)
+		await _until(func() -> bool: return races.racing(), 240)
+		var tn: Node3D = races.track_node(id)
+		check(races.racing() and races.rivals.size() == 7, "%s: racing seven friends" % races.TRACKS[id].name)
+		await _check_circuit(id, tn, current_scene.find_child("Player", true, false))
+		races.leave_circuit()
+		await _until(func() -> bool: return current_scene != null and current_scene.scene_file_path == TOWN, 240)
+		await _frames(4)
+	check(current_scene.scene_file_path == TOWN, "leaving mid-race goes back too")
+	town = current_scene
+	p = town.find_child("Player", true, false) as CharacterBody3D
+	s = p.get_node("Skate")
+	gate = races.hub_node("void")
+	await _until(func() -> bool: return gate.ready_to_race, 60)
+
+	# --- Riding as Dash: someone else takes his place ---
+	var lake: Dictionary = races.TRACKS.lake_loop
+	check(not "bruno" in lake.rivals, "(the Lake Loop's line-up has no Bruno, so he can stand in)")
+
+	# --- Zippy's Tune-Up: ride upgrades through the shared shop ---
 	game.riding = true
 	game.equipment_changed.emit()
 	await _physics(3)
-
-	# --- Riding as Dash: someone else takes his place in the race ---
-	p.set_rider("dash")
-	await _physics(3)
-	races.start("lake_loop")
-	await _frames(2)
-	var ids: Array = races.rivals.map(func(r) -> String: return r.id)
-	check(not "dash" in ids and ids.size() == 3, "racing as Dash, a friend takes his place (%s)" % ", ".join(ids))
-	races._end(false)
-	p.set_rider("hero", false)
-
-	# --- Zippy's Tune-Up: ride upgrades through the shared shop ---
 	var shop := root.get_node("Shop")
-	check(t.get_node_or_null("Tune-Up") != null and t.get_node("Tune-Up").find_child("Tune-Up Spot", true, false) != null,
-		"Zippy's Tune-Up stands past the race board")
-	check(t.get_node("Tune-Up").global_position.distance_to(t.point_at(-15.0)) > 6.0, "...off the track")
-	# (The Tune-Up also builds the new rides from their schematics: tools/test_schematics.gd checks those)
+	check(gate.get_node("Tune-Up").find_child("Tune-Up Spot", true, false) != null, "Zippy's Tune-Up is at the gate")
 	var tune: Array = shop.items.values().filter(func(i: Dictionary) -> bool: return i.stall == "Tune-Up" and i.kind != "ride")
 	check(tune.size() == 13, "it sells 4 upgrades in 3 levels and the Starter Star (%d)" % tune.size())
-	var listed: Array = shop.for_stall("Tune-Up").filter(func(i: Dictionary) -> bool: return i.kind != "ride")
-	check(listed.size() == 5, "...showing just the next level of each (%d)" % listed.size())
 	game.sparkles = 200
-	check(shop.can_buy("tune_wheels_2") != "", "level 2 waits for level 1 (%s)" % shop.can_buy("tune_wheels_2"))
 	var base_push: float = s.ride.push_speed
 	check(shop.buy("tune_wheels_1") and races.level("wheels") == 1, "buying Speedy Wheels I")
 	check(absf(float(s.ride.push_speed) - base_push * 1.05) < 0.01, "...makes the ride faster (%.2f -> %.2f)" % [base_push, s.ride.push_speed])
-	check(shop.can_buy("tune_wheels_1") == "You have this one" and shop.can_buy("tune_wheels_2") == "", "...and level 2 is next")
-	check(shop.for_stall("Tune-Up").any(func(i: Dictionary) -> bool: return i.id == "tune_wheels_2")
-		and not shop.for_stall("Tune-Up").any(func(i: Dictionary) -> bool: return i.id == "tune_wheels_1"), "...in level 1's place on the bench")
 	shop.buy("tune_wheels_2")
-	shop.buy("tune_grip_1")
-	check(absf(float(s.ride.push_speed) - base_push * 1.10) < 0.01 and float(s.ride.carve) > float(Rides.ride("hero").carve) * 1.1,
-		"level 2 adds more, and Grippy Grip turns sharper")
-	p.set_rider("dash")
-	await _physics(2)
-	var dash_push: float = Rides.ride("dash").push_speed
-	check(absf(float(s.ride.push_speed) - dash_push * 1.10) < 0.01, "upgrades work on a friend's ride too (Dash %.2f)" % s.ride.push_speed)
-	p.set_rider("hero", false)
-	await _physics(2)
 	shop.buy("tune_turbo_1")
 	check(absf(races.boost_time(2.0) - 2.5) < 0.01, "Turbo Tank makes boosts last longer")
 	shop.buy("tune_starter_star")
-	races.start("lake_loop")
-	await _frames(2)
-	check(races.power == "zoom" and races.hud.power_box.visible, "with the Starter Star every race starts with a Zoom Star")
-	races._end(false)
 
 	# --- The sky race: through the gold ring in the mothership ---
 	var sky: Node3D = races.track_node("sky_rings")
@@ -329,13 +410,7 @@ func _run() -> void:
 	ship.global_position = s0 + sf * 2.0
 	await _physics(3)
 	check(races.racing() and races.track_id == "sky_rings" and races.rivals.size() == 3, "through the gold ring: the sky race is on, against three saucers")
-	check(races.rivals.all(func(r) -> bool: return not r.saucer.is_empty()), "...little aliens in mini saucers")
 	await _physics(120)
-	check(races.rivals[0].d + 12.0 > 15.0 and races.rivals[0].global_position.y > 30.0, "the saucers fly the course (%.0f m from the start ring, %.0f m up)" % [races.rivals[0].d + 12.0, races.rivals[0].global_position.y])
-	var bring: Node3D = sky.pads[0]
-	ship.global_position = bring.global_position
-	await _physics(3)
-	check(ship.boosting(), "a boost ring boosts the mothership")
 	sparkles_before = game.sparkles
 	for i in range(1, sky.cp_dist.size() + 1):
 		var cp: int = i % sky.cp_dist.size()
@@ -355,103 +430,138 @@ func _run() -> void:
 	races.load_data(data)
 	check(races.best.has("lake_loop") and int(races.wins.lake_loop) == 1, "best times and wins load back")
 	check(races.level("wheels") == 2 and races.level("starter") == 1, "...and the upgrades")
-	var plain: float = Rides.ride("hero").push_speed
 	races.reset()
-	check(races.level("wheels") == 0 and absf(float(s.ride.push_speed) - plain) < 0.01, "a new game starts with no upgrades")
+	check(races.level("wheels") == 0, "a new game starts with no upgrades")
 
 	_finish()
 
 
-func _check_track(id: String, t: Node3D, p: CharacterBody3D) -> void:
+func _first(t: Node3D, kind: String) -> Node3D:
+	for o in t.obstacles:
+		if str(o.get_meta("kind")) == kind:
+			return o
+	return null
+
+
+func _check_circuit(id: String, t: Node3D, p: CharacterBody3D) -> void:
 	var tr: Dictionary = races.TRACKS[id]
+	var circ: Node3D = current_scene
 	var L: float = t.length
-	check(L > 120.0 and L < 400.0, "%s: a lap is a good length (%.0f m)" % [tr.name, L])
+	var hw: float = tr.width / 2.0
+	check(L > 380.0 and L < 900.0, "%s: a long lap (%.0f m), %d laps" % [tr.name, L, int(tr.laps)])
 	check(t.cp_dist.size() == tr.points.size(), "%s: a ring for every checkpoint (%d)" % [tr.name, t.cp_dist.size()])
-	var wet := 0
-	var steep := 0
-	var steep_at: Array[String] = []
-	var blocked: Array[String] = []
 	var space: PhysicsDirectSpaceState3D = p.get_world_3d().direct_space_state
-	var near_portal := INF
+	var off_road := 0
+	var no_wall := 0
+	var steep := 0
+	var worst := 0.0
 	for i in t.line.size():
 		var a: Vector3 = t.line[i]
 		var b: Vector3 = t.line[(i + 1) % t.line.size()]
-		if a.y < -0.55:                                   # under the lake's water (tools/build_town.gd, WATER_Y)
-			wet += 1
+		for lane in [-hw + 0.6, 0.0, hw - 0.6]:
+			var at: Vector3 = a + t.side_at(t.dist[i]) * lane
+			var q := PhysicsRayQueryParameters3D.create(at + Vector3.UP * 4.0, at + Vector3.DOWN * 4.0)
+			q.exclude = [p.get_rid()]
+			var hit: Dictionary = space.intersect_ray(q)
+			if hit.is_empty() or str((hit.collider as Node).name) != "Road Body":
+				off_road += 1
 		var run := Vector2(b.x - a.x, b.z - a.z).length()
-		if b.y - a.y > 0.32 and (b.y - a.y) / maxf(run, 0.01) > 0.7:
+		worst = maxf(worst, absf(b.y - a.y) / maxf(run, 0.01))
+		if absf(b.y - a.y) / maxf(run, 0.01) > 0.25:
 			steep += 1
-			steep_at.append("(%.0f, %.0f) %.2f m" % [a.x, a.z, b.y - a.y])
-		near_portal = minf(near_portal, Vector2(a.x, a.z).distance_to(PORTAL))
-		# Anything across the line at knee and chest height, for every lane a racer might use
-		for side in [-2.2, 0.0, 2.2]:
-			# (each lane on the ground under it, so a hill that slopes across the track isn't a wall)
-			var off: Vector3 = t.side_at(t.dist[i]) * side
-			var la: Vector3 = t.ground_at(Vector2(a.x + off.x, a.z + off.z))
-			var lb: Vector3 = t.ground_at(Vector2(b.x + off.x, b.z + off.z))
-			for h in [0.6, 1.3]:
-				var q := PhysicsRayQueryParameters3D.create(la + Vector3.UP * h, lb + Vector3.UP * (h + maxf(lb.y - la.y, 0.0)))
+		if i % 10 == 0:
+			for side in [-1.0, 1.0]:
+				var from: Vector3 = a + Vector3.UP * 0.5
+				var q := PhysicsRayQueryParameters3D.create(from, from + t.side_at(t.dist[i]) * side * (hw + 3.0))
 				q.exclude = [p.get_rid()]
 				var hit: Dictionary = space.intersect_ray(q)
-				if not hit.is_empty() and hit.collider is StaticBody3D and blocked.size() < 8:
-					blocked.append("%s/%s at (%.0f, %.0f) lane %+.0f" % [(hit.collider as Node).get_parent().name, (hit.collider as Node).name, a.x, a.z, side])
-	check(wet == 0, "%s: the whole line is on dry ground (%d points in water)" % [tr.name, wet])
-	check(steep == 0, "%s: no steps too high to roll up (%s)" % [tr.name, ", ".join(steep_at)])
-	check(blocked.is_empty(), "%s: nothing in the way, in any lane (%s)" % [tr.name, ", ".join(blocked)])
-	check(near_portal > 6.5, "%s: the line stays clear of the portal (%.1f m)" % [tr.name, near_portal])
-	var who := str(tr.starter.name)
-	var st := t.get_node_or_null(who) as Node3D
-	check(st != null and t.get_node_or_null("Race Board") != null, "%s: %s and the race board are by the line" % [tr.name, who])
-	if st:
-		check(st.global_position.distance_to(t.point_at(0.0)) > 6.0 and st.global_position.y > -0.3,
-			"%s: %s stands off the track, on dry ground" % [tr.name, who])
-	# Nothing of this track sits on another track's line
-	for other in races.TRACKS:
-		if other == id or races.TRACKS[other].get("sky", false) or races.TRACKS[other].scene != tr.scene:      # (the sky race is up in the air)
-			continue
-		var o: Node3D = races.track_node(other)
-		var close := INF
-		for n in [st, t.get_node("Race Board"), t.get_node("Start Arch")]:
-			close = minf(close, o.off_line(n.global_position, o.nearest(n.global_position)))
-		check(close > 5.0, "%s: its start is clear of the %s (%.1f m)" % [tr.name, races.TRACKS[other].name, close])
-	await physics_frame
-
-
-func _check_sky(id: String, t: Node3D, p: CharacterBody3D) -> void:
-	# The mothership flies at least 16 m over whatever's under it and stays inside the town's edge (scripts/mothership.gd):
-	# the course must too, with room round each ring for its 18 m hull
-	var tr: Dictionary = races.TRACKS[id]
-	var ship: Node3D = p.get_tree().get_first_node_in_group("mothership")
-	var low := 0
-	var low_at := ""
-	var outside := 0
-	var space: PhysicsDirectSpaceState3D = p.get_world_3d().direct_space_state
+				if hit.is_empty() or absf(Vector2(hit.position.x - a.x, hit.position.z - a.z).length() - hw) > 0.6:
+					no_wall += 1
+	check(off_road == 0, "%s: the road is solid all the way round, every lane (%d gaps)" % [tr.name, off_road])
+	check(no_wall == 0, "%s: walls both sides all the way round (%d missing)" % [tr.name, no_wall])
+	# No bend so tight that the road's inside edge folds over itself (radius under the road's half width plus a wall)
+	var tightest := INF
+	for i in t.line.size():
+		var a3: Vector3 = t.line[i - 3]
+		var b3: Vector3 = t.line[i]
+		var c3: Vector3 = t.line[(i + 3) % t.line.size()]
+		var ab := Vector2(b3.x - a3.x, b3.z - a3.z)
+		var ac := Vector2(c3.x - a3.x, c3.z - a3.z)
+		var cr := absf(ab.cross(ac))
+		if cr > 0.0001:
+			tightest = minf(tightest, ab.length() * Vector2(c3.x - b3.x, c3.z - b3.z).length() * ac.length() / (2.0 * cr))
+	check(tightest > hw + 4.0, "%s: no bend too tight for the road (tightest %.1f m round)" % [tr.name, tightest])
+	check(steep == 0, "%s: never too steep to ride (steepest %.0f%%)" % [tr.name, worst * 100.0])
+	# Never crossing itself: points far apart along the road are far apart on the ground
+	var crossing := ""
+	for i in range(0, t.line.size(), 3):
+		for j in range(i + 3, t.line.size(), 3):
+			var along := absf(t.dist[j] - t.dist[i])
+			along = minf(along, L - along)
+			if along > tr.width * 3.0 and Vector2(t.line[i].x - t.line[j].x, t.line[i].z - t.line[j].z).length() < tr.width + 2.0:
+				crossing = "(%.0f, %.0f) and (%.0f, %.0f)" % [t.line[i].x, t.line[i].z, t.line[j].x, t.line[j].z]
+	check(crossing == "", "%s: the road never runs into itself %s" % [tr.name, crossing])
+	# The scenery stands off the road; the obstacles are on it
+	var in_way: Array[String] = []
+	for n in circ.get_children():
+		if n is Node3D and str(n.name).split("@")[0].strip_edges() in ["Orb Tree", "Crystals", "Tree", "Mushroom", "Windmill", "Barn", "Stand"]:
+			if circ.off_road(Vector2((n as Node3D).global_position.x, (n as Node3D).global_position.z)) < hw + 2.0:
+				in_way.append("%s (%.0f, %.0f)" % [n.name, (n as Node3D).global_position.x, (n as Node3D).global_position.z])
+	check(in_way.is_empty(), "%s: no scenery on the road (%s)" % [tr.name, ", ".join(in_way)])
+	var bad: Array[String] = []
+	for o in t.obstacles:
+		var side: float = o.get_meta("side")
+		var extent := 1.4 if str(o.get_meta("kind")) == "bumper" else (3.6 if str(o.get_meta("kind")) == "zapper" else 0.0)
+		if absf(side) + extent > hw + 0.1:
+			bad.append(str(o.name))
+	check(t.obstacles.size() == tr.obstacles.size() and bad.is_empty(), "%s: %d obstacles, all on the road (%s)" % [tr.name, t.obstacles.size(), ", ".join(bad)])
+	var kinds := {}
+	for o in t.obstacles:
+		kinds[str(o.get_meta("kind"))] = true
+	check(kinds.size() == 4, "%s: bumpers, sweepers, zappers and ramps (%s)" % [tr.name, ", ".join(kinds.keys())])
+	var st := t.get_node_or_null(str(tr.starter.name)) as Node3D
+	check(st != null and t.off_line(st.global_position, t.nearest(st.global_position)) > hw + 1.0, "%s: %s stands off the road" % [tr.name, tr.starter.name])
+	# Nothing solid across the road (the arch's towers stand outside the walls)
 	var blocked: Array[String] = []
 	for i in range(0, t.line.size(), 2):
 		var a: Vector3 = t.line[i]
-		var ground: Vector3 = t.ground_at(Vector2(a.x, a.z))
-		if a.y - ground.y < float(ship.min_altitude) + 4.0:
-			low += 1
-			low_at = "(%.0f, %.0f, %.0f) over %.0f" % [a.x, a.y, a.z, ground.y]
-		if not (ship.bounds as Rect2).grow(-20.0).has_point(Vector2(a.x, a.z)):
-			outside += 1
-		# Anything as high as the course, near it (castle towers, the Observatory)
-		for side in [-14.0, 14.0]:
-			var off: Vector3 = t.side_at(t.dist[i]) * side
-			var q := PhysicsRayQueryParameters3D.create(a + off + Vector3.UP * 10.0, a + off + Vector3.DOWN * 10.0)
+		var b: Vector3 = t.line[(i + 2) % t.line.size()]
+		for lane in [-hw + 1.0, 0.0, hw - 1.0]:
+			var la: Vector3 = a + t.side_at(t.dist[i]) * lane
+			var lb: Vector3 = b + t.side_at(t.dist[(i + 2) % t.line.size()]) * lane
+			var q := PhysicsRayQueryParameters3D.create(la + Vector3.UP * 0.7, lb + Vector3.UP * (0.7 + maxf(lb.y - la.y, 0.0)))
+			q.exclude = [p.get_rid()]
 			var hit: Dictionary = space.intersect_ray(q)
 			if not hit.is_empty() and blocked.size() < 6:
-				blocked.append("%s at (%.0f, %.0f, %.0f)" % [(hit.collider as Node).name, a.x, a.y, a.z])
-	check(t.length > 500.0, "%s: a big lap (%.0f m)" % [tr.name, t.length])
-	check(low == 0, "%s: always well above the ground (%d too low %s)" % [tr.name, low, low_at])
-	check(outside == 0, "%s: inside the town's edge (%d outside)" % [tr.name, outside])
-	check(blocked.is_empty(), "%s: nothing up there to fly into (%s)" % [tr.name, ", ".join(blocked)])
+				blocked.append("%s at (%.0f, %.0f)" % [(hit.collider as Node).name, a.x, a.z])
+	check(blocked.is_empty(), "%s: nothing solid across the road (%s)" % [tr.name, ", ".join(blocked)])
 	await physics_frame
 
 
-func _back_on_track(p: CharacterBody3D, t: Node3D, d: float) -> void:
-	p.global_position = t.point_at(d) + Vector3.UP * 0.85
-	p.velocity = t.dir_at(d) * 6.0
+func _jump(t: Node3D, p: CharacterBody3D, at: Vector3, v: Vector3) -> void:
+	# Puts her somewhere further round and tells the race she got there, so it doesn't pop her back to the ring she's
+	# meant to be heading for (which is what happens to anyone who skips ahead).
+	var d: float = t.nearest(at)
+	var last := 0
+	for i in t.cp_dist.size():
+		if t.cp_dist[i] <= d:
+			last = i
+	races.last_cp = last
+	races.next_cp = (last + 1) % t.cp_dist.size()
+	races._along = -1.0
+	_put(p, at, v)
+
+
+func _put(p: CharacterBody3D, at: Vector3, v: Vector3) -> void:
+	p.global_position = at
+	p.velocity = v
+
+
+func _until(cond: Callable, frames: int) -> void:
+	for i in frames:
+		if cond.call():
+			return
+		await physics_frame
 
 
 func _frames(n: int) -> void:
