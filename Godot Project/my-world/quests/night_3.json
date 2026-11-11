@@ -27,10 +27,6 @@
       "text": "The south meadow's full of new things tonight.",
       "checklist": [
         [
-          "schematic_disco",
-          "Find the Disco Ball's schematic in the south meadow"
-        ],
-        [
           "schematic_overboard",
           "Find the Overboard's schematic, on the lake side of the meadow"
         ],
@@ -41,19 +37,11 @@
       ],
       "done": {
         "flags": [
-          "schematic_disco",
           "schematic_overboard",
           "n3_race"
         ]
       },
       "where": [
-        {
-          "at": [
-            -8,
-            58
-          ],
-          "unless": "schematic_disco"
-        },
         {
           "at": [
             34,

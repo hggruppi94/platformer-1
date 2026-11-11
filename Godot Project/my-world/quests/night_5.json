@@ -20,10 +20,6 @@
       "text": "Tonight's all about the mothership.",
       "checklist": [
         [
-          "schematic_buzz",
-          "Find the Buzz Bots' schematic, right by the Mothership Pad"
-        ],
-        [
           "n5_fly",
           "Fly the mothership (step onto the pad and call it down)"
         ],
@@ -34,19 +30,11 @@
       ],
       "done": {
         "flags": [
-          "schematic_buzz",
           "n5_fly",
           "schematic_rocket_board"
         ]
       },
       "where": [
-        {
-          "at": [
-            122,
-            -36
-          ],
-          "unless": "schematic_buzz"
-        },
         {
           "at": [
             118,

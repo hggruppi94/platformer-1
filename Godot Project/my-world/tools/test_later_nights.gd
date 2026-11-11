@@ -93,7 +93,10 @@ func _run() -> void:
 		await _night(n)
 
 	check(N.current().is_empty(), "after night 7 nothing's spotlighted")
-	check(S.found_count() == S.LIST.size(), "...and every schematic's been found (%d of %d)" % [S.found_count(), S.LIST.size()])
+	# (The gadgets' blueprints are in the Void on night 1 and in the portal worlds, not on the nights: Hayden, 11 Nov)
+	var night_ones: Array = S.LIST.filter(func(e: Dictionary) -> bool: return str(e.kind) == "ride")
+	check(night_ones.all(func(e: Dictionary) -> bool: return S.is_found(str(e.id))),
+		"...and every ride's schematic's been found (%d of %d)" % [S.found_count(), night_ones.size()])
 	await _new_visit()
 	check(not dialogue.flags.has("night_8"), "...and there's no night 8 to start")
 

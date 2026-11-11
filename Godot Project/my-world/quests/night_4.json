@@ -31,10 +31,6 @@
           "Go up the hill to the Observatory"
         ],
         [
-          "schematic_jelly",
-          "Find the Jelly Mines' schematic, halfway up Observatory Hill"
-        ],
-        [
           "schematic_bike",
           "Find the Bike's schematic, round the far side of the hill"
         ],
@@ -46,7 +42,6 @@
       "done": {
         "flags": [
           "n4_observatory",
-          "schematic_jelly",
           "schematic_bike",
           "n4_ride"
         ]
@@ -58,13 +53,6 @@
             -80
           ],
           "unless": "n4_observatory"
-        },
-        {
-          "at": [
-            97,
-            -63
-          ],
-          "unless": "schematic_jelly"
         },
         {
           "at": [

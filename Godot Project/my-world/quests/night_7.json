@@ -20,10 +20,6 @@
       "text": "The far corners of the Void, tonight. Be brave!",
       "checklist": [
         [
-          "schematic_rainbow",
-          "Find the Rainbow Ray's schematic, deep in the Spooky Woods"
-        ],
-        [
           "n7_gate",
           "Peek at the Scary World gate (you don't have to go in)"
         ],
@@ -38,20 +34,12 @@
       ],
       "done": {
         "flags": [
-          "schematic_rainbow",
           "n7_gate",
           "schematic_saucer",
           "n7_giant"
         ]
       },
       "where": [
-        {
-          "at": [
-            -114,
-            -104
-          ],
-          "unless": "schematic_rainbow"
-        },
         {
           "at": [
             -128,

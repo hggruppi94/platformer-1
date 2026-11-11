@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the hero's gadgets (scripts/arsenal.gd) in the town: the Gadget wheel is on R and D-pad up and can be
-# remapped; she starts with just the Star Popper; Dash's gadget stall stands in the Market Square and sells the Fizz
+# remapped; she starts with no gadgets and buys the Star Popper once its blueprint's found; Dash's gadget stall stands in the Market Square and sells the Fizz
 # Flinger and the Disco Ball for sparkles (through the Shop, as kinds "gadget" and "ammo") and refills them. The Fizz
 # Flinger lobs a fizz bomb that pops every Gloop in its splash and uses ammo; empty, it won't fire. The Disco Ball
 # floats up and sets nearby Gloops dancing on the spot (not chasing), then lets them go. Gadgets grow versions with
@@ -73,7 +73,18 @@ func _run() -> void:
 	settings.use_layout("classic")
 
 	# --- Starting out ---
-	check(arsenal.owned == ["popper"] and arsenal.current == "popper", "she starts with just the Star Popper")
+	check(arsenal.owned.is_empty() and not arsenal.armed(), "she starts with no gadgets at all, not even the Star Popper")
+	check(shop.can_buy("star_popper") == "Find its blueprint", "...the Star Popper needs its blueprint first (%s)"
+		% shop.can_buy("star_popper"))
+	root.get_node("Dialogue").set_flag("schematic_popper")
+	game.sparkles = 1
+	check(shop.can_buy("star_popper") == "Not enough sparkles yet", "...and then sparkles")
+	game.sparkles = 10
+	check(shop.can_buy("mod_bounce") == "Needs a gadget first", "...and mods need a gadget to go in")
+	shop.open("Gadget")
+	check(shop.buy("star_popper") and arsenal.owned == ["popper"] and arsenal.current == "popper" and arsenal.armed(),
+		"buying the Star Popper: it's her first gadget, and it's out")
+	shop.close()
 	check(arsenal.ammo_of("popper") < 0 and arsenal.has_ammo("popper"), "...which never runs out")
 	var stall_items: Array = shop.for_stall("Gadget")
 	check(stall_items.size() >= 4, "Dash's stall sells gadgets and refills (%d things)" % stall_items.size())
@@ -249,8 +260,11 @@ func _run() -> void:
 		and arsenal.upgrade_level("fizz", "ammo") == 1 and arsenal.max_ammo("fizz") == int(saved_max),
 		"...and so do the mods, the slots and the upgrades")
 	arsenal.load_data({})
+	arsenal.old_save()
 	check(arsenal.owned == ["popper"] and arsenal.mods_owned.is_empty() and arsenal.mods("popper").is_empty(),
-		"an old save starts with just the Star Popper, and no mods")
+		"a save from before gadgets keeps the Star Popper it always had, and no mods")
+	arsenal.load_data({"owned": [], "current": "popper"})
+	check(arsenal.owned.is_empty() and not arsenal.armed(), "...but a new save with none bought still has none")
 
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	_finish()

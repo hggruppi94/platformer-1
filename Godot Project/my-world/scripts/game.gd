@@ -451,6 +451,8 @@ func load_game() -> void:
 	Festival.load_data(festival if festival is Dictionary else {})
 	var arsenal = data.get("arsenal", {})                    # saves from before gadgets have none: just the popper
 	Arsenal.load_data(arsenal if arsenal is Dictionary else {})
+	if not data.has("arsenal"):
+		Arsenal.old_save()
 	var races = data.get("races", {})                        # saves from before the races have none
 	Races.load_data(races if races is Dictionary else {})
 	var runs = data.get("skate_runs", {})                    # saves from before the skate runs have none

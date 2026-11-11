@@ -103,25 +103,8 @@ func _run() -> void:
 	check(dialogue.flags.has("n2_pip") and dialogue.flags.has("pip_lamps_start") and quests.is_started("pip_lamps"),
 		"Pip asks for help with the boardwalk lamps, and saying yes starts them")
 	check(_step() == "explore", "...then the list of new things to try")
-	var shop := root.get_node("Shop")
-	shop.open("Gadget")
-	await _frames(2)
-	shop.close()
-	await _frames(2)
-	check(not dialogue.flags.has("n2_fizz"), "looking at Dash's stall before finding the schematic doesn't tick it")
-	var sch := current_scene.get_node_or_null("Schematic fizz") as Node3D
-	check(sch != null, "the Fizz Flinger's schematic is out on the promenade")
-	var player := current_scene.find_child("Player", true, false) as CharacterBody3D
-	if sch and player:
-		player.global_position = sch.global_position + Vector3(0, 0.5, 0)
-		player.velocity = Vector3.ZERO
-		await _frames(6)
-	check(dialogue.flags.has("schematic_fizz"), "...and walking into it finds it")
-	shop.open("Gadget")
-	await _frames(2)
-	shop.close()
-	await _frames(2)
-	check(dialogue.flags.has("n2_fizz"), "then looking at Dash's gadget stall ticks the Fizz Flinger")
+	check(current_scene.get_node_or_null("Schematic fizz") == null,
+		"no gadget blueprint on the promenade any more (they're in the portal worlds)")
 	var before: int = game.sparkles
 	dialogue.set_flag("skate_letter_K")
 	await _frames(40)
