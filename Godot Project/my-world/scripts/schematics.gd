@@ -48,6 +48,7 @@ const LIST := [
 # The Hover Bike has no schematic: Zippy makes it from your Bike once you're Lv 3 (scripts/ride_upgrades.gd)
 const RIDE_PRICES := {"overboard": 14, "bike": 16, "hover_bike": 17, "rocket_board": 18, "rocket_bike": 20, "saucer": 20}
 
+var _night := 0                   # the night they were last put out for
 var _scene: Node
 
 
@@ -57,8 +58,12 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var s := get_tree().current_scene
-	if s != _scene:
+	# A new night's schematics go out the moment the night ticks over too: the request board counts the nights
+	# (Nights.night()) and it can roll a moment after landing, so placing them only on arrival left tonight's
+	# hidden until the next door (found in the 10 Nov playthrough, tools/playthrough.gd).
+	if s != _scene or Nights.night() != _night:
 		_scene = s
+		_night = Nights.night()
 		if s:
 			_place_in.call_deferred(s)
 

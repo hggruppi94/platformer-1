@@ -26,10 +26,12 @@ const PER_VEIN := 3                     # Remnants a vein gives when it's harves
 const BRAMBLE_MODEL := "res://models/characters/plant_girl.glb"
 
 # The veins: where they are in the Void ([x, z]; the ground's height is found at play time) and what to call them.
+# (The lake shore's sat right on the Lake Loop's racing line at (-40, 14), so racers ran into its crystals; since the
+# 10 Nov playthrough it's 7 m further back from the water, off every lane, path and tree.)
 const VEINS := [
 	{"id": "castle_rock", "name": "the castle rock", "at": Vector2(20, -105)},
 	{"id": "spooky_woods", "name": "the Spooky Woods", "at": Vector2(-125, -95)},
-	{"id": "lake_shore", "name": "the lake shore", "at": Vector2(-40, 14)},
+	{"id": "lake_shore", "name": "the lake shore", "at": Vector2(-45, 20)},
 	{"id": "gardens", "name": "the Secret Gardens", "at": Vector2(-70, -35)},
 	{"id": "rock_wall", "name": "the rock wall", "at": Vector2(118, 48)},
 ]

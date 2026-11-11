@@ -85,7 +85,10 @@ const GEAR_R := 1.9
 # Gadgets
 const CRYSTAL_OUT := 7.0
 # Crawl
-const TOWER_OUT := 4.4
+# (At 4.4 m out the tower's near face was only 2.8 m from him, and his chest clock (1.5 m in front of him, 1.7 m
+# round, 5.5 to 8.9 m up) poked through it: climbing that face you got stuck under his clock halfway up. Found in the
+# 10 Nov playthrough. Now the near face is 4.0 m out, clear of the clock and you.)
+const TOWER_OUT := 5.6
 const TOWER_UP := 10.0                        # far higher than any jump
 const TOWER_W := 3.2
 
