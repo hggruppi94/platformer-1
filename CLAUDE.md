@@ -91,6 +91,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **No weapon until you've found its blueprint and bought it, the Star Popper too** (Hayden's day 1
+  playtest: "weapons should not be unlocked until you purchase them, including your starting blaster ... weapon
+  blueprints being found in the world where they make the most sense (disco ball in melodys music world)").
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **A new game owns no gadgets** (`Arsenal.owned` starts empty; `Arsenal.armed()`). Shoot and Aim do nothing but
+    say "You haven't got a blaster yet. Jump on enemies to pop them!" (`StarPopper.no_gadget_line()`); stomping still
+    pops everything. `Arsenal.current` stays "popper" with nothing owned, so code that reads it doesn't break. The first
+    gadget bought goes straight into her hand. Mods at the workbench need a gadget first.
+  - **The Star Popper has a blueprint** like the rest: in the Market Square at (-84, 55), a few metres from Dash's stall,
+    from the first night (`Schematics.LIST` "popper", flag `schematic_popper`), and costs 3 sparkles at his stall (shop
+    item `star_popper`). The "Rework quests, the job board and Dash's intro" thread is making Dash's intro quest lead
+    to it.
+  - **Every other gadget's blueprint is in a portal world** (`"world"` in `Schematics.LIST`, placed in that world's
+    scene; `Schematics.where()`, `scene_key()`): Fizz Flinger on Shard Isle's highest islet, Buzz Bots in the
+    Rootmind's tall grass (the hive), Rainbow Ray on Lanternmoor's Moon Rock (glide there), Disco Ball on Rhythm
+    Springs' Dance Floor, Jelly Mines by the Tide Reef's Kelp Grotto, Plushinator in Glenmoor's Fold with the
+    Fluffkins. A world's blueprint is there from your first trip, but its hint (shop note, Goals page) only names the
+    world once that world's portal is open (`Schematics.hint_ready()`). None are put out on a practice trip.
+  - The rides' schematics stay on their nights. The gadget lines came out of nights 2 to 7 (`quests/night_N.json`,
+    `nights.gd` texts, and the friends' lines about them); night 2's Dash's-stall step (`n2_fizz`) is gone. Players see
+    "blueprint" for gadgets; the code still says schematic.
+  - **Old saves** keep every gadget they own (a save from before gadgets keeps the Star Popper: `Arsenal.old_save()`).
+  - Tests: `test_arsenal`, `test_schematics` (every world's blueprint on the ground, clear, found by walking into it,
+    bought; no hint before the portal; nothing on a practice trip) and `test_nights` updated; tests that shoot give
+    themselves the Star Popper.
+  - My choices Hayden may change: which world has which gadget, where in each world, 3 sparkles for the Star Popper,
+    the Frozen Moment, Dark Hollow and the Far Future having none.
+
 - 2026-11-11: **Day 1 playtest polish: sprint, skate keys, the skate lesson, oak runes, plants, grass, rails** (Hayden's
   day 1 playtest notes; other threads took the rest). Built and tested in the cloud (own Godot user folders, no save
   touched).

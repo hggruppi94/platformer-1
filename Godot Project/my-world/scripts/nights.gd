@@ -19,17 +19,17 @@ const TOWN := "res://scenes/town/town.tscn"
 # Night 1 is The First Night (quests/first_night.json, scripts/first_night.gd).
 const NIGHTS := [
 	{"n": 1, "quest": "first_night", "title": "The First Night",
-		"new": "the Market, the Star Popper, the Skate Park, Tally's board, the Lake Loop and the Gloop King"},
+		"new": "the Market, Dash's gadget stall, the Skate Park, Tally's board, the Lake Loop and the Gloop King"},
 	{"n": 2, "quest": "night_2", "title": "Pip's Lamps",
-		"new": "Pip's waiting by the portal, the Fizz Flinger's schematic, and S-K-A-T-E letters in the Skate Park",
-		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and there's a schematic glowing on the promenade.",
+		"new": "Pip's waiting by the portal, Pip's lamps, and S-K-A-T-E letters in the Skate Park",
+		"arrive": "Night 2! New tonight: Pip's waiting for you by the portal, and the Skate Park has letters hidden in it.",
 		"tease": "Pip has something to show you by the boardwalk..."},
 	{"n": 3, "quest": "night_3", "title": "The Meadow in Bloom",
-		"new": "Bramble by the portal, two schematics in the south meadow (the Disco Ball and the Overboard), and a race",
-		"arrive": "Night 3! Bramble's waiting by the portal, and two schematics have blown into the south meadow.",
+		"new": "Bramble by the portal, the Overboard's schematic in the south meadow, and a race",
+		"arrive": "Night 3! Bramble's waiting by the portal, and a schematic has blown into the south meadow.",
 		"tease": "Bramble says the south meadow's about to bloom. Something's glowing out there..."},
 	{"n": 4, "quest": "night_4", "title": "Stars Over Observatory Hill",
-		"new": "Dash by the portal, the Observatory, the Jelly Mines' and the Bike's schematics, and a ride of your own",
+		"new": "Dash by the portal, the Observatory, the Bike's schematic, and a ride of your own",
 		"arrive": "Night 4! Dash is waiting by the portal. He says the stars are doing something funny over Observatory Hill.",
 		"tease": "Dash wants to show you the stars from Observatory Hill."},
 	{"n": 5, "quest": "night_5", "title": "Up in the Mothership",
@@ -37,11 +37,11 @@ const NIGHTS := [
 		"arrive": "Night 5! The Astronaut's waving from the Mothership Pad. Something's floating high over town tonight...",
 		"tease": "The Astronaut keeps looking up. Is something floating up there?"},
 	{"n": 6, "quest": "night_6", "title": "Rex for Mayor",
-		"new": "Rex by the portal, the castle school, the Plushinator's schematic and the Rocket Bike's",
-		"arrive": "Night 6! Rex is waiting by the portal with a campaign speech, and there's a schematic at the castle school.",
+		"new": "Rex by the portal, the castle school and the Rocket Bike's schematic",
+		"arrive": "Night 6! Rex is waiting by the portal with a campaign speech, and there's a schematic on the way to the castle school.",
 		"tease": "Rex is practising a speech. Something about the castle school..."},
 	{"n": 7, "quest": "night_7", "title": "The Far Corners",
-		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the far field and the last two schematics",
+		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the far field and the last schematic",
 		"arrive": "Night 7! Mr. Palmer wants a word at his office window, and he looks worried.",
 		"tease": "Mr. Palmer wants a quiet word. Something about the far field..."},
 ]
@@ -56,7 +56,6 @@ var _told_visit := -1                       # the visit this session already sai
 
 func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
-	Shop.opened.connect(_on_shop)
 	Races.finished.connect(_on_race_finished)
 
 
@@ -130,11 +129,6 @@ func _start_next(visit: int) -> void:
 # -----------------------------------------------------------------------------
 func _step(quest_id: String) -> String:
 	return str(Quests.current_step(quest_id).get("id", "")) if Quests.is_started(quest_id) else ""
-
-
-func _on_shop(stall: String) -> void:
-	if stall == "Gadget" and _step("night_2") == "explore" and Schematics.is_found("fizz"):
-		Dialogue.set_flag("n2_fizz")
 
 
 func _check_letters() -> void:
@@ -296,7 +290,11 @@ func _gadget_goal() -> String:
 			" (you can afford it!)" if have >= int(cheapest.price) else " (you have %d)" % have]
 	var sch := Schematics.next_hint()
 	if not sch.is_empty():
+		if str(sch.kind) == "gadget":
+			return "Gadgets: find the %s's blueprint. %s" % [Schematics.thing_name(sch), str(sch.hint)]
 		return "Schematic: find the %s's. %s" % [Schematics.thing_name(sch), str(sch.hint)]
+	if not Arsenal.armed():
+		return "Gadgets: none yet. Dash builds them from blueprints, at his stall"
 	var id := str(Arsenal.current)
 	if Arsenal.level(id) < Arsenal.MAX_LEVEL:
 		var need: int = Arsenal.LEVEL_XP[Arsenal.level(id)] - int(Arsenal.xp.get(id, 0))

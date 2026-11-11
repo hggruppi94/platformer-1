@@ -33,17 +33,12 @@
         [
           "n6_school",
           "Go inside the castle school"
-        ],
-        [
-          "schematic_plush",
-          "Find the Plushinator's schematic in the school's Entrance Garden"
         ]
       ],
       "done": {
         "flags": [
           "schematic_rocket_bike",
-          "n6_school",
-          "schematic_plush"
+          "n6_school"
         ]
       },
       "where": [
@@ -60,13 +55,6 @@
             -150
           ],
           "unless": "n6_school"
-        },
-        {
-          "at": [
-            15,
-            -150
-          ],
-          "unless": "schematic_plush"
         }
       ]
     }

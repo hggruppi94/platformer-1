@@ -32,14 +32,6 @@
           "Help Pip with the boardwalk lamps (say yes to Pip)"
         ],
         [
-          "schematic_fizz",
-          "Find the glowing schematic on the promenade by the portal"
-        ],
-        [
-          "n2_fizz",
-          "Take it to Dash's gadget stall: now he can build the Fizz Flinger"
-        ],
-        [
           "n2_letter",
           "Find a letter of S-K-A-T-E in the Skate Park"
         ]
@@ -47,23 +39,10 @@
       "done": {
         "flags": [
           "pip_lamps_start",
-          "schematic_fizz",
-          "n2_fizz",
           "n2_letter"
         ]
       },
       "where": [
-        {
-          "at": [
-            28,
-            21
-          ],
-          "unless": "schematic_fizz"
-        },
-        {
-          "who": "dash",
-          "unless": "n2_fizz"
-        },
         {
           "who": "pip",
           "unless": "pip_lamps_start"
