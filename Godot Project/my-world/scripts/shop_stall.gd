@@ -48,4 +48,17 @@ func set_prompt(on: bool) -> void:
 
 
 func use() -> void:
+	# Dash's gadget stall and workbench stay shut until The Bike Boy gets there (scripts/meetings.gd)
+	var m: Node = FirstNight.meetings
+	if m and not m.stall_open() and stall in m.GADGET_STALLS:
+		Dialogue.say(self, "Dash's stall", m.closed_lines(stall), "dash_stall_shut")
+		return
 	Shop.open(stall)
+
+
+func begin_talk() -> void:
+	pass                                          # (a shut stall's sign is read like a talk: Dialogue.say())
+
+
+func end_talk() -> void:
+	pass

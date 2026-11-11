@@ -1,5 +1,6 @@
 {
-  "name": "Night 2: Pip's Lamps",
+  "name": "Pip's Lamps",
+  "story": true,
   "giver": "pip",
   "skippable": true,
   "start": {
@@ -8,7 +9,7 @@
   "steps": [
     {
       "id": "pip",
-      "text": "Pip's waiting for you by the portal. Go and say hi!",
+      "text": "Dash says his friend Pip has been waiting by the portal all day to show you something. Go and say hi!",
       "done": {
         "flag": "n2_pip"
       },
@@ -53,6 +54,6 @@
   ],
   "reward": {
     "sparkles": 8,
-    "message": "Night 2 done! The Goals page in your menu shows what to try next. (+8 sparkles)"
+    "message": "Pip's Lamps done! The Goals page in your menu shows what to try next. Pip says Bramble's waiting for you by the portal! (+8 sparkles)"
   }
 }

@@ -387,7 +387,8 @@ func check() -> void:
 				state[id] = {"step": 0, "since_day": Clock.day, "done": false}
 				_announce("New quest: %s" % q.get("name", id), current_step(id).get("text", ""))
 				tracked = id
-				if live_followed().is_empty():
+				# (a story quest, where the next friend sends you on, is followed too: res://scripts/meetings.gd)
+				if live_followed().is_empty() or bool(q.get("story", false)):
 					follow(id, true)
 				changed.emit(id)
 			continue

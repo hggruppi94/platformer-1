@@ -91,6 +91,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **Who you meet, and in what order, and a quest to meet Dash** (Hayden's day 1 playtest: "more build-up to
+  meeting Dash and his gadgets via a quest", then on the order: "I don't want to lock meeting people behind days spent
+  in-game ... it should not be a mystery of who to talk to next"). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **The order** (`scripts/meetings.gd`, a "Meetings" node under `FirstNight`: dialogue says `FirstNight/Meetings.*`):
+    the First Night, then **The Bike Boy**, Pip's Lamps (night_2), The Meadow in Bloom (night_3), **Melody and Heather**
+    (`quests/meet_friends.json`), then nights 4 to 7. Each story quest starts **as soon as the one before is done**
+    (`advance()`), never waiting for a new visit, and the friend you just helped sends you on (reward messages and the
+    first step's text, "Dash says...", "Pip says..."). Story quests (`"story": true`) are followed by themselves. The
+    night quests keep their ids but their names no longer say "Night N", the "Night N!" landing messages are gone, and
+    the Goals page says "Right now" / "Coming up". A night's schematics and held-back things come out when its quest
+    starts (`Schematics.out_tonight()`, `FirstNight.held_back()`).
+  - **The First Night's Void day**: no Dash at the portal. You land and **Tally** waves you over (flag `fn_met_tally`);
+    their first hello sends you to Rex at the Skate Park and says Gloops pop if you jump on them. The day is a request,
+    Coach Bruno's push and ollie, three Gloops and the fountain's watch. After the ollie Rex asks you to find his twin.
+    The Gloop King step moved to The Bike Boy. Old saves move (`_migrate_v4()`, flag `fn_v4`).
+  - **The Bike Boy** (`quests/bike_boy.json`): follow Dash's glowing gold tyre tracks from the Skate Park, pick up the
+    three bits he dropped (a coil, a bulb, a cog), find him in the lab (he's out of sight till then), catch his runaway
+    **Buzz Bot** (walk into it), and his **gadget stall opens**: it's shut with a "GONE TINKERING" sign till then
+    (`shop_stall.gd`, `Meetings.stall_open()`; saves from before the new first day keep it open). Then the Star
+    Popper's blueprint and buying it (for the weapons thread's blueprints; already ticked without them), the Gloop King
+    and the Gloop Crown, and Dash sends you to Pip. Dash zooms past ("Can't stop! Experiment!") until you meet him.
+    Old saves that met Dash the old way have it done (or wait on the King step).
+  - **Melody and Heather**: Bramble points to Melody singing in the Market, Melody sends you for her best friend
+    Heather in the green meadow, then sings her new song and sends you to Dash.
+  - Tests: new `tools/test_meetings.gd`; first_night, nights, later_nights, time_watch, episodes and playthrough updated.
+    Previews: `tools/capture_meetings.gd` (shots in the project files under world/previews/meeting_order).
+  - My choices Hayden may change: the Bike Boy's steps, the Buzz Bot, every line (first drafts), Melody's song.
+
 - 2026-11-11: **People really do their jobs** (Hayden's day 1 playtest: "I want characters who are performing actions
   to actually be in the locations and performing those actions (librarian climbing a ladder and grabbing a book from a
   bookshelf)"). Built and tested in the cloud (own Godot user folders, no save touched).

@@ -2,6 +2,33 @@
   "name": "Melody",
   "conversations": [
     {
+      "when": {"quest_step": "meet_friends:melody"},
+      "set": "mf_melody",
+      "lines": [
+        "(A capybara girl in a purple dress bounces over, her ponytail swinging.) Eee! Bramble said you'd come! Hi hi hi! I'm Melody!",
+        "{player}: Are you... a capybara?",
+        "Capybara AND pop star. Well, pop star in training. And I've just written a brand new song! It's called Tick Tock, Don't Stop. Well, it's called that today.",
+        "But I can't sing it for the very first time without my best friend Heather. She's out in the green meadow, grazing. Will you fetch her? Please please please?"
+      ]
+    },
+    {
+      "when": {"quest_step": "meet_friends:heather"},
+      "lines": [
+        "Heather's in the green meadow! Horns, a scooter, and the biggest smile in the Void. You can't miss her."
+      ]
+    },
+    {
+      "when": {"quest_step": "meet_friends:song"},
+      "set": "mf_song",
+      "lines": [
+        "You found her! Heather! Front row! OK. Deep breath. Ahem. This one's called Tick Tock, Don't Stop!",
+        "(Melody spins on her shiny Mary Janes and sings.) Tick tock, the clock goes round, my feet won't touch the ground!",
+        "(Heather whoops and stamps her hooves. A few little aliens stop to clap.)",
+        "Thank you, thank you! You're too kind! {player}, you're my first fan AND my best friend's second best friend. That's a lot of friend.",
+        "Oh! And Dash came by looking for you. He's waiting by the portal. Something about the stars?"
+      ]
+    },
+    {
       "when": {"talks": 0},
       "lines": [
         "(A capybara girl in a purple dress bounces over, her ponytail swinging.) Eee! A new face! Hi hi hi! I'm Melody!",

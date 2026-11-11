@@ -1,5 +1,6 @@
 {
-  "name": "Night 7: The Far Corners",
+  "name": "The Far Corners",
+  "story": true,
   "skippable": true,
   "start": {
     "flag": "night_7"
@@ -7,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Mr. Palmer wants a quiet word, at his office window by the Town Hall.",
+      "text": "Rex says Mr. Palmer wants a quiet word, at his office window by the Town Hall.",
       "done": {
         "flag": "n7_hi"
       },
@@ -66,6 +67,6 @@
   ],
   "reward": {
     "sparkles": 20,
-    "message": "Night 7 done! That's every schematic in the Void. You found them all! (+20 sparkles)"
+    "message": "The Far Corners done! That's every schematic in the Void. You found them all! (+20 sparkles)"
   }
 }

@@ -1,7 +1,8 @@
 extends SceneTree
 
-# Checks nights 3 to 7 (quests/night_3.json to night_7.json, scripts/nights.gd): each starts the next time you land
-# in the Void after the night before is done, and never two on one visit; each says what's new when you land and has
+# Checks nights 3 to 7 (quests/night_3.json to night_7.json, scripts/nights.gd): since Hayden's meeting order (11 Nov
+# 2026, scripts/meetings.gd) each starts as soon as the story quest before it is done, with no new visit needed, and
+# says who sent you there; each has
 # a friend to meet (Bramble, Dash and Rex wait by the portal, the Astronaut at the Mothership Pad, Mr. Palmer at his
 # window), whose lines tick the first step; then a list of the night's schematics and its spotlight (a race, the
 # Observatory, building a ride, flying the mothership, the castle school, the Scary World gate and the Agent of
@@ -77,17 +78,13 @@ func _run() -> void:
 		if quests.is_done("first_night"):
 			break
 		quests.skip("first_night")
+	await _skip_all("bike_boy")
 	requests.nights = 2
 	await _new_visit()
-	check(quests.is_started("night_2"), "night 2 starts on the next visit")
-	for i in 10:
-		if quests.is_done("night_2"):
-			break
-		quests.skip("night_2")
-	await _go(EARTH)
-	await _go(TOWN)
-	check(quests.is_done("night_2") and not dialogue.flags.has("night_3"),
-		"with night 2 done, night 3 waits for the next visit (not the same one)")
+	check(quests.is_started("night_2"), "night 2 starts after The Bike Boy")
+	await _skip_all("night_2")
+	check(quests.is_done("night_2") and quests.is_started("night_3"),
+		"with night 2 done, night 3 starts straight away (no waiting for the next visit)")
 
 	for n in range(3, 8):
 		await _night(n)
@@ -106,15 +103,9 @@ func _run() -> void:
 	for f in ["first_night_start"]:
 		dialogue.set_flag(f)
 	quests.check()
-	for q in ["first_night", "night_2", "night_3"]:
-		if q != "first_night":
-			await _new_visit()
-		for i in 30:
-			if quests.is_done(q):
-				break
-			quests.skip(q)
-	await _new_visit()
-	check(quests.is_done("night_3") and quests.is_started("night_4"), "skipping a whole night, the next one starts on the next visit")
+	for q in ["first_night", "bike_boy", "night_2", "night_3", "meet_friends"]:
+		await _skip_all(q)
+	check(quests.is_done("night_3") and quests.is_started("night_4"), "skipping whole quests, the next one still starts")
 
 	_put_save_back()
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
@@ -123,14 +114,16 @@ func _run() -> void:
 
 func _night(n: int) -> void:
 	var q := "night_%d" % n
+	if n == 4:
+		check(quests.is_started("meet_friends") and not quests.is_started(q), "Melody and Heather come before night 4")
+		await _skip_all("meet_friends")
 	requests.nights = n
 	messages.clear()
 	await _new_visit()
 	check(dialogue.flags.has("night_%d" % n) and quests.is_started(q) and _step(q) == "hi",
-		"night %d starts when you land, on meeting %s" % [n, FRIENDS[n]])
-	await create_timer(3.4).timeout
-	check(messages.any(func(m: String) -> bool: return m.contains("Night %d" % n)), "...and says what's new when you land")
-	check(str(N.goals()[0][1][0]).contains("Night %d" % n), "...and the Goals page says it's night %d" % n)
+		"night %d is on, on meeting %s" % [n, FRIENDS[n]])
+	check(str(quests.current_step(q).text).contains(" say"), "...and says who sent you (%s)" % quests.current_step(q).text)
+	check(str(N.goals()[0][1][0]).contains(str(quests.quest(q).name)), "...and the Goals page says what it is")
 	var friend := _talker(FRIENDS[n])
 	check(friend != null, "%s is there to talk to" % FRIENDS[n])
 	if FRIENDS[n] in AT_PORTAL:
@@ -148,9 +141,19 @@ func _night(n: int) -> void:
 	await _frames(2)
 	check(quests.is_done(q) and game.sparkles >= before + int(REWARDS[n]),
 		"night %d is done, for %d sparkles (%d)" % [n, REWARDS[n], game.sparkles - before])
-	await _go(EARTH)
-	await _go(TOWN)
-	check(not dialogue.flags.has("night_%d" % (n + 1)), "...and the next night waits for the next visit")
+	await _frames(4)
+	if n == 3:
+		check(quests.is_started("meet_friends"), "...and Melody and Heather's starts straight after")
+	elif n < 7:
+		check(dialogue.flags.has("night_%d" % (n + 1)), "...and the next one starts straight after")
+
+
+func _skip_all(q: String) -> void:
+	for i in 30:
+		if quests.is_done(q):
+			break
+		quests.skip(q)
+	await _frames(4)
 
 
 func _do(n: int, flag: String) -> void:

@@ -97,7 +97,8 @@ func out_tonight(id: String) -> bool:
 	var e := entry(id)
 	if e.is_empty():
 		return false
-	return e.has("world") or Nights.night() >= int(e.night)
+	# (or that night's story quest has started early: they follow on without waiting for a visit, scripts/meetings.gd)
+	return e.has("world") or Nights.night() >= int(e.night) or Dialogue.flags.has("night_%d" % int(e.night))
 
 
 func hint_ready(id: String) -> bool:
