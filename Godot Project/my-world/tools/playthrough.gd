@@ -216,16 +216,15 @@ func _ch_first_night() -> void:
 	check(game.has_item("shop:shift_watch"), "a watch on the hero's wrist")
 	await shot("first_landing")
 	await _physics(30)
-	await _talk("dash")
-	check(_step("first_night") == "day", "Dash at the portal: on to the Void day (%s)" % _step("first_night"))
+	var tally := current_scene.get_node_or_null("Tally/Request Talk") as Node3D
+	check(tally != null, "Tally's in the Market Square")
+	if tally:
+		await _talk_to(tally, [-1])
+	await _frames(4)
+	check(_step("first_night") == "day", "Tally's hello: on to the Void day (%s)" % _step("first_night"))
 	await _physics(30)
-	await _talk("dash")
 	for i in 3:
-		requests.note("gloop", 1.0, "bubble")
-	shop.open("Gadget")
-	await _frames(2)
-	shop.close()
-	await _frames(2)
+		requests.note("gloop", 1.0, "stomp")
 	await _talk("rex")
 	await _frames(6)
 	if lesson.active:
@@ -235,28 +234,66 @@ func _ch_first_night() -> void:
 		await _frames(4)
 		lesson.stop()
 	game.riding = false
+	await _talk("rex")
+	check(quests.is_started("bike_boy"), "after the ollie, Rex sends you after Dash: The Bike Boy")
 	if requests.list.size() > 0:
 		requests.list[0].done = true
 		requests.changed.emit()
 	await _frames(2)
 	watches.pick_up("water_clock")
 	await _frames(2)
-	await _talk("dash")
 	var zippy := _starter("lake_loop")
 	if zippy:
 		await _talk_to(zippy, [-1])
 	await _frames(4)
-	check(_step("first_night") == "king", "the Void day's list done: on to the Gloop King (%s)" % _step("first_night"))
-	if _step("first_night") != "king":
-		print("    (still to do: %s)" % str(quests.current_step("first_night")))
+	check(_step("first_night") == "home", "the Void day's list done: on to going home (%s)" % _step("first_night"))
+
+	# --- The Bike Boy: meeting Dash ---
+	await _physics(30)
+	await _frames(30)
+	for i in 3:
+		var part := current_scene.get_node_or_null("Dash's Gadget Bit %d" % (i + 1)) as Node3D
+		check(part != null, "Dash's dropped bit %d is out" % (i + 1))
+		if part:
+			_player().global_position = part.global_position + Vector3(0, 0.3, 0)
+			_player().velocity = Vector3.ZERO
+			await _physics(4)
+			await _frames(3)
+	await _frames(30)
+	check(_step("bike_boy") == "lab", "his three bits picked up: on to his lab (%s)" % _step("bike_boy"))
+	await _physics(30)
+	await _talk("dash")
+	await _frames(20)
+	var bot := current_scene.get_node_or_null("Runaway Buzz Bot") as Node3D
+	check(bot != null or dialogue.flags.has("bb_bot_caught"), "Dash's Buzz Bot gets loose")   # (or it's bumped into you already)
+	for k in 20:
+		if not is_instance_valid(bot):
+			break
+		_player().global_position = bot.global_position + Vector3(0, 0.3, 0)
+		await _physics(2)
+	await _frames(30)
+	await _talk("dash")
+	await _frames(30)
+	check(_step("bike_boy") == "stall", "the bot caught: Dash's stall opens (%s)" % _step("bike_boy"))
+	shop.open("Gadget")
+	await _frames(2)
+	shop.close()
+	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
+	await _frames(30)
+	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
 	var king := current_scene.find_child("The Gloop King", true, false)
 	_player().global_position = (king as Node3D).global_position + Vector3(0, 1, 9)
 	await _physics(10)
 	await shot("gloop_king")
 	await _pop(king)
 	check(dialogue.flags.has("popped_gloop_king"), "the Gloop King popped")
-	await _talk("dash")
-	check(_step("first_night") == "home", "Dash's crown: on to going home (%s)" % _step("first_night"))
+	await _physics(30)
+	await _talk("dash")                               # (the fountain's lost watch first: Dash always takes those first)
+	await _frames(10)
+	if not quests.is_done("bike_boy"):
+		await _talk("dash")
+	await _frames(30)
+	check(quests.is_done("bike_boy") and game.has_item("shop:gloop_crown"), "Dash's crown: The Bike Boy is done")
 	await _end_shift()
 	check(current_scene.scene_file_path == EARTH, "pulled home to Earth at 1 AM")
 	await _physics(30)
@@ -267,19 +304,21 @@ func _ch_first_night() -> void:
 
 
 # =============================================================================
-# Chapter 2: nights 2 to 7, one a visit
+# Chapter 2: nights 2 to 7 (and Melody and Heather), each straight after the last (scripts/meetings.gd)
 # =============================================================================
 const FRIENDS := {2: "pip", 3: "bramble", 4: "dash", 5: "astronaut", 6: "rex", 7: "mr_palmer"}
 
 
 func _ch_nights() -> void:
 	var S := root.get_node("Schematics")
+	await _next_visit()
 	for n in range(2, 8):
-		await _next_visit()
 		if n == 2 and not root.get_node("Arsenal").owns("popper"):
-			await _get_blueprint("popper")     # (if the First Night didn't already: the Market Square, from night 1)
+			await _get_blueprint("popper")     # (if The Bike Boy didn't already: the Market Square, from night 1)
 		var q := "night_%d" % n
-		check(quests.is_started(q), "night %d starts when you land (visit %d)" % [n, root.get_node("Requests").nights])
+		if n == 4:
+			await _meet_friends()
+		check(quests.is_started(q), "night %d's story quest is on" % n)
 		if not quests.is_started(q):
 			continue
 		var friend := _talker(FRIENDS[n])
@@ -299,6 +338,17 @@ func _ch_nights() -> void:
 	var rides: Array = S.LIST.filter(func(e: Dictionary) -> bool: return str(e.kind) == "ride")
 	check(rides.all(func(e: Dictionary) -> bool: return S.is_found(str(e.id))), "every ride's schematic found by night 7")
 	await _end_shift()
+
+
+func _meet_friends() -> void:
+	check(quests.is_started("meet_friends"), "after Bramble, Melody and Heather")
+	await _talk("melody")
+	await _frames(30)
+	await _talk("clover")
+	await _frames(30)
+	await _talk("melody")
+	await _frames(30)
+	check(quests.is_done("meet_friends"), "Melody's song for Heather: done")
 
 
 func _night_do(n: int, flag: String, S: Node) -> void:

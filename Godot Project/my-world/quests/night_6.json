@@ -1,5 +1,6 @@
 {
-  "name": "Night 6: Rex for Mayor",
+  "name": "Rex for Mayor",
+  "story": true,
   "skippable": true,
   "start": {
     "flag": "night_6"
@@ -7,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Rex is waiting for you by the portal, with a speech. Go and say hi!",
+      "text": "The Astronaut says Rex is waiting by the portal, with a speech. Go and say hi!",
       "done": {
         "flag": "n6_hi"
       },
@@ -61,6 +62,6 @@
   ],
   "reward": {
     "sparkles": 14,
-    "message": "Night 6 done! Rex says it was the best campaign stop ever. (+14 sparkles)"
+    "message": "Rex for Mayor done! Rex says it was the best campaign stop ever, and Mr. Palmer wants a quiet word. (+14 sparkles)"
   }
 }

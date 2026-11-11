@@ -3,10 +3,10 @@ extends SceneTree
 # Walks the whole of "The First Night" (res://quests/first_night.json, scripts/first_night.gd), from a new game to
 # waking up at home the next night: the hero's made at 8 PM on Earth, Nina knocks, Mr. Palmer and two more people on
 # the green, the evening waits at 11 PM until that's done, the bed's "Until the Shift", the portal and the arrival
-# moment (the swirl, the watch on their wrist), Dash at the portal, the Void day (Star Popper and three Gloops,
-# Dash's gadget stall, Rex and Coach Bruno's first two lesson steps, a request, the fountain's lost watch, Zippy), the
-# Gloop King and the crown from Dash, then pulled home at the end of the Shift into bed, and Nina's "Same time
-# tomorrow?". The Shift is fast-forwarded. Then: every step can be skipped from the quest log, an old save is
+# moment (the swirl, the watch on their wrist), Tally's hello in the Market Square, the Void day (three Gloops, Rex
+# and Coach Bruno's first two lesson steps, Rex sending them after Dash, a request, the fountain's lost watch, Zippy),
+# then pulled home at the end of the Shift into bed, and Nina's "Same time tomorrow?". (Meeting Dash and the Gloop
+# King are The Bike Boy's now: tools/test_meetings.gd.) The Shift is fast-forwarded. Then: every step can be skipped from the quest log, an old save is
 # offered it (never forced), the quest log has the buttons, and it all saves and loads.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_first_night.gd
@@ -226,32 +226,29 @@ func _run() -> void:
 	if piece:
 		piece.free()
 	await _physics(30)
-	var dash := _talker("dash")
-	check(dash != null and _flat(dash.get_parent().global_position - _place("portal")) < 4.0, "Dash waits by the portal")
-	lines = await _talk("dash")
-	check(_said(lines, "outside of time") and _said(lines, "chosen"), "Dash: a planet outside time, and some people are chosen")
+	stars = root.get_node("TownMap").quest_markers()
+	check(stars.any(func(s: Dictionary) -> bool: return _flat(s.pos - _place("market")) < 3.0), "a star on the Market Square, for Tally")
+	check(messages.any(func(m: String) -> bool: return m.contains("clipboard")), "...and Tally's waving at them")
+	var tally := current_scene.get_node_or_null("Tally/Request Talk") as Node3D
+	check(tally != null, "Tally's in the Market Square")
+	lines = await _talk_to(tally) if tally else []
+	check(dialogue.flags.has("fn_met_tally") and _said(lines, "Tally"), "Tally says hello and shows the request board")
+	check(_said(lines, "Rex") and _said(lines, "Skate Park"), "...and sends them on to Rex at the Skate Park")
+	check(_said(lines, "Gloops"), "...and says how to pop Gloops: jump on them")
+	await _frames(4)
 	check(_step() == "day", "on to the Void day")
+	check(not dialogue.flags.has("fn_met_dash"), "Dash isn't waiting at the portal any more (he's busy: The Bike Boy)")
 
 	# --- The Void day ---
 	await _physics(30)
-	dash = _talker("dash")
-	check(_going(dash, "market"), "Dash heads to the Market Square, by his stall")
-	lines = await _talk("dash")
-	check(dialogue.flags.has("fn_popper") and _said(lines, "Star Popper"), "Dash hands over the Star Popper")
-	check(_said(lines, "gadget stall") and _said(lines, "Rex") and _said(lines, "Tally") and _said(lines, "Zippy") and _said(lines, "fountain"),
-		"...and points out his stall, Rex, Tally, Zippy and the fountain's watch")
 	for i in 3:
-		requests.note("gloop", 1.0, "bubble")
+		requests.note("gloop", 1.0, "stomp")
 	check(dialogue.flags.has("fn_gloops"), "three Gloops popped")
-	shop.open("Gadget")
-	await _frames(2)
-	shop.close()
-	await _frames(2)
-	check(dialogue.flags.has("fn_stall"), "looked at Dash's gadget stall")
 	game.items.erase("skateboard")
 	var rex := _talker("rex")
 	check(rex != null and _going(rex, "skate_park"), "Rex is at the Skate Park")
 	lines = await _talk("rex")
+	check(_said(lines, "Tally says"), "Rex: Tally sent you")
 	check(game.has_item("skateboard") and _said(lines, "spare"), "Rex lends a skateboard if they haven't got one")
 	await _frames(6)
 	check(lesson.active, "...and Coach Bruno's lesson starts")
@@ -262,6 +259,11 @@ func _run() -> void:
 	lesson.stop()
 	game.riding = false
 	check(dialogue.flags.has("skate_lesson_push") and dialogue.flags.has("skate_lesson_ollie"), "pushed and popped an ollie")
+	lines = await _talk("rex")
+	check(_said(lines, "twin") and _said(lines, "tyre tracks") and dialogue.flags.has("bike_boy_start"),
+		"after the ollie Rex sends them after his twin, Dash")
+	await _frames(4)
+	check(quests.is_started("bike_boy") and quests.is_followed("bike_boy"), "...The Bike Boy starts, and is followed with the First Night")
 	check(requests.list.size() == 3 and requests.list.any(func(r: Dictionary) -> bool: return r.tier == "easy"),
 		"Tally's board has an easy request")
 	requests.list[0].done = true
@@ -269,49 +271,11 @@ func _run() -> void:
 	await _frames(2)
 	check(dialogue.flags.has("fn_request"), "a request finished")
 	watches.pick_up("water_clock")
-	await _frames(2)
+	await _frames(4)
 	check(dialogue.flags.has("fn_fountain_watch"), "the lost watch on the fountain found")
-	lines = await _talk("dash")
-	check(watches.given_count() >= 1, "...and Dash takes it first, before anything else he has to say")
-	var zippy := _starter()
-	check(zippy != null, "Zippy is at the Lake Loop")
-	if zippy:
-		lines = await _talk_to(zippy, [-1])
-		check(_said(lines, "Zippy") or _said(lines, "Vroom"), "Zippy says hi")
-	await _frames(4)
-	check(_step() == "king", "every part of the day done: on to the Gloop King (%s)" % _step())
-
-	# --- The Gloop King ---
-	await _physics(30)
-	dash = _talker("dash")
-	check(_going(dash, "market_far_west"), "Dash waits at the edge of the west fields")
-	stars = root.get_node("TownMap").quest_markers()
-	check(stars.any(func(s: Dictionary) -> bool: return _flat(s.pos - Vector3(-134, 0, 2)) < 1.0), "a star on the King's court")
-	lines = await _talk("rex")
-	check(_said(lines, "west fields"), "rumours lead to the west fields")
-	var king := current_scene.find_child("The Gloop King", true, false)
-	check(king != null, "the Gloop King is there")
-	messages.clear()
-	var guard := 40
-	while king and not king.defeated and guard > 0:
-		guard -= 1
-		king.shot(1, king.global_position, Vector3.FORWARD)
-		await _physics(2)
-	await _frames(4)
-	check(dialogue.flags.has("popped_gloop_king"), "the Gloop King popped")
-	check(messages.any(func(m: String) -> bool: return m.contains("HOORAY")), "...with a cheer")
-	var sparkles: int = game.sparkles
-	lines = await _talk("dash")
-	check(not _said(lines, "Agent of Chaos") and _said(lines, "flickers"), "Dash only hints (the sky flickers): no Agent of Chaos yet")
-	check(game.has_item("shop:gloop_crown") and str(game.outfit.get("head", "")) == "gloop_crown" and game.sparkles == sparkles + 15,
-		"the reward: the Gloop Crown, worn straight away, and 15 sparkles")
-	var crown: Node3D = Cosmetics.hat("gloop_crown")
-	check(crown != null, "the Gloop Crown has a look of its own")
-	check(_step() == "home", "on to going home")
+	check(_step() == "home", "every part of the day done: on to going home (%s)" % _step())
 	await _frames(4)
 	check(clock.pull_spawn == "HomeSpawn", "tonight the end of the Shift puts them to bed")
-	if crown:
-		crown.free()
 
 	# --- Pulled home ---
 	clock.pulls_home = true
@@ -324,7 +288,7 @@ func _run() -> void:
 		"pulled home at 1 AM, waking up in bed")
 	check(messages.any(func(m: String) -> bool: return m.contains("wakes up in bed")), "\"...wakes up in bed, back on Earth\"")
 	await _physics(30)
-	sparkles = game.sparkles
+	var sparkles: int = game.sparkles
 	lines = await _talk("nina_earth")
 	check(_said(lines, "Same time tomorrow?"), "Nina: \"Same time tomorrow?\"")
 	await _frames(4)
@@ -351,7 +315,7 @@ func _run() -> void:
 	var skip := menu.find_child("Skip " + Q, true, false) as Button
 	check(skip != null, "the quest log has a Skip button")
 	var seen := []
-	guard = 14
+	var guard := 14
 	while quests.is_started(Q) and not quests.is_done(Q) and guard > 0:
 		guard -= 1
 		seen.append(_step())
@@ -360,7 +324,7 @@ func _run() -> void:
 			break
 		skip.pressed.emit()
 		await _frames(3)
-	check(quests.is_done(Q) and seen == ["morning", "board", "oak", "clues", "dusk", "wait", "awaken", "shift", "day", "king", "home"],
+	check(quests.is_done(Q) and seen == ["morning", "board", "oak", "clues", "dusk", "wait", "awaken", "shift", "day", "home"],
 		"every step skips, one at a time (%s)" % ", ".join(seen))
 	menu.close()
 	await _frames(2)

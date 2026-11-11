@@ -21,10 +21,15 @@ extends Node
 #   6 awaken   at midnight, walk up to the oak: it opens its door for the first time (the reveal).
 #   Then the first Void day:
 #   7 shift    through the oak's door: the arrival moment, a short flight over the Void that ends on Tally's request
-#              board (the first time only: scripts/place_intro.gd, void_intro()), then Dash at the portal.
-#   8 day      the Void: Gloops, Dash's stall, Coach Bruno's first two lesson steps, a request, the fountain's watch.
-#   9 king     the Gloop King in the west fields, then tell Dash (he gives the Gloop Crown, and something far off makes him go quiet).
-#   10 home    pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
+#              board (the first time only: scripts/place_intro.gd, void_intro()), then say hello to Tally.
+#   8 day      the Void: a request from Tally's board, Rex and Coach Bruno's first two lesson steps, three Gloops
+#              (stomped: the Star Popper's Dash's, later), the fountain's watch. After the ollie Rex sends them after
+#              his twin, Dash: "The Bike Boy" (res://quests/bike_boy.json, scripts/meetings.gd), which can run
+#              alongside and has the Gloop King in it now.
+#   9 home     pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
+#
+# (Nov 11 2026, Hayden's meeting order: Dash isn't waiting at the portal any more and the King step moved to The
+# Bike Boy. Who comes after whom, and what sends you there, is scripts/meetings.gd: the "Meetings" node here.)
 #
 # A new game starts it when the hero's made (scripts/creator.gd closes). An old save never gets it forced on it: Nina
 # offers it on Earth, and the quest log has a button for it. Every step can be skipped from the quest log
@@ -44,6 +49,7 @@ const BOARD_FLAG := "fn_v3"                    # this save's First Night has the
 const PlaceIntro := preload("res://scripts/place_intro.gd")
 const INTRO_SEEN := "void_intro_seen"
 const FRESH_FLAG := "fresh_start"           # a game started since the Humming Oak (held_back())
+const ORDER_FLAG := "fn_v4"                    # this save's First Night has Hayden's meeting order (migrate())
 const VERSION_FLAG := "fn_v2"                 # this save's First Night has the Humming Oak's steps (see migrate())
 # An old save's step (before the Humming Oak, Nov 2026) -> the same step in the Humming Oak's list (before the board
 # step went in after "morning": _migrate_v2() adds one for that)
@@ -65,6 +71,7 @@ var _warp_text: Label
 var _arriving := false
 var _woke_home := false                       # the portal put them to bed tonight: say so once Earth's up
 var intro: CanvasLayer                        # the first look round the Void (scripts/place_intro.gd)
+var meetings: Node                            # who you meet next (scripts/meetings.gd)
 
 
 func _ready() -> void:
@@ -74,7 +81,6 @@ func _ready() -> void:
 	Requests.noted.connect(_on_noted)
 	Requests.changed.connect(_check_requests)
 	Watches.found_watch.connect(_on_watch)
-	Shop.opened.connect(_on_shop)
 	Quests.changed.connect(_on_quest_changed)
 	Dialogue.flag_set.connect(_on_flag)
 	get_tree().scene_changed.connect(_on_scene_changed)
@@ -84,6 +90,7 @@ func _ready() -> void:
 	intro = PlaceIntro.new()
 	intro.name = "Void Intro"
 	add_child(intro)
+	_ensure_meetings()
 
 
 # -----------------------------------------------------------------------------
@@ -107,6 +114,7 @@ func start() -> void:
 	flag(START_FLAG)
 	flag(VERSION_FLAG)
 	flag(BOARD_FLAG)
+	flag(ORDER_FLAG)
 	Quests.check()
 
 
@@ -115,7 +123,9 @@ func held_back(night: int) -> bool:
 	# watches, the S-K-A-T-E letters and booster coins wait for the night they're for. (The Earth notice board is out
 	# from the first morning now: Nina shows it to them on the board step.)
 	# Old saves, and tests that don't start a new game this way, have everything out as before.
-	return Dialogue.flags.has(FRESH_FLAG) and Nights.night() < night
+	# A night's quest started early (the story quests follow on as soon as the one before is done, scripts/meetings.gd)
+	# brings that night's things out with it.
+	return Dialogue.flags.has(FRESH_FLAG) and Nights.night() < night and not Dialogue.flags.has("night_%d" % night)
 
 
 func shift_sleep_ok() -> bool:
@@ -123,11 +133,26 @@ func shift_sleep_ok() -> bool:
 	return not running() or not step() in NO_SHIFT_SLEEP
 
 
+func _ensure_meetings() -> void:
+	# (made the first time it's needed: a save can load, and call migrate(), before this autoload's _ready)
+	if meetings == null:
+		meetings = (load("res://scripts/meetings.gd") as GDScript).new() as Node
+		meetings.name = "Meetings"
+		add_child(meetings)
+
+
 func migrate() -> void:
 	# A save from before the Humming Oak (scripts/game.gd calls this as it loads): its First Night step number is moved
 	# to the same step now, and if it was past the evening, the new Earth-day steps count as done (the oak's awake for
 	# it once it's through the door). Saves that never started it, or finished it, have nothing to move.
 	_migrate_v2()
+	_migrate_v3()
+	_migrate_v4()
+	_ensure_meetings()
+	meetings.migrate()
+
+
+func _migrate_v3() -> void:
 	if not Quests.state.has(ID) or Dialogue.flags.has(BOARD_FLAG):
 		return
 	# (Nov 11 2026: the notice board step went in after "morning": a save past the morning moves one step on, and
@@ -138,6 +163,22 @@ func migrate() -> void:
 		st["step"] = int(st.get("step", 0)) + 1
 		for f in ["fn_board_look", "fn_board_follow", "fn_board_job"]:
 			Dialogue.flags[f] = true
+
+
+func _migrate_v4() -> void:
+	# (Nov 11 2026: the Gloop King step moved to The Bike Boy, scripts/meetings.gd.) A save on the King step goes to
+	# "home" and does the King there; one on "home" stays on it.
+	if not Quests.state.has(ID) or Dialogue.flags.has(ORDER_FLAG):
+		return
+	Dialogue.flags[ORDER_FLAG] = true
+	var st: Dictionary = Quests.state[ID]
+	if bool(st.get("done", false)):
+		return
+	var at := int(st.get("step", 0))
+	if at >= 9:
+		st["step"] = 9
+	if at >= 8:
+		Dialogue.flags["fn_met_tally"] = true
 
 
 func _migrate_v2() -> void:
@@ -218,6 +259,8 @@ func _on_talked(id: String) -> void:
 	elif step() == "board" and id == "notice_board":
 		flag("fn_board_look")
 		_check_board()
+	elif step() == "shift" and id == "tally":
+		flag("fn_met_tally")                      # Tally's first hello (scripts/requests.gd)
 	elif step() == "day" and id == "race_starter":
 		flag("fn_zippy")                          # Zippy at the Lake Loop (scripts/races.gd)
 
@@ -293,7 +336,7 @@ func _arrive() -> void:
 		Audio.play("pickup", -6.0, 0.0)
 		void_intro(func() -> void:
 			if step() == "shift":
-				Game.message("Someone's waving at you from beside the portal...")))
+				Game.message("Somebody tall and yellow is waving a clipboard at you from the Market Square...")))
 
 
 func void_intro(after: Callable = Callable(), force := false) -> void:
@@ -389,11 +432,6 @@ func _on_noted(kind: String, _amount: float, _how: String) -> void:
 		flag("fn_gloops")
 
 
-func _on_shop(stall: String) -> void:
-	if stall == "Gadget" and running() and step() == "day":
-		flag("fn_stall")
-
-
 func _check_requests() -> void:
 	if not running() or step() != "day" or Dialogue.flags.has("fn_request"):
 		return
@@ -425,7 +463,7 @@ func _on_quest_changed(id: String) -> void:
 # 5. The Gloop King
 # -----------------------------------------------------------------------------
 func _on_flag(f: String) -> void:
-	if f == "popped_gloop_king" and running() and step() == "king":
+	if f == "popped_gloop_king" and Quests.on_step(meetings.QUEST, "king"):
 		_cheer()
 	elif f == START_FLAG:
 		flag(VERSION_FLAG)                        # (started now, so it's on today's steps: nothing for migrate() to move)

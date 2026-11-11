@@ -100,54 +100,32 @@
     },
     {
       "id": "shift",
-      "text": "The door in the old oak is open! Walk into the swirl, and see where it takes you.",
-      "done": {"flag": "fn_met_dash"},
+      "text": "The door in the old oak is open! Walk into the swirl, and see where it takes you. (Then look for someone waving a clipboard.)",
+      "done": {"flag": "fn_met_tally"},
       "where": [
         "old_oak",
-        {"who": "dash", "unless": "fn_met_dash"}
-      ],
-      "override": {
-        "dash": {"place": "portal", "do": "idle", "label": "first_night", "face": [22, 21]}
-      }
+        {"place": "market", "unless": "fn_met_tally"}
+      ]
     },
     {
       "id": "day",
-      "text": "A whole day in the Void! Dash, Rex and Tally all have something to show you.",
+      "text": "A whole day in the Void! Tally says Rex is at the Skate Park, and the Gloops round the Market need popping.",
       "checklist": [
-        ["fn_gloops", "Pop 3 Gloops with your Star Popper"],
-        ["fn_stall", "Look at Dash's gadget stall by the fountain"],
-        ["skate_lesson_push", "Skate Park: push along with Coach Bruno"],
-        ["skate_lesson_ollie", "Skate Park: pop an ollie"],
         ["fn_request", "Finish a request from Tally's board"],
+        ["skate_lesson_push", "Skate Park: push along with Rex, Rook and Coach Bruno"],
+        ["skate_lesson_ollie", "Skate Park: pop an ollie"],
+        ["fn_gloops", "Pop 3 Gloops: jump on them!"],
         ["fn_fountain_watch", "Find the lost watch on the Market fountain"]
       ],
       "done": {
-        "flags": ["fn_gloops", "fn_stall", "skate_lesson_push", "skate_lesson_ollie", "fn_request", "fn_fountain_watch"]
+        "flags": ["fn_request", "skate_lesson_push", "skate_lesson_ollie", "fn_gloops", "fn_fountain_watch"]
       },
       "where": [
-        {"who": "dash", "unless": "fn_stall"},
-        {"who": "rex", "unless": "skate_lesson_ollie"},
+        {"who": "rex", "unless": "bike_boy_start"},
         {"place": "market", "unless": "fn_fountain_watch"}
       ],
       "override": {
-        "dash": {"place": "market", "do": "idle", "label": "first_night", "face": [-72, 42]},
         "rex": {"place": "skate_park", "do": "wander", "radius": 4, "label": "first_night"}
-      }
-    },
-    {
-      "id": "king",
-      "text": "Everyone's whispering about a big golden Gloop out in the west fields, past the Market. Pop the Gloop King, then tell Dash!",
-      "checklist": [
-        ["popped_gloop_king", "Pop the Gloop King in the west fields"],
-        ["fn_told_dash", "Tell Dash all about it"]
-      ],
-      "done": {"flags": ["popped_gloop_king", "fn_told_dash"]},
-      "where": [
-        {"at": [-134, 2], "unless": "popped_gloop_king"},
-        {"who": "dash", "unless": "fn_told_dash"}
-      ],
-      "override": {
-        "dash": {"place": "market_far_west", "do": "idle", "label": "first_night", "face": [-134, 2]}
       }
     },
     {

@@ -692,6 +692,11 @@ func lines(talker: Node3D = null) -> Array:
 			var extra := progress_text(r)
 			out.append("%s, for ✦ %d.%s" % [text_of(r), int(r.sparkles), (" (%s)" % extra.capitalize()) if extra != "" else ""])
 	out.append("No rush, and no worries if {they} can't do them all. Whatever's left just fades at the end of the Shift.")
+	if self == Requests and FirstNight.running() and FirstNight.step() in ["shift", "day"] \
+			and not Dialogue.flags.has("skate_lesson_ollie"):
+		# The First Night's Void day: Tally sends them on to Rex (Hayden's meeting order, scripts/meetings.gd)
+		out.append("Oh! And Rex at the Skate Park's been asking after you all morning. He'll teach you to skate!")
+		out.append("Those wobbly goo blobs round the Market are Gloops, by the way. Jump right on top of them and they pop!")
 	return out
 
 

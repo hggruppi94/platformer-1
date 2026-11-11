@@ -62,8 +62,8 @@ func _run() -> void:
 
 	# --- The Goals page, from the start ---
 	var g: Array = N.goals()
-	check(g.map(func(p: Array) -> String: return p[0]) == ["Tonight", "Next to aim for", "Tomorrow night"],
-		"the Goals page has Tonight, Next to aim for and Tomorrow night")
+	check(g.map(func(p: Array) -> String: return p[0]) == ["Right now", "Next to aim for", "Coming up"],
+		"the Goals page has Right now, Next to aim for and Coming up")
 	var aim: Array = g[1][1]
 	for want in ["Lost watches", "Races", "Gadgets", "Skat"]:
 		check(aim.any(func(l: String) -> bool: return l.contains(want)), "...something to aim for in %s" % want)
@@ -86,16 +86,17 @@ func _run() -> void:
 	await _frames(3)
 	check(quests.is_done("first_night"), "The First Night skipped all the way through")
 
-	# --- Night 2: the next visit ---
-	requests.nights = 2
-	messages.clear()
-	await _go(EARTH)
-	await _go(TOWN)
+	# --- Pip's Lamps: straight after The Bike Boy, no new visit needed (Hayden's meeting order, scripts/meetings.gd) ---
+	check(quests.is_started("bike_boy") and not dialogue.flags.has("night_2"), "after The First Night comes The Bike Boy, not night 2")
+	guard = 20
+	while not quests.is_done("bike_boy") and guard > 0:
+		quests.skip("bike_boy")
+		guard -= 1
+	await _frames(4)
 	check(dialogue.flags.has("night_2") and quests.is_started("night_2") and _step() == "pip",
-		"landing in the Void after The First Night starts night 2, on Pip's step")
-	await create_timer(3.4).timeout
-	check(messages.any(func(m: String) -> bool: return m.contains("Night 2")), "...with \"New tonight\" when you land")
-	check(str(N.goals()[0][1][0]).contains("Night 2"), "...and the Goals page says it's night 2")
+		"The Bike Boy done: Pip's Lamps starts straight away, on Pip's step")
+	check(str(N.goals()[0][1][0]).contains("Pip's Lamps") and not str(N.goals()[0][1][0]).contains("Night"),
+		"...and the Goals page says so, with no night number")
 	var pip := _talker("pip")
 	check(pip != null and _going(pip, "portal"), "Pip's waiting by the portal")
 	if pip:
@@ -112,7 +113,8 @@ func _run() -> void:
 	await _frames(2)
 	check(dialogue.flags.has("n2_letter"), "a S-K-A-T-E letter ticks the letters")
 	check(quests.is_done("night_2") and game.sparkles == before + 8, "night 2 is done, with 8 sparkles (%d)" % (game.sparkles - before))
-	check(N.current().is_empty(), "...and nothing's spotlighted after it")
+	await _frames(4)
+	check(int(N.current().get("n", 0)) == 3, "...and Bramble's starts straight after it")
 
 	# --- The Tab menu's Goals sheet ---
 	var menu := root.get_node("PlayerMenu")
