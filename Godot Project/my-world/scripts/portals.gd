@@ -32,6 +32,7 @@ const USE_SPOT := preload("res://scripts/use_spot.gd")
 const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
+const CENTIPEDE_HOLES := preload("res://scripts/centipede_holes.gd")
 const FREE_SECONDS := 240.0             # every trip starts with 4 free minutes...
 const SECONDS_PER_REMNANT := 60.0       # ...and each Remnant spent adds one more
 const EXTRA_AT_PORTAL := 2              # the portal's "take extra time" choice spends this many
@@ -88,7 +89,7 @@ const WORLDS := [
 		"colour": Color(0.6, 0.5, 1.0),
 		"blurb": "The centipede's home, a misty moonlit hollow where the shadows are eating up moments of time.",
 		"reward_remnants": 8,
-		"cleared_text": "The Moon Clock ticks past midnight in Dark Hollow! The mist thins, the stars come out, and the centipede's your friend for keeps."},
+		"cleared_text": "The Moon Clock ticks past midnight in Dark Hollow! The mist thins, the stars come out, and somewhere far up the tunnels a centipede is cheering with all her feet."},
 	# The Far Future (19a world 8, the last): its portal rises out of the fault line Rex and Dash's experiments cracked,
 	# just past the hedge behind their lab (scripts/lab.gd), facing back past it towards town.
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "res://scenes/portal_worlds/far_future.tscn",
@@ -382,7 +383,12 @@ func enter_dark_hollow() -> bool:
 	time_left = FREE_SECONDS
 	_warned = false
 	var w := world(id)
-	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s. You've got %s here. The way home takes you to the school's front gate." % [w.name, time_words(time_left)]
+	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s. You've got %s here." % [w.name, time_words(time_left)]
+	if not is_cleared(id):
+		Game.pending_message += " She waves a dozen legs and scuttles back up her tunnel. You're on your own down here..."
+	else:
+		Game.pending_message += " The way home takes you to the school's front gate."
+
 	Game.go(str(w.scene), "Entrance", str(w.name))
 	return true
 
@@ -409,6 +415,12 @@ func go_home(why := "") -> void:
 	time_left = 0.0
 	var w := world(id)
 	if not has_portal(id):
+		if id == "dark_hollow" and is_cleared(id) and not CENTIPEDE_HOLES.gifts_given():
+			# The first time home after mending it, the way out comes up by her hollow log behind the old gate, where
+			# she lives now and is waiting to say thank you (scripts/scary_world.gd)
+			Game.pending_message = why if why != "" else "The way home comes up somewhere new: a misty clearing, and a hollow log... Somebody's waiting."
+			Game.go_to_point(CENTIPEDE_HOLES.SCARY, CENTIPEDE_HOLES.HOME_AT, CENTIPEDE_HOLES.HOME_YAW, "the Scary World")
+			return
 		# No portal to land by (Dark Hollow): out at its "home_spawn", the castle school's front gate
 		Game.pending_message = why if why != "" else "Back in the Void, out at the castle school's front gate."
 		Game.go(TOWN, str(w.get("home_spawn", "")), "the Void")
@@ -719,8 +731,8 @@ func _hub_changes(s: Node) -> void:
 		_otto_in_hub()
 	if is_cleared("glenmoor"):
 		_blossom_orchard()
-	if is_cleared("dark_hollow"):
-		_centipede_holes()
+	if is_cleared("dark_hollow") and CENTIPEDE_HOLES.gifts_given():
+		_centipede_holes()                                    # once she's shared her gifts at home (scripts/scary_world.gd)
 
 
 func _centipede_holes() -> void:

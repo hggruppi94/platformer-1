@@ -1,13 +1,14 @@
 {
   "name": "The Old Gate",
+  "_comment": "The first step of the centipede's story, in order (Hayden, 11 Nov 2026): the gate asks yes or no (recorded either way, the therapist marker), but it never opens on its own. A yes is a whisper towards the castle school, where she has her corner behind the walls and gulps you down to Dark Hollow (scripts/centipede_corner.gd). Once Dark Hollow is mended she moves up to her hollow log behind this gate, and from then on it opens: that's her home (scripts/scary_world.gd).",
   "conversations": [
     {
       "when": {
-        "flag": "scary_world_visited"
+        "mended": "dark_hollow"
       },
       "lines": [
-        "(The old gate creaks. Mist curls between the bars. Somewhere inside, a glow-bug blinks.)",
-        "(Do you want to go back in?)",
+        "(The old gate's standing open a crack. Warm violet light spills out, and there's a smell of moss and mushrooms. Somebody lives here now.)",
+        "(Do you want to go in?)",
         {
           "choice": [
             {
@@ -21,7 +22,7 @@
               ]
             },
             {
-              "text": "Yes, I want to go back in.",
+              "text": "Yes, let's go in.",
               "answer": "yes",
               "say": false,
               "record": "scary_world_gate",
@@ -31,11 +32,26 @@
                 "Entrance"
               ],
               "lines": [
-                "({player} takes a breath and slips through the gate.)"
+                "({player} slips through the gate.)"
               ]
             }
           ]
         }
+      ]
+    },
+    {
+      "when": {
+        "flag": "scary_world_said_yes"
+      },
+      "rotate": [
+        [
+          "(The old gate's still shut tight. Mist curls between the bars. Somewhere inside, a glow-bug blinks.)",
+          "(A whisper, from nowhere at all: \"...not this way... behind the walls... the school...\")"
+        ],
+        [
+          "(The gate won't budge. Something long rustles away through the leaves on the other side.)",
+          "(The whisper again: \"...the far, far corner... behind the walls...\")"
+        ]
       ]
     },
     {
@@ -61,12 +77,10 @@
               "say": false,
               "record": "scary_world_gate",
               "set": "scary_world_said_yes",
-              "go": [
-                "res://scenes/scary_world/scary_world.tscn",
-                "Entrance"
-              ],
               "lines": [
-                "({player} takes a deep breath. The gate creaks open, just wide enough.)"
+                "({player} takes a deep breath and pushes. The gate rattles... but it won't open. It's shut tight.)",
+                "(Something long and leggy rustles away on the other side. Then a whisper, soft as moths: \"...not this way...\")",
+                "(\"...behind the walls... at the school... the far, far corner...\")"
               ]
             }
           ]

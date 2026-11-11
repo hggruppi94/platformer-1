@@ -2,14 +2,15 @@ extends SceneTree
 
 # Checks Dark Hollow, the centipede's world (scripts/dark_hollow.gd, scenes/portal_worlds/dark_hollow.tscn) and its
 # secret way in (scripts/centipede_corner.gd): it never quakes and has no portal or map mark in the Void; at the far end
-# of Behind the Walls in the castle school the centipede drops into her nest when you come near (and the ceiling
-# crawler steps away); talking to her asks Yes / No, and both answers are recorded; no keeps you in the school, yes
-# gulps you up and you land in Dark Hollow; inside, she says what to do; the eight shadow ghosts pop (and sometimes
+# of Behind the Walls in the castle school, only after a yes at the old Scary World gate, the centipede comes walking
+# along the ceiling over your head and drops into her nest (full size, coiled up); talking to her asks Yes / No, and
+# both answers are recorded; no keeps you in the school, yes gulps you up and you land in Dark Hollow; inside, she
+# follows you round and says what to do; the eight shadow ghosts pop (and sometimes
 # dodge), and popping all of them brings out the first Moon Piece; the Big Hole spits you out on top of the Crooked
 # Spire (too high to get to otherwise) and then somewhere else; the Hollow Run's line is clear and finishing it gives
 # the third piece; the Hush sleeps until you have all three and come near, can't be hurt in the dark, can in a moon
-# lamp's light, puts lamps out, and popping it mends the world (Remnants, the centipede a friend); the way home comes
-# out at the school's front gate, not back in the passage; it all stays done after loading; practice trips list it.
+# lamp's light, puts lamps out, and popping it mends the world (Remnants); she cheers, asks you to come to her home and
+# burrows off; the way home takes you to her home behind the old gate the first time, then to the school's front gate; it all stays done after loading; practice trips list it.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_dark_hollow.gd
 #
@@ -22,6 +23,7 @@ const SETTINGS_BACKUP := "user://settings.dark_hollow_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const WORLD := "res://scenes/portal_worlds/dark_hollow.tscn"
+const SCARY := "res://scenes/scary_world/scary_world.tscn"
 const ID := "dark_hollow"
 
 var failures := 0
@@ -123,7 +125,19 @@ func _check_corner() -> void:
 	player.velocity = Vector3.ZERO
 	await _physics(10)
 	await _frames(4)
-	check(corner.shown and corner.her.visible and not crawler.visible, "come near and she drops down into her nest")
+	check(not corner.shown, "before a yes at the old gate, her nest stays empty")
+	dialogue.set_flag("scary_world_said_yes")
+	await _physics(10)
+	await _frames(4)
+	var walker := corner.walker as Node3D
+	check(corner.shown and corner.arriving and walker != null and walker.visible and walker.upside_down and not corner.her.visible
+		and not crawler.visible, "after a yes, come near and she comes walking along the ceiling...")
+	var wy: float = (walker.get("head_at") as Vector3).y
+	check(wy > corner.to_global(corner.CORNER).y + 5.0, "...right up on the ceiling (%.1f m up)" % (wy - corner.to_global(corner.CORNER).y))
+	check(corner.get_node("Spot").what() == "", "...(no talking till she's down)")
+	await create_timer(corner.WALK_FROM / corner.WALK_SPEED + 1.0).timeout
+	check(corner.shown and not corner.arriving and corner.her.visible and not walker.visible, "...then drops down into her nest")
+	check(is_equal_approx(corner.her.scale.x, 1.0), "she's full size, like everywhere else (coiled up tight)")
 	check(corner.get_node("Spot").what() == "talk to the centipede", "...and you can talk to her")
 	check(corner.get_node_or_null("Decor/Corner Glow") != null, "...in her corner, with roots, glowing fungi and her nest")
 	# Saying no
@@ -155,7 +169,7 @@ func _check_inside() -> void:
 	await _physics(6)
 	var s := current_scene
 	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Centipede/Model",
-		"Centipede/Spot", "The Hush", "Hush/Snoring", "Stars", "MoonClock/Moon Clock", "Piece2/Moon Piece", "Race hollow_run"]
+		"Centipede/Model/Head/Spot", "The Hush", "Hush/Snoring", "Stars", "MoonClock/Moon Clock", "Piece2/Moon Piece", "Race hollow_run"]
 	for i in 4:
 		names.append("Lamp%d/Spot" % (i + 1))
 		names.append("Lamp%d/Hit" % (i + 1))
@@ -170,6 +184,17 @@ func _check_inside() -> void:
 	var first: Array = s.centipede_lines()
 	check(" ".join(first).contains("Ptoo") and " ".join(first).contains("Moon Clock"), "the centipede says hello and what's wrong")
 	check(" ".join(s.centipede_lines()).contains("Still to do"), "...then what's left to do")
+	# She follows you round
+	var cw := s.get_node("Centipede/Model") as Node3D
+	var go_to := player.global_position + Vector3(8, 0, 0)
+	for k in 30:
+		player.global_position = player.global_position.lerp(go_to, 0.1)
+		player.velocity = Vector3.ZERO
+		await _physics(2)
+	await create_timer(2.0).timeout
+	var ch: Vector3 = cw.get("head_at")
+	var dd := Vector2(ch.x - player.global_position.x, ch.z - player.global_position.z).length()
+	check(cw.follow == player and dd < 5.5 and dd > 1.5, "she follows you round, a few steps behind (%.1f m)" % dd)
 	var space := (s as Node3D).get_world_3d().direct_space_state
 	for n in ["TimeStone", "WayHome", "Vein1", "Centipede", "Lamp1", "Lamp2", "Lamp3", "Lamp4", "Spout2", "Spout3", "Spout4"]:
 		var at := (s.get_node(n) as Node3D).global_position
@@ -360,12 +385,15 @@ func _check_hush() -> void:
 	await _frames(4)
 	check(portals.is_cleared(ID), "popping the Hush mends Dark Hollow")
 	check(rem.count == before + int(portals.world(ID).reward_remnants), "...with its reward (%d Remnants)" % (rem.count - before))
-	check(dialogue.flags.has("dark_hollow_friend"), "...and the centipede's your friend for keeps")
+	check(dialogue.flags.has("dark_hollow_friend"), "...and the centipede's glad")
 	await create_timer(s.MEND_TIME + 0.5).timeout
 	check(s.is_mended(), "the Moon Clock ticks on, the mist thins and the stars come out")
 	await create_timer(1.5).timeout
-	check(dialogue.is_active(), "she thanks you")
+	check(dialogue.is_active(), "she cheers, and asks you to come to her home")
+	check(" ".join(s.thank_lines()).contains("old gate"), "...behind the old gate")
 	dialogue.end()
+	await create_timer(1.0).timeout
+	check(s.get_node_or_null("Centipede/Model") == null, "...and burrows off home")
 	await _physics(10)
 	var left := s.get_tree().get_nodes_in_group("shadow_ghosts").filter(func(g: Node) -> bool: return not g.defeated)
 	check(left.is_empty(), "no shadow ghosts are left about (%d)" % left.size())
@@ -374,10 +402,25 @@ func _check_hush() -> void:
 func _check_home() -> void:
 	var s := current_scene
 	s.get_node("WayHome/Way Home/Spot").use()
-	await _wait_for_scene(TOWN)
+	await _wait_for_scene(SCARY)
 	await _frames(10)
 	await _physics(6)
 	var player := _player()
+	var her := current_scene.find_child("Centipede", true, false) as Node3D
+	check(current_scene.scene_file_path == SCARY and her != null and her.visible and player.global_position.distance_to(her.global_position) < 6.0,
+		"the first time, the way home takes you to her home, by her hollow log behind the old gate")
+	# (her game and her thanks there: tools/test_scary_world.gd)
+	dialogue.set_flag("centipede_fought")
+	dialogue.set_flag("centipede_gifts")
+	portals.enter_dark_hollow()
+	await _wait_for_scene(WORLD)
+	await _frames(10)
+	check(current_scene.get_node_or_null("Centipede/Model") == null, "back in Dark Hollow she's not there: she's at home")
+	current_scene.get_node("WayHome/Way Home/Spot").use()
+	await _wait_for_scene(TOWN)
+	await _frames(10)
+	await _physics(6)
+	player = _player()
 	var gate := current_scene.find_child("FromSchool", true, false) as Node3D
 	check(current_scene.scene_file_path == TOWN and gate != null and player.global_position.distance_to(gate.global_position) < 3.0,
 		"the way home comes out at the castle school's front gate, not back in the passage")
@@ -386,7 +429,8 @@ func _check_home() -> void:
 	change_scene_to_file(SCHOOL)
 	await _frames(10)
 	var corner := current_scene.get_node_or_null("Floor 2/Behind The Walls/Centipede's Corner")
-	check(corner != null and " ".join(corner.lines()).contains("friend"), "back in her corner, she greets you as her friend")
+	check(corner != null and corner.get_node("Spot").what().contains("note") and " ".join(corner.note_lines()).contains("old gate"),
+		"her corner's empty now, with a note: she's gone home, behind the old gate")
 	portals.enter_dark_hollow()
 	await _wait_for_scene(WORLD)
 	await _frames(10)

@@ -7,13 +7,20 @@ extends Node3D
 # centipede crawls on the ceiling, is her corner: roots coming through the ceiling, glowing fungi on the walls, layered
 # old stone, and her nest of things the school lost (odd socks, a lunchbox, pencils, a backpack).
 #
-# Walk up and she drops down from the ceiling into her nest (the ceiling crawler, scripts/centipede.gd, steps out of
+# Walk up and she comes scuttling along the ceiling over your head, then drops down into her nest (the ceiling crawler, scripts/centipede.gd, steps out of
 # sight meanwhile) and turns to look at you. Talk to her and she asks if you want to go to Dark Hollow: a clear Yes /
 # No, recorded either way (Dialogue.choice_log "dark_hollow_gulp", like the old Scary World gate: the therapist marker).
 # On yes she circles round you and GULPS you up: the screen closes like a mouth, "GULP!", a long glowing slide down,
 # and you land in Dark Hollow (Portals.enter_dark_hollow()). A cartoon gulp: no teeth, no chewing, nothing scary-gory.
 #
 # Put into the school scene at play time by Portals (scripts/portals.gd _arrived), so school.tscn isn't rebuilt.
+#
+# Her story goes in order, and she's only ever in one place (Hayden, 11 Nov 2026: "now he is in 3 spots at the same
+# time. The events need to go in order"): first the old Scary World gate in the Void's northwest woods asks yes or
+# no (dialogue/scary_gate.json) but never opens; a yes is a whisper that sends you here. Until then she's only the thing
+# crawling on the ceiling, and her corner is empty. After a yes she drops into her nest and gulps you down to Dark
+# Hollow. Once Dark Hollow is mended she moves up to her hollow log behind the old gate (scripts/scary_world.gd), so
+# the ceiling and the nest are empty from then on, with a note saying where she's gone (CentipedeHoles.at_home()).
 
 const FRIEND := preload("res://scripts/centipede_friend.gd")
 const HOLES := preload("res://scripts/centipede_holes.gd")
@@ -25,12 +32,19 @@ const CORNER := Vector3(-28.4, 0.0, -22.45)
 const SPOT_AT := Vector3(-26.0, 0.0, -22.45)
 const SHOW_NEAR := 9.0                     # she drops into her nest when you're this close...
 const HIDE_FAR := 13.0                     # ...and climbs back up to the ceiling when you're this far
-const NEST_SCALE := 0.5                    # her curl is 4.8 m across at home; the lane here is 2.5 m
+const NEST_SCALE := 1.0                    # full size, like everywhere else (Hayden, 11 Nov 2026), coiled up tight to fit
+const CEILING_Y := 5.8                     # the passage's ceiling (tools/build_school.gd: the crawler's route height)
+const WALK_FROM := 13.0                    # she comes walking along the ceiling from this far east of her nest...
+const WALK_SPEED := 4.5                    # ...this fast, over your head, then drops into her nest
+const WALKER := preload("res://scripts/centipede_walker.gd")
 const CIRCLE_TIME := 1.3
 const IRIS_TIME := 0.6
 const SLIDE_TIME := 2.2
 
 var her: Node3D                            # the curled centipede in her nest
+var walker: Node3D                         # her, walking along the ceiling on her way to the nest
+var arriving := false                      # on her way (along the ceiling, then the drop)
+var _walk_tw: Tween
 var crawler: Node3D                        # the one on the ceiling (scenes/creatures/centipede.tscn)
 var spot: Area3D
 var shown := false
@@ -57,12 +71,19 @@ func _ready() -> void:
 	_decorate()
 	her = FRIEND.new() as Node3D
 	her.name = "Her"
-	her.set("head_height", 1.4)
+	her.set("curl", coil())
+	her.set("head_height", 1.0)
 	add_child(her)
 	her.position = CORNER
 	her.scale = Vector3.ONE * NEST_SCALE
 	her.rotation.y = PI / 2.0                 # her face (the curl's head end, +Z) towards the passage, east
 	her.visible = false
+	if HOLES.at_home():
+		# She's moved up to her hollow log behind the old gate: nobody on the ceiling, an empty nest and her note
+		if crawler:
+			crawler.visible = false
+			crawler.process_mode = Node.PROCESS_MODE_DISABLED
+		(get_node("Decor/Sign") as Label3D).text = "gone home!\n(old gate, in the woods)"
 	spot = USE_SPOT.make(SPOT_AT, _offer, talk, 2.4, 2.0)
 	spot.name = "Spot"
 	add_child(spot)
@@ -70,7 +91,9 @@ func _ready() -> void:
 
 
 func _offer() -> String:
-	return "talk to %s" % _name().replace("The C", "the c") if shown and not gulping else ""
+	if HOLES.at_home():
+		return "read the note in her nest"
+	return "talk to %s" % _name().replace("The C", "the c") if shown and not arriving and not gulping else ""
 
 
 func _name() -> String:
@@ -83,7 +106,7 @@ func _process(delta: float) -> void:
 	if gulping:
 		return
 	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player == null:
+	if player == null or not waiting():
 		return
 	var c := to_global(CORNER)
 	var d := Vector2(player.global_position.x - c.x, player.global_position.z - c.z).length()
@@ -94,13 +117,58 @@ func _process(delta: float) -> void:
 		hide_her()
 
 
+func waiting() -> bool:
+	# She only comes down to her nest once you've said yes at the old gate, and only until she's moved home
+	return HOLES.gate_said_yes() and not HOLES.at_home()
+
+
+static func coil() -> PackedVector3Array:
+	# Her curl, wound tight (a spiral, head on the outside) so all of her fits in the 2.5 m lane at full size
+	var out := PackedVector3Array()
+	var n := 12
+	for i in n:
+		var u := float(i) / (n - 1)
+		var a := u * TAU * 1.6
+		var r := lerpf(1.05, 0.35, u)
+		out.append(Vector3(sin(a) * r, 0.0, cos(a) * r))
+	return out
+
+
 func show_her() -> void:
-	# She drops down from the ceiling into her nest with a soft thump
+	# She comes scuttling along the ceiling (over your head!), stops above her nest, and drops into it with a soft thump
 	shown = true
-	her.visible = true
+	arriving = true
 	if crawler:
 		crawler.visible = false
 		crawler.process_mode = Node.PROCESS_MODE_DISABLED
+	if walker == null:
+		walker = WALKER.new() as Node3D
+		walker.name = "Ceiling Walk"
+		walker.set("upside_down", true)
+		walker.set("look_at_player", false)
+		walker.set("head_height", 0.9)
+		add_child(walker)
+	walker.visible = true
+	walker.process_mode = Node.PROCESS_MODE_INHERIT
+	var from := to_global(CORNER + Vector3(WALK_FROM, CEILING_Y, 0))
+	var to := to_global(CORNER + Vector3(0, CEILING_Y, 0))
+	walker.call("place", from, atan2(to.x - from.x, to.z - from.z))
+	if _walk_tw:
+		_walk_tw.kill()
+	_walk_tw = create_tween()
+	_walk_tw.tween_method(func(k: float) -> void: walker.call("step", from.lerp(to, k)), 0.0, 1.0, WALK_FROM / WALK_SPEED)
+	_walk_tw.tween_callback(_drop)
+	Audio.play_at("centipede_skitter", from, -4.0)
+
+
+func _drop() -> void:
+	if not shown:
+		return
+	arriving = false
+	if walker:
+		walker.visible = false
+		walker.process_mode = Node.PROCESS_MODE_DISABLED
+	her.visible = true
 	her.position = CORNER + Vector3(0, 4.6, 0)
 	var tw := her.create_tween()
 	tw.tween_property(her, "position", CORNER, 0.55).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
@@ -109,6 +177,12 @@ func show_her() -> void:
 
 func hide_her() -> void:
 	shown = false
+	arriving = false
+	if _walk_tw:
+		_walk_tw.kill()
+	if walker:
+		walker.visible = false
+		walker.process_mode = Node.PROCESS_MODE_DISABLED
 	her.visible = false
 	if crawler:
 		crawler.visible = true
@@ -116,7 +190,10 @@ func hide_her() -> void:
 
 
 func talk() -> void:
-	if not shown or gulping:
+	if HOLES.at_home():
+		Dialogue.say(spot, "Her Note", note_lines(), "centipede_note")
+		return
+	if not shown or arriving or gulping:
 		return
 	_log_before = Dialogue.choice_log.size()
 	Dialogue.say(spot, _name(), lines(), "centipede_corner")
@@ -128,23 +205,6 @@ func lines() -> Array:
 			"lines": ["Hold your breath! (Not really. You don't need to.) Here we go..."]},
 		{"text": "No, not today.", "answer": "no", "record": RECORD, "set": "dark_hollow_said_no",
 			"lines": ["That's okay. Saying no is brave too. I'll be right here, in my corner."]}]}
-	if Portals.is_cleared("dark_hollow"):
-		var out_: Array = ["{player}! My friend! Have you come to visit?",
-			"The Moon Clock's still ticking. I check it every night."]
-		var holes := HOLES.travel_choices("corner")
-		if holes.is_empty():
-			out_.append_array(["Want to come home with me? Gulp, slide, ptoo!",
-				"(My holes round the Void are waiting for you too. Find one and knock!)", ask])
-			return out_
-		# Once you've found some of her holes she can take you to those too
-		out_.append("Where shall I take you? Gulp, slide, ptoo!")
-		var choice: Array = [{"text": "Dark Hollow, please!", "answer": "yes", "record": RECORD, "set": "dark_hollow_said_yes",
-			"lines": ["Home sweet home! Here we go..."]}]
-		choice.append_array(holes)
-		choice.append({"text": "Nowhere, just visiting.", "answer": "no", "record": HOLES.RECORD,
-			"lines": ["Visiting's the best. Come back any time."]})
-		out_.append({"choice": choice})
-		return out_
 	var said_no := Dialogue.flags.has("dark_hollow_said_no")
 	var been := Dialogue.flags.has("dark_hollow_said_yes")
 	if been:
@@ -155,6 +215,7 @@ func lines() -> Array:
 		out.append("Oh! You came back to my corner. I'm glad.")
 	else:
 		out.append_array(["(Something drops from the ceiling with a soft thump. Lots and lots of legs. A pale face turns to look at {player}.)",
+			"You came! You heard me whispering at the old gate. Nobody ever listens to the whispering.",
 			"You came all the way to my corner. Nobody comes all the way to my corner.",
 			"Don't be scared. Well... you can be a little bit scared. That's allowed.",
 			"I'm not from here, you know. I'm from Dark Hollow. It's my home, and it's in trouble.",
@@ -163,6 +224,12 @@ func lines() -> Array:
 		"I'd gulp you up. GULP! Then a long, soft, glowy slide, and out you pop in Dark Hollow. Not a scratch. Centipede's honour.",
 		"And the way home takes you straight out to the school's front gate. No dark passage. Do you want to go?", ask])
 	return out
+
+
+func note_lines() -> Array:
+	return ["(A note, in very wobbly writing, tucked into the empty nest:)",
+		"\"GONE HOME! Dark Hollow is mended, so now I live up in the Void, by my hollow log behind the old gate in the woods. The gate's open for friends.\"",
+		"\"Come and visit. Knock knock! Love from %s. (Lots of love. I have lots of feet to carry it.)\"" % _name().replace("The C", "the c")]
 
 
 func _on_talked(id: String) -> void:
@@ -192,7 +259,7 @@ func gulp(to := "dark_hollow") -> void:
 	round_at.y = 0.0
 	var tw := create_tween()
 	tw.tween_property(her, "position", round_at, 0.3).set_trans(Tween.TRANS_QUAD)
-	tw.parallel().tween_property(her, "scale", Vector3.ONE * 0.62, 0.3)
+	tw.parallel().tween_property(her, "scale", Vector3.ONE * NEST_SCALE * 1.2, 0.3)
 	tw.tween_property(her, "rotation:y", her.rotation.y + TAU * (0.75 if Settings.reduce_motion else 1.5), CIRCLE_TIME) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(her, "head_height", 2.4, CIRCLE_TIME)
@@ -284,6 +351,7 @@ func _decorate() -> void:
 	light.position = CORNER + Vector3(1.0, 2.6, 0)
 	g.add_child(light)
 	var sign := Label3D.new()
+	sign.name = "Sign"
 	sign.text = "my corner\n(plees nock)"
 	sign.font_size = 40
 	sign.pixel_size = 0.01

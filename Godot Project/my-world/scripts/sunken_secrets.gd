@@ -124,7 +124,7 @@ const SECRETS := [
 	{"id": "seer_bodies", "kind": "bottle", "place": "shard_isle", "name": "A Bottle from the Seer",
 		"note": "Not every body is where it belongs. One day they will be, but not the way anyone guesses."},
 	{"id": "seer_giant", "kind": "bottle", "place": "rootmind", "name": "A Bottle from the Seer",
-		"note": "The giant in the far field hasn't always been a giant. Remember that, when it matters."},
+		"note": "Not everything that seems strange was always strange. Remember that, when it matters."},
 	{"id": "seer_goodbye", "kind": "bottle", "place": "frozen_moment", "name": "A Bottle from the Seer",
 		"note": "Every goodbye on the Void is really a see-you-later. Hold on to that."},
 	{"id": "seer_portals", "kind": "bottle", "place": "lanternmoor", "name": "A Bottle from the Seer",

@@ -7,9 +7,14 @@ extends Node3D
 # Six little burrows dug in the Void (HOLES), each a ring of turned-up earth round a dark hole with roots and a few
 # glowing fungi, like her corner in the school. Walk up to one and you've found it (Portals.note_found("dark_hollow",
 # "hole_<id>")); her head pops up to look at you. Knock (Interact) and she asks where to: any other hole you've found,
-# her corner in the castle school, or Dark Hollow itself. Then the same cartoon gulp as in her corner (the screen
-# closes like a mouth, "GULP!", a glowy slide), and "PTOO!" out you pop. Her corner in the school can send you to any
-# hole you've found too (scripts/centipede_corner.gd). Choices are recorded in Dialogue.choice_log as RECORD.
+# her home (the hollow log behind the old Scary World gate), or Dark Hollow itself. Then the same cartoon gulp as in
+# her corner in the school (the screen
+# closes like a mouth, "GULP!", a glowy slide), and "PTOO!" out you pop. Her hollow log at home can send you to any
+# hole you've found too (scripts/scary_world.gd). Choices are recorded in Dialogue.choice_log as RECORD.
+#
+# Since 11 Nov 2026 her story goes in order (Hayden: the old gate, then her corner and the gulp, then Dark Hollow, then
+# her home), so the holes only open once she's met you at home and shared her gifts (gifts_given()), and the statics
+# below say where she is in it for everything else (the gate, her corner, Dark Hollow, wall crawl).
 #
 # Put into the Void at play time by Portals._hub_changes() (scripts/portals.gd), so town.tscn isn't rebuilt. The spots
 # were checked flat, dry and clear: off the races, the townsfolk's paths, trees and portals (tools/test_wall_crawl.gd).
@@ -19,6 +24,9 @@ const WORLD := "dark_hollow"
 const RECORD := "centipede_travel"
 const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
+const SCARY := "res://scenes/scary_world/scary_world.tscn"
+const HOME_AT := Vector3(3.5, 1.0, -9.0)           # in the Scary World, on the path just in front of her by her hollow log
+const HOME_YAW := PI                               # facing her (and the log)
 # "at" is the hole, "y" the ground there, "face" a point she looks towards when she pops out (the place it's near)
 const HOLES := [
 	{"id": "market", "name": "the Market", "at": Vector2(-62.5, 54.5), "y": -0.02, "face": Vector2(-72, 49)},
@@ -28,8 +36,6 @@ const HOLES := [
 	{"id": "homes", "name": "the homes' park", "at": Vector2(87.8, 10.5), "y": -0.04, "face": Vector2(80, 6)},
 	{"id": "castle", "name": "the castle gate", "at": Vector2(31.1, -88.8), "y": 15.9, "face": Vector2(37.2, -92.3)},
 ]
-const CORNER_AT := Vector3(-24.8, 6.9, -22.45)     # in the school, just along from her corner (centipede_corner.gd)
-const CORNER_YAW := -PI / 2.0                      # facing west, at her
 const FIND_NEAR := 4.5
 const PEEK_NEAR := 7.0
 const OUT := 2.0                                   # you pop out this far from the hole, towards its place
@@ -48,9 +54,27 @@ var _from := ""
 var _overlay: CanvasLayer
 
 
+# Where she is in her story -------------------------------------------------------------------------------------------
+static func gate_said_yes() -> bool:
+	# Step one: a yes at the old Scary World gate (or, from before the story went in order, having been through it or
+	# said yes in her corner)
+	var f: Dictionary = Dialogue.flags
+	return f.has("scary_world_said_yes") or f.has("scary_world_visited") or f.has("dark_hollow_said_yes")
+
+
+static func at_home() -> bool:
+	# Step four: Dark Hollow's mended, so she lives at her hollow log behind the old gate, and nowhere else
+	return Portals.is_cleared(WORLD)
+
+
+static func gifts_given() -> bool:
+	# She's met you at home and taught you wall crawl and her holes (saves from before taught it in Dark Hollow)
+	return at_home() and (Dialogue.flags.has("centipede_gifts") or Portals.has_found(WORLD, "thanked"))
+
+
 # Where to ------------------------------------------------------------------------------------------------------------
 static func ids() -> Array:
-	var out: Array = ["corner"]
+	var out: Array = ["home"]
 	for h in HOLES:
 		out.append(h.id)
 	return out
@@ -76,15 +100,15 @@ static func found_count() -> int:
 
 
 static func travel_choices(from: String) -> Array:
-	# A choice for each place she can take you from here: the holes you've found, and her corner (from a hole)
+	# A choice for each place she can take you from here: the holes you've found, and her home (from a hole)
 	var out: Array = []
 	for h in HOLES:
 		if h.id != from and found(h.id):
 			out.append({"text": "Pop me out by %s." % h.name, "answer": h.id, "record": RECORD,
 				"lines": ["%s? Right you are. Hold on to your hat!" % str(h.name).capitalize()]})
-	if from != "corner":
-		out.append({"text": "Your corner in the castle school.", "answer": "corner", "record": RECORD,
-			"lines": ["My corner! I'll show you the shortcut. Here we go..."]})
+	if from != "home":
+		out.append({"text": "Your home, by the old gate.", "answer": "home", "record": RECORD,
+			"lines": ["Home! I'll put the kettle on. (I don't have a kettle.) Here we go..."]})
 	return out
 
 
@@ -99,7 +123,7 @@ static func landing(id: String) -> Array:
 
 
 static func arrive(id: String, overlay: CanvasLayer) -> void:
-	# The end of the slide: out you pop at the hole (or her corner, or Dark Hollow)
+	# The end of the slide: out you pop at the hole (or her home, or Dark Hollow)
 	var tree := Engine.get_main_loop() as SceneTree
 	Game.hold_controls(&"gulp", false)
 	var scene := tree.current_scene
@@ -110,10 +134,10 @@ static func arrive(id: String, overlay: CanvasLayer) -> void:
 		_free_later(tree, overlay)
 		Portals.enter_dark_hollow()
 		return
-	if id == "corner":
+	if id == "home":
 		_free_later(tree, overlay)
-		Game.pending_message = "PTOO! Out you pop by the centipede's corner, behind the walls of the castle school."
-		Game.go_to_point(SCHOOL, CORNER_AT, CORNER_YAW, "castle school")
+		Game.pending_message = "PTOO! Out you pop by her hollow log, behind the old gate."
+		Game.go_to_point(SCARY, HOME_AT, HOME_YAW, "the Scary World")
 		return
 	var h := hole(id)
 	if h.is_empty():

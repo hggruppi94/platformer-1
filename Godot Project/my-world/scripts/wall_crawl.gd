@@ -1,6 +1,7 @@
 extends Node
 
-# Wall crawl, the player's own: the lonely centipede's gift once Dark Hollow is mended (scripts/dark_hollow.gd). Hayden
+# Wall crawl, the player's own: the lonely centipede's gift once Dark Hollow is mended and she's thanked you at home
+# behind the old gate (scripts/scary_world.gd, dialogue/centipede.json). Hayden
 # picked it on 10 Nov 2026 ("Both": wall crawl as her ability, and her gulp as a way to get about, which is
 # scripts/centipede_holes.gd). She scuttles up the walls and along the ceilings of the Sliver, and now so can you.
 #
@@ -50,8 +51,9 @@ func setup(p: CharacterBody3D) -> void:
 
 
 func unlocked() -> bool:
+	# Hers to teach: once Dark Hollow's mended and she's thanked you at home, behind the old gate (scripts/scary_world.gd)
 	var portals := get_node_or_null("/root/Portals")
-	return portals != null and portals.is_cleared(WORLD)
+	return portals != null and portals.is_cleared(WORLD) and (load("res://scripts/centipede_holes.gd") as GDScript).call("gifts_given")
 
 
 func _space() -> PhysicsDirectSpaceState3D:

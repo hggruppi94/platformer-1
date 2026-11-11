@@ -5,9 +5,10 @@ extends SceneTree
 # top; climb up into a ceiling and you carry on along it upside down, and drop where it ends; Jump hops off and Roll
 # lets go; invisible edge-of-the-world walls ("Fence") can't be climbed. Her holes (scripts/centipede_holes.gd): only
 # once she's your friend, six in the Void, each on flat dry ground clear of the races, the townsfolk's paths, trees and
-# portals; walking up to one finds it; knocking offers the holes you've found, her corner and Dark Hollow; travelling
-# gulps you up and pops you out by the other hole; her corner in the school offers the holes too and takes you to one;
-# and from a hole you can go to her corner. Her thank-you teaches both.
+# portals; walking up to one finds it; knocking offers the holes you've found, her home and Dark Hollow; travelling
+# gulps you up and pops you out by the other hole; a hole can take you to her home (her hollow log behind the old
+# gate, in the Scary World), and knocking on her log there takes you to a hole. She's gone from her school corner by
+# then. Her thank-you at home (dialogue/centipede.json) teaches both.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_wall_crawl.gd
 #
@@ -19,6 +20,7 @@ const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.wall_crawl_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
+const SCARY := "res://scenes/scary_world/scary_world.tscn"
 const ID := "dark_hollow"
 const Y0 := 300.0                                  # the climbing frame floats high over the Void, away from everything
 
@@ -108,7 +110,9 @@ func _crawl() -> void:
 	Input.action_release("move_forward")
 	check(not crawl.active and p.global_position.y < Y0 + 1.5, "before Dark Hollow's mended, walking into a wall just stops you (y %.1f)" % (p.global_position.y - Y0))
 	portals.cleared_worlds.append(ID)
-	check(crawl.unlocked(), "once it's mended, wall crawl's unlocked")
+	check(not crawl.unlocked(), "mending Dark Hollow isn't enough: she teaches it at home, behind the old gate")
+	dialogue.set_flag("centipede_gifts")
+	check(crawl.unlocked(), "once she's thanked you at home, wall crawl's unlocked")
 	# A tap into a wall doesn't grab
 	await _stand(p, Vector3(-8, Y0 + 0.85, -3.8))
 	Input.action_press("move_forward")
@@ -275,7 +279,7 @@ func _holes() -> void:
 	check(holes.spots["market"].what() == "knock on the centipede's hole", "...and you can knock on it")
 	var lines: Array = holes.lines("market")
 	var texts := _choice_texts(lines)
-	check("Dark Hollow, please!" in texts and "Your corner in the castle school." in texts and "Not now, thanks." in texts, "knocking offers Dark Hollow, her corner and not now (%s)" % [texts])
+	check("Dark Hollow, please!" in texts and "Your home, by the old gate." in texts and "Not now, thanks." in texts, "knocking offers Dark Hollow, her home and not now (%s)" % [texts])
 	check(not texts.any(func(t: String) -> bool: return t.contains("Skate Park")), "...but not holes you haven't found")
 	# Find the Skate Park's too
 	var k: Dictionary = holes_script.hole("skate_park")
@@ -305,19 +309,23 @@ func _holes() -> void:
 	check(root.get_node_or_null("Gulp") == null, "...and the mouth's opened again on the world")
 	await _physics(20)
 	check(p.is_on_floor() and absf(p.global_position.y - (Remnants_ground(k) + 0.8)) < 0.6, "...standing on the ground")
-	# From a hole to her corner in the school
-	await _talk(func() -> void: holes.knock("skate_park"), "corner")
-	await _wait_for_scene(SCHOOL)
+	# From a hole to her home, by her hollow log behind the old gate
+	await _talk(func() -> void: holes.knock("skate_park"), "home")
+	await _wait_for_scene(SCARY)
 	await _physics(10)
 	p = _player()
-	var corner := current_scene.get_node_or_null("Floor 2/Behind The Walls/Centipede's Corner") as Node3D
-	check(current_scene.scene_file_path == SCHOOL and corner != null and p.global_position.distance_to(corner.to_global(corner.CORNER)) < 6.0, "a hole can take you to her corner in the castle school")
-	await _physics(10)
+	var scary := current_scene
+	var cent := scary.find_child("Centipede", true, false) as Node3D
+	check(current_scene.scene_file_path == SCARY and cent != null and cent.visible and p.global_position.distance_to(cent.global_position) < 6.0,
+		"a hole can take you to her home, by her hollow log behind the old gate")
 	await _frames(6)
-	# Her corner offers the holes
-	texts = _choice_texts(corner.lines())
-	check("Dark Hollow, please!" in texts and "Pop me out by the Market." in texts and "Pop me out by the Skate Park." in texts, "her corner offers Dark Hollow and the holes you've found (%s)" % [texts])
-	await _talk(func() -> void: corner.talk(), "Market")
+	# Knock on her log: Dark Hollow and the holes you've found (not home: you're there)
+	var log_spot := scary.get_node_or_null("LogKnock")
+	check(log_spot != null and log_spot.what() == "knock on the hollow log", "you can knock on her hollow log")
+	texts = _choice_texts(scary.knock_lines())
+	check("Dark Hollow, please!" in texts and "Pop me out by the Market." in texts and "Pop me out by the Skate Park." in texts
+		and not "Your home, by the old gate." in texts, "her log offers Dark Hollow and the holes you've found (%s)" % [texts])
+	await _talk(func() -> void: scary.knock(), "Market")
 	await _wait_for_scene(TOWN)
 	await _physics(20)
 	p = _player()
@@ -327,10 +335,19 @@ func _holes() -> void:
 	check(current_scene.scene_file_path == TOWN and d < 1.5, "...and takes you to one (%.1f m off the market's hole)" % d)
 	await create_timer(1.0).timeout
 	check(root.get_node_or_null("Gulp") == null and not p.input_locked, "...with the gulp gone and you free to walk")
-	# Her thank-you teaches both
-	var dh: GDScript = load("res://scripts/dark_hollow.gd")
-	var thanks: String = " ".join(dh.new().thank_lines())
-	check(thanks.contains("climb") and thanks.contains("ceiling") and thanks.contains("knock"), "her thank-you teaches wall crawl and her holes")
+	# She's gone from her school corner now: only ever in one place
+	change_scene_to_file(SCHOOL)
+	await _wait_for_scene(SCHOOL)
+	await _physics(6)
+	var corner := current_scene.get_node_or_null("Floor 2/Behind The Walls/Centipede's Corner") as Node3D
+	var crawler := current_scene.get_node_or_null("Floor 2/Behind The Walls/Centipede") as Node3D
+	check(corner != null and corner.get_node("Spot").what().contains("note") and (crawler == null or not crawler.visible),
+		"her school corner's empty now, just a note saying she's gone home")
+	# Her thank-you at home teaches both
+	var convo: Dictionary = dialogue.load_character("centipede").conversations[1]          # (after her game)
+	var thanks := JSON.stringify(convo)
+	check(str(convo.get("set", "")) == "centipede_gifts" and thanks.contains("climb") and thanks.contains("ceiling") and thanks.contains("knock"),
+		"her thank-you at home teaches wall crawl and her holes")
 
 
 func Remnants_ground(h: Dictionary) -> float:
