@@ -91,6 +91,39 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-11: **The big map zooms, moves, and has a list of what's on it to switch on and off** (Hayden: "I want to
+  rework the map with a zoom and legend with togglable icons"). Built and tested in the cloud (own Godot user folders,
+  no save touched). All in `scripts/map_screen.gd` (TownMap).
+  - **Zoom and move:** the mouse wheel (zooms where it points), + and -, LT / RT, or the list's − and + buttons; drag,
+    WASD or the right stick move it; **Find me** (or R3) puts you in the middle. 1x shows the whole map, up to 6x
+    (`ZOOM_MAX`); it opens at 2x on you the first time and remembers after (`zoom`). It never moves past the map's
+    edges (`_clamp_focus`). Zoomed right out only the big labels show; small names (buildings, people, stars' quest
+    names) come in from 1.6x (`names_shown()`). The place's name sits in its own strip on top, how to zoom and move
+    along the bottom.
+  - **"Show on the map"** (the legend, on the right, scrolls if long): a row per kind that's on this map, each with
+    the map's own picture and a tick box: Quest stars, People, People at home, Places & shops, Portals, Races, Boosters,
+    Watches found (`KINDS`, only the ones there are any of: `legend_kinds()`). Clicking a row (or A on it) hides or
+    shows that kind on the big map and the minimap. Kept in `Settings.map_hide` (saved with the settings).
+  - **Followed quests** (the Follow buttons from the following work): each quest or job you follow gets its own star
+    colour (`STAR_COLOURS`, `star_colour()`), a row of its own under Quest stars so you can hide one, and its name
+    under its stars when zoomed in. A quest's stars off the edge of a zoomed map show as one star on the edge with an
+    arrow pointing the way. The minimap uses the same colours.
+  - **A map for every place you go through a door or portal into** (portal worlds, race circuits, the Secret Garden,
+    the Gloop Kingdom, the Scary World: `SNAP_FOLDERS`): the first time the map's wanted there, a picture is taken
+    from straight above (`_take_snap()`: a SubViewport on the same world, an orthographic camera above everything
+    you can reach, no fog, dark worlds brightened a little), over the part you can reach (`snap_bounds()`: anything
+    you can walk into or talk to, the "WorldBounds" walls, a circuit's road). So a new world gets a map by itself. The
+    minimap now shows there too (it's always up in a race, so the circuits have one now). Indoors still says to step
+    outside. Headless runs can't take pictures, so there the map says where you are.
+  - **No spoilers:** people only show once you've talked to them (`people()` `met`), races only once they're open
+    (`open_tracks()`), and on Earth the old oak only shows as a portal once it's awake (`HummingOak.awake()`).
+  - Tests: `tools/test_map.gd` (zoom, limits, the wheel and +, Find me, the list's rows, hiding one quest's stars,
+    people met, races, a portal world). following, kid_ui, ui_style, meetings, chaos_ending, player_menu, earth and
+    first_hour pass; `tools/audit_ui.gd --quick` finds nothing cut off. Previews: `tools/capture_map_zoom.gd` (shots in
+    the project files under world/previews/map_zoom).
+  - My choices Hayden may change: opening at 2x, which kinds get rows, the star colours, hiding people you haven't met,
+    the 1.6x point where names come in.
+
 - 2026-11-11: **A real Secret Garden, hidden behind an ivy wall** (Hayden's day 1 playtest: "the secret garden needs to
   be much larger, and it's not very secret right now; maybe we can fix that somehow"). Built and tested in the cloud (own
   Godot user folders, no save touched). The Secret Gardens on the hill (your plot, the greenhouse) stay as they were.

@@ -22,7 +22,7 @@ const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["cal
 const ABOUT := {
 	"quests": "People who need your help. Each card says what to do next.",
 	"goals": "Fun things to aim for tonight and tomorrow.",
-	"map": "The whole town. Find where you are and where to go next.",
+	"map": "Find where you are and where to go next. Zoom in, and pick what shows on the list.",
 	"calendar": "What day it is on Earth, and what's coming up.",
 	"hero": "That's you! Change your clothes or your look.",
 	"bag": "Everything you've found and collected.",
