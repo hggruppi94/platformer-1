@@ -1,0 +1,52 @@
+{
+  "name": "The Seer",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Oh! A visitor. Come in, come in. Mind the rug, it's older than I am, and that's saying something.",
+        "I'm the Seer. I watch the stars from up here, and I look into this old lantern of mine.",
+        "{player}: What do you see in it?",
+        "Swirls, mostly. But swirls can tell you a lot, if you're patient. Little hints of what's next.",
+        "And this is Hoot. He's meant to keep watch with me. He's asleep. He's always asleep.",
+        "(Hoot opens one eye, looks you up and down, and shuts it again.)",
+        "That round table is where the Council meets: a few of us who watch the stars and try to see what's coming, so we can help when help's needed.",
+        "We can't see everything, mind. The future's shy. It only ever peeks.",
+        "Come and see me whenever you like, and I'll read the lantern for you. It's very good at telling you what's next, and hopeless at telling you anything else."
+      ],
+      "set": "met_seer"
+    },
+    {
+      "when": {"min_talks": 2, "every": 3},
+      "rotate": [
+        [
+          "The Wizard Lizard? Oh, he's a dear old friend. He's the principal up at the castle school these days.",
+          "He comes round for tea after our Council meetings and falls asleep in my armchair. Every time."
+        ],
+        [
+          "See that chart? The one that looks like a teapot? I named it the Teapot. Nobody else calls it that. Yet."
+        ],
+        [
+          "My granny used to say every star up there was somebody's wish once. I don't know if it's true. I like it, though."
+        ],
+        [
+          "The Council's chairs are empty more often than not. Looking into the future is tiring work. There are a lot of naps."
+        ],
+        [
+          "Hoot says hello.",
+          "(Hoot says nothing at all. He's asleep.)",
+          "Well. I can tell he means it."
+        ],
+        [
+          "When the whole town's asleep, the stars talk a little louder. That's the best time to listen."
+        ]
+      ]
+    },
+    {
+      "lines": [
+        "Ah, {player}. Sit, sit, the kettle's always on. Let's see what the lantern has to say."
+      ],
+      "do": "Watches/Council.fortune"
+    }
+  ]
+}

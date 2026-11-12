@@ -150,6 +150,10 @@ func _ready() -> void:
 	var sunken := (load("res://scripts/sunken_secrets.gd") as GDScript).new() as Node
 	sunken.name = "Sunken"
 	add_child(sunken)
+	# The Seer and the Wizard Lizard, principal (scripts/council.gd): "Watches/Council.fortune"
+	var council := (load("res://scripts/council.gd") as GDScript).new() as Node
+	council.name = "Council"
+	add_child(council)
 
 
 func _process(delta: float) -> void:

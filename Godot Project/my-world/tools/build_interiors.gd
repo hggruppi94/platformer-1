@@ -2,9 +2,11 @@ extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
 #   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn,
-#   clothing_boutique.tscn, my_house.tscn
+#   clothing_boutique.tscn, my_house.tscn, observatory.tscn
 #
-#   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd
+#   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd [-- observatory ...]
+#
+# Name some after "--" to build only those (rebuilding re-rolls every node's unique_id, so the others stay as they are).
 #
 # Each interior has an "Entrance" spawn marker (where you appear coming in from town) and an exit door that takes
 # you back to the "From<Building>" marker in front of the building in town. The door is on the south (+Z) side.
@@ -19,12 +21,12 @@ var mats := {}
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
-	_save("cafe", _cafe())
-	_save("aquarium", _aquarium())
-	_save("restaurant_and_cafe", _restaurant())
-	_save("ninas_house", _ninas_house())
-	_save("clothing_boutique", _clothing_boutique())
-	_save("my_house", _my_house())
+	var only := OS.get_cmdline_user_args()
+	var all := {"cafe": _cafe, "aquarium": _aquarium, "restaurant_and_cafe": _restaurant, "ninas_house": _ninas_house,
+		"clothing_boutique": _clothing_boutique, "my_house": _my_house, "observatory": _observatory}
+	for file in all:
+		if only.is_empty() or file in only:
+			_save(file, (all[file] as Callable).call())
 	quit()
 
 
@@ -589,6 +591,136 @@ func _my_house() -> Node3D:
 			decor_item(item, node("Item " + item, holder))
 	light(root_node, Vector3(0, 5, 0), Color(1.0, 0.88, 0.75), 1.2, 14)
 	label(root_node, "My House", Vector3(0, 3.6, -7.5), 56, Color(1, 0.92, 0.95))
+	own(root_node)
+	return root_node
+
+
+# -----------------------------------------------------------------------------
+# Observatory: the Seer's home (scripts/seer.gd) and where the Council meets. A night-sky dome full of slowly turning
+# stars, the big brass telescope up on its platform, the Council's round table with its glowing orb, and her own
+# corner: armchair, tea, star books and star charts.
+# -----------------------------------------------------------------------------
+const SEER_AT := Vector3(3.2, 0, -1.2)                  # where she stands, by the telescope, facing the door
+
+
+func _observatory() -> Node3D:
+	var r := 11.0
+	var root_node := dome_room("Observatory", r, Color(0.16, 0.14, 0.34), Color(0.36, 0.26, 0.2), Color(0.75, 0.7, 0.95))
+	# The dome is the night sky: the Seer's star cloth (scripts/star_shawl.gdshader), bigger and slower
+	var sky := ShaderMaterial.new()
+	sky.shader = load("res://scripts/star_shawl.gdshader")
+	sky.set_shader_parameter("density", 70.0)
+	sky.set_shader_parameter("drift", 0.0015)
+	sky.set_shader_parameter("dusk", Color(0.12, 0.1, 0.3))
+	sky.set_shader_parameter("deep", Color(0.04, 0.03, 0.14))
+	for mi in root_node.find_children("*", "MeshInstance3D", true, false):
+		var m := (mi as MeshInstance3D).material_override
+		if m and m.resource_name == "Dome Observatory":
+			(mi as MeshInstance3D).material_override = sky
+	var brass := mat("Brass", Color(0.8, 0.6, 0.28), 0.35, 0.8)
+	var wood := mat("Observatory Wood", Color(0.45, 0.28, 0.16), 0.6)
+	var plum := mat("Plum Velvet", Color(0.42, 0.2, 0.45), 0.9)
+	var gold_glow := mat("Star Gold", Color(1.0, 0.8, 0.4), 0.4, 0.0, 0.6)
+	# A round rug of stars in the middle
+	mesh_at(cylinder(4.2, 4.2, 0.03, 40), mat("Star Rug", Color(0.2, 0.16, 0.4), 0.9), Vector3(0, 0.015, 1.0), root_node)
+	for k in 12:
+		var a := TAU * k / 12.0
+		mesh_at(sphere(0.06, 8), gold_glow, Vector3(cos(a) * 3.6, 0.0, 1.0 + sin(a) * 3.6), root_node)
+
+	# The telescope, at the back (north) on a round platform with steps, aimed up at a slot in the dome
+	var scope := node("Telescope", root_node, Vector3(0, 0, -6.2))
+	solid_cyl(2.6, 0.5, wood, Vector3(0, 0.25, 0), scope)
+	solid_cyl(1.6, 0.5, wood, Vector3(0, 0.75, -0.3), scope)
+	mesh_at(cylinder(0.35, 0.5, 1.6, 16), brass, Vector3(0, 1.8, -0.3), scope)
+	var tube := mesh_at(cylinder(0.55, 0.7, 5.4, 20), mat("Telescope Tube", Color(0.25, 0.25, 0.4), 0.4, 0.6), Vector3(0, 3.8, -1.4), scope)
+	tube.rotation.x = -0.75
+	for k in 3:
+		var band := mesh_at(cylinder(0.72 - k * 0.04, 0.72 - k * 0.04, 0.16, 20), brass, Vector3(0, 2.9 + k * 0.9, -0.55 - k * 0.85), scope)
+		band.rotation.x = -0.75
+	var lens := mesh_at(cylinder(0.56, 0.56, 0.06, 20), mat("Telescope Lens", Color(0.6, 0.85, 1.0), 0.05, 0.0, 1.5), Vector3(0, 5.75, -3.25), scope)
+	lens.rotation.x = -0.75
+	mesh_at(box(Vector3(2.2, 7.0, 0.3)), mat("Dome Slot", Color(0.02, 0.02, 0.06), 0.9), Vector3(0, 6.6, -8.2), root_node).rotation.x = 0.7
+	label(root_node, "Telescope", Vector3(0, 2.4, -3.9), 36, Color(0.95, 0.9, 1.0))
+
+	# The Council's round table, west: a glowing orb in the middle and six tall-backed chairs, one with her star cushion
+	var council := node("Council Table", root_node, Vector3(-5.0, 0, 0.0))
+	solid_cyl(1.7, 0.12, mat("Council Table Top", Color(0.3, 0.2, 0.4), 0.4), Vector3(0, 0.95, 0), council)
+	mesh_at(cylinder(1.72, 1.72, 0.04, 40), brass, Vector3(0, 1.02, 0), council)
+	mesh_at(cylinder(0.25, 0.5, 0.9, 12), wood, Vector3(0, 0.45, 0), council)
+	mesh_at(cylinder(0.2, 0.26, 0.12, 12), brass, Vector3(0, 1.08, 0), council)
+	var orb := mesh_at(sphere(0.32, 20), mat("Council Orb", Color(0.7, 0.85, 1.0), 0.05, 0.0, 1.6, 0.75), Vector3(0, 1.45, 0), council)
+	orb.name = "Council Orb"
+	light(council, Vector3(0, 1.6, 0), Color(0.7, 0.8, 1.0), 0.9, 6.0)
+	for k in 6:
+		var a := TAU * k / 6.0 + PI / 6
+		var chair := node("Council Chair %d" % (k + 1), council, Vector3(cos(a) * 2.5, 0, sin(a) * 2.5), -a - PI / 2)
+		solid_box(Vector3(0.8, 0.5, 0.8), plum, Vector3(0, 0.25, 0), chair)
+		solid_box(Vector3(0.8, 1.9, 0.18), wood, Vector3(0, 0.95, -0.42), chair)
+		mesh_at(sphere(0.1, 8), brass, Vector3(-0.32, 1.95, -0.42), chair)
+		mesh_at(sphere(0.1, 8), brass, Vector3(0.32, 1.95, -0.42), chair)
+		mesh_at(sphere(0.13, 8), gold_glow, Vector3(0, 1.75, -0.32), chair)     # a star on every chair back
+		if k == 0:
+			mesh_at(cylinder(0.33, 0.35, 0.12, 16), mat("Star Cushion", Color(0.2, 0.15, 0.45), 0.9), Vector3(0, 0.56, 0), chair)
+	label(council, "The Council", Vector3(0, 3.0, 0), 56, Color(1.0, 0.9, 0.6))
+
+	# Her corner, east: an armchair, a little table with a teapot and two cups, star books, and a footstool
+	var corner := node("Seer's Corner", root_node, Vector3(6.0, 0, 1.5), -PI / 2)
+	solid_box(Vector3(1.3, 0.55, 1.2), plum, Vector3(0, 0.28, 0), corner)
+	solid_box(Vector3(1.3, 1.3, 0.3), plum, Vector3(0, 0.95, -0.5), corner)
+	for s in [-1.0, 1.0]:
+		solid_box(Vector3(0.25, 0.8, 1.2), plum, Vector3(s * 0.62, 0.55, 0), corner)
+	mesh_at(box(Vector3(1.0, 0.04, 0.9)), mat("Knitted Throw", Color(0.95, 0.75, 0.4), 0.9), Vector3(0, 0.58, 0.05), corner)
+	solid_cyl(0.45, 0.06, wood, Vector3(1.4, 0.7, 0.3), corner)
+	mesh_at(cylinder(0.06, 0.1, 0.7, 8), wood, Vector3(1.4, 0.35, 0.3), corner)
+	mesh_at(sphere(0.14, 12), mat("Teapot", Color(0.95, 0.9, 0.95), 0.3), Vector3(1.35, 0.85, 0.25), corner)
+	mesh_at(cylinder(0.02, 0.03, 0.14, 6), mat("Teapot", Color()), Vector3(1.53, 0.86, 0.25), corner).rotation.z = -0.9
+	for c in [Vector3(1.6, 0.77, 0.5), Vector3(1.2, 0.77, 0.55)]:
+		mesh_at(cylinder(0.05, 0.04, 0.08, 10), mat("Teacup", Color(0.6, 0.75, 1.0), 0.3), c, corner)
+	solid_box(Vector3(0.6, 0.35, 0.5), plum, Vector3(0, 0.18, 1.1), corner)        # footstool
+	var shelf := node("Star Books", root_node, Vector3(8.6, 0, -4.8), -PI / 3)
+	solid_box(Vector3(2.4, 2.6, 0.5), wood, Vector3(0, 1.3, 0), shelf)
+	var spines := [Color(0.3, 0.3, 0.7), Color(0.6, 0.3, 0.6), Color(0.85, 0.7, 0.35), Color(0.3, 0.55, 0.6)]
+	for row in 3:
+		for k in 8:
+			mesh_at(box(Vector3(0.22, 0.55, 0.36)), mat("Star Book %d" % ((k + row) % 4), spines[(k + row) % 4], 0.7),
+				Vector3(-0.95 + k * 0.27, 0.45 + row * 0.8, 0.12), shelf)
+	# Star charts on the wall: dots joined by gold lines, made-up constellations (the Owl, the Teapot, the Lantern)
+	var charts := [["The Owl", [Vector2(0, 0.5), Vector2(-0.35, 0.2), Vector2(0.35, 0.2), Vector2(-0.25, -0.35), Vector2(0.25, -0.35), Vector2(0, 0.15)]],
+		["The Teapot", [Vector2(-0.5, -0.2), Vector2(-0.2, 0.25), Vector2(0.25, 0.25), Vector2(0.5, 0.05), Vector2(0.3, -0.3), Vector2(-0.3, -0.3)]],
+		["The Lantern", [Vector2(0, 0.55), Vector2(-0.3, 0.2), Vector2(0.3, 0.2), Vector2(0.3, -0.3), Vector2(-0.3, -0.3), Vector2(0, -0.5)]]]
+	for k in charts.size():
+		var a := PI + 0.55 + k * 0.42                    # round the north-west wall
+		var at := Vector3(cos(a) * (r - 0.35), 2.2, sin(a) * (r - 0.35))
+		var board := node("Star Chart " + str(charts[k][0]), root_node, at, -a - PI / 2)
+		mesh_at(box(Vector3(1.7, 1.5, 0.05)), mat("Chart Paper", Color(0.1, 0.1, 0.25), 0.9), Vector3.ZERO, board)
+		var pts: Array = charts[k][1]
+		for p in pts:
+			mesh_at(sphere(0.05, 8), gold_glow, Vector3(p.x, p.y, 0.05), board)
+		for i in pts.size() - 1:
+			var p0: Vector2 = pts[i]
+			var p1: Vector2 = pts[i + 1]
+			var seg := mesh_at(box(Vector3(p0.distance_to(p1), 0.015, 0.01)), gold_glow, Vector3((p0.x + p1.x) / 2, (p0.y + p1.y) / 2, 0.04), board)
+			seg.rotation.z = atan2(p1.y - p0.y, p1.x - p0.x)
+		label(board, str(charts[k][0]), Vector3(0, -0.95, 0.05), 28, Color(1.0, 0.92, 0.7))
+	# Lamps low and warm, so the stars still show
+	light(root_node, Vector3(0, 6.5, 0), Color(0.75, 0.7, 1.0), 0.7, 16)
+	light(root_node, Vector3(6, 2.5, 1.5), Color(1.0, 0.8, 0.55), 0.9, 7)
+	light(root_node, Vector3(0, 3.0, 5.0), Color(1.0, 0.85, 0.65), 0.6, 8)
+	label(root_node, "Observatory", Vector3(0, 4.8, 3.5), 72, Color(0.95, 0.9, 1.0))
+	# The Seer herself (scripts/seer.gd makes her look), with her talk spot (dialogue/seer.json)
+	var seer := Node3D.new()
+	seer.name = "The Seer"
+	seer.set_script(load("res://scripts/seer.gd"))
+	seer.position = SEER_AT
+	seer.rotation.y = atan2(-SEER_AT.x, r - 4.5 - SEER_AT.z)
+	root_node.add_child(seer)
+	var talk := Area3D.new()
+	talk.name = "Talk"
+	talk.set_script(load("res://scripts/talker.gd"))
+	talk.set("character_id", "seer")
+	talk.set("display_name", "The Seer")
+	talk.set("name_height", 2.15)
+	seer.add_child(talk)
 	own(root_node)
 	return root_node
 

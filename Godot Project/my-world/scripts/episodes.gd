@@ -41,7 +41,12 @@ const BUNKER_AT := Vector2(11.0, 35.0)                 # Leo's emergency bunker,
 const LEO_BUNKER_AT := Vector2(15.5, 38.0)             # the Lake Loop and Meadow Wiggle race lines)
 const FOUNTAIN_SIGN_AT := Vector2(-73.2, 48.9)         # the DOGS WELCOME sign and doggy fountain, by the Market fountain
 const FOUNTAIN := Vector2(-72.0, 42.0)                 # (tools/build_town.gd MARKET; its stalls stand 12 m out)
-const LIZARD_AT := Vector2(-75.5, -24.0)               # in the Secret Gardens
+const LIZARD_AT := Vector2(-75.5, -24.0)               # in the Secret Gardens, while the turtle quest is on
+# The Wizard Lizard's look: the principal of the castle school (scripts/council.gd puts him in his office there), out
+# in the Secret Gardens only on the days of Turtle Independence
+const LIZARD_LOOK := {"body": "dino", "colors": {"fur": 12, "eyes": 7, "top": 16, "bottoms": 16}, "extras": true,
+	"height": 1.05, "head": 1.1}
+const LIZARD_OUTFIT := {"head": "witch_hat", "neck": "crystal_necklace"}
 const TURTLES_AT := Vector2(-24.0, 21.0)               # three little turtles on the lake's south shore
 const KIT := [                                         # Leo's kit: [flag, where, action, what it looks like]
 	["prep_water", Vector2(-72.0, 44.5), "pick up the water jug", "jug"],
@@ -130,10 +135,8 @@ func guests() -> Dictionary:
 				"hairstyle": 0, "extras": false, "height": 0.92},
 			"outfit": {"face": "space_goggles", "back": "jetpack"}},
 		"wizard_lizard": {"scene": TOWN, "name": "The Wizard Lizard", "at": LIZARD_AT, "face": Vector2(-72.0, -20.0),
-			"here": Quests.is_started("turtle_independence"),
-			"look": {"body": "dino", "colors": {"fur": 12, "eyes": 7, "top": 16, "bottoms": 16}, "extras": true,
-				"height": 1.05, "head": 1.1},
-			"outfit": {"head": "witch_hat", "neck": "crystal_necklace"}},
+			"here": Quests.is_started("turtle_independence") and not Quests.is_done("turtle_independence"),
+			"look": LIZARD_LOOK, "outfit": LIZARD_OUTFIT},
 		"other_nina": {"scene": EARTH, "name": "Nina?", "at": OTHER_NINA_AT, "face": Vector2(-58.0, 12.0),
 			"here": _other_nina_here(),
 			"look": {"colors": {"fur": 1, "hair": 10, "brows": 10, "top": 6, "bottoms": 6, "shoes": 6},
