@@ -1308,12 +1308,16 @@ func _people() -> void:
 	# yellow backpack), and her sister and brother. Prue's look
 	# is a PLACEHOLDER until there's a drawing of her as a person. Bruno is Sofi's drawing of him as a person: a mop
 	# of golden hair under his black SK8 beanie, an open blue zip hoodie over an olive tee, dark jeans, his board.
-	var nina := _look(3, 9, 6, 7, 6, 9, 1.0, 1.0, 0.95, {"hair_rgb": Color(0.86, 0.22, 0.08)})
+	# Since Nov 12 she's made on the creator's human girl body (scripts/hero.gd "human_girl") with its "Bob with bangs"
+	# (Hairstyles 17), not the old Earth kid body with a ball of hair and a stuck-on fringe: Hayden found that version
+	# "pretty chopped", with "2 random holes" in her face (her freckles were balls sunk into her cheeks). Warm brown
+	# skin (22) as in the picture; her skirt (bottoms, 18) is the pinafore's.
+	var nina := _look(22, 9, 17, 7, 18, 9, 1.0, 1.0, 0.95, {"body": "human_girl", "hair_rgb": Color(0.86, 0.22, 0.08)})
 	nina.colors["eyes"] = 4                                            # warm brown eyes
 	_person("Nina", "nina_earth", Vector3(-40.0, 0, 62.0), PI, nina,
-		[{"kind": "bow", "color": Color(0.85, 0.1, 0.1)}, {"kind": "fringe", "color": Color(0.86, 0.22, 0.08)},
-		{"kind": "freckles", "color": Color(0.3, 0.15, 0.08)}, {"kind": "gap_teeth", "color": Color(0.98, 0.97, 0.94)},
-		{"kind": "hoops", "color": Color(1.0, 0.78, 0.3)}, {"kind": "pinafore", "color": Color(1.0, 0.58, 0.72)},
+		[{"kind": "bow", "color": Color(0.85, 0.1, 0.1)},
+		{"kind": "freckles", "color": Color(0.4, 0.22, 0.12)}, {"kind": "gap_teeth", "color": Color(0.98, 0.97, 0.94)},
+		{"kind": "hoops", "color": Color(1.0, 0.78, 0.3)}, {"kind": "pinafore", "color": Color(0.95, 0.45, 0.62)},
 		{"kind": "backpack", "color": Color(1.0, 0.75, 0.2)}])
 	_person("Prue", "prue", Vector3(-38.0, 0, 62.0), PI, _look(1, 4, 2, 17, 18, 18, 0.84, 1.06),
 		[{"kind": "flower", "color": Color(1.0, 0.6, 0.8)}]).set("placeholder", true)

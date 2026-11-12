@@ -126,8 +126,9 @@ func _check_people() -> void:
 			print("      %s can't walk" % f.name)
 	check(made, "each one has a body")
 	check(animated, "...that can stand and walk")
-	var hero_made := folk.filter(func(f: Node) -> bool: return f.model_path == Townsfolk.BODY)
-	check(hero_made.size() == folk.size() - 1, "all but Mr. Palmer are the Earth kid body, made like a hero (%d)" % hero_made.size())
+	# (Nina is the creator's human girl since Nov 12; everyone else the Earth kid body)
+	var hero_made := folk.filter(func(f: Node) -> bool: return f.model_path == Townsfolk.BODY or str(f.look.get("body", "")) == "human_girl")
+	check(hero_made.size() == folk.size() - 1, "all but Mr. Palmer are made like a hero (%d)" % hero_made.size())
 	var palmer := _body("palmer_earth") as Townsfolk
 	check(palmer.model_path.ends_with("mr_palmer.glb"), "Mr. Palmer is his own human self on Earth")
 	var styled := true
@@ -154,17 +155,27 @@ func _check_people() -> void:
 
 func _check_blastoffs() -> void:
 	var nina := _body("nina_earth") as Townsfolk
-	check(nina.name == "Nina" and int(nina.look.hairstyle) == Hairstyles.NAMES.find("Bob") and int(nina.look.colors.hair) == 9,
-		"human Nina has a red bob")
+	check(nina.name == "Nina" and str(nina.look.get("body", "")) == "human_girl"
+		and int(nina.look.hairstyle) == 12 + HairKit.GIRL.find("Bob with bangs") and int(nina.look.colors.hair) == 9,
+		"human Nina is the creator's human girl with a red bob with bangs")
 	var kinds := nina.extras.map(func(e: Dictionary) -> String: return str(e.kind))
-	# Her look from Hayden's picture (Nov 7): bow, fringe, freckles, gap teeth, hoops, a pink pinafore over a white tee,
-	# her yellow backpack, brown skin and eyes
-	var hers := ["bow", "fringe", "freckles", "gap_teeth", "hoops", "pinafore", "backpack"]
-	check(hers.all(func(k: String) -> bool: return k in kinds) and int(nina.look.colors.top) == 7
-		and int(nina.look.colors.fur) == 3 and int(nina.look.colors.eyes) == 4,
-		"...her red bow, fringe, freckles, gap teeth, hoops, pink pinafore over a white tee and yellow backpack")
+	# Her look from Hayden's picture (Nov 7): bow, freckles, gap teeth, hoops, a pink pinafore over a white tee, her
+	# yellow backpack, brown skin and eyes (since Nov 12 on the human girl body: her bob has its own bangs)
+	var hers := ["bow", "freckles", "gap_teeth", "hoops", "pinafore", "backpack"]
+	check(hers.all(func(k: String) -> bool: return k in kinds) and not "fringe" in kinds and int(nina.look.colors.top) == 7
+		and int(nina.look.colors.fur) == 22 and int(nina.look.colors.eyes) == 4,
+		"...her red bow, freckles, gap teeth, hoops, pink pinafore over a white tee and yellow backpack")
 	var skel := Clothes._skeleton(nina.model)
 	check(hers.all(func(k: String) -> bool: return skel.get_node_or_null("Own " + k) != null), "...and she's wearing them")
+	# Her freckles lie on her cheeks (Hayden, Nov 12: "2 random holes on her face" were freckles sunk into them): every
+	# dot sits within a few millimetres of the head's surface, none buried in it
+	var spots := skel.get_node("Own freckles").find_children("*", "MeshInstance3D", true, false)
+	var on_skin := spots.size() == 8
+	for d in spots:
+		var p: Vector3 = (d as Node3D).position         # (in the body as drawn: the bone carries the lot)
+		var r := (p - Vector3(0, 1.1, 0)) / Vector3(0.25, 0.27, 0.23)
+		on_skin = on_skin and absf(r.length() - 1.0) < 0.04
+	check(on_skin, "...and her 8 freckles lie on her cheeks, not sunk into them")
 	check((_body("prue") as Townsfolk).placeholder and not (_body("bruno") as Townsfolk).placeholder and not nina.placeholder,
 		"Prue is marked as a placeholder (Nina and Bruno aren't)")
 	var bruno := _body("bruno") as Townsfolk

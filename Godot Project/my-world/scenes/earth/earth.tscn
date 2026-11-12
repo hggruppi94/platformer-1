@@ -35056,19 +35056,20 @@ name_height = 1.7399999999999998
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -40, 0, 62)
 script = ExtResource("11_ixyfp")
 look = {
+"body": "human_girl",
 "build": 0.95,
 "colors": {
-"bottoms": 6,
+"bottoms": 18,
 "brows": 9,
 "eyes": 4,
-"fur": 3,
+"fur": 22,
 "hair": 9,
 "shoes": 9,
 "top": 7
 },
 "extras": false,
 "hair_rgb": Color(0.86, 0.22, 0.08, 1),
-"hairstyle": 6,
+"hairstyle": 17,
 "head": 1.0,
 "height": 1.0
 }
@@ -35076,10 +35077,7 @@ extras = [{
 "color": Color(0.85, 0.1, 0.1, 1),
 "kind": "bow"
 }, {
-"color": Color(0.86, 0.22, 0.08, 1),
-"kind": "fringe"
-}, {
-"color": Color(0.3, 0.15, 0.08, 1),
+"color": Color(0.4, 0.22, 0.12, 1),
 "kind": "freckles"
 }, {
 "color": Color(0.98, 0.97, 0.94, 1),
@@ -35088,7 +35086,7 @@ extras = [{
 "color": Color(1, 0.78, 0.3, 1),
 "kind": "hoops"
 }, {
-"color": Color(1, 0.58, 0.72, 1),
+"color": Color(0.95, 0.45, 0.62, 1),
 "kind": "pinafore"
 }, {
 "color": Color(1, 0.75, 0.2, 1),

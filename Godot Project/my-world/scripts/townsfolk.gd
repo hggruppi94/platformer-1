@@ -119,6 +119,8 @@ func sit(on: bool, seat_y := 0.0) -> void:
 func _tint_hair(c: Color) -> void:
 	# A hair colour of their own, beyond the creator's swatches (Nina's bright red-orange from Hayden's picture):
 	# every surface of the hairstyle takes it, the hair ties keep theirs
+	if look.get("body", "") in ["human_girl", "human_boy"]:
+		Clothes._recolour(model, ["Hair"], c)          # their own close-cut hair under the style, so no darker cap shows
 	var style := model.find_child("Hairstyle", true, false)
 	if style == null:
 		return
@@ -146,14 +148,15 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 	if bone < 0:
 		return
 	var c: Color = e.get("color", Color(0.8, 0.2, 0.2))
+	var human := str(look.get("body", "")) in ["human_girl", "human_boy"]   # the creator's kids: their own face spots
 	var g := Node3D.new()
 	g.name = kind
 	match kind:
 		"bow":                                         # Nina's big bow, on top of her head, a bit to one side
-			for s in [-1.0, 1.0]:
-				_mesh(g, _cone(0.0, 0.13, 0.2), c, Vector3(0.15 + s * 0.1, 1.43 - s * 0.03, 0.02), Vector3(0, 0, s * PI / 2 - 0.3),
-					Vector3(1, 1, 0.45))
-			_mesh(g, _ball(0.055), c.darkened(0.2), Vector3(0.15, 1.43, 0.02))
+			if human:                                  # on the human head: smaller, sitting on the hair, not above it
+				_bow(g, c, Vector3(0.12, 1.39, -0.01), 0.8, 0.12)
+			else:
+				_bow(g, c, Vector3(0.15, 1.43, 0.02), 1.0)
 		"turtleneck":                                  # a rolled collar up the neck
 			_mesh(g, _torus(0.1, 0.16), c, Vector3(0, 0.87, 0.0), Vector3.ZERO, Vector3(1, 1.8, 0.95))
 		"apron":
@@ -219,18 +222,36 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 		"fringe":                                      # a side-swept fringe over the forehead (Nina's bob has bangs)
 			_mesh(g, _ball(0.2), c, Vector3(-0.03, 1.235, 0.16), Vector3(-0.25, 0, 0.14), Vector3(1.25, 0.42, 0.6))
 		"hoops":                                       # little gold hoop earrings peeking out under the hair
-			for s in [-1.0, 1.0]:
-				_mesh(g, _torus(0.014, 0.024), c, Vector3(s * 0.25, 0.915, 0.05), Vector3(0, 0, PI / 2))
+			if human:                                  # hanging from the human ears' lobes, just under the bob
+				for s in [-1.0, 1.0]:
+					_mesh(g, _torus(0.011, 0.02), c, Vector3(s * 0.262, 1.02, 0.03), Vector3(0, 0, PI / 2))
+			else:
+				for s in [-1.0, 1.0]:
+					_mesh(g, _torus(0.014, 0.024), c, Vector3(s * 0.25, 0.915, 0.05), Vector3(0, 0, PI / 2))
 		"gap_teeth":                                   # two big front teeth with a gap between them
-			for s in [-1.0, 1.0]:
-				_mesh(g, _box(Vector3(0.022, 0.02, 0.01)), c, Vector3(s * 0.017, 0.982, 0.226), Vector3(-0.2, 0, 0))
+			if human:                                  # tucked under the top lip of the human mouth, inside it
+				for s in [-1.0, 1.0]:
+					_mesh(g, _box(Vector3(0.017, 0.017, 0.008)), c, Vector3(s * 0.0125, 0.963, 0.196), Vector3(-0.15, 0, 0))
+			else:
+				for s in [-1.0, 1.0]:
+					_mesh(g, _box(Vector3(0.022, 0.02, 0.01)), c, Vector3(s * 0.017, 0.982, 0.226), Vector3(-0.2, 0, 0))
 		"pinafore":                                    # a pink pinafore over the tee: bib, straps, a little flared skirt
-			_mesh(g, _box(Vector3(0.22, 0.17, 0.02)), c, Vector3(0, 0.68, 0.215), Vector3(-0.15, 0, 0))
+			# (the human body has its own skirt, so its bottoms colour makes the pinafore's skirt and only the bib and
+			# straps are added, pressed onto the top instead of floating off it)
+			var z := 0.205 if human else 0.215
+			var bib_y := 0.66 if human else 0.68
+			_mesh(g, _box(Vector3(0.2, 0.16, 0.014)), c, Vector3(0, bib_y, z), Vector3(-0.08 if human else -0.15, 0, 0))
 			for s in [-1.0, 1.0]:
-				_mesh(g, _box(Vector3(0.045, 0.2, 0.02)), c, Vector3(s * 0.08, 0.83, 0.17), Vector3(-0.6, 0, 0))
-				_mesh(g, _box(Vector3(0.045, 0.3, 0.02)), c, Vector3(s * 0.08, 0.74, -0.17), Vector3(0.12, 0, 0))
-				_mesh(g, _ball(0.016), Color(1.0, 0.85, 0.4), Vector3(s * 0.08, 0.755, 0.228))
-			_mesh(g, _cone(0.2, 0.27, 0.2), c, Vector3(0, 0.5, 0.0))
+				if human:
+					_mesh(g, _box(Vector3(0.04, 0.17, 0.014)), c, Vector3(s * 0.075, 0.8, 0.165), Vector3(-0.45, 0, 0))
+					_mesh(g, _box(Vector3(0.04, 0.3, 0.014)), c, Vector3(s * 0.075, 0.72, -0.192), Vector3(0.06, 0, 0))
+					_mesh(g, _ball(0.013), Color(1.0, 0.85, 0.4), Vector3(s * 0.075, 0.73, z + 0.01))
+				else:
+					_mesh(g, _box(Vector3(0.045, 0.2, 0.02)), c, Vector3(s * 0.08, 0.83, 0.17), Vector3(-0.6, 0, 0))
+					_mesh(g, _box(Vector3(0.045, 0.3, 0.02)), c, Vector3(s * 0.08, 0.74, -0.17), Vector3(0.12, 0, 0))
+					_mesh(g, _ball(0.016), Color(1.0, 0.85, 0.4), Vector3(s * 0.08, 0.755, 0.228))
+			if not human:
+				_mesh(g, _cone(0.2, 0.27, 0.2), c, Vector3(0, 0.5, 0.0))
 		"backpack":                                    # her yellow backpack: a rounded pack with a front pocket and
 			# dark-edged straps over her shoulders
 			_mesh(g, _box(Vector3(0.3, 0.32, 0.13)), c, Vector3(0, 0.7, -0.24))
@@ -238,14 +259,30 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 			_mesh(g, _box(Vector3(0.22, 0.14, 0.05)), c.darkened(0.08), Vector3(0, 0.62, -0.32))
 			_mesh(g, _box(Vector3(0.23, 0.012, 0.012)), Color(0.12, 0.1, 0.1), Vector3(0, 0.69, -0.346))
 			for s in [-1.0, 1.0]:
+				if human:                              # slimmer straps the backpack's own colour, flat on the tee
+					var strap := c.darkened(0.35)
+					_mesh(g, _box(Vector3(0.036, 0.3, 0.012)), strap, Vector3(s * 0.14, 0.74, 0.197), Vector3(-0.06, 0, s * 0.1))
+					_mesh(g, _box(Vector3(0.036, 0.025, 0.36)), strap, Vector3(s * 0.15, 0.88, -0.02))
+					continue
 				_mesh(g, _box(Vector3(0.05, 0.36, 0.02)), Color(0.12, 0.1, 0.1), Vector3(s * 0.13, 0.72, 0.15),
 					Vector3(-0.15, 0, s * 0.12))
 				_mesh(g, _box(Vector3(0.05, 0.1, 0.18)), Color(0.12, 0.1, 0.1), Vector3(s * 0.13, 0.9, -0.03),
 					Vector3(0.1, 0, 0))
 		"freckles":                                    # a sprinkle across the nose and cheeks
+			# Each is a flat little dot lying on the skin (round balls half sunk in the cheek showed only one dark
+			# bump a side, which looked like two holes in her face): placed on the head's shape and turned to face out
+			var centre := Vector3(0, 1.1, 0)
+			var size := Vector3(0.25, 0.27, 0.23) if human else Vector3(0.25, 0.27, 0.235)
+			var spots := [[0.045, 0.0], [0.065, 0.014], [0.085, -0.004], [0.105, 0.01]]
 			for s in [-1.0, 1.0]:
-				for k in 4:
-					_mesh(g, _ball(0.009), c, Vector3(s * (0.045 + 0.022 * k), 1.04 + 0.012 * (k % 2), 0.215 - 0.012 * k))
+				for k in spots.size():
+					var x: float = s * spots[k][0]
+					var y: float = (1.008 if human else 1.04) + spots[k][1]
+					var d := Vector2(x / size.x, (y - centre.y) / size.y)
+					var at := Vector3(x, y, size.z * sqrt(maxf(0.0, 1.0 - d.length_squared())) + 0.002)
+					var out := ((at - centre) / (size * size)).normalized()
+					var dot := _mesh(g, _ball(0.0062 if human else 0.0075), c, at, Vector3.ZERO, Vector3(1, 1, 0.25))
+					dot.basis = Basis.looking_at(-out, Vector3.UP).scaled(Vector3(1, 1, 0.25))
 		"moustache":
 			for s in [-1.0, 1.0]:
 				_mesh(g, _ball(0.04), c, Vector3(s * 0.035, 1.0, 0.215), Vector3(0, 0, s * 0.3), Vector3(1.5, 0.6, 0.7))
@@ -300,6 +337,14 @@ func _extra(skel: Skeleton3D, e: Dictionary) -> void:
 	place.transform = rest.affine_inverse()
 	holder.add_child(place)
 	place.add_child(g)
+
+
+func _bow(g: Node3D, c: Color, at: Vector3, k: float, tilt := 0.3) -> void:
+	# A big hair bow: two loops and a knot, k times the size it was made at, its loops tilted up by tilt
+	for s in [-1.0, 1.0]:
+		_mesh(g, _cone(0.0, 0.13 * k, 0.2 * k), c, at + Vector3(s * 0.1, -s * 0.03, 0) * k, Vector3(0, 0, s * PI / 2 - tilt),
+			Vector3(1, 1, 0.45))
+	_mesh(g, _ball(0.055 * k), c.darkened(0.2), at)
 
 
 func _mesh(parent: Node3D, mesh: Mesh, color: Color, pos: Vector3, rot := Vector3.ZERO, scl := Vector3.ONE) -> MeshInstance3D:
