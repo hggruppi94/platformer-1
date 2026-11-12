@@ -14,7 +14,7 @@ const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
 	["gadget_wheel", "Gadget wheel"], ["outfit_wheel", "Outfit wheel"], ["burrow", "Burrow"], ["frost_breath", "Frost breath"],
-	["groove", "Groove"], ["showers", "April Showers"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
+	["groove", "Groove"], ["showers", "April Showers"], ["make", "Make"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
 	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"],
 	["pause", "Pause"],
 ]
@@ -23,15 +23,17 @@ const REBINDABLE := [
 # (X rolls on foot and flips on the board), so a button only clashes with actions used at the same time (PAD_GROUPS).
 const PAD_REBINDABLE := [
 	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["gadget_wheel", "Gadget wheel"],
-	["outfit_wheel", "Outfit wheel"], ["burrow", "Burrow"], ["frost_breath", "Frost breath"], ["groove", "Groove"], ["showers", "April Showers"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
+	["outfit_wheel", "Outfit wheel"], ["burrow", "Burrow"], ["frost_breath", "Frost breath"], ["groove", "Groove"], ["showers", "April Showers"], ["make", "Make"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
 	["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "burrow", "frost_breath", "groove", "showers", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "check_watch", "pause"],   # on foot
+	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "burrow", "frost_breath", "groove", "showers", "make", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "check_watch", "pause"],   # on foot
 	["jump", "aim", "shoot", "gadget_wheel", "outfit_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "check_watch", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
 ]
 # Moves a chosen one teaches: hidden in Controls until their world is mended (action_shown())
 const SECRET_ACTIONS := {"burrow": "rootmind", "frost_breath": "frozen_moment", "groove": "rhythm_springs", "showers": "glenmoor"}
+# ...and moves a friend teaches in a quest: hidden until that flag's set (Nina and Bruno's Make, scripts/make.gd)
+const SECRET_FLAGS := {"make": "make_taught"}
 const PAD_NAMES := {
 	JOY_BUTTON_A: "A", JOY_BUTTON_B: "B", JOY_BUTTON_X: "X", JOY_BUTTON_Y: "Y", JOY_BUTTON_BACK: "Back",
 	JOY_BUTTON_GUIDE: "Guide", JOY_BUTTON_START: "Start", JOY_BUTTON_LEFT_STICK: "L3", JOY_BUTTON_RIGHT_STICK: "R3",
@@ -234,7 +236,7 @@ func pad_name(action: String) -> String:
 
 # ----------------------------------------------------------------------------- controller buttons
 func default_pad_bindings() -> Dictionary:
-	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "outfit_wheel": JOY_BUTTON_LEFT_STICK, "burrow": JOY_BUTTON_RIGHT_STICK, "frost_breath": JOY_BUTTON_DPAD_LEFT, "groove": JOY_BUTTON_DPAD_RIGHT, "showers": -1, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
+	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "outfit_wheel": JOY_BUTTON_LEFT_STICK, "burrow": JOY_BUTTON_RIGHT_STICK, "frost_breath": JOY_BUTTON_DPAD_LEFT, "groove": JOY_BUTTON_DPAD_RIGHT, "showers": -1, "make": JOY_BUTTON_RIGHT_SHOULDER, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
 		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "pause": JOY_BUTTON_START}
 	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
@@ -283,7 +285,9 @@ func _bind_pad(action: String, button: int) -> void:
 	b.device = -1
 	b.button_index = button as JoyButton
 	InputMap.action_add_event(action, b)
-	if action == "dash" and button != JOY_BUTTON_RIGHT_SHOULDER:   # RB rolls too, whatever Roll is on
+	# RB rolls too, whatever Roll is on. Make's on RB as well, but it's locked until Nina and Bruno teach it, and once
+	# it's not the player skips the roll on a press that's a Make (scenes/player/player.gd)
+	if action == "dash" and button != JOY_BUTTON_RIGHT_SHOULDER:
 		var rb := InputEventJoypadButton.new()
 		rb.device = -1
 		rb.button_index = JOY_BUTTON_RIGHT_SHOULDER
@@ -300,7 +304,7 @@ const OLD_SKATE_KEYS := {"skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab"
 
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
-		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "outfit_wheel": KEY_C, "burrow": KEY_B, "frost_breath": KEY_V, "groove": KEY_G, "showers": KEY_H, "toggle_skateboard": KEY_E, "skate_grind": KEY_E, "skate_flip": KEY_SHIFT, "skate_grab": KEY_CTRL,
+		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "outfit_wheel": KEY_C, "burrow": KEY_B, "frost_breath": KEY_V, "groove": KEY_G, "showers": KEY_H, "make": KEY_Z, "toggle_skateboard": KEY_E, "skate_grind": KEY_E, "skate_flip": KEY_SHIFT, "skate_grab": KEY_CTRL,
 		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "check_watch": KEY_T, "pause": KEY_ESCAPE}
 
 
@@ -349,6 +353,9 @@ func action_shown(action: String) -> bool:
 	# mended (scripts/burrow.gd), Frost breath until Flurry teaches it, when the Frozen Moment is (frost_breath.gd), and
 	# Groove until Melody teaches it, when Rhythm Springs is (groove.gd), and April Showers until Heather does, when
 	# Glenmoor is (showers.gd)
+	if SECRET_FLAGS.has(action):
+		var dialogue := get_node_or_null("/root/Dialogue")
+		return dialogue != null and dialogue.flags.has(SECRET_FLAGS[action])
 	if SECRET_ACTIONS.has(action):
 		var portals := get_node_or_null("/root/Portals")
 		return portals != null and portals.is_cleared(SECRET_ACTIONS[action])

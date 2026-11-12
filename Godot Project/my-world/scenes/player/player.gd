@@ -57,6 +57,8 @@ const FROST_BREATH := preload("res://scripts/frost_breath.gd")
 const GROOVE := preload("res://scripts/groove.gd")
 const SHOWERS := preload("res://scripts/showers.gd")
 const SPRING_STEP := preload("res://scripts/spring_step.gd")
+const KINETIC := preload("res://scripts/kinetic.gd")
+const MAKE := preload("res://scripts/make.gd")
 const PIP_GLOW := preload("res://scripts/pip_glow.gd")
 const SWIM := preload("res://scripts/swim.gd")
 const WALL_CRAWL := preload("res://scripts/wall_crawl.gd")
@@ -69,6 +71,7 @@ var _stun_timer := 0.0
 var _roll_timer := 0.0
 var _roll_dir := Vector3.ZERO
 var _roll_buffer_timer := 0.0
+var _roll_boost := 1.0                      # a kinetic burst roll goes faster (scripts/kinetic.gd)
 var _dash_held := 0.0                       # how long the roll button's been held (sprinting after sprint_hold)
 var sprinting := false
 # Sprinting needs the roll button pressed fresh, on foot, and held ever since. Anything else she does in between (a
@@ -109,6 +112,8 @@ var frost_breath: Node                      # Flurry's frost breath, once the Fr
 var groove: Node                            # Melody's groove, once Rhythm Springs is mended (scripts/groove.gd)
 var showers: Node                           # Heather's April Showers, once Glenmoor is mended (scripts/showers.gd)
 var spring_step: Node                       # and her Spring Step (scripts/spring_step.gd)
+var kinetic: Node                           # Dash's kinetic energy, once he's taught it (scripts/kinetic.gd)
+var make: Node                              # Nina and Bruno's making, once they've taught it (scripts/make.gd)
 var pip_glow: Node                          # Pip's glow in the dark, once Lanternmoor is mended (scripts/pip_glow.gd)
 var swim: Node                              # swimming in deep water; diving once the Tide Reef's mended (scripts/swim.gd)
 var wall_crawl: Node                        # up walls and along ceilings once Dark Hollow's mended (scripts/wall_crawl.gd)
@@ -191,6 +196,14 @@ func _ready() -> void:
 	spring_step.name = "SpringStep"
 	add_child(spring_step)
 	spring_step.setup(self)
+	kinetic = KINETIC.new()
+	kinetic.name = "Kinetic"
+	add_child(kinetic)
+	kinetic.setup(self)
+	make = MAKE.new()
+	make.name = "Make"
+	add_child(make)
+	make.setup(self)
 	pip_glow = PIP_GLOW.new()
 	pip_glow.name = "PipGlow"
 	add_child(pip_glow)
@@ -497,6 +510,11 @@ func _physics_process(delta: float) -> void:
 		groove.try_groove()
 	if Input.is_action_just_pressed("showers"):
 		showers.try_shower()
+	# Make shares RB with Roll (RB rolls too until Nina and Bruno teach it), so a press that makes something isn't
+	# also a roll
+	var made_now: bool = Input.is_action_just_pressed("make") and make.unlocked()
+	if made_now:
+		make.try_make()
 	if on_floor:
 		_air_jump_used = false
 
@@ -558,11 +576,11 @@ func _physics_process(delta: float) -> void:
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
 
 	# Roll (the "dash" action): on the ground only; pressed in the air, it waits a moment for her to land
-	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") and not input_locked else _roll_buffer_timer - delta
+	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") and not input_locked and not made_now else _roll_buffer_timer - delta
 	if _roll_buffer_timer > 0.0 and on_floor:
 		_try_roll(direction)
 	# Sprint: still holding it once the roll's done, and steering somewhere
-	if Input.is_action_just_pressed("dash") and not input_locked:
+	if Input.is_action_just_pressed("dash") and not input_locked and not made_now:
 		_sprint_armed = true
 	if not Input.is_action_pressed("dash") or input_locked or _stun_timer > 0.0:
 		_sprint_armed = false
@@ -574,7 +592,7 @@ func _physics_process(delta: float) -> void:
 	if _roll_timer > 0.0:
 		_roll_timer -= delta
 		var f := 1.0 - maxf(_roll_timer, 0.0) / roll_time
-		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
+		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f) * _roll_boost   # fast start, eases into a run
 	elif _stun_timer > 0.0:
 		pass                                # knocked back: ride out the hit
 	else:
@@ -644,6 +662,7 @@ func _try_roll(direction: Vector3) -> void:
 	_roll_dir.y = 0.0
 	_roll_dir = _roll_dir.normalized()
 	_roll_timer = roll_time
+	_roll_boost = kinetic.roll_boost() if kinetic else 1.0     # a full kinetic charge lets go as a burst
 	_spin(roll_time, 0.5, true)
 	Audio.play("roll", -2.0, 0.08)
 	Juice.burst(get_parent(), global_position + Vector3(0, 0.1, 0), Color(0.9, 0.85, 0.75, 0.7), 8, 0.08, 1.5, 0.5)

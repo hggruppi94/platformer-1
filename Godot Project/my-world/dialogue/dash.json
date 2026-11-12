@@ -142,8 +142,7 @@
         "YOU DID IT! You popped the GLOOP KING! I saw the whole thing! Bubbles everywhere!",
         "{player}: He was SO bouncy.",
         "And look what he dropped. His crown! It's yours. Champion of the west fields!",
-        "(The Buzz Bot does a little loop-the-loop over your head.) See? Even Buzzy's impressed.",
-        "Oh! I nearly forgot. My friend Pip's been waiting by the portal ALL day. They've got something to show you. Go on!"
+        "(The Buzz Bot does a little loop-the-loop over your head.) See? Even Buzzy's impressed."
       ],
       "first_night": true
     },
@@ -158,6 +157,16 @@
         "Bubbles make him wobble. Keep popping and he'll pop too. I'll cheer from here!"
       ],
       "first_night": true
+    },
+    {
+      "when": {
+        "quest_done": "bike_boy",
+        "not_flag": "kinetic_taught"
+      },
+      "do": "FirstNight/Meetings.kinetic_from_dash",
+      "lines": [
+        "{player}! There you are. I've been waiting to show you something."
+      ]
     },
     {
       "when": {

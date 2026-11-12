@@ -25,6 +25,7 @@ extends Node
 # put into the town at play time, only while that step wants them, like the lab's ripples (scripts/lab.gd).
 
 const TOWN := "res://scenes/town/town.tscn"
+const KINETIC := preload("res://scripts/kinetic.gd")
 const QUEST := "bike_boy"
 const CHAIN := [
 	{"quest": "bike_boy", "flag": "bike_boy_start", "after": "first_night"},
@@ -176,8 +177,17 @@ func thanks_from_dash() -> Array:
 
 
 func king_from_dash() -> Array:
-	# Dash's "do" once the King's popped: the crown (FirstNight.crown_from_dash() always gave it)
-	return FirstNight.crown_from_dash()
+	# Dash's "do" once the King's popped: the crown (FirstNight.crown_from_dash() always gave it), then he shows you
+	# his kinetic energy (scripts/kinetic.gd), then sends you on to Pip
+	var lines: Array = FirstNight.crown_from_dash()
+	lines.append_array(KINETIC.teach_lines())
+	lines.append("Right! I nearly forgot. My friend Pip's been waiting by the portal ALL day. They've got something to show you. Go on!")
+	return lines
+
+
+func kinetic_from_dash() -> Array:
+	# For a save that told Dash about the King before he had his kinetic trick to show
+	return KINETIC.teach_lines()
 
 
 # -----------------------------------------------------------------------------

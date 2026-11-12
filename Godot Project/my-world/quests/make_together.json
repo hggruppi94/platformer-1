@@ -1,0 +1,29 @@
+{
+  "name": "Making Things",
+  "giver": "nina",
+  "about": "Nina and Bruno's shared power (Hayden, 12 Nov 2026: 'nina and bruno share an ability to create, but its weaker for that reason'). Nina says Bruno found out something; Bruno and Nina show the hero they can make things together, and share it with the hero too (scripts/make.gd). Offered by Nina in the Void once The Bike Boy's done.",
+  "start": {"flag": "make_start"},
+  "steps": [
+    {
+      "id": "bruno",
+      "text": "Nina says Bruno found out something amazing, and he won't stop showing off about it. Find Bruno (he's usually at the Skate Park).",
+      "done": {"flag": "make_taught"},
+      "where": ["bruno_alien"]
+    },
+    {
+      "id": "try",
+      "text": "Nina and Bruno shared their making power with you! Press Make (Z, or RB on a controller) to make a little bridge in front of you, or a step under your feet in the air. Make three things.",
+      "done": {"flag": "made_three"}
+    },
+    {
+      "id": "show",
+      "text": "You made three things! Go and show Nina.",
+      "done": {"flag": "make_showed_nina"},
+      "where": ["nina"]
+    }
+  ],
+  "reward": {
+    "message": "Nina and Bruno's making power is yours to share! Press Make any time. (+8 sparkles)",
+    "sparkles": 8
+  }
+}
