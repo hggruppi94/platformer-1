@@ -775,7 +775,7 @@ func _melody_stage() -> void:
 
 
 # Heather's blossom orchard, in the Void once Glenmoor's mended ----------------------------------------------------
-const ORCHARD := Vector2(-124.0, -62.0)     # just south-west of Glenmoor's portal (checked flat, clear, off the races, paths and trees)
+const ORCHARD := Vector2(-125.5, -61.5)     # just south-west of Glenmoor's portal (checked flat, clear, off the races, paths and trees)
 const ORCHARD_GAP := 4.5                    # metres between the trees
 const ORCHARD_PETALS := [Color(1.0, 0.75, 0.85), Color(1.0, 0.86, 0.92), Color(0.98, 0.66, 0.8)]
 

@@ -56,8 +56,8 @@ const WATCHES := [
 		"place": "Up in the Cloud Nest",
 		"hint": "Nesting somewhere soft, high above the Secret Gardens.",
 		"note": "Luna's, from a moon with four moons of its own. It counts time in moon-naps. This one says: nap."},
-	{"id": "robot", "name": "Bolt Watch", "scene": "town", "pos": Vector3(-10, 17.3, -120.6), "how": "grind",
-		"place": "Over the long rail on the castle hill",
+	{"id": "robot", "name": "Bolt Watch", "scene": "town", "pos": Vector3(21.2, 17.2, -86.8), "how": "grind",
+		"place": "Over the rail on the castle hill",   # moved 12 Nov: its old rail went in the 11 Nov rail tidy
 		"hint": "Along a grind line, up on the way to school.",
 		"note": "A robot's watch. Or a watch's robot? It says BEEP BOOP, which means quarter past."},
 	{"id": "many_hands", "name": "Watch of Many Hands", "scene": "town", "pos": Vector3(40.5, 5.0, 59), "how": "skate",
