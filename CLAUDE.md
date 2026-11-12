@@ -92,6 +92,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **The cracks look like real cracks in the ground** (Hayden, with a photo of a real earth fissure: "Im not
+  a fan of the cracks that open in the ground. Can you make them look more like this?"). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **`scripts/crack.gd`** keeps its calls (`make`, `sink`, `set_open`, `fall_in`, `drop_player`) and node names
+    ("Swirl", "Lid", "Fall", "Broken Earth", "Fissures", "Lips", "Shaft"), so every crack changed at once: each world's
+    crack in the Void, the gold way home in each world, the crack by the old oak and the Void's way back to Earth.
+  - **The look:** no more round glowing hole. A long jagged split (`_outline()`: about 7.4 m end to end along the
+    crack's x, 1.3 m across at its widest, narrowing to hairline points, both edges ragged with bites out of them),
+    dark soil walls that lean in a little and fade to black as they drop (`_walls()`), broken dry dirt round it with a
+    lip heaped along the edges that fades into whatever ground it's on (`_deck()`, see-through at its edge; solid over
+    the cut), lumps of dirt along the lips and stuck on the walls (`_clods()`), and thin dark side cracks running off
+    into the dirt and on past both ends (`_fissures()`). Only the deep middle is a real hole (the ground's still cut
+    as a circle, `R` 1.4); towards the ends it's a dark seam just over the ground. The world's colour only glows far
+    down, round the swirl (the preview still shows there). Shut, it's a seam of dirt (the lid narrows away as it opens).
+    The "Fall" area is now a box along the split. Height samples more than 0.7 m up (a crystal, a root) are ignored, so
+    the dirt never climbs things.
+  - Tests: cracks, portals, earth (both runs), practice_trips, far_future, sunken_secrets, first_night, lore_order and
+    glimmer_caves pass. Previews: new `tools/capture_cracks.gd` (shots in the project files under world/previews/cracks).
+  - My choices Hayden may change: the length and width, the dirt colour, how far the dirt patch reaches.
 - 2026-11-12: **Nina's human form cleaned up** (Hayden: "Nina's human form is pretty chopped and needs to be worked on.
   she has 2 random holes on her face"). Built and tested in the cloud (own Godot user folders, no save touched).
   - The "holes" were her freckles: round balls sunk into her cheeks, so only one dark bump a side showed.
