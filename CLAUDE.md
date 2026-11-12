@@ -118,6 +118,45 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     on Z and RB, bridges and steps (not shields), 6 s, two at once; the quest and every line (first drafts). The lore
     bible's pick: these become friend abilities you switch to when the party system arrives (plan item 26).
 
+- 2026-11-12: **The Seer, at home in the Observatory, and the Wizard Lizard as the castle school's principal** (the lore
+  bible's part 3, items 13 and 14; Hayden: "the seer still isnt in the game and needs to be added. Im thinking an old
+  ... woman, but something not racist", "lets make the wizard lizard the school principal", then "only wizard lizard is
+  principal, seer is just that. part of the council"). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **The Seer** (`scripts/seer.gd`, extends Townsfolk: the grown-up Earth kid body, then her own things from shapes): a
+    kindly stargazing grandma. White hair in a bun, round gold glasses, little smile lines, a long skirt, a **shawl of
+    night sky** whose stars drift and twinkle (`scripts/star_shawl.gdshader`) with a gold edge and tassels, a
+    **clouded-glass lantern** with mist swirling inside (`scripts/seer_lantern.gdshader`) and a soft light, a crooked
+    walking stick with a gold crescent moon, and **Hoot**, a sleepy owl on her shoulder who breathes and now and then
+    opens one eye. Nothing of the fortune-teller costume (headscarf, coins, tent, caravan, accent), on purpose.
+  - **The Observatory has an inside** (`tools/build_interiors.gd _observatory()`, `scenes/interiors/observatory.tscn`;
+    the builder now takes names after `--` to build only those): the town's existing Observatory door goes there. A
+    dome of slowly turning stars (the shawl's shader, bigger), the big brass telescope on its platform aimed at a slot
+    in the dome, **the Council's round table** (a glowing orb, six tall chairs, one with her star cushion), her corner
+    (armchair, tea, star books) and three made-up star charts (the Owl, the Teapot, the Lantern). She stands by the
+    telescope (`SEER_AT`).
+  - **What she says** (`dialogue/seer.json`): the first time, who she is, Hoot and the Council ("a few of us who watch
+    the stars and try to see what's coming"); every third visit a chat; otherwise she **reads her lantern**
+    (`"do": "Watches/Council.fortune"`, `scripts/council.gd fortune()`): the quest you follow and the step you're on,
+    said her way, never anything that hasn't happened yet; a quiet evening with nothing followed. The first time after
+    you've found one of her sunken bottles she talks about them (flag `seer_bottles_talked`). Flag `met_seer`.
+  - **The Wizard Lizard is the principal** (`scripts/council.gd`, a "Council" node under the Watches autoload, puts it
+    in at play time: no school rebuild): his office is the third office of the 3rd floor's middle row (x -7..3,
+    z 0..9), renamed "Principal's Office", a PRINCIPAL sign by its door, a sign in the foyer ("Principal's Office: 3rd
+    floor"), a chair, a nameplate, books, his **Nap Rock** under a heat lamp, a bookshelf, a rug, a fern and class
+    pictures. He's there except while Turtle Independence is on (`Council.lizard_away()`), when he's in the Secret
+    Gardens as before (`episodes.gd`: only while it's on now; his look is `LIZARD_LOOK` / `LIZARD_OUTFIT`).
+    `dialogue/wizard_lizard.json`: "principal of the castle school, friend of the Seer"; a principal's hello the first
+    time at school with his three rules (every version of you is welcome; no running unless something's chasing you;
+    naps are allowed) pointing to the Seer, a "hello again" turtle day if you met him at school first, a "the turtles'
+    helper!" hello at school if you met him with the turtles first, then tips of the day. Flag `met_lizard`.
+  - Tests: new `tools/test_council.gd`; dialogue (both runs), episodes, doors, layout, sunken_secrets, following,
+    later_nights and map pass. Previews: `tools/capture_seer.gd` (her on her own) and `tools/capture_council.gd` (the
+    Observatory and the office); shots in the project files under characters/seer.
+  - My choices Hayden may change: her look, Hoot, "The Seer" with no name, the Observatory as her home, the Council's
+    table there, fortunes from the to-do list, every line (first drafts), which office is the principal's, the Nap
+    Rock. The Council's other members aren't in the game (the story notes only say they "look into the future").
+
 - 2026-11-12: **The cracks ARE the portals, the oak hums for the Divine Mind, and no more portal time limit** (Hayden,
   lore bible v2 part 3 items 1 to 4: "the crack ARE the portals", "the oak tree can be touched to get a hint of what to
   do next", "i dont want there to be a time limit on the portal worlds anymore"). Built and tested in the cloud.
