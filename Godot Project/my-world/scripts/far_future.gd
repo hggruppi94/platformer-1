@@ -1172,6 +1172,7 @@ func _add_banner() -> void:
 	l.outline_size = 10
 	l.modulate = Color(1.0, 0.95, 0.6)
 	l.position = Vector3(0, 2.4, 0.06)
+	l.double_sided = false                                     # (each side shows its own words, never the other's backwards)
 	m.add_child(l)
 	var back := l.duplicate() as Label3D
 	back.position.z = -0.06
@@ -1191,8 +1192,8 @@ func _add_old_oak() -> void:
 	m.global_position = ground_below(OAK_AT + Vector3(0, 1.0, 0))
 	var bark := _mat(Color(0.36, 0.26, 0.2), 0.0, 0.9)
 	var grass := _mat(Color(0.3, 0.55, 0.3), 0.0, 0.9)
-	var leaf := _mat(Color(0.45, 0.62, 0.3), 0.0, 0.8)
-	var leaf2 := _mat(Color(0.75, 0.5, 0.22), 0.0, 0.8)
+	var leaf := _mat(Color(0.36, 0.56, 0.26), 0.0, 0.8)
+	var leaf2 := _mat(Color(0.46, 0.66, 0.3), 0.0, 0.8)
 	var rune := _mat(Color(0.55, 1.0, 0.85), 1.6, 0.4)
 	_put(m, _cyl(4.2, 4.4, 0.12, 32), grass, Vector3(0, 0.06, 0))
 	_put(m, _cyl(4.4, 4.5, 0.2, 32), _mat(Color(0.5, 0.52, 0.62), 0.0, 0.6), Vector3(0, 0.02, 0))
@@ -1201,10 +1202,15 @@ func _add_old_oak() -> void:
 		var a := TAU * k / 5.0 + 0.3
 		_put(m, _cyl(0.2, 0.42, 3.4, 8), bark, Vector3(cos(a) * 1.2, 5.4, sin(a) * 1.2), Vector3.ONE, Vector3(sin(a) * 0.7, 0, -cos(a) * 0.7))
 		_put(m, _cyl(0.2, 0.45, 1.6, 8), bark, Vector3(cos(a) * 1.5, 0.25, sin(a) * 1.5), Vector3.ONE, Vector3(sin(a) * 1.2, 0, -cos(a) * 1.2))
-	var crown := [[Vector3(0, 7.6, 0), 3.6, leaf], [Vector3(2.4, 7.0, 0.8), 2.6, leaf2], [Vector3(-2.3, 7.2, -0.6), 2.7, leaf],
-		[Vector3(0.6, 7.4, -2.4), 2.5, leaf], [Vector3(-0.8, 6.8, 2.4), 2.4, leaf2], [Vector3(0.2, 9.4, 0.2), 2.4, leaf]]
-	for c in crown:
-		_put(m, _ball(float(c[1]), 12), c[2], c[0], Vector3(1.0, 0.8, 1.0))
+	# A broad, lumpy crown: lots of overlapping clumps in two greens, wider than it is tall, like an old oak's
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1893
+	_put(m, _ball(3.4, 14), leaf, Vector3(0, 7.8, 0), Vector3(1.25, 0.75, 1.25))
+	for k in 14:
+		var a := TAU * k / 14.0 + rng.randf_range(-0.2, 0.2)
+		var r := rng.randf_range(2.6, 4.2)
+		var at := Vector3(cos(a) * r, rng.randf_range(6.4, 9.0), sin(a) * r)
+		_put(m, _ball(rng.randf_range(1.4, 2.1), 10), leaf if k % 3 else leaf2, at, Vector3(1.0, 0.75, 1.0))
 	for k in 7:
 		var a := TAU * k / 7.0
 		_put(m, _box(Vector3(0.12, 0.34, 0.04)), rune, Vector3(cos(a) * 1.18, 1.0 + k * 0.45, sin(a) * 1.18), Vector3.ONE, Vector3(0, -a + PI / 2.0, 0))

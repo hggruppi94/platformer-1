@@ -344,15 +344,15 @@ func _home_beam(at: Vector3, colour: Color) -> void:
 	var b := MeshInstance3D.new()
 	b.name = "Home Beam"
 	var cm := CylinderMesh.new()
-	cm.top_radius = 0.7
-	cm.bottom_radius = 0.7
+	cm.top_radius = 0.5
+	cm.bottom_radius = 0.5
 	cm.height = 40.0
 	b.mesh = cm
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	m.albedo_color = Color(colour.r, colour.g, colour.b, 0.6)
+	m.albedo_color = Color(colour.r * 0.7, colour.g * 0.7, colour.b * 0.7, 0.4)
 	b.material_override = m
 	b.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(b)
