@@ -168,7 +168,7 @@ func _check_inside() -> void:
 	await _frames(10)
 	await _physics(6)
 	var s := current_scene
-	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Centipede/Model",
+	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Centipede/Model",
 		"Centipede/Model/Head/Spot", "The Hush", "Hush/Snoring", "Stars", "MoonClock/Moon Clock", "Piece2/Moon Piece", "Race hollow_run"]
 	for i in 4:
 		names.append("Lamp%d/Spot" % (i + 1))
@@ -196,7 +196,7 @@ func _check_inside() -> void:
 	var dd := Vector2(ch.x - player.global_position.x, ch.z - player.global_position.z).length()
 	check(cw.follow == player and dd < 5.5 and dd > 1.5, "she follows you round, a few steps behind (%.1f m)" % dd)
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["TimeStone", "WayHome", "Vein1", "Centipede", "Lamp1", "Lamp2", "Lamp3", "Lamp4", "Spout2", "Spout3", "Spout4"]:
+	for n in ["Vein1", "Centipede", "Lamp1", "Lamp2", "Lamp3", "Lamp4", "Spout2", "Spout3", "Spout4"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.2, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
@@ -437,10 +437,10 @@ func _check_home() -> void:
 	var w := current_scene
 	check(w.is_mended() and w.get_node_or_null("The Hush") == null and w.pieces_found() == 3 and w.ghosts_popped() == 8,
 		"going back, it's all still mended")
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await _wait_for_scene(TOWN)
 	await _frames(6)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void too")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void too")
 
 
 func _check_saving() -> void:

@@ -2,8 +2,9 @@ extends Node3D
 
 # The root of every portal world (plan items 19 and 19a): Shard Isle (scripts/shard_isle.gd), and the chosen ones'
 # home worlds as they're built. It puts in what every world has, at markers its builder made:
-#   WayHome    a portal back to the Void, free and open any time (Portals.go_home())
-#   TimeStone  a crystal where Remnants buy more time (Portals.add_time())
+#   WayHome    a crack back to the Void, open any time: jump in (Portals.go_home())
+#   TimeStone  nothing now: it was a crystal where Remnants bought more time, and there's no time limit since
+#              12 Nov 2026 (Hayden). The builders' markers are left alone.
 #   Vein*      small Remnant veins: with Bramble's harvesting tool they give a couple of Remnants once a Void day
 # and it catches the player if they fall off the edge (below fall_below), putting them back where they last stood
 # safely. A world's own script extends this one and adds its goal, calling Portals.clear(world_id) when it's done.
@@ -47,14 +48,17 @@ func info() -> Dictionary:
 
 
 func _place_shared() -> void:
-	var colour: Color = info().get("colour", Color(0.6, 1.0, 0.8))
 	var home := get_node_or_null("WayHome") as Node3D
 	if home:
-		_way_home = Portals.portal_model(Color(1.0, 0.85, 0.55))
+		# A crack in the ground, gold like the way home always was: jump in to go back to the Void. It sits on the
+		# ground under the marker (the ground's found at play time) and the ground's cut away under it.
+		_way_home = Portals.portal_model(Color(1.0, 0.85, 0.55), _jump_home)
 		_way_home.name = "Way Home"
 		home.add_child(_way_home)
-		var spot := USE_SPOT.make(Vector3(0, 0, -1.2), func() -> String: return "go home to the Void",
-			func() -> void: Portals.go_home(), 2.8, 4.2)
+		_way_home.global_position = _ground_under(home.global_position)
+		Portals.CRACK.sink(_way_home, self)
+		var spot := USE_SPOT.make(Vector3(0, 0, -(Portals.CRACK.R + 1.0)), func() -> String: return "jump in to go home to the Void",
+			func() -> void: Portals.CRACK.drop_player(_way_home), 2.4, 3.0)
 		spot.name = "Spot"
 		_way_home.add_child(spot)
 		var sign := Label3D.new()
@@ -63,18 +67,10 @@ func _place_shared() -> void:
 		sign.pixel_size = 0.01
 		sign.outline_size = 12
 		sign.modulate = Color(1, 0.95, 0.75)
-		sign.position = Vector3(0, 5.6, 0)
+		sign.position = Vector3(0, 2.6, 0)
 		sign.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
 		_way_home.add_child(sign)
-		_way_home.rotation.y = PI                  # facing in, so you see its front as you turn round
-	var stone := get_node_or_null("TimeStone") as Node3D
-	if stone:
-		var g := time_stone_model(colour)
-		g.name = "Time Stone"
-		stone.add_child(g)
-		var spot := USE_SPOT.make(Vector3.ZERO, _stone_offer, _use_stone, 2.2, 2.6)
-		spot.name = "Spot"
-		g.add_child(spot)
+		_way_home.rotation.y = PI                  # its edge spot facing in, towards the world
 	for m in get_children():
 		if m is Marker3D and str(m.name).begins_with("Vein"):
 			var v := Remnants.vein_model()
@@ -88,9 +84,25 @@ func _place_shared() -> void:
 			_show_vein(m)
 
 
+func _jump_home() -> void:
+	Portals.go_home()
+
+
+func _ground_under(p: Vector3) -> Vector3:
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(p + Vector3(0, 20, 0), p + Vector3(0, -30, 0))
+	var hit := space.intersect_ray(q)
+	return hit.position if hit else p
+
+
 func _physics_process(delta: float) -> void:
 	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
 	if player == null or has_meta("preview"):
+		return
+	if is_instance_valid(_way_home) and not _way_home.has_meta("falling") and player.global_position.y < _way_home.global_position.y - 0.8 \
+			and Vector2(player.global_position.x - _way_home.global_position.x,
+				player.global_position.z - _way_home.global_position.z).length() < Portals.CRACK.R:
+		Portals.CRACK.fall_in(_way_home, player, _jump_home)     # (down the way home however they got in)
 		return
 	if player.global_position.y < fall_below:
 		player.global_position = _safe + Vector3(0, 0.5, 0)
@@ -103,23 +115,6 @@ func _physics_process(delta: float) -> void:
 	if _safe_timer <= 0.0 and player.is_on_floor():
 		_safe_timer = 0.5
 		_safe = player.global_position
-
-
-# The Time Stone ----------------------------------------------------------------
-func _stone_offer() -> String:
-	return "add a minute of portal time (%s)" % Remnants.words(1) if Remnants.count > 0 else "look at the Time Stone"
-
-
-func _use_stone() -> void:
-	if Remnants.count <= 0:
-		Game.message("The Time Stone hums. Give it a Remnant and it holds the portal open a minute longer. (You have none yet.)")
-		Audio.play("ui_back", -8.0)
-		return
-	if Portals.add_time(1):
-		var g := get_node_or_null("TimeStone/Time Stone") as Node3D
-		if g:
-			Fx.burst(self, g.global_position + Vector3(0, 1.4, 0), Color(0.55, 1.0, 0.35), 16, 0.06, 2.5, -2.0, 0.8)
-		Juice.blip("chime", 1.3, -6.0)
 
 
 # Remnant veins ----------------------------------------------------------------
@@ -162,52 +157,3 @@ func _show_vein(m: Node3D) -> void:
 	(v.get_node("Stubs") as Node3D).visible = not full
 	(v.get_node("Glow") as OmniLight3D).visible = full
 
-
-# Looks ----------------------------------------------------------------------
-static func time_stone_model(colour: Color) -> Node3D:
-	# A waist-high obsidian stone with an hourglass-shaped crystal floating over it
-	var g := Node3D.new()
-	var base := MeshInstance3D.new()
-	var c := CylinderMesh.new()
-	c.top_radius = 0.45
-	c.bottom_radius = 0.6
-	c.height = 1.0
-	c.radial_segments = 6
-	base.mesh = c
-	base.material_override = Remnants.obsidian_mat()
-	base.position.y = 0.5
-	g.add_child(base)
-	var gem := Remnants.crystal_mat()
-	gem.albedo_color = colour
-	gem.emission = colour
-	for k in 2:
-		var half := MeshInstance3D.new()
-		half.mesh = Remnants.crystal_mesh(0.28, 0.45)
-		half.material_override = gem
-		half.position.y = 1.55 + (0.22 if k == 0 else -0.22)
-		half.rotation.x = 0.0 if k == 0 else PI
-		g.add_child(half)
-	var body := StaticBody3D.new()
-	var cs := CollisionShape3D.new()
-	var cy := CylinderShape3D.new()
-	cy.radius = 0.55
-	cy.height = 1.0
-	cs.shape = cy
-	cs.position.y = 0.5
-	body.add_child(cs)
-	g.add_child(body)
-	var sign := Label3D.new()
-	sign.text = "Time Stone"
-	sign.font_size = 40
-	sign.pixel_size = 0.01
-	sign.outline_size = 10
-	sign.position.y = 2.3
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	g.add_child(sign)
-	var light := OmniLight3D.new()
-	light.light_color = colour
-	light.light_energy = 1.0
-	light.omni_range = 4.0
-	light.position.y = 1.6
-	g.add_child(light)
-	return g

@@ -76,7 +76,7 @@ static func lines() -> Array[String]:
 		out.append("The Void: day %d, %s" % [Clock.day, Clock.time_string()])
 		out.append("The Shift: %s of the Void's day left before the portal pulls you home" % _span(left))
 	elif Clock.on_earth:
-		out.append("The portal by the old oak opens at midnight: %s to go" % _span(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
+		out.append("The crack by the old oak opens at midnight: %s to go" % _span(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 		if Festival.is_festival_day() and not Festival.is_on() and Clock.earth_minutes < Festival.start_time():
 			out.append("The %s starts at %d PM today, on the green" % [Festival.fair_name(), int(Festival.fair().start) - 12])
 		elif Festival.is_on():

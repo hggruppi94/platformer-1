@@ -53,6 +53,7 @@ RideUpgrades="*res://scripts/ride_upgrades.gd"
 Remnants="*res://scripts/remnants.gd"
 Farm="*res://scripts/farm.gd"
 Portals="*res://scripts/portals.gd"
+DivineMind="*res://scripts/divine_mind.gd"
 
 [display]
 

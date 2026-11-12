@@ -134,7 +134,8 @@ func _run() -> void:
 	var door := current_scene.find_child("PortalToGalaxity", true, false)
 	check(not oak.awake() and str(door.get("closed_message")).contains("old oak"), "the oak's door is shut on the first day")
 	check(current_scene.find_child("Portal Ring", true, false) == null and current_scene.find_child("Old Oak", true, false) != null,
-		"no ring in the park: the door's in the old oak")
+		"no ring in the park, just the old oak")
+	check(current_scene.get("crack") == null, "...and no crack in front of it before it wakes (no spoilers)")
 
 	# --- Fewer things to collect at first ---
 	check(fn.held_back(2), "a new game holds things back on the first night")

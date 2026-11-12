@@ -97,7 +97,7 @@ func _check_quake() -> void:
 	if p == null:
 		return
 	var w: Dictionary = portals.world("tide_reef")
-	var ground: Vector3 = rem.ground_at(w.at)
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(3.0, 0.0))      # (beside the crack: its middle is a hole)
 	check(absf(p.global_position.y - ground.y) < 0.05, "...standing on the ground")
 	check(w.at.x > 40.0 and w.at.y > 17.0 and w.at.y < 36.0, "...by the lake's south-east shore (%s)" % w.at)
 	var worst := 0.0
@@ -155,7 +155,7 @@ func _check_quake() -> void:
 	check(apart > 20.0, "...and well apart from the other portals (%.0f m)" % apart)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the lake and town")
-	check(portals._portal_offer("tide_reef") == "step through to The Tide Reef", "it offers a trip to the Tide Reef (%s)" % portals._portal_offer("tide_reef"))
+	check(portals._portal_offer("tide_reef") == "look down the crack to The Tide Reef", "it offers a trip to the Tide Reef (%s)" % portals._portal_offer("tide_reef"))
 
 
 func _check_inside() -> void:
@@ -164,7 +164,7 @@ func _check_inside() -> void:
 	await _physics(4)
 	var s := current_scene
 	check(s.scene_file_path == WORLD and portals.here == "tide_reef", "stepping through takes you to the Tide Reef")
-	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Otto the Octopus/Model",
+	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Otto the Octopus/Model",
 		"Otto the Octopus/Spot", "Vault/Spot", "Clam Vault/Lid", "BubblePad/Spot", "Pearl3/Tide Pearl", "RideTop/Spot",
 		"BubbleRide", "The Riptide Gloop", "RiptideGloop/Snoring", "RiptideGloop/Spot", "Tide Pools", "Sea Life", "Corals",
 		"Coral Spire", "Kelp Grotto", "Deep Basin", "OttoPerch"]
@@ -178,7 +178,7 @@ func _check_inside() -> void:
 	var player := s.get_tree().get_first_node_in_group("player") as CharacterBody3D
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["TimeStone", "WayHome", "Vein1", "Otto", "Vault", "Hole1", "Hole2", "Hole3", "BubblePad", "Pearl3", "RideTop", "OttoPerch", "RiptideGloop"]:
+	for n in ["Vein1", "Otto", "Vault", "Hole1", "Hole2", "Hole3", "BubblePad", "Pearl3", "RideTop", "OttoPerch", "RiptideGloop"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.4, 0), at + Vector3(0, -1.2, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
@@ -573,11 +573,11 @@ func _check_swim() -> void:
 
 
 func _check_home() -> void:
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await create_timer(1.0).timeout
 	await _frames(14)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void")
 	var p := current_scene.get_node_or_null("Portals/Portal tide_reef") as Node3D
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
 	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by the Tide Reef's portal")

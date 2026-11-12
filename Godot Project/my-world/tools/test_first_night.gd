@@ -190,7 +190,7 @@ func _run() -> void:
 	await _frames(4)
 	check(clock.in_shift() and _step() == "awaken", "slept until the Shift: it's midnight (%s, %s)" % [clock.earth_time_string(), _step()])
 	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
-	check(str(door.get("closed_message")) != "", "...but the oak's door doesn't open till they go and see it")
+	check(str(door.get("closed_message")) != "" and current_scene.get("crack") == null, "...but the oak doesn't open till they go and see it")
 	# --- The reveal ---
 	p = current_scene.find_child("Player", true, false) as CharacterBody3D
 	p.global_position = door.global_position + door.global_basis.z * 8.0
@@ -201,11 +201,13 @@ func _run() -> void:
 	check(not oak_mod.revealing and dialogue.flags.has("oak_woken") and p.get("input_locked") == false, "the reveal ends, and off they go")
 	check(get_root().get_viewport().get_camera_3d() == p.find_child("Camera3D", true, false), "...with their own camera back")
 	await _frames(4)
-	check(_step() == "shift" and oak_mod.awake() and str(door.get("closed_message")) == "", "the door in the oak is open")
-	var swirl := current_scene.find_child("Portal Swirl", true, false) as Node3D
-	check(swirl.visible, "...and swirling")
+	check(_step() == "shift" and oak_mod.awake() and str(door.get("closed_message")) == "", "the way to the Void is open")
+	await create_timer(3.0).timeout
+	var crack := current_scene.get("crack") as Node3D
+	check(crack != null and crack.get_meta("open", 0.0) > 0.9, "...a crack has split the ground open in front of the oak")
+	check(door.global_position.distance_to(crack.global_position) < 1.5 if crack else false, "...and the way through is down it")
 	lines = await _talk("nina_earth")
-	check(_said(lines, "walk right into it"), "Nina: go on, into the oak")
+	check(_said(lines, "jump in"), "Nina: go on, jump in")
 
 	# --- Through the portal: the arrival moment ---
 	var watch_before: bool = game.has_item("shop:shift_watch")

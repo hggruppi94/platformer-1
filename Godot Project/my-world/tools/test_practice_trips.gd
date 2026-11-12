@@ -93,10 +93,7 @@ func _run() -> void:
 	check(portals.practice_trip("frozen_moment"), "a practice trip to the Frozen Moment starts anyway")
 	await _arrive("res://scenes/portal_worlds/frozen_moment.tscn")
 	check(portals.here == "frozen_moment" and portals.practice, "...and the player is there, on a practice trip")
-	check(portals.timer_text().contains("no time limit"), "the timer says there's no time limit")
-	var t: float = portals.time_left
-	await create_timer(2.0).timeout
-	check(is_equal_approx(portals.time_left, t), "...and the time doesn't run down")
+	check(portals.card_text().contains("practice trip"), "a card says it's a practice trip")
 	check(game.hold_saves, "saving is held on a practice trip")
 	game.sparkles = 999
 	portals.note_found("frozen_moment", "test_thing")
@@ -119,7 +116,7 @@ func _run() -> void:
 	check(not portals.is_cleared("frozen_moment") and not portals.is_open("frozen_moment")
 		and not portals.has_found("frozen_moment", "test_thing"), "...the world isn't mended or open in the real game")
 	check(player != null and player.global_position.distance_to(was_at) < 1.5, "...and the player's back where they were")
-	check(portals.here == "" and portals.timer_text() == "", "no timer back home")
+	check(portals.here == "" and portals.card_text() == "", "no practice card back home")
 
 	# --- a world already mended plays from the start; and leaving some other way also ends the trip
 	portals.quakes.append("shard_isle")

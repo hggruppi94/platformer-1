@@ -92,6 +92,30 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **The cracks ARE the portals, the oak hums for the Divine Mind, and no more portal time limit** (Hayden,
+  lore bible v2 part 3 items 1 to 4: "the crack ARE the portals", "the oak tree can be touched to get a hint of what to
+  do next", "i dont want there to be a time limit on the portal worlds anymore"). Built and tested in the cloud.
+  - **`scripts/crack.gd`** (no class_name, preload it): one crack model for every way between worlds. `make(colour,
+    on_fall)` builds the glowing hole (lips, shaft, swirl and lights at the bottom, a "Lid" of cracked earth when shut,
+    a "Fall" area that drops you through when open). `sink(g, scene)` cuts a real hole in the ground with
+    `scripts/ground_hole.gd` (which can now also sink a HeightMapShape3D's points: the Earth town's ground) and lays a
+    rim of broken earth with fissures over the cut. `set_open(g, k)`, `fall_in(g, player, then)`, `drop_player(g)`.
+  - **Portal worlds** (`scripts/portals.gd`): every world's portal in the Void is a crack you jump into (walk in, or
+    "look down the crack" and choose "Jump in!"). No rising portal, no ring. The way home in each world is a gold crack
+    (`portal_world.gd`), and the Time Stone is gone. **No timer**: FREE_SECONDS, buying time with Remnants, the timer
+    HUD and `time_left` in the save are all gone (Remnants stay as money). A practice trip shows only a small card.
+  - **Earth** (`earth_world.gd`): from midnight to 1 AM a crack splits the ground open in front of the old oak (2.9 m
+    out, the door to the Void down inside it), closing over with cracked earth at 1 AM. No crack exists before the first
+    Shift it opens in (no spoilers); after that (flag `earth_crack_seen`) it's always there, shut or open. **The Void's
+    Portal to Earth** (`portal.gd`) is a crack too, open in the Shift; the ring and its stone base are hidden/removed at
+    run time.
+  - **`scripts/divine_mind.gd`** (autoload `DivineMind`): "A voice in your mind" (never named in the game). `say(lines)`
+    shows its words softly at the top of the screen a line at a time without stopping play. It speaks when a crack
+    opens, when a world is mended and at the oak. **Touching the Humming Oak** (`humming_oak.gd` `touch_lines()`): the
+    hum, the first time "Don't be afraid. I chose you...", then `DivineMind.hint()`: an open crack, else your current
+    quest goal, else rest. It never looks ahead.
+  - Tests: new `tools/test_cracks.gd`; the portal, world, Earth and First Night tests are updated for cracks and no timer.
+
 - 2026-11-11: **The hero changes a little in the Void: their watch, glowing eyes and an alien feature** (Hayden: "maybe
   there is another way we can change the characters when they enter the void? Adding watches to their wrists etc",
   then "Yes to the void changes"). Built and tested in the cloud (own Godot user folders, no save touched).
