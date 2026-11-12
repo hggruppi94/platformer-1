@@ -18,6 +18,7 @@ extends Node
 #     (Dialogue flag "read_palmer_letter"; he has a line about his "pen pal").
 # - The season (scripts/seasons.gd, a "Seasons" node): the town's leaves, ground, roofs and pond, and what's in the air.
 # - The Season Dial by the old oak (scripts/season_dial.gd), once a second season's open: pick any season you've got.
+# - Coming home from the Void: a soft, dreamy moment of deja vu (scripts/deja_vu.gd).
 
 const EARTH := "res://scenes/earth/earth.tscn"
 # Shop spots: the stall, the building, and where in its own space (+Z is its front; the walk-in ones' floors are
@@ -72,6 +73,10 @@ func _ready() -> void:
 	var dial := (load("res://scripts/season_dial.gd") as GDScript).new() as Node
 	dial.name = "SeasonDial"
 	add_child(dial)
+	# The fuzzy deja vu of coming home from the Void (scripts/deja_vu.gd), as "EarthTown/DejaVu"
+	var deja := (load("res://scripts/deja_vu.gd") as GDScript).new() as Node
+	deja.name = "DejaVu"
+	add_child(deja)
 
 
 func _on_scene_changed() -> void:

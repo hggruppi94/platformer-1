@@ -1,5 +1,8 @@
 extends "res://scripts/portal_world.gd"
 
+# Since 12 Nov 2026 Glenmoor is the fifth portal world: Hayden swapped spring and summer, so Glenmoor comes
+# before the Tide Reef and Rhythm Springs after it (scripts/portals.gd quake_due).
+#
 # Glenmoor, Heather's home world (plan item 19a world 6; scene built by tools/build_glenmoor.gd). Misty highland hills,
 # purple heather, dry stone walls and fluffy highland critters: home of Heather the cattle girl and her best friend
 # Isla. (Heather's from the farm in Glenmoor's lowlands and Isla from up the glen: one Southern, one Scottish, the
