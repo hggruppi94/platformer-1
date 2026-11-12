@@ -6,7 +6,8 @@ extends Node
 # Before this, every friend's move went straight onto the hero with a button of its own, and on a controller the
 # on-foot buttons had grown to 18. Now the five moves that need a button (Bramble's Burrow, Flurry's Frost breath,
 # Heather's April Showers, Melody's Groove, Nina and Bruno's Make) are done by ONE Friend button (Z, RB): whoever's
-# walking with you does theirs. Switch friend (X, D-pad left) swaps to the next friend who's joined. Moves with no
+# walking with you does theirs. Switch friend (X, LB) swaps to the next friend who's joined with a tap, and held opens
+# the friend wheel (scripts/friend_wheel.gd) to pick anyone; the HUD shows their face (scripts/friend_face.gd). Moves with no
 # button (Pip's glow, Otto's swim, the centipede's wall crawl, Heather's Spring Step, Dash's kinetic energy) stay the
 # hero's for good: nothing about them changes.
 #
@@ -48,6 +49,8 @@ const RECORD := "party_join"
 const WATER_AHEAD := [2.0, 4.0, 6.0]           # metres in front of you Flurry looks for water to freeze
 const HINT_AFTER := 4.0                         # seconds in town before "Bramble wants a word" (once)
 const CARD_TIME := 3.5
+const HOLD := 0.2                               # holding Switch friend this long opens the friend wheel; a tap switches
+const SLOW := 0.2                               # the game's speed while the wheel's open (like the outfit wheel)
 
 var joined: Array = []                          # friend ids, in the order they joined
 var with_you := ""                              # who's walking with you ("" nobody)
@@ -61,12 +64,22 @@ var _tick := 0.0
 var _card: CanvasLayer
 var _card_label: Label
 var _card_left := 0.0
+var wheel: FriendWheel                          # the friend wheel (scripts/friend_wheel.gd)
+var _wheel_layer: CanvasLayer
+var _pressed := false
+var _held := 0.0
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Dialogue.flag_set.connect(_on_flag)
 	_make_card()
+	_wheel_layer = CanvasLayer.new()
+	_wheel_layer.layer = 34
+	add_child(_wheel_layer)
+	wheel = FriendWheel.new()
+	wheel.name = "Friend Wheel"
+	_wheel_layer.add_child(wheel)
 
 
 # ----------------------------------------------------------------------------- who's who
@@ -118,12 +131,26 @@ func join(id: String, quiet := false) -> void:
 
 func switch(step := 1) -> String:
 	# Switch friend: round everyone who's joined, and nobody
-	var ring: Array = ORDER.filter(func(i: String) -> bool: return has_joined(i))
-	if ring.is_empty():
+	var r := ring()
+	if r.is_empty():
 		return with_you
-	ring.append("")
-	var at := ring.find(with_you)
-	with_you = str(ring[posmod(at + step, ring.size())])
+	var at := r.find(with_you)
+	return pick(str(r[posmod(at + step, r.size())]))
+
+
+func ring() -> Array:
+	# Who Switch friend and the wheel go round: everyone who's joined, in ORDER, then nobody
+	var r: Array = ORDER.filter(func(i: String) -> bool: return has_joined(i))
+	if not r.is_empty():
+		r.append("")
+	return r
+
+
+func pick(id: String) -> String:
+	# Make this friend (or nobody) the one walking with you
+	if id != "" and not has_joined(id):
+		return with_you
+	with_you = id
 	visiting = ""
 	_show_card()
 	Juice.blip("pop", 1.1, -6.0)
@@ -213,15 +240,124 @@ func _process(delta: float) -> void:
 	if _card:
 		_card.visible = _card_left > 0.0
 	var player := get_tree().get_first_node_in_group("player")
-	if player and not get_tree().paused and Input.is_action_just_pressed("friend_wheel") \
-			and not player.get("input_locked") and _in_void() and joined.size() >= 2:
-		switch()
+	if player and not player.has_node("FriendFace"):
+		var face := CanvasLayer.new()
+		face.set_script(load("res://scripts/friend_face.gd"))
+		face.name = "FriendFace"
+		player.add_child(face)
+	_wheel_input(delta)
 	_tick -= delta
 	if _tick > 0.0:
 		return
 	_tick = 0.25
 	_keep_followers()
 	_hints(0.25)
+
+
+# ----------------------------------------------------------------------------- the friend wheel
+func wheel_ok() -> bool:
+	# Switch friend works out in the Void, with two or more friends to pick from, but not in a talk, a menu, the
+	# creator, a cutscene or with another wheel up
+	var p := get_tree().get_first_node_in_group("player")
+	if p == null or p.get("input_locked") or p.get("carried") or get_tree().paused:
+		return false
+	if joined.size() < 2 or not _in_void():
+		return false
+	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or PauseMenu.is_open():
+		return false
+	if QuickOutfits.wheel and QuickOutfits.wheel.open:
+		return false
+	var gw: Node = p.find_child("GadgetWheel", true, false)
+	return not (gw and gw.get("open"))
+
+
+func _wheel_input(delta: float) -> void:
+	# A tap of Switch friend goes to the next friend; holding it opens the wheel, and letting go picks
+	var real := delta / maxf(Engine.time_scale, 0.01)        # the wheel's own timing ignores the slow-down
+	if not InputMap.has_action("friend_wheel"):
+		return
+	if not wheel_ok():
+		if wheel.open:
+			close_wheel(false)
+		_pressed = false
+		_held = 0.0
+		return
+	if Input.is_action_just_pressed("friend_wheel"):
+		_pressed = true
+		_held = 0.0
+	if _pressed and Input.is_action_pressed("friend_wheel"):
+		_held += real
+		if _held >= HOLD and not wheel.open:
+			open_wheel()
+	elif _pressed:
+		_pressed = false
+		if wheel.open:
+			close_wheel(true)
+		else:
+			switch()
+	if wheel.open:
+		var stick := Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+		var left := Vector2(Input.get_joy_axis(0, JOY_AXIS_LEFT_X), Input.get_joy_axis(0, JOY_AXIS_LEFT_Y))
+		if left.length() > stick.length():
+			stick = left
+		var moved := false
+		if stick.length() > 0.5:
+			moved = wheel.point(stick.angle())
+		elif wheel.mouse.length() > FriendWheel.PICK:
+			moved = wheel.point(wheel.mouse.angle())
+		if moved:
+			Audio.play("ui_move", -10.0, 0.0)
+
+
+func open_wheel() -> void:
+	wheel.slots = ring()
+	wheel.hover = maxi(wheel.slots.find(with_you), 0)
+	wheel.mouse = Vector2.ZERO
+	wheel.open = true
+	Engine.time_scale = SLOW
+	Audio.play("ui_move", -6.0, 0.0)
+	wheel.queue_redraw()
+
+
+func close_wheel(take: bool) -> void:
+	wheel.open = false
+	Engine.time_scale = Settings.game_speed       # back to the speed in Settings > Assist
+	wheel.queue_redraw()
+	if take:
+		Audio.play("ui_accept", -6.0, 0.0)
+		pick(wheel.picked())
+
+
+func _exit_tree() -> void:
+	if wheel and wheel.open:
+		Engine.time_scale = Settings.game_speed
+
+
+# ----------------------------------------------------------------------------- the face on the HUD
+func badge_wanted() -> bool:
+	# The HUD's friend badge (scripts/friend_face.gd): once someone's joined, wherever their move works, and not over
+	# a talk, a menu or a wheel
+	var p := get_tree().get_first_node_in_group("player")
+	if p == null or joined.is_empty() or (badge_who() == "" and not _in_void()):
+		return false
+	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or PauseMenu.is_open():
+		return false
+	if wheel.open or (QuickOutfits.wheel and QuickOutfits.wheel.open):
+		return false
+	return get_tree().get_nodes_in_group("cutscene_playing").is_empty()
+
+
+func badge_who() -> String:
+	# Whose face is on it: whoever's along in the Void, Nina and Bruno on Earth
+	if not _in_void():
+		return "nina_bruno" if has_joined("nina_bruno") else ""
+	return current()
+
+
+func helper() -> String:
+	# Someone who isn't along but would answer the Friend button right here (Flurry by water), for the face bubble
+	var who := _who_for(get_tree().get_first_node_in_group("player"))
+	return who if who != "" and who != badge_who() else ""
 
 
 func _keep_followers() -> void:
@@ -329,9 +465,9 @@ func _make_card() -> void:
 	panel.anchor_left = 0.0
 	panel.anchor_top = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = 24.0
-	panel.offset_top = -170.0
-	panel.offset_bottom = -120.0
+	panel.offset_left = 112.0                    # beside the friend badge (scripts/friend_face.gd)
+	panel.offset_top = -205.0
+	panel.offset_bottom = -155.0
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.theme_type_variation = &"Card"
 	_card.add_child(panel)
@@ -343,7 +479,7 @@ func _make_card() -> void:
 func card_text() -> String:
 	var who := with_you
 	if who == "":
-		return "Nobody's with you.  (%s: switch friend)" % Settings.prompt("friend_wheel")
+		return "Nobody's with you.  (%s: switch friend, hold it for the wheel)" % Settings.prompt("friend_wheel")
 	var f := friend(who)
 	return "%s with you.  %s: %s" % [str(f.name) + (" are" if who == "nina_bruno" else " is"), Settings.prompt("friend"), f.verb]
 

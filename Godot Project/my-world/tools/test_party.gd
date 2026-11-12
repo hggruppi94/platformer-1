@@ -35,6 +35,17 @@ func check(ok: bool, what: String) -> void:
 		failures += 1
 
 
+class Talker extends Node3D:
+	# The least a talker needs for Dialogue.say()
+	var display_name := "Tester"
+
+	func begin_talk() -> void:
+		pass
+
+	func end_talk() -> void:
+		pass
+
+
 func _initialize() -> void:
 	create_timer(300.0, true, false, true).timeout.connect(func() -> void:
 		print("RESULT FAILED (timed out)")
@@ -67,6 +78,7 @@ func _run() -> void:
 	_check_joining()
 	await _check_town()
 	await _check_water()
+	await _check_wheel()
 	await _check_portal_world()
 	await _check_home_world()
 	await _check_earth()
@@ -83,10 +95,34 @@ func _check_buttons() -> void:
 		check(settings.prompt(a) == settings.prompt("friend"), "...a line saying {%s} says the Friend button" % a)
 	check(settings.default_bindings().get("friend") == KEY_Z and settings.default_pad_bindings().get("friend") == JOY_BUTTON_RIGHT_SHOULDER,
 		"Friend is Z and RB")
-	check(settings.default_bindings().get("friend_wheel") == KEY_X and settings.default_pad_bindings().get("friend_wheel") == JOY_BUTTON_DPAD_LEFT,
-		"Switch friend is X and D-pad left")
+	check(settings.default_bindings().get("friend_wheel") == KEY_X and settings.default_pad_bindings().get("friend_wheel") == JOY_BUTTON_LEFT_SHOULDER,
+		"Switch friend (and its wheel) is X and LB")
 	var on_foot: Array = settings.PAD_GROUPS[0]
-	check(on_foot.size() == 15, "the on-foot controller actions are down from 18 to %d" % on_foot.size())
+	check(on_foot.size() == 13, "the on-foot controller actions are down from 18 to %d" % on_foot.size())
+	# One menu: the quests and the map are its tabs, with no controller buttons of their own
+	for a in ["quest_log", "map"]:
+		check(settings.default_pad_bindings().get(a, -1) < 0 and not settings.PAD_REBINDABLE.any(func(q: Array) -> bool: return q[0] == a),
+			"%s has no controller button of its own (it's a tab of the menu on Back)" % a)
+	var was_device: String = settings.last_device
+	settings.last_device = "pad"
+	check(settings.prompt("map") == "Back" and settings.prompt("quest_log") == "Back", "on a controller, the map and quests say Back")
+	settings.last_device = "keyboard"
+	check(settings.prompt("map") == "M" and settings.prompt("quest_log") == "Q", "on a keyboard M and Q still go straight to their tabs")
+	settings.last_device = was_device
+	# Old settings: the map's LB goes to the friend wheel, and D-pad left goes back to picking gadgets
+	var keep_pads: Dictionary = settings.pad_bindings.duplicate()
+	settings.pad_bindings["map"] = JOY_BUTTON_LEFT_SHOULDER
+	settings.pad_bindings["quest_log"] = -1
+	settings.pad_bindings["friend_wheel"] = JOY_BUTTON_DPAD_LEFT
+	settings._one_menu()
+	check(settings.pad_bindings["map"] == -1 and settings.pad_bindings["friend_wheel"] == JOY_BUTTON_LEFT_SHOULDER,
+		"old settings: the map's LB becomes the friend wheel")
+	settings.pad_bindings["map"] = JOY_BUTTON_LEFT_SHOULDER
+	settings.pad_bindings["friend_wheel"] = JOY_BUTTON_DPAD_LEFT
+	settings.pad_bindings["jump"] = JOY_BUTTON_LEFT_SHOULDER
+	settings._one_menu()
+	check(settings.pad_bindings["friend_wheel"] == JOY_BUTTON_DPAD_LEFT, "...unless the player's put something else on LB")
+	settings.pad_bindings = keep_pads
 	var clash := ""
 	var pads: Dictionary = settings.default_pad_bindings()
 	for a in on_foot:
@@ -233,6 +269,71 @@ func _check_water() -> void:
 	party.with_you = "bramble"
 	await _physics(30)
 	check(hub == null or hub.visible, "back to Bramble: Flurry's back on the plaza")
+
+
+func _check_wheel() -> void:
+	# The friend's face on the HUD, its bubble, and the wheel
+	var p := _player()
+	var face := p.get_node_or_null("FriendFace")
+	check(face != null, "the friend badge is on the player's HUD")
+	if face == null:
+		return
+	party.with_you = "bramble"
+	await _frames(12)
+	check(face.badge_shown() and face.shown == "bramble", "...showing Bramble's face (%s)" % face.shown)
+	check(face.helper == "flurry", "by water, a bubble with Flurry's face says she could help (%s)" % face.helper)
+	var keep_pos := p.global_position
+	p.global_position = Vector3(0, 30, -60)
+	await _frames(12)
+	check(face.helper == "", "...and it goes away away from the water")
+	p.global_position = keep_pos
+	party.with_you = ""
+	await _frames(12)
+	check(face.badge_shown() and face.shown == "", "nobody along: an empty badge")
+	party.with_you = "bramble"
+	var talker := Talker.new()
+	current_scene.add_child(talker)
+	dialogue.say(talker, "Tester", ["Hello!"], "")
+	await _frames(12)
+	check(not face.badge_shown(), "...not over a talk")
+	dialogue.end()
+	talker.queue_free()
+	await create_timer(0.5, true, false, true).timeout      # (a talk lets go of the controls a moment after)
+	await _frames(4)
+	check(party.wheel_ok(), "after the talk, the wheel works")
+	# A tap of Switch friend goes to the next one
+	var ring: Array = party.ring()
+	check(ring == ["bramble", "flurry", ""], "the ring is everyone who's joined, then nobody (%s)" % [ring])
+	Input.action_press("friend_wheel")
+	await _frames(2)
+	Input.action_release("friend_wheel")
+	await _frames(2)
+	check(party.with_you == "flurry" and not party.wheel.open, "a tap: the next friend (Flurry), no wheel")
+	# Holding it opens the wheel, slowed down; pointing and letting go picks
+	Input.action_press("friend_wheel")
+	await create_timer(0.4, true, false, true).timeout
+	await _frames(2)
+	check(party.wheel.open and is_equal_approx(Engine.time_scale, party.SLOW), "holding it opens the friend wheel, the game slowed")
+	check(party.wheel.picked() == "flurry", "...pointing at whoever's with you to start")
+	party.wheel.point(party.wheel.slot_angle(ring.find("bramble")))
+	check(party.wheel.picked() == "bramble", "pointing picks Bramble")
+	Input.action_release("friend_wheel")
+	await _frames(2)
+	check(not party.wheel.open and party.with_you == "bramble" and Engine.time_scale == root.get_node("Settings").game_speed,
+		"letting go: Bramble's with you and the game's back to speed")
+	Input.action_press("friend_wheel")
+	await create_timer(0.4, true, false, true).timeout
+	await _frames(2)
+	party.wheel.point(party.wheel.slot_angle(ring.size() - 1))
+	Input.action_release("friend_wheel")
+	await _frames(2)
+	check(party.with_you == "", "picking Nobody on the wheel")
+	root.get_node("PlayerMenu").open("quests")
+	await _frames(2)
+	check(not party.wheel_ok(), "no wheel with the menu open")
+	root.get_node("PlayerMenu").close()
+	await _frames(2)
+	party.with_you = "bramble"
 
 
 func _check_portal_world() -> void:

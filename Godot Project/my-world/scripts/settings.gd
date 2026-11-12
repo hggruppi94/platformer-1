@@ -13,22 +13,25 @@ const PATH := "user://settings.cfg"
 const REBINDABLE := [
 	["move_forward", "Move forward"], ["move_back", "Move back"], ["move_left", "Move left"],
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
-	["gadget_wheel", "Gadget wheel"], ["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Switch friend"],
+	["gadget_wheel", "Gadget wheel"], ["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Friend wheel"],
 	["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
-	["quest_log", "Quest log"], ["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"],
+	["player_menu", "Player menu"], ["quest_log", "Menu: Quests"], ["map", "Menu: Map"], ["check_watch", "Check your watch"],
 	["pause", "Pause"],
 ]
 
 # Controller buttons the player can change, in menu order. The sticks stay where they are. Some buttons do two jobs
 # (X rolls on foot and flips on the board), so a button only clashes with actions used at the same time (PAD_GROUPS).
+# The quests and the map are tabs of the one menu on Back (scripts/player_menu.gd), so on a controller they have no
+# buttons of their own any more (the design doc's "three menus into one"); the keyboard keeps Q and M as shortcuts
+# straight to those tabs, since they cost nothing there.
 const PAD_REBINDABLE := [
 	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["gadget_wheel", "Gadget wheel"],
-	["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Switch friend"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"], ["quest_log", "Quest log"],
-	["map", "Map"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
+	["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Friend wheel"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
+	["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "friend", "friend_wheel", "toggle_skateboard", "interact", "quest_log", "map", "player_menu", "check_watch", "pause"],   # on foot
-	["jump", "aim", "shoot", "gadget_wheel", "outfit_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "quest_log", "map", "player_menu", "check_watch", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
+	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "friend", "friend_wheel", "toggle_skateboard", "interact", "player_menu", "check_watch", "pause"],   # on foot
+	["jump", "aim", "shoot", "gadget_wheel", "outfit_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "player_menu", "check_watch", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
 ]
 # The friends' moves (plan item 26, scripts/party.gd): none has a button of its own any more. The friend walking with
 # you does theirs when you press Friend, so a prompt for any of them says the Friend button (prompt(), key_name()).
@@ -198,11 +201,11 @@ func prompt(action: String) -> String:
 	if action in FRIEND_MOVES:
 		action = "friend"                          # the friend with you does it (scripts/party.gd)
 	if last_device != "pad":
-		if action == "quest_log" and bindings.get("quest_log", 0) == 0:
-			action = "player_menu"                 # no key of its own: Tab opens the player menu on the Quests sheet
+		if action in ["quest_log", "map"] and bindings.get(action, 0) == 0:
+			action = "player_menu"                 # no key of its own: Tab opens the player menu, quests and map in it
 		return key_name(action)
-	if action == "quest_log" and pad_bindings.get("quest_log", -1) < 0:
-		action = "player_menu"                     # no button of its own: Back opens the player menu on the Quests sheet
+	if action in ["quest_log", "map"] and pad_bindings.get(action, -1) < 0:
+		action = "player_menu"                     # no button of its own: Back opens the player menu, quests and map in it
 	match action:
 		"move_forward", "move_back", "move_left", "move_right":
 			return "Left stick " + {"move_forward": "up", "move_back": "down", "move_left": "left", "move_right": "right"}[action]
@@ -243,11 +246,11 @@ func pad_name(action: String) -> String:
 
 # ----------------------------------------------------------------------------- controller buttons
 func default_pad_bindings() -> Dictionary:
-	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "outfit_wheel": JOY_BUTTON_LEFT_STICK, "friend": JOY_BUTTON_RIGHT_SHOULDER, "friend_wheel": JOY_BUTTON_DPAD_LEFT, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
+	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "outfit_wheel": JOY_BUTTON_LEFT_STICK, "friend": JOY_BUTTON_RIGHT_SHOULDER, "friend_wheel": JOY_BUTTON_LEFT_SHOULDER, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
-		"map": JOY_BUTTON_LEFT_SHOULDER, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "pause": JOY_BUTTON_START}
-	# The quest log has no button of its own (-1): Back opens the player menu (scripts/player_menu.gd) on its Quests
-	# sheet. The player can still give it one in Settings > Controls.
+		"map": -1, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "pause": JOY_BUTTON_START}
+	# The quests and the map have no button of their own (-1): Back opens the player menu (scripts/player_menu.gd), and
+	# they're its first tabs. LB (the map's old button) is the friend wheel now (scripts/party.gd).
 
 
 func rebind_pad(action: String, button: int) -> String:
@@ -426,6 +429,7 @@ func save_settings() -> void:
 		cf.set_value("settings", p, get(p))
 	cf.set_value("settings", "minimap_v2", true)
 	cf.set_value("settings", "skate_keys_v2", true)
+	cf.set_value("settings", "menus_v2", true)
 	for a in bindings:
 		cf.set_value("keys", a, bindings[a])
 	for a in pad_bindings:
@@ -473,7 +477,19 @@ func load_settings() -> void:
 						break
 				if want != 0:
 					bindings[a] = want
+	if not cf.has_section_key("settings", "menus_v2"):
+		_one_menu()
 	_free_board_shoot()
+
+
+func _one_menu() -> void:
+	# Settings saved before the quests and the map were only tabs of the one menu: on a controller they lose their own
+	# buttons, and the friend wheel moves from D-pad left onto LB (the map's old button) if nothing else is there, so
+	# D-pad left goes back to picking gadgets (scripts/gadget_wheel.gd).
+	pad_bindings["quest_log"] = -1
+	pad_bindings["map"] = -1
+	if pad_bindings.get("friend_wheel", -1) == JOY_BUTTON_DPAD_LEFT and not pad_bindings.values().has(JOY_BUTTON_LEFT_SHOULDER):
+		pad_bindings["friend_wheel"] = JOY_BUTTON_LEFT_SHOULDER
 
 
 func _free_board_shoot() -> void:
