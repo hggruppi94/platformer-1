@@ -724,7 +724,7 @@ func _teach_groove(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Melody", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "rhythm_springs_groove")
 	else:
-		Game.message("New: Groove! Press %s to dance, and press it on the beat for a bigger groove." % Settings.prompt("groove"))
+		Game.message("New: Melody's Groove! With her along, press %s to dance, and press it on the beat for a bigger groove." % Settings.prompt("groove"))
 
 
 func set_cool(k: float) -> void:

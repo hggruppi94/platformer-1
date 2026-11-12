@@ -302,7 +302,7 @@ func _teach_burrow(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Bramble", teach_lines(), "rootmind_burrow")
 	else:
-		Game.message("New: Burrow! On soft ground press %s to dive under, and %s again to sprout up." % [Settings.prompt("burrow"), Settings.prompt("burrow")])
+		Game.message("New: Bramble's Burrow! With her along, press %s on soft ground to dive under, and %s again to sprout up." % [Settings.prompt("burrow"), Settings.prompt("burrow")])
 
 
 func _start_calming() -> void:

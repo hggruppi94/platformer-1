@@ -502,19 +502,14 @@ func _physics_process(delta: float) -> void:
 	if wall_crawl.active or wall_crawl.check(delta):
 		wall_crawl.physics(delta)
 		return
-	if Input.is_action_just_pressed("burrow") and burrow.try_start():
-		return
-	if Input.is_action_just_pressed("frost_breath"):
-		frost_breath.try_breathe()
-	if Input.is_action_just_pressed("groove"):
-		groove.try_groove()
-	if Input.is_action_just_pressed("showers"):
-		showers.try_shower()
-	# Make shares RB with Roll (RB rolls too until Nina and Bruno teach it), so a press that makes something isn't
-	# also a roll
-	var made_now: bool = Input.is_action_just_pressed("make") and make.unlocked()
+	# The friends' moves (burrow, frost breath, groove, April Showers, Make) all go through one Friend button: the
+	# friend walking with you does theirs (scripts/party.gd, plan item 26). Friend shares RB with Roll, so a press
+	# that's a friend's move isn't also a roll; with nobody along, RB just rolls.
+	var made_now: bool = Input.is_action_just_pressed("friend") and not input_locked and Party.can_use(self)
 	if made_now:
-		make.try_make()
+		Party.use(self)
+		if burrow.active:
+			return
 	if on_floor:
 		_air_jump_used = false
 

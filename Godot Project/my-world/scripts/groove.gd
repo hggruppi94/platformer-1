@@ -5,6 +5,9 @@ extends Node
 # Groove does nothing and the Controls list doesn't show it (Settings.action_shown()). Melody teaches it as the
 # Off-Beat shrinks back into time (rhythm_springs.gd _teach_groove()).
 #
+# Since the party system (plan item 26, scripts/party.gd) it has no button of its own: with Melody walking with you,
+# the Friend button (Z, RB) does it.
+#
 # Press Groove on foot and the hero spins and hops into a little dance, and a ring of music notes bursts out round
 # them. Any enemy the ring reaches can't help it: they stop chasing and dance on the spot for DANCE_TIME seconds
 # (like the Disco Ball, scripts/disco_ball.gd), so you can slip past or pop them.

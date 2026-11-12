@@ -1,7 +1,8 @@
 extends SceneTree
 
-# Checks Bramble's burrow, the Rootmind's reward (scripts/burrow.gd): it's locked until the Rootmind is mended
-# (pressing Burrow does nothing and Settings > Controls doesn't list it), then on soft ground Burrow dives under:
+# Checks Bramble's burrow, the Rootmind's reward (scripts/burrow.gd): it's locked until the Rootmind is mended, and
+# since the party system it's done with the Friend button with Bramble along (scripts/party.gd); then on soft ground
+# Friend dives under:
 # out of sight, a soil mound instead, nothing can hurt you, no shooting, quicker than running; Jump or Burrow again
 # sprouts you up with a hop; it won't start on paving, and running onto paving or getting on a ride pops you up; the
 # Rootmind's moss counts as soil; mending the Rootmind has Bramble teach it, and her lines after say how.
@@ -22,6 +23,7 @@ var failures := 0
 var game: Node
 var portals: Node
 var settings: Node
+var party: Node
 
 
 func check(ok: bool, what: String) -> void:
@@ -46,6 +48,7 @@ func _run() -> void:
 	game = root.get_node("Game")
 	portals = root.get_node("Portals")
 	settings = root.get_node("Settings")
+	party = root.get_node("Party")
 	settings.tips = false
 	game._reset_state()
 	game.needs_creator = false
@@ -65,20 +68,13 @@ func _run() -> void:
 
 
 func _check_controls() -> void:
-	check(InputMap.has_action("burrow"), "there's a Burrow action")
-	check(settings.default_bindings().get("burrow") == KEY_B and settings.default_pad_bindings().get("burrow") == JOY_BUTTON_RIGHT_STICK,
-		"it's on B and R3 to start with")
-	var keys: Dictionary = settings.default_bindings()
-	var clash := ""
-	for a in keys:
-		if a != "burrow" and keys[a] == KEY_B:
-			clash = a
-	var pads: Dictionary = settings.default_pad_bindings()
-	for a in settings.PAD_GROUPS[0]:
-		if a != "burrow" and pads.get(a, -1) == JOY_BUTTON_RIGHT_STICK:
-			clash = a
-	check(clash == "", "nothing else on foot uses them (%s)" % clash)
-	check(not settings.action_shown("burrow"), "Settings > Controls doesn't list Burrow before the Rootmind's mended")
+	# Since the party system (scripts/party.gd) Burrow has no button of its own: it's Bramble's move, done with Friend
+	check(not settings.default_bindings().has("burrow") and not settings.default_pad_bindings().has("burrow"),
+		"Burrow has no button of its own")
+	check(settings.default_bindings().get("friend") == KEY_Z and settings.default_pad_bindings().get("friend") == JOY_BUTTON_RIGHT_SHOULDER,
+		"the Friend button is Z and RB")
+	check(settings.prompt("burrow") == settings.prompt("friend"), "a line that says {burrow} says the Friend button")
+	check(not settings.action_shown("burrow"), "Burrow isn't learned before the Rootmind's mended")
 
 
 func _player() -> CharacterBody3D:
@@ -132,13 +128,16 @@ func _check_town() -> void:
 	check(soil != Vector3.INF and hard != Vector3.INF, "found open grass and open paving in the Void")
 	await _place(p, soil)
 	check(p.is_on_floor() and BURROW.soil(p._floor_node), "standing on the Void's grass")
-	await _press("burrow")
-	check(not b.active and p.visual.visible, "locked: before the Rootmind's mended, Burrow does nothing")
+	await _press("friend")
+	check(not b.active and p.visual.visible, "locked: before the Rootmind's mended, Friend does nothing")
 
 	portals.cleared_worlds.append("rootmind")
-	check(settings.action_shown("burrow"), "once it's mended, Settings > Controls lists Burrow")
-	await _press("burrow")
-	check(b.active, "Burrow dives under")
+	check(settings.action_shown("burrow"), "once it's mended, Burrow's learned")
+	await _press("friend")
+	check(not b.active, "...but Friend does nothing until Bramble's joined you")
+	party.join("bramble", true)
+	await _press("friend")
+	check(b.active, "with Bramble along, Friend dives under")
 	check(not p.visual.visible and b._mound.visible, "...out of sight, with a soil mound where you are")
 	check(p.is_invulnerable(), "...where nothing can hurt you")
 	var hp: int = game.get("health") if game.get("health") != null else 0
@@ -157,19 +156,19 @@ func _check_town() -> void:
 	await _physics(60)
 
 	await _place(p, soil)
-	await _press("burrow")
+	await _press("friend")
 	await _physics(10)
-	await _press("burrow")
-	check(not b.active and p.velocity.y > 0.0, "Burrow again pops you up too")
+	await _press("friend")
+	check(not b.active and p.velocity.y > 0.0, "Friend again pops you up too")
 	await _physics(60)
 
 	await _place(p, hard)
 	check(p.is_on_floor() and not BURROW.soil(p._floor_node), "standing on paving")
-	await _press("burrow")
+	await _press("friend")
 	check(not b.active, "paving's too hard to dig into")
 
 	await _place(p, soil)
-	await _press("burrow")
+	await _press("friend")
 	check(b.active, "back under on the grass")
 	p.global_position = hard - Vector3(0, 0.08, 0)    # standing right on it, so it's the paving that does it
 	await _physics(6)
@@ -177,7 +176,7 @@ func _check_town() -> void:
 	await _physics(60)
 
 	await _place(p, soil)
-	await _press("burrow")
+	await _press("friend")
 	game.riding = true
 	await _physics(3)
 	check(not b.active and p.visual.visible, "getting on a ride pops you up")
@@ -213,7 +212,7 @@ func _check_rootmind() -> void:
 	if dialogue.is_active():
 		dialogue.end()
 	await _physics(30)
-	await _press("burrow")
+	await _press("friend")
 	check(p.burrow.active, "burrowing works on the Rootmind's moss")
 
 

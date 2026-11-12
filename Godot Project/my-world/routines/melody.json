@@ -15,7 +15,7 @@
       {"at": "09:30", "place": "market_south", "do": "wander", "radius": 4, "anim": "dance", "label": "busking"},
       {"at": "13:00", "place": "town_square", "do": "wander", "radius": 6, "anim": "dance", "label": "dancing"},
       {"at": "16:00", "place": "meadow", "do": "wander", "radius": 5, "label": "practising"},
-      {"at": "18:00", "place": "melody_stage", "do": "idle", "anim": "dance", "face": [-29.3, 38.4], "label": "show"},
+      {"at": "18:00", "place": "melody_stage", "do": "idle", "anim": "dance", "face": [-29.3, 38.4], "label": "show", "keep": true},
       {"at": "21:00", "place": "housing_north", "do": "away", "label": "asleep"}
     ]
   }

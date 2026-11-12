@@ -89,15 +89,15 @@ func _check_locked() -> void:
 	var p := _player()
 	var g := p.get_node_or_null("Groove")
 	check(g != null, "the player has a Groove node")
-	check(settings.default_bindings().get("groove") == KEY_G and settings.default_pad_bindings().get("groove") == JOY_BUTTON_DPAD_RIGHT,
-		"Groove is on G and D-pad right")
-	check(not settings.action_shown("groove"), "Groove isn't on the Controls list before Rhythm Springs is mended")
+	check(not settings.default_bindings().has("groove") and settings.prompt("groove") == settings.prompt("friend"),
+		"Groove has no button of its own: it's Melody's move, on the Friend button (scripts/party.gd)")
+	check(not settings.action_shown("groove"), "Groove isn't learned before Rhythm Springs is mended")
 	var wheel: Node = load("res://scripts/gadget_wheel.gd").new()
-	check(wheel._secret_on(JOY_BUTTON_DPAD_RIGHT), "...so D-pad right still picks gadgets")
+	check(not JOY_BUTTON_DPAD_RIGHT in settings.pad_bindings.values(), "D-pad right is free now: it always picks gadgets")
 	check(not g.try_groove() and g.grooves == 0, "pressing it does nothing yet")
 	check(current_scene.get_node_or_null("Portals/Melody's Stage") == null, "and there's no stage in the Void yet")
 	portals.cleared_worlds.append("rhythm_springs")
-	check(not wheel._secret_on(JOY_BUTTON_DPAD_RIGHT), "once it's mended D-pad right is Groove's")
+	check(settings.action_shown("groove"), "once it's mended Groove's learned")
 	portals.cleared_worlds.erase("rhythm_springs")
 	wheel.free()
 
@@ -111,7 +111,7 @@ func _check_teaching() -> void:
 	check(lines.any(func(l: String) -> bool: return l.contains("{groove}")), "Melody's lesson says which button to press")
 	s.mend()
 	check(portals.is_cleared("rhythm_springs"), "mending Rhythm Springs...")
-	check(settings.action_shown("groove"), "...puts Groove on the Controls list")
+	check(settings.action_shown("groove"), "...and Groove's learned")
 	await create_timer(s.TEACH_AFTER + 0.6).timeout
 	check(dialogue.is_active(), "...and Melody teaches it a moment after")
 	dialogue.end()

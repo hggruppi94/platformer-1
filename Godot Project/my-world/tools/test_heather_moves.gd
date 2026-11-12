@@ -5,7 +5,7 @@ extends SceneTree
 # secret (April Showers isn't on the Controls list and does nothing, a quick jump on landing is just a jump) and
 # there's no orchard; once it's mended Heather teaches them, saying how; April Showers brings a rain cloud over the
 # hero that follows them, then a solid rainbow arches out ahead that you can walk up and stand on, only two at once,
-# fading after a while; holding Interact with nothing near calls it too, but not next to someone to talk to; jumping
+# fading after a while; it's the Friend button with Heather along (scripts/party.gd), not holding Interact; jumping
 # again just as you land bounces higher, three in a row higher still, and a jump after a pause is ordinary again; the
 # orchard stands by Glenmoor's portal on flat, clear ground off the races and paths; and Heather talks about it in town.
 #
@@ -84,9 +84,9 @@ func _check_locked() -> void:
 	var p := _player()
 	var g := p.get_node_or_null("Showers")
 	check(g != null and p.get_node_or_null("SpringStep") != null, "the player has Showers and SpringStep nodes")
-	check(settings.default_bindings().get("showers") == KEY_H and settings.default_pad_bindings().get("showers") == -1,
-		"April Showers is on H (and holding Interact: no pad button of its own)")
-	check(not settings.action_shown("showers"), "April Showers isn't on the Controls list before Glenmoor is mended")
+	check(not settings.default_bindings().has("showers") and settings.prompt("showers") == settings.prompt("friend"),
+		"April Showers has no button of its own: it's Heather's move, on the Friend button (scripts/party.gd)")
+	check(not settings.action_shown("showers"), "April Showers isn't learned before Glenmoor is mended")
 	check(not g.try_shower() and g.showers == 0, "pressing it does nothing yet")
 	check(p.get_node("SpringStep").bound() == 1.0, "and a jump's just a jump")
 	check(current_scene.get_node_or_null("Portals/Blossom Orchard") == null, "and there's no orchard in the Void yet")
@@ -99,13 +99,13 @@ func _check_teaching() -> void:
 	var s := current_scene
 	check(s.thank_lines().any(func(l: String) -> bool: return l.contains("{showers_how}")), "Heather's thank-you says how to call April Showers")
 	settings.last_device = "keys"
-	check(settings.showers_how() == "Press H, or hold %s," % settings.prompt("interact"), "...on a keyboard: %s" % settings.showers_how())
+	check(settings.showers_how() == "Press %s with Heather along" % settings.prompt("friend"), "...on a keyboard: %s" % settings.showers_how())
 	settings.last_device = "pad"
-	check(settings.showers_how() == "Hold %s" % settings.prompt("interact"), "...on a controller: %s" % settings.showers_how())
+	check(settings.showers_how() == "Press RB with Heather along", "...on a controller: %s" % settings.showers_how())
 	settings.last_device = "keys"
 	s.mend()
 	check(portals.is_cleared("glenmoor"), "mending Glenmoor...")
-	check(settings.action_shown("showers"), "...puts April Showers on the Controls list")
+	check(settings.action_shown("showers"), "...and April Showers is learned")
 	await create_timer(s.TEACH_AFTER + 0.6).timeout
 	check(dialogue.is_active(), "...and Heather teaches her moves a moment after")
 	check(not dialogue.current_line().contains("{"), "(her lines are filled in: %s)" % dialogue.current_line())
@@ -180,8 +180,10 @@ func _check_showers() -> void:
 
 
 func _check_hold() -> void:
+	# Since the party system it's the Friend button with Heather along (scripts/party.gd); holding Interact doesn't
 	var p := _player()
 	var g := p.get_node("Showers")
+	var party := root.get_node("Party")
 	p.global_position = Vector3(8.0, 0.9, 16.0)
 	await _land(p)
 	g.cooldown = 0.0
@@ -189,26 +191,17 @@ func _check_hold() -> void:
 	var before: int = g.showers
 	Input.action_press("interact")
 	await process_frame
-	await create_timer(g.HOLD + 0.3).timeout
+	await create_timer(0.7).timeout
 	Input.action_release("interact")
 	await _frames(2)
-	check(g.showers == before + 1, "holding Interact with nothing near calls April Showers")
+	check(g.showers == before, "holding Interact doesn't call April Showers any more")
+	party.join("heather", true)
+	Input.action_press("friend")
+	await _physics(2)
+	Input.action_release("friend")
+	await _frames(2)
+	check(g.showers == before + 1, "with Heather along, Friend calls April Showers")
 	await create_timer(g.RAIN + 0.3).timeout
-	# ...but not standing by Heather (Interact talks to her)
-	var heather := current_scene.get_node("Heather") as Node3D
-	p.global_position = heather.global_position + Vector3(1.2, 0.9, 0.8)
-	p.velocity = Vector3.ZERO
-	await _physics(10)
-	await _frames(4)
-	g.cooldown = 0.0
-	before = g.showers
-	check(not g.nothing_near(), "(Heather's in reach)")
-	Input.action_press("interact")
-	await process_frame
-	await create_timer(g.HOLD + 0.3).timeout
-	Input.action_release("interact")
-	await _frames(2)
-	check(g.showers == before, "...holding Interact by someone to talk to doesn't")
 	if dialogue.is_active():
 		dialogue.end()
 	await _frames(4)

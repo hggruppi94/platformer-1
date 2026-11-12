@@ -21,6 +21,31 @@
       ]
     },
     {
+      "when": {"mended": "glenmoor", "not_flag": "party_asked_heather"},
+      "set": "party_asked_heather",
+      "lines": [
+        "(Heather trots up, tail swishing.) Well, howdy, sugar! You know what I've been thinkin'?",
+        "A body can't mend a whole glen and then go off adventurin' all by their lonesome. Can I tag along with you?",
+        "And when you need some rain, or a rainbow to walk on, you just press {showers} and I'll call up some April Showers.",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_heather",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
+      "when": {"mended": "glenmoor", "flag": "party_asked_heather", "not_flag": "party_yes_heather", "every": 3},
+      "lines": [
+        "Still want me along? I'm ready when you are!",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_heather",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
       "when": {
         "talks": 0
       },

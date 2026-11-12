@@ -56,6 +56,7 @@ Portals="*res://scripts/portals.gd"
 DivineMind="*res://scripts/divine_mind.gd"
 Wilds="*res://scripts/wilds.gd"
 Arena="*res://scripts/arena.gd"
+Party="*res://scripts/party.gd"
 
 [display]
 

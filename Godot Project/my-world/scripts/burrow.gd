@@ -5,10 +5,13 @@ extends Node
 # until Portals.is_cleared("rootmind") pressing Burrow does nothing at all and the Controls list doesn't show it
 # (Settings.action_shown()).
 #
+# Since the party system (plan item 26, scripts/party.gd) it has no button of its own: with Bramble walking with you,
+# the Friend button (Z, RB) does it.
+#
 # On soft ground (the Void's grass, Stars Hollow's ground, the Rootmind's moss: soil()) press Burrow and the hero
 # dives in with a puff of soil. Underground they're out of sight, nothing can hurt them, and a little mound with a
 # sprig (the same one Bramble's own burrowing shows, scripts/burrower.gd) races along where they are, a bit faster
-# than running. Press Burrow again or Jump and they sprout back up with a springy hop (Jump's is the bigger one).
+# than running. Press Friend again or Jump and they sprout back up with a springy hop (Jump's is the bigger one).
 # Running onto anything that isn't soil (a path, a boardwalk, water) or off a ledge pops them up by themselves, and
 # so does talking to someone, getting on a ride or a door.
 #
@@ -127,7 +130,7 @@ func physics(delta: float) -> void:
 		if Input.is_action_just_pressed("jump"):
 			stop(HOP)
 			return
-		if Input.is_action_just_pressed("burrow"):
+		if Input.is_action_just_pressed("friend"):         # Bramble's move again: up you come (scripts/party.gd)
 			stop(POP)
 			return
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")

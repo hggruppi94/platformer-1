@@ -6,8 +6,8 @@ extends Node
 # does nothing and the Controls list doesn't show it (Settings.action_shown()). Heather teaches both as the days go
 # back to normal (glenmoor.gd thank_lines()).
 #
-# Press April Showers (H), or hold Interact for a moment with nothing about to talk to or use (that's how it works on
-# a controller: every pad button already has a job, and holding B is easy for small hands). A little grey rain cloud
+# Since the party system (plan item 26, scripts/party.gd) it's Heather's move: with her walking with you, press Friend
+# (Z, RB). (It used to be H, or holding Interact.) A little grey rain cloud
 # gathers over the hero and rains for RAIN seconds (it follows them about). Then the sun peeks out, the cloud drifts
 # off, and a RAINBOW arches out ahead, the way the camera's looking: a solid bridge LENGTH metres long and RISE high to
 # walk up and over, for BRIDGE_LASTS seconds (it fades and wobbles before it goes). Only MAX_BRIDGES at once.
@@ -26,7 +26,6 @@ const BANDS := [Color(1.0, 0.35, 0.4), Color(1.0, 0.62, 0.3), Color(1.0, 0.9, 0.
 const BRIDGE_LASTS := 20.0
 const MAX_BRIDGES := 2
 const COOLDOWN := 1.0
-const HOLD := 0.4                         # seconds of holding Interact (with nothing to interact with) to call it
 const GARDEN_NEAR := 12.0
 const STEPS := 16                         # pieces of solid along the arch
 
@@ -36,7 +35,6 @@ var raining := 0.0                        # seconds of rain left (0: no cloud)
 var cloud: Node3D
 var bridges: Array[Node3D] = []           # the rainbows out there now, oldest first
 var showers := 0                          # (for the tests)
-var _hold := -1.0                         # how long Interact's been held with nothing near (-1: not counting)
 
 
 func setup(p: CharacterBody3D) -> void:
@@ -86,7 +84,6 @@ func shower() -> void:
 
 func _process(delta: float) -> void:
 	cooldown = maxf(0.0, cooldown - delta)
-	_hold_interact(delta)
 	if raining > 0.0:
 		raining -= delta
 		if is_instance_valid(cloud) and player:
@@ -105,24 +102,6 @@ func _process(delta: float) -> void:
 		elif left < 3.0:
 			# About to go: it shimmers, so nobody's caught out on top of it
 			(b.get_node("Look") as Node3D).visible = fmod(left, 0.3) > 0.1
-
-
-func _hold_interact(delta: float) -> void:
-	# Holding Interact calls it too, but only a press that started with nobody and nothing in reach (so finishing a
-	# talk or using a spot never starts the rain)
-	if not unlocked() or player == null:
-		return
-	if Input.is_action_just_pressed("interact"):
-		_hold = 0.0 if nothing_near() else -1.0
-	if _hold < 0.0:
-		return
-	if not Input.is_action_pressed("interact") or not nothing_near():
-		_hold = -1.0
-		return
-	_hold += delta
-	if _hold >= HOLD:
-		_hold = -1.0
-		try_shower()
 
 
 func nothing_near() -> bool:
