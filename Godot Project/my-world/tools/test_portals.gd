@@ -2,13 +2,13 @@ extends SceneTree
 
 # Checks the time quakes and portal worlds (scripts/portals.gd, scripts/portal_world.gd) and Shard Isle, the first
 # world (scripts/shard_isle.gd, scenes/portal_worlds/shard_isle.tscn): no quake before the First Night is done; then
-# one shakes the Void and Shard Isle's portal rises out of a crack on the ground, once; the portal's preview window
-# wakes up near it (a copy of the world with no player in it) and sleeps when you walk off; stepping through is free,
-# extra time costs Remnants; inside, the Void's clock stands still, the timer counts down and shows, the Time Stone
-# sells time, falling off floats you back, the Remnant vein needs the tool; the three Echo Crystals and the Heart
-# Stone clear the world (with its reward and the Portal Plaza in the Void); running out of time pulls you gently
-# home by the portal with what you found; the way home always works; and it all saves, loads, and an old save starts
-# with no quakes.
+# one shakes the Void and Shard Isle's crack splits the ground open, once, a real hole you can fall into, and a voice
+# in your mind says so; looking down it, the preview window at its bottom wakes up (a copy of the world with no player
+# in it) and sleeps when you walk off; jumping in takes you there; inside, the Void's clock stands still and there's no
+# timer and no Time Stone (no time limit since 12 Nov 2026), falling off floats you back, the Remnant vein needs the
+# tool; the three Echo Crystals and the Heart Stone clear the world (with its reward and the Portal Plaza in the Void);
+# jumping into the way home's crack takes you back by the crack with what you found, and so does its "jump in" spot;
+# and it all saves, loads, and an old save starts with no quakes.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_portals.gd
 #
@@ -69,7 +69,7 @@ func _run() -> void:
 	await _check_preview()
 	await _check_inside()
 	await _check_clearing()
-	await _check_time_up()
+	await _check_back_home()
 	await _check_way_home()
 	_check_saving()
 	_finish()
@@ -94,19 +94,23 @@ func _check_quake() -> void:
 		return
 	var w: Dictionary = portals.world("shard_isle")
 	check(absf(p.global_position.x - w.at.x) < 0.01 and absf(p.global_position.z - w.at.y) < 0.01, "the portal is at its spot")
-	var ground: Vector3 = rem.ground_at(w.at)
-	check(absf(p.global_position.y - ground.y) < 0.05 and ground.y > -0.5, "...on dry ground (y %.2f)" % ground.y)
-	check(absf((p.get_node("Ring") as Node3D).position.y) < 0.01, "the ring has risen out of the crack")
-	check(p.get_node_or_null("Spot") != null, "the portal can be used")
-	check(portals._portal_offer("shard_isle") == "step through to Shard Isle", "it offers a trip to Shard Isle")
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(6.0, 0.0))
+	check(absf(p.global_position.y - ground.y) < 0.6 and p.global_position.y > -0.5, "...on dry ground (y %.2f)" % p.global_position.y)
+	check(p.get_node_or_null("Ring") == null and p.get_node_or_null("Swirl") != null, "it's a crack in the ground: nothing rises out of it")
+	check(rem.ground_at(w.at).y < p.global_position.y - 3.0, "...a real hole: the ground's gone under it (down to %.1f)" % rem.ground_at(w.at).y)
+	check(p.get_node_or_null("Broken Earth") != null and p.get_node_or_null("Fissures") != null, "...with broken earth and glowing cracks round it")
+	check((p.get_node("Fall") as Area3D).monitoring, "...and it's open to jump in")
+	check(root.get_node("DivineMind").said.any(func(l: String) -> bool: return l.contains("crack")), "a voice in your mind says a crack has opened")
+	check(p.get_node_or_null("Spot") != null, "the crack can be used")
+	check(portals._portal_offer("shard_isle") == "look down the crack to Shard Isle", "it offers a look down to Shard Isle")
 	check(portals.next_due() == "", "the quake only happens once")
 	# Nothing else should be standing where it rose
 	var space := (current_scene as Node3D).get_world_3d().direct_space_state
 	var q := PhysicsShapeQueryParameters3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 3.0
+	sphere.radius = 2.0
 	q.shape = sphere
-	q.transform = Transform3D(Basis(), p.global_position + Vector3(0, 3.5, 0))
+	q.transform = Transform3D(Basis(), p.global_position + Vector3(0, 2.3, 0))
 	var hits := space.intersect_shape(q, 16)
 	var others := hits.filter(func(h: Dictionary) -> bool:
 		var c: Node = h.collider
@@ -131,55 +135,53 @@ func _check_preview() -> void:
 		check(copy.get_node_or_null("HeartStone/Heart") == null and copy.get_node_or_null("Echo1").get_child_count() > 0,
 			"...that only shows the Echo Crystals, nothing to use")
 		check(view.get_node_or_null("Cam") != null, "...seen from a circling camera")
-		check((p.get_node("Ring/Swirl") as MeshInstance3D).material_override.albedo_texture != null, "...on the portal's swirl")
+		check((p.get_node("Swirl") as MeshInstance3D).material_override.albedo_texture != null, "...at the bottom of the crack")
 	player.global_position = p.global_position + p.global_basis.z * 30.0 + Vector3(0, 1, 0)
 	await _frames(3)
 	check(p.get_node_or_null("Preview") == null, "walking off puts it to sleep again")
 	# Going in through the portal's question
 	player.global_position = p.global_position + p.global_basis.z * 2.0 + Vector3(0, 1, 0)
 	portals._use_portal("shard_isle")
-	check(dialogue.is_active(), "using the portal asks first")
+	check(dialogue.is_active(), "looking down the crack asks first")
 	dialogue.end()
 	await _frames(4)
 	check(current_scene.scene_file_path == TOWN, "saying \"Not now\" keeps you in the Void")
+	# Jumping in: drop into the middle of the crack
+	player.global_position = p.global_position + Vector3(0, 1.2, 0)
+	(player as CharacterBody3D).velocity = Vector3.ZERO
+	for i in 90:
+		await physics_frame
+		if current_scene == null or current_scene.scene_file_path == ISLE:
+			break
+	await _frames(12)
+	await _physics(4)
 
 
 func _check_inside() -> void:
-	rem.count = 3
-	check(not portals.enter("shard_isle", 5), "can't buy more time than you have Remnants for")
-	check(portals.enter("shard_isle", 2), "stepping through with extra time")
-	check(rem.count == 1, "...spends the Remnants (%d left)" % rem.count)
-	await _frames(12)
-	await _physics(4)
-	check(current_scene.scene_file_path == ISLE, "the portal takes you to Shard Isle")
+	rem.count = 0
+	check(current_scene.scene_file_path == ISLE, "jumping into the crack takes you to Shard Isle")
 	check(portals.here == "shard_isle", "the game knows you're there")
-	check(absf(portals.time_left - (portals.FREE_SECONDS + 2 * portals.SECONDS_PER_REMNANT)) < 2.0,
-		"the free time plus two minutes (%.0f s)" % portals.time_left)
+	check(not "time_left" in portals and not portals.has_method("add_time"), "there's no time limit any more")
 	var m0: float = clock.minutes
 	await create_timer(1.2).timeout
 	check(not clock.running and absf(clock.minutes - m0) < 0.001, "the Void's clock stands still while you're away")
-	check(portals.time_left < portals.FREE_SECONDS + 2 * portals.SECONDS_PER_REMNANT - 0.9, "the portal timer counts down")
-	check(portals.timer_text().begins_with("⏳ Shard Isle"), "the timer shows on screen (%s)" % portals.timer_text())
+	check(portals.card_text() == "", "no timer on screen")
 	var s := current_scene
-	for n in ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "HeartStone/Heart/Spot", "Echo1/Spot", "Echo2/Spot",
+	for n in ["WayHome/Way Home/Spot", "HeartStone/Heart/Spot", "Echo1/Spot", "Echo2/Spot",
 			"Echo3/Spot", "Vein1/Remnant Vein/Spot"]:
 		check(s.get_node_or_null(n) != null, "Shard Isle has %s" % n.get_slice("/", 0))
+	check(s.get_node_or_null("TimeStone/Time Stone") == null, "...and no Time Stone")
+	check(s.get_node_or_null("WayHome/Way Home/Swirl") != null, "the way home is a crack too")
 	var player := s.get_tree().get_first_node_in_group("player") as Node3D
 	var entrance := s.get_node("Entrance") as Node3D
 	check(player.global_position.distance_to(entrance.global_position) < 2.0, "you arrive at the entrance")
 	# Every islet and the Heart Stone stand on something, and the Echo Crystals can be reached by stepping stones
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["Echo1", "Echo2", "Echo3", "HeartStone", "TimeStone", "Vein1", "WayHome"]:
+	for n in ["Echo1", "Echo2", "Echo3", "HeartStone", "Vein1"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.0, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
 	check(_hops_ok(s), "every stepping stone is a short hop from the last")
-	# The Time Stone
-	var before: float = portals.time_left
-	s.get_node("TimeStone/Time Stone/Spot").use()
-	check(rem.count == 0 and portals.time_left > before + 55.0, "the Time Stone turns a Remnant into a minute")
-	s.get_node("TimeStone/Time Stone/Spot").use()
-	check(portals.time_left < before + 65.0, "...and does nothing without one")
 	# The vein needs the tool
 	check(s.get_node("Vein1/Remnant Vein/Spot").what() == "look at the glowing crystals", "the vein needs Bramble's tool")
 	dialogue.set_flag("harvest_tool_built")
@@ -236,37 +238,50 @@ func _check_clearing() -> void:
 	await _frames(2)
 
 
-func _check_time_up() -> void:
-	portals.time_left = 0.4
-	await create_timer(1.0).timeout
+func _check_back_home() -> void:
+	# Jump down the way home's crack
+	var home := current_scene.get_node("WayHome/Way Home") as Node3D
+	var me := current_scene.get_tree().get_first_node_in_group("player") as CharacterBody3D
+	me.global_position = home.global_position + Vector3(0, 1.2, 0)
+	me.velocity = Vector3.ZERO
+	for i in 90:
+		await physics_frame
+		if current_scene == null or current_scene.scene_file_path == TOWN:
+			break
 	await _frames(12)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time runs out, the portal pulls you home to the Void")
+	check(current_scene.scene_file_path == TOWN, "jumping into the way home takes you home to the Void")
 	check(portals.here == "" and clock.running, "...and the Void's clock runs again")
 	var p := current_scene.get_node_or_null("Portals/Portal shard_isle") as Node3D
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
 	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by its portal (%.1f m)" %
 		(player.global_position.distance_to(p.global_position) if p else -1.0))
+	check(p != null and player.global_position.y > p.global_position.y - 0.5, "...on the ground, not down the crack")
 	check(current_scene.get_node_or_null("Portals/Portal Plaza") != null, "clearing Shard Isle grew the Portal Plaza in the Void")
 	var w: Dictionary = portals.world("shard_isle")
 	var worst := 0.0
-	var base: float = rem.ground_at(w.at).y
+	var base: float = rem.ground_at(w.at + Vector2(7.5, 0)).y      # (the crack's middle is a hole now)
 	for k in 12:
 		var a := k * TAU / 12.0
 		worst = maxf(worst, absf(rem.ground_at(w.at + Vector2(cos(a), sin(a)) * 7.5).y - base))
 	check(worst < 0.4, "the plaza sits on flat ground (worst step %.2f)" % worst)
-	check(portals.timer_text() == "", "no timer in the Void")
-	# Back in: found things stay found, and the time starts fresh
+	check(root.get_node("DivineMind").said.any(func(l: String) -> bool: return l.contains("Shard Isle")), "the voice says well done")
+	# Back in: found things stay found
 	portals.enter("shard_isle")
 	await _frames(12)
-	check(current_scene.scene_file_path == ISLE and absf(portals.time_left - portals.FREE_SECONDS) < 2.0, "back in with the free time")
+	check(current_scene.scene_file_path == ISLE, "back in again")
 	check(not (current_scene.get_node("Echo2/Echo") as Node3D).visible, "the Echo Crystals are still found")
 
 
 func _check_way_home() -> void:
+	await _physics(4)
 	current_scene.get_node("WayHome/Way Home/Spot").use()
+	for i in 90:
+		await physics_frame
+		if current_scene == null or current_scene.scene_file_path == TOWN:
+			break
 	await _frames(12)
-	check(current_scene.scene_file_path == TOWN and portals.here == "", "the way home takes you back any time")
+	check(current_scene.scene_file_path == TOWN and portals.here == "", "the way home's \"jump in\" takes you back any time")
 
 
 func _check_saving() -> void:
@@ -277,18 +292,13 @@ func _check_saving() -> void:
 	check(portals.quakes.is_empty(), "(cleared before loading)")
 	game.load_game()
 	check(portals.quakes == quakes and portals.is_cleared("shard_isle") and portals.found == found, "quakes, cleared worlds and found things load back")
-	# A save made inside a world keeps its time left
 	var data = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
-	data["portals"]["here"] = "shard_isle"
-	data["portals"]["time_left"] = 99.0
-	_write(data)
-	game.load_game()
-	check(absf(portals.time_left - 99.0) < 0.01, "a save made in a portal world keeps its time")
+	check(not data["portals"].has("time_left"), "no portal time is saved")
 	# An old save from before the quakes
 	data.erase("portals")
 	_write(data)
 	game.load_game()
-	check(portals.quakes.is_empty() and portals.cleared_worlds.is_empty() and portals.time_left == 0.0, "an old save has had no quakes yet")
+	check(portals.quakes.is_empty() and portals.cleared_worlds.is_empty(), "an old save has had no quakes yet")
 
 
 func _write(data) -> void:

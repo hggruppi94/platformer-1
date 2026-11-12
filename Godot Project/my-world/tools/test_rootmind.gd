@@ -85,7 +85,7 @@ func _check_quake() -> void:
 	if p == null:
 		return
 	var w: Dictionary = portals.world("rootmind")
-	var ground: Vector3 = rem.ground_at(w.at)
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(3.0, 0.0))      # (beside the crack: its middle is a hole)
 	check(absf(p.global_position.y - ground.y) < 0.05 and ground.y > 10.0, "...up on the Secret Gardens hill (y %.1f)" % ground.y)
 	var worst := 0.0
 	for k in 12:
@@ -104,7 +104,7 @@ func _check_quake() -> void:
 		var c: Node = h.collider
 		return not p.is_ancestor_of(c) and not c.is_in_group("player"))
 	check(others.is_empty(), "nothing else stands in the portal's way (%d)" % others.size())
-	check(portals._portal_offer("rootmind") == "step through to The Rootmind", "it offers a trip to the Rootmind")
+	check(portals._portal_offer("rootmind") == "look down the crack to The Rootmind", "it offers a trip to the Rootmind")
 
 
 func _check_inside() -> void:
@@ -113,7 +113,7 @@ func _check_inside() -> void:
 	await _physics(4)
 	var s := current_scene
 	check(s.scene_file_path == WORLD and portals.here == "rootmind", "stepping through takes you to the Rootmind")
-	for n in ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Bloom1/Spot",
+	for n in ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Bloom1/Spot",
 			"Bloom2/Spot", "Bloom3/Spot", "Slide/Spot", "Bramble/Spot", "Bramble/Model", "Seedling/Sprout",
 			"Thornknot/Tangle/Knot0/Spot", "Thornknot/Tangle/Knot2/Hit"]:
 		check(s.get_node_or_null(n) != null, "the Rootmind has %s" % n)
@@ -123,7 +123,7 @@ func _check_inside() -> void:
 	check(lines.size() == 3 and "Sun Blooms" in str(lines[2]), "Bramble says what to do (%s)" % str(lines[0]).left(40))
 	# Everything stands on something
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["Bloom1", "Bloom2", "Bloom3", "TimeStone", "WayHome", "Vein1", "Bramble"]:
+	for n in ["Bloom1", "Bloom2", "Bloom3", "Vein1", "Bramble"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.0, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
@@ -241,14 +241,14 @@ func _check_thornknot() -> void:
 
 
 func _check_home() -> void:
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await create_timer(1.0).timeout
 	await _frames(14)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void")
 	var p := current_scene.get_node_or_null("Portals/Portal rootmind") as Node3D
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
-	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by the Rootmind's portal")
+	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by the Rootmind's portal (%s, %s)" % [player.global_position, p.global_position if p else Vector3.ZERO])
 	var flowers := current_scene.get_node_or_null("Portals/Watching Flowers")
 	check(flowers != null and flowers.get_child_count() >= 14, "watching flowers have sprung up (%d)" % (flowers.get_child_count() if flowers else 0))
 	if flowers == null:
