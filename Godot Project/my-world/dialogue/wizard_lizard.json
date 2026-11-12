@@ -3,11 +3,30 @@
   "conversations": [
     {
       "when": {
-        "quest_step": "turtle_independence:wake"
+        "quest_step": "turtle_independence:wake",
+        "flag": "met_lizard"
+      },
+      "lines": [
+        "Ahh. A shell. I wondered who it would be today. Hello again, {player}.",
+        "Yes, it's me, your principal, out on a field trip. The warm rocks in these gardens are excellent.",
+        "{player}: Why do I have a SHELL? And why does Pip say their wings feel like flippers?",
+        "Magic, my dear {player}. The Void is a planet that thinks, and sometimes it dreams. And some days, everyone wakes up a different version of themselves.",
+        "People here do love their magic. A bit too much, if you ask me. Magic for breakfast, magic for lunch, magic for brushing your teeth.",
+        "You didn't choose your shell. Most of the time, we don't get to choose. Your body, your brain, the planet you wake up on.",
+        "But every version of you has purpose and value. Even this slow, shelly one. Especially this one, perhaps.",
+        "Now. Since you have a shell, you'll understand the little lake turtles. The Void's turtles use THINGS as their shells, and nobody has ever let them choose their own.",
+        "Today is their Independence Day. Find them three things that could be a home: a teacup, a bucket, a flower pot. Then let THEM choose."
+      ],
+      "set": "turtle_met_lizard"
+    },
+    {
+      "when": {
+        "quest_step": "turtle_independence:wake",
+        "not_flag": "met_lizard"
       },
       "lines": [
         "Ahh. A shell. I wondered who it would be today.",
-        "Don't be frightened. I am the Wizard Lizard: friend of the seers, keeper of rules, and very fond of naps on warm rocks.",
+        "Don't be frightened. I am the Wizard Lizard: principal of the castle school, friend of the Seer, keeper of rules, and very fond of naps on warm rocks.",
         "{player}: Why do I have a SHELL? And why does Pip say their wings feel like flippers?",
         "Magic, my dear {player}. The Void is a planet that thinks, and sometimes it dreams. And some days, everyone wakes up a different version of themselves.",
         "People here do love their magic. A bit too much, if you ask me. Magic for breakfast, magic for lunch, magic for brushing your teeth.",
@@ -69,7 +88,42 @@
     },
     {
       "when": {
-        "quest_done": "turtle_independence"
+        "not_flag": "met_lizard",
+        "flag": "turtle_met_lizard"
+      },
+      "lines": [
+        "(The Wizard Lizard looks up from a very tall stack of papers.)",
+        "{player}! The turtles' helper! Welcome to my school. Didn't I say? I'm the principal here.",
+        "Principals come in all shapes, my dear. Mine happens to be scaly. Very good at sitting on warm rocks, which is most of the job.",
+        "This school has only three rules. One: every version of you is welcome here. Every single one.",
+        "Two: no running in the halls. Unless something's chasing you. Then run.",
+        "Three: naps are allowed. Encouraged, even.",
+        "If you ever need a wise word, my door is open. If it's shut, I'm napping. Knock anyway.",
+        "And if you want to know what's coming, don't ask me. Ask my old friend the Seer, up in the Observatory. She has a lantern for that sort of thing."
+      ],
+      "set": "met_lizard"
+    },
+    {
+      "when": {
+        "not_flag": "met_lizard"
+      },
+      "lines": [
+        "(The Wizard Lizard looks up from a very tall stack of papers.)",
+        "Ah! A new face. Welcome, welcome to the castle school. I'm the principal: the Wizard Lizard.",
+        "{player}: The principal is a... lizard?",
+        "Principals come in all shapes, my dear. Mine happens to be scaly. Very good at sitting on warm rocks, which is most of the job.",
+        "This school has only three rules. One: every version of you is welcome here. Every single one.",
+        "Two: no running in the halls. Unless something's chasing you. Then run.",
+        "Three: naps are allowed. Encouraged, even.",
+        "If you ever need a wise word, my door is open. If it's shut, I'm napping. Knock anyway.",
+        "And if you want to know what's coming, don't ask me. Ask my old friend the Seer, up in the Observatory. She has a lantern for that sort of thing."
+      ],
+      "set": "met_lizard"
+    },
+    {
+      "when": {
+        "quest_done": "turtle_independence",
+        "every": 2
       },
       "rotate": [
         [
@@ -84,8 +138,22 @@
       ]
     },
     {
-      "lines": [
-        "Mm? Oh, hello. I was resting my eyes. Wizards need a lot of rest."
+      "rotate": [
+        [
+          "Principal's tip of the day: if a problem looks too big, look at it from a warm rock. Everything's smaller from a warm rock."
+        ],
+        [
+          "The halls are quiet today. I like quiet. Quiet is where good ideas sit down."
+        ],
+        [
+          "My friend the Seer says the stars are very busy this week. She says that every week."
+        ],
+        [
+          "Rule one, {player}. Every version of you is welcome here. I like to say it out loud now and then, in case anyone forgot."
+        ],
+        [
+          "Mm? Oh, hello. I was resting my eyes. Principals need a lot of rest."
+        ]
       ]
     }
   ]

@@ -40,6 +40,34 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				cs.shape = s
 				reach = maxf(reach, res.reach)
 				touched[cs] = true
+		elif cs.shape is HeightMapShape3D:
+			# A height map (the Earth town's ground) can't have a hole, so its points well inside are sunk to the
+			# bottom: a pit whose sides slope up to the edge between the points (one metre apart). Whoever cuts it
+			# covers the slope with a rim of their own (scripts/crack.gd).
+			var hm := cs.shape as HeightMapShape3D
+			var data := hm.map_data
+			var inner := maxf(r - 0.5, 0.6)
+			var sunk := false
+			for j in range(int(floor(h.y - inner)), int(ceil(h.y + inner)) + 1):
+				for i in range(int(floor(h.x - inner)), int(ceil(h.x + inner)) + 1):
+					if Vector2(i, j).distance_to(h) > inner:
+						continue
+					var gi := i + (hm.map_width - 1) / 2
+					var gj := j + (hm.map_depth - 1) / 2
+					if gi < 0 or gj < 0 or gi >= hm.map_width or gj >= hm.map_depth:
+						continue
+					var k := gj * hm.map_width + gi
+					if data[k] > lo + 0.5 and data[k] < hi:
+						data[k] = lo + 0.5
+						sunk = true
+			if sunk:
+				var s := HeightMapShape3D.new()
+				s.map_width = hm.map_width
+				s.map_depth = hm.map_depth
+				s.map_data = data
+				cs.shape = s
+				reach = maxf(reach, inner + 1.45)
+				touched[cs] = true
 		elif cs.shape is CylinderShape3D:
 			var c := cs.shape as CylinderShape3D
 			if h.length() + r < c.radius - 0.2 and -c.height * 0.5 < hi and c.height * 0.5 > lo:

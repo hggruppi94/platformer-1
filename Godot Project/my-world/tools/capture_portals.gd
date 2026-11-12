@@ -101,11 +101,11 @@ func _isle() -> void:
 	_look(e + Vector3(-12, 4.5, 6), e + Vector3(0, 1.2, 0))
 	await _frames(4)
 	await _shot("06_stepping_stones_to_an_echo_crystal")
-	var ts := (s.get_node("TimeStone") as Node3D).global_position
-	p.global_position = ts + Vector3(-1.5, 0.5, 1.5)
-	_look(ts + Vector3(-3.5, 2.4, 4.0), ts + Vector3(0, 1.2, 0))
+	var ts := (s.get_node("WayHome") as Node3D).global_position
+	p.global_position = ts + Vector3(-3.5, 0.5, 3.5)
+	_look(ts + Vector3(-4.5, 4.0, 5.0), ts + Vector3(0, -0.5, 0))
 	await _frames(4)
-	await _shot("07_the_time_stone")
+	await _shot("07_the_way_home_crack")
 	var h := (s.get_node("HeartStone") as Node3D).global_position
 	p.global_position = h + Vector3(2.5, 0.5, 3.0)
 	_look(h + Vector3(5, 4, 7), h + Vector3(0, 1.6, 0))

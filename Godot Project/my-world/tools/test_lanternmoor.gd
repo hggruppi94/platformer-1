@@ -89,7 +89,7 @@ func _check_quake() -> void:
 	if p == null:
 		return
 	var w: Dictionary = portals.world("lanternmoor")
-	var ground: Vector3 = rem.ground_at(w.at)
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(3.0, 0.0))      # (beside the crack: its middle is a hole)
 	check(absf(p.global_position.y - ground.y) < 0.05, "...standing on the ground")
 	check(w.at.x < -80.0 and w.at.y < -80.0, "...out in the Spooky Woods, north-west (%s)" % w.at)
 	check(w.at.distance_to(Vector2(-112, -128)) > 20.0, "...well clear of the Haunted House")
@@ -111,7 +111,7 @@ func _check_quake() -> void:
 	# Its front faces back towards the town, so you walk up to it from the path
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the town")
-	check(portals._portal_offer("lanternmoor") == "step through to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
+	check(portals._portal_offer("lanternmoor") == "look down the crack to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
 
 
 func _check_inside() -> void:
@@ -120,7 +120,7 @@ func _check_inside() -> void:
 	await _physics(4)
 	var s := current_scene
 	check(s.scene_file_path == WORLD and portals.here == "lanternmoor", "stepping through takes you to Lanternmoor")
-	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Beacon1/Beacon",
+	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Beacon1/Beacon",
 		"Beacon2/Spot", "Beacon3/Beacon", "Launch/Spot", "Pip/Model", "Pip/Spot", "The Dawn Snatcher", "Snatcher/Snoring",
 		"Stars", "Moths", "Moon/Moon"]
 	for i in 5:
@@ -134,7 +134,7 @@ func _check_inside() -> void:
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
 	check(s.dawn == 0.0 and not s.is_morning(), "it's night: the sun won't rise")
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	var spots := ["Beacon1", "Beacon2", "Beacon3", "TimeStone", "WayHome", "Vein1", "Pip", "Snatcher", "Launch"]
+	var spots := ["Beacon1", "Beacon2", "Beacon3", "Vein1", "Pip", "Snatcher", "Launch"]
 	for i in 5:
 		spots.append("Lantern%d" % (i + 1))
 	for n in spots:
@@ -279,11 +279,11 @@ func _check_snatcher() -> void:
 
 
 func _check_home() -> void:
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await create_timer(1.0).timeout
 	await _frames(14)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void")
 	var p := current_scene.get_node_or_null("Portals/Portal lanternmoor") as Node3D
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
 	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by Lanternmoor's portal")

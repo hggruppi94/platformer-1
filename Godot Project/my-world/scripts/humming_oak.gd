@@ -6,7 +6,11 @@ extends Node
 # (Mossy Falls, the pumpkin patch, Lookout Hill), and each one sets off a little tremor; laid in the nook in its roots
 # at dusk, they wake the runes; and at midnight, when the player comes to it, the oak opens for the first time (the
 # reveal: the camera swings round to the oak, fireflies spiral up the trunk, the runes light one by one, the roots lift
-# and the hollow swirls open). After that it opens every Shift (scripts/earth_world.gd).
+# and the ground in front of it cracks open: the way to the Void). After that the crack opens every Shift
+# (scripts/earth_world.gd).
+#
+# Since 12 Nov 2026 (Hayden, lore bible v2) the oak hums because the **Divine Mind** is there, and once it's awake you
+# can **touch it for a hint** about what to do next: the Divine Mind's voice answers in your mind (DivineMind.hint()).
 #
 # Old saves and anyone who isn't on the First Night's early steps find it awake already, so nobody is ever locked out.
 # Everything is kept as Dialogue flags ("fn_oak_listen", "fn_acorn_1".."3", "fn_acorns", "fn_acorns_placed",
@@ -158,7 +162,8 @@ func _refresh() -> void:
 		_nook_acorns.visible = Dialogue.flags.has("fn_acorns_placed")
 	if _spot:
 		var step := FirstNight.step() if FirstNight.running() else ""
-		_spot.set("verb", {"oak": "listen to the old oak", "dusk": "put the acorns in the roots"}.get(step, "look at the old oak"))
+		_spot.set("verb", {"oak": "listen to the old oak", "dusk": "put the acorns in the roots"}.get(step,
+			"touch the old oak" if awake() else "look at the old oak"))
 
 
 func _place_acorns() -> void:
@@ -310,9 +315,18 @@ func lines() -> Array:
 			return ["(The whole oak is humming. Something is about to happen...)"]
 	if not awake():
 		return ["(It's a big old oak tree, much older than the town. Its leaves are every colour of autumn.)"]
-	if Clock.in_shift():
-		return ["(The hollow in the old oak swirls with lilac light. The door to the Void is open. Walk in!)"]
-	return ["(The runes on the old oak glow faintly. Its hollow is dark and still. It opens again at midnight.)"]
+	return touch_lines()
+
+
+func touch_lines() -> Array:
+	# Touching the awake oak: its hum goes right through you, and a voice in your mind gives a hint
+	var out: Array = ["(You lay your hand on the old oak's bark. It's humming, deep and warm, and the hum goes right through you...)"]
+	if not Dialogue.flags.has("oak_voice_heard"):
+		Dialogue.set_flag("oak_voice_heard")
+		out.append({"speaker": DivineMind.SPEAKER, "text": "Don't be afraid. I chose you, {player}. Whenever you're lost, come and touch the old oak, and I'll help you find the way."})
+	for l in DivineMind.hint():
+		out.append({"speaker": DivineMind.SPEAKER, "text": str(l)})
+	return out
 
 
 # -----------------------------------------------------------------------------
@@ -407,9 +421,9 @@ func start_reveal() -> void:
 func _reveal_step(delta: float) -> void:
 	_reveal_t += delta
 	var t := _reveal_t
-	# The camera: from the player's view round to the front of the oak, looking up at the hollow
-	var front := _oak.global_transform * Vector3(1.2, 2.2, 6.8)
-	var look := _oak.global_transform * Vector3(0.0, 2.4, 1.4)
+	# The camera: from the player's view round to the front of the oak, looking at its foot, where the ground cracks
+	var front := _oak.global_transform * Vector3(2.0, 3.6, 10.0)
+	var look := _oak.global_transform * Vector3(0.0, 1.0, 3.8)
 	if _old_cam and is_instance_valid(_old_cam):
 		var k := smoothstep(0.0, 2.2, t)
 		var from := _old_cam.global_position
@@ -432,9 +446,10 @@ func _reveal_step(delta: float) -> void:
 		Juice.rumble(0.5, 0.6)
 		_caption.text = "The roots are moving!"
 	if t > 5.0 and not Dialogue.flags.has("oak_woken"):
-		Dialogue.set_flag("oak_woken")                    # the hollow swirls open (scripts/earth_world.gd)
+		Dialogue.set_flag("oak_woken")                    # the ground cracks open (scripts/earth_world.gd)
 		Audio.play("level_up", -6.0, 0.0)
-		_caption.text = "A door! The old oak has opened a door!"
+		Juice.shake(0.35)
+		_caption.text = "The ground in front of the oak is cracking open!"
 	if t >= REVEAL_TIME or (t > 0.5 and (Input.is_action_just_pressed("jump") or Input.is_action_just_pressed("interact"))):
 		_end_reveal()
 

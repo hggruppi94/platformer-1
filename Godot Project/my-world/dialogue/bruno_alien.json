@@ -13,6 +13,35 @@
     },
     {
       "when": {
+        "quest_step": "make_together:bruno"
+      },
+      "lines": [
+        "(Bruno spots you and skids to a stop.) Finally. Nina told you? She told you. She can't keep a thecret.",
+        "Watch thith. (He holds out his paw. Nothing happens.) ...Okay, wait. Nina! NINA!",
+        "(Nina runs over and takes his other paw. A wobbly pink and blue plank pops into the air in front of them, hums, and floats there.)",
+        "{player}: You MADE that?",
+        "We made it. Together. On my own, nothing. On her own, nothing. Both of uth? Plankth. Thtepth. One time, a very thmall chair.",
+        "It'th not thtrong, cos it'th thplit two wayth. They wobble and they pop. But they're OURTH.",
+        {
+          "speaker": "Nina",
+          "text": "(Nina grins.) And we think... we can split it three ways. Hold out your hands!"
+        },
+        "(They each take one of your hands. Something warm and fizzy runs up your arms, pink on one side and blue on the other.)",
+        "Now you try. Pressth {make}. On the ground it'th a little bridge in front of you. Jump and pressth it, and it'th a thtep under your feet. Make three thingth.",
+        "Thmaller than ourth, and they pop quicker. But that'th how tharing workth."
+      ],
+      "set": "make_taught"
+    },
+    {
+      "when": {
+        "quest_step": "make_together:try"
+      },
+      "lines": [
+        "Make three thingth! A bridge on the ground, a thtep in the air. Don't think too hard. Or do. Nina thays think hard. I don't."
+      ]
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

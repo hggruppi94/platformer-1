@@ -211,7 +211,7 @@ func _ch_first_night() -> void:
 	await shot("oak_reveal")
 	await create_timer(oak.REVEAL_TIME).timeout
 	await _frames(4)
-	check(_step("first_night") == "shift" and oak.awake(), "the door in the oak opens")
+	check(_step("first_night") == "shift" and oak.awake(), "the ground in front of the oak cracks open")
 	await _through_oak()
 	await create_timer(fn.WARP_TIME + 1.6).timeout
 	check(game.has_item("shop:shift_watch"), "a watch on the hero's wrist")
@@ -650,8 +650,8 @@ func _home_from(id: String) -> void:
 
 
 func _time_check(id: String) -> void:
-	# Was there time left? (A kid needs to manage it in the time a trip gives.)
-	print("    (%s: %.0f s of portal time left)" % [id, portals.time_left])
+	# (Portal worlds had a time limit until 12 Nov 2026; there's none now, so there's nothing to check)
+	pass
 
 
 func _ch_shard_isle() -> void:
@@ -929,8 +929,6 @@ func _ch_tide_reef() -> void:
 		chest.use()
 	check(s.chest_open(), "the Reef Chest opened")
 	_time_check("tide_reef")
-	if portals.time_left < 30.0:
-		note("the Tide Reef took nearly all of a trip's time in one go (%.0f s left)" % portals.time_left)
 	await _home_from("tide_reef")
 	await _physics(20)
 	check(current_scene.find_child("Otto", true, false) != null, "Otto's on the Portal Plaza")
@@ -1468,7 +1466,7 @@ func _sleep_until_shift() -> void:
 
 
 func _through_oak() -> void:
-	# Walk into the oak's door (it's open in the Shift)
+	# Jump into the crack by the oak (it's open in the Shift)
 	if current_scene.scene_file_path != EARTH:
 		await _go(EARTH, "Entrance")
 	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D

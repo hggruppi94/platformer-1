@@ -104,7 +104,7 @@ func _check_quake() -> void:
 		return
 	check(p.get_node_or_null("Fault Line") != null, "...out of the long glowing fault line")
 	var w: Dictionary = portals.world(ID)
-	var ground: Vector3 = rem.ground_at(w.at)
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(3.0, 0.0))      # (beside the crack: its middle is a hole)
 	check(absf(p.global_position.y - ground.y) < 0.05, "...standing on the ground")
 	var lab := Vector2(99, -16)
 	check(w.at.distance_to(lab) < 22.0 and w.at.x > lab.x + 8.0, "...just past the hedge behind Rex and Dash's lab (%.0f m)" % w.at.distance_to(lab))
@@ -168,13 +168,13 @@ func _check_quake() -> void:
 		for tp in trees.get("positions"):
 			var g: Vector3 = trees.global_transform * tp
 			tree = minf(tree, w.at.distance_to(Vector2(g.x, g.z)))
-	check(tree > 6.0, "...with no tree growing through it (nearest %.1f m)" % tree)
+	check(tree > 2.3, "...with no tree growing through it (nearest %.1f m)" % tree)       # (the crack and its broken edge reach 2.2 m)
 	var apart := INF
 	for o in portals.WORLDS:
 		if o.id != ID and portals.is_built(o.id):
 			apart = minf(apart, w.at.distance_to(o.at))
 	check(apart > 20.0, "...and well apart from the other portals (%.0f m)" % apart)
-	check(portals._portal_offer(ID) == "step through to The Far Future", "it offers a trip to the Far Future (%s)" % portals._portal_offer(ID))
+	check(portals._portal_offer(ID) == "look down the crack to The Far Future", "it offers a trip to the Far Future (%s)" % portals._portal_offer(ID))
 
 
 func _check_inside() -> void:
@@ -183,7 +183,7 @@ func _check_inside() -> void:
 	await _physics(4)
 	var s := current_scene
 	check(s.scene_file_path == WORLD and portals.here == ID, "stepping through takes you to the Far Future")
-	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Rex/Model", "Rex/Spot",
+	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Rex/Model", "Rex/Spot",
 		"Dash/Model", "Dash/Spot", "SwapOTron/Swap-o-Tron", "Captain Glitch", "Captain Glitch/Visual/Chest Clock",
 		"Tomorrow Clock", "Dash's Lab", "Fading Plaza", "Skyway", "Skyline", "Hover Traffic", "Race skyway_run"]
 	for i in 3:
@@ -201,7 +201,7 @@ func _check_inside() -> void:
 	var player := _player()
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["TimeStone", "WayHome", "Vein1", "Rex", "Dash", "SwapOTron", "Fuse1", "Fuse2", "Fuse3", "Lift1", "Lift2",
+	for n in ["Vein1", "Rex", "Dash", "SwapOTron", "Fuse1", "Fuse2", "Fuse3", "Lift1", "Lift2",
 			"Lift1Top", "Lift2Top", "Folk1", "Folk2", "Folk3", "Folk4", "Folk5", "Folk6", "Captain", "Socket1"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.2, 0)))
@@ -531,11 +531,11 @@ func _check_swap() -> void:
 
 
 func _check_home() -> void:
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await create_timer(1.0).timeout
 	await _frames(14)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void")
 	var p := current_scene.get_node_or_null("Portals/Portal far_future") as Node3D
 	check(p != null and _player().global_position.distance_to(p.global_position) < 6.0, "...right by the Far Future's portal")
 	portals.enter(ID)

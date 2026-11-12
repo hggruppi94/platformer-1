@@ -183,9 +183,7 @@ func _check_goodbye(skipping: bool) -> void:
 	check(root.get_viewport().get_camera_3d() == g.cam, "...it has its own camera")
 	check(not player.get_node("HUD").visible, "...and the HUD steps away")
 	check(root.get_node("Soundscape").pick_track() == "chaos_ending", "...the gentle music plays")
-	var left: float = portals.time_left
 	await _frames(20)
-	check(absf(portals.time_left - left) < 0.01, "the portal's timer stands still while it plays")
 	check(g.friends.size() == 6, "six friends come through (%d)" % g.friends.size())
 	var friends: Array = g.friends.duplicate()
 	if skipping:

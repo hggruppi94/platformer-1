@@ -2,12 +2,22 @@ extends Node3D
 
 # Earth (scenes/earth/earth.tscn, built by tools/build_earth.gd): the small cozy town where the player lives. Their
 # house is on the south side of the green, with their bed (a new game starts there). Earth's clock is the one that
-# always runs (scripts/clock.gd). Every night from midnight to 1 AM, the Shift, the portal by the old oak opens to
-# The Void; the rest of the time it's a quiet ring and walking into it says when it opens.
+# always runs (scripts/clock.gd). Every night from midnight to 1 AM, the Shift, a crack opens in the ground in front of
+# the old oak, and jumping in takes you to the Void (Hayden, 12 Nov 2026: "the cracks ARE the portals"; it used to be a
+# door in the oak's hollow). The rest of the time the crack is closed over with cracked earth.
+#
+# The crack (scripts/crack.gd) isn't there at all until the first time it opens, in the Shift once the oak has woken
+# (scripts/humming_oak.gd): on a new game that's the oak's midnight reveal, so nobody sees it before then (flag
+# "earth_crack_seen" after). The builder's door area
+# ("PortalToGalaxity") is moved down inside it, so falling in is going through, and its glow moves with it. The oak's
+# hollow stays dark: the oak only hums now, for the Divine Mind.
 #
 # In the show, kids are people on Earth and creatures in the Void. The player keeps their Void look here for now.
 
 const PlantClearance := preload("res://scripts/plant_clearance.gd")
+const CRACK := preload("res://scripts/crack.gd")
+const CRACK_OUT := 2.9                             # the crack's middle, this far out in front of the oak's door spot
+const CRACK_COLOUR := Color(0.7, 0.5, 1.0)
 var trees_left_out := 0                             # trees left out because something solid stood where they grow
 
 const PORTAL_OPEN_TIME := 2.5                      # seconds for the swirl to grow in or shrink away
@@ -42,6 +52,7 @@ var _last_minute := -1
 var _portal_door: Area3D
 var _swirl: Node3D
 var _portal_glow: OmniLight3D
+var crack: Node3D                                  # the crack to the Void, once the oak's awake
 var _glow_energy := 1.5
 var _open := 0.0                                   # the portal's swirl: 0 closed .. 1 fully open
 var _sun_size := -1.0                              # the sky's sun disc as built (summer makes it bigger)
@@ -74,6 +85,8 @@ func _ready() -> void:
 	if _portal_glow:
 		_glow_energy = _portal_glow.light_energy
 	_open = 1.0 if _door_open() else 0.0
+	if HummingOak.awake() and (Dialogue.flags.has("earth_crack_seen") or _door_open()):
+		_make_crack.call_deferred()
 	_light()
 	_portal()
 	# Trees standing in something solid (a shop, a fence, a bench...) are left out (Hayden's day 1 playtest)
@@ -95,16 +108,49 @@ func _process(delta: float) -> void:
 		_last_minute = m
 		_light()
 	_open = move_toward(_open, 1.0 if _door_open() else 0.0, delta / PORTAL_OPEN_TIME)
+	if crack == null and _door_open():
+		_make_crack()
 	_portal()
 
 
+func _make_crack() -> void:
+	# The crack in front of the old oak, cut into the green (scripts/crack.gd), with the door moved down into it
+	if crack != null or not is_inside_tree():
+		return
+	var home := get_node_or_null("Portal Home") as Node3D
+	if home == null or _portal_door == null:
+		return
+	Dialogue.set_flag("earth_crack_seen")
+	crack = CRACK.make(CRACK_COLOUR)
+	crack.name = "Crack to the Void"
+	home.add_child(crack)
+	var at := home.global_transform * Vector3(0, 0, CRACK_OUT)
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 10, 0), at + Vector3(0, -10, 0))
+	q.collide_with_areas = false
+	var hit := space.intersect_ray(q)
+	crack.global_position = hit.position if hit else Vector3(at.x, EarthLand.height(at.x, at.z), at.z)
+	CRACK.sink(crack, self)
+	CRACK.set_open(crack, smoothstep(0.0, 1.0, _open))
+	_portal_door.global_position = crack.global_position + Vector3(0, -1.0, 0)
+	var shape := _portal_door.get_child(0) as CollisionShape3D if _portal_door.get_child_count() > 0 else null
+	if shape and shape.shape is BoxShape3D:
+		var b := (shape.shape as BoxShape3D).duplicate() as BoxShape3D
+		b.size = Vector3(CRACK.R * 1.3, 2.4, CRACK.R * 1.3)
+		shape.shape = b
+		shape.position = Vector3.ZERO
+	if _portal_glow:
+		_portal_glow.global_position = crack.global_position + Vector3(0, 0.8, 0)
+
+
 func _portal() -> void:
-	# The swirl and its glow grow in at midnight and fade away at 1 AM. Whether she can go through follows the clock
-	# itself, not the swirl (as in the Void's portal, scripts/portal.gd).
+	# The crack opens at midnight and closes over at 1 AM. Whether she can go through follows the clock itself, not the
+	# crack opening (as in the Void's portal, scripts/portal.gd). The oak's hollow stays dark now.
 	var k := smoothstep(0.0, 1.0, _open)
 	if _swirl:
-		_swirl.visible = k > 0.01
-		_swirl.scale = Vector3.ONE * maxf(k, 0.01)
+		_swirl.visible = false
+	if crack:
+		CRACK.set_open(crack, k)
 	if _portal_glow:
 		_portal_glow.light_energy = _glow_energy * k
 		_portal_glow.visible = k > 0.01
@@ -113,11 +159,11 @@ func _portal() -> void:
 			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
 		else:
 			_portal_door.set("closed_message", "" if Clock.in_shift() else
-				"The door in the old oak is asleep. It opens to the Void during the Shift, from midnight to 1 AM.")
+				"The crack by the old oak is closed. It opens to the Void during the Shift, from midnight to 1 AM.")
 
 
 func _door_open() -> bool:
-	# The oak's door opens in the Shift, once it's awake (on a new game's first day it's woken at midnight:
+	# The crack opens in the Shift, once the oak's awake (on a new game's first day it's woken at midnight:
 	# scripts/humming_oak.gd)
 	return Clock.in_shift() and HummingOak.awake()
 
