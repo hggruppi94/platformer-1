@@ -39,8 +39,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if Creator.is_open():
 		return
 	# The pause menu (Esc) frees the mouse; clicking back in the game window grabs it again
+	# (not while a race's results buttons are up: they need the cursor)
 	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED \
-			and not get_tree().paused:
+			and not get_tree().paused and not Races.choosing():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var s := mouse_sensitivity * Settings.mouse_sensitivity

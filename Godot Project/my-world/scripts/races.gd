@@ -383,6 +383,11 @@ func ride_of(who: String) -> Dictionary:
 	return Rides.ride(str(TOWNSFOLK_RIDES.get(who, who)))
 
 
+func choosing() -> bool:
+	# The results' "race again / go back" buttons are up: they need the mouse cursor (scripts/race_hud.gd)
+	return _choosing
+
+
 func racing() -> bool:
 	return state != State.IDLE
 

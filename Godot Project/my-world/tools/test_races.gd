@@ -323,6 +323,22 @@ func _run() -> void:
 	check(p.input_locked, "...and you wait while they're up")
 	await _physics(int(races.RESULTS_TIME * 60) + 10)
 	check(races.hud.choosing(), "...for as long as you like")
+	# The buttons keep the mouse cursor (Hayden's 12 Nov playtest: after a race the cursor was gone for good)
+	var windowed := DisplayServer.get_name() != "headless"
+	check(not windowed or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "the results show the mouse cursor")
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	p.get_node("SpringArm3D")._unhandled_input(click)
+	await _frames(2)
+	check(not windowed or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "...clicking the game behind them doesn't hide it")
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	await _frames(2)
+	check(not windowed or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "...nor does anything else grabbing the mouse")
+	var pause_menu: Node = root.get_node("PauseMenu")
+	pause_menu.open()
+	pause_menu.close()
+	check(not windowed or Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "...nor pausing and carrying on")
 	check(races.best.has("lake_loop") and int(races.wins.get("lake_loop", 0)) == 1, "best time and the win are kept")
 	var saved: Dictionary = races.save_place()
 	check(saved.get("scene", "") == TOWN and Vector3(saved.position[0], saved.position[1], saved.position[2]).distance_to(from) < 1.0,
@@ -330,6 +346,7 @@ func _run() -> void:
 	(races.hud.choice_box.get_child(0) as Button).pressed.emit()
 	await _physics(3)
 	check(races.racing() and races.state == races.State.COUNTDOWN and not races.hud.choosing(), "\"Race again\" goes straight back to the countdown")
+	check(not windowed or Input.mouse_mode == Input.MOUSE_MODE_CAPTURED, "...and the game has the mouse again")
 	races._end(false)
 	races._offer_choice("test")
 	(races.hud.choice_box.get_child(1) as Button).pressed.emit()
