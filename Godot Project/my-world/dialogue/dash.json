@@ -18,8 +18,8 @@
         "watches_to_give": false
       },
       "lines": [
-        "(Dash is looking up at the sky. He waves when he sees you, but he doesn't say anything for a while.)",
-        "I'll be at the Tomorrow Clock, {player}. Don't be long. Well. Be as long as you like. Actually, no. Don't be long."
+        "(Dash is looking up at the sky, grinning. He waves when he sees you.)",
+        "I'll be at the Tomorrow Clock, in Lumen City, {player}. Everyone's coming. Don't be long. Well. Be as long as you like. Actually, no. Don't be long."
       ]
     },
     {

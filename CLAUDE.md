@@ -92,6 +92,48 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **The ending rewritten: nobody's left behind, everyone goes home** (Hayden's lore bible v2,
+  story/lore-bible.md Part 3 items 6 to 9: "dash doesnt sacrifice himself. fixing the time shift sets everyone back in
+  their homeworld", Rex will be mayor of Lumen City, Lumen City is Stars Hollow's far future on Earth, Rex swapped with
+  Rook on purpose testing his Swap-o-Tron, the Agent of Chaos is a chosen kid possessed by Chaos, Otto's Grandad lore
+  scrapped). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Loose Ends, rewritten** (`far_future.gd` slice three): after the lever swaps them back for good, Rex says sorry
+    to Rook (on purpose, for the science fair), and Dash's `home_lines()` (was `twist_lines()`; flag still
+    `dash_told`) say the Shift is mending itself: when the Tomorrow Clock strikes the last crack closes and everyone
+    goes back to their own world and time, and the three of them are already home.
+  - **The homecoming** (`scripts/dash_goodbye.gd`, same file and flags so saves carry on; ~65 s, skippable): beats
+    gather, talk (13 lines: Rex's sorry, Rook forgives him, Dash calls Rex a future mayor, "Lumen City is built right
+    where Stars Hollow is... just LATER", the cap), **strike** (three bongs, the faces blaze), **home** (each friend
+    lifted home in a beam of their own colour), beam, stitch ("the last crack closes"), title "SEE YOU LATER".
+    **Dash stays.** Flag `dash_goodbye` now means "everyone's home" (`after_the_ending.gd everyone_home()`, was
+    `dash_gone()`).
+  - **After:** Dash, Rex and Rook live in Lumen City: at the clock, with a **REX FOR MAYOR (one day)** banner
+    (`_add_banner()`), new lines, Dash's rewritten letter on his bench. In the Void all three (and Dash's bike) are gone
+    (`void_changes()`, `HOME_IN_LUMEN`), out of the Void's races (`races.gd _gone_home(id)`: not the Skyway Run) and
+    deliveries. **Dash takes the lost watches and the Pieces of That Night in Lumen City** (`far_future.gd
+    hand_ins()`); Rex's stand-in lines are gone (`watches.gd REX_REWARD_LINES`, rex.json's after-ending talks).
+  - **The Old Oak in Lumen City** (`_add_old_oak()`, `OAK_AT` (14, 30)): Stars Hollow's oak a long time later, with a
+    plaque and runes; touching it hums (`oak_lines()`: before the ending only "it sounds exactly like the oak back
+    home", after "it's the same tree").
+  - **The Agent of Chaos's ending** (`chaos_ending.gd`): the figure of light now speaks (`FIGURE_LINES`): he's
+    **Teddy**, a Stars Hollow kid chosen in 1956 who went back for one more trip, and something called **Chaos** got
+    into his watch; "You beat it. You didn't end it." Title: "is beaten, and the kid he took is free. But Chaos is still
+    out there...". The pocket watch says "T.M.". Light beat 3 s longer (T_SKY 17.5, LENGTH 37.5).
+  - **Rex's swap was on purpose:** rex.json `rex_lab:see` (science fair; both experiments sent all three back in time,
+    the only time anyone's done it, and it cracked time), `lab.gd` header, the sunken pieces' echoes (Rook's Ball,
+    the lever knob) and Dash's all-eight lines ("Neither of us meant THIS").
+  - **Otto's Grandad scrapped:** the Tide Reef's chest is the **Reef Chest** (node "Reef Chest", "From everyone on the
+    Tide Reef"), his plaza lines say Mum. The sunken watch `old_grandad` (id kept for saves) is now **Teddy's
+    wristwatch from 1956**, and the eight-watch line says "Nearly every one of them went home". The seer's bike bottle
+    no longer hints at a sacrifice.
+  - Tests: `test_dash_goodbye` rewritten (90 checks), `test_chaos_ending` (Teddy and Chaos named), `test_tide_reef`;
+    far_future (its Void portal tree check fails on main too), sunken_secrets, portals, dialogue, chaos_fight pass;
+    lost_watches fails only its Bolt Watch rail check, as on main. Previews: `tools/capture_dash_goodbye.gd` (shots in
+    the project files under characters/dash/homecoming).
+  - My choices Hayden may change: every line (first drafts), Teddy's name and 1956, the beams' colours, the banner,
+    the oak's spot and look, Dash taking the watches in Lumen City, and that unfinished Void side quests with Dash, Rex
+    or Rook can't be finished after the ending.
+
 - 2026-11-12: **Dash's kinetic energy, and Nina and Bruno's making power** (Hayden's lore decisions, 12 Nov 2026: "give
   dash kinetic energy, and nina and bruno share an ability to create, but its weaker for that reason"; the lore bible
   at story/lore-bible.md). Built and tested in the cloud (own Godot user folders, no save touched).

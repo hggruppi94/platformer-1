@@ -1,8 +1,9 @@
 extends SceneTree
 
 # Screenshots of the story's ending (scripts/far_future.gd slice three, scripts/dash_goodbye.gd): the Swap-o-Tron
-# holding Rex and Rook in their own bodies, Dash telling everyone, the goodbye at the Tomorrow Clock beat by beat, his
-# letter on the workbench, and Rex and Rook back in the Void in their own bodies. Opens a window (not --headless):
+# holding Rex and Rook in their own bodies, Dash telling everyone they're all going home, the homecoming at the Tomorrow
+# Clock beat by beat, his letter on the workbench, Rex's banner, and the Old Oak in Lumen City. Opens a window (not
+# --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_dash_goodbye.gd -- <output folder>
 #
@@ -17,10 +18,10 @@ const ID := "far_future"
 const WORLDS := ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef", "glenmoor",
 	"dark_hollow", "far_future"]
 # [the goodbye's own clock, name]
-const SHOTS := [[2.8, "03_everyone_comes"], [5.0, "04_dash_says_goodbye"], [15.0, "05_bramble_asks"],
-	[21.5, "06_pip_see_you_later"], [31.5, "07_rex"], [38.5, "08_his_cap"], [45.5, "09_up_to_the_clock"],
-	[47.2, "10_one_last_wave"], [49.0, "11_into_the_light"], [51.0, "12_the_beam"], [54.5, "13_the_seam_in_the_sky"],
-	[58.5, "14_see_you_later"]]
+const SHOTS := [[2.8, "03_everyone_comes"], [5.5, "04_everyone_came"], [15.0, "05_bramble"],
+	[21.5, "06_pip_see_you_later"], [28.5, "07_rex_says_sorry"], [31.5, "08_rook_forgives_him"],
+	[38.5, "09_stars_hollow_just_later"], [41.5, "10_his_cap"], [47.8, "11_the_clock_strikes"],
+	[50.2, "12_everyone_goes_home"], [53.5, "13_the_beam"], [57.5, "14_the_seam_in_the_sky"], [61.5, "15_see_you_later"]]
 
 var out_dir := "user://dash_goodbye_shots"
 
@@ -31,7 +32,7 @@ func _initialize() -> void:
 		out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(900.0, true, false, true).timeout.connect(_finish)
+	create_timer(2400.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
@@ -92,7 +93,7 @@ func _run() -> void:
 	await create_timer(float(s.SWAP_DONE) - float(s.FOR_GOOD_HOLD) + 0.2).timeout
 	cam.global_position = tron.global_position + Vector3(6.5, 2.6, 4.0)
 	cam.look_at((s.get_node("Dash") as Node3D).global_position + Vector3(0, 1.2, 0))
-	for i in 5:                                   # on to "a crack has two ends"
+	for i in 6:                                   # on to "the Shift sends everyone back where they belong"
 		dialogue.call("_next")
 		await _frames(2)
 	await create_timer(1.5).timeout
@@ -123,37 +124,32 @@ func _run() -> void:
 	cam.look_at(letter.global_position + Vector3(0, 1.1, 0))
 	cam.make_current()
 	await _frames(20)
-	await _shot("15_his_letter")
+	await _shot("16_his_letter")
 	letter.get_node("Spot").use()
 	await create_timer(1.6).timeout
-	await _shot("16_reading_it")
+	await _shot("17_reading_it")
+	dialogue.end()
+	await _frames(6)
+
+	# Rex's banner by the clock, with the three of them home
+	var banner := s.get_node("Mayor Banner") as Node3D
+	cam.global_position = banner.global_position + banner.global_basis.z * 7.0 + Vector3(-2.0, 2.4, 0)
+	cam.look_at(banner.global_position + Vector3(-1.5, 1.6, 0))
+	await _frames(20)
+	await _shot("18_rex_for_mayor")
+
+	# The Old Oak in Lumen City
+	var oak := s.get_node("Old Oak") as Node3D
+	p.global_position = oak.global_position + Vector3(1.5, 1.0, 4.0)
+	cam.global_position = oak.global_position + Vector3(6.0, 3.0, 11.0)
+	cam.look_at(oak.global_position + Vector3(0, 4.0, 0))
+	await _frames(20)
+	await _shot("19_the_old_oak")
+	oak.get_node("Spot").use()
+	await create_timer(1.6).timeout
+	await _shot("20_it_hums")
 	dialogue.end()
 
-	# Back in the Void: Rex and Rook in their own bodies
-	portals.go_home()
-	await _frames(30)
-	var town := current_scene
-	var rex: Node3D
-	var rook: Node3D
-	for r in town.find_children("Routine", "", true, false):
-		if str(r.get("character_id")) == "rex":
-			rex = r.get_parent()
-		elif str(r.get("character_id")) == "rook":
-			rook = r.get_parent()
-	if rex and rook:
-		var mid := rex.global_position.lerp(rook.global_position, 0.5)
-		rook.global_position = rex.global_position + rex.global_basis.x * 1.6
-		rex.get_node("Routine").process_mode = Node.PROCESS_MODE_DISABLED
-		rook.get_node("Routine").process_mode = Node.PROCESS_MODE_DISABLED
-		mid = rex.global_position.lerp(rook.global_position, 0.5)
-		var c2 := Camera3D.new()
-		town.add_child(c2)
-		var front := rex.global_basis.z.normalized()
-		c2.global_position = mid + front * 4.5 + Vector3(0, 1.8, 0)
-		c2.look_at(mid + Vector3(0, 1.0, 0))
-		c2.make_current()
-		await _frames(20)
-		await _shot("17_rex_and_rook_in_the_void")
 	_finish()
 
 

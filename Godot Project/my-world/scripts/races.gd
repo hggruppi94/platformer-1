@@ -905,7 +905,7 @@ func start(id: String, with_intro := true) -> bool:
 	Game.hold_controls(&"race", true, p)
 	# The friends lining up
 	var who: Array = []
-	var gone := _gone_home()
+	var gone := _gone_home(id)
 	for r in TRACKS[id].rivals:
 		who.append(r if r != p.get("rider") and not r in gone else "")
 	for k in who.size():
@@ -1463,9 +1463,12 @@ func _rival_pads(r: RaceRival) -> void:
 
 
 # -----------------------------------------------------------------------------
-func _gone_home() -> Array:
-	# Friends who can't race any more: Dash, once he's gone home to the furthest future (scripts/after_the_ending.gd)
-	return ["dash"] if Dialogue.flags.has("dash_goodbye") else []
+func _gone_home(id := "") -> Array:
+	# Friends who can't race in the Void any more: Dash, Rex and Rook, once everyone's home and they live in Lumen City
+	# (scripts/after_the_ending.gd). They still race their own Skyway Run, in the Far Future
+	if not Dialogue.flags.has("dash_goodbye") or str(TRACKS.get(id, {}).get("scene", "")) == FAR_FUTURE:
+		return []
+	return ["dash", "rex", "rook"]
 
 
 func _show_npc(id: String, on: bool) -> void:

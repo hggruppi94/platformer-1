@@ -82,7 +82,8 @@ func _run() -> void:
 	var seen: Array[String] = [ending.beat]
 	var t := 0.0
 	var mid_ok := true
-	while ending.playing() and t < 40.0:
+	var named := false
+	while ending.playing() and t < 45.0:
 		await process_frame
 		t += root.get_process_delta_time()
 		if seen.back() != ending.beat:
@@ -91,9 +92,12 @@ func _run() -> void:
 				mid_ok = mid_ok and not giant.visible and ending.watch != null
 		if ending.beat == "light" and ending.figure:
 			mid_ok = mid_ok and ending.figure.visible or true
+		if ending.beat == "light" and "Teddy" in ending._caption.text and "Chaos" in " ".join(ending.FIGURE_LINES):
+			named = true
 	check(seen == ["crack", "shatter", "fade", "light", "sky", "friends", "title", "done"], "every beat in order: %s" % [seen])
-	check(t > 30.0 and t < 37.0, "it lasts about half a minute (%.1f s)" % t)
+	check(t > 33.0 and t < 40.0, "it lasts about half a minute (%.1f s)" % t)
 	check(mid_ok, "he's gone and the watch is left by the time the friends come")
+	check(named, "the figure of light says who it was (the chosen kid Chaos took) and warns about Chaos")
 	check(ending.friends.size() == 9, "nine friends came (%d)" % ending.friends.size())
 	var near: bool = ending.friends.all(func(f: Node3D) -> bool: return f.global_position.distance_to(p.global_position) < 12.0)
 	check(near, "...standing round the hero")

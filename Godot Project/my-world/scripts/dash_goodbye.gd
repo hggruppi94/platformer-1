@@ -1,21 +1,23 @@
 extends CanvasLayer
 
-# Dash's goodbye at the Tomorrow Clock, the story's ending (Hayden, Nov 11, 2026: "we can add the ending next"; the
-# story docs: "Dash learns he must repair the Shift, and the cost is never seeing his friends again", told
-# "bittersweet with hope: he leaves something behind, or they'll meet again"). Played by scripts/far_future.gd when
-# you walk up to Dash on the clock's dais once he's told everyone (flag "dash_told"). About a minute, and Jump,
-# Interact or Accept skips straight to how it ends:
+# Everyone goes home: the story's ending at the Tomorrow Clock (Hayden, Nov 12, 2026, the lore bible v2: "dash doesnt
+# sacrifice himself. fixing the time shift sets everyone back in their homeworld", Rex will be mayor of Lumen City,
+# and Lumen City is Stars Hollow's far future, on Earth). Before Nov 12 this was Dash's goodbye, where he went into the
+# clock and stayed there; the file and the flags keep his name so saves and tests still find them. Played by
+# scripts/far_future.gd when you walk up to Dash on the clock's dais once he's told everyone what happens next (flag
+# "dash_told"). About a minute, and Jump, Interact or Accept skips straight to how it ends:
 #
 #   gather  (0 s)    the camera comes in over Lumen City to the clock; everyone who taught you a move comes through
-#   talk    (3.5 s)  Dash says goodbye: to everyone, to Rex, and to you (he gives you his cap: shop/items.json dash_cap)
-#   go      (43.5 s) he walks up to the clock, a door of light opens in its spire, he turns round and waves...
-#   inside  (48.5 s) ...and steps through. The clock's faces blaze gold
-#   beam    (49.5 s) a beam of gold goes up the spire into the sky: the far end of the Shift, being stitched
-#   stitch  (52 s)   a golden seam draws itself across the sky, end to end, and the Shift is whole
-#   title   (56 s)   "SEE YOU LATER" "Every goodbye is a see-you-later."
+#   talk    (3.5 s)  everyone says see you later; Rex says sorry to Rook; Dash tells you Lumen City is built where
+#                    Stars Hollow is, and gives you his cap (shop/items.json dash_cap)
+#   strike  (46.8 s) the Tomorrow Clock strikes: its faces blaze gold, three big bongs
+#   home    (48.5 s) one by one, each friend is lifted home in a beam of their own colour: the Shift sends them back
+#   beam    (52.5 s) a beam of gold goes up the spire into the sky: the last crack closing
+#   stitch  (55 s)   a golden seam draws itself across the sky, end to end, and the Shift is whole
+#   title   (59 s)   "SEE YOU LATER"
 #
-# Then the player has the controls back, the friends go home in a sparkle, and Dash's letter waits on his workbench
-# (far_future.gd said_goodbye(), letter_lines()). Every line is a first draft for Hayden. Its own camera, a
+# Then the player has the controls back. Dash, Rex and Rook stay: they're home already. Dash's letter waits on his
+# workbench (far_future.gd said_goodbye(), letter_lines()). Every line is a first draft for Hayden. Its own camera, a
 # "dash_goodbye" hold on the controls, the HUD hidden and the minimap waiting (group "cutscene_playing"); the portal
 # trip's timer stands still meanwhile (scripts/portals.gd), and the music is the Agent of Chaos's gentle ending tune
 # (group "goodbye_playing", scripts/soundscape.gd).
@@ -26,49 +28,49 @@ const BAR := 0.11
 const SKIP_ACTIONS := ["jump", "interact", "ui_accept"]
 const T_TALK := 3.5
 const LINE_TIME := 3.3
-const T_GO := 43.5
-const T_TURN := 46.0                 # he turns round at the door and waves
-const T_IN := 48.5
-const T_BEAM := 49.5
-const T_STITCH := 52.0
-const T_TITLE := 56.0
-const LENGTH := 62.0
+const T_STRIKE := 46.8
+const T_HOME := 48.5
+const HOME_GAP := 0.6                # seconds between one friend going home and the next
+const T_BEAM := 52.5
+const T_STITCH := 55.0
+const T_TITLE := 59.0
+const LENGTH := 65.0
 const CAP := "dash_cap"
 const PLAYER_AT := Vector3(0, 0, 12.5)           # where the hero stands for it, from the clock
-const DOOR_AT := Vector3(0, 0, 2.7)              # the door of light in the spire's front, from the clock
 const SEAM_AT := Vector3(0, 62, -70)             # the golden seam in the sky, from the clock
 # The friends who come through for it (Rex and Rook are already there: the world's own): [name, model, where from
-# the clock]. A model is a .glb, or "script:method" for one made in code, as in scripts/chaos_ending.gd
+# the clock, the colour of the beam that takes them home]. A model is a .glb, or "script:method" for one made in code,
+# as in scripts/chaos_ending.gd
 const FRIENDS := [
-	["Bramble", "res://models/characters/plant_girl.glb", Vector3(3.2, 0, 7.5)],
-	["Pip", "res://models/characters/moth_kid.glb", Vector3(4.8, 0, 8.6)],
-	["Melody", "res://models/characters/melody.glb", Vector3(-6.4, 0, 10.2)],
-	["Heather", "res://models/characters/cattle_girl.glb", Vector3(6.4, 0, 10.2)],
-	["Flurry", "res://scripts/frozen_moment.gd:flurry_model", Vector3(-7.4, 0, 12.6)],
-	["Otto", "res://scripts/tide_reef.gd:otto_model", Vector3(7.4, 0, 12.6)],
+	["Bramble", "res://models/characters/plant_girl.glb", Vector3(3.2, 0, 7.5), Color(0.55, 1.0, 0.45)],
+	["Pip", "res://models/characters/moth_kid.glb", Vector3(4.8, 0, 8.6), Color(1.0, 0.85, 0.5)],
+	["Melody", "res://models/characters/melody.glb", Vector3(-6.4, 0, 10.2), Color(0.85, 0.5, 1.0)],
+	["Heather", "res://models/characters/cattle_girl.glb", Vector3(6.4, 0, 10.2), Color(1.0, 0.7, 0.85)],
+	["Flurry", "res://scripts/frozen_moment.gd:flurry_model", Vector3(-7.4, 0, 12.6), Color(0.7, 0.9, 1.0)],
+	["Otto", "res://scripts/tide_reef.gd:otto_model", Vector3(7.4, 0, 12.6), Color(0.35, 0.85, 1.0)],
 ]
 # What's said (first drafts): [who, line]. Line GIFT_LINE is when he gives you his cap
 const LINES := [
 	["Dash", "Everyone came. Even Otto. His chair HATES stairs."],
 	["Otto", "It's fine. I blew myself a bubble ramp."],
-	["Dash", "I'm rubbish at speeches, so I'll be quick. When I go into the clock, the far end of the Shift gets stitched shut."],
-	["Bramble", "And you can't come back through. Not ever?"],
-	["Dash", "Not for a long, long time. But time goes round, Bramble. Like a wheel. And wheels come round."],
-	["Pip", "Then this isn't goodbye. It's see you later."],
-	["Flurry", "My watch stopped once. For ages. Then it started again. Yours will too."],
-	["Dash", "Rex. You've got hands now. Look after the lab. And the stall. And Rook. And everyone."],
-	["Rex", "...You're the annoying one. Who am I going to be annoyed at now?"],
-	["Dash", "Mr. Palmer, probably. Practise on him. You're going to be a brilliant mayor."],
-	["Dash", "{player}. You found me first, remember? Gold tyre tracks. Here. My cap. It's a time detective's cap now."],
+	["Dash", "When the Tomorrow Clock strikes, the last crack closes, and the Shift sends everyone home. Your own world, your own time."],
+	["Bramble", "Home to the Rootmind. I'll miss you lot. Snappy will too. He won't say it. He'll bite something."],
+	["Heather", "Glenmoor's got its days and nights back. Somebody's gotta keep the Sunfolk and the Moonfolk sharin'."],
+	["Pip", "And it isn't goodbye. It's see you later."],
+	["Flurry", "My watch stopped once, for ages. Then it started again. Things come round."],
+	["Rex", "Rook. Before it strikes. Swapping us was my idea, on purpose, for a science fair. I'm sorry, boy."],
+	["Rook", "Woof! (Rook licks Rex's whole face. That's a yes.)"],
+	["Dash", "And one day you'll be mayor of all this, Rex. You'll be brilliant. Unbearable, but brilliant."],
+	["Dash", "{player}, here's the best bit. Lumen City is built right where Stars Hollow is. Same ground. Same old oak. Just LATER."],
+	["Dash", "You found me first, remember? Gold tyre tracks. Here, my cap. So you've got a bit of later with you, back home."],
 	["Dash", "See you later, everyone."],
 ]
-const GIFT_LINE := 10
+const GIFT_LINE := 11
 
 var world: Node3D                                # scripts/far_future.gd
 var cam: Camera3D
 var root: Node3D
 var friends: Array[Node3D] = []
-var door: MeshInstance3D
 var beam: MeshInstance3D
 var seam: Node3D
 var beat := ""                                   # which part it's on (for the tests)
@@ -206,18 +208,15 @@ func _run_beats() -> void:
 			_say(LINES[i][0], LINES[i][1])
 			if i == GIFT_LINE:
 				_give_cap()
-	if _t >= T_GO and beat == "talk":
+	if _t >= T_STRIKE and beat == "talk":
 		if _shown_line < GIFT_LINE:
 			_give_cap()                                  # (skipped past it)
-		beat = "go"
-		_go()
-	if _t >= T_TURN and beat == "go":
-		beat = "turn"
-		_turn_back()
-	if _t >= T_IN and beat == "turn":
-		beat = "inside"
-		_step_in()
-	if _t >= T_BEAM and beat == "inside":
+		beat = "strike"
+		_strike()
+	if _t >= T_HOME and beat == "strike":
+		beat = "home"
+		_send_home()
+	if _t >= T_BEAM and beat == "home":
 		beat = "beam"
 		_beam()
 	if _t >= T_STITCH and beat == "beam":
@@ -238,9 +237,6 @@ func _finish() -> void:
 		if is_instance_valid(layer_node):
 			layer_node.visible = true
 	_hidden.clear()
-	for f in friends:
-		if is_instance_valid(f):
-			Fx.burst(world, f.global_position + Vector3(0, 1.0, 0), Color(1.0, 0.9, 0.5), 10, 0.1, 2.0, -1.0, 0.7)
 	if is_instance_valid(root):
 		root.queue_free()
 	root = null
@@ -253,7 +249,7 @@ func _finish() -> void:
 		Game.hold_controls(&"dash_goodbye", false, p)
 	_give_cap()
 	world.call("said_goodbye")
-	Game.message("Dash has gone home to the furthest future. The Shift is whole again. (Dash's Cap is in your wardrobe.)")
+	Game.message("Everyone's home, and the Shift is whole again. The way home waits whenever you're ready. (Dash's Cap is in your wardrobe.)")
 	done.emit()
 
 
@@ -301,61 +297,75 @@ func _give_cap() -> void:
 		Juice.blip("chime", 1.2, -4.0)
 
 
-func _go() -> void:
-	# He walks up to the clock, and a door of light opens in its spire
-	_caption.text = ""
-	var dash := world.get_node_or_null("Dash") as Node3D
-	_open_door()
-	if dash:
-		dash.rotation.y = PI
-		var model := dash.get_node_or_null("Model") as Node3D
-		if model:
-			model.rotation.y = 0.0
-		_anim(dash, "walk")
-		var to: Vector3 = world.call("ground_below", _c + DOOR_AT + Vector3(0, 1.5, 0.4))
-		var tw := dash.create_tween()
-		tw.tween_property(dash, "global_position", to, 2.2).set_trans(Tween.TRANS_SINE)
-		tw.tween_callback(func() -> void: _anim(dash, "idle"))
-	for f in friends:
-		_anim(f, "idle")
-	Juice.blip("whoosh", 0.5, -6.0)
-
-
-func _turn_back() -> void:
-	# One last look back, and a wave
-	var dash := world.get_node_or_null("Dash") as Node3D
-	if dash:
-		dash.create_tween().tween_property(dash, "rotation:y", 0.0, 0.5)
-		world.call("_shout", dash, "See you later, {player}!")
-	_say("Rex", "See you later, Dash.")
-
-
-func _step_in() -> void:
-	# Through the door of light: he goes small and bright and he's gone, and the clock's faces blaze gold
-	_caption.text = ""
-	var dash := world.get_node_or_null("Dash") as Node3D
-	if dash:
-		# (his talk spot goes first: physics can't squeeze a shape the way his model squeezes into the light)
-		var spot := dash.get_node_or_null("Spot")
-		if spot:
-			spot.queue_free()
-		var model := dash.get_node_or_null("Model") as Node3D
-		var tw := dash.create_tween()
-		tw.tween_property(dash, "rotation:y", PI, 0.3)
-		if model:
-			tw.tween_property(model, "scale", Vector3(0.05, 1.3, 0.05), 0.7).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-		tw.tween_callback(func() -> void:
-			Fx.burst(world, dash.global_position + Vector3(0, 1.2, 0), Color(1.0, 0.9, 0.5), 40, 0.1, 3.0, 0.5, 1.2)
-			dash.visible = false)
+func _strike() -> void:
+	# The Tomorrow Clock strikes: its faces blaze gold, and three big bongs roll out over the city
+	_say("", "(The Tomorrow Clock strikes. BONG... BONG... BONG...)")
 	for f in _clock_faces():
 		create_tween().tween_property(f, "emission_energy_multiplier", 4.0, 1.2)
-	Juice.blip("chime", 0.7)
+	for k in 3:
+		get_tree().create_timer(0.55 * k).timeout.connect(func() -> void:
+			if _playing:
+				Juice.blip("chime", 0.5, -2.0)
+				Juice.shake(0.12))
+	for f in friends:
+		_anim(f, "idle")
+	var dash := world.get_node_or_null("Dash") as Node3D
+	if dash:
+		dash.rotation.y = 0.0
+		_anim(dash, "idle")
+
+
+func _send_home() -> void:
+	# One by one, the Shift takes each friend home: a beam of their own colour, they lift up into it, and they're gone
+	_say("", "(One by one, the Shift takes everyone home.)")
+	for i in friends.size():
+		var f := friends[i]
+		if not is_instance_valid(f):
+			continue
+		var colour: Color = FRIENDS[i][3] if i < FRIENDS.size() else Color(1.0, 0.9, 0.5)
+		var tw := f.create_tween()
+		tw.tween_interval(HOME_GAP * i)
+		tw.tween_callback(func() -> void:
+			_home_beam(f.global_position, colour)
+			Juice.blip("sparkle", 1.0 + 0.1 * i, -6.0))
+		tw.tween_property(f, "position:y", f.position.y + 3.0, 0.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(f, "scale", Vector3(0.05, 1.4, 0.05), 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func() -> void:
+			Fx.burst(world, f.global_position + Vector3(0, 1.0, 0), colour, 24, 0.1, 3.0, 0.5, 1.0)
+			f.visible = false)
+	var rex := world.get_node_or_null("Rex") as Node3D
+	if rex:
+		world.call("_shout", rex, "See you later!")
+
+
+func _home_beam(at: Vector3, colour: Color) -> void:
+	if not is_instance_valid(root):
+		return
+	var b := MeshInstance3D.new()
+	b.name = "Home Beam"
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.5
+	cm.bottom_radius = 0.5
+	cm.height = 40.0
+	b.mesh = cm
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.albedo_color = Color(colour.r * 0.7, colour.g * 0.7, colour.b * 0.7, 0.4)
+	b.material_override = m
+	b.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(b)
+	b.global_position = at + Vector3(0, 20.0, 0)
+	var tw := b.create_tween()
+	tw.tween_interval(1.0)
+	tw.tween_property(m, "albedo_color:a", 0.0, 0.8)
+	tw.tween_callback(b.queue_free)
 
 
 func _beam() -> void:
-	# A beam of gold up the spire into the sky: the far end of the Shift, being stitched from the inside
-	if is_instance_valid(door):
-		door.create_tween().tween_property(door, "scale", Vector3(0.01, 1.0, 1.0), 0.6)
+	# A beam of gold up the spire into the sky: the last crack, closing
+	_caption.text = ""
 	beam = MeshInstance3D.new()
 	beam.name = "Beam"
 	var cm := CylinderMesh.new()
@@ -385,7 +395,7 @@ func _beam() -> void:
 
 func _stitch() -> void:
 	# A golden seam draws itself across the sky, end to end, then breaks into sparkles: the Shift is whole
-	_show_title("", "The far end of the Shift is stitched shut.")
+	_show_title("", "The last crack closes. The Shift is whole again.")
 	seam = Node3D.new()
 	seam.name = "Seam"
 	root.add_child(seam)
@@ -429,12 +439,10 @@ func _stitch() -> void:
 
 func _title_card() -> void:
 	_caption.text = ""
-	_show_title("SEE YOU LATER", "Dash went home to the furthest future, to keep the Shift whole.\nEvery goodbye is a see-you-later.")
-	for f in friends:
-		_anim(f, "idle")
-	var rex := world.get_node_or_null("Rex") as Node3D
-	if rex:
-		world.call("_shout", rex, "See you later...")
+	_show_title("SEE YOU LATER", "Everyone's home: the friends in their own worlds, and Dash, Rex and Rook right here.\nAnd here is Stars Hollow, just later.")
+	var dash := world.get_node_or_null("Dash") as Node3D
+	if dash:
+		world.call("_shout", dash, "See you later, {player}!")
 
 
 # -----------------------------------------------------------------------------
@@ -461,10 +469,12 @@ func _place_camera(delta: float) -> void:
 				to.y = 0.0
 				to = to.normalized() if to.length() > 0.1 else Vector3.BACK
 				_shot(at + to * 3.6 + Vector3(0, 1.8, 0) + to.cross(Vector3.UP) * 1.0, at + Vector3(0, 1.2, 0))
-		"go", "turn":
-			_shot(_c + Vector3(6.0, 3.0, 15.0), dp + Vector3(0, 1.4, 0))
-		"inside", "beam":
-			_shot(_c + Vector3(0, 3.0, 30.0), _c + Vector3(0, lerpf(4.0, 22.0, clampf((_t - T_IN) / 3.0, 0.0, 1.0)), 0))
+		"strike":
+			_shot(_c + Vector3(0, 4.0, 24.0), _c + Vector3(0, 9.0, 0))
+		"home":
+			_shot(_c + Vector3(0, 6.0, 30.0), _c + Vector3(0, 3.0, 9.0))
+		"beam":
+			_shot(_c + Vector3(0, 3.0, 30.0), _c + Vector3(0, lerpf(4.0, 22.0, clampf((_t - T_BEAM) / 3.0, 0.0, 1.0)), 0))
 		"stitch":
 			var k := smoothstep(0.0, 1.0, (_t - T_STITCH) / 2.0)
 			_shot(pp + Vector3(0, 2.5, 4.0), (_c + Vector3(0, 22, 0)).lerp(_c + SEAM_AT, k))
@@ -495,30 +505,6 @@ func _who_at(who: String) -> Vector3:
 # -----------------------------------------------------------------------------
 # Bits
 # -----------------------------------------------------------------------------
-func _open_door() -> void:
-	door = MeshInstance3D.new()
-	door.name = "Door Of Light"
-	var bm := BoxMesh.new()
-	bm.size = Vector3(1.5, 2.8, 0.12)
-	door.mesh = bm
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = Color(1.0, 0.92, 0.6, 0.9)
-	door.material_override = m
-	door.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	root.add_child(door)
-	door.global_position = world.call("ground_below", _c + DOOR_AT + Vector3(0, 1.5, 0)) + Vector3(0, 1.4, -0.2)
-	door.scale = Vector3(0.01, 1.0, 1.0)
-	door.create_tween().tween_property(door, "scale", Vector3.ONE, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var l := OmniLight3D.new()
-	l.light_color = Color(1.0, 0.85, 0.5)
-	l.light_energy = 3.0
-	l.omni_range = 7.0
-	l.position = Vector3(0, 0, 0.8)
-	door.add_child(l)
-
-
 func _clock_faces() -> Array[StandardMaterial3D]:
 	# The clock's four faces, each given its own material first (the scene's is shared with the portal's preview)
 	if _faces.is_empty():

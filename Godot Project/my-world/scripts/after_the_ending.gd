@@ -1,27 +1,30 @@
 extends RefCounted
 
-# What's different once the story's ending has happened (Hayden, Nov 11, 2026: "we can add the ending next", the
-# bittersweet ending from the story docs: Dash learns he has to repair the Shift, and the cost is never seeing his
-# friends again; Rex gets his own body back for good). The ending itself plays in the Far Future
-# (scripts/far_future.gd slice three, and the goodbye at the Tomorrow Clock: scripts/dash_goodbye.gd). This file is
-# the "after": no class_name on purpose (preload it), so --script tools can load it before the autoloads exist.
+# What's different once the story's ending has happened. The ending itself plays in the Far Future
+# (scripts/far_future.gd slice three, and the homecoming at the Tomorrow Clock: scripts/dash_goodbye.gd). First built
+# Nov 11, 2026 as Dash's sacrifice; rewritten Nov 12, 2026 for Hayden's lore bible v2: "dash doesnt sacrifice himself.
+# fixing the time shift sets everyone back in their homeworld", and only Dash, Rex and Rook could ever stay in the Void,
+# stuck there until it was fixed. This file is the "after": no class_name on purpose (preload it), so --script tools can
+# load it before the autoloads exist.
 #
 #   REX_HOME      Rex and Rook are swapped back for good: Rex is the boy, Rook is the husky again. In the Void their
 #                 two models change places as the town loads (swap_in_void()), and each is dressed as the body he's in
-#   DASH_GOODBYE  Dash has gone into the Tomorrow Clock to stitch the far end of the Shift, and he can't come back.
-#                 In the Void he and his bike aren't there any more (void_changes()), he's left out of races and
-#                 notice board requests (dash_gone()), and Rex takes the lost watches for him
-#                 (dialogue/rex.json). His gadget stall keeps going: they're still his gadgets
+#   DASH_GOODBYE  (the flag's old name, kept for saves) the Tomorrow Clock has struck and everyone's home. Dash, Rex
+#                 and Rook live in Lumen City (the Far Future) now, so in the Void they and Dash's bike aren't there
+#                 any more (void_changes()), they're left out of the Void's races and notice board requests
+#                 (everyone_home()), and Dash takes the lost watches and the Pieces of That Night in Lumen City
+#                 (far_future.gd hand_ins()). His gadget stall keeps going: they're still his gadgets
 #
 # Nothing earlier in the game says any of this is coming (Hayden's no-spoilers rule): the quest "Loose Ends" only
 # starts once the Agent of Chaos's ending is over, and each step only says what's next.
 
 const START_FLAG := "loose_ends_start"      # the quest "Loose Ends" (quests/loose_ends.json)
 const REX_HOME := "rex_home"                # Rex is in his own body for good
-const TWIST_FLAG := "dash_told"             # Dash has told everyone what fixing the Shift will cost
-const DASH_GOODBYE := "dash_goodbye"        # Dash has gone home to the furthest future
+const TWIST_FLAG := "dash_told"             # Dash has told everyone the Shift will send them all home
+const DASH_GOODBYE := "dash_goodbye"        # the clock's struck and everyone's home (the old name, kept for saves)
 const LETTER_FLAG := "dash_letter_read"     # you've read the letter he left in his lab
-const CAP := "dash_cap"                     # what he leaves you (shop/items.json, scripts/cosmetics.gd)
+const CAP := "dash_cap"                     # what he gives you (shop/items.json, scripts/cosmetics.gd)
+const HOME_IN_LUMEN := ["dash", "rex", "rook"]   # who lives in Lumen City, and isn't in the Void any more after
 
 
 const TWIN_MODEL := "res://models/characters/bike_boy.glb"
@@ -73,7 +76,7 @@ static func _d() -> Node:
 	return (Engine.get_main_loop() as SceneTree).root.get_node("Dialogue")
 
 
-static func dash_gone() -> bool:
+static func everyone_home() -> bool:
 	return _d().flags.has(DASH_GOODBYE)
 
 
@@ -93,11 +96,10 @@ static func void_changes(s: Node) -> void:
 	start_if_due()
 	if s == null:
 		return
-	if rex_home():
-		swap_in_void(s)
-	if dash_gone():
+	if everyone_home():
+		# Dash, Rex and Rook are home in Lumen City: none of them is in the Void any more
 		for r in s.find_children("Routine", "", true, false):
-			if r.get("character_id") != "dash":
+			if not str(r.get("character_id")) in HOME_IN_LUMEN:
 				continue
 			var bike := r.get("_bike") as Node
 			if bike:
@@ -107,6 +109,9 @@ static func void_changes(s: Node) -> void:
 			for g in body.get_groups():
 				body.remove_from_group(g)
 			body.queue_free()
+		return
+	if rex_home():
+		swap_in_void(s)
 
 
 static func routine_of(s: Node, id: String) -> Node:

@@ -70,10 +70,10 @@ const SECRETS := [
 		"echo": "Rex: \"One minute as a dog, that's all. Just to know what it's like. What could go wrong?\""},
 	{"id": "piece_ball", "kind": "piece", "place": "earth", "name": "Rook's Ball",
 		"about": "A chewed red ball, a very long way from home.",
-		"echo": "\"Woof! WOOF!\" (The ball bounces, rolls into an open pod... and the pod door hisses shut.)"},
+		"echo": "Rex: \"Fetch, Rook! In the pod! Good boy!\" (The ball bounces into an open pod, Rook bounds after it... and the door hisses shut.)"},
 	{"id": "piece_lever", "kind": "piece", "place": "tide_reef", "name": "The Swap Lever's Knob",
 		"about": "A round red knob, snapped clean off a big lever.",
-		"echo": "Rex: \"Pulling the lever in three, two... hey! Who let the dog in?\""},
+		"echo": "Rex: \"Science fair's on Monday. If this works, I WIN. Pulling the lever in three, two...\""},
 	{"id": "piece_countdown", "kind": "piece", "place": "shard_isle", "name": "Dash's Countdown Clock",
 		"about": "A little clock, stopped with one second to go.",
 		"echo": "Dash, in the next room: \"Time core charged. Starting my test in three, two, one...\""},
@@ -96,9 +96,11 @@ const SECRETS := [
 	{"id": "old_walter", "kind": "watch", "place": "earth", "name": "A Pocket Watch from 1893",
 		"about": "A silver pocket watch, engraved inside the lid:",
 		"note": "\"Walter Hollis, Stars Hollow, 1893. Chosen, and home safe. Thank you, old oak.\""},
-	{"id": "old_grandad", "kind": "watch", "place": "tide_reef", "name": "Grandad's Coral Watch",
-		"about": "An octopus's watch, with eight little straps. There's a note tucked in it:",
-		"note": "\"For my grandchild, whoever you grow up to be: you were never no use. Not for one second. Grandad.\""},
+	# (its id is still "old_grandad" so saves that found it keep it: it was Otto's Grandad's watch until Nov 12, 2026,
+	# when Hayden scrapped that lore. Teddy is the chosen kid the Agent of Chaos was: scripts/chaos_ending.gd)
+	{"id": "old_grandad", "kind": "watch", "place": "tide_reef", "name": "A Boy's Wristwatch from 1956",
+		"about": "A boy's wristwatch on a cracked leather strap, stopped at midnight. Scratched on the back:",
+		"note": "\"Teddy M., Stars Hollow, 1956. One more trip, then home by one. Promise.\""},
 	{"id": "old_lio", "kind": "watch", "place": "shard_isle", "name": "The Singing Shard Pendant",
 		"about": "A crystal on a cord that hums one clear note. A tag on it says:",
 		"note": "\"I kept the shards singing as long as I could. Going home now. Someone will come. Lio.\""},
@@ -120,7 +122,7 @@ const SECRETS := [
 	{"id": "seer_oak", "kind": "bottle", "place": "earth", "name": "A Bottle from the Seer",
 		"note": "The old oak has opened before. Ask the librarian about her great-great-grandad one day. Gently."},
 	{"id": "seer_bike", "kind": "bottle", "place": "tide_reef", "name": "A Bottle from the Seer",
-		"note": "The boy on the bike will fix what broke. When he goes quiet, sit with him. That's all. That's everything."},
+		"note": "The boy on the bike broke something, and he'll help mend it. Nobody mends anything alone. Remember that."},
 	{"id": "seer_bodies", "kind": "bottle", "place": "shard_isle", "name": "A Bottle from the Seer",
 		"note": "Not every body is where it belongs. One day they will be, but not the way anyone guesses."},
 	{"id": "seer_giant", "kind": "bottle", "place": "rootmind", "name": "A Bottle from the Seer",
@@ -622,7 +624,7 @@ func lines_for(s: Dictionary) -> Array:
 			lines.append("(%d of 8 Watches of the First Chosen.)" % n)
 			if n == 8:
 				lines.append("(Eight watches from eight chosen kids, long before you, all ticking their own ways at once.)")
-				lines.append("(Every one of them mended something, and every one of them went home.)")
+				lines.append("(Every one of them mended something. Nearly every one of them went home.)")
 				Remnants.add(WATCH_REWARD, "watches of the first chosen")
 				lines.append("(You got %s!)" % Remnants.words(WATCH_REWARD))
 		"bottle":
@@ -654,9 +656,9 @@ func hand_in() -> Array:
 			"(Dash lays all eight pieces out in a circle. For a moment they hum together, two notes that don't match.)",
 			"Two experiments at once. Rex's swap and my time core. When they went off together, they didn't just send us here.",
 			"They cracked the Shift. So it wasn't only Rex. It was me too.",
-			"{player}: It was an accident. You didn't mean it.",
-			"...Yeah. And now I know how it broke, I think I know how it could be fixed.",
-			"(He looks at you for a long moment, and doesn't say any more about it.)",
+			"{player}: You didn't mean to break time, though.",
+			"No. Rex meant to swap with Rook. I meant to run my test. Neither of us meant THIS.",
+			"...And now I know how it broke, I think I know how it could be fixed. It's going to take everyone.",
 			"Thanks, {player}. Really. Here, you should have these."])
 		Remnants.add(int(PIECE_REWARD.remnants), "pieces of that night")
 		Game.add_sparkles(int(PIECE_REWARD.sparkles), "pieces of that night")

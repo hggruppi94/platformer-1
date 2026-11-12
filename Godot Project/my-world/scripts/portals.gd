@@ -936,7 +936,7 @@ func otto_hub_lines() -> Array:
 			"So THIS is the Void. It's very... dry. No offence.",
 			"Your bubble still works out here, you know. Any water deep enough to be over your head, you can swim in.",
 			"There's a deep bit in the middle of Willow Pond on your Earth. Go and have a dive! Hold {dash} to go down.",
-			"And keep your eyes open down there. Grandad always said the deep water keeps secrets."]
+			"And keep your eyes open down there. Mum always says the deep water keeps secrets."]
 	return [["Flurry says it's cold where she's from. I said it's wet where I'm from. We're best friends now.",
 		"(Flurry, very quietly: \"We are.\")"],
 		["I'm practising holding things. Look: one, two, three... eight cups of tea. Don't drink them, they're seawater.",
@@ -945,9 +945,8 @@ func otto_hub_lines() -> Array:
 		"Willow Pond's the place for a swim. Hold {jump} to swim up and {dash} to dive."],
 		["I still need a friend to float my bubble along.",
 		"Lucky I've got lots now."],
-		["Grandad used to say time drops things, like a pocket with a hole in it. They sink, and deep water keeps them.",
-		"Have a look at the bottom of anything deep. There's a Wishing Well just over there, past the plaza!",
-		"(Otto, quietly: \"Grandad's watch went in the deep water too, before I was born. I wonder where.\")"]].pick_random()
+		["Mum says time drops things, like a pocket with a hole in it. They sink, and deep water keeps them.",
+		"Have a look at the bottom of anything deep. There's a Wishing Well just over there, past the plaza!"]].pick_random()
 
 
 func _talk_otto() -> void:

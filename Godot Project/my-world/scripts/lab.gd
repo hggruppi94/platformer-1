@@ -4,8 +4,10 @@ extends Node
 # (scripts/watches.gd makes it), so dialogue reaches it as "Watches/Lab.<method>" and no new autoload was needed.
 #
 # The story (story/how-it-fits.md, the time arc): Rex and Dash come from the furthest future, where everyone runs
-# experiments. At the very same moment Rex swapped bodies with their dog and Dash ran a time experiment, which sent
-# all three of them to the Void, and here the swap won't undo. In their lab, a shed in the yard past Dash's house, Rex has built
+# experiments. At the very same moment Rex swapped bodies with their dog, on purpose, to prove his Swap-o-Tron worked
+# before the science fair, Dash ran a time experiment. Together they sent all three of them back in time, the one and
+# only time anyone's done that, which cracked time (the broken Shift), and they fell through a crack into the Void,
+# where the swap won't undo (Hayden's lore bible v2, Nov 12, 2026). In their lab, a shed in the yard past Dash's house, Rex has built
 # the Swap-o-Tron to switch back. It needs three time ripples (little bits of broken time) to push it, and the hero's
 # watch is what can feel them: Dash tunes it, and while the quest needs ripples a pink pointer on the watch's rim
 # points to the nearest (scripts/watch_face.gd). Then Rook has to be coaxed into the other pod, and the hero pulls the

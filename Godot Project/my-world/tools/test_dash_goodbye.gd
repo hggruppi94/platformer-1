@@ -2,12 +2,14 @@ extends SceneTree
 
 # Checks the story's ending (scripts/far_future.gd slice three, scripts/dash_goodbye.gd, scripts/after_the_ending.gd,
 # quests/loose_ends.json): nothing about it before the Agent of Chaos is beaten; then the quest Loose Ends starts and
-# sends you to Dash's lab; the Swap-o-Tron's lever swaps Rex and Rook back for good (no snapping back this time) and
-# Dash tells everyone what fixing the Shift will cost; all three go to the Tomorrow Clock; walking up to Dash plays the
-# goodbye (controls held, its own camera, every beat in order, the cap given, Dash gone into the clock, everything
-# given back); his letter waits on his workbench and reading it finishes the quest; back in the Void, Dash and his bike
-# are gone, Rex and Rook are in their own bodies, Dash is out of races and requests, and Rex takes the lost watches;
-# skipping the goodbye gets to the same end; and it all saves and loads.
+# sends you to Dash's lab; the Swap-o-Tron's lever swaps Rex and Rook back for good (no snapping back this time), Rex
+# says sorry to Rook, and Dash tells everyone the Shift will send them all home; all three go to the Tomorrow Clock;
+# walking up to Dash plays the homecoming (controls held, its own camera, every beat in order, the cap given, the
+# friends sent home, Dash, Rex and Rook still there, everything given back); his letter waits on his workbench and
+# reading it finishes the quest; Rex's banner is up and the Old Oak hums; Dash takes the lost watches in Lumen City;
+# back in the Void, Dash, Rex, Rook and Dash's bike are gone, and they're out of the Void's races and requests (but not
+# the Skyway Run); skipping the homecoming gets to the same end; and it all saves and loads (rewritten Nov 12, 2026,
+# when Hayden's lore changed: no sacrifice, everyone goes home).
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_dash_goodbye.gd
 #
@@ -59,6 +61,7 @@ func _run() -> void:
 	await _check_lab()
 	await _check_goodbye(false)
 	await _check_letter()
+	await _check_hand_ins()
 	await _check_void()
 	_check_saving()
 	# Again from the start of the goodbye, skipping it this time
@@ -113,6 +116,13 @@ func _check_before() -> void:
 	var said := " ".join(s.rex_lines() + s.dash_lines() + s.rook_lines()).to_lower()
 	check(not "tomorrow clock" in said and not "goodbye" in said and not "stitch" in said, "nobody hints at Dash going")
 	check(s.get_node_or_null("Letter") == null, "no letter on his bench")
+	check(s.get_node_or_null("Mayor Banner") == null, "no banner for Rex")
+	var oak := s.get_node_or_null("Old Oak") as Node3D
+	check(oak != null and oak.global_position.distance_to(Vector3(s.OAK_AT.x, oak.global_position.y, s.OAK_AT.z)) < 0.1,
+		"the Old Oak stands in Lumen City (Stars Hollow's oak, a long time later)")
+	var oak_said := " ".join(s.oak_lines())
+	check("Stars Hollow" in oak_said and not "same tree" in oak_said, "...touching it hums like the oak back home (a hint, not the answer)")
+	check(absf(oak.global_position.y - s.ground_below(oak.global_position + Vector3(0, 1, 0)).y) < 0.3, "...on the city floor")
 	dialogue.set_flag("beat_agent_of_chaos")
 	AFTER.start_if_due()
 	await _frames(3)
@@ -140,9 +150,11 @@ func _check_lab() -> void:
 	await create_timer(s.SWAP_DONE - s.FOR_GOOD_HOLD + 0.3).timeout
 	check(dialogue.flags.has(AFTER.REX_HOME) and not s.swapping and not player.input_locks().has(&"swap_try"), "it's done, for good")
 	check(rex.get_node("Model") == boy, "...and Rex is still the boy")
-	check(dialogue.is_active(), "Dash tells everyone what's left")
-	var twist := " ".join(s.twist_lines())
-	check("two ends" in twist and "Tomorrow Clock" in twist and "stays" in twist, "...the far end of the crack, and whoever stitches it stays")
+	check(dialogue.is_active(), "Dash tells everyone what happens next")
+	var home := " ".join(s.home_lines())
+	check("on purpose" in home and "sorry" in home.to_lower(), "...Rex says sorry to Rook: he swapped them on purpose")
+	check("home" in home and "Tomorrow Clock" in home and "Stars Hollow" in home and not "stays in" in home,
+		"...when the clock strikes, the Shift sends everyone home (and nobody stays behind)")
 	check(quests.state["loose_ends"].step == 1, "the quest moves on: to the Tomorrow Clock")
 	dialogue.end()
 	await _frames(3)
@@ -173,6 +185,7 @@ func _check_goodbye(skipping: bool) -> void:
 	check(root.get_node("Soundscape").pick_track() == "chaos_ending", "...the gentle music plays")
 	await _frames(20)
 	check(g.friends.size() == 6, "six friends come through (%d)" % g.friends.size())
+	var friends: Array = g.friends.duplicate()
 	if skipping:
 		await create_timer(1.5).timeout
 		g.skip()
@@ -180,21 +193,28 @@ func _check_goodbye(skipping: bool) -> void:
 		var seen: Array[String] = [g.beat]
 		var t := 0.0
 		var capped := false
-		while g.playing() and t < 75.0:
+		var gone_home := false
+		while g.playing() and t < 80.0:
 			await process_frame
 			t += root.get_process_delta_time()
 			if seen.back() != g.beat:
 				seen.append(g.beat)
-				if g.beat == "go":
+				if g.beat == "strike":
 					capped = game.has_item(AFTER.CAP)
-		check(seen == ["gather", "talk", "go", "turn", "inside", "beam", "stitch", "title", "done"], "every beat in order: %s" % [seen])
-		check(t > 55.0 and t < 68.0, "it lasts about a minute (%.1f s)" % t)
-		check(capped, "he gives you his cap before he goes")
+				if g.beat == "beam":
+					gone_home = friends.all(func(f) -> bool: return not is_instance_valid(f) or not (f as Node3D).visible)
+		check(seen == ["gather", "talk", "strike", "home", "beam", "stitch", "title", "done"], "every beat in order: %s" % [seen])
+		check(t > 58.0 and t < 72.0, "it lasts about a minute (%.1f s)" % t)
+		check(capped, "he gives you his cap before the clock strikes")
+		check(gone_home, "...then the Shift takes every friend home")
 	check(not g.playing() and g.beat == "done", "it ends" + (" (skipped)" if skipping else ""))
 	check(game.has_item(AFTER.CAP), "Dash's Cap is yours")
-	check(dialogue.flags.has(AFTER.DASH_GOODBYE), "Dash has gone home")
+	check(dialogue.flags.has(AFTER.DASH_GOODBYE), "everyone's home")
 	await _frames(3)
-	check(s.get_node_or_null("Dash") == null, "...he's not in Lumen City any more")
+	check(s.get_node_or_null("Dash") != null and s.get_node_or_null("Rex") != null and s.get_node_or_null("Rook") != null,
+		"...and Dash, Rex and Rook are still here: Lumen City is their home")
+	check(s.dash_at_clock(), "...Dash by the clock")
+	check(s.get_node_or_null("Mayor Banner") != null, "Rex's banner goes up: REX FOR MAYOR")
 	check(not player.input_locks().has(&"dash_goodbye"), "the controls come back")
 	check(root.get_viewport().get_camera_3d() == old_cam, "...the player's camera too")
 	check(player.get_node("HUD").visible, "...and the HUD")
@@ -217,7 +237,24 @@ func _check_letter() -> void:
 	dialogue.end()
 	await _frames(3)
 	check(quests.state["loose_ends"].get("done", false) and game.sparkles == sparkles + 20, "reading it finishes Loose Ends (+20 sparkles)")
-	check("later" in " ".join(s.rex_lines()).to_lower(), "Rex talks about him after")
+	var mayor := false
+	for i in 20:
+		mayor = mayor or "mayor" in " ".join(s.rex_lines()).to_lower()
+	check(mayor, "Rex talks about being mayor of Lumen City one day")
+	check("same tree" in " ".join(s.oak_lines()), "...and now the Old Oak's hum makes sense")
+
+
+func _check_hand_ins() -> void:
+	# The lost watches come to Dash in Lumen City now
+	var s := current_scene
+	var w := root.get_node("Watches")
+	var first: Dictionary = w.WATCHES[0]
+	dialogue.set_flag("watch_found_" + str(first.id))
+	check(w.to_give().size() == 1, "a lost watch to give")
+	s.get_node("Dash/Spot").use()
+	check(dialogue.is_active() and dialogue.flags.has("watch_given_" + str(first.id)), "talking to Dash in Lumen City hands it in")
+	dialogue.end()
+	await _frames(3)
 
 
 func _check_void() -> void:
@@ -240,35 +277,19 @@ func _check_void() -> void:
 				rex = r.get_parent()
 			"rook":
 				rook = r.get_parent()
-	check(not dash_left, "Dash isn't in the Void any more")
-	check(rex != null and rook != null, "Rex and Rook are")
-	if rex and rook:
-		check(rex.get_node("Model").find_child("AnimationPlayer", true, false).has_animation("walk"), "Rex is the boy now (he walks)")
-		check(rook.get_node("Model").find_child("AnimationPlayer", true, false).has_animation("skate"), "...and Rook's the husky (on paw skates)")
-		check(rex.get_node("Routine").get("move_anim") == "walk" and rook.get_node("Routine").get("move_anim") == "skate", "...and they get about that way")
+	check(not dash_left and rex == null and rook == null, "Dash, Rex and Rook aren't in the Void any more: they live in Lumen City")
 	var races := root.get_node("Races")
-	check(races._gone_home() == ["dash"], "Dash is left out of races")
+	check(races._gone_home("lake_loop") == ["dash", "rex", "rook"], "they're left out of the Void's races")
+	check(races._gone_home("skyway_run").is_empty(), "...but they still race the Skyway Run at home")
 	var req := root.get_node("Requests")
 	var for_dash := 0
 	for i in 60:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = i
 		var r: Dictionary = req._make("deliver", "easy", rng)
-		if str(r.get("who", "")) == "dash":
+		if str(r.get("who", "")) in ["dash", "rex"]:
 			for_dash += 1
-	check(for_dash == 0, "no deliveries for Dash on the request board (60 tries)")
-	var said := " ".join(_rex_conversations()).to_lower()
-	check("see you later" in said, "Rex has his own lines for after")
-
-
-func _rex_conversations() -> Array:
-	var d: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://dialogue/rex.json"))
-	var out: Array = []
-	for c in d.conversations:
-		if str(c.get("when", {}).get("flag", "")) == AFTER.DASH_GOODBYE:
-			for l in c.get("lines", []):
-				out.append(str(l))
-	return out
+	check(for_dash == 0, "no deliveries for Dash or Rex on the request board (60 tries)")
 
 
 func _check_saving() -> void:

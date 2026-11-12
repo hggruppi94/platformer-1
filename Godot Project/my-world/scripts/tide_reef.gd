@@ -25,7 +25,7 @@ extends "res://scripts/portal_world.gd"
 # allows you to swim underwater"): once Otto's said thank you he blows you a bubble for your head and teaches you to
 # swim (scripts/swim.gd: Jump to rise, Roll to dive), and then the sea comes right back in, over the houses and the
 # spire (set_flood()). The reef's under the sea again for good. Five sea lanterns drifted in with the tide, high up in
-# the water; swim up and nudge each one alight (found lamp_1..5), and the tide washes Otto's grandad's old chest into
+# the water; swim up and nudge each one alight (found lamp_1..5), and the tide washes the reef's old chest into
 # the Deep Basin (found chest: Remnants and sparkles). Swimming works in any deep water after that (Willow Pond, and
 # Otto's Reef Pool by the Void's lake, scripts/reef_pool.gd).
 
@@ -380,7 +380,7 @@ func otto_lines() -> Array:
 				"Five sea lanterns drifted in with the tide, way up high. Swim up and give them a nudge and they'll light. %d to go!" % (LAMPS.size() - lamps_lit()),
 				"Hold {jump} to swim up, hold {dash} to dive. I'll float along with you."]
 		if not chest_open():
-			return ["All the lanterns are lit! And look, down in the Deep Basin. Is that... Grandad's chest?",
+			return ["All the lanterns are lit! And look, down in the Deep Basin. Is that... the Reef Chest?",
 				"Swim down and open it, {player}! Go on!"]
 		return [["The whole reef's coming home. Everybody's swimming back in, a few at a time.",
 			"I still need a friend to float my bubble along. But I'm not no use. I never was."],
@@ -1105,7 +1105,7 @@ func _add_sea() -> void:
 	_rays.visible = false
 
 
-# The sea lanterns and Grandad's chest -------------------------------------------------------------------------------
+# The sea lanterns and the Reef Chest -------------------------------------------------------------------------------
 func lamp_lit(i: int) -> bool:
 	return Portals.has_found(world_id, "lamp_%d" % (i + 1))
 
@@ -1151,7 +1151,7 @@ func _add_lamps() -> void:
 		g.add_child(light)
 		_lamps.append([g, glow, light])
 	var c := Node3D.new()
-	c.name = "Grandad's Chest"
+	c.name = "Reef Chest"
 	add_child(c)
 	c.position = CHEST_AT
 	var wood := _mat(Color(0.55, 0.36, 0.22), 0.0, 0.8)
@@ -1167,7 +1167,7 @@ func _add_lamps() -> void:
 		_put(c, BoxMesh.new(), gold, Vector3(x, 0.45, 0), Vector3(0.1, 0.94, 1.04))
 	var shine := _put(c, _ball(0.5, 10), _mat(Color(1.0, 0.9, 0.5), 1.5, 0.3), Vector3(0, 0.9, 0), Vector3(1.2, 0.4, 0.7))
 	shine.name = "Treasure"
-	var spot := USE_SPOT.make(Vector3(0, 0.6, 0), func() -> String: return "" if chest_open() else "open Grandad's chest",
+	var spot := USE_SPOT.make(Vector3(0, 0.6, 0), func() -> String: return "" if chest_open() else "open the Reef Chest",
 		open_chest, 2.4, 2.4)
 	spot.name = "Spot"
 	c.add_child(spot)
@@ -1186,7 +1186,7 @@ func _show_lamps() -> void:
 		glow.albedo_color = Color(LAMP_COLOURS[i], 0.8) if lit else Color(0.5, 0.6, 0.7, 0.55)
 		(_lamps[i][2] as OmniLight3D).visible = lit
 	if _chest == null:
-		_chest = get_node_or_null("Grandad's Chest") as Node3D
+		_chest = get_node_or_null("Reef Chest") as Node3D
 	if _chest:
 		_chest.visible = under_sea and lamps_lit() == LAMPS.size()
 		var lid := _chest.get_node("Lid") as Node3D
@@ -1227,8 +1227,8 @@ func open_chest() -> void:
 	if chest_open() or lamps_lit() < LAMPS.size():
 		return
 	Portals.note_found(world_id, "chest")
-	Remnants.add(CHEST_REMNANTS, "Grandad's chest")
-	Game.add_sparkles(CHEST_SPARKLES, "Grandad's chest")
+	Remnants.add(CHEST_REMNANTS, "the Reef Chest")
+	Game.add_sparkles(CHEST_SPARKLES, "the Reef Chest")
 	Fx.burst(self, CHEST_AT + Vector3(0, 1.2, 0), Color(1.0, 0.85, 0.4), 40, 0.1, 4.0, 0.5, 1.4)
 	Juice.blip("sparkle", 1.0, 0.0)
 	Juice.rumble(0.3, 0.15)
@@ -1238,9 +1238,9 @@ func open_chest() -> void:
 		tw.tween_property(lid, "rotation:x", -1.6, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		(_chest.get_node("Treasure") as Node3D).visible = false
 	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
-	var lines := ["Grandad's chest! He always said the tide would bring it home one day.",
-		"(Inside: %s, and a note in wobbly octopus writing: \"For whoever helps our Otto. Love, Grandad.\")" % [Remnants.words(CHEST_REMNANTS)],
-		"...He knew. He knew someone would. Thank you, {player}."]
+	var lines := ["The Reef Chest! The old ones always said the tide would bring it home one day.",
+		"(Inside: %s, and a note in wobbly octopus writing: \"For whoever helps bring the tide home. From everyone on the Tide Reef.\")" % [Remnants.words(CHEST_REMNANTS)],
+		"...That's you. And me! We did that. Thank you, {player}."]
 	if spot:
 		Dialogue.say(spot, "Otto", lines.map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_chest")
 
