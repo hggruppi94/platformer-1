@@ -28,6 +28,59 @@
     },
     {
       "when": {
+        "quest_step": "make_together:show"
+      },
+      "lines": [
+        "Ooh, you tried it! Did it wobble? It always wobbles.",
+        "{player}: I made a bridge and a step in the air!",
+        "That's SO good. It's even littler with three of us sharing, but it's still ours. All three of ours.",
+        "Bruno says the trick is not to think about it too hard. I say the trick is to think about it LOTS. We're both right, I think."
+      ],
+      "set": "make_showed_nina"
+    },
+    {
+      "when": {
+        "quest_step": "make_together:try"
+      },
+      "lines": [
+        "Go on, try it! Make a bridge in front of you, or jump and make a step under your feet. Three things!",
+        "Don't worry if it pops. They always pop. That's the bit that makes Bruno laugh."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "make_together:bruno"
+      },
+      "lines": [
+        "Did you find Bruno yet? He's probably at the Skate Park, showing off to a Gloop."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "bike_boy",
+        "quest_not_started": "make_together",
+        "min_talks": 1
+      },
+      "lines": [
+        "{player}! Okay, okay, I have to tell someone or I'll burst.",
+        "Bruno and me found out something. Something BIG. Well, something little. But big!",
+        "No, I can't say it. He wants to show you himself. He's been practising all day.",
+        "Go and find him. He'll be at the Skate Park, or wherever there's something to skate on."
+      ],
+      "set": "make_start"
+    },
+    {
+      "when": {
+        "quest_done": "make_together",
+        "every": 3
+      },
+      "lines": [
+        "Bruno made a little bridge over a puddle this morning. It popped halfway. He got very wet. He says it was on purpose.",
+        "It's funny. On our own we can't make anything. It only works when there's two of us. Three, now!"
+      ]
+    },
+    {
+      "when": {
         "activity": "morning",
         "min_talks": 1
       },

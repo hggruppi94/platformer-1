@@ -92,6 +92,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **Dash's kinetic energy, and Nina and Bruno's making power** (Hayden's lore decisions, 12 Nov 2026: "give
+  dash kinetic energy, and nina and bruno share an ability to create, but its weaker for that reason"; the lore bible
+  at story/lore-bible.md). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Kinetic** (`scripts/kinetic.gd`, a "Kinetic" node on the player): Dash teaches it when you tell him you popped the
+    Gloop King (`Meetings.king_from_dash()` adds `teach_lines()` before he sends you to Pip; saves already past that
+    get it from his catch-up talk, `kinetic_from_dash()`, in `dialogue/dash.json`). Flag `kinetic_taught`. **No new
+    button:** running (faster than 3 m/s) stores "go" (`METRES_TO_FILL` 32 m fills it), riding fills it slower and a big
+    landing adds a bit; it never drains. Full, the next **Roll** is a **kinetic burst**: the roll goes 1.8x as fast
+    (`player.gd _roll_boost`), a gold shock ring rolls out 6.5 m and every enemy in it takes 2 bubbles' worth (`shot()`).
+    A gold meter at the bottom shows while it fills and says "Roll to let it go!" when full.
+  - **Make** (`scripts/make.gd`, a "Make" node on the player): new action **Make** (Z, RB; on-foot pad group), secret
+    until taught (`Settings.SECRET_FLAGS` "make": flag `make_taught`, so it isn't in Controls before). On the ground it
+    makes a wobbly 4.5 m **bridge** at your feet's height out in front; in the air a **step** under your feet (once a
+    jump). Nina's pink and Bruno's blue by turns, two at once at most, each lasts 6 s (game time) then pops. Not on a
+    ride, burrowing, swimming, climbing or in a race. **RB still rolls until Make's taught**; after that a press that's a
+    Make doesn't roll too (`player.gd made_now`).
+  - **Quest "Making Things"** (`quests/make_together.json`, flag `make_start`): Nina (Void) offers it once The Bike Boy's
+    done; Bruno and Nina show you they can only make things together, and share it with you (`dialogue/bruno_alien.json`
+    sets `make_taught`); make three things (`made_three`); show Nina (`make_showed_nina`). 8 sparkles.
+  - Tests: new `tools/test_powers.gd` (46 checks); dialogue, quests, meetings, first_night, skate_help, player_menu,
+    ui_style, controls_lock, groove, shooting and burrow pass (heather_moves fails one orchard-tree check on main too).
+    Previews: `tools/capture_powers.gd` (shots in the project files under world/previews/powers).
+  - My choices Hayden may change: no button for kinetic (Roll lets it go), how fast it fills, the burst's size; Make
+    on Z and RB, bridges and steps (not shields), 6 s, two at once; the quest and every line (first drafts). The lore
+    bible's pick: these become friend abilities you switch to when the party system arrives (plan item 26).
+
 - 2026-11-12: **The Seer, at home in the Observatory, and the Wizard Lizard as the castle school's principal** (the lore
   bible's part 3, items 13 and 14; Hayden: "the seer still isnt in the game and needs to be added. Im thinking an old
   ... woman, but something not racist", "lets make the wizard lizard the school principal", then "only wizard lizard is
