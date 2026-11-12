@@ -92,6 +92,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **Nina's human form cleaned up** (Hayden: "Nina's human form is pretty chopped and needs to be worked on.
+  she has 2 random holes on her face"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - The "holes" were her freckles: round balls sunk into her cheeks, so only one dark bump a side showed.
+  - **New body:** `nina_earth` is now the creator's human girl (`"body": "human_girl"`, `tools/build_earth.gd`) with
+    the "Bob with bangs" (Hairstyles 17) in her red-orange, warm brown skin (swatch 22), and her pink skirt as the
+    pinafore's skirt (bottoms 18). The old ball-of-hair bob and stuck-on fringe extra are gone. Only her lines in
+    `earth.tscn` changed (the rest of the rebuild was ID shuffle, left out).
+  - **`scripts/townsfolk.gd`:** extras know the human body (`human`): the bow sits on the hair, smaller; the freckles
+    are flat dots laid on the head's shape and turned to face out (both bodies); the gap teeth sit inside the top lip;
+    the hoops hang at the ears; the pinafore's bib and straps lie flat on the tee; the backpack's straps are slimmer
+    and yellow. `_tint_hair` also tints the human body's own close-cut hair. Everyone else is unchanged.
+  - Tests: `test_townsfolk` (Nina's body and hair, no fringe, her 8 freckles on the skin), earth, work, earth_race,
+    first_night, calendar pass. (`test_routines` fails 3 Void checks, Rook following Rex, the same on main without
+    this change: not looked into here.) New `tools/capture_townsfolk.gd -- <name> <folder>`: close-ups of one Stars
+    Hollow person on their own. Previews in the project files under characters/nina/human-fix.
+  - My choices Hayden may change: the bob, her skin tone, the bow's size and spot, the freckles' pattern.
+
 - 2026-11-12: **The party system finished: the friend wheel, your friend's face on the HUD, and one menu** (Hayden picked
   "2", the party system's "not done" list). Built and tested in the cloud (own Godot user folders, no save touched).
   - **Friend wheel** (`scripts/friend_wheel.gd`, worked by `Party`): a tap of Switch friend (X, **LB**) still goes to
