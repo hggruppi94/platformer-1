@@ -111,7 +111,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **Quest "Making Things"** (`quests/make_together.json`, flag `make_start`): Nina (Void) offers it once The Bike Boy's
     done; Bruno and Nina show you they can only make things together, and share it with you (`dialogue/bruno_alien.json`
     sets `make_taught`); make three things (`made_three`); show Nina (`make_showed_nina`). 8 sparkles.
-  - Tests: new `tools/test_powers.gd` (48 checks); dialogue, quests, meetings, first_night, skate_help, player_menu,
+  - Tests: new `tools/test_powers.gd` (46 checks); dialogue, quests, meetings, first_night, skate_help, player_menu,
     ui_style, controls_lock, groove, shooting and burrow pass (heather_moves fails one orchard-tree check on main too).
     Previews: `tools/capture_powers.gd` (shots in the project files under world/previews/powers).
   - My choices Hayden may change: no button for kinetic (Roll lets it go), how fast it fills, the burst's size; Make
