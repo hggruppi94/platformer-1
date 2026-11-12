@@ -9,7 +9,7 @@ extends Node
 # harvests a vein. Each vein gives a handful once a Void day, then regrows.
 #
 # Remnants pay for bigger things in the shops (an item with "currency": "remnant", scripts/shop.gd) and the Remnant
-# sprout seed for the garden (scripts/farm.gd), and later they'll buy extra time inside portal worlds (plan item 19).
+# sprout seed for the garden (scripts/farm.gd), and (since 12 Nov 2026) bigger things too: portal worlds have no time limit now, so they no longer buy time.
 # The HUD shows them under the sparkles once there are any (scripts/hud.gd), and the Bag sheet has a line for them.
 #
 # The quest's three tool parts, the veins and Bramble's helping visits aren't in the built town: like the lost

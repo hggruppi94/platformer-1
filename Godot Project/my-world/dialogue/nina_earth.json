@@ -314,7 +314,7 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "It opened! A door! In the TREE! Can you feel it humming? Go on, walk right into it.",
+        "The ground CRACKED! Right in front of the tree! Can you feel it humming? It's glowing down there. Go on, jump in.",
         "{player}: Is it safe?",
         "(She grins.) I've got a feeling it's been waiting for you. Go! I'll be right behind you. I promise."
       ],

@@ -2,17 +2,19 @@ extends Node
 
 # Autoload "Portals": time quakes and the portal worlds, the levels of the game (plan items 19 and 19a, agreed with
 # Hayden on 8 Nov 2026). The Void is the hub, and staying there never costs anything. Every so often in the story a
-# **time quake** shakes the Void (the camera shakes, the pad rumbles, the Remnant veins flare), a **crevice** cracks
-# open in the ground at that world's spot, and a **portal** rises out of it. Each portal leads to one chosen one's
-# home planet, where time has gone wrong and needs putting right.
+# **time quake** shakes the Void (the camera shakes, the pad rumbles, the Remnant veins flare) and a **crack** splits
+# the ground open at that world's spot. Since 12 Nov 2026 (Hayden, lore bible v2) **the cracks ARE the portals**: a
+# jagged glowing hole you jump into (scripts/crack.gd), nothing rises out of it. The cracks are an effect of the
+# broken Shift. Each one leads to a friend's home world, where time has gone wrong and needs putting right, and the
+# Divine Mind's voice (scripts/divine_mind.gd) says so when one opens.
 #
-# Walking up to a portal shows a **preview**: a little live window into the world, slowly circling it (a copy of the
-# world's scene in its own SubViewport, without a player). Dark Hollow's will show only dark (its "preview" is false).
-# Going in is free for FREE_SECONDS; Remnants at the portal (or at the Time Stone inside) buy SECONDS_PER_REMNANT
-# more each. A gentle **timer** shows top-centre while you're there. When it runs out you float back to the portal in
-# the Void with everything you found (found things are saved the moment they're picked up, so nothing is ever done
-# twice). The Void's clock stands still while you're away: its time doesn't pass on another planet, so a trip never
-# eats into the Shift.
+# Walking up to a crack and looking down it shows a **preview** at its bottom: a little live window into the world,
+# slowly circling it (a copy of the world's scene in its own SubViewport, without a player). Dark Hollow's will show
+# only dark (its "preview" is false). Jumping in (or "Jump in!" at its edge) takes you there, and there's **no time
+# limit** (Hayden, 12 Nov 2026: the old timer and buying minutes with Remnants are gone; Remnants are still money).
+# The way home, a crack of its own in each world, takes you back to the Void with everything you found (found things
+# are saved the moment they're picked up, so nothing is ever done twice). The Void's clock stands still while you're
+# away: its time doesn't pass on another planet, so a trip never eats into the Shift.
 #
 # Clearing a world (scripts/portal_world.gd calls clear()) fixes its time, gives its reward and **changes the hub**:
 # _hub_changes() puts the new things into the Void each time the town loads (nothing is built into town.tscn).
@@ -33,10 +35,7 @@ const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
 const CENTIPEDE_HOLES := preload("res://scripts/centipede_holes.gd")
-const FREE_SECONDS := 240.0             # every trip starts with 4 free minutes...
-const SECONDS_PER_REMNANT := 60.0       # ...and each Remnant spent adds one more
-const EXTRA_AT_PORTAL := 2              # the portal's "take extra time" choice spends this many
-const WARN_AT := 30.0                   # "nearly time to go" with this many seconds left
+const CRACK := preload("res://scripts/crack.gd")
 const QUAKE_DELAY := 6.0                # seconds after arriving in the Void before a due quake shakes it
 const PREVIEW_NEAR := 14.0              # the preview window wakes up this close to a portal...
 const PREVIEW_FAR := 22.0               # ...and goes to sleep again past this
@@ -103,20 +102,18 @@ var quakes: Array = []                  # world ids whose quake has happened (th
 var cleared_worlds: Array = []          # world ids whose time is fixed
 var found := {}                         # world id -> ids of the things found there (scripts/portal_world.gd)
 var here := ""                          # the world the player's in right now ("" in the Void or anywhere else)
-var time_left := 0.0                    # seconds left on this trip
 
 var _scene: Node
 var _holder: Node3D                     # the portals in the Void
 var _in_town_for := 0.0
 var _quaking := false
 var _froze_clock := false               # we stopped the Void's clock, so we start it again
-var _warned := false
 var _pulling := false
 var _ask_world := ""                    # the portal whose "go in?" question is open
 var _hud: CanvasLayer
-var _timer_label: Label
+var _card_label: Label
 var stage_prize_day := -1              # the visit Melody's dance-off encore was last won (scripts/melody_stage.gd)
-var practice := false                   # on a practice trip (practice_trip()): no time limit, and nothing is kept
+var practice := false                   # on a practice trip (practice_trip()): nothing is kept
 var _held_before := false               # Game.hold_saves before the practice trip (tools set it), put back after
 
 
@@ -142,21 +139,15 @@ func _process(delta: float) -> void:
 			if due != "":
 				quake(due)
 		_update_previews()
-	elif here != "" and not _pulling:
-		if not Dialogue.is_active() and not get_tree().paused and not practice \
-				and get_tree().get_first_node_in_group("cutscene_playing") == null:
-			time_left = maxf(time_left - delta, 0.0)
-		if time_left <= WARN_AT and not _warned:
-			_warned = true
-			Game.message("Your portal time is nearly up! Spend a Remnant at the Time Stone for more, or head home.")
-		if time_left <= 0.0:
-			time_up()
-	_show_timer()
+		_check_down_a_crack()
+	_show_card()
 
 
 func _arrived(s: Node) -> void:
 	_in_town_for = 0.0
 	_quaking = false
+	if s == null:
+		return                                 # (between two scenes for a frame: wait and see where we land)
 	var came_from := here
 	var w := world_for_scene(s.scene_file_path if s else "")
 	if w.is_empty():
@@ -172,10 +163,7 @@ func _arrived(s: Node) -> void:
 	else:
 		if here != str(w.id):
 			here = str(w.id)
-			if time_left <= 0.0:
-				time_left = FREE_SECONDS    # (a save made inside keeps its time; arriving fresh gets the free stretch)
 			changed.emit()
-		_warned = time_left <= WARN_AT
 		_pulling = false
 		if Clock.running:
 			Clock.running = false
@@ -296,7 +284,7 @@ func next_due() -> String:
 
 
 func quake(id: String, instant := false) -> void:
-	# The Void shakes, a crevice cracks open and the portal rises out of it. (instant: no show, for tests and tools.)
+	# The Void shakes and the ground cracks open: the crack is the way through. (instant: no show, for tests and tools.)
 	if is_open(id):
 		return
 	quakes.append(id)
@@ -308,7 +296,7 @@ func quake(id: String, instant := false) -> void:
 		Game.save_game()
 		return
 	_quaking = true
-	Game.message("The ground shakes... a TIME QUAKE! Something is cracking open by %s." % _near_words(id))
+	Game.message("The ground shakes... a TIME QUAKE! Something is cracking open by %s." % near_words(id))
 	Audio.play("stomp", -2.0)
 	Juice.shake(0.5)
 	Juice.rumble(0.6, 0.8, 0.4)
@@ -322,13 +310,15 @@ func quake(id: String, instant := false) -> void:
 	tw.tween_interval(3.0)
 	tw.tween_callback(func() -> void:
 		_quaking = false
-		Game.message("A portal has risen out of the crack! Go and look: it leads to %s." % w.name)
+		Game.message("A crack has split the ground open by %s! Look down it: it leads to %s." % [near_words(id), w.name])
+		DivineMind.say(["Do you feel that? The Shift has broken somewhere new.",
+			"A world on the other side of that crack needs you. Jump in when you're ready."])
 		changed.emit()
 		quaked.emit(id)
 		Game.save_game())
 
 
-func _near_words(id: String) -> String:
+func near_words(id: String) -> String:
 	match id:
 		"shard_isle":
 			return "the field below Observatory Hill"
@@ -366,16 +356,12 @@ func _flare_veins() -> void:
 # -----------------------------------------------------------------------------
 # Going in, and coming home
 # -----------------------------------------------------------------------------
-func enter(id: String, extra_remnants := 0) -> bool:
-	# Through the portal. Extra Remnants buy more time on top of the free stretch.
+func enter(id: String) -> bool:
+	# Down the crack, into the world. Stay as long as you like.
 	if not is_open(id) or not is_built(id):
 		return false
-	if extra_remnants > 0 and not Remnants.spend(extra_remnants):
-		return false
-	time_left = FREE_SECONDS + extra_remnants * SECONDS_PER_REMNANT
-	_warned = false
 	var w := world(id)
-	Game.pending_message = "%s! You've got %s here. The portal behind you goes home any time." % [w.name, time_words(time_left)]
+	Game.pending_message = "%s! Stay as long as you like. The crack behind you takes you home any time." % w.name
 	Game.go(str(w.scene), "Entrance", str(w.name))
 	return true
 
@@ -385,26 +371,14 @@ func enter_dark_hollow() -> bool:
 	var id := "dark_hollow"
 	if not is_built(id):
 		return false
-	time_left = FREE_SECONDS
-	_warned = false
 	var w := world(id)
-	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s. You've got %s here." % [w.name, time_words(time_left)]
+	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s." % w.name
 	if not is_cleared(id):
 		Game.pending_message += " She waves a dozen legs and scuttles back up her tunnel. You're on your own down here..."
 	else:
 		Game.pending_message += " The way home takes you to the school's front gate."
 
 	Game.go(str(w.scene), "Entrance", str(w.name))
-	return true
-
-
-func add_time(remnants: int) -> bool:
-	# The Time Stone inside a world: Remnants for more time
-	if remnants <= 0 or not Remnants.spend(remnants):
-		return false
-	time_left += remnants * SECONDS_PER_REMNANT
-	_warned = time_left <= WARN_AT
-	Game.message("+%s of portal time! (%s left)" % [time_words(remnants * SECONDS_PER_REMNANT), time_words(time_left)])
 	return true
 
 
@@ -417,7 +391,6 @@ func go_home(why := "") -> void:
 		end_practice()
 		return
 	_pulling = true
-	time_left = 0.0
 	var w := world(id)
 	if not has_portal(id):
 		if id == "dark_hollow" and is_cleared(id) and not CENTIPEDE_HOLES.gifts_given():
@@ -430,35 +403,20 @@ func go_home(why := "") -> void:
 		Game.pending_message = why if why != "" else "Back in the Void, out at the castle school's front gate."
 		Game.go(TOWN, str(w.get("home_spawn", "")), "the Void")
 		return
-	Game.pending_message = why if why != "" else "Back in the Void, by the portal to %s." % w.name
+	Game.pending_message = why if why != "" else "Back in the Void, by the crack to %s." % w.name
 	var face := float(w.yaw)
 	var out := Vector3(sin(face), 0, cos(face)) * 3.2           # just in front of the portal
 	# (a little above the ground, which can't be measured from here: the player drops gently onto it)
 	Game.go_to_point(TOWN, Vector3(w.at.x, 1.5, w.at.y) + out, face, "the Void")
 
 
-func time_up() -> void:
-	go_home("Your portal time ran out, so the portal pulled you gently home. Everything you found came with you!")
-
-
-static func time_words(seconds: float) -> String:
-	var s := int(ceil(seconds))
-	if s >= 60 and s % 60 == 0:
-		return "%d minute%s" % [s / 60, "" if s / 60 == 1 else "s"]
-	return "%d:%02d" % [s / 60, s % 60]
-
-
 # -----------------------------------------------------------------------------
 # Practice trips (playtesting, 9 Nov 2026: Hayden wanted to get into the worlds without waiting for the Shift, the
 # quakes or the story). Pause menu > "Visit a portal world", once Settings > Assist > "Practice trips" is on.
-# Any built world, from anywhere, at any time, played from the start (as if nothing was found there yet), with no
-# time limit. Nothing done on a practice trip is kept: the game is saved just before it, saving is held all the way
+# Any built world, from anywhere, at any time, played from the start (as if nothing was found there yet). Nothing done on a practice trip is kept: the game is saved just before it, saving is held all the way
 # through (Game.hold_saves), and coming home loads that save again, back where they were. So a kid can try every
 # world on their real save and it's just the same afterwards.
 # -----------------------------------------------------------------------------
-const PRACTICE_SECONDS := 99.0 * 60.0       # (the timer doesn't run on a practice trip; this is just "lots")
-
-
 func can_practice(id: String) -> bool:
 	return is_built(id) and not _pulling
 
@@ -478,10 +436,8 @@ func practice_trip(id: String) -> bool:
 	if not id in quakes:
 		quakes.append(id)
 	here = ""
-	time_left = PRACTICE_SECONDS
-	_warned = false
 	Playtest.note("practice_trip", {"world": id})
-	Game.pending_message = "Practice trip to %s! No time limit, and nothing here is kept. The portal behind you, or Pause > End practice trip, takes you back." % w.name
+	Game.pending_message = "Practice trip to %s! Nothing here is kept. The crack behind you, or Pause > End practice trip, takes you back." % w.name
 	Game.go(str(w.scene), "Entrance", str(w.name))
 	changed.emit()
 	return true
@@ -514,6 +470,7 @@ func clear(id: String) -> void:
 		Remnants.add(n)
 	Game.message(str(w.get("cleared_text", "%s's time is fixed!" % w.name)) + ("  (+%d Remnants)" % n if n > 0 else ""))
 	Juice.blip("chime", 1.0, -4.0)
+	DivineMind.say(["Well done. Time flows true in %s again." % w.name])
 	changed.emit()
 	cleared.emit(id)
 	Game.save_game()
@@ -565,39 +522,67 @@ func _place_in(s: Node) -> void:
 
 
 func _place_portal(id: String, rising: bool) -> void:
+	# The crack itself, cut into the ground at the world's spot. Rising: it splits open in front of you.
 	if not is_instance_valid(_holder) or _holder.get_node_or_null("Portal " + id) != null or not has_portal(id):
 		return
 	var w := world(id)
-	var g := portal_model(w.colour)
+	var g := portal_model(w.colour, _jump_in.bind(id))
 	g.name = "Portal " + id
 	_holder.add_child(g)
 	g.global_position = Remnants.ground_at(w.at)
 	g.rotation.y = float(w.yaw)
-	var spot := USE_SPOT.make(Vector3(0, 0, 1.2), _portal_offer.bind(id), _use_portal.bind(id), 2.8, 4.2)
+	CRACK.sink(g, _scene if is_instance_valid(_scene) else get_tree().current_scene)
+	var spot := USE_SPOT.make(Vector3(0, 0, CRACK.R + 1.0), _portal_offer.bind(id), _use_portal.bind(id), 2.4, 3.0)
 	spot.name = "Spot"
 	g.add_child(spot)
 	if id == "far_future":
 		g.add_child(fault_line(w.colour))
 	if rising:
-		var ring := g.get_node("Ring") as Node3D
-		var crack := g.get_node("Crack") as Node3D
-		ring.position.y = -6.0
-		crack.scale = Vector3(0.05, 1.0, 0.05)
 		var at := g.global_position
+		CRACK.set_open(g, 0.0)
 		Juice.dust(_holder, at, 1.0)
 		Fx.burst(_holder, at + Vector3(0, 0.5, 0), w.colour, 30, 0.1, 5.0, -4.0, 1.2)
 		var tw := g.create_tween()
-		tw.tween_property(crack, "scale", Vector3.ONE, 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.tween_property(ring, "position:y", 0.0, 2.0).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_method(func(k: float) -> void: CRACK.set_open(g, k), 0.0, 1.0, 1.6).set_trans(Tween.TRANS_QUAD)
 		tw.tween_callback(func() -> void:
-			Fx.burst(_holder, at + Vector3(0, 3.0, 0), w.colour, 26, 0.08, 3.0, -1.0, 1.0)
+			Fx.burst(_holder, at + Vector3(0, 0.8, 0), w.colour, 26, 0.08, 3.0, -1.0, 1.0)
 			Juice.blip("chime", 0.8, -6.0))
+
+
+func crack(id: String) -> Node3D:
+	# A world's crack in the Void, if it's open and the Void's loaded
+	return _holder.get_node_or_null("Portal " + id) as Node3D if is_instance_valid(_holder) else null
+
+
+func _jump_in(id: String) -> void:
+	# Dropped down the crack (scripts/crack.gd's fall area)
+	if _quaking or not is_built(id) or Dialogue.is_active():
+		return
+	enter(id)
+
+
+func _check_down_a_crack() -> void:
+	# Anyone standing down in a crack goes through, even if they fell in while it couldn't take them (mid-quake, or
+	# mid-talk): the fall area only notices someone coming in
+	if _quaking or Dialogue.is_active() or not is_instance_valid(_holder):
+		return
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	for id in quakes:
+		var g := crack(str(id))
+		if g == null or g.has_meta("falling") or not CRACK.is_open(g):
+			continue
+		var d := Vector2(player.global_position.x - g.global_position.x, player.global_position.z - g.global_position.z)
+		if d.length() < CRACK.R and player.global_position.y < g.global_position.y - 0.8:
+			CRACK.fall_in(g, player, _jump_in.bind(str(id)))
+			return
 
 
 func _portal_offer(id: String) -> String:
 	if _quaking or not is_built(id):
 		return ""
-	return "step through to %s" % world(id).name
+	return "look down the crack to %s" % world(id).name
 
 
 func _use_portal(id: String) -> void:
@@ -612,27 +597,24 @@ func _use_portal(id: String) -> void:
 		lines.append("It's %s's home world." % w.owner)
 	if is_cleared(id):
 		lines.append("You fixed its time already. You can still visit!")
-	lines.append("The portal will hold you there for %s. A Remnant buys a minute more." % time_words(FREE_SECONDS))
-	var choice: Array = [{"text": "Step through! (%s)" % time_words(FREE_SECONDS), "set": "portal_go", "say": false}]
-	if Remnants.count >= EXTRA_AT_PORTAL:
-		choice.append({"text": "Take extra time (%s for +%s)" % [Remnants.words(EXTRA_AT_PORTAL),
-			time_words(EXTRA_AT_PORTAL * SECONDS_PER_REMNANT)], "set": "portal_go_extra", "say": false})
-	choice.append({"text": "Not now.", "say": false})
-	lines.append({"choice": choice})
-	Dialogue.say(spot, "Portal to %s" % w.name, lines, "portal_ask")
+	lines.append("Down at the bottom of the crack, the world swirls. Jump in, and stay as long as you like.")
+	lines.append({"choice": [{"text": "Jump in!", "set": "portal_go", "say": false}, {"text": "Not now.", "say": false}]})
+	Dialogue.say(spot, "Crack to %s" % w.name, lines, "portal_ask")
 
 
 func _on_talked(id: String) -> void:
 	if id != "portal_ask":
 		return
 	var go := Dialogue.flags.has("portal_go")
-	var extra := Dialogue.flags.has("portal_go_extra")
 	Dialogue.flags.erase("portal_go")
-	Dialogue.flags.erase("portal_go_extra")
 	var w := _ask_world
 	_ask_world = ""
-	if w != "" and (go or extra):
-		enter(w, EXTRA_AT_PORTAL if extra else 0)
+	if w != "" and go:
+		var g := crack(w)
+		if g:
+			CRACK.drop_player(g)            # over its middle: they drop in, and the fall takes them through
+		else:
+			enter(w)
 
 
 func _update_previews() -> void:
@@ -659,7 +641,7 @@ func _update_previews() -> void:
 				var t := Time.get_ticks_msec() / 1000.0 * 0.15
 				var r: float = cam.get_meta("radius", 30.0)
 				var c: Vector3 = cam.get_meta("centre", Vector3.ZERO)
-				cam.position = c + Vector3(cos(t) * r, r * 0.45, sin(t) * r)
+				cam.position = c + Vector3(cos(t) * r * 0.35, r * 0.9, sin(t) * r * 0.35)
 				cam.look_at(c, Vector3.UP)
 
 
@@ -679,7 +661,7 @@ func preview_scene(id: String) -> Node3D:
 
 func _open_preview(g: Node3D, id: String) -> void:
 	var copy := preview_scene(id)
-	var disc := g.get_node("Ring/Swirl") as MeshInstance3D
+	var disc := g.get_node("Swirl") as MeshInstance3D
 	if copy == null:
 		return                              # (Dark Hollow's shows only dark: the swirl stays as it is)
 	var view := SubViewport.new()
@@ -709,7 +691,7 @@ func _open_preview(g: Node3D, id: String) -> void:
 
 func _close_preview(g: Node3D) -> void:
 	var view := g.get_node_or_null("Preview")
-	var disc := g.get_node("Ring/Swirl") as MeshInstance3D
+	var disc := g.get_node("Swirl") as MeshInstance3D
 	if disc.has_meta("swirl"):
 		disc.material_override = disc.get_meta("swirl")
 	if view:
@@ -1092,43 +1074,39 @@ func _process_flowers() -> void:
 
 
 # -----------------------------------------------------------------------------
-# The timer on screen
+# The world's name on screen on a practice trip (there's no timer: no time limit since 12 Nov 2026)
 # -----------------------------------------------------------------------------
 func _make_hud() -> void:
 	_hud = CanvasLayer.new()
 	_hud.layer = 5
 	add_child(_hud)
 	var box := PanelContainer.new()
-	box.name = "Timer"
+	box.name = "Card"
 	box.add_theme_stylebox_override("panel", UiStyle.card(Color(0.16, 0.1, 0.26, 0.85)))
 	box.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	box.position = Vector2(-110, 12)
 	box.custom_minimum_size = Vector2(220, 0)
-	_timer_label = Label.new()
-	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_timer_label.add_theme_font_size_override("font_size", 22)
-	box.add_child(_timer_label)
+	_card_label = Label.new()
+	_card_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_card_label.add_theme_font_size_override("font_size", 22)
+	box.add_child(_card_label)
 	_hud.add_child(box)
 	box.visible = false
 
 
-func _show_timer() -> void:
-	var box := _timer_label.get_parent() as Control
-	var on := here != "" and not _pulling and get_tree().current_scene != null
+func _show_card() -> void:
+	var box := _card_label.get_parent() as Control
+	var on := practice and here != "" and not _pulling and get_tree().current_scene != null
 	box.visible = on
-	# Out of the way while a cutscene plays (the timer stands still then anyway), still there to read
 	box.modulate.a = 0.0 if get_tree().get_first_node_in_group("cutscene_playing") else 1.0
 	if on:
-		_timer_label.text = "⏳ %s  %s" % [world(here).name, time_words(time_left)]
-		if practice:
-			_timer_label.text = "%s  practice: no time limit" % world(here).name
-		var low := time_left <= WARN_AT and not practice
-		_timer_label.modulate = Color(1.0, 0.7, 0.6) if low else Color(0.85, 1.0, 0.9)
+		_card_label.text = "%s  practice trip" % world(here).name
+		_card_label.modulate = Color(0.85, 1.0, 0.9)
 		box.position.x = box.get_parent_area_size().x / 2.0 - box.size.x / 2.0 if box.get_parent_area_size().x > 0 else box.position.x
 
 
-func timer_text() -> String:
-	return _timer_label.text if (_timer_label.get_parent() as Control).visible else ""
+func card_text() -> String:
+	return _card_label.text if (_card_label.get_parent() as Control).visible else ""
 
 
 # -----------------------------------------------------------------------------
@@ -1155,8 +1133,8 @@ static func fault_line(colour: Color) -> Node3D:
 	var edge := _mat(colour, 0.3, 2.0)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
-	var at := Vector3(rng.randf_range(-0.3, 0.3), 0.0, 1.6)
-	while at.z < 5.2:
+	var at := Vector3(rng.randf_range(-0.3, 0.3), 0.0, 2.9)    # (starting past the crack's broken edge)
+	while at.z < 6.2:
 		var to := Vector3(clampf(at.x + rng.randf_range(-0.9, 0.9), -1.4, 1.4), 0.0, at.z + rng.randf_range(1.0, 1.8))
 		var d := to - at
 		var seg := MeshInstance3D.new()
@@ -1179,92 +1157,9 @@ static func fault_line(colour: Color) -> Node3D:
 	return g
 
 
-static func portal_model(colour: Color) -> Node3D:
-	# A jagged crack in the ground, glowing at its edges, and a standing ring of crystal-studded obsidian rising out of
-	# it with a swirl inside (the swirl turns into the preview window when the player's near)
-	var g := Node3D.new()
-	var crack := Node3D.new()
-	crack.name = "Crack"
-	g.add_child(crack)
-	var dark := _mat(Color(0.04, 0.02, 0.08), 0.9)
-	var edge := _mat(colour, 0.3, 2.2)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 19
-	var x := -5.5
-	while x < 5.5:
-		var w := rng.randf_range(0.5, 1.2)
-		var len := rng.randf_range(1.2, 2.0)
-		var seg := MeshInstance3D.new()
-		var b := BoxMesh.new()
-		b.size = Vector3(len, 0.06, w)
-		seg.mesh = b
-		seg.material_override = dark
-		seg.position = Vector3(x + len / 2.0, 0.03, rng.randf_range(-0.6, 0.6))
-		seg.rotation.y = rng.randf_range(-0.5, 0.5)
-		crack.add_child(seg)
-		var lip := MeshInstance3D.new()
-		var lb := BoxMesh.new()
-		lb.size = Vector3(len * 0.9, 0.08, 0.08)
-		lip.mesh = lb
-		lip.material_override = edge
-		lip.position = seg.position + Vector3(0, 0.01, w * 0.5)
-		lip.rotation.y = seg.rotation.y
-		crack.add_child(lip)
-		x += len * 0.8
-	var ring := Node3D.new()
-	ring.name = "Ring"
-	g.add_child(ring)
-	var torus := MeshInstance3D.new()
-	var t := TorusMesh.new()
-	t.inner_radius = 1.85
-	t.outer_radius = 2.35
-	t.rings = 32
-	t.ring_segments = 10
-	torus.mesh = t
-	torus.material_override = Remnants.obsidian_mat()
-	torus.rotation.x = PI / 2.0
-	torus.position.y = 2.6
-	ring.add_child(torus)
-	var gem_mat := _mat(colour, 0.15, 1.6)
-	for k in 10:
-		var a := k * TAU / 10.0
-		var gem := MeshInstance3D.new()
-		gem.mesh = Remnants.crystal_mesh(0.16, 0.6 if k % 2 == 0 else 0.4)
-		gem.material_override = gem_mat
-		gem.position = Vector3(cos(a) * 2.4, 2.6 + sin(a) * 2.4, 0.0)
-		gem.rotation.z = a - PI / 2.0
-		ring.add_child(gem)
-	var swirl := MeshInstance3D.new()
-	swirl.name = "Swirl"
-	var disc := CylinderMesh.new()
-	disc.top_radius = 1.9
-	disc.bottom_radius = 1.9
-	disc.height = 0.04
-	disc.radial_segments = 32
-	swirl.mesh = disc
-	var sm := _mat(colour.darkened(0.3), 0.2, 1.4)
-	sm.albedo_color.a = 0.85
-	sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	swirl.material_override = sm
-	swirl.rotation.x = PI / 2.0
-	swirl.position.y = 2.6
-	ring.add_child(swirl)
-	var light := OmniLight3D.new()
-	light.light_color = colour
-	light.light_energy = 2.0
-	light.omni_range = 8.0
-	light.position = Vector3(0, 2.6, 1.0)
-	ring.add_child(light)
-	var body := StaticBody3D.new()
-	for side in [-1, 1]:
-		var cs := CollisionShape3D.new()
-		var bs := BoxShape3D.new()
-		bs.size = Vector3(0.5, 5.0, 0.6)
-		cs.shape = bs
-		cs.position = Vector3(side * 2.1, 2.5, 0)
-		body.add_child(cs)
-	ring.add_child(body)
-	return g
+static func portal_model(colour: Color, on_fall: Callable = Callable()) -> Node3D:
+	# A crack in the ground: the way through (scripts/crack.gd). Call CRACK.sink() once it's in place to cut the ground.
+	return CRACK.make(colour, on_fall)
 
 
 static func plaza_model(colour: Color) -> Node3D:
@@ -1338,7 +1233,7 @@ static func plaza_model(colour: Color) -> Node3D:
 # -----------------------------------------------------------------------------
 func save_data() -> Dictionary:
 	return {"quakes": quakes.duplicate(), "cleared": cleared_worlds.duplicate(), "found": found.duplicate(true),
-		"here": here, "time_left": time_left, "stage_prize_day": stage_prize_day}
+		"here": here, "stage_prize_day": stage_prize_day}
 
 
 func load_data(data: Dictionary) -> void:
@@ -1354,7 +1249,6 @@ func load_data(data: Dictionary) -> void:
 		for k in f:
 			if f[k] is Array:
 				found[str(k)] = (f[k] as Array).map(func(x) -> String: return str(x))
-	time_left = maxf(float(data.get("time_left", 0.0)), 0.0) if str(data.get("here", "")) != "" else 0.0
 	stage_prize_day = int(data.get("stage_prize_day", -1))
 	changed.emit()
 
@@ -1367,9 +1261,7 @@ func reset() -> void:
 	cleared_worlds.clear()
 	found.clear()
 	here = ""
-	time_left = 0.0
 	stage_prize_day = -1
-	_warned = false
 	_pulling = false
 	if _froze_clock:
 		_froze_clock = false

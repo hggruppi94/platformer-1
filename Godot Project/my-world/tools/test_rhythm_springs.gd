@@ -94,7 +94,7 @@ func _check_quake() -> void:
 	if p == null:
 		return
 	var w: Dictionary = portals.world("rhythm_springs")
-	var ground: Vector3 = rem.ground_at(w.at)
+	var ground: Vector3 = rem.ground_at(w.at + Vector2(3.0, 0.0))      # (beside the crack: its middle is a hole)
 	check(absf(p.global_position.y - ground.y) < 0.05, "...standing on the ground")
 	check(w.at.x < 0.0 and w.at.y > 20.0, "...by the lake's south-west shore (%s)" % w.at)
 	var worst := 0.0
@@ -128,7 +128,7 @@ func _check_quake() -> void:
 	check(loop.is_empty() or nearest > 8.0, "...well off the Lake Loop's track (%.1f m)" % nearest)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the lake and town")
-	check(portals._portal_offer("rhythm_springs") == "step through to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
+	check(portals._portal_offer("rhythm_springs") == "look down the crack to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
 
 
 func _check_inside() -> void:
@@ -137,7 +137,7 @@ func _check_inside() -> void:
 	await _physics(4)
 	var s := current_scene
 	check(s.scene_file_path == WORLD and portals.here == "rhythm_springs", "stepping through takes you to Rhythm Springs")
-	var names := ["WayHome/Way Home/Spot", "TimeStone/Time Stone/Spot", "Vein1/Remnant Vein/Spot", "Melody/Model", "Melody/Spot",
+	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Melody/Model", "Melody/Spot",
 		"Shell1/Song Shell", "Shell1/Spot", "Shell2/Song Shell", "SlideTop/Spot", "DanceFloor/Spot", "The Off-Beat",
 		"The Off-Beat/Snoring", "The Off-Beat/Model/Arm/Weight/Hit", "Notes", "Heat HUD", "Slide", "Cool Pools"]
 	for i in 9:
@@ -153,7 +153,7 @@ func _check_inside() -> void:
 	var hud := s.get_node("Heat HUD/Heat") as Control
 	check(hud.visible and s.heat_words() == "Cool", "the Heat meter shows, and you start off cool")
 	var space := (s as Node3D).get_world_3d().direct_space_state
-	for n in ["TimeStone", "WayHome", "Vein1", "Melody", "Shell1", "Shell2", "SlideTop", "SizzleStart", "Drum1", "Drum3", "OffBeat"]:
+	for n in ["Vein1", "Melody", "Shell1", "Shell2", "SlideTop", "SizzleStart", "Drum1", "Drum3", "OffBeat"]:
 		var at := (s.get_node(n) as Node3D).global_position
 		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.3, 0), at + Vector3(0, -1.2, 0)))
 		check(not hit.is_empty(), "%s is on solid ground" % n)
@@ -437,11 +437,11 @@ func _check_off_beat() -> void:
 
 
 func _check_home() -> void:
-	portals.time_left = 0.4
+	portals.go_home()          # (the way home: there's no time limit to run out any more)
 	await create_timer(1.0).timeout
 	await _frames(14)
 	await _physics(4)
-	check(current_scene.scene_file_path == TOWN, "when time's up you go home to the Void")
+	check(current_scene.scene_file_path == TOWN, "the way home takes you home to the Void")
 	var p := current_scene.get_node_or_null("Portals/Portal rhythm_springs") as Node3D
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
 	check(p != null and player.global_position.distance_to(p.global_position) < 6.0, "...right by Rhythm Springs' portal")

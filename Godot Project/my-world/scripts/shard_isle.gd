@@ -2,8 +2,8 @@ extends "res://scripts/portal_world.gd"
 
 # Shard Isle, the first portal world (plan item 19a, world 0; scene built by tools/build_shard_isle.gd). It belongs to
 # nobody: it's a broken bit of the brain land, knocked loose by the first time quake, and it hums out of tune (the
-# little floating shards over it stutter, as if time keeps skipping). It teaches how portal worlds work: the timer,
-# the Time Stone, the way home, and a Remnant vein inside a world. The goal: find the three **Echo Crystals**, one
+# little floating shards over it stutter, as if time keeps skipping). It teaches how portal worlds work: the crack
+# home, and a Remnant vein inside a world. The goal: find the three **Echo Crystals**, one
 # on each islet, and set them in the **Heart Stone** in the middle. Then the island hums in tune again, the shards
 # float calmly, and Portals.clear() gives the reward (Remnants, and the Portal Plaza back in the Void).
 
