@@ -316,7 +316,7 @@
       "lines": [
         "It opened! A door! In the TREE! Can you feel it humming? Go on, walk right into it.",
         "{player}: Is it safe?",
-        "(She grins.) I've got a feeling it's been waiting for you. Go! I'll be right behind you. Probably."
+        "(She grins.) I've got a feeling it's been waiting for you. Go! I'll be right behind you. I promise."
       ],
       "first_night": true
     },
@@ -328,7 +328,8 @@
       "lines": [
         "{player}! You're back! I saw you go through. So? SO?",
         "{player}: There were aliens! And a talking husky! And a tall yellow alien with a clipboard!",
-        "(Nina laughs.) Told you it was the best. And the watch? Let me see. Yep. You're one of the chosen ones now.",
+        "(Nina laughs.) Wasn't it the BEST? And look, we both got watches. (She holds hers next to yours.) We're chosen, {player}. Both of us.",
+        "Bruno didn't get one. He grabbed my hand and got pulled along, that's all. He's being SO smug about it anyway.",
         "Everyone there has something they're amazing at. Even if they haven't found it yet. You'll find yours.",
         "Same time tomorrow?",
         {

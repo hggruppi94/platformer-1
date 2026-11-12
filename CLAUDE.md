@@ -92,6 +92,40 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **Spring before summer, Nina and Bruno, deja vu at home, and visitors who come and go** (Hayden's lore
+  rewrite, lore bible v2 Part 3 items 5, 10, 12 and 16: "lets swap the order of the spring and summer worlds", "Nina
+  doesnt live alone in the void anymore. she has her family and home back on earth, but she is a chosen", "bruno isnt
+  chosen, but maybe him and nina get caught up with the main character when the void opens", "the memories stay the
+  same but you have a bit of fuzzy deja vu memory when you go back home", "void townsfolk also have to come and go. no
+  one can stay indefinitely except rook, dash and rex. Tally, and the small aliens, as well as the astronaut are void
+  residents"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The world order** (`Portals.WORLDS`, `quake_due()`): Lanternmoor, then **Glenmoor** (fifth, opens spring), the
+    **Tide Reef** (sixth), **Rhythm Springs** (seventh, opens summer), then the Far Future, which now waits for all
+    three of those to be mended (an old save that mended Rhythm Springs first still gets Glenmoor before the end). The
+    final fight's friend sections go Heather, Otto, Melody (`chaos_trials.gd SECTIONS`); `tools/playthrough.gd` plays
+    the worlds in the new order. Nothing in the worlds themselves changed.
+  - **Nina** (`dialogue/nina.json`, `nina_earth.json`): in the Void she knows you from Stars Hollow, came through right
+    behind you, has a watch of her own ("That means I'm chosen, like you"), and her home's on Maple Lane: the yellow
+    Void house is just where the Blastoffs nap till it's time to go home. Back home after the First Night: "We're
+    chosen, {player}. Both of us."
+  - **Bruno** isn't chosen: he grabbed Nina's hand as the oak opened and got pulled through, with no watch
+    (`bruno_alien.json` hello; `bruno.json` a new talk after the First Night, flag `bruno_caught_up`).
+  - **Deja vu** (`scripts/deja_vu.gd`, "EarthTown/DejaVu"): every time you land in Stars Hollow straight from the Void
+    (not the First Night's own way home, not from the Earth race circuit or the title screen) a soft lilac haze and
+    blur ripples over the screen for 3.6 s (no ripple with Reduce motion) and a line says it all feels a bit like a
+    dream you can still remember. Nothing is forgotten.
+  - **Visitors come and go** (`routine.gd VISITORS`: Bramble, Pip, Melody, Heather, Mr. Palmer): when their "away"
+    block starts or ends and you're near enough to see, a little glowing crack zigzags open at their feet, they drop
+    through (or pop up) in a flash and it zips shut (`scripts/visitor_crack.gd`, group `visitor_crack`). Nina and Bruno
+    nap in their Void house like the hero; Dash, Rex and Rook stay. **Tally** says it once (flag `tally_comers`): only
+    Tally, the little ones and the Astronaut live in the Void for keeps, and Dash, Rex and Rook can't leave yet.
+  - Tests: new `tools/test_lore_order.gd`; portals, season_unlocks, glenmoor, tide_reef, rhythm_springs, chaos_trials
+    (the three worlds' quake checks and the sections' order updated), dialogue, routines, earth, first_night, meetings and
+    more pass (far_future and heather_moves fail one tree check on main too). Previews: `tools/capture_lore_order.gd`
+    (shots in the project files under world/previews/lore_order).
+  - My choices Hayden may change: every new line (first drafts), who counts as a visitor, the crack's look, the haze
+    and the four deja vu lines, the Far Future waiting for all three worlds.
+
 - 2026-11-11: **The hero changes a little in the Void: their watch, glowing eyes and an alien feature** (Hayden: "maybe
   there is another way we can change the characters when they enter the void? Adding watches to their wrists etc",
   then "Yes to the void changes"). Built and tested in the cloud (own Godot user folders, no save touched).
