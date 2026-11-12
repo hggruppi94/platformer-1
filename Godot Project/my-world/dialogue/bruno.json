@@ -41,6 +41,19 @@
     },
     {
       "when": {
+        "quest_done": "first_night",
+        "not_flag": "bruno_caught_up"
+      },
+      "lines": [
+        "(Bruno pulls you behind the bushes and drops his voice.) Okay. Don't tell Mum. The oak. Midnight. I followed Nina out.",
+        "When it opened I grabbed her hand and... WHOOMPH. Next thing I know, I'm a HIPPO.",
+        "You got a watch. Nina got a watch. I got nothing. Nina thays that'th 'cauthe I'm not one of the chothen. I'm jutht... caught up in it.",
+        "(He shrugs and grins through the gap in his teeth.) Fine by me. Chothen people have to thave the world. I jutht get to thkate there."
+      ],
+      "set": "bruno_caught_up"
+    },
+    {
+      "when": {
         "activity": "festival",
         "season": "winter"
       },

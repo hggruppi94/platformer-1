@@ -14,7 +14,7 @@ extends SceneTree
 const SAVE := "user://save.json"
 const BACKUP := "user://save.trials_backup.json"
 const TOWN := "res://scenes/town/town.tscn"
-const WORLDS := ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef", "glenmoor",
+const WORLDS := ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "glenmoor", "tide_reef", "rhythm_springs",
 	"dark_hollow", "far_future"]
 const DAZED := 5
 const TRIAL := 7
@@ -80,7 +80,7 @@ func _run() -> void:
 	portals.cleared_worlds.assign(WORLDS)
 	arsenal.give("fizz", false)
 	game.give_item("shop:shift_watch")
-	check(trials.pending(1) == "burrow" and trials.pending(2) == "groove" and trials.pending(3) == "crawl",
+	check(trials.pending(1) == "burrow" and trials.pending(2) == "spring" and trials.pending(3) == "crawl",
 		"each phase's sections come in the order the worlds were mended")
 	check(fight.chaos_floor() == 21, "his chaos can't drop into phase 2 while phase 1 has sections left")
 	fight._open(3.0)

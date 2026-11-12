@@ -1,5 +1,8 @@
 extends "res://scripts/portal_world.gd"
 
+# Since 12 Nov 2026 Rhythm Springs is the seventh portal world: Hayden swapped spring and summer, so Glenmoor comes
+# before the Tide Reef and Rhythm Springs after it (scripts/portals.gd quake_due).
+#
 # Rhythm Springs, Melody's home world (plan item 19a world 4; scene built by tools/build_rhythm_springs.gd). A sunny
 # summer valley of sandstone, cool spring pools, parasol palms and a big waterfall, where music used to play all day.
 # The Off-Beat (a stage-sized metronome stuck between tempos, scripts/off_beat.gd) broke the beat, so time keeps
