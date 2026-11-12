@@ -108,6 +108,10 @@ func _process(delta: float) -> void:
 		warn_label.modulate.a = clampf(_warn_time / 0.4, 0.0, 1.0)
 	if map.visible:
 		map.queue_redraw()
+	# The results' buttons keep the cursor while they're up, whatever else grabs the mouse (a click on the game
+	# behind them, or closing the pause menu, used to hide it and leave the buttons unclickable)
+	if choice_box.visible and not get_tree().paused and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func clear() -> void:

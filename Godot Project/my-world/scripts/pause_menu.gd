@@ -73,8 +73,9 @@ func close() -> void:
 	_rebinding_pad = ""
 	root.visible = false
 	get_tree().paused = false
-	# Back to the game grabs the mouse, unless it's back to the character creator, which needs the cursor
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Creator.is_open() else Input.MOUSE_MODE_CAPTURED
+	# Back to the game grabs the mouse, unless it's back to the character creator or a race's results buttons,
+	# which need the cursor
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Creator.is_open() or Races.choosing() else Input.MOUSE_MODE_CAPTURED
 	Audio.play("ui_back", -4.0, 0.0)
 
 
