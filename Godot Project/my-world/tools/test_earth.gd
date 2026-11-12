@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks life on Earth and the trips to the Void: a new game starting at home on Earth, the people and Mr. Palmer's
-# lights quest, the portal by the old oak asleep until midnight, through it to the Void in the Shift (its day at full
+# lights quest, the crack by the old oak closed until midnight, through it to the Void in the Shift (its day at full
 # speed, Earth's clock crawling), home early and back (the portals, the pause menu), the warning at the Void's 6 AM,
 # being pulled home at the end of the Shift, and a save made in the Void in the Shift loading there. Run it twice.
 # Also the grown-up town (since Oct 30, 2026): every place there, a way in to every walk-in building, nothing floating,
@@ -90,9 +90,10 @@ func _run() -> void:
 	# Outside the Shift the portal by the old oak is asleep
 	var portal := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
 	await _walk_into(portal)
-	check(current_scene.scene_file_path == EARTH and messages.any(func(m: String) -> bool: return m.contains("asleep")),
-		"8 PM: the portal's asleep")
-	check(not (current_scene.find_child("Portal Swirl", true, false) as Node3D).visible, "...no swirl in it")
+	check(current_scene.scene_file_path == EARTH and messages.any(func(m: String) -> bool: return m.contains("closed")),
+		"8 PM: the crack by the oak is closed")
+	var crack := current_scene.get("crack") as Node3D
+	check(crack == null or (crack.get_meta("open", 1.0) < 0.1 and (crack.get_node("Lid") as Node3D).visible), "...no crack open by the oak")
 
 	# The people, and Mr. Palmer's lights
 	var palmer := _talker("palmer_earth")
@@ -121,7 +122,8 @@ func _run() -> void:
 	await create_timer(3.0).timeout
 	check(clock.in_shift() and messages.any(func(m: String) -> bool: return m.contains("the Shift has begun")),
 		"midnight on Earth: the Shift has begun")
-	check((current_scene.find_child("Portal Swirl", true, false) as Node3D).visible, "...and the portal swirls open")
+	crack = current_scene.get("crack") as Node3D
+	check(crack != null and crack.get_meta("open", 0.0) > 0.9 and not (crack.get_node("Lid") as Node3D).visible, "...and the crack by the oak opens")
 	await _walk_into(current_scene.find_child("PortalToGalaxity", true, false))
 	await _wait_for_scene(TOWN)
 	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "through the portal to the Void")

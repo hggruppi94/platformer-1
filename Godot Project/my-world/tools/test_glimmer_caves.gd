@@ -300,7 +300,11 @@ func _check_moths_and_cache() -> void:
 
 func _check_back_in_the_void() -> void:
 	current_scene.get_node("WayHome/Way Home/Spot").use()
-	await _frames(14)
+	for i in 200:                      # (you drop down the crack first, then go)
+		await process_frame
+		if current_scene and current_scene.scene_file_path == TOWN:
+			break
+	await _frames(6)
 	await _physics(4)
 	check(current_scene.scene_file_path == TOWN, "home to the Void")
 	var glow: Node = _player().pip_glow

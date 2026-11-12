@@ -128,7 +128,7 @@ func _check_changes(announce := true) -> void:
 				if shift and on_earth:
 					Game.message("Midnight. Over on the green, the old oak is humming louder than ever...")
 			elif shift:
-				Game.message("It's midnight: the Shift has begun! The portal by the old oak is open to the Void.")
+				Game.message("It's midnight: the Shift has begun! The crack by the old oak is open to the Void.")
 			elif on_earth:
 				Game.message("1 AM: the Shift is over, and the portal has closed until tomorrow night.")
 		(shift_started if shift else shift_ended).emit()
