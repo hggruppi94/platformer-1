@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/arena_level.gd" id="1_mdl0i"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_ke7h5"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="3_d5qgh"]
+
+[node name="StarArena" type="Node3D" unique_id=1599751622]
+script = ExtResource("1_mdl0i")
+
+[node name="Entrance" type="Marker3D" parent="." unique_id=340711263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 36)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=895953491 instance=ExtResource("2_ke7h5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 36)
+script = ExtResource("3_d5qgh")

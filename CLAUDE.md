@@ -116,6 +116,41 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     quest goal, else rest. It never looks ahead.
   - Tests: new `tools/test_cracks.gd`; the portal, world, Earth and First Night tests are updated for cracks and no timer.
 
+- 2026-11-12: **New enemies, each with a boss of its own, and the Star Arena** (Hayden: "I want to make more enemies",
+  "I want to add an arena with unique bosses, and challenges like slay 100 gloops etc."). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **Glorps** (`scripts/glorp.gd`, extends gloop.gd, `GLORP.make(size)`): purple Gloops that split into two littler
+    ones when popped (`SPLIT_INTO` 0.66, down to `SMALLEST` 0.6), bits boing out either side. **Fizzlers**
+    (`scripts/fizzler.gd`, built in code, `FIZZLER.model()`): balls of static with one big eye that zip about, crackle
+    up for 0.8 s and let out a little zap ring to jump; a bubble sometimes makes them blink a few metres away.
+    **Shadow ghosts** (Dark Hollow's, `shadow_ghost.gd`) now also come out at night in the Void.
+  - **Where** (`scripts/wilds.gd`, autoload `Wilds`, put in at play time, no `town.tscn` change): **Glorp Meadow**
+    (-58, -120, four Glorps with purple puddles), the **Static Field** (80, -218, five Fizzlers round a fizzing crack),
+    and six **night ghosts** in the Spooky Woods' edge (-108, -124), once a night, fading out by morning. Both places
+    are on the map. Spots checked flat, off paths and trees, 14 m+ off races.
+  - **The Star Arena** (`scripts/arena.gd`, autoload `Arena`; the level `scenes/bosses/arena.tscn` from
+    `tools/build_arena.gd`, everything built at load by `scripts/arena_level.gd`, like the Gloop Kingdom): its gate is
+    at `GATE` (-64, -96), opens once The First Night's done ("Opening soon!" before). Inside: a round sand floor in a
+    bowl of stands full of cheering little aliens, six hatches enemies pop out of, four spotlight towers whose beams
+    sweep the floor, the tunnel (barred during a round), **Blip** the yellow little alien announcer and the **Round
+    Board** (every round, a star for each won, best times). Talk to Blip to pick a round, see your medals, or stop one.
+    - **Challenges** (`CHALLENGES`): Pop 100 Gloops (10 at a time), Glorp Splitter (40, every bit counts), Goblin
+      Waves (4, 6, 8 Time Goblins), Fizzler Frenzy (25 in 3 minutes), Shadow Night (20 ghosts, lights down).
+    - **Arena bosses**, only met here: **Mama Glorp** (`scripts/glorp_mother.gd`, extends gloop_king.gd: a big purple
+      Glorp with a bow, splits a baby off every hit, 9 hits; after Glorp Splitter), **Big Buzz**
+      (`scripts/big_buzz.gd`: a huge Fizzler high up, dives and slams a double ring, then is dazed and low enough to
+      stomp or bubble, 3 hits a daze, 9 hits; after Fizzler Frenzy) and **the Gloam** (`scripts/the_gloam.gd`: a big
+      shadow ghost, only solid in a spotlight beam, steers round them, so lead it in; 8 hits; after Shadow Night).
+    - **The Champion's Cup**: all three bosses back to back, once all three are beaten; wins the Champion Cup hat.
+    - Prizes: first win 15 to 25 sparkles and 1 to 3 Remnants (the cup 50 and 5), later wins 4 to 10 sparkles.
+      Records saved as `"arena"` (wins and best time each); flags `arena_won_<id>`, `arena_met_blip`. Fainting in a
+      round starts it over; leaving by the way out lands you in front of the gate.
+  - Tests: new `tools/test_arena.gd` (about 90 checks) and `tools/test_wilds.gd`; gloop_king, gloop_kingdom,
+    boss_versions, time_goblins, dark_hollow, layout, map, walk_through, dialogue (both runs), shooting, arsenal and
+    player_menu pass. Previews: `tools/capture_arena.gd` (shots in the project files under world/previews/arena).
+  - My choices Hayden may change: every name (Glorps, Fizzlers, Blip, the Star Arena, Mama Glorp, Big Buzz, the
+    Gloam), the rounds and their numbers, the prizes, the unlock order, where everything is.
+
 - 2026-11-12: **Spring before summer, Nina and Bruno, deja vu at home, and visitors who come and go** (Hayden's lore
   rewrite, lore bible v2 Part 3 items 5, 10, 12 and 16: "lets swap the order of the spring and summer worlds", "Nina
   doesnt live alone in the void anymore. she has her family and home back on earth, but she is a chosen", "bruno isnt

@@ -172,6 +172,8 @@ func place_name() -> String:
 		return "The Secret Garden"
 	if path == Bosses.KINGDOM:
 		return "The Gloop Kingdom"
+	if path == Arena.LEVEL:
+		return "The Star Arena"
 	if path.begins_with("res://scenes/scary_world/"):
 		return "The Scary World"
 	if path.begins_with("res://scenes/races/"):
