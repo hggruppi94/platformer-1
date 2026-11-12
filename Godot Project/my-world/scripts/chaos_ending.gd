@@ -7,16 +7,20 @@ extends CanvasLayer
 #   crack    (0 s)   the camera comes in on his chest clock; it cracks, flickering, time stuttering
 #   shatter  (3 s)   it shatters into glitch cubes and a golden ring of mended time rolls out over the field
 #   fade     (6 s)   he sinks to his knees and his glitch armour peels away, smaller and smaller...
-#   light    (10 s)  ...till only a small figure of light is left. It looks at the hero, then drifts up into motes,
-#                    and something small drops into the grass: an old pocket watch, stopped at midnight
-#   sky      (14.5 s) the crack in the sky over the field (the crack in the Shift) zips shut in a flash of gold
-#   friends  (18.5 s) everyone who taught you a move comes through to the field, and Dash, Rex, Bramble and Pip talk
-#   title    (30 s)  "The Agent of Chaos is sent out of time. The Void is safe... for now."
+#   light    (10 s)  ...till only a small figure of light is left: the chosen kid Chaos took, long ago. It looks at
+#                    the hero and thanks them, says who it was, and warns that Chaos is still out there (FIGURE_LINES),
+#                    then drifts up into motes, and something small drops into the grass: his pocket watch, stopped at
+#                    midnight
+#   sky      (17.5 s) the crack in the sky over the field (the crack in the Shift) zips shut in a flash of gold
+#   friends  (21.5 s) everyone who taught you a move comes through to the field, and Dash, Rex, Bramble and Pip talk
+#   title    (33.5 s) "The Agent of Chaos is beaten. The kid he took is free... but Chaos is still out there."
 #
 # Then the player has the controls back, with the friends still standing round for a while (they fade away once
 # you've walked off), and the pocket watch to pick up (flag "chaos_watch_found"; it waits in the field on later visits
-# until it's found). Who the figure of light was is left a mystery on purpose: it's a first draft for Hayden, like
-# every line here.
+# until it's found). Who the figure was (Hayden, Nov 12, 2026: "agent of chaos can be a kid who was chosen but was
+# possesed by chaos", the pawn of the entity Chaos, which is trying to destroy the universe): Teddy, a Stars Hollow kid
+# chosen in 1956, who went back in for one more trip and never came home (his wristwatch is one of the sunken Watches
+# of the First Chosen, scripts/sunken_secrets.gd). His name and year are my first draft for Hayden, like every line here.
 #
 # It uses its own camera, so the player's camera is untouched; the player's HUD steps away and the minimap waits
 # (group "cutscene_playing", scripts/map_screen.gd). The music is "chaos_ending" while it plays (scripts/soundscape.gd).
@@ -28,10 +32,11 @@ const SKIP_ACTIONS := ["jump", "interact", "ui_accept"]
 const T_SHATTER := 3.0
 const T_FADE := 6.0
 const T_LIGHT := 10.0
-const T_SKY := 14.5
-const T_FRIENDS := 18.5
-const T_TITLE := 30.5
-const LENGTH := 34.5
+const T_SKY := 17.5
+const T_FRIENDS := 21.5
+const T_TITLE := 33.5
+const LENGTH := 37.5
+const FIGURE_TIME := 2.4                         # seconds each of the figure's lines shows
 const LINE_TIME := 2.4
 const CRACK_HEIGHT := 70.0                       # the crack in the sky, over his field
 const FRIEND_FADE_FAR := 30.0                    # the friends go once you're this far off
@@ -47,6 +52,12 @@ const FRIENDS := [
 	["Melody", "res://models/characters/melody.glb"],
 	["Otto", "res://scripts/tide_reef.gd:otto_model"],
 	["Heather", "res://models/characters/cattle_girl.glb"],
+]
+# What the figure of light says, freed (first drafts)
+const FIGURE_LINES := [
+	"...You stopped my clock. Thank you. It had me for such a long time.",
+	"I was chosen too, once. Teddy, from Stars Hollow. I went back for one more trip, and something got into my watch.",
+	"It calls itself Chaos. You beat it. You didn't end it. Keep your watch close.",
 ]
 # What's said when the friends arrive (first drafts): [who, line]
 const LINES := [
@@ -84,6 +95,7 @@ var _model_scale := Vector3.ONE
 var _g := Vector3.ZERO                           # where he stood
 var _f := Vector3.FORWARD                        # the way he faced
 var _shown_line := -1
+var _figure_line := -1
 var _next_crack := 0.0
 var _friends_from := Vector3.ZERO
 var _cube_mats: Array[StandardMaterial3D] = []
@@ -218,6 +230,11 @@ func _run_beats() -> void:
 	if _t >= T_LIGHT and beat == "fade":
 		beat = "light"
 		_light()
+	if beat == "light":
+		var k := floori((_t - T_LIGHT - 0.6) / FIGURE_TIME)
+		if k >= 0 and k < FIGURE_LINES.size() and k != _figure_line:
+			_figure_line = k
+			_say("Teddy" if k > 0 else "???", FIGURE_LINES[k])
 	if _t >= T_SKY and beat == "light":
 		beat = "sky"
 		_mend_sky()
@@ -328,7 +345,7 @@ func _light() -> void:
 			var to := p.global_position - figure.global_position
 			figure.rotation.y = atan2(to.x, to.z)
 		var tw := create_tween()
-		tw.tween_interval(1.8)
+		tw.tween_interval(T_SKY - T_LIGHT - 2.4)
 		tw.tween_property(figure, "position:y", figure.position.y + 6.0, 2.2).set_trans(Tween.TRANS_SINE) \
 			.set_ease(Tween.EASE_IN)
 		tw.parallel().tween_property(figure, "scale", Vector3(0.2, 1.6, 0.2), 2.2)
@@ -338,6 +355,7 @@ func _light() -> void:
 				figure.visible = false)
 	place_watch(_g + _f * 1.4)
 	Juice.blip("chime", 0.8)
+	_figure_line = -1
 	_say("", "...")
 
 
@@ -372,7 +390,7 @@ func _bring_friends() -> void:
 
 func _title_card() -> void:
 	_caption.text = ""
-	_show_title("THE AGENT OF CHAOS", "is sent out of time.\nThe Void is safe... for now.")
+	_show_title("THE AGENT OF CHAOS", "is beaten, and the kid he took is free.\nBut Chaos is still out there...")
 	for f in friends:
 		_anim(f, "dance" if f.name == "Melody" else "idle")
 	var p := _player()
@@ -487,7 +505,7 @@ func _check_watch() -> void:
 	Dialogue.set_flag(WATCH_FLAG)
 	Fx.burst(root, watch.global_position, Color(0.85, 0.8, 1.0), 16, 0.1, 2.0, -1.0, 0.8)
 	Juice.blip("chime", 1.2, -4.0)
-	Game.message("A little old pocket watch, stopped at midnight. It's still warm. Whose was it...?")
+	Game.message("A little old pocket watch, stopped at midnight. Scratched inside the lid: T.M. It's still warm.")
 	watch.queue_free()
 	watch = null
 
@@ -609,7 +627,7 @@ func _ring() -> void:
 
 
 func _figure() -> Node3D:
-	# A small figure of light, about a child's height: a soft glow, no face. Who it was is a mystery (for now)
+	# A small figure of light, about a child's height: a soft glow, no face. Teddy, the chosen kid Chaos took
 	var g := Node3D.new()
 	g.name = "Figure Of Light"
 	root.add_child(g)

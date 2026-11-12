@@ -37,7 +37,7 @@
     },
     {
       "id": "letter",
-      "text": "Rex says Dash left something for you in his lab.",
+      "text": "Dash wrote you a letter. It's on his workbench, in his lab in Lumen City.",
       "done": {
         "flag": "dash_letter_read"
       },
@@ -53,6 +53,6 @@
   ],
   "reward": {
     "sparkles": 20,
-    "message": "Dash's letter is yours to keep: it waits on his workbench whenever you want to read it again. (+20 sparkles)"
+    "message": "Dash's letter is yours to keep: it waits on his workbench whenever you want to read it again. Everyone's home. (+20 sparkles)"
   }
 }

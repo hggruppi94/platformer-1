@@ -11,7 +11,7 @@ extends SceneTree
 # comes in, the pools fill, the corals bloom, Otto's proud); slice two: Otto teaches you to swim and the sea floods
 # right over the reef, you can't walk along the bottom before then (only paddle), you swim up and dive, float where you
 # stop, hop out at the top, the view goes blue and muffled under, the five sea lanterns light when you swim to them
-# and then Grandad's chest pays out once; and it all stays done after leaving and loading.
+# and then the Reef Chest pays out once; and it all stays done after leaving and loading.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_tide_reef.gd
 #
@@ -480,7 +480,7 @@ func _check_swim() -> void:
 	check(sea.covers(0, 0) and sea.covers(40, 0) and float(sea.get("water_y")) > 12.0, "...the whole reef is water to swim in")
 	check(s.SEA_TOP < 18.0 - 1.0, "...and the reef's fence is taller than the sea, so nobody swims off the edge")
 	check((s.get_node("Light Shafts") as Node3D).visible and (s.get_node("Sea Surface") as Node3D).visible, "...with light shafts down through it")
-	check((s.get_node("Sea Lanterns/Sea Lantern 1") as Node3D).visible and not (s.get_node("Grandad's Chest") as Node3D).visible,
+	check((s.get_node("Sea Lanterns/Sea Lantern 1") as Node3D).visible and not (s.get_node("Reef Chest") as Node3D).visible,
 		"five sea lanterns drifted in; the chest isn't here yet")
 	var swim: Node = player.get("swim")
 	# Swimming in open water, away from the houses
@@ -548,10 +548,10 @@ func _check_swim() -> void:
 		player.velocity = Vector3.ZERO
 		await _physics(8)
 	check(s.lamps_lit() == 5, "swim up to each sea lantern and it lights (%d of 5)" % s.lamps_lit())
-	var chest := s.get_node("Grandad's Chest") as Node3D
-	check(chest.visible, "...then Grandad's chest has washed into the Deep Basin")
-	check("chest" in " ".join(s.otto_lines()), "...and Otto says to go and open it")
-	s.get_node("Grandad's Chest/Spot").use()
+	var chest := s.get_node("Reef Chest") as Node3D
+	check(chest.visible, "...then the Reef Chest has washed into the Deep Basin")
+	check("chest" in " ".join(s.otto_lines()).to_lower(), "...and Otto says to go and open it")
+	s.get_node("Reef Chest/Spot").use()
 	check(s.chest_open() and rem.count == before_r + s.CHEST_REMNANTS and game.sparkles == before_s + s.CHEST_SPARKLES,
 		"open it for %d Remnants and %d sparkles" % [s.CHEST_REMNANTS, s.CHEST_SPARKLES])
 	dialogue.end()
@@ -587,7 +587,7 @@ func _check_home() -> void:
 	check(s.scene_file_path == WORLD and s.pearls() == 3 and s.get_node_or_null("The Riptide Gloop") == null and s.tide == 1.0
 		and s.vault_open() and s.get_node_or_null("Pearl3/Tide Pearl") == null,
 		"going back, it's all still done: the tide's in, the vault's open, and no Riptide Gloop")
-	check(s.flood == 1.0 and s.lamps_lit() == 5 and s.chest_open() and (s.get_node("Grandad's Chest/Lid") as Node3D).rotation.x < -1.0,
+	check(s.flood == 1.0 and s.lamps_lit() == 5 and s.chest_open() and (s.get_node("Reef Chest/Lid") as Node3D).rotation.x < -1.0,
 		"...the reef's still under the sea, the lanterns lit and the chest open")
 	s.get_node("WayHome/Way Home/Spot").use()
 	await _frames(12)

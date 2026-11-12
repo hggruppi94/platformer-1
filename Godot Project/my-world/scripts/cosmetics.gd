@@ -68,7 +68,7 @@ static func hat(id: String) -> Node3D:
 	h.position.y = HAT_Y
 	match id:
 		"dash_cap":
-			# What Dash leaves you when he goes home (scripts/dash_goodbye.gd): his cap, worn a bit soft, with a little gold
+			# What Dash gives you when everyone goes home (scripts/dash_goodbye.gd): his cap, worn a bit soft, with a little gold
 			# clock badge on the front, its hands stopped at midnight like the watch the Agent of Chaos left
 			var cloth := _mat(Color(0.2, 0.62, 0.55))
 			var trim := _mat(Color(0.55, 1.0, 0.4), 0.6)

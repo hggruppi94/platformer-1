@@ -18,13 +18,18 @@ extends "res://scripts/portal_world.gd"
 # pulling the Swap-o-Tron's lever swaps them back... for a few seconds. Then they snap back again: the swap is knotted
 # into the crack in the Shift, and the other end of the knot is in the Agent of Chaos's cracked clock. That's what
 # opens his final fight in the Void (flag SWAP_FLAG, chaos_fight.gd unlocked(); quest "Stop His Clock").
-# Then the story's ending (slice three, Hayden Nov 11, 2026: "we can add the ending next"; the quest "Loose Ends",
-# quests/loose_ends.json, scripts/after_the_ending.gd). With the Agent of Chaos's clock stopped, the lever swaps Rex and
-# Rook back for good (swap_for_good(); flag REX_HOME). Then Dash reads the machine and tells everyone what's left: the
-# crack in the Shift has two ends, and the far end, in the Tomorrow Clock, can only be stitched from the inside, by
-# someone who stays on this side when it shuts (twist_lines(); flag TWIST_FLAG). It has to be him. He waits on the
-# clock's dais, and walking up to him plays the goodbye (scripts/dash_goodbye.gd): everyone comes, he leaves you his
-# cap, and he goes into the clock. After that, his letter waits on his workbench (letter_lines()).
+# Then the story's ending (slice three; the quest "Loose Ends", quests/loose_ends.json, scripts/after_the_ending.gd),
+# rewritten Nov 12, 2026 for Hayden's lore bible v2: Dash doesn't sacrifice himself, fixing the Shift sends everyone
+# home, Rex will be mayor of Lumen City, and Lumen City is Stars Hollow's far future, on Earth. With the Agent of
+# Chaos's clock stopped, the lever swaps Rex and Rook back for good (swap_for_good(); flag REX_HOME), and Rex says sorry
+# to Rook (he swapped them on purpose, testing the Swap-o-Tron). Then Dash reads the machine: the Shift is mending
+# itself, and when the Tomorrow Clock strikes the last crack closes and everyone goes back to their own world and time
+# (home_lines(); flag TWIST_FLAG). He waits on the clock's dais, and walking up to him plays the homecoming
+# (scripts/dash_goodbye.gd): everyone says see you later, he gives you his cap, the clock strikes and the friends go
+# home. Dash, Rex and Rook stay: Lumen City IS home. After that his letter waits on his workbench (letter_lines()),
+# Dash takes the lost watches and the Pieces of That Night here (the three of them aren't in the Void any more), and a
+# "Rex for Mayor" banner goes up by the clock. The Old Oak stands in the city all along (_add_old_oak()): the same
+# tree as Stars Hollow's, a long time later, and touching it hums.
 # Rex (in the husky's body) waits by the way in, Dash in his lab. Nothing here hurts more than a bump; falling off the
 # Skyway just lands you on the city floor (in the race it pops you back up onto the road).
 
@@ -68,6 +73,10 @@ const ROOK_AT_CLOCK := Vector3(-4.8, 0, 8.4)
 const GOODBYE_NEAR := 8.0                 # walking this close to Dash at the clock plays the goodbye
 const LETTER_AT := Vector3(4.2, 0, 1.0)   # Dash's letter, where he stood in his lab (from the lab's middle)
 const FOR_GOOD_HOLD := 5.6                # seconds into the swap for good: it holds, in a ring of gold
+# The Old Oak, still standing in Lumen City: Stars Hollow's oak, a long time later (clear of the lanes, the towers and
+# the way in; checked in tools/test_far_future.gd)
+const OAK_AT := Vector3(14, 0, 30)
+const BANNER_AT := Vector3(9.0, 0, 13.0)  # "Rex for Mayor", once everyone's home, from the clock
 
 var fade := 1.0                           # 0 = mended, bright; FADED = no cores
 var captain_awake := false
@@ -110,6 +119,7 @@ func setup() -> void:
 	for i in 3:
 		_show_core(i)
 	_add_traffic()
+	_add_old_oak()
 	if not Portals.is_cleared(world_id):
 		_add_captain()
 	else:
@@ -521,19 +531,20 @@ func _add_friend(n: String, model: String, verb: String, talk: Callable) -> void
 func rex_lines() -> Array:
 	# Rex is home, in the husky's body, and the place he's going to be mayor of one day is fading (first drafts)
 	if Portals.is_cleared(world_id):
-		if AFTER.dash_gone():
+		if AFTER.everyone_home():
 			if not Dialogue.flags.has(AFTER.LETTER_FLAG):
-				return ["(Rex is sitting on the edge of the Swap-o-Tron, swinging his legs. His own legs.)",
-					"He left you something, {player}. On his workbench. He made me promise not to read it. I didn't. Nearly didn't.",
-					"I'm OK. I think. Ask me again tomorrow."]
-			return ["I keep turning round to tell him things. Then I tell Rook instead. Rook's a good listener. Bad at sums.",
-				"Every lamp in Lumen City's on, {player}. He'd have liked that. He'd have measured it.",
-				"See you later, Dash. That's what I say now. Every time."]
+				return ["(Rex is standing under his banner, practising waving. With both hands. His own hands.)",
+					"Dash wrote you a letter, {player}. It's on his workbench. He went bright red and made me promise not to read it. I didn't. Nearly didn't."]
+			return [["Mayor of Lumen City. One day. I've started practising. I made Rook a deputy. He ate the badge.",
+				"Rook got me a ball for my campaign. Well. He got HIS ball. He wants it thrown. Constantly."],
+				["Hey, {player}. When you're back home in Stars Hollow, wave at the old oak for me. It'll pass it on. Eventually.",
+				"Every lamp in Lumen City's on. Dash measured them. Twice."]][randi() % 2]
 		if Dialogue.flags.has(AFTER.TWIST_FLAG):
-			return ["I tried to talk him out of it, {player}. I'm going to be a mayor. I'm supposed to be good at talking people out of things.",
-				"He's at the Tomorrow Clock. Everyone's coming. Will you come too? He'll want you there most of all."]
+			return ["Everybody's going home, {player}. Bramble, Pip, all of them. And you, back to Stars Hollow.",
+				"And us three? We're already here. Weird, right? We've been trying to get home all this time, and home came to us.",
+				"Dash is at the Tomorrow Clock. Everyone's coming. Will you come too? He'll want you there most of all."]
 		if AFTER.rex_home():
-			return twist_lines()
+			return home_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
 			if not for_good and get_node_or_null("Rook") != null:
 				return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
@@ -583,12 +594,20 @@ func _talk_rex() -> void:
 func dash_lines() -> Array:
 	# Dash in his own lab, where his time experiment went off the same night as Rex's swap (first drafts)
 	if Portals.is_cleared(world_id):
+		if AFTER.everyone_home():
+			if not Dialogue.flags.has(AFTER.LETTER_FLAG):
+				return ["(Dash is sitting on the edge of the dais, swinging his legs, grinning at the clock.)",
+					"I wrote you a letter, {player}. It's on my workbench. Read it when I'm not looking. I'll go red. I'm going red NOW."]
+			return [["Everything's ticking the right way. Every world. I've checked. I'll check again in a minute.",
+				"Found any more lost watches, {player}? I still collect them. Bring them here, any time."],
+				["You know the best thing about living in the future? I know exactly where you are. Right under my feet. Just earlier.",
+				"Rex has started calling Rook his deputy. Rook has started ignoring him. It's very good for him."]][randi() % 2]
 		if Dialogue.flags.has(AFTER.TWIST_FLAG):
-			return ["(Dash is sitting on the edge of the dais with his knees up, looking at the clock.)",
-				"Everyone's on their way. I asked them to come. I didn't want to just... vanish. That's what time does to people. Not me.",
-				"Come and stand with me, {player}. Just for a bit."]
+			return ["(Dash is sitting on the edge of the dais with his knees up, grinning at the clock.)",
+				"Everyone's on their way. I asked them all to come. If we're saying see you later, we're doing it PROPERLY.",
+				"Come and stand with me, {player}. When the clock strikes, that's it: everyone home."]
 		if AFTER.rex_home():
-			return twist_lines()
+			return home_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
 			return ["His clock's stopped. The knot's come loose. The readings are all... quiet. For the first time.",
 				"Which means the Swap-o-Tron can finish what it started. Nothing's pulling on it now. Pull the lever, {player}. For good.",
@@ -615,7 +634,28 @@ func dash_lines() -> Array:
 func _talk_dash() -> void:
 	var spot := get_node_or_null("Dash/Spot") as Node3D
 	if spot:
-		Dialogue.say(spot, "Dash", talk_steps(dash_lines()), "far_future_dash")
+		Dialogue.say(spot, "Dash", talk_steps(dash_lines() + hand_ins()), "far_future_dash")
+
+
+func hand_ins() -> Array:
+	# Once everyone's home, Dash isn't in the Void any more, so the lost watches (scripts/watches.gd) and the Pieces of
+	# That Night (scripts/sunken_secrets.gd) come to him here
+	if not AFTER.everyone_home():
+		return []
+	var out: Array = []
+	var w := get_node_or_null("/root/Watches")
+	if w and w.has_method("watches_hand_in"):
+		var said: Array = w.call("watches_hand_in")
+		if not said.is_empty():
+			out.append("{player}: I found more lost watches, Dash!")
+			out.append_array(said)
+	var sunk := get_node_or_null("/root/Watches/Sunken")
+	if sunk and sunk.has_method("hand_in"):
+		var more: Array = sunk.call("hand_in")
+		if not more.is_empty():
+			out.append("{player}: And another piece of that night.")
+			out.append_array(more)
+	return out
 
 
 func thank_lines() -> Array:
@@ -659,6 +699,8 @@ func _to_the_lab() -> void:
 
 func rook_lines() -> Array:
 	# Rook is the dog, in Rex's human body. He only ever says woof
+	if AFTER.everyone_home():
+		return ["Woof! WOOF!", "(Rook drops a slobbery ball at your feet and looks at Rex's banner. He's very proud of it. He chewed the corner.)"]
 	if AFTER.rex_home():
 		return ["WOOF! Woof woof woof!", "(Rook chases his tail round and round. He's got one again, and he is THRILLED about it.)"]
 	if Dialogue.flags.has(SWAP_FLAG):
@@ -851,17 +893,16 @@ func _shout(who: Node3D, text: String, height := 2.7) -> void:
 # The ending (slice three) ----------------------------------------------------------------------------------------------
 func _the_ending() -> void:
 	# Where everyone is, as the ending stands: Rex and Rook in their own bodies once they've swapped for good, all three
-	# at the clock once Dash has told them, and Dash gone (and his letter on the bench) once he's said goodbye
+	# at the clock once Dash has told them, and still there once everyone's home (his letter on the bench, Rex's banner up)
 	AFTER.start_if_due()
 	if AFTER.rex_home():
 		_swap_models()
 		_swapped = false
 		_name_heights()
-	if AFTER.dash_gone():
-		var dash := get_node_or_null("Dash")
-		if dash:
-			dash.free()
+	if AFTER.everyone_home():
+		_to_the_clock(false)
 		_add_letter()
+		_add_banner()
 	elif Dialogue.flags.has(AFTER.TWIST_FLAG):
 		_to_the_clock(false)
 	goodbye = GOODBYE.new()
@@ -944,30 +985,27 @@ func _for_good_done() -> void:
 	Game.hold_controls(&"swap_try", false, get_tree().get_first_node_in_group("player"))
 	var spot := get_node_or_null("Dash/Spot") as Node3D
 	if spot:
-		Dialogue.say(spot, "Dash", talk_steps(twist_lines()), "far_future_twist")
+		Dialogue.say(spot, "Dash", talk_steps(home_lines()), "far_future_twist")
 		Dialogue.finished.connect(_after_twist, CONNECT_ONE_SHOT)
 	else:
 		_after_twist("far_future_twist")
 
 
-func twist_lines() -> Array:
-	# Dash reads the machine one last time, and tells them what fixing the Shift will cost (first drafts). Nothing
+func home_lines() -> Array:
+	# Dash reads the machine one last time, and tells everyone what happens next (first drafts, Nov 12, 2026). Nothing
 	# before this says it: the Pieces of That Night only have him "think he knows how it could be fixed"
 	return ["Rex. Look at you. Your own face. It's a good face. It's my face, mostly.",
 		"Rex: HANDS! For KEEPS! And Rook's got his tail back. Look at him go!",
-		"And the readings are holding. The knot's gone. Everything that broke that night is coming undone, the way it should.",
-		"...Nearly everything.",
-		"{player}: Dash? What's wrong?",
-		"The crack in the Shift. We shut it from the Void's side, in the far field. But a crack has two ends, {player}.",
-		"The other end is here, in our time. Inside the Tomorrow Clock. Our two experiments tore it at both ends at once.",
-		"If nobody stitches the far end, one day it pulls open again. Worlds stop. Kids get lost in time.",
-		"It can only be stitched from the inside. And whoever does it stays in here, in the furthest future, when it shuts.",
-		"Rex: Then I'll do it. I built the Swap-o-Tron. It's my mess.",
-		"My time experiment's what dragged us all to the Void, Rex. And you've got somewhere to be. I've done the sums.",
-		"The Void's going to need a mayor one day. A good one. With hands.",
-		"Rex: ...So you'd be in here. And I'd be out there. And the Shift would be shut in between.",
-		"Yeah.",
-		"I'm going to the Tomorrow Clock, {player}. I've asked everyone to come. I want to do this properly."]
+		"Rex: ...Rook? I'm sorry, boy. It wasn't an accident. I swapped us on purpose, to show the Swap-o-Tron worked before the science fair.",
+		"Rook: Woof. (Rook sneezes on Rex's new shoes. It might mean sorry accepted. It might just be a sneeze.)",
+		"And look at the readings, {player}. With his clock stopped, the Shift's mending itself. The cracks are closing, in every world.",
+		"{player}: Is that good?",
+		"It's the BEST. When the last crack shuts, the Shift sends everyone back where they belong. Their own world, their own time.",
+		"Bramble to the Rootmind. Pip to Lanternmoor. Heather to Glenmoor. Everyone. And you, {player}, home to Stars Hollow.",
+		"Rex: And us? We've been stuck in the Void since that night.",
+		"We're already here, Rex. Lumen City. We came home the long way round.",
+		"The last crack's here, in the Tomorrow Clock. When it strikes, it closes. I've asked everyone to come, so we can say see you later properly.",
+		"Meet us at the Tomorrow Clock, {player}. Don't be long."]
 
 
 static func talk_steps(lines: Array) -> Array:
@@ -977,7 +1015,7 @@ static func talk_steps(lines: Array) -> Array:
 	for l in lines:
 		var line := str(l)
 		var said := false
-		for who in ["Rex", "Dash", "Rook", "Bramble", "Pip", "Melody", "Flurry", "Otto", "Heather"]:
+		for who in ["Rex", "Dash", "Rook", "Bramble", "Pip", "Melody", "Flurry", "Otto", "Heather", "Tally"]:
 			if line.begins_with(who + ": "):
 				out.append({"speaker": who, "text": line.substr(who.length() + 2)})
 				said = true
@@ -1017,7 +1055,7 @@ func dash_at_clock() -> bool:
 
 func _check_goodbye(player: Node3D) -> void:
 	# Walking up to Dash at the clock plays the goodbye
-	if player == null or goodbye == null or goodbye.call("playing") or AFTER.dash_gone() or Dialogue.is_active():
+	if player == null or goodbye == null or goodbye.call("playing") or AFTER.everyone_home() or Dialogue.is_active():
 		return
 	if not Dialogue.flags.has(AFTER.TWIST_FLAG) or not dash_at_clock():
 		return
@@ -1028,12 +1066,12 @@ func _check_goodbye(player: Node3D) -> void:
 
 
 func said_goodbye() -> void:
-	# The goodbye's over (scripts/dash_goodbye.gd): Dash has gone into the clock, and his letter's on his bench
+	# The homecoming's over (scripts/dash_goodbye.gd): the friends have gone home, Dash, Rex and Rook are home already,
+	# his letter's on his bench, and Rex has put his banner up
 	Dialogue.set_flag(AFTER.DASH_GOODBYE)
-	var dash := get_node_or_null("Dash")
-	if dash:
-		dash.queue_free()
+	_to_the_clock(false)
 	_add_letter()
+	_add_banner()
 	Game.save_game()
 
 
@@ -1092,15 +1130,16 @@ func _spin_letter(delta: float) -> void:
 
 
 func letter_lines() -> Array:
-	# What Dash wrote before he went (first drafts). The hope: he's not gone, just later
+	# What Dash wrote for you (first drafts, Nov 12, 2026). The hope: he's not far away, just later
 	return ["(The envelope says FOR {player} in Dash's scratchy writing. There's a tiny drawing of a bike on the back.)",
-		"\"Dear {player}. If you're reading this, I went in, and the Shift's whole again. Nobody's getting lost in time. You did that too.\"",
-		"\"I did the sums one last time before I went. Lumen City gets built a long, long time from now... right where the Void is.\"",
-		"\"So every lamp you light, every friend you help, every Gloop you pop, that's a brick in my home. I'm not that far away. I'm just LATER.\"",
-		"\"Look after Rex. He'll say he's fine. He isn't, quite, not yet. Take him skating. He's rubbish on legs. Laugh at him a bit.\"",
+		"\"Dear {player}. If you're reading this, the clock's struck, the Shift's whole, and everybody's home. You did that.\"",
+		"\"Here's the thing I worked out. Lumen City is built right where Stars Hollow is. Same ground. The old oak's still here, by the way. It still hums.\"",
+		"\"So every time you walk past the old oak back home, you're walking past my house. I'm not far away. I'm just LATER.\"",
+		"\"You might forget bits of all this when you're home. It goes fuzzy, like a dream. That's normal. If something feels familiar and you don't know why, that's us.\"",
+		"\"Rex says he'll be mayor one day. He'll be brilliant. Don't tell him I said so.\"",
 		"\"Keep the cap. A time detective needs one.\"",
 		"\"Every goodbye's a see-you-later. I've checked. Love, Dash.\"",
-		"\"P.S. When your watch ticks at midnight, that's me, saying hi from the far end. Probably. Science isn't sure.\""]
+		"\"P.S. Rook says woof. I think it means the same thing.\""]
 
 
 func read_letter() -> void:
@@ -1109,6 +1148,111 @@ func read_letter() -> void:
 		return
 	Dialogue.say(spot, "Dash's letter", letter_lines(), "dash_letter")
 	Dialogue.set_flag(AFTER.LETTER_FLAG)
+
+
+# Rex's banner, and the Old Oak --------------------------------------------------------------------------------------
+func _add_banner() -> void:
+	# Once everyone's home: "REX FOR MAYOR (one day)" in hologram letters by the clock (Hayden: Rex is mayor of Lumen
+	# City in the far future)
+	if get_node_or_null("Mayor Banner") != null:
+		return
+	var m := Node3D.new()
+	m.name = "Mayor Banner"
+	add_child(m)
+	m.global_position = ground_below(CLOCK_AT + BANNER_AT + Vector3(0, 1.0, 0))
+	m.rotation.y = atan2(-BANNER_AT.x, -BANNER_AT.z) + PI       # facing out, away from the clock
+	for x in [-1.5, 1.5]:
+		_put(m, _cyl(0.07, 0.09, 3.0, 8), _mat(Color(0.3, 0.3, 0.45), 0.0, 0.4), Vector3(x, 1.5, 0))
+	_put(m, _box(Vector3(3.2, 1.2, 0.05)), _mat(Color(1.0, 0.45, 0.85), 1.2, 0.3, 0.55), Vector3(0, 2.4, 0))
+	var l := Label3D.new()
+	l.name = "Words"
+	l.text = "REX FOR MAYOR\n(one day)"
+	l.font_size = 64
+	l.pixel_size = 0.008
+	l.outline_size = 10
+	l.modulate = Color(1.0, 0.95, 0.6)
+	l.position = Vector3(0, 2.4, 0.06)
+	m.add_child(l)
+	var back := l.duplicate() as Label3D
+	back.position.z = -0.06
+	back.rotation.y = PI
+	m.add_child(back)
+
+
+func _add_old_oak() -> void:
+	# The Old Oak: Stars Hollow's oak, still standing a long, long time later, kept in a little ring of grass with a
+	# plaque. A trunk you can't walk through, a broad crown of leaves and soft glowing runes up its bark, like the ones
+	# on the old oak back home. Touching it hums (touch_oak())
+	if get_node_or_null("Old Oak") != null:
+		return
+	var m := Node3D.new()
+	m.name = "Old Oak"
+	add_child(m)
+	m.global_position = ground_below(OAK_AT + Vector3(0, 1.0, 0))
+	var bark := _mat(Color(0.36, 0.26, 0.2), 0.0, 0.9)
+	var grass := _mat(Color(0.3, 0.55, 0.3), 0.0, 0.9)
+	var leaf := _mat(Color(0.45, 0.62, 0.3), 0.0, 0.8)
+	var leaf2 := _mat(Color(0.75, 0.5, 0.22), 0.0, 0.8)
+	var rune := _mat(Color(0.55, 1.0, 0.85), 1.6, 0.4)
+	_put(m, _cyl(4.2, 4.4, 0.12, 32), grass, Vector3(0, 0.06, 0))
+	_put(m, _cyl(4.4, 4.5, 0.2, 32), _mat(Color(0.5, 0.52, 0.62), 0.0, 0.6), Vector3(0, 0.02, 0))
+	_put(m, _cyl(0.95, 1.4, 5.0, 14), bark, Vector3(0, 2.5, 0))
+	for k in 5:
+		var a := TAU * k / 5.0 + 0.3
+		_put(m, _cyl(0.2, 0.42, 3.4, 8), bark, Vector3(cos(a) * 1.2, 5.4, sin(a) * 1.2), Vector3.ONE, Vector3(sin(a) * 0.7, 0, -cos(a) * 0.7))
+		_put(m, _cyl(0.2, 0.45, 1.6, 8), bark, Vector3(cos(a) * 1.5, 0.25, sin(a) * 1.5), Vector3.ONE, Vector3(sin(a) * 1.2, 0, -cos(a) * 1.2))
+	var crown := [[Vector3(0, 7.6, 0), 3.6, leaf], [Vector3(2.4, 7.0, 0.8), 2.6, leaf2], [Vector3(-2.3, 7.2, -0.6), 2.7, leaf],
+		[Vector3(0.6, 7.4, -2.4), 2.5, leaf], [Vector3(-0.8, 6.8, 2.4), 2.4, leaf2], [Vector3(0.2, 9.4, 0.2), 2.4, leaf]]
+	for c in crown:
+		_put(m, _ball(float(c[1]), 12), c[2], c[0], Vector3(1.0, 0.8, 1.0))
+	for k in 7:
+		var a := TAU * k / 7.0
+		_put(m, _box(Vector3(0.12, 0.34, 0.04)), rune, Vector3(cos(a) * 1.18, 1.0 + k * 0.45, sin(a) * 1.18), Vector3.ONE, Vector3(0, -a + PI / 2.0, 0))
+	var body := StaticBody3D.new()
+	body.name = "Trunk"
+	var shape := CollisionShape3D.new()
+	var cyl := CylinderShape3D.new()
+	cyl.radius = 1.3
+	cyl.height = 6.0
+	shape.shape = cyl
+	shape.position.y = 3.0
+	body.add_child(shape)
+	m.add_child(body)
+	var plaque := Label3D.new()
+	plaque.name = "Plaque"
+	plaque.text = "THE OLD OAK\nIt was here before the city.\nIt still hums."
+	plaque.font_size = 28
+	plaque.pixel_size = 0.008
+	plaque.outline_size = 8
+	plaque.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	plaque.position = Vector3(0, 2.6, 2.2)
+	m.add_child(plaque)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.55, 1.0, 0.85)
+	glow.light_energy = 0.8
+	glow.omni_range = 6.0
+	glow.position = Vector3(0, 2.0, 1.8)
+	m.add_child(glow)
+	var spot := USE_SPOT.make(Vector3(0, 0, 1.7), func() -> String: return "touch the old oak", touch_oak, 2.6, 2.4)
+	spot.name = "Spot"
+	m.add_child(spot)
+
+
+func oak_lines() -> Array:
+	# A hint, never a spoiler: before the ending it only sounds familiar; after, everyone knows why
+	if AFTER.everyone_home():
+		return ["(The old oak hums under your hand, slow and warm.)",
+			"(It's the same hum as the old oak in Stars Hollow. Of course it is. It's the same tree.)"]
+	return ["(The old oak hums under your hand, slow and warm.)",
+		"(That's funny. It sounds exactly like the old oak back home in Stars Hollow. Exactly.)"]
+
+
+func touch_oak() -> void:
+	var spot := get_node_or_null("Old Oak/Spot") as Node3D
+	if spot == null:
+		return
+	Portals.note_found(world_id, "oak_touched")
+	Dialogue.say(spot, "The Old Oak", oak_lines(), "far_future_oak")
 
 
 # Captain Glitch -----------------------------------------------------------------------------------------------------------

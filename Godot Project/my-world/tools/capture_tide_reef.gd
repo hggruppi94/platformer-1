@@ -4,7 +4,7 @@ extends SceneTree
 # south-east shore, arriving with the tide stuck out, Otto in his bubble chair, his eight arms opening the Clam Vault, the Kelp
 # Grotto's holes, his bubble steps up the Coral Spire, the bubble ride down, the Riptide Gloop asleep, Otto holding it
 # still, and the reef with the tide back in. With "swim" as a second argument, only slice two's shots: the sea
-# flooding in, swimming under it with Otto's bubble round your head, the sea lanterns, Grandad's chest, a dive in Willow
+# flooding in, swimming under it with Otto's bubble round your head, the sea lanterns, the Reef Chest, a dive in Willow
 # Pond and Otto on the Portal Plaza. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_tide_reef.gd -- <output folder> [portal|swim]
@@ -248,10 +248,10 @@ func _swim() -> void:
 	await create_timer(2.0).timeout
 	_look(s.CHEST_AT + Vector3(4.0, 2.5, 5.0), s.CHEST_AT + Vector3(0, 0.6, 0))
 	await _frames(10)
-	await _shot("26_grandads_chest_in_the_deep_basin")
+	await _shot("26_reef_chest_in_the_deep_basin")
 	s.open_chest()
 	await create_timer(1.2).timeout
-	await _shot("27_grandads_chest_open")
+	await _shot("27_reef_chest_open")
 	root.get_node("Dialogue").end()
 	# From up top
 	p.global_position = Vector3(0.0, 12.4, 18.0)

@@ -922,12 +922,12 @@ func _ch_tide_reef() -> void:
 		await _physics(8)
 	check(s.lamps_lit() == 5, "swim to the five sea lanterns (%d)" % s.lamps_lit())
 	await shot("under_the_sea")
-	var chest := s.get_node_or_null("Grandad's Chest/Spot")
+	var chest := s.get_node_or_null("Reef Chest/Spot")
 	if chest:
 		_player().global_position = (chest as Node3D).global_position + Vector3(0, 0.5, 1.5)
 		await _physics(6)
 		chest.use()
-	check(s.chest_open(), "Grandad's chest opened")
+	check(s.chest_open(), "the Reef Chest opened")
 	_time_check("tide_reef")
 	if portals.time_left < 30.0:
 		note("the Tide Reef took nearly all of a trip's time in one go (%.0f s left)" % portals.time_left)
