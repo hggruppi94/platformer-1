@@ -59,12 +59,12 @@ func _run() -> void:
 	game.pending_message = ""
 	clock.set("pulls_home", false)
 	clock.set_time(3, 9 * 60.0, true)
-	clock.seasons_open = ["autumn", "winter", "summer"]      # as a new game would have it, past Rhythm Springs
+	clock.seasons_open = ["autumn", "winter"]                # as a new game would have it, past Lanternmoor
 	quests.state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	quests.state[rem.QUEST] = {"step": 0, "done": false, "since_day": 1}
-	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs", "tide_reef"]:
+	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor"]:
 		portals.quakes.append(w)
-	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs"]:
+	for w in ["shard_isle", "rootmind", "frozen_moment"]:
 		portals.cleared_worlds.append(w)
 
 	check(ResourceLoader.exists(WORLD) and portals.is_built("glenmoor"), "Glenmoor's scene is built")
@@ -84,8 +84,8 @@ func _run() -> void:
 
 
 func _check_quake() -> void:
-	check(not portals.quake_due("glenmoor"), "no Glenmoor quake before the Tide Reef is mended")
-	portals.cleared_worlds.append("tide_reef")
+	check(not portals.quake_due("glenmoor"), "no Glenmoor quake before Lanternmoor is mended")
+	portals.cleared_worlds.append("lanternmoor")
 	check(portals.next_due() == "glenmoor", "then its quake is due")
 	portals.quake("glenmoor", true)
 	await _frames(4)

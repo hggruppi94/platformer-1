@@ -63,7 +63,7 @@ func _run() -> void:
 	clock.set_time(3, 9 * 60.0, true)
 	quests.state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	quests.state[rem.QUEST] = {"step": 0, "done": false, "since_day": 1}
-	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "rhythm_springs"]:
+	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "glenmoor"]:
 		portals.quakes.append(w)
 	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor"]:
 		portals.cleared_worlds.append(w)
@@ -87,8 +87,8 @@ func _run() -> void:
 
 
 func _check_quake() -> void:
-	check(not portals.quake_due("tide_reef"), "no Tide Reef quake before Rhythm Springs is mended")
-	portals.cleared_worlds.append("rhythm_springs")
+	check(not portals.quake_due("tide_reef"), "no Tide Reef quake before Glenmoor is mended")
+	portals.cleared_worlds.append("glenmoor")
 	check(portals.next_due() == "tide_reef", "then its quake is due")
 	portals.quake("tide_reef", true)
 	await _frames(4)

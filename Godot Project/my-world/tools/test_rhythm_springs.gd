@@ -59,12 +59,12 @@ func _run() -> void:
 	game.pending_message = ""
 	clock.set("pulls_home", false)
 	clock.set_time(3, 9 * 60.0, true)
-	clock.seasons_open = ["autumn", "winter"]                # as a new game would have it, past the Frozen Moment
+	clock.seasons_open = ["autumn", "winter", "spring"]      # as a new game would have it, past Glenmoor
 	quests.state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	quests.state[rem.QUEST] = {"step": 0, "done": false, "since_day": 1}
-	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor"]:
+	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "glenmoor", "tide_reef"]:
 		portals.quakes.append(w)
-	for w in ["shard_isle", "rootmind", "frozen_moment"]:
+	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor", "glenmoor"]:
 		portals.cleared_worlds.append(w)
 
 	check(ResourceLoader.exists(WORLD) and portals.is_built("rhythm_springs"), "Rhythm Springs' scene is built")
@@ -84,8 +84,8 @@ func _run() -> void:
 
 
 func _check_quake() -> void:
-	check(not portals.quake_due("rhythm_springs"), "no Rhythm Springs quake before Lanternmoor is mended")
-	portals.cleared_worlds.append("lanternmoor")
+	check(not portals.quake_due("rhythm_springs"), "no Rhythm Springs quake before the Tide Reef is mended")
+	portals.cleared_worlds.append("tide_reef")
 	check(portals.next_due() == "rhythm_springs", "then its quake is due")
 	portals.quake("rhythm_springs", true)
 	await _frames(4)
@@ -421,7 +421,7 @@ func _check_off_beat() -> void:
 	await _frames(4)
 	check(ob.defeated and portals.is_cleared("rhythm_springs"), "knocking him back into time mends Rhythm Springs")
 	check(rem.count == before + int(portals.world("rhythm_springs").reward_remnants), "...with its reward (%d Remnants)" % (rem.count - before))
-	check(clock.season_open("summer") and not clock.season_open("spring"), "...and summer opens on Earth (spring still waits)")
+	check(clock.season_open("summer") and clock.season_open("spring"), "...and summer opens on Earth (spring came with Glenmoor, before it)")
 	check(s.heat == 0.0 and not (s.get_node("Heat HUD/Heat") as Control).visible, "the heat breaks: no more Heat meter")
 	s.heat = 0.0
 	s.heat_step(player, 10.0)

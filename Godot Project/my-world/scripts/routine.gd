@@ -34,6 +34,15 @@ extends Node
 # (scripts/portals.gd): Melody puts on a show on her new stage every evening once Rhythm Springs is.
 
 const WORK_JOB := preload("res://scripts/work_job.gd")
+const VISITOR_CRACK := preload("res://scripts/visitor_crack.gd")
+
+# Who comes and goes in the Void (Hayden, 12 Nov 2026: "void townsfolk also have to come and go. no one can stay
+# indefinitely except rook, dash and rex"; the lore bible's residents are Tally, the little aliens and the Astronaut).
+# The friends from other worlds and Mr. Palmer go home through a crack in the ground when their "away" block starts,
+# and come back up out of one when it ends (scripts/visitor_crack.gd), if the player's near enough to see. Nina and
+# Bruno are Earth kids on the same midnight trip as the hero, so they nap in their Void house like the hero can; Dash,
+# Rex and Rook are stuck in the Void until the Shift's fixed.
+const VISITORS := ["bramble", "pip", "melody", "clover", "mr_palmer"]
 
 @export var character_id := ""
 @export var bike_path: NodePath                    # Dash: the bike he rides, and parks next to him when he stops
@@ -603,10 +612,13 @@ func _leader(b: Dictionary) -> Node:
 # Helpers
 # -----------------------------------------------------------------------------
 func _set_present(on: bool) -> void:
-	# Away (asleep at home, inside): gone from town. No body to bump into, nobody to talk to.
+	# Away (asleep at home, inside, or for a visitor gone home through a crack): gone from town. No body to bump
+	# into, nobody to talk to.
 	if on == _present:
 		return
 	_present = on
+	if not earth and not _snapping and character_id in VISITORS and _body.is_inside_tree() and _near():
+		VISITOR_CRACK.open(get_tree().current_scene, _body.global_position, not on)
 	_body.visible = on
 	for c in _body.find_children("*", "CollisionShape3D", true, false):
 		if _talk == null or not _talk.is_ancestor_of(c):

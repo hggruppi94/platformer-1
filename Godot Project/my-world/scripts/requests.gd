@@ -687,6 +687,13 @@ func lines(talker: Node3D = null) -> Array:
 		out.append("Folks in the Void pin their requests on my board every night. Just like the notice board back on Earth, I hear!")
 		out.append("Pick one to follow and it gets a star on your map. Finish it, come back to me or the board, and I pay you in sparkles.")
 		out.append("Here's who needs a hand tonight:")
+	elif not Dialogue.flags.has("tally_comers") and not Dialogue.flags.has("dash_goodbye") and self == Requests:
+		# Who lives here and who just visits (Hayden, 12 Nov 2026: the Void's townsfolk come and go; Tally, the little
+		# aliens and the Astronaut live here for keeps). Once, the hello after their first one.
+		Dialogue.flags["tally_comers"] = true
+		out.append("Hello again, {player}! Have you noticed? Folks come and go here all the time. Pop up out of a crack in the morning, drop back through one at night.")
+		out.append("Only a few of us live in the Void for keeps: me, the little ones and the Astronaut. And Dash, Rex and Rook. They can't leave. Not yet, anyway.")
+		out.append("Everyone else is only visiting. Like you! Right, here's who needs a hand tonight:")
 	else:
 		out.append("Hello, {player}! Tally's the name, requests are my game. Here's who needs a hand tonight:")
 	for r in list:
