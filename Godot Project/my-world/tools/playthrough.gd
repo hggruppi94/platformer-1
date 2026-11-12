@@ -10,7 +10,7 @@ extends SceneTree
 #   godot --headless --path "Godot Project/my-world" --script res://tools/playthrough.gd -- <chapter> [shots folder]
 #
 # Chapters, in order (each needs the one before it to have passed): first_night, nights, harvest, shard_isle,
-# rootmind, frozen_moment, lanternmoor, rhythm_springs, tide_reef, glenmoor, dark_hollow, far_future, chaos.
+# rootmind, frozen_moment, lanternmoor, glenmoor, tide_reef, rhythm_springs, dark_hollow, far_future, chaos.
 # "all" runs every chapter one after another in one go.
 #
 # Each chapter's end is kept as user://playthrough_<chapter>.json, and the next chapter starts from it (copied in as
@@ -26,7 +26,7 @@ const EARTH := "res://scenes/earth/earth.tscn"
 const SCARY := "res://scenes/scary_world/scary_world.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const CHAPTERS := ["first_night", "nights", "harvest", "shard_isle", "rootmind", "frozen_moment", "lanternmoor",
-	"rhythm_springs", "tide_reef", "glenmoor", "dark_hollow", "far_future", "chaos"]
+	"glenmoor", "tide_reef", "rhythm_springs", "dark_hollow", "far_future", "chaos"]
 
 var failures := 0
 var notes: Array = []                   # problems found, in plain words, printed at the end

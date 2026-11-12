@@ -134,6 +134,75 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     the oak's spot and look, Dash taking the watches in Lumen City, and that unfinished Void side quests with Dash, Rex
     or Rook can't be finished after the ending.
 
+- 2026-11-12: **New enemies, each with a boss of its own, and the Star Arena** (Hayden: "I want to make more enemies",
+  "I want to add an arena with unique bosses, and challenges like slay 100 gloops etc."). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **Glorps** (`scripts/glorp.gd`, extends gloop.gd, `GLORP.make(size)`): purple Gloops that split into two littler
+    ones when popped (`SPLIT_INTO` 0.66, down to `SMALLEST` 0.6), bits boing out either side. **Fizzlers**
+    (`scripts/fizzler.gd`, built in code, `FIZZLER.model()`): balls of static with one big eye that zip about, crackle
+    up for 0.8 s and let out a little zap ring to jump; a bubble sometimes makes them blink a few metres away.
+    **Shadow ghosts** (Dark Hollow's, `shadow_ghost.gd`) now also come out at night in the Void.
+  - **Where** (`scripts/wilds.gd`, autoload `Wilds`, put in at play time, no `town.tscn` change): **Glorp Meadow**
+    (-58, -120, four Glorps with purple puddles), the **Static Field** (80, -218, five Fizzlers round a fizzing crack),
+    and six **night ghosts** in the Spooky Woods' edge (-108, -124), once a night, fading out by morning. Both places
+    are on the map. Spots checked flat, off paths and trees, 14 m+ off races.
+  - **The Star Arena** (`scripts/arena.gd`, autoload `Arena`; the level `scenes/bosses/arena.tscn` from
+    `tools/build_arena.gd`, everything built at load by `scripts/arena_level.gd`, like the Gloop Kingdom): its gate is
+    at `GATE` (-64, -96), opens once The First Night's done ("Opening soon!" before). Inside: a round sand floor in a
+    bowl of stands full of cheering little aliens, six hatches enemies pop out of, four spotlight towers whose beams
+    sweep the floor, the tunnel (barred during a round), **Blip** the yellow little alien announcer and the **Round
+    Board** (every round, a star for each won, best times). Talk to Blip to pick a round, see your medals, or stop one.
+    - **Challenges** (`CHALLENGES`): Pop 100 Gloops (10 at a time), Glorp Splitter (40, every bit counts), Goblin
+      Waves (4, 6, 8 Time Goblins), Fizzler Frenzy (25 in 3 minutes), Shadow Night (20 ghosts, lights down).
+    - **Arena bosses**, only met here: **Mama Glorp** (`scripts/glorp_mother.gd`, extends gloop_king.gd: a big purple
+      Glorp with a bow, splits a baby off every hit, 9 hits; after Glorp Splitter), **Big Buzz**
+      (`scripts/big_buzz.gd`: a huge Fizzler high up, dives and slams a double ring, then is dazed and low enough to
+      stomp or bubble, 3 hits a daze, 9 hits; after Fizzler Frenzy) and **the Gloam** (`scripts/the_gloam.gd`: a big
+      shadow ghost, only solid in a spotlight beam, steers round them, so lead it in; 8 hits; after Shadow Night).
+    - **The Champion's Cup**: all three bosses back to back, once all three are beaten; wins the Champion Cup hat.
+    - Prizes: first win 15 to 25 sparkles and 1 to 3 Remnants (the cup 50 and 5), later wins 4 to 10 sparkles.
+      Records saved as `"arena"` (wins and best time each); flags `arena_won_<id>`, `arena_met_blip`. Fainting in a
+      round starts it over; leaving by the way out lands you in front of the gate.
+  - Tests: new `tools/test_arena.gd` (about 90 checks) and `tools/test_wilds.gd`; gloop_king, gloop_kingdom,
+    boss_versions, time_goblins, dark_hollow, layout, map, walk_through, dialogue (both runs), shooting, arsenal and
+    player_menu pass. Previews: `tools/capture_arena.gd` (shots in the project files under world/previews/arena).
+  - My choices Hayden may change: every name (Glorps, Fizzlers, Blip, the Star Arena, Mama Glorp, Big Buzz, the
+    Gloam), the rounds and their numbers, the prizes, the unlock order, where everything is.
+
+- 2026-11-12: **Spring before summer, Nina and Bruno, deja vu at home, and visitors who come and go** (Hayden's lore
+  rewrite, lore bible v2 Part 3 items 5, 10, 12 and 16: "lets swap the order of the spring and summer worlds", "Nina
+  doesnt live alone in the void anymore. she has her family and home back on earth, but she is a chosen", "bruno isnt
+  chosen, but maybe him and nina get caught up with the main character when the void opens", "the memories stay the
+  same but you have a bit of fuzzy deja vu memory when you go back home", "void townsfolk also have to come and go. no
+  one can stay indefinitely except rook, dash and rex. Tally, and the small aliens, as well as the astronaut are void
+  residents"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The world order** (`Portals.WORLDS`, `quake_due()`): Lanternmoor, then **Glenmoor** (fifth, opens spring), the
+    **Tide Reef** (sixth), **Rhythm Springs** (seventh, opens summer), then the Far Future, which now waits for all
+    three of those to be mended (an old save that mended Rhythm Springs first still gets Glenmoor before the end). The
+    final fight's friend sections go Heather, Otto, Melody (`chaos_trials.gd SECTIONS`); `tools/playthrough.gd` plays
+    the worlds in the new order. Nothing in the worlds themselves changed.
+  - **Nina** (`dialogue/nina.json`, `nina_earth.json`): in the Void she knows you from Stars Hollow, came through right
+    behind you, has a watch of her own ("That means I'm chosen, like you"), and her home's on Maple Lane: the yellow
+    Void house is just where the Blastoffs nap till it's time to go home. Back home after the First Night: "We're
+    chosen, {player}. Both of us."
+  - **Bruno** isn't chosen: he grabbed Nina's hand as the oak opened and got pulled through, with no watch
+    (`bruno_alien.json` hello; `bruno.json` a new talk after the First Night, flag `bruno_caught_up`).
+  - **Deja vu** (`scripts/deja_vu.gd`, "EarthTown/DejaVu"): every time you land in Stars Hollow straight from the Void
+    (not the First Night's own way home, not from the Earth race circuit or the title screen) a soft lilac haze and
+    blur ripples over the screen for 3.6 s (no ripple with Reduce motion) and a line says it all feels a bit like a
+    dream you can still remember. Nothing is forgotten.
+  - **Visitors come and go** (`routine.gd VISITORS`: Bramble, Pip, Melody, Heather, Mr. Palmer): when their "away"
+    block starts or ends and you're near enough to see, a little glowing crack zigzags open at their feet, they drop
+    through (or pop up) in a flash and it zips shut (`scripts/visitor_crack.gd`, group `visitor_crack`). Nina and Bruno
+    nap in their Void house like the hero; Dash, Rex and Rook stay. **Tally** says it once (flag `tally_comers`): only
+    Tally, the little ones and the Astronaut live in the Void for keeps, and Dash, Rex and Rook can't leave yet.
+  - Tests: new `tools/test_lore_order.gd`; portals, season_unlocks, glenmoor, tide_reef, rhythm_springs, chaos_trials
+    (the three worlds' quake checks and the sections' order updated), dialogue, routines, earth, first_night, meetings and
+    more pass (far_future and heather_moves fail one tree check on main too). Previews: `tools/capture_lore_order.gd`
+    (shots in the project files under world/previews/lore_order).
+  - My choices Hayden may change: every new line (first drafts), who counts as a visitor, the crack's look, the haze
+    and the four deja vu lines, the Far Future waiting for all three worlds.
+
 - 2026-11-11: **The hero changes a little in the Void: their watch, glowing eyes and an alien feature** (Hayden: "maybe
   there is another way we can change the characters when they enter the void? Adding watches to their wrists etc",
   then "Yes to the void changes"). Built and tested in the cloud (own Godot user folders, no save touched).

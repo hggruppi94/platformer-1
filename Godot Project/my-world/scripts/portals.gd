@@ -65,21 +65,21 @@ const WORLDS := [
 		"blurb": "Pip's home, a moor of lanterns and moths, where it's been night for ages: the sun won't rise.",
 		"reward_remnants": 8,
 		"cleared_text": "The sun's up over Lanternmoor for the first time in ages! Pip's moths are going to sleep, very happily."},
-	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "res://scenes/portal_worlds/rhythm_springs.tscn",
-		"at": Vector2(-34, 34), "yaw": 2.36, "preview": true, "colour": Color(1.0, 0.6, 0.9),
-		"blurb": "Melody's home, a summer valley of springs and music, where the beat is broken and the sun's stuck at its hottest.",
-		"reward_remnants": 9, "season": "summer",
-		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
-	{"id": "tide_reef", "name": "The Tide Reef", "owner": "Otto", "scene": "res://scenes/portal_worlds/tide_reef.tscn",
-		"at": Vector2(50, 28), "yaw": -2.08, "preview": true, "colour": Color(0.4, 0.8, 1.0),
-		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
-		"reward_remnants": 10,
-		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
 	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "res://scenes/portal_worlds/glenmoor.tscn",
 		"at": Vector2(-120, -48), "yaw": 1.19, "preview": true, "colour": Color(1.0, 0.75, 0.85),
 		"blurb": "Heather's home, misty highland hills of heather and stone walls, where the seasons spin round too fast for anything to grow.",
 		"reward_remnants": 11, "season": "spring",
 		"cleared_text": "The seasons have stopped spinning in Glenmoor! Blossom's out, the Fluffkins are frolicking, and spring can come to Stars Hollow at last."},
+	{"id": "tide_reef", "name": "The Tide Reef", "owner": "Otto", "scene": "res://scenes/portal_worlds/tide_reef.tscn",
+		"at": Vector2(50, 28), "yaw": -2.08, "preview": true, "colour": Color(0.4, 0.8, 1.0),
+		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
+		"reward_remnants": 10,
+		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
+	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "res://scenes/portal_worlds/rhythm_springs.tscn",
+		"at": Vector2(-34, 34), "yaw": 2.36, "preview": true, "colour": Color(1.0, 0.6, 0.9),
+		"blurb": "Melody's home, a summer valley of springs and music, where the beat is broken and the sun's stuck at its hottest.",
+		"reward_remnants": 9, "season": "summer",
+		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
 	# Dark Hollow (plan items 19a world 7 and 21) has no portal and never quakes: its way in is a secret, through the
 	# centipede in her corner Behind the Walls in the castle school (scripts/centipede_corner.gd), who gulps you down to
 	# it (enter_dark_hollow()). Going home comes out at the school's front gate ("home_spawn"), never back through the
@@ -273,14 +273,18 @@ func quake_due(id: String) -> bool:
 			return is_cleared("rootmind")                 # the next world in the story, once Bramble's is mended
 		"lanternmoor":
 			return is_cleared("frozen_moment")            # and then Pip's, once Flurry's ticks again
-		"rhythm_springs":
-			return is_cleared("lanternmoor")              # then Melody's, once Pip's sun is up
-		"tide_reef":
-			return is_cleared("rhythm_springs")           # then Otto's, once Melody's beat is back
+		# Spring before summer (Hayden, 12 Nov 2026: "lets swap the order of the spring and summer worlds"):
+		# Glenmoor is fifth, the Tide Reef sixth and Rhythm Springs seventh.
 		"glenmoor":
-			return is_cleared("tide_reef")                # then Heather's, once Otto's tide is in
+			return is_cleared("lanternmoor")              # then Heather's, once Pip's sun is up
+		"tide_reef":
+			return is_cleared("glenmoor")                 # then Otto's, once Glenmoor's day and night settle
+		"rhythm_springs":
+			return is_cleared("tide_reef")                # then Melody's, once Otto's tide is in
 		"far_future":
-			return is_cleared("glenmoor")                 # and last, Dash and Rex's (Dark Hollow's optional)
+			# And last, Dash and Rex's (Dark Hollow's optional). All three of the middle worlds, not just Rhythm
+			# Springs: a save from before the swap may have mended Melody's world and not yet Heather's.
+			return is_cleared("glenmoor") and is_cleared("tide_reef") and is_cleared("rhythm_springs")
 	return false
 
 
@@ -334,12 +338,12 @@ func _near_words(id: String) -> String:
 			return "the foot of the mountains, far north past the castle"
 		"lanternmoor":
 			return "the Spooky Woods, on the way to the Haunted House"
-		"rhythm_springs":
-			return "the lake's south-west shore"
-		"tide_reef":
-			return "the lake's south-east shore"
 		"glenmoor":
 			return "the meadow past the farm, west of the Secret Gardens"
+		"tide_reef":
+			return "the lake's south-east shore"
+		"rhythm_springs":
+			return "the lake's south-west shore"
 		"far_future":
 			return "the hedge behind Rex and Dash's lab, right where their experiments cracked the ground"
 	return "the town"
