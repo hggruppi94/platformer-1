@@ -150,6 +150,15 @@ static func hat(id: String) -> Node3D:
 			var leaf := PrismMesh.new()
 			leaf.size = Vector3(0.12, 0.1, 0.01)
 			_mesh(h, leaf, _mat(Color(0.4, 0.65, 0.25)), Vector3(0.07, 0.15, 0.02), Vector3(PI / 2, 0, 0.6))
+		"champion_cup":
+			# The Star Arena's Champion's Cup: a little gold cup with two handles and a star on the front
+			var gold := _mat(Color(1.0, 0.8, 0.3), 0.2, 0.8)
+			_mesh(h, _cyl(0.1, 0.13, 0.04), gold, Vector3(0, 0.02, 0))
+			_mesh(h, _cyl(0.03, 0.03, 0.08), gold, Vector3(0, 0.08, 0))
+			_mesh(h, _cyl(0.15, 0.07, 0.16), gold, Vector3(0, 0.2, 0))
+			for side in [-1.0, 1.0]:
+				_mesh(h, _sphere(0.04), gold, Vector3(side * 0.15, 0.21, 0), Vector3.ZERO, Vector3(0.5, 1.4, 0.5))
+			_mesh(h, _sphere(0.035), _mat(Color(1.0, 0.95, 0.6), 0.8, 0.6), Vector3(0, 0.2, 0.12))
 		"gloop_crown":
 			# Dash's prize for popping the Gloop King: a little gold crown like the King's, with a goo-green gem and a
 			# drip of goo still hanging off one point

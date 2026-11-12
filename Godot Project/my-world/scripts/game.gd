@@ -366,6 +366,7 @@ func save_game() -> void:
 		"remnants": Remnants.save_data(),
 		"farm": Farm.save_data(),
 		"portals": Portals.save_data(),
+		"arena": Arena.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -466,6 +467,8 @@ func load_game() -> void:
 	var portals = data.get("portals", {})                    # saves from before the time quakes have had none
 	Portals.load_data(portals if portals is Dictionary else {})
 	Portals.open_seasons()                                     # (a mended world's season is always open)
+	var arena = data.get("arena", {})                          # saves from before the Star Arena have none
+	Arena.load_data(arena if arena is Dictionary else {})
 	Clock.skip_locked_seasons()
 	# Saves from before the outfit wheel have no saved outfits
 	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
@@ -714,6 +717,7 @@ func _reset_state() -> void:
 	Remnants.reset()
 	Farm.reset()
 	Portals.reset()
+	Arena.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}
