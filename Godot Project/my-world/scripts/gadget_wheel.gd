@@ -96,9 +96,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _secret_on(b: int) -> bool:
-	# The button belongs only to moves nobody's taught the player yet (Frost breath, Groove), so it still picks gadgets
+	# The button belongs only to things the player hasn't got yet (Switch friend, before a second friend's joined:
+	# scripts/party.gd), so it still picks gadgets
 	for a in Settings.pad_bindings:
-		if Settings.pad_bindings[a] == b and (not Settings.SECRET_ACTIONS.has(a) or Settings.action_shown(a)):
+		if Settings.pad_bindings[a] == b and Settings.action_shown(a):
 			return false
 	return true
 

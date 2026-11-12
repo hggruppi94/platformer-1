@@ -367,6 +367,7 @@ func save_game() -> void:
 		"farm": Farm.save_data(),
 		"portals": Portals.save_data(),
 		"arena": Arena.save_data(),
+		"party": Party.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -469,6 +470,7 @@ func load_game() -> void:
 	Portals.open_seasons()                                     # (a mended world's season is always open)
 	var arena = data.get("arena", {})                          # saves from before the Star Arena have none
 	Arena.load_data(arena if arena is Dictionary else {})
+	Party.load_data(data.get("party", null))                 # saves from before the party system: null (everyone joins)
 	Clock.skip_locked_seasons()
 	# Saves from before the outfit wheel have no saved outfits
 	saved_outfits = SavedOutfits.clean(data.get("saved_outfits", []))
@@ -718,6 +720,7 @@ func _reset_state() -> void:
 	Farm.reset()
 	Portals.reset()
 	Arena.reset()
+	Party.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}

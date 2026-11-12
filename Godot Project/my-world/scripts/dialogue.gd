@@ -379,6 +379,8 @@ func _fill(text: String) -> String:
 	for pair in Settings.REBINDABLE:                 # what to press: {shoot}, {map}, {player_menu}, {interact}...
 		if not words.has(pair[0]):
 			words[pair[0]] = Settings.prompt(pair[0])
+	for a in Settings.FRIEND_MOVES:                  # {burrow}, {groove}...: the Friend button (scripts/party.gd)
+		words[a] = Settings.prompt(a)
 	for w in ["they", "them", "their", "theirs", "themself", "are"]:
 		var p := Hero.pronoun(Game.hero, w)
 		words[w] = p

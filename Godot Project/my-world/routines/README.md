@@ -34,6 +34,10 @@ along the town's paths; otherwise (or after sleeping, loading, or coming out of 
 something keeps going: blocks labelled `skating`, `riding`, `scooting`, `morning_skate`, `kites` or `festival_hayride`
 (`routine.gd` `BUSY`), or any block with `"busy": true` (`"busy": false` makes one of those stop after all).
 
+**Walking with the player:** a friend who's with you (scripts/party.gd, plan item 26) leaves their schedule and follows
+you about (`routine.gd` `TAG_ALONG`), unless a quest needs them somewhere (its override wins) or the block has
+`"keep": true` (Melody's evening show: she goes and does it).
+
 **`anim`** (optional) is the animation they play while they stand about in an `idle` block or rest between little
 walks in a `wander` block, instead of `idle`: Melody dances at the Market (`"anim": "dance"`).
 

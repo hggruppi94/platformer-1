@@ -187,6 +187,7 @@ func reset() -> void:
 func start(id: String) -> void:
 	cleanup()
 	current = id
+	Party.bring_for(id)                               # that friend comes along for it (scripts/party.gd)
 	left = float(TIME.get(id, 40.0))
 	tries[id] = int(tries.get(id, 0)) + 1
 	var giant := fight.get("giant") as Node3D
@@ -242,6 +243,7 @@ func _end(ok: bool) -> void:
 	if not ok:
 		cleanup()                                     # (done ones keep their gear or tower till his clock shuts)
 	current = ""
+	Party.bring_for("")
 	section_ended.emit(id, ok)
 	fight.call("trial_over", id, ok)
 
@@ -253,6 +255,7 @@ func cleanup() -> void:
 	if current == "glow":
 		_free_dark()
 	current = ""
+	Party.bring_for("")
 	knot = null
 	lanterns.clear()
 	rock = null

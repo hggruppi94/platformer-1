@@ -2,6 +2,31 @@
   "name": "Bramble",
   "conversations": [
     {
+      "when": {"mended": "rootmind", "not_flag": "party_asked_bramble"},
+      "set": "party_asked_bramble",
+      "lines": [
+        "(Bramble pops up out of the ground right in front of you, petals in her hair.) There you are! The whole hive's still humming about you.",
+        "I've been thinking. Rooting, mostly, but thinking too. Can I come with you? Wherever you go, I'll be right behind you. Or right under you!",
+        "And when there's soft ground and you need to get somewhere quick, press {burrow} and we'll burrow together.",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_bramble",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
+      "when": {"mended": "rootmind", "flag": "party_asked_bramble", "not_flag": "party_yes_bramble", "every": 3},
+      "lines": [
+        "Still want me along? I'm ready when you are!",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_bramble",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
       "when": {
         "mended": "lanternmoor",
         "not_flag": "undergardens_start",

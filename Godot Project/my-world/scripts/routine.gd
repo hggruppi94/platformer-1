@@ -55,6 +55,12 @@ const ARRIVE := 0.35
 const TURN_SPEED := 6.0
 const LAKE_Y := -0.4                                # ground lower than this is the lake: don't wander into it
 const BIKE_PARK := Vector3(1.1, 0.0, 0.5)           # where the bike stands next to Dash when he's off it
+# A friend walking with the player (scripts/party.gd, plan item 26) follows them about instead of their schedule,
+# unless a quest needs them somewhere (a quest's override wins) or the block's marked "keep" (Melody's evening show)
+const PLAYER := "@player"
+const TAG_ALONG := {"do": "follow", "who": PLAYER, "label": "with you"}
+const TAG_GAP := 3.0                                 # how close they keep (just outside a talk spot's reach)
+const TAG_LOST := 30.0                               # further than this and they catch up out of sight
 
 var blocks: Array = []                              # {at, place, do, radius, route, pause, who, face, label}
 var speed := 1.4
@@ -92,6 +98,7 @@ var _rest_yaw := NAN
 var _playing := ""
 var _job: RefCounted = null                         # at work (scripts/work_job.gd), while a "work" block is on
 var _snapping := false
+var _passable := false                              # the player passes through them (tagging along: TAG_ALONG)
 
 
 func _ready() -> void:
@@ -274,6 +281,9 @@ func _physics_process(delta: float) -> void:
 		var big: Array = big_days[Festival.big_day_on()]
 		if not big.is_empty():
 			o = big[block_index_at(big, now())]
+	if o.is_empty() and Party.tags_along(character_id) and not (i >= 0 and i < list.size() and list[i].get("keep", false)):
+		o = TAG_ALONG
+	_walk_through_player(o == TAG_ALONG)
 	if i != _block or not is_same(list, _list) or _jumped or o != _override:
 		var was := _block
 		_block = i
@@ -323,6 +333,8 @@ func _destination(b: Dictionary) -> Vector3:
 	var name := str(b.get("place", ""))
 	if b.get("do", "") == "patrol" and not b.get("route", []).is_empty():
 		name = str(b.route[0])
+	elif b.get("do", "") == "follow" and str(b.get("who", "")) == PLAYER:
+		return _beside_player(_body.global_position)
 	elif b.get("do", "") == "follow":
 		var t := _leader(b)
 		if t:
@@ -341,7 +353,7 @@ func snap() -> void:
 	_wait = 0.0
 	_route_i = 0
 	var pos := _destination(b)
-	if b.get("do", "") == "follow":
+	if b.get("do", "") == "follow" and str(b.get("who", "")) != PLAYER:
 		# Next to wherever the leader's own schedule puts them now (they may not have snapped there yet)
 		var t := _leader(b)
 		if t:
@@ -551,6 +563,9 @@ func _patrol(b: Dictionary, delta: float) -> void:
 
 func _follow(b: Dictionary, delta: float) -> void:
 	# Tag along a couple of steps behind someone (Rook after Rex or Dash). If they're away, wait at the block's place.
+	if str(b.get("who", "")) == PLAYER:
+		_tag_along(delta)
+		return
 	var t := _leader(b)
 	if t == null or not t.is_present():
 		_play("idle")
@@ -571,6 +586,69 @@ func _follow(b: Dictionary, delta: float) -> void:
 	else:
 		_face(to, delta)
 		_play("idle")
+
+
+func _tag_along(delta: float) -> void:
+	# Walking with the player (scripts/party.gd): keep up a few steps behind, quicker the further back they are, and
+	# wait at the edge if the player goes where they can't (the lake, the sky)
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p == null:
+		_play("idle")
+		return
+	var to := _flat(p.global_position - _body.global_position)
+	var d := to.length()
+	if d > TAG_LOST:
+		var at := _beside_player(_body.global_position)
+		if at != _body.global_position:
+			_body.global_position = at
+		_play("idle")
+		return
+	if d > TAG_GAP:
+		var far := d > TAG_GAP * 2.5
+		var step := minf(maxf(speed * (1.6 if far else 1.0), (d - TAG_GAP) * 2.0) * delta, d - TAG_GAP)
+		var next := TownPaths.ground_at(_body.global_position + to.normalized() * step, _space, _skip)
+		if next.y > LAKE_Y and absf(next.y - _body.global_position.y) < 2.0:
+			_body.global_position = next
+		_face(to, delta)
+		_play(follow_anim if far else move_anim)
+	else:
+		_face(to, delta)
+		_play("idle")
+
+
+func _walk_through_player(on: bool) -> void:
+	# A friend walking with you never gets in your way: you pass straight through each other while they tag along
+	if on == _passable:
+		return
+	var p := get_tree().get_first_node_in_group("player") as PhysicsBody3D
+	if p == null:
+		return
+	_passable = on
+	var bodies: Array = _body.find_children("*", "PhysicsBody3D", true, false)
+	if _body is PhysicsBody3D:
+		bodies.append(_body)
+	for b in bodies:
+		if on:
+			p.add_collision_exception_with(b)
+		else:
+			p.remove_collision_exception_with(b)
+
+
+func _beside_player(otherwise: Vector3) -> Vector3:
+	# A spot on the ground a couple of steps behind the player, or `otherwise` if there's no ground under them
+	# (flying the mothership, out over the lake)
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p == null or _space == null:
+		return otherwise
+	var v := p.get_node_or_null("Visual") as Node3D             # (the player's Visual turns, not their body)
+	var yaw := v.global_rotation.y if v else p.global_rotation.y
+	var want := p.global_position - Vector3(sin(yaw), 0, cos(yaw)) * 2.4
+	var q := PhysicsRayQueryParameters3D.create(want + Vector3(0, 1.5, 0), want - Vector3(0, 4.0, 0))
+	q.exclude = _skip
+	var hit := _space.intersect_ray(q)
+	if hit.is_empty() or float(hit.position.y) <= LAKE_Y:
+		return otherwise
+	return hit.position
 
 
 func _stop_pose(b: Dictionary, on: bool) -> void:

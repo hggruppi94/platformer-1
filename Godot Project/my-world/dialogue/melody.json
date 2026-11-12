@@ -55,6 +55,31 @@
       ]
     },
     {
+      "when": {"mended": "rhythm_springs", "not_flag": "party_asked_melody"},
+      "set": "party_asked_melody",
+      "lines": [
+        "(Melody skips over, humming.) {player}! I wrote a song about you! It's mostly the word {player} over and over. It's a work in progress.",
+        "Can I come with you? On your adventures? I'll be your own personal soundtrack!",
+        "And when you need a groove, press {groove} and I'll get the whole place dancing. On the beat, mind!",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_melody",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
+      "when": {"mended": "rhythm_springs", "flag": "party_asked_melody", "not_flag": "party_yes_melody", "every": 3},
+      "lines": [
+        "Still want me along? I'm ready when you are!",
+        {"choice": [
+          {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_melody",
+            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+          {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
+        ]}
+      ]
+    },
+    {
       "when": {"mended": "rhythm_springs", "every": 3},
       "lines": [
         "{player}! My favourite backup dancer! Have you been grooving? Shoulders, hips, ponytail!",

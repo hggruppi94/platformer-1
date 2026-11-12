@@ -28,6 +28,7 @@ var settings: Node
 var clock: Node
 var dialogue: Node
 var quests: Node
+var party: Node
 
 
 func check(ok: bool, what: String) -> void:
@@ -50,6 +51,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	settings = root.get_node("Settings")
+	party = root.get_node("Party")
 	clock = root.get_node("Clock")
 	dialogue = root.get_node("Dialogue")
 	quests = root.get_node("Quests")
@@ -192,14 +194,14 @@ func _check_burst() -> void:
 func _check_make_locked() -> void:
 	var p := _player()
 	var m := p.get_node("Make")
-	check(settings.default_bindings().get("make") == KEY_Z and settings.default_pad_bindings().get("make") == JOY_BUTTON_RIGHT_SHOULDER,
-		"Make is on Z and RB")
+	check(not settings.default_bindings().has("make") and settings.prompt("make") == settings.prompt("friend"),
+		"Make has no button of its own: it's Nina and Bruno's move, on the Friend button (Z, RB: scripts/party.gd)")
 	var rb := false
 	for e in InputMap.action_get_events("dash"):
 		if e is InputEventJoypadButton and (e as InputEventJoypadButton).button_index == JOY_BUTTON_RIGHT_SHOULDER:
 			rb = true
-	check(rb, "RB still rolls too (until Make's taught)")
-	check(not settings.action_shown("make"), "Make isn't on the Controls list before Nina and Bruno teach it")
+	check(rb, "RB still rolls too (until a friend's with you)")
+	check(not settings.action_shown("make"), "Make isn't learned before Nina and Bruno teach it")
 	check(not m.try_make() and m.things.is_empty(), "pressing it does nothing yet")
 
 
@@ -223,7 +225,8 @@ func _check_make_quest() -> void:
 	check(teach.any(func(l: Variant) -> bool: return str(l).contains("{make}")), "Bruno teaches it, saying the button")
 	dialogue.set_flag("make_taught")
 	await _frames(2)
-	check(settings.action_shown("make"), "...and then it's on the Controls list")
+	check(settings.action_shown("make"), "...and then it's learned")
+	check(party.has_joined("nina_bruno") and party.with_you == "nina_bruno", "...and Nina and Bruno join you")
 	check(str(quests.current_step("make_together").get("id", "")) == "try", "the quest moves on: make three things")
 
 
@@ -291,12 +294,12 @@ func _check_rb() -> void:
 	m.cooldown = 0.0
 	game.sp = game.max_sp
 	var n: int = m.made_count
-	Input.action_press("make")
+	Input.action_press("friend")
 	Input.action_press("dash")                      # RB is both
 	await _physics(2)
-	Input.action_release("make")
+	Input.action_release("friend")
 	Input.action_release("dash")
-	check(m.made_count == n + 1, "RB makes something once it's taught")
+	check(m.made_count == n + 1, "RB makes something with Nina and Bruno along")
 	check(not p.is_rolling(), "...without rolling too")
 	m.clear()
 
@@ -321,7 +324,7 @@ func _physics(n: int) -> void:
 
 func _finish() -> void:
 	Input.action_release("move_right")
-	Input.action_release("make")
+	Input.action_release("friend")
 	Input.action_release("dash")
 	if game:
 		game.hold_saves = true

@@ -1013,9 +1013,17 @@ func flurry_hub_lines() -> Array:
 		lines = ["Oh! {player}! I... I came through after you. Is that OK?",
 			"It's so warm here. And green! My snow keeps following me about, look.",
 			"Dash says your Earth has seasons. Winter got stuck in my moment too, so now it can come to you.",
-			"Oh! And... I want to give you something. Here. Breathe in, then huff, like this. (A puff of frost sparkles out of her.)",
-			"Now you can do it too! Press {frost_breath}. It freezes water into ice you can walk on, and it makes Gloops go all slow.",
-			"I'll stay here by the portals. Come and say hi?"]
+			"Oh! And... watch this. Breathe in, then huff, like this. (A puff of frost sparkles out of her.)",
+			"My frost breath! It freezes water into ice you can walk on, and it makes Gloops go all slow.",
+			"Can I come with you? I'd walk right behind you, and when you press {frost_breath} I'll huff for you."]
+		Dialogue.flags["party_asked_flurry"] = true
+		lines.append_array(Party.ask_lines("flurry"))
+	elif not Dialogue.flags.has("party_yes_flurry") and (not Dialogue.flags.has("party_asked_flurry") or randi() % 3 == 0):
+		# She'd like to come along with you (scripts/party.gd), and asks again now and then after a "not yet"
+		Dialogue.flags["party_asked_flurry"] = true
+		lines = ["{player}... can I come with you? When you go places, I mean. Into the town, and the worlds.",
+			"I'd walk right behind you. And when there's water, I'll do my frost breath for you. I'm really good at it now."]
+		lines.append_array(Party.ask_lines("flurry"))
 	else:
 		lines = [["Tick, tick, tick. I keep listening to my watch. I missed it.",
 			"Do you have snow days on Earth? Real ones? With sledges?"],
@@ -1025,7 +1033,7 @@ func flurry_hub_lines() -> Array:
 			"Time's broken in lots of places. You're good at fixing it, though."],
 			["It's winter in Stars Hollow when the calendar gets there. I made sure.",
 			"(She looks very pleased with herself, then very shy about it.)"],
-			["Have you tried your frost breath on a pond? {frost_breath}! Little ice islands, all the way across.",
+			["Take me to a pond some time! {frost_breath} and I'll make little ice islands, all the way across.",
 			"They melt after a bit, so don't stand about. Hop hop hop!"]].pick_random()
 	return lines
 
@@ -1033,7 +1041,8 @@ func flurry_hub_lines() -> Array:
 func _talk_flurry() -> void:
 	var spot := _holder.get_node_or_null("Flurry/Spot") as Node3D if is_instance_valid(_holder) else null
 	if spot:
-		Dialogue.say(spot, "Flurry", flurry_hub_lines().map(func(l: String) -> String: return Settings.fill(l)), "hub_flurry")
+		Dialogue.say(spot, "Flurry", flurry_hub_lines().map(func(l: Variant) -> Variant: return Settings.fill(l) if l is String else l),
+			"hub_flurry")
 
 
 func _process_flurry(delta: float) -> void:

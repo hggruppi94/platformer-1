@@ -3,10 +3,9 @@ extends Node
 # Nina and Bruno's making power, shared with the hero (Hayden, 12 Nov 2026: "nina and bruno share an ability to
 # create, but its weaker for that reason"). Two of them share one power, and they share it with you too, so what it
 # makes is small, wobbly and doesn't last. Taught in their quest "Making Things" (res://quests/make_together.json):
-# Bruno gives it as the flag TAUGHT is set. Locked till then: pressing Make does nothing and Settings > Controls
-# doesn't list it (Settings.SECRET_FLAGS).
+# Bruno gives it as the flag TAUGHT is set, and Nina and Bruno join you (scripts/party.gd). Locked till then.
 #
-# Press Make (Z, RB) and something pops into being in front of you, in Nina's pink or Bruno's blue by turns:
+# With Nina and Bruno along, press Friend (Z, RB) and something pops into being in front of you, in Nina's pink or Bruno's blue by turns:
 #   - on the ground: a wobbly BRIDGE, a plank PLANK_LONG metres long at your feet's height, stretching out ahead of
 #     you (over a gap, a stream, a bit of goo);
 #   - in the air: a STEP under your feet to land on and jump again from. Only once a jump (it comes back when you
@@ -14,8 +13,8 @@ extends Node
 # Each lasts LASTS seconds, blinks for the last BLINK, then pops into sparkles. Only MAX_THINGS at once (one each for
 # Nina and Bruno): making another pops the oldest. Not while riding, burrowing, swimming, climbing or in a race.
 #
-# Before it's unlocked RB still rolls (Settings._bind_pad gives Roll RB too); after, RB makes and the player skips the
-# roll that same press (scenes/player/player.gd).
+# Until a friend's with you RB still rolls (Settings._bind_pad gives Roll RB too); after, RB is the friend's move and
+# the player skips the roll that same press (scenes/player/player.gd).
 #
 # Made by the player (scenes/player/player.gd _ready).
 

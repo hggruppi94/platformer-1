@@ -92,6 +92,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **The party system: friends walk with you, and their moves go on one Friend button** (plan item 26; Hayden:
+  "Go ahead and start on the party system", and lore Part 2 items 12 and 13 locked). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **`scripts/party.gd`** (autoload `Party`, saved as `"party"`: `joined`, `with`): five friends (`FRIENDS`, `ORDER`):
+    Nina and Bruno (Make), Bramble (Burrow), Flurry (Frost breath), Heather (April Showers) and Melody (Groove). One
+    walks with you (`with_you`); **Friend** (Z, RB) does their move (`use()`; `player.gd` reads only `friend` now, and a
+    press that's a Friend move still doesn't roll). **Switch friend** (X, D-pad left) goes round everyone who's joined and
+    "nobody", with a card at the bottom left (`card_text()`). Only shown in Controls once someone's joined (two for
+    Switch). Old per-move buttons (B, V, G, H, Z) are gone; `Settings.prompt("burrow")` etc. say the Friend button, so
+    old lines still read right.
+  - **Joining:** each friend asks once their world's mended (`dialogue/bramble.json`, `melody.json`, `clover.json`,
+    Flurry's hub talk in `portals.gd`; choice recorded as `party_join`, flags `party_asked_<id>` / `party_yes_<id>`,
+    asked again every third talk if you said not yet). A hint says who wants a word (`party_hint_<id>`). Nina and Bruno
+    join when they teach Make. **Old saves** (no `"party"`) get every friend whose move they'd learned.
+  - **Walking with you:** in the Void the friend's own town self leaves their routine and follows you
+    (`routine.gd` `TAG_ALONG`, `_tag_along()`, passing through you, a block with `"keep": true` stays put: Melody's
+    show). Anywhere else (portal worlds, the school, rooms) a copy follows your footsteps (`scripts/party_follower.gd`;
+    Nina and Bruno side by side), never in their own home world, and only Nina and Bruno on Earth.
+  - **Helping out:** with Flurry joined and water just ahead, Friend breathes frost whoever's with you (she hops in).
+    In the final fight each friend section brings its friend along for it (`Party.bring_for()`, `chaos_trials.gd`).
+    April Showers no longer comes from holding Interact.
+  - Tests: new `tools/test_party.gd`; burrow, groove, powers, heather_moves updated; 28 tests pass (dialogue, winter,
+    routines, townsfolk, work, meetings, first_night, controls_lock, ui_style, kid_ui, chaos_fight, chaos_trials, the
+    friends' worlds, episodes, races, quests, save_slots, first_hour, portals, lore_order, far_future...). Previews:
+    `tools/capture_party.gd` (shots in the project files under world/previews/party).
+  - My choices Hayden may change: friends ask to join (not automatic), kinetic stays the hero's own, Z/RB and X/D-pad
+    left, tap to switch (no wheel yet), Flurry hopping in by water, Bramble burrowing along beside you. Not done: a
+    radial friend wheel, a friend's face on the HUD, merging the Quests and Map menus, talking to a follower copy.
+
 - 2026-11-12: **The whole test suite is green again** (Hayden: "lets start implementing your suggestions in the honest
   developer review"; the review's first step: no more "fails on main too"). Ran all 107 tests in the cloud (own Godot
   user folders, four at a time, no save touched): 103 passed, and the 4 that failed are fixed.

@@ -5,6 +5,9 @@ extends Node
 # pressing Frost breath does nothing and the Controls list doesn't show it (Settings.action_shown()). Flurry teaches
 # it in the Void (Portals.flurry_hub_lines()).
 #
+# Since the party system (plan item 26, scripts/party.gd) it has no button of its own: with Flurry walking with you,
+# the Friend button (Z, RB) does it.
+#
 # Press Frost breath on foot and the hero huffs a cone of sparkly frost out in front of them:
 # - over water (anything in the "water" group: the Void's lakes, Willow Pond and Whisper Creek) it freezes round ice
 #   floes on the surface, an ice bridge to walk or skate across. They're slippery (group "ice", player.gd on_ice()).
