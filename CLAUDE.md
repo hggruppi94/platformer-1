@@ -92,6 +92,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-12: **The party system finished: the friend wheel, your friend's face on the HUD, and one menu** (Hayden picked
+  "2", the party system's "not done" list). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Friend wheel** (`scripts/friend_wheel.gd`, worked by `Party`): a tap of Switch friend (X, **LB**) still goes to
+    the next friend; holding it 0.2 s opens a wheel of everyone who's joined and "Nobody" (`Party.ring()`), the game
+    slowed to 0.2 like the outfit wheel; point with the mouse or a stick, let go to pick (`Party.pick()`). Not in talks,
+    menus, the creator, or with another wheel up (`Party.wheel_ok()`).
+  - **The face on the HUD** (`scripts/friend_face.gd`, a "FriendFace" CanvasLayer `Party` puts on the player, so
+    cutscenes hide it with the rest of the HUD): bottom left, a round face of whoever's with you
+    (`FriendWheel.face()`: little faces drawn in code, Nina and Bruno side by side) with the Friend button under it; an
+    empty badge with the wheel's button when nobody's along. When someone else could help right here (Flurry by water:
+    `Party.helper()`) a bobbing bubble with their face and a "!" pops up beside it. The switch card moved to its right.
+  - **One menu:** the quests and the map are tabs of the player menu (Back), so on a controller they have no buttons of
+    their own any more (`Settings.PAD_REBINDABLE`, `PAD_GROUPS`: on foot 13 actions). The map's old LB is the friend
+    wheel, and D-pad left goes back to picking gadgets. Old settings move over once (`Settings._one_menu()`, mark
+    `menus_v2`; the wheel only takes LB if nothing else is there). Keyboard Q and M still jump straight to those tabs
+    (Controls calls them "Menu: Quests" and "Menu: Map"); prompts for them say Back on a controller.
+  - Tests: `test_party` (wheel, badge, bubble, the one menu, old settings); player_menu, map, ui_style, kid_ui,
+    controls_lock, first_night, quick_outfits, arsenal, dialogue, quests and more pass. Previews: `capture_party.gd`
+    now also shoots the wheel and the badge with Flurry's bubble (project files, world/previews/party).
+  - My choices Hayden may change: LB for the wheel, the faces' looks, the badge's spot, keeping Q and M on the keyboard.
+
 - 2026-11-12: **The party system: friends walk with you, and their moves go on one Friend button** (plan item 26; Hayden:
   "Go ahead and start on the party system", and lore Part 2 items 12 and 13 locked). Built and tested in the cloud (own
   Godot user folders, no save touched).
@@ -118,8 +139,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     friends' worlds, episodes, races, quests, save_slots, first_hour, portals, lore_order, far_future...). Previews:
     `tools/capture_party.gd` (shots in the project files under world/previews/party).
   - My choices Hayden may change: friends ask to join (not automatic), kinetic stays the hero's own, Z/RB and X/D-pad
-    left, tap to switch (no wheel yet), Flurry hopping in by water, Bramble burrowing along beside you. Not done: a
-    radial friend wheel, a friend's face on the HUD, merging the Quests and Map menus, talking to a follower copy.
+    left, tap to switch (no wheel yet), Flurry hopping in by water, Bramble burrowing along beside you. Not done then: talking to a
+    follower copy (the wheel, the face and the one menu came next: see above).
 
 - 2026-11-12: **The whole test suite is green again** (Hayden: "lets start implementing your suggestions in the honest
   developer review"; the review's first step: no more "fails on main too"). Ran all 107 tests in the cloud (own Godot

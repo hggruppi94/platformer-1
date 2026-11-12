@@ -2,7 +2,8 @@ extends SceneTree
 
 # Screenshots of the party system (scripts/party.gd, plan item 26): Bramble walking with you through the Void town,
 # the card that says who's with you after Switch friend, Nina and Bruno following you round Shard Isle, and Flurry
-# hopping in to freeze the lake. Opens a window (not --headless):
+# hopping in to freeze the lake; then the friend wheel, the friend badge on the HUD and the bubble that says Flurry
+# could help by water. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_party.gd -- <output folder>
 #
@@ -111,6 +112,11 @@ func _card() -> void:
 	party.switch()                                  # -> Heather isn't joined: next is Melody
 	await _frames(3)                                # (the card only stays up 3.5 s, and a window with no GPU is slow)
 	await _shot("02_switch_friend_card")
+	party.open_wheel()
+	party.wheel.point(party.wheel.slot_angle(party.wheel.slots.find("flurry")))
+	await _frames(3)
+	await _shot("06_friend_wheel")
+	party.close_wheel(false)
 	await _walk(90)
 	for r in get_nodes_in_group("routines"):
 		if r.character_id == "melody":
@@ -134,6 +140,7 @@ func _lake() -> void:
 	p.global_position = at
 	p.get_node("Visual").global_rotation.y = PI          # facing the water (-Z)
 	await _frames(30)
+	await _shot("07_badge_and_flurry_bubble")
 	party.use(p)
 	await _frames(40)
 	var fol: Array = party.followers()
