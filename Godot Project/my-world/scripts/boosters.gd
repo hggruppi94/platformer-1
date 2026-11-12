@@ -58,7 +58,7 @@ const BOOSTERS := [
 	# --- The Void: coins down the rail line from the Library to the Spooky Woods ---
 	{"scene": "town", "kind": "coins", "at": Vector3(-20.5, 0, -52.5), "to": Vector2(-28.5, -52.8), "count": 4, "where": "the Library rail line"},
 	{"scene": "town", "kind": "coins", "at": Vector3(-44.5, 0, -73), "to": Vector2(-51, -71.8), "count": 3, "where": "the rail line to the woods"},
-	{"scene": "town", "kind": "coins", "at": Vector3(-69, 0, -93.2), "to": Vector2(-77.5, -93.8), "count": 4, "where": "the rail line to the woods"},
+	{"scene": "town", "kind": "coins", "at": Vector3(-78.5, 0, -93.6), "to": Vector2(-87, -94.2), "count": 4, "where": "the rail line to the woods"},  # moved 9.5 m west, clear of the Arena Gate
 	# --- The Void: big air ---
 	{"scene": "town", "kind": "ramp", "at": Vector3(14, 0, 64), "to": Vector2(24, 64), "where": "the south meadow"},
 	{"scene": "town", "kind": "ramp", "at": Vector3(66, 0, 74), "to": Vector2(74, 80), "where": "by the sports fields"},
