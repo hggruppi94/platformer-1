@@ -175,7 +175,7 @@ func place_name() -> String:
 	if path == Arena.LEVEL:
 		return "The Star Arena"
 	if path.begins_with("res://scenes/scary_world/"):
-		return "The Scary World"
+		return "Dusk's Embrace"
 	if path.begins_with("res://scenes/races/"):
 		return path.get_file().get_basename().capitalize()
 	return s.name.capitalize()

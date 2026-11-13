@@ -49,9 +49,9 @@ func _ready() -> void:
 		Dialogue.started.connect(func(id: String) -> void:
 			if id == "centipede":
 				_talk_before = Dialogue.choice_log.size())
-	var hello := "The Scary World. It's misty and strange... but nothing here can hurt you. The gate behind you goes home, any time."
+	var hello := "Dusk's Embrace. It's misty and strange... but nothing here can hurt you. The gate behind you goes home, any time."
 	if home and not HOLES.gifts_given():
-		hello = "The Scary World. Warm violet light by the hollow log... and lots and lots of little feet, pattering about. Somebody's expecting you."
+		hello = "Dusk's Embrace. Warm violet light by the hollow log... and lots and lots of little feet, pattering about. Somebody's expecting you."
 	Game.message.call_deferred(hello)
 
 

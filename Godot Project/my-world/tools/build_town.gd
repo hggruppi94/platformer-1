@@ -2427,7 +2427,7 @@ func _scary_gate() -> void:
 	mesh_at(box(Vector3(3.8, 0.15, 0.15)), iron, Vector3(0, 0.6, 0), g)
 	solid(box_shape(Vector3(3.8, 4.6, 0.4)), Vector3(0, 2.3, 0), g)
 	mesh_at(box(Vector3(0.5, 0.6, 0.25)), mat("Padlock", Color(0.8, 0.65, 0.3), 0.3, 0.9), Vector3(0, 2.4, 0.25), g)
-	sign_post(g, "Scary World - Keep Out!", Vector3(4.5, 0, 2.5), 0.2)
+	sign_post(g, "Dusk's Embrace - Keep Out!", Vector3(4.5, 0, 2.5), 0.2)
 	# Walking up to it asks whether she wants to go in (dialogue/scary_gate.json): a clear yes or no, and the answer
 	# is kept in the save. Yes takes her through; she comes back out here.
 	var ask := Node3D.new()

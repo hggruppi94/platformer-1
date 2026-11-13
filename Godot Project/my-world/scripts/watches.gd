@@ -109,7 +109,7 @@ const WATCHES := [
 		"hint": "Somewhere warm and green, at school.",
 		"note": "Petal's, from a garden planet. Each petal opens at a different hour, so you tell the time by smelling it."},
 	{"id": "glowworm", "name": "Glow-Worm Lantern", "scene": "scary", "pos": Vector3(-21, 0.9, -15), "how": "walk",
-		"place": "At the edge of the Scary World's clearing",
+		"place": "At the edge of the clearing in Dusk's Embrace",
 		"hint": "In a scary place, if you're brave enough to go in. Look along the edge.",
 		"note": "Its glow-worms shine brighter as the day goes on. They're always sleepy, so it's always nearly bedtime."},
 ]

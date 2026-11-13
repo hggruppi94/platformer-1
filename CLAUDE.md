@@ -85,6 +85,11 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   code id is still `clover`), Melody, Pip (they/them: Hayden, "sort of androgynous"), Rook (says woof), Ivy and Theo
   (Earth), Madame Celeste (Earth dance studio) and the lonely centipede (she/her; her school corner, Dark Hollow, and her home
   by the hollow log behind the old Scary World gate, one place at a time).
+- The world behind the old gate in the Void's northwest woods (the centipede's home) is called **Dusk's Embrace** in
+  everything the player sees (Hayden named it Nov 13, 2026; it was "the Scary World" before). Dark Hollow is a
+  different place and keeps its name. Internal names still say scary_world (`scenes/scary_world/`,
+  `scripts/scary_world.gd`, the "Scary World Gate" and "FromScaryWorld" nodes, `scary_world_*` flags and
+  `scary_world.ogg`): leave them, saves and tests depend on them.
 - In the show, kids are people on Earth and creatures in the Void. Since Oct 31, 2026 Nina is human on Earth (`nina_earth`;
   since Nov 7 from Hayden's picture: red-orange bob with a fringe, red bow, freckles, gap teeth, pink pinafore, yellow backpack) and stays her alien self in the Void. Since Nov 1, 2026 Bruno is too (`bruno` on
   Earth, `bruno_alien` in the Void, from Sofi's drawing). Prue's Earth look is still a placeholder.

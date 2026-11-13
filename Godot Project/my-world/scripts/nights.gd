@@ -38,7 +38,7 @@ const NIGHTS := [
 		"new": "Rex by the portal, the castle school and the Rocket Bike's schematic",
 		"tease": "Rex is practising a speech. Something about the castle school..."},
 	{"n": 7, "quest": "night_7", "title": "The Far Corners",
-		"new": "Mr. Palmer at his window, the Spooky Woods, the Scary World gate, the far field and the last schematic",
+		"new": "Mr. Palmer at his window, the Spooky Woods, the gate to Dusk's Embrace, the far field and the last schematic",
 		"tease": "Mr. Palmer wants a quiet word. Something about the far field..."},
 ]
 # Night 7: the far field behind the castle hill, and how close counts as having a look round it. (The flag's still

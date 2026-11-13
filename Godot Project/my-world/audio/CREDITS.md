@@ -18,7 +18,7 @@ Written as data and synthesized from scratch by `tools/make_soundscape.py` (nump
 | `skate_park.ogg` | the Void's Skate Park and the Hollow Skate Yard | `tools/make_soundscape.py` |
 | `race.ogg` | Any race | `tools/make_soundscape.py` |
 | `gloop_king.ogg` | When the Gloop King's after you | `tools/make_soundscape.py` |
-| `scary_world.ogg` | The Scary World | `tools/make_soundscape.py` |
+| `scary_world.ogg` | Dusk's Embrace (the old Scary World) | `tools/make_soundscape.py` |
 | `festival.ogg` | The Autumn Festival on the green | `tools/make_soundscape.py` |
 | `barn_dance.ogg` | Madame Celeste's barn dance studio | `tools/make_soundscape.py` |
 | `placeholder/*.ogg` | Interiors, the school, behind the Slivers | `tools/make_placeholder_audio.py` |

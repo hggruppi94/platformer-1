@@ -58,7 +58,7 @@ const PLACES := [
 	["cozy_cave", "the Cozy Cave", "easy", "Happy Places/HappyPlace Cozy Cave", 5.0],
 	["tree_house", "the top of the Tree House", "easy", "Happy Places/HappyPlace Tree House", 4.5],
 	["observatory", "the Observatory", "medium", "Observatory", 14.0],
-	["scary_gate", "the Scary World gate", "medium", "Scary World Gate", 9.0],
+	["scary_gate", "the gate to Dusk's Embrace", "medium", "Scary World Gate", 9.0],
 	["cloud_nest", "the Cloud Nest", "hard", "Happy Places/HappyPlace Cloud Nest", 5.0],
 ]
 const GLOOP_WAYS := ["any", "bubble", "stomp"]             # pop them any way, with the Star Popper, or by stomping

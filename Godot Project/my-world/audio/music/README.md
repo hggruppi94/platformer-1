@@ -12,7 +12,7 @@ No code changes, no editor setup; the game picks up `<name>.ogg` (or `.mp3` / `.
 | `skate_park.ogg`    | The Skate Park and the Hollow Skate Yard         | Upbeat and punky                                 |
 | `race.ogg`          | Any race                                         | Fast, bright arps                                |
 | `gloop_king.ogg`    | The Gloop King chasing you                       | A bouncy, goofy boss march                       |
-| `scary_world.ogg`   | The Scary World                                  | Spooky but never scary                           |
+| `scary_world.ogg`   | Dusk's Embrace (the old Scary World)           | Spooky but never scary                           |
 | `festival.ogg`      | The Autumn Festival on the green                 | A happy jig                                      |
 | `barn_dance.ogg`    | Madame Celeste's barn dance studio               | Four on the floor                                |
 | `town.ogg`          | the Void, if `town_day`/`town_night` are missing | (placeholder)                                    |
