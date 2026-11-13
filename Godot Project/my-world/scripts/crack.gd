@@ -17,8 +17,14 @@ extends RefCounted
 # so the player truly drops in, and then builds the rest following the ground: the broken earth round the split
 # ("Broken Earth", which also covers the cut's ragged edge), the split's walls ("Shaft"), the clods ("Lips") and the side
 # cracks ("Fissures"). The swirl at the bottom ("Swirl") is where a world's live preview shows
-# (Portals._open_preview()): look down into a crack and you see the world it leads to. set_open() shuts or opens it:
-# shut, the split closes to a dirt seam (the lid: Earth's crack outside the Shift), and the fall area sleeps.
+# (Portals._open_preview()): look down into a crack and you see the world it leads to. set_open() shuts or opens it.
+#
+# Hidden until it opens (Hayden, 12 Nov 2026: "need to make them invisible until they open"): shut, there's nothing
+# there at all, not a seam or a speck of dirt, and the ground is whole again (the cut is filled back in: ground_hole.gd
+# fill()). Opening, it unzips from the middle out to both ends while the seam of dirt (the "Lid") draws apart.
+# Going through (Hayden, same day: "a little animation when you go through and come out of the crack"): fall_in()
+# tumbles the player down into the dark while the screen fills with the world's colour, and on the other side
+# pop_out() throws them up out of the crack there, spinning, in a burst of dirt, onto the spot they arrive at.
 # No class_name on purpose (see scripts/use_spot.gd): load it with preload.
 
 const HOLE := preload("res://scripts/ground_hole.gd")
@@ -30,6 +36,11 @@ const WIDTH := 0.68                  # half the split's width at its widest, in 
 const STEP := 0.14                   # along the split
 const RIM_OUT := 1.4                 # the broken earth reaches at least this far past the cut
 const GLOW := 1.5
+const FALL_TIME := 0.8               # tumbling down into it
+const FALL_DEPTH := 3.4              # how far down they go before they're through
+const POP_TIME := 0.75               # flying up out of one at the other end
+const POP_HEIGHT := 2.4              # how high over the ground they go
+const POP_WITHIN := 10.0             # a crack this close to where they arrive is the one they came out of
 
 const SOIL := Color(0.31, 0.22, 0.15)      # the walls' top, damp dark soil
 const DEEP := Color(0.035, 0.027, 0.025)   # where the light runs out
@@ -40,6 +51,7 @@ const DIRT_EDGE := Color(0.33, 0.24, 0.16)
 # The crack itself. `on_fall` is called when the player drops into it (and not while it's shut).
 static func make(colour: Color, on_fall: Callable = Callable(), r := R) -> Node3D:
 	var g := Node3D.new()
+	g.add_to_group("crack")
 	g.set_meta("r", r)
 	g.set_meta("colour", colour)
 	g.set_meta("open", 1.0)
@@ -149,7 +161,9 @@ static func sink(g: Node3D, scene: Node) -> float:
 			hs[j * grid.nx + i] = h if h < 0.7 else 0.0
 	grid.h = hs
 	var at := Vector2(g.global_position.x, g.global_position.z)
-	var reach := HOLE.cut(scene, at, r + 0.1, gy - DEPTH - 1.0, gy + 0.6)
+	g.set_meta("hole", [at, r + 0.1, gy - DEPTH - 1.0, gy + 0.6])
+	g.set_meta("hole_scene", scene)
+	var reach := _cut(g)
 	var r_out := clampf(reach + 0.35, r + 0.6, r + RIM_OUT + 1.4)
 	g.set_meta("rim", r_out)
 	var ctx := {"grid": grid, "line": line, "r": r, "r_out": r_out + 0.7, "cover": r_out}
@@ -164,15 +178,35 @@ static func sink(g: Node3D, scene: Node) -> float:
 	return reach
 
 
-# Shut (0) or open (1) it; anything between is part-way (the seam of dirt draws apart as it opens)
+# Shut (0) or open (1) it; anything between is part-way. Shut, it's not there at all (and the ground's whole again);
+# opening, the split unzips from its middle out to both ends and the seam of dirt draws apart.
 static func set_open(g: Node3D, k: float) -> void:
 	k = clampf(k, 0.0, 1.0)
+	var was := float(g.get_meta("open", 1.0))
 	g.set_meta("open", k)
+	var shown := k > 0.001
+	if shown:
+		_cut(g)
+	else:
+		_fill(g)
+	# Unzipping: from a short slit in the middle out to its full length by halfway open
+	var along := lerpf(0.06, 1.0, smoothstep(0.0, 0.5, k))
+	for n in ["Broken Earth", "Lips", "Fissures", "Shaft/Split"]:
+		var c := g.get_node_or_null(n) as Node3D
+		if c:
+			c.visible = shown
+			c.scale.x = along
+	for n in ["Broken Earth Body", "Shaft/Walls"]:
+		var b := g.get_node_or_null(n)
+		if b:
+			for cs in b.get_children():
+				if cs is CollisionShape3D:
+					(cs as CollisionShape3D).disabled = not shown
 	var lid := g.get_node_or_null("Lid") as StaticBody3D
 	if lid:
-		lid.visible = k < 0.99
-		lid.scale = Vector3(1.0, 1.0, maxf(1.0 - k, 0.02))
-		(lid.get_child(lid.get_child_count() - 1) as CollisionShape3D).disabled = k > 0.5
+		lid.visible = shown and k < 0.99
+		lid.scale = Vector3(along, 1.0, maxf(1.0 - k, 0.02))
+		(lid.get_child(lid.get_child_count() - 1) as CollisionShape3D).disabled = not shown or k > 0.5
 	for n in ["Swirl", "Glow", "Deep Glow"]:
 		var c := g.get_node_or_null(n) as Node3D
 		if c:
@@ -183,29 +217,201 @@ static func set_open(g: Node3D, k: float) -> void:
 	var fall := g.get_node_or_null("Fall") as Area3D
 	if fall:
 		fall.monitoring = k > 0.5
+	if was <= 0.001 and shown and k < 0.6 and g.is_inside_tree() and g.has_meta("hole"):
+		Juice.dust(g, g.global_position, 0.9)          # (splitting open, not made open: a puff of dirt as it goes)
+
+
+# The ground cut away under it (sink() keeps where), or put back. What the cut changed is kept on the crack ("undo").
+static func _cut(g: Node3D) -> float:
+	if g.has_meta("undo") or not g.has_meta("hole"):
+		return float(g.get_meta("cut_reach", 0.0))
+	var scene = g.get_meta("hole_scene")
+	if not is_instance_valid(scene):
+		return 0.0
+	var h: Array = g.get_meta("hole")
+	var undo := []
+	var reach := HOLE.cut(scene, h[0], h[1], h[2], h[3], undo)
+	g.set_meta("undo", undo)
+	g.set_meta("cut_reach", reach)
+	return reach
+
+
+static func _fill(g: Node3D) -> void:
+	if g.has_meta("undo"):
+		HOLE.fill(g.get_meta("undo"))
+		g.remove_meta("undo")
 
 
 static func is_open(g: Node3D) -> bool:
 	return float(g.get_meta("open", 1.0)) > 0.5
 
 
-# Dropping in: a whoosh, a little sparkle, a moment of falling, then off to wherever it goes
+# Dropping in: a whoosh and a puff of the world's colour, then the player's pulled into the middle and tumbles down
+# into the dark, getting smaller, while the screen fills up with the colour of where they're going. Then off they go
+# (then()), and on the other side they pop out of the crack there (pop_out()).
 static func fall_in(g: Node3D, player: Node3D, then: Callable) -> void:
+	if player and player.get("carried") == true:
+		return                                 # (already being moved: popping up out of this crack, or a zipline)
 	g.set_meta("falling", true)
 	var colour: Color = g.get_meta("colour", Color(0.7, 0.5, 1.0))
 	Juice.blip("whoosh", 0.8, -4.0)
 	Juice.rumble(0.4, 0.3, 0.3)
 	Fx.burst(g, g.global_position + Vector3(0, 0.3, 0), colour, 24, 0.08, 4.0, -2.0, 0.9)
-	if player is CharacterBody3D:
-		# Pulled gently into the middle, so nobody hangs on the edge
-		var to := Vector3(g.global_position.x, player.global_position.y, g.global_position.z)
-		(player as CharacterBody3D).velocity = (to - player.global_position) * 3.0 + Vector3(0, -2.0, 0)
-	var t := g.get_tree().create_timer(0.45)
-	t.timeout.connect(func() -> void:
+	var body := player as CharacterBody3D
+	if body == null or not body.has_method("lock_input"):
+		var t := g.get_tree().create_timer(0.45)
+		t.timeout.connect(func() -> void:
+			if is_instance_valid(g):
+				g.remove_meta("falling")
+			if then.is_valid():
+				then.call())
+		return
+	var tree := g.get_tree()
+	var scene := tree.current_scene
+	var tumble := body.get_node_or_null("Visual/Tumble") as Node3D
+	var turned := tumble.rotation if tumble else Vector3.ZERO
+	var sized := tumble.scale if tumble else Vector3.ONE
+	var spin := not Settings.reduce_motion
+	body.velocity = Vector3.ZERO
+	body.set("carried", true)                  # (no physics while the fall moves them)
+	Game.hold_controls(&"crack", true, body)
+	var start := body.global_position
+	var mid := g.global_position
+	var veil := _veil(g, colour)
+	var tw := g.create_tween()
+	tw.tween_method(func(t: float) -> void:
+		if not is_instance_valid(body):
+			return
+		# Over the middle first (a little hop up as the crack takes them), then down, faster and faster
+		var p := start.lerp(Vector3(mid.x, start.y, mid.z), smoothstep(0.0, 0.35, t))
+		p.y = lerpf(start.y, mid.y - FALL_DEPTH, t * t) + sin(minf(t * 2.5, 1.0) * PI) * 0.45
+		body.global_position = p
+		if tumble:
+			if spin:
+				tumble.rotation = turned + Vector3(t * t * TAU * 1.25, t * PI, 0.0)
+			tumble.scale = sized * lerpf(1.0, 0.45, t * t)
+		veil.color.a = smoothstep(0.35, 1.0, t) * 0.96, 0.0, 1.0, FALL_TIME)
+	tw.tween_callback(func() -> void:
 		if is_instance_valid(g):
 			g.remove_meta("falling")
+		Engine.set_meta("crack_pop", Time.get_ticks_msec())
 		if then.is_valid():
-			then.call())
+			then.call()
+		# Back to themselves straight away: if then() took them somewhere the new place has them in a moment (and the
+		# loading screen's over all this); if it didn't (not just now), they're simply down in the crack
+		if is_instance_valid(body):
+			body.set("carried", false)
+			Game.hold_controls(&"crack", false, body)
+			if tumble:
+				tumble.rotation = turned
+				tumble.scale = sized
+		if is_instance_valid(veil):
+			var out := veil.create_tween()
+			out.tween_interval(0.25)
+			out.tween_property(veil, "color:a", 0.0, 0.3)
+			out.tween_callback((veil.get_parent() as Node).queue_free)
+		tree.create_timer(1.0).timeout.connect(func() -> void:
+			if tree.current_scene == scene:
+				Engine.remove_meta("crack_pop")))      # (it didn't take them anywhere: nobody pops out anywhere later)
+
+
+# Did the player just come through a crack? (Asked once, as a new place loads: scripts/portals.gd _arrived())
+static func came_through() -> bool:
+	if not Engine.has_meta("crack_pop"):
+		return false
+	var when := int(Engine.get_meta("crack_pop"))
+	Engine.remove_meta("crack_pop")
+	return Time.get_ticks_msec() - when < 8000
+
+
+# Coming out the other side: once the new place is in (and the loading screen's gone), the player shoots up out of the
+# nearest crack in a burst of dirt and the colour they came through, flips over and lands on the spot they arrived at.
+# Nothing if they didn't arrive by a crack (pulled home to bed, a door with no crack by it).
+static func pop_out(tree: SceneTree) -> void:
+	for i in 3:
+		await tree.process_frame              # (where they arrive is settled a frame or two after the scene's in)
+	var body := tree.get_first_node_in_group("player") as CharacterBody3D
+	if body == null or not body.has_method("lock_input"):
+		return
+	var g: Node3D = null
+	var best := POP_WITHIN
+	for n in tree.get_nodes_in_group("crack"):
+		var c := n as Node3D
+		if c == null or not c.is_inside_tree() or not is_open(c):
+			continue
+		var d := Vector2(c.global_position.x - body.global_position.x, c.global_position.z - body.global_position.z).length()
+		if d < best:
+			best = d
+			g = c
+	if g == null:
+		return
+	var visual := body.get_node_or_null("Visual") as Node3D
+	var tumble := body.get_node_or_null("Visual/Tumble") as Node3D
+	if visual:
+		visual.visible = false                 # (still down in the crack while the loading screen goes)
+	var waited := 0.0
+	while Loading.showing and waited < 6.0:
+		await tree.process_frame
+		waited += tree.root.get_process_delta_time()
+	if not is_instance_valid(body) or not is_instance_valid(g) or not g.is_inside_tree():
+		if is_instance_valid(visual):
+			visual.visible = true
+		return
+	var colour: Color = g.get_meta("colour", Color(0.7, 0.5, 1.0))
+	var target := body.global_position
+	var from := Vector3(g.global_position.x, g.global_position.y - 1.6, g.global_position.z)
+	var turned := tumble.rotation if tumble else Vector3.ZERO
+	var spin := not Settings.reduce_motion
+	var high := maxf(target.y, g.global_position.y) - from.y + POP_HEIGHT
+	body.velocity = Vector3.ZERO
+	body.set("carried", true)
+	Game.hold_controls(&"crack", true, body)
+	body.global_position = from
+	if visual:
+		visual.visible = true
+	var veil := _veil(g, colour)
+	veil.color.a = 0.0 if Settings.reduce_flashing else 0.7
+	var fade := veil.create_tween()
+	fade.tween_property(veil, "color:a", 0.0, 0.4)
+	fade.tween_callback((veil.get_parent() as Node).queue_free)
+	Juice.blip("whoosh", 1.25, -5.0)
+	Juice.rumble(0.35, 0.25, 0.25)
+	Juice.dust(g, g.global_position, 1.0)
+	Fx.burst(g, g.global_position + Vector3(0, 0.4, 0), colour, 28, 0.09, 5.0, -3.0, 1.0)
+	var last := [from]
+	var tw := body.create_tween()
+	tw.tween_method(func(t: float) -> void:
+		if body.global_position.distance_to(last[0]) > 0.6:
+			return                             # (something else moved them meanwhile: leave them be)
+		var p := from.lerp(target, t)
+		p.y = lerpf(from.y, target.y, t) + 4.0 * (high - maxf(target.y - from.y, 0.0) * 0.5) * t * (1.0 - t)
+		body.global_position = p
+		last[0] = p
+		if tumble and spin:
+			tumble.rotation = turned + Vector3(-t * TAU, 0.0, 0.0), 0.0, 1.0, POP_TIME).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func() -> void:
+		body.set("carried", false)
+		body.velocity = Vector3.ZERO
+		Game.hold_controls(&"crack", false, body)
+		if tumble:
+			tumble.rotation = turned
+		if visual:
+			Juice.squash(visual, 0.3, 0.25)
+		Juice.dust(body.get_parent(), body.global_position, 0.6)
+		Juice.blip("thud", 1.0, -8.0))
+
+
+# The screen washing over with a crack's colour (going in), or flashing it as you come out
+static func _veil(g: Node3D, colour: Color) -> ColorRect:
+	var layer := CanvasLayer.new()
+	layer.layer = 80                           # (under the loading screen)
+	var rect := ColorRect.new()
+	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.color = Color(colour.darkened(0.25), 0.0)
+	layer.add_child(rect)
+	g.add_child(layer)
+	return rect
 
 
 # Put the player right over a crack's middle, so they drop in (the "Jump in!" answer at its spot)

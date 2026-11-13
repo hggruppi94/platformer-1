@@ -64,6 +64,7 @@ func _make_crack() -> void:
 	if hit:
 		crack.global_position = hit.position
 	CRACK.sink(crack, get_tree().current_scene)
+	_door.set_meta("crack", crack)            # (falling in: the crack's tumble, then through)
 	_door.global_position = crack.global_position + Vector3(0, -1.0, 0)
 	var shape := (_door.get_child(0) as CollisionShape3D) if _door.get_child_count() > 0 else null
 	if shape and shape.shape is BoxShape3D:

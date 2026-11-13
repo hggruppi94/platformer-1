@@ -20,8 +20,9 @@ const BIG := 25.0                    # anything wider than this is ground, never
 
 
 # Cut a hole of radius `r` round `centre` (x, z) through ground lying between `bottom` and `top` (world heights).
-# Returns how far out from the centre the ground was taken away (at least `r`).
-static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: float) -> float:
+# Returns how far out from the centre the ground was taken away (at least `r`). Everything it changes is written into
+# `undo` (if given), so the hole can be filled in again with fill() (a crack that shuts: scripts/crack.gd).
+static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: float, undo = null) -> float:
 	var reach := r
 	var touched := {}
 	for n in scene.find_children("*", "CollisionShape3D", true, false):
@@ -37,7 +38,7 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				var s := ConcavePolygonShape3D.new()
 				s.backface_collision = (cs.shape as ConcavePolygonShape3D).backface_collision
 				s.set_faces(res.faces)
-				cs.shape = s
+				_change(cs, &"shape", s, undo)
 				reach = maxf(reach, res.reach)
 				touched[cs] = true
 		elif cs.shape is HeightMapShape3D:
@@ -65,7 +66,7 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				s.map_width = hm.map_width
 				s.map_depth = hm.map_depth
 				s.map_data = data
-				cs.shape = s
+				_change(cs, &"shape", s, undo)
 				reach = maxf(reach, inner + 1.45)
 				touched[cs] = true
 		elif cs.shape is CylinderShape3D:
@@ -78,7 +79,7 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				for v in tris:
 					faces.append(v.p)
 				s.set_faces(faces)
-				cs.shape = s
+				_change(cs, &"shape", s, undo)
 				touched[cs] = true
 	for n in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
@@ -97,9 +98,10 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				continue
 			var tris := _slab(c.top_radius, c.bottom_radius, c.height, h, r, cut_top, cut_bottom, lo, hi)
 			var mat := c.material
-			mi.mesh = _mesh_of(tris)
+			var cut_mesh := _mesh_of(tris)
 			if mat:
-				mi.mesh.surface_set_material(0, mat)
+				cut_mesh.surface_set_material(0, mat)
+			_change(mi, &"mesh", cut_mesh, undo)
 			touched[mi] = true
 		elif mi.mesh is ArrayMesh:
 			var am := mi.mesh as ArrayMesh
@@ -141,7 +143,7 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 				made.add_surface_from_arrays(am.surface_get_primitive_type(i), arrays)
 				made.surface_set_material(i, am.surface_get_material(i))
 			if any:
-				mi.mesh = made
+				_change(mi, &"mesh", made, undo)
 				touched[mi] = true
 	# Little things lying in the hole
 	for n in scene.find_children("*", "GeometryInstance3D", true, false):
@@ -150,17 +152,34 @@ static func cut(scene: Node, centre: Vector2, r: float, bottom: float, top: floa
 			continue
 		var bb := gi.global_transform * gi.get_aabb()
 		if gi is MultiMeshInstance3D and (bb.size.x > BIG or bb.size.z > BIG):
-			_clear_instances(gi as MultiMeshInstance3D, centre, r, bottom, top)
+			_clear_instances(gi as MultiMeshInstance3D, centre, r, bottom, top, undo)
 			continue
 		if bb.size.x > BIG or bb.size.z > BIG or bb.end.y < bottom - 0.5 or bb.position.y > top + 1.5:
 			continue
 		var near := Vector2(clampf(centre.x, bb.position.x, bb.end.x), clampf(centre.y, bb.position.z, bb.end.z))
 		if near.distance_to(centre) < r:
-			gi.visible = false
+			_change(gi, &"visible", false, undo)
 	return reach
 
 
-static func _clear_instances(mmi: MultiMeshInstance3D, centre: Vector2, r: float, bottom: float, top: float) -> void:
+# Put back everything a cut() changed (its `undo`), latest first. Anything changed again since (another hole cut in the
+# same ground afterwards) is left as it is, so that hole never closes up by mistake.
+static func fill(undo: Array) -> void:
+	for i in range(undo.size() - 1, -1, -1):
+		var e: Array = undo[i]
+		var o = e[0]
+		if is_instance_valid(o) and o.get(e[1]) == e[3]:
+			o.set(e[1], e[2])
+	undo.clear()
+
+
+static func _change(o: Object, prop: StringName, value, undo) -> void:
+	if undo is Array:
+		undo.append([o, prop, o.get(prop), value])
+	o.set(prop, value)
+
+
+static func _clear_instances(mmi: MultiMeshInstance3D, centre: Vector2, r: float, bottom: float, top: float, undo = null) -> void:
 	# A big field of little things (the Void's foliage): shrink away just the ones standing in the hole, on a copy
 	var mm := mmi.multimesh
 	if mm == null or mm.transform_format != MultiMesh.TRANSFORM_3D:
@@ -172,7 +191,7 @@ static func _clear_instances(mmi: MultiMeshInstance3D, centre: Vector2, r: float
 			continue
 		if copy == null:
 			copy = mm.duplicate()
-			mmi.multimesh = copy
+			_change(mmi, &"multimesh", copy, undo)
 		copy.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ZERO), mm.get_instance_transform(i).origin))
 
 
