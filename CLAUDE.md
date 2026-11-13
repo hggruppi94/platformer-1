@@ -120,7 +120,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **A worried town all that first Void day:** new `first_night:shift` / `day` lines for Tally (rattled, then the board
     how-to), Nina, Bruno, Pip, Bramble, Melody, Heather, Rex ("Totally normal"), Rook, Mr. Palmer (his watch runs
     backwards), the Green Man ("...Already?") and the Astronaut. Back home Nina asks "Did you... FALL too?", and there's
-    a new crack in front of the old oak with a cone by it.
+    Mr. Page heard the ground by the old oak crack at midnight too (nothing to see there now).
   - **Old saves** (`FirstNight._migrate_v5()`, flag `fn_v5`): a save on an old oak step goes back to the evening; one
     already past the Shift keeps going, with `fn_fell` set.
   - Tests: `test_first_night` rewritten for the evening, the fall and the arrival (with a forced cutscene run);

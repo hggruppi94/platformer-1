@@ -282,7 +282,7 @@ func _run() -> void:
 	await _physics(30)
 	var sparkles: int = game.sparkles
 	lines = await _talk("nina_earth")
-	check(_said(lines, "FALL too") and _said(lines, "crack in the ground in front of the old oak"), "Nina: \"Did you FALL too?\", and there's a crack by the old oak now")
+	check(_said(lines, "FALL too") and _said(lines, "in front of the old oak went CRACK"), "Nina: \"Did you FALL too?\", and the ground by the old oak cracked too")
 	await _frames(4)
 	check(quests.is_done(Q) and game.sparkles == sparkles + 10, "The First Night is done (+10 sparkles)")
 	check(clock.pull_spawn == "", "...and the portal goes back to leaving them by the oak")
