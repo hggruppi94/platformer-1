@@ -180,40 +180,18 @@ func _ch_first_night() -> void:
 		jobs.changed.emit()
 		await _talk_to(nb.get_node("Request Talk"), [-1])         # turn it in
 		await _frames(4)
-	check(_step("first_night") == "oak", "a job followed, done and turned in: on to the oak (%s)" % _step("first_night"))
-	await _physics(30)
-	var spot := current_scene.find_child("Oak Spot", true, false)
-	await _talk_to(spot)
-	await _frames(4)
-	check(_step("first_night") == "clues", "listened at the oak: on to the clues (%s)" % _step("first_night"))
-	await _physics(30)
-	await _talk("lionel")
-	var town := root.get_node("EarthTown")
-	town.letter_lines()
-	for i in 3:
-		var acorn := current_scene.get_node_or_null("Glowing Acorn %d" % (i + 1)) as Node3D
-		if acorn:
-			_player().global_position = acorn.global_position + Vector3(0, 0.3, 0)
-			await _physics(8)
-	await _frames(4)
-	check(_step("first_night") == "dusk", "the book, the letter and three acorns: on to dusk (%s)" % _step("first_night"))
-	await _talk_to(spot)
-	await _frames(4)
-	check(_step("first_night") == "wait", "the acorns in the oak's roots: wait for midnight (%s)" % _step("first_night"))
-	# To bed, like a player: walk home and sleep "Until the Shift"
+	check(_step("first_night") == "evening", "a job followed, done and turned in: on to the evening (%s)" % _step("first_night"))
+	# To bed, like a player: walk home and sleep. At midnight the ground cracks open under them and they fall
 	await _sleep_until_shift()
-	check(clock.in_shift() and _step("first_night") == "awaken", "slept until the Shift (%s, %s)" % [clock.earth_time_string(), _step("first_night")])
-	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
-	_player().global_position = door.global_position + door.global_basis.z * 8.0
-	await _frames(6)
-	check(oak.revealing, "walking up to the oak at midnight wakes it")
-	await create_timer(2.0).timeout
-	await shot("oak_reveal")
-	await create_timer(oak.REVEAL_TIME).timeout
-	await _frames(4)
-	check(_step("first_night") == "shift" and oak.awake(), "the ground in front of the oak cracks open")
-	await _through_oak()
-	await create_timer(fn.WARP_TIME + 1.6).timeout
+	for i in 600:
+		await process_frame
+		if current_scene and current_scene.scene_file_path == TOWN:
+			break
+	await _frames(10)
+	check(current_scene.scene_file_path == TOWN and dialogue.flags.has("fn_fell") and oak.awake(),
+		"midnight: the ground cracks open under them, and they land in the Void")
+	check(_step("first_night") == "shift", "the night the sky cracked (%s)" % _step("first_night"))
+	await _physics(10)
 	check(game.has_item("shop:shift_watch"), "a watch on the hero's wrist")
 	await shot("first_landing")
 	await _physics(30)

@@ -211,6 +211,8 @@ func _migrate_v5() -> void:
 	if at >= 7:
 		Dialogue.flags["fn_fell"] = true
 		Dialogue.flags["oak_woken"] = true
+	if at >= 8:
+		Dialogue.flags["fn_arrived"] = true           # (they'd already landed: no cutscene for them)
 
 
 func _migrate_v2() -> void:
@@ -321,7 +323,8 @@ func _on_scene_changed() -> void:
 	var scene := get_tree().current_scene
 	if scene == null or not running():
 		return
-	if scene.scene_file_path == TOWN and not Dialogue.flags.has("fn_arrived"):
+	# (only after the fall: a save loaded in the Void some other way never plays it)
+	if scene.scene_file_path == TOWN and Dialogue.flags.has("fn_fell") and not Dialogue.flags.has("fn_arrived"):
 		_arrive.call_deferred()
 	elif scene.scene_file_path == EARTH and _woke_home:
 		_woke_home = false

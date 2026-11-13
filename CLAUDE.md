@@ -92,6 +92,43 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-13: **The night the sky cracked: the first trip to the Void is a big, worrying event** (Hayden: "The intro
+  to the void needs to be much more significant ... an unprecedented event that has people worried ... the little aliens
+  creatures can greet all of the chosen as they are thrown into the new world all at once. Maybe the glowing tree quest
+  should be scrapped and getting pulled into the void should be a seemingly more random occurrence which you find out
+  was caused by dash and rex later on"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The oak's quest is gone.** The First Night (`quests/first_night.json`) is now morning, board, **evening**,
+    shift, day, home. The listening, Mr. Page's book, the letter, the three glowing acorns, dusk, waiting and the oak's
+    reveal are all gone (`scripts/humming_oak.gd`: before the fall it's just a big old oak that "you'd swear hummed";
+    its runes stay dark, then glow and the touch hint works from the fall on). Nothing on the first day mentions the
+    oak, midnight or the Void. Earth's clock waits at 6 PM only for the morning and the board; the bed's sleep stops at
+    midnight that night (`FirstNight.sleep_stops_at_midnight()`, `bed.gd`). Nina goes home for dinner (the evening
+    guide shot in `opening.gd` is your house).
+  - **The fall** (`scripts/void_arrival.gd`, a CanvasLayer at `FirstNight.arrival`): at midnight on that first night,
+    wherever the hero is (in bed, on the green, anywhere on Earth), "Midnight.", the shaking builds, the lights flicker,
+    a crack splits open under their feet ("CRACK!"), "Aaaaaah!" and dark (`fall()`, about 4.6 s). Flags `fn_fell` and
+    `oak_woken` (so the oak's crack is the way in from the second night). It lands them in the Market Square.
+  - **The arrival** (`arrive()`, about 29 s, skippable with Jump/Interact): its own camera and black bars, the Void at
+    dawn; seven cracks tear the sky over the square; seven streaks of light land one after another: the hero, Nina,
+    Bruno, Pip, Bramble, Melody and Heather (their real town selves, put in place by the `shift` step's overrides at the
+    new `arrival_<id>` places in `routines/places.json`, hidden until they land); Mr. Palmer, the Green Man, Rex and Rook
+    stare; "(Rex's ears go flat. He looks at Rook. Then he looks at the ground.)" is the only hint at who caused it; 22
+    little aliens (`little_alien_<colour>.glb`) come running from every side and swarm everyone; Tally counts
+    "SEVEN?! All at ONCE?!"; the title "The Night the Sky Cracked". Then the hero's watch, and Tally waits by them
+    (`request_alien.gd stand_by()`). Saying hello to Tally (flag `fn_met_tally`) closes the sky and sends the little
+    aliens home (`scatter()`), with the Divine Mind's "Don't be afraid. You're exactly where you're meant to be."
+  - **A worried town all that first Void day:** new `first_night:shift` / `day` lines for Tally (rattled, then the board
+    how-to), Nina, Bruno, Pip, Bramble, Melody, Heather, Rex ("Totally normal"), Rook, Mr. Palmer (his watch runs
+    backwards), the Green Man ("...Already?") and the Astronaut. Back home Nina asks "Did you... FALL too?", and there's
+    a new crack in front of the old oak with a cone by it.
+  - **Old saves** (`FirstNight._migrate_v5()`, flag `fn_v5`): a save on an old oak step goes back to the evening; one
+    already past the Shift keeps going, with `fn_fell` set.
+  - Tests: `test_first_night` rewritten for the evening, the fall and the arrival (with a forced cutscene run);
+    `test_first_hour`'s old-save checks; opening, meetings, creator, following, kid_ui, season_dial, routines and more
+    pass (see the PR). `tools/capture_first_night.gd` shoots the fall and every beat of the arrival
+    (previews in the project files under world/previews/void_arrival). `tools/capture_humming_oak.gd` is gone.
+  - My choices Hayden may change: every line (first drafts), who the seven are, the title, where each one lands, 22
+    little aliens, Tally waiting by you, that the oak's crack is the way in from the second night.
 - 2026-11-13: **Cracks are invisible until they open, and you tumble in and pop out** (Hayden: "Maybe we can add a
   little animation when you go through and come out of the Crack. Also need to make them invisible until they open").
   Built and tested in the cloud (own Godot user folders, no save touched).

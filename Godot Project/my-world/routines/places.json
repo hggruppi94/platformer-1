@@ -61,7 +61,7 @@
     "arrival_palmer": [-70.0, 30.0],
     "arrival_green_man": [-60.5, 42.0],
     "arrival_rex": [-62.5, 47.0],
-    "arrival_rook": [-61.2, 48.2]
+    "arrival_rook": [-63.6, 48.4]
   },
   "links": [
     ["market", "market_south"],
