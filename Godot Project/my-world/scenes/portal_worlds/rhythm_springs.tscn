@@ -53,67 +53,67 @@ roughness = 0.95
 [sub_resource type="CylinderMesh" id="CylinderMesh_6iedf"]
 top_radius = 2.25
 bottom_radius = 2.25
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_5e7t0"]
 top_radius = 2.55
 bottom_radius = 2.55
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_mx6k7"]
 top_radius = 3.45
 bottom_radius = 3.45
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_0x7jg"]
 top_radius = 3.2
 bottom_radius = 3.2
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_gj8qb"]
 top_radius = 1.95
 bottom_radius = 1.95
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_baxb6"]
 top_radius = 3.0
 bottom_radius = 3.0
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_oqmdp"]
 top_radius = 2.45
 bottom_radius = 2.45
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_5klmo"]
 top_radius = 2.35
 bottom_radius = 2.35
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ol3cj"]
 top_radius = 1.5
 bottom_radius = 1.5
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ftvir"]
 top_radius = 2.85
 bottom_radius = 2.85
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_4id0e"]
 top_radius = 1.7
 bottom_radius = 1.7
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dcmgf"]
@@ -807,7 +807,7 @@ roughness = 0.6
 [sub_resource type="CylinderMesh" id="CylinderMesh_l686l"]
 top_radius = 1.0
 bottom_radius = 1.0
-height = 0.0
+height = 0.04
 radial_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wh5bk"]

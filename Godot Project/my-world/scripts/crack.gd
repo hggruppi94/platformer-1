@@ -267,7 +267,7 @@ static func fall_in(g: Node3D, player: Node3D, then: Callable) -> void:
 				then.call())
 		return
 	var tree := g.get_tree()
-	var scene := tree.current_scene
+	var scene_id := tree.current_scene.get_instance_id() if tree.current_scene else 0
 	var tumble := body.get_node_or_null("Visual/Tumble") as Node3D
 	var turned := tumble.rotation if tumble else Vector3.ZERO
 	var sized := tumble.scale if tumble else Vector3.ONE
@@ -310,8 +310,9 @@ static func fall_in(g: Node3D, player: Node3D, then: Callable) -> void:
 			out.tween_interval(0.25)
 			out.tween_property(veil, "color:a", 0.0, 0.3)
 			out.tween_callback((veil.get_parent() as Node).queue_free)
+		# (The scene by its id: holding the scene itself in the lambda errors once it's been freed by the trip.)
 		tree.create_timer(1.0).timeout.connect(func() -> void:
-			if tree.current_scene == scene:
+			if tree.current_scene and tree.current_scene.get_instance_id() == scene_id:
 				Engine.remove_meta("crack_pop")))      # (it didn't take them anywhere: nobody pops out anywhere later)
 
 

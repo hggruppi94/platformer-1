@@ -97,6 +97,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-13: **Bug sweep: the whole suite and the whole-game playthrough, and what they turned up** (Hayden picked "a bug
+  sweep"). Ran all 109 tests in the cloud (own Godot user folders, four at a time, no save touched): 106 passed. Then
+  read every log for errors and warnings, and ran `tools/playthrough.gd -- all` from a new game to the ending.
+  - **Thin discs that never showed** (`tools/build_rootmind/frozen_moment/lanternmoor/rhythm_springs.gd cyl()`): their
+    heights snap to 0.1, so anything thinner than 0.05 (clover and moss patches, the Frozen Moment's glints, the Lantern
+    Grove's floor, Rhythm Springs' pool beds and pool water discs) became a cylinder with no height: nothing drawn, and
+    about 2,000 "Vector3 cannot be normalized" warnings every time one of those worlds loaded. Now at least 0.04 (as
+    `build_tide_reef.gd` already did). The four `.tscn` files got only their `height = 0.0` lines changed to 0.04 (what
+    the builders now make), not rebuilt, to keep thousands of ID-only lines out.
+  - `test_layout`: the "new-layout save puts you back where you were" spot (10, 50) sat on the booster coins between the
+    meadow rails, so you rushed off ~7 m. The spot is now (10, 40).
+  - `scripts/time_goblin_boss.gd`: his goblins got random names 100-999, and two the same made Godot rename one, so it
+    stopped counting as his (`test_time_goblins` "two more at two-thirds"). They're numbered now.
+  - `test_wall_crawl`: waited on wall-clock timers, so under load it checked before she'd landed on top. It waits on
+    physics frames now.
+  - Error spam fixed: `crack.gd fall_in()`'s 1 s timer held the old scene in a lambda (freed by the trip: "Lambda
+    capture freed"), the creator focused a button on a page already swapped out, and `move_tutorial.gd outside()` read
+    the house's transform mid scene change.
+  - `tools/playthrough.gd`: waits for Pip's talk to let go of the controls before the Moon Rock glide (failed once under
+    load, passes alone).
+  - Left alone: rootmind's squashing "Hit" bodies log a Jolt "scale not supported" error (it rounds to an even scale,
+    under 7% off); a few "ObjectDB leaked at exit" lines from test scripts quitting.
+
 - 2026-11-13: **The night the sky cracked: the first trip to the Void is a big, worrying event** (Hayden: "The intro
   to the void needs to be much more significant ... an unprecedented event that has people worried ... the little aliens
   creatures can greet all of the chosen as they are thrown into the new world all at once. Maybe the glowing tree quest

@@ -172,8 +172,9 @@ func _done_now(delta: float) -> bool:
 
 func outside() -> bool:
 	# Past the front wall of the house (its +Z is the front, where the doorway is: tools/build_earth.gd _my_home)
-	if home == null or not is_instance_valid(home):
-		return false
+	if home == null or not is_instance_valid(home) or not home.is_inside_tree() \
+			or not is_instance_valid(player) or not player.is_inside_tree():
+		return false                              # (mid scene change: the house or the hero has left the tree)
 	var local := home.global_transform.affine_inverse() * player.global_position
 	return local.z > 5.0 or absf(local.x) > 5.5 or local.z < -5.0
 

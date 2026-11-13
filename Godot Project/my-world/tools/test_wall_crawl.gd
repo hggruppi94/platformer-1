@@ -106,7 +106,7 @@ func _crawl() -> void:
 	# Locked
 	await _stand(p, Vector3(-8, Y0 + 0.85, -2.5))
 	Input.action_press("move_forward")
-	await create_timer(1.2).timeout
+	await _physics(72)
 	Input.action_release("move_forward")
 	check(not crawl.active and p.global_position.y < Y0 + 1.5, "before Dark Hollow's mended, walking into a wall just stops you (y %.1f)" % (p.global_position.y - Y0))
 	portals.cleared_worlds.append(ID)
@@ -140,7 +140,7 @@ func _crawl() -> void:
 		if started and not crawl.active:
 			mantled = true
 			break
-	await create_timer(0.8).timeout
+	await _physics(48)
 	Input.action_release("move_forward")
 	await _physics(10)
 	check(mantled, "climbing up, you reach the top")
@@ -153,11 +153,11 @@ func _crawl() -> void:
 		await physics_frame
 		if crawl.active:
 			break
-	await create_timer(0.5).timeout
+	await _physics(30)
 	Input.action_release("move_forward")
 	var high := p.global_position.y
 	Input.action_press("move_back")
-	await create_timer(1.6).timeout
+	await _physics(96)
 	Input.action_release("move_back")
 	await _physics(4)
 	check(high > Y0 + 1.5 and not crawl.active and p.global_position.y < Y0 + 1.2, "pull away from the wall and you climb back down to the floor (from %.1f)" % (high - Y0))
@@ -171,7 +171,7 @@ func _crawl() -> void:
 	Input.action_release("move_forward")
 	var x0 := p.global_position.x
 	Input.action_press("move_right")
-	await create_timer(0.5).timeout
+	await _physics(30)
 	Input.action_release("move_right")
 	check(crawl.active and p.global_position.x > x0 + 1.0, "push sideways and you scuttle along the wall (%.1f m)" % (p.global_position.x - x0))
 	# Jump hops off
@@ -187,7 +187,7 @@ func _crawl() -> void:
 		if crawl.active:
 			break
 	Input.action_release("move_forward")
-	await create_timer(0.3).timeout
+	await _physics(18)
 	_press("dash")
 	await _physics(3)
 	check(not crawl.active, "Roll lets go")
@@ -203,7 +203,7 @@ func _crawl() -> void:
 			break
 	Input.action_release("move_forward")
 	check(ceiling, "climb up into a ceiling and you carry on along it")
-	await create_timer(0.5).timeout
+	await _physics(30)
 	var tumble := p.get("tumble") as Node3D
 	check(crawl.active and absf(wrapf(tumble.rotation.z, -PI, PI)) > 2.8, "...upside down")
 	var under := p.global_position.y
@@ -217,19 +217,19 @@ func _crawl() -> void:
 			break
 	Input.action_release("move_back")
 	check(dropped_at > 2.0 and dropped_at < 4.5, "walk along it and you drop where it ends (z %.1f)" % dropped_at)
-	await create_timer(1.2).timeout
+	await _physics(72)
 	check(p.is_on_floor() and absf(tumble.rotation.z) < 0.1, "...landing the right way up")
 	# Invisible walls
 	await _stand(p, Vector3(0, Y0 + 0.85, 5.0))
 	Input.action_press("move_back")
-	await create_timer(1.2).timeout
+	await _physics(72)
 	Input.action_release("move_back")
 	check(not crawl.active and p.global_position.y < Y0 + 1.5, "the invisible walls round a world can't be climbed")
 	# Not while talking
 	await _stand(p, Vector3(-8, Y0 + 0.85, -2.5))
 	game.hold_controls(&"test", true)
 	Input.action_press("move_forward")
-	await create_timer(0.8).timeout
+	await _physics(48)
 	Input.action_release("move_forward")
 	game.hold_controls(&"test", false)
 	check(not crawl.active, "not while something's holding the controls")
@@ -274,7 +274,7 @@ func _holes() -> void:
 	await _frames(4)
 	check(holes_script.found("market"), "walk up to one and you've found it")
 	var head := holes.heads["market"] as Node3D
-	await create_timer(0.8).timeout
+	await _physics(48)
 	check(head.visible and head.position.y > 0.2, "...and her head pops up out of it to look at you")
 	check(holes.spots["market"].what() == "knock on the centipede's hole", "...and you can knock on it")
 	var lines: Array = holes.lines("market")
@@ -297,15 +297,15 @@ func _holes() -> void:
 	check(str(last.get("what", "")) == "centipede_travel" and str(last.get("answer", "")) == "skate_park", "your pick is recorded")
 	await _frames(2)
 	check(holes.gulping and p.input_locked, "she comes up out of the hole and gulps you up")
-	await create_timer(1.6).timeout
+	await _physics(96)
 	check(root.get_node_or_null("Gulp") != null, "GULP! The screen closes like a mouth")
-	await create_timer(2.0).timeout
+	await _physics(120)
 	var land: Array = holes_script.landing("skate_park")
 	var at: Vector3 = land[0]
 	var d := Vector2(p.global_position.x - at.x, p.global_position.z - at.z).length()
 	check(current_scene.scene_file_path == TOWN and d < 1.0, "...and PTOO! out you pop by the Skate Park's hole (%.1f m off)" % d)
 	check(not p.input_locked and not holes.gulping, "...free to walk again")
-	await create_timer(1.2).timeout
+	await _physics(72)
 	check(root.get_node_or_null("Gulp") == null, "...and the mouth's opened again on the world")
 	await _physics(20)
 	check(p.is_on_floor() and absf(p.global_position.y - (Remnants_ground(k) + 0.8)) < 0.6, "...standing on the ground")
@@ -333,7 +333,7 @@ func _holes() -> void:
 	at = land[0]
 	d = Vector2(p.global_position.x - at.x, p.global_position.z - at.z).length()
 	check(current_scene.scene_file_path == TOWN and d < 1.5, "...and takes you to one (%.1f m off the market's hole)" % d)
-	await create_timer(1.0).timeout
+	await _physics(60)
 	check(root.get_node_or_null("Gulp") == null and not p.input_locked, "...with the gulp gone and you free to walk")
 	# She's gone from her school corner now: only ever in one place
 	change_scene_to_file(SCHOOL)
@@ -442,7 +442,7 @@ func _talk(start: Callable, pick: String) -> void:
 			await _frames(1)
 			_press("interact")
 		await _frames(2)
-	await create_timer(0.25).timeout
+	await _physics(15)
 
 
 func _press(action: String) -> void:

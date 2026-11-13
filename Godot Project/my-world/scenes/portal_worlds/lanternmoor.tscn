@@ -53,97 +53,97 @@ roughness = 0.95
 [sub_resource type="CylinderMesh" id="CylinderMesh_qorro"]
 top_radius = 1.75
 bottom_radius = 1.75
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_mgscc"]
 top_radius = 2.4
 bottom_radius = 2.4
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_krv4g"]
 top_radius = 3.65
 bottom_radius = 3.65
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bqt7d"]
 top_radius = 3.0
 bottom_radius = 3.0
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_14vwq"]
 top_radius = 3.55
 bottom_radius = 3.55
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_vr0sa"]
 top_radius = 3.25
 bottom_radius = 3.25
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_62ilu"]
 top_radius = 3.95
 bottom_radius = 3.95
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_lm350"]
 top_radius = 2.7
 bottom_radius = 2.7
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_mm7hm"]
 top_radius = 1.65
 bottom_radius = 1.65
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_grlp3"]
 top_radius = 1.55
 bottom_radius = 1.55
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ksu1y"]
 top_radius = 3.3
 bottom_radius = 3.3
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_jouj6"]
 top_radius = 2.8
 bottom_radius = 2.8
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_oawke"]
 top_radius = 2.95
 bottom_radius = 2.95
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_2elwv"]
 top_radius = 1.85
 bottom_radius = 1.85
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_i40t2"]
 top_radius = 2.85
 bottom_radius = 2.85
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_aqyyt"]
 top_radius = 3.9
 bottom_radius = 3.9
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n2c2y"]
@@ -586,7 +586,7 @@ roughness = 0.9
 [sub_resource type="CylinderMesh" id="CylinderMesh_qo34y"]
 top_radius = 10.0
 bottom_radius = 10.0
-height = 0.0
+height = 0.04
 radial_segments = 32
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g8ib7"]

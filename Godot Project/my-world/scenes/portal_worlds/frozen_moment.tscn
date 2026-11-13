@@ -56,127 +56,127 @@ emission_energy_multiplier = 0.15
 [sub_resource type="CylinderMesh" id="CylinderMesh_ucq1v"]
 top_radius = 1.45
 bottom_radius = 1.45
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_j62fs"]
 top_radius = 1.75
 bottom_radius = 1.75
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_jkwf2"]
 top_radius = 2.25
 bottom_radius = 2.25
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_cjose"]
 top_radius = 1.5
 bottom_radius = 1.5
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ta5f8"]
 top_radius = 2.2
 bottom_radius = 2.2
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_b41m3"]
 top_radius = 1.25
 bottom_radius = 1.25
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_2qg0q"]
 top_radius = 2.45
 bottom_radius = 2.45
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_bmqwd"]
 top_radius = 2.55
 bottom_radius = 2.55
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_t1g30"]
 top_radius = 1.1
 bottom_radius = 1.1
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_0p818"]
 top_radius = 1.3
 bottom_radius = 1.3
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_i3wic"]
 top_radius = 1.85
 bottom_radius = 1.85
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ndute"]
 top_radius = 1.65
 bottom_radius = 1.65
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_efrfu"]
 top_radius = 1.9
 bottom_radius = 1.9
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ai1vb"]
 top_radius = 1.8
 bottom_radius = 1.8
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_ooo0s"]
 top_radius = 1.2
 bottom_radius = 1.2
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_3em0k"]
 top_radius = 2.3
 bottom_radius = 2.3
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_v6g1r"]
 top_radius = 1.15
 bottom_radius = 1.15
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_kajf1"]
 top_radius = 2.1
 bottom_radius = 2.1
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_u0qnr"]
 top_radius = 2.05
 bottom_radius = 2.05
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_vjpgp"]
 top_radius = 2.35
 bottom_radius = 2.35
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_le7ed"]
 top_radius = 1.35
 bottom_radius = 1.35
-height = 0.0
+height = 0.04
 radial_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_os7vk"]

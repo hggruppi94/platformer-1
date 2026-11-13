@@ -24,6 +24,7 @@ var _chime_t := 4.0
 var _chimes_left := 0
 var _chime_gap := 0.0
 var _calls_made := 0
+var _helper_count := 0                  # names his goblins one by one (see _call_helpers)
 var _helpers: Array[Node] = []
 var _bar: BossBar
 var _pendulum: Node3D
@@ -141,7 +142,10 @@ func _call_helpers(count: int) -> void:
 		if _helpers.size() >= MAX_HELPERS:
 			return
 		var g := HELPER.instantiate() as CharacterBody3D
-		g.name = "Tock's Goblin %d" % randi_range(100, 999)
+		# A counted name, not a random one: two goblins drawing the same number made Godot rename the second one to
+		# an "@" name, so it no longer counted as one of his.
+		_helper_count += 1
+		g.name = "Tock's Goblin %d" % _helper_count
 		g.set("respawns", false)
 		g.set("xp_reward", 3)
 		var a := randf() * TAU

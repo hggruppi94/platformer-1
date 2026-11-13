@@ -490,7 +490,12 @@ func _fill() -> void:
 	_show_void()
 	var first := _content.find_children("*", "Button", true, false)
 	if not first.is_empty():
-		(first[0] as Control).grab_focus.call_deferred()
+		# Deferred, and only if it's still on screen by then: a quick second tab switch frees this page's buttons.
+		var id := (first[0] as Control).get_instance_id()
+		(func() -> void:
+			var b := instance_from_id(id) as Control
+			if b and b.is_inside_tree():
+				b.grab_focus()).call_deferred()
 
 
 func _arrows(what: String, value: String, on_step: Callable) -> HBoxContainer:
