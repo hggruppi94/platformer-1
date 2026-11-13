@@ -3,6 +3,16 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "Well, I'll be. One minute I'm countin' Fluffkins, the next I'm fallin' out of a green sky.",
+        "I'm Heather, sugar. You alright? You look about as rattled as a fence post in a twister.",
+        "(She looks round at the Void folk, all staring.) Folks round here look plum scared of us. Reckon we oughta say hello proper."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "meet_friends:heather"
       },
       "set": "mf_heather",

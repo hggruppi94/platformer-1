@@ -3,6 +3,17 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(A moth kid's wings are trembling.) Oh! Hi. I'm Pip. Did you fall out of the sky too?",
+        "I was lighting the lanterns at home, and the ground went CRACK, and I fell. Up? Down? Both?",
+        "{player}: I'm {player}. I fell right through the ground too!",
+        "(Pip looks at the little aliens hugging their legs.) They're very... huggy. I think they're happy to see us. I think."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "slide_mystery:why",
         "not_flag": "slide_ask_pip"
       },

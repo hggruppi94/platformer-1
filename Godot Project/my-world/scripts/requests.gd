@@ -684,6 +684,16 @@ func lines(talker: Node3D = null) -> Array:
 		if ready_to_turn_in().is_empty() and list.all(func(r: Dictionary) -> bool: return r.paid):
 			out.append("That's every request tonight! Everyone in the Void is talking about {them}.")
 			return out
+	elif not Dialogue.flags.has("tally_hi") and self == Requests and FirstNight.running() and FirstNight.step() == "shift":
+		# The night the sky cracked (scripts/void_arrival.gd): Tally's as rattled as everyone, then carries on with the
+		# notice board's tutorial
+		out.append("(Tally's clipboard is shaking.) Seven. SEVEN! Out of the SKY! Oh my stars. Oh my clipboard.")
+		out.append("Sorry, sorry. Hello! Tally's the name, requests are my game. Normally. This morning it's mostly panicking.")
+		out.append("Folks pop in and out of the Void through cracks in the ground all the time. Little ones. Quiet ones. Never the SKY. Never seven at once.")
+		out.append("(Tally peers at the watch on your wrist and writes something down.) A watch. Same as the others. The old stories call that being 'chosen'. Hmm. Hmm hmm hmm.")
+		out.append("Right! Deep breaths. You're here now, and a busy {player} is a happy {player}. Folks pin their requests on my board every night. Just like the notice board back on Earth, I hear!")
+		out.append("Pick one to follow and it gets a star on your map. Finish it, come back to me or the board, and I pay you in sparkles.")
+		out.append("Here's who needs a hand tonight:")
 	elif not Dialogue.flags.has("tally_hi"):
 		# The first hello: the notice board's tutorial carries on here (the board works just like Earth's)
 		out.append("Oh! A new face! Hello, hello! Tally's the name, requests are my game. (They wave the clipboard.)")

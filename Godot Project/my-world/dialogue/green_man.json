@@ -2,6 +2,17 @@
   "name": "Green Man",
   "conversations": [
     {
+      "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(The Green Man is staring up at the cracks in the sky. He doesn't blink.)",
+        "...",
+        "(He looks at the watch on your wrist. Then at you.)",
+        "...Already?"
+      ]
+    },
+    {
       "when": {"time": "shift"},
       "lines": [
         "(The Green Man looks at the portal. Then he looks at {player}.)",

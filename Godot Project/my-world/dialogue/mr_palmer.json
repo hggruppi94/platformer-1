@@ -3,6 +3,26 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(Mr. Palmer has gone pale. Well, paler green.) Children. From the SKY. Seven of them!",
+        "I've been mayor of this town a very long time, young one. Folks come and go through the cracks in the ground. Quietly. They do NOT fall out of the clouds.",
+        "(He straightens his tie with a shaky hand.) Well. Welcome to the Void, I suppose. Please don't fall on anything else."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "first_night:day"
+      },
+      "every": 2,
+      "lines": [
+        "(Mr. Palmer is writing a very long letter.) An emergency town meeting, I think. About the sky.",
+        "Nobody's ever written the rules for kids falling out of it. I'll have to make some up."
+      ]
+    },
+    {
+      "when": {
         "quest_ready": "slide_mystery:ask",
         "time": [
           "morning",

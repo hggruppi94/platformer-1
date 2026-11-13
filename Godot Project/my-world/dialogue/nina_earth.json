@@ -216,11 +216,11 @@
         "I'm Nina. Nina Blastoff. I live on Maple Lane, with my sister Prue and my little brother Bruno.",
         "{player}: Hi Nina! I'm {player}.",
         "{player}. Cool name. So... can I tell you something weird?",
-        "(She looks over at the big old oak on the corner of the green, then back at you.)",
-        "That tree hums. Every night, right at midnight. Nobody else seems to notice. But I think you will.",
+        "(She glances up at the sky for a second, then back at you.)",
+        "Have you ever had the feeling something's about to happen? Something big? No? Just me. Never mind!",
         "First, go and meet everyone! Mr. Palmer's by the gazebo. He knows everything about this town. Probably more than he says.",
         "Walk up to anyone and press {interact} to say hi. And {player_menu} opens your menu, with your quests and a map of town. {map} goes straight to the map.",
-        "Then come and find me by the old oak. I want to show you something. (She's already walking off.)"
+        "Then come and find me by the gazebo. I want to show you something. (She's already walking off.)"
       ],
       "first_night": true
     },
@@ -240,7 +240,7 @@
         "not_flag": "fn_board_look"
       },
       "lines": [
-        "You've met everyone! Well, nearly. Before we go poking at old trees, I want to show you something.",
+        "You've met everyone! Well, nearly. Now I want to show you something.",
         "This is the notice board, right here by the gazebo. Go on, press {interact} on it. I'll tell you how it works."
       ],
       "first_night": true
@@ -252,71 +252,19 @@
       "lines": [
         "Pick a job and follow it, and a star shows you where to go. You can follow two, or all three!",
         "When it's done, come back to the board and press {interact} to turn it in. Sparkles!",
-        "(She grins.) Then I'll tell you about the oak. Deal?"
+        "(She grins.) That's how you get rich in Stars Hollow. Well. Sparkle-rich."
       ],
       "first_night": true
     },
     {
       "when": {
-        "quest_step": "first_night:oak"
+        "quest_step": "first_night:evening"
       },
       "lines": [
-        "You came! OK. This is going to sound silly. Put your ear right up to the oak. Go on. Press {interact} by its roots.",
-        "(She bounces on her toes.) I want to know if it's just me."
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "quest_step": "first_night:clues"
-      },
-      "lines": [
-        "Three things. Mr. Page at the bookshop, Turn the Page, on Main Street: he has a book about EVERYTHING.",
-        "Mr. Palmer had a funny purple envelope on his porch this morning. Very fancy. Very not-from-round-here.",
-        "And I saw something glowing out by Mossy Falls. Maybe more than one something. The map has stars on all of them.",
-        "I'll keep an eye on the oak. Go! Before it gets dark!"
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "quest_step": "first_night:dusk"
-      },
-      "lines": [
-        "You found them? All three? They're TICKING. Like tiny watches!",
-        "The book said 'laid in its roots at sundown'. There's a little nook by the mossy stone. Press {interact} by the roots."
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "quest_step": "first_night:wait"
-      },
-      "lines": [
-        "The runes! They're glowing! I come here every day and I never even saw them.",
-        "Midnight. Whatever happens, it happens at midnight.",
-        "If waiting's boring, have a nap. Your bed has a button for it: \"Until midnight\". You'll wake up right on time.",
-        "Or keep exploring! The town's pretty at night. Just don't miss it. I'll be right here."
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "quest_step": "first_night:awaken"
-      },
-      "lines": [
-        "It's midnight! Can you hear it? Come closer, {player}. Closer! Something's happening!"
-      ],
-      "first_night": true
-    },
-    {
-      "when": {
-        "quest_step": "first_night:shift"
-      },
-      "lines": [
-        "The ground CRACKED! Right in front of the tree! Can you feel it humming? It's glowing down there. Go on, jump in.",
-        "{player}: Is it safe?",
-        "(She grins.) I've got a feeling it's been waiting for you. Go! I'll be right behind you. I promise."
+        "That was the BEST first day. I have to go home now, though. Mum's making spaghetti, and Bruno always eats mine.",
+        "Stars Hollow's pretty at night. Have a look round, then get some sleep!",
+        "(She stops, and looks up at the sky.) Huh. Did the stars just... flicker?",
+        "Never mind. See you tomorrow, {player}!"
       ],
       "first_night": true
     },
@@ -326,24 +274,26 @@
       },
       "set": "fn_home_nina",
       "lines": [
-        "{player}! You're back! I saw you go through. So? SO?",
-        "{player}: There were aliens! And a talking husky! And a tall yellow alien with a clipboard!",
-        "(Nina laughs.) Wasn't it the BEST? And look, we both got watches. (She holds hers next to yours.) We're chosen, {player}. Both of us.",
-        "Bruno didn't get one. He grabbed my hand and got pulled along, that's all. He's being SO smug about it anyway.",
-        "Everyone there has something they're amazing at. Even if they haven't found it yet. You'll find yours.",
-        "Same time tomorrow?",
+        "{player}! You're back! Did you... did you FALL too?",
+        "{player}: The ground cracked open right under me! And then I fell out of the SKY!",
+        "Me too! Right through my bedroom floor. Bruno grabbed my hand and down we went.",
+        "(She lowers her voice.) And all those little aliens hugging us. And everyone else staring like we were a thunderstorm.",
+        "And look, we both got watches. (She holds hers next to yours.) Tally kept saying we're 'chosen'. Chosen for WHAT?",
+        "Bruno didn't get one. He's being SO smug about it anyway.",
+        "Oh! And this morning there's a big crack in the ground in front of the old oak. It wasn't there yesterday. Mr. Palmer put a cone next to it.",
+        "I don't think last night was an accident, {player}. Something made it happen. Do you think it'll happen again?",
         {
           "choice": [
             {
-              "text": "Same time tomorrow!",
+              "text": "Only one way to find out!",
               "lines": [
-                "Midnight. The oak. Don't be late! (She does a little twirl.)"
+                "Midnight, then. Let's be ready this time. (She does a little twirl.)"
               ]
             },
             {
-              "text": "Every night, if I can!",
+              "text": "I hope so!",
               "lines": [
-                "Ha! That's the spirit. The Void's always there, waiting at dawn."
+                "Me too. Mostly. (She grins.) The Void's still there, I can feel it. Like a song stuck in my head."
               ]
             }
           ]
@@ -367,7 +317,7 @@
               "text": "Yes, show me!",
               "set": "first_night_start",
               "lines": [
-                "Brilliant! First: go and say hi to Mr. Palmer by the gazebo. Then midnight, the oak. I'll explain on the way."
+                "Brilliant! First: go and say hi to Mr. Palmer by the gazebo. I'll explain the rest on the way."
               ]
             },
             {

@@ -51,7 +51,17 @@
     "lab_bench": [101.4, -12.1],
     "my_garden": [-80.0, -28.6],
     "stage_front": [-29.3, 38.4],
-    "melody_stage": [-32.5, 42.5]
+    "melody_stage": [-32.5, 42.5],
+    "arrival_nina": [-77.4, 36.1],
+    "arrival_bruno_alien": [-79.0, 37.4],
+    "arrival_pip": [-69.9, 34.3],
+    "arrival_bramble": [-66.9, 35.9],
+    "arrival_melody": [-64.3, 38.4],
+    "arrival_clover": [-80.0, 39.6],
+    "arrival_palmer": [-70.0, 30.0],
+    "arrival_green_man": [-60.5, 42.0],
+    "arrival_rex": [-62.5, 47.0],
+    "arrival_rook": [-61.2, 48.2]
   },
   "links": [
     ["market", "market_south"],
@@ -108,6 +118,16 @@
     ["lab", "lab_pod_rook"],
     ["lab", "lab_bench"],
     ["shore_southwest", "stage_front"],
-    ["stage_front", "melody_stage"]
+    ["stage_front", "melody_stage"],
+    ["arrival_nina", "town_hall"],
+    ["arrival_bruno_alien", "town_hall"],
+    ["arrival_pip", "town_hall"],
+    ["arrival_bramble", "town_hall"],
+    ["arrival_melody", "town_hall"],
+    ["arrival_clover", "town_hall"],
+    ["arrival_palmer", "town_hall"],
+    ["arrival_green_man", "market_e_lane"],
+    ["arrival_rex", "market_e_lane"],
+    ["arrival_rook", "market_e_lane"]
   ]
 }

@@ -42,12 +42,24 @@
     },
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(A little hippo in a black SK8 beanie is sitting on the ground, rubbing his head.) Did we jutht fall out of the THKY?",
+        "{player}: I think so. Bruno? Is that you?",
+        "Yeah. Bruno. Nina'th brother. I'm a hippo now, apparently. (He wiggles his ears.) Cool. Can we do it again?",
+        "(He looks round at everyone staring.) Why'th everyone looking at uth like we're a thunderthtorm?"
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
         "(A little hippo in a black SK8 beanie skids up on his board.) Yo! The new kid! Bruno. Nina'th brother.",
         "{player}: You're a hippo!",
-        "Yeah, here I am. I grabbed Nina'th hand when the oak opened and got thucked in too. Nina'th one too. We match. She thays that's thpecial. I thay it's thkating.",
+        "Yeah, here I am. I grabbed Nina'th hand when her floor cracked open and got thucked in too. Nina'th one too. We match. She thays that's thpecial. I thay it's thkating.",
         "I didn't get a watch like you two. Nina thays that meanth I'm not chothen, jutht caught up. I thay I'm the coach.",
         "(He grins. There's a gap where a tooth should be.) Thkate Park'th mine. Come by. I teach the leththonth now. Rook helpth."
       ]

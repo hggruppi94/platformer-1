@@ -1,9 +1,10 @@
 extends SceneTree
 
 # Walks the whole of "The First Night" (res://quests/first_night.json, scripts/first_night.gd), from a new game to
-# waking up at home the next night: the hero's made at 8 PM on Earth, Nina knocks, Mr. Palmer and two more people on
-# the green, the evening waits at 11 PM until that's done, the bed's "Until the Shift", the portal and the arrival
-# moment (the swirl, the watch on their wrist), Tally's hello in the Market Square, the Void day (three Gloops, Rex
+# waking up at home the next night: the hero's made, it's 9 AM on Earth, Nina knocks, Mr. Palmer and two more people
+# on the green, the notice board, the evening (nothing about midnight), a sleep that stops at midnight, the ground
+# cracking open under them, the night the sky cracked (the watch on their wrist, seven landings, the little aliens,
+# the cutscene), Tally's rattled hello in the Market Square, the Void day (three Gloops, Rex
 # and Coach Bruno's first two lesson steps, Rex sending them after Dash, a request, the fountain's lost watch, Zippy),
 # then pulled home at the end of the Shift into bed, and Nina's "Same time tomorrow?". (Meeting Dash and the Gloop
 # King are The Bike Boy's now: tools/test_meetings.gd.) The Shift is fast-forwarded. Then: every step can be skipped from the quest log, an old save is
@@ -92,7 +93,7 @@ func _run() -> void:
 	check(stars.size() >= 2, "the map has stars for who to see (%d)" % stars.size())
 
 	var lines := await _talk("nina_earth")
-	check(_said(lines, "hums") and _said(lines, "midnight"), "Nina: the old oak hums at midnight")
+	check(not _said(lines, "midnight") and not _said(lines, "oak"), "Nina says nothing about the oak or midnight (no spoilers)")
 	check(not _said(lines, "{"), "...every {word} filled in")
 	check(dialogue.flags.has("fn_nina") and _said(lines, "Sunny"), "...and she uses the hero's name")
 	var palmer := _talker("palmer_earth")
@@ -103,7 +104,7 @@ func _run() -> void:
 	# The day waits for a slow first look round
 	clock.earth_minutes = 19 * 60.0 + 20.0
 	await _frames(4)
-	check(absf(clock.earth_minutes - 18 * 60.0) < 0.5, "Earth's clock waits at 6 PM until the day's clues are found (%s)" % clock.earth_time_string())
+	check(absf(clock.earth_minutes - 18 * 60.0) < 0.5, "Earth's clock waits at 6 PM until the town and the board are done (%s)" % clock.earth_time_string())
 	clock.earth_minutes = 10 * 60.0
 	check(not root.get_node("FirstNight").shift_sleep_ok(), "...and the bed doesn't offer \"Until the Shift\" yet")
 	lines = await _talk("theo")
@@ -137,110 +138,96 @@ func _run() -> void:
 	lines = await _talk_to(nb.get_node("Request Talk"), [-1])
 	await _frames(4)
 	check(jobs.list[0].paid and dialogue.flags.has("fn_board_job"), "turned in at the board: paid")
-	check(_step() == "oak", "on to the old oak")
+	check(_step() == "evening", "on to the evening")
 
-	# --- The Humming Oak: listen, three clues, three acorns ---
-	await _physics(30)
-	nina = _talker("nina_earth")
-	check(nina != null and _going(nina, "old_oak"), "Nina goes to wait by the old oak")
+	# --- The evening: nothing says what's coming ---
+	await _physics(10)
+	lines = await _talk("nina_earth")
+	check(_said(lines, "spaghetti") and not _said(lines, "midnight"), "Nina goes home for dinner, and says nothing about midnight")
+	check(not oak_mod.awake(), "the old oak is still just a tree")
 	var spot := current_scene.find_child("Oak Spot", true, false)
-	check(spot != null, "the old oak has a spot to listen at")
+	check(spot != null, "the old oak has a spot to look at")
 	lines = await _talk_to(spot)
-	check(_said(lines, "ticking") and dialogue.flags.has("fn_oak_listen"), "listening to the oak: something's ticking inside")
-	await _frames(4)
-	check(_step() == "clues", "on to the clues")
-	for i in 3:
-		check(current_scene.get_node_or_null("Glowing Acorn %d" % (i + 1)) != null, "glowing acorn %d is out" % (i + 1))
-	stars = root.get_node("TownMap").quest_markers()
-	check(stars.size() >= 5, "the map has stars for Mr. Page, the envelope and all three acorns (%d)" % stars.size())
-	await _physics(30)
-	check(_going(_talker("lionel"), "bookshop"), "Mr. Page is back at his bookshop")
-	lines = await _talk("lionel")
-	check(dialogue.flags.has("fn_book") and _said(lines, "LEGEND OF THE OLD OAK") and _said(lines, "three acorns"),
-		"Mr. Page's book: The Legend of the Old Oak, and three acorns of light")
-	var town := root.get_node("EarthTown")
-	lines = []
-	for l in town.letter_lines():
-		lines.append(["", l])
-	check(dialogue.flags.has("read_palmer_letter") and _said(lines, "THE VOID"), "Mr. Palmer's envelope, from the Void")
-	var felt: int = town.tremors_felt
-	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
-	for i in 3:
-		var acorn := current_scene.get_node_or_null("Glowing Acorn %d" % (i + 1)) as Node3D
-		if acorn:
-			p.global_position = acorn.global_position + Vector3(0, 0.3, 0)
-			await _physics(8)
-	await _frames(4)
-	check(dialogue.flags.has("fn_acorns") and town.tremors_felt == felt + 3, "all three acorns found, and each one set off a tremor")
-	check(_step() == "dusk", "on to dusk: the acorns go in the oak's roots")
+	check(_said(lines, "big old oak") and not dialogue.flags.has("oak_woken"), "looking at it: a big old oak, nothing more")
+	check(current_scene.get_node_or_null("Glowing Acorn 1") == null, "no glowing acorns (the oak's quest is gone)")
+	check(not fn.shift_sleep_ok() and fn.sleep_stops_at_midnight(), "the bed offers no \"Until midnight\", but tonight any sleep stops there")
 	clock.earth_minutes = 23 * 60.0 + 30.0
 	await _frames(4)
-	check(absf(clock.earth_minutes - 23 * 60.0) < 0.5 and not clock.in_shift(),
-		"Earth's clock waits at 11 PM until they're in (%s)" % clock.earth_time_string())
-	clock.earth_minutes = 18 * 60.0 + 30.0
-	lines = await _talk_to(spot)
-	check(dialogue.flags.has("fn_acorns_placed") and _said(lines, "runes"), "the acorns go in the nook, and the runes wake")
-	await _frames(4)
-	check(_step() == "wait" and not oak_mod.awake(), "on to waiting for midnight (the oak's not open yet)")
-	lines = await _talk("nina_earth")
-	check(_said(lines, "Until midnight") and root.get_node("FirstNight").shift_sleep_ok(), "Nina suggests the bed's \"Until midnight\"")
+	check(absf(clock.earth_minutes - (23 * 60.0 + 30.0)) < 1.0, "the evening isn't held up: the clock runs on (%s)" % clock.earth_time_string())
+	check(not messages.any(func(m: String) -> bool: return m.contains("portal") or m.contains("Shift")), "...and no message mentions the portal or the Shift")
 
-	# --- The bed: Until the Shift ---
+	# --- The bed, "until morning"... and the floor cracks open at midnight ---
 	var bed := current_scene.find_child("SleepSpot", true, false)
 	check(bed != null, "the bed is there")
-	bed.sleep_for(clock.minutes_until_hour(0))
-	await create_timer(5.5).timeout
-	await _frames(4)
-	check(clock.in_shift() and _step() == "awaken", "slept until the Shift: it's midnight (%s, %s)" % [clock.earth_time_string(), _step()])
-	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
-	check(str(door.get("closed_message")) != "" and current_scene.get("crack") == null, "...but the oak doesn't open till they go and see it")
-	# --- The reveal ---
-	p = current_scene.find_child("Player", true, false) as CharacterBody3D
-	p.global_position = door.global_position + door.global_basis.z * 8.0
-	await _frames(6)
-	check(oak_mod.revealing and get_root().get_viewport().get_camera_3d().name == "Oak Reveal Camera", "walking up at midnight: the oak wakes (the camera swings round to it)")
-	check(p.get("input_locked") == true, "...and they stand and watch")
-	await create_timer(oak_mod.REVEAL_TIME + 0.5).timeout
-	check(not oak_mod.revealing and dialogue.flags.has("oak_woken") and p.get("input_locked") == false, "the reveal ends, and off they go")
-	check(get_root().get_viewport().get_camera_3d() == p.find_child("Camera3D", true, false), "...with their own camera back")
-	await _frames(4)
-	check(_step() == "shift" and oak_mod.awake() and str(door.get("closed_message")) == "", "the way to the Void is open")
-	await create_timer(3.0).timeout
-	var crack := current_scene.get("crack") as Node3D
-	check(crack != null and crack.get_meta("open", 0.0) > 0.9, "...a crack has split the ground open in front of the oak")
-	check(door.global_position.distance_to(crack.global_position) < 1.5 if crack else false, "...and the way through is down it")
-	lines = await _talk("nina_earth")
-	check(_said(lines, "jump in"), "Nina: go on, jump in")
-
-	# --- Through the portal: the arrival moment ---
+	clock.earth_minutes = 21 * 60.0
+	check(bed.call("_morning_stops") == true, "\"Until morning\" stops at midnight tonight")
 	var watch_before: bool = game.has_item("shop:shift_watch")
-	game.go(TOWN, "FromPortaltoEarth")
-	await _wait_for_scene(TOWN)
-	await _frames(3)
+	bed.sleep_for(clock.minutes_until_hour(7), bed.call("_morning_stops"))
+	await create_timer(5.5).timeout
+	check(clock.in_shift(), "she wakes at midnight (%s)" % clock.earth_time_string())
+	await _wait_for_scene(TOWN, 240)
+	await _frames(4)
+	check(dialogue.flags.has("fn_fell") and dialogue.flags.has("oak_woken"), "midnight: the ground cracks open under them, and they fall")
+	check(_step() == "shift" and oak_mod.awake(), "...into the Void (%s)" % _step())
+
+	# --- The night the sky cracked ---
+	var arrival: Node = fn.arrival
 	check(not watch_before and game.has_item("shop:shift_watch") and str(game.outfit.get("hands", "")) == "shift_watch",
 		"a watch appears on the hero's wrist")
-	check(fn.is_arriving() and fn._warp_layer.visible, "the screen swirls as they land")
-	check(fn._warp_text.text.contains("Dawn"), "...\"%s\"" % fn._warp_text.text.replace("\n", " "))
-	p = current_scene.find_child("Player", true, false)
-	check(p.get("input_locked") == true, "...and they stand still for it")
-	await create_timer(fn.WARP_TIME + 1.6).timeout
-	check(not fn.is_arriving() and not fn._warp_layer.visible and p.get("input_locked") == false, "then it clears, and off they go")
-	check(clock.in_shift() and clock.hour() == 7 or clock.hour() == 8, "it's dawn in the Void (%s)" % clock.time_string())
-	var piece: Node3D = Clothes.hat_or_piece("hands", "shift_watch")
-	check(piece != null, "the Shift Watch has a look of its own")
-	if piece:
-		piece.free()
+	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
+	var lands := Vector3(arrival.HERO_LANDS.x, p.global_position.y, arrival.HERO_LANDS.y) as Vector3
+	check(_flat(p.global_position - lands) < 2.0, "they land in the Market Square (%.1f m off)" % _flat(p.global_position - lands))
+	check(clock.in_shift() and (clock.hour() == 7 or clock.hour() == 8), "it's dawn in the Void (%s)" % clock.time_string())
+	check(arrival.sky_cracks.size() == 7, "seven cracks in the sky (%d)" % arrival.sky_cracks.size())
+	check(arrival.greeters.size() == arrival.GREETERS, "little aliens come to greet them (%d)" % arrival.greeters.size())
+	var round_hero: int = arrival.greeters.filter(func(g: Node3D) -> bool: return _flat(g.global_position - p.global_position) < 3.5).size()
+	check(round_hero >= arrival.HERO_GREETERS - 1, "...%d of them round the hero" % round_hero)
 	await _physics(30)
+	for a in arrival.ARRIVALS:
+		var t := _talker(str(a[0]))
+		var near := t != null and _flat(t.get_parent().global_position - Vector3(a[2].x, 0, a[2].y)) < 1.5
+		check(near and _going(t, "arrival_" + str(a[0])), "%s landed with them, at the square" % a[1])
+	for id in arrival.ONLOOKERS:
+		var t := _talker(id)
+		check(t != null and _going(t, "arrival_" + ("palmer" if id == "mr_palmer" else id)), "%s stops to stare" % id)
+	lines = await _talk("rex")
+	check(_said(lines, "Totally normal") and not _said(lines, "Swap"), "Rex: \"totally normal\" (a hint, nothing more)")
+	lines = await _talk("nina")
+	check(_said(lines, "floor cracked") and _said(lines, "watch"), "Nina fell too, through her bedroom floor")
+	var tally := current_scene.get_node_or_null("Tally") as Node3D
+	check(tally != null and _flat(tally.global_position - arrival.tally_spot()) < 1.0, "Tally waits right beside them")
 	stars = root.get_node("TownMap").quest_markers()
 	check(stars.any(func(s: Dictionary) -> bool: return _flat(s.pos - _place("market")) < 3.0), "a star on the Market Square, for Tally")
-	check(messages.any(func(m: String) -> bool: return m.contains("clipboard")), "...and Tally's waving at them")
-	var tally := current_scene.get_node_or_null("Tally/Request Talk") as Node3D
+
+	# --- The cutscene itself (headless runs skip the pictures unless asked) ---
+	for f in ["fn_arrived"]:
+		dialogue.flags.erase(f)
+	arrival.force = true
+	arrival.arrive()
+	await _frames(3)
+	check(arrival.playing() and get_root().get_viewport().get_camera_3d().name == "Arrival Camera", "the cutscene plays with its own camera")
+	p = current_scene.find_child("Player", true, false) as CharacterBody3D
+	check(p.get("input_locked") == true and not p.visible, "...the hero stands still, not landed yet")
+	arrival._t = arrival.T_ALIENS + 1.0
+	await create_timer(1.0).timeout
+	check(p.visible and _talker("pip").get_parent().visible, "...everyone's landed by the time the little aliens come")
+	check(arrival.greeters.any(func(g: Node3D) -> bool: return g.visible and not g.get_meta("there", false)), "...and the little aliens come running")
+	arrival._t = arrival.LENGTH
+	await _frames(4)
+	check(not arrival.playing() and p.get("input_locked") == false and get_root().get_viewport().get_camera_3d() == p.find_child("Camera3D", true, false),
+		"it ends: their own camera back, free to move")
+	check(arrival.greeters.all(func(g: Node3D) -> bool: return g.get_meta("there", false)), "...with every little alien where it was going")
+	arrival.force = false
+
+	tally = current_scene.get_node_or_null("Tally/Request Talk") as Node3D
 	check(tally != null, "Tally's in the Market Square")
 	lines = await _talk_to(tally) if tally else []
-	check(dialogue.flags.has("fn_met_tally") and _said(lines, "Tally"), "Tally says hello and shows the request board")
+	check(dialogue.flags.has("fn_met_tally") and _said(lines, "SEVEN"), "Tally: \"Seven. SEVEN! Out of the SKY!\"")
+	check(_said(lines, "chosen") and _said(lines, "request"), "...says it's never happened, and shows the request board")
 	check(_said(lines, "Rex") and _said(lines, "Skate Park"), "...and sends them on to Rex at the Skate Park")
 	check(_said(lines, "Gloops"), "...and says how to pop Gloops: jump on them")
-	await _frames(4)
+	await create_timer(3.5).timeout
+	check(arrival.greeters.is_empty() and arrival.sky_cracks.is_empty(), "then the little aliens scatter and the sky closes")
 	check(_step() == "day", "on to the Void day")
 	check(not dialogue.flags.has("fn_met_dash"), "Dash isn't waiting at the portal any more (he's busy: The Bike Boy)")
 
@@ -295,7 +282,7 @@ func _run() -> void:
 	await _physics(30)
 	var sparkles: int = game.sparkles
 	lines = await _talk("nina_earth")
-	check(_said(lines, "Same time tomorrow?"), "Nina: \"Same time tomorrow?\"")
+	check(_said(lines, "FALL too") and _said(lines, "crack in the ground in front of the old oak"), "Nina: \"Did you FALL too?\", and there's a crack by the old oak now")
 	await _frames(4)
 	check(quests.is_done(Q) and game.sparkles == sparkles + 10, "The First Night is done (+10 sparkles)")
 	check(clock.pull_spawn == "", "...and the portal goes back to leaving them by the oak")
@@ -329,7 +316,7 @@ func _run() -> void:
 			break
 		skip.pressed.emit()
 		await _frames(3)
-	check(quests.is_done(Q) and seen == ["morning", "board", "oak", "clues", "dusk", "wait", "awaken", "shift", "day", "home"],
+	check(quests.is_done(Q) and seen == ["morning", "board", "evening", "shift", "day", "home"],
 		"every step skips, one at a time (%s)" % ", ".join(seen))
 	menu.close()
 	await _frames(2)

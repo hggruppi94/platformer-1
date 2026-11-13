@@ -8,26 +8,25 @@ extends Node
 # plays the arrival moment the first time they land in the Void (the screen warps and a watch appears on their wrist),
 # cheers when the Gloop King pops, and has the portal put them to bed at the end of the night instead of by the oak.
 #
-#   The Humming Oak, a whole first day on Earth (the oak itself, its acorns and its reveal: scripts/humming_oak.gd):
+#   A whole first day on Earth, then a night nobody saw coming (Hayden, 13 Nov 2026: the glowing oak quest is gone, and
+#   "getting pulled into the void should be a seemingly more random occurrence"):
 #   1 morning  Earth, 9 AM: Nina knocks; meet Mr. Palmer and two more people on the green.
 #   1b board   Nina shows the notice board by the gazebo: read it, follow a job (a star on the map), do one and turn
 #              it in (the job board tutorial, Hayden's 11 Nov 2026 playtest; it carries over to Tally's board).
-#   2 oak      Nina says the old oak hums at midnight: listen to it, and something's ticking inside.
-#   3 clues    Mr. Page's book (The Legend of the Old Oak), Mr. Palmer's lilac envelope from the Void, and three
-#              glowing acorns round town (each one sets off a tremor). Earth's clock waits at 6 PM until steps 1 to 3
-#              are done, so nobody runs out of day.
-#   4 dusk     lay the acorns in the oak's roots: its runes wake. The clock waits at 11 PM until they're in.
-#   5 wait     until midnight (the bed's "Until the Shift" is offered from here on, not before).
-#   6 awaken   at midnight, walk up to the oak: it opens its door for the first time (the reveal).
+#              Earth's clock waits at 6 PM until steps 1 and 1b are done, so nobody runs out of day.
+#   2 evening  Nina goes home for dinner; enjoy the evening, then bed. At midnight, wherever they are, the ground
+#              shakes and a crack splits open right under them (scripts/void_arrival.gd fall(); a sleep that night stops
+#              at midnight, scripts/bed.gd). Nothing says it's coming.
 #   Then the first Void day:
-#   7 shift    through the oak's door: the arrival moment, a short flight over the Void that ends on Tally's request
-#              board (the first time only: scripts/place_intro.gd, void_intro()), then say hello to Tally.
-#   8 day      the Void: a request from Tally's board, Rex and Coach Bruno's first two lesson steps, three Gloops
+#   3 shift    the night the sky cracked: they and six other chosen fall out of the Void's sky into the Market Square
+#              all at once, the Void folk stare, the little aliens run to greet them and Tally comes counting
+#              (scripts/void_arrival.gd arrive()); say hello to Tally.
+#   4 day      the Void: a request from Tally's board, Rex and Coach Bruno's first two lesson steps, three Gloops
 #              (stomped: the Star Popper's Dash's, later), the fountain's watch. After the ollie Rex sends them after
 #              his twin, Dash: "The Bike Boy" (res://quests/bike_boy.json, scripts/meetings.gd), which can run
 #              alongside and has the Gloop King in it now (in his own kingdom, through the Gloop Gate
 #              in the west fields: scripts/gloop_kingdom.gd).
-#   9 home     pulled home at the end of the Shift, waking in bed; Nina outside: "Same time tomorrow?"
+#   5 home     pulled home at the end of the Shift, waking in bed; Nina outside: "You fell too?!"
 #
 # (Nov 11 2026, Hayden's meeting order: Dash isn't waiting at the portal any more and the King step moved to The
 # Bike Boy. Who comes after whom, and what sends you there, is scripts/meetings.gd: the "Meetings" node here.)
@@ -43,16 +42,20 @@ const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 const START_HOUR := 9.0                       # a new game starts in the morning: 9 AM on Earth
 const DUSK_HOUR := 18.0                       # the day waits here (Earth time) until the town and the clues are done
-const HOLD_HOUR := 23.0                       # ...and here until the acorns are in the oak's roots
-const DAY_STEPS := ["morning", "board", "oak", "clues"]
-const NO_SHIFT_SLEEP := ["morning", "board", "oak", "clues", "dusk"]
+const DAY_STEPS := ["morning", "board"]
+const NO_SHIFT_SLEEP := ["morning", "board", "evening"]
 const BOARD_FLAG := "fn_v3"                    # this save's First Night has the notice board step (migrate())
 const PlaceIntro := preload("res://scripts/place_intro.gd")
 const Opening := preload("res://scripts/opening.gd")
+const VoidArrival := preload("res://scripts/void_arrival.gd")
 const INTRO_SEEN := "void_intro_seen"
 const FRESH_FLAG := "fresh_start"           # a game started since the Humming Oak (held_back())
 const ORDER_FLAG := "fn_v4"                    # this save's First Night has Hayden's meeting order (migrate())
 const VERSION_FLAG := "fn_v2"                 # this save's First Night has the Humming Oak's steps (see migrate())
+const FALL_FLAG := "fn_v5"                     # this save's First Night has the fall, not the oak's quest (migrate())
+# The Humming Oak's step numbers (morning, board, oak, clues, dusk, wait, awaken, shift, day, home) -> today's
+# (morning, board, evening, shift, day, home)
+const OAK_STEPS := {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 3, 8: 4, 9: 5}
 # An old save's step (before the Humming Oak, Nov 2026) -> the same step in the Humming Oak's list (before the board
 # step went in after "morning": _migrate_v2() adds one for that)
 const OLD_STEPS := {0: 0, 1: 4, 2: 6, 3: 7, 4: 8, 5: 9}
@@ -65,16 +68,12 @@ const KING_SPARKLES := 15
 # Earth's townsfolk who count as "people round the green" (not Nina or Mr. Palmer, who have their own lines)
 const EARTH_FOLK := ["gus", "dottie", "barnaby", "marigold", "poppy", "otis", "wren", "hank", "kip", "lionel",
 	"juniper", "ozzie", "ivy", "theo", "celeste", "prue", "bruno"]
-const WARP_TIME := 2.6                        # seconds of the arrival moment
 
-var _warp_layer: CanvasLayer
-var _warp_rect: ColorRect
-var _warp_text: Label
-var _arriving := false
 var _woke_home := false                       # the portal put them to bed tonight: say so once Earth's up
 var intro: CanvasLayer                        # the first look round the Void (scripts/place_intro.gd)
 var meetings: Node                            # who you meet next (scripts/meetings.gd)
 var opening: Node                             # the opening cutscenes and the movement tutorial (scripts/opening.gd)
+var arrival: CanvasLayer                      # the fall, and the night the sky cracked (scripts/void_arrival.gd)
 
 
 func _ready() -> void:
@@ -89,13 +88,15 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Quests.follow_changed.connect(_check_board)
 	EarthJobs.changed.connect(_check_board)
-	_build_warp()
 	intro = PlaceIntro.new()
 	intro.name = "Void Intro"
 	add_child(intro)
 	opening = Opening.new()
 	opening.name = "Opening"
 	add_child(opening)
+	arrival = VoidArrival.new()
+	arrival.name = "Arrival"
+	add_child(arrival)
 	_ensure_meetings()
 
 
@@ -121,6 +122,7 @@ func start() -> void:
 	flag(VERSION_FLAG)
 	flag(BOARD_FLAG)
 	flag(ORDER_FLAG)
+	flag(FALL_FLAG)
 	Quests.check()
 
 
@@ -135,8 +137,14 @@ func held_back(night: int) -> bool:
 
 
 func shift_sleep_ok() -> bool:
-	# The bed's "Until the Shift" (scripts/bed.gd) only once the oak's ready for midnight
+	# The bed's "Until the Shift" (scripts/bed.gd) only once they've been through once (nothing hints at midnight before)
 	return not running() or not step() in NO_SHIFT_SLEEP
+
+
+func sleep_stops_at_midnight() -> bool:
+	# The first night, any sleep ends at midnight, even "until morning": that's when the ground cracks open
+	# (scripts/bed.gd)
+	return running() and step() == "evening"
 
 
 func _ensure_meetings() -> void:
@@ -154,6 +162,7 @@ func migrate() -> void:
 	_migrate_v2()
 	_migrate_v3()
 	_migrate_v4()
+	_migrate_v5()
 	_ensure_meetings()
 	meetings.migrate()
 
@@ -185,6 +194,23 @@ func _migrate_v4() -> void:
 		st["step"] = 9
 	if at >= 8:
 		Dialogue.flags["fn_met_tally"] = true
+
+
+func _migrate_v5() -> void:
+	# (13 Nov 2026: the oak's quest, its acorns and its reveal are gone; a crack opens under the hero at midnight
+	# instead.) A save on one of the oak's steps goes to "evening" and falls at the next midnight; one past it moves to
+	# the same step in the shorter list.
+	if not Quests.state.has(ID) or Dialogue.flags.has(FALL_FLAG):
+		return
+	Dialogue.flags[FALL_FLAG] = true
+	var st: Dictionary = Quests.state[ID]
+	if bool(st.get("done", false)):
+		return
+	var at := int(st.get("step", 0))
+	st["step"] = int(OAK_STEPS.get(at, at - 4))
+	if at >= 7:
+		Dialogue.flags["fn_fell"] = true
+		Dialogue.flags["oak_woken"] = true
 
 
 func _migrate_v2() -> void:
@@ -229,14 +255,12 @@ func _process(_delta: float) -> void:
 	if not running():
 		return
 	match step():
-		"morning", "board", "oak", "clues":
-			# Earth's clock waits at 6 PM (just the clock: everyone carries on) until the day's clues are found
+		"morning", "board":
+			# Earth's clock waits at 6 PM (just the clock: everyone carries on) until the town and the board are done
 			_hold(DUSK_HOUR)
-		"dusk":
-			_hold(HOLD_HOUR)
-		"wait":
-			if Clock.in_shift():
-				flag("fn_midnight")
+		"evening":
+			if arrival.due():
+				arrival.fall()                        # midnight: the ground cracks open under them
 		"day":
 			_check_requests()
 		"home":
@@ -306,37 +330,10 @@ func _on_scene_changed() -> void:
 
 
 func _arrive() -> void:
-	# The first landing in the Void: the screen swirls, a watch appears on their wrist, and dawn comes up
-	if _arriving:
-		return
-	_arriving = true
-	flag("fn_arrived")
+	# The first landing in the Void: a watch appears on their wrist, and the night the sky cracked plays
+	# (scripts/void_arrival.gd: the cutscene, the little aliens and Tally waiting)
 	_give_watch()
-	Game.hold_controls(&"first_night_arrival", true)
-	var mat := _warp_rect.material as ShaderMaterial
-	var calm := Settings.reduce_motion
-	_warp_layer.visible = true
-	_warp_text.text = "The Void. Dawn.\nA watch has appeared on %s wrist. It ticks... differently here." % \
-		Hero.pronoun(Game.hero, "their")
-	_warp_text.modulate.a = 0.0
-	mat.set_shader_parameter("amount", 0.0 if calm else 1.0)
-	mat.set_shader_parameter("tint", 0.85)
-	Audio.play("beam", -4.0, 0.0)
-	var tw := _warp_layer.create_tween()
-	tw.tween_property(_warp_text, "modulate:a", 1.0, 0.4)
-	tw.parallel().tween_method(func(v: float) -> void: mat.set_shader_parameter("amount", 0.0 if calm else v),
-		1.0, 0.0, WARP_TIME).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	tw.parallel().tween_method(func(v: float) -> void: mat.set_shader_parameter("tint", v), 0.85, 0.0, WARP_TIME)
-	tw.tween_interval(0.6)
-	tw.tween_property(_warp_text, "modulate:a", 0.0, 0.5)
-	tw.tween_callback(func() -> void:
-		_warp_layer.visible = false
-		_arriving = false
-		Game.hold_controls(&"first_night_arrival", false)        # (a talk going on keeps its own hold)
-		Audio.play("pickup", -6.0, 0.0)
-		void_intro(func() -> void:
-			if step() == "shift":
-				Game.message("Somebody tall and yellow is waving a clipboard at you from the Market Square...")))
+	arrival.arrive()
 
 
 func void_intro(after: Callable = Callable(), force := false) -> void:
@@ -375,7 +372,7 @@ func void_intro(after: Callable = Callable(), force := false) -> void:
 
 
 func is_arriving() -> bool:
-	return _arriving
+	return arrival.playing()
 
 
 func _give_watch() -> void:
@@ -501,49 +498,3 @@ func crown_from_dash() -> Array:
 func pulled_home() -> void:
 	# scripts/clock.gd, as the end of the Shift puts them to bed on the first night
 	_woke_home = true
-
-
-# -----------------------------------------------------------------------------
-# The arrival moment's screen
-# -----------------------------------------------------------------------------
-func _build_warp() -> void:
-	_warp_layer = CanvasLayer.new()
-	_warp_layer.layer = 48
-	_warp_layer.visible = false
-	add_child(_warp_layer)
-	_warp_rect = ColorRect.new()
-	_warp_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_warp_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sh := Shader.new()
-	# A swirl that winds the screen round its middle and unwinds, washed in the portal's lavender, fading to nothing
-	sh.code = """
-shader_type canvas_item;
-uniform sampler2D screen : hint_screen_texture, filter_linear_mipmap;
-uniform float amount = 1.0;
-uniform float tint = 0.8;
-void fragment() {
-	vec2 c = SCREEN_UV - vec2(0.5);
-	float r = length(c);
-	float a = amount * 7.0 * (1.0 - smoothstep(0.0, 0.75, r));
-	float s = sin(a);
-	float co = cos(a);
-	vec2 uv = vec2(c.x * co - c.y * s, c.x * s + c.y * co) * (1.0 - 0.35 * amount) + vec2(0.5);
-	vec3 col = textureLod(screen, uv, amount * 2.0).rgb;
-	vec3 lav = mix(vec3(0.72, 0.6, 1.0), vec3(0.4, 0.95, 0.85), smoothstep(0.1, 0.6, r));
-	COLOR = vec4(mix(col, lav, tint), 1.0);
-}
-"""
-	var m := ShaderMaterial.new()
-	m.shader = sh
-	_warp_rect.material = m
-	_warp_layer.add_child(_warp_rect)
-	_warp_text = Label.new()
-	_warp_text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_warp_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_warp_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_warp_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_warp_text.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
-	_warp_text.add_theme_color_override("font_color", Color(1, 0.97, 1))
-	_warp_text.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.25))
-	_warp_text.add_theme_constant_override("outline_size", 8)
-	_warp_layer.add_child(_warp_text)

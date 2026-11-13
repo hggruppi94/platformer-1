@@ -10,8 +10,8 @@ extends Node
 #   tutorial  the movement tutorial in the house (scripts/move_tutorial.gd), ending at the front door
 #   nina    out of the door: the camera finds Nina on the green, waving
 #   Then a short "where to go" shot each time The First Night moves on to a new step, so the player is shown where to
-#   go instead of reading it (GUIDES): Mr. Palmer and the green, the notice board, the old oak, the clues, the oak's
-#   roots at dusk, and in the Void the Skate Park where Rex is.
+#   go instead of reading it (GUIDES): Mr. Palmer and the green, the notice board, home in the evening, and in the
+#   Void the Skate Park where Rex is.
 #
 # Everything is skippable (Jump, Interact or Accept: scripts/place_intro.gd) and plays once (flags "opening_wake",
 # "guide_<id>"). Nothing here gives away what's coming (Hayden's no-spoilers rule): the shots only show where things
@@ -29,17 +29,14 @@ const GUIDES := {
 	"nina": {"world": "earth", "step": "morning", "unless": "fn_nina"},
 	"green": {"world": "earth", "step": "morning", "flag": "fn_nina"},
 	"board": {"world": "earth", "step": "board"},
-	"oak": {"world": "earth", "step": "oak"},
-	"clues": {"world": "earth", "step": "clues"},
-	"dusk": {"world": "earth", "step": "dusk"},
+	"evening": {"world": "earth", "step": "evening"},
 	"skate_park": {"world": "void", "step": "day", "flag": "fn_met_tally"},
 }
 # Places on Stars Hollow's ground, [x, z] (routines/earth_places.json, quests/first_night.json)
 const GAZEBO := Vector2(0.0, 8.0)
 const OAK := Vector2(-5.5, 14.5)
 const BOARD := Vector2(-3.7, 6.6)
-const BOOKSHOP := Vector2(9.0, -25.9)
-const PALMER_PORCH := Vector2(-59.8, 49.5)
+const MY_HOME := Vector2(0.0, 31.6)
 const SKATE_PARK := Vector2(50.0, 58.0)
 
 var cut: CanvasLayer                  # the cutscene player (scripts/place_intro.gd)
@@ -200,16 +197,8 @@ func guide_shots(id: String) -> Array:
 					"caption": "...and to two more people round the green."}]
 		"board":
 			return [_close_up(_at(BOARD), "The Notice Board", "People pin jobs up here, and they pay sparkles! Nina will show you how.", 4.5, 6.0, 1.6)]
-		"oak":
-			return [_close_up(_at(OAK), "The Old Oak", "Nina says it hums every midnight. Go and listen to it.", 4.5, 9.0, 5.0)]
-		"clues":
-			var town := _at(GAZEBO)
-			return [_close_up(_at(BOOKSHOP), "Turn the Page", "Mr. Page knows all the town's old stories...", 3.6, 9.0),
-				_close_up(_at(PALMER_PORCH), "Mr. Palmer's House", "...there's something on Mr. Palmer's porch...", 3.6, 9.0),
-				{"from": town + Vector3(0, 60, 50), "look": town, "time": 4.0, "title": "",
-					"caption": "...and three glowing acorns are hidden round town. Your map shows where."}]
-		"dusk":
-			return [_close_up(_at(OAK), "", "The sun's going down. The acorns go in the nook in the old oak's roots.", 4.5, 6.0, 1.0)]
+		"evening":
+			return [_close_up(_at(MY_HOME), "Home", "Nina's gone home for dinner. Enjoy the evening, then head to bed when you're sleepy.", 4.5, 12.0, 2.0)]
 		"skate_park":
 			return [_close_up(_at(SKATE_PARK), "The Skate Park", "Rex is waiting for you at the Skate Park!", 4.5, 16.0, 6.0)]
 	return []
