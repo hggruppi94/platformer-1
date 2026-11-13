@@ -93,7 +93,7 @@ func _run() -> void:
 	check(current_scene.scene_file_path == EARTH and messages.any(func(m: String) -> bool: return m.contains("closed")),
 		"8 PM: the crack by the oak is closed")
 	var crack := current_scene.get("crack") as Node3D
-	check(crack == null or (crack.get_meta("open", 1.0) < 0.1 and (crack.get_node("Lid") as Node3D).visible), "...no crack open by the oak")
+	check(crack == null or (crack.get_meta("open", 1.0) < 0.1 and not (crack.get_node("Broken Earth") as Node3D).is_visible_in_tree()), "...no crack open by the oak")
 
 	# The people, and Mr. Palmer's lights
 	var palmer := _talker("palmer_earth")
@@ -304,12 +304,25 @@ func _talk(t: Area3D, picks: Array = []) -> Array:
 	return said.duplicate()
 
 
-func _wait_for_scene(path: String, frames := 150) -> void:
+func _wait_for_scene(path: String, frames := 900) -> void:
 	for i in frames:
 		await process_frame
 		if current_scene and current_scene.scene_file_path == path:
 			break
 	await _frames(6)
+	await _settle()
+
+
+func _settle() -> void:
+	# Coming through a crack, the player pops up out of the crack there (scripts/crack.gd pop_out()): wait till they've
+	# landed before looking where they are
+	await _frames(4)
+	for i in 900:
+		var pl := current_scene.get_tree().get_first_node_in_group("player") if current_scene else null
+		if pl == null or (pl.get("carried") != true and (pl.get_node("Visual") as Node3D).visible):
+			break
+		await process_frame
+	await _frames(4)
 
 
 func _press(action: String) -> void:

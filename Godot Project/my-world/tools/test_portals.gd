@@ -149,11 +149,12 @@ func _check_preview() -> void:
 	# Jumping in: drop into the middle of the crack
 	player.global_position = p.global_position + Vector3(0, 1.2, 0)
 	(player as CharacterBody3D).velocity = Vector3.ZERO
-	for i in 90:
+	for i in 400:
 		await physics_frame
 		if current_scene == null or current_scene.scene_file_path == ISLE:
 			break
 	await _frames(12)
+	await _settle()
 	await _physics(4)
 
 
@@ -244,11 +245,12 @@ func _check_back_home() -> void:
 	var me := current_scene.get_tree().get_first_node_in_group("player") as CharacterBody3D
 	me.global_position = home.global_position + Vector3(0, 1.2, 0)
 	me.velocity = Vector3.ZERO
-	for i in 90:
+	for i in 400:
 		await physics_frame
 		if current_scene == null or current_scene.scene_file_path == TOWN:
 			break
 	await _frames(12)
+	await _settle()
 	await _physics(4)
 	check(current_scene.scene_file_path == TOWN, "jumping into the way home takes you home to the Void")
 	check(portals.here == "" and clock.running, "...and the Void's clock runs again")
@@ -276,7 +278,7 @@ func _check_back_home() -> void:
 func _check_way_home() -> void:
 	await _physics(4)
 	current_scene.get_node("WayHome/Way Home/Spot").use()
-	for i in 90:
+	for i in 400:
 		await physics_frame
 		if current_scene == null or current_scene.scene_file_path == TOWN:
 			break
@@ -330,3 +332,15 @@ func _finish() -> void:
 		DirAccess.remove_absolute(SETTINGS_BACKUP)
 	print("RESULT %s (%d failed)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+func _settle() -> void:
+	# Coming through a crack, the player pops up out of the crack there (scripts/crack.gd pop_out()): wait till they've
+	# landed before looking where they are
+	await _frames(4)
+	for i in 900:
+		var pl := current_scene.get_tree().get_first_node_in_group("player") if current_scene else null
+		if pl == null or (pl.get("carried") != true and (pl.get_node("Visual") as Node3D).visible):
+			break
+		await process_frame
+	await _frames(4)

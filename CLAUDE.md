@@ -92,6 +92,30 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-13: **Cracks are invisible until they open, and you tumble in and pop out** (Hayden: "Maybe we can add a
+  little animation when you go through and come out of the Crack. Also need to make them invisible until they open").
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Hidden when shut** (`scripts/crack.gd set_open()`): at 0 nothing shows (no dirt, seam, clods or side cracks), their
+    collision is off and the ground is whole again: `scripts/ground_hole.gd cut()` now takes an `undo` list and
+    `fill(undo)` puts the ground back (anything another hole changed since is left alone). The crack cuts the ground again
+    the moment it starts opening (`_cut()` / `_fill()`), and it **unzips** from a short slit in the middle out to its
+    full length by halfway open, with a puff of dirt. So Earth's crack is gone outside the Shift, and a world's crack
+    can't be seen before its quake.
+  - **Falling in** (`fall_in()`): the player's pulled over the middle with a little hop, then tumbles down 3.4 m in
+    0.8 s, getting smaller, while the screen fills with the crack's colour (`_veil()`), then goes through. While it plays
+    they're `carried` (no physics) under a `crack` hold. The doors down inside the Earth crack and the Void's way back to
+    Earth (`door.gd`, meta `crack`) play it too now.
+  - **Popping out** (`pop_out()`, started by `Portals._arrived()` when `came_through()`): once the loading screen's
+    gone, the player shoots up out of the nearest open crack within 10 m, flips over and lands on their arrival spot
+    (0.75 s), with dirt, sparkles and a squash. A crack can't swallow someone who's popping out of it. Reduce motion: no
+    spins; Reduce flashing: no colour flash.
+  - Tests: `test_cracks` (hidden at 1 AM, ground whole, unzipping, the tumble, the pop), `test_earth` and `test_portals`
+    wait for the pop to land (`_settle()`); earth (both runs), portals, practice_trips, first_night, first_hour, layout,
+    walk_through, sunken_secrets, garden_caves, glimmer_caves, lore_order, far_future and the portal worlds' tests pass.
+    Previews: `tools/capture_cracks.gd` (now with the tumble and the pop), in the project files under
+    world/previews/cracks/animations.
+  - My choices Hayden may change: the tumble and flip, how long each takes, the colour wash, the unzip.
+
 - 2026-11-13: **A new game opens with cutscenes and a movement tutorial, and far fewer pop-ups** (Hayden's 12 Nov 2026
   playtest: "There need to be more cutscenes in the beginning to guide the player. and way less popups. maybe a movement
   tutorial", and the line about a blaster when you press Shoot without one was a spoiler). Built and tested in the cloud

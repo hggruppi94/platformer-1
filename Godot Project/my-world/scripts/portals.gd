@@ -148,6 +148,8 @@ func _arrived(s: Node) -> void:
 	_quaking = false
 	if s == null:
 		return                                 # (between two scenes for a frame: wait and see where we land)
+	if CRACK.came_through():
+		CRACK.pop_out(get_tree())             # down one crack, up out of the one here (scripts/crack.gd)
 	var came_from := here
 	var w := world_for_scene(s.scene_file_path if s else "")
 	if w.is_empty():

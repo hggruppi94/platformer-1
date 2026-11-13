@@ -18,6 +18,15 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if closed_message != "":
 		Game.message(closed_message)
+	elif has_meta("crack"):
+		# A door down inside a crack (the crack by the old oak, the Void's way back to Earth): tumble down it first
+		# (scripts/crack.gd), and go if it's still open by the bottom
+		var crack = get_meta("crack")
+		if not is_instance_valid(crack) or (crack as Node3D).has_meta("falling") or body.get("carried") == true:
+			return
+		load("res://scripts/crack.gd").fall_in(crack, body, func() -> void:
+			if closed_message == "" and is_inside_tree():
+				Game.go(destination, spawn, place_name))
 	else:
 		if "ortal" in spawn or "ortal" in str(get_parent().name):
 			# Through the portal: a whoosh and a wobble (scripts/juice.gd)

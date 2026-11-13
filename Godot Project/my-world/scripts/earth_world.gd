@@ -131,6 +131,7 @@ func _make_crack() -> void:
 	var hit := space.intersect_ray(q)
 	crack.global_position = hit.position if hit else Vector3(at.x, EarthLand.height(at.x, at.z), at.z)
 	CRACK.sink(crack, self)
+	_portal_door.set_meta("crack", crack)            # (falling in: the crack's tumble, then through)
 	CRACK.set_open(crack, smoothstep(0.0, 1.0, _open))
 	_portal_door.global_position = crack.global_position + Vector3(0, -1.0, 0)
 	var shape := _portal_door.get_child(0) as CollisionShape3D if _portal_door.get_child_count() > 0 else null

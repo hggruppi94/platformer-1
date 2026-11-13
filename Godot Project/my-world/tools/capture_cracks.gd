@@ -2,8 +2,8 @@ extends SceneTree
 
 # Screenshots of the cracks between worlds (scripts/crack.gd), after Hayden's photo of a real earth fissure (12 Nov
 # 2026): Shard Isle's crack in the Void splitting open and from a few sides, looking down into it, the gold way home on
-# Shard Isle, and the crack by the old oak on Earth open at midnight and closed over at 1 AM. Opens a window (not
-# --headless):
+# Shard Isle, and the crack by the old oak on Earth open at midnight and gone at 1 AM; then (13 Nov) jumping into Shard
+# Isle's crack mid-tumble and popping up out of the way home on the other side. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_cracks.gd -- <output folder>
 #
@@ -78,7 +78,7 @@ func _earth() -> void:
 		_camera(p)
 		c = crack.global_position
 		_look(c + crack.global_basis.z * 4.5 + crack.global_basis.x * 5.5 + Vector3(0, 3.6, 0), c)
-		await _shot("04_earth_crack_closed_over_at_1am")
+		await _shot("04_earth_crack_gone_at_1am")
 
 
 func _void() -> void:
@@ -118,13 +118,48 @@ func _void() -> void:
 
 
 func _isle() -> void:
-	portals.enter("shard_isle")
-	await _frames(16)
+	# Into Shard Isle's crack: the tumble down, from the side
+	var g: Node3D = portals.crack("shard_isle")
+	var at := g.global_position
+	var front := g.global_basis.z
+	var along := g.global_basis.x
+	_look(at + front * 4.5 + along * 2.5 + Vector3(0, 2.2, 0), at + Vector3(0, -0.6, 0))
+	var me := current_scene.find_child("Player", true, false) as CharacterBody3D
+	Engine.time_scale = 0.08                 # (slowed right down, so the shot catches the tumble on a slow machine)
+	load("res://scripts/crack.gd").drop_player(g)
+	for i in 600:                            # (mid-tumble: going down, a bit smaller already)
+		await process_frame
+		if me.get("carried") == true and (me.get_node("Visual/Tumble") as Node3D).scale.x < 0.97:
+			break
+	await _shot("11_falling_into_the_crack")
+	Engine.time_scale = 1.0
+	for i in 300:
+		await process_frame
+		if current_scene and current_scene.scene_file_path.contains("shard_isle"):
+			break
+	await _frames(4)
 	var s := current_scene as Node3D
 	var p := s.find_child("Player", true, false) as CharacterBody3D
-	await create_timer(1.0).timeout
+	var home := s.get_node("WayHome") as Node3D
+	var loading := root.get_node("Loading")
+	for i in 400:
+		if not loading.showing:
+			break
+		await process_frame
 	_camera(p)
-	var ts := (s.get_node("WayHome") as Node3D).global_position
+	var h := home.global_position
+	var to := (s.get_node("Entrance") as Node3D).global_position
+	var side := (to - h).cross(Vector3.UP).normalized()
+	_look((h + to) * 0.5 + side * 9.0 + Vector3(0, 3.0, 0), (h + to) * 0.5 + Vector3(0, 1.8, 0))
+	Engine.time_scale = 0.08
+	for i in 900:                            # (on the way up, over the ground)
+		await process_frame
+		if p.get("carried") == true and (p.get_node("Visual") as Node3D).visible and p.global_position.y > h.y + 1.0:
+			break
+	await _shot("12_popping_out_on_shard_isle")
+	Engine.time_scale = 1.0
+	await create_timer(1.0).timeout
+	var ts := home.global_position
 	p.global_position = ts + Vector3(-3.5, 0.5, 3.5)
 	_look(ts + Vector3(-5.5, 4.0, 6.0), ts + Vector3(0, -0.5, 0))
 	await _frames(6)

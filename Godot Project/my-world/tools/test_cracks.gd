@@ -26,6 +26,8 @@ var dialogue: Node
 var portals: Node
 var mind: Node
 var oak: Node
+var crack_mod
+var loading: Node
 
 
 func check(ok: bool, what: String) -> void:
@@ -44,6 +46,8 @@ func _initialize() -> void:
 	portals = root.get_node("Portals")
 	mind = root.get_node("DivineMind")
 	oak = root.get_node("HummingOak")
+	loading = root.get_node("Loading")
+	crack_mod = load("res://scripts/crack.gd")
 	_run.call_deferred()
 
 
@@ -116,9 +120,16 @@ func _run() -> void:
 	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
 	check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0, "it's a real hole in the ground (down to %.1f, hit %s, crack y %.2f)" % [((hit.position as Vector3).y if hit else 0.0), (str((hit.collider as Node).get_path()) if hit else ""), c.y])
 	check(door.global_position.distance_to(c) < 1.5, "the way through is down it")
-	# Jump in
+	# Jump in: a tumble down into it first, the screen filling with its colour
 	await _drop_into(crack)
-	await _wait_for_scene(TOWN, 200)
+	var faller := current_scene.find_child("Player", true, false) as CharacterBody3D
+	for i in 60:
+		if faller.get("carried") == true and faller.global_position.y < c.y:
+			break
+		await physics_frame
+	check(faller.get("carried") == true and faller.global_position.y < c.y + 0.6 and (faller.get_node("Visual/Tumble") as Node3D).scale.x < 0.99,
+		"falling in: they tumble down into the crack, getting smaller (y %.2f, size %.2f)" % [faller.global_position.y - c.y, (faller.get_node("Visual/Tumble") as Node3D).scale.x])
+	await _wait_for_scene(TOWN, 900)
 	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "jumping into the crack takes you to the Void")
 
 	# --- The Void's way home is a crack too ---
@@ -133,15 +144,25 @@ func _run() -> void:
 	check(back.get_meta("open", 0.0) > 0.9, "...open, in the Shift")
 	var player := current_scene.find_child("Player", true, false) as Node3D
 	var by := current_scene.find_child("FromPortaltoEarth", true, false) as Node3D
-	# 2.5 m, not 1.5: on a busy machine more physics steps run in those 6 frames and she can settle a little further
-	# from the marker (1.5 m, seen once with four tests running at once). What matters is that she's beside the crack, not in it.
-	check(player.global_position.distance_to(by.global_position) < 2.5 and player.global_position.distance_to(back.global_position) > 3.0,
-		"...and you arrived beside it (%.1f m from the marker, %.1f m from the crack)" % [player.global_position.distance_to(by.global_position), player.global_position.distance_to(back.global_position)])
+	# Coming out: once the loading screen's gone they're thrown up out of the crack, and land just beside it
+	var vis := player.get_node("Visual") as Node3D
+	var popped := false
+	for i in 600:
+		if player.get("carried") == true and vis.visible:
+			popped = true
+			break
+		await process_frame
+	check(popped, "...they pop up out of the crack")
+	await create_timer(crack_mod.POP_TIME + 0.5).timeout
+	# 2.5 m, not 1.5: on a busy machine more physics steps run and she can settle a little further from the marker (1.5 m,
+	# seen once with four tests running at once). What matters is that she's beside the crack, not in it.
+	check(player.get("carried") != true and vis.visible and player.get("input_locked") != true and player.global_position.distance_to(by.global_position) < 2.5 and player.global_position.distance_to(back.global_position) > 3.0,
+		"...and land beside it, free to go (%.1f m from the marker, %.1f m from the crack)" % [player.global_position.distance_to(by.global_position), player.global_position.distance_to(back.global_position)])
 	c = back.global_position
 	hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
 	check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0, "...a real hole too")
 	await _drop_into(back)
-	await _wait_for_scene(EARTH, 200)
+	await _wait_for_scene(EARTH, 900)
 	check(current_scene.scene_file_path == EARTH and clock.in_shift(), "jumping in takes you home to Earth, still in the Shift")
 
 	# --- 1 AM: it closes over ---
@@ -151,9 +172,31 @@ func _run() -> void:
 	clock.set_earth_time(1 * 60.0 + 1.0, true)
 	await create_timer(3.5).timeout
 	if current_scene.scene_file_path == EARTH and crack and is_instance_valid(crack):
-		check(crack.get_meta("open", 1.0) < 0.1 and (crack.get_node("Lid") as Node3D).visible, "at 1 AM it closes over with cracked earth")
+		check(crack.get_meta("open", 1.0) < 0.1 and _hidden(crack), "at 1 AM it closes up and isn't there at all (nothing showing)")
 		check(not (crack.get_node("Fall") as Area3D).monitoring, "...and you can't fall in")
+		c = crack.global_position
+		hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
+		check(not hit.is_empty() and absf((hit.position as Vector3).y - c.y) < 0.6, "...and the ground's whole again (hit %.2f, crack y %.2f)" % [((hit.position as Vector3).y if hit else 0.0), c.y])
+		# Opening again: hidden till the first moment it opens, then unzipping from the middle (the town's own clock
+		# would shut it again straight away at 1 AM, so it's held still meanwhile)
+		current_scene.set_process(false)
+		crack_mod.set_open(crack, 0.2)
+		check((crack.get_node("Broken Earth") as Node3D).visible and (crack.get_node("Broken Earth") as Node3D).scale.x < 0.9, "opening, it unzips from the middle (%.2f long)" % (crack.get_node("Broken Earth") as Node3D).scale.x)
+		crack_mod.set_open(crack, 1.0)
+		await _frames(2)
+		hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
+		check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0 and (crack.get_node("Broken Earth") as Node3D).scale.x > 0.99, "...and open, it's a hole again (hit %s at %.2f)" % [(str((hit.collider as Node).get_path()) if hit else ""), ((hit.position as Vector3).y - c.y if hit else 0.0)])
+		crack_mod.set_open(crack, 0.0)
+		current_scene.set_process(true)
 	_finish()
+
+
+func _hidden(g: Node3D) -> bool:
+	for n in ["Broken Earth", "Lips", "Fissures", "Shaft/Split", "Lid", "Swirl"]:
+		var c := g.get_node_or_null(n) as Node3D
+		if c and c.is_visible_in_tree():
+			return false
+	return true
 
 
 func space_of() -> PhysicsDirectSpaceState3D:
