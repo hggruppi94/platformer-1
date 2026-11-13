@@ -137,7 +137,7 @@ static func arrive(id: String, overlay: CanvasLayer) -> void:
 	if id == "home":
 		_free_later(tree, overlay)
 		Game.pending_message = "PTOO! Out you pop by her hollow log, behind the old gate."
-		Game.go_to_point(SCARY, HOME_AT, HOME_YAW, "the Scary World")
+		Game.go_to_point(SCARY, HOME_AT, HOME_YAW, "Dusk's Embrace")
 		return
 	var h := hole(id)
 	if h.is_empty():

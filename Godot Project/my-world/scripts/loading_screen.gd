@@ -76,7 +76,7 @@ func show_for(scene_path: String) -> void:
 	tip = tips[_rng.randi() % tips.size()]
 	_tip_label.text = tip
 	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to the Void...",
-		"res://scenes/scary_world/scary_world.tscn": "Off to the Scary World..."}.get(scene_path,
+		"res://scenes/scary_world/scary_world.tscn": "Off to Dusk's Embrace..."}.get(scene_path,
 		("Through the portal to %s..." % Portals.world_for_scene(scene_path).name) if Portals.is_world_scene(scene_path) \
 		else ("Off to the race..." if Races.is_circuit(scene_path) else ("Into the Gloop Kingdom..." if scene_path == Bosses.KINGDOM \
 		else ("Into the Star Arena..." if scene_path == Arena.LEVEL \

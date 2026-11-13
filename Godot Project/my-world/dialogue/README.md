@@ -69,7 +69,7 @@ Rex what everyone said").
   over their head and in the talk box from then on), `"go": ["res://scenes/...tscn", "Entrance"]` takes her there
   once the conversation's over, and `"record": "scary_world_gate"` keeps a note of the answer (and the day and time)
   in the save's `dialogue.choices` list, for moments worth talking about later, like choosing whether to go into
-  the Scary World.
+  Dusk's Embrace (the old Scary World).
 
 **In any text:** `{time}` is the clock time, `{day}` the day number, `{talks}` how many times she's talked to them,
 `{name}` their name, `{watches_given}`, `{watches_new}` and `{watches_left}` the lost watches, `{remnants}` how many Remnants the player has, `{tool}` the name of their harvesting tool and `{parts_found}` how many of its parts they've found (`scripts/remnants.gd`), `{player}` the player's own name (from the character creator), `{they}` `{them}` `{their}` (and `{They}` `{Their}`) their pronouns, `{quest_log}` the quest log's key, and any control's key or button by its action name: `{interact}`, `{shoot}`, `{aim}`, `{map}`, `{player_menu}`, `{jump}`... (whatever the player has it on).

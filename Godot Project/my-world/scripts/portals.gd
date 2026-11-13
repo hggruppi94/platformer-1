@@ -399,7 +399,7 @@ func go_home(why := "") -> void:
 			# The first time home after mending it, the way out comes up by her hollow log behind the old gate, where
 			# she lives now and is waiting to say thank you (scripts/scary_world.gd)
 			Game.pending_message = why if why != "" else "The way home comes up somewhere new: a misty clearing, and a hollow log... Somebody's waiting."
-			Game.go_to_point(CENTIPEDE_HOLES.SCARY, CENTIPEDE_HOLES.HOME_AT, CENTIPEDE_HOLES.HOME_YAW, "the Scary World")
+			Game.go_to_point(CENTIPEDE_HOLES.SCARY, CENTIPEDE_HOLES.HOME_AT, CENTIPEDE_HOLES.HOME_YAW, "Dusk's Embrace")
 			return
 		# No portal to land by (Dark Hollow): out at its "home_spawn", the castle school's front gate
 		Game.pending_message = why if why != "" else "Back in the Void, out at the castle school's front gate."

@@ -285,7 +285,8 @@ func go_to_point(scene_path: String, pos: Vector3, yaw: float, place_name := "")
 	# Like go(), but to a spot rather than a marker (coming home from a portal world: scripts/portals.gd). The player
 	# picks it up on arriving, the way a save puts her back where she was (take_resume_point()).
 	if not ResourceLoader.exists(scene_path):
-		message("The %s isn't open yet." % place_name if place_name != "" else "This way doesn't open yet.")
+		message("%s isn't open yet." % (place_name.left(1).to_upper() + place_name.substr(1)) if place_name != "" \
+				else "This way doesn't open yet.")
 		return
 	next_spawn = ""
 	_resume = {"scene": scene_path, "position": [pos.x, pos.y, pos.z], "yaw": yaw}
