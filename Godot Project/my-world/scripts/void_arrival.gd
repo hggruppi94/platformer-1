@@ -99,13 +99,17 @@ func _ready() -> void:
 	add_child(_dark)
 	_bars = [_bar(true), _bar(false)]
 	_caption = _label(34, Color(1, 0.97, 1))
-	_caption.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_caption.offset_left = -620
-	_caption.offset_right = 620
-	_caption.offset_top = -190
-	_caption.offset_bottom = -110
+	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART      # (before sizing it, or a long line widens it off screen)
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_caption.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	_caption.anchor_left = 0.08
+	_caption.anchor_right = 0.92
+	_caption.anchor_top = 1.0
+	_caption.anchor_bottom = 1.0
+	_caption.offset_left = 0
+	_caption.offset_right = 0
+	_caption.offset_top = -230
+	_caption.offset_bottom = -100
 	_title = _label(64, Color(1.0, 0.92, 0.6))
 	_title.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	_title.offset_left = -700
@@ -210,6 +214,13 @@ func _open_fall_crack(player: Node3D) -> void:
 	if view:
 		_fall_crack.rotation.y = view.global_rotation.y            # (across the view, so it's seen splitting)
 	CRACK.set_open(_fall_crack, 0.0)
+	var glow := OmniLight3D.new()                   # (it's midnight: a glow up out of it, so the split shows)
+	glow.light_color = CRACK_COLOUR
+	glow.omni_range = 6.0
+	glow.light_energy = 0.0
+	glow.position = Vector3(0, 0.4, 0)
+	_fall_crack.add_child(glow)
+	glow.create_tween().tween_property(glow, "light_energy", 4.0, 0.7)
 	var tw := _fall_crack.create_tween()
 	tw.tween_method(func(k: float) -> void:
 		if is_instance_valid(_fall_crack):
