@@ -133,20 +133,6 @@ func can_shoot() -> bool:
 	return true
 
 
-func _unarmed_ok() -> bool:
-	# Shoot pressed with no gadget yet, somewhere a shot would have counted: worth saying why nothing happened
-	if player == null or player.carried or player.input_locked:
-		return false
-	return not (Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused)
-
-
-static func no_gadget_line() -> String:
-	# What Shoot says before she has a gadget (nothing about where blueprints come from: that's for Dash to say)
-	if Schematics.is_found("popper"):
-		return "No blaster yet! Take the Star Popper's blueprint to Dash's gadget stall and he'll build it for you."
-	return "You haven't got a blaster yet. Jump on enemies to pop them!"
-
-
 func _in_test() -> bool:
 	return get_tree().get_script() != null       # tests and screenshot tools run their own main loop
 
@@ -166,9 +152,8 @@ func _physics_process(delta: float) -> void:
 		return
 	var ok := can_shoot()
 	_told_empty -= delta
-	if not Arsenal.armed() and Input.is_action_just_pressed("shoot") and _unarmed_ok() and _told_empty <= 0.0:
-		_told_empty = 4.0
-		Game.message(no_gadget_line())
+	# (Shoot with no gadget yet does nothing at all: saying anything about a blaster before they've met Dash would
+	# give the story away. Hayden's 12 Nov 2026 playtest.)
 	# Aiming works on a ride too (the board then steers from where she's going, not the camera: skate.gd
 	# _camera_dir), except in a race, where Aim uses the power-up (scripts/races.gd)
 	aiming = ok and Input.is_action_pressed("aim") and not (Game.riding and Races.racing())

@@ -29,7 +29,7 @@
       }
     },
     {
-      "id": "board",
+      "id": "board", "quiet": true,
       "text": "Nina wants to show you the notice board on the green, by the gazebo. People in Stars Hollow pin up jobs there, and they pay sparkles!",
       "checklist": [
         ["fn_board_look", "Read the notice board by the gazebo"],
@@ -45,7 +45,7 @@
       }
     },
     {
-      "id": "oak",
+      "id": "oak", "quiet": true,
       "text": "Nina says the old oak on the green hums every midnight. Go and listen to it.",
       "done": {"flag": "fn_oak_listen"},
       "where": ["old_oak"],
@@ -54,7 +54,7 @@
       }
     },
     {
-      "id": "clues",
+      "id": "clues", "quiet": true,
       "text": "Something's ticking inside the old oak! Find out what's going on before midnight.",
       "checklist": [
         ["fn_book", "Ask Mr. Page at Turn the Page (the bookshop) about the old oak"],
@@ -75,7 +75,7 @@
       }
     },
     {
-      "id": "dusk",
+      "id": "dusk", "quiet": true,
       "text": "The sun's going down. Put the three glowing acorns in the nook in the old oak's roots.",
       "done": {"flag": "fn_acorns_placed"},
       "where": ["old_oak"],

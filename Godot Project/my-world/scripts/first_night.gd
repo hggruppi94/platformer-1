@@ -48,6 +48,7 @@ const DAY_STEPS := ["morning", "board", "oak", "clues"]
 const NO_SHIFT_SLEEP := ["morning", "board", "oak", "clues", "dusk"]
 const BOARD_FLAG := "fn_v3"                    # this save's First Night has the notice board step (migrate())
 const PlaceIntro := preload("res://scripts/place_intro.gd")
+const Opening := preload("res://scripts/opening.gd")
 const INTRO_SEEN := "void_intro_seen"
 const FRESH_FLAG := "fresh_start"           # a game started since the Humming Oak (held_back())
 const ORDER_FLAG := "fn_v4"                    # this save's First Night has Hayden's meeting order (migrate())
@@ -73,6 +74,7 @@ var _arriving := false
 var _woke_home := false                       # the portal put them to bed tonight: say so once Earth's up
 var intro: CanvasLayer                        # the first look round the Void (scripts/place_intro.gd)
 var meetings: Node                            # who you meet next (scripts/meetings.gd)
+var opening: Node                             # the opening cutscenes and the movement tutorial (scripts/opening.gd)
 
 
 func _ready() -> void:
@@ -91,6 +93,9 @@ func _ready() -> void:
 	intro = PlaceIntro.new()
 	intro.name = "Void Intro"
 	add_child(intro)
+	opening = Opening.new()
+	opening.name = "Opening"
+	add_child(opening)
 	_ensure_meetings()
 
 
@@ -214,14 +219,8 @@ func _on_creator_closed() -> void:
 	# Earth was put together before the hero was made: take away what a new game's first day holds back
 	Boosters.drop_coins()
 	start()                                      # (the notice board stays: Nina shows it to them this morning)
-	_knock.call_deferred()
-
-
-func _knock() -> void:
-	Audio.play("door", -2.0, 0.0)
-	get_tree().create_timer(0.45, false).timeout.connect(func() -> void: Audio.play("door", -2.0, 0.0))
-	Game.message("Knock knock! Someone's at your door. Go outside and see who it is!")
-	Tips.show_tip("talk")
+	# A look over the town, the knock at the door and the movement tutorial, instead of pop-ups (scripts/opening.gd)
+	opening.wake.call_deferred()
 
 
 func _process(_delta: float) -> void:
@@ -425,9 +424,7 @@ func _on_noted(kind: String, _amount: float, _how: String) -> void:
 		return
 	for i in GLOOPS:
 		if not Dialogue.flags.has("fn_gloop_%d" % (i + 1)):
-			flag("fn_gloop_%d" % (i + 1))
-			if i + 1 < GLOOPS:
-				Game.message("Pop! That's %d of %d Gloops." % [i + 1, GLOOPS])
+			flag("fn_gloop_%d" % (i + 1))           # (the to-do list counts them: no pop-up for each)
 			break
 	if Dialogue.flags.has("fn_gloop_%d" % GLOOPS):
 		flag("fn_gloops")
@@ -450,6 +447,7 @@ func _on_watch(id: String) -> void:
 func _on_quest_changed(id: String) -> void:
 	if id != ID or not running():
 		return
+	opening.check()                               # a "where to go" shot for the new step (scripts/opening.gd)
 	match step():
 		"day":
 			# Already found the fountain's watch on an old save? Then it's ticked off.
@@ -464,6 +462,8 @@ func _on_quest_changed(id: String) -> void:
 # 5. The Gloop King
 # -----------------------------------------------------------------------------
 func _on_flag(f: String) -> void:
+	if f in ["fn_nina", "fn_met_tally"] and running():
+		opening.check()
 	if f == "popped_gloop_king" and Quests.on_step(meetings.QUEST, "king"):
 		_cheer()
 	elif f == START_FLAG:

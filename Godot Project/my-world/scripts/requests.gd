@@ -138,6 +138,8 @@ func _announce() -> void:
 	# Once a visit, in the Void (on Earth the Shift has its own news to tell): there are new requests
 	if Clock.on_earth or _told == rolled_visit or not is_live():
 		return
+	if FirstNight.running():
+		return                                   # (the first look round the Void shows Tally's board instead)
 	_told = rolled_visit
 	Game.message("New requests are up on the board in the Market Square!")
 

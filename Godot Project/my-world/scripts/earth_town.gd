@@ -262,6 +262,7 @@ static func _wav(samples: PackedFloat32Array, loop: bool) -> AudioStreamWAV:
 func tremor() -> void:
 	# A small one: a rumble, a little shake, leaves off the oak, and the town will talk about it
 	tremors_felt += 1
+	var first := not Dialogue.flags.has("earth_tremor")
 	Dialogue.flags["earth_tremor"] = true
 	_shake = 1.4
 	_camera = get_viewport().get_camera_3d()
@@ -272,7 +273,8 @@ func tremor() -> void:
 		var scene := get_tree().current_scene
 		for c in [Color(0.95, 0.5, 0.15), Color(0.8, 0.25, 0.12), Color(0.95, 0.75, 0.25)]:
 			Fx.burst(scene, _hum.global_position + Vector3.UP * 1.5, c, 14, 0.1, 1.2, -1.5, 2.5)
-	Game.message("A little tremor rumbles under your feet. The old oak's leaves shiver and fall.")
+	if first:                                   # (said the first time only: after that the rumble says it)
+		Game.message("A little tremor rumbles under your feet. The old oak's leaves shiver and fall.")
 
 
 # -----------------------------------------------------------------------------

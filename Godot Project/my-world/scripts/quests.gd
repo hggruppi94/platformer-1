@@ -368,7 +368,10 @@ func checklist(id: String) -> Array:
 # Moving quests along
 # -----------------------------------------------------------------------------
 func _process(delta: float) -> void:
-	if _note_time > 0.0:
+	# The banner keeps out of the way while a cutscene plays (and waits: its time doesn't run out meanwhile)
+	var in_cutscene := not get_tree().get_nodes_in_group("cutscene_playing").is_empty()
+	_note.visible = not in_cutscene
+	if _note_time > 0.0 and not in_cutscene:
 		_note_time -= delta
 		_note.modulate.a = clampf(_note_time, 0.0, 1.0)
 	if get_tree().paused or Dialogue.is_active():
@@ -423,7 +426,10 @@ func _advance(id: String) -> void:
 		var text: String = step.get("text", "")
 		if is_waiting(id):
 			text += "\n" + str(step.get("wait", {}).get("text", "(Come back tomorrow.)"))
-		_announce("Quest updated: %s" % q.get("name", id), text)
+		# A step with "quiet" has a cutscene that shows where to go (the First Night: scripts/opening.gd), so no
+		# banner as well; the to-do list still changes
+		if not bool(step.get("quiet", false)):
+			_announce("Quest updated: %s" % q.get("name", id), text)
 		Audio.play("pickup", -6.0)
 		tracked = id
 	changed.emit(id)

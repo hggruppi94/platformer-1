@@ -151,6 +151,8 @@ func _announce() -> void:
 	# Once a day, on Earth and awake: there are new jobs
 	if not Clock.on_earth or _told_day == rolled_visit or not is_live() or Clock.hour() < 6 or Clock.in_shift():
 		return
+	if FirstNight.running():
+		return                                   # (Nina shows them the board on the First Night: no news pop-up)
 	var scene := get_tree().current_scene
 	if scene == null or scene.scene_file_path != EARTH:
 		return

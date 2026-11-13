@@ -8,8 +8,10 @@ extends CanvasLayer
 # and the minimap waits (group "cutscene_playing", scripts/map_screen.gd).
 #
 # A shot is {"from": Vector3, "look": Vector3, "time": seconds, "title": "", "caption": ""}: the camera moves from the
-# last shot's spot to this one's over its time, easing, looking from the last target to this one. No class_name on
-# purpose (preload it), so --script tools can load it before the autoloads exist.
+# last shot's spot to this one's over its time, easing, looking from the last target to this one. A shot can also have
+# "start" (and "start_look"): the camera cuts there first and glides on from it (the opening's first shot, scripts/
+# opening.gd), and "sound": a sound played as the shot begins (the knock at the door). No class_name on purpose
+# (preload it), so --script tools can load it before the autoloads exist.
 
 signal done
 
@@ -86,10 +88,11 @@ func play(list: Array) -> void:
 	else:
 		_from = shots[0].from
 		_look_from = shots[0].look
-	cam.global_position = _from
-	cam.make_current()
 	_t = 0.0
 	_i = 0
+	_cut_in()
+	cam.global_position = _from
+	cam.make_current()
 	_playing = true
 	visible = true
 	add_to_group("cutscene_playing")
@@ -145,7 +148,18 @@ func _process(delta: float) -> void:
 		if _i >= shots.size():
 			stop()
 			return
+		_cut_in()
 		_show_words()
+
+
+func _cut_in() -> void:
+	# A shot that starts somewhere of its own (a cut, not a glide from the last one), and its sound
+	var shot: Dictionary = shots[_i]
+	if shot.has("start"):
+		_from = shot.start
+		_look_from = shot.get("start_look", shot.look)
+	if str(shot.get("sound", "")) != "":
+		Audio.play(str(shot.sound), -2.0, 0.0)
 
 
 func _show_words() -> void:

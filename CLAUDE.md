@@ -92,6 +92,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-13: **A new game opens with cutscenes and a movement tutorial, and far fewer pop-ups** (Hayden's 12 Nov 2026
+  playtest: "There need to be more cutscenes in the beginning to guide the player. and way less popups. maybe a movement
+  tutorial", and the line about a blaster when you press Shoot without one was a spoiler). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **`scripts/opening.gd`** (node "Opening" under `FirstNight`: `FirstNight.opening`): when the hero's made, a
+    morning cutscene (`wake_shots()`: over Stars Hollow "A sleepy little town, where nothing much ever happens...", the
+    old oak "...well, almost nothing.", home, then inside with a knock at the door). Then **"where to go" shots** as
+    The First Night moves on (`GUIDES`, once each, flags `guide_<id>`): Nina when you step out of the door, Mr. Palmer
+    and the green after Nina, the notice board, the old oak, the clues (bookshop, Mr. Palmer's porch, the town from
+    above), the oak's roots at dusk, and in the Void the Skate Park after Tally's hello. They wait for talks, menus and
+    other cutscenes, and only play in the right world. All skippable (Jump/Interact). Headless runs skip the cutscenes
+    unless `opening.force`.
+  - **`scripts/place_intro.gd`** gained `"start"`/`"start_look"` (cut to a spot, then glide) and `"sound"` per shot.
+  - **Movement tutorial** (`scripts/move_tutorial.gd`): one card at the top middle, one thing at a time in the house:
+    look, walk, jump, double jump, roll, sprint, then out of the door (flags `tut_<step>`, `tut_done`). It holds nothing:
+    walking out ends it. Tips off: only the door step. It replaces the four basics tips (they and the talk tip are
+    marked seen).
+  - **Fewer pop-ups:** no "Welcome to Stars Hollow" (creator.gd: still says it if a hero's made in the Void), no "Knock
+    knock" message, no "New jobs" / "New requests" news during The First Night, the tremor message only the first time,
+    no "Pop! That's N of 3 Gloops" (the to-do list counts), the Gloop King only says "One more...", and First Night
+    steps with a guide (board, oak, clues, dusk) are `"quiet"` in quests/first_night.json: no "Quest updated" banner
+    (`Quests._advance`). Quest banners hide and wait while a cutscene plays.
+  - **No blaster line:** Shoot with no gadget does nothing at all (`StarPopper.no_gadget_line()` removed).
+  - Tests: new `tools/test_opening.gd`; test_first_night and test_shooting updated; first_hour, creator, meetings,
+    following, kid_ui, skate_help, quests, ui_style, arsenal, schematics, gloop_king, gloop_kingdom, festival, earth,
+    dialogue, controls_lock, notice_board, boss_versions, save_slots and party pass. Previews:
+    `tools/capture_opening.gd` (shots in the project files under world/previews/opening).
+  - My choices Hayden may change: every caption (first drafts), which steps get a shot, the tutorial's steps and card.
 - 2026-11-12: **The cracks look like real cracks in the ground** (Hayden, with a photo of a real earth fissure: "Im not
   a fan of the cracks that open in the ground. Can you make them look more like this?"). Built and tested in the cloud
   (own Godot user folders, no save touched).
