@@ -186,17 +186,28 @@ func _run() -> void:
 	# --- An old save part way through The First Night ---
 	quests.state["first_night"] = {"step": 2, "since_day": 1, "done": false}       # the old "shift" step
 	dialogue.flags.erase("fn_v2")
+	dialogue.flags.erase("fn_v5")
 	dialogue.flags.erase("oak_woken")
 	fn.migrate()
-	check(int(quests.state["first_night"].step) == 7 and fn.step() == "shift", "an old save on the old Shift step is on the Shift step now")
+	check(int(quests.state["first_night"].step) == 3 and fn.step() == "shift", "an old save on the old Shift step is on the Shift step now")
 	check(dialogue.flags.has("oak_woken") and oak.awake(), "...with the oak already awake")
 	quests.state["first_night"] = {"step": 1, "since_day": 1, "done": false}       # the old "wait" step
 	dialogue.flags.erase("fn_v2")
+	dialogue.flags.erase("fn_v5")
 	dialogue.flags.erase("oak_woken")
 	fn.migrate()
-	check(fn.step() == "wait" and dialogue.flags.has("fn_acorns_placed"), "...and one waiting for midnight is still waiting for midnight")
+	check(fn.step() == "evening" and not oak.awake(), "...and one waiting for midnight at the oak waits for the fall now (13 Nov 2026)")
 	fn.migrate()
-	check(fn.step() == "wait", "...moved once only")
+	check(fn.step() == "evening", "...moved once only")
+	# A save from the Humming Oak days, on its clues step, and one on its Void day
+	quests.state["first_night"] = {"step": 3, "since_day": 1, "done": false}
+	dialogue.flags.erase("fn_v5")
+	fn.migrate()
+	check(fn.step() == "evening", "a save on the oak's clues step goes to the evening")
+	quests.state["first_night"] = {"step": 8, "since_day": 1, "done": false}
+	dialogue.flags.erase("fn_v5")
+	fn.migrate()
+	check(fn.step() == "day" and dialogue.flags.has("fn_fell"), "...and one on the old Void day stays on the Void day")
 
 	_put_save_back()
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])

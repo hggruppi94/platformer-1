@@ -2,6 +2,16 @@
   "name": "Bramble",
   "conversations": [
     {
+      "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(A plant girl brushes soil off her leaves. The little flytrap on her shoulder snaps at a little alien, then thinks better of it.) Snappy! Manners!",
+        "I'm Bramble. I was down in the roots back home, listening to them grow. Then the roots went quiet. Then the sky.",
+        "(She looks round at all the staring faces.) Everyone's watching us. Roots don't like being watched. Neither do I, much."
+      ]
+    },
+    {
       "when": {"mended": "rootmind", "not_flag": "party_asked_bramble"},
       "set": "party_asked_bramble",
       "lines": [

@@ -124,9 +124,7 @@ func _check_changes(announce := true) -> void:
 		_in_shift = shift
 		if announce:
 			if not HummingOak.awake():
-				# The first midnight, before the oak's opened: a hint, never what's about to happen
-				if shift and on_earth:
-					Game.message("Midnight. Over on the green, the old oak is humming louder than ever...")
+				pass                              # the first midnight: the fall says it all (scripts/void_arrival.gd)
 			elif shift:
 				Game.message("It's midnight: the Shift has begun! The crack by the old oak is open to the Void.")
 			elif on_earth:

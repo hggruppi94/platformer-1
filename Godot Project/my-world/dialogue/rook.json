@@ -3,6 +3,16 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(Rook is curled up on the ground beside Rex, with his hands over his eyes.)",
+        "...woof. (A very small one.)",
+        "(He peeks at the sky between his fingers, then at Rex, and covers his eyes again.)"
+      ]
+    },
+    {
+      "when": {
         "flag": "rex_home",
         "every": 2
       },

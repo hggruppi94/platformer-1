@@ -117,11 +117,11 @@ func _all_lines(file: String) -> String:
 
 func _check_lines() -> void:
 	var nina := _all_lines("nina")
-	check(nina.contains("I got one too. That means I'm chosen"), "Nina in the Void: she's chosen, with a watch of her own")
+	check(nina.contains("I got one too. Tally says that means I'm chosen"), "Nina in the Void: she's chosen, with a watch of her own")
 	check(nina.contains("Maple Lane"), "...and her home's on Maple Lane, on Earth")
 	check(not nina.contains("You're new, aren't you?"), "...and she knows the hero from Stars Hollow")
 	var earth := _all_lines("nina_earth")
-	check(earth.contains("We're chosen, {player}. Both of us."), "Nina back home: both of you are chosen")
+	check(earth.contains("we both got watches") and earth.contains("Tally kept saying we're 'chosen'"), "Nina back home: both of you are chosen")
 	check(earth.contains("with my sister Prue and my little brother Bruno"), "...and her family's on Earth")
 	var bruno := _all_lines("bruno")
 	check(bruno.contains("not one of the chothen") and bruno.contains("caught up in it"),
@@ -132,7 +132,7 @@ func _check_lines() -> void:
 		if c.get("set", "") == "bruno_caught_up":
 			found = c.when.get("quest_done", "") == "first_night"
 	check(found, "...and he only says so after the First Night")
-	check(_all_lines("bruno_alien").contains("I grabbed Nina'th hand when the oak opened"),
+	check(_all_lines("bruno_alien").contains("I grabbed Nina'th hand when her floor cracked open"),
 		"Bruno in the Void: he grabbed Nina's hand and got pulled through")
 	check(not _all_lines("bruno_alien").contains("You came through the portal too?"), "...the old hello's gone")
 

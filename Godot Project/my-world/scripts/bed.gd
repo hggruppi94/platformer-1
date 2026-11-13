@@ -114,7 +114,7 @@ func open_picker() -> void:
 	tip.modulate.a = 0.7
 	var morning := _option(box, "Until morning (%s)%s" % [Clock.format_time(Clock.WAKE_HOUR * 60.0),
 		"" if Clock.on_earth else ": home to Earth"],
-		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
+		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), _morning_stops()))
 	var shift: Button = null
 	if Clock.on_earth and not Clock.in_shift() and FirstNight.shift_sleep_ok():
 		shift = _option(box, "Until the Shift (midnight)" if HummingOak.awake() else "Until midnight",
@@ -124,12 +124,18 @@ func open_picker() -> void:
 	_preview.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(0.9, 0.78, 1.0))
 	# The preview line says when she'll wake up for whichever option is highlighted
 	_hours_button.focus_entered.connect(func() -> void: _show_wake(hours * 60.0))
-	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), not Clock.on_earth))
+	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), _morning_stops()))
 	if shift:
 		shift.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	get_tree().root.add_child(_picker)
 	_set_hours(hours)
 	_hours_button.grab_focus()
+
+
+func _morning_stops() -> bool:
+	# "Until morning" sleeps through the night on Earth, except on a new game's first night (the ground cracks open at
+	# midnight: scripts/void_arrival.gd). In the Void it stops at the end of the Shift as always.
+	return not Clock.on_earth or FirstNight.sleep_stops_at_midnight()
 
 
 func close_picker() -> void:
@@ -154,7 +160,7 @@ func _show_wake(want_minutes: float, wake_for_shift := true) -> void:
 		Clock.format_time(Clock.local_minutes() + length)]
 	if not Clock.on_earth and Clock.in_shift() and length >= Clock.shift_minutes_left() - 0.01:
 		text = "%s'll wake up back home on Earth, at 1 AM" % Hero.pronoun(Game.hero, "they").capitalize()
-	elif length < want_minutes:
+	elif length < want_minutes and HummingOak.awake():
 		text += ", for the Shift!"
 	_preview.text = text
 
@@ -272,7 +278,7 @@ func _rest(slept_hours: float) -> void:
 func _wake_message() -> String:
 	if Clock.on_earth and Clock.in_shift():
 		if not HummingOak.awake():
-			return "Wake up! It's midnight... and something out on the green is humming."
+			return "Wake up! The whole house is shaking!"
 		return "Wake up! It's midnight: the Shift has begun, and the portal to the Void is open."
 	var h := Clock.hour()
 	if h >= 5 and h < 12:

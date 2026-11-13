@@ -3,6 +3,26 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(The astronaut's antenna is blinking very fast. Beep beep beep!)",
+        "Did you see it? The SKY cracked! I've been to space, {player}. Skies aren't supposed to do that.",
+        "Ground control says everything's fine. (He taps his helmet.) Ground control is me. I'm not sure I believe me."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "first_night:day"
+      },
+      "every": 2,
+      "lines": [
+        "(The astronaut keeps looking up.) I've been watching the sky all morning. It's healed up. Mostly. You can still see where, if you squint.",
+        "Mr. Palmer's calling a meeting. Tally's counting the clouds. And the little ones? They think it was a party."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "night_5:hi"
       },
       "set": "n5_hi",

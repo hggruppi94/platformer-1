@@ -2,6 +2,15 @@
   "name": "Melody",
   "conversations": [
     {
+      "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "Eee! That was the scariest, wildest... was that a SONG? It sounded like a song. A really LOUD, crashy one!",
+        "I'm Melody! Everything went off the beat back home, and then WHOOSH. Hi! Hi hi. I'm shaking. Are you shaking?"
+      ]
+    },
+    {
       "when": {"quest_step": "meet_friends:melody"},
       "set": "mf_melody",
       "lines": [

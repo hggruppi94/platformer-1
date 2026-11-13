@@ -14,17 +14,43 @@
     },
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "{player}! Are you okay? I'm okay. I think. I'm... different.",
+        "{player}: Nina?! You look... different!",
+        "So do you! (She looks down at her hands.) My bedroom floor cracked open. We fell right through it, and then out of the SKY.",
+        "Bruno grabbed my hand. He's FINE. He's already asking where the skate park is.",
+        "(She holds up her wrist. A watch is ticking on it. There's one on yours, too.) Where did THESE come from?",
+        "Everyone's staring at us, {player}. That tall yellow one with the clipboard keeps counting us. Let's go and say hi."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
-        "{player}! You made it! It's me, Nina! I came through right behind you!",
+        "{player}! You fell too! It's me, Nina!",
         "{player}: Nina?! You look... different!",
-        "So do you, a bit! (She giggles.) I think the Void changes Earth kids. Same me on the inside, though. Same Nina from Maple Lane.",
-        "And look! (She holds up her wrist. A watch is ticking on it.) I got one too. That means I'm chosen, like you. Whatever chosen means. We'll find out together!",
-        "Bruno grabbed my hand right as the oak opened, so he got pulled through too. No watch for him. He's already found the Skate Park, obviously.",
+        "So do you, a bit! (She giggles, a bit shakily.) I think the Void changes Earth kids. Same me on the inside, though. Same Nina from Maple Lane.",
+        "My bedroom floor cracked open right under my bed. Bruno grabbed my hand and we fell straight through. Then out of the SKY!",
+        "And look! (She holds up her wrist. A watch is ticking on it.) I got one too. Tally says that means I'm chosen, like you. Whatever chosen means. We'll find out together!",
+        "Bruno didn't get a watch. He's already found the Skate Park, obviously.",
         "There's a little yellow house by the park we can nap in till it's time to go home. Yours is the one with the round door. Neighbours in both worlds!",
         "If you need anything, I'm usually down by the lake in the morning and at the Skate Park after lunch."
       ]
+    },
+    {
+      "when": {
+        "quest_step": "first_night:day"
+      },
+      "lines": [
+        "(Nina keeps looking up at the sky, where the cracks were.) Tally says folks pop in and out of the Void through cracks in the ground all the time. Never out of the SKY. Never seven at once.",
+        "I keep thinking someone must have done it. Skies don't just break.",
+        "Go and find Rex at the Skate Park. Bruno's already there. Of course he is."
+      ],
+      "first_night": true
     },
     {
       "when": {

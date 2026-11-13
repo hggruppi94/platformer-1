@@ -47,6 +47,18 @@
     },
     {
       "when": {
+        "quest_step": "first_night:shift"
+      },
+      "lines": [
+        "(Rex's ears are flat against his head.) Oh! Hi. Hello. A new citizen. Citizens. LOTS of you. That's... great! Totally normal. Happens all the time.",
+        "{player}: Tally said it's never happened before.",
+        "(He glances at Rook. Then at the sky. Then at his paws.) Did they. Huh. Well. Tally counts a lot of things.",
+        "Come and find me at the Skate Park when you've said hi to everyone, OK? I need to... think about something."
+      ],
+      "first_night": true
+    },
+    {
+      "when": {
         "quest_step": "first_night:day",
         "not_flag": "skate_lesson_ollie"
       },

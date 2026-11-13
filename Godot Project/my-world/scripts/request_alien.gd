@@ -13,6 +13,9 @@ const SIZE := 1.6
 
 var centre := Vector3.ZERO
 var talking := false
+var post := Vector3.INF                   # a spot to wait at instead of the ring (the hero's first arrival: scripts/void_arrival.gd)
+var _post_face := Vector3.ZERO
+var _returning := false                   # walking back to the ring after waiting
 var _angle := 0.0
 var _dir := 1.0
 var _pause := 2.0
@@ -95,6 +98,20 @@ func _physics_process(delta: float) -> void:
 		_face(_player.global_position if _player else global_position + basis.z, delta)
 		_play("idle")
 		return
+	if post != Vector3.INF:
+		# Waiting beside someone: hurry there, then stand and face the player, clipboard at the ready
+		var to := post - global_position
+		if Vector2(to.x, to.z).length() > 0.15:
+			global_position += to.normalized() * minf(to.length(), 3.2 * delta)
+			_face(post, delta)
+			_play("walk")
+		elif _returning:
+			post = Vector3.INF
+			_returning = false
+		else:
+			_face(_player.global_position if _player else _post_face, delta)
+			_play("wave" if fmod(Time.get_ticks_msec() / 1000.0, 4.0) < 1.2 else "idle")
+		return
 	if _pause > 0.0:
 		_pause -= delta
 		_play("idle")
@@ -119,6 +136,18 @@ func _face(to: Vector3, delta: float) -> void:
 func _play(a: String) -> void:
 	if _anim and _anim.has_animation(a) and _anim.current_animation != a:
 		_anim.play(a, 0.25)
+
+
+func stand_by(at: Vector3, face: Vector3) -> void:
+	# Wait at a spot (Vector3.INF: back to walking the ring, picking up from the nearest point of it)
+	post = at
+	_post_face = face
+	_returning = false
+	if at == Vector3.INF:
+		var d := global_position - centre
+		_angle = atan2(d.z, d.x)
+		post = _ring_point(_angle)
+		_returning = true
 
 
 func begin_talk() -> void:

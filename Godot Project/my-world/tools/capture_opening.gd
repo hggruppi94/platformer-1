@@ -84,8 +84,11 @@ func _run() -> void:
 	op.play_guide("board")
 	await _mid_cut(cut, "08_where_to_go_the_notice_board")
 	cut.stop()
-	op.play_guide("oak")
-	await _mid_cut(cut, "09_where_to_go_the_old_oak")
+	dialogue.set_flag("fn_board_look"); dialogue.set_flag("fn_board_follow"); dialogue.set_flag("fn_board_job")
+	quests.check()
+	await _frames(4)
+	op.play_guide("evening")
+	await _mid_cut(cut, "09_where_to_go_home_in_the_evening")
 	cut.stop()
 	_finish()
 
