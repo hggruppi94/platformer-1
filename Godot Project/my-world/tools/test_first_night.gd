@@ -78,7 +78,10 @@ func _run() -> void:
 	await _frames(6)
 	check(quests.is_started(Q) and _step() == "morning", "making the hero starts The First Night, on its first step")
 	check(absf(clock.earth_minutes - 9 * 60.0) < 2.0, "...at 9 AM on Earth: a sunny morning, whatever time the creator took (%s)" % clock.earth_time_string())
-	check(messages.any(func(m: String) -> bool: return m.contains("Knock knock")), "Nina knocks at the door")
+	# (Hayden's 12 Nov 2026 playtest: the opening is a cutscene and the movement tutorial, no pop-ups: scripts/opening.gd)
+	check(dialogue.flags.has("opening_wake") and fn.opening.tutorial.running(), "Nina knocks at the door, and the movement tutorial starts")
+	check(not messages.any(func(m: String) -> bool: return m.contains("Knock knock") or m.contains("Welcome") or m.contains("New jobs")),
+		"...with no pop-up messages (%s)" % str(messages))
 	check(not oak_mod.awake(), "the old oak is just a tree for now")
 	await _physics(30)
 	var nina := _talker("nina_earth")

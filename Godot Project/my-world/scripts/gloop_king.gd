@@ -123,7 +123,8 @@ func _hurt_message(_stomped: bool) -> void:
 	Juice.shake(0.2)
 	Juice.burst(get_parent(), global_position + Vector3(0, 1.2 * size, 0), Color(1.0, 0.85, 0.35), 10, 0.1, 3.0, 0.6)
 	var left := stomps_to_defeat - hits
-	Game.message("The Gloop King wobbles! %d more to pop him." % left if left > 1 else "One more and the King pops!")
+	if left == 1:                               # (his goo bar shows the rest: no pop-up for every hit)
+		Game.message("One more and the King pops!")
 	# Call in the court at two-thirds and at one-third of his goo
 	var due := 0
 	if hits * 3 >= stomps_to_defeat * 2:

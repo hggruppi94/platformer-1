@@ -133,8 +133,10 @@ func close() -> void:
 			hud.visible = true
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	Game.save_game()
-	if _first_time:
-		Game.message(("Welcome to Stars Hollow, %s!" if Clock.on_earth else "Welcome to the Void, %s!") % Hero.display_name(Game.hero))
+	if _first_time and not Clock.on_earth:
+		# (On Earth a new game's opening shows all this instead: a cutscene and the movement tutorial,
+		# scripts/opening.gd, started by FirstNight when this closes)
+		Game.message("Welcome to the Void, %s!" % Hero.display_name(Game.hero))
 		Tips.basics()                              # how to walk, jump, open the map... (scripts/tips.gd)
 	Audio.play("ui_accept", -4.0, 0.0)
 	closed.emit()
