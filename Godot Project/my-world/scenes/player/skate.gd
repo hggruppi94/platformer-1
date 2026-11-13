@@ -10,7 +10,8 @@ extends Node
 #            ramps really pull on you, so you can pump a halfpipe.
 #   Ollie:   hold Jump to crouch, let go to pop (a longer hold pops higher).
 #   Air:     left and right spin. Land facing the way you're going (or straight backwards) to ride away; land
-#            sideways and she bails. Going straight up off a steep ramp is a vert air: she turns round by herself
+#            sideways and she bails. Landing backwards she rides away fakie and stays that way round (no snapping
+#            back) until a spin lands her the right way round again, she bails, or she hops off. Going straight up off a steep ramp is a vert air: she turns round by herself
 #            and comes back down onto the ramp.
 #   Grind:   press (or hold) Grind near a rail or a ledge edge to lock on. Keep the balance needle in the middle with
 #            left and right, Jump to pop off. Rails sloping down speed you up.
@@ -73,6 +74,7 @@ var state := State.ROLL
 var rng := RandomNumberGenerator.new()
 
 var _yaw := 0.0                      # which way the board points (the model faces +Z, so atan2(x, z))
+var fakie := false                   # riding backwards (landed the other way round): she keeps that stance
 var _normal := Vector3.UP            # the ground under the board (UP in the air)
 var _grounded := false               # touching something to ride on after the last move (see _move)
 var _ground_n := Vector3.UP          # ...and which way it faces
@@ -169,6 +171,7 @@ func start() -> void:
 	# Hopping on: rolling, facing the way she was facing
 	state = State.ROLL
 	_yaw = p.visual.rotation.y
+	fakie = false
 	_shown_yaw = _yaw
 	_shown_up = Vector3.UP
 	_charge = -1.0
@@ -353,13 +356,23 @@ func _camera_dir(input: Vector2) -> Vector3:
 	var right := Vector3(b.x.x, 0, b.x.z).normalized()
 	if p.popper and p.popper.aiming:
 		var going := Vector3(p.velocity.x, 0, p.velocity.z)
-		forward = going.normalized() if going.length() > 1.0 else _facing()
+		forward = going.normalized() if going.length() > 1.0 else _heading()
 		right = forward.cross(Vector3.UP)
 	return (right * input.x - forward * input.y).normalized()
 
 
 func _facing() -> Vector3:
 	return Vector3(sin(_yaw), 0, cos(_yaw))
+
+
+func _heading() -> Vector3:
+	# The way she rolls: where the board points, or straight behind it when she's riding fakie
+	return -_facing() if fakie else _facing()
+
+
+func _stance_yaw(dir: Vector3) -> float:
+	# Where the board points while she rolls along dir: along it, or turned right round when she's fakie
+	return atan2(dir.x, dir.z) + (PI if fakie else 0.0)
 
 
 # --- Rolling ------------------------------------------------------------------
@@ -375,7 +388,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 	v -= n * v.dot(n)                                  # roll along the ground, never into it
 	var g := p.get_gravity()
 	var pull := (g - n * g.dot(n)) * float(ride.slope)        # slopes and ramps pull her down them
-	var fwd0 := v.normalized() if v.length() > 0.3 else _plane(_facing(), n)
+	var fwd0 := v.normalized() if v.length() > 0.3 else _plane(_heading(), n)
 	# Pushing up a hill (not a ramp), her legs do most of the work: only part of the hill's pull holds her back, so
 	# she can push all the way up. Coasting, the hill takes it all, and she rolls back down.
 	var uphill := pull.dot(fwd0) < 0.0
@@ -383,7 +396,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 		pull *= float(ride.uphill_pull)
 	v += pull * delta
 	var speed := v.length()
-	var fwd := v / speed if speed > 0.3 else _plane(_facing(), n)
+	var fwd := v / speed if speed > 0.3 else _plane(_heading(), n)
 	tricks.update_ground(delta)
 	_manual_input(speed, n, delta)
 	if _manual != 0:
@@ -430,7 +443,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 		speed = minf(speed, float(ride.push_speed) * 0.45)
 	v = fwd * minf(speed, cap)
 	if speed > 0.3:
-		_yaw = atan2(fwd.x, fwd.z)
+		_yaw = _stance_yaw(fwd)
 	if speed > 2.0:
 		p.spring_arm.follow(atan2(-v.x, -v.z), delta)
 
@@ -741,7 +754,7 @@ func _fly(v: Vector3, dir: Vector3, delta: float) -> Vector3:
 	# Steering: the stick turns where she flies; under the rockets she keeps up flying speed
 	var h := Vector3(v.x, 0.0, v.z)
 	var speed := h.length()
-	var heading := h / speed if speed > 0.5 else _facing()
+	var heading := h / speed if speed > 0.5 else _heading()
 	if dir:
 		var want := Vector3(dir.x, 0.0, dir.z).normalized()
 		var ang := heading.signed_angle_to(want, Vector3.UP)
@@ -752,7 +765,7 @@ func _fly(v: Vector3, dir: Vector3, delta: float) -> Vector3:
 	h = heading * speed
 	v.x = h.x
 	v.z = h.z
-	_yaw = lerp_angle(_yaw, atan2(heading.x, heading.z), 1.0 - exp(-8.0 * delta))
+	_yaw = lerp_angle(_yaw, _stance_yaw(heading), 1.0 - exp(-8.0 * delta))
 	if speed > 2.0:
 		p.spring_arm.follow(atan2(-v.x, -v.z), delta)
 	return v
@@ -836,7 +849,7 @@ func _land() -> void:
 	p.velocity = v
 	var h := Vector3(v.x, 0, v.z)
 	if _flew and h.length() > 1.0:
-		_yaw = atan2(h.x, h.z)                         # after a flight she touches down facing where she's going
+		_yaw = _stance_yaw(h)                          # after a flight she touches down facing where she's going
 	_flew = false
 	flying = false
 	_fly_armed = false
@@ -850,8 +863,10 @@ func _land() -> void:
 		# Relaxed and Normal land wider; never so wide it runs into landing backwards
 		var window := minf(float(ride.land_window) * float(assist().land), PI / 2.0 - 0.05)
 		if off > PI - window:
-			_yaw += PI                                 # landed backwards: ride away fakie (turned round, for now)
-		elif off > window:
+			fakie = true                               # landed backwards: she rides away fakie, and stays that way
+		elif off < window:
+			fakie = false                              # landed the right way round (a 180 out of fakie gets her back)
+		else:
 			clean = false
 	state = State.ROLL
 	_vert = false
@@ -909,8 +924,9 @@ func _try_grind() -> bool:
 	var v := p.velocity
 	var along := v.dot(t)
 	if absf(along) < 0.5:
-		along = _facing().dot(t)                         # coming at it square on: go the way she's facing
+		along = _heading().dot(t)                        # coming at it square on: go the way she's heading
 	_rail_dir = 1.0 if along >= 0.0 else -1.0
+	fakie = _facing().dot(t * _rail_dir) < 0.0         # board pointing back along the rail: she grinds it fakie
 	_rail_speed = maxf(Vector3(v.x, 0, v.z).length() * 0.85, float(ride.grind_min_speed))
 	_rail_snap = 0.0
 	_snap_from = p.global_position
@@ -938,7 +954,7 @@ func _grind(input: Vector2, delta: float) -> void:
 	_rail_speed = maxf(_rail_speed - float(ride.grind_friction) * delta, 2.0)
 	_rail_offset += _rail_speed * _rail_dir * delta
 	_grind_metres += _rail_speed * delta
-	_yaw = atan2(t.x, t.z) + (PI / 2 if _grind_style == "slide" else 0.0)   # slides: the board across the rail
+	_yaw = _stance_yaw(t) + (PI / 2 if _grind_style == "slide" else 0.0)    # slides: the board across the rail
 	p.velocity = t * _rail_speed
 	var off_end := _rail_offset < 0.0 or _rail_offset > _rail.length()
 	var target := _rail.point_at(_rail_offset) + Vector3.UP * (FEET + 0.04)
@@ -1019,7 +1035,7 @@ func bail() -> void:
 	var from := board.global_transform
 	board.top_level = true
 	board.global_transform = from
-	var fly := _facing() * 2.5 + Vector3.UP * 0.6
+	var fly := _heading() * 2.5 + Vector3.UP * 0.6
 	_board_tween = board.create_tween()
 	_board_tween.set_parallel()
 	_board_tween.tween_property(board, "global_position", from.origin + fly, 0.5).set_trans(Tween.TRANS_QUAD)
@@ -1054,6 +1070,7 @@ func _bailing(delta: float) -> void:
 
 func _end_bail() -> void:
 	# The board scoots back under her feet
+	fakie = false                                     # and she's back on it the usual way round
 	var board := p.board
 	if _board_tween:
 		_board_tween.kill()
@@ -1237,7 +1254,7 @@ func _board_pose() -> void:
 
 func _plane(d: Vector3, n: Vector3) -> Vector3:
 	var out := d - n * d.dot(n)
-	return out.normalized() if out.length() > 0.001 else _facing()
+	return out.normalized() if out.length() > 0.001 else _heading()
 
 
 # -----------------------------------------------------------------------------

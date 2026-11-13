@@ -904,6 +904,7 @@ func start(id: String, with_intro := true) -> bool:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("fakie", false)
 	skate.set("_boost_time", 0.0)                         # a boost from a booster on the way here (scripts/boosters.gd)
 	skate.set("_boost_fade", 0.0)                         # ...doesn't carry her over the line before GO
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
@@ -1398,6 +1399,7 @@ func _back_on_track(p: Player, d: float) -> void:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("fakie", false)
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
 	hud.shout("Back on track!", Color(0.75, 0.9, 1.0), 0.4)
 	_along = -1.0
