@@ -65,12 +65,13 @@ func _run() -> void:
 	var entrance := current_scene.find_child("MarketEntrance", true, false) as Node3D
 	check(p.global_position.distance_to(entrance.global_position) < 1.5, "an old-town save starts her at the market entrance (%.1f m)" % p.global_position.distance_to(entrance.global_position))
 	check(note.contains("makeover"), "...with a note that the town has changed: \"%s\"" % note)
-	_write_save({"scene": TOWN, "position": [10.0, 1.0, 50.0], "yaw": 0.5, "level": 3, "layout": 2})
+	# (Clear of the booster coins between the meadow rails at (9, 49.5): landing on one sends her rushing off.)
+	_write_save({"scene": TOWN, "position": [10.0, 1.0, 40.0], "yaw": 0.5, "level": 3, "layout": 2})
 	game.call("load_game")
 	change_scene_to_file(TOWN)
 	await _frames(6)
 	p = current_scene.find_child("Player", true, false) as Node3D
-	check(Vector2(p.global_position.x - 10, p.global_position.z - 50).length() < 1.0, "a new-layout save puts her back exactly where she was")
+	check(Vector2(p.global_position.x - 10, p.global_position.z - 40).length() < 1.0, "a new-layout save puts her back exactly where she was")
 
 	# --- 3. Buildings: none overlapping, doors and the spots outside them on open ground ---
 	var town := current_scene as Node3D

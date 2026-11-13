@@ -126,7 +126,8 @@ func solid(shape: Shape3D, pos: Vector3, parent: Node, rot := Vector3.ZERO) -> S
 func cyl(top: float, bottom: float, h: float, seg := 10) -> CylinderMesh:
 	top = snappedf(top, 0.05)
 	bottom = snappedf(bottom, 0.05)
-	h = snappedf(h, 0.1)
+	# (At least 0.04: a thin disc snapped to no height at all has no faces to draw, so it never showed.)
+	h = maxf(snappedf(h, 0.1), 0.04)
 	var key := "c%s/%s/%s/%d" % [top, bottom, h, seg]
 	if meshes.has(key):
 		return meshes[key]

@@ -734,6 +734,12 @@ func _ch_lanternmoor() -> void:
 	player.velocity = Vector3.ZERO
 	player.spring_arm.global_rotation = Vector3(0, atan2(-dir.x, -dir.z), 0)
 	await _physics(10)
+	# (Pip's talk lets go of the controls a moment after it closes, on a timer: on a slow machine that can still be
+	# holding them here, and with the controls held Jump doesn't glide.)
+	var wait := 0
+	while player.input_locked and wait < 300:
+		await physics_frame
+		wait += 1
 	Input.action_press("move_forward")
 	Input.action_press("jump")
 	player.velocity = dir * 5.0 + Vector3(0, 6.0, 0)
