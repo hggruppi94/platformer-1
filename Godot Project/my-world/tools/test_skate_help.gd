@@ -91,6 +91,7 @@ func _assists() -> void:
 		var bailed := await _land_off(c[1])
 		check(bailed == c[2], "%s: landing %d degrees off straight is %s" % [settings.ASSIST_NAMES[c[0]],
 			roundi(rad_to_deg(c[1])), "a bail" if c[2] else "fine"])
+	await _fakie()
 	# Landing while the board's still flipping
 	var t: SkateTricks = s.tricks
 	for c in [[2, 0.1, true], [1, 0.55, false], [0, 0.05, false]]:
@@ -156,6 +157,29 @@ func _assists() -> void:
 		await _get_up()
 		check(get_up < float(s.ride.bail_time) or c[0] == 2, "...and gets her up in %.1f s" % get_up)
 	settings.skate_assist = 1
+
+
+func _fakie() -> void:
+	# Landing backwards: she rides away fakie and stays that way round, until a spin lands her the right way again
+	settings.skate_assist = 1
+	_place(Vector3(-30, 3.0, 30), PI)
+	p.velocity = Vector3(0, 2, -7)
+	s._pop()
+	s._yaw = 0.0                                          # board pointing back the way she came
+	bails[0] = 0
+	await _until_rolling()
+	await _physics(30)
+	var going := Vector3(p.velocity.x, 0, p.velocity.z).normalized()
+	check(bails[0] == 0 and s.fakie, "landing backwards rides away fakie, no bail")
+	check(s._facing().dot(going) < -0.9, "...and she stays that way round as she rolls (no snapping back)")
+	p.velocity = Vector3(0, 2, -7)
+	s._pop()
+	s._yaw = PI                                           # a 180: the right way round again
+	await _until_rolling()
+	await _physics(30)
+	going = Vector3(p.velocity.x, 0, p.velocity.z).normalized()
+	check(bails[0] == 0 and not s.fakie and s._facing().dot(going) > 0.9, "a 180 out of fakie lands her the usual way round")
+	await _get_up()
 
 
 func _land_off(off: float) -> bool:
@@ -444,6 +468,7 @@ func _place(pos: Vector3, yaw: float) -> void:
 	p.global_position = pos
 	p.velocity = Vector3.ZERO
 	s._yaw = yaw
+	s.fakie = false
 	if s.state == s.State.BAIL:
 		s._end_bail()
 	s.state = s.State.ROLL
