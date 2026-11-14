@@ -518,7 +518,7 @@
         "{player}: Wait. Which one of you is the dog again?",
         "I'm REX! He's the dog!",
         "...Even if I'm the one with the tail right now. Long story. Lots of paperwork.",
-        "Okay! Bike lanes, flowers, lamps and naps. I'll paint posters tonight. Come back tomorrow and help me hang them!"
+        "Okay! Bike lanes, flowers, lamps and naps. I'll paint the posters right now. Come back in a few hours and help me hang them!"
       ]
     },
     {
@@ -527,7 +527,7 @@
       },
       "lines": [
         "Painting posters! I've got paint on my paws. And my ears. And somehow my tail.",
-        "Come back tomorrow, Campaign Manager!"
+        "Come back in a few hours, Campaign Manager!"
       ]
     },
     {
@@ -578,7 +578,7 @@
             }
           ]
         },
-        "That went GREAT! Tomorrow we take my ideas straight to Mr. Palmer. He's the mayor right now."
+        "That went GREAT! First thing in the morning we take my ideas straight to Mr. Palmer. He's the mayor right now."
       ]
     },
     {
@@ -595,7 +595,7 @@
         "quest_waiting": "rex_campaign:palmer"
       },
       "lines": [
-        "Tomorrow we go and see Mr. Palmer! He's the mayor right now. A very busy, very nice mayor.",
+        "In the morning we go and see Mr. Palmer! He's the mayor right now. A very busy, very nice mayor.",
         "I'm not nervous. My tail is just wagging for exercise."
       ]
     },

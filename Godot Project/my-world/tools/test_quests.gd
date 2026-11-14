@@ -120,7 +120,7 @@ func _run() -> void:
 	var report := await _talk("rex")
 	check(_said(report, "I'm REX! He's the dog!"), "the report has \"I'm REX! He's the dog!\"")
 	check(quests.on_step(Q, "posters") and quests.is_waiting(Q), "on 'posters', waiting for tomorrow")
-	check(quests.log_text().contains("Come back tomorrow"), "the log says to come back tomorrow")
+	check(quests.log_text().contains("Come back in a few hours"), "the log says to come back in a few hours")
 	game.save_game()
 	var mid = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
 	var saved_q: Dictionary = mid.get("quests", {}).get(Q, {}) if mid is Dictionary else {}

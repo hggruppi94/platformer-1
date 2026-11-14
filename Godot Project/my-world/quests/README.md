@@ -12,7 +12,7 @@ quest over.
   "steps": [
     {"id": "ask", "text": "Ask around town!", "done": {"flags": ["asked_dash", "asked_pip"]},
      "checklist": [["asked_dash", "Ask Dash"], ["asked_pip", "Ask Pip"]]},
-    {"id": "posters", "text": "Hang the posters.", "wait": {"days": 1, "text": "Come back tomorrow!"},
+    {"id": "posters", "text": "Hang the posters.", "wait": {"hours": 3, "text": "Come back in a few hours!"},
      "done": {"flag": "posters_up"}}
   ],
   "reward": {"item": "campaign_sash", "message": "You got a sash!"},
@@ -43,7 +43,7 @@ quest over.
 | Key | What it does |
 | --- | --- |
 | `"checklist": [["flag", "Label"], ...]` | shows each flag as a tick-box line in the quest log |
-| `"wait": {"days": 1, "text": "..."}` | the step can't be done until this many days after it started (the day number, so sleeping past midnight counts). The text shows in the log while waiting |
+| `"wait": {"hours": 3, "text": "..."}` | the step can't be done until this many of the Void's hours after it started (Pause > Pass the time gets there, so nobody has to wait for real). `"days": 1` waits for the next Void visit instead: don't use it for the story (Hayden: no forced waiting). The text shows in the log while waiting |
 | `"where": ["rex", {"who": "dash", "unless": "asked_dash"}, "town_hall"]` | stars on the map (M) for who to talk to (a character id) or where to go (a point in `res://routines/places.json`); `unless` drops one once its flag is set. Open quest spots get a star by themselves |
 | `"where": [{"at": [-134, 2]}]` | a star on a spot of its own in the Void (`[x, z]`), when there's no place or person for it (the Gloop King's court). Add `"world": "earth"` for a spot on Earth (the First Night's glowing acorns) |
 | `"override": {"rex": {...}}` | while the step is on, that character follows this routine block instead of their schedule (same keys as `res://routines/README.md`, plus `"time"`: only during those times of day) |
