@@ -99,6 +99,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Spray paint shows on windows** (Hayden: "I noticed the paint is behind the window"). The builders make
+  windows (and many signs and trims) as thin meshes stuck a little way out from a wall, with only the wall's collision
+  behind them, so paint landed on the wall and was hidden behind the glass. `Paint.outside(at, normal)` moves a spot
+  out onto the front of any thin, still mesh covering it (`SKIN_THICK` 0.45 m, at most `SKIN_OUT` 0.35 m out; worked
+  out in each mesh's own space, found through a 4 m grid built the first time someone paints in a place). `Paint.dab()`
+  and `SprayCan.aim_hit()` use it, so spraying and washing both work on the glass. In Stars Hollow 110 of 145 window
+  spots had been hidden; now none are. `test_spray` checks a window.
+
 - 2026-11-14: **The voice in your mind speaks out loud** (Hayden: "can we give the brain dialogue in your mind a
   voice?", then picked sample C, "many voices as one"). Built and tested in the cloud (own Godot user folders, no save
   touched).

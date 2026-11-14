@@ -44,6 +44,8 @@ var place := ""                           # the place loaded now ("" where there
 var layer: MultiMeshInstance3D
 var _grid := {}                           # Vector3i cell -> Array of dab numbers, for this place
 var _material: StandardMaterial3D
+var _skins := {}                          # Vector2i cell -> Array of AABBs: thin things laid on walls (windows, signs)
+var _skins_ready := false
 
 
 func _ready() -> void:
@@ -63,6 +65,8 @@ func _on_scene_changed() -> void:
 	layer = null
 	place = ""
 	_grid.clear()
+	_skins.clear()
+	_skins_ready = false
 	var scene := get_tree().current_scene
 	if not scene is Node3D or scene.scene_file_path == "":
 		return
@@ -90,6 +94,7 @@ func dab(at: Vector3, normal: Vector3, colour: int, size: float, spin := 0.0) ->
 	if layer == null or not is_instance_valid(layer) or normal.length() < 0.1:
 		return false
 	normal = normal.normalized()
+	at = outside(at, normal)
 	colour = clampi(colour, 0, COLOURS.size() - 1)
 	var d: PackedFloat32Array = places.get(place, PackedFloat32Array())
 	var top := 0.0
@@ -179,6 +184,86 @@ func colour_at(at: Vector3, reach := 0.2) -> int:
 			top = d[o + 9]
 			best = int(d[o + 6])
 	return best
+
+
+# ----------------------------------------------------------------------------- windows and signs on walls
+
+const SKIN_THICK := 0.45                  # a mesh this thin (or thinner) one way can be laid over a wall
+const SKIN_OUT := 0.35                    # paint is moved out over one at most this far
+const SKIN_CELL := 4.0
+
+
+func outside(at: Vector3, normal: Vector3) -> Vector3:
+	# Windows, signs and trims are often only meshes stuck a little way out from a wall, with the wall's collision
+	# behind them. Paint put where the ray hit the wall was hidden behind the glass. Move it out onto the front of
+	# anything thin that covers the spot, so it shows on the window.
+	if not _skins_ready:
+		_build_skins()
+	var c := Vector2i(floori(at.x / SKIN_CELL), floori(at.z / SKIN_CELL))
+	var list: Array = _skins.get(c, [])
+	if list.is_empty():
+		return at
+	var p := at
+	for _i in 3:
+		var moved := false
+		for b in list:
+			# Worked out in the mesh's own space, so a sign turned at an angle is still a tight box
+			var t: Transform3D = b[0]
+			var box: AABB = b[1]
+			var inv := t.affine_inverse()
+			var lp := inv * p
+			if not box.grow(0.003).has_point(lp):
+				continue
+			var front = box.intersects_segment(inv * (p + normal * (SKIN_OUT + 0.5)), lp)
+			if front == null:
+				continue
+			var gp: Vector3 = t * (front as Vector3)
+			var out := gp - p
+			if out.dot(normal) <= 0.002 or out.length() > SKIN_OUT:
+				continue
+			p = gp
+			moved = true
+		if not moved:
+			break
+	return p
+
+
+func _build_skins() -> void:
+	_skins_ready = true
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	for m in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := m as MeshInstance3D
+		if mi.mesh == null or not mi.is_visible_in_tree() or mi == layer:
+			continue
+		if _moves(mi):
+			continue
+		var t := mi.global_transform
+		var local := mi.get_aabb()
+		var real := local.size * t.basis.get_scale()
+		var thin := minf(real.x, minf(real.y, real.z))
+		if thin > SKIN_THICK or real.length() > 30.0:
+			continue
+		var box := t * local
+		var lo := Vector2i(floori(box.position.x / SKIN_CELL), floori(box.position.z / SKIN_CELL))
+		var hi := Vector2i(floori(box.end.x / SKIN_CELL), floori(box.end.z / SKIN_CELL))
+		for x in range(lo.x, hi.x + 1):
+			for z in range(lo.y, hi.y + 1):
+				var k := Vector2i(x, z)
+				if not _skins.has(k):
+					_skins[k] = []
+				(_skins[k] as Array).append([t, local])
+
+
+static func _moves(n: Node) -> bool:
+	# Anyone or anything that moves about (people, rides, enemies) isn't a window on a wall
+	var up := n.get_parent()
+	while up != null and not up is Window:
+		if up is CharacterBody3D or up is RigidBody3D or up is AnimatableBody3D or up is Skeleton3D:
+			return true
+		up = up.get_parent()
+	return false
 
 
 static func paintable(collider: Object, at = null) -> bool:

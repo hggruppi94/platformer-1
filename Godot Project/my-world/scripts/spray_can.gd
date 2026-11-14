@@ -147,6 +147,8 @@ func aim_hit() -> Dictionary:
 	var hit := player.get_world_3d().direct_space_state.intersect_ray(q)
 	if hit.is_empty() or (hit.position as Vector3).distance_to(player.global_position) > REACH:
 		return {}
+	# On a window or sign that's laid over the wall, the spot's on its front, not the wall behind it
+	hit.position = Paint.outside(hit.position, hit.normal)
 	return hit
 
 
