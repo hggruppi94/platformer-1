@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Speed coins only in races, a whole set puts you in the flow, and a smooth ride up Observatory Hill**
+  (Hayden: "the speed coins should be in the races only, not the overworld. Once the player picks up a full "set" of
+  coins, they enter a "flow" state where their speed is slightly increased and the screen becomes a little bit blurred
+  on the edges and maybe psychedelic-melty", and "The 3rd race, when going uphill, your character kind of plops").
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **No coins in the Void or Stars Hollow** (`scripts/boosters.gd`: strips and ramps stay; the coin code is left in).
+  - **Coin sets on every circuit** (`race_track.gd _place_coins()`, `coin_sets`): sets of 5 gold coins (3 m apart, a
+    gentle S across the road), as many as fit up to 4 a lap (2 to 3 now: the roads are busy), as evenly round as they
+    go, 8.5 m off obstacles, goo, shortcut mouths and the line, 3 m off Star Boxes and 2 m off boost pads (a line of
+    coins can run onto a pad). Shown only in a race; a taken coin comes back after 12 s.
+  - **The flow** (`Races._take_coins()`, `scripts/race_flow.gd` node "Flow" under `Races`, `race_flow.gdshader`): each
+    coin is a little push; all five of one set ("Coins 4/5", then "FLOW!") and for 8 s you're 2 m/s quicker
+    (`Skate.flow_speed` on pushing and top speed) and the screen's edges blur, melt and shimmer with colour, fading in
+    and out. Another set tops it up. Reduce motion: no melting; Reduce flashing: calmer colours. Ends with the race.
+  - **Uphill** (`skate.gd`, `CREASE`): the road's twisted pieces on a climbing bend made her hop off each crease and
+    plop back down; she now stays snapped to the road over a crease that small. (Bumps and boinks on collisions are
+    another thread's.)
+  - Tests: new `tools/test_race_flow.gd`, `test_boosters` (no coins out in the world); skate, skate_park, races,
+    race_tracks, race_tutorial, earth_race, race_intros, race_life, first_hour and layout pass. Previews:
+    `tools/capture_race_flow.gd` (shots in the project files under world/previews/race_flow).
+  - My choices Hayden may change: 5 coins a set, how many sets, 8 s and +2 m/s, the look of the coins and the flow.
+
 - 2026-11-14: **The race circuits come alive: things go off all round you as you race** (Hayden: "I want the maps to
   feel like they are alive and things are happening all around"; our own set pieces, nothing copied). Built and tested
   in the cloud (own Godot user folders, no save touched).

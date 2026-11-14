@@ -1,9 +1,9 @@
 extends SceneTree
 
-# Checks the boosters round the Void and Stars Hollow (scripts/boosters.gd): strips, ramps and coin lines in both
-# towns; every one is put in at play time on dry ground with nothing floating, room to come at it and nothing in the
+# Checks the boosters round the Void and Stars Hollow (scripts/boosters.gd): strips and ramps in both towns (and no
+# speed coins: they're only in the races now); every one is put in at play time on dry ground with nothing floating, room to come at it and nothing in the
 # way where it sends you; each strip and ramp boosts you on foot and on the board, past your usual speed, and the
-# boost wears off; a ramp pops you up; a coin goes when you take it and comes back; and the map has an arrow for each.
+# boost wears off; a ramp pops you up; and the map has an arrow for each.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_boosters.gd
 #
@@ -58,8 +58,10 @@ func _run() -> void:
 	for b in all:
 		kinds["%s %s" % [b.scene, b.kind]] = int(kinds.get("%s %s" % [b.scene, b.kind], 0)) + 1
 	for sc in ["town", "earth"]:
-		for k in ["strip", "ramp", "coins"]:
+		for k in ["strip", "ramp"]:
 			check(int(kinds.get("%s %s" % [sc, k], 0)) >= 2, "%s has at least 2 of kind %s (%d)" % [sc, k, int(kinds.get("%s %s" % [sc, k], 0))])
+		# (Speed coins are only in the races now: Hayden, 14 Nov 2026. tools/test_race_flow.gd checks them there.)
+		check(int(kinds.get("%s coins" % sc, 0)) == 0, "%s has no speed coins out in the world" % sc)
 
 	for sc in ["town", "earth"]:
 		change_scene_to_file(boosters.SCENES[sc])
@@ -193,15 +195,12 @@ func _check_boosts() -> void:
 	var holder := s.get_node("Boosters")
 	var strip: Node3D
 	var ramp: Node3D
-	var coin: Node3D
 	for n in holder.get_children():
 		match str(n.get_meta("kind")):
 			"strip":
 				strip = n if strip == null else strip
 			"ramp":
 				ramp = n if ramp == null else ramp
-			"coins":
-				coin = n if coin == null else coin
 	var walk: float = p.speed
 
 	# --- On foot ---
@@ -235,22 +234,6 @@ func _check_boosts() -> void:
 		top = maxf(top, p.global_position.y)
 	check(boosters.used > before, "running up a booster ramp boosts you")
 	check(top > ramp.global_position.y + 2.5, "...and pops you high up off it (%.1f m up)" % (top - ramp.global_position.y))
-
-	# A coin: gone when taken, back later. (Facing across its line, so the little rush doesn't carry her into the next.)
-	var cdir: Vector3 = coin.get_meta("dir")
-	p.visual.rotation.y = atan2(-cdir.z, cdir.x)
-	p.velocity = Vector3.ZERO
-	p.global_position = coin.global_position + Vector3.DOWN * 0.2
-	before = boosters.used
-	await _physics(3)
-	check(boosters.used == before + 1, "taking a booster coin gives a boost")
-	check(not (coin.get_node("Spin") as Node3D).visible, "...and the coin goes")
-	await _physics(10)
-	check(boosters.used == before + 1, "...only the once")
-	coin.set_meta("gone", 0.05)
-	p.global_position += Vector3(0, 0, 30)
-	await _physics(10)
-	check((coin.get_node("Spin") as Node3D).visible, "...and it comes back after a while")
 
 	# --- On the board ---
 	game.riding = true
