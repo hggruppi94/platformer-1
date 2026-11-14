@@ -98,7 +98,7 @@ func _check_buttons() -> void:
 	check(settings.default_bindings().get("friend_wheel") == KEY_X and settings.default_pad_bindings().get("friend_wheel") == JOY_BUTTON_LEFT_SHOULDER,
 		"Switch friend (and its wheel) is X and LB")
 	var on_foot: Array = settings.PAD_GROUPS[0]
-	check(on_foot.size() == 13, "the on-foot controller actions are down from 18 to %d" % on_foot.size())
+	check(on_foot.size() == 14, "the on-foot controller actions are down from 18 to %d (13, and Spray paint since)" % on_foot.size())
 	# One menu: the quests and the map are its tabs, with no controller buttons of their own
 	for a in ["quest_log", "map"]:
 		check(settings.default_pad_bindings().get(a, -1) < 0 and not settings.PAD_REBINDABLE.any(func(q: Array) -> bool: return q[0] == a),
@@ -279,22 +279,22 @@ func _check_wheel() -> void:
 	if face == null:
 		return
 	party.with_you = "bramble"
-	await _frames(12)
+	await _badge_tick()
 	check(face.badge_shown() and face.shown == "bramble", "...showing Bramble's face (%s)" % face.shown)
 	check(face.helper == "flurry", "by water, a bubble with Flurry's face says she could help (%s)" % face.helper)
 	var keep_pos := p.global_position
 	p.global_position = Vector3(0, 30, -60)
-	await _frames(12)
+	await _badge_tick()
 	check(face.helper == "", "...and it goes away away from the water")
 	p.global_position = keep_pos
 	party.with_you = ""
-	await _frames(12)
+	await _badge_tick()
 	check(face.badge_shown() and face.shown == "", "nobody along: an empty badge")
 	party.with_you = "bramble"
 	var talker := Talker.new()
 	current_scene.add_child(talker)
 	dialogue.say(talker, "Tester", ["Hello!"], "")
-	await _frames(12)
+	await _badge_tick()
 	check(not face.badge_shown(), "...not over a talk")
 	dialogue.end()
 	talker.queue_free()
@@ -444,6 +444,13 @@ func _press(action: String) -> void:
 func _frames(n: int) -> void:
 	for i in n:
 		await process_frame
+
+
+func _badge_tick() -> void:
+	# The badge looks again every 0.1 s (friend_face.gd), and headless frames can be much quicker than that, so
+	# twelve frames weren't always enough (it failed now and then with several tests running at once)
+	await create_timer(0.3, true, false, true).timeout
+	await _frames(2)
 
 
 func _physics(n: int) -> void:

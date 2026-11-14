@@ -378,6 +378,7 @@ func save_game() -> void:
 		"portals": Portals.save_data(),
 		"arena": Arena.save_data(),
 		"party": Party.save_data(),
+		"paint": Paint.save_data(),
 	}
 	# Where Nina is, so she reappears there next time
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -475,6 +476,8 @@ func load_game() -> void:
 	Remnants.load_data(rem if rem is Dictionary else {})
 	var farm = data.get("farm", {})                          # ...and no garden yet
 	Farm.load_data(farm if farm is Dictionary else {})
+	var paint = data.get("paint", {})                        # spray paint, place by place (saves from before have none)
+	Paint.load_data(paint if paint is Dictionary else {})
 	var portals = data.get("portals", {})                    # saves from before the time quakes have had none
 	Portals.load_data(portals if portals is Dictionary else {})
 	Portals.open_seasons()                                     # (a mended world's season is always open)
@@ -731,6 +734,7 @@ func _reset_state() -> void:
 	Portals.reset()
 	Arena.reset()
 	Party.reset()
+	Paint.reset()
 	next_spawn = ""
 	_resume = {}
 	_last_place = {}

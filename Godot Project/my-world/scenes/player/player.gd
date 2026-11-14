@@ -108,6 +108,7 @@ var input_locked: bool:
 var carried := false                        # riding something that moves her itself (scripts/zipline.gd): no physics
 var skate: Skate                            # takes over her physics while she's on the board (scenes/player/skate.gd)
 var popper: StarPopper                      # her bubble blaster: aiming and shooting (scripts/star_popper.gd)
+var spray: SprayCan                         # her spray paint cans (scripts/spray_can.gd, the paint: scripts/paint.gd)
 var burrow: Node                            # Bramble's burrow, once the Rootmind is mended (scripts/burrow.gd)
 var frost_breath: Node                      # Flurry's frost breath, once the Frozen Moment's mended (scripts/frost_breath.gd)
 var groove: Node                            # Melody's groove, once Rhythm Springs is mended (scripts/groove.gd)
@@ -185,6 +186,9 @@ func _ready() -> void:
 	add_child(popper)
 	popper.setup(self)
 	popper.popped.connect(skate.on_pop)        # pops on the board are tricks in the combo
+	spray = SprayCan.new()
+	add_child(spray)
+	spray.setup(self)
 	burrow = BURROW.new()
 	burrow.name = "Burrow"
 	add_child(burrow)

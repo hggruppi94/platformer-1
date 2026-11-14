@@ -15,7 +15,7 @@ const REBINDABLE := [
 	["move_right", "Move right"], ["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"],
 	["gadget_wheel", "Gadget wheel"], ["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Friend wheel"],
 	["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
-	["player_menu", "Player menu"], ["quest_log", "Menu: Quests"], ["map", "Menu: Map"], ["check_watch", "Check your watch"],
+	["spray", "Spray paint"], ["player_menu", "Player menu"], ["quest_log", "Menu: Quests"], ["map", "Menu: Map"], ["check_watch", "Check your watch"],
 	["pause", "Pause"],
 ]
 
@@ -27,10 +27,10 @@ const REBINDABLE := [
 const PAD_REBINDABLE := [
 	["jump", "Jump"], ["dash", "Roll"], ["aim", "Aim"], ["shoot", "Shoot"], ["gadget_wheel", "Gadget wheel"],
 	["outfit_wheel", "Outfit wheel"], ["friend", "Friend move"], ["friend_wheel", "Friend wheel"], ["toggle_skateboard", "Skateboard"], ["skate_grind", "Grind"], ["skate_flip", "Flip trick"], ["skate_grab", "Grab trick"], ["interact", "Interact"],
-	["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
+	["spray", "Spray paint"], ["player_menu", "Player menu"], ["check_watch", "Check your watch"], ["pause", "Pause"],
 ]
 const PAD_GROUPS := [
-	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "friend", "friend_wheel", "toggle_skateboard", "interact", "player_menu", "check_watch", "pause"],   # on foot
+	["jump", "dash", "aim", "shoot", "gadget_wheel", "outfit_wheel", "friend", "friend_wheel", "toggle_skateboard", "interact", "spray", "player_menu", "check_watch", "pause"],   # on foot
 	["jump", "aim", "shoot", "gadget_wheel", "outfit_wheel", "toggle_skateboard", "skate_grind", "skate_flip", "skate_grab", "player_menu", "check_watch", "pause"],   # riding (Aim uses a race's power-up: scripts/races.gd)
 ]
 # The friends' moves (plan item 26, scripts/party.gd): none has a button of its own any more. The friend walking with
@@ -270,7 +270,7 @@ func pad_name(action: String) -> String:
 func default_pad_bindings() -> Dictionary:
 	return {"jump": JOY_BUTTON_A, "dash": JOY_BUTTON_X, "aim": PAD_LT, "shoot": PAD_RT, "gadget_wheel": JOY_BUTTON_DPAD_UP, "outfit_wheel": JOY_BUTTON_LEFT_STICK, "friend": JOY_BUTTON_RIGHT_SHOULDER, "friend_wheel": JOY_BUTTON_LEFT_SHOULDER, "toggle_skateboard": JOY_BUTTON_Y, "skate_grind": JOY_BUTTON_Y,
 		"skate_flip": JOY_BUTTON_X, "skate_grab": JOY_BUTTON_B, "interact": JOY_BUTTON_B, "quest_log": -1,
-		"map": -1, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "pause": JOY_BUTTON_START}
+		"map": -1, "player_menu": JOY_BUTTON_BACK, "check_watch": JOY_BUTTON_DPAD_DOWN, "spray": JOY_BUTTON_RIGHT_STICK, "pause": JOY_BUTTON_START}
 	# The quests and the map have no button of their own (-1): Back opens the player menu (scripts/player_menu.gd), and
 	# they're its first tabs. LB (the map's old button) is the friend wheel now (scripts/party.gd).
 
@@ -337,7 +337,7 @@ const OLD_SKATE_KEYS := {"skate_grind": KEY_L, "skate_flip": KEY_J, "skate_grab"
 func default_bindings() -> Dictionary:
 	return {"move_forward": KEY_W, "move_back": KEY_S, "move_left": KEY_A, "move_right": KEY_D, "jump": KEY_SPACE,
 		"dash": KEY_SHIFT, "aim": -MOUSE_BUTTON_RIGHT, "shoot": -MOUSE_BUTTON_LEFT, "gadget_wheel": KEY_R, "outfit_wheel": KEY_C, "friend": KEY_Z, "friend_wheel": KEY_X, "toggle_skateboard": KEY_E, "skate_grind": KEY_E, "skate_flip": KEY_SHIFT, "skate_grab": KEY_CTRL,
-		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "check_watch": KEY_T, "pause": KEY_ESCAPE}
+		"interact": KEY_F, "quest_log": KEY_Q, "map": KEY_M, "player_menu": KEY_TAB, "check_watch": KEY_T, "spray": KEY_V, "pause": KEY_ESCAPE}
 
 
 func rebind(action: String, physical_keycode: int) -> String:
@@ -391,6 +391,10 @@ func action_shown(action: String) -> bool:
 		# The Friend button once a friend's joined you, and Switch friend once there's more than one to switch between
 		var party := get_node_or_null("/root/Party")
 		return party != null and party.joined.size() >= (2 if action == "friend_wheel" else 1)
+	if action == "spray":
+		# The spray cans, once she's bought some (scripts/spray_can.gd)
+		var game := get_node_or_null("/root/Game")
+		return game != null and game.has_item("spray_can")
 	if SECRET_FLAGS.has(action):
 		var dialogue := get_node_or_null("/root/Dialogue")
 		return dialogue != null and dialogue.flags.has(SECRET_FLAGS[action])
