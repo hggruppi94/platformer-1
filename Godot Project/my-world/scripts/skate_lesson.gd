@@ -32,7 +32,7 @@ const STEPS := [
 		"text": "Tap {move_forward} then {move_back}!",
 		"simple": "Press {skate_grind} on the flat!"},
 	{"id": "combo", "woof": "WOOF!", "says": "Latht one! Three trickth, one jump!",
-		"text": "3 tricks, then land!"},
+		"text": "3 tricks, then land! {shoot} pops count."},
 ]
 # Rook's the dog in Rex's human body (Rex is the husky): a boy on his hands and knees who thinks he's still a dog. No
 # tail to wag and no paws, so his cheering is a boy's body doing dog things. (Hayden's day 1 playtest: the lesson had

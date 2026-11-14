@@ -6,73 +6,72 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "Eee! That was the scariest, wildest... was that a SONG? It sounded like a song. A really LOUD, crashy one!",
-        "I'm Melody! Everything went off the beat back home, and then WHOOSH. Hi! Hi hi. I'm shaking. Are you shaking?"
+        "Eee! Was that a SONG? A really LOUD, crashy one!",
+        "I'm Melody! I'm shaking. Are you shaking?"
       ]
     },
     {
       "when": {"quest_step": "meet_friends:melody"},
       "set": "mf_melody",
       "lines": [
-        "(A capybara girl in a purple dress bounces over, her ponytail swinging.) Eee! Bramble said you'd come! Hi hi hi! I'm Melody!",
+        "Eee! Bramble said you'd come! I'm Melody!",
         "{player}: Are you... a capybara?",
-        "Capybara AND pop star. Well, pop star in training. And I've just written a brand new song! It's called Tick Tock, Don't Stop. Well, it's called that today.",
-        "But I can't sing it for the very first time without my best friend Heather. She's out in the green meadow, grazing. Will you fetch her? Please please please?"
+        "Capybara AND pop star! And I wrote a new song!",
+        "But my best friend Heather has to hear it first. Will you fetch her?"
       ]
     },
     {
       "when": {"quest_step": "meet_friends:heather"},
       "lines": [
-        "Heather's in the green meadow! Horns, a scooter, and the biggest smile in the Void. You can't miss her."
+        "Heather's in the green meadow! Horns and a scooter!"
       ]
     },
     {
       "when": {"quest_step": "meet_friends:song"},
       "set": "mf_song",
       "lines": [
-        "You found her! Heather! Front row! OK. Deep breath. Ahem. This one's called Tick Tock, Don't Stop!",
-        "(Melody spins on her shiny Mary Janes and sings.) Tick tock, the clock goes round, my feet won't touch the ground!",
-        "(Heather whoops and stamps her hooves. A few little aliens stop to clap.)",
-        "Thank you, thank you! You're too kind! {player}, you're my first fan AND my best friend's second best friend. That's a lot of friend.",
-        "Oh! And Dash came by looking for you. He's waiting by the portal. Something about the stars?"
+        "You found her! This one's called Tick Tock, Don't Stop!",
+        "Tick tock, the clock goes round, my feet won't touch the ground!",
+        "(Heather whoops. The little aliens clap!)",
+        "Thank you! You're my first fan!",
+        "Oh! Dash is waiting by the portal for you!"
       ]
     },
     {
       "when": {"talks": 0},
       "lines": [
-        "(A capybara girl in a purple dress bounces over, her ponytail swinging.) Eee! A new face! Hi hi hi! I'm Melody!",
+        "Eee! A new face! I'm Melody!",
         "{player}: Are you... a capybara?",
-        "Capybara AND pop star. Well, pop star in training. Everybody gets along with capybaras, did you know? Even crocodillos. It's my gift.",
-        "I sing at the Market every morning. Come and dance with me sometime!"
+        "Capybara AND pop star! Everybody likes capybaras.",
+        "Come dance with me some time!"
       ]
     },
     {
       "when": {"activity": "show", "every": 2},
       "lines": [
-        "(Melody's mid-show, twirling under the striped canopy while the footlights flash.) Thank you, thank you! You're too kind! Oh, it's YOU!",
-        "Come up on the stage! Groove with me, {groove}, right on the beat. Eight in a row and you get an encore!",
-        "{player}: Eight?!",
-        "You can do it! Listen for the boom-tss. Boom... tss... BOOM!"
+        "Thank you, thank you! Oh, it's YOU!",
+        "Come up! Press {groove} on the beat. Eight in a row!",
+        "Boom... tss... BOOM!"
       ]
     },
     {
       "when": {"activity": "show"},
       "lines": [
-        "My very own stage! Bramble grew the flowers round it, Dash wired up the speakers, and Rex... well, Rex barked at it. Supportively.",
-        "Every evening, right here, right by my portal. So if I miss home, I can hear the springs singing through it.",
-        "Hop up and dance with me! Press {groove} on the beat."
+        "My very own stage!",
+        "A show every evening, right by my portal.",
+        "Dance with me! Press {groove} on the beat."
       ]
     },
     {
       "when": {"mended": "rhythm_springs", "not_flag": "party_asked_melody"},
       "set": "party_asked_melody",
       "lines": [
-        "(Melody skips over, humming.) {player}! I wrote a song about you! It's mostly the word {player} over and over. It's a work in progress.",
-        "Can I come with you? On your adventures? I'll be your own personal soundtrack!",
-        "And when you need a groove, press {groove} and I'll get the whole place dancing. On the beat, mind!",
+        "{player}! I wrote a song about you! It's just your name. Lots.",
+        "Can I come with you? I'll be your soundtrack!",
+        "Press {groove} and I'll get everyone dancing!",
         {"choice": [
           {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_melody",
-            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+            "lines": ["Yay! Press {friend} when you need me!"]},
           {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
         ]}
       ]
@@ -80,10 +79,10 @@
     {
       "when": {"mended": "rhythm_springs", "flag": "party_asked_melody", "not_flag": "party_yes_melody", "every": 3},
       "lines": [
-        "Still want me along? I'm ready when you are!",
+        "Still want me along?",
         {"choice": [
           {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_melody",
-            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+            "lines": ["Yay! Press {friend} when you need me!"]},
           {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
         ]}
       ]
@@ -91,50 +90,49 @@
     {
       "when": {"mended": "rhythm_springs", "every": 3},
       "lines": [
-        "{player}! My favourite backup dancer! Have you been grooving? Shoulders, hips, ponytail!",
-        "Come to my show tonight, by my portal on the lake shore. Six o'clock till nine. Front row seats for you!"
+        "{player}! My favourite backup dancer!",
+        "Come to my show tonight, six till nine!"
       ]
     },
     {
       "when": {"activity": "busking"},
       "lines": [
-        "(Melody's mid-song, spinning on her shiny Mary Janes.) ...and the stars all go YES, YES, YES! Oh, hi {player}!",
-        "That's my new song. It's called \"Yes!\" The whole thing is just happy words. Wanna be my backup dancer?",
+        "...and the stars all go YES, YES, YES! Oh, hi!",
+        "My new song is called \"Yes!\" Be my backup dancer?",
         "{player}: Maybe!",
-        "I'll take a maybe! Maybes are just yeses that are a little bit shy."
+        "Maybes are just shy yeses!"
       ]
     },
     {
       "when": {"activity": "dancing"},
       "lines": [
-        "Dance break! Doctor's orders. Well, Bramble's orders. She says a good wiggle is good for your heart.",
-        "Wiggle with me! Shoulders, hips, ponytail. Ponytail is the most important part."
+        "Dance break! Wiggle with me!",
+        "Shoulders, hips, ponytail!"
       ]
     },
     {
       "when": {"activity": "practising", "every": 2},
       "lines": [
-        "(She's singing scales to a row of very patient flowers.) La la LAAA. The flowers are my audience. They never leave early.",
-        "Sometimes I get nervous before I sing. So I breathe. In for four, out for four. Then I'm ready!",
-        "You can try it too, whenever your tummy feels fluttery."
+        "La la LAAA. The flowers are my audience.",
+        "Nervous? Breathe in for four, out for four."
       ]
     },
     {
       "when": {"activity": "practising"},
       "lines": [
-        "Have you met Bramble? She pops right up out of the ground! I screamed SO loud.",
-        "Then we became best friends. I sing to her flowers and they grow twice as fast. Or maybe they're just dancing."
+        "Bramble popped out of the ground! I screamed SO loud.",
+        "Now we're best friends!"
       ]
     },
     {
       "when": {"time": "night"},
-      "lines": ["(Melody does an enormous capybara yawn.) Even pop stars need their beauty sleep."]
+      "lines": ["(Big yawn.) Pop stars need sleep too."]
     },
     {
       "rotate": [
-        ["Mm-hm. (She crosses her arms and narrows her eyes.) ...Sorry, just practising my sassy face. How was it?"],
-        ["Capybara fact! We love a warm bath. The Hot Springs are basically my second home."],
-        ["Every song I write is about being happy. Even the sad ones. They're about being happy AGAIN."]
+        ["Just practising my sassy face. How was it?"],
+        ["Capybaras LOVE a warm bath!"],
+        ["All my songs are happy. Even the sad ones."]
       ]
     }
   ]

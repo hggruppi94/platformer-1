@@ -129,7 +129,7 @@ func setup() -> void:
 	set_fade(0.0 if Portals.is_cleared(world_id) else _goal_fade())
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and cores() == 0 and not Portals.has_found(world_id, "met_rex"):
-		Game.message.call_deferred("The Far Future: Lumen City, a neon city from the furthest future... and it's fading away. A husky's waving by the way in.")
+		Game.message.call_deferred("Lumen City, in the far future... and it's fading!")
 
 
 func _own_look() -> void:
@@ -248,7 +248,7 @@ func fix_fuse(i: int) -> bool:
 	Juice.blip("chime", 1.0 + i * 0.15, -5.0)
 	var n := fuses_fixed()
 	if n < FUSES:
-		Game.message("ZAP! A new Chrono Fuse clicks in. (%d of %d)" % [n, FUSES])
+		Game.message("ZAP! Fuse in! (%d of %d)" % [n, FUSES])
 	else:
 		_swap_o_tron_on()
 		bring_core(0)
@@ -310,7 +310,7 @@ func _swap_o_tron_on() -> void:
 	if m:
 		Fx.burst(self, m.global_position + Vector3(0, 3.0, 0), Color(1.0, 0.5, 0.9), 30, 0.08, 4.0, -1.0, 1.0)
 	Juice.shake(0.2)
-	Game.message("The Swap-o-Tron hums back to life! Out of its coil pops a glowing Time Core. One home!")
+	Game.message("The Swap-o-Tron hums! A Time Core pops out!")
 
 
 func _swap_o_tron_glow(on: bool) -> void:
@@ -340,7 +340,7 @@ func _on_race_finished(track_id: String, place: int) -> void:
 		return
 	if is_core_home(1):
 		return
-	Game.message("You finished the Skyway Run%s! A Time Core streaks down from the sky road to the Tomorrow Clock." %
+	Game.message("Skyway Run done%s! A Time Core flies home!" %
 		(" in first place" if place == 1 else ""))
 	bring_core(1)
 
@@ -355,7 +355,7 @@ func _catch_off_skyway(player: CharacterBody3D) -> void:
 	var d := t.nearest(player.global_position, -1.0, 80.0)
 	player.global_position = t.point_at(d) + Vector3(0, 1.0, 0)
 	player.velocity = Vector3.ZERO
-	Game.message("Whoops! A puff of rocket wind pops you back up onto the Skyway.")
+	Game.message("Whoops! Back up you go!")
 	Audio.play("boing", -6.0)
 
 
@@ -435,9 +435,9 @@ func pin(i: int) -> bool:
 	Juice.blip("tick", 1.0, -4.0)
 	var n := pinned()
 	if n < FOLK.size():
-		Game.message("Tick! Your watch pins %s back into time. \"%s\" (%d of %d)" % [FOLK[i].name, folk_lines(i)[0], n, FOLK.size()])
+		Game.message("Tick! %s is back! \"%s\" (%d of %d)" % [FOLK[i].name, folk_lines(i)[0], n, FOLK.size()])
 	else:
-		Game.message("Tick! That's all six back in time! The plaza's holo-globe flares up, and a Time Core rises out of it.")
+		Game.message("All six are back! A Time Core rises up!")
 		bring_core(2)
 	return true
 
@@ -445,18 +445,18 @@ func pin(i: int) -> bool:
 func folk_lines(i: int) -> Array:
 	# The Lumen City folk (first drafts for Hayden): fading, then glad, then cheerful about the mended future
 	if Portals.is_cleared(world_id):
-		return [["The lights are all back on! I'm going to stay up and look at them till the morning. The real morning!"],
-			["My pixels feel all tingly. In a good way. Thank you, time-friend!"],
-			["In all my two hundred and twelve years, I've never seen the city so bright. And I've seen a LOT of bright."],
-			["Rex and Dash were the cleverest kids on the block, you know. Glad they've got a friend like you."],
+		return [["The lights are back on!"],
+			["My pixels tingle! Thank you!"],
+			["212 years, and never this bright!"],
+			["Rex and Dash are lucky to have you."],
 			["Beep! Bloop! That's future for hooray."],
-			["I'm going to tell my grandkids about you. And their grandkids. Time's long round here."]][i]
-	return [["I was going see-through! Like a ghost! Thank you!", "It's all the broken time, you know. It reaches us last."],
-		["Phew! I was turning into static. Fzzzt.", "My nan says the past is all tangled up. Somebody should untangle it!"],
-		["Ah, much better. At my age you don't want to fade before your nap.", "Rex and Dash's lab is out west. Those two!"],
-		["Ooh, I'm solid again! I can hold my hoverball!", "Have you raced the Skyway? Countdown's waiting under the road."],
-		["Beep! I mean, thank you! I always say beep when I'm surprised.", "Something glitchy's been hanging round the Tomorrow Clock."],
-		["Oh! Was I fading? How embarrassing.", "If the clock gets its cores back, maybe the whole city will stop fading."]][i]
+			["I'll tell my grandkids about you!"]][i]
+	return [["I was see-through! Thank you!"],
+		["Phew! I was turning to static!"],
+		["Much better! Now, my nap."],
+		["I'm solid again!"],
+		["Beep! I mean, thank you!"],
+		["Was I fading? Oops!"]][i]
 
 
 # The Time Cores ---------------------------------------------------------------------------------------------------------
@@ -484,7 +484,7 @@ func bring_core(i: int) -> void:
 	tw.tween_method(set_fade, fade, _goal_fade(), 2.0)
 	Juice.blip("chime", 0.8, -3.0)
 	if cores() == 3:
-		Game.message.call_deferred("All three Time Cores are home! The Tomorrow Clock chimes... and something glitchy stirs on its dais.")
+		Game.message.call_deferred("All three Time Cores are home! Something stirs...")
 
 
 func _show_core(i: int) -> void:
@@ -533,56 +533,45 @@ func rex_lines() -> Array:
 	if Portals.is_cleared(world_id):
 		if AFTER.everyone_home():
 			if not Dialogue.flags.has(AFTER.LETTER_FLAG):
-				return ["(Rex is standing under his banner, practising waving. With both hands. His own hands.)",
-					"Dash wrote you a letter, {player}. It's on his workbench. He went bright red and made me promise not to read it. I didn't. Nearly didn't."]
-			return [["Mayor of Lumen City. One day. I've started practising. I made Rook a deputy. He ate the badge.",
-				"Rook got me a ball for my campaign. Well. He got HIS ball. He wants it thrown. Constantly."],
-				["Hey, {player}. When you're back home in Stars Hollow, wave at the old oak for me. It'll pass it on. Eventually.",
-				"Every lamp in Lumen City's on. Dash measured them. Twice."]][randi() % 2]
+				return ["Dash left you a letter on his workbench!"]
+			return [["Mayor of Lumen City, one day! Rook ate his badge."],
+				["Wave at the old oak for me back home!"]][randi() % 2]
 		if Dialogue.flags.has(AFTER.TWIST_FLAG):
-			return ["Everybody's going home, {player}. Bramble, Pip, all of them. And you, back to Stars Hollow.",
-				"And us three? We're already here. Weird, right? We've been trying to get home all this time, and home came to us.",
-				"Dash is at the Tomorrow Clock. Everyone's coming. Will you come too? He'll want you there most of all."]
+			return ["Everybody's going home, {player}. You too.",
+				"And us? We're already home!",
+				"Come to the Tomorrow Clock!"]
 		if AFTER.rex_home():
 			return home_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
 			if not for_good and get_node_or_null("Rook") != null:
-				return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
-					"Dash checked the Swap-o-Tron nine times. He says there's nothing pulling on it now. Nothing at all.",
-					"So... one more go? For good this time? Pull the big lever. My tail's wagging so hard it hurts."]
-			return ["You stopped his clock, {player}. I felt it. Like a knot in my tummy coming loose.",
-				"Dash keeps doing sums and then staring at the sky. He goes quiet when I ask.",
-				"Something's about to change. I can smell it. Good change, I think. Mostly."]
+				return ["You stopped his clock! I felt it!",
+					"One more go? Pull the big lever!"]
+			return ["You stopped his clock! I felt it!",
+				"Dash keeps staring at the sky."]
 		if Dialogue.flags.has(SWAP_FLAG):
-			return ["For five whole seconds I had HANDS, {player}. My own hands. I waved them about like a weirdo.",
-				"Then the Agent of Chaos's clock yanked us back. While it runs backwards, nothing can come undone.",
-				"So we stop his clock. The far field behind the castle hill, in the Void. You, me, everyone.",
-				"(Rook's fine, by the way. He licked the pod.)"]
-		return ["Look at it, {player}. Lumen City, all lit up. Home.",
-			"And Rook's here! I fetched him. He followed the smell of fireworks, mostly.",
-			"Dash says the Swap-o-Tron's working better than ever. So... shall we try it? Me in one pod, Rook in the other.",
-			"Pull the big lever when you're ready. I'm trying not to get my hopes up. My tail isn't listening."]
+			return ["For five seconds I had HANDS!",
+				"Then the Agent of Chaos yanked us back.",
+				"Let's stop his clock! The far field, in the Void."]
+		return ["Lumen City, all lit up! Home!",
+			"Shall we try the Swap-o-Tron?",
+			"Pull the big lever when you're ready!"]
 	if not Portals.has_found(world_id, "met_rex"):
 		Portals.note_found(world_id, "met_rex")
-		return ["{player}! You came! Welcome to the Far Future. Lumen City! This is where me and Dash are from.",
-			"Well. It's where we're from WHEN. The furthest future there is.",
-			"But look at it. The colours are going. The towers keep blinking out. It's FADING.",
-			"All the time that broke in the other worlds is catching up with it. The future gets it last, and worst.",
-			"The Tomorrow Clock in the middle keeps the city's time, and it's lost its three Time Cores.",
-			"Dash is in his lab, out west: the Swap-o-Tron's blown its fuses. There's a race round the Skyway up there. And the Fading Plaza, east... people are fading right out of time.",
-			"Bring the cores home and the clock should hold. Go on! I'll guard the way in. With my nose."]
+		return ["Welcome to Lumen City! Our home... in the future.",
+			"But look, it's FADING!",
+			"The big clock lost three Time Cores.",
+			"Find them! I'll guard the door. With my nose."]
 	var left: Array = []
 	for i in 3:
 		if not is_core_home(i):
-			left.append(["fix the Swap-o-Tron's fuses in Dash's lab", "race the Skyway Run (Countdown's under the sky road, east)",
-				"pin the fading people in the Fading Plaza back into time"][i])
+			left.append(["Dash's lab", "the Skyway Run",
+				"the Fading Plaza"][i])
 	if left.size() > 0:
-		return ["%d Time Core%s home! The colours are coming back, a bit. I can smell them. Don't ask." % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
-			if left.size() < 3 else "The city's fading, {player}. We have to hurry.",
+		return ["%d Time Core%s home!" % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
+			if left.size() < 3 else "The city's fading! Hurry!",
 			"Still to do: %s." % ", and ".join(left)]
-	return ["All three cores! The clock's holding... but there's someone on its dais. Someone glitchy.",
-		"Purple. Cubes. Grumpy. I don't know who he is, but he's NOT from round here.",
-		"Pop him when his chest clock glows. Jump the rings. And keep off the glowing marks!"]
+	return ["All three cores! But someone's on the clock...",
+		"Pop him when his clock glows!"]
 
 
 func _talk_rex() -> void:
@@ -596,39 +585,29 @@ func dash_lines() -> Array:
 	if Portals.is_cleared(world_id):
 		if AFTER.everyone_home():
 			if not Dialogue.flags.has(AFTER.LETTER_FLAG):
-				return ["(Dash is sitting on the edge of the dais, swinging his legs, grinning at the clock.)",
-					"I wrote you a letter, {player}. It's on my workbench. Read it when I'm not looking. I'll go red. I'm going red NOW."]
-			return [["Everything's ticking the right way. Every world. I've checked. I'll check again in a minute.",
-				"Found any more lost watches, {player}? I still collect them. Bring them here, any time."],
-				["You know the best thing about living in the future? I know exactly where you are. Right under my feet. Just earlier.",
-				"Rex has started calling Rook his deputy. Rook has started ignoring him. It's very good for him."]][randi() % 2]
+				return ["I left you a letter on my workbench!"]
+			return [["Every world's ticking the right way!"],
+				["You're right under my feet. Just earlier!"]][randi() % 2]
 		if Dialogue.flags.has(AFTER.TWIST_FLAG):
-			return ["(Dash is sitting on the edge of the dais with his knees up, grinning at the clock.)",
-				"Everyone's on their way. I asked them all to come. If we're saying see you later, we're doing it PROPERLY.",
-				"Come and stand with me, {player}. When the clock strikes, that's it: everyone home."]
+			return ["Everyone's coming! Let's say see you later PROPERLY.",
+				"Stand with me. When it strikes, everyone goes home."]
 		if AFTER.rex_home():
 			return home_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
-			return ["His clock's stopped. The knot's come loose. The readings are all... quiet. For the first time.",
-				"Which means the Swap-o-Tron can finish what it started. Nothing's pulling on it now. Pull the lever, {player}. For good.",
-				"And then... then I know how to fix the crack in the Shift. Properly. I'll tell you after. Rex first."]
+			return ["His clock's stopped! All quiet!",
+				"Pull the lever, {player}. For good!"]
 		if Dialogue.flags.has(SWAP_FLAG):
 			return swap_lines()
-		return ["Everything's humming again. The lab, the clock, the whole city. You did that, {player}.",
-			"And the Swap-o-Tron... it's working. Properly working. For the first time since that night.",
-			"Rex is here, and Rook too. I've checked the sums three times. Pull the lever when you're ready!"]
+		return ["The whole city's humming! You did that!",
+			"Pull the lever when you're ready!"]
 	if not Portals.has_found(world_id, "met_dash"):
 		Portals.note_found(world_id, "met_dash")
-		return ["Oh! {player}! In MY lab! Sorry about the mess. And the fading. And the sparks.",
-			"This is the real one. The first Swap-o-Tron. Rex built it right here, the same night I ran my time experiment.",
-			"Both at once. That's what cracked everything.",
-			"Now all its Chrono Fuses have blown. I've got new ones, but I'm too busy holding the clock's numbers steady.",
-			"One goes by the machine, one up on the gallery and one out on the roof. The hover lifts will take you up. Interact, or pop a bubble at them!"]
+		return ["{player}! In MY lab! Sorry about the sparks.",
+			"The first Swap-o-Tron. It blew three fuses!",
+			"Put the new ones in! Ride the lifts up!"]
 	if fuses_fixed() < FUSES:
-		return ["%d of %d Chrono Fuses in. The Swap-o-Tron's twitching!" % [fuses_fixed(), FUSES],
-			"Remember: one by the machine, one on the gallery and one on the roof. The hover lifts go up."]
-	return ["The Swap-o-Tron's on! And the first core's home. I could hug you. I won't. Science doesn't hug.",
-		"Rex says there's a race round the Skyway, and the Fading Plaza needs help. Go, go!"]
+		return ["%d of %d fuses in!" % [fuses_fixed(), FUSES]]
+	return ["It's on! The first core's home!"]
 
 
 func _talk_dash() -> void:
@@ -659,13 +638,10 @@ func hand_ins() -> Array:
 
 
 func thank_lines() -> Array:
-	return ["{player}! You did it! The whole city's lit up! Look at the TOWERS!",
-		"Captain Glitch got away, though. Through a rift. Where does a rift like that even GO?",
-		"He kept on about his master. Someone with a clock that runs backwards. I didn't like the sound of that.",
-		"But whoever it is, they've got us to deal with now. All of us. And the future's not fading any more!",
-		"And Dash says the Swap-o-Tron's mended. Properly mended. Which means maybe... me... my own body...",
-		"THANK you, {player}. From the furthest future there is.",
-		"Come to Dash's lab when you're ready. I'll fetch Rook. Let's TRY it!"]
+	return ["You did it! Look at the TOWERS!",
+		"Captain Glitch got away, though.",
+		"And the Swap-o-Tron's mended! Maybe... my own body...",
+		"Come to Dash's lab! Let's TRY it!"]
 
 
 func _thank(tries := 0) -> void:
@@ -700,12 +676,12 @@ func _to_the_lab() -> void:
 func rook_lines() -> Array:
 	# Rook is the dog, in Rex's human body. He only ever says woof
 	if AFTER.everyone_home():
-		return ["Woof! WOOF!", "(Rook drops a slobbery ball at your feet and looks at Rex's banner. He's very proud of it. He chewed the corner.)"]
+		return ["Woof! WOOF!"]
 	if AFTER.rex_home():
-		return ["WOOF! Woof woof woof!", "(Rook chases his tail round and round. He's got one again, and he is THRILLED about it.)"]
+		return ["WOOF! Woof woof woof!"]
 	if Dialogue.flags.has(SWAP_FLAG):
-		return ["Woof!", "(Rook sniffs the pod he was in, sneezes, and looks very pleased with himself.)"]
-	return ["Woof! Woof woof!", "(Rook wags. Well, he wags his whole bottom. Rex's body hasn't got a tail.)"]
+		return ["Woof!"]
+	return ["Woof! Woof woof!"]
 
 
 func _talk_rook() -> void:
@@ -716,12 +692,9 @@ func _talk_rook() -> void:
 
 func swap_lines() -> Array:
 	# Dash reads the machine after the try (first drafts)
-	return ["It WORKED. For five seconds it worked! And then... something pulled them back.",
-		"Look at the readings. The swap's knotted into the crack in the Shift, the one our two experiments made.",
-		"And the other end of the knot goes... there. Into that cracked clock. Somebody's clock. A giant somebody. I've only ever seen him in the oldest time-sums: the Agent of Chaos.",
-		"While his clock runs backwards, nothing that broke that night can come undone.",
-		"That's who Captain Glitch kept calling his master. And I'd bet my lab his rift went straight back to the Void. So we go and stop his clock. In the far field.",
-		"{player}... thank you for pulling the lever. Rex needed to know it could work."]
+	return ["It WORKED! For five seconds! Then... something pulled them back.",
+		"A giant's clock. The Agent of Chaos!",
+		"Let's stop his clock! In the far field, in the Void."]
 
 
 func _add_lever() -> void:
@@ -994,18 +967,15 @@ func _for_good_done() -> void:
 func home_lines() -> Array:
 	# Dash reads the machine one last time, and tells everyone what happens next (first drafts, Nov 12, 2026). Nothing
 	# before this says it: the Pieces of That Night only have him "think he knows how it could be fixed"
-	return ["Rex. Look at you. Your own face. It's a good face. It's my face, mostly.",
-		"Rex: HANDS! For KEEPS! And Rook's got his tail back. Look at him go!",
-		"Rex: ...Rook? I'm sorry, boy. It wasn't an accident. I swapped us on purpose, to show the Swap-o-Tron worked before the science fair.",
-		"Rook: Woof. (Rook sneezes on Rex's new shoes. It might mean sorry accepted. It might just be a sneeze.)",
-		"And look at the readings, {player}. With his clock stopped, the Shift's mending itself. The cracks are closing, in every world.",
-		"{player}: Is that good?",
-		"It's the BEST. When the last crack shuts, the Shift sends everyone back where they belong. Their own world, their own time.",
-		"Bramble to the Rootmind. Pip to Lanternmoor. Heather to Glenmoor. Everyone. And you, {player}, home to Stars Hollow.",
-		"Rex: And us? We've been stuck in the Void since that night.",
-		"We're already here, Rex. Lumen City. We came home the long way round.",
-		"The last crack's here, in the Tomorrow Clock. When it strikes, it closes. I've asked everyone to come, so we can say see you later properly.",
-		"Meet us at the Tomorrow Clock, {player}. Don't be long."]
+	return ["Rex. Look at you. Your own face!",
+		"Rex: HANDS! For KEEPS!",
+		"Rex: Rook? I'm sorry I swapped us on purpose, boy.",
+		"Rook: Woof!",
+		"The cracks are closing, in every world!",
+		"When the last one shuts, everyone goes home.",
+		"Rex: And us?",
+		"We're already home, Rex.",
+		"Meet us at the Tomorrow Clock, {player}!"]
 
 
 static func talk_steps(lines: Array) -> Array:
@@ -1131,15 +1101,12 @@ func _spin_letter(delta: float) -> void:
 
 func letter_lines() -> Array:
 	# What Dash wrote for you (first drafts, Nov 12, 2026). The hope: he's not far away, just later
-	return ["(The envelope says FOR {player} in Dash's scratchy writing. There's a tiny drawing of a bike on the back.)",
-		"\"Dear {player}. If you're reading this, the clock's struck, the Shift's whole, and everybody's home. You did that.\"",
-		"\"Here's the thing I worked out. Lumen City is built right where Stars Hollow is. Same ground. The old oak's still here, by the way. It still hums.\"",
-		"\"So every time you walk past the old oak back home, you're walking past my house. I'm not far away. I'm just LATER.\"",
-		"\"You might forget bits of all this when you're home. It goes fuzzy, like a dream. That's normal. If something feels familiar and you don't know why, that's us.\"",
-		"\"Rex says he'll be mayor one day. He'll be brilliant. Don't tell him I said so.\"",
-		"\"Keep the cap. A time detective needs one.\"",
-		"\"Every goodbye's a see-you-later. I've checked. Love, Dash.\"",
-		"\"P.S. Rook says woof. I think it means the same thing.\""]
+	return ["\"Dear {player}. Everybody's home. You did that.\"",
+		"\"Lumen City is where Stars Hollow is. Same oak!\"",
+		"\"I'm not far away. I'm just LATER.\"",
+		"\"Keep the cap!\"",
+		"\"See you later. Love, Dash.\"",
+		"\"P.S. Rook says woof.\""]
 
 
 func read_letter() -> void:
@@ -1248,9 +1215,9 @@ func oak_lines() -> Array:
 	# A hint, never a spoiler: before the ending it only sounds familiar; after, everyone knows why
 	if AFTER.everyone_home():
 		return ["(The old oak hums under your hand, slow and warm.)",
-			"(It's the same hum as the old oak in Stars Hollow. Of course it is. It's the same tree.)"]
+			"(It's the same tree as back home!)"]
 	return ["(The old oak hums under your hand, slow and warm.)",
-		"(That's funny. It sounds exactly like the old oak back home in Stars Hollow. Exactly.)"]
+		"(It hums just like the oak back home!)"]
 
 
 func touch_oak() -> void:
@@ -1284,7 +1251,7 @@ func _look_at_captain() -> void:
 	if captain_awake:
 		return
 	var left := 3 - cores()
-	Game.message("A tall figure made of purple glitch cubes, flickering, with a cracked little clock on his chest. Bring the %d Time Core%s home first." % [left, "" if left == 1 else "s"]
+	Game.message("A glitchy statue. Bring %d Time Core%s home first." % [left, "" if left == 1 else "s"]
 		if left > 0 else "He's twitching...")
 	Audio.play("ui_back", -8.0)
 

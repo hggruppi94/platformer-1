@@ -5,13 +5,13 @@
   "steps": [
     {
       "id": "ask",
-      "text": "Melanie wants a water slide for the Void. Go with her to ask Mr. Palmer at his Town Hall window (he's in from morning till teatime).",
+      "text": "Ask Mr. Palmer with Melanie.",
       "done": {"flag": "slide_asked"},
       "where": ["town_hall"]
     },
     {
       "id": "why",
-      "text": "Mr. Palmer said no. But why was the old slide in the Spooky Woods closed? Ask around town.",
+      "text": "Why did the old slide close?",
       "checklist": [
         ["slide_ask_bramble", "Ask Bramble"],
         ["slide_ask_pip", "Ask Pip"],
@@ -26,33 +26,33 @@
     },
     {
       "id": "look",
-      "text": "Look for clues at the old slide, by the Haunted House in the Spooky Woods.",
+      "text": "Look for clues at the old slide.",
       "checklist": [
-        ["slide_clue_sign", "Read the old notice on the slide"],
-        ["slide_clue_goo", "Look at the glowing puddle by the Haunted House"]
+        ["slide_clue_sign", "Read the old notice"],
+        ["slide_clue_goo", "Look at the glowing puddle"]
       ],
       "done": {"flags": ["slide_clue_sign", "slide_clue_goo"]}
     },
     {
       "id": "rich",
-      "text": "A very fancy stranger is waiting by the Haunted House. Talk to him.",
+      "text": "Talk to the fancy stranger.",
       "done": {"flag": "slide_rich_talked"},
       "where": ["goldwhistle"]
     },
     {
       "id": "door",
-      "text": "Mr. Goldwhistle says the slide could go in the Haunted House. Try its old front door.",
+      "text": "Try the Haunted House door.",
       "done": {"flag": "slide_spirit"}
     },
     {
       "id": "plan",
-      "text": "Something escaped from the Haunted House! Tell Melanie what happened.",
+      "text": "Tell Melanie what happened.",
       "done": {"flag": "slide_plan"},
       "where": ["melanie"]
     },
     {
       "id": "palmer",
-      "text": "Melanie has a new plan, and it doesn't need the waterfall or the Haunted House. Take it to Mr. Palmer (morning till teatime).",
+      "text": "Take her plan to Mr. Palmer.",
       "done": {"flag": "slide_yes"},
       "where": ["town_hall"]
     }
@@ -60,6 +60,6 @@
   "reward": {
     "item": "cloud_slide",
     "sparkles": 10,
-    "message": "Mr. Palmer said YES! The Cloud Water Slide (with a toy store on top) will be floating over the lake next time you visit. +10 sparkles."
+    "message": "Mr. Palmer said YES! A cloud slide! +10 sparkles."
   }
 }

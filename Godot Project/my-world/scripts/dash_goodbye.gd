@@ -51,18 +51,18 @@ const FRIENDS := [
 ]
 # What's said (first drafts): [who, line]. Line GIFT_LINE is when he gives you his cap
 const LINES := [
-	["Dash", "Everyone came. Even Otto. His chair HATES stairs."],
-	["Otto", "It's fine. I blew myself a bubble ramp."],
-	["Dash", "When the Tomorrow Clock strikes, the last crack closes, and the Shift sends everyone home. Your own world, your own time."],
-	["Bramble", "Home to the Rootmind. I'll miss you lot. Snappy will too. He won't say it. He'll bite something."],
-	["Heather", "Glenmoor's got its days and nights back. Somebody's gotta keep the Sunfolk and the Moonfolk sharin'."],
+	["Dash", "Everyone came! Even Otto."],
+	["Otto"],
+	["Dash", "When the clock strikes, everyone goes home."],
+	["Bramble", "I'll miss you lot. Snappy will too."],
+	["Heather"],
 	["Pip", "And it isn't goodbye. It's see you later."],
-	["Flurry", "My watch stopped once, for ages. Then it started again. Things come round."],
-	["Rex", "Rook. Before it strikes. Swapping us was my idea, on purpose, for a science fair. I'm sorry, boy."],
-	["Rook", "Woof! (Rook licks Rex's whole face. That's a yes.)"],
-	["Dash", "And one day you'll be mayor of all this, Rex. You'll be brilliant. Unbearable, but brilliant."],
-	["Dash", "{player}, here's the best bit. Lumen City is built right where Stars Hollow is. Same ground. Same old oak. Just LATER."],
-	["Dash", "You found me first, remember? Gold tyre tracks. Here, my cap. So you've got a bit of later with you, back home."],
+	["Flurry"],
+	["Rex", "Rook. I'm sorry I swapped us, boy."],
+	["Rook", "Woof! (LICK!)"],
+	["Dash", "You'll be a brilliant mayor, Rex."],
+	["Dash", "{player}, Lumen City is Stars Hollow. Just LATER!"],
+	["Dash", "Here, my cap. Take a bit of later home."],
 	["Dash", "See you later, everyone."],
 ]
 const GIFT_LINE := 11
@@ -249,7 +249,7 @@ func _finish() -> void:
 		Game.hold_controls(&"dash_goodbye", false, p)
 	_give_cap()
 	world.call("said_goodbye")
-	Game.message("Everyone's home, and the Shift is whole again. The way home waits whenever you're ready. (Dash's Cap is in your wardrobe.)")
+	Game.message("Everyone's home! (Dash's Cap is in your wardrobe.)")
 	done.emit()
 
 

@@ -207,7 +207,7 @@
       },
       "set": "fn_nina",
       "lines": [
-        "Oh! Hi! Good morning! I'm Nina, from Maple Lane.",
+        "Oh! Hi! I'm Nina, from Maple Lane. My sister's Prue, my brother's Bruno.",
         "{player}: Hi Nina! I'm {player}.",
         "Do you ever feel like something BIG is coming? No? Just me!",
         "Go meet everyone! Mr. Palmer's by the gazebo."
@@ -250,7 +250,7 @@
         "quest_step": "first_night:evening"
       },
       "lines": [
-        "Best first day! I have to go home for dinner now.",
+        "Best first day! Spaghetti for dinner, gotta go!",
         "Huh. Did the stars just... flicker?",
         "See you tomorrow, {player}!"
       ],
@@ -293,7 +293,7 @@
       },
       "set": "fn_offered",
       "lines": [
-        "Want me to show you round again? From the start?",
+        "Want your first night all over again? From the start?",
         {
           "choice": [
             {

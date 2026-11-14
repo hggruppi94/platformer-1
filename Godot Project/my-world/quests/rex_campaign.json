@@ -7,7 +7,7 @@
   "steps": [
     {
       "id": "ask",
-      "text": "Rex wants to know what the Void needs. Ask around town!",
+      "text": "Ask what the Void needs.",
       "checklist": [
         [
           "asked_dash",
@@ -19,7 +19,7 @@
         ],
         [
           "asked_pip",
-          "Ask Pip (out to see the lamps in the evening)"
+          "Ask Pip"
         ],
         [
           "asked_rook",
@@ -55,7 +55,7 @@
     },
     {
       "id": "report",
-      "text": "Tell Rex what everyone said. He's at the Town Hall in the daytime.",
+      "text": "Tell Rex at the Town Hall.",
       "done": {
         "flag": "reported_ideas"
       },
@@ -65,27 +65,27 @@
     },
     {
       "id": "posters",
-      "text": "Hang Rex's VOTE REX posters around town.",
+      "text": "Hang 4 VOTE REX posters.",
       "wait": {
         "hours": 3,
-        "text": "Rex is still painting the posters. Come back in a few hours! (Can't wait? Pause and pick Pass the time.)"
+        "text": "Rex is painting. Come back in a few hours!"
       },
       "checklist": [
         [
           "poster_1",
-          "The signpost west of the Market"
+          "Signpost west of the Market"
         ],
         [
           "poster_2",
-          "The signpost by the dock"
+          "Signpost by the dock"
         ],
         [
           "poster_3",
-          "The signpost by the Homes gate"
+          "Signpost by the Homes gate"
         ],
         [
           "poster_4",
-          "The noticeboard in the Market Square"
+          "Market noticeboard"
         ]
       ],
       "done": {
@@ -99,7 +99,7 @@
     },
     {
       "id": "rally",
-      "text": "Rex is giving a speech at the Market Square fountain this evening (5 to 9 PM). Go cheer him on!",
+      "text": "Cheer Rex's speech (5-9 PM)!",
       "override": {
         "rex": {
           "time": [
@@ -123,10 +123,10 @@
     },
     {
       "id": "palmer",
-      "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall in the daytime.",
+      "text": "Tell Mr. Palmer Rex's ideas.",
       "wait": {
         "hours": 8,
-        "text": "Mr. Palmer has gone home for the night. Try first thing in the morning! (Can't wait? Pause and pick Pass the time.)"
+        "text": "Mr. Palmer's gone home. Try the morning!"
       },
       "done": {
         "flag": "palmer_said_no"
@@ -137,7 +137,7 @@
     },
     {
       "id": "finale",
-      "text": "Tell Rex what Mr. Palmer said.",
+      "text": "Tell Rex what he said.",
       "done": {
         "flag": "campaign_done"
       },
@@ -148,7 +148,7 @@
   ],
   "reward": {
     "item": "campaign_sash",
-    "message": "Rex gave you his VOTE REX sash! (And he's Future Mayor Rex now.) (+15 sparkles)",
+    "message": "Rex's VOTE REX sash is yours! +15 sparkles.",
     "sparkles": 15
   },
   "titles": {

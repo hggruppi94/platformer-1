@@ -7,25 +7,24 @@
         "quest_done": "first_night"
       },
       "lines": [
-        "Oh! You. You look like someone who's good at asking grown-ups for things.",
-        "I'm Melanie. I live in the house past Dash's. And I have a VERY serious problem.",
-        "The Void has a magic bubble bath, a zipline, a tree house, a rock wall, an observatory and a cloud you can nap on.",
-        "But no water slide. A water-park town with NO WATER SLIDE.",
-        "I've practised my most serious face. Look. (Melanie makes her most serious face.)",
+        "Oh! You look good at asking grown-ups for things.",
+        "I'm Melanie. I have a VERY serious problem.",
+        "The Void has a zipline, a tree house, a nap cloud...",
+        "But NO WATER SLIDE!",
         {
           "choice": [
             {
               "text": "Let's ask Mr. Palmer together!",
               "lines": [
                 "YES. Two serious faces are better than one.",
-                "His window's on the Town Hall, right behind me. He's only in from morning till teatime, so we have to catch him."
+                "His window's on the Town Hall. Mornings till teatime!"
               ],
               "set": "slide_start"
             },
             {
               "text": "Maybe later.",
               "lines": [
-                "Okay. I'll keep practising my face. (She does it again.)"
+                "Okay. I'll practise my serious face."
               ]
             }
           ]
@@ -37,8 +36,8 @@
         "quest_step": "slide_mystery:ask"
       },
       "lines": [
-        "Mr. Palmer's window is right there on the Town Hall. Knock in the morning or the daytime.",
-        "Remember: serious face. No giggling. Giggling is how you lose a negotiation."
+        "Mr. Palmer's window, on the Town Hall. Go in the day.",
+        "Serious face. No giggling."
       ]
     },
     {
@@ -46,9 +45,9 @@
         "quest_step": "slide_mystery:why"
       },
       "lines": [
-        "\"Patience.\" PATIENCE! I've been patient since breakfast!",
-        "But did you see his face when I said \"the old slide\"? He went all twitchy.",
-        "There IS an old slide, out in the Spooky Woods by the Haunted House. All boarded up. Why? Ask around. Bramble, Pip and Dash know everything."
+        "\"Patience\"? I've been patient since breakfast!",
+        "He went twitchy when I said \"the old slide\".",
+        "It's in the Spooky Woods, boarded up. Ask Bramble, Pip or Dash why."
       ]
     },
     {
@@ -56,8 +55,8 @@
         "quest_step": "slide_mystery:look"
       },
       "lines": [
-        "You're going to the Spooky Woods? On purpose? Brave.",
-        "I'll stay here and guard the Town Hall. Not because I'm scared. It just needs guarding."
+        "The Spooky Woods? On purpose? Brave.",
+        "I'll guard the Town Hall. Not because I'm scared."
       ]
     },
     {
@@ -65,8 +64,8 @@
         "quest_step": "slide_mystery:rich"
       },
       "lines": [
-        "You're going to the Spooky Woods? On purpose? Brave.",
-        "I'll stay here and guard the Town Hall. Not because I'm scared. It just needs guarding."
+        "The Spooky Woods? On purpose? Brave.",
+        "I'll guard the Town Hall. Not because I'm scared."
       ]
     },
     {
@@ -74,8 +73,8 @@
         "quest_step": "slide_mystery:door"
       },
       "lines": [
-        "You're going to the Spooky Woods? On purpose? Brave.",
-        "I'll stay here and guard the Town Hall. Not because I'm scared. It just needs guarding."
+        "The Spooky Woods? On purpose? Brave.",
+        "I'll guard the Town Hall. Not because I'm scared."
       ]
     },
     {
@@ -83,14 +82,12 @@
         "quest_step": "slide_mystery:plan"
       },
       "lines": [
-        "{player}: Melanie! There was a fancy man, and the Haunted House door, and something GREEN and GIGGLY flew out!",
-        "Something flew out? Of the Haunted House? And you just... let it?",
-        "(Melanie thinks very hard. You can tell, because her ears do it too.)",
-        "Okay. New plan. Who said the slide has to go on the waterfall? Or in a spooky old house?",
-        "What if it FLOATS? A cloud, over the lake, with a slide spiralling down into the water!",
-        "And on top of the cloud... a toy store.",
-        "{player}: I thought toys were sooo 90s?",
-        "I've grown as a person. Go and tell Mr. Palmer! Morning or daytime. Use the face."
+        "{player}: Something GREEN and GIGGLY flew out of the Haunted House!",
+        "And you just... let it?",
+        "New plan. Forget the spooky old house.",
+        "A cloud over the lake, with a slide down into the water!",
+        "And a toy store on top!",
+        "Go tell Mr. Palmer! Use the face."
       ],
       "set": "slide_plan"
     },
@@ -99,7 +96,7 @@
         "quest_step": "slide_mystery:palmer"
       },
       "lines": [
-        "Go on! The cloud slide! With the toy store! Tell him before he goes to lunch!"
+        "Go on! Tell him about the cloud slide!"
       ]
     },
     {
@@ -108,21 +105,21 @@
       },
       "rotate": [
         [
-          "We did it! A cloud slide! I'm going to go down it a thousand times. Then a thousand more."
+          "A cloud slide! I'll go down it a thousand times!"
         ],
         [
-          "Mr. Palmer says waiting made it better. I hate it when grown-ups are right.",
-          "...It was worth it, though."
+          "Mr. Palmer says waiting made it better.",
+          "...He's right. Don't tell him."
         ],
         [
-          "Have you seen anything green and giggly around? Me neither. Probably nothing. Probably."
+          "Seen anything green and giggly? Me neither. Probably."
         ]
       ]
     },
     {
       "rotate": [
         [
-          "Serious face. (Melanie does it.) Still working on it."
+          "Serious face. Still working on it."
         ],
         [
           "Hi again!"

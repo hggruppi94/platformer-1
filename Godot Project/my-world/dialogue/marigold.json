@@ -6,10 +6,9 @@
         "talks": 0
       },
       "lines": [
-        "(Miss Marigold looks up from a very big book.)",
-        "Oh, hello! Welcome to Lantern Hill Library. I'm Miss Marigold, the librarian. We whisper in here, but only a little.",
+        "Hello! I'm Miss Marigold. We whisper in the library.",
         "{player}: (whispering) Hi!",
-        "Perfect whisper. You'll fit right in."
+        "Perfect whisper."
       ]
     },
     {
@@ -17,8 +16,8 @@
         "activity": "festival_lanterns"
       },
       "lines": [
-        "The craft club made a lantern for everyone. Get yours at my stall, {player}! They all go up together at nine o'clock.",
-        "Shh, between you and me: the lanterns always drift towards the old oak. Every single year. Isn't that curious?"
+        "Get your lantern at my stall! They go up at nine.",
+        "Shh. They always drift towards the old oak. Curious!"
       ]
     },
     {
@@ -26,7 +25,7 @@
         "place": "pond_path"
       },
       "lines": [
-        "I like to read by the pond after work. The ducks don't mind, as long as I read the good bits out loud."
+        "I read to the ducks after work. Just the good bits."
       ]
     },
     {
@@ -35,22 +34,22 @@
         "every": 2
       },
       "lines": [
-        "Kip's helping in the library this afternoon. He's put all the books in order. By colour. I'll fix it tomorrow."
+        "Kip sorted the books by colour. I'll fix it tomorrow."
       ]
     },
     {
       "rotate": [
         [
-          "Looking for something? Mysteries are on the left, adventures on the right, and the books about the old oak are... hm. Someone's borrowed them all again."
+          "The books about the old oak? All borrowed. Again."
         ],
         [
-          "There's a book here, older than the town, that says the oak was planted 'where the two clocks meet'. I've no idea what it means. Do you?"
+          "An old book says the oak grows 'where the two clocks meet'."
         ],
         [
-          "Please return your books on time. Mrs. Wren once returned one forty years late. She paid the fine in pennies. All of them."
+          "Mrs. Wren returned a book forty years late!"
         ],
         [
-          "Reading tip: if a book's a little bit scary, read it with a friend. If it's very scary, read it with Barnaby. He sings the scary bits away."
+          "A scary book? Read it with a friend."
         ]
       ]
     }

@@ -117,14 +117,14 @@ func _all_lines(file: String) -> String:
 
 func _check_lines() -> void:
 	var nina := _all_lines("nina")
-	check(nina.contains("I got one too. Tally says that means I'm chosen"), "Nina in the Void: she's chosen, with a watch of her own")
+	check(nina.contains("watches") and nina.contains("chosen"), "Nina in the Void: she's chosen, with a watch of her own")
 	check(nina.contains("Maple Lane"), "...and her home's on Maple Lane, on Earth")
 	check(not nina.contains("You're new, aren't you?"), "...and she knows the hero from Stars Hollow")
 	var earth := _all_lines("nina_earth")
-	check(earth.contains("we both got watches") and earth.contains("Tally kept saying we're 'chosen'"), "Nina back home: both of you are chosen")
-	check(earth.contains("with my sister Prue and my little brother Bruno"), "...and her family's on Earth")
+	check(earth.contains("we both got watches") and earth.contains("'Chosen'"), "Nina back home: both of you are chosen")
+	check(earth.contains("My sister's Prue, my brother's Bruno"), "...and her family's on Earth")
 	var bruno := _all_lines("bruno")
-	check(bruno.contains("not one of the chothen") and bruno.contains("caught up in it"),
+	check(bruno.contains("Not one of the chothen") and bruno.contains("caught up in it"),
 		"Bruno on Earth: not chosen, just caught up")
 	var data = JSON.parse_string(bruno)
 	var found := false

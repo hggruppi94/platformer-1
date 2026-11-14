@@ -9,7 +9,7 @@
   "steps": [
     {
       "id": "pip",
-      "text": "Dash says his friend Pip has been waiting by the portal all day to show you something. Go and say hi!",
+      "text": "Say hi to Pip by the portal.",
       "done": {
         "flag": "n2_pip"
       },
@@ -26,15 +26,15 @@
     },
     {
       "id": "explore",
-      "text": "The Void's got new things to try tonight.",
+      "text": "Try new things tonight!",
       "checklist": [
         [
           "pip_lamps_start",
-          "Help Pip with the boardwalk lamps (say yes to Pip)"
+          "Help Pip with the lamps"
         ],
         [
           "n2_letter",
-          "Find a letter of S-K-A-T-E in the Skate Park"
+          "Find an S-K-A-T-E letter"
         ]
       ],
       "done": {
@@ -54,6 +54,6 @@
   ],
   "reward": {
     "sparkles": 8,
-    "message": "Pip's Lamps done! The Goals page in your menu shows what to try next. Pip says Bramble's waiting for you by the portal! (+8 sparkles)"
+    "message": "Pip's Lamps done! +8 sparkles."
   }
 }

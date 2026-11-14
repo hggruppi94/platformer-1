@@ -7,7 +7,7 @@
   "steps": [
     {
       "id": "try",
-      "text": "Meet Rex and Rook in Dash's lab in the Far Future, and pull the Swap-o-Tron's lever. Rex wants his own body back.",
+      "text": "Pull the lever in Dash's lab.",
       "done": {
         "flag": "swap_tried"
       },
@@ -22,7 +22,7 @@
     },
     {
       "id": "clock",
-      "text": "The swap's knotted into the Agent of Chaos's cracked clock. Stop his clock: he's in the far field behind the castle hill.",
+      "text": "Stop the Agent of Chaos's clock!",
       "done": {
         "flag": "beat_agent_of_chaos"
       },
@@ -38,6 +38,6 @@
   ],
   "reward": {
     "sparkles": 10,
-    "message": "His clock's stopped, and the knot in the Shift has come loose. Rex and Dash have something to tell you, soon... (+10 sparkles)"
+    "message": "His clock's stopped! +10 sparkles."
   }
 }

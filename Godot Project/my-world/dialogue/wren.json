@@ -6,8 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "(Mrs. Wren peers at you over her glasses.)",
-        "Yes? This is an antiques shop. Everything is old and everything is precious. Including me. Do not touch.",
+        "Antiques. Everything is precious. Do not touch.",
         "{player}: I'll be careful!",
         "Hm. We'll see."
       ]
@@ -18,8 +17,8 @@
         "every": 3
       },
       "lines": [
-        "My clocks all stop at midnight. Every one. Then at one o'clock they start again, as if nothing happened.",
-        "Mr. Palmer bought a pocket watch here once. It has two faces. I asked what the second one was for. He said 'later'."
+        "My clocks all stop at midnight. Then start again at one.",
+        "Mr. Palmer bought a watch with two faces. He said 'later'."
       ]
     },
     {
@@ -27,22 +26,22 @@
         "activity": "inside"
       },
       "lines": [
-        "I'm closing for lunch. Lunch is twelve o'clock to one o'clock. Not 'about twelve'. Twelve."
+        "Lunch is twelve to one. Not 'about twelve'."
       ]
     },
     {
       "rotate": [
         [
-          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+          "That clock only chimes on Tuesdays."
         ],
         [
-          "The paper snowflakes in the window are for winter. They are not real snowflakes. I would never allow real snowflakes."
+          "Paper snowflakes only. No real ones."
         ],
         [
-          "Kip tried to sell me my own lamp once. I have not forgotten."
+          "Kip tried to sell me my own lamp once."
         ],
         [
-          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+          "Good manners. You may touch the teapot. Gently."
         ]
       ],
       "when": {
@@ -52,16 +51,16 @@
     {
       "rotate": [
         [
-          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+          "That clock only chimes on Tuesdays."
         ],
         [
-          "The shells in the window are for summer. They are real shells. I collected them myself. In a sensible hat."
+          "I collected those shells myself. In a sensible hat."
         ],
         [
-          "Kip tried to sell me my own lamp once. I have not forgotten."
+          "Kip tried to sell me my own lamp once."
         ],
         [
-          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+          "Good manners. You may touch the teapot. Gently."
         ]
       ],
       "when": {
@@ -71,16 +70,16 @@
     {
       "rotate": [
         [
-          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+          "That clock only chimes on Tuesdays."
         ],
         [
-          "The cobwebs in the window are for Halloween. They are not real cobwebs. I would never allow real cobwebs."
+          "Fake cobwebs only. No real ones."
         ],
         [
-          "Kip tried to sell me my own lamp once. I have not forgotten."
+          "Kip tried to sell me my own lamp once."
         ],
         [
-          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+          "Good manners. You may touch the teapot. Gently."
         ]
       ],
       "when": {
@@ -90,16 +89,16 @@
     {
       "rotate": [
         [
-          "That clock is ninety years old. It chimes on Tuesdays. Only Tuesdays. It knows what it likes."
+          "That clock only chimes on Tuesdays."
         ],
         [
-          "The daffodils in the window are for spring. They are real daffodils. I would never allow plastic daffodils."
+          "Real daffodils only. No plastic ones."
         ],
         [
-          "Kip tried to sell me my own lamp once. I have not forgotten."
+          "Kip tried to sell me my own lamp once."
         ],
         [
-          "You have good manners. That is rarer than any antique. ...You may touch the teapot. Gently."
+          "Good manners. You may touch the teapot. Gently."
         ]
       ],
       "when": {

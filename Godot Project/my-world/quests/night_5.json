@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Dash says there's a real Earth astronaut waving from the Mothership Pad, east of the Observatory path. Go and say hi!",
+      "text": "Say hi to the Astronaut.",
       "done": {
         "flag": "n5_hi"
       },
@@ -18,15 +18,15 @@
     },
     {
       "id": "explore",
-      "text": "Tonight's all about the mothership.",
+      "text": "Fly the mothership!",
       "checklist": [
         [
           "n5_fly",
-          "Fly the mothership (step onto the pad and call it down)"
+          "Call the mothership down"
         ],
         [
           "schematic_rocket_board",
-          "Fly the mothership through the schematic floating high over town"
+          "Fly through the high schematic"
         ]
       ],
       "done": {
@@ -55,6 +55,6 @@
   ],
   "reward": {
     "sparkles": 12,
-    "message": "Up in the Mothership done! You can fly anywhere now. Zippy can build the Rocket Board. The Astronaut says Rex is waiting by the portal! (+12 sparkles)"
+    "message": "Up in the Mothership done! +12 sparkles."
   }
 }

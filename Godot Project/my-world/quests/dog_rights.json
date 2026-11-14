@@ -5,13 +5,13 @@
   "steps": [
     {
       "id": "write",
-      "text": "Rex is writing the Doggie Bill of Rights. Help him pick the most important right.",
+      "text": "Help Rex pick a doggie right.",
       "done": {"flag": "dogs_written"},
       "where": ["rex"]
     },
     {
       "id": "sign",
-      "text": "Get the town to sign the Doggie Bill of Rights.",
+      "text": "Get 5 names on the Bill.",
       "checklist": [
         ["dogs_sign_dash", "Dash"],
         ["dogs_sign_bramble", "Bramble"],
@@ -30,14 +30,14 @@
     },
     {
       "id": "hall",
-      "text": "Five names! Read the Doggie Bill of Rights to Mr. Palmer at his Town Hall window (morning till teatime).",
+      "text": "Read it to Mr. Palmer.",
       "done": {"flag": "dogs_read"},
       "where": ["town_hall"]
     }
   ],
   "reward": {
     "sparkles": 12,
-    "message": "Dogs are welcome everywhere in the Void now! There's a new sign and a doggy fountain by the Market fountain. +12 sparkles."
+    "message": "Dogs welcome everywhere now! +12 sparkles."
   },
   "titles": {"rook": "Rook, Good Citizen"}
 }

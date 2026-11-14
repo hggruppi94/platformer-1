@@ -10,7 +10,7 @@
       "lines": [
         "Hello there, neighbour! You must be {player}. I'm Mr. Palmer.",
         "The old oak keeps a secret or two. Heh.",
-        "Lost? {map} opens the map. Follow the star!",
+        "{player_menu} opens your menu and the map. Follow the star!",
         "Now go say hello to a few more folks!"
       ],
       "first_night": true

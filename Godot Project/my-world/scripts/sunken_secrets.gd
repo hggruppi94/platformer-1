@@ -66,73 +66,73 @@ const KINDS := {
 const SECRETS := [
 	# Pieces of That Night -------------------------------------------------------------------------------------------
 	{"id": "piece_nameplate", "kind": "piece", "place": "town", "name": "Pod Two's Nameplate",
-		"about": "A bent metal plate off a lab pod. It says POD 2, and under that, in Dash's writing: DO NOT ENTER.",
-		"echo": "Rex: \"One minute as a dog, that's all. Just to know what it's like. What could go wrong?\""},
+		"about": "A pod door. It says: DO NOT ENTER.",
+		"echo": "Rex: \"One minute as a dog. What could go wrong?\""},
 	{"id": "piece_ball", "kind": "piece", "place": "earth", "name": "Rook's Ball",
-		"about": "A chewed red ball, a very long way from home.",
-		"echo": "Rex: \"Fetch, Rook! In the pod! Good boy!\" (The ball bounces into an open pod, Rook bounds after it... and the door hisses shut.)"},
+		"about": "A chewed red ball.",
+		"echo": "Rex: \"Fetch, Rook! In the pod! Good boy!\""},
 	{"id": "piece_lever", "kind": "piece", "place": "tide_reef", "name": "The Swap Lever's Knob",
-		"about": "A round red knob, snapped clean off a big lever.",
-		"echo": "Rex: \"Science fair's on Monday. If this works, I WIN. Pulling the lever in three, two...\""},
+		"about": "A red knob off a big lever.",
+		"echo": "Rex: \"If this works, I WIN! Three, two...\""},
 	{"id": "piece_countdown", "kind": "piece", "place": "shard_isle", "name": "Dash's Countdown Clock",
-		"about": "A little clock, stopped with one second to go.",
-		"echo": "Dash, in the next room: \"Time core charged. Starting my test in three, two, one...\""},
+		"about": "A clock, stopped at one second to go.",
+		"echo": "Dash: \"Starting my test! Three, two, one...\""},
 	{"id": "piece_notes", "kind": "piece", "place": "rootmind", "name": "A Page of Dash's Notes",
-		"about": "Sums and drawings, and one rule underlined three times: NEVER RUN TWO EXPERIMENTS AT ONCE.",
-		"echo": "Dash: \"Rex? Rex, are you running something in there too? Rex, DON'T...\""},
+		"about": "It says: NEVER RUN TWO EXPERIMENTS AT ONCE.",
+		"echo": "Dash: \"Rex? Are you running something too? DON'T...\""},
 	{"id": "piece_lens", "kind": "piece", "place": "frozen_moment", "name": "A Cracked Time Lens",
-		"about": "A glass lens from a time machine, with a crack running right through it.",
-		"echo": "(A hum rises, two machines at once, louder and louder. Then everything goes white.)"},
+		"about": "A cracked time machine lens.",
+		"echo": "(Two machines hum at once. Then... WHITE.)"},
 	{"id": "piece_tag", "kind": "piece", "place": "lanternmoor", "name": "Rook's Old Collar Tag",
-		"about": "A little tag that says ROOK, from back when he was a dog on the outside too.",
-		"echo": "Rex: \"Wait. Why am I so short? Why is my nose so GOOD? Dash? DASH!\""},
+		"about": "A little tag that says ROOK.",
+		"echo": "Rex: \"Why is my nose so GOOD? DASH!\""},
 	{"id": "piece_fork", "kind": "piece", "place": "rhythm_springs", "name": "The Time Core's Tuning Fork",
-		"about": "A forked metal tuner that still hums: two notes that don't quite match.",
-		"echo": "(The two hums clash. Far below everything, something very deep goes CRACK.)"},
+		"about": "It hums two notes that don't match.",
+		"echo": "(Something very deep goes CRACK.)"},
 	# Watches of the First Chosen ------------------------------------------------------------------------------------
 	{"id": "old_first", "kind": "watch", "place": "town", "name": "The First Watch",
-		"about": "A tiny stone sundial on a chain, worn smooth. Scratched on the back:",
-		"note": "\"We mended it once, and then we went home. You will too. Ama, the first of us.\""},
+		"about": "A tiny stone sundial. On the back:",
+		"note": "\"We mended it, then went home. You will too. Ama.\""},
 	{"id": "old_walter", "kind": "watch", "place": "earth", "name": "A Pocket Watch from 1893",
-		"about": "A silver pocket watch, engraved inside the lid:",
-		"note": "\"Walter Hollis, Stars Hollow, 1893. Chosen, and home safe. Thank you, old oak.\""},
+		"about": "A silver pocket watch. Inside:",
+		"note": "\"Walter, 1893. Home safe. Thank you, old oak.\""},
 	# (its id is still "old_grandad" so saves that found it keep it: it was Otto's Grandad's watch until Nov 12, 2026,
 	# when Hayden scrapped that lore. Teddy is the chosen kid the Agent of Chaos was: scripts/chaos_ending.gd)
 	{"id": "old_grandad", "kind": "watch", "place": "tide_reef", "name": "A Boy's Wristwatch from 1956",
-		"about": "A boy's wristwatch on a cracked leather strap, stopped at midnight. Scratched on the back:",
-		"note": "\"Teddy M., Stars Hollow, 1956. One more trip, then home by one. Promise.\""},
+		"about": "A boy's wristwatch, stopped at midnight. On the back:",
+		"note": "\"Teddy, 1956. One more trip, then home!\""},
 	{"id": "old_lio", "kind": "watch", "place": "shard_isle", "name": "The Singing Shard Pendant",
-		"about": "A crystal on a cord that hums one clear note. A tag on it says:",
-		"note": "\"I kept the shards singing as long as I could. Going home now. Someone will come. Lio.\""},
+		"about": "A humming crystal. A tag says:",
+		"note": "\"I kept the shards singing. Someone will come. Lio.\""},
 	{"id": "old_seed", "kind": "watch", "place": "rootmind", "name": "The Seed Watch",
-		"about": "A watch with a seed inside instead of hands. It's grown one tiny leaf. On the back:",
-		"note": "\"I went home and grew up into the oldest tree in the wood. Hello from me, from a long time ago.\""},
+		"about": "A watch with a seed inside. On the back:",
+		"note": "\"I grew into the oldest tree in the wood. Hello!\""},
 	{"id": "old_stopwatch", "kind": "watch", "place": "frozen_moment", "name": "A Frost-Rimmed Stopwatch",
-		"about": "It's stopped, but not stuck: someone stopped it on purpose. Scratched on it:",
-		"note": "\"We stopped it so we could say goodbye properly. Don't rush yours.\""},
+		"about": "Stopped on purpose. On it:",
+		"note": "\"Don't rush your goodbyes.\""},
 	{"id": "old_lantern", "kind": "watch", "place": "lanternmoor", "name": "The Lantern Watch",
-		"about": "Its face glows softly, like a lantern. Round the rim:",
-		"note": "\"Every lantern on the moor was lit by one of us. Light one for me. Sol.\""},
+		"about": "It glows like a lantern. Round the rim:",
+		"note": "\"Light a lantern for me. Sol.\""},
 	{"id": "old_metronome", "kind": "watch", "place": "rhythm_springs", "name": "The Metronome Pendant",
-		"about": "It still ticks, steady as anything. Painted on its weight:",
-		"note": "\"Keep the beat for the ones who come after. Tempo.\""},
+		"about": "It ticks, steady. On its weight:",
+		"note": "\"Keep the beat. Tempo.\""},
 	# Seer's Bottles -------------------------------------------------------------------------------------------------
 	{"id": "seer_chosen", "kind": "bottle", "place": "town", "name": "A Bottle from the Seer",
-		"note": "To whoever finds this first: yes, you. You were chosen for a reason, even on the days it doesn't feel like it."},
+		"note": "Yes, you. You were chosen for a reason."},
 	{"id": "seer_oak", "kind": "bottle", "place": "earth", "name": "A Bottle from the Seer",
-		"note": "The old oak has opened before. Ask the librarian about her great-great-grandad one day. Gently."},
+		"note": "The old oak has opened before."},
 	{"id": "seer_bike", "kind": "bottle", "place": "tide_reef", "name": "A Bottle from the Seer",
-		"note": "The boy on the bike broke something, and he'll help mend it. Nobody mends anything alone. Remember that."},
+		"note": "Nobody mends anything alone."},
 	{"id": "seer_bodies", "kind": "bottle", "place": "shard_isle", "name": "A Bottle from the Seer",
-		"note": "Not every body is where it belongs. One day they will be, but not the way anyone guesses."},
+		"note": "Not every body is where it belongs. Yet."},
 	{"id": "seer_giant", "kind": "bottle", "place": "rootmind", "name": "A Bottle from the Seer",
-		"note": "Not everything that seems strange was always strange. Remember that, when it matters."},
+		"note": "Strange things weren't always strange."},
 	{"id": "seer_goodbye", "kind": "bottle", "place": "frozen_moment", "name": "A Bottle from the Seer",
-		"note": "Every goodbye on the Void is really a see-you-later. Hold on to that."},
+		"note": "Every goodbye is a see-you-later."},
 	{"id": "seer_portals", "kind": "bottle", "place": "lanternmoor", "name": "A Bottle from the Seer",
-		"note": "Count the portals. Then count again. One of them isn't on any map."},
+		"note": "One portal isn't on any map."},
 	{"id": "seer_watch", "kind": "bottle", "place": "rhythm_springs", "name": "A Bottle from the Seer",
-		"note": "The watch on your wrist is the only clock in the Void that always tells the truth."},
+		"note": "Your watch always tells the truth."},
 ]
 
 const REACH := 1.7                   # how near her middle has to come, swimming down
@@ -615,25 +615,23 @@ func lines_for(s: Dictionary) -> Array:
 	match s.kind:
 		"piece":
 			lines.append("(%s)" % s.about)
-			lines.append("(As you hold it, you hear a voice from far away, and a long time from now:)")
+			lines.append("(A far-away voice:)")
 			lines.append(s.echo)
-			lines.append("(Dash would want to see this. %d of 8 Pieces of That Night.)" % n)
+			lines.append("(Show Dash! %d of 8)" % n)
 		"watch":
 			lines.append("(%s)" % s.about)
 			lines.append(s.note)
-			lines.append("(%d of 8 Watches of the First Chosen.)" % n)
+			lines.append("(%d of 8 old watches)" % n)
 			if n == 8:
-				lines.append("(Eight watches from eight chosen kids, long before you, all ticking their own ways at once.)")
-				lines.append("(Every one of them mended something. Nearly every one of them went home.)")
+				lines.append("(Eight watches from kids chosen long ago!)")
 				Remnants.add(WATCH_REWARD, "watches of the first chosen")
 				lines.append("(You got %s!)" % Remnants.words(WATCH_REWARD))
 		"bottle":
-			lines.append("(A glass bottle with a rolled-up note inside, sealed with lilac wax. It's from the future seer, written very carefully, so as not to make ripples:)")
+			lines.append("(A note in a bottle, from the Seer:)")
 			lines.append("\"%s\"" % s.note)
 			lines.append("(%d of 8 Seer's Bottles.)" % n)
 			if n == 8:
-				lines.append("(There's a second note folded up behind the first.)")
-				lines.append("\"You found every one. I knew you would: I saw it, a long time from now. See you then. The Seer.\"")
+				lines.append("\"You found them all! I knew you would. The Seer.\"")
 				Remnants.add(BOTTLE_REWARD, "the seer's bottles")
 				lines.append("(You got %s!)" % Remnants.words(BOTTLE_REWARD))
 	return lines
@@ -653,18 +651,15 @@ func hand_in() -> Array:
 	if given == 8 and not Dialogue.flags.has("sunk_pieces_done"):
 		Dialogue.set_flag("sunk_pieces_done")
 		lines.append_array([
-			"(Dash lays all eight pieces out in a circle. For a moment they hum together, two notes that don't match.)",
-			"Two experiments at once. Rex's swap and my time core. When they went off together, they didn't just send us here.",
-			"They cracked the Shift. So it wasn't only Rex. It was me too.",
-			"{player}: You didn't mean to break time, though.",
-			"No. Rex meant to swap with Rook. I meant to run my test. Neither of us meant THIS.",
-			"...And now I know how it broke, I think I know how it could be fixed. It's going to take everyone.",
-			"Thanks, {player}. Really. Here, you should have these."])
+			"Two experiments at once. Rex's and mine.",
+			"It cracked the Shift. It was me too.",
+			"Now I know how to fix it. With everyone!",
+			"Thanks, {player}. These are for you."])
 		Remnants.add(int(PIECE_REWARD.remnants), "pieces of that night")
 		Game.add_sparkles(int(PIECE_REWARD.sparkles), "pieces of that night")
 		lines.append("(You got %s and %d sparkles!)" % [Remnants.words(int(PIECE_REWARD.remnants)), int(PIECE_REWARD.sparkles)])
 	else:
-		lines.append("That's %d of 8. Keep looking at the bottom of anything deep." % given)
+		lines.append("%d of 8! Look in deep water." % given)
 	Audio.play("level_up", -4.0, 0.0)
 	Game.save_game()
 	return lines

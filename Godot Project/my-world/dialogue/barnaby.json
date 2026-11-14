@@ -6,10 +6,9 @@
         "talks": 0
       },
       "lines": [
-        "(Barnaby strums a big chord.)",
-        "A stranger in the Hollow, a new face on the green! Welcome, friend, welcome, to the cosiest town you've seen!",
-        "{player}: Did you just make that up?",
-        "I make everything up! I'm Barnaby, the town troubadour. Songs for every occasion. And some for no occasion."
+        "(Strum!)",
+        "A new face on the green! Welcome, friend!",
+        "I'm Barnaby! Songs for every occasion!"
       ]
     },
     {
@@ -18,8 +17,7 @@
         "season": "winter"
       },
       "lines": [
-        "(He's strumming a jolly tune about a snowman who wanted to see the summer.)",
-        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+        "This one's called 'The Hum Beneath the Oak'."
       ]
     },
     {
@@ -28,8 +26,7 @@
         "season": "summer"
       },
       "lines": [
-        "(He's strumming a jolly tune about an ice lolly who wanted to visit the moon.)",
-        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+        "This one's called 'The Hum Beneath the Oak'."
       ]
     },
     {
@@ -38,8 +35,7 @@
         "season": "autumn"
       },
       "lines": [
-        "(He's strumming a jolly tune about a pumpkin who wanted to be a moon.)",
-        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+        "This one's called 'The Hum Beneath the Oak'."
       ]
     },
     {
@@ -48,8 +44,7 @@
         "season": "spring"
       },
       "lines": [
-        "(He's strumming a bouncy tune about a duck who wanted to be a swan.)",
-        "This next one's called 'The Hum Beneath the Oak'. I wrote it. I don't know why. It just... came to me one midnight."
+        "This one's called 'The Hum Beneath the Oak'."
       ]
     },
     {
@@ -58,8 +53,8 @@
         "every": 2
       },
       "lines": [
-        "Listen... the old oak's humming again. It always gets louder near midnight. Like it's tuning up for something.",
-        "Last week I saw a green flicker down there, right at twelve. Then Mr. Palmer walked out of the trees, cool as you like, and said 'evening'."
+        "The old oak hums louder near midnight.",
+        "I saw a green flicker there. Then Mr. Palmer walked out!"
       ]
     },
     {
@@ -67,8 +62,8 @@
         "place": "pond_path"
       },
       "lines": [
-        "(He's singing a soft song about a sleepy pond and a duck called Gerald.)",
-        "Shh, Gerald's listening. He's my biggest fan."
+        "A song for a duck called Gerald.",
+        "Shh, he's my biggest fan."
       ]
     },
     {
@@ -76,9 +71,7 @@
         "activity": "stargazing"
       },
       "lines": [
-        "On a clear night you can see every star from up here. And sometimes... one more. Just past the old oak. It flickers green.",
-        "{player}: Green?",
-        "Green as a pickle! Must write a song about it."
+        "Sometimes there's one extra star by the oak. It flickers green!"
       ]
     },
     {
@@ -87,8 +80,8 @@
         "season": "winter"
       },
       "lines": [
-        "(Strum!) Good morning, good morning, the snow is soft and white! Good morning, good morning, and Gus is grumpy, right!",
-        "(From across the street, someone yells \"I HEARD THAT\".)"
+        "Good morning! The snow is white! And Gus is grumpy, right!",
+        "(Gus: \"I HEARD THAT!\")"
       ]
     },
     {
@@ -97,8 +90,8 @@
         "season": "summer"
       },
       "lines": [
-        "(Strum!) Good morning, good morning, the sun is big and bright! Good morning, good morning, and Gus is sunburnt white!",
-        "(From across the street, someone yells \"THAT DOESN'T EVEN MAKE SENSE\".)"
+        "Good morning! The sun is bright! And Gus is sunburnt white!",
+        "(Gus: \"THAT DOESN'T EVEN RHYME!\")"
       ]
     },
     {
@@ -107,8 +100,8 @@
         "season": "autumn"
       },
       "lines": [
-        "(Strum!) Good morning, good morning, the leaves are turning gold! Good morning, good morning, and Gus is being cold!",
-        "(From across the street, someone yells \"I HEARD THAT\".)"
+        "Good morning! The leaves are gold! And Gus is being cold!",
+        "(Gus: \"I HEARD THAT!\")"
       ]
     },
     {
@@ -117,23 +110,23 @@
         "season": "spring"
       },
       "lines": [
-        "(Strum!) Good morning, good morning, the blossom's on the trees! Good morning, good morning, and Gus is going to sneeze!",
-        "(From across the street, someone yells \"I HEARD THAT\". Then sneezes.)"
+        "Good morning! Blossom on the trees! And Gus is going to sneeze!",
+        "(Gus: \"I HEARD THAT! ...ACHOO!\")"
       ]
     },
     {
       "rotate": [
         [
-          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+          "I know every song. Except the sad moose one."
         ],
         [
-          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+          "Gus paid me to play somewhere else. So I did. Right outside!"
         ],
         [
-          "(He plays a twinkly little tune.) That's my winter song. It's called 'The Snowflake Who Was Scared Of Heights'."
+          "My winter song: 'The Snowflake Scared of Heights'."
         ],
         [
-          "The festival's my big night! I'm playing the whole evening. Bring earmuffs! Joking. Bring dancing shoes."
+          "The festival's my big night! Bring dancing shoes!"
         ]
       ],
       "when": {
@@ -143,16 +136,16 @@
     {
       "rotate": [
         [
-          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+          "I know every song. Except the sad moose one."
         ],
         [
-          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+          "Gus paid me to play somewhere else. So I did. Right outside!"
         ],
         [
-          "(He plays a lazy, sunny little tune.) That's my summer song. It's called 'The Sunflower Who Was Scared Of The Dark'."
+          "My summer song: 'The Sunflower Scared of the Dark'."
         ],
         [
-          "The Summer Fair's my big night! It doesn't even get dark till nine. Bring sun cream! Joking. Bring dancing shoes."
+          "The Summer Fair's my big night! Bring dancing shoes!"
         ]
       ],
       "when": {
@@ -162,16 +155,16 @@
     {
       "rotate": [
         [
-          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+          "I know every song. Except the sad moose one."
         ],
         [
-          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+          "Gus paid me to play somewhere else. So I did. Right outside!"
         ],
         [
-          "(He plays a spooky little tune.) That's my Halloween song. It's called 'The Pumpkin Who Wanted To Be A Pie'."
+          "My Halloween song: 'The Pumpkin Who Wanted To Be A Pie'."
         ],
         [
-          "The festival's my big night! I'm playing the whole evening. Bring earmuffs! Joking. Bring dancing shoes."
+          "The festival's my big night! Bring dancing shoes!"
         ]
       ],
       "when": {
@@ -181,16 +174,16 @@
     {
       "rotate": [
         [
-          "Want a request? I know every song. Except the one about the moose. Nobody knows that one. It's too sad."
+          "I know every song. Except the sad moose one."
         ],
         [
-          "Gus once paid me five dollars to play somewhere else. I played in front of the diner. It's somewhere else!"
+          "Gus paid me to play somewhere else. So I did. Right outside!"
         ],
         [
-          "(He plays a chirpy little tune.) That's my spring song. It's called 'The Tulip Who Wanted To Be A Trumpet'."
+          "My spring song: 'The Tulip Who Wanted To Be A Trumpet'."
         ],
         [
-          "The Spring Fair's my big night! I'm playing the whole evening. Bring dancing shoes. And a duck. Joking. Maybe."
+          "The Spring Fair's my big night! Bring dancing shoes!"
         ]
       ],
       "when": {

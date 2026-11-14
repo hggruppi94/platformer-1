@@ -19,7 +19,7 @@
       "lines": [
         "{player}! Are you okay? I'm... different!",
         "{player}: Nina?! You look... different!",
-        "So do you! We fell out of the SKY!",
+        "So do you! My floor cracked, and we fell out of the SKY!",
         "And where did THESE watches come from?",
         "That yellow one with the clipboard keeps counting us. Let's say hi."
       ],
@@ -30,9 +30,9 @@
         "talks": 0
       },
       "lines": [
-        "{player}! You fell too! It's me, Nina!",
+        "{player}! You fell too! It's me, Nina, from Maple Lane!",
         "{player}: Nina?! You look... different!",
-        "So do you! The Void changes Earth kids, I think.",
+        "So do you! My floor cracked, and we fell right through!",
         "And we both got watches. Tally says we're 'chosen'!"
       ]
     },

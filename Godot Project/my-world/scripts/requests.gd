@@ -688,18 +688,18 @@ func lines(talker: Node3D = null) -> Array:
 		# The night the sky cracked (scripts/void_arrival.gd): Tally's as rattled as everyone, then carries on with the
 		# notice board's tutorial
 		out.append("SEVEN of you! Out of the SKY! Oh my clipboard!")
-		out.append("And a watch, just like the others... hmm.")
-		out.append("I'm Tally! Help folks on my board, earn sparkles!")
+		out.append("And a watch, like the others. You're 'chosen'... hmm.")
+		out.append("I'm Tally! Do requests on my board, earn sparkles!")
 	elif not Dialogue.flags.has("tally_hi"):
 		# The first hello: the notice board's tutorial carries on here (the board works just like Earth's)
 		out.append("A new face! I'm Tally!")
-		out.append("Help folks on my board, earn sparkles!")
+		out.append("Do requests on my board, earn sparkles!")
 	elif not Dialogue.flags.has("tally_comers") and not Dialogue.flags.has("dash_goodbye") and self == Requests:
 		# Who lives here and who just visits (Hayden, 12 Nov 2026: the Void's townsfolk come and go; Tally, the little
 		# aliens and the Astronaut live here for keeps). Once, the hello after their first one.
 		Dialogue.flags["tally_comers"] = true
-		out.append("Folks pop in and out through cracks all day!")
-		out.append("Only a few of us live here. Like Dash, Rex and Rook.")
+		out.append("Only a few of us live in the Void for keeps.")
+		out.append("Me, the little ones, the Astronaut. And Dash, Rex and Rook.")
 	else:
 		out.append("Hi, {player}! Tonight's requests:")
 	for r in list:

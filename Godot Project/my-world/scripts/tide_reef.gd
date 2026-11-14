@@ -62,7 +62,7 @@ const LAMP_COLOURS := [Color(1.0, 0.5, 0.8), Color(0.4, 0.95, 1.0), Color(0.75, 
 const CHEST_AT := Vector3(0, 0, -27.5)    # in the Deep Basin, where the Gloop sat
 const CHEST_REMNANTS := 4
 const CHEST_SPARKLES := 10
-const JUNK := ["an old boot. With a hole in it.", "a very cross crab! (It lets go. Eventually.)", "a rusty tin can.",
+const JUNK := ["an old boot!", "a cross crab!", "a rusty tin can.",
 	"a sock. Whose sock?"]
 
 # The tide out (stuck) and in (mended): the sky, the light and the haze lerp between these (set_tide)
@@ -147,7 +147,7 @@ func setup() -> void:
 	if is_mended() and not Portals.has_found(world_id, "swim_taught"):
 		get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_swim)    # mended before Otto could teach you
 	if not is_mended() and pearls() == 0 and not Portals.has_found(world_id, "met_otto"):
-		Game.message.call_deferred("The Tide Reef: a whole town under the sea... with no sea. Someone's sitting in a bubble by the way in.")
+		Game.message.call_deferred("The Tide Reef: a sea town... with no sea!")
 
 
 func _own_sky() -> void:
@@ -264,7 +264,7 @@ func take_pearl(i: int) -> void:
 	Juice.rumble(0.3, 0.2)
 	var n := pearls()
 	Game.message(("You've got %s! (%d of 3)%s" % [PEARL_NAMES[i], n, " Now ride one of Otto's bubbles back down!" if i == 2 else ""]) if n < 3
-		else "That's all three Tide Pearls! Up in the Deep Basin, something enormous just went GLOOP... and opened one eye.")
+		else "All three Tide Pearls! Something big went GLOOP...")
 
 
 func _put_pearl(i: int, radius := 2.4) -> void:
@@ -371,59 +371,51 @@ func otto_lines() -> Array:
 	# Otto's gentle and sure he's no use, until he finds out what eight arms can do
 	if is_mended() and not Portals.has_found(world_id, "thanked"):
 		Portals.note_found(world_id, "thanked")
-		return ["Listen. Hear that? That's the sea. It's coming HOME.",
-			"Everyone will be back by tonight. And when they ask who held the Riptide Gloop still... that was me.",
-			"I still need a friend to get my bubble about, {player}. That hasn't changed. But I'm not no use. I never was."]
+		return ["Listen! The sea's coming HOME!",
+			"And who held the Gloop still? ME!"]
 	if is_mended() and flood > 0.5:
 		if lamps_lit() < LAMPS.size():
 			return ["Isn't it lovely, being under the sea again? Look at the fish!",
-				"Five sea lanterns drifted in with the tide, way up high. Swim up and give them a nudge and they'll light. %d to go!" % (LAMPS.size() - lamps_lit()),
-				"Hold {jump} to swim up, hold {dash} to dive. I'll float along with you."]
+				"Swim up and light the sea lanterns! %d to go!" % (LAMPS.size() - lamps_lit()),
+				"{jump} swims up, {dash} dives!"]
 		if not chest_open():
-			return ["All the lanterns are lit! And look, down in the Deep Basin. Is that... the Reef Chest?",
-				"Swim down and open it, {player}! Go on!"]
-		return [["The whole reef's coming home. Everybody's swimming back in, a few at a time.",
-			"I still need a friend to float my bubble along. But I'm not no use. I never was."],
-			["Did you know you can swim in other places now? Any water deep enough. Even on your Earth!",
-			"Your bubble goes wherever you go."],
-			["Eight latches at once. Reaching where nobody else can. Holding on when it counts.",
-			"And a very good bubble, if I say so myself."]].pick_random()
+			return ["All lit! Is that... the Reef Chest?",
+				"Swim down and open it!"]
+		return [["Everybody's swimming home!"],
+			["You can swim anywhere deep now! Even on Earth!"],
+			["Eight arms! Very useful!"]].pick_random()
 	if is_mended():
-		return [["Listen. Hear that? That's the sea. It's coming HOME.",
-			"I still need a friend to get my bubble about. But I'm not no use. I never was."],
-			["Eight latches at once. Reaching where nobody else can. Holding on when it counts.",
-			"I've been practising my reach. One day I'd like to show you how it's done."],
-			["The pools are full again! Go and have a paddle. I'll float along.",
-			"Did you see the corals? They went pink again. And orange. And purple. I'd forgotten the purple."]].pick_random()
+		return [["Listen! The sea's coming HOME!"],
+			["Eight arms! Very useful!"],
+			["The pools are full! Let's paddle!",
+			"The corals went pink again! And purple!"]].pick_random()
 	if not met_otto():
 		Portals.note_found(world_id, "met_otto")
-		return ["Oh! A visitor. Hello. I'm Otto. Sorry, I'd get up, but... well. This bubble's my chair.",
-			"I blew it myself. It only floats along if someone goes with it, though, so I need a friend to get anywhere.",
-			"When the tide went out and didn't come back, everybody left to look for the sea. I couldn't keep up. So I stayed.",
-			"The Riptide Gloop swallowed the whole tide. Three Tide Pearls would call it back, but I can't fetch them. I'm no use, really.",
-			"...You'd take me WITH you? Well. All right. My bubble will follow you. Don't expect much!",
-			"One's locked in the Clam Vault, one's lost down a hole in the Kelp Grotto, and one's on top of the Coral Spire."]
+		return ["Oh! Hello. I'm Otto. This bubble's my chair.",
+			"It only moves if a friend comes along.",
+			"A Gloop swallowed the sea! Three Tide Pearls bring it back.",
+			"You'd take me WITH you? Okay!"]
 	if riptide_awake:
 		if grabs == 0:
-			return ["It's HUGE! I can't fight that! I can't even walk!",
-				"...But it's slippery, and I've got eight arms. Hang on. Hang ON. I've got an idea."]
-		return ["When I grab it, pop it! Bubbles or a stomp, quick, I can't hold it for long!",
-			"When it sucks the water in, jump! And jump its waves!"]
+			return ["It's HUGE!",
+				"...But I've got eight arms!"]
+		return ["When I grab it, pop it!",
+			"Jump its waves!"]
 	var left: Array = []
 	for i in 3:
 		if not has_pearl(i):
-			left.append(["the Clam Vault (west): it has eight latches, and they all have to turn at once",
-				"the Kelp Grotto (east): there's something shiny down one of the holes. You look, I'll reach",
-				"the Coral Spire (north-west): take me to the Bubble Pad and I'll blow you some steps"][i])
+			left.append(["the Clam Vault",
+				"the Kelp Grotto",
+				"the Coral Spire"][i])
 	if left.size() == 0:
-		return ["All three pearls! The Riptide Gloop's waking up in the Deep Basin...",
-			"I'll come. I don't know what use I'll be. But I'll come."]
+		return ["All three! The Gloop's waking up...",
+			"I'll come!"]
 	var n := 3 - left.size()
-	var first := "Stay close and my bubble comes along. I'm sorry I can't do more."
+	var first := "Stay close, my bubble follows!"
 	if n == 1:
-		first = "One pearl! And I helped. I actually helped. Did you see?"
+		first = "One pearl! And I HELPED!"
 	elif n == 2:
-		first = "Two pearls! You know... nobody ever asked me to help before. They just helped ME."
+		first = "Two pearls! Nobody ever asked me to help before."
 	return [first, "Still to find: %s." % "; and ".join(left)]
 
 
@@ -443,7 +435,7 @@ func _need_otto(p: Vector3, what: String) -> bool:
 		Audio.play("ui_back", -8.0)
 		return false
 	if not otto_near(p):
-		Game.message("Otto's bubble is floating over as fast as it can. Wait for him!")
+		Game.message("Wait for Otto!")
 		return false
 	return true
 
@@ -516,10 +508,10 @@ func open_vault() -> void:
 	if vault_open():
 		return
 	var m := get_node("Vault") as Node3D
-	if not _need_otto(m.global_position, "The Clam Vault: shut tight, with eight latches along its lip. They'd all have to turn at the very same moment. You've only got two hands..."):
+	if not _need_otto(m.global_position, "Eight latches! You've only got two hands..."):
 		return
 	Portals.note_found(world_id, "vault_open")
-	Game.message("Otto: \"Eight latches. All at once. Nobody's got eight hands! ...Oh. OH. I've got eight ARMS.\"")
+	Game.message("Otto: \"Eight latches? I've got eight ARMS!\"")
 	# One arm to each latch, then they all turn together and the lid swings up
 	var vault := get_node("Clam Vault") as Node3D
 	for k in 8:
@@ -538,7 +530,7 @@ func open_vault() -> void:
 	tw.tween_callback(func() -> void:
 		Fx.burst(self, vault.global_position + Vector3(1.5, 1.6, 0), PEARL, 26, 0.1, 4.0, -1.0, 1.0)
 		Juice.blip("chime", 1.0, -4.0)
-		Game.message("CLUNK! The Clam Vault swings open, and there's the first Tide Pearl. Otto: \"...I did that?\""))
+		Game.message("CLUNK! It's open! Otto: \"I did that?\""))
 	_put_pearl(0)
 
 
@@ -613,8 +605,8 @@ func try_hole(i: int) -> bool:
 	if has_pearl(1):
 		return false
 	var m := get_node("Hole%d" % (i + 1)) as Node3D
-	var peek := "Something's shining down there, far too deep for your arm." if i == right_hole \
-		else "Two little eyes blink back at you from the dark. Not that one, then."
+	var peek := "Something shines down there. Too deep!" if i == right_hole \
+		else "Two little eyes blink back. Not this one!"
 	if not _need_otto(m.global_position, peek):
 		return false
 	var deep := m.global_position + Vector3(1.6, float(m.get_meta("height", 1.15)), 0)
@@ -622,9 +614,9 @@ func try_hole(i: int) -> bool:
 	if i != right_hole:
 		wrong_tries += 1
 		Juice.blip("buzz", 1.0, -8.0)
-		Game.message("Otto reaches in... and pulls out %s You're his eyes: look for the hole with the glint." % JUNK[(wrong_tries - 1) % JUNK.size()])
+		Game.message("Otto pulls out %s Find the shiny hole!" % JUNK[(wrong_tries - 1) % JUNK.size()])
 		return false
-	Game.message("Otto reaches in, deeper, deeper... \"I can feel it! Round and smooth! I've GOT it!\"")
+	Game.message("Otto: \"I've GOT it!\"")
 	take_pearl(1)
 	return true
 
@@ -672,12 +664,12 @@ func blow_steps(at_once := false) -> void:
 	if steps_up or riding:
 		return
 	var pad := get_node("BubblePad") as Node3D
-	if not _need_otto(pad.global_position, "A pad for blowing bubbles, at the foot of the Coral Spire. It's far too smooth to climb. If only you knew a champion bubble blower..."):
+	if not _need_otto(pad.global_position, "Too smooth to climb. A bubble blower could help..."):
 		return
 	steps_up = true
 	_blow_i = 0
 	_blow_t = 0.0
-	Game.message("Otto: \"Bubbles I CAN do. Up you go! Mind, each one pops a moment after you land on it. Keep hopping!\"")
+	Game.message("Otto: \"Bubble steps! Keep hopping!\"")
 	if at_once:
 		for i in _steps.size():
 			_step_show(i, true)
@@ -817,7 +809,7 @@ func end_ride(player: CharacterBody3D) -> void:
 	steps_down()
 	if not Portals.has_found(world_id, "rode_bubble"):
 		Portals.note_found(world_id, "rode_bubble")
-		Game.message("Wheeee... POP! A bubble ride all the way down.")
+		Game.message("Wheeee... POP!")
 	get_tree().create_timer(0.3).timeout.connect(func() -> void:
 		if is_instance_valid(player):
 			Game.hold_controls(&"bubble_ride", false, player))
@@ -868,7 +860,7 @@ func _look_at_riptide() -> void:
 	if riptide_awake:
 		return
 	var left := 3 - pearls()
-	Game.message("An enormous blue Gloop, fast asleep and swollen right up: it swallowed the whole tide! %s" %
+	Game.message("A huge sleeping Gloop, full of sea! %s" %
 		("The %d Tide Pearl%s would wake it." % [left, "" if left == 1 else "s"]) if left > 0 else "It's stirring...")
 	Audio.play("ui_back", -8.0)
 
@@ -889,7 +881,7 @@ func wake_riptide() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("pop", 0.5, -2.0)
-	Game.message("The Riptide Gloop wakes up! It's too slippery to pop: bubbles slide right off. Otto: \"I can't fight THAT! ...Can I?\"")
+	Game.message("It's awake! Too slippery to pop!")
 
 
 func grab() -> bool:
@@ -904,7 +896,7 @@ func grab() -> bool:
 		reach(Vector3(cos(a) * 1.6, 1.2 + (k % 2) * 0.9, sin(a) * 1.6), HOLD_TIME, riptide)
 	Juice.blip("chime", 0.9, -5.0)
 	Juice.rumble(0.3, 0.2)
-	Game.message("Otto: \"It's slippery... but I've got EIGHT ARMS! I'VE GOT IT! Quick, pop it NOW!\"" if grabs == 1
+	Game.message("Otto: \"I'VE GOT IT! Pop it NOW!\"" if grabs == 1
 		else ["Otto: \"GOT it! Now, now, now!\"", "Otto: \"I'm holding on! Pop it!\"", "Otto: \"It's not going ANYWHERE! Go!\""].pick_random())
 	return true
 
@@ -949,11 +941,9 @@ func mend() -> void:
 
 func proud_lines() -> Array:
 	# The turn in Otto's story: he saved the day, and he knows it
-	return ["{player}! Did you SEE that? I held it! Me! With MY arms!",
-		"Eight latches at once. Reaching where nobody else could. Holding on when it counted.",
-		"I thought I was no use, because I can't get about by myself. But I was looking at the wrong bit of me.",
-		"I'll always need a friend to float my bubble along. That's all right. Friends need me too. You did!",
-		"Look, the tide's coming in! And it isn't stopping at the pools. Thank you for taking me with you."]
+	return ["Did you SEE? I held it! With MY arms!",
+		"I thought I was no use. I was wrong!",
+		"The tide's coming in! Thank you!"]
 
 
 func _proud(tries := 0) -> void:
@@ -972,12 +962,11 @@ func _proud(tries := 0) -> void:
 # Slice two: Otto teaches you to swim, and the sea comes right back in -------------------------------------------
 func teach_lines() -> Array:
 	# Otto's gift: a bubble for your head, so you can go under with him (scripts/swim.gd)
-	return ["{player}, the sea's coming right back in. ALL of it. Over the houses, over the spire, over us.",
-		"You can't breathe water, can you? Hang on. Hold still... (Otto blows a big bubble, and it settles round your head like a glass helmet.)",
-		"There! My best one. It'll go with you everywhere, the way my chair goes with my friends.",
-		"Now you can swim under. Hold {jump} to swim up, hold {dash} to dive down, and steer like walking. At the top, press {jump} to hop out.",
-		"And you'll never run out of air. It's a VERY good bubble. Here it comes, {player}. Hold on!",
-		"Oh, and one more thing! (He fishes a soggy blueprint out from under his chair.) Dash's Jelly Mines. He said give it to a friend. That's you!"]
+	return ["The sea's coming back. ALL of it!",
+		"Hold still... a bubble helmet for you!",
+		"Now swim! {jump} goes up, {dash} goes down.",
+		"And Dash's Jelly Mines blueprint. For you!",
+		"Here comes the sea! Hold on!"]
 
 
 func _teach_swim(tries := 0) -> void:
@@ -993,7 +982,7 @@ func _teach_swim(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Otto", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_swim")
 	else:
-		Game.message("New: Swim! In deep water hold %s to swim up and %s to dive." % [Settings.prompt("jump"), Settings.prompt("dash")])
+		Game.message("New: Swim! %s up, %s down." % [Settings.prompt("jump"), Settings.prompt("dash")])
 	_flood_when_quiet()
 
 
@@ -1023,7 +1012,7 @@ func start_flood(seconds := FLOOD_TIME) -> void:
 	tw.tween_method(set_flood, flood, 1.0, seconds).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(func() -> void:
 		flooding = false
-		Game.message("The Tide Reef's under the sea again! Five sea lanterns drifted in with the tide, up high. Swim up and light them."))
+		Game.message("The reef's under the sea! Light five sea lanterns."))
 	Audio.play("splash", 3.0)
 	Juice.rumble(0.35, 0.2, seconds * 0.5)
 	if not Settings.reduce_motion:
@@ -1207,7 +1196,7 @@ func light_lamp(i: int) -> void:
 	Juice.squash(g, 0.3, 0.3)
 	var n := lamps_lit()
 	if n == LAMPS.size():
-		Game.message("All five sea lanterns are lit! Something's glinting down in the Deep Basin...")
+		Game.message("All five lit! Something glints down deep...")
 		Juice.blip("sparkle", 1.0, -2.0)
 	else:
 		Game.message("Sea lantern lit! %d of %d." % [n, LAMPS.size()])
@@ -1241,9 +1230,9 @@ func open_chest() -> void:
 		tw.tween_property(lid, "rotation:x", -1.6, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		(_chest.get_node("Treasure") as Node3D).visible = false
 	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
-	var lines := ["The Reef Chest! The old ones always said the tide would bring it home one day.",
-		"(Inside: %s, and a note in wobbly octopus writing: \"For whoever helps bring the tide home. From everyone on the Tide Reef.\")" % [Remnants.words(CHEST_REMNANTS)],
-		"...That's you. And me! We did that. Thank you, {player}."]
+	var lines := ["The Reef Chest!",
+		"(Inside: %s!)" % [Remnants.words(CHEST_REMNANTS)],
+		"We did it! Thank you, {player}!"]
 	if spot:
 		Dialogue.say(spot, "Otto", lines.map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_chest")
 

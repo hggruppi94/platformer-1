@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Melody and Heather say Dash came looking for you. He's waiting by the portal. Go and say hi!",
+      "text": "Say hi to Dash by the portal.",
       "done": {
         "flag": "n4_hi"
       },
@@ -25,19 +25,19 @@
     },
     {
       "id": "explore",
-      "text": "Observatory Hill has new things tonight.",
+      "text": "Explore Observatory Hill!",
       "checklist": [
         [
           "n4_observatory",
-          "Go up the hill to the Observatory"
+          "Go up to the Observatory"
         ],
         [
           "schematic_bike",
-          "Find the Bike's schematic, round the far side of the hill"
+          "Find the Bike schematic"
         ],
         [
           "n4_ride",
-          "Have Zippy build you a new ride at the Tune-Up"
+          "Get Zippy to build it"
         ]
       ],
       "done": {
@@ -74,6 +74,6 @@
   ],
   "reward": {
     "sparkles": 12,
-    "message": "Stars Over Observatory Hill done! Pick which ride you're on from the Skate page of your menu. Dash says the Astronaut's waving from the Mothership Pad! (+12 sparkles)"
+    "message": "Observatory Hill done! +12 sparkles."
   }
 }

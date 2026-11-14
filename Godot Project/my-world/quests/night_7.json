@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Rex says Mr. Palmer wants a quiet word, at his office window by the Town Hall.",
+      "text": "See Mr. Palmer at the Town Hall.",
       "done": {
         "flag": "n7_hi"
       },
@@ -18,19 +18,19 @@
     },
     {
       "id": "explore",
-      "text": "The far corners of the Void, tonight. Be brave!",
+      "text": "Explore the far corners!",
       "checklist": [
         [
           "n7_gate",
-          "Peek at the gate to Dusk's Embrace (you don't have to go in)"
+          "Peek at the old gate"
         ],
         [
           "schematic_saucer",
-          "Find the Flying Saucer's schematic in the far field"
+          "Find the Saucer schematic"
         ],
         [
           "n7_giant",
-          "Have a careful look round the far field, behind the castle hill"
+          "Look round the far field"
         ]
       ],
       "done": {
@@ -67,6 +67,6 @@
   ],
   "reward": {
     "sparkles": 20,
-    "message": "The Far Corners done! That's every schematic in the Void. You found them all! (+20 sparkles)"
+    "message": "Every schematic found! +20 sparkles."
   }
 }

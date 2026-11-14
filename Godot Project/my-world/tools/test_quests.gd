@@ -100,7 +100,7 @@ func _run() -> void:
 	check(not quests.is_log_open() and not paused and not root.get_node("PauseMenu").is_open(), "Pause closes the log (not opening the menu)")
 
 	var nag := await _talk("rex")
-	check(_said(nag, "How's the asking going"), "Rex while she's still asking: \"%s\"" % _first(nag))
+	check(_said(nag, "Ask Dash, Bramble, Pip and Rook"), "Rex while she's still asking: \"%s\"" % _first(nag))
 
 	# --- Asking around: Dash at his snack break, Bramble at her stall, Rook, and Pip once the lamps come on
 	clock.set_time(1, 12 * 60 + 45.0, true)
@@ -118,7 +118,7 @@ func _run() -> void:
 	# --- Telling Rex (the dog gag), then a day's wait for the posters
 	clock.set_time(1, 20 * 60.0, true)
 	var report := await _talk("rex")
-	check(_said(report, "I'm REX! He's the dog!"), "the report has \"I'm REX! He's the dog!\"")
+	check(_said(report, "Even a woof is an idea"), "the report has \"I'm REX! He's the dog!\"")
 	check(quests.on_step(Q, "posters") and quests.is_waiting(Q), "on 'posters', waiting for tomorrow")
 	check(quests.log_text().contains("Come back in a few hours"), "the log says to come back in a few hours")
 	game.save_game()
@@ -128,7 +128,7 @@ func _run() -> void:
 	await _stand_at_spot(1)
 	check(dialogue._nearest != spots[1] and not spots[1]._prompt.visible, "no posters to hang yet on day 1")
 	var paint := await _talk("rex")
-	check(_said(paint, "Painting posters"), "Rex is painting: \"%s\"" % _first(paint))
+	check(_said(paint, "Painting"), "Rex is painting: \"%s\"" % _first(paint))
 
 	# --- Day 2: hang the four posters
 	clock.set_time(2, 9 * 60.0, true)

@@ -7,9 +7,8 @@
         "watches_to_give": false
       },
       "lines": [
-        "(Dash is scribbling sums on his arm. He stops when he sees you.)",
-        "His clock's stopped. Nothing's pulling on the Swap-o-Tron any more. Nothing at ALL.",
-        "Come to my lab in the Far Future, {player}. Rex is getting his hands back. For good, this time."
+        "His clock's stopped! Nothing's pulling on the Swap-o-Tron!",
+        "Come to my lab in the Far Future! Rex gets his hands back!"
       ]
     },
     {
@@ -18,8 +17,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "(Dash is looking up at the sky, grinning. He waves when he sees you.)",
-        "I'll be at the Tomorrow Clock, in Lumen City, {player}. Everyone's coming. Don't be long. Well. Be as long as you like. Actually, no. Don't be long."
+        "Meet me at the Tomorrow Clock, {player}. Don't be long!"
       ]
     },
     {
@@ -28,9 +26,8 @@
         "not_flag": "slide_ask_dash"
       },
       "lines": [
-        "The old slide? I looked it up in the town records. Well, I tried to.",
-        "Every page about it has been torn out. Every single one. All it says is \"The Incident\", and then a little drawing of a ghost.",
-        "Rex and I come from the future, and even WE don't know what happened. That's... actually pretty spooky."
+        "The old slide? Every page about it is torn out!",
+        "It just says \"The Incident\". And a little ghost."
       ],
       "set": "slide_ask_dash"
     },
@@ -40,9 +37,9 @@
         "not_flag": "dogs_sign_dash"
       },
       "lines": [
-        "Rex's Doggie Bill of Rights? Of course I'll sign. He's my twin. Even if he's furrier than me right now.",
-        "(Dash signs: DASH, with a little lightning bolt.)",
-        "Don't tell him, but I think being a husky's made him nicer. He used to never think about anyone else."
+        "Rex's Bill of Rights? Of course I'll sign!",
+        "(Dash signs with a lightning bolt.)",
+        "Being a husky made him nicer. Don't tell him."
       ],
       "set": "dogs_sign_dash"
     },
@@ -51,8 +48,7 @@
         "quest_step": "turtle_independence:wake"
       },
       "lines": [
-        "You've got a shell too? I keep wanting to sniff everything. EVERYTHING. Is that a lamp post? Sniff. Is that you? Sniff.",
-        "Rex says this is what it's like every day for him. Huh."
+        "You've got a shell too? I keep sniffing EVERYTHING."
       ]
     },
     {
@@ -61,10 +57,10 @@
       },
       "set": "n4_hi",
       "lines": [
-        "There you are, {player}! Look up. No, really, look up.",
-        "The stars over Observatory Hill keep blinking in a pattern. Tick, tick, tick. Like a clock. I don't like it.",
-        "Go up to the Observatory and have a look, will you? And keep your eyes open on the way. I dropped... I mean, I think there's a schematic round the far side of that hill!",
-        "It's for a ride, so take it to Zippy. Zippy builds rides faster than I can say \"tailwhip\"."
+        "There you are! Look up!",
+        "The stars over Observatory Hill blink like a clock.",
+        "Go look from the Observatory! There's a schematic up there too.",
+        "Take it to Zippy!"
       ]
     },
     {
@@ -73,12 +69,12 @@
       },
       "do": "FirstNight/Meetings.meet_dash",
       "lines": [
-        "BZZZT! (Sparks fly. A boy in a cap and goggles pops up from behind the workbench.) Oh! Hi! You found my lab!",
-        "{player}: Rex said you dropped these. (You hand over the coil, the bulb and the cog.)",
-        "My bits! THANK you. I'm Dash! Rex's twin. The one who isn't a husky right now. That's a long story.",
-        "I'm building a Buzz Bot: a little helper that blows bubbles at Gloops. It's nearly done. I just need to pop the cog... in... (CLICK.)",
-        "(The Buzz Bot whirrs, blinks its teal eye, and zooms straight out of the lab.)",
-        "NO NO NO! Come back! {player}, can you catch it? Just walk right into it. It doesn't bite. It barely even buzzes."
+        "BZZZT! Oh! Hi! You found my lab!",
+        "{player}: Rex said you dropped these.",
+        "My bits! THANK you! I'm Dash, Rex's twin.",
+        "Now the cog goes... in... (CLICK.)",
+        "(The Buzz Bot zooms right out of the lab!)",
+        "NO NO NO! Catch it! Just walk into it!"
       ]
     },
     {
@@ -86,7 +82,7 @@
         "quest_step": "bike_boy:bot"
       },
       "lines": [
-        "It's zooming round and round out the front! Walk right into it and it'll stop. Probably."
+        "Walk right into it! It's out the front!"
       ]
     },
     {
@@ -95,11 +91,10 @@
       },
       "do": "FirstNight/Meetings.thanks_from_dash",
       "lines": [
-        "You caught it! (Dash hugs the Buzz Bot. It buzzes happily.) You're a natural!",
-        "OK, you've earned it. I've got a gadget stall in the Market Square, by the fountain. Gadgets do even sillier things than bubbles!",
-        "My best one's the Star Popper. It blows bubbles that pop Gloops from a long way off. I build them from blueprints...",
-        "...and here's the Star Popper's! (He hands you a rolled-up blue blueprint.) A thank-you, for catching my bot.",
-        "I give my blueprints to people who help out, or win races. Bring that one to my stall and I'll build you a Star Popper!"
+        "You caught it! You're a natural!",
+        "I've got a gadget stall in the Market Square!",
+        "Here's the Star Popper's blueprint. Thanks!",
+        "Bring it to my stall. I'll build you one!"
       ]
     },
     {
@@ -108,7 +103,7 @@
         "not_flag": "bb_popper"
       },
       "lines": [
-        "Got the blueprint? Bring it to my stall in the Market Square and I'll build you a Star Popper for a few sparkles."
+        "Got the blueprint? Bring it to my stall!"
       ]
     },
     {
@@ -118,8 +113,8 @@
       },
       "do": "FirstNight.popper_from_dash",
       "lines": [
-        "Your very own Star Popper! Press {shoot} to blow a bubble, and hold {aim} to aim.",
-        "Have a look round my stall while you're here. New gadgets need their own blueprints. Win races, help people out, and you'll earn them!"
+        "Your own Star Popper! {shoot} to blow bubbles, {aim} to aim.",
+        "Win races and help out to earn more blueprints!"
       ]
     },
     {
@@ -127,7 +122,7 @@
         "quest_step": "bike_boy:stall"
       },
       "lines": [
-        "Have a look at my stall! Gadgets, refills, the lot. That's my workbench next to it, for mods."
+        "Have a look at my gadget stall!"
       ]
     },
     {
@@ -139,10 +134,9 @@
       },
       "do": "FirstNight/Meetings.king_from_dash",
       "lines": [
-        "YOU DID IT! You popped the GLOOP KING! I saw the whole thing! Bubbles everywhere!",
+        "YOU POPPED THE GLOOP KING! I saw it all!",
         "{player}: He was SO bouncy.",
-        "And look what he dropped. His crown! It's yours. Champion of the west fields!",
-        "(The Buzz Bot does a little loop-the-loop over your head.) See? Even Buzzy's impressed."
+        "His crown's yours, champion!"
       ],
       "first_night": true
     },
@@ -152,9 +146,9 @@
         "quest_step": "bike_boy:king"
       },
       "lines": [
-        "Everyone's whispering about the Gloop King. Biggest, goldest Gloop there is. He's got a whole kingdom, through a gooey gate in the west fields, just past here.",
-        "Watch out for his belly-flop! It sends a ring of goo across the ground. Jump over it!",
-        "Bubbles make him wobble. Keep popping and he'll pop too. I'll cheer from here!"
+        "The Gloop King's through the gooey gate in the west fields!",
+        "Jump his goo ring!",
+        "Keep popping him! I'll cheer!"
       ],
       "first_night": true
     },
@@ -165,7 +159,7 @@
       },
       "do": "FirstNight/Meetings.kinetic_from_dash",
       "lines": [
-        "{player}! There you are. I've been waiting to show you something."
+        "{player}! I want to show you something."
       ]
     },
     {
@@ -173,7 +167,7 @@
         "quest_step": "night_2:pip"
       },
       "lines": [
-        "Pip's by the portal! Go on, go on! They glow when they're happy. You'll see."
+        "Pip's by the portal! Go on!"
       ]
     },
     {
@@ -182,7 +176,7 @@
         "not_flag": "bb_met_dash"
       },
       "lines": [
-        "(A boy in a cap and goggles zooms past on a bike, a box of wires bouncing in the basket.) Can't stop! Experiment! Big one! Bye!"
+        "Can't stop! Experiment! Bye!"
       ]
     },
     {
@@ -191,7 +185,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "Hi! Rex is so excited. Talk to him, he's doing a whole tour."
+        "Talk to Rex, he's doing a whole tour!"
       ]
     },
     {
@@ -200,7 +194,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "Watch the pink pointer on your watch's rim. The faster it pulses, the closer the ripple. Then just walk into it!"
+        "Follow the pink pointer on your watch!"
       ]
     },
     {
@@ -209,7 +203,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "Rook won't come for us. Maybe he'll come for you? He's very food-motivated. And ball-motivated."
+        "Rook won't come for us. Maybe for you? Try a ball!"
       ]
     },
     {
@@ -218,7 +212,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "Ripples loaded, pods sealed, ball supplied. The big lever's on the console. It's probably safe!",
+        "All ready! Pull the big lever. It's probably safe!",
         "{player}: Probably?",
         "Very probably."
       ]
@@ -229,7 +223,7 @@
         "watches_to_give": false
       },
       "lines": [
-        "Go on, ask Rex. I want to see his face."
+        "Go on, ask Rex!"
       ]
     },
     {
@@ -237,12 +231,11 @@
         "talks": 0
       },
       "lines": [
-        "Whoa, hey! {player}! I mean... hi, stranger I have definitely never met before.",
+        "Whoa! {player}! I mean... hi, stranger!",
         "{player}: Do I know you?",
-        "Not yet! Well... kind of. It's complicated. Time stuff.",
-        "I'm Dash. I came here through the pond to fix something. A super important something.",
-        "{player}: What are you fixing?",
-        "Can't say! If I talk about the future too much it makes time ripples. Little wobbly ones."
+        "Not yet! Kind of. Time stuff.",
+        "I'm Dash. I'm here to fix something BIG.",
+        "Can't say! Future talk makes time ripples."
       ]
     },
     {
@@ -252,11 +245,9 @@
       },
       "set": "asked_dash",
       "lines": [
-        "{player}: Dash, Rex is running for mayor. What would you want a mayor to do?",
-        "A mayor? Rex? My twin brother Rex?",
-        "(Dash thinks about it, very fast.)",
-        "Okay, okay! A bike lane all the way round the lake! So I can zoom without bumping into anybody.",
-        "And tell him if he wins, I'm still not calling him Mayor Rex at breakfast."
+        "{player}: What would you want a mayor to do?",
+        "Rex? Mayor? Okay!",
+        "A bike lane round the lake!"
       ]
     },
     {
@@ -267,11 +258,10 @@
       "set": "sunk_first_given",
       "do": "Watches/Sunken.hand_in",
       "lines": [
-        "{player}: Dash, I found this at the bottom of the water. When I held it, I heard voices.",
-        "(Dash goes very quiet.)",
-        "That's from our lab. From the night it happened, back in the far future. How did it get all the way down there?",
-        "Time drops things, I think. Like a pocket with a hole in it. They fall out, and they sink, and the deep water holds them still.",
-        "Bring me every piece you find, {player}. I need to know exactly what happened that night."
+        "{player}: Dash, I found this in deep water. I heard voices!",
+        "That's from our lab. From the night it happened!",
+        "Time drops things. Deep water keeps them.",
+        "Bring me every piece you find!"
       ]
     },
     {
@@ -282,11 +272,10 @@
       "rotate": [
         [
           "{player}: Another piece of that night, Dash.",
-          "(Dash turns it over and over in his hands.) I remember this. I really do."
+          "I remember this. I really do."
         ],
         [
-          "{player}: I found another one. It was right at the bottom.",
-          "(Dash holds it up to his ear, like it might still be humming.)"
+          "{player}: I found another one!"
         ]
       ]
     },
@@ -298,13 +287,11 @@
       "set": "watches_first_given",
       "do": "Watches.watches_hand_in",
       "lines": [
-        "{player}: Dash, I found this watch. It's a funny one.",
-        "(Dash's eyes go very wide.)",
-        "A lost watch! Everyone who lands here brings one. It tracks time the way it worked back home, wherever and whenever home was.",
-        "Some of the chosen kids have lost theirs. I'm collecting them. Trying to work out when everyone is from.",
-        "{player}: Why?",
-        "Can't say! Time ripples. Wobble wobble. But if you find more, bring them to me?",
-        "That's {watches_given} of 20. I'll keep it safe, promise."
+        "{player}: Dash, I found this funny watch.",
+        "A lost watch! Everyone who lands here brings one.",
+        "I'm collecting them!",
+        "Bring me more?",
+        "That's {watches_given} of 20!"
       ]
     },
     {
@@ -315,17 +302,16 @@
       "rotate": [
         [
           "{player}: I found more lost watches!",
-          "Ooh, let me see! Hmm. This one's from a long way away. Or a long time away. Or both!",
-          "That makes {watches_given} of 20."
+          "Ooh! From a long way away. Or a long time!",
+          "That's {watches_given} of 20!"
         ],
         [
-          "{player}: Another watch for you, Dash.",
-          "(Dash holds it up to his ear and listens, very seriously.)",
-          "Ticking like it's in a hurry. That's {watches_given} now!"
+          "{player}: Another watch for you!",
+          "That's {watches_given} now!"
         ],
         [
           "{player}: Look what I found!",
-          "Yes! You're a time detective. {watches_given} down, {watches_left} to go."
+          "Time detective! {watches_given} down, {watches_left} to go."
         ]
       ]
     },
@@ -334,9 +320,7 @@
         "time": "shift"
       },
       "lines": [
-        "Do you feel that? The portal's open! Time's all slow and stretchy right now.",
-        "{player}: Is that where you came from?",
-        "Ha! Uh... no comment. Time ripples, remember? Wobble wobble."
+        "The portal's open! Time's all stretchy!"
       ]
     },
     {
@@ -345,9 +329,7 @@
         "every": 2
       },
       "lines": [
-        "Out for a ride! Wind in my hair! ...Well, in my hat.",
-        "{player}: Where are you going?",
-        "Everywhere! Twice! Riding helps me think about... stuff. Future stuff. Shh."
+        "Out for a ride! Wind in my hat!"
       ]
     },
     {
@@ -355,9 +337,8 @@
         "activity": "snack_break"
       },
       "lines": [
-        "Snack break! Do you know what they have for snacks in the fu-",
-        "(Dash claps a hand over his mouth.)",
-        "...Crackers. They have crackers. Totally normal crackers."
+        "Do you know what snacks they have in the fu-",
+        "...Crackers. Totally normal crackers."
       ]
     },
     {
@@ -365,9 +346,7 @@
         "activity": "sunset"
       },
       "lines": [
-        "Sunsets here are the best. Pink and purple and a little bit sparkly.",
-        "{player}: Better than the ones where you come from?",
-        "Ha! Nice try. No comment."
+        "Sunsets here are pink and purple and sparkly!"
       ]
     },
     {
@@ -375,8 +354,7 @@
         "activity": "waking_up"
       },
       "lines": [
-        "(Dash yawns a giant yawn.)",
-        "Morning, {player}. Bike's ready. Brain's still... loading."
+        "Morning. Brain's still... loading."
       ]
     },
     {
@@ -388,10 +366,8 @@
       },
       "set": "dash_told_watches",
       "lines": [
-        "Hey, {player}. If you ever find a watch lying around, a funny-looking one, bring it to me?",
-        "People drop them when they land here. Whoosh, plonk. Gone.",
-        "{player}: What do they look like?",
-        "All different! Everybody counts time their own way. Sundials, hourglasses, beepy ones... Look up high, and down low."
+        "Find a funny-looking watch? Bring it to me!",
+        "Look up high, and down low!"
       ]
     },
     {
@@ -400,9 +376,7 @@
         "every": 2
       },
       "lines": [
-        "Can't sleep. My brain's going boots-and-cats, boots-and-cats.",
-        "{player}: Boots and... cats?",
-        "That's how you say house music with your mouth! Try it! Boots-and-cats!"
+        "Can't sleep. Boots-and-cats, boots-and-cats!"
       ]
     },
     {
@@ -411,43 +385,36 @@
         "every": 2
       },
       "lines": [
-        "Morning! I already rode around the lake eleven times. Twelve. I lost count.",
-        "(Dash leans on his bike. The bike wobbles. Dash wobbles.)",
-        "I'm fine!"
+        "I rode round the lake eleven times. Twelve?"
       ]
     },
     {
       "rotate": [
         [
-          "Leaning on my bike is my favorite way to stand. Ask anyone. Ask the bike.",
-          "{player}: Does the bike like it?",
-          "The bike has never complained. Not once. Best friend ever."
+          "Leaning on my bike is my favourite way to stand."
         ],
         [
-          "Psst. Want to know something about the future?",
+          "Psst. Want to know a future secret?",
           {
             "choice": [
               {
                 "text": "Yes! Tell me!",
                 "lines": [
-                  "Okay. In the future, there's this giant...",
-                  "(Dash stops. He squints at the sky.)",
-                  "...nope. I felt a ripple. Sorry! Ask me again in, like, a hundred years."
+                  "Okay. In the future...",
+                  "...nope! Time ripple. Sorry!"
                 ]
               },
               {
                 "text": "No thanks, I like surprises.",
                 "lines": [
-                  "Smart. Super smart. You'd be amazing at time travel."
+                  "Smart! You'd be great at time travel."
                 ]
               }
             ]
           }
         ],
         [
-          "Untz, untz, untz. That's the beat.",
-          "{player}: I don't hear anything.",
-          "It's always playing in my head. It's a good song. You'd love it. Untz."
+          "Untz, untz, untz. The beat's always in my head!"
         ]
       ]
     }

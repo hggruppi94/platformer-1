@@ -6,9 +6,8 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(Rook is curled up on the ground beside Rex, with his hands over his eyes.)",
-        "...woof. (A very small one.)",
-        "(He peeks at the sky between his fingers, then at Rex, and covers his eyes again.)"
+        "...woof.",
+        "{player}: He's hiding his eyes. Poor Rook."
       ]
     },
     {
@@ -19,11 +18,11 @@
       "rotate": [
         [
           "WOOF!",
-          "(Rook chases his tail round and round. He's got one again, and he is THRILLED about it.)"
+          "{player}: He's chasing his tail! He's THRILLED."
         ],
         [
           "Awoooo!",
-          "(Rook zooms past on Rex's old paw skates, tongue flapping.)"
+          "{player}: Zoom! Rex's old paw skates!"
         ]
       ]
     },
@@ -34,9 +33,9 @@
       },
       "lines": [
         "Woof?",
-        "({player} holds out the Doggie Bill of Rights. Rook sniffs it. Sniffs it again. Wags.)",
+        "{player}: Will you sign the Doggie Bill of Rights?",
         "Woof! WOOF!",
-        "(Rook presses a big muddy paw print right in the middle of the page. It's the best signature on there.)"
+        "{player}: A muddy paw print! Best signature yet!"
       ],
       "set": "dogs_sign_rook"
     },
@@ -50,7 +49,7 @@
         "Woof.",
         "{player}: Is that a yes woof or a no woof?",
         "...Woof.",
-        "{player}: I'm going to say that's a 'not really' woof."
+        "{player}: That's a 'not really' woof."
       ]
     },
     {
@@ -58,14 +57,14 @@
         "quest_step": "rex_lab:rook"
       },
       "lines": [
-        "(Rook looks up at you. Then at your watch, which is still humming.)",
+        "{player}: He's sniffing my humming watch.",
         "Woof?",
         {
           "choice": [
             {
               "text": "Rook, will you come to the lab?",
               "lines": [
-                "(Rook flattens his ears and lies down flat. He remembers the lab.)"
+                "{player}: Ears flat. He remembers the lab."
               ]
             },
             {
@@ -73,13 +72,13 @@
               "set": "lab_rook",
               "lines": [
                 "WOOF! WOOF WOOF!",
-                "(Rook is off like a rocket, towards Dash's house. There had better be a ball.)"
+                "{player}: He's off to the lab like a rocket!"
               ]
             },
             {
               "text": "Good boy, Rex!",
               "lines": [
-                "(Rook gives you a long look. Somewhere far away, a husky shouts \"I'M REX!\")"
+                "{player}: Oops. Far away, a husky shouts \"I'M REX!\""
               ]
             }
           ]
@@ -91,7 +90,7 @@
         "quest_step": "rex_lab:try"
       },
       "lines": [
-        "(Rook is in his pod with a ball in his mouth. He wags, just a little.)"
+        "Woof! Wag wag!"
       ]
     },
     {
@@ -101,12 +100,11 @@
       },
       "set": "asked_rook",
       "lines": [
-        "{player}: Rook, Rex is running for mayor. What would you want a mayor to do?",
+        "{player}: Rook, what should a mayor do?",
         "Grrr... grumble grumble...",
-        "{player}: Come on. Every voice counts. Even grumbly ones.",
+        "{player}: Every voice counts. Even grumbly ones.",
         "...Woof.",
-        "(Rook flops down in a sunny spot and wags, just a little.)",
-        "{player}: More naps in the sun. Got it. I'll tell him."
+        "{player}: More naps in the sun? Got it."
       ]
     },
     {
@@ -115,7 +113,7 @@
       },
       "lines": [
         "Awoooooo!",
-        "{player}: He's howling at the portal. I think he misses having a tail."
+        "{player}: He's howling at the portal."
       ]
     },
     {
@@ -124,7 +122,7 @@
       },
       "lines": [
         "Zzzz... snrrk... woof... zzzz.",
-        "{player}: He's napping in the sun. I'll let him sleep."
+        "{player}: Sun nap. I'll let him sleep."
       ]
     },
     {
@@ -134,7 +132,7 @@
       },
       "lines": [
         "Woof!",
-        "{player}: Following them around again? You're a good... um... brother? Dog? Brother-dog.",
+        "{player}: Following them again? Good brother-dog.",
         "Hmph."
       ]
     },
@@ -156,7 +154,7 @@
       },
       "lines": [
         "Zzz... woof... zzz...",
-        "{player}: He's barking in his sleep. Sweet dreams, Rook."
+        "{player}: Sweet dreams, Rook."
       ]
     },
     {
@@ -166,14 +164,14 @@
       },
       "lines": [
         "Woof! Woof!",
-        "{player}: Okay, okay! Good morning to you too!"
+        "{player}: Good morning to you too!"
       ]
     },
     {
       "rotate": [
         [
           "Grrr...",
-          "{player}: Grumpy again? I'd be grumpy too if I woke up as a whole different shape.",
+          "{player}: Grumpy? I'd be grumpy too in a new shape.",
           "Hmph."
         ],
         [
@@ -184,14 +182,14 @@
                 "text": "Want a belly rub?",
                 "lines": [
                   "GRRR!",
-                  "{player}: Okay! No belly rubs. Got it."
+                  "{player}: No belly rubs. Got it."
                 ]
               },
               {
                 "text": "Want to play fetch?",
                 "lines": [
                   "Woof! Woof!",
-                  "{player}: He's wagging... his whole body. I think that's a yes."
+                  "{player}: His whole body's wagging! That's a yes."
                 ]
               }
             ]
@@ -199,9 +197,9 @@
         ],
         [
           "Woof.",
-          "{player}: You know, Rex keeps telling everyone he's Rex and you're the dog.",
+          "{player}: Rex says HE's Rex and you're the dog.",
           "GRRR.",
-          "{player}: Yeah. I figured you'd say that."
+          "{player}: Yeah. I figured."
         ]
       ]
     }

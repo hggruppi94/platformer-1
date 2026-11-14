@@ -7,10 +7,10 @@
   "steps": [
     {
       "id": "gather",
-      "text": "It snowed! Nina wants to build a snowman on the green. Find a carrot for its nose and something warm for its neck.",
+      "text": "Find a nose and a scarf!",
       "checklist": [
-        ["snow_carrot", "A carrot from the Corner Market"],
-        ["snow_scarf", "Prue's old scarf, by the Blastoffs' door"]
+        ["snow_carrot", "Carrot: Corner Market"],
+        ["snow_scarf", "Scarf: by the Blastoffs' door"]
       ],
       "where": [
         {"place": "market", "unless": "snow_carrot"},
@@ -22,7 +22,7 @@
     },
     {
       "id": "build",
-      "text": "Build the snowman with Nina on the town green.",
+      "text": "Build the snowman with Nina.",
       "where": ["nina_earth"],
       "override": {
         "nina_earth": {"place": "fest_pies", "do": "idle", "label": "first_snow"}
@@ -33,7 +33,7 @@
     },
     {
       "id": "sled",
-      "text": "Nina's left a sled on top of Lookout Hill. Race down it!",
+      "text": "Sled down Lookout Hill!",
       "where": ["hill_top"],
       "override": {
         "nina_earth": {"place": "hill_foot", "do": "idle", "label": "first_snow"}
@@ -44,7 +44,7 @@
     },
     {
       "id": "cocoa",
-      "text": "Warm up with a hot cocoa at the Hollow Diner. Ask Gus!",
+      "text": "Hot cocoa! Ask Gus.",
       "where": ["gus"],
       "override": {
         "nina_earth": {"place": "diner", "do": "idle", "label": "first_snow"}
@@ -56,6 +56,6 @@
   ],
   "reward": {
     "sparkles": 12,
-    "message": "The First Snow: a snowman, a sled run and cocoa with Nina. Best snow day ever! (+12 sparkles)"
+    "message": "Best snow day ever! +12 sparkles."
   }
 }

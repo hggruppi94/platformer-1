@@ -5,11 +5,11 @@
   "steps": [
     {
       "id": "parts",
-      "text": "Find the three parts for Bramble's harvesting tool.",
+      "text": "Find 3 tool parts.",
       "checklist": [
-        ["harvest_part_handle", "A rootwood handle in the Secret Gardens"],
-        ["harvest_part_scoop", "A moonshell scoop by the dock"],
-        ["harvest_part_crystal", "A hum crystal on the Observatory hill"]
+        ["harvest_part_handle", "Rootwood handle: Secret Gardens"],
+        ["harvest_part_scoop", "Moonshell scoop: the dock"],
+        ["harvest_part_crystal", "Hum crystal: Observatory hill"]
       ],
       "done": {"flags": ["harvest_part_handle", "harvest_part_scoop", "harvest_part_crystal"]},
       "where": [
@@ -20,19 +20,19 @@
     },
     {
       "id": "build",
-      "text": "Take the three parts to Bramble.",
+      "text": "Take them to Bramble.",
       "done": {"flag": "harvest_tool_built"},
       "where": ["bramble"]
     },
     {
       "id": "vein",
-      "text": "Harvest a glowing Remnant vein with your new tool. There's one on the lake shore.",
+      "text": "Harvest a glowing vein by the lake.",
       "done": {"flag": "harvest_first_vein"},
       "where": [{"at": [-45, 20]}]
     },
     {
       "id": "garden",
-      "text": "Meet Bramble at your garden, up the hill in the Secret Gardens.",
+      "text": "Meet Bramble at your garden.",
       "done": {"flag": "garden_tour"},
       "where": ["bramble"],
       "override": {
@@ -41,14 +41,14 @@
     },
     {
       "id": "plant",
-      "text": "Plant a seed in your garden, then water it.",
+      "text": "Plant a seed and water it.",
       "checklist": [["farm_planted", "Plant a seed"], ["farm_watered", "Water it"]],
       "done": {"flags": ["farm_planted", "farm_watered"]},
       "where": [{"at": [-80.0, -34.5]}]
     },
     {
       "id": "grow",
-      "text": "Keep it watered until it's ripe, then pick it! (Plants only grow while they've got water.)",
+      "text": "Keep it watered, then pick it!",
       "done": {"flag": "farm_first_harvest"},
       "where": [{"at": [-80.0, -34.5]}]
     }
@@ -56,6 +56,6 @@
   "reward": {
     "item": "watering_can",
     "sparkles": 10,
-    "message": "Bramble gave you her old watering can: now one watering does the whole garden! (+10 sparkles)"
+    "message": "Bramble's watering can! One splash waters the lot. +10 sparkles."
   }
 }

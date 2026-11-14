@@ -7,15 +7,13 @@
         "flag": "met_lizard"
       },
       "lines": [
-        "Ahh. A shell. I wondered who it would be today. Hello again, {player}.",
-        "Yes, it's me, your principal, out on a field trip. The warm rocks in these gardens are excellent.",
-        "{player}: Why do I have a SHELL? And why does Pip say their wings feel like flippers?",
-        "Magic, my dear {player}. The Void is a planet that thinks, and sometimes it dreams. And some days, everyone wakes up a different version of themselves.",
-        "People here do love their magic. A bit too much, if you ask me. Magic for breakfast, magic for lunch, magic for brushing your teeth.",
-        "You didn't choose your shell. Most of the time, we don't get to choose. Your body, your brain, the planet you wake up on.",
-        "But every version of you has purpose and value. Even this slow, shelly one. Especially this one, perhaps.",
-        "Now. Since you have a shell, you'll understand the little lake turtles. The Void's turtles use THINGS as their shells, and nobody has ever let them choose their own.",
-        "Today is their Independence Day. Find them three things that could be a home: a teacup, a bucket, a flower pot. Then let THEM choose."
+        "Ahh. A shell. Hello again, {player}.",
+        "Yes, your principal, on a field trip.",
+        "{player}: Why do I have a SHELL?",
+        "Magic! Some days the Void dreams, and we wake up different.",
+        "Every version of you has purpose and value. Even a shelly one.",
+        "The lake turtles use THINGS as shells. Nobody lets them choose.",
+        "Find them a teacup, a bucket and a flower pot. Then let THEM choose."
       ],
       "set": "turtle_met_lizard"
     },
@@ -25,15 +23,13 @@
         "not_flag": "met_lizard"
       },
       "lines": [
-        "Ahh. A shell. I wondered who it would be today.",
-        "Don't be frightened. I am the Wizard Lizard: principal of the castle school, friend of the Seer, keeper of rules, and very fond of naps on warm rocks.",
-        "{player}: Why do I have a SHELL? And why does Pip say their wings feel like flippers?",
-        "Magic, my dear {player}. The Void is a planet that thinks, and sometimes it dreams. And some days, everyone wakes up a different version of themselves.",
-        "People here do love their magic. A bit too much, if you ask me. Magic for breakfast, magic for lunch, magic for brushing your teeth.",
-        "You didn't choose your shell. Most of the time, we don't get to choose. Your body, your brain, the planet you wake up on.",
-        "But every version of you has purpose and value. Even this slow, shelly one. Especially this one, perhaps.",
-        "Now. Since you have a shell, you'll understand the little lake turtles. The Void's turtles use THINGS as their shells, and nobody has ever let them choose their own.",
-        "Today is their Independence Day. Find them three things that could be a home: a teacup, a bucket, a flower pot. Then let THEM choose."
+        "Ahh. A shell.",
+        "I'm the Wizard Lizard, principal of the castle school.",
+        "{player}: Why do I have a SHELL?",
+        "Magic! Some days the Void dreams, and we wake up different.",
+        "Every version of you has purpose and value. Even a shelly one.",
+        "The lake turtles use THINGS as shells. Nobody lets them choose.",
+        "Find them a teacup, a bucket and a flower pot. Then let THEM choose."
       ],
       "set": "turtle_met_lizard"
     },
@@ -42,8 +38,7 @@
         "quest_step": "turtle_independence:shells"
       },
       "lines": [
-        "A teacup at the Market's south end, a bucket on the dock, a flower pot by the greenhouse. And then: let them choose.",
-        "Don't choose for them. That's the whole point. Very important. I'll be napping on this rock."
+        "A teacup, a bucket, a flower pot. Then let them choose!"
       ]
     },
     {
@@ -51,8 +46,7 @@
         "quest_step": "turtle_independence:give"
       },
       "lines": [
-        "A teacup at the Market's south end, a bucket on the dock, a flower pot by the greenhouse. And then: let them choose.",
-        "Don't choose for them. That's the whole point. Very important. I'll be napping on this rock."
+        "A teacup, a bucket, a flower pot. Then let them choose!"
       ]
     },
     {
@@ -60,29 +54,26 @@
         "quest_step": "turtle_independence:back"
       },
       "lines": [
-        "They chose? Each one, all by themselves? Wonderful. Wonderful!",
-        "That's independence, {player}. Not getting to choose everything. Just getting to choose something, and having it respected.",
-        "Now, your shell. The magic's wearing off. You'll be your own self again by the time you reach the portal.",
-        "But I can leave the shell with you, if you like. It's yours now. You earned it.",
+        "They chose, all by themselves? Wonderful!",
+        "That's independence. Getting to choose, and being respected.",
+        "Your magic's wearing off. But you can keep the shell!",
         {
           "choice": [
             {
               "text": "I'll keep wearing it!",
               "lines": [
-                "A fine choice. It suits you. Slow and steady, as they say."
+                "It suits you!"
               ],
               "set": "turtle_keep_shell"
             },
             {
               "text": "I'll take it off for now.",
               "lines": [
-                "Also a fine choice. I'll pop it in your wardrobe. Wear it whenever you like."
+                "It's in your wardrobe."
               ]
             }
           ]
-        },
-        "Why does the planet do it, you ask? Why turtles, why today?",
-        "...Just because? Some things are just because. Off you go."
+        }
       ],
       "set": "turtle_done_talk"
     },
@@ -92,14 +83,10 @@
         "flag": "turtle_met_lizard"
       },
       "lines": [
-        "(The Wizard Lizard looks up from a very tall stack of papers.)",
-        "{player}! The turtles' helper! Welcome to my school. Didn't I say? I'm the principal here.",
-        "Principals come in all shapes, my dear. Mine happens to be scaly. Very good at sitting on warm rocks, which is most of the job.",
-        "This school has only three rules. One: every version of you is welcome here. Every single one.",
-        "Two: no running in the halls. Unless something's chasing you. Then run.",
-        "Three: naps are allowed. Encouraged, even.",
-        "If you ever need a wise word, my door is open. If it's shut, I'm napping. Knock anyway.",
-        "And if you want to know what's coming, don't ask me. Ask my old friend the Seer, up in the Observatory. She has a lantern for that sort of thing."
+        "{player}! Welcome to my school. I'm the principal!",
+        "Rule one: every version of you is welcome here.",
+        "Rule two: no running in the halls. Unless something's chasing you.",
+        "Rule three: naps are allowed!"
       ],
       "set": "met_lizard"
     },
@@ -108,15 +95,10 @@
         "not_flag": "met_lizard"
       },
       "lines": [
-        "(The Wizard Lizard looks up from a very tall stack of papers.)",
-        "Ah! A new face. Welcome, welcome to the castle school. I'm the principal: the Wizard Lizard.",
-        "{player}: The principal is a... lizard?",
-        "Principals come in all shapes, my dear. Mine happens to be scaly. Very good at sitting on warm rocks, which is most of the job.",
-        "This school has only three rules. One: every version of you is welcome here. Every single one.",
-        "Two: no running in the halls. Unless something's chasing you. Then run.",
-        "Three: naps are allowed. Encouraged, even.",
-        "If you ever need a wise word, my door is open. If it's shut, I'm napping. Knock anyway.",
-        "And if you want to know what's coming, don't ask me. Ask my old friend the Seer, up in the Observatory. She has a lantern for that sort of thing."
+        "A new face! I'm the principal: the Wizard Lizard.",
+        "Rule one: every version of you is welcome here.",
+        "Rule two: no running in the halls. Unless something's chasing you.",
+        "Rule three: naps are allowed!"
       ],
       "set": "met_lizard"
     },
@@ -127,32 +109,32 @@
       },
       "rotate": [
         [
-          "Tiny, Splash and Pebble have been showing off their shells to everyone. Even the fish."
+          "The turtles show everyone their shells. Even the fish."
         ],
         [
-          "Every version of anything has purpose and value. I tell the rocks that too. They take it very well."
+          "Every version of anything has purpose and value."
         ],
         [
-          "(The Wizard Lizard is asleep on his warm rock. He's smiling.)"
+          "(The Wizard Lizard naps on his rock, smiling.)"
         ]
       ]
     },
     {
       "rotate": [
         [
-          "Principal's tip of the day: if a problem looks too big, look at it from a warm rock. Everything's smaller from a warm rock."
+          "Big problem? Look at it from a warm rock. It shrinks!"
         ],
         [
-          "The halls are quiet today. I like quiet. Quiet is where good ideas sit down."
+          "Quiet is where good ideas sit down."
         ],
         [
-          "My friend the Seer says the stars are very busy this week. She says that every week."
+          "The Seer says the stars are busy this week. Every week."
         ],
         [
-          "Rule one, {player}. Every version of you is welcome here. I like to say it out loud now and then, in case anyone forgot."
+          "Rule one: every version of you is welcome here."
         ],
         [
-          "Mm? Oh, hello. I was resting my eyes. Principals need a lot of rest."
+          "Mm? I was resting my eyes."
         ]
       ]
     }

@@ -189,7 +189,7 @@ func guide_shots(id: String) -> Array:
 	match id:
 		"nina":
 			var nina := _who("nina_earth", p + Vector3(0, 0, 8))
-			return [_look_at(p, nina, "", "Nina! Say hi with {interact}.", 4.5)]
+			return [_look_at(p, nina, "", "Nina! Go say hi with {interact}.", 4.5)]
 		"green":
 			var palmer := _who("palmer_earth", _at(GAZEBO))
 			return [_look_at(p, palmer, "", "Say hi to Mr. Palmer...", 3.6),

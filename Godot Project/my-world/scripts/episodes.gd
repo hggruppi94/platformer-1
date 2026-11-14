@@ -231,10 +231,10 @@ func _place_in(s: Node) -> void:
 func _place_town(holder: Node3D) -> void:
 	# The slide mystery's clues and the Haunted House door
 	_spot(holder, "slide_mystery", "look", "slide_clue_sign", SLIDE_SIGN_AT, "read the old notice",
-		"The notice is faded: \"CLOSED after The Incident. Nobody is to talk about The Incident. By order of the Mayor.\" What incident?",
+		"\"CLOSED after The Incident.\" What incident?",
 		_paper())
 	_spot(holder, "slide_mystery", "look", "slide_clue_goo", GOO_AT, "look at the glowing puddle",
-		"A puddle of green goo, glowing and... giggling? It's not Gloop goo. The trail leads right up to the Haunted House door.",
+		"Giggling green goo! It leads to the Haunted House.",
 		_goo())
 	_spot(holder, "slide_mystery", "door", "slide_spirit", HOUSE_DOOR_AT, "try the old door", "", null)
 	# Leo's kit, and his bunker
@@ -242,7 +242,7 @@ func _place_town(holder: Node3D) -> void:
 		_spot(holder, "emergency_prep", "kit", str(k[0]), k[1], str(k[2]), "", _thing(str(k[3])))
 	_bunker(holder)
 	_spot(holder, "emergency_prep", "bunker", "prep_stored", BUNKER_AT + Vector2(0, 3.6), "stock the bunker",
-		"You stack the kit on the bunker's shelves: water, torch, blanket, snacks. Leo ticks them off his list, twice.", null)
+		"The kit's all packed! Leo ticks his list. Twice.", null)
 	# The turtles' shells, and the turtles
 	for k in SHELLS:
 		_spot(holder, "turtle_independence", "shells", str(k[0]), k[1], str(k[2]), "", _thing(str(k[3])))
@@ -256,7 +256,7 @@ func _place_town(holder: Node3D) -> void:
 
 func _place_earth(holder: Node3D) -> void:
 	_spot(holder, "aftershock", "pond", "aftershock_pond", POND_SPOT_AT, "look at the glowing pond",
-		"The water swirls lilac, like the portal does... and a girl climbs out onto the bank, not even wet. She waves.", null)
+		"The water swirls... and a girl climbs out!", null)
 	_pond_glow = _make_pond_glow()
 	holder.add_child(_pond_glow)
 	_pond_glow.global_position = _ground(Vector3(-72.0, 0, 3.0)) + Vector3(0, 0.15, 0)
@@ -331,7 +331,7 @@ func start_turtle_day() -> void:
 	_wear_shell()
 	Dialogue.set_flag("turtle_start")
 	Juice.blip("sparkle", 0.8, -6.0)
-	Game.message("You feel... heavier? There's a turtle shell on your back! Pip's wings feel funny too, and Dash can't stop sniffing things. What's going on?")
+	Game.message("You've got a turtle shell! What's going on?")
 	Game.save_game()
 
 
@@ -376,7 +376,7 @@ func aftershock_now() -> void:
 	Juice.shake(0.25)
 	Juice.rumble(0.4, 0.4, 0.2)
 	Dialogue.set_flag("aftershock_start")
-	Game.message("Another rumble: an aftershock! Over in the park, Willow Pond is glowing lilac, like the portal does...")
+	Game.message("An aftershock! Willow Pond is glowing...")
 	Game.save_game()
 
 
@@ -413,7 +413,7 @@ func _release_spirit() -> void:
 	_scene.add_child(_spirit)
 	_spirit.global_position = _ground(Vector3(HOUSE_DOOR_AT.x, 0, HOUSE_DOOR_AT.y)) + Vector3(0, 1.4, 0)
 	_spirit_t = 0.0
-	Game.message("The door creaks open... and something small, green and GIGGLING zooms out past you, up over the trees, and away towards town!")
+	Game.message("Something small and GIGGLING zooms out!")
 
 
 func _fly_spirit(delta: float) -> void:
@@ -434,7 +434,7 @@ func _rook_howl() -> void:
 	Audio.play("bark", -2.0, 0.0)
 	get_tree().create_timer(0.5).timeout.connect(func() -> void: Audio.play("bark", -4.0, 0.0))
 	Juice.shake(0.12)
-	Game.message("AWOOOOOOOOO! A long wail echoes over the lake. Leo's ears shoot straight up and he doesn't move.")
+	Game.message("AWOOOOOOO! Leo freezes.")
 
 
 func _splash(at: Vector3) -> void:
@@ -451,7 +451,7 @@ func _kit_message(flag: String) -> String:
 	var what: String = {"prep_water": "A big water jug", "prep_torch": "A wind-up torch", "prep_blanket": "A cozy blanket",
 		"prep_snacks": "A box of crunchy snacks"}.get(flag, "That")
 	return "%s for Leo's kit! (%d of %d)" % [what, got, KIT.size()] if got < KIT.size() \
-		else "%s. That's the whole kit! Take it to Leo's bunker in the meadow." % what
+		else "%s. That's the whole kit! To Leo's bunker!" % what
 
 
 func _shell_message(flag: String) -> String:
@@ -459,14 +459,14 @@ func _shell_message(flag: String) -> String:
 	var what: String = {"turtle_cup": "A teacup big enough to live in", "turtle_bucket": "A sturdy blue bucket",
 		"turtle_pot": "A painted flower pot"}.get(flag, "That")
 	return "%s! (%d of %d)" % [what, got, SHELLS.size()] if got < SHELLS.size() \
-		else "%s. That's three shells! Take them to the little turtles on the lake shore." % what
+		else "%s. Three shells! To the little turtles!" % what
 
 
 func _trick_message(flag: String) -> String:
 	return {
-		"aftershock_lights": "Someone tied the gazebo's lights into a hundred little knots. You untangle them, and they twinkle again.",
-		"aftershock_pies": "The pies in the bakery's window were mud pies with a cherry on top! You put the real ones back.",
-		"aftershock_sign": "The Town Hall's sign said TOWN SMELL. You put the letters back: TOWN HALL. Much better.",
+		"aftershock_lights": "You untangle the gazebo's lights!",
+		"aftershock_pies": "Mud pies! You swap in the real ones.",
+		"aftershock_sign": "TOWN SMELL? Fixed: TOWN HALL!",
 	}.get(flag, "")
 
 
@@ -624,7 +624,7 @@ func _turtles(holder: Node3D) -> void:
 					(c.get_node("Chosen Shell") as Node3D).visible = true
 					Fx.burst(_scene, (c as Node3D).global_position + Vector3.UP * 0.6, Color(0.6, 1.0, 0.7), 10, 0.06, 1.5, -1.0, 0.7)
 			Audio.play("pickup", -4.0)
-			Game.message("Tiny picks the teacup, Splash the bucket, Pebble the flower pot. Nobody told them which. They chose! They wobble off down the shore, very proud.")
+			Game.message("They each chose a new shell! So proud!")
 	Dialogue.flag_set.connect(show)
 	holder.tree_exiting.connect(func() -> void:
 		if Dialogue.flag_set.is_connected(show):

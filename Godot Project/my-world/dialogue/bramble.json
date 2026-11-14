@@ -6,21 +6,21 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(A plant girl brushes soil off her leaves. The little flytrap on her shoulder snaps at a little alien, then thinks better of it.) Snappy! Manners!",
-        "I'm Bramble. I was down in the roots back home, listening to them grow. Then the roots went quiet. Then the sky.",
-        "(She looks round at all the staring faces.) Everyone's watching us. Roots don't like being watched. Neither do I, much."
+        "Snappy! Manners! Sorry. I'm Bramble.",
+        "I was down in the roots back home. Then... the sky.",
+        "Everyone's watching us. Roots don't like being watched."
       ]
     },
     {
       "when": {"mended": "rootmind", "not_flag": "party_asked_bramble"},
       "set": "party_asked_bramble",
       "lines": [
-        "(Bramble pops up out of the ground right in front of you, petals in her hair.) There you are! The whole hive's still humming about you.",
-        "I've been thinking. Rooting, mostly, but thinking too. Can I come with you? Wherever you go, I'll be right behind you. Or right under you!",
-        "And when there's soft ground and you need to get somewhere quick, press {burrow} and we'll burrow together.",
+        "There you are! The whole hive's humming about you.",
+        "Can I come with you? I'll be right behind you. Or under you!",
+        "On soft ground, press {burrow} and we'll burrow!",
         {"choice": [
           {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_bramble",
-            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+            "lines": ["Yay! Press {friend} when you need me!"]},
           {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
         ]}
       ]
@@ -28,10 +28,10 @@
     {
       "when": {"mended": "rootmind", "flag": "party_asked_bramble", "not_flag": "party_yes_bramble", "every": 3},
       "lines": [
-        "Still want me along? I'm ready when you are!",
+        "Still want me along?",
         {"choice": [
           {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_bramble",
-            "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
+            "lines": ["Yay! Press {friend} when you need me!"]},
           {"text": "Not yet.", "answer": "not_yet", "record": "party_join", "lines": ["That's OK! I'll ask again another time."]}
         ]}
       ]
@@ -43,10 +43,10 @@
         "flag": "garden_tour"
       },
       "lines": [
-        "{player}! Pip says you can glow now, like a little lantern! Oh, that's PERFECT.",
-        "Under my garden there are caves. The Undergardens. My roots go all the way down, but I've never seen them, it's too dark. Snappy won't go near.",
-        "The way in is the Rootwell, the root-ringed hole on top of the hill, west of the greenhouse. It's been tangled shut, but the roots will let a light in.",
-        "Something big has been snoring down there ever since the Void cracked. The plants say it's the Old Taproot. Could you go and see?"
+        "{player}! Pip says you can glow now! PERFECT!",
+        "There are caves under my garden. Too dark for me.",
+        "The way in is the root-ringed hole on the hill.",
+        "Something big is snoring down there. Could you go see?"
       ],
       "set": "undergardens_start"
     },
@@ -56,8 +56,7 @@
         "every": 2
       },
       "lines": [
-        "How are the Undergardens? The roots say you're stomping about down there. Nicely, though.",
-        "Four Glowcap spores, the plants whisper. In the Root Hall, the Mushroom Grotto, the Crystal Pool and the Deep Crack."
+        "Find four glowing spores down in the Undergardens!"
       ]
     },
     {
@@ -66,8 +65,8 @@
         "not_flag": "ug_bramble_thanks"
       },
       "lines": [
-        "The Old Taproot is AWAKE? He's every plant on this hill's great-great-great-grandroot! And he gave you Glowcaps!",
-        "Plant them up here and they'll glow all night. My garden's going to look like a little bit of the sky."
+        "The Old Taproot is AWAKE? And he gave you Glowcaps!",
+        "Plant them! They glow all night."
       ],
       "set": "ug_bramble_thanks"
     },
@@ -77,9 +76,8 @@
         "not_flag": "slide_ask_bramble"
       },
       "lines": [
-        "The old slide? Ooh. The plants round it don't like to talk about it.",
-        "Nothing grows near it any more, and at night there's a little green glow by the Haunted House.",
-        "The oldest roots in the woods remember something getting STUCK in that house, a long time ago. Something that liked to slide."
+        "The old slide? The plants don't like to talk about it.",
+        "There's a green glow by the Haunted House at night."
       ],
       "set": "slide_ask_bramble"
     },
@@ -89,8 +87,8 @@
         "not_flag": "dogs_sign_bramble"
       },
       "lines": [
-        "Rights for dogs? Of course! Rook dug up my whole carrot patch last week, and I still love him. The carrots forgave him too.",
-        "(Bramble signs with a big loopy B and a little leaf. Snappy tries to eat the pen.)"
+        "Rights for dogs? Of course! I love Rook.",
+        "(Bramble signs it. Snappy tries to eat the pen.)"
       ],
       "set": "dogs_sign_bramble"
     },
@@ -100,11 +98,9 @@
       },
       "set": "n3_hi",
       "lines": [
-        "{player}! Down here! Well, up here now. (Bramble pops out of the ground by the portal.) I've been waiting so long a butterfly landed on my antlers.",
-        "The south meadow is blooming tonight. Moonflowers, starbells, the lot. The roots told me. You have to see it!",
-        "And something's out there that isn't a flower. A glowy blue paper, blown in from who knows where. A schematic, Dash calls it.",
-        "It's over on the lake side of the meadow. Zippy will want to see it.",
-        "Oh! And Zippy's been asking who wants to race. Grow fast and you might win something!"
+        "{player}! I waited so long a butterfly landed on me!",
+        "The south meadow's blooming tonight! You have to see it!",
+        "And there's a glowy blue paper out there. A schematic!"
       ]
     },
     {
@@ -112,12 +108,9 @@
         "talks": 0
       },
       "lines": [
-        "(The ground in front of you bulges... and a girl made of leaves pops up, showering soil everywhere.) Oh! Hello! Sorry about the dirt.",
-        "I'm Bramble. I grow things, and I fix up anybody who's feeling poorly. And this is Snappy.",
-        "(The flytrap on her arm opens wide and goes SNAP!)",
-        "Snappy, manners! Sorry! He's friendly, really. He only eats bugs. And sometimes socks.",
-        "{player}: Like a doctor?",
-        "Sort of! More like a garden that gives hugs. I travel underground, it's quicker, and the worms give very good directions."
+        "Oh! Hello! Sorry about the dirt.",
+        "I'm Bramble. I grow things. This is Snappy.",
+        "Snappy, manners! He only eats bugs. And socks."
       ]
     },
     {
@@ -127,8 +120,7 @@
         "min_talks": 1
       },
       "lines": [
-        "Guess who asked me for flowers? Mr. Palmer himself! He said Rex's campaign gave him the idea.",
-        "Flowers in every window box in town. I've got the bundles all tied up, but I can't carry them underground. They'd get muddy.",
+        "Mr. Palmer wants flowers in every window box!",
         "Would you fill the boxes for me?",
         {
           "choice": [
@@ -136,15 +128,14 @@
               "text": "Of course!",
               "set": "bramble_flowers_start",
               "lines": [
-                "Hooray! Here you go, a whole armful.",
-                "(Bramble hands {player} a big bundle of flowers. They smell like sunshine.)",
-                "Mr. Palmer's window at the Town Hall, Nina's house, the Potion Shop, the Book Store, and Dash's place."
+                "Hooray! Here's an armful!",
+                "Stars on your map show where!"
               ]
             },
             {
               "text": "Maybe later.",
               "lines": [
-                "No rush! Flowers don't mind waiting in a bucket."
+                "No rush!"
               ]
             }
           ]
@@ -156,8 +147,7 @@
         "quest_step": "bramble_flowers:deliver"
       },
       "lines": [
-        "How are the window boxes coming? Each one needs a little love.",
-        "Mr. Palmer's, Nina's, the Potion Shop, the Book Store and Dash's."
+        "Fill the five window boxes!"
       ]
     },
     {
@@ -166,11 +156,9 @@
       },
       "set": "bramble_thanked",
       "lines": [
-        "{player}: All the window boxes are full, Bramble!",
-        "I know! I could feel them blooming from here. All the way down in my roots.",
-        "You know what? I had a few bundles left over. So I popped up round town and did the rest of the town too.",
-        "(Bramble winks. Snappy winks too, sort of.)",
-        "A town with flowers is a town that smiles. Thank you!"
+        "{player}: All the window boxes are full!",
+        "I felt them bloom, all the way down in my roots!",
+        "Thank you!"
       ]
     },
     {
@@ -179,8 +167,8 @@
         "every": 3
       },
       "lines": [
-        "Every window in town's got flowers now. I pop up and water them on my morning walk. Well, morning burrow.",
-        "The bees are having the best week of their lives."
+        "Every window's got flowers now!",
+        "The bees are SO happy."
       ]
     },
     {
@@ -190,10 +178,8 @@
       },
       "set": "asked_bramble",
       "lines": [
-        "{player}: Bramble, Rex is running for mayor. What would you want a mayor to do?",
-        "Ooh, he asked about me? That's so sweet!",
-        "Flowers. Flowers in every window box in town. A town with flowers is a town that smiles.",
-        "You tell that pup I said so. Kindly."
+        "{player}: What would you want a mayor to do?",
+        "Flowers in every window box!"
       ]
     },
     {
@@ -203,26 +189,24 @@
         "not_flag": "harvest_later"
       },
       "lines": [
-        "{player}, have you seen the glowing green crystals round the Void? Up by the castle, out in the woods, on the lake shore?",
-        "They're Remnants. Sparkles that got squeezed together for ages and ages, until they turned into crystal. They grow in the ground like roots. Roots of time!",
-        "Nobody can dig them out by hand. But plants can hear them humming, and so can I. With the right tool, I could coax some out for you.",
-        "And while we're digging... there's a patch of ground in the Secret Gardens, right in front of my greenhouse, that's just BEGGING to be your garden.",
+        "{player}, seen the glowing green crystals round the Void?",
+        "They're Remnants. Roots of time!",
+        "With the right tool, I can dig them out.",
+        "And there's a patch by my greenhouse for YOUR garden!",
         {
           "choice": [
             {
               "text": "Let's make the tool!",
               "set": "harvest_start",
               "lines": [
-                "Hooray! We need three things. A rootwood handle: the old roots in the Secret Gardens drop one now and then.",
-                "A moonshell scoop. They wash up by the dock, near the portal.",
-                "And a hum crystal, from the Observatory hill. Hold it near the ground and it buzzes. Bring them all to me!"
+                "Hooray! We need three things. Stars on your map!"
               ]
             },
             {
               "text": "Maybe later.",
               "set": "harvest_later",
               "lines": [
-                "That's all right. Remnants are very patient. They've been waiting since forever."
+                "That's all right!"
               ]
             }
           ]
@@ -236,20 +220,20 @@
         "every": 3
       },
       "lines": [
-        "The Remnants were humming again last night. I think they want to meet you. Shall we make that harvesting tool?",
+        "Shall we make that digging tool?",
         {
           "choice": [
             {
               "text": "Yes, let's!",
               "set": "harvest_start",
               "lines": [
-                "Yay! A rootwood handle from the Secret Gardens, a moonshell scoop from by the dock, and a hum crystal from the Observatory hill. Bring them to me!"
+                "Yay! Find the three parts. Stars on your map!"
               ]
             },
             {
               "text": "Not yet.",
               "lines": [
-                "Okay! Snappy says no rush. (Snappy says nothing. He's asleep.)"
+                "Okay! No rush."
               ]
             }
           ]
@@ -262,11 +246,11 @@
       },
       "rotate": [
         [
-          "How's the hunt going? You've found {parts_found} of the three.",
-          "The handle's in the Secret Gardens, the scoop's by the dock, and the hum crystal's up on the Observatory hill. They glow a little, so look for a light."
+          "You've found {parts_found} of the three!",
+          "They glow a little. Look for a light!"
         ],
         [
-          "(Bramble presses her ear to the ground.) The roots say the parts are still out there. They're very chatty today."
+          "The roots say the parts are still out there."
         ]
       ]
     },
@@ -276,36 +260,34 @@
       },
       "lines": [
         "{player}: I found all three parts!",
-        "You did! Let me see... handle, scoop, crystal. Oh, the crystal's humming like mad. It's excited!",
-        "(Bramble winds a vine round the handle, tucks the crystal in, and Snappy holds the scoop very still. Mostly still.)",
-        "Now, what should it look like? It's your tool, so you choose!",
+        "Oh, the crystal's humming! It's excited!",
+        "What should it look like? You choose!",
         {
           "choice": [
             {
               "text": "Leafy, like you!",
               "set": "harvest_look_leaf",
               "lines": [
-                "(She tucks fresh leaves all round it. It's a Leafy Trowel!)"
+                "(A Leafy Trowel!)"
               ]
             },
             {
               "text": "Crystal, all shiny!",
               "set": "harvest_look_crystal",
               "lines": [
-                "(She sets little crystals all along the handle. It's a Crystal Pick!)"
+                "(A Crystal Pick!)"
               ]
             },
             {
               "text": "With a star on top!",
               "set": "harvest_look_star",
               "lines": [
-                "(She twists a vine into a star at the end. It's a Star Scoop!)"
+                "(A Star Scoop!)"
               ]
             }
           ]
         },
-        "There! Your very own {tool}. Now find a glowing vein, there's one on the lake shore, and use it there.",
-        "I'll hear the crystals humming and pop up to help. I'm very quick underground!"
+        "Your own {tool}! Use it on a glowing vein. There's one by the lake."
       ],
       "set": "harvest_tool_built"
     },
@@ -314,7 +296,7 @@
         "quest_step": "brambles_harvest:vein"
       },
       "lines": [
-        "Off you go! Any glowing vein will do. The one on the lake shore is closest. I'll be right there, I promise. Probably under your feet."
+        "Use your tool on a glowing vein! I'll pop up."
       ]
     },
     {
@@ -322,8 +304,7 @@
         "quest_step": "brambles_harvest:garden"
       },
       "lines": [
-        "There you are! Welcome to your garden. Well, it will be.",
-        "Six beds, a fence, a barrel of rainwater. Everything a little plant could want."
+        "Welcome to your garden!"
       ],
       "do": "Farm.tour",
       "set": "garden_tour"
@@ -333,7 +314,7 @@
         "quest_step": "brambles_harvest:plant"
       },
       "lines": [
-        "Pop a seed in one of the dug beds, then give it some water. A plant without water just waits. Very politely."
+        "Plant a seed, then water it!"
       ]
     },
     {
@@ -342,10 +323,10 @@
       },
       "rotate": [
         [
-          "Is it growing? If it's drooping with a little water drop over it, it's thirsty. Give it a drink and off it goes again!"
+          "Drooping? It's thirsty! Give it water."
         ],
         [
-          "Blinkberries are the quickest. A Goggle Gourd takes ages, but it's SO worth it. And the Remnant sprout grows a whole Void day!"
+          "Blinkberries grow the quickest!"
         ]
       ]
     },
@@ -356,13 +337,13 @@
       },
       "rotate": [
         [
-          "How's your garden? The plants told me it's their favourite on the whole hill. Don't tell the greenhouse."
+          "The plants say your garden's their favourite!"
         ],
         [
-          "The veins have grown back, I can hear them. Just use your {tool} on one and I'll pop up!"
+          "Use your {tool} on a vein and I'll pop up!"
         ],
         [
-          "The Fruit stall in the Market buys your crops. And the Sweets stall makes them into snacks! Blinkberry tart is my favourite. Snappy likes the fries."
+          "The Fruit stall buys your crops!"
         ]
       ]
     },
@@ -371,7 +352,7 @@
         "time": "shift"
       },
       "lines": [
-        "The portal's open! The flowers by it glow brighter every time. Isn't that something?"
+        "The portal's open! The flowers glow brighter."
       ]
     },
     {
@@ -380,9 +361,8 @@
         "every": 2
       },
       "lines": [
-        "Morning! I wiggle my roots in, and everything grows a little happier.",
-        "(Bramble whispers something to a carrot.)",
-        "He says hi! Roots are like friends. You can't always see them, but they're the ones holding you up."
+        "Morning! Everything grows happier today.",
+        "Roots hold you up, even when you can't see them."
       ]
     },
     {
@@ -391,9 +371,8 @@
         "every": 2
       },
       "lines": [
-        "Fresh flowers! I grew every single one of them myself. Some of them are my cousins.",
-        "(Bramble tucks a little pink flower behind {player}'s ear.)",
-        "There. Pretty as a picture."
+        "Fresh flowers! Some are my cousins.",
+        "(She tucks a flower behind your ear.)"
       ]
     },
     {
@@ -401,9 +380,8 @@
         "activity": "meadow"
       },
       "lines": [
-        "Want to see how I get about? Watch the ground!",
-        "(She dives into the soil with a little twirl and pops up a few steps away.) Ta-daa!",
-        "When I'm under there, everything's quiet and cosy. Then I come up and say hello to the sky again."
+        "Watch the ground!",
+        "(She dives in and pops up again!) Ta-daa!"
       ]
     },
     {
@@ -411,7 +389,7 @@
         "activity": "evening_watering"
       },
       "lines": [
-        "Watering time! Everybody gets a drink before bed, even the plants. Even me."
+        "Watering time! Everyone gets a drink."
       ]
     },
     {
@@ -420,8 +398,7 @@
         "every": 2
       },
       "lines": [
-        "Morning! The flowers wake up the same time I do. We do our stretches together. Sunshine is my breakfast.",
-        "(Bramble stretches. A daisy nearby seems to stretch too.)"
+        "Morning! Me and the flowers do our stretches."
       ]
     },
     {
@@ -430,44 +407,44 @@
         "every": 2
       },
       "lines": [
-        "Shh, the plants are sleeping. We have to whisper so they grow nice and tall.",
+        "Shh, the plants are sleeping.",
         "{player}: (whispering) Goodnight, plants."
       ]
     },
     {
       "rotate": [
         [
-          "(Snappy snaps at a passing firefly. Misses.) He's still learning. We all are!"
+          "Snappy missed a firefly. He's still learning!"
         ],
         [
-          "You look a little tuckered out. Want a pick-me-up?",
+          "You look tired. Want a pick-me-up?",
           {
             "choice": [
               {
                 "text": "Yes, please!",
                 "heal": true,
                 "lines": [
-                  "(Bramble pats {player} on the head. Tiny flowers pop up around {their} feet.)",
-                  "There you go! Fresh as a daisy."
+                  "(Tiny flowers pop up round your feet!)",
+                  "Fresh as a daisy!"
                 ]
               },
               {
                 "text": "I'm okay, thanks!",
                 "lines": [
-                  "Alright! Give the ground a knock if you need me."
+                  "Alright! Knock on the ground if you need me."
                 ]
               }
             ]
           }
         ],
         [
-          "Whenever I feel wobbly, I think about my roots. Deep down, nice and steady. You've got roots too, you know. Your friends. Your home."
+          "Feeling wobbly? Think of your roots. Your friends. Your home."
         ],
         [
-          "Melody sings to my flowers every evening. I think they like the high notes best."
+          "Melody sings to my flowers every evening."
         ],
         [
-          "Here's to more brain breaks! Sit in the grass a minute. It helps, I promise."
+          "Sit in the grass a minute. It helps!"
         ]
       ]
     }

@@ -93,7 +93,7 @@ func setup() -> void:
 	set_mended(1.0 if Portals.is_cleared(world_id) else 0.0)
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and pieces_found() == 0 and not Portals.has_found(world_id, "met_centipede"):
-		Game.message.call_deferred("Dark Hollow. Misty, moonlit and very quiet... The centipede scuttles out of the mist behind you. She's coming too!")
+		Game.message.call_deferred("Dark Hollow. Misty and quiet... The centipede's coming too!")
 
 
 func _own_sky() -> void:
@@ -290,12 +290,12 @@ func _on_ghost_popped(_g: Node3D, i: int) -> void:
 	Portals.note_found(world_id, "ghost_%d" % (i + 1))
 	var n := ghosts_popped()
 	if n >= GHOSTS:
-		Game.message("All eight shadow ghosts popped! Their wisps of light are gathering in the middle of the glade...")
+		Game.message("All the shadow ghosts popped!")
 		get_tree().create_timer(1.2).timeout.connect(func() -> void:
 			if is_inside_tree():
 				_show_piece(0, true))
 	else:
-		Game.message("A shadow ghost popped into a wisp of light! %d of %d." % [n, GHOSTS])
+		Game.message("Pop! %d of %d." % [n, GHOSTS])
 
 
 func call_ghosts(at: Vector3, n: int) -> void:
@@ -379,9 +379,9 @@ func pick_piece(i: int) -> bool:
 	Juice.blip("chime", 1.0, -4.0)
 	var n := pieces_found()
 	if n >= 3:
-		Game.message("All three Moon Pieces! Up in the sky the Moon Clock's whole again, but something's stirring on Hush Hill...")
+		Game.message("All three Moon Pieces! Something stirs on Hush Hill...")
 	else:
-		Game.message("%s! The Moon Clock's a little brighter. (%d of 3)" % [PIECE_NAMES[i].capitalize(), n])
+		Game.message("%s! (%d of 3)" % [PIECE_NAMES[i].capitalize(), n])
 	return true
 
 
@@ -425,7 +425,7 @@ func _on_race_finished(track_id: String, place: int) -> void:
 		return
 	if is_piece_found(2):
 		return
-	Game.message("You finished the Hollow Run%s! Pip hands you a Moon Piece." % (" in first place" if place == 1 else ""))
+	Game.message("Hollow Run done%s! A Moon Piece!" % (" in first place" if place == 1 else ""))
 	pick_piece(2)
 
 
@@ -537,7 +537,7 @@ func snuff_lamp(i: int) -> void:
 	_swap_lamp(i)
 	Fx.burst(self, lamp_pos(i) + Vector3(0, 2.6, 0), Color(0.2, 0.15, 0.35), 12, 0.08, 1.5, 0.5, 0.8)
 	Juice.blip("whoosh", 0.7, -8.0)
-	Game.message("Shhh... the Hush put a moon lamp out! Light it again: Interact, or pop a bubble at it.")
+	Game.message("Shhh... a lamp went out! Light it again!")
 
 
 func _swap_lamp(i: int) -> void:
@@ -652,7 +652,7 @@ func _look_at_hush() -> void:
 	if hush_awake:
 		return
 	var left := 3 - pieces_found()
-	Game.message("A huge shadow, curled up asleep on the hill, breathing \"shhh\"... It's the Hush. Find the %d Moon Piece%s first." % [left, "" if left == 1 else "s"]
+	Game.message("The Hush, asleep. Find %d Moon Piece%s first." % [left, "" if left == 1 else "s"]
 		if left > 0 else "It's stirring...")
 	Audio.play("ui_back", -8.0)
 
@@ -672,7 +672,7 @@ func wake_hush() -> void:
 	Juice.shake(0.3)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("whoosh", 0.5, -2.0)
-	Game.message("The Hush wakes up! In the dark it's only shadow: lure it into a moon lamp's light, then pop it!")
+	Game.message("The Hush wakes! Lure it into the light, then pop it!")
 
 
 func mend() -> void:
@@ -720,12 +720,11 @@ func _thank_you(tries := 0) -> void:
 
 
 func thank_lines() -> Array:
-	return ["{player}! Listen. Can you hear it? Tick... tick... tick...",
-		"The Moon Clock's going again! It's past midnight in Dark Hollow for the first time in forever.",
-		"You stayed with me. All the way through. Even with the shadows.",
-		"Will you come to my home? Up in the Void, behind the old gate in the woods. It'll be open now.",
-		"There's... one more thing I need to know. Before we're friends for keeps. I'll tell you there!",
-		"The way home will take you. See you there! (Gulp, slide, scuttle...)"]
+	return ["Listen! Tick... tick... tick...",
+		"The Moon Clock's going again!",
+		"You stayed with me. Even with the shadows.",
+		"Come to my home? Behind the old gate in the woods.",
+		"See you there!"]
 
 
 func _burrow_home(_id := "") -> void:
@@ -777,26 +776,23 @@ func _add_centipede() -> void:
 func centipede_lines() -> Array:
 	if not Portals.has_found(world_id, "met_centipede"):
 		Portals.note_found(world_id, "met_centipede")
-		return ["Ptoo! Sorry about that. Spitting out is the only way out of a gulp. Are you all right? Not a scratch?",
-			"Welcome to Dark Hollow, {player}. My home, deep down. It looks spooky, I know. It's meant to be cosy.",
-			"I'm coming with you! I know every corner. And it's much less scary with two. (Well. With one and a lot of legs.)",
-			"Look up. The Moon Clock. It's stuck at midnight, and three pieces of it have gone dark.",
-			"The shadows have been eating our moments. Little bits of time, gone dark and flittery. Shadow ghosts.",
-			"One Moon Piece is in the Ghost Glade, where the shadow ghosts are. Pop them all!",
-			"One's on top of the Crooked Spire. Nobody can climb it... but the Big Hole spits things out in funny places.",
-			"And Pip came down to start the Hollow Run, the race round the hollow. Finish it and the last piece is yours."]
+		return ["Ptoo! Sorry! Are you all right?",
+			"Welcome to Dark Hollow! Spooky, but cosy.",
+			"I'm coming with you! Less scary with two.",
+			"Look up. The Moon Clock lost three pieces.",
+			"Let's find them! Stars on your map."]
 	var left: Array = []
 	for i in 3:
 		if not is_piece_found(i):
-			left.append(["pop the shadow ghosts in the Ghost Glade (%d of %d)" % [ghosts_popped(), GHOSTS],
-				"jump in the Big Hole and see where it spits you out", "finish the Hollow Run with Pip"][i])
+			left.append(["the Ghost Glade (%d of %d)" % [ghosts_popped(), GHOSTS],
+				"the Big Hole", "the Hollow Run"][i])
 	if left.size() > 0:
-		return ["%d Moon Piece%s! The moon looks a little less hungry." % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
-			if left.size() < 3 else "Don't be scared of the shadow ghosts. They're only lost little bits of time.",
+		return ["%d Moon Piece%s!" % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
+			if left.size() < 3 else "Shadow ghosts are just lost bits of time.",
 			"Still to do: %s." % ", and ".join(left)]
-	return ["All three Moon Pieces! But the Hush is waking up on Hush Hill. It's the one that swallowed our moments.",
-		"In the dark it's only shadow: nothing can touch it. But it can't hide in the light!",
-		"Lure it into a moon lamp's light, then pop it. If it puts a lamp out, light it again. I'll stay back and cheer. Shhh, it's coming!"]
+	return ["All three! But the Hush is waking up...",
+		"It can't hide in the light!",
+		"Lure it into a lamp's light, then pop it!"]
 
 
 func _talk_centipede() -> void:

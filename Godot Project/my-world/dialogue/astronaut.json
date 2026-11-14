@@ -6,9 +6,9 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(The astronaut's antenna is blinking very fast. Beep beep beep!)",
-        "Did you see it? The SKY cracked! I've been to space, {player}. Skies aren't supposed to do that.",
-        "Ground control says everything's fine. (He taps his helmet.) Ground control is me. I'm not sure I believe me."
+        "Beep beep beep!",
+        "The SKY cracked, {player}! Skies don't do that!",
+        "Ground control says it's fine. I'm ground control."
       ]
     },
     {
@@ -17,8 +17,8 @@
       },
       "every": 2,
       "lines": [
-        "(The astronaut keeps looking up.) I've been watching the sky all morning. It's healed up. Mostly. You can still see where, if you squint.",
-        "Mr. Palmer's calling a meeting. Tally's counting the clouds. And the little ones? They think it was a party."
+        "The sky's healed up. Mostly. Squint and you can see where.",
+        "The little ones think it was a party."
       ]
     },
     {
@@ -27,10 +27,10 @@
       },
       "set": "n5_hi",
       "lines": [
-        "(The astronaut's antenna is blinking very fast. Beep beep beep!)",
-        "{player}! Am I glad to see you. Look up there, way over the town. Something's floating, glowing blue. My visor says it's paper!",
-        "There's another one by the pad, too. Right by my boots.",
-        "The only way up to the floaty one is the mothership. Step on the pad and call it down. I'd fly it myself, but it doesn't take Earth licences."
+        "Beep beep beep!",
+        "{player}! Look up! Something blue is floating up there!",
+        "There's another by my boots.",
+        "Step on the pad and call the mothership. It goes up there!"
       ]
     },
     {
@@ -38,13 +38,12 @@
         "talks": 0
       },
       "lines": [
-        "(The astronaut gives a big, slow wave with a blue glove.)",
-        "Hello there! Ground control to... um... whoever you are!",
+        "Hello! Ground control to... um... you!",
         "{player}: I'm {player}! Are you from space?",
-        "Sort of! I'm from Earth, actually. I flew up past the clouds to see the mothership, and look where I landed. The Void!",
-        "Everything here is so green. Even the sky! Back home the sky is blue.",
+        "Sort of! I'm from Earth. I flew up and landed here!",
+        "Back home the sky is blue, not green.",
         "{player}: Blue? That sounds weird.",
-        "Ha! I suppose it does. I'll stay right here by the pad and watch the ship go round. Come and say hi any time."
+        "Ha! I'll stay by the pad. Say hi any time."
       ]
     },
     {
@@ -52,9 +51,8 @@
         "time": "shift"
       },
       "lines": [
-        "(The astronaut's antenna is blinking. Beep. Beep.)",
-        "Did you see that? The portal's open! I wonder if there's a way to Earth through there that doesn't need a rocket.",
-        "If you go through to Earth, say hi to the moon for me."
+        "Beep. Beep.",
+        "The portal's open! Is there a way to Earth with no rocket?"
       ]
     },
     {
@@ -63,8 +61,8 @@
         "every": 2
       },
       "lines": [
-        "Look at all those stars, {player}. I've been to a few of them.",
-        "Well... near a few of them. They're a lot further away than they look."
+        "Look at the stars, {player}. I've been to a few.",
+        "Well... near a few."
       ]
     },
     {
@@ -73,26 +71,25 @@
         "every": 2
       },
       "lines": [
-        "Good morning! I had space porridge for breakfast. It floats off the spoon, so you have to be quick."
+        "Morning! Space porridge floats off the spoon!"
       ]
     },
     {
       "rotate": [
         [
-          "Do you want to know what the big red button does?",
+          "Want to know what the big red button does?",
           "{player}: Yes!",
-          "Me too. Nobody ever told me. I'm too scared to press it."
+          "Me too. I'm too scared to press it."
         ],
         [
-          "The mothership goes all the way round the town. I've counted it fourteen times today!",
-          "Someone told me {player} can fly it. Is that true? Wow."
+          "The mothership's gone round the town fourteen times today!"
         ],
         [
-          "This helmet is great for keeping my ears warm. And for keeping bugs out of my mouth."
+          "My helmet keeps my ears warm. And bugs out!"
         ],
         [
-          "(The astronaut hops up and down on the spot. Boing. Boing.)",
-          "Sorry! I keep forgetting there's more gravity here. I'm practising."
+          "Boing. Boing.",
+          "Sorry! More gravity here. I'm practising."
         ]
       ]
     }

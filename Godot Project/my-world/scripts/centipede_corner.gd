@@ -202,34 +202,32 @@ func talk() -> void:
 func lines() -> Array:
 	var ask := {"choice": [
 		{"text": "Yes. Gulp me up!", "answer": "yes", "record": RECORD, "set": "dark_hollow_said_yes",
-			"lines": ["Hold your breath! (Not really. You don't need to.) Here we go..."]},
+			"lines": ["Here we go... GULP!"]},
 		{"text": "No, not today.", "answer": "no", "record": RECORD, "set": "dark_hollow_said_no",
-			"lines": ["That's okay. Saying no is brave too. I'll be right here, in my corner."]}]}
+			"lines": ["That's okay. Saying no is brave too."]}]}
 	var said_no := Dialogue.flags.has("dark_hollow_said_no")
 	var been := Dialogue.flags.has("dark_hollow_said_yes")
 	if been:
-		return ["You came back! The shadows are still nibbling at our moments down there.",
-			"Shall I take you to Dark Hollow again? Same as before: gulp, a long soft slide, and out you pop.", ask]
+		return ["You came back!",
+			"Back to Dark Hollow? Gulp, slide, pop!", ask]
 	var out: Array = []
 	if said_no:
 		out.append("Oh! You came back to my corner. I'm glad.")
 	else:
-		out.append_array(["(Something drops from the ceiling with a soft thump. Lots and lots of legs. A pale face turns to look at {player}.)",
-			"You came! You heard me whispering at the old gate. Nobody ever listens to the whispering.",
-			"You came all the way to my corner. Nobody comes all the way to my corner.",
-			"Don't be scared. Well... you can be a little bit scared. That's allowed.",
-			"I'm not from here, you know. I'm from Dark Hollow. It's my home, and it's in trouble.",
-			"The shadows are eating up its moments of time. The Moon Clock's stuck at midnight."])
-	out.append_array(["There's no portal to Dark Hollow. Not one you can see. The only way in is... through me.",
-		"I'd gulp you up. GULP! Then a long, soft, glowy slide, and out you pop in Dark Hollow. Not a scratch. Centipede's honour.",
-		"And the way home takes you straight out to the school's front gate. No dark passage. Do you want to go?", ask])
+		out.append_array(["(Thump! Lots of legs drop from the ceiling.)",
+			"You came! You heard my whispering!",
+			"Don't be scared. Well, a little bit is allowed.",
+			"My home, Dark Hollow, is in trouble."])
+	out.append_array(["The only way in is... through me.",
+		"I gulp you up, you slide down, and out you pop!",
+		"Do you want to go?", ask])
 	return out
 
 
 func note_lines() -> Array:
-	return ["(A note, in very wobbly writing, tucked into the empty nest:)",
-		"\"GONE HOME! Dark Hollow is mended, so now I live up in the Void, by my hollow log behind the old gate in the woods. The gate's open for friends.\"",
-		"\"Come and visit. Knock knock! Love from %s. (Lots of love. I have lots of feet to carry it.)\"" % _name().replace("The C", "the c")]
+	return ["(A wobbly note:)",
+		"\"GONE HOME! Behind the old gate in the woods.\"",
+		"\"Come and visit! Love from %s.\"" % _name().replace("The C", "the c")]
 
 
 func _on_talked(id: String) -> void:

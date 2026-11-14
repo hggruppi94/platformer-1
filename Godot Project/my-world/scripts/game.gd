@@ -536,12 +536,12 @@ func load_game() -> void:
 		# Saved outdoors in the old town: start at the market entrance rather than where she stood
 		_resume = {"scene": TOWN_SCENE}
 		next_spawn = "MarketEntrance"
-		pending_message = "Welcome back!"
+		pending_message = "Welcome back! The town's had a makeover!"
 	if _resume.get("scene", "") == Clock.EARTH and int(data.get("earth_layout", 1)) < EARTH_LAYOUT:
 		# Saved outdoors on Earth before the town grew: where she stood might be inside a new shop now, so wake up at home
 		_resume = {"scene": Clock.EARTH}
 		next_spawn = NEW_GAME_SPAWN
-		pending_message = "Welcome back! The town grew!"
+		pending_message = "Welcome back! The town's grown!"
 
 
 func _sparkles_already_earned() -> int:

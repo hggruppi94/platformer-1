@@ -63,7 +63,7 @@
       "do": "FirstNight.lesson_from_rex",
       "lines": [
         "A new citizen! I'm Rex, future mayor. And a husky. For now.",
-        "Let's teach you to skate!"
+        "Tally says you need to skate! Let's go!"
       ],
       "first_night": true
     },
@@ -302,7 +302,7 @@
       },
       "lines": [
         "Three ripples! Brilliant!",
-        "Now Rook has to get in the other pod. He hates the lab.",
+        "Now Rook has to get in the other pod. He's scared of the lab.",
         "Go and talk him into it!"
       ]
     },
@@ -381,7 +381,7 @@
         "not_flag": "rex_campaign_later"
       },
       "lines": [
-        "My favourite voter! Now I need something bigger.",
+        "You already gave me your vote! Now I need something bigger.",
         "A CAMPAIGN MANAGER!",
         {
           "choice": [
@@ -579,7 +579,7 @@
         "Oh.",
         "{player}: But he loved your ideas! A good mayor listens first.",
         "I DID listen! Even to a woof!",
-        "One day... Future Mayor Rex!",
+        "Being mayor is about listening. One day... Future Mayor Rex!",
         "Here, Campaign Manager. My best sash. Thank you!"
       ]
     },
@@ -681,7 +681,7 @@
                 "text": "You've got my vote!",
                 "set": "voted_rex",
                 "lines": [
-                  "Wonderful!"
+                  "Wonderful! More brain breaks!"
                 ]
               },
               {

@@ -157,7 +157,7 @@ func _announce() -> void:
 	if scene == null or scene.scene_file_path != EARTH:
 		return
 	_told_day = rolled_visit
-	Game.message("New jobs are pinned up on the notice board by the gazebo!")
+	Game.message("New jobs on the notice board!")
 
 
 func _make(kind: String, tier: String, rng: RandomNumberGenerator) -> Dictionary:
@@ -242,12 +242,12 @@ func text_of(r: Dictionary) -> String:
 			return "Take %s from %s to %s" % [what, r.shop, friend_name(str(r.who))]
 		"rake":
 			if winter_of(r):
-				return "Shovel the snow at the %s house (%d drifts)" % [r.family, int(r.goal)]
+				return "Shovel snow at the %s house (%d)" % [r.family, int(r.goal)]
 			if summer_of(r):
-				return "Water the thirsty flowers at the %s house (%d flowers)" % [r.family, int(r.goal)]
+				return "Water flowers at the %s house (%d)" % [r.family, int(r.goal)]
 			if spring_of(r):
-				return "Plant tulip bulbs at the %s house (%d bulbs)" % [r.family, int(r.goal)]
-			return "Rake up the leaves at the %s house (%d piles)" % [r.family, int(r.goal)]
+				return "Plant bulbs at the %s house (%d)" % [r.family, int(r.goal)]
+			return "Rake leaves at the %s house (%d)" % [r.family, int(r.goal)]
 		"cat":
 			var where := str(r.where)
 			if winter_of(r):
@@ -256,19 +256,19 @@ func text_of(r: Dictionary) -> String:
 				where = where.replace("in the pumpkin patch", "in the Sunflower Field")
 			elif spring_of(r):
 				where = where.replace("in the pumpkin patch", "in the Tulip Field")
-			return "Find %s's cat %s (last seen %s)" % [friend_name(str(r.who)), r.cat, where]
+			return "Find %s's cat %s (%s)" % [friend_name(str(r.who)), r.cat, where]
 		"bakery":
 			if winter_of(r):
-				return "Pick %d bunches of winterberries in the Snowman Field for Poppy's tarts" % int(r.goal)
+				return "Pick %d winterberries for Poppy" % int(r.goal)
 			if summer_of(r):
-				return "Pick %d baskets of strawberries in the Sunflower Field for Poppy's shortcakes" % int(r.goal)
+				return "Pick %d strawberries for Poppy" % int(r.goal)
 			if spring_of(r):
-				return "Pick %d bundles of rhubarb in the Tulip Field for Poppy's rhubarb tarts" % int(r.goal)
-			return "Pick %d pumpkins at the patch for Poppy's pies" % int(r.goal)
+				return "Pick %d rhubarb for Poppy" % int(r.goal)
+			return "Pick %d pumpkins for Poppy" % int(r.goal)
 		"snowman":
-			return "Build %d snowmen on the town green for the Frost Fair" % int(r.goal)
+			return "Build %d snowmen on the green" % int(r.goal)
 		"sandcastle":
-			return "Build %d sandcastles on the beach at Willow Pond for the Summer Fair" % int(r.goal)
+			return "Build %d sandcastles on the beach" % int(r.goal)
 	return super.text_of(r)
 
 
@@ -283,10 +283,10 @@ func progress_text(r: Dictionary) -> String:
 		"sandcastle":
 			return "%d / %d sandcastles" % [int(r.progress), int(r.goal)]
 		"cat":
-			return "found! Now take %s home to %s" % [r.cat, friend_name(str(r.who))] if r.get("carrying", false) else ""
+			return "found! Take %s home to %s" % [r.cat, friend_name(str(r.who))] if r.get("carrying", false) else ""
 		"bakery":
 			if r.get("carrying", false):
-				return "got them all, now take them to Poppy"
+				return "got them all! Take them to Poppy"
 			return "%d / %d %s" % [r.picked.size(), int(r.goal), "bunches" if winter_of(r) else ("baskets" if summer_of(r) else ("bundles" if spring_of(r) else "pumpkins"))] \
 				if not r.picked.is_empty() else ""
 	return super.progress_text(r)
@@ -381,7 +381,7 @@ func collect(r: Dictionary, spot: int) -> void:
 			Audio.play("pickup", -5.0)
 			if r.picked.size() >= int(r.goal):
 				r.carrying = true
-				Game.message("That's %d %s! Take them to Poppy at the bakery on Main Street." % [int(r.goal),
+				Game.message("%d %s! Take them to Poppy." % [int(r.goal),
 					"bunches of winterberries" if winter_of(r) else ("baskets of strawberries" if summer_of(r)
 					else ("bundles of rhubarb" if spring_of(r) else "pumpkins"))])
 		"cat":
@@ -389,7 +389,7 @@ func collect(r: Dictionary, spot: int) -> void:
 				return
 			r.carrying = true
 			Audio.play("pickup", -3.0)
-			Game.message("You found %s! %s purrs and trots after you. Take %s home to %s." % [r.cat, r.cat,
+			Game.message("Found %s! %s follows you. Take %s to %s." % [r.cat, r.cat,
 				"her" if r.cat != "Footnote" else "him", friend_name(str(r.who))])
 	changed.emit()
 
@@ -405,7 +405,7 @@ func _on_talked(id: String) -> void:
 			"cat":
 				r.carrying = false
 				r.progress = 1.0
-				Game.message("%s is home! %s scoops %s up and says thank you, %s, about a hundred times." % [r.cat,
+				Game.message("%s is home! %s hugs %s. Thank you, %s!" % [r.cat,
 					friend_name(id), r.cat, Dialogue.player_name()])
 				_check_done(r)
 				changed.emit()
@@ -414,10 +414,10 @@ func _on_talked(id: String) -> void:
 			"bakery":
 				r.carrying = false
 				r.progress = float(r.goal)
-				Game.message("Poppy takes the winterberries: \"Perfect! These'll make the best tarts in town!\"" if winter_of(r)
-					else ("Poppy takes the strawberries: \"Perfect! These'll make the best shortcakes in town!\"" if summer_of(r)
-					else ("Poppy takes the rhubarb: \"Perfect! These'll make the best rhubarb tarts in town!\"" if spring_of(r)
-					else "Poppy takes the pumpkins: \"Perfect! These'll make the best pies in town!\"")))
+				Game.message("Poppy: \"Perfect! Thank you!\"" if winter_of(r)
+					else ("Poppy: \"Perfect! Strawberry shortcakes!\"" if summer_of(r)
+					else ("Poppy: \"Perfect! Rhubarb tarts!\"" if spring_of(r)
+					else "Poppy: \"Perfect! Pumpkin pies!\"")))
 				_check_done(r)
 				changed.emit()
 				return
@@ -429,7 +429,7 @@ func _check_done(r: Dictionary) -> void:
 		return
 	r.done = true
 	Audio.play("pickup", -2.0, 0.0)
-	Game.message("Job done: %s! Turn it in at the notice board for ✦ %d." % [text_of(r), int(r.sparkles)])
+	Game.message("Job done! Back to the board for ✦ %d." % int(r.sparkles))
 
 
 func wants_parcel(item_id: String) -> bool:
@@ -450,21 +450,20 @@ func talk(talker: Node3D) -> void:
 
 func lines(talker: Node3D = null) -> Array:
 	if not is_live():
-		return ["(The notice board's empty, apart from a note in Mr. Palmer's tidy writing: \"New jobs every morning!\")"]
+		return ["(\"New jobs every morning!\")"]
 	var out: Array = FirstNight.board_tutorial_lines()          # (Nina's how-to, on the First Night's board step)
 	var paid := turn_in(talker)
 	if paid > 0:
-		out.append("(You pin your finished job cards in the \"Done!\" box. A little envelope drops out: ✦ %d!)" % paid)
+		out.append("(Jobs done! ✦ %d!)" % paid)
 		if list.all(func(r: Dictionary) -> bool: return r.paid):
-			out.append("(Every card today says DONE. Someone's drawn a smiley face on the board. Was it Mr. Palmer?)")
+			out.append("(Every job's DONE! A smiley face!)")
 			return out
 	else:
-		out.append("(Cards are pinned all over the notice board. Today's jobs:)")
+		out.append("(Today's jobs:)")
 	for r in list:
 		if not r.paid:
 			var extra := progress_text(r)
 			out.append("%s, for ✦ %d.%s" % [text_of(r), int(r.sparkles), (" (%s)" % extra.capitalize()) if extra != "" else ""])
-	out.append("(At the bottom: \"Thank you, helpers! Any job not done comes down at midnight, no worries. Mr. P.\")")
 	return out
 
 

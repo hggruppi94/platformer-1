@@ -133,7 +133,7 @@ func setup() -> void:
 	_was_day = is_day()
 	_show_sky()
 	if not is_mended() and bells() == 0 and not Portals.has_found(world_id, "met_heather"):
-		Game.message.call_deferred("Glenmoor: whoa, day and night are racing round and round! Heather's waiting by the way in.")
+		Game.message.call_deferred("Glenmoor: day, night, day, night!")
 
 
 func _soft_ground() -> void:
@@ -303,8 +303,8 @@ func ring_bell(i: int, at: Vector3) -> void:
 	Juice.blip("chime", 0.9 + bells() * 0.15, -2.0)
 	Juice.rumble(0.3, 0.2)
 	var n := bells()
-	Game.message(("You've got %s! (%d of 3) Day and night loop a little steadier..." % [CHARMS[i], n]) if n < 3
-		else "All three Balance Charms click together, light and dark! Over at the Standing Stones, something big and woolly lets out a grumpy BLEAT.")
+	Game.message(("Got %s! (%d of 3)" % [CHARMS[i], n]) if n < 3
+		else "All three charms! Something woolly BLEATS...")
 	_show_sky()
 
 
@@ -449,7 +449,7 @@ func pen_fluff(i: int) -> void:
 	Audio.play("boing", -6.0)
 	var n := penned()
 	if n < FLUFFS:
-		Game.message("A Fluffkin trots into the Fold! (%d of %d) Moo-ve along, the rest of you!" % [n, FLUFFS])
+		Game.message("A Fluffkin's in! (%d of %d)" % [n, FLUFFS])
 	else:
 		var fold := _fold()
 		ring_bell(0, fold.global_position if fold else Vector3.ZERO)
@@ -521,8 +521,8 @@ func tend(i: int) -> bool:
 	var m := get_node_or_null("Bed%d" % (i + 1)) as Node3D
 	if not in_bloom(i):
 		Juice.blip("tick", 0.7, -8.0)
-		Game.message("It's shut tight! Moonflowers only open in the dark. Wait for night, then sing." if is_moonflower(i)
-			else "It's shut tight! Sunflowers only open in the daylight. Wait for day, then sing.")
+		Game.message("Shut! Moonflowers open at night." if is_moonflower(i)
+			else "Shut! Sunflowers open in the day.")
 		return false
 	Portals.note_found(world_id, "bed_%d" % (i + 1))
 	if m:
@@ -531,7 +531,7 @@ func tend(i: int) -> bool:
 	_show_plants()
 	var n := held()
 	if n < BEDS:
-		Game.message("You sing, and the %s stays open! (%d of %d)" % ["moonflower" if is_moonflower(i) else "sunflower", n, BEDS])
+		Game.message("The %s stays open! (%d of %d)" % ["moonflower" if is_moonflower(i) else "sunflower", n, BEDS])
 	else:
 		ring_bell(1, m.global_position if m else Vector3.ZERO)
 	return true
@@ -584,23 +584,18 @@ func isla_lines() -> Array:
 	# (a first draft for Hayden)
 	if not Portals.has_found(world_id, "met_isla"):
 		Portals.note_found(world_id, "met_isla")
-		return ["Och, hiya! You must be Heather's pal from the Void. I'm Isla! Her best friend. Since we were wee calves.",
-			"Well. Mostly best friends. Since the days started racin' round, the glen's gone and split in two.",
-			"Heather's lot, the Sunfolk, want it day for ever. My lot, the Moonfolk, love the night: stars, moonflowers, owls!",
-			"And now we just shout across the burn at each other. 'DAY!' 'NIGHT!' It's daft, really.",
-			"Here, you want the Moon Charm? Then race me up Ben Bonnie. Past all six cairns, in order, to the top. Ready when you are!"]
+		return ["Och, hiya! I'm Isla, Heather's best friend!",
+			"Well. We were. The glen's split in two.",
+			"Want the Moon Charm? Race me up the hill!"]
 	if is_mended():
-		return [["Day and night are takin' turns again, nice and slow! Proper days! Proper nights! I could do cartwheels. I am doing cartwheels!",
-			"(She does one cartwheel and falls over in the heather, giggling.)"],
-			["Heather and me had a big hug and a wee cry. Then a picnic. At sunset. Half day, half night. Perfect.",
-			"Turns out the glen needs both. Like her and me: she's the sunny one and I'm the starry one."],
-			["The Moonfolk are teachin' the Sunfolk the names of the stars, and the Sunfolk are teachin' us how to make jam.",
-			"I'm not saying which is going better. (It's the stars.)"],
-			["Rematch up Ben Bonnie some time? By moonlight! I've been practising. Mostly the falling over bit."]].pick_random()
+		return [["Proper days AND nights! Cartwheels!"],
+			["Me and Heather had a sunset picnic!"],
+			["We teach them stars. They teach us jam."],
+			["Rematch up the hill some time?"]].pick_random()
 	if has_bell(2):
-		return ["You're FAST. I'm telling everyone. I'm telling the Moonfolk first, then the owls.",
-			"The Moon Charm's yours. Heather's got the Sun Charm for you, and the garden needs the both of us."]
-	return ["Back for another go? Past the six cairns, in order, then the top!", "On your marks..."]
+		return ["You're FAST!",
+			"The Moon Charm's yours!"]
+	return ["Another go? Past the cairns to the top!", "On your marks..."]
 
 
 func start_race() -> void:
@@ -659,7 +654,7 @@ func _race_step(player: Node3D, delta: float) -> void:
 				and absf(player.global_position.y - c.global_position.y) < 3.0:
 			reach_cairn()
 		elif player.global_position.distance_to((get_node("Hill") as Node3D).global_position) > 60.0:
-			end_race(false, "You ran off the course! Come and have another go.")
+			end_race(false, "Off the course! Try again.")
 	_show_race()
 
 
@@ -688,12 +683,12 @@ func end_race(won: bool, why := "") -> void:
 	if won:
 		var top := get_node_or_null("Cairn%d" % cairns()) as Node3D
 		if not has_bell(2):
-			Game.message("You beat Isla to the top of Ben Bonnie! Isla: \"Och, you're like the wind!\"")
+			Game.message("You beat Isla! \"Och, like the wind!\"")
 			ring_bell(2, top.global_position if top else Vector3.ZERO)
 		else:
 			Game.message("You beat Isla to the top again!")
 	else:
-		Game.message(why if why != "" else "Isla gets to the top first! Isla: \"Ha! Best of three? Come back down and have another go!\"")
+		Game.message(why if why != "" else "Isla wins! \"Ha! Again?\"")
 	_show_race()
 	# Isla jogs back down to the start after a moment
 	get_tree().create_timer(2.5).timeout.connect(func() -> void:
@@ -775,23 +770,21 @@ func _ground(at: Vector3) -> Vector3:
 func folk_lines(moon: bool, i: int) -> Array:
 	# The two sides' talk: cross with each other before it's mended, friends after (first drafts for Hayden)
 	if is_mended():
-		return ([["We had the Sunfolk over for a midnight feast. They fell asleep by ten. Bless 'em.", "Still. Nice to have the company."],
-			["Goldie showed me how they make heather honey. I showed her the Plough. The stars, I mean."],
-			["Turns out the night's no fun without a day to rest up in. Who knew?"]] if moon else
-			[["The Moonfolk showed us shooting stars last night. I stayed up past my bedtime! Worth it."],
-			["Day's lovely. Night's lovely too, now it waits its turn. Like a good neighbour."],
-			["We put up a banner that's half sun, half moon. Took us all afternoon to agree on the colours."]])[i % 3]
+		return ([["The Sunfolk fell asleep at our feast!"],
+			["I swapped star names for honey!"],
+			["Night's no fun without a day!"]] if moon else
+			[["I saw shooting stars past my bedtime!"],
+			["Day's lovely. Night is too, now!"],
+			["Our banner's half sun, half moon!"]])[i % 3]
 	if moon:
-		return [["Night's the bonniest time in the glen. Stars! Moonflowers! Owls! Why would anyone want it bright?",
-			"And then the sun barges in again. RUDE."],
-			["Wee Dougal here. Shh. I'm watchin' for shootin' stars. When it's night. Which it was. A second ago."],
-			["Those Sunfolk shout 'HOORAY, DAY!' every time the sun comes up. Every time! It's comin' up every ten seconds!",
-			"So we shout back. Fair's fair."]][i % 3]
-	return [["Day's the best! Sunshine on the heather, Fluffkins grazin', washing on the line. Why would anyone want it dark?",
-		"And then the night sneaks back in. Every few seconds! I can't get a single sock dry."],
-		["Barley's my name, and haymaking's my game. Only you can't make hay while the moon shines. Can you?"],
-		["The Moonfolk cheer every time it gets dark. So we cheer louder when it's light. That'll show 'em.",
-		"...Heather says it's daft. Heather might be right."]][i % 3]
+		return [["Night's the best! Stars! Owls!",
+			"And then the sun barges in. RUDE."],
+			["Shh. I'm watchin' for shootin' stars."],
+			["The Sunfolk shout HOORAY every sunrise!"]][i % 3]
+	return [["Day's the best! Sunshine! Fluffkins!",
+		"And then the night sneaks back. Again!"],
+		["I'm Barley. You can't make hay in the dark!"],
+		["The Moonfolk cheer. We cheer LOUDER."]][i % 3]
 
 
 func _talk_folk(p: Node3D, moon: bool, i: int) -> void:
@@ -891,46 +884,38 @@ func heather_lines() -> Array:
 		Portals.note_found(world_id, "thanked")
 		return thank_lines()
 	if is_mended():
-		return [["Look at that sky, sugar. A real day, that'll turn into a real night, and back again. Nice and slow.",
-			"Me and Isla are speakin' again. We had a picnic at sunset. Best of both."],
-			["Remember your April Showers! {showers_how} and a wee rain cloud comes over. When the sun peeks out, there's a rainbow you can walk on.",
-			"Rain's good for gardens too. Try it by yours back in the Void."],
-			["And your Spring Step: jump again just as you land, and you bounce higher. Three in a row, and boing!",
-			"Like a spring lamb in a field. That's where the name comes from, sugar."],
-			["The Sunfolk and the Moonfolk took the banners down and put up one that's half and half.",
-			"Mama always said: there ain't no sunrise without a night before it."]].pick_random()
+		return [["A real day, then a real night. Nice and slow!",
+			"Me and Isla are friends again!"],
+			["April Showers: {showers_how}. Walk on the rainbow!"],
+			["Spring Step: jump as you land. Boing!"],
+			["No sunrise without a night first!"]].pick_random()
 	if not Portals.has_found(world_id, "met_heather"):
 		Portals.note_found(world_id, "met_heather")
-		return ["{player}! You came all the way to Glenmoor! Welcome to my home, sugar!",
-			"Well... it's usually calmer than this. Look up: here comes the night. And there it goes! Mornin'! And... evenin' again.",
-			"The Stormram's been at it again. He's a big woolly grump who curls up and charges in a WHIRLWIND, and he's got day and night spinnin' round with him.",
-			"And it's split the whole glen. My Sunfolk want it day for ever, and Isla's Moonfolk want it night for ever. Even me and Isla ain't speakin' much.",
-			"There's an old tale here: make the Balance Charm whole, light and dark together, and the days go back to normal.",
-			"Round up the Fluffkins for the Sun Charm. Help our garden for the Twilight Charm. And Isla's got the Moon Charm, if you can beat her up Ben Bonnie."]
+		return ["Welcome to Glenmoor, sugar! Look: day, night, day again!",
+			"The Stormram's spinnin' it all. Now the glen's split in two.",
+			"We need three charms to fix it. Stars on your map!"]
 	var left: Array = []
 	for i in 3:
 		if not has_bell(i):
-			left.append(["herd the Fluffkins into the Fold for the Sun Charm (%d of %d in: walk round behind 'em, they trot away from you)" % [penned(), FLUFFS],
-				"sing to the garden's flowers while they're open, sunflowers by day and moonflowers by night (%d of %d)" % [held(), BEDS],
-				"beat Isla up Ben Bonnie for the Moon Charm"][i])
+			left.append(["herd the Fluffkins (%d of %d)" % [penned(), FLUFFS],
+				"sing to the flowers (%d of %d)" % [held(), BEDS],
+				"race Isla"][i])
 	if left.size() > 0:
-		return ["%s Feel that? The days are steadyin' a touch." % ("Two charms!" if left.size() == 1 else "One charm!")
-			if left.size() < 3 else "Every charm you find steadies the days a little. Ain't that somethin'?",
-			"Still to do: %s." % "; and ".join(left)]
-	return ["The Balance Charm's whole! The Stormram's wakin' up over at the Standing Stones...",
-		"When he curls up and charges, get out of the way of that whirlwind! When he hits the ground he sends out a gust: jump it!",
-		"After a charge he's all dizzy. That's when you pop him, sugar! His wool's too thick any other time."]
+		return ["%s The days are steadyin'!" % ("Two charms!" if left.size() == 1 else "One charm!")
+			if left.size() < 3 else "Still to do: %s." % "; and ".join(left)]
+	return ["The charm's whole! The Stormram's wakin' up...",
+		"Dodge his whirlwind! Jump his gusts!",
+		"Pop him when he's dizzy!"]
 
 
 func thank_lines() -> Array:
-	return ["{player}! You did it! Day's stayin' day and night's stayin' night, each in its turn, like they ought to.",
-		"And look over yonder: the Sunfolk and the Moonfolk, all in one bunch. Isla's comin' over for supper. Can you believe it?",
-		"The Stormram's just a big ol' sheepish lump now. He'll be fine. Grumpy, but fine.",
-		"And back on your Earth, spring can come round too now, in its turn. Y'all are gonna love it.",
-		"Now, I got somethin' for you. Two somethings! Spring things.",
-		"First, April Showers: {showers_how} and a wee rain cloud comes over you. When the sun peeks out after, it leaves a rainbow you can walk right up!",
-		"And second, your Spring Step: jump again just as you land and you bounce higher. Do it three times in a row and you'll really fly.",
-		"Thank you, sugar. From me, Isla, the Sunfolk, the Moonfolk and every last Fluffkin."]
+	return ["You did it! Day and night take turns again!",
+		"And everyone's friends again!",
+		"And spring can come to Earth now!",
+		"Two gifts for you!",
+		"April Showers: {showers_how}. Walk on the rainbow!",
+		"Spring Step: jump as you land. Boing!",
+		"Thank you, sugar!"]
 
 
 func _talk_heather() -> void:

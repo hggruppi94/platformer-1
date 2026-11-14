@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "What. Oh. You're new. I'm Gus. I own the diner. Don't lean on the counter, I just wiped it.",
+        "New, huh? I'm Gus. Don't lean on my counter.",
         "{player}: Nice to meet you, Gus!",
         "Mm. We'll see."
       ]
@@ -17,9 +17,8 @@
       },
       "set": "snow_cocoa",
       "lines": [
-        "Two cocoas. Nina told me. She tells me everything. Loudly.",
-        "(He puts down two steaming mugs, and drops a handful of tiny marshmallows on top. Then another handful.)",
-        "Don't tell anyone. I've got a reputation."
+        "Two cocoas. Nina told me. Loudly.",
+        "Extra marshmallows. Don't tell anyone."
       ]
     },
     {
@@ -28,9 +27,8 @@
       },
       "set": "splash_lemonade",
       "lines": [
-        "Two pink lemonades. Nina told me. She tells me everything. Loudly. And wetly. She's dripping on my floor.",
-        "(He puts down two tall glasses, fizzing, with ice, a slice of lemon and a little paper umbrella in each.)",
-        "The umbrellas were Kip's idea. Don't tell anyone I said yes."
+        "Two pink lemonades. Nina told me. Loudly.",
+        "Little umbrellas were Kip's idea."
       ]
     },
     {
@@ -39,7 +37,7 @@
         "every": 3
       },
       "lines": [
-        "Another tremor knocked my sugar jar over. If Palmer says 'pipes' one more time, I'm digging up the green myself."
+        "Another wobble spilled my sugar jar. Pipes, my foot."
       ]
     },
     {
@@ -48,8 +46,8 @@
         "season": "winter"
       },
       "lines": [
-        "Cocoa. Hot. Obviously hot. It's cocoa.",
-        "...Fine. There's extra marshmallows. Don't tell anybody I put them in."
+        "Cocoa. Hot. Obviously.",
+        "...Fine. Extra marshmallows. Shh."
       ]
     },
     {
@@ -58,8 +56,8 @@
         "season": "summer"
       },
       "lines": [
-        "Lemonade. Cold. Obviously cold. It's lemonade.",
-        "...Fine. There's pink lemonade too. Don't tell anybody it's my favourite."
+        "Lemonade. Cold. Obviously.",
+        "...Fine. Pink's my favourite. Shh."
       ]
     },
     {
@@ -68,8 +66,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Cider. Hot or cold. Don't ask me for a pumpkin spice anything.",
-        "...Fine. There's a pumpkin spice donut. Don't tell anybody I made it."
+        "Cider. Hot or cold. No pumpkin spice.",
+        "...Fine. I made a pumpkin spice donut. Shh."
       ]
     },
     {
@@ -78,8 +76,8 @@
         "season": "spring"
       },
       "lines": [
-        "Lemonade. Pink or yellow. Don't ask me for a sparkly unicorn anything.",
-        "...Fine. There's a sparkly unicorn lemonade. Don't tell anybody I made it."
+        "Lemonade. Pink or yellow.",
+        "...Fine. There's unicorn lemonade. Shh."
       ]
     },
     {
@@ -87,7 +85,7 @@
         "activity": "errand"
       },
       "lines": [
-        "Hardware store. I need a hinge. The door squeaks. Ivy says it's 'charming'. It is not charming."
+        "My door squeaks. Ivy says it's charming. It's not."
       ]
     },
     {
@@ -95,7 +93,7 @@
         "time": "morning"
       },
       "lines": [
-        "Coffee? It's early. Everyone wants coffee early. Nobody wants to talk to me early. Good system."
+        "Coffee. Early. Nobody talks to me. Good."
       ]
     },
     {
@@ -103,22 +101,22 @@
         "time": "night"
       },
       "lines": [
-        "We're closing soon. That means go home, not 'one more slice of pie'. ...Fine. One more slice."
+        "Closing soon. ...Fine. One more slice of pie."
       ]
     },
     {
       "rotate": [
         [
-          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+          "No phones at the counter. Kip spelled the sign wrong."
         ],
         [
-          "Mr. Palmer wants me to make a pie for the Frost Fair. Shaped like a snowflake. A pie. Shaped like a snowflake. Pies are already round!"
+          "A snowflake pie? Pies are already round!"
         ],
         [
-          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+          "You need pancakes. Sit. Don't tell anyone I was nice."
         ],
         [
-          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
+          "That old oak hums at night. Trees shouldn't hum."
         ]
       ],
       "when": {
@@ -128,16 +126,16 @@
     {
       "rotate": [
         [
-          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+          "No phones at the counter. Kip spelled the sign wrong."
         ],
         [
-          "Mr. Palmer wants a pie for the Summer Fair. Shaped like the sun. A pie. Shaped like the sun. Pies are already round!"
+          "A sun-shaped pie? Pies are already round!"
         ],
         [
-          "You look hot. Here. Ice water. Sit down. Don't tell anyone I was nice."
+          "Hot? Ice water. Sit. Don't tell anyone I was nice."
         ],
         [
-          "That big oak by the green hums at night. Even in summer. Trees shouldn't hum. Trees should be quiet. Like customers."
+          "That old oak hums at night. Trees shouldn't hum."
         ]
       ],
       "when": {
@@ -147,16 +145,16 @@
     {
       "rotate": [
         [
-          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+          "No phones at the counter. Kip spelled the sign wrong."
         ],
         [
-          "Mr. Palmer wants me to make a pie for the festival. Shaped like a pumpkin. A pie. Shaped like a pumpkin. Pies are already round!"
+          "A pumpkin-shaped pie? Pies are already round!"
         ],
         [
-          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+          "You need pancakes. Sit. Don't tell anyone I was nice."
         ],
         [
-          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
+          "That old oak hums at night. Trees shouldn't hum."
         ]
       ],
       "when": {
@@ -166,16 +164,16 @@
     {
       "rotate": [
         [
-          "No phones at the counter. It's a rule. There's a sign. Kip made the sign. It's spelled wrong."
+          "No phones at the counter. Kip spelled the sign wrong."
         ],
         [
-          "Mr. Palmer wants me to make a tart for the Spring Fair. Shaped like a flower. A tart. Shaped like a flower. Tarts are already round!"
+          "A flower-shaped tart? Tarts are already round!"
         ],
         [
-          "You look like you need pancakes. Sit down. Don't tell anyone I was nice."
+          "You need pancakes. Sit. Don't tell anyone I was nice."
         ],
         [
-          "That big oak by the green hums at night. I don't like it. Trees shouldn't hum. Trees should be quiet. Like customers."
+          "That old oak hums at night. Trees shouldn't hum."
         ]
       ],
       "when": {

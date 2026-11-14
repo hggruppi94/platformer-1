@@ -6,9 +6,8 @@
         "talks": 0
       },
       "lines": [
-        "Hi! Kip. Welcome. I'm the Corner Market cashier, the inn's night desk, the volunteer fire safety officer, the pumpkin patch manager and the library's assistant on Thursdays.",
-        "{player}: That's a lot of jobs!",
-        "It's six. I counted. Twice. Would you like to buy a stamp?"
+        "Hi! Kip. I've got six jobs in town!",
+        "I counted twice. Want a stamp?"
       ]
     },
     {
@@ -17,8 +16,8 @@
         "season": "winter"
       },
       "lines": [
-        "Sleigh ride! Sleigh ride! Hop on when it stops here, all the way round the green!",
-        "Job number seven: sleigh ride conductor! Scarecrow Sam drives. He's wearing a scarf now. He's still never once blinked."
+        "Sleigh ride! Hop on when it stops here!",
+        "Scarecrow Sam drives. He's never once blinked."
       ]
     },
     {
@@ -27,8 +26,8 @@
         "season": "summer"
       },
       "lines": [
-        "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green! There's shade on the back!",
-        "Job number seven: hayride conductor! Scarecrow Sam drives. He's wearing a sun hat this week. He's never once blinked."
+        "Hayride! Hop on when it stops here!",
+        "Scarecrow Sam drives. He's never once blinked."
       ]
     },
     {
@@ -37,8 +36,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green!",
-        "Job number seven: hayride conductor! Scarecrow Sam drives. He's very good. He's never once crashed. He's never once blinked either."
+        "Hayride! Hop on when it stops here!",
+        "Scarecrow Sam drives. He's never once blinked."
       ]
     },
     {
@@ -47,8 +46,8 @@
         "season": "spring"
       },
       "lines": [
-        "Hayride! Hayride! Hop on the wagon when it stops here, all the way round the green!",
-        "Job number seven: hayride conductor! Scarecrow Sam drives. He's got a daisy in his hat for spring. He's never once crashed. He's never once blinked either."
+        "Hayride! Hop on when it stops here!",
+        "Scarecrow Sam drives. He's never once blinked."
       ]
     },
     {
@@ -56,7 +55,7 @@
         "activity": "market"
       },
       "lines": [
-        "Corner Market, how can I help? We have milk, bread, and a very nice selection of slightly bent tins."
+        "Corner Market! Milk, bread and slightly bent tins."
       ]
     },
     {
@@ -64,7 +63,7 @@
         "activity": "fire_station"
       },
       "lines": [
-        "Fire safety tip number one: don't be on fire. Tip number two: see tip number one."
+        "Fire safety tip one: don't be on fire."
       ]
     },
     {
@@ -73,7 +72,7 @@
         "season": "winter"
       },
       "lines": [
-        "Snowmen! Build your snowmen here! Big ones, little ones, one that looks like Gus!"
+        "Build a snowman! Even one like Gus!"
       ]
     },
     {
@@ -82,7 +81,7 @@
         "season": "summer"
       },
       "lines": [
-        "Sunflowers! Get your sunflowers! Big ones, little ones, one that's taller than Gus!"
+        "Sunflowers! One's taller than Gus!"
       ]
     },
     {
@@ -91,7 +90,7 @@
         "season": "autumn"
       },
       "lines": [
-        "Pumpkins! Get your pumpkins! Big ones, little ones, one that looks like Gus!"
+        "Pumpkins! One looks like Gus!"
       ]
     },
     {
@@ -100,7 +99,7 @@
         "season": "spring"
       },
       "lines": [
-        "Tulips! Get your tulips! Red ones, yellow ones, one that looks like Gus!"
+        "Tulips! One looks like Gus!"
       ]
     },
     {
@@ -108,7 +107,7 @@
         "activity": "library"
       },
       "lines": [
-        "Shh. Library voice. (whispering) I've sorted all the books by colour. It's very pretty. Miss Marigold made a noise when she saw it."
+        "Shh. I sorted the books by colour. So pretty!"
       ]
     },
     {
@@ -116,16 +115,16 @@
         "activity": "inn"
       },
       "lines": [
-        "Maple Inn night desk. Would you like a room? We have one with a view of the green, one with a view of the other room, and one with no view but a very good pillow."
+        "Maple Inn! A room with a view, or a very good pillow?"
       ]
     },
     {
       "rotate": [
         [
-          "I'm saving up for a seventh job. Maybe 'town troubadour'. Barnaby doesn't know yet."
+          "I'm saving up for a seventh job!"
         ],
         [
-          "Did you know the old oak hums? I measured it. It's a B flat."
+          "The old oak hums. I measured. It's a B flat."
         ]
       ]
     }

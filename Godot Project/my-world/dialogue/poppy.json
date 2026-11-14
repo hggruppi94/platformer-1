@@ -7,9 +7,8 @@
       },
       "set": "spring_buns",
       "lines": [
-        "Two honey buns, warm from the oven! Nina told me all about the ducklings. Three times. She's dripping on my floor.",
-        "(She puts down two sticky golden buns, still steaming, with a little drizzle of honey on top.)",
-        "Five ducklings in a line behind you, all the way down Main Street? I'd have paid to see that. Have an extra bun. Have two!"
+        "Two warm honey buns! Nina told me about the ducklings!",
+        "Five ducklings down Main Street? Have an extra bun!"
       ]
     },
     {
@@ -17,9 +16,9 @@
         "talks": 0
       },
       "lines": [
-        "Welcome to Crumb and Cauldron! I'm Poppy. Everything's fresh, everything's warm, and the cauldron cakes are green inside. Spooky AND delicious!",
-        "{player}: Green inside?!",
-        "It's spinach! ...It's not spinach. It's a secret."
+        "Welcome to Crumb and Cauldron! I'm Poppy!",
+        "My cauldron cakes are green inside!",
+        "It's spinach! ...It's not. It's a secret."
       ]
     },
     {
@@ -28,8 +27,8 @@
         "season": "winter"
       },
       "lines": [
-        "Gingerbread, toffee, hot cocoa! Everything's warm and everything's sticky!",
-        "Entering the pie contest? Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+        "Gingerbread, toffee, hot cocoa!",
+        "Contest pies are at my bakery!"
       ]
     },
     {
@@ -38,8 +37,8 @@
         "season": "summer"
       },
       "lines": [
-        "Ice lollies, strawberry cups, blueberry muffins! Everything's cold and everything's sticky!",
-        "Entering the pie contest? It's blueberry this time. Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+        "Ice lollies, strawberry cups, muffins!",
+        "Contest pies are at my bakery!"
       ]
     },
     {
@@ -48,8 +47,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Caramel apples, kettle corn, cider donuts! Everything's warm and everything's sticky!",
-        "Entering the pie contest? Contest pies are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of pie-terest'."
+        "Caramel apples, kettle corn, donuts!",
+        "Contest pies are at my bakery!"
       ]
     },
     {
@@ -58,8 +57,8 @@
         "season": "spring"
       },
       "lines": [
-        "Strawberry tarts, lemon buns, honey cakes! Everything's fresh and everything's sticky!",
-        "Entering the baking contest? Contest tarts are at my bakery on Main Street. I'd enter myself, but Dottie says that's 'a conflict of tart-erest'."
+        "Strawberry tarts, lemon buns, honey cakes!",
+        "Contest tarts are at my bakery!"
       ]
     },
     {
@@ -67,7 +66,7 @@
         "time": "morning"
       },
       "lines": [
-        "Up since five! The bread doesn't bake itself. Well. The oven does most of it. But I do the hard bit, which is the tasting."
+        "Up since five! I do the hard bit: tasting."
       ]
     },
     {
@@ -76,7 +75,7 @@
         "season": "winter"
       },
       "lines": [
-        "Just getting some fresh air. Smell that? That's snow. And cinnamon. Mostly cinnamon. It's coming off me."
+        "Smell that? Snow. And cinnamon. That's me."
       ]
     },
     {
@@ -85,7 +84,7 @@
         "season": "summer"
       },
       "lines": [
-        "Just getting some fresh air. Smell that? That's summer. And cinnamon. Mostly cinnamon. It's coming off me. Even in summer."
+        "Smell that? Summer. And cinnamon. That's me."
       ]
     },
     {
@@ -94,7 +93,7 @@
         "season": "autumn"
       },
       "lines": [
-        "Just getting some fresh air. Smell that? That's autumn. And cinnamon. Mostly cinnamon. It's coming off me."
+        "Smell that? Autumn. And cinnamon. That's me."
       ]
     },
     {
@@ -103,22 +102,22 @@
         "season": "spring"
       },
       "lines": [
-        "Just getting some fresh air. Smell that? That's spring. And lemon. Mostly lemon. It's coming off me."
+        "Smell that? Spring. And lemon. That's me."
       ]
     },
     {
       "rotate": [
         [
-          "Gus says my gingerbread's 'too gingery'. Too gingery! It's GINGERbread!"
+          "Gus says my gingerbread's too gingery. It's GINGERbread!"
         ],
         [
-          "For the festival I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer."
+          "I'm baking a gazebo cake for the festival!"
         ],
         [
-          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats."
+          "The witch's hat was my grandma's. She just liked hats."
         ],
         [
-          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
+          "Here, a broken cookie. It's free!"
         ]
       ],
       "when": {
@@ -128,16 +127,16 @@
     {
       "rotate": [
         [
-          "Gus says my blueberry pie's 'too blue'. Too blue! It's a BLUEBERRY pie!"
+          "Gus says my blueberry pie's too blue. It's BLUEBERRY!"
         ],
         [
-          "For the Summer Fair I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer in a sun hat."
+          "I'm baking a gazebo cake for the Summer Fair!"
         ],
         [
-          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats. In summer I put a flower on it."
+          "The witch's hat was my grandma's. She just liked hats."
         ],
         [
-          "Here, a broken cookie. Broken ones don't count, so it's free. Eat it quick, it's melting."
+          "Here, a broken cookie. Eat it quick, it's melting!"
         ]
       ],
       "when": {
@@ -147,16 +146,16 @@
     {
       "rotate": [
         [
-          "Gus says my pumpkin pie's 'too orange'. Too orange! It's a PUMPKIN pie!"
+          "Gus says my pumpkin pie's too orange. It's PUMPKIN!"
         ],
         [
-          "For the festival I'm baking a cake shaped like the gazebo. With little sugar lights. And a little sugar Mr. Palmer."
+          "I'm baking a gazebo cake for the festival!"
         ],
         [
-          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats."
+          "The witch's hat was my grandma's. She just liked hats."
         ],
         [
-          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
+          "Here, a broken cookie. It's free!"
         ]
       ],
       "when": {
@@ -166,16 +165,16 @@
     {
       "rotate": [
         [
-          "Gus says my strawberry tart's 'too pink'. Too pink! It's a STRAWBERRY tart!"
+          "Gus says my strawberry tart's too pink. It's STRAWBERRY!"
         ],
         [
-          "For the Spring Fair I'm baking a cake shaped like the gazebo. With little sugar blossoms. And a little sugar Mr. Palmer."
+          "I'm baking a gazebo cake for the Spring Fair!"
         ],
         [
-          "My witch's hat on the sign? My grandma's. She wasn't a witch. She just really liked hats. I put a daisy in it for spring."
+          "The witch's hat was my grandma's. She just liked hats."
         ],
         [
-          "Here, a broken cookie. Broken ones don't count, so it's free. I may have broken it on purpose."
+          "Here, a broken cookie. It's free!"
         ]
       ],
       "when": {

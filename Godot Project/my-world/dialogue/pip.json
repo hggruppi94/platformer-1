@@ -6,10 +6,9 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(A moth kid's wings are trembling.) Oh! Hi. I'm Pip. Did you fall out of the sky too?",
-        "I was lighting the lanterns at home, and the ground went CRACK, and I fell. Up? Down? Both?",
-        "{player}: I'm {player}. I fell right through the ground too!",
-        "(Pip looks at the little aliens hugging their legs.) They're very... huggy. I think they're happy to see us. I think."
+        "Oh! Hi. I'm Pip. Did you fall out of the sky too?",
+        "I was lighting lanterns at home... then CRACK!",
+        "The little aliens are very... huggy."
       ]
     },
     {
@@ -18,9 +17,8 @@
         "not_flag": "slide_ask_pip"
       },
       "lines": [
-        "The old slide? (Pip's wings flutter nervously.)",
-        "I flew past it once at night. I heard a whoosh, like someone going down a slide... and a giggle. But nobody was there.",
-        "I didn't stop. I'm brave about moon-lamps, not about giggles in the dark."
+        "The old slide?",
+        "I heard a whoosh there... and a giggle. Nobody was there!"
       ],
       "set": "slide_ask_pip"
     },
@@ -30,8 +28,7 @@
         "not_flag": "dogs_sign_pip"
       },
       "lines": [
-        "Oh, I'd LOVE to sign! Rook always waits for me under the lamps at night. He's a very good dog.",
-        "(Pip signs in tiny, neat letters, with a moon over the i.)"
+        "I'd LOVE to sign! Rook is a very good dog."
       ],
       "set": "dogs_sign_pip"
     },
@@ -40,8 +37,8 @@
         "quest_step": "turtle_independence:wake"
       },
       "lines": [
-        "My wings feel like flippers today! I tried to fly to the lamps and I just sort of... swam through the air.",
-        "It's not bad, though. I'm a really good swimmer now. Every version of me can do something!"
+        "My wings feel like flippers today!",
+        "Every version of me can do something!"
       ]
     },
     {
@@ -52,24 +49,23 @@
       },
       "set": "n2_pip",
       "lines": [
-        "{player}! You came back! I waited right here by the portal. It's the glowiest spot, so I knew you'd find me.",
-        "I want to make moon-lamps for the boardwalk. So nobody's ever scared of the dark. Not even a tiny bit.",
-        "But they need something glowy inside. There are glow shells round the lake. Five of them!",
+        "{player}! I waited by the portal for you!",
+        "Let's make moon-lamps, so nobody's scared of the dark!",
+        "They need five glow shells from round the lake.",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "pip_lamps_start",
               "lines": [
-                "YAY! Look along the shore. And by the dock. And on the boardwalk. Shells like to be near water.",
-                "Oh! And the Skate Park has letters hidden in it! So much to do!"
+                "YAY! Look near the water!",
+                "And find the S-K-A-T-E letters in the Skate Park!"
               ]
             },
             {
               "text": "Maybe in a bit.",
               "lines": [
-                "Okay! The shells will wait. Shells are very patient.",
-                "And the Skate Park has letters hidden in it! S, K, A, T, E!"
+                "Okay! Shells are very patient."
               ]
             }
           ]
@@ -83,9 +79,8 @@
       },
       "set": "n2_pip",
       "lines": [
-        "{player}! You came back! I waited right here by the portal. It's the glowiest spot, so I knew you'd find me.",
-        "Have you seen the Skate Park? It has letters hidden in it tonight! S, K, A, T, E!",
-        "I'm going to go and say hi to my lamps. See you later!"
+        "{player}! I waited by the portal for you!",
+        "Find the S-K-A-T-E letters in the Skate Park!"
       ]
     },
     {
@@ -105,23 +100,21 @@
         "min_talks": 1
       },
       "lines": [
-        "{player}! Rex says he'll make more lamps when he's mayor. But I don't want to wait THAT long.",
-        "I want to make lamps NOW. Moon-lamps, for the boardwalk! But they need something glowy inside.",
-        "There are glow shells round the lake. Five of them! They only wash up when nobody's looking.",
+        "{player}! I want to make moon-lamps NOW!",
+        "They need five glow shells from round the lake.",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "pip_lamps_start",
               "lines": [
-                "YAY! Look along the shore. And by the dock. And on the boardwalk. Shells like to be near water.",
-                "They glow brightest at night. Like me! Well. Like I wish I did."
+                "YAY! Look near the water!"
               ]
             },
             {
               "text": "Maybe another time.",
               "lines": [
-                "Okay! The shells will wait. Shells are very patient."
+                "Okay! Shells are very patient."
               ]
             }
           ]
@@ -133,8 +126,7 @@
         "quest_step": "pip_lamps:find"
       },
       "lines": [
-        "Any glow shells yet? Look by the water! They're the shiny, glowy, roundy things.",
-        "(Pip bounces up and down.)"
+        "Any glow shells yet? Look by the water!"
       ]
     },
     {
@@ -144,13 +136,10 @@
       "set": "pip_got_shells",
       "lines": [
         "{player}: Pip! I found all five glow shells!",
-        "({player} opens {their} bag. Soft blue and pink light spills out.)",
-        "OHHH. They're even glowier than I imagined. And I imagined a LOT.",
-        "One for each lantern on the boardwalk. Hold still... there! And there! And there!",
-        "(One by one, the lanterns along the boardwalk light up like little moons.)",
-        "Now nobody has to be scared of the dark by the lake. Not even a tiny bit.",
-        "{player}: It's beautiful, Pip.",
-        "It's LAMPLIGHTER Pip now. I just decided."
+        "OHHH. So glowy!",
+        "(The boardwalk lanterns light up like little moons!)",
+        "Now nobody has to be scared of the dark!",
+        "I'm LAMPLIGHTER Pip now!"
       ]
     },
     {
@@ -163,8 +152,7 @@
         "every": 2
       },
       "lines": [
-        "Look at the boardwalk! The moon-lamps are still glowing.",
-        "I come and say goodnight to every single one."
+        "The moon-lamps are still glowing!"
       ]
     },
     {
@@ -174,11 +162,8 @@
       },
       "set": "asked_pip",
       "lines": [
-        "{player}: Pip, Rex is running for mayor. What would you want a mayor to do?",
-        "MORE LAMPS! Big ones, small ones, lamps shaped like moons!",
-        "So nobody ever has to be scared of the dark. Not even a tiny bit.",
-        "{player}: That's a really good one, Pip.",
-        "Tell Rex I'll vote for him if he promises a lamp. A glowy one."
+        "{player}: What would you want a mayor to do?",
+        "MORE LAMPS! So nobody's scared of the dark!"
       ]
     },
     {
@@ -186,8 +171,7 @@
         "time": "shift"
       },
       "lines": [
-        "The portal is the biggest, glowiest light EVER.",
-        "I just want to look at it a tiny bit. Okay, a big bit. Okay, ALL the bits."
+        "The portal is the glowiest light EVER."
       ]
     },
     {
@@ -196,7 +180,7 @@
         "travelling": true
       },
       "lines": [
-        "Can't stop! The lamps are coming on! See you on the boardwalk!"
+        "The lamps are coming on! See you!"
       ]
     },
     {
@@ -205,7 +189,7 @@
         "travelling": true
       },
       "lines": [
-        "(yawn) The sky's getting light... home to my cave. Night night, {player}."
+        "(yawn) Night night, {player}."
       ]
     },
     {
@@ -215,9 +199,7 @@
         "every": 2
       },
       "lines": [
-        "The market lamps are my favorite! They stand in a big circle, like a lamp party!",
-        "{player}: Do the lamps know they're at a party?",
-        "They do now!"
+        "The market lamps stand in a circle. A lamp party!"
       ]
     },
     {
@@ -225,7 +207,7 @@
         "time": "morning"
       },
       "lines": [
-        "(yawn) Too bright... come back when it's dark and sparkly..."
+        "(yawn) Too bright..."
       ]
     },
     {
@@ -233,9 +215,8 @@
         "time": "day"
       },
       "lines": [
-        "Zzz... five more hours...",
-        "{player}: Pip? Pip!",
-        "{player}: ...They're asleep standing up."
+        "Zzz...",
+        "{player}: ...Pip's asleep standing up."
       ]
     },
     {
@@ -244,36 +225,35 @@
         "every": 2
       },
       "lines": [
-        "It's getting dark! The lamps are coming on! Best part of the whole day!"
+        "The lamps are coming on! Best part of the day!"
       ]
     },
     {
       "rotate": [
         [
-          "Lamp! Lamp! Lamp! Did you see that lamp? It's SO round."
+          "Lamp! Lamp! That lamp is SO round."
         ],
         [
-          "Want to go lamp watching with me?",
+          "Want to go lamp watching?",
           {
             "choice": [
               {
                 "text": "Sure!",
                 "lines": [
-                  "Yay! Lamp number one is... that one.",
-                  "Lamp number two is... also that one. It's my favorite."
+                  "Yay! That one's my favourite."
                 ]
               },
               {
                 "text": "Maybe later.",
                 "lines": [
-                  "Okay! The lamps will wait. Lamps are very patient."
+                  "Okay! Lamps are very patient."
                 ]
               }
             ]
           }
         ],
         [
-          "I counted all the lamps on the boardwalk. There are... a lot! I got too excited to finish."
+          "I tried to count the boardwalk lamps. Too exciting!"
         ]
       ]
     }

@@ -6,11 +6,9 @@
         "talks": 0
       },
       "lines": [
-        "Oh! A new face in my studio! Come in, come in, mind the hay.",
-        "{player}: Is this a barn?",
-        "It was a barn, darling. Now it's a dance studio. The cows moved out years ago, and they were terrible dancers anyway.",
-        "{player}: I've never done ballet.",
-        "Everyone starts somewhere. Stand at the barre, chin up, and point those toes!"
+        "A new face in my studio! Mind the hay.",
+        "It was a barn, darling. The cows were terrible dancers.",
+        "Chin up and point those toes!"
       ]
     },
     {
@@ -18,22 +16,22 @@
         "quest_step": "earth_lights:find"
       },
       "lines": [
-        "String lights for the gazebo? Not in here, darling, I keep mine on the rafters. Try along the street round the green."
+        "String lights? Try the street round the green, darling."
       ]
     },
     {
       "rotate": [
         [
-          "And one, and two, and spin! Lovely! You're a natural."
+          "And one, and two, and spin! Lovely!"
         ],
         [
-          "The disco ball? Friday nights are for disco. Mondays are for ballet. Don't tell anyone, but I prefer Fridays."
+          "Friday is disco. Monday is ballet. I like Fridays."
         ],
         [
-          "The whole town comes to my recital every spring. Even the mayor dances. Badly, but he dances."
+          "Even the mayor dances at my recital. Badly."
         ],
         [
-          "Dancing is just walking with a bit more joy in it."
+          "Dancing is walking with more joy in it."
         ]
       ]
     }
