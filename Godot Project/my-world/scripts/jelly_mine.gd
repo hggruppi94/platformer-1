@@ -135,7 +135,7 @@ func _physics_process(delta: float) -> void:
 		var wob := 1.0 + 0.15 * sin(_t * 16.0)
 		_dome.scale = Vector3(radius * 0.7 * wob, radius * 0.45 / wob, radius * 0.7 * wob)
 		if float(stuck[e]) >= stick_time:
-			_pop_one(e)
+			_pop_all()
 	if _done:
 		return
 	if stuck.is_empty() and Arsenal.has_mod("jelly", "bounce"):
@@ -155,16 +155,24 @@ func _stick(e: Node3D) -> void:
 	Arsenal.add_xp("jelly")
 
 
-func _pop_one(e: Node3D) -> void:
-	var v := e.get_node_or_null("Visual") as Node3D
-	var size := float(e.get("size") if e.get("size") != null else 1.0)
-	if v:
-		v.rotation.z = 0.0
-		v.scale = Vector3.ONE * size
-	stuck.erase(e)
-	_let_go(e)
-	Arsenal.hit(e, 99, Vector3.UP, "jelly")
-	popped += 1
+func _pop_all() -> void:
+	# The first one ready bursts the jelly, and everyone stuck in it pops with it. (It used to pop just that one and
+	# let the rest go, so a mine full of enemies only ever popped one. Hayden, 14 Nov 2026.) They're taken out of
+	# `stuck` first, so nothing a pop sets off (a Glorp splitting, a sparkle) can change the list being walked.
+	var all := stuck.keys()
+	stuck = {}
+	for e in all:
+		if not is_instance_valid(e):
+			continue
+		var v := (e as Node3D).get_node_or_null("Visual") as Node3D
+		var size := float(e.get("size") if e.get("size") != null else 1.0)
+		if v:
+			v.rotation.z = 0.0
+			v.scale = Vector3.ONE * size
+		_let_go(e)
+		if e.get("defeated") != true:
+			Arsenal.hit(e, 99, Vector3.UP, "jelly")
+			popped += 1
 	splat()
 
 
