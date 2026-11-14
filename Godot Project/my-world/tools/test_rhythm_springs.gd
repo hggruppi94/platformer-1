@@ -129,7 +129,7 @@ func _check_quake() -> void:
 	check(loop.is_empty() or nearest > 8.0, "...well off the Lake Loop's track (%.1f m)" % nearest)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the lake and town")
-	check(portals._portal_offer("rhythm_springs") == "look down the crack to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
+	check(portals._portal_offer("rhythm_springs") == "to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
 
 
 func _check_inside() -> void:

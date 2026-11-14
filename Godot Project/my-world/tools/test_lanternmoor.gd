@@ -112,7 +112,7 @@ func _check_quake() -> void:
 	# Its front faces back towards the town, so you walk up to it from the path
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the town")
-	check(portals._portal_offer("lanternmoor") == "look down the crack to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
+	check(portals._portal_offer("lanternmoor") == "to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
 
 
 func _check_inside() -> void:

@@ -106,7 +106,7 @@ func _check_quake() -> void:
 		var c: Node = h.collider
 		return not p.is_ancestor_of(c) and not c.is_in_group("player"))
 	check(others.is_empty(), "nothing else stands in the portal's way (%d)" % others.size())
-	check(portals._portal_offer("frozen_moment") == "look down the crack to The Frozen Moment", "it offers a trip to the Frozen Moment (%s)" % portals._portal_offer("frozen_moment"))
+	check(portals._portal_offer("frozen_moment") == "to The Frozen Moment", "it offers a trip to the Frozen Moment (%s)" % portals._portal_offer("frozen_moment"))
 
 
 func _check_inside() -> void:

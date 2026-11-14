@@ -153,7 +153,7 @@ func _check_quake() -> void:
 	check(apart > 20.0, "...and well apart from the other portals (%.0f m)" % apart)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards town")
-	check(portals._portal_offer("glenmoor") == "look down the crack to Glenmoor", "it offers a trip to Glenmoor (%s)" % portals._portal_offer("glenmoor"))
+	check(portals._portal_offer("glenmoor") == "to Glenmoor", "it offers a trip to Glenmoor (%s)" % portals._portal_offer("glenmoor"))
 
 
 func _check_inside() -> void:
