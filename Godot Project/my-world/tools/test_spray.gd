@@ -154,6 +154,27 @@ func _run() -> void:
 	town.add_child(bounds)
 	bounds.global_position = Vector3(0, 80, 0)
 	check(not paint.paintable(bounds, Vector3(0, 80, 0.5)), "...but not the invisible walls round a world")
+	# A window on that wall: only a thin mesh stuck out in front of it, with the wall's collision behind (as the
+	# builders make them). Paint goes on the glass, not hidden behind it (Hayden: "the paint is behind the window").
+	var glass := MeshInstance3D.new()
+	var pane := BoxMesh.new()
+	pane.size = Vector3(0.6, 0.6, 0.1)
+	glass.mesh = pane
+	town.add_child(glass)
+	glass.global_position = Vector3(0, 50, 0.55)
+	paint._skins_ready = false
+	var on_glass: Vector3 = paint.outside(Vector3(0, 50, 0.5), Vector3(0, 0, 1))
+	check(absf(on_glass.z - 0.6) < 0.01, "paint on a window sits on the glass, not behind it (z %.3f)" % on_glass.z)
+	var by_glass: Vector3 = paint.outside(Vector3(0.45, 50, 0.5), Vector3(0, 0, 1))
+	check(absf(by_glass.z - 0.5) < 0.001, "...and beside the window it's still on the wall (z %.3f)" % by_glass.z)
+	var sideways: Vector3 = paint.outside(Vector3(0, 50.5, 0), Vector3(0, 1, 0))
+	check(sideways.is_equal_approx(Vector3(0, 50.5, 0)), "...and nothing moves on the wall's top")
+	var was: int = paint.count()
+	can._last = {}
+	can.spray_at(Vector3(0, 50, 0.5), Vector3(0, 0, 1), wall)
+	check(paint.count() > was and paint.colour_at(Vector3(0, 50, 0.6)) >= 0, "spraying a window leaves paint on it")
+	check(paint.wash(Vector3(0, 50, 0.6), 0.5) > 0, "...and water washes it off the glass")
+	glass.queue_free()
 	var bridge := StaticBody3D.new()
 	bridge.add_to_group("made_thing")
 	check(not paint.paintable(bridge), "...nor a made bridge that'll pop")
