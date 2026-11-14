@@ -66,6 +66,9 @@ func _ready() -> void:
 	_court()
 	_throne()
 	_walls()
+	# His palace beyond the court, over the rock spires: the same giant goo dome and crown you see from the fields
+	# outside the Gloop Gate (scripts/gloop_gate_view.gd)
+	(load("res://scripts/gloop_gate_view.gd") as GDScript).call("palace_view", self, Vector3(0, 0, 175))
 	_add_king()
 	_add_flood()
 	_add_guards()

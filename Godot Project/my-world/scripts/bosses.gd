@@ -422,6 +422,9 @@ func _place_gloop_gate(scene: Node) -> void:
 		func() -> String: return "go in to the Gloop Kingdom", enter_kingdom, 2.6, 2.6)
 	spot.name = "Gate Spot"
 	gate.add_child(spot)
+	# The kingdom's walls and towers round the gate, and the goo city rising beyond the field's edge, so it looks as
+	# big from out here as it is inside (scripts/gloop_gate_view.gd)
+	(load("res://scripts/gloop_gate_view.gd") as GDScript).call("build", gate, GATE_RADIUS)
 
 
 func enter_kingdom() -> void:

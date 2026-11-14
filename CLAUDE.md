@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The Gloop Gate looks as big outside as the kingdom is inside** (Hayden: "I like the current gloop
+  kingdom entrance, but it makes it seem like the kingdom is small and then when you enter it's huge"). Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **The gate itself is unchanged** (the goo mound, crown, gold arch and sign). `scripts/gloop_gate_view.gd` (no
+    class_name; `Bosses._place_gloop_gate()` calls its static `build(gate, GATE_RADIUS)`) builds round it in the gate's
+    own space: **the Kingdom Wall**, lilac palace-stone walls with goo poured over the top running back from a little
+    tower each side of the mound to two tall corner towers with goo roofs, crowns and banners (solid), and goo lantern
+    posts by the mouth. Past the edge of the west fields, where nobody can walk, **the kingdom beyond**: a ring of walls
+    and 12 towers with goo-falls, a great gate facing the town, goo spires, blobby goo houses with lit windows, and his
+    **palace** in the middle, a great tower under a giant goo dome with a giant crown (52 m up), all on a goo bog. Only
+    to look at (no collision); seen from the Market too.
+  - **Inside** (`gloop_kingdom.gd _ready()`): the same palace (`palace_view()`) stands beyond the Royal Court at
+    (0, 0, 175), outside the walls, so the first look up the Bog Road shows the giant dome and crown over the Palace
+    Gate.
+  - Tests: gloop_kingdom, gloop_king, map, layout, walk_through, boosters, plant_clearance, arsenal, wilds,
+    lost_watches and `tools/audit_signs.gd` pass. Previews: new `tools/capture_gloop_gate.gd` (before and after in the
+    project files under world/previews/gloop_gate).
+  - My choices Hayden may change: how big and how close the city is, the lilac towers (matching the Palace Gate
+    inside), the palace's crown, the walls by the mound.
+
 - 2026-11-14: **A cutscene every time a crack opens** (Hayden: "We need to make it more obvious when a crack opens up,
   with a cutscene for each one"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/crack_opening.gd`** (node "Crack Opening" under `Portals`: `Portals.opening_cut`), played with
