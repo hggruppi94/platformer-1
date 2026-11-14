@@ -122,6 +122,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: which worlds pull you home, every chapter and line (first drafts), using Nina's
     seasonal quests for the season worlds, the spots' places.
 
+- 2026-11-14: **A Jelly Mine full of enemies pops them all** (Hayden: "Jelly mines were making the whole game crash
+  when a bunch of enemies got caught in the same mine"). The crash itself was fixed in the afternoon bug fixes; a new
+  stress test (`tools/test_jelly_crowd.gd`: one mine under 30 to 60 Gloops, Big Gloops and splitting Glorps, with every
+  mod and the Jamboree) found no crash but showed a mine holding 18 to 35 enemies popped only one and let the rest go.
+  Now when the jelly bursts everyone stuck in it pops (`jelly_mine.gd _pop_all()`, the list taken out of `stuck` before
+  popping). test_playtest_nov14b, arsenal and chaos_trials pass.
+
 - 2026-11-14: **A look pass: real alien mountains, ground with detail everywhere, big waterfalls with secret coves, a
   new spot for Dusk's Embrace's gate, a fox tail for Flurry, a wobbly rainbow, and plants that part round your outline**
   (Hayden's 14 Nov 2026 playtest). Built and tested in the cloud (own Godot user folders, no save touched). All put in
