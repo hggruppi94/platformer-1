@@ -156,8 +156,26 @@ func _check_wings() -> void:
 	check(landed.y < 1.0, "jumping off without wings, you land softly on the moor (%s)" % landed)
 	var first: Array = s.pip_lines()
 	check("Lanternmoor" in str(first[0]) and "wings" in " ".join(first), "Pip says hello, what's wrong and lends you wings")
-	check(s.has_wings() and float(player.glide_fall) > 0.0 and player.get_node_or_null("Visual/Moth Wings") != null,
+	await _physics(2)
+	var wings := player.find_child("Moth Wings", true, false) as Node3D
+	check(s.has_wings() and float(player.glide_speed()) > 0.0 and wings != null,
 		"...and you're wearing moth wings")
+	check(root.get_node("Game").has_item("shop:moth_wings") and str(root.get_node("Game").outfit.get("back", "")) == "moth_wings",
+		"...they're yours to keep, worn on your back like a cape")
+	if wings:
+		# On their back (14 Nov 2026 playtest: they used to float over the head): between the hips and the top of the
+		# head, and behind them
+		# (where the wings join, between the two pivots: the piece's own origin is down at their feet)
+		var joint := ((wings.get_node("WingL") as Node3D).global_position + (wings.get_node("WingR") as Node3D).global_position) / 2.0
+		var local := (player.get_node("Visual") as Node3D).global_transform.affine_inverse() * joint
+		var top := 0.0
+		for m in player.get_node("Visual").find_children("*", "MeshInstance3D", true, false):
+			if not wings.is_ancestor_of(m) and (m as MeshInstance3D).is_visible_in_tree():
+				var box: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
+				top = maxf(top, box.end.y)
+		check(joint.y < top - 0.3 and joint.y > player.global_position.y - 0.5,
+			"...on your back, below your head (wings at %.2f, head top %.2f)" % [joint.y, top])
+		check(local.z < -0.05, "...and behind you (%.2f)" % local.z)
 	check("Still to do" in " ".join(s.pip_lines()), "...and after that, what's left to do")
 	landed = await _leap(player, launch, rock, true)
 	check(landed.y > 6.0 and Vector2(landed.x - rock.x, landed.z - rock.z).length() < 3.4,

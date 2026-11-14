@@ -28,9 +28,20 @@ extends CharacterBody3D
 @export var ram_speed := 7.0                  # skateboard speed that knocks one out
 @export var respawns := true                  # false for the Gloops the King calls in: once popped, they're gone
 @export var respawn_clear := 15.0             # it only comes back when she's at least this far from its home
+# The Gloop King's subjects (scripts/gloop_kingdom.gd) fight harder (Hayden's playtest, 14 Nov 2026: "the gloop kings
+# subjects arent aggressive enough"): close up they crouch for a moment, then leap at you, and one that spots you
+# calls the rest of its pack in. The crouch is the warning: jump or step aside.
+@export var pounce := false
+@export var pounce_range := 5.0               # leaps when you're this close (flat distance)
+@export var pounce_every := 2.0               # seconds between leaps (a little random)
+@export var pounce_speed := 8.0               # how fast it flies at you
+@export var pack := ""                        # Gloops with the same pack name call each other in when one spots you
 
 const STOMP_BOUNCE := 8.0                     # Nina's upward speed after a stomp (more if jump is held)
 const LOW_GROUND := -0.25                     # below this height is the lake basin: Gloops don't like water
+const POUNCE_WINDUP := 0.45                   # the crouch before a leap
+const PACK_CALL := 20.0                       # a pack Gloop that spots you calls in the others this close to it
+const ALERT_TIME := 4.0                       # ...and they come after you for this long even from out of sight
 
 var home := Vector3.ZERO
 var target := Vector3.ZERO
@@ -49,6 +60,10 @@ var _drops: Array[Dictionary] = []           # one falling drop per tongue tip: 
 var _respawn_timer: Timer
 var _was_chasing := false
 var _giggle_cooldown := 0.0
+var _pounce_cd := 1.0
+var _winding := 0.0                           # >0 while crouching to leap
+var _leaping := false
+var _alert := 0.0                             # >0 while a packmate's called it in
 
 @onready var visual: Node3D = $Visual
 @onready var hitbox: Area3D = $Hitbox
@@ -60,6 +75,8 @@ func _ready() -> void:
 	home = global_position
 	target = home
 	_t = randf() * 10.0
+	if pack != "":
+		add_to_group("gloop_pack")
 	# Scale the physics shapes (duplicated so every Gloop can have its own size) and the visuals
 	var body_shape := (shape.shape as SphereShape3D).duplicate() as SphereShape3D
 	body_shape.radius *= size
@@ -96,7 +113,7 @@ func _physics_process(delta: float) -> void:
 	var chasing := false
 	if player and not player.is_recovering():
 		var to_p := player.global_position - global_position
-		if Vector2(to_p.x, to_p.z).length() < sight_range and absf(to_p.y) < 4.0 \
+		if (Vector2(to_p.x, to_p.z).length() < sight_range or _alert > 0.0) and absf(to_p.y) < 4.0 \
 				and _flat(player.global_position - home) < leash_range:
 			chasing = true
 			target = player.global_position
@@ -114,7 +131,12 @@ func _physics_process(delta: float) -> void:
 	if chasing and not _was_chasing and _giggle_cooldown <= 0.0:
 		Audio.play_at("gloop_giggle", global_position, -2.0, 0.12)
 		_giggle_cooldown = 5.0
+	if chasing and not _was_chasing:
+		_call_pack()
 	_was_chasing = chasing
+	_alert = maxf(_alert - delta, 0.0)
+	if pounce and _pouncing(delta, chasing):
+		return
 
 	# Move (horizontal accel toward the target, gravity), pausing briefly after a stomp
 	var to_t := target - global_position
@@ -139,6 +161,76 @@ func _physics_process(delta: float) -> void:
 
 func _flat(v: Vector3) -> float:
 	return Vector2(v.x, v.z).length()
+
+
+func alert() -> void:
+	# A packmate's spotted you: come too
+	if not defeated:
+		_alert = ALERT_TIME
+
+
+func _call_pack() -> void:
+	if pack == "":
+		return
+	for g in get_tree().get_nodes_in_group("gloop_pack"):
+		if g != self and str(g.get("pack")) == pack and (g as Node3D).global_position.distance_to(global_position) < PACK_CALL:
+			g.call("alert")
+
+
+func _pouncing(delta: float, chasing: bool) -> bool:
+	# The leap: crouch (standing still, squashed down), then fly at where you are. Gives back true while it's
+	# crouching or in the air, as that move is its own (no walking about).
+	_pounce_cd -= delta
+	if _leaping:
+		if not is_on_floor():
+			velocity += get_gravity() * delta
+		move_and_slide()
+		_animate(delta, 0.0, true)
+		if player and hitbox.overlaps_body(player):
+			_touch_player()
+		if is_on_floor() and velocity.y <= 0.0:
+			_leaping = false
+			velocity = Vector3.ZERO
+			Audio.play_at("stomp", global_position, -6.0, 0.2)
+			Fx.burst(get_parent(), global_position, color, 8, 0.07, 2.0, -4.0, 0.5)
+		return true
+	if _winding > 0.0:
+		_winding -= delta
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if not is_on_floor():
+			velocity += get_gravity() * delta
+		move_and_slide()
+		var body := visual.get_node("Body") as Node3D
+		var k := 1.0 - _winding / POUNCE_WINDUP
+		body.scale = Vector3(1.0 + 0.3 * k, 1.0 - 0.35 * k, 1.0 + 0.3 * k)
+		body.position.y = _body_y
+		if player:
+			var face := player.global_position - global_position
+			visual.rotation.y = lerp_angle(visual.rotation.y, atan2(face.x, face.z), 1.0 - exp(-turn_speed * 2.0 * delta))
+		if _winding <= 0.0:
+			_leap()
+		return true
+	if chasing and player and _pounce_cd <= 0.0 and _squash <= 0.0 and is_on_floor() \
+			and _flat(player.global_position - global_position) < pounce_range:
+		_winding = POUNCE_WINDUP
+		_pounce_cd = pounce_every * randf_range(0.8, 1.25)
+		Audio.play_at("gloop_giggle", global_position, -4.0, 0.25)
+		return true
+	return false
+
+
+func _leap() -> void:
+	# Aimed at where you are now: a short hop up and a quick flight across
+	var to := Vector3.ZERO
+	if player:
+		to = player.global_position - global_position
+	to.y = 0.0
+	var dir := to.normalized() if to.length() > 0.1 else Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	var far := clampf(to.length() / pounce_range, 0.5, 1.0)
+	velocity = dir * pounce_speed * far * Arsenal.slow(self) + Vector3.UP * 5.0
+	_leaping = true
+	(visual.get_node("Body") as Node3D).scale = Vector3(0.85, 1.25, 0.85)
 
 
 func _find_player() -> void:
@@ -195,6 +287,9 @@ func _defeat(bubbled := false) -> void:
 		Audio.play_at("stomp", global_position)              # rolled into or rammed, not stomped
 	defeated = true
 	velocity = Vector3.ZERO
+	_winding = 0.0
+	_leaping = false
+	_alert = 0.0
 	Requests.note("gloop", 1.0, "bubble" if bubbled else ("stomp" if hits > 0 else "ram"))     # the request board
 	Game.add_xp(xp_reward)
 	_popup("+%d XP" % xp_reward)

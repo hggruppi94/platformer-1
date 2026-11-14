@@ -31,6 +31,15 @@ const THRONE := Vector3(0, 0, 103)            # the throne, on its dais at the c
 const MOAT_Z := Vector2(42, 56)               # the moat runs across from here to here
 const WAKE_RANGE := 16.0                      # come this far into his court (from its middle) and he wakes up
 const TREASURE := 12                          # sparkles in the Royal Treasure
+# His subjects fight hard (Hayden's playtest, 14 Nov 2026: "the gloop kings subjects arent aggressive enough"): they
+# see you from further off, chase nearly as fast as you walk, leap at you from close up (scripts/gloop.gd pounce) and
+# call each other in. These go on his guards and on every Gloop that joins the fight in his court.
+const SUBJECT := {"pounce": true, "pack": "royal", "sight_range": 16.0, "chase_speed": 4.3, "damage": 2}
+const COURT_SUBJECT := {"pounce": true, "pack": "court", "sight_range": 40.0, "leash_range": 60.0,
+	"chase_speed": 4.3, "damage": 2}
+const JUMP_FIRST := 2                         # courtiers who jump down from the stands as the fight starts
+const JUMP_EVERY := 14.0                      # ...and one more every this many seconds
+const JUMPERS_MAX := 3                        # never more than this many jumped-down courtiers about at once
 
 var king: CharacterBody3D
 var flood: Node3D                              # his court floods with goo in the fight (scripts/slime_flood.gd)
@@ -45,6 +54,8 @@ var _pads: Array[Node3D] = []
 var _t := 0.0
 var _chest: Node3D
 var _home_bubble: Node3D
+var _jumpers: Array[Node] = []                 # courtiers who've jumped down into the fight
+var _jump_timer := 0.0
 
 
 func _enter_tree() -> void:
@@ -638,6 +649,9 @@ func _add_guards() -> void:
 		g.set("stomps_to_defeat", 2)
 		g.set("wander_radius", 2.5)
 		g.set("respawn_clear", 25.0)
+		g.set("leash_range", 30.0)
+		for k2 in SUBJECT:
+			g.set(k2, SUBJECT[k2])
 		g.position = spots[k]
 		add_child(g)
 		var helmet := SphereMesh.new()
@@ -693,7 +707,7 @@ func _process(delta: float) -> void:
 		_home_bubble.rotation.y += delta * 0.4
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as Node3D
 		return
@@ -703,6 +717,44 @@ func _physics_process(_delta: float) -> void:
 		wake()
 	if awake and bool(king.get("defeated")) and not popped:
 		_his_majesty_popped()
+	if awake and not popped:
+		_jump_timer -= delta
+		if _jump_timer <= 0.0:
+			_jump_timer = JUMP_EVERY
+			_jump_down(1)
+
+
+func jumpers() -> Array[Node]:
+	_jumpers.assign(_jumpers.filter(func(n: Node) -> bool: return is_instance_valid(n) and not bool(n.get("defeated"))))
+	return _jumpers
+
+
+func _jump_down(count: int) -> void:
+	# A courtier hops off the stands and into the fight: the watching one goes, and a real Gloop leaps from its seat
+	for i in count:
+		if jumpers().size() >= JUMPERS_MAX:
+			return
+		var seats := _courtiers.filter(func(c: Node3D) -> bool: return c.visible)
+		if seats.is_empty():
+			return
+		var seat: Node3D = seats[_rng.randi() % seats.size()]
+		seat.visible = false
+		var g := (load(GLOOP_SCENE) as PackedScene).instantiate() as CharacterBody3D
+		g.name = "Courtier Gloop %d" % (_jumpers.size() + 100 + _rng.randi_range(0, 899))
+		g.set("respawns", false)
+		g.set("xp_reward", 2)
+		for k in COURT_SUBJECT:
+			g.set(k, COURT_SUBJECT[k])
+		add_child(g)
+		g.global_position = seat.global_position + Vector3(0, 0.3, 0)
+		g.set("home", global_position + COURT)
+		var into := (global_position + COURT) - g.global_position
+		into.y = 0.0
+		g.velocity = into.normalized() * 7.0 + Vector3.UP * 5.0
+		_jumpers.append(g)
+		Audio.play_at("gloop_giggle", g.global_position, 2.0, 0.3)
+	if count > 1:
+		Game.message("His subjects jump in!")
 
 
 func wake() -> void:
@@ -713,6 +765,8 @@ func wake() -> void:
 	king.process_mode = Node.PROCESS_MODE_INHERIT
 	king.set("home", COURT + Vector3(0, 0.8, 4.0))
 	king.set("target", COURT + Vector3(0, 0.8, 4.0))
+	king.set("court_stats", COURT_SUBJECT)
+	king.set("court_call", 3)
 	king.velocity = Vector3(0, 7.0, -4.0)
 	if flood:
 		flood.call("start")
@@ -725,6 +779,10 @@ func wake() -> void:
 	Game.message("THE GLOOP KING: \"WHO DARES drip in MY court?!\"")
 	Audio.play_at("gloop_giggle", king.global_position, 4.0)
 	Juice.shake(0.3)
+	_jump_timer = JUMP_EVERY
+	get_tree().create_timer(1.5).timeout.connect(func() -> void:
+		if is_inside_tree() and not popped:
+			_jump_down(JUMP_FIRST))
 
 
 func _his_majesty_popped() -> void:
@@ -736,6 +794,8 @@ func _his_majesty_popped() -> void:
 	Fx.burst(self, _chest.global_position + Vector3(0, 1.0, 0), Color(1.0, 0.85, 0.3), 24, 0.12, 4.0, 3.0)
 	for c in _courtiers:
 		Fx.burst(self, c.global_position + Vector3(0, 0.8, 0), Color(0.7, 1.0, 0.4), 6, 0.1, 2.0, 2.0)
+	for j in jumpers():                                      # his subjects give up once he's popped
+		j.call("_defeat", true)
 	if _home_bubble == null:
 		_home_bubble = _way_home(THRONE + Vector3(-4.0, 1.9, -1.8), "Throne Way Out")
 
