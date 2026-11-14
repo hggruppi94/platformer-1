@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The palace school, slice 2 of 4: floors 2 and 3** (the Void School Sensory Plan, after slice 1). All in
+  `tools/build_school.gd` (rebuilt `school.tscn`); the quests' rooms are where they were. Built and tested in the cloud.
+  - **Floor 2:** a glass **skybridge** straight across the library's hole (`_skybridge()`, the gallery rail opens for
+    it), the **Library Mezzanine** (rug, beanbags, a low shelf and a lamp by the gallery), Classroom A is now the **Nova
+    Lab** (benches of bubbling glowing flasks, a panel of lights, a glowing coil), and the **Gadget Wall** (screens,
+    buttons and switches on the west wall between the break corners).
+  - **Floor 3:** cushioned **window seats** with pillows along the Window Wall, and the **Hidden Stair**
+    (`_hidden_stair()`, `HIDDEN_STAIR`): a spiral (a smooth ramp under drawn steps) from the Secret Hallway down two
+    turns to Behind the Walls on floor 2, with a gold rail round its hole. Slice 4 takes it on down.
+  - New `tools/test_school_floors.gd` (the bridge holds her, the stair is solid all the way and she can stand on it);
+    school_garden, council, dark_hollow, wall_crawl, lost_watches, doors, layout, walk_through, map, world_detail,
+    audit_signs and home_calls pass. `capture_school_look.gd` has 7 more views (shots in the project files under
+    world/previews/school_palace/slice2).
+  - My choices Hayden may change: what's in the Nova Lab and on the Gadget Wall, the stair's spot.
+
 - 2026-11-14: **The castle school is a lilac palace now, slice 1 of 4: the grounds and the 1st floor** (Hayden's
   picture: "I want the school to look like this now", then "the sensory school is going to replace the old school":
   the Void School Sensory Plan, https://claude.ai/artifact/Cpv5mUbWHh4jn6we7ZPipA). All in `tools/build_school.gd`

@@ -28,6 +28,13 @@ const VIEWS := [
 	["12_library_floor", Vector3(-5, 2.0, -0.5), Vector3(10, 3.2, -5)],
 	["13_foyer", Vector3(0, 2.6, 22.5), Vector3(0, 2.2, 10)],
 	["14_from_above", Vector3(10, 55, 105), Vector3(5, 0, 5)],
+	["15_skybridge", Vector3(9, 9.5, -6), Vector3(0, 6.2, -6)],
+	["16_library_mezzanine", Vector3(2, 8.2, -3), Vector3(-7.2, 6.4, 2.6)],
+	["17_nova_lab", Vector3(-12.5, 8.0, -10), Vector3(-21, 6.8, -15)],
+	["18_gadget_wall", Vector3(-24, 7.8, 12.5), Vector3(-29.7, 7.5, 12.5)],
+	["19_window_seats", Vector3(5.5, 13.8, -19), Vector3(-6, 12.4, -23.2)],
+	["20_hidden_stair_top", Vector3(26.5, 14.5, -11), Vector3(28.55, 9, -14)],
+	["21_hidden_stair_bottom", Vector3(28.5, 7.6, -7.5), Vector3(28.55, 9.5, -14)],
 ]
 
 var out_dir := "user://school_look_shots"
