@@ -161,7 +161,14 @@ func _run() -> void:
 	dialogue.flags.erase("x")
 	await _until(func() -> bool: return not tut.running(), 600)
 	check(not tut.running() and not dialogue.flags.has("race_tut_done"), "all read: the card goes (done for good at the finish)")
-	# The finish
+	# The finish: first, with the other three circuits won before, so it's the first win here and the last of the four
+	check(races.board_text("lake_loop").contains("WIN IT for the Fizz Flinger's blueprint"), "the board says what winning gives you")
+	check(str(races.hub_lines("void")).contains("Fizz Flinger"), "...and so does Zippy at the gate")
+	for k in ["meadow_wiggle", "observatory_hill", "pumpkin_run"]:
+		races.wins[k] = 1
+	var game_items: Array = root.get_node("Game").items
+	game_items.erase("shop:racing_helmet")
+	check(not races.champion(), "(three of the four circuits won: not the champion yet)")
 	races.lap = int(races.TRACKS.lake_loop.laps)
 	races.last_cp = t.cp_dist.size() - 1
 	races.next_cp = 0
@@ -169,10 +176,27 @@ func _run() -> void:
 	_put(p, t.point_at(t.length - 3.0) + Vector3.UP, t.dir_at(0.0) * 9.0)
 	await _until(func() -> bool: return races.state == races.State.RESULTS, 200)
 	check(races.state == races.State.RESULTS and dialogue.flags.has("race_tut_done"), "finishing the first race ends the lesson")
+	var results: String = races.hud.results_label.text
+	check(races.place == 1 and dialogue.flags.has("schematic_fizz") and results.contains("FIRST WIN PRIZE: the Fizz Flinger's blueprint"),
+		"winning the Lake Loop the first time gives the Fizz Flinger's blueprint, and the results say so")
+	check(root.get_node("Game").has_item("shop:racing_helmet") and results.contains("RACE CHAMPION"),
+		"...and with all four circuits won, the Champion's Helmet")
+	check(races.board_text("lake_loop").contains("Won: the Fizz Flinger's blueprint"), "the board shows it's won")
+	check(races.first_prize("sky_rings").contains("Aviator Cap") and races.first_prize("hollow_run").contains("Lantern Hat")
+		and races.first_prize("skyway_run").contains("Rocket Helmet"), "the other races' first prizes are hats")
+	for hat in ["aviator_cap", "lantern_hat", "rocket_helmet", "racing_helmet"]:
+		var h: Node3D = load("res://scripts/cosmetics.gd").hat(hat)
+		check(h != null and h.get_child_count() > 2, "the %s is made (%d parts)" % [hat, h.get_child_count() if h else 0])
+		if h:
+			h.free()
 	races.restart()
 	await _until(func() -> bool: return races.state == races.State.COUNTDOWN, 200)
 	await _frames(3)
 	check(tut.showing() == "", "the next race doesn't teach it again")
+	races.lap = int(races.TRACKS.lake_loop.laps)
+	races.state = races.State.RACING
+	races._finish()
+	check(not races.hud.results_label.text.contains("FIRST WIN PRIZE"), "winning it again gives no second first prize")
 
 	# --- Old saves and tips off ---
 	races._end(false)

@@ -171,8 +171,10 @@ func meet_dash() -> Array:
 
 
 func thanks_from_dash() -> Array:
-	# Dash's "do" once the bot's caught: his stall's open, and the Star Popper's blueprint has blown away
+	# Dash's "do" once the bot's caught: his stall's open, and he gives you the Star Popper's blueprint as a thank-you
+	# (Schematics.LIST "popper" is a reward for "bb_thanked"; his lines say so, so no message on top)
 	_flag("bb_thanked")
+	Schematics.award("popper", true)
 	return []
 
 
