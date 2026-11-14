@@ -2,9 +2,9 @@ extends Node3D
 
 # Earth (scenes/earth/earth.tscn, built by tools/build_earth.gd): the small cozy town where the player lives. Their
 # house is on the south side of the green, with their bed (a new game starts there). Earth's clock is the one that
-# always runs (scripts/clock.gd). Every night from midnight to 1 AM, the Shift, a crack opens in the ground in front of
-# the old oak, and jumping in takes you to the Void (Hayden, 12 Nov 2026: "the cracks ARE the portals"; it used to be a
-# door in the oak's hollow). The rest of the time the crack is closed over with cracked earth.
+# always runs (scripts/clock.gd). Since the first fall a crack has stood open in the ground in front of the old oak, and
+# jumping in takes you to the Void, any time (Hayden, 12 Nov 2026: "the cracks ARE the portals"; 14 Nov 2026: no waiting
+# for midnight, so it's open all day and all night now).
 #
 # The crack (scripts/crack.gd) isn't there at all until the first time it opens, in the Shift once the oak has woken
 # (scripts/humming_oak.gd): on a new game that's the oak's midnight reveal, so nobody sees it before then (flag
@@ -156,8 +156,8 @@ func _make_crack() -> void:
 
 
 func _portal() -> void:
-	# The crack opens at midnight and closes over at 1 AM. Whether she can go through follows the clock itself, not the
-	# crack opening (as in the Void's portal, scripts/portal.gd). The oak's hollow stays dark now.
+	# The crack stands open once the oak's awake, any time of day (shut only before the first fall). The oak's hollow
+	# stays dark now.
 	var k := smoothstep(0.0, 1.0, _open)
 	if _swirl:
 		_swirl.visible = false
@@ -170,14 +170,13 @@ func _portal() -> void:
 		if not HummingOak.awake():
 			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
 		else:
-			_portal_door.set("closed_message", "" if Clock.in_shift() else
-				"The crack by the old oak is closed. It opens to the Void during the Shift, from midnight to 1 AM.")
+			_portal_door.set("closed_message", "")
 
 
 func _door_open() -> bool:
-	# The crack opens in the Shift, once the oak's awake (on a new game's first day it's woken at midnight:
-	# scripts/humming_oak.gd)
-	return Clock.in_shift() and HummingOak.awake()
+	# The crack's open once the oak's awake (on a new game's first day it's woken at midnight, by the fall:
+	# scripts/humming_oak.gd), day and night
+	return HummingOak.awake()
 
 
 func _first_material(n: Node) -> StandardMaterial3D:

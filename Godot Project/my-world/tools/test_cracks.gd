@@ -2,10 +2,11 @@ extends SceneTree
 
 # Checks the cracks between worlds and the Divine Mind's voice (Hayden, 12 Nov 2026, lore bible v2 part 3 items 1 to 4:
 # "the cracks ARE the portals", the oak hums for the Divine Mind and can be touched for a hint, no portal time limit):
-#   - on Earth there's no crack by the old oak before the first Shift it opens in (no spoilers), then at midnight one
-#     splits the ground open in front of the oak, a real hole, and jumping in takes you to the Void;
-#   - in the Void the ring is gone from the way back to Earth: it's a crack too, and jumping in takes you home;
-#   - at 1 AM the Earth crack closes over again;
+#   - on Earth there's no crack by the old oak while the oak's asleep (no spoilers), then one has split the ground open
+#     in front of the oak, any time of day (14 Nov 2026: no waiting), a real hole, and jumping in takes you to the Void;
+#   - in the Void the ring is gone from the way back to Earth: it's a crack too, and jumping in takes you home (to the
+#     next morning);
+#   - shut, a crack isn't there at all, and opening it unzips it from the middle;
 #   - touching the oak: its hum, the voice in your mind (the first time it says it chose you), and a hint that only
 #     points at what's already happened (an open crack) or what you're already doing (your quest), never ahead;
 #   - the voice speaks without stopping play, a line at a time.
@@ -61,10 +62,12 @@ func _run() -> void:
 
 	# --- No crack before it first opens ---
 	await _frames(4)
-	check(current_scene.get("crack") == null and not dialogue.flags.has("earth_crack_seen"), "no crack by the old oak yet (no spoilers)")
+	check(current_scene.get("crack") == null and not dialogue.flags.has("earth_crack_seen"), "no crack by the old oak while the hero's still being made (no spoilers)")
 	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
 	var oak_node := current_scene.get_node("Portal Home/Old Oak") as Node3D
 	check(door.global_position.distance_to(oak_node.global_position) < 4.0, "...the old way through is still tucked in the oak")
+	# (the creator never opens in a headless run: as if the hero's made, with no First Night, so the oak's awake)
+	game.needs_creator = false
 
 	# --- Touching the oak ---
 	if oak.awake():
@@ -97,11 +100,11 @@ func _run() -> void:
 	check(mind._text.text == "Two.", "...then the next")
 	mind.clear()
 
-	# --- Midnight: the crack opens ---
-	clock.set_earth_time(23 * 60.0 + 59.7, true)
+	# --- Any time: the crack's open (Hayden, 14 Nov 2026: no waiting for midnight) ---
+	clock.set_earth_time(15 * 60.0, true)
 	await create_timer(3.5).timeout
 	var crack := current_scene.get("crack") as Node3D
-	check(clock.in_shift() and crack != null, "midnight: a crack splits the ground open in front of the old oak")
+	check(not clock.in_shift() and crack != null, "3 PM: a crack has split the ground open in front of the old oak")
 	if crack == null:
 		_finish()
 		return
@@ -130,7 +133,7 @@ func _run() -> void:
 	check(faller.get("carried") == true and faller.global_position.y < c.y + 0.6 and (faller.get_node("Visual/Tumble") as Node3D).scale.x < 0.99,
 		"falling in: they tumble down into the crack, getting smaller (y %.2f, size %.2f)" % [faller.global_position.y - c.y, (faller.get_node("Visual/Tumble") as Node3D).scale.x])
 	await _wait_for_scene(TOWN, 900)
-	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "jumping into the crack takes you to the Void")
+	check(current_scene.scene_file_path == TOWN and not clock.on_earth and clock.in_shift(), "jumping into the crack takes you to the Void, in the Shift")
 
 	# --- The Void's way home is a crack too ---
 	await _frames(6)
@@ -163,23 +166,26 @@ func _run() -> void:
 	check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0, "...a real hole too")
 	await _drop_into(back)
 	await _wait_for_scene(EARTH, 900)
-	check(current_scene.scene_file_path == EARTH and clock.in_shift(), "jumping in takes you home to Earth, still in the Shift")
+	check(current_scene.scene_file_path == EARTH and not clock.in_shift() and clock.earth_time_string() == "7:00 AM",
+		"jumping in takes you home to Earth, the next morning (%s)" % clock.earth_time_string())
 
-	# --- 1 AM: it closes over ---
+	# --- Still open in the morning; shut (only ever before the first fall) it's not there at all ---
 	await _frames(6)
 	crack = current_scene.get("crack") as Node3D
 	check(crack != null, "the crack's there from the start now it's been seen")
-	clock.set_earth_time(1 * 60.0 + 1.0, true)
 	await create_timer(3.5).timeout
 	if current_scene.scene_file_path == EARTH and crack and is_instance_valid(crack):
-		check(crack.get_meta("open", 1.0) < 0.1 and _hidden(crack), "at 1 AM it closes up and isn't there at all (nothing showing)")
+		check(crack.get_meta("open", 0.0) > 0.9, "...and still open in the morning")
+		current_scene.set_process(false)
+		crack_mod.set_open(crack, 0.0)
+		await _frames(2)
+		check(_hidden(crack), "shut, it isn't there at all (nothing showing)")
 		check(not (crack.get_node("Fall") as Area3D).monitoring, "...and you can't fall in")
 		c = crack.global_position
 		hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
 		check(not hit.is_empty() and absf((hit.position as Vector3).y - c.y) < 0.6, "...and the ground's whole again (hit %.2f, crack y %.2f)" % [((hit.position as Vector3).y if hit else 0.0), c.y])
-		# Opening again: hidden till the first moment it opens, then unzipping from the middle (the town's own clock
-		# would shut it again straight away at 1 AM, so it's held still meanwhile)
-		current_scene.set_process(false)
+		# Opening again: hidden till the first moment it opens, then unzipping from the middle (the town's own script
+		# is held still meanwhile)
 		crack_mod.set_open(crack, 0.2)
 		check((crack.get_node("Broken Earth") as Node3D).visible and (crack.get_node("Broken Earth") as Node3D).scale.x < 0.9, "opening, it unzips from the middle (%.2f long)" % (crack.get_node("Broken Earth") as Node3D).scale.x)
 		crack_mod.set_open(crack, 1.0)

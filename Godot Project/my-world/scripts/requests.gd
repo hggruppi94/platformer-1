@@ -31,6 +31,10 @@ const EARTH := "res://scenes/earth/earth.tscn"
 const TIERS := ["easy", "medium", "hard"]
 const PAY := {"easy": 3, "medium": 5, "hard": 8}           # sparkles, plus a little more as the nights go by
 const CLERK := "Tally"                                     # the little alien with the clipboard
+# Degrees round the fountain where the request board stands. It was 250, right in front of Mr. Palmer's window (the
+# Town Hall's front-left window you knock on for his quests), so from the square the board hid the window. Hayden,
+# 14 Nov 2026: "we need to fix mr palmers' window/quest".
+const BOARD_ANGLE := 232.0
 
 # How much each kind asks for, at each difficulty, on the first night. Kinds without an amount for a tier aren't
 # offered at that tier.
@@ -756,7 +760,7 @@ func _place_board(scene: Node) -> void:
 	var square := scene.get_node_or_null("Market Square") as Node3D
 	if square == null:
 		return
-	var a := deg_to_rad(250.0)
+	var a := deg_to_rad(BOARD_ANGLE)
 	var board := (load("res://scripts/request_board.gd") as GDScript).new() as Node3D
 	board.name = "Request Board"
 	board.set("jobs", self)

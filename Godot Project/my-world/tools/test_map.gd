@@ -110,9 +110,7 @@ func _run() -> void:
 	dialogue.flags["asked_dash"] = true
 	check(map.quest_markers().size() == 3, "asked Dash: 3 stars")
 	quests.load_data({"rex_campaign": {"step": 2, "since_day": 1, "since_at": quests.now_at()}})
-	check(map.quest_markers().is_empty(), "posters, waiting for Rex to paint them: no stars")
-	clock.set_time(2, 10 * 60.0, true)
-	check(map.quest_markers().size() == 4, "posters, next day: a star on each poster spot")
+	check(map.quest_markers().size() == 4, "posters (no waiting): a star on each poster spot")
 	quests.load_data({"rex_campaign": {"step": 4, "since_day": 1}})
 	var palmer: Array = map.quest_markers()
 	check(palmer.size() == 1 and (palmer[0].pos as Vector3).distance_to(town.get_node("Town Hall").global_position) < 14.0, "Mr. Palmer: a star at the Town Hall")

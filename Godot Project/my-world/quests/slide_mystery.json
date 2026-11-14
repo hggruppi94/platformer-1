@@ -7,7 +7,7 @@
       "id": "ask",
       "text": "Melanie wants a water slide for the Void. Go with her to ask Mr. Palmer at his Town Hall window (he's in from morning till teatime).",
       "done": {"flag": "slide_asked"},
-      "where": ["town_hall"]
+      "where": ["mr_palmer"]
     },
     {
       "id": "why",
@@ -54,7 +54,7 @@
       "id": "palmer",
       "text": "Melanie has a new plan, and it doesn't need the waterfall or the Haunted House. Take it to Mr. Palmer (morning till teatime).",
       "done": {"flag": "slide_yes"},
-      "where": ["town_hall"]
+      "where": ["mr_palmer"]
     }
   ],
   "reward": {

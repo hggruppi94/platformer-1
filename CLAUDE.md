@@ -2,9 +2,11 @@
 
 A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
 character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live on
-**Earth**, in a small Stars Hollow style town. During the Shift (midnight to 1 AM, Earth time) the portal by the old
-oak opens to **the Void**, the alien town, and that one Earth hour lasts a whole Void day (7 AM to 7 AM). At 1 AM
-the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in the Void and visited Earth).
+**Earth**, in a small Stars Hollow style town (since Oct 28, 2026: before that they lived in the Void and visited
+Earth). The crack by the old oak leads to **the Void**, the alien town. Since Nov 14, 2026 nothing waits on the clock:
+once the oak's awake the crack is open any time, jumping in makes it the Shift (Earth's midnight, the Void's dawn),
+the Void's day loops round for as long as they stay, and going home lands them on Earth the next morning. Only The
+First Night keeps the old shape (its fall at midnight, the pull home at the Void's dawn).
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
 
@@ -117,10 +119,84 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - Not given a cutscene: the way home in each world (always open), the little visitor cracks, Dark Hollow (no crack).
   - No spoilers: the words only say what's happening and what you can see; no bosses or reasons (the test checks).
   - Tests: new `tools/test_crack_opening.gd`; portals, cracks, earth (both runs), first_night, opening,
-    practice_trips, far_future, lore_order, pass_time, meetings, rootmind, first_hour and races pass. Previews:
+    practice_trips, far_future, lore_order, meetings, rootmind, first_hour and races pass. Previews:
     `tools/capture_crack_opening.gd` (shots in the project files under world/previews/crack_opening).
   - My choices Hayden may change: every caption (first drafts), the pillar of light, what spills out of each, the
     title on the last shot, no cutscene for the ways home.
+
+- 2026-11-14: **No cut-off words anywhere, and Mr. Palmer's window you can see** (Hayden: "when melanie asks you to fix
+  the slide, the window is cut off. we need to check every single windowed text in the game and make sure nothing is
+  getting cut off", then "We need to fix mr palmers' window/quest"). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **Melanie's slide quest:** the to-do list said just "Go with her to ask Mr." (`Quests.short_goal()` took "Mr." as
+    the end of a sentence). Titles (Mr., Mrs., Ms., Dr., St....) no longer end one (`_is_title()`), for every quest.
+  - **Mr. Palmer's Town Hall window:** Tally's request board stood right in front of it, so from the Market Square
+    the board hid it (`Requests.BOARD_ANGLE` 250 -> 232), and Mr. Palmer stood on its "knock on the window" sign
+    (`routines/places.json palmers_step` to the window's other side, (-78.2, 22.6)). The slide and Doggie Bill quests'
+    map stars point at the window now (`"where": ["mr_palmer"]`, was the Town Hall's door).
+  - **`tools/ui_watch.gd`** (preload it): lists anything on the screen that's off the edge, has words bigger than their
+    box, or words spilling out of their window (scroll lists and round-clipped things count only what shows). Its own
+    test: `tools/test_ui_watch.gd`. `tools/audit_ui.gd` uses it, and now also opens the quest card (with the longest
+    quest step) and the voice in your mind. **`tools/playthrough.gd -- all --ui-watch`** watches the whole game for
+    cut-off words (anything cut off for a second or more is listed at the end).
+  - **What it found, fixed:** at a big text and HUD size, the to-do list ran off the bottom (`hud.gd _fit_todo()`:
+    shrinks to fit under the stats), the clock covered the stats (`_fit_clock()`: moves right of them, shrinks if
+    needed), and cutscene subtitles ran off the bottom (the Agent of Chaos's ending; `UiStyle.bottom_caption()` in
+    chaos_ending, dash_goodbye, place_intro and race_intro: never wider than the screen, grows upwards;
+    `void_arrival.gd` grows up too). The voice in your mind sits under the clock now and follows the text size
+    (`divine_mind.gd _place()`; the HUD is in group `"hud"`).
+  - Every menu and card at four screen shapes and four text sizes, and the whole game at normal and big text: nothing
+    cut off. Tests: ui_watch, kid_ui, quests, dialogue, routines, palmer, episodes, request_board, chaos_ending,
+    dash_goodbye, race_intros, opening, first_night, cracks, ui_style, map, following, town_quests, player_menu,
+    layout, walk_through, earth, party, meetings pass. Previews: `tools/capture_text_windows.gd` (before and after in
+    the project files under world/previews/text_windows).
+  - My choices Hayden may change: where the board and Mr. Palmer stand now, shrinking (not cutting) the to-do list.
+- 2026-11-14: **Nothing in the game waits on the clock, and Pass the time is gone** (Hayden, after the 13 Nov Pass the
+  time buttons: "I didnt mean to add time skip buttons, I mean everything should be playable all the way through
+  without needing to skip time at all"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The crack by the old oak is open any time** once the oak's awake (`earth_world.gd _door_open()`). Jumping in
+    (`Game.go()` -> `_between_worlds()` -> `Clock.into_the_void()`) sets Earth to midnight and the Void to dawn, so
+    it's the Shift. Going home (`Clock.home_from_void()`) ends the Shift and lands them at 7 AM the next morning, so
+    Earth's day only goes forward and the town's awake. The pause menu's way on Earth is "Go through the crack to the
+    Void". A new game's oak is asleep until the hero's made (`HummingOak.awake()` checks `Game.needs_creator`).
+  - **The Void's day never ends by itself** (`Clock.endless()`, everything but The First Night): at its dawn Earth's
+    clock wraps back to midnight, no 6 AM warning, no pull home, and sleeping there doesn't end the Shift.
+  - **The First Night** keeps its fall at midnight, but its evening runs at 12x (`Clock.earth_speed()`), and its home
+    step pulls them home by itself 14 s in (`first_night.gd _pull_soon()`), with a warning at 6 s.
+  - **No more waits:** Rex's campaign has no waits and no time windows (posters straight after the report, the rally
+    any time, Mr. Palmer's window answers any time). A friend the step you're on points at stays out instead of going
+    home or to school (`Quests.needs()`, `routine.gd stay_out()`). Your first crop grows 8x as fast (`Farm.first_boost()`).
+    Festivals, fairs, Melody's show and seasonal quests are left on their days: they're extras, and the Season Dial
+    reaches every season.
+  - **Gone:** `scripts/pass_time.gd`, the pause menu's Pass the time page, the bed's "Until the Shift", "Go to the Void
+    at midnight", and the midnight / 1 AM messages. The watch, the HUD, the map and the Divine Mind say the crack's open.
+  - Tests: test_clock, test_earth, test_cracks, test_quests, test_map, test_time_watch, test_first_hour updated; the
+    whole suite and `tools/playthrough.gd -- all` (it now jumps straight back through the crack each visit).
+  - My choices Hayden may change: home at 7 AM, the 12x first evening, the 14 s pull home, the 8x first crop.
+- 2026-11-14: **Secret shortcuts, road tunnels, sliding bumpers and pop-up walls on every circuit** (Hayden's 13 Nov
+  2026 playtest: "The races need a lot of work; moving maps, obstacles, secret shortcuts, tunnels"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **Secret shortcuts** (`Races.TRACKS` `"shortcuts"`, built by `scripts/race_circuit.gd _plan_shortcuts()` /
+    `_shortcut()`): one per circuit, the Lily Tunnel (Lake Loop), Root Run (Meadow Wiggle), Star Tunnel (Observatory
+    Hill) and Corn Cut (Pumpkin Run). A gap in the wall on the inside of a bend (`_open`), hidden behind a curtain of
+    vines (cornstalks on Earth) you ride straight through, then a lit tunnel across the middle and back out further
+    round, 30 to 60 m shorter. Riding it through moves you on past the rings it skips (`Races._in_shortcut()`,
+    `_took_shortcut()`); the first time it shouts "SECRET SHORTCUT!" and pays 3 sparkles (`SHORTCUT_PRIZE`, flag
+    `race_shortcut_<track>_<n>`). In at the wrong end counts for nothing. The board says "Secret shortcut: ???" until
+    it's found, and Zippy and Pepper drop a hint once you've raced. Rivals stay on the road.
+  - **Road tunnels** (`"tunnels"`, `_road_tunnel()`): an arch over the road with lamps and a name: the Crystal Tunnel,
+    Mushroom Tunnel, Stargazer Tunnel and the Covered Bridge. Its roof joins group `race_roof`, so the racing line
+    isn't dropped onto it (`RaceTrack.ground_at`).
+  - **Sliding bumpers** (`"slider"`) glide from side to side across the road, and **pop-up walls** (`"popup"`) glow
+    for 0.9 s, then rise out of the road for 1.7 s in every 4.2 (a jelly block with eyes in the Void, a crate on
+    Earth). Both bounce you back like a bumper (`race_attacks.gd`), you ride over a pop-up wall when it's down, and
+    rivals steer round them. Some obstacles moved a little to keep clear of the shortcuts' mouths.
+  - Tests: new `tools/test_race_tracks.gd`; `test_races` (walls skip a shortcut's opening), race_tutorial, earth_race,
+    race_intros, boosters, ride_upgrades, map and schematics pass. Previews: `tools/capture_race_tracks.gd` (shots in
+    the project files under world/previews/race_tracks).
+  - My choices Hayden may change: the names, where each shortcut goes, 3 sparkles, the curtains' look, the obstacles'
+    timings. Not done from the note: "moving maps" (if that means parts of the track that move, the sliders and
+    pop-up walls are a start).
 
 - 2026-11-14: **Every boss is tougher, the Gloop King faces the right way, and his court floods with goo** (Hayden's
   13 Nov 2026 playtest: "the gloop king faces backwards when you start his fight. Can we add a mechanic where the arena
@@ -168,7 +244,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     (both runs), earth, party and meetings pass. Previews in the project files under world/previews/signs_tags_seer.
   - My choices Hayden may change: how slim she is, 12 m for Tally's tag.
 
-- 2026-11-13: **No waiting around for the clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
+- 2026-11-13 (replaced on 14 Nov: Hayden didn't want skip buttons, see the entry above): **No waiting around for the
+  clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
   "There's a lot locked behind time. We need to make the game playable all the way through without forcing the player
   to wait"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/pass_time.gd`** (no class_name, preload it): `choices()` lists where the clock can jump to from here.

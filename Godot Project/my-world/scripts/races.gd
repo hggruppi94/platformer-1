@@ -37,6 +37,7 @@ const PAD_RADIUS := 1.9
 const BOX_RADIUS := 1.7
 const GOO_RADIUS := 2.0
 const WANDER := 45.0                 # metres off the track and the race is off
+const SHORTCUT_PRIZE := 3             # sparkles for finding a circuit's secret shortcut the first time
 const BEST_BONUS := 5                # sparkles for beating your best time
 
 # Each track: its checkpoints (x, z; the first is the start and finish line), laps, prizes by place, and where its
@@ -62,8 +63,15 @@ const TRACKS := {
 		"boosts": [[0.5, 0.0], [3.5, -3.0], [7.5, 0.0], [10.5, 3.0], [13.5, 0.0]],
 		"boxes": [[1.5], [5.0], [8.5], [12.0]],
 		"goo": [[4.4, -3.0], [9.4, 3.0], [11.4, -2.5], [14.0, 2.0]],
-		"obstacles": [[2.5, "bumper", -3.5], [2.6, "bumper", 3.5], [6.0, "ramp", 0.0], [6.8, "zapper", -3.4],
-			[7.2, "zapper", 3.4], [9.0, "sweeper", 0.0], [11.0, "bumper", 0.0], [13.0, "ramp", 0.0], [13.8, "bumper", -3.0]],
+		"obstacles": [[2.5, "bumper", -3.5], [2.6, "bumper", 3.5], [4.0, "slider", 0.0], [6.0, "ramp", 0.0], [6.8, "zapper", -3.4],
+			[7.2, "zapper", 3.4], [9.0, "sweeper", 0.0], [11.0, "bumper", 0.0], [12.2, "popup", 0.0], [13.0, "ramp", 0.0],
+			[13.8, "bumper", -3.0]],
+		# (Hayden's 13 Nov 2026 playtest: "moving maps, obstacles, secret shortcuts, tunnels". A secret shortcut leaves the
+		# road through a curtain of vines on the inside of a bend and comes back further round (scripts/race_circuit.gd);
+		# a tunnel roofs the road between two checkpoints.)
+		"shortcuts": [{"name": "Lily Tunnel", "from": 3.1, "to": 8.1}],
+		"tunnels": [[9.6, 10.7]],
+		"tunnel_name": "CRYSTAL TUNNEL",
 		"prizes": [20, 15, 11, 8, 6, 4, 3, 2],
 		"rivals": ["dash", "rex", "clover", "rook", "pip", "green_man", "nina"],
 		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
@@ -86,8 +94,11 @@ const TRACKS := {
 		"boxes": [[2.0], [6.0], [10.0], [14.0]],
 		"goo": [[3.5, 2.5], [7.5, -2.5], [11.5, 2.5], [15.5, -2.5]],
 		"obstacles": [[1.3, "bumper", -2.5], [1.5, "bumper", 3.0], [3.0, "ramp", 0.0], [5.3, "bumper", 0.0], [6.6, "sweeper", 0.0],
-			[9.3, "ramp", 0.0], [10.6, "bumper", -3.5], [10.8, "bumper", 3.5], [13.3, "zapper", 3.4], [13.6, "zapper", -3.4],
-			[15.0, "sweeper", 0.0], [16.2, "ramp", 0.0]],
+			[8.0, "slider", 0.0], [9.3, "ramp", 0.0], [10.6, "bumper", -3.5], [10.8, "bumper", 3.5], [13.3, "zapper", 3.4],
+			[13.6, "zapper", -3.4], [14.4, "popup", 0.0], [15.0, "sweeper", 0.0], [16.2, "ramp", 0.0]],
+		"shortcuts": [{"name": "Root Run", "from": 6.0, "to": 9.9}],
+		"tunnels": [[11.6, 12.9]],
+		"tunnel_name": "MUSHROOM TUNNEL",
 		"prizes": [22, 16, 12, 9, 6, 4, 3, 2],
 		"rivals": ["rook", "pip", "green_man", "clover", "bruno", "mr_palmer", "nina"],
 		"starter": {"name": "Dart", "model": "res://models/characters/little_alien_orange.glb"},
@@ -126,8 +137,12 @@ const TRACKS := {
 		"boosts": [[0.5, 0.0], [3.5, 0.0], [7.5, 0.0], [10.5, 0.0], [13.5, 0.0]],
 		"boxes": [[1.6], [5.0], [8.6], [12.0]],
 		"goo": [[4.3, -2.5], [6.4, 2.5], [11.3, -2.5]],
-		"obstacles": [[2.4, "bumper", 0.0], [4.7, "zapper", -3.4], [5.6, "zapper", 3.4], [7.0, "sweeper", 0.0], [8.0, "ramp", 0.0],
-			[9.4, "bumper", -3.0], [9.6, "bumper", 3.0], [11.7, "ramp", 0.0], [12.6, "sweeper", 0.0], [13.7, "bumper", 0.0]],
+		"obstacles": [[2.4, "bumper", 0.0], [3.3, "slider", 0.0], [4.7, "zapper", -3.4], [5.6, "zapper", 3.4], [7.0, "sweeper", 0.0],
+			[8.0, "ramp", 0.0], [8.95, "bumper", -3.0], [9.15, "bumper", 3.0], [10.8, "popup", 0.0], [11.7, "ramp", 0.0],
+			[13.1, "sweeper", 0.0], [13.4, "bumper", 0.0]],
+		"shortcuts": [{"name": "Star Tunnel", "from": 10.0, "to": 13.9}],
+		"tunnels": [[2.6, 3.9]],
+		"tunnel_name": "STARGAZER TUNNEL",
 		"prizes": [24, 17, 12, 9, 6, 4, 3, 2],
 		"rivals": ["dash", "rex", "mr_palmer", "bruno", "pip", "clover", "green_man"],
 		"starter": {"name": "Comet", "model": "res://models/characters/little_alien_blue.glb"},
@@ -149,10 +164,13 @@ const TRACKS := {
 			Vector3(-24, 0.2, -55), Vector3(-55, 0.2, -57), Vector3(-73, 0.2, -32), Vector3(-66, 0.2, -3), Vector3(-72, 0.2, 26)],
 		"boosts": [[0.5, 0.0], [4.5, 0.0], [8.5, 0.0], [12.5, 0.0]],
 		"boxes": [[2.0], [6.0], [10.0], [13.5]],
-		"goo": [[3.4, -2.5], [7.4, 2.5], [11.4, -2.5], [13.9, 2.5]],
-		"obstacles": [[1.4, "bumper", -3.0], [1.6, "bumper", 3.0], [3.0, "ramp", 0.0], [5.0, "sweeper", 0.0], [6.6, "bumper", 0.0],
-			[8.0, "zapper", -3.4], [9.4, "ramp", 0.0], [10.7, "bumper", -3.5], [10.9, "bumper", 3.5], [12.0, "sweeper", 0.0],
-			[13.0, "zapper", 3.4], [14.15, "ramp", 0.0]],
+		"goo": [[3.4, -2.5], [7.4, 2.5], [11.4, -2.5], [12.0, 2.5]],
+		"obstacles": [[1.4, "bumper", -3.0], [1.6, "bumper", 3.0], [3.0, "ramp", 0.0], [4.0, "slider", 0.0], [5.0, "sweeper", 0.0],
+			[6.6, "bumper", 0.0], [7.0, "popup", 0.0], [7.7, "zapper", -3.4], [9.4, "ramp", 0.0], [10.7, "bumper", -3.5],
+			[10.9, "bumper", 3.5], [12.5, "sweeper", 0.0], [13.0, "zapper", 3.4], [14.15, "ramp", 0.0]],
+		"shortcuts": [{"name": "Corn Cut", "from": 8.5, "to": 13.6}],
+		"tunnels": [[3.5, 4.6]],
+		"tunnel_name": "COVERED BRIDGE",
 		"prizes": [20, 15, 11, 8, 5, 3, 2],
 		"rivals": ["nina_earth", "bruno", "ozzie", "juniper", "theo", "prue"],
 		"spares": [],
@@ -301,6 +319,9 @@ var _pad_wait := {}                  # pad -> seconds until it boosts again (so 
 var _goo_wait := 0.0
 var _rival_pad := {}                 # rival -> the last pad they were boosted by
 var _along := 0.0                    # the player's last side of the next checkpoint (- before it, + past it)
+var _sc := -1                         # the secret shortcut the player's in (-1: none): see _in_shortcut()
+var _sc_ok := false                   # ...whether they went in at its front, from the right bit of the lap
+var _sc_done := false                 # ...and whether it's moved them on past the rings it skips yet
 var _rng := RandomNumberGenerator.new()
 var _sky_side := {}                  # sky track -> which side of its start ring the mothership was last frame
 var attacks: Node                    # the thrown power-ups and the obstacles (scripts/race_attacks.gd)
@@ -581,6 +602,8 @@ func board_text(id: String) -> String:
 	out += "Best time: %s" % (RaceHud.clock(float(best[id])) if best.has(id) else "not yet!")
 	out += "\nBeat it for ✦ %d more" % BEST_BONUS if best.has(id) else ""
 	out += "\nWins: %d" % int(wins.get(id, 0))
+	if not tr.get("shortcuts", []).is_empty():
+		out += "\nSecret shortcut: %s" % ("found!" if shortcuts_found(id) > 0 else "???")
 	out += _prize_line(id)
 	return out
 
@@ -756,6 +779,10 @@ func hub_lines(hub: String) -> Array:
 		out.append("Win the %s and you get %s! Nobody else has one of those." % [TRACKS[prizes[0]].name, first_prize(prizes[0])]
 			if prizes.size() == 1 else "First prizes! " + " ".join(prizes.map(func(k: String) -> String:
 				return "Win the %s for %s." % [TRACKS[k].name, first_prize(k)])))
+	if raced > 0 and mine.any(func(k: String) -> bool: return unlocked(k) and not TRACKS[k].get("shortcuts", []).is_empty() \
+			and shortcuts_found(k) == 0):
+		out.append("Psst! Every track's got a secret shortcut. Look for a %s in the wall on the inside of a bend..." %
+			("patch of cornstalks" if HUBS[hub].scene != TOWN else "leafy bit"))
 	var choice: Array = []
 	for id in mine:
 		if unlocked(id):
@@ -1007,6 +1034,8 @@ func start(id: String, with_intro := true) -> bool:
 	_wrong = 0.0
 	_last_d = 0.0
 	_along = -1.0
+	_sc = -1
+	_sc_done = false
 	_knock_safe = 0.0
 	_rival_pad.clear()
 	attacks.clear()
@@ -1139,6 +1168,8 @@ func _race(delta: float) -> void:
 	var pos := ship.global_position if t.sky else p.global_position
 	var vel: Vector3 = ship.velocity if t.sky else p.velocity
 	# Through the next ring? Either close to its middle, or across its line (fast riders can be between frames)
+	# In a secret shortcut (scripts/race_circuit.gd)? Then the road's rules wait till you're back out on it
+	var inside := circuit != "" and _in_shortcut(t, pos)
 	var cp_d := cps[next_cp]
 	var cp_pos := t.point_at(cp_d)
 	var cp_dir := t.dir_at(cp_d)
@@ -1149,34 +1180,42 @@ func _race(delta: float) -> void:
 	var close := rel.length() if t.sky else Vector2(rel.x, rel.z).length()
 	var through := close < reach or (_along < 0.0 and along >= 0.0 and side < reach + 2.0 and absf(rel.y) < (t.ring_radius if t.sky else 6.0))
 	_along = along
-	if through:
+	if through and not inside:
 		_pass_checkpoint()
 		if state != State.RACING:
 			return
 	# How far round: between the last checkpoint passed and the next
 	var lo := cps[last_cp]
 	var hi := cps[next_cp] if next_cp != 0 else L
-	var raw := t.nearest(pos, (lo + hi) / 2.0, (hi - lo) / 2.0 + 20.0)
-	var round_d := wrapf(raw - lo, -L / 2.0, L / 2.0)          # the loop wraps round at the line
-	var here := lo + clampf(round_d, 0.0, hi - lo)
-	progress = (lap - 1) * L + here
-	# Going the wrong way for a while?
-	var speed := Vector2(vel.x, vel.z).length()
-	var fwd := Vector2(vel.x, vel.z).dot(Vector2(t.dir_at(here).x, t.dir_at(here).z))
-	_wrong = _wrong + delta if speed > 3.0 and fwd < -2.0 else 0.0
-	if _wrong > 1.2:
-		_wrong = -2.0
-		hud.shout("Wrong way!", Color(1.0, 0.55, 0.6), 0.6)
-	# (How far off the road is measured from the nearest bit of road, even behind the last ring: on the grid you're
-	# behind the line, and that's fine.)
-	var near := fposmod(lo + clampf(round_d, -20.0, hi - lo), L)
-	if circuit != "" and (t.off_line(pos, near) > t.width / 2.0 + 4.0 or pos.y < t.point_at(near).y - 5.0):
-		# Over a wall, or off the edge: popped back on the road, a little short of the next ring so it isn't passed
-		_back_on_track(p, fposmod(lo + clampf(round_d, -10.0, maxf(0.0, hi - lo - PASS_RADIUS - 2.0)), L))
-	elif t.off_line(pos, here) > WANDER * (3.0 if t.sky else 1.0):
-		Game.message("You went off the track, so the race is off. %s" % ("Fly through the gold ring to race again!" if t.sky else "Talk to the starter to race again!"))
-		_end(false)
-		return
+	if inside:
+		# (Through a shortcut, you're as far round as how far through it you are)
+		var sc: Dictionary = _circuit_node().shortcuts[_sc]
+		var f: float = _circuit_node().shortcut_progress(_sc, pos)
+		if _sc_ok:
+			progress = (lap - 1) * L + lerpf(float(sc.d0), float(sc.d1), f)
+		_wrong = 0.0
+	else:
+		var raw := t.nearest(pos, (lo + hi) / 2.0, (hi - lo) / 2.0 + 20.0)
+		var round_d := wrapf(raw - lo, -L / 2.0, L / 2.0)          # the loop wraps round at the line
+		var here := lo + clampf(round_d, 0.0, hi - lo)
+		progress = (lap - 1) * L + here
+		# Going the wrong way for a while?
+		var speed := Vector2(vel.x, vel.z).length()
+		var fwd := Vector2(vel.x, vel.z).dot(Vector2(t.dir_at(here).x, t.dir_at(here).z))
+		_wrong = _wrong + delta if speed > 3.0 and fwd < -2.0 else 0.0
+		if _wrong > 1.2:
+			_wrong = -2.0
+			hud.shout("Wrong way!", Color(1.0, 0.55, 0.6), 0.6)
+		# (How far off the road is measured from the nearest bit of road, even behind the last ring: on the grid you're
+		# behind the line, and that's fine.)
+		var near := fposmod(lo + clampf(round_d, -20.0, hi - lo), L)
+		if circuit != "" and _sc < 0 and (t.off_line(pos, near) > t.width / 2.0 + 4.0 or pos.y < t.point_at(near).y - 5.0):
+			# Over a wall, or off the edge: popped back on the road, a little short of the next ring so it isn't passed
+			_back_on_track(p, fposmod(lo + clampf(round_d, -10.0, maxf(0.0, hi - lo - PASS_RADIUS - 2.0)), L))
+		elif _sc < 0 and t.off_line(pos, here) > WANDER * (3.0 if t.sky else 1.0):
+			Game.message("You went off the track, so the race is off. %s" % ("Fly through the gold ring to race again!" if t.sky else "Talk to the starter to race again!"))
+			_end(false)
+			return
 	if t.sky:
 		_sky_boosts(ship)
 	else:
@@ -1195,6 +1234,59 @@ func _race(delta: float) -> void:
 		if r.d > progress:
 			place += 1
 	_status()
+
+
+func _circuit_node() -> Node:
+	var c := get_tree().current_scene
+	return c if c != null and "shortcuts" in c else null
+
+
+func _in_shortcut(t: RaceTrack, pos: Vector3) -> bool:
+	# Secret shortcuts (scripts/race_circuit.gd): true while you're inside one, away from its mouths. Going in at its
+	# front from the right bit of the lap and out of its far end moves you on past the rings it skips, as if you'd gone
+	# round. (Going in at the far end just leads back, and the road's rules carry on once you're out.)
+	var c := _circuit_node()
+	if c == null or c.shortcuts.is_empty():
+		return false
+	var k: int = c.shortcut_at(pos)
+	if k < 0:
+		_sc = -1
+		return false
+	var sc: Dictionary = c.shortcuts[k]
+	var f: float = c.shortcut_progress(k, pos)
+	if _sc != k:
+		_sc = k
+		_sc_ok = f < 0.3 and last_cp >= int(floor(float(sc.from))) and last_cp < int(floor(float(sc.to)))
+		_sc_done = false
+	if f > 0.88 and _sc_ok and not _sc_done:
+		_took_shortcut(t, k)
+	return f > 0.12 and f < 0.88
+
+
+func _took_shortcut(t: RaceTrack, k: int) -> void:
+	var sc: Dictionary = _circuit_node().shortcuts[k]
+	_sc_done = true
+	last_cp = int(floor(float(sc.to)))
+	next_cp = (last_cp + 1) % t.cp_dist.size()
+	_along = -1.0
+	t.light_rings(next_cp)
+	var flag := "race_shortcut_%s_%d" % [track_id, k]
+	if not Dialogue.flags.has(flag):
+		Dialogue.set_flag(flag)
+		hud.shout("SECRET SHORTCUT!", Color(0.5, 1.0, 0.6), 1.2)
+		Game.add_sparkles(SHORTCUT_PRIZE, "You found the %s's secret shortcut!" % TRACKS[track_id].name)
+		Audio.play("level_up", -2.0)
+	else:
+		hud.shout("Shortcut!", Color(0.5, 1.0, 0.6), 0.6)
+		Audio.play("bloop", -2.0, 0.2)
+
+
+func shortcuts_found(id: String) -> int:
+	var n := 0
+	for k in TRACKS[id].get("shortcuts", []).size():
+		if Dialogue.flags.has("race_shortcut_%s_%d" % [id, k]):
+			n += 1
+	return n
 
 
 func _pass_checkpoint() -> void:

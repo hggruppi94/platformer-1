@@ -199,6 +199,7 @@ func _place_camera() -> void:
 			var ride := "Mini Saucer" if not r.get("saucer").is_empty() else str(Races.ride_of(str(r.get("id"))).name)
 			_caption.text = "%s\n%s" % [r.call("display_name"), ride]
 			_caption.add_theme_font_size_override("font_size", int(40 * Settings.text_scale))
+			UiStyle.bottom_caption(_caption)
 			_caption.modulate.a = 0.0
 			create_tween().tween_property(_caption, "modulate:a", 1.0, 0.25)
 			Audio.play("swish", -10.0, 0.1)

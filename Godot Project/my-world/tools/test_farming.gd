@@ -230,6 +230,8 @@ func _check_growing() -> void:
 	check(not farm.thirsty(0), "...and it's happy")
 	quests.check()
 	check(quests.on_step("brambles_harvest", "grow"), "planting and watering moves the quest on")
+	check(farm.first_boost() == farm.FIRST_BOOST and farm.hours_left(0) == 1, "the first crop grows %dx as fast: no waiting (%d h left)" % [int(farm.FIRST_BOOST), farm.hours_left(0)])
+	farm.boost_first = false                          # (the rest times the garden's own pace)
 	_later(120.0)
 	farm.update()
 	check(absf(float(farm.beds[0].grown) - 120.0) < 1.0, "it grows while it has water (%.0f min)" % float(farm.beds[0].grown))

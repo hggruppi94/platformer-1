@@ -178,6 +178,8 @@ func _show_words() -> void:
 			continue
 		l.text = str(pair[1])
 		l.add_theme_font_size_override("font_size", int(int(pair[2]) * Settings.text_scale))
+		if l == _caption:
+			UiStyle.bottom_caption(_caption)
 		l.modulate.a = 0.0
 		create_tween().tween_property(l, "modulate:a", 1.0, 0.4)
 	if str(shot.get("caption", "")) != "":
