@@ -220,6 +220,43 @@ func _run() -> void:
 		return Vector2(cp.x, cp.z).distance_to(Vector2(0, 88)) < 18.0 and absf(cp.y) < 1.2), "...on the court floor")
 	check(crates.all(func(c: Node) -> bool: return float(c.get("regrow")) > 0.0), "...and they come back after a pop")
 
+	# --- His subjects fight hard (Hayden, 14 Nov 2026: "the gloop kings subjects arent aggressive enough") ---
+	await create_timer(1.2).timeout
+	var jumpers: Array = kd.call("jumpers")
+	var empty_seats := kd.find_children("Courtier *", "", true, false).filter(func(c: Node) -> bool:
+		return not (c as Node3D).visible).size()
+	check(jumpers.size() == kd.JUMP_FIRST and empty_seats == kd.JUMP_FIRST,
+		"%d courtiers jump down from the stands into the fight" % jumpers.size())
+	check(jumpers.all(func(j: Node) -> bool: return bool(j.get("pounce")) and float(j.get("chase_speed")) > 4.0),
+		"...and they're fierce: quick, and they leap at you")
+	var royal := kd.find_children("Gloop Guard *", "", false, false)
+	check(royal.size() == 4 and royal.all(func(g: Node) -> bool: return bool(g.get("pounce")) and str(g.get("pack")) == "royal"),
+		"his guards leap at you too, and call each other in")
+	check(int(king.get("court_call")) == 3 and bool((king.get("court_stats") as Dictionary).get("pounce", false)),
+		"when he calls his court, three fierce Gloops come each time")
+	if not jumpers.is_empty():
+		var j := jumpers[0] as CharacterBody3D
+		king.set_physics_process(false)
+		p.global_position = kd.global_position + kd.COURT + Vector3(0, 1.0, -6.0)
+		j.global_position = p.global_position + Vector3(3.0, -0.2, 0)
+		j.velocity = Vector3.ZERO
+		var crouched := false
+		var leapt := false
+		var closer := INF
+		for f in 150:
+			await physics_frame
+			crouched = crouched or float(j.get("_winding")) > 0.0
+			leapt = leapt or bool(j.get("_leaping"))
+			if not is_instance_valid(j):
+				break
+			closer = minf(closer, Vector2(j.global_position.x - p.global_position.x, j.global_position.z - p.global_position.z).length())
+		check(crouched and leapt, "close up, a courtier crouches and then leaps at you")
+		check(closer < 1.5, "...right at you (got within %.1f m)" % closer)
+		king.set_physics_process(true)
+	for jj in kd.call("jumpers"):
+		(jj as Node).queue_free()
+	await _physics(2)
+
 	# --- The court floods with goo ---
 	king.set_physics_process(false)
 	var flood := kd.get_node("Slime Flood")

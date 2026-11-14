@@ -8,8 +8,9 @@ extends Node
 #   streets, the lakeside and into the skate parks. Ride or run over one for a burst of speed.
 # - Booster ramps: little kickers (solid, so riders roll up them and fly) that boost you as you hit them and pop you
 #   up off the lip, on foot too.
-# - Booster coins: glowing gold coins in lines along good skating routes (between the rails of a grind line, down
-#   Lookout Hill). Each adds a short burst, so a line of them keeps you going, and they come back after a while.
+# - Booster coins: none out in the world any more (Hayden, 14 Nov 2026: "the speed coins should be in the races only,
+#   not the overworld"). They're on the race circuits now (scripts/race_track.gd, Races), where a whole set puts you
+#   in the flow (scripts/race_flow.gd). The coin code here stays, so a coin line can still be listed if one's wanted.
 #
 # Gentle on purpose: going fast never makes you crash (a bail only ever comes from a wonky landing or trick), and a
 # boost wears off by easing back down.
@@ -40,7 +41,7 @@ const RAMP_WAIT := 1.2               # seconds before the same strip or ramp boo
 
 # Every booster: its scene, kind, where ("at": a spot just above the ground, its height near the real ground so the
 # ground under it is found and not a roof) and which way it pushes ("to": a point on the ground it points at).
-# Coin lines go from "at" to "to" with "count" coins.
+# Coin lines (none now) go from "at" to "to" with "count" coins.
 const BOOSTERS := [
 	# --- The Void: round the lake (between the Lake Loop's own pads, scripts/races.gd) ---
 	{"scene": "town", "kind": "strip", "at": Vector3(24, 0, 24.6), "to": Vector2(34, 24), "where": "the lake's south shore"},
@@ -50,30 +51,18 @@ const BOOSTERS := [
 	{"scene": "town", "kind": "strip", "at": Vector3(72, 0, 3), "to": Vector2(90, 3), "where": "the Homes street"},
 	{"scene": "town", "kind": "strip", "at": Vector3(-42, 0, 42), "to": Vector2(-32, 41), "where": "the road out of the Market"},
 	{"scene": "town", "kind": "strip", "at": Vector3(43, 0, 44), "to": Vector2(43, 51), "where": "the way into the Skate Park"},
-	# --- The Void: coins along the rail line through the south meadow to the Skate Park and on east ---
-	{"scene": "town", "kind": "coins", "at": Vector3(9, 0, 49.5), "to": Vector2(14, 51.5), "count": 3, "where": "between the meadow rails"},
-	{"scene": "town", "kind": "coins", "at": Vector3(23.5, 0, 53.8), "to": Vector2(31, 51.5), "count": 4, "where": "between the meadow rails"},
-	{"scene": "town", "kind": "coins", "at": Vector3(73, 0, 48.5), "to": Vector2(77.5, 52.5), "count": 3, "where": "past the Skate Park"},
-	{"scene": "town", "kind": "coins", "at": Vector3(86.5, 0, 53.5), "to": Vector2(94, 50.2), "count": 4, "where": "on to the courts"},
-	# --- The Void: coins down the rail line from the Library to the Spooky Woods ---
-	{"scene": "town", "kind": "coins", "at": Vector3(-20.5, 0, -52.5), "to": Vector2(-28.5, -52.8), "count": 4, "where": "the Library rail line"},
-	{"scene": "town", "kind": "coins", "at": Vector3(-44.5, 0, -73), "to": Vector2(-51, -71.8), "count": 3, "where": "the rail line to the woods"},
-	{"scene": "town", "kind": "coins", "at": Vector3(-78.5, 0, -93.6), "to": Vector2(-87, -94.2), "count": 4, "where": "the rail line to the woods"},  # moved 9.5 m west, clear of the Arena Gate
 	# --- The Void: big air ---
 	{"scene": "town", "kind": "ramp", "at": Vector3(14, 0, 64), "to": Vector2(24, 64), "where": "the south meadow"},
 	{"scene": "town", "kind": "ramp", "at": Vector3(66, 0, 74), "to": Vector2(74, 80), "where": "by the sports fields"},
 	{"scene": "town", "kind": "ramp", "at": Vector3(60, 0, 90), "to": Vector2(68, 90), "where": "by the soccer field"},
 
-	# --- Stars Hollow: down Lookout Hill to the Big Air Kicker ---
-	{"scene": "earth", "kind": "coins", "at": Vector3(-99, 4, -100), "to": Vector2(-80, -100.6), "count": 6, "where": "down Lookout Hill"},
+	# --- Stars Hollow: into the Big Air Kicker ---
 	{"scene": "earth", "kind": "strip", "at": Vector3(-75, 0, -100.8), "to": Vector2(-67, -101), "where": "into the Big Air Kicker"},
 	# --- Stars Hollow: the streets ---
 	{"scene": "earth", "kind": "strip", "at": Vector3(-2, 0, -100), "to": Vector2(6, -100), "where": "into the Hollow Skate Yard"},
 	{"scene": "earth", "kind": "strip", "at": Vector3(-22, 0, 58), "to": Vector2(-32, 58), "where": "Maple Lane"},
-	{"scene": "earth", "kind": "coins", "at": Vector3(-46, 0, 58), "to": Vector2(-64, 58), "count": 5, "where": "Maple Lane"},
 	{"scene": "earth", "kind": "strip", "at": Vector3(-24, 0, -20), "to": Vector2(-24, -30), "where": "behind Main Street"},
 	# --- Stars Hollow: round Willow Pond and big air ---
-	{"scene": "earth", "kind": "coins", "at": Vector3(-66, 0, 21), "to": Vector2(-86, 21), "count": 5, "where": "round Willow Pond"},
 	{"scene": "earth", "kind": "ramp", "at": Vector3(-40, 0, 26), "to": Vector2(-50, 26), "where": "by the playground"},
 	{"scene": "earth", "kind": "ramp", "at": Vector3(-60, 0, -80), "to": Vector2(-60, -70), "where": "the park by Lookout Hill"},
 ]

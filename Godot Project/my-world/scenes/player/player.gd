@@ -85,6 +85,8 @@ var _spin_time := 1.0
 var _spin_squash := 0.0                     # how much she tucks into a ball mid-spin
 var _spin_grounded := false                 # roll: keep the ball on the floor while it turns
 var _was_on_floor := true
+var cave_echo: Node
+var _bump_timer := 0.0                 # bouncing back off a wall (scripts/bumps.gd): steering waits a moment
 var _fall_speed := 0.0
 var _step_timer := 0.0
 # Who's holding the controls right now (talking, a countdown, the creator, a zipline...): no moving, jumping or
@@ -131,11 +133,19 @@ var _zones: Array[Node] = []
 var _floor_node: Node = null
 const STEP_SOUNDS := {"grass": "step_grass", "wood": "step_wood", "stone": "step_stone", "water": "step_water",
 	"cloud": "step_cloud", "crystal": "step_crystal", "mushroom": "step_cloud"}
+const Bumps := preload("res://scripts/bumps.gd")
+const CAVE_ECHO := preload("res://scripts/cave_echo.gd")
+const BUMP_MIN := 4.0                 # m/s straight into a wall before it's a bump (walking is about 5, so a walk-in is a little one)
+const BUMP_FULL := 12.0               # ...and the hardest bump (a sprint or a booster rush)
+const BUMP_STUN := 0.14               # seconds the bounce back can't be steered out of
 const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
-# Gliding: while glide_fall is over 0 (only in Lanternmoor, where Pip lends moth wings; the player is part of each
-# scene, so it's gone again everywhere else), holding Jump while falling slows the fall to this many metres a second.
+# Gliding: while glide_speed() is over 0, holding Jump while falling slows the fall to that many metres a second. Pip's
+# moth wings (scripts/lanternmoor.gd gives them; a back piece in scripts/clothes.gd) glide wherever you wear them;
+# glide_fall is for a scene lending a glide for a while (the Agent of Chaos fight, scripts/chaos_trials.gd).
+const MOTH_GLIDE := 1.2
 var glide_fall := 0.0
 var gliding := false
+var _moth_wings: Node3D                     # the worn moth wings' piece, found again after each change of clothes
 const ICE_GRIP := 0.12                      # on ice (anything in the "ice" group) she speeds up and stops this much slower
 const MUSHROOM_BOUNCE := 9.5                # landing on a big mushroom cap bounces her up this fast
 
@@ -203,6 +213,10 @@ func _ready() -> void:
 	make.name = "Make"
 	add_child(make)
 	make.setup(self)
+	cave_echo = CAVE_ECHO.new()
+	cave_echo.name = "CaveEcho"
+	add_child(cave_echo)
+	cave_echo.setup(self)                  # echoes and drips in caves and tunnels (scripts/cave_echo.gd)
 	pip_glow = PIP_GLOW.new()
 	pip_glow.name = "PipGlow"
 	add_child(pip_glow)
@@ -465,7 +479,35 @@ func facing_dir() -> Vector3:
 	return Vector3(sin(visual.rotation.y), 0.0, cos(visual.rotation.y))
 
 
+func wearing_moth_wings() -> bool:
+	return rider == "hero" and str(Game.outfit.get("back", "")) == "moth_wings"
+
+
+func glide_speed() -> float:
+	return maxf(glide_fall, MOTH_GLIDE if wearing_moth_wings() else 0.0)
+
+
+func _flap_moth_wings(delta: float) -> void:
+	# The moth wings fold back while you walk, then spread wide and beat slowly while you glide
+	if not wearing_moth_wings():
+		_moth_wings = null
+		return
+	if _moth_wings == null or not is_instance_valid(_moth_wings):
+		_moth_wings = model.find_child(Clothes.MOTH_WINGS, true, false) as Node3D if model else null
+		if _moth_wings == null:
+			return
+	var t := Time.get_ticks_msec() / 1000.0
+	for k in ["WingL", "WingR"]:
+		var w := _moth_wings.get_node_or_null(k) as Node3D
+		if w == null:
+			continue
+		var side := -1.0 if k == "WingL" else 1.0
+		var want := (0.15 + sin(t * 6.0) * 0.25) if gliding else Clothes.MOTH_FOLDED + sin(t * 1.5) * 0.06
+		w.rotation.y = lerp_angle(w.rotation.y, side * want, minf(1.0, delta * 8.0))
+
+
 func _physics_process(delta: float) -> void:
+	_flap_moth_wings(delta)
 	if _hat and _hat.has_node("Propeller"):
 		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
 	if burrow.active and (carried or Game.riding):
@@ -485,6 +527,7 @@ func _physics_process(delta: float) -> void:
 		_invulnerable_timer -= delta
 		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
+	_bump_timer -= delta
 	if _rush_time > 0.0 and _rush_time - delta <= 0.0:
 		_rush_fade = 0.8
 	_rush_time -= delta
@@ -520,9 +563,10 @@ func _physics_process(delta: float) -> void:
 		velocity += gravity * delta
 		velocity.y = maxf(velocity.y, -_zone_min("fall_cap", 1000.0))       # floaty in clouds and the bath
 		# Moth wings (Pip lends them in Lanternmoor, scripts/lanternmoor.gd): holding Jump on the way down glides
-		gliding = glide_fall > 0.0 and velocity.y < 0.0 and Input.is_action_pressed("jump") and not input_locked
+		var glide := glide_speed()
+		gliding = glide > 0.0 and velocity.y < 0.0 and Input.is_action_pressed("jump") and not input_locked
 		if gliding:
-			velocity.y = maxf(velocity.y, -glide_fall)
+			velocity.y = maxf(velocity.y, -glide)
 	else:
 		gliding = false
 
@@ -587,8 +631,8 @@ func _physics_process(delta: float) -> void:
 		_roll_timer -= delta
 		var f := 1.0 - maxf(_roll_timer, 0.0) / roll_time
 		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
-	elif _stun_timer > 0.0:
-		pass                                # knocked back: ride out the hit
+	elif _stun_timer > 0.0 or _bump_timer > 0.0:
+		pass                                # knocked back (or bounced off a wall): ride out the hit
 	else:
 		# Accelerate toward the target speed instead of snapping to it
 		var rate := acceleration if direction else friction
@@ -616,7 +660,16 @@ func _physics_process(delta: float) -> void:
 	velocity.z = horizontal.z
 
 	_fall_speed = -velocity.y
+	var before := velocity
 	move_and_slide()
+	# A boink off walls, trees and ceilings: she bounces back a little, and can't steer out of it for a moment, so the
+	# bounce shows (a hop too, if she was on the ground)
+	var bumped := Bumps.after_slide(self, before, model, BUMP_MIN, BUMP_FULL, 0.8, 0.2)
+	if bumped >= 0.0:
+		_end_roll()
+		_bump_timer = BUMP_STUN + 0.12 * bumped          # (its own timer: a stun would knock her off a ride she hops on)
+		if is_on_floor():
+			velocity.y = maxf(velocity.y, 1.5 + 2.5 * bumped)
 	_floor_node = null
 	if is_on_floor():
 		for i in get_slide_collision_count():

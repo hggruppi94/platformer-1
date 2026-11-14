@@ -91,6 +91,8 @@ var reduce_flashing := false          # no blinking/flashing on hits, calmer glo
 var reduce_motion := false            # no camera kick when rolling, calmer bobbing effects
 var screen_shake := 1.0               # 0..1: how much the camera shakes on bumps and big pops (scripts/juice.gd)
 var rumble := true                    # controller rumble on hits, landings and pops (scripts/juice.gd)
+var rumble_strength := 1.0            # 0..1: how strong that rumble is
+var bumps := true                     # bumps and boinks when you knock into things (scripts/bumps.gd)
 var playtest := false                 # write playtest notes to the save folder (scripts/playtest.gd); off by default
 var captions := false                 # show text for important sounds
 # --- Assist
@@ -125,7 +127,7 @@ func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
 		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "map_hide", "clock_style", "text_scale", "hud_size", "talk_speed", "talk_caps", "objectives", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
-		"skate_assist", "screen_shake", "rumble", "playtest", "race_intros", "practice_trips"]
+		"skate_assist", "screen_shake", "rumble", "rumble_strength", "bumps", "playtest", "race_intros", "practice_trips"]
 
 
 func hud(px: float) -> int:

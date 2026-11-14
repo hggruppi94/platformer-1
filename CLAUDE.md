@@ -99,6 +99,84 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Bumps and boinks when you run into things, and echoes in caves and tunnels** (Hayden: "sensory boinks
+  and bumps when you collide with surfaces", "a sort of bounce with a puff of smoke when you run into things", "Have
+  cave sounds/echo when inside tunnels"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/bumps.gd`** (no class_name, preload it): `after_slide(body, velocity_before, model, min, full, ...)` right
+    after `move_and_slide()` in `player.gd` (on foot: 4 to 12 m/s) and `skate.gd _move()` (on a ride: 4.5 to 14 m/s,
+    after the kerb step-up so kerbs aren't bumps). A knock into a wall or a ceiling (not ground, not a kerb at her feet,
+    not enemies or bosses: they have their own hits) at more than `min` m/s straight into it: she **bounces back**
+    (`bounce_off()`: some of the speed back out plus a push; soft things bounce further; on foot she can't steer for
+    0.14 s, `_bump_timer`, not a stun so hopping on a ride after doesn't bail; on a board bounced straight back she rolls
+    away fakie, the board the same way round), a **puff of smoke** (`smoke()`) and coloured bits at the spot, a squash,
+    a sound by what it is (`Surfaces.wall_kind()` in `surfaces.gd`: wood bonk, stone clunk, soft boink, crystal and metal
+    clink, water squish, grass thud; a node can set meta `"surface"`), a camera nudge towards it, a little shake for big
+    ones, rumble, and stars for a head bonk. 0.3 s between bumps, so leaning on a wall doesn't rattle. Landings keep
+    their own feedback.
+  - **New sounds** in `Juice._make()`: boink, bonk, clunk, clink, squish. `Juice.rumble()` scales by `rumble_scale()`.
+  - **Settings > Assist:** "Rumble strength" (0 to 100%, `Settings.rumble_strength`) and "Bumps and boinks"
+    (`Settings.bumps`, off: no bumps at all), next to Screen shake and Controller rumble.
+  - **`scripts/cave_echo.gd`** ("CaveEcho" on the player): in a `cave_dark` zone (the Undergardens, the Glimmer Caves),
+    under a race tunnel's roof (group `race_roof`), in a secret shortcut (`shortcut_at()`), under anything named
+    Tunnel/Cave/Grotto/Burrow/Shortcut or in group `"echo"`, or burrowing: a reverb and a soft echo on the SFX bus and a
+    quiet cave bed (a hollow hum and drips, made in code) ease in; out again they ease away and come off the bus.
+  - Tests: new `tools/test_bumps.gd`; juice, skate_help, races, race_tracks, race_tutorial, earth_race, walk_through,
+    layout, swim, burrow and the rest listed in the PR pass. Previews: `tools/capture_bumps.gd` (shots in the project
+    files under world/previews/bumps).
+  - My choices Hayden may change: how hard a knock has to be, how far she bounces, the sounds, the smoke's colour and
+    size, which places echo and how much.
+
+- 2026-11-14: **Speed coins only in races, a whole set puts you in the flow, and a smooth ride up Observatory Hill**
+  (Hayden: "the speed coins should be in the races only, not the overworld. Once the player picks up a full "set" of
+  coins, they enter a "flow" state where their speed is slightly increased and the screen becomes a little bit blurred
+  on the edges and maybe psychedelic-melty", and "The 3rd race, when going uphill, your character kind of plops").
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **No coins in the Void or Stars Hollow** (`scripts/boosters.gd`: strips and ramps stay; the coin code is left in).
+  - **Coin sets on every circuit** (`race_track.gd _place_coins()`, `coin_sets`): sets of 5 gold coins (3 m apart, a
+    gentle S across the road), as many as fit up to 4 a lap (2 to 3 now: the roads are busy), as evenly round as they
+    go, 8.5 m off obstacles, goo, shortcut mouths and the line, 3 m off Star Boxes and 2 m off boost pads (a line of
+    coins can run onto a pad). Shown only in a race; a taken coin comes back after 12 s.
+  - **The flow** (`Races._take_coins()`, `scripts/race_flow.gd` node "Flow" under `Races`, `race_flow.gdshader`): each
+    coin is a little push; all five of one set ("Coins 4/5", then "FLOW!") and for 8 s you're 2 m/s quicker
+    (`Skate.flow_speed` on pushing and top speed) and the screen's edges blur, melt and shimmer with colour, fading in
+    and out. Another set tops it up. Reduce motion: no melting; Reduce flashing: calmer colours. Ends with the race.
+  - **Uphill** (`skate.gd`, `CREASE`): the road's twisted pieces on a climbing bend made her hop off each crease and
+    plop back down; she now stays snapped to the road over a crease that small. (Bumps and boinks on collisions are
+    another thread's.)
+  - Tests: new `tools/test_race_flow.gd`, `test_boosters` (no coins out in the world); skate, skate_park, races,
+    race_tracks, race_tutorial, earth_race, race_intros, race_life, first_hour and layout pass. Previews:
+    `tools/capture_race_flow.gd` (shots in the project files under world/previews/race_flow).
+  - My choices Hayden may change: 5 coins a set, how many sets, 8 s and +2 m/s, the look of the coins and the flow.
+- 2026-11-14: **The Frozen Moment's fish and snowmen carry on, Pip's moth wings are a back piece you keep, and the
+  Gloop King's subjects fight harder** (Hayden's 14 Nov 2026 playtest: "does it make sense that the fish is jumping
+  into an ice lake? Can the snowmen continuously throw snowballs at each other? the moth wings float over the players
+  head ... it can become an equipable cape", "the gloop kings subjects arent aggressive enough"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **The fish** (`frozen_moment.gd moment_model(0)`): its hole is now a real hole broken through the ice: dark open
+    water ("Water"), a ring that ripples once it moves ("Ripple"), nine broken ice slabs tipped up round it and a heap
+    of snow. Once thawed (or the world's mended) it keeps leaping out and diving back in every ~3 s
+    (`_moments_carry_on()`, `_fish_leap()`, `leaps`).
+  - **The snowmen** ("SnowmanL" / "SnowmanR") take turns lobbing snowballs at each other every ~1.1 s for good once
+    thawed: the thrower leans back, the ball arcs over and splats, the other wobbles (`_throw_snowball()`, `throws`).
+  - **Pip's moth wings** are shop item `moth_wings` (a back piece, `"reward": true`; `clothes.gd hat_or_piece`, node
+    `Clothes.MOTH_WINGS` with "WingL"/"WingR" pivots), fitted to the hero's back like the other back pieces (they used
+    to be stuck to the Visual at a fixed height, over the head). Pip gives them to keep and puts them on
+    (`lanternmoor.gd give_wings()`); old saves that met Pip get them next visit. **They glide wherever you wear them**
+    (`player.gd glide_speed()`, `wearing_moth_wings()`, `MOTH_GLIDE` 1.2; `glide_fall` is still how a scene lends a
+    glide). They fold back while you walk and spread and beat while you glide (`_flap_moth_wings()`). The final
+    fight's Pip section puts them on and puts back what you wore (`chaos_trials.gd _give_wings()`).
+  - **His subjects** (`gloop.gd`: new exports `pounce`, `pounce_range`, `pounce_every`, `pounce_speed`, `pack`; off
+    for every other Gloop): close up they crouch for 0.45 s (the warning) and leap at you; one that spots you calls
+    its pack in (`alert()`, 20 m, 4 s). His four guards (`gloop_kingdom.gd SUBJECT`: sight 16, chase 4.3) and every
+    Gloop in his court fight that way. When he wakes, two courtiers jump down off the stands into the fight, then
+    another every 14 s (`_jump_down()`, at most 3 at once, `jumpers()`), and he calls three at a time, not two
+    (`gloop_king.gd court_stats`, `court_call`). Popping him bubbles the jumpers away.
+  - Tests: frozen_moment, lanternmoor (the wings on the back, below the head and behind), gloop_kingdom (jumpers,
+    guards, a real crouch and leap), chaos_trials, clothing_fit and the whole suite. Previews:
+    `tools/capture_world_tweaks.gd` (shots in the project files under world/previews/world_tweaks).
+  - My choices Hayden may change: gliding anywhere in the wings, Pip putting them on for you, how often the fish leaps
+    and the snowmen throw, the subjects' numbers (leap range, speed, how many jump in).
+
 - 2026-11-14: **The race circuits come alive: things go off all round you as you race** (Hayden: "I want the maps to
   feel like they are alive and things are happening all around"; our own set pieces, nothing copied). Built and tested
   in the cloud (own Godot user folders, no save touched).

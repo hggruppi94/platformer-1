@@ -42,9 +42,14 @@ enum State { ROLL, AIR, GRIND, BAIL }
 const FEET := 0.8                    # from the body's middle down to her feet (the collision capsule's half height)
 const FLOOR_MIN_Y := 0.17            # ground up to 80 degrees steep counts as something to ride on
 const SNAP := 0.35                   # how far she's pulled down onto a slope that drops away under her
+const CREASE := 0.2                  # going uphill, a bend in the ground this sharp or less (radians) she rides over
 const HILL_MIN_Y := 0.75             # ground this flat or flatter (about 40 degrees) is a hill she can push up
 const STEP := 0.32                   # kerbs and steps this high she rolls up onto by herself
 const SIDE_RADIUS := 0.35            # the capsule's radius
+const Bumps := preload("res://scripts/bumps.gd")
+const BUMP_MIN := 4.5                # m/s straight into a wall on a ride before it's a bump (scripts/bumps.gd)
+const BUMP_FULL := 14.0
+const BUMP_BOUNCE := 0.6             # a board bounces back off a wall a bit less than feet do
 const BAIL_LINES := ["Whoops!", "Oof!", "Wobbly!", "Banana peel!", "Bonk!", "Ta-da? No...", "Wipeout!"]
 const SLIP_LINES := ["Phew!", "Saved it!", "Close one!", "Wobble... OK!"]
 # Rocket flight (rocket rides: "flight" in scripts/rides.gd)
@@ -132,6 +137,8 @@ var _boost_time := 0.0               # seconds of boost left
 var _boost_speed := 0.0              # how much faster than her pushing speed a boost carries her
 var _slow_time := 0.0                # seconds of goo left
 var _boost_fade := 0.0               # after a boost, a moment of easing back down to her own speed
+var flow_speed := 0.0                # in the flow (a whole set of a race's speed coins: Races, race_flow.gd), this much
+                                     # quicker pushing speed and top speed (eased up and down by Races)
 var shielded := false
 var _base_ride: Dictionary = Rides.BOARD     # the ride's own numbers, before upgrades
 var fuel := FLY_FUEL                 # rocket fuel left (seconds)
@@ -428,21 +435,22 @@ func _roll(dir: Vector3, delta: float) -> void:
 			_lean = lerpf(_lean, clampf(fwd.signed_angle_to(want, n), -0.6, 0.6) * clampf(speed / 8.0, 0.0, 1.0), 0.15)
 			# Pushing: on the flat and up or down hills (not up a ramp's steep face). From a standstill the first kicks are
 			# the strongest, so she gets going quickly, then it tapers off toward her pushing speed.
-			_pushing = speed < float(ride.push_speed) and along > 0.0 and n.y > HILL_MIN_Y
+			var push := float(ride.push_speed) + flow_speed
+			_pushing = speed < push and along > 0.0 and n.y > HILL_MIN_Y
 			if _pushing:
-				var kick := 1.0 + float(ride.push_kick) * (1.0 - clampf(speed / float(ride.push_speed), 0.0, 1.0))
-				speed = move_toward(speed, float(ride.push_speed), float(ride.push_accel) * kick * maxf(along, 0.3) * delta)
+				var kick := 1.0 + float(ride.push_kick) * (1.0 - clampf(speed / push, 0.0, 1.0))
+				speed = move_toward(speed, push, float(ride.push_accel) * kick * maxf(along, 0.3) * delta)
 	else:
 		speed = move_toward(speed, 0.0, float(ride.coast) * delta)
 		_lean = lerpf(_lean, 0.0, 0.1)
-	var cap := float(ride.max_speed)
+	var cap := float(ride.max_speed) + flow_speed
 	if _boost_time > 0.0:
 		speed = maxf(speed, float(ride.push_speed) + _boost_speed)
 		cap += _boost_speed
-	elif _boost_fade > 0.0 and speed > float(ride.push_speed) and n.y > HILL_MIN_Y:
+	elif _boost_fade > 0.0 and speed > float(ride.push_speed) + flow_speed and n.y > HILL_MIN_Y:
 		# Holding a direction never slows her on the flat, so without this a boost would last as long as she kept
 		# steering. Down a ramp or a steep hill she keeps whatever speed it gives her.
-		speed = move_toward(speed, float(ride.push_speed), 3.5 * delta)
+		speed = move_toward(speed, float(ride.push_speed) + flow_speed, 3.5 * delta)
 	if _slow_time > 0.0:
 		speed = minf(speed, float(ride.push_speed) * 0.45)
 	v = fwd * minf(speed, cap)
@@ -496,9 +504,21 @@ func _move(v: Vector3, on_ground: bool) -> void:
 	# Rolling into a kerb or a step: hop up onto it rather than stopping dead (a board's wheels would ride up it)
 	if blocked and on_ground and was and flat.length() > 0.8 and _step_up(before, flat, v):
 		return
-	if not _grounded and was and on_ground and v.y <= 0.3:
+	# A boink off a wall or a tree (not the kerb she just rolled up, not a ramp she rides). The slide's contacts are
+	# still the ones from move_and_slide() above: the step-up only tested moves.
+	if Bumps.after_slide(p, v, p.model, BUMP_MIN, BUMP_FULL, FEET, 0.12, FLOOR_MIN_Y, BUMP_BOUNCE) >= 0.0:
+		var back := Vector3(p.velocity.x, 0, p.velocity.z)
+		if back.dot(flat) < 0.0 and back.length() > 0.3:
+			fakie = not fakie                         # bounced straight back: she rolls away backwards, board the same way round
+		v = p.velocity
+	# Going up a slope she's moving upwards, but along the ground: where a road's surface bends a little over a crease
+	# (a race circuit's road climbing round a bend is made of slightly twisted pieces) she stays on it too, instead of
+	# hopping off every crease and plopping back down (Hayden, 14 Nov 2026, Observatory Hill). Over a real lip (the top
+	# of a ramp or a quarter pipe, much more than a crease) she still flies off.
+	var along := v.y <= 0.3 or v.dot(_ground_n) <= 0.3
+	if not _grounded and was and on_ground and along:
 		var hit := p.move_and_collide(-_ground_n * SNAP, true)
-		if hit and hit.get_normal().y > FLOOR_MIN_Y:
+		if hit and hit.get_normal().y > FLOOR_MIN_Y and (v.y <= 0.3 or hit.get_normal().angle_to(_ground_n) < CREASE):
 			p.global_position += hit.get_travel()
 			_ground_n = hit.get_normal()
 			_grounded = true
@@ -560,6 +580,9 @@ func _step_up(from: Transform3D, flat: Vector3, v: Vector3) -> bool:
 	_ground_n = down.get_normal()
 	_grounded = true
 	p.velocity = v
+	if flat.length() > 3.0 and bool(Settings.bumps):
+		Juice.rumble(0.12, 0.05)                          # a little clack of the wheels up the kerb
+		Juice.blip("tick", 0.6, -18.0)
 	return true
 
 
