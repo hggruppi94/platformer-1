@@ -97,12 +97,15 @@ func _check_quake() -> void:
 	var ground: Vector3 = rem.ground_at(w.at + Vector2(6.0, 0.0))
 	check(absf(p.global_position.y - ground.y) < 0.6 and p.global_position.y > -0.5, "...on dry ground (y %.2f)" % p.global_position.y)
 	check(p.get_node_or_null("Ring") == null and p.get_node_or_null("Swirl") != null, "it's a crack in the ground: nothing rises out of it")
-	check(rem.ground_at(w.at).y < p.global_position.y - 3.0, "...a real hole: the ground's gone under it (down to %.1f)" % rem.ground_at(w.at).y)
+	var dq := PhysicsRayQueryParameters3D.create(p.global_position + Vector3(0, 20, 0), p.global_position + Vector3(0, -20, 0))
+	dq.exclude = [(p.get_node("Cover") as CollisionObject3D).get_rid()]     # (its unseen cover: you go in by Interact)
+	var down := (current_scene as Node3D).get_world_3d().direct_space_state.intersect_ray(dq)
+	check(not down.is_empty() and (down.position as Vector3).y < p.global_position.y - 3.0, "...a real hole: the ground's gone under it (down to %.1f)" % ((down.position as Vector3).y if down else 0.0))
 	check(p.get_node_or_null("Broken Earth") != null and p.get_node_or_null("Fissures") != null, "...with broken earth and glowing cracks round it")
 	check((p.get_node("Fall") as Area3D).monitoring, "...and it's open to jump in")
 	check(root.get_node("DivineMind").said.any(func(l: String) -> bool: return l.contains("crack")), "a voice in your mind says a crack has opened")
 	check(p.get_node_or_null("Spot") != null, "the crack can be used")
-	check(portals._portal_offer("shard_isle") == "look down the crack to Shard Isle", "it offers a look down to Shard Isle")
+	check(p.get_node("Spot").what() == "jump in to Shard Isle", "it says Press E to jump in to Shard Isle (%s)" % p.get_node("Spot").what())
 	check(portals.next_due() == "", "the quake only happens once")
 	# Nothing else should be standing where it rose
 	var space := (current_scene as Node3D).get_world_3d().direct_space_state
@@ -139,16 +142,14 @@ func _check_preview() -> void:
 	player.global_position = p.global_position + p.global_basis.z * 30.0 + Vector3(0, 1, 0)
 	await _frames(3)
 	check(p.get_node_or_null("Preview") == null, "walking off puts it to sleep again")
-	# Going in through the portal's question
-	player.global_position = p.global_position + p.global_basis.z * 2.0 + Vector3(0, 1, 0)
-	portals._use_portal("shard_isle")
-	check(dialogue.is_active(), "looking down the crack asks first")
-	dialogue.end()
-	await _frames(4)
-	check(current_scene.scene_file_path == TOWN, "saying \"Not now\" keeps you in the Void")
-	# Jumping in: drop into the middle of the crack
+	# Walking onto it doesn't drop you in (Hayden, 14 Nov 2026: an interact prompt instead of falling in)
 	player.global_position = p.global_position + Vector3(0, 1.2, 0)
 	(player as CharacterBody3D).velocity = Vector3.ZERO
+	await _physics(40)
+	check(current_scene.scene_file_path == TOWN and player.get("carried") != true and player.global_position.y > p.global_position.y - 0.2,
+		"standing on the crack keeps you in the Void")
+	# Jumping in: Interact at it
+	p.get_node("Spot").use()
 	for i in 400:
 		await physics_frame
 		if current_scene == null or current_scene.scene_file_path == ISLE:
@@ -245,6 +246,9 @@ func _check_back_home() -> void:
 	var me := current_scene.get_tree().get_first_node_in_group("player") as CharacterBody3D
 	me.global_position = home.global_position + Vector3(0, 1.2, 0)
 	me.velocity = Vector3.ZERO
+	await _physics(30)
+	check(current_scene.scene_file_path == ISLE and me.get("carried") != true, "standing on the way home doesn't drop you in")
+	home.get_node("Spot").use()
 	for i in 400:
 		await physics_frame
 		if current_scene == null or current_scene.scene_file_path == TOWN:

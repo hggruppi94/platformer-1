@@ -57,10 +57,7 @@ func _place_shared() -> void:
 		home.add_child(_way_home)
 		_way_home.global_position = _ground_under(home.global_position)
 		Portals.CRACK.sink(_way_home, self)
-		var spot := USE_SPOT.make(Vector3(0, 0, -(Portals.CRACK.R + 1.0)), func() -> String: return "jump in to go home to the Void",
-			func() -> void: Portals.CRACK.drop_player(_way_home), 2.4, 3.0)
-		spot.name = "Spot"
-		_way_home.add_child(spot)
+		Portals.CRACK.add_prompt(_way_home, func() -> String: return "to go home", "Spot")
 		var sign := Label3D.new()
 		sign.text = "Way home"
 		sign.font_size = 64

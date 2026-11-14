@@ -150,6 +150,10 @@ func _ready() -> void:
 	var sunken := (load("res://scripts/sunken_secrets.gd") as GDScript).new() as Node
 	sunken.name = "Sunken"
 	add_child(sunken)
+	# Rare fish for the Aquarium, for swimmers too (scripts/rare_fish.gd, quests/aquarium.json)
+	var fish := (load("res://scripts/rare_fish.gd") as GDScript).new() as Node
+	fish.name = "Fish"
+	add_child(fish)
 	# The Seer and the Wizard Lizard, principal (scripts/council.gd): "Watches/Council.fortune"
 	var council := (load("res://scripts/council.gd") as GDScript).new() as Node
 	council.name = "Council"
