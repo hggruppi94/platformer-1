@@ -269,6 +269,7 @@ func _build() -> void:
 	_floor_3_extras()
 	_hidden_stair()
 	_roof()
+	_lower_level()
 	_foyer_dressing()
 	_palace()
 	_grounds()
@@ -353,10 +354,19 @@ func _shell() -> void:
 	for f in 3:
 		var y := f * FLOOR_H
 		var slab := node("Slab %d" % (f + 1), shell)
+		var stair_strip := Rect2(SPLIT_X, Z_N, X_E - SPLIT_X, Z_S - Z_N)
+		if f < 2:
+			# The hidden stair goes on down through floors 2 and 1 to the lower level, so the strip along the east edge
+			# is a slab of its own with a round hole for it (_hidden_stair); floor 1 boxes it in all round.
+			holed_slab(slab, "Stair Floor", stair_strip, HIDDEN_STAIR, Vector2(STAIR_R + 0.1, STAIR_R + 0.1), y, 0.3,
+				floors[f], pal("Palace Trim", P_TRIM, 0.6), -1.0, 40)
 		if f == 1:
 			# Floor 2 is open over the library: an oval hole the library rises through (_library_atrium)
-			holed_slab(slab, "Gallery Floor", Rect2(X_W, Z_N, X_E - X_W, Z_S - Z_N), LIBRARY_AT, LIBRARY_HOLE, y, 0.3, floors[f],
+			holed_slab(slab, "Gallery Floor", Rect2(X_W, Z_N, SPLIT_X - X_W, Z_S - Z_N), LIBRARY_AT, LIBRARY_HOLE, y, 0.3, floors[f],
 				pal("Palace Trim", P_TRIM, 0.6))
+			continue
+		if f == 0:
+			solid_box(Vector3(SPLIT_X - X_W, 0.3, Z_S - Z_N), floors[f], Vector3((X_W + SPLIT_X) / 2, y - 0.15, (Z_N + Z_S) / 2), slab)
 			continue
 		if f == 2:
 			# Floor 3 has a round hole in its secret hallway for the hidden stair down (_hidden_stair)
@@ -692,7 +702,7 @@ func secret_panel(parent: Node, at: Vector2, yaw: float) -> void:
 
 func sliver(parent: Node, at: Vector2, along_x: bool, required: int) -> void:
 	# Fills a doorway with wall, leaving a narrow shimmering slit that opens at the required MP level
-	var s := node("Sliver", parent, Vector3(at.x, 0, at.y), 0.0 if along_x else PI / 2)
+	var s := node("Sliver" if along_x else "Sliver East", parent, Vector3(at.x, 0, at.y), 0.0 if along_x else PI / 2)
 	s.set_script(load("res://scripts/sliver.gd"))
 	s.set("required_mp_level", required)
 	var slit := 0.9
@@ -1132,6 +1142,13 @@ const HIDDEN_STAIR := Vector2(28.55, -14)          # the spiral stair from floor
 const ROOF_HOLE := Rect2(-39, 5.5, 5.5, 12.5)    # the opening in the roof over the atrium the escalators up go through
 const ROOF_Y := 3 * FLOOR_H                      # the roof: the palm terrace, the roof garden and the 4th floor's pavilion
 const STAIR_R := 1.3
+const LOW_Y := -FLOOR_H                          # the hidden lower level's floor (slice 4), under floor 1 and the lawns
+const TUNNEL_W := 2.4                             # the service tunnels: as wide as a door...
+const TUNNEL_H := 3.2                             # ...and a little taller (their ceilings stay under the pool's floor)
+const LOGIA := Rect2(-12, -14, 24, 16)            # the Logia chambers, right under the library
+const PLANT_ROOM := Rect2(40, -38, 20, 8)          # the pool's plant room, north of the pool
+const HATCH_R := 1.2                              # the spiral down from the maze's hatch
+const SPLIT_X := 26.0                             # floors 1 and 2 are two slabs either side of this, for the stair's hole
 
 # The palette, straight (not run through theme.gd's tint: these are the picture's own colours)
 const P_STONE := Color(0.80, 0.73, 0.93)
@@ -1695,8 +1712,14 @@ func _grounds() -> void:
 	# Lawns, top at y 0, round the building and the east side's pool, quad and bowl
 	var pieces := [Rect2(-72, -40, 32, 103), Rect2(-40, -40, 74, 16), Rect2(-40, 24, 74, 39), Rect2(30, -24, 4, 48),
 		Rect2(34, 57, 44, 6), Rect2(34, 26, 4, 31), Rect2(74, 26, 4, 31)]
+	var hatch := maze_hatch()
 	for r: Rect2 in pieces:
 		var deep := 2.6
+		if r.has_point(hatch.at):
+			# The lawn the hedge maze stands on has a round hole in one dead end: the hatch down (_lower_level)
+			holed_slab(g, "Lawn", r, hatch.at, Vector2(HATCH_R + 0.1, HATCH_R + 0.1), 0.0, deep, lawn,
+				pal("Hidden Stone", Color(0.55, 0.5, 0.7), 0.9), -1.0, 40)
+			continue
 		var body := solid_box(Vector3(r.size.x, deep, r.size.y), lawn, Vector3(r.get_center().x, -deep / 2, r.get_center().y), g)
 		body.name = "Lawn"
 	solid_box(Vector3(8, 0.4, 3.5), paving, Vector3(0, -0.2, 64.75), g).name = "Way Out"
@@ -1981,10 +2004,9 @@ func _palm_grove() -> void:
 	label(p, "Palm Grove", Vector3(-55.5, 4.0, 17.2), 0.0, 56)
 
 
-func _hedge_maze() -> void:
-	# The hedge maze south-west of the school, the same every time (a seeded maze over MAZE_N cells), with flowering
-	# hedges, a crescent sign at the way in, willow arches to crawl under and a crescent-moon sundial at its heart.
-	var m := node("Hedge Maze", school, Vector3(MAZE_AT.x, 0, MAZE_AT.y))
+func _maze_open() -> Array:
+	# The maze's cells and which sides of each are open, the same every time (seeded). The lawn under it needs it
+	# too (_grounds cuts the hatch down to the service tunnels in one of its dead ends), so it's worked out here.
 	var nx := MAZE_N.x
 	var nz := MAZE_N.y
 	var rng := RandomNumberGenerator.new()
@@ -2016,6 +2038,37 @@ func _hedge_maze() -> void:
 		stack.append(nc)
 	open[0 * nx + nx - 1].append("e")                   # the way in, facing the forecourt
 	open[(nz - 1) * nx + 0].append("w")                 # and a way out onto the cart loop
+	return open
+
+
+func maze_hatch() -> Dictionary:
+	# The dead end with the hatch down to the service tunnels (slice 4): the one furthest from the way in that sits
+	# over the lawn piece east of x -40 (its hole has to be inside that one slab). "at" is its middle (x, z) and "open"
+	# the angle its one open side faces, so the spiral down starts where she walks in.
+	var open := _maze_open()
+	var best := {}
+	var far := -1
+	for cy in MAZE_N.y:
+		for cx in MAZE_N.x:
+			var o: Array = open[cy * MAZE_N.x + cx]
+			var at := MAZE_AT + Vector2((cx + 0.5) * MAZE_CELL, (cy + 0.5) * MAZE_CELL)
+			if o.size() != 1 or at.x - HATCH_R < -39.4 or Vector2i(cx, cy) == Vector2i(MAZE_N.x / 2, MAZE_N.y / 2):
+				continue
+			var d := absi(cx - (MAZE_N.x - 1)) + cy
+			if d > far:
+				far = d
+				var face := {"n": -PI / 2, "s": PI / 2, "e": 0.0, "w": PI}
+				best = {"at": at, "open": face[o[0]], "cell": Vector2i(cx, cy)}
+	return best
+
+
+func _hedge_maze() -> void:
+	# The hedge maze south-west of the school, the same every time (a seeded maze over MAZE_N cells), with flowering
+	# hedges, a crescent sign at the way in, willow arches to crawl under and a crescent-moon sundial at its heart.
+	var m := node("Hedge Maze", school, Vector3(MAZE_AT.x, 0, MAZE_AT.y))
+	var nx := MAZE_N.x
+	var nz := MAZE_N.y
+	var open := _maze_open()
 	var h := 2.6
 	var t := 0.8
 	var hedge := pal("Hedge", P_HEDGE, 0.95)
@@ -2661,17 +2714,34 @@ func _floor_3_extras() -> void:
 
 
 func _hidden_stair() -> void:
-	# A narrow spiral stair inside floor 3's secret hallway, winding down two turns to Behind the Walls on floor 2:
-	# the two hidden routes join up. (The lower level it will reach later is still to be built.)
+	# A narrow spiral stair inside floor 3's secret hallway, winding down past Behind the Walls on floor 2 (the two
+	# hidden routes join up there) and on down, boxed in on floor 1, to the lower level's tunnels (_lower_level).
 	var s := node("Hidden Stair", school, Vector3(HIDDEN_STAIR.x, 0, HIDDEN_STAIR.y))
+	var start := PI / 2                             # every landing is on the south side, along the hallway
+	spiral(s, STAIR_R, 2 * FLOOR_H, LOW_Y, 6.0, start)
+	s.set_meta("start", start)                     # for tools/test_school_floors.gd
+	s.set_meta("turns", 6.0)
+	# a rail round the hole up on floor 3 except where the top step leaves, and round floor 2's except its landing
+	stair_rail(s, STAIR_R + 0.15, 2 * FLOOR_H, start + PI / 3, start + TAU - 0.2)
+	stair_rail(s, STAIR_R + 0.15, FLOOR_H, start + 0.6, start + TAU - 0.6)
+	# floor 1 never sees it: a round stone wall all the way round, slab to slab
+	var hide := pal("Hidden Stone", Color(0.55, 0.5, 0.7), 0.9)
+	arc_wall(node("Floor 1 Casing", s), Vector2.ZERO, STAIR_R + 0.25, 0.0, TAU, pal("Wall 1", Color(0.86, 0.79, 0.96), 0.8), 16)
+	# and down below, a round shaft with an opening south into the tunnel
+	var gap := asin(TUNNEL_W / 2 / (STAIR_R + 0.25)) + 0.05
+	var foot := node("Stair Foot", s, Vector3(0, LOW_Y, 0))
+	arc_wall(foot, Vector2.ZERO, STAIR_R + 0.25, start + gap, start + TAU - gap, hide, 14, TUNNEL_H)
+	arc_wall(node("Stair Foot Top", s, Vector3(0, LOW_Y + TUNNEL_H, 0)), Vector2.ZERO, STAIR_R + 0.25, 0.0, TAU, hide, 16,
+		-LOW_Y - TUNNEL_H - 0.3)
+	solid_box(Vector3(3.6, 0.3, 3.6), hide, Vector3(0, -0.15, 0), foot)
+
+
+func spiral(s: Node3D, r_out: float, top: float, bottom: float, turns: float, start: float) -> void:
+	# A spiral stair round s's middle from top down to bottom: a smooth helix to walk on (a stair you can't trip on)
+	# with steps drawn on top, a centre column and a dim glow every few metres. It leaves the top at angle start.
 	var stone := pal("Hidden Stone", Color(0.55, 0.5, 0.7), 0.9)
-	var turns := 2.0
-	var steps := 36
-	var top := 2 * FLOOR_H
-	var bottom := FLOOR_H
-	var start := PI / 2                             # the top step leaves floor 3 on the south side, along the hallway
+	var steps := int(round(turns * 18))
 	var inner := 0.22
-	# Walking surface: a smooth helix (a stair you can't trip on), steps drawn on top of it
 	var faces := PackedVector3Array()
 	var n := steps * 3
 	for k in n:
@@ -2682,9 +2752,9 @@ func _hidden_stair() -> void:
 		var y0 := lerpf(top, bottom, t0) - 0.02
 		var y1 := lerpf(top, bottom, t1) - 0.02
 		var i0 := Vector3(cos(a0) * inner, y0, sin(a0) * inner)
-		var o0 := Vector3(cos(a0) * STAIR_R, y0, sin(a0) * STAIR_R)
+		var o0 := Vector3(cos(a0) * r_out, y0, sin(a0) * r_out)
 		var i1 := Vector3(cos(a1) * inner, y1, sin(a1) * inner)
-		var o1 := Vector3(cos(a1) * STAIR_R, y1, sin(a1) * STAIR_R)
+		var o1 := Vector3(cos(a1) * r_out, y1, sin(a1) * r_out)
 		faces.append_array(PackedVector3Array([i0, o0, o1, i0, o1, i1]))
 	var body := StaticBody3D.new()
 	body.name = "Stair Ramp"
@@ -2699,30 +2769,314 @@ func _hidden_stair() -> void:
 	for k in steps:
 		var a := start + TAU * turns * (k + 0.5) / steps
 		var y := lerpf(top, bottom, (k + 0.5) / steps)
-		var mid := (inner + STAIR_R) / 2
-		treads.append([box(Vector3(STAIR_R - inner, 0.12, 0.42)), Transform3D(Basis(Vector3.UP, -a), Vector3(cos(a) * mid, y - 0.08, sin(a) * mid))])
+		var mid := (inner + r_out) / 2
+		treads.append([box(Vector3(r_out - inner, 0.12, 0.42)), Transform3D(Basis(Vector3.UP, -a), Vector3(cos(a) * mid, y - 0.08, sin(a) * mid))])
 	merged_at(treads, stone, s, "Steps")
-	solid_cylinder(inner, top - bottom + 1.0, stone, Vector3(0, (top + bottom) / 2 + 0.5, 0), s)
-	# a dim glow on the way down, and a rail round the hole up on floor 3 except where the top step leaves
-	for y in [bottom + 1.8, (top + bottom) / 2 + 1.5]:
+	solid_cylinder(inner, top - bottom, stone, Vector3(0, (top + bottom) / 2, 0), s)
+	var y := bottom + 1.8
+	while y < top:
 		var o := OmniLight3D.new()
 		o.position = Vector3(0, y, 0)
 		o.light_color = Color(0.7, 0.55, 1.0)
 		o.light_energy = 0.6
 		o.omni_range = 4.0
 		s.add_child(o)
+		y += 4.5
+
+
+func stair_rail(s: Node3D, r: float, y: float, a_from: float, a_to: float) -> void:
+	# A gold rail round a stair's hole at height y, from angle a_from round to a_to (the gap is where you step on)
 	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
 	var posts := []
 	for k in 12:
-		var a0 := start + PI / 3 + (TAU - PI / 3 - 0.2) * k / 12.0
-		var a1 := start + PI / 3 + (TAU - PI / 3 - 0.2) * (k + 1) / 12.0
-		var p0 := Vector3(cos(a0), 0, sin(a0)) * (STAIR_R + 0.15)
-		var p1 := Vector3(cos(a1), 0, sin(a1)) * (STAIR_R + 0.15)
+		var a0 := lerpf(a_from, a_to, k / 12.0)
+		var a1 := lerpf(a_from, a_to, (k + 1) / 12.0)
+		var p0 := Vector3(cos(a0), 0, sin(a0)) * r
+		var p1 := Vector3(cos(a1), 0, sin(a1)) * r
 		var mid := (p0 + p1) / 2
-		static_box(s, Vector3(0.1, 1.0, p0.distance_to(p1) + 0.05), Vector3(mid.x, top + 0.5, mid.z), atan2(p1.x - p0.x, p1.z - p0.z))
-		posts.append([box(Vector3(0.08, 0.08, p0.distance_to(p1) + 0.05)), Transform3D(Basis(Vector3.UP, atan2(p1.x - p0.x, p1.z - p0.z)), mid + Vector3(0, top + 1.0, 0))])
-		posts.append([cylinder(0.03, 0.03, 1.0, 6), xf(p0 + Vector3(0, top + 0.5, 0))])
-	merged_at(posts, gold, s, "Rail")
+		var yaw := atan2(p1.x - p0.x, p1.z - p0.z)
+		static_box(s, Vector3(0.1, 1.0, p0.distance_to(p1) + 0.05), Vector3(mid.x, y + 0.5, mid.z), yaw)
+		posts.append([box(Vector3(0.08, 0.08, p0.distance_to(p1) + 0.05)), Transform3D(Basis(Vector3.UP, yaw), mid + Vector3(0, y + 1.0, 0))])
+		posts.append([cylinder(0.03, 0.03, 1.0, 6), xf(p0 + Vector3(0, y + 0.5, 0))])
+	merged_at(posts, gold, s, "Rail %d" % int(y))
+
+
+# ----------------------------------------------------------------------------- The hidden lower level (slice 4)
+func _lower_level() -> void:
+	# Under the school: the Logia chambers under the library, where a secret society meets by candlelight, and narrow
+	# service tunnels out from them: west to a hatch in one of the hedge maze's dead ends, east to the foot of the
+	# hidden stair from floor 3, and on to the pool's plant room. Nothing up top shows it's there.
+	var low := node("Lower Level", school)
+	var stone := pal("Vault Stone", Color(0.30, 0.26, 0.42), 0.95)
+	var floor_m := pal("Vault Floor", Color(0.22, 0.2, 0.32), 0.9)
+	var hatch := maze_hatch()
+	var lz := LOGIA.get_center().y
+	var hw := TUNNEL_W / 2
+	var tunnels := node("Service Tunnels", low)
+	# Where a tunnel meets a round shaft: its walls touch the shaft's wall at the opening's edges
+	var meet := sqrt(pow(HATCH_R + 0.35, 2) - hw * hw)
+	var west: Array = [Vector2(LOGIA.position.x, lz), Vector2(hatch.at.x, lz), Vector2(hatch.at.x, hatch.at.y - meet)]
+	tunnel(tunnels, "West Tunnel", west, [], stone, floor_m)
+	var junction := Vector2(HIDDEN_STAIR.x, lz - hw)
+	var east: Array = [Vector2(LOGIA.end.x, lz), Vector2(36, lz), Vector2(36, PLANT_ROOM.get_center().y),
+		Vector2(PLANT_ROOM.position.x, PLANT_ROOM.get_center().y)]
+	tunnel(tunnels, "East Tunnel", east, [junction], stone, floor_m)
+	var stair_meet := sqrt(pow(STAIR_R + 0.25, 2) - hw * hw)
+	tunnel(tunnels, "Stair Tunnel", [junction, Vector2(HIDDEN_STAIR.x, HIDDEN_STAIR.y + stair_meet)], [], stone, floor_m)
+	label(tunnels, "To the Hedge Maze", Vector3(LOGIA.position.x - 3, LOW_Y + 2.6, lz), PI / 2, 40)
+	label(tunnels, "To the Hidden Stair", Vector3(HIDDEN_STAIR.x, LOW_Y + 2.6, lz), 0.0, 40)
+	label(tunnels, "To the Pool Plant Room", Vector3(36, LOW_Y + 2.6, lz - 3), 0.0, 40)
+	_logia(low, stone, floor_m)
+	_plant_room(low, stone, floor_m)
+	_maze_hatch(low, hatch, stone, floor_m)
+
+
+func tunnel(parent: Node, name: String, pts: Array, gaps: Array, wall_mat: Material, floor_mat: Material) -> void:
+	# A narrow tunnel along an axis-aligned path (x, z) on the lower level: floor, ceiling, walls each side (open at
+	# both ends, where it meets a room or a shaft), lamps, and pipes along the ceiling. gaps: points on its walls where
+	# another tunnel comes in.
+	var t := node(name, parent, Vector3(0, LOW_Y, 0))
+	var hw := TUNNEL_W / 2
+	var last := pts.size() - 1
+	var normals := []
+	for i in last:
+		var d: Vector2 = ((pts[i + 1] as Vector2) - (pts[i] as Vector2)).normalized()
+		normals.append(Vector2(-d.y, d.x))
+	var left := []
+	var right := []
+	for i in pts.size():
+		var m: Vector2 = normals[0] if i == 0 else (normals[last - 1] if i == last else normals[i - 1] + normals[i])
+		left.append((pts[i] as Vector2) + m * hw)
+		right.append((pts[i] as Vector2) - m * hw)
+	var pipes := []
+	var lamps := []
+	for i in last:
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[i + 1]
+		var d := (b - a).normalized()
+		var a2 := a - d * (hw if i > 0 else 0.0)
+		var b2 := b + d * (hw if i + 1 < last else 0.0)
+		var mid := (a2 + b2) / 2
+		var along_x := absf(d.x) > 0.5
+		var size := Vector3(absf(b2.x - a2.x) if along_x else TUNNEL_W + 0.3, 0.3, TUNNEL_W + 0.3 if along_x else absf(b2.y - a2.y))
+		solid_box(size, floor_mat, Vector3(mid.x, -0.15, mid.y), t)
+		solid_box(size, wall_mat, Vector3(mid.x, TUNNEL_H + 0.15, mid.y), t)
+		for side in [left, right]:
+			var p0: Vector2 = side[i]
+			var p1: Vector2 = side[i + 1]
+			var doors := []
+			for g: Vector2 in gaps:
+				var len := p0.distance_to(p1)
+				var f := (g - p0).dot((p1 - p0) / len)
+				if f > 0.0 and f < len and absf((g - p0).cross((p1 - p0) / len)) < 0.1:
+					doors.append(f / len)
+			wall(t, p0, p1, wall_mat, doors, TUNNEL_H, 0.3)
+		# two pipes along one side, just under the ceiling, and a lamp every 8 m
+		var n: Vector2 = normals[i]
+		var length := a2.distance_to(b2)
+		for k in 2:
+			var off := n * (hw - 0.3 - k * 0.3)
+			var q := mid + off
+			pipes.append([cylinder(0.09, 0.09, length, 8), xf(Vector3(q.x, TUNNEL_H - 0.25 - k * 0.12, q.y),
+				Vector3(PI / 2, 0, 0) if not along_x else Vector3(0, 0, PI / 2))])
+		var count := maxi(1, int(length / 8.0))
+		for k in count:
+			var q := a2 + d * (length * (k + 0.5) / count)
+			lamps.append([box(Vector3(0.5, 0.08, 0.5)), xf(Vector3(q.x, TUNNEL_H - 0.05, q.y))])
+			var o := OmniLight3D.new()
+			o.position = Vector3(q.x, TUNNEL_H - 0.4, q.y)
+			o.light_color = Color(1.0, 0.78, 0.5)
+			o.light_energy = 0.9
+			o.omni_range = 6.5
+			t.add_child(o)
+	merged_at(pipes, pal("Pipe", Color(0.55, 0.62, 0.7), 0.4, 0.7), t, "Pipes")
+	merged_at(lamps, pal("Lamp Glow", P_GLOW, 0.3, 0.0, 2.2), t, "Lamps")
+
+
+func _logia(low: Node3D, stone: Material, floor_m: Material) -> void:
+	# The Logia chambers: a stone vault under the library with pillars, a round table of eight high-backed chairs
+	# lit by candles, a glowing ring on the floor round it, the archive's shelves, robes on hooks and moon banners.
+	var r := LOGIA
+	var lz := r.get_center().y
+	var h := -LOW_Y - 0.5                          # up to just under floor 1's slab
+	var lg := node("Logia Chambers", low, Vector3(0, LOW_Y, 0))
+	solid_box(Vector3(r.size.x + 0.3, 0.3, r.size.y + 0.3), floor_m, Vector3(r.get_center().x, -0.15, lz), lg)
+	var roof := solid_box(Vector3(r.size.x + 0.3, 0.3, r.size.y + 0.3), stone, Vector3(r.get_center().x, h + 0.15, lz), lg)
+	roof.add_to_group("underground", true)
+	var nw := r.position
+	var ne := Vector2(r.end.x, r.position.y)
+	var se := r.end
+	var sw := Vector2(r.position.x, r.end.y)
+	wall(lg, nw, ne, stone, [], h)
+	wall(lg, sw, se, stone, [], h)
+	wall(lg, nw, sw, stone, [0.5], h)
+	wall(lg, ne, se, stone, [0.5], h)
+	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
+	for px in [-7.0, 7.0]:
+		for pz in [r.position.y + 3.0, r.end.y - 3.0]:
+			solid_cylinder(0.5, h, stone, Vector3(px, h / 2, pz), lg)
+			mesh_at(cylinder(0.65, 0.65, 0.2, 16), gold, Vector3(px, h - 0.4, pz), lg)
+			mesh_at(cylinder(0.65, 0.65, 0.2, 16), gold, Vector3(px, 0.1, pz), lg)
+	# the table, its chairs and candles, and the ring on the floor
+	var wood := pal("Logia Wood", Color(0.32, 0.18, 0.22), 0.6)
+	var t := node("Round Table", lg, Vector3(0, 0, lz))
+	solid_cylinder(2.3, 0.12, wood, Vector3(0, 0.86, 0), t)
+	solid_cylinder(0.45, 0.8, wood, Vector3(0, 0.4, 0), t)
+	var chair := pal("Chair Velvet", Color(0.42, 0.16, 0.42), 0.8)
+	var backs := []
+	var candles := []
+	var flames := []
+	for k in 8:
+		var a := TAU * k / 8.0 + PI / 8
+		var at := Vector3(cos(a), 0, sin(a))
+		solid_box(Vector3(0.8, 0.5, 0.8), chair, at * 3.1 + Vector3(0, 0.25, 0), t, atan2(at.x, at.z))
+		backs.append([box(Vector3(0.8, 2.2, 0.15)), xf(at * 3.55 + Vector3(0, 1.1, 0), Vector3(0, atan2(at.x, at.z), 0))])
+		backs.append([sphere(0.16, 8), xf(at * 3.55 + Vector3(0, 2.3, 0))])
+		var c := at * 1.6 + Vector3(0, 0.92, 0)
+		candles.append([cylinder(0.05, 0.06, 0.32, 8), xf(c + Vector3(0, 0.16, 0))])
+		flames.append([sphere(0.05, 6), xf(c + Vector3(0, 0.38, 0), Vector3.ZERO, Vector3(1, 1.6, 1))])
+	merged_at(backs, chair, t, "Chair Backs")
+	merged_at(candles, pal("Candle", Color(0.98, 0.94, 0.85), 0.6), t, "Candles")
+	merged_at(flames, pal("Candle Flame", Color(1.0, 0.7, 0.3), 0.3, 0.0, 4.0), t, "Flames")
+	var ring := TorusMesh.new()
+	ring.inner_radius = 4.3
+	ring.outer_radius = 4.6
+	ring.rings = 48
+	var glow := mesh_at(ring, pal("Sigil Glow", Color(0.7, 0.5, 1.0), 0.4, 0.0, 2.5), Vector3(0, 0.02, 0), t)
+	glow.scale = Vector3(1, 0.1, 1)
+	var star := []
+	for k in 4:
+		star.append([box(Vector3(9.6, 0.02, 0.12)), xf(Vector3(0, 0.02, 0), Vector3(0, PI * k / 4.0, 0))])
+	merged_at(star, pal("Sigil Glow", Color()), t, "Sigil")
+	var warm := OmniLight3D.new()
+	warm.position = Vector3(0, 2.4, 0)
+	warm.light_color = Color(1.0, 0.72, 0.42)
+	warm.light_energy = 1.6
+	warm.omni_range = 10.0
+	t.add_child(warm)
+	# candles along the north wall's ledge, the archive's shelves, robes on the south wall, banners
+	var ledge := []
+	var wall_candles := []
+	var wall_flames := []
+	for k in 7:
+		var x := r.position.x + 2.0 + k * 3.33
+		ledge.append([box(Vector3(1.4, 0.12, 0.5)), xf(Vector3(x, 1.6, r.position.y + 0.4))])
+		for q in 3:
+			var c := Vector3(x - 0.4 + q * 0.4, 1.66, r.position.y + 0.4)
+			wall_candles.append([cylinder(0.05, 0.06, 0.25 + q % 2 * 0.15, 8), xf(c + Vector3(0, 0.13 + q % 2 * 0.07, 0))])
+			wall_flames.append([sphere(0.05, 6), xf(c + Vector3(0, 0.33 + q % 2 * 0.15, 0), Vector3.ZERO, Vector3(1, 1.6, 1))])
+		if k % 2 == 0:
+			var o := OmniLight3D.new()
+			o.position = Vector3(x, 2.4, r.position.y + 1.0)
+			o.light_color = Color(1.0, 0.7, 0.4)
+			o.light_energy = 0.7
+			o.omni_range = 5.0
+			lg.add_child(o)
+	merged_at(ledge, stone, lg, "Candle Ledge")
+	merged_at(wall_candles, pal("Candle", Color()), lg, "Wall Candles")
+	merged_at(wall_flames, pal("Candle Flame", Color()), lg, "Wall Flames")
+	var archive := node("Archive", lg, Vector3(-8.5, 0, r.end.y - 0.6))
+	var shelf := pal("Bookshelf Navy", P_NAVY, 0.8)
+	var spines := []
+	for k in 3:
+		solid_box(Vector3(1.6, 3.4, 0.7), shelf, Vector3(-1.7 + k * 1.7, 1.7, 0), archive)
+		for row in 5:
+			spines.append([box(Vector3(1.4, 0.45, 0.72)), xf(Vector3(-1.7 + k * 1.7, 0.4 + row * 0.62, 0))])
+	merged_at(spines, pal("Book 3", Color(0.7, 0.55, 1.0), 0.7), archive, "Old Books")
+	label(archive, "Archive", Vector3(0, 3.9, -0.6), 0.0, 40)
+	var robes := []
+	var hoods := []
+	for k in 6:
+		var x := 4.0 + k * 1.2
+		robes.append([cylinder(0.14, 0.42, 1.7, 12), xf(Vector3(x, 1.25, r.end.y - 0.45))])
+		hoods.append([sphere(0.2, 10), xf(Vector3(x, 2.2, r.end.y - 0.45), Vector3.ZERO, Vector3(1, 1.1, 0.8))])
+	var robe := pal("Robe", Color(0.25, 0.16, 0.45), 0.9)
+	merged_at(robes, robe, lg, "Robes")
+	merged_at(hoods, robe, lg, "Hoods")
+	label(lg, "Robes", Vector3(7, 3.0, r.end.y - 0.6), 0.0, 40)
+	for x in [-3.0, 3.0]:
+		moon_banner(lg, Vector3(x, h - 0.6, r.position.y + 0.25), 0.0, 0.9)
+	label(lg, "The Logia Chambers", Vector3(0, 4.3, lz), 0.0, 72)
+
+
+func _plant_room(low: Node3D, stone: Material, floor_m: Material) -> void:
+	# The pool's plant room: humming pumps, two filter tanks, pipes up to the pool, valve wheels and a panel of
+	# glowing gauges, in blue light.
+	var r := PLANT_ROOM
+	var pr := node("Pool Plant Room", low, Vector3(0, LOW_Y, 0))
+	var cz := r.get_center().y
+	solid_box(Vector3(r.size.x + 0.3, 0.3, r.size.y + 0.3), floor_m, Vector3(r.get_center().x, -0.15, cz), pr)
+	var roof := solid_box(Vector3(r.size.x + 0.3, 0.3, r.size.y + 0.3), stone, Vector3(r.get_center().x, TUNNEL_H + 0.15, cz), pr)
+	roof.add_to_group("underground", true)
+	var nw := r.position
+	var ne := Vector2(r.end.x, r.position.y)
+	wall(pr, nw, ne, stone, [], TUNNEL_H)
+	wall(pr, Vector2(r.position.x, r.end.y), r.end, stone, [], TUNNEL_H)
+	wall(pr, nw, Vector2(r.position.x, r.end.y), stone, [0.5], TUNNEL_H)
+	wall(pr, ne, r.end, stone, [], TUNNEL_H)
+	var metal := pal("Pump Metal", Color(0.4, 0.62, 0.78), 0.35, 0.7)
+	var pipe := pal("Pipe", Color(0.55, 0.62, 0.7), 0.4, 0.7)
+	var pipes := []
+	for k in 3:
+		var x := r.position.x + 4.0 + k * 4.0
+		var p := node("Pump %d" % (k + 1), pr, Vector3(x, 0, r.position.y + 2.0))
+		solid_cylinder(0.6, 1.2, metal, Vector3(0, 0.6, 0), p)
+		solid_box(Vector3(0.9, 0.7, 0.9), pal("Pump Motor", Color(0.25, 0.3, 0.45), 0.5, 0.5), Vector3(0, 1.55, 0), p)
+		pipes.append([cylinder(0.16, 0.16, TUNNEL_H - 1.9, 10), xf(Vector3(x, 1.9 + (TUNNEL_H - 1.9) / 2, r.position.y + 2.0))])
+		var wheel := TorusMesh.new()
+		wheel.inner_radius = 0.22
+		wheel.outer_radius = 0.3
+		mesh_at(wheel, pal("Valve Red", Color(0.9, 0.25, 0.4), 0.5, 0.3), Vector3(x + 0.7, 1.0, r.position.y + 2.0), pr, 0.0, Vector3(0, 0, PI / 2))
+	pipes.append([cylinder(0.2, 0.2, 12.0, 10), xf(Vector3(r.position.x + 8.0, TUNNEL_H - 0.4, r.position.y + 2.0), Vector3(0, 0, PI / 2))])
+	merged_at(pipes, pipe, pr, "Pipes")
+	for z in [cz - 1.0, cz + 2.0]:
+		solid_cylinder(0.9, 2.6, metal, Vector3(r.end.x - 2.0, 1.3, z), pr)
+		mesh_at(sphere(0.9, 16), metal, Vector3(r.end.x - 2.0, 2.6, z), pr).scale = Vector3(1, 0.4, 1)
+	label(pr, "Filters", Vector3(r.end.x - 2.0, 2.9, cz + 0.5), -PI / 2, 40)
+	# the gauges on the south wall, glowing
+	var panel := node("Gauge Panel", pr, Vector3(r.position.x + 8.0, 0, r.end.y - 0.3))
+	solid_box(Vector3(5.0, 1.6, 0.25), pal("Panel", Color(0.18, 0.2, 0.32), 0.5, 0.4), Vector3(0, 1.5, 0), panel)
+	var dials := []
+	for k in 5:
+		dials.append([cylinder(0.22, 0.22, 0.04, 16), xf(Vector3(-1.9 + k * 0.95, 1.7, -0.14), Vector3(PI / 2, 0, 0))])
+	merged_at(dials, pal("Gauge Glow", Color(0.5, 0.95, 1.0), 0.3, 0.0, 2.0), panel, "Gauges")
+	for k in 6:
+		mesh_at(sphere(0.06, 6), pal("Light %d" % (k % 3), [Color(0.4, 1.0, 0.6), Color(1.0, 0.85, 0.3), P_PINK][k % 3], 0.3, 0.0, 3.0),
+			Vector3(-2.0 + k * 0.8, 1.0, -0.14), panel)
+	var blue := OmniLight3D.new()
+	blue.position = Vector3(r.get_center().x, TUNNEL_H - 0.6, cz)
+	blue.light_color = Color(0.5, 0.85, 1.0)
+	blue.light_energy = 1.4
+	blue.omni_range = 12.0
+	pr.add_child(blue)
+	label(pr, "Pool Plant Room", Vector3(r.get_center().x, 2.6, cz), 0.0, 56)
+	label(pr, "To the Pool", Vector3(r.position.x + 8.0, TUNNEL_H - 0.9, r.position.y + 2.6), 0.0, 32)
+
+
+func _maze_hatch(low: Node3D, hatch: Dictionary, stone: Material, floor_m: Material) -> void:
+	# The hatch in a dead end of the hedge maze: its lid propped up against the hedge, a brass ring round the hole and
+	# a spiral down to the West Tunnel. It leaves the top towards the dead end's open side and comes out at the bottom
+	# facing north, where the tunnel comes in.
+	var at: Vector2 = hatch.at
+	var start: float = hatch.open
+	var h := node("Maze Hatch", low, Vector3(at.x, 0, at.y))
+	var bottom := -PI / 2
+	var turns := 2.0 + fposmod(bottom - start, TAU) / TAU
+	spiral(h, HATCH_R, 0.0, LOW_Y, turns, start)
+	h.set_meta("start", start)                     # for tools/test_school_floors.gd
+	h.set_meta("turns", turns)
+	var gap := asin(TUNNEL_W / 2 / (HATCH_R + 0.35)) + 0.05
+	var shaft := node("Hatch Shaft", h, Vector3(0, LOW_Y, 0))
+	arc_wall(shaft, Vector2.ZERO, HATCH_R + 0.35, bottom + gap, bottom + TAU - gap, stone, 14, -LOW_Y - 2.6)
+	solid_box(Vector3(3.4, 0.3, 3.4), floor_m, Vector3(0, -0.15, 0), shaft)
+	var brass := TorusMesh.new()
+	brass.inner_radius = HATCH_R + 0.1
+	brass.outer_radius = HATCH_R + 0.3
+	mesh_at(brass, pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), Vector3(0, 0.02, 0), h).scale = Vector3(1, 0.3, 1)
+	var dir := Vector3(cos(start), 0, sin(start))
+	var lid := mesh_at(box(Vector3(2.3, 0.12, 2.3)), pal("Hatch Wood", Color(0.45, 0.3, 0.25), 0.8), -dir * 1.15 + Vector3(0, 1.05, 0), h,
+		atan2(dir.x, dir.z), Vector3(-PI / 2 * 0.9, 0, 0))
+	lid.name = "Hatch Lid"
 
 
 # ----------------------------------------------------------------------------- The roof (slice 3)

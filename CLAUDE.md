@@ -121,6 +121,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   checks its home and that it really drifts into a lamp's light after you, no teleport. The Rainbow Ray's stripes are
   70% opaque (`rainbow_ray.gd` shader `opacity`). dark_hollow, arsenal, chaos_trials, world_detail and arena pass.
 
+- 2026-11-14: **The palace school, slice 4 of 4: the hidden lower level, and the centipede's jumpscare at every
+  Sliver** (the Void School Sensory Plan; Hayden: "Anytime you go into the sliver, the centipede should give you a
+  little jumpscare"). All in `tools/build_school.gd` (`_lower_level()`, rebuilt `school.tscn`) and `scripts/sliver.gd`.
+  Built and tested in the cloud.
+  - **The way down:** the Hidden Stair (`spiral()`) now goes all the way from floor 3 to the lower level (`LOW_Y`, 6 m
+    under the ground floor), boxed in on floor 1. A **hatch** in the hedge maze's furthest dead end (`maze_hatch()`, a
+    brass ring and a propped-up red lid) has its own spiral down.
+  - **Service tunnels** (`tunnel()`): lamps and pipes, from the maze hatch east to the Logia, on to the Hidden Stair's
+    foot, and on to the **pool plant room** (`_plant_room()`: pumps, filter tanks, a gauge panel). They echo.
+  - **The Logia Chambers** (`_logia()`) under the library: pillars, a round table of eight velvet chairs round a
+    glowing sigil, candles, archive shelves, robes and hoods, moon banners. Cave music down there.
+  - **The jumpscare** (`sliver.gd jumpscare()`): every time she goes in through a Sliver (not coming back out, at most
+    once every 3 s) the centipede's head drops down in front of the slit with a "BOO!", a skitter and a whisper, a
+    camera jolt and a rumble, then zips back up. No damage, nothing stops her. The second Sliver is now named
+    "Sliver East".
+  - `test_school_floors` walks the stair and the hatch's spiral down, every tunnel, the rooms and the jumpscare;
+    school_garden (skips the hatch's hole), council, dark_hollow, wall_crawl, lost_watches, doors, layout, walk_through,
+    map, world_detail, home_calls and audit_signs pass. 10 more views in `capture_school_look.gd` (shots in the project
+    files under world/previews/school_palace/slice4).
+  - My choices Hayden may change: what the Logia is like, where the hatch and plant room are, the jumpscare's look
+    and sound, scaring every time (not only the first).
+
 - 2026-11-14: **The palace school, slice 3 of 4: the 4th floor and the roof** (the Void School Sensory Plan). All in
   `tools/build_school.gd` (`_roof()`, rebuilt `school.tscn`). Built and tested in the cloud.
   - **The way up:** a third pair of escalators in the atrium from a new landing off floor 3's balcony through an
