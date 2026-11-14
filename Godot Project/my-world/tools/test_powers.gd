@@ -4,9 +4,10 @@ extends SceneTree
 # Bruno's shared making power (scripts/make.gd, quest "Making Things", res://quests/make_together.json).
 #
 # Kinetic: locked until Dash teaches it (no charge, an ordinary roll); his King conversation and the catch-up one for
-# old saves teach it and set the flag; running fills the charge (walking doesn't), the meter shows; a full charge makes
-# the next roll a burst: faster, empty again, and a Gloop close by pops; a big landing adds a bit; an empty roll is
-# just a roll.
+# old saves teach it and set the flag; running fills the charge (walking doesn't), the meter shows (a gold KE bar under
+# SP in the stats corner, not in the middle of the screen); a big landing adds a bit; a full charge does nothing to a
+# roll on foot (Hayden, 13 Nov 2026: no roll attack) but Flip on a ride, rolling along the ground, lets it out as a
+# boost: faster, empty again; not without a full charge, and not off the ride.
 # Make: locked (not on the Controls list, does nothing) until Bruno teaches it in the quest; on the ground it makes a
 # bridge out in front at your feet's height that you can walk along; in the air a step under you to land on, only one
 # a jump; two at once at most; they pop by themselves; three things tick the quest on, showing Nina finishes it; and a
@@ -69,13 +70,13 @@ func _run() -> void:
 	await _check_kinetic_locked()
 	await _check_kinetic_taught()
 	await _check_charge()
-	await _check_burst()
 	await _check_make_locked()
 	await _check_make_quest()
 	await _check_bridge()
 	await _check_step()
 	await _check_rb()
 	await _check_show_nina()
+	await _check_ride_boost()                  # last: riding turns the camera, which the walking checks lean on
 	_finish()
 
 
@@ -109,14 +110,14 @@ func _check_kinetic_locked() -> void:
 	await _reset(p)
 	k.add(0.5)
 	check(k.charge == 0.0, "before Dash teaches it, nothing charges")
-	check(k.roll_boost() == 1.0, "...and a roll is just a roll")
+	check(not k.can_boost() and not k.meter_shown(), "...there's no boost, and no meter")
 
 
 func _check_kinetic_taught() -> void:
 	var meetings := root.get_node("FirstNight/Meetings")
 	var lines: Array = meetings.king_from_dash()
 	check(dialogue.flags.has("kinetic_taught"), "Dash's King conversation teaches his kinetic trick")
-	check(lines.any(func(l: Variant) -> bool: return str(l).contains("{dash}")), "...saying how (roll with {dash})")
+	check(lines.any(func(l: Variant) -> bool: return str(l).contains("{skate_flip}")), "...saying how (Flip, {skate_flip}, on a ride)")
 	check(str(lines[lines.size() - 1]).contains("Pip"), "...and still sends you on to Pip last")
 	dialogue.flags.erase("kinetic_taught")
 	var again: Array = meetings.kinetic_from_dash()
@@ -155,39 +156,49 @@ func _check_charge() -> void:
 	check(k.charge >= before + k.LANDING_ADDS - 0.01, "a big landing adds a bit (%.2f -> %.2f)" % [before, k.charge])
 
 
-func _check_burst() -> void:
+func _check_ride_boost() -> void:
 	var p := _player()
 	var k := p.get_node("Kinetic")
+	var hud := p.get_node("HUD")
 	await _reset(p)
-	var gloop: Node3D = null
-	for e in get_nodes_in_group("enemies"):
-		if e is CharacterBody3D and str(e.name).begins_with("Gloop") and not e.get("defeated") and e.get("size") == 1.0:
-			gloop = e
-			break
-	if gloop == null:
-		for e in get_nodes_in_group("enemies"):
-			if e is CharacterBody3D and str(e.name).begins_with("Gloop") and not e.get("defeated"):
-				gloop = e
-				break
-	check(gloop != null, "(there's a Gloop to burst)")
-	if gloop:
-		gloop.global_position = p.global_position + Vector3(-4.0, 0.2, 0)
-		gloop.set_physics_process(false)
 	k.charge = 1.0
 	await _frames(2)
 	check(k.meter_shown(), "a full charge shows on the meter")
+	check(hud.panel.is_ancestor_of(hud.ke_bar), "...which is a bar in the stats corner (out of the way of the riding meters)")
+	check(not p.get_node("Kinetic").has_node("Kinetic HUD"), "...and not the old card in the middle of the screen")
 	game.sp = game.max_sp
 	p._try_roll(Vector3(1, 0, 0))
-	check(k.bursts == 1 and k.charge == 0.0, "rolling with a full charge lets it all out (empty again)")
-	check(is_equal_approx(p._roll_boost, k.BURST_ROLL), "...the roll goes %.1fx as fast" % p._roll_boost)
-	if gloop:
-		check(k.last_hit >= 1 and gloop.get("defeated") == true, "...and a Gloop close by pops (%d hit)" % k.last_hit)
-		gloop.set_physics_process(true)
+	check(k.bursts == 0 and k.full(), "a roll on foot doesn't use it up (no more roll attack)")
 	await create_timer(0.6).timeout
-	game.sp = game.max_sp
-	p._try_roll(Vector3(1, 0, 0))
-	check(k.bursts == 1 and is_equal_approx(p._roll_boost, 1.0), "an empty roll is just a roll")
-	await create_timer(0.6).timeout
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	check(k.bursts == 0 and k.full(), "...and Flip on foot doesn't either")
+	game.riding = true
+	game.equipment_changed.emit()
+	await _frames(3)
+	await _reset(p)
+	var skate: Node = p.get("skate")
+	check(int(skate.state) == int(skate.State.ROLL) and k.can_boost(), "on a ride, rolling along with a full charge, it's ready")
+	var before := Vector2(p.velocity.x, p.velocity.z).length()
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	check(k.bursts == 1 and k.charge == 0.0, "Flip on a ride lets it all out (empty again)")
+	check(skate.boosting(), "...as a boost")
+	await _physics(10)
+	var after := Vector2(p.velocity.x, p.velocity.z).length()
+	check(after > before + 5.0, "...and the ride shoots off (%.1f -> %.1f m/s)" % [before, after])
+	check(not skate.tricks.flipping(), "...without starting a flip trick")
+	await create_timer(2.5).timeout
+	Input.action_press("skate_flip")
+	await _physics(2)
+	Input.action_release("skate_flip")
+	check(k.bursts == 1, "an empty charge gives no boost")
+	game.riding = false
+	game.equipment_changed.emit()
+	await _frames(3)
+	k.charge = 0.0
 
 
 # Make -------------------------------------------------------------------------------------------------------------
