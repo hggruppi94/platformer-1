@@ -85,6 +85,8 @@ var _spin_time := 1.0
 var _spin_squash := 0.0                     # how much she tucks into a ball mid-spin
 var _spin_grounded := false                 # roll: keep the ball on the floor while it turns
 var _was_on_floor := true
+var cave_echo: Node
+var _bump_timer := 0.0                 # bouncing back off a wall (scripts/bumps.gd): steering waits a moment
 var _fall_speed := 0.0
 var _step_timer := 0.0
 # Who's holding the controls right now (talking, a countdown, the creator, a zipline...): no moving, jumping or
@@ -131,6 +133,11 @@ var _zones: Array[Node] = []
 var _floor_node: Node = null
 const STEP_SOUNDS := {"grass": "step_grass", "wood": "step_wood", "stone": "step_stone", "water": "step_water",
 	"cloud": "step_cloud", "crystal": "step_crystal", "mushroom": "step_cloud"}
+const Bumps := preload("res://scripts/bumps.gd")
+const CAVE_ECHO := preload("res://scripts/cave_echo.gd")
+const BUMP_MIN := 4.0                 # m/s straight into a wall before it's a bump (walking is about 5, so a walk-in is a little one)
+const BUMP_FULL := 12.0               # ...and the hardest bump (a sprint or a booster rush)
+const BUMP_STUN := 0.14               # seconds the bounce back can't be steered out of
 const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
 # Gliding: while glide_fall is over 0 (only in Lanternmoor, where Pip lends moth wings; the player is part of each
 # scene, so it's gone again everywhere else), holding Jump while falling slows the fall to this many metres a second.
@@ -203,6 +210,10 @@ func _ready() -> void:
 	make.name = "Make"
 	add_child(make)
 	make.setup(self)
+	cave_echo = CAVE_ECHO.new()
+	cave_echo.name = "CaveEcho"
+	add_child(cave_echo)
+	cave_echo.setup(self)                  # echoes and drips in caves and tunnels (scripts/cave_echo.gd)
 	pip_glow = PIP_GLOW.new()
 	pip_glow.name = "PipGlow"
 	add_child(pip_glow)
@@ -485,6 +496,7 @@ func _physics_process(delta: float) -> void:
 		_invulnerable_timer -= delta
 		model.visible = Settings.reduce_flashing or _invulnerable_timer <= 0.0 or fmod(_invulnerable_timer, 0.16) > 0.08
 	_stun_timer -= delta
+	_bump_timer -= delta
 	if _rush_time > 0.0 and _rush_time - delta <= 0.0:
 		_rush_fade = 0.8
 	_rush_time -= delta
@@ -587,8 +599,8 @@ func _physics_process(delta: float) -> void:
 		_roll_timer -= delta
 		var f := 1.0 - maxf(_roll_timer, 0.0) / roll_time
 		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
-	elif _stun_timer > 0.0:
-		pass                                # knocked back: ride out the hit
+	elif _stun_timer > 0.0 or _bump_timer > 0.0:
+		pass                                # knocked back (or bounced off a wall): ride out the hit
 	else:
 		# Accelerate toward the target speed instead of snapping to it
 		var rate := acceleration if direction else friction
@@ -616,7 +628,16 @@ func _physics_process(delta: float) -> void:
 	velocity.z = horizontal.z
 
 	_fall_speed = -velocity.y
+	var before := velocity
 	move_and_slide()
+	# A boink off walls, trees and ceilings: she bounces back a little, and can't steer out of it for a moment, so the
+	# bounce shows (a hop too, if she was on the ground)
+	var bumped := Bumps.after_slide(self, before, model, BUMP_MIN, BUMP_FULL, 0.8, 0.2)
+	if bumped >= 0.0:
+		_end_roll()
+		_bump_timer = BUMP_STUN + 0.12 * bumped          # (its own timer: a stun would knock her off a ride she hops on)
+		if is_on_floor():
+			velocity.y = maxf(velocity.y, 1.5 + 2.5 * bumped)
 	_floor_node = null
 	if is_on_floor():
 		for i in get_slide_collision_count():
