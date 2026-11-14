@@ -13,7 +13,7 @@
     {
       "when": {"time": "shift"},
       "lines": [
-        "(He stares at you.)",
+        "(He stares at the portal. Then at you.)",
         "..."
       ]
     },
