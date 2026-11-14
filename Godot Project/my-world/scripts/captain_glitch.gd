@@ -20,11 +20,11 @@ enum State { STATUE, HOVER, SLAM, OPEN }
 
 const GOBLIN := preload("res://scenes/enemies/time_goblin.tscn")
 
-const HITS := 9
+const HITS := 15
 const HITS_PER_OPEN := 3
-const HELP_AT := [3, 6]
+const HELP_AT := [3, 9]
 const VOLLEYS := 3
-const VOLLEY_EVERY := 2.4
+const VOLLEY_EVERY := 2.0
 const OPEN_TIME := 4.5
 const HOVER_Y := 3.6                          # metres over the dais while he's flying
 const DRIFT := 2.6                            # m/s after you (you run at 5)
@@ -56,6 +56,7 @@ var _cubes: Node3D
 
 func _ready() -> void:
 	add_to_group("enemies")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	var cs := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()

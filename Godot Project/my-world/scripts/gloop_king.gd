@@ -14,7 +14,7 @@ const NAME := "Gloop King"
 const COURTIER := preload("res://scenes/enemies/gloop.tscn")
 const MAX_COURT := 4                          # never more than this many called-in Gloops about at once
 
-@export var flop_every := 6.0                 # seconds between belly-flops while he's chasing
+@export var flop_every := 5.0                 # seconds between belly-flops while he's chasing
 @export var flop_reach := 4.5                 # how far the goo ring spreads (metres, at size 1; it grows with size)
 
 var _flop_timer := 3.0
@@ -32,6 +32,8 @@ var ring_colour := Color(0.6, 0.85, 0.15)     # the goo ring's colour: green goo
 func _ready() -> void:
 	super()
 	add_to_group("bosses")
+	if process_mode != Node.PROCESS_MODE_DISABLED:            # (in his own kingdom the crates go round the court instead)
+		Arsenal.supply_boss(self)                             # ammo crates round the fight (scripts/arsenal.gd)
 	_make_bar()
 	_base = [chase_speed, flop_every]
 

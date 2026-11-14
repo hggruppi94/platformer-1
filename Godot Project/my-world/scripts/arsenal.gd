@@ -683,6 +683,48 @@ func _place_crates(scene: Node) -> void:
 		c.global_position = at
 
 
+const BOSS_CRATES := 3                    # ammo crates round every boss fight (supply_boss), back BOSS_CRATE_REGROW s after a pop
+const BOSS_CRATE_REGROW := 25.0
+
+
+func supply_boss(boss: Node3D, reach := 8.0, count := BOSS_CRATES) -> void:
+	# Bosses take a lot more popping since 14 Nov 2026 (Hayden: "make all the bosses harder with more health"), and the
+	# Star Popper's tank runs dry, so every boss fight gets its own ammo crates: COUNT of them in a ring REACH metres
+	# round where the boss starts, each dropped onto the floor there and back BOSS_CRATE_REGROW seconds after it's
+	# popped. Called by each boss when it's set up (deferred, so it's in place first); once per boss.
+	if boss == null or boss.has_meta("supplied"):
+		return
+	boss.set_meta("supplied", true)
+	_supply.call_deferred(boss, reach, count)
+
+
+func _supply(boss: Node3D, reach: float, count: int) -> void:
+	if not is_instance_valid(boss) or not boss.is_inside_tree() or boss.is_queued_for_deletion():
+		return
+	var parent := boss.get_parent()
+	var space := boss.get_world_3d().direct_space_state
+	var centre := boss.global_position
+	var placed := 0
+	for i in count * 3:                                       # a few spare spots, for ones that land on nothing
+		if placed >= count:
+			break
+		var a := TAU * (float(i) / count) + (0.5 if i >= count else 0.0) + 0.3
+		var r := reach * (1.0 if i < count * 2 else 0.6)
+		var at := centre + Vector3(cos(a), 0, sin(a)) * r
+		var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 3.0, 0), at + Vector3(0, -12.0, 0))
+		q.exclude = [boss.get_rid()] if boss is CollisionObject3D else []
+		var got := space.intersect_ray(q)
+		if got.is_empty() or not (got.collider is StaticBody3D):
+			continue
+		var c := (load("res://scripts/ammo_crate.gd") as GDScript).new() as Node3D
+		c.name = "Boss Ammo Crate %d" % (placed + 1)
+		c.set("regrow", BOSS_CRATE_REGROW)
+		c.set_meta("boss_supply", true)
+		parent.add_child(c)
+		c.global_position = got.position
+		placed += 1
+
+
 func _place_stall(scene: Node) -> void:
 	# Dash's stall stands at the south side of the Market Square, beside the way in from the south, facing the
 	# fountain. The six market stalls and both noticeboards fill the inner ring, so it stands a little further out.

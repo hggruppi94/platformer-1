@@ -16,14 +16,14 @@ extends CharacterBody3D
 
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
-const HITS := 8
-const HELP_AT := [3, 6]
+const HITS := 13
+const HELP_AT := [4, 9]
 const SIZE := 3.2
 const SINK := 0.9                            # it floats this low (its tail trails into the floor), so it's in jumping reach
 const DRIFT := 2.0                            # m/s after you (you run at 5)
 const RETREAT := 6.0
 const RETREAT_TIME := 1.5
-const WAVE_EVERY := 7.5
+const WAVE_EVERY := 6.5
 const WAVE_REACH := 9.0
 const PALE := Color(0.95, 0.75, 0.55)         # caught in the light: a warm pale gold, like a sunset
 const DUSK := Color(0.12, 0.07, 0.25)
@@ -56,6 +56,7 @@ var _halo: Node3D
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	_ground_y = global_position.y
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	collision_mask = 0                         # it floats through everything (it keeps over the floor itself)

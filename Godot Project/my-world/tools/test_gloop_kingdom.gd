@@ -5,7 +5,8 @@ extends SceneTree
 # there on flat, dry, open ground, off the races, paths and trees, on the map. Its spot takes you in. In the kingdom:
 # you face up the Bog Road, the bog's sticky (slow, never harmful), the moat's pads are each a hop from the last, and you
 # can really walk from the way in to his court. The King sits still on his throne until you come into his court; then
-# he's up and fighting, the usual six pops beat him, the Royal Treasure opens (once a visit) and a way home appears by
+# he's up and fighting, facing the way he goes, with ammo crates round the court; the court floods with goo (slow, a bump
+# now and then) and the Lily Pads keep you out of it; twelve pops beat him (14 Nov 2026: was six), the Royal Treasure opens (once a visit) and a way home appears by
 # the throne. The way home puts you back on the ground in front of the gate. Saving in there and loading comes back in.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_gloop_kingdom.gd
@@ -199,15 +200,63 @@ func _run() -> void:
 	await _physics(20)
 	check(kd.get("awake"), "coming into his court wakes him up")
 	check(king.process_mode != Node.PROCESS_MODE_DISABLED, "...and he's up and moving")
+	# He faces the way he goes (Hayden, 14 Nov 2026: he faced backwards when his fight started)
+	check(absf(king.rotation.y) < 0.01, "his body isn't turned round (only his Visual turns, like every Gloop)")
+	await _physics(90)
+	var vis := king.get("visual") as Node3D
+	var to_p := p.global_position - king.global_position
+	to_p.y = 0.0
+	var facing := vis.global_basis.z
+	facing.y = 0.0
+	check(facing.normalized().dot(to_p.normalized()) > 0.5,
+		"...and he faces you as he comes after you (%.2f)" % facing.normalized().dot(to_p.normalized()))
 
-	# --- The fight: six pops ---
+	# --- Ammo crates round his court ---
+	await _physics(2)
+	var crates: Array = get_nodes_in_group("ammo_crates").filter(func(c: Node) -> bool: return c.has_meta("boss_supply"))
+	check(crates.size() >= 3, "%d ammo crates round his court" % crates.size())
+	check(crates.all(func(c: Node) -> bool:
+		var cp := (c as Node3D).global_position
+		return Vector2(cp.x, cp.z).distance_to(Vector2(0, 88)) < 18.0 and absf(cp.y) < 1.2), "...on the court floor")
+	check(crates.all(func(c: Node) -> bool: return float(c.get("regrow")) > 0.0), "...and they come back after a pop")
+
+	# --- The court floods with goo ---
+	king.set_physics_process(false)
+	var flood := kd.get_node("Slime Flood")
+	check(flood.get("pads").size() >= 6, "the court has Lily Pads to climb onto")
+	flood.set("_t", 0.0)
+	await _physics(2)
+	check(int(flood.get("state")) == 1, "the goo-falls warn you before a flood")
+	flood.set("_t", 0.0)
+	await _physics(2)
+	flood.set("_t", 0.0)
+	await _physics(2)
+	check(int(flood.get("state")) == 3 and flood.call("is_flooded"), "...then the court fills with goo")
+	p.global_position = Vector3(-6.0, 1.0, 84.0)
+	p.velocity = Vector3.ZERO
+	await _physics(4)
+	check(p.call("in_zone", "water") and p.call("_zone_min", "speed_scale", 1.0) < 0.6, "in the goo you're slowed right down")
+	await _physics(80)
+	check(p.is_recovering(), "...and the goo gives you a bump")
+	var pad: Vector3 = flood.call("nearest_pad", p.global_position)
+	p.global_position = pad + Vector3(0, 1.05, 0)
+	p.velocity = Vector3.ZERO
+	await _physics(20)
+	check(p.is_on_floor() and not p.call("in_zone", "water"), "up on a Lily Pad you're out of it")
+	king.set_physics_process(true)
+
+	# --- The fight: he takes a lot more popping now ---
 	king.set_physics_process(false)
 	var sparkles: int = game.sparkles
-	for i in 5:
+	var need: int = king.get("stomps_to_defeat")
+	check(need >= 12, "the King takes %d pops now (was 6)" % need)
+	for i in need - 1:
 		king.shot(1, king.global_position, Vector3.FORWARD)
-	check(not king.defeated, "five bubbles aren't enough for the King")
+	check(not king.defeated, "%d bubbles aren't enough for the King" % (need - 1))
 	king.shot(1, king.global_position, Vector3.FORWARD)
-	check(king.defeated, "...the sixth pops him")
+	check(king.defeated, "...the last pops him")
+	await _physics(4)
+	check(int(flood.get("state")) == 4 or int(flood.get("state")) == 0, "popping him drains the goo")
 	await _physics(4)
 	check(kd.get("popped"), "popping him opens up the throne room")
 	check(kd.get_node_or_null("Throne Way Out") != null, "...with a goo bubble home by the throne")
@@ -255,7 +304,7 @@ func _run() -> void:
 	check(not king.defeated and not kd.get("awake"), "next time in, he's back on his throne with all his goo")
 	kd.call("wake")
 	king.set_physics_process(false)
-	for i in 6:
+	for i in int(king.get("stomps_to_defeat")):
 		king.shot(1, king.global_position, Vector3.FORWARD)
 	await _physics(3)
 	sparkles = game.sparkles

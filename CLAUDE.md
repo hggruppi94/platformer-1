@@ -97,6 +97,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Every boss is tougher, the Gloop King faces the right way, and his court floods with goo** (Hayden's
+  13 Nov 2026 playtest: "the gloop king faces backwards when you start his fight. Can we add a mechanic where the arena
+  fills with slime? And we need to make all the bosses harder with more health"). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **More health** (damage is unchanged: still bumps, never more): Gloop King 6 to 12, Frost Gloop and Riptide Gloop 6
+    to 10, Grandfather Tock and the Dawn Snatcher 8 to 13, Boulderdillo 10 to 16, the Stormram 8 to 13, the Off-Beat 8
+    to 12, Captain Glitch 9 to 15, the Hush 8 to 13, the centipede's game 6 to 10 (she burrows from 5), Mama Glorp and
+    Big Buzz 9 to 15, the Gloam 8 to 13, the Agent of Chaos 30 to 45 chaos (phases at 30 and 15; the friends' sections
+    hold him at 31 / 16 / 1; a rewind gives back 4). Helpers come at about a third and two-thirds.
+  - **Tougher attacks:** the Gloop King (and the Gloops built on him) flops every 5 s (was 6), Tock chimes every 6 s
+    (7), the Boulderdillo rests 1.6 s between rolls (2), the Riptide pulls every 7.5 s (9), Captain Glitch's volleys
+    2.0 s (2.4), the Hush's rings 6 s (7), Big Buzz stays up 4.4 s (5), the Gloam's waves 6.5 s (7.5).
+  - **He faces the right way** (`gloop_kingdom.gd _add_king()`): his whole body was turned round to face down the
+    court, but Gloops steer by turning their Visual to their world heading, so once he moved he walked backwards. Now
+    only his Visual is turned at the start.
+  - **The court floods** (`scripts/slime_flood.gd`, node "Slime Flood" at the court's middle): 10 s into his fight,
+    then every 20 s (14 when he's cross), the goo-falls gush (a warning, 2.5 s), the court fills with goo 0.6 m deep
+    (2 s), stays 6 s and drains (2 s). In it you're slowed to half and every 2 s it bumps you (1, towards the nearest
+    pad). Eight gold-rimmed **Royal Lily Pads** (1 m high, `PADS`) and the throne's dais stand clear of it. Each flood
+    burps up one Gloop of his court. Popping him drains it for good.
+  - **Ammo for boss fights** (`Arsenal.supply_boss(boss, reach, count)`): every boss puts 3 ammo crates (4 round the
+    King's court and round the Agent of Chaos) in a ring round where it starts, dropped onto the floor, and they come
+    back 25 s after a pop (`ammo_crate.gd regrow`, meta `boss_supply`). The Star Popper's top-up to 10 still works too.
+  - Tests: gloop_kingdom (facing, crates, the flood, 12 pops), gloop_king, boss_versions, time_goblins, arena,
+    chaos_fight, chaos_trials, far_future, frozen_moment, lanternmoor, arsenal and the rest of the boss worlds updated
+    to read each boss's own number; see the PR for the full list.
+  - My choices Hayden may change: every number above, the flood's timing and depth, the pads' places, the bump.
+
 - 2026-11-14: **Signs you can read walking in, name tags that stay behind walls, and a slimmer Seer** (Hayden's 13 Nov
   2026 playtest: "the signs arent always orientated the right way for you to read them when entering a new area (the
   gloop kingdom sign when you enter)", "Tally's name is visibile through objects", "Can we make the seer a little

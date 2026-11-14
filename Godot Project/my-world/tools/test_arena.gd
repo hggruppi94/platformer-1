@@ -298,12 +298,13 @@ func _run() -> void:
 		await _physics(3)
 	check(int(mama.get("babies")) == 3, "every hit splits a Glorp off her (%d)" % int(mama.get("babies")))
 	check(lv.alive() >= 3, "...and they're in the round (%d)" % lv.alive())
-	for h in 6:
+	var mama_hits := int(mama.get("stomps_to_defeat"))
+	for h in mama_hits - 3:
 		mama.call("shot", 1, mama.global_position, Vector3(1, 0, 0))
 		await _physics(3)
 	await create_timer(2.4).timeout
 	await _physics(2)
-	check(arena.wins("mama_glorp") == 1 and lv.round_id == "", "nine hits pop her and the boss round's won")
+	check(arena.wins("mama_glorp") == 1 and lv.round_id == "", "%d hits pop her and the boss round's won" % mama_hits)
 
 	# --- Big Buzz ---
 	lv.start_round("big_buzz")
@@ -332,7 +333,8 @@ func _run() -> void:
 	await _physics(4)
 	check(int(buzz.get("state")) != 2, "...then he blinks away and floats up again")
 	check(lv.find_children("Buzz Fizzler", "", true, false).size() >= 1 or lv.alive() >= 3, "at 3 hits he lets off Fizzlers")
-	for round in 2:
+	var buzz_hits := _hits(buzz)
+	for round in ceili((buzz_hits - 3) / 3.0):
 		buzz.set("state", 0)
 		buzz.set("_state_t", 0.0)
 		for i in 120:
@@ -344,7 +346,7 @@ func _run() -> void:
 		await _physics(3)
 	await create_timer(2.4).timeout
 	await _physics(2)
-	check(arena.wins("big_buzz") == 1 and lv.round_id == "", "nine hits pop Big Buzz and it's won")
+	check(arena.wins("big_buzz") == 1 and lv.round_id == "", "%d hits pop Big Buzz and it's won" % buzz_hits)
 
 	# --- The Gloam ---
 	lv.start_round("gloam")
@@ -371,7 +373,8 @@ func _run() -> void:
 	var push: Vector3 = lv.beam_push(lv.beam_at(0) + Vector3(lv.BEAM_R + 0.5, 0, 0))
 	check(push.x > 0.0, "it steers away from a beam it's close to")
 	var hit_ok := true
-	for h in 8:
+	var gloam_hits := _hits(gloam)
+	for h in gloam_hits:
 		gloam.set("_retreat", 0.0)
 		var b: Vector3 = lv.beam_at(h % 4)
 		gloam.global_position = Vector3(b.x, gloam.global_position.y, b.z)
@@ -382,7 +385,7 @@ func _run() -> void:
 	check(hit_ok, "...and every bubble in the light counts")
 	await create_timer(2.4).timeout
 	await _physics(2)
-	check(arena.wins("gloam") == 1 and lv.round_id == "" and not lv.dark, "eight hits pop the Gloam, it's won and the lights come back")
+	check(arena.wins("gloam") == 1 and lv.round_id == "" and not lv.dark, "%d hits pop the Gloam, it's won and the lights come back" % gloam_hits)
 
 	# --- The Champion's Cup ---
 	check(arena.is_open("cup"), "the Champion's Cup opens once all three bosses are beaten")
@@ -400,13 +403,13 @@ func _run() -> void:
 		order.append(str(bb.name))
 		match str(bb.name):
 			"Mama Glorp":
-				for h in 9:
+				for h in int(bb.get("stomps_to_defeat")):
 					bb.call("shot", 1, bb.global_position, Vector3(1, 0, 0))
 			"Big Buzz":
-				bb.call("hurt", 9)
+				bb.call("hurt", _hits(bb))
 			"The Gloam":
 				check(lv.dark, "...the lights go down for the Gloam")
-				for h in 8:
+				for h in _hits(bb):
 					bb.set("_retreat", 0.0)
 					bb.call("hurt", 1, Vector3(1, 0, 0))
 		await _physics(4)
@@ -558,3 +561,8 @@ func _finish() -> void:
 		DirAccess.remove_absolute(SETTINGS_BACKUP)
 	print("RESULT %s (%d failed)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+func _hits(boss: Node) -> int:
+	# A boss's HITS (how many pops it takes), from its script's constants
+	return int((boss.get_script() as GDScript).get_script_constant_map().get("HITS", 0))

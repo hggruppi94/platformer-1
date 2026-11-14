@@ -85,24 +85,25 @@ func _run() -> void:
 
 	# --- Popping it while it's dizzy ---
 	check(boss.shot(1, boss.global_position, Vector3.FORWARD) == "hit" and boss.hits == 1, "a dizzy one can be popped")
-	boss.shot(3, boss.global_position, Vector3.FORWARD)
+	boss.shot(ceili(boss.stomps_to_defeat / 3.0) - boss.hits, boss.global_position, Vector3.FORWARD)
 	await _frames(2)
 	var pebbles := town.find_children("Pebbledillo *", "", true, false)
 	check(pebbles.size() == 2, "at a third it calls two Pebbledillos")
 	check(pebbles.size() > 0 and pebbles[0].size < 1.0 and not pebbles[0].respawns, "...little ones that don't come back")
 	var speed: float = boss.roll_speed
 	boss.state = 4
-	boss.shot(2, boss.global_position, Vector3.FORWARD)
+	boss.shot(ceili(boss.stomps_to_defeat / 2.0) - boss.hits, boss.global_position, Vector3.FORWARD)
 	check(boss._cross and boss.roll_speed > speed and boss.rolls_in_a_row == 4,
 		"past half it's cross: faster, and four rolls in a row")
 	boss.state = 4
-	boss.shot(1, boss.global_position, Vector3.FORWARD)
+	boss.shot(ceili(boss.stomps_to_defeat * 2 / 3.0) - boss.hits, boss.global_position, Vector3.FORWARD)
 	await _frames(2)
 	check(town.find_children("Pebbledillo *", "", true, false).size() == 4, "...and two more Pebbledillos at two-thirds")
 	for c in town.find_children("Pebbledillo *", "", true, false):
 		c.shot(3, (c as Node3D).global_position, Vector3.FORWARD)
 	boss.state = 4
-	boss.shot(3, boss.global_position, Vector3.FORWARD)
+	check(boss.stomps_to_defeat >= 16, "it takes %d pops now (14 Nov 2026: was 10)" % boss.stomps_to_defeat)
+	boss.shot(boss.stomps_to_defeat - boss.hits, boss.global_position, Vector3.FORWARD)
 	check(boss.defeated, "enough bubbles pop it")
 	check(root.get_node("Dialogue").flags.has("popped_boulderdillo"), "popping it is remembered")
 	await create_timer(3.2).timeout
@@ -118,7 +119,7 @@ func _run() -> void:
 	var king := town.find_child("The Gloop King", true, false)
 	king.set_physics_process(false)
 	var flop: float = king.flop_every
-	king.hits = 3
+	king.hits = ceili(king.stomps_to_defeat / 2.0)
 	king._physics_process(0.016)
 	check(king._cross and king.flop_every < flop, "past half his goo the Gloop King is cross and flops more often")
 	var before := town.find_children("ShockRing", "", true, false).size()

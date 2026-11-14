@@ -13,7 +13,7 @@ extends "res://scripts/gloop_king.gd"
 # Kid-safe like every Gloop: a normal bump, nothing more, and it doesn't count as popping the King.
 
 const SEA := Color(0.3, 0.75, 0.95)
-const PULL_EVERY := 9.0                        # seconds between riptides
+const PULL_EVERY := 7.5                        # seconds between riptides
 const PULL_TIME := 2.2
 const PULL_SPEED := 3.2                        # metres a second it drags you
 const PULL_REACH := 16.0

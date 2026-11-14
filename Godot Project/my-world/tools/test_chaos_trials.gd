@@ -82,10 +82,10 @@ func _run() -> void:
 	game.give_item("shop:shift_watch")
 	check(trials.pending(1) == "burrow" and trials.pending(2) == "spring" and trials.pending(3) == "crawl",
 		"each phase's sections come in the order the worlds were mended")
-	check(fight.chaos_floor() == 21, "his chaos can't drop into phase 2 while phase 1 has sections left")
+	check(fight.chaos_floor() == 31, "his chaos can't drop into phase 2 while phase 1 has sections left")
 	fight._open(3.0)
 	giant.shot(15, fight.heart_position(), Vector3.FORWARD)
-	check(fight.chaos == 21 and fight.phase == 1, "...even with a big hit (%d)" % fight.chaos)
+	check(fight.chaos == 31 and fight.phase == 1, "...even with a big hit (%d)" % fight.chaos)
 
 	# --- A turn ends with a section ---
 	fight.step = 1
@@ -107,7 +107,7 @@ func _run() -> void:
 	check(dug and p.burrow.active, "you can burrow there")
 	p.global_position = Vector3(trials.knot.global_position.x, p.global_position.y, trials.knot.global_position.z)
 	await _until(func() -> bool: return trials.current == "", 60)
-	var chaos_was := 21
+	var chaos_was := 31
 	check(trials.done.has("burrow") and fight.step == DAZED and fight.vulnerable(),
 		"burrowing to the Root Knot trips him: he's dazed and his clock glows")
 	check(fight.chaos == chaos_was, "...and his chaos stays up while phase 1 has more sections (%d)" % fight.chaos)
@@ -184,9 +184,9 @@ func _run() -> void:
 	# --- On to phase 2 ---
 	check(fight.chaos_floor() == 0 or trials.pending(1) == "", "with phase 1's sections done, his chaos can drop again")
 	fight._open(3.0)
-	giant.shot(fight.chaos - 20, fight.heart_position(), Vector3.FORWARD)
-	check(fight.phase == 2 and fight.chaos == 20, "phase 2 comes")
-	check(fight.chaos_floor() == 11, "...and holds at 11 while its sections are left")
+	giant.shot(fight.chaos - 30, fight.heart_position(), Vector3.FORWARD)
+	check(fight.phase == 2 and fight.chaos == 30, "phase 2 comes")
+	check(fight.chaos_floor() == 16, "...and holds at 16 while its sections are left")
 
 	# --- Melody: the Off-Beat Stomp ---
 	await _stand(giant.global_position + trials._out * 9.0)
@@ -264,8 +264,8 @@ func _run() -> void:
 
 	# --- On to phase 3 ---
 	fight._open(3.0)
-	giant.shot(fight.chaos - 10, fight.heart_position(), Vector3.FORWARD)
-	check(fight.phase == 3 and fight.chaos == 10 and fight.chaos_floor() == 1, "phase 3 comes, and holds at 1 while its sections are left")
+	giant.shot(fight.chaos - 15, fight.heart_position(), Vector3.FORWARD)
+	check(fight.phase == 3 and fight.chaos == 15 and fight.chaos_floor() == 1, "phase 3 comes, and holds at 1 while its sections are left")
 
 	# --- The centipede: the Clock Tower ---
 	fight._trial("crawl")

@@ -67,7 +67,7 @@ func _run() -> void:
 	# --- Winning plays the ending ---
 	var old_cam := root.get_viewport().get_camera_3d()
 	fight._open(3.0)
-	giant.shot(40, fight.heart_position(), Vector3.FORWARD)
+	giant.shot(fight.CHAOS_MAX + 10, fight.heart_position(), Vector3.FORWARD)
 	await _frames(2)
 	check(ending.playing() and ending.played, "beating him the first time plays the ending")
 	check(dialogue.flags.has("beat_agent_of_chaos"), "...and it's remembered straight away")
@@ -134,7 +134,7 @@ func _run() -> void:
 	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
 	await _physics(8)
 	fight._open(3.0)
-	giant.shot(40, fight.heart_position(), Vector3.FORWARD)
+	giant.shot(fight.CHAOS_MAX + 10, fight.heart_position(), Vector3.FORWARD)
 	await _frames(2)
 	check(not ending.playing(), "a rematch win just sends him off (no cutscene)")
 	await create_timer(2.4).timeout
@@ -152,7 +152,7 @@ func _run() -> void:
 	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
 	await _physics(8)
 	fight._open(3.0)
-	giant.shot(40, fight.heart_position(), Vector3.FORWARD)
+	giant.shot(fight.CHAOS_MAX + 10, fight.heart_position(), Vector3.FORWARD)
 	await create_timer(1.5).timeout
 	ending.skip()
 	await _frames(2)

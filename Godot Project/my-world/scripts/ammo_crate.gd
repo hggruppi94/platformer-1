@@ -8,6 +8,8 @@ extends StaticBody3D
 const SIZE := 1.0
 
 var opened := false
+var regrow := 0.0             # over 0: back this many seconds after it's popped (boss fights' crates: Arsenal.supply_boss)
+var _regrow_t := 0.0
 var _box: Node3D
 var _t := 0.0
 
@@ -40,6 +42,11 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if opened:
+		if regrow > 0.0:
+			_regrow_t -= delta
+			if _regrow_t <= 0.0:
+				refill()
+				Fx.burst(get_parent(), global_position + Vector3(0, SIZE / 2.0, 0), Color(0.62, 0.5, 0.95), 10, 0.08, 2.5, -3.0, 0.5)
 		return
 	_t += delta
 	(_box.get_node("Star") as Node3D).rotation.y = _t * 2.0
@@ -50,6 +57,7 @@ func shot(_power: int, _point: Vector3, _dir: Vector3) -> String:
 	if opened:
 		return "miss"
 	opened = true
+	_regrow_t = regrow
 	var filled := 0
 	for id in Arsenal.owned:
 		if Arsenal.max_ammo(id) > 0:

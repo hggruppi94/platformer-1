@@ -80,20 +80,20 @@ func _run() -> void:
 	# --- The clock only counts while it glows ---
 	var heart: Vector3 = fight.heart_position()
 	check(heart.y - giant.global_position.y > 5.0, "his clock is high on his chest")
-	check(giant.shot(1, heart, Vector3.FORWARD) == "bounce" and fight.chaos == 30, "bubbles bounce off while it's shut")
+	check(giant.shot(1, heart, Vector3.FORWARD) == "bounce" and fight.chaos == fight.CHAOS_MAX, "bubbles bounce off while it's shut")
 	fight._open(3.0)
 	check(giant.shot(1, giant.global_position + Vector3(0, 1, 0), Vector3.FORWARD) == "bounce",
 		"...and off his legs even when it's open")
-	check(giant.shot(1, heart, Vector3.FORWARD) == "hit" and fight.chaos == 29, "a bubble on his glowing clock counts")
+	check(giant.shot(1, heart, Vector3.FORWARD) == "hit" and fight.chaos == 44, "a bubble on his glowing clock counts")
 	# A real bubble from the Star Popper, flying up at it
 	var from := p.global_position + Vector3(0, 0.6, 0)
 	var star: GDScript = load("res://scripts/star_bubble.gd")
 	star.fire(town, from, heart - from, p)
 	for i in 120:
 		await physics_frame
-		if fight.chaos < 29:
+		if fight.chaos < 44:
 			break
-	check(fight.chaos == 28, "a real bubble fired at the glowing clock hits it")
+	check(fight.chaos == 43, "a real bubble fired at the glowing clock hits it")
 
 	# --- Chaos bursts ---
 	fight.step = 1
@@ -129,7 +129,7 @@ func _run() -> void:
 	fight.step = 1
 	p.global_position = giant.global_position + Vector3(0, 30, 90)
 	await _physics(4)
-	check(not fight.active and fight.chaos == 30, "walking far away calls it off, and he gets his chaos back")
+	check(not fight.active and fight.chaos == fight.CHAOS_MAX, "walking far away calls it off, and he gets his chaos back")
 	p.global_position = giant.global_position + Vector3(0, 1.5, 15)
 	await _physics(6)
 	check(fight.active, "...and coming back starts it again")
@@ -137,7 +137,7 @@ func _run() -> void:
 
 	# --- Phase 2: minions ---
 	fight._open(3.0)
-	giant.shot(10, heart, Vector3.FORWARD)
+	giant.shot(15, heart, Vector3.FORWARD)
 	check(fight.phase == 2, "at two-thirds he moves on to phase 2")
 	fight._summon()
 	await _frames(2)
@@ -151,12 +151,12 @@ func _run() -> void:
 	check(fight.step == 2 and fight.vulnerable(), "popping them all opens his clock")
 
 	# --- Phase 3: the rewind ---
-	giant.shot(10, heart, Vector3.FORWARD)
-	check(fight.phase == 3 and fight.chaos == 10, "at a third he moves on to phase 3")
+	giant.shot(15, heart, Vector3.FORWARD)
+	check(fight.phase == 3 and fight.chaos == 15, "at a third he moves on to phase 3")
 	fight._wind()
 	for i in 3:
 		giant.shot(1, heart, Vector3.FORWARD)
-	check(fight.step == 5 and fight.rewind_breaks == 1 and fight.chaos == 10,
+	check(fight.step == 5 and fight.rewind_breaks == 1 and fight.chaos == 15,
 		"three hits on his spinning clock break the rewind and leave him dazed")
 	fight._trail.clear()
 	var was_at := giant.global_position + Vector3(6, 1.5, 14)
@@ -168,7 +168,7 @@ func _run() -> void:
 	fight.drive(0.016)
 	check(fight.rewinds_done == 1 and p.global_position.distance_to(was_at) < 1.0,
 		"if it isn't broken, time rewinds and the player is pulled back")
-	check(fight.chaos == 8, "...and he gets some chaos back")
+	check(fight.chaos == 9, "...and he gets some chaos back")
 
 	# --- Winning ---
 	var sparkles: int = game.sparkles

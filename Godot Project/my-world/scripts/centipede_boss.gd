@@ -19,8 +19,8 @@ signal won
 const WALKER := preload("res://scripts/centipede_walker.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 
-const HITS := 6
-const HIDE_AT := 3                        # from this many hits she burrows under you too
+const HITS := 10
+const HIDE_AT := 5                        # from this many hits she burrows under you too
 const SIZE := 1.6
 const ARENA := 13.0                       # she stays within this of the middle
 const RING := 7.0                         # how far out she scuttles round you
@@ -56,6 +56,7 @@ var _hid_once := false
 
 func _ready() -> void:
 	add_to_group("enemies")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	middle = global_position
 	body = WALKER.new() as Node3D
 	body.name = "Body"

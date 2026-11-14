@@ -16,13 +16,13 @@ extends CharacterBody3D
 
 const FIZZLER := preload("res://scripts/fizzler.gd")
 
-const HITS := 9
-const HELP_AT := [3, 6]
+const HITS := 15
+const HELP_AT := [3, 9]
 const MAX_PER_DAZE := 3
 const SIZE := 3.0
 const HIGH := 4.2                             # how high he floats (out of stomp reach)
 const DRIFT := 2.6                            # m/s after you (you run at 5)
-const UP_TIME := 5.0                          # seconds up before a dive (3.4 when he's cross)
+const UP_TIME := 4.4                          # seconds up before a dive (3.4 when he's cross)
 const DIVE_TIME := 0.55
 const DAZE_TIME := 3.6
 const RING_REACH := 10.0
@@ -58,6 +58,7 @@ var _told_fizzle := 0.0
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("bosses")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	_ground_y = global_position.y
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	collision_mask = 0                         # he floats where he likes (he keeps over the floor himself)
