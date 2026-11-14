@@ -11825,7 +11825,7 @@ font_size = 48
 outline_size = 10
 
 [node name="Break Corner" type="Node3D" parent="Floor 2" unique_id=300779218]
-transform = Transform3D(0.6967067, 0, -0.7173561, 0, 1, 0, 0.7173561, 0, 0.6967067, 26, 0, -20)
+transform = Transform3D(0.6967067, 0, -0.7173561, 0, 1, 0, 0.7173561, 0, 0.6967067, 23.3, 0, -17.3)
 
 [node name="@MeshInstance3D@897" type="MeshInstance3D" parent="Floor 2/Break Corner" unique_id=186465379]
 transform = Transform3D(1, 0, 0, 0, 0.65, 0, 0, 0, 1, -1.5, 0.45, 0)
