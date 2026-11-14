@@ -57,6 +57,9 @@ func _run() -> void:
 	game.items.clear()
 	dialogue.reset()
 	quests.reset()
+	# Whatever save is lying about (a mended Rootmind, friends who've joined) mustn't change who says what
+	root.get_node("Portals").reset()
+	root.get_node("Party").reset()
 
 	# The file, the key, the empty log
 	var data: Dictionary = quests.quest(Q)

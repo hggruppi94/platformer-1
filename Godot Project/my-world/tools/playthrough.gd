@@ -659,6 +659,14 @@ func _home_from(id: String) -> void:
 	var pulled: bool = portals.home_calls.is_due(id)
 	var way := current_scene.get_node_or_null("WayHome/Way Home/Spot")
 	check(way != null, "%s has a way home" % id)
+	# (A friend's thank-you or lesson can still be talking, or holding the controls, on a slow machine: the crack
+	# won't take you mid-talk, so let it finish first. Flurry's frost breath lesson did that on Hayden's PC.)
+	await _answer()
+	var player := _player()
+	var wait := 0
+	while player and player.input_locked and wait < 600:
+		await physics_frame
+		wait += 1
 	if way:
 		way.use()
 	else:
@@ -829,16 +837,17 @@ func _ch_lanternmoor() -> void:
 	var launch := (s.get_node("Launch") as Node3D).global_position
 	var rock := (s.get_node("Beacon2") as Node3D).global_position
 	var dir := Vector3(rock.x - launch.x, 0, rock.z - launch.z).normalized()
+	# (Pip's talk lets go of the controls a moment after it closes, on a timer: on a slow machine that can still be
+	# holding them here, and with the controls held Jump doesn't glide. So let it finish before standing on the tree.)
+	await _answer()
+	var wait := 0
+	while player.input_locked and wait < 600:
+		await physics_frame
+		wait += 1
 	player.global_position = launch + dir * 1.8 + Vector3(0, 0.6, 0)
 	player.velocity = Vector3.ZERO
 	player.spring_arm.global_rotation = Vector3(0, atan2(-dir.x, -dir.z), 0)
 	await _physics(10)
-	# (Pip's talk lets go of the controls a moment after it closes, on a timer: on a slow machine that can still be
-	# holding them here, and with the controls held Jump doesn't glide.)
-	var wait := 0
-	while player.input_locked and wait < 300:
-		await physics_frame
-		wait += 1
 	Input.action_press("move_forward")
 	Input.action_press("jump")
 	player.velocity = dir * 5.0 + Vector3(0, 6.0, 0)

@@ -725,7 +725,8 @@ func _physics_process(delta: float) -> void:
 
 
 func jumpers() -> Array[Node]:
-	_jumpers.assign(_jumpers.filter(func(n: Node) -> bool: return is_instance_valid(n) and not bool(n.get("defeated"))))
+	# (The lambda's argument is left untyped: a popped jumper that's already freed can't be passed as a Node.)
+	_jumpers.assign(_jumpers.filter(func(n) -> bool: return is_instance_valid(n) and not bool(n.get("defeated"))))
 	return _jumpers
 
 

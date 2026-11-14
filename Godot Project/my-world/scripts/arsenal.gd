@@ -698,8 +698,13 @@ func supply_boss(boss: Node3D, reach := 8.0, count := BOSS_CRATES) -> void:
 	_supply.call_deferred(boss, reach, count)
 
 
-func _supply(boss: Node3D, reach: float, count: int) -> void:
-	if not is_instance_valid(boss) or not boss.is_inside_tree() or boss.is_queued_for_deletion():
+func _supply(boss_ref, reach: float, count: int) -> void:
+	# (Untyped on purpose: a boss freed before this deferred call runs, like a world swapped out on the same frame,
+	# can't be passed as a Node3D at all, and Godot shouts "Cannot convert argument 1" instead of calling us.)
+	if not is_instance_valid(boss_ref) or not boss_ref is Node3D:
+		return
+	var boss: Node3D = boss_ref
+	if not boss.is_inside_tree() or boss.is_queued_for_deletion():
 		return
 	var parent := boss.get_parent()
 	var space := boss.get_world_3d().direct_space_state
