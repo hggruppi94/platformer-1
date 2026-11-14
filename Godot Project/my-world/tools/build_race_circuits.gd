@@ -7,7 +7,7 @@ extends SceneTree
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_race_circuits.gd
 
-const CIRCUITS := ["lake_loop", "meadow_wiggle", "observatory_hill", "pumpkin_run"]
+const CIRCUITS := ["lake_loop", "meadow_wiggle", "observatory_hill", "pumpkin_run", "hollow_run"]
 
 
 func _initialize() -> void:

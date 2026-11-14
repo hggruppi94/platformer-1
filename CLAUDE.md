@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The Hollow Run is a real circuit now** (Hayden's 14 Nov playtest: "The dark hollow race is pretty
+  lame and needs a rework like the other races"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Its own level** (`scenes/races/hollow_run.tscn`, `tools/build_race_circuits.gd`): Dark Hollow keeps only Pip's
+    race gate (`Races.HUBS` "dark_hollow", where the old start was); the race is three laps of a 14 m road round a
+    misty hollow at midnight, about 420 m a lap, up and down little hills. Eight racers like the other circuits.
+  - **The look** (`race_circuit.gd` theme `"dark"`, feature `"hollow"`): a night sky with stars and a moon, dark moss,
+    lilac kerbs, crooked trees, glowing mushrooms, lamp posts along the road, and the **Moon Clock** standing in the
+    misty hollow in the middle with its hands ticking round.
+  - **Things going on** (`race_life.gd`): ghosts swooping over the road, lanterns floating up, bats, moths, a dark
+    blimp over the stand. Obstacles all round (bumpers, zappers, sweepers, a slider, a pop-up, a ramp), the **Hollow
+    Log** tunnel, the **Root Tunnel** shortcut, Star Boxes, goo, boost pads, and speed coins and flow like every circuit.
+  - **Prizes:** 22 to 2 sparkles, and the Lantern Hat the first win (as before). The third Moon Piece now waits when you
+    come back to Dark Hollow after finishing (`dark_hollow.gd _race_piece()`, from `Races.finished_once`).
+  - Tests: `test_dark_hollow` (the gate, the circuit, three laps, the piece on return), `tools/playthrough.gd`;
+    races, race_tracks, race_life, race_flow, race_intros, race_tutorial and earth_race pass. Previews:
+    `tools/capture_hollow_run.gd` (shots in the project files under world/previews/hollow_run).
+  - My choices Hayden may change: the road's shape, the night look, the set pieces, the shortcut's spot.
+
 - 2026-11-14: **Spray paint shows on windows** (Hayden: "I noticed the paint is behind the window"). The builders make
   windows (and many signs and trims) as thin meshes stuck a little way out from a wall, with only the wall's collision
   behind them, so paint landed on the wall and was hidden behind the glass. `Paint.outside(at, normal)` moves a spot
