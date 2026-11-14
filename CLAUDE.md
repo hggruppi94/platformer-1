@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The voice in your mind speaks out loud** (Hayden: "can we give the brain dialogue in your mind a
+  voice?", then picked sample C, "many voices as one"). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **Every line has its own recording** in `audio/mind/<key>.ogg` (219 lines: the fixed ones, the ones naming each
+    world, and every quest goal its hints can remind you of). The key is the first 16 letters of the line's md5
+    (`DivineMind.voice_key()`), so a changed line needs a new file. The words stay up until it's finished saying them
+    (`VOICE_TAIL`), a line with no file is just shown as before, and nobody babbles over it (`soundscape.gd`). In a
+    talk (touching the old oak) its lines are spoken from `Dialogue.raw_line` (the line before `{player}` is filled
+    in: the recording leaves the name out), and the voice stops when the talk moves on. It plays on the Voices bus.
+  - **The voice:** Kokoro (free, Apache 2.0) with a man's and a woman's voice blended into one, a deep layer an octave
+    down, a faint high layer, chorus and echo (`STYLES["C"]` in `tools/make_mind_voice.py`). The lines live as
+    constants in `scripts/divine_mind.gd` (`ARRIVAL`, `CRACK_OPENED`, `MENDED`, `OAK_FIRST`, `HINT_*`) and callers use them.
+  - **Changing or adding a mind line or a quest goal:** run `tools/dump_mind_lines.gd` (writes `audio/mind/lines.txt`
+    from `DivineMind.all_lines()`), then `tools/make_mind_voice.py --model ... --voices ...` (see its header for the
+    model files). `tools/test_mind_voice.gd` fails if any line has no recording.
+  - My choices Hayden may change: the voice's speed, depth and echo, the name left out of "I chose you".
+
 - 2026-11-14: **Spray paint that stays put until it's washed off** (Hayden's 14 Nov 2026 playtest: "I also want to add
   spray painting that stays put until it is washed offf, allowing the character to create any permanent design they
   want"). Built and tested in the cloud (own Godot user folders, no save touched).

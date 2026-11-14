@@ -27,6 +27,13 @@ Written as data and synthesized from scratch by `tools/make_soundscape.py` (nump
 
 Also made by `tools/make_soundscape.py`: `birds`, `wind`, `water`, `mothership_hum`, `alien_chirps`, `market`.
 
+## The voice in your mind (`audio/mind/*.ogg`)
+
+Every line the voice in your mind says (scripts/divine_mind.gd), spoken by `tools/make_mind_voice.py` with Kokoro, a
+free text-to-speech model (Apache 2.0: https://github.com/hexgrad/kokoro), run on our own computer, and layered with
+ffmpeg. The recordings are ours to ship. `audio/mind/lines.txt` is the list they're made from
+(`tools/dump_mind_lines.gd`).
+
 ## Made in the game's code (no files)
 
 - The little feedback sounds (chime, pop, tick, whoosh, thud, sparkle, buzz): `scripts/juice.gd`.

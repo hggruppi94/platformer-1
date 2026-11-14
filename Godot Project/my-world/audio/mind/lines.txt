@@ -1,0 +1,216 @@
+Don't be afraid. You're exactly where you're meant to be.
+Don't be afraid. I chose you, {player}. Whenever you're lost, come and touch the old oak, and I'll help you find the way.
+Jump in. Someone there is waiting for a friend.
+Jump in. Put it right.
+Remember what you set out to do...
+Rest, and be with the people you love. The ground here is open, whenever you're ready.
+Look around you. Help where you can. When you're needed, I will tell you.
+Feel that? A new crack opened.
+A world needs you!
+Well done. Shard Isle is mended.
+A crack lies open in the Void, by the field below Observatory Hill. Time is broken on the other side.
+Well done. The Rootmind is mended.
+A crack lies open in the Void, by the Secret Gardens, by your garden. Time is broken on the other side.
+Well done. The Frozen Moment is mended.
+A crack lies open in the Void, by the foot of the mountains, far north past the castle. Time is broken on the other side.
+Well done. Lanternmoor is mended.
+A crack lies open in the Void, by the Spooky Woods, on the way to the Haunted House. Time is broken on the other side.
+Well done. Glenmoor is mended.
+A crack lies open in the Void, by the meadow past the farm, west of the Secret Gardens. Time is broken on the other side.
+Well done. The Tide Reef is mended.
+A crack lies open in the Void, by the lake's south-east shore. Time is broken on the other side.
+Well done. Rhythm Springs is mended.
+A crack lies open in the Void, by the lake's south-west shore. Time is broken on the other side.
+Well done. Dark Hollow is mended.
+A crack lies open in the Void, by the town. Time is broken on the other side.
+Well done. The Far Future is mended.
+A crack lies open in the Void, by the hedge behind the lab. Time is broken on the other side.
+Willow Pond is glowing! Go look.
+Say hello to the pond girl.
+Untangle the gazebo lights
+Swap the bakery's mud pies
+Fix the Town Hall sign
+Put things right round town.
+Tell Nina about the pond girl.
+Find the other Nina at the pond.
+A springy coil
+A fizzing bulb
+A tiny cog
+Dash dropped gadget bits! Follow the glowing tyre tracks.
+Something in the shed goes BZZZT!
+Catch the Buzz Bot: walk into it!
+You caught it! Tell Dash.
+Visit Dash's gadget stall
+Buy the Star Popper
+Take Dash's blueprint to his stall!
+Pop the Gloop King
+Tell Dash
+Pop the Gloop King, then tell Dash!
+Mr. Palmer's window
+Nina's House
+The Potion Shop
+The Book Store
+Dash's House
+Fill the window boxes.
+Tell Bramble.
+Rootwood handle: Secret Gardens
+Moonshell scoop: the dock
+Hum crystal: Observatory hill
+Find 3 tool parts.
+Take them to Bramble.
+Harvest a glowing vein by the lake.
+Meet Bramble at your garden.
+Plant a seed
+Water it
+Plant a seed and water it.
+Keep it watered, then pick it!
+Help Rex pick a doggie right.
+Dash
+Bramble
+Pip
+Nina
+Rook's paw print
+Get 5 names on the Bill.
+Read it to Mr. Palmer.
+By the gazebo
+In the playground
+By the bakery
+By the footbridge
+In the Tulip Field
+Find 5 lost ducklings!
+Lead them to Mother Duck.
+A big puddle
+A bigger puddle
+The biggest puddle
+Puddle jump with Nina!
+Honey buns! Ask Poppy.
+By the Hollow Diner
+By the bookshop
+By the Maple Inn
+Find 3 boxes of lights.
+Bring them to Mr. Palmer.
+Water jug: Market fountain
+Torch: Library steps
+Blanket: Cozy Cave
+Snack box: the dock
+Find 4 things for Leo.
+Take the kit to Leo's bunker.
+A wail! Talk to Leo.
+Talk to Nina
+Meet Mr. Palmer
+Say hi to two more people
+Someone's knocking! Say hi to Nina, then meet the town.
+Look at the notice board
+Follow a job
+Finish a job
+Nina wants to show you the notice board.
+What a day! Look round, or go home to bed.
+You fell into a strange new place! Talk to Tally.
+Finish a request for Tally
+Skate Park: push along
+Skate Park: pop an ollie
+Jump on 3 Gloops
+Find the watch on the fountain
+A whole day in the Void! Explore!
+Your watch is tingling... (Then find Nina.)
+Carrot: Corner Market
+Scarf: by the Blastoffs' door
+Find a nose and a scarf!
+Build the snowman with Nina.
+Sled down Lookout Hill!
+Hot cocoa! Ask Gus.
+Go to Dash's lab.
+Go to the Tomorrow Clock.
+Read Dash's letter.
+Find Bruno at the Skate Park.
+Make 3 things! Press Z (RB).
+Show Nina!
+Say hi to Melody in the Market Square.
+Find Heather in the green meadow.
+Meet them in the Market Square!
+Dash says: say hi to Pip!
+Help Pip with the lamps
+Find an S-K-A-T-E letter
+Try new things tonight!
+Pip says: say hi to Bramble!
+Find the Overboard schematic
+Race on any track
+Explore the south meadow!
+Melody and Heather say: say hi to Dash!
+Go up to the Observatory
+Find the Bike schematic
+Get Zippy to build it
+Explore Observatory Hill!
+Dash says: say hi to the Astronaut!
+Call the mothership down
+Fly through the high schematic
+Fly the mothership!
+The Astronaut says: say hi to Rex!
+Find the Rocket Bike schematic
+Go inside the castle school
+Up to the castle school!
+Rex says: go and see Mr. Palmer!
+Peek at the old gate
+Find the Saucer schematic
+Look round the far field
+Explore the far corners!
+Southwest shore
+South shore
+By the dock
+West shore
+North boardwalk
+Find 5 glow shells!
+Bring them to Pip.
+Ask Dash
+Ask Bramble
+Ask Pip
+Ask Rook
+Ask what the Void needs.
+Tell Rex what everyone said.
+Signpost west of the Market
+Signpost by the dock
+Signpost by the Homes gate
+Market noticeboard
+Hang 4 VOTE REX posters.
+Cheer Rex's speech at the fountain!
+Tell Mr. Palmer Rex's ideas.
+Tell Rex what he said.
+Visit Rex and Dash's lab.
+Market Square
+Town square
+Observatory Hill
+Find 3 time ripples.
+Bring Rook to the lab.
+Pull the big lever!
+Talk to Rex.
+Ask Mr. Palmer with Melanie.
+Why did the old slide close?
+Read the old notice
+Look at the glowing puddle
+Look for clues at the old slide.
+Talk to the fancy stranger.
+Try the Haunted House door.
+Tell Melanie what happened.
+Take her plan to Mr. Palmer.
+Pull the lever in Dash's lab.
+Stop the Agent of Chaos's clock!
+Swim ring: by the Blastoffs' door
+Bucket and spade: Nuts & Bolts
+Find a float and a spade!
+Build a sandcastle with Nina.
+Cannonball off the dock!
+Pink lemonade! Ask Gus.
+A shell?! Go to the Secret Gardens.
+Teacup: south Market
+Bucket: the dock
+Flower pot: by the greenhouse
+Find 3 new shells.
+Let the turtles choose.
+See the Wizard Lizard.
+Root Hall, high up
+Mushroom Grotto
+Across the Deep Crack
+Crystal Pool island
+Find 4 Glowcap spores.
+Take them to the Old Taproot.
+Come back tomorrow.

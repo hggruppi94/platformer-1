@@ -127,7 +127,7 @@ func touch_lines() -> Array:
 	var out: Array = ["(You lay your hand on the old oak's bark. It's humming, deep and warm, and the hum goes right through you...)"]
 	if not Dialogue.flags.has("oak_voice_heard"):
 		Dialogue.set_flag("oak_voice_heard")
-		out.append({"speaker": DivineMind.SPEAKER, "text": "Don't be afraid. I chose you, {player}. Whenever you're lost, come and touch the old oak, and I'll help you find the way."})
+		out.append({"speaker": DivineMind.SPEAKER, "text": DivineMind.OAK_FIRST})
 	for l in DivineMind.hint():
 		out.append({"speaker": DivineMind.SPEAKER, "text": str(l)})
 	return out

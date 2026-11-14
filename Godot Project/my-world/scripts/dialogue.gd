@@ -32,6 +32,7 @@ var _nearest: Node3D
 var _talker: Node3D                  # who she's talking to, while a conversation is on
 var _id := ""
 var _name := ""
+var raw_line := ""                  # the line on show as written, before {player} and friends are filled in (DivineMind speaks it)
 var _queue: Array = []               # steps still to show: lines (Dictionary {speaker, text}) and choices
 var _set_at_end := ""                # the conversation's own "set" flag, set once it's over
 var _go_at_end: Array = []           # [scene, spawn]: an answer's "go", taken once the conversation's over
@@ -332,6 +333,7 @@ func _next() -> void:
 	_name_label.visible = not narration
 	_name_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.7) if is_player else Color(0.75, 0.9, 1.0))
 	_text.text = text
+	raw_line = str(step["text"])
 	_text.visible_characters = 0
 	_lines_in_convo += 1
 	_pop_in()

@@ -678,7 +678,7 @@ func _on_flag(f: String) -> void:
 	if f == TALLY_FLAG and not greeters.is_empty():
 		scatter.call_deferred()
 		# ...and a voice in their mind, for the first time (it's the Divine Mind's: never named in the game)
-		DivineMind.say(["Don't be afraid. You're exactly where you're meant to be."])
+		DivineMind.say([DivineMind.ARRIVAL])
 
 
 func _anim(holder: Node3D, want: String) -> void:
