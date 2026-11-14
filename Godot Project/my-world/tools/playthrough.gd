@@ -650,16 +650,76 @@ func _wait_talk(most := 10.0) -> Array:
 
 
 func _home_from(id: String) -> void:
-	# The way home, back to the Void by the portal
+	# The way home. Once a world's mended (all but Dark Hollow and the Far Future) it pulls you all the way home to
+	# Stars Hollow for a chapter there (scripts/home_calls.gd), and the crack by the oak opens again after it
+	var pulled: bool = portals.home_calls.is_due(id)
 	var way := current_scene.get_node_or_null("WayHome/Way Home/Spot")
 	check(way != null, "%s has a way home" % id)
 	if way:
 		way.use()
 	else:
 		portals.go_home()
+	if pulled:
+		await _wait_for_scene(EARTH)
+		await _physics(10)
+		check(current_scene.scene_file_path == EARTH and portals.home_calls.sealed(), "pulled all the way home to Stars Hollow from %s" % id)
+		await _earth_chapter(id)
+		await _through_oak()
+		await create_timer(3.5).timeout
+		return
 	await _wait_for_scene(TOWN)
 	await _physics(10)
 	check(current_scene.scene_file_path == TOWN and portals.here == "", "home to the Void from %s" % id)
+
+
+# A Stars Hollow chapter, after a world's mended: who asks, the things to find, and (for a season) Nina's quest
+const EARTH_CHAPTERS := {
+	"home_chimes": ["wren", ["chime_1", "chime_2", "chime_3"]],
+	"home_plushies": ["prue", ["plush_1", "plush_2", "plush_3"]],
+	"home_lamps": ["hank", ["lamp_1", "lamp_2", "lamp_3"]],
+	"home_bottles": ["lionel", ["bottle_1", "bottle_2", "bottle_3"]],
+}
+const SEASON_STEPS := {
+	"first_snow": ["snow_carrot", "snow_scarf", "snow_built", "snow_sledded", "snow_cocoa"],
+	"duckling_day": ["duckling_1", "duckling_2", "duckling_3", "duckling_4", "duckling_5", "ducks_home", "puddle_1",
+		"puddle_2", "puddle_3", "spring_buns"],
+	"summer_splash": ["splash_ring", "splash_bucket", "splash_castle", "splash_jumped", "splash_lemonade"],
+}
+
+
+func _earth_chapter(id: String) -> void:
+	var calls: Node = portals.home_calls
+	var c: Dictionary = calls.CHAPTERS[id]
+	var q := str(c.quest)
+	check(quests.is_started(q), "%s: Stars Hollow's chapter %s starts" % [id, q])
+	await create_timer(calls.SHUT_AFTER + 1.5).timeout
+	check(not portals.CRACK.is_open(current_scene.get("crack")), "...and the crack by the oak snaps shut")
+	if EARTH_CHAPTERS.has(q):
+		var who := str(EARTH_CHAPTERS[q][0])
+		await _talk(who)
+		check(not quests.on_step(q, "ask"), "%s asks for help" % who)
+		for f in EARTH_CHAPTERS[q][1]:
+			var spot := current_scene.get_node_or_null("Home Calls/Home Spot " + str(f)) as Node3D
+			check(spot != null, "%s is there to find" % f)
+			if spot:
+				_player().global_position = spot.global_position + Vector3(0, 0.6, 1.2)
+				await _physics(4)
+				spot.use()
+				await _frames(2)
+		await create_timer(1.2).timeout
+		await _talk(who)
+	else:
+		await _talk("nina_earth")
+		var inner := str(c.until)
+		await create_timer(1.2).timeout
+		check(quests.is_started(inner), "Nina starts %s" % inner)
+		# (Nina's seasonal quests are played through in their own tests: test_winter, test_spring, test_summer)
+		for f in SEASON_STEPS.get(inner, []):
+			dialogue.set_flag(str(f))
+			quests.check()
+			await _frames(2)
+	await create_timer(1.5).timeout
+	check(quests.is_done(str(c.until)) and not calls.sealed(), "%s's chapter done: the crack by the oak opens again" % id)
 
 
 func _time_check(id: String) -> void:

@@ -1,0 +1,21 @@
+{
+  "name": "Summer in Stars Hollow!",
+  "giver": "nina_earth",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done. Leads to Nina's seasonal quest (summer_splash).",
+  "start": {
+    "flag": "home_summer_start"
+  },
+  "steps": [
+    {
+      "id": "nina",
+      "text": "Find Nina!",
+      "done": {
+        "flag": "summer_splash_start"
+      },
+      "where": [
+        "nina_earth"
+      ]
+    }
+  ]
+}

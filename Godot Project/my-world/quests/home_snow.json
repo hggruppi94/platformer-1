@@ -1,0 +1,21 @@
+{
+  "name": "Snow in Stars Hollow!",
+  "giver": "nina_earth",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done. Leads to Nina's seasonal quest (first_snow).",
+  "start": {
+    "flag": "home_snow_start"
+  },
+  "steps": [
+    {
+      "id": "nina",
+      "text": "Find Nina!",
+      "done": {
+        "flag": "first_snow_start"
+      },
+      "where": [
+        "nina_earth"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,7 @@ Jump in. Someone there is waiting for a friend.
 Jump in. Put it right.
 Remember what you set out to do...
 Rest, and be with the people you love. The ground here is open, whenever you're ready.
+Stars Hollow needs you now. Help here, and the ground will open again.
 Look around you. Help where you can. When you're needed, I will tell you.
 Feel that? A new crack opened.
 A world needs you!
@@ -119,6 +120,31 @@ Find a nose and a scarf!
 Build the snowman with Nina.
 Sled down Lookout Hill!
 Hot cocoa! Ask Gus.
+Mr. Page needs you!
+By the pond path
+North of the dock
+On the south bank
+Find 3 bottles by the pond.
+Take them to Mr. Page.
+Mrs. Wren needs you!
+By the market
+By the park gate
+By the diner
+Find 3 wind chimes.
+Take them to Mrs. Wren.
+Hank needs you!
+Main Street, by the diner
+Main Street, by the shops
+Main Street, by the fire station
+Fix 3 street lamps.
+Tell Hank they're lit.
+Prue needs you!
+By the playground
+Down the hollow
+By the park path
+Find Prue's 3 plushies.
+Take them to Prue.
+Find Nina!
 Go to Dash's lab.
 Go to the Tomorrow Clock.
 Read Dash's letter.

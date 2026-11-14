@@ -111,7 +111,8 @@ func _process(delta: float) -> void:
 	_open = move_toward(_open, 1.0 if _door_open() and not _held_shut else 0.0, delta / PORTAL_OPEN_TIME)
 	if crack == null and _door_open():
 		_make_crack()
-	if crack != null and _door_open() and not _held_shut and Portals.opening_cut.earth_due():
+	if crack != null and _door_open() and not _held_shut and (Portals.opening_cut.earth_due()
+			or Portals.home_calls.reopen_due):
 		_show_opening()
 	_portal()
 
@@ -119,9 +120,12 @@ func _process(delta: float) -> void:
 func _show_opening() -> void:
 	# The first time the crack opens with you here, a cutscene shows it (Hayden, 14 Nov 2026: "more obvious when a crack
 	# opens up, with a cutscene for each one"): it's shut again for a moment, and splits open as the camera gets there
-	if Portals.opening_cut.earth(self, crack, func() -> void: _held_shut = false):
+	var open_it := func() -> void: _held_shut = false
+	var cut: Node = Portals.opening_cut
+	if cut.earth(self, crack, open_it) or (Portals.home_calls.reopen_due and cut.earth_again(self, crack, open_it)):
 		_held_shut = true
 		_open = 0.0
+	Portals.home_calls.reopen_due = false     # (shown, or it can't be: it just opens)
 
 
 func _make_crack() -> void:
@@ -169,14 +173,19 @@ func _portal() -> void:
 	if _portal_door:
 		if not HummingOak.awake():
 			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
+		elif not _door_open():
+			_portal_door.set("closed_message", Portals.home_calls.SHUT_DOOR)
 		else:
 			_portal_door.set("closed_message", "")
 
 
 func _door_open() -> bool:
 	# The crack's open once the oak's awake (on a new game's first day it's woken at midnight, by the fall:
-	# scripts/humming_oak.gd), day and night
-	return HummingOak.awake()
+	# scripts/humming_oak.gd), day and night. Pulled home after mending a world, it's shut till Stars Hollow's had
+	# its chapter (scripts/home_calls.gd): open only for the moment you pop out of it.
+	if not HummingOak.awake():
+		return false
+	return not Portals.home_calls.sealed() or Portals.home_calls.just_pulled
 
 
 func _first_material(n: Node) -> StandardMaterial3D:

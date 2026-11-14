@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Mending a world pulls you home to Stars Hollow, and the crack stays shut till you've helped there**
+  (Hayden: "After completing worlds in the void, the player should be sucked back to earth, where they must complete
+  more quests (can be season-related or one-off) in order to unlock the ability to go back to the void. That way earth
+  stays relevant"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/home_calls.gd`** (node "Home Calls" under `Portals`: `Portals.home_calls`, made in `Portals._init()`):
+    `Portals.clear()` -> `on_mended()` owes Stars Hollow a visit; the world's way home (`Portals.go_home()`) then
+    `pull()`s you to Earth by the old oak instead of the Void (you pop out of its crack, which snaps shut 2.2 s later).
+    While a chapter is on (`sealed()`): `earth_world.gd _door_open()` is false, the crack's door says it's shut, the
+    pause menu has no way to the Void, and the oak's hint is `DivineMind.HINT_HOME`. When the chapter's quest is done
+    the ground rumbles and the crack opens again (`crack_opening.gd earth_again()`, the oak's cutscene with "It's
+    open again"). Never on the clock: only quests. Saved inside Portals' save as `"home_calls"` (owed, chapter, done).
+  - **Chapters** (`CHAPTERS`): Shard Isle -> `home_chimes` (Mrs. Wren's 3 wind chimes), Rootmind -> `home_plushies`
+    (Prue's 3 plushies), Frozen Moment -> `home_snow` (Stars Hollow turns to winter, `Clock.dial_to()`, and Nina's
+    First Snow), Lanternmoor -> `home_lamps` (Hank: bulbs in 3 Main Street lamps), Glenmoor -> `home_spring` (spring,
+    Duckling Day), Tide Reef -> `home_bottles` (Mr. Page: 3 bottles by Willow Pond), Rhythm Springs -> `home_summer`
+    (summer, Summer Splash). The things to find are put in at play time (`SPOTS`, quest spots). Dark Hollow (optional),
+    the Far Future (the ending's next), practice trips and worlds mended before this (old saves) don't pull you home.
+  - Tests: new `tools/test_home_calls.gd`; the single-world tests set `portals.home_calls.enabled = false`;
+    `tools/playthrough.gd` plays each chapter (`_earth_chapter()`). 26 new voice lines in `audio/mind/`. Previews:
+    `tools/capture_home_calls.gd` (shots in the project files under world/previews/home_calls).
+  - My choices Hayden may change: which worlds pull you home, every chapter and line (first drafts), using Nina's
+    seasonal quests for the season worlds, the spots' places.
+
 - 2026-11-14: **Spray paint shows on windows** (Hayden: "I noticed the paint is behind the window"). The builders make
   windows (and many signs and trims) as thin meshes stuck a little way out from a wall, with only the wall's collision
   behind them, so paint landed on the wall and was hidden behind the glass. `Paint.outside(at, normal)` moves a spot

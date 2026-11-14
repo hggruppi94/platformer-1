@@ -3,6 +3,34 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "home_lamps:ask"
+      },
+      "lines": [
+        "Lamps out all down Main Street!",
+        "Moths everywhere last night. HUGE ones.",
+        "Here, new bulbs. Fix three?"
+      ],
+      "set": "lamps_asked"
+    },
+    {
+      "when": {
+        "quest_step": "home_lamps:fix"
+      },
+      "lines": [
+        "Three lamps. Bulbs go in the top."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "home_lamps:back"
+      },
+      "lines": [
+        "Lit up! The moths love it. So do I."
+      ],
+      "set": "lamps_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

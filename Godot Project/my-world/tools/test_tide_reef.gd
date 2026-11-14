@@ -52,6 +52,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	portals = root.get_node("Portals")
+	portals.home_calls.enabled = false      # (this world on its own: no pull home to Stars Hollow, test_home_calls.gd)
 	rem = root.get_node("Remnants")
 	quests = root.get_node("Quests")
 	clock = root.get_node("Clock")

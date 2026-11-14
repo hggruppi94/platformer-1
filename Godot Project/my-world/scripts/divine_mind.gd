@@ -28,6 +28,7 @@ const HINT_FRIEND := "Jump in. Someone there is waiting for a friend."
 const HINT_FIX := "Jump in. Put it right."
 const HINT_GOAL := "Remember what you set out to do..."
 const HINT_REST := "Rest, and be with the people you love. The ground here is open, whenever you're ready."
+const HINT_HOME := "Stars Hollow needs you now. Help here, and the ground will open again."
 const HINT_LOOK := "Look around you. Help where you can. When you're needed, I will tell you."
 const VOICE_DIR := "res://audio/mind/"
 const VOICE_TAIL := 0.6                # seconds a spoken line stays up after the voice stops
@@ -165,7 +166,7 @@ func _on_dialogue_line(speaker: String, _text_shown: String) -> void:
 func all_lines() -> Array:
 	# Every line it can ever say, for tools/dump_mind_lines.gd: the fixed ones, the ones naming each world, and every
 	# quest goal its hints can remind you of
-	var out: Array = [ARRIVAL, OAK_FIRST, HINT_FRIEND, HINT_FIX, HINT_GOAL, HINT_REST, HINT_LOOK]
+	var out: Array = [ARRIVAL, OAK_FIRST, HINT_FRIEND, HINT_FIX, HINT_GOAL, HINT_REST, HINT_HOME, HINT_LOOK]
 	out.append_array(CRACK_OPENED)
 	for w in Portals.WORLDS:
 		out.append(MENDED % w.name)
@@ -203,6 +204,8 @@ func hint() -> Array:
 				lines.append(HINT_GOAL)
 				lines.append(str(item[0]))
 				return lines
+	if Portals.home_calls.sealed():
+		return [HINT_HOME]                  # (pulled home after mending a world: scripts/home_calls.gd)
 	if Clock.on_earth and not Clock.in_shift():
 		return [HINT_REST]
 	return [HINT_LOOK]

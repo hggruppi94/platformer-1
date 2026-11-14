@@ -38,6 +38,7 @@ const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
 const CENTIPEDE_HOLES := preload("res://scripts/centipede_holes.gd")
 const CRACK := preload("res://scripts/crack.gd")
 const CRACK_OPENING := preload("res://scripts/crack_opening.gd")
+const HOME_CALLS := preload("res://scripts/home_calls.gd")
 const QUAKE_DELAY := 6.0                # seconds after arriving in the Void before a due quake shakes it
 const PREVIEW_NEAR := 14.0              # the preview window wakes up this close to a portal...
 const PREVIEW_FAR := 22.0               # ...and goes to sleep again past this
@@ -118,6 +119,14 @@ var stage_prize_day := -1              # the visit Melody's dance-off encore was
 var practice := false                   # on a practice trip (practice_trip()): nothing is kept
 var _held_before := false               # Game.hold_saves before the practice trip (tools set it), put back after
 var opening_cut: Node                   # the cutscene for each crack that opens (scripts/crack_opening.gd)
+var home_calls: Node                    # mended a world: pulled home to Stars Hollow for a while (scripts/home_calls.gd)
+
+
+func _init() -> void:
+	# (made before any autoload's _ready, so a save loaded early still has somewhere to go)
+	home_calls = HOME_CALLS.new()
+	home_calls.name = "Home Calls"
+	add_child(home_calls)
 
 
 func _ready() -> void:
@@ -419,6 +428,10 @@ func go_home(why := "") -> void:
 	if practice:
 		end_practice()
 		return
+	if home_calls.is_due(id):
+		_pulling = true
+		home_calls.pull(id)                  # mended: the crack pulls you all the way home to Stars Hollow
+		return
 	_pulling = true
 	var w := world(id)
 	if not has_portal(id):
@@ -492,6 +505,7 @@ func clear(id: String) -> void:
 	if is_cleared(id) or world(id).is_empty():
 		return
 	cleared_worlds.append(id)
+	home_calls.on_mended(id)
 	var w := world(id)
 	open_seasons()
 	var n := int(w.get("reward_remnants", 0))
@@ -1289,7 +1303,7 @@ static func plaza_model(colour: Color) -> Node3D:
 # -----------------------------------------------------------------------------
 func save_data() -> Dictionary:
 	return {"quakes": quakes.duplicate(), "cleared": cleared_worlds.duplicate(), "found": found.duplicate(true),
-		"here": here, "stage_prize_day": stage_prize_day}
+		"here": here, "stage_prize_day": stage_prize_day, "home_calls": home_calls.save_data() if home_calls else {}}
 
 
 func load_data(data: Dictionary) -> void:
@@ -1306,6 +1320,9 @@ func load_data(data: Dictionary) -> void:
 			if f[k] is Array:
 				found[str(k)] = (f[k] as Array).map(func(x) -> String: return str(x))
 	stage_prize_day = int(data.get("stage_prize_day", -1))
+	var hc = data.get("home_calls", {})
+	if home_calls:
+		home_calls.load_data(hc if hc is Dictionary else {})
 	changed.emit()
 
 
@@ -1318,6 +1335,8 @@ func reset() -> void:
 	found.clear()
 	here = ""
 	stage_prize_day = -1
+	if home_calls:
+		home_calls.reset()
 	_pulling = false
 	if _froze_clock:
 		_froze_clock = false
