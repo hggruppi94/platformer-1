@@ -97,6 +97,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **A cutscene every time a crack opens** (Hayden: "We need to make it more obvious when a crack opens up,
+  with a cutscene for each one"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/crack_opening.gd`** (node "Crack Opening" under `Portals`: `Portals.opening_cut`), played with
+    `scripts/place_intro.gd` (which gained `"shake"` and `"call"` per shot). Skippable (Jump/Interact), about 13 s.
+  - **Each portal world's quake** (`quake()`, from `Portals.quake()`): the ground shakes where you are ("A Time
+    Quake!"), the camera flies over to the world's spot and the crack only splits open then, on cue, with a pillar of
+    the world's light shooting up into the sky and something of that world spilling out (`WORLDS`: crystal sparkles,
+    leaves, snowflakes that hang, lantern lights, petals, bubbles, a beat that stumbles, neon sparks), then a look down
+    it with a line of its own (the preview wakes at the bottom), then the world's name over a wide shot. Then the
+    usual message and the voice in your mind. Skipped, the crack's open all the same. A quake now waits for a quiet
+    moment (`Portals._quiet()`: no talk, menu, other cutscene or race). The camera picks a way round the crack that
+    no building or tree blocks (`_best_turn()`, `_blocked()`: trees aren't solid, so they're checked by where they
+    stand). Headless runs keep the old quick quake unless `force`.
+  - **The crack by the old oak** (`earth()`, from `earth_world.gd _show_opening()`): the first Shift it opens with you
+    on Earth after your first trip to the Void (flag `cut_crack_earth`), the crack's held shut (`_held_shut`) till the
+    camera gets there: "Midnight", the oak hums, the green splits open, a look down ("just like the night you fell"),
+    "The Crack by the Old Oak". Once only.
+  - Not given a cutscene: the way home in each world (always open), the little visitor cracks, Dark Hollow (no crack).
+  - No spoilers: the words only say what's happening and what you can see; no bosses or reasons (the test checks).
+  - Tests: new `tools/test_crack_opening.gd`; portals, cracks, earth (both runs), first_night, opening,
+    practice_trips, far_future, lore_order, pass_time, meetings, rootmind, first_hour and races pass. Previews:
+    `tools/capture_crack_opening.gd` (shots in the project files under world/previews/crack_opening).
+  - My choices Hayden may change: every caption (first drafts), the pillar of light, what spills out of each, the
+    title on the last shot, no cutscene for the ways home.
+
 - 2026-11-14: **Every boss is tougher, the Gloop King faces the right way, and his court floods with goo** (Hayden's
   13 Nov 2026 playtest: "the gloop king faces backwards when you start his fight. Can we add a mechanic where the arena
   fills with slime? And we need to make all the bosses harder with more health"). Built and tested in the cloud (own

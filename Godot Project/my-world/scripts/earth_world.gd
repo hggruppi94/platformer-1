@@ -55,6 +55,7 @@ var _portal_glow: OmniLight3D
 var crack: Node3D                                  # the crack to the Void, once the oak's awake
 var _glow_energy := 1.5
 var _open := 0.0                                   # the portal's swirl: 0 closed .. 1 fully open
+var _held_shut := false                            # its cutscene is about to show it splitting open (scripts/crack_opening.gd)
 var _sun_size := -1.0                              # the sky's sun disc as built (summer makes it bigger)
 var _sun_curve := 0.15
 
@@ -107,10 +108,20 @@ func _process(delta: float) -> void:
 	if m != _last_minute:
 		_last_minute = m
 		_light()
-	_open = move_toward(_open, 1.0 if _door_open() else 0.0, delta / PORTAL_OPEN_TIME)
+	_open = move_toward(_open, 1.0 if _door_open() and not _held_shut else 0.0, delta / PORTAL_OPEN_TIME)
 	if crack == null and _door_open():
 		_make_crack()
+	if crack != null and _door_open() and not _held_shut and Portals.opening_cut.earth_due():
+		_show_opening()
 	_portal()
+
+
+func _show_opening() -> void:
+	# The first time the crack opens with you here, a cutscene shows it (Hayden, 14 Nov 2026: "more obvious when a crack
+	# opens up, with a cutscene for each one"): it's shut again for a moment, and splits open as the camera gets there
+	if Portals.opening_cut.earth(self, crack, func() -> void: _held_shut = false):
+		_held_shut = true
+		_open = 0.0
 
 
 func _make_crack() -> void:
