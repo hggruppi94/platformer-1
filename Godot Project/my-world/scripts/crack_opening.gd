@@ -51,6 +51,7 @@ var showing := ""                     # the world whose crack is in the cutscene
 var _opened := false
 var _then := Callable()
 var _occluders: Array = []            # trees in the way of a camera: [where (x, z), how wide, how tall]
+var _boxes: Array = []                # everything else you can see near the crack, as boxes
 
 
 func _ready() -> void:
@@ -103,7 +104,7 @@ func quake_shots(id: String, open_it: Callable = Callable()) -> Array:
 	if w.is_empty() or player == null:
 		return []
 	var at := Remnants.ground_at(w.at)
-	_gather()
+	_gather(at)
 	var yaw := float(w.yaw)
 	var side := Vector3(sin(yaw), 0, cos(yaw))          # the crack's z side: it runs left to right across the shot
 	var across := Vector3(cos(yaw), 0, -sin(yaw))
@@ -117,7 +118,7 @@ func quake_shots(id: String, open_it: Callable = Callable()) -> Array:
 	# 1. Where you are: everything shakes
 	var back := (p - at) * Vector3(1, 0, 1)
 	back = back.normalized() if back.length() > 0.5 else side
-	shots.append({"from": p + back * 4.5 + Vector3.UP * 3.0, "look": p + Vector3.UP * 1.0, "time": 2.4,
+	shots.append({"from": _near_player(p, back), "look": p + Vector3.UP * 1.0, "time": 2.4,
 		"title": "A Time Quake!", "caption": "The ground's shaking! Something's cracking open...", "shake": 0.7,
 		"sound": "stomp"})
 	# 2. Over there: high up, swinging in as the ground splits
@@ -186,8 +187,8 @@ static func _pillar(parent: Node, at: Vector3, colour: Color) -> void:
 	var beam := MeshInstance3D.new()
 	beam.name = "Crack Pillar"
 	var m := CylinderMesh.new()
-	m.top_radius = 1.4
-	m.bottom_radius = 0.8
+	m.top_radius = 3.2
+	m.bottom_radius = 1.4
 	m.height = 60.0
 	m.radial_segments = 16
 	m.rings = 1
@@ -198,7 +199,7 @@ static func _pillar(parent: Node, at: Vector3, colour: Color) -> void:
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var bright := colour.lerp(Color.WHITE, 0.35)
+	var bright := colour.lerp(Color.WHITE, 0.1)
 	mat.albedo_color = Color(bright.r, bright.g, bright.b, 0.0)
 	beam.material_override = mat
 	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -214,7 +215,7 @@ static func _pillar(parent: Node, at: Vector3, colour: Color) -> void:
 	var tw := beam.create_tween()
 	tw.set_parallel(true)
 	tw.tween_property(beam, "scale", Vector3.ONE, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(mat, "albedo_color:a", 0.8, 0.5)
+	tw.tween_property(mat, "albedo_color:a", 0.9, 0.5)
 	tw.tween_property(light, "light_energy", 6.0, 0.5)
 	tw.chain().tween_interval(2.8)
 	tw.chain().set_parallel(true)
@@ -260,12 +261,15 @@ func earth_shots(crack: Node3D, open_it: Callable = Callable()) -> Array:
 	var across := crack.global_basis.x * Vector3(1, 0, 1)
 	across = across.normalized() if across.length() > 0.1 else Vector3.RIGHT
 	var oak := at - side * 2.9                          # (the crack's 2.9 m out in front of the oak)
-	_gather()
+	_gather(at)
+	var turn := _best_turn(at, side * 8.0 + across * 2.0 + Vector3.UP * 4.5)
+	side = side.rotated(Vector3.UP, turn)
+	across = across.rotated(Vector3.UP, turn)
 	var p := player.global_position
 	var back := (p - at) * Vector3(1, 0, 1)
 	back = back.normalized() if back.length() > 0.5 else side
 	return [
-		{"from": p + back * 4.5 + Vector3.UP * 3.0, "look": p + Vector3.UP * 1.0, "time": 2.2, "title": "Midnight",
+		{"from": _near_player(p, back), "look": p + Vector3.UP * 1.0, "time": 2.2, "title": "Midnight",
 			"caption": "The whole town goes quiet... and the old oak starts to hum.", "sound": "faint", "shake": 0.25},
 		{"start": _clear(at, at + side * 16.0 + across * 5.0 + Vector3.UP * 9.0), "start_look": oak + Vector3.UP * 3.0,
 			"from": _clear(at, at + side * 8.0 + across * 2.0 + Vector3.UP * 4.5), "look": at + Vector3.UP * 0.5,
@@ -276,7 +280,7 @@ func earth_shots(crack: Node3D, open_it: Callable = Callable()) -> Array:
 					open_it.call()
 				Audio.play("stomp", -4.0, 0.0)
 				_pillar(crack.get_parent(), at, Color(0.7, 0.5, 1.0))},
-		{"from": at + side * 3.0 + Vector3.UP * 4.4, "look": at + Vector3.DOWN * 2.0, "time": 3.6, "title": "",
+		{"from": _clear(at, at + side * 2.2 + Vector3.UP * 4.4), "look": at + Vector3.DOWN * 3.0, "time": 3.6, "title": "",
 			"caption": "Far down at the bottom, a light swirls... just like the night you fell."},
 		{"from": _clear(at, at + side * 11.0 - across * 6.0 + Vector3.UP * 6.0), "look": oak + Vector3.UP * 2.0,
 			"time": 3.2, "title": "The Crack by the Old Oak", "caption": "It's open till 1 AM. Jump in when you're ready."},
@@ -309,6 +313,20 @@ func _clear(target: Vector3, from: Vector3) -> Vector3:
 	return spot
 
 
+func _near_player(p: Vector3, back: Vector3) -> Vector3:
+	# Where you are: from your own camera, a little higher (it can already see you), or else from just behind you
+	var near_crack := _boxes.duplicate()
+	_boxes_near(p, 10.0)
+	var cam := get_viewport().get_camera_3d()
+	if cam and cam.global_position.distance_to(p) < 14.0 and not _blocked(p, cam.global_position + Vector3.UP * 0.8):
+		_boxes = near_crack
+		return cam.global_position + Vector3.UP * 0.8
+	var offset := back * 4.5 + Vector3.UP * 3.0
+	var spot := _clear(p, p + offset.rotated(Vector3.UP, _best_turn(p, offset)))
+	_boxes = near_crack
+	return spot
+
+
 func _best_turn(at: Vector3, offset: Vector3) -> float:
 	# Which way round the crack to look from: straight on if nothing's in the way, else the nearest way round that's clear
 	for turn in [0.0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9, PI]:
@@ -327,25 +345,80 @@ func _blocked(target: Vector3, spot: Vector3) -> bool:
 			q.exclude = [player.get_rid()]
 		if not w.direct_space_state.intersect_ray(q).is_empty():
 			return true
-	# Trees aren't solid, so the ray can't see them: check them by where they stand
+	# Trees and plants aren't solid, so the ray can't see them: check them by where they stand
 	for i in range(1, 13):
 		var p := target.lerp(spot, i / 12.0)
 		for o in _occluders:
 			if p.y < float(o[2]) and Vector2(p.x, p.z).distance_to(o[0]) < float(o[1]):
 				return true
+	# ...nor can it see things that are only for looking at (a roof, a sign, a fence with no body)
+	var from := target + (spot - target).normalized() * 1.5 + Vector3.UP * 0.6
+	for b in _boxes:
+		if (b as AABB).intersects_segment(from, spot):
+			return true
 	return false
 
 
-func _gather() -> void:
-	# The trees round about (scenes/town/trees.gd): where each stands, how wide and how tall
-	_occluders.clear()
+func _boxes_near(at: Vector3, reach: float) -> void:
+	# Everything you can see within reach (single meshes: houses, signs, benches, rocks), as boxes round them
+	_boxes.clear()
 	var scene := get_tree().current_scene
-	var trees := scene.find_child("Trees", true, false) as Node3D if scene else null
-	if trees == null or not "positions" in trees:
+	if scene == null:
 		return
-	var sizes: PackedFloat32Array = trees.get("sizes") if "sizes" in trees else PackedFloat32Array()
-	var spots: PackedVector3Array = trees.get("positions")
-	for i in spots.size():
-		var g := trees.global_transform * spots[i]
-		var k := sizes[i] if i < sizes.size() else 1.0
-		_occluders.append([Vector2(g.x, g.z), 1.3 * k + 0.5, g.y + 3.0 + 2.8 * k])
+	var player := _player()
+	for m in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := m as MeshInstance3D
+		if not mi.is_visible_in_tree() or mi.mesh == null or (player and player.is_ancestor_of(mi)):
+			continue
+		var box := mi.global_transform * mi.get_aabb()
+		if box.size.x > 30.0 or box.size.z > 30.0 or box.size.y < 0.4:
+			continue                                     # (the ground, a lake, a path: not in the way)
+		if box.grow(1.0).has_point(at) or box.get_center().distance_to(at) > reach + box.size.length():
+			continue                                     # (the crack itself, or too far to matter)
+		_boxes.append(box)
+	# ...and every copy in the batched ones (Stars Hollow's autumn trees, the Void's trees and big plants)
+	for m in scene.find_children("*", "MultiMeshInstance3D", true, false):
+		var mmi := m as MultiMeshInstance3D
+		var mm := mmi.multimesh
+		if not mmi.is_visible_in_tree() or mm == null or mm.mesh == null:
+			continue
+		var shape := mm.mesh.get_aabb()
+		var count := mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
+		for i in count:
+			var t := mmi.global_transform * mm.get_instance_transform(i)
+			if Vector2(t.origin.x - at.x, t.origin.z - at.z).length() > reach + 6.0:
+				continue
+			var box := t * shape
+			if box.size.y < 1.2 or box.grow(0.5).has_point(at):
+				continue                                 # (grass and little plants, or the crack's own bits)
+			_boxes.append(box)
+
+
+func _gather(at: Vector3) -> void:
+	# The trees and big plants round about (scenes/town/trees.gd, foliage.gd): where each stands, how wide and how
+	# tall; and everything else you can see near the crack
+	_occluders.clear()
+	_boxes_near(at, 26.0)
+	var scene := get_tree().current_scene
+	if scene == null:
+		return
+	var trees := scene.find_child("Trees", true, false) as Node3D
+	if trees and "positions" in trees:
+		var sizes: PackedFloat32Array = trees.get("sizes")
+		var spots: PackedVector3Array = trees.get("positions")
+		for i in spots.size():
+			var g := trees.global_transform * spots[i]
+			var k := sizes[i] if i < sizes.size() else 1.0
+			_occluders.append([Vector2(g.x, g.z), 1.3 * k + 0.5, g.y + 3.0 + 2.8 * k])
+	var plants := scene.find_child("Foliage", true, false) as Node3D
+	if plants and "positions" in plants:
+		var sizes: PackedFloat32Array = plants.get("sizes")
+		var kinds: PackedInt32Array = plants.get("kinds")
+		var spots: PackedVector3Array = plants.get("positions")
+		for i in spots.size():
+			var k := sizes[i] if i < sizes.size() else 1.0
+			if k < 0.8 or (i < kinds.size() and kinds[i] == 3):       # (grass and little plants never get in the way)
+				continue
+			var g := plants.global_transform * spots[i]
+			if Vector2(g.x - at.x, g.z - at.z).length() < 40.0:
+				_occluders.append([Vector2(g.x, g.z), 0.7 * k + 0.3, g.y + 1.1 * k])

@@ -33,7 +33,7 @@ func _initialize() -> void:
 		only.append(args[i])
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(900.0, true, false, true).timeout.connect(_finish)
+	create_timer(2400.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
