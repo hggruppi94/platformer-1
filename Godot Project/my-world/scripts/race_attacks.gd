@@ -315,6 +315,14 @@ func _tick_obstacles(t: RaceTrack) -> void:
 				"ramp":
 					if l.z > -0.6 and l.z < 1.6 and absf(l.x) < float(o.get_meta("half")):
 						_ramp(r, o)
+				"slider":
+					var rad := float(o.get_meta("radius")) + 0.4
+					if Vector2(l.x + float(o.get_meta("side")), l.z).length() < rad:
+						_bump(r, o, (o.get_node("Puck") as Node3D).global_position)
+				"popup":
+					if t.pop_up(o) and absf(l.x) < float(o.get_meta("half")) + 0.4 and absf(l.z) < 1.1:
+						# (Back the way you came: it's a wall right across your lane)
+						_bump(r, o, o.global_position, o.global_basis.z * (1.0 if l.z > 0.0 else -1.0))
 
 
 func _swept(o: Node3D, l: Vector3, t: RaceTrack) -> bool:
@@ -326,10 +334,13 @@ func _swept(o: Node3D, l: Vector3, t: RaceTrack) -> bool:
 	return q.distance_to(u * along) < 0.75 and q.length() > 0.6
 
 
-func _bump(r: Node, o: Node3D) -> void:
-	var out := (r as Node3D).global_position - o.global_position
-	out.y = 0.0
-	out = out.normalized() if out.length() > 0.01 else -Races.track.dir_at(float(o.get_meta("d")))
+func _bump(r: Node, o: Node3D, from := Vector3.INF, push := Vector3.ZERO) -> void:
+	# Bounced off a bumper (or a slider's puck at "from", or a pop-up wall straight back along "push")
+	var out := push
+	if out == Vector3.ZERO:
+		out = (r as Node3D).global_position - (o.global_position if from == Vector3.INF else from)
+		out.y = 0.0
+		out = out.normalized() if out.length() > 0.01 else -Races.track.dir_at(float(o.get_meta("d")))
 	if r is Player:
 		if _bump_wait > 0.0:
 			return
@@ -459,6 +470,11 @@ func _rival_steer(r: RaceRival, t: RaceTrack) -> void:
 				check.call(float(o.get_meta("d")), float(o.get_meta("side")), 2.0)
 			"zapper":
 				if t.zap_on(o) or t.zap_warning(o):
+					check.call(float(o.get_meta("d")), float(o.get_meta("side")), float(o.get_meta("half")) + 0.8)
+			"slider":
+				check.call(float(o.get_meta("d")), float(o.get_meta("side")), 2.2)
+			"popup":
+				if t.pop_up(o) or t.pop_warning(o):
 					check.call(float(o.get_meta("d")), float(o.get_meta("side")), float(o.get_meta("half")) + 0.8)
 	for g in t.goo:
 		check.call(float(g.get_meta("d")), (g.global_position - t.point_at(float(g.get_meta("d")))).dot(t.side_at(float(g.get_meta("d")))), 2.4)

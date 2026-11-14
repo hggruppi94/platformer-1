@@ -97,6 +97,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Secret shortcuts, road tunnels, sliding bumpers and pop-up walls on every circuit** (Hayden's 13 Nov
+  2026 playtest: "The races need a lot of work; moving maps, obstacles, secret shortcuts, tunnels"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **Secret shortcuts** (`Races.TRACKS` `"shortcuts"`, built by `scripts/race_circuit.gd _plan_shortcuts()` /
+    `_shortcut()`): one per circuit, the Lily Tunnel (Lake Loop), Root Run (Meadow Wiggle), Star Tunnel (Observatory
+    Hill) and Corn Cut (Pumpkin Run). A gap in the wall on the inside of a bend (`_open`), hidden behind a curtain of
+    vines (cornstalks on Earth) you ride straight through, then a lit tunnel across the middle and back out further
+    round, 30 to 60 m shorter. Riding it through moves you on past the rings it skips (`Races._in_shortcut()`,
+    `_took_shortcut()`); the first time it shouts "SECRET SHORTCUT!" and pays 3 sparkles (`SHORTCUT_PRIZE`, flag
+    `race_shortcut_<track>_<n>`). In at the wrong end counts for nothing. The board says "Secret shortcut: ???" until
+    it's found, and Zippy and Pepper drop a hint once you've raced. Rivals stay on the road.
+  - **Road tunnels** (`"tunnels"`, `_road_tunnel()`): an arch over the road with lamps and a name: the Crystal Tunnel,
+    Mushroom Tunnel, Stargazer Tunnel and the Covered Bridge. Its roof joins group `race_roof`, so the racing line
+    isn't dropped onto it (`RaceTrack.ground_at`).
+  - **Sliding bumpers** (`"slider"`) glide from side to side across the road, and **pop-up walls** (`"popup"`) glow
+    for 0.9 s, then rise out of the road for 1.7 s in every 4.2 (a jelly block with eyes in the Void, a crate on
+    Earth). Both bounce you back like a bumper (`race_attacks.gd`), you ride over a pop-up wall when it's down, and
+    rivals steer round them. Some obstacles moved a little to keep clear of the shortcuts' mouths.
+  - Tests: new `tools/test_race_tracks.gd`; `test_races` (walls skip a shortcut's opening), race_tutorial, earth_race,
+    race_intros, boosters, ride_upgrades, map and schematics pass. Previews: `tools/capture_race_tracks.gd` (shots in
+    the project files under world/previews/race_tracks).
+  - My choices Hayden may change: the names, where each shortcut goes, 3 sparkles, the curtains' look, the obstacles'
+    timings. Not done from the note: "moving maps" (if that means parts of the track that move, the sliders and
+    pop-up walls are a start).
+
 - 2026-11-14: **Every boss is tougher, the Gloop King faces the right way, and his court floods with goo** (Hayden's
   13 Nov 2026 playtest: "the gloop king faces backwards when you start his fight. Can we add a mechanic where the arena
   fills with slime? And we need to make all the bosses harder with more health"). Built and tested in the cloud (own
