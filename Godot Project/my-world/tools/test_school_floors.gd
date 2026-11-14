@@ -16,6 +16,8 @@ const LIBRARY_AT := Vector2(0, -6)          # build_school.gd
 const STAIR := Vector2(28.55, -14)          # build_school.gd HIDDEN_STAIR
 const STAIR_START := PI / 2                 # where the top step leaves floor 3
 const STAIR_TURNS := 2.0
+const ROOF := 3 * FLOOR_H
+const ROOF_HOLE := Rect2(-39, 5.5, 5.5, 12.5)  # build_school.gd ROOF_HOLE
 
 var failures := 0
 var school: Node3D
@@ -96,7 +98,32 @@ func _run() -> void:
 		check(at.y > want + 0.2 and Vector2(at.x, at.z).distance_to(STAIR) < 2.0,
 			"stood on the stair %.0f%% of the way down, she stays on it (y %.2f, want about %.2f)" % [t * 100, at.y, want])
 
+	# --- Up on the roof (slice 3): the escalators reach it, the opening's railed, and it's all solid ---
+	for path in ["Floor 4/Sky Pavilion", "Floor 4/Sky Pavilion/Upper Commons", "Floor 4/Palm Terrace",
+			"Floor 4/Roof Garden/Gazebo/Telescope", "Atrium/Escalator 3 Up", "Atrium/Escalator 3 Down"]:
+		check(school.has_node(path), "%s is there" % path)
+	check(absf(_ground(Vector3(-36, 2 * FLOOR_H + 2, 4)) - 2 * FLOOR_H) < 0.1, "a landing off floor 3's balcony for the escalators up")
+	check(absf(_ground(Vector3(-37.5, ROOF + 3, ROOF_HOLE.end.y + 0.8)) - ROOF) < 0.15, "the up escalator's top reaches the roof")
+	check(_ground(Vector3(-36.2, ROOF + 3, 9)) < ROOF - 1.0, "the roof's open over the escalators")
+	check(_hits(Vector3(-36.2, ROOF + 0.6, ROOF_HOLE.position.y - 1), Vector3(-36.2, ROOF + 0.6, ROOF_HOLE.position.y + 1)),
+		"a rail keeps her out of the opening from the north")
+	check(_hits(Vector3(ROOF_HOLE.end.x + 1, ROOF + 0.6, 12), Vector3(ROOF_HOLE.end.x - 1, ROOF + 0.6, 12)),
+		"a rail keeps her out of the opening from the east")
+	var roof_holes := []
+	for q: Vector2 in [Vector2(16, 10), Vector2(-16, 11), Vector2(2, -14), Vector2(-20, -10), Vector2(20, -18), Vector2(-2, 21)]:
+		var y := _ground(Vector3(q.x, ROOF + 10, q.y))
+		if y < ROOF - 0.1 or y > ROOF + 6:
+			roof_holes.append(q)
+	check(roof_holes.is_empty(), "the roof's solid underfoot everywhere tried: %s" % [roof_holes])
+	check(_hits(Vector3(16, ROOF + 0.6, 22), Vector3(16, ROOF + 0.6, 26)), "the balustrade keeps her on the roof")
+
 	_finish()
+
+
+func _hits(a: Vector3, b: Vector3) -> bool:
+	var q := PhysicsRayQueryParameters3D.create(a, b)
+	q.exclude = [player.get_rid()]
+	return not space.intersect_ray(q).is_empty()
 
 
 func _ground(from: Vector3) -> float:

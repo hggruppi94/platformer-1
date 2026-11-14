@@ -108,6 +108,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   checks its home and that it really drifts into a lamp's light after you, no teleport. The Rainbow Ray's stripes are
   70% opaque (`rainbow_ray.gd` shader `opacity`). dark_hollow, arsenal, chaos_trials, world_detail and arena pass.
 
+- 2026-11-14: **The palace school, slice 3 of 4: the 4th floor and the roof** (the Void School Sensory Plan). All in
+  `tools/build_school.gd` (`_roof()`, rebuilt `school.tscn`). Built and tested in the cloud.
+  - **The way up:** a third pair of escalators in the atrium from a new landing off floor 3's balcony through an
+    opening in the roof (`ROOF_HOLE`, railed round on top), signed "To the Roof".
+  - **The 4th floor, the Sky Pavilion** (`_sky_pavilion()`, node "Floor 4" at `ROOF_Y`): a glass pavilion with a dome
+    on the roof's north side: three **magic-craft pods** (Potion, Star Charm, Crystal: round glass booths with a
+    glowing ball on a table and stools) and the **Upper Commons** (sofas, a rug, beanbags, lamps).
+  - **The Palm Terrace** (`_palm_terrace()`): a wooden deck in the south-east with six palms in planters, three striped
+    hammocks, five loungers under parasols and string lights criss-crossing overhead.
+  - **The Roof Garden** (`_roof_garden()`): a lawn in the south-west with a domed gazebo and a brass **telescope** in
+    it, planters, blossom trees in pots and benches. `half_dome()` makes domes that don't bulge into the room below.
+  - `test_school_floors` checks the escalators' landing, the opening's rails, the roof underfoot and the balustrade;
+    the same school tests as slice 2 pass. 9 more views in `capture_school_look.gd` (shots in the project files under
+    world/previews/school_palace/slice3).
+  - My choices Hayden may change: where each thing sits on the roof, the pods' crafts, the 4th floor being a pavilion
+    on the roof rather than a whole extra storey.
+
 - 2026-11-14: **The palace school, slice 2 of 4: floors 2 and 3** (the Void School Sensory Plan, after slice 1). All in
   `tools/build_school.gd` (rebuilt `school.tscn`); the quests' rooms are where they were. Built and tested in the cloud.
   - **Floor 2:** a glass **skybridge** straight across the library's hole (`_skybridge()`, the gallery rail opens for
