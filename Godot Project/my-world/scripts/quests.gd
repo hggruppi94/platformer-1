@@ -344,7 +344,7 @@ static func short_goal(step: Dictionary) -> String:
 	var cur := ""
 	for i in text.length():
 		cur += text[i]
-		if text[i] in ".!?" and (i + 1 >= text.length() or text[i + 1] == " "):
+		if text[i] in ".!?" and (i + 1 >= text.length() or text[i + 1] == " ") and not _is_title(cur):
 			sentences.append(cur.strip_edges())
 			cur = ""
 	if cur.strip_edges() != "":
@@ -354,6 +354,13 @@ static func short_goal(step: Dictionary) -> String:
 		if first in DO_WORDS:
 			return sentence
 	return sentences[-1] if not sentences.is_empty() else text
+
+
+static func _is_title(so_far: String) -> bool:
+	# "Mr." and friends don't end a sentence: Melanie's slide quest said just "Go with her to ask Mr." on the to-do list
+	# (Hayden, 14 Nov 2026: "when melanie asks you to fix the slide, the window is cut off")
+	var last := so_far.strip_edges().get_slice(" ", so_far.strip_edges().get_slice_count(" ") - 1).to_lower()
+	return last in ["mr.", "mrs.", "ms.", "dr.", "st.", "mt.", "prof.", "capt.", "jr.", "sr."]
 
 
 func checklist(id: String) -> Array:

@@ -32,7 +32,7 @@
       "id": "hall",
       "text": "Five names! Read the Doggie Bill of Rights to Mr. Palmer at his Town Hall window (morning till teatime).",
       "done": {"flag": "dogs_read"},
-      "where": ["town_hall"]
+      "where": ["mr_palmer"]
     }
   ],
   "reward": {

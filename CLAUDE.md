@@ -97,6 +97,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **No cut-off words anywhere, and Mr. Palmer's window you can see** (Hayden: "when melanie asks you to fix
+  the slide, the window is cut off. we need to check every single windowed text in the game and make sure nothing is
+  getting cut off", then "We need to fix mr palmers' window/quest"). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **Melanie's slide quest:** the to-do list said just "Go with her to ask Mr." (`Quests.short_goal()` took "Mr." as
+    the end of a sentence). Titles (Mr., Mrs., Ms., Dr., St....) no longer end one (`_is_title()`), for every quest.
+  - **Mr. Palmer's Town Hall window:** Tally's request board stood right in front of it, so from the Market Square
+    the board hid it (`Requests.BOARD_ANGLE` 250 -> 232), and Mr. Palmer stood on its "knock on the window" sign
+    (`routines/places.json palmers_step` to the window's other side, (-78.2, 22.6)). The slide and Doggie Bill quests'
+    map stars point at the window now (`"where": ["mr_palmer"]`, was the Town Hall's door).
+  - **`tools/ui_watch.gd`** (preload it): lists anything on the screen that's off the edge, has words bigger than their
+    box, or words spilling out of their window (scroll lists and round-clipped things count only what shows). Its own
+    test: `tools/test_ui_watch.gd`. `tools/audit_ui.gd` uses it, and now also opens the quest card (with the longest
+    quest step) and the voice in your mind. **`tools/playthrough.gd -- all --ui-watch`** watches the whole game for
+    cut-off words (anything cut off for a second or more is listed at the end).
+  - **What it found, fixed:** at a big text and HUD size, the to-do list ran off the bottom (`hud.gd _fit_todo()`:
+    shrinks to fit under the stats), the clock covered the stats (`_fit_clock()`: moves right of them, shrinks if
+    needed), and cutscene subtitles ran off the bottom (the Agent of Chaos's ending; `UiStyle.bottom_caption()` in
+    chaos_ending, dash_goodbye, place_intro and race_intro: never wider than the screen, grows upwards;
+    `void_arrival.gd` grows up too). The voice in your mind sits under the clock now and follows the text size
+    (`divine_mind.gd _place()`; the HUD is in group `"hud"`).
+  - Every menu and card at four screen shapes and four text sizes, and the whole game at normal and big text: nothing
+    cut off. Tests: ui_watch, kid_ui, quests, dialogue, routines, palmer, episodes, request_board, chaos_ending,
+    dash_goodbye, race_intros, opening, first_night, cracks, ui_style, map, following, town_quests, player_menu,
+    layout, walk_through, earth, party, meetings pass. Previews: `tools/capture_text_windows.gd` (before and after in
+    the project files under world/previews/text_windows).
+  - My choices Hayden may change: where the board and Mr. Palmer stand now, shrinking (not cutting) the to-do list.
+
 - 2026-11-14: **A clear start on every circuit, and a race tutorial** (Hayden's 13 Nov 2026 playtest: "THE LAKE LOOP RACE
   STARTS OFF WITH A BUMPER RIGHT IN FRONT OF YOU. there needs to be a tutorial for starting races"). Built and tested in
   the cloud (own Godot user folders, no save touched).

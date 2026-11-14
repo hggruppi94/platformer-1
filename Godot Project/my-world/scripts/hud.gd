@@ -40,6 +40,7 @@ var message_time := 0.0
 
 
 func _ready() -> void:
+	add_to_group("hud")                  # the voice in your mind sits under the clock (scripts/divine_mind.gd)
 	panel = PanelContainer.new()
 	panel.position = Vector2(16, 16)
 	var v := VBoxContainer.new()
@@ -285,6 +286,8 @@ func _build_todo() -> void:
 	v.add_child(todo_list)
 	todo.visible = false
 	add_child(todo)
+	# Fit it again whenever its rows change, even while the game's paused under a menu (no _process then)
+	todo.minimum_size_changed.connect(_fit_todo, CONNECT_DEFERRED)
 
 
 func _style_todo(style: StyleBoxFlat) -> void:
@@ -362,6 +365,33 @@ func _todo_rows(o: Dictionary) -> void:
 		row.add_child(tick)
 		row.add_child(l)
 		todo_list.add_child(row)
+
+
+func _fit_todo() -> void:
+	# Three followed quests with long checklists, at a big text size, made the list run off the bottom of the screen
+	# (Hayden, 14 Nov 2026: "check every single windowed text in the game and make sure nothing is getting cut off").
+	# It shrinks from its top left corner to fit the room left under the stats instead.
+	var room := get_viewport().get_visible_rect().size.y / maxf(scale.y, 0.01) - todo.position.y - 12.0
+	var need := todo.get_combined_minimum_size().y
+	todo.size = Vector2.ZERO                    # back to what its rows need (a box never shrinks by itself after a long list)
+	var k := clampf(room / maxf(need, 1.0), 0.3, 1.0)
+	todo.pivot_offset = Vector2.ZERO
+	todo.scale = Vector2(k, k)
+
+
+func _fit_clock() -> void:
+	# The clock sits in the top middle, but at a big HUD and text size it's wide enough to cover the stats in the corner:
+	# then it moves right, clear of them, and shrinks if there still isn't room before the screen's edge
+	var vp := get_viewport().get_visible_rect().size
+	var w := clock_panel.size.x
+	var clear := panel.position.x + panel.size.x + 10.0
+	var x := maxf((vp.x - w) / 2.0, clear)
+	var room := vp.x - 16.0 - x
+	var k := clampf(room / maxf(w, 1.0), 0.5, 1.0)
+	clock_panel.offset_left = x - vp.x / 2.0
+	clock_panel.offset_right = clock_panel.offset_left + w
+	clock_panel.pivot_offset = Vector2.ZERO
+	clock_panel.scale = Vector2(k, k)
 
 
 func _refresh_clock() -> void:
@@ -474,6 +504,8 @@ func _process(delta: float) -> void:
 	# The to-do list sits just under the stats (their height changes with the text size), and checks itself now and
 	# then: checklist ticks are flags, which don't say when they change
 	todo.position = Vector2(panel.position.x, panel.position.y + panel.size.y + _fs(6))
+	_fit_todo()
+	_fit_clock()
 	if Engine.get_process_frames() % 20 == 0:
 		_refresh_todo()
 	todo.visible = _has_todo and not Dialogue.is_active()
