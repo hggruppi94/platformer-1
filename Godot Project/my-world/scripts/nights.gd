@@ -265,7 +265,7 @@ func _gadget_goal() -> String:
 	var sch := Schematics.next_hint()
 	if not sch.is_empty():
 		if str(sch.kind) == "gadget":
-			return "Gadgets: find the %s's blueprint. %s" % [Schematics.thing_name(sch), str(sch.hint)]
+			return "Gadgets: the %s's blueprint. %s" % [Schematics.thing_name(sch), str(sch.hint)]
 		return "Schematic: find the %s's. %s" % [Schematics.thing_name(sch), str(sch.hint)]
 	if not Arsenal.armed():
 		return "Gadgets: none yet. Dash builds them from blueprints, at his stall"

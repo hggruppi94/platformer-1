@@ -159,6 +159,36 @@ static func hat(id: String) -> Node3D:
 			for side in [-1.0, 1.0]:
 				_mesh(h, _sphere(0.04), gold, Vector3(side * 0.15, 0.21, 0), Vector3.ZERO, Vector3(0.5, 1.4, 0.5))
 			_mesh(h, _sphere(0.035), _mat(Color(1.0, 0.95, 0.6), 0.8, 0.6), Vector3(0, 0.2, 0.12))
+		"aviator_cap":
+			# First prize for the Sky Rings: a soft flying cap with ear flaps and goggles pushed up on it
+			var leather := _mat(Color(0.55, 0.33, 0.2))
+			_mesh(h, _sphere(0.29), leather, Vector3(0, -0.04, 0), Vector3.ZERO, Vector3(1, 0.62, 1.04))
+			for side in [-1.0, 1.0]:
+				_mesh(h, _sphere(0.1), leather, Vector3(side * 0.26, -0.16, 0.0), Vector3.ZERO, Vector3(0.45, 1.1, 0.9))
+				_mesh(h, _torus(0.05, 0.075), _mat(Color(0.85, 0.7, 0.35), 0.3, 0.8), Vector3(side * 0.08, 0.1, 0.22), Vector3(PI / 2.0 - 0.4, 0, 0))
+				_mesh(h, _cyl(0.05, 0.05, 0.015), _mat(Color(0.5, 0.85, 1.0), 0.6), Vector3(side * 0.08, 0.1, 0.225), Vector3(PI / 2.0 - 0.4, 0, 0))
+			_mesh(h, _cyl(0.3, 0.3, 0.03), _mat(Color(0.4, 0.25, 0.15)), Vector3(0, 0.08, 0), Vector3(-0.35, 0, 0), Vector3(1, 1, 0.25))
+		"lantern_hat":
+			# First prize for the Hollow Run: a little witchy hat with a glowing moth-lantern hung off its tip
+			var night := _mat(Color(0.22, 0.16, 0.38))
+			_mesh(h, _cyl(0.3, 0.3, 0.025), night, Vector3(0, -0.02, 0))
+			_mesh(h, _cyl(0.0, 0.18, 0.36, 10), night, Vector3(0, 0.16, -0.02), Vector3(-0.25, 0, 0))
+			_mesh(h, _torus(0.17, 0.2), _mat(Color(0.95, 0.8, 0.35), 0.4), Vector3(0, 0.0, 0))
+			_mesh(h, _sphere(0.05), _mat(Color(1.0, 0.85, 0.45), 1.6), Vector3(0, 0.3, -0.16))
+		"rocket_helmet":
+			# First prize for the Skyway Run: a shiny round space-racer helmet with a fin and a glowing visor stripe
+			var shell := _mat(Color(0.9, 0.92, 1.0), 0.0, 0.6)
+			_mesh(h, _sphere(0.31), shell, Vector3(0, -0.05, 0), Vector3.ZERO, Vector3(1, 0.8, 1.05))
+			_mesh(h, _cyl(0.2, 0.2, 0.05), _mat(Color(0.4, 0.95, 1.0), 1.2), Vector3(0, -0.06, 0.27), Vector3(PI / 2.0, 0, 0), Vector3(1, 1, 0.5))
+			_mesh(h, BoxMesh.new(), _mat(Color(1.0, 0.4, 0.75), 0.4), Vector3(0, 0.2, -0.02), Vector3.ZERO, Vector3(0.04, 0.12, 0.4))
+		"racing_helmet":
+			# The Race Champion's Helmet, for winning all four circuits: gold, with a chequered stripe and a star
+			var gold := _mat(Color(1.0, 0.8, 0.3), 0.2, 0.8)
+			_mesh(h, _sphere(0.31), gold, Vector3(0, -0.05, 0), Vector3.ZERO, Vector3(1, 0.82, 1.05))
+			for k in 6:
+				var c := Color(0.1, 0.1, 0.12) if k % 2 == 0 else Color(0.97, 0.97, 0.97)
+				_mesh(h, BoxMesh.new(), _mat(c), Vector3(0, 0.215, -0.2 + k * 0.08), Vector3.ZERO, Vector3(0.08, 0.03, 0.08))
+			_mesh(h, _sphere(0.05), _mat(Color(1.0, 0.95, 0.6), 0.9, 0.6), Vector3(0, 0.0, 0.3), Vector3.ZERO, Vector3(1, 1, 0.4))
 		"gloop_crown":
 			# Dash's prize for popping the Gloop King: a little gold crown like the King's, with a goo-green gem and a
 			# drip of goo still hanging off one point

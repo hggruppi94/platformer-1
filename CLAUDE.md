@@ -146,6 +146,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: the stops and their times, the fair stop, the button names, no HP refill, being able
     to skip a night's Shift by passing the time to the morning.
 
+- 2026-11-14: **Blueprints are prizes now, and winning a race first time wins something** (Hayden's 13 Nov 2026 playtest:
+  "Instead of randomly finding blueprints, make them rewards for completing races/quests", "unique rewards for finishing
+  first, something to incentivize the player to race"). Built and tested in the cloud (own Godot user folders, no save
+  touched). This replaces the 11 Nov rule that gadget blueprints lie in the worlds that fit them.
+  - **No gadget blueprint lies on the ground any more** (`Schematics.LIST` `"reward"`): the Star Popper's is Dash's
+    thank-you for catching his Buzz Bot (`bb_thanked`, `Meetings.thanks_from_dash()`, his lines and `quests/bike_boy.json`
+    say so); the Fizz Flinger, Buzz Bots, Rainbow Ray and Plushinator are the first-win prizes of the Lake Loop, Meadow
+    Wiggle, Observatory Hill and Pumpkin Run (`Schematics.for_race()`); the Disco Ball is Melody's thank-you when Rhythm
+    Springs is mended and the Jelly Mines Otto's when the Tide Reef is (`teach_lines()`). `Schematics.award(id)` sets
+    `schematic_<id>` and says who gave it; old saves that already earned one get it a moment after loading
+    (`_check_rewards()`, only outside that world). Rides' schematics stay on their nights.
+  - **First-win prizes** (`Races.first_prize()`): the circuits give those blueprints; the Sky Rings the **Aviator Cap**,
+    the Hollow Run the **Lantern Hat**, the Skyway Run the **Rocket Helmet** (`FIRST_HATS`); winning all four circuits
+    the **Champion's Helmet** (`CHAMPION_HAT`, `champion()`). New hats in `cosmetics.gd` and `shop/items.json`
+    (`"reward": true`). Each race's board says what winning it gives ("WIN IT for...", then "Won: ..."), the gate's
+    board lists every circuit's prize (smaller text), Zippy and Pepper mention them, and the results say what you won.
+  - Tests: `test_schematics` rewritten for rewards, `test_race_tutorial` checks the prizes; races, meetings, arsenal,
+    rhythm_springs, tide_reef, dialogue, first_night, nights, shop and more pass, and `tools/playthrough.gd -- all` (now
+    buying the gadgets it was given) passes start to ending. Previews: `tools/capture_race_prizes.gd` (shots in the
+    project files under world/previews/race_prizes).
+  - My choices Hayden may change: which race or friend gives which gadget, the three hats and the helmet.
+
 - 2026-11-14: **A clear start on every circuit, and a race tutorial** (Hayden's 13 Nov 2026 playtest: "THE LAKE LOOP RACE
   STARTS OFF WITH A BUMPER RIGHT IN FRONT OF YOU. there needs to be a tutorial for starting races"). Built and tested in
   the cloud (own Godot user folders, no save touched).
