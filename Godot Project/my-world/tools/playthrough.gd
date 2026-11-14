@@ -298,6 +298,9 @@ func _ch_first_night() -> void:
 	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
 	await _frames(30)
 	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
+	# (The First Night's home step pulls you home 14 s after the Void day's list is done, real time: a player meets
+	# Dash on a later visit. Here the Bike Boy's played on in one go, so that pull's held back till Dash is done.)
+	root.get_node("FirstNight")._home_t = 0.0
 	# He's in his own kingdom now, through the Gloop Gate in the west fields (scripts/gloop_kingdom.gd)
 	var gate := current_scene.get_node_or_null("Gloop Gate") as Node3D
 	check(gate != null, "the Gloop Gate's in the west fields")
@@ -316,6 +319,7 @@ func _ch_first_night() -> void:
 	await _frames(10)
 	await _physics(20)
 	check(current_scene.scene_file_path == TOWN, "the goo bubble takes you back to the Void")
+	root.get_node("FirstNight")._home_t = 0.0
 	await _physics(10)
 	await _talk("dash")                               # (the fountain's lost watch first: Dash always takes those first)
 	await _frames(10)
@@ -692,7 +696,7 @@ func _earth_chapter(id: String) -> void:
 	var c: Dictionary = calls.CHAPTERS[id]
 	var q := str(c.quest)
 	check(quests.is_started(q), "%s: Stars Hollow's chapter %s starts" % [id, q])
-	await create_timer(calls.SHUT_AFTER + 1.5).timeout
+	await create_timer(calls.SHUT_AFTER + 4.0).timeout          # (it snaps shut, then takes 2.5 s to close over)
 	check(not portals.CRACK.is_open(current_scene.get("crack")), "...and the crack by the oak snaps shut")
 	if EARTH_CHAPTERS.has(q):
 		var who := str(EARTH_CHAPTERS[q][0])
