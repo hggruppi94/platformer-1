@@ -97,6 +97,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Signs you can read walking in, name tags that stay behind walls, and a slimmer Seer** (Hayden's 13 Nov
+  2026 playtest: "the signs arent always orientated the right way for you to read them when entering a new area (the
+  gloop kingdom sign when you enter)", "Tally's name is visibile through objects", "Can we make the seer a little
+  skinnier"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Signs:** the Gloop Kingdom's three signs (`gloop_kingdom.gd _sign()`) had their writing on the far side of the
+    board, so walking in you saw the back. The label now sits on the board's +Z face. New **`tools/audit_signs.gd`**
+    loads every place you arrive in (the Gloop Kingdom, the Star Arena, all nine portal worlds, the four circuits, Dusk's
+    Embrace, the Secret Garden, the school, the Observatory) and fails if a flat sign within 120 m of the way in (and on
+    your floor) faces away; signs written on both sides and race boards (they face the road) are skipped. Everything else
+    already faced the way in.
+  - **Name tags:** Tally's name (`request_alien.gd`, node "Name Tag") and every townsfolk name and "Press F" prompt
+    (`talker.gd _label()`) are depth tested now, so walls, roofs and stalls hide them. Tally's tag also only shows
+    within 12 m (`NAME_RANGE`), like everyone else's only shows close up. `test_request_board` checks it.
+  - **The Seer** (`seer.gd`): build 1.12 -> 0.94, and her shawl and skirt are narrower to match.
+  - Tests: audit_signs, request_board, gloop_kingdom, council, townsfolk, first_night, layout, walk_through, dialogue
+    (both runs), earth, party and meetings pass. Previews in the project files under world/previews/signs_tags_seer.
+  - My choices Hayden may change: how slim she is, 12 m for Tally's tag.
+
 - 2026-11-13: **No waiting around for the clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
   "There's a lot locked behind time. We need to make the game playable all the way through without forcing the player
   to wait"). Built and tested in the cloud (own Godot user folders, no save touched).

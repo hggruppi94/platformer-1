@@ -22,7 +22,9 @@ var _pause := 2.0
 var _model: Node3D
 var _anim: AnimationPlayer
 var _player: Node3D
+var _name_label: Label3D
 
+const NAME_RANGE := 12.0                  # the name over Tally's head only shows this close (like everyone else's)
 
 func _ready() -> void:
 	_angle = randf() * TAU
@@ -36,16 +38,20 @@ func _ready() -> void:
 				_anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
 	LittleAliens.vary_snout(_model)
 	_clipboard()
-	var name_label := Label3D.new()
-	name_label.text = "Tally"
-	name_label.font_size = 26
-	name_label.pixel_size = 0.01
-	name_label.outline_size = 10
-	name_label.outline_modulate = Color(0.15, 0.08, 0.2)
-	name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	name_label.no_depth_test = true
-	name_label.position.y = 1.3
-	add_child(name_label)
+	# Tally's name tag: hidden behind walls and stalls (depth tested; it used to show through everything, Hayden's
+	# 14 Nov 2026 playtest), and only shown when you're near, like the other townsfolk's names (scripts/talker.gd)
+	_name_label = Label3D.new()
+	_name_label.name = "Name Tag"
+	_name_label.text = "Tally"
+	_name_label.font_size = 26
+	_name_label.pixel_size = 0.01
+	_name_label.outline_size = 10
+	_name_label.outline_modulate = Color(0.15, 0.08, 0.2)
+	_name_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_name_label.no_depth_test = false
+	_name_label.position.y = 1.3
+	_name_label.visible = false
+	add_child(_name_label)
 	var spot := (load("res://scripts/request_spot.gd") as GDScript).new() as Area3D
 	spot.name = "Request Talk"
 	spot.set("verb", "talk to Tally")
@@ -94,6 +100,8 @@ func _ring_point(a: float) -> Vector3:
 func _physics_process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		_player = get_tree().get_first_node_in_group("player") as Node3D
+	if _name_label:
+		_name_label.visible = _player != null and _player.global_position.distance_to(global_position) < NAME_RANGE
 	if talking:
 		_face(_player.global_position if _player else global_position + basis.z, delta)
 		_play("idle")
