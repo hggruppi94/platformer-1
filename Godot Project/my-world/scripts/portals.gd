@@ -111,7 +111,6 @@ var _in_town_for := 0.0
 var _quaking := false
 var _froze_clock := false               # we stopped the Void's clock, so we start it again
 var _pulling := false
-var _ask_world := ""                    # the portal whose "go in?" question is open
 var _hud: CanvasLayer
 var _card_label: Label
 var stage_prize_day := -1              # the visit Melody's dance-off encore was last won (scripts/melody_stage.gd)
@@ -122,7 +121,6 @@ var opening_cut: Node                   # the cutscene for each crack that opens
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
-	Dialogue.finished.connect(_on_talked)
 	_make_hud()
 	opening_cut = CRACK_OPENING.new()
 	opening_cut.name = "Crack Opening"
@@ -561,9 +559,7 @@ func _place_portal(id: String, rising: bool) -> void:
 	g.global_position = Remnants.ground_at(w.at)
 	g.rotation.y = float(w.yaw)
 	CRACK.sink(g, _scene if is_instance_valid(_scene) else get_tree().current_scene)
-	var spot := USE_SPOT.make(Vector3(0, 0, CRACK.R + 1.0), _portal_offer.bind(id), _use_portal.bind(id), 2.4, 3.0)
-	spot.name = "Spot"
-	g.add_child(spot)
+	CRACK.add_prompt(g, _portal_offer.bind(id), "Spot")       # "Press E to jump in to Shard Isle"
 	if id == "far_future":
 		g.add_child(fault_line(w.colour))
 	if rising:
@@ -609,41 +605,18 @@ func _check_down_a_crack() -> void:
 
 
 func _portal_offer(id: String) -> String:
-	if _quaking or not is_built(id):
+	if _quaking or not is_built(id) or Dialogue.is_active():
 		return ""
-	return "look down the crack to %s" % world(id).name
+	return "to %s" % world(id).name
 
 
 func _use_portal(id: String) -> void:
-	var w := world(id)
-	var spot := _holder.get_node_or_null("Portal %s/Spot" % id) as Node3D if is_instance_valid(_holder) else null
-	if spot == null:
+	# Interact at a crack (Hayden, 14 Nov 2026: an interact prompt, not falling in): straight down it
+	var g := crack(id)
+	if g:
+		CRACK.jump_in(g)
+	else:
 		enter(id)
-		return
-	_ask_world = id
-	var lines: Array = [str(w.blurb)]
-	if str(w.owner) != "":
-		lines.append("It's %s's home world." % w.owner)
-	if is_cleared(id):
-		lines.append("Fixed already! Visit any time.")
-	lines.append("Jump in!")
-	lines.append({"choice": [{"text": "Jump in!", "set": "portal_go", "say": false}, {"text": "Not now.", "say": false}]})
-	Dialogue.say(spot, "Crack to %s" % w.name, lines, "portal_ask")
-
-
-func _on_talked(id: String) -> void:
-	if id != "portal_ask":
-		return
-	var go := Dialogue.flags.has("portal_go")
-	Dialogue.flags.erase("portal_go")
-	var w := _ask_world
-	_ask_world = ""
-	if w != "" and go:
-		var g := crack(w)
-		if g:
-			CRACK.drop_player(g)            # over its middle: they drop in, and the fall takes them through
-		else:
-			enter(w)
 
 
 func _update_previews() -> void:
@@ -986,6 +959,10 @@ func _otto_in_hub() -> void:
 
 
 func otto_hub_lines() -> Array:
+	if has_found("tide_reef", "otto_in_hub"):
+		var fish_lines := otto_fish_lines()
+		if not fish_lines.is_empty() and (not Dialogue.flags.has("aquarium_start") or randf() < 0.5):
+			return fish_lines
 	if not has_found("tide_reef", "otto_in_hub"):
 		note_found("tide_reef", "otto_in_hub")
 		return ["{player}! Over here! Dash floated me through.",
@@ -1004,7 +981,30 @@ func otto_hub_lines() -> Array:
 func _talk_otto() -> void:
 	var spot := _holder.get_node_or_null("Otto/Spot") as Node3D if is_instance_valid(_holder) else null
 	if spot:
-		Dialogue.say(spot, "Otto", otto_hub_lines().map(func(l: String) -> String: return Settings.fill(l)), "hub_otto")
+		var lines := otto_hub_lines()
+		Dialogue.say(spot, "Otto", lines.map(func(l: String) -> String: return Settings.fill(l)), "hub_otto")
+		if lines == OTTO_AQUARIUM and not Dialogue.flags.has("aquarium_start"):
+			Dialogue.set_flag("aquarium_start")    # (his Rare Fish quest: quests/aquarium.json, scripts/rare_fish.gd)
+
+
+const OTTO_AQUARIUM := ["The Aquarium has empty tanks!",
+	"Each world hides a rare fish, deep down.",
+	"Dive and catch them all!"]
+
+
+func otto_fish_lines() -> Array:
+	# Otto's Rare Fish quest (scripts/rare_fish.gd): the ask, then how it's going
+	var fish := get_node_or_null("/root/Watches/Fish")
+	if fish == null:
+		return []
+	if not Dialogue.flags.has("aquarium_start"):
+		return OTTO_AQUARIUM.duplicate()
+	if Quests.is_done("aquarium"):
+		return []
+	var n: int = fish.caught_count()
+	if n >= fish.FISH.size():
+		return ["All eight! Go and see the Aquarium!"]
+	return ["%d of 8 rare fish! Keep diving!" % n]
 
 
 # Flurry, in the Void once the Frozen Moment's mended -------------------------------------------------------------
