@@ -83,9 +83,10 @@ func _run() -> void:
 	check(grass_mat != null and float(grass_mat.get_shader_parameter("reach")) <= 0.8
 		and float(grass_mat.get_shader_parameter("push")) <= 0.4, "the grass parts only right round her, and not far")
 
-	# Town rails: off the courts, the soccer field and the skate park, and out of the races' lanes
+	# Town rails: off the courts, the soccer field and the skate park, and out of the races' lanes (three that ran
+	# inside buildings take themselves out as the town loads: grind_rail.gd inside_something())
 	var rails := town.get_node("Town Rails").find_children("*", "GrindRail", true, false)
-	check(rails.size() >= 20, "there are still rails round town (%d)" % rails.size())
+	check(rails.size() >= 17, "there are still rails round town (%d)" % rails.size())
 	var areas := []
 	for n in ["Basketball Court", "Tennis Court", "Soccer Field", "Skate Park"]:
 		var a := town.find_child(n, false, false) as Node3D

@@ -82,7 +82,10 @@ func _run() -> void:
 		"...and gives nothing away (%s)" % all_words)
 	check(player.input_locked, "the controls are held while it plays")
 	check(not tut.running(), "the tutorial waits for the cutscene")
-	await create_timer(0.6).timeout
+	await _press("jump")
+	await _frames(4)
+	check(op.cut.playing(), "a press straight away doesn't skip it (a jump out of the door)")
+	await create_timer(1.4).timeout
 	await _press("jump")
 	await _frames(4)
 	check(not op.cut.playing() and not player.input_locked, "Jump skips it, and the controls come back")

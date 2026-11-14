@@ -99,6 +99,43 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Bug fixes from the afternoon playtest** (Hayden's 14 Nov 2026 afternoon notes; other threads took the
+  board, look, cracks, music, aquarium and race notes). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **The to-do list stops above the friend's face** (`hud.gd _fit_todo()`: its room ends 40 px over
+    `FriendFace.badge_rect()` when the badge is up).
+  - **No "Kinetic full!" words** (`kinetic.gd`): the sparkle sound still plays when it fills.
+  - **Stuck Shift while swimming** (`swim.gd physics()`): nothing in the game holds Shift down (no `action_press`, no
+    modifier bindings), so it's most likely Windows Sticky Keys (five Shift taps), where no key-up ever arrives. Jump
+    (rise) is now checked before Shift (dive), so Jump always brings her up. #117's `Settings._unstick_modifiers` stays.
+  - **Otto's arms stay in his bubble** (`tide_reef.gd`): the bubble's 1.15 m (was 1.0) and every arm piece is pulled
+    back inside it as it wiggles (`ARM_ROOM`, `BUBBLE_MID`).
+  - **No second Flurry** (`party.gd _hide_hub_flurry()`): her Portal Plaza self is hidden on every check, not only
+    when her copy's made, so coming out of a building (the plaza put back up after the copy) no longer leaves two.
+  - **The haunted house** (`episodes.gd _release_spirit()`): knocking plays a short cutscene (the door creaks, "Hee hee
+    hee!", the spirit zooms off), and its walk-in doorway is off while there's no inside to go to (it used to say
+    "isn't open yet").
+  - **The Old Taproot answers** (`garden_caves.gd lines()`): a `{"do": ...}` in `Dialogue.say()` lines is dropped
+    (only conversation files run them), so handing in the Glowcaps did nothing. It hands them in straight away now.
+  - **Jelly Mines with lots of enemies** (`jelly_mine.gd`): a mine went on touching enemies it had let go of or that
+    were already gone ("Invalid access to key" every frame). Each enemy is held by one mine at most
+    (meta `jelly_stuck`), let go properly (`_let_go()`), and a mine that's freed lets everyone go.
+  - **The Sky Rings** existed but were hard to find: Zippy now offers them once the Lake Loop's done ("The Sky Rings!
+    (in the mothership)"), and picking it puts you in the mothership behind the first ring with the race on
+    (`races.gd fly_to_sky()`). Before that he says finishing the Lake Loop opens them.
+  - **Grind rails buried in buildings** (`grind_rail.gd`, the "town square" note): town rails check themselves as the
+    town loads and take themselves out if they run inside something solid (`inside_something()`). In the Void that's
+    Town Rail 1 (through the Library by Island Park), 4 (a house) and 14 (the Star Arena gate). 19 town rails left.
+  - **Cloud Toy Store and slide start** (`build_town.gd _cloud_slide`): the cloud's puffs sat 3.2 m too high and
+    swallowed them; they're lower now (only those 13 puffs' lines changed in `town.tscn`).
+  - **Break corner by Behind the Walls** (`build_school.gd`): the north-east one moved to (X_E - 6.7, Z_N + 6.7), so
+    its rug and beanbags no longer poke through into the passage (only its line changed in `school.tscn`).
+  - **The jolt of Nina and Bruno leaving the house** (`place_intro.gd SKIP_AFTER` 1.2 s, was 0.3): the shot of Nina as
+    you step out of the door was skipped by a jump half a second in. A skip only counts after 1.2 s now.
+  - Tests: new `tools/test_playtest_nov14b.gd`; `test_garden_caves` and `test_opening` updated; see the PR for the
+    rest. Previews: `tools/capture_nov14b.gd` (shots in the project files under world/previews/nov14b_bugfixes).
+  - My choices Hayden may change: the cutscene's words, the Sky Rings offer, 1.2 s before a cutscene can be skipped.
+
 - 2026-11-14: **Cracks take Interact, the music changes underground, and rare fish for the Aquarium** (Hayden's 14 Nov
   playtest: "Instead of automatically falling in the world cracks, make it an interact prompt", "Can the music change
   when you go underground? like ambient sound", "an aquarium quest where you collect all the exotic fish species of

@@ -33,7 +33,6 @@ const GOLD := Color(1.0, 0.82, 0.25)
 var player: CharacterBody3D
 var charge := 0.0                         # 0 to 1
 var bursts := 0                           # every boost so far (for the tests)
-var _told_full := false                   # said "full!" for this charge
 var _was_on_floor := true
 var _fall := 0.0
 
@@ -94,7 +93,6 @@ func ride_boost() -> bool:
 	skate.call("boost", BOOST_SPEED, BOOST_TIME)
 	skate.set("_flip_press", 9.0)                              # the press was the boost, not a trick's start
 	charge = 0.0
-	_told_full = false
 	bursts += 1
 	var at := player.global_position
 	_ring(at)
@@ -168,10 +166,9 @@ func _process(_delta: float) -> void:
 	var hud := _hud()
 	if hud == null:
 		return
+	# No words when it fills (Hayden, 14 Nov 2026 afternoon: "There doesnt need to be a text prompt every time you hit
+	# full kinetic energy, but keep the sound"): add() plays the sparkle, and the gold bar glows full.
 	hud.set_kinetic(unlocked(), charge, full())
-	if full() and not _told_full and unlocked() and not Dialogue.is_active():
-		_told_full = true
-		Game.message("⚡ Kinetic full! On a ride, press %s for a boost" % Settings.prompt("skate_flip"))
 
 
 func _hud() -> Node:
