@@ -47,6 +47,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	portals = root.get_node("Portals")
+	portals.home_calls.enabled = false      # (this world on its own: no pull home to Stars Hollow, test_home_calls.gd)
 	rem = root.get_node("Remnants")
 	quests = root.get_node("Quests")
 	clock = root.get_node("Clock")
@@ -111,7 +112,7 @@ func _check_quake() -> void:
 	# Its front faces back towards the town, so you walk up to it from the path
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the town")
-	check(portals._portal_offer("lanternmoor") == "look down the crack to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
+	check(portals._portal_offer("lanternmoor") == "to Lanternmoor", "it offers a trip to Lanternmoor (%s)" % portals._portal_offer("lanternmoor"))
 
 
 func _check_inside() -> void:

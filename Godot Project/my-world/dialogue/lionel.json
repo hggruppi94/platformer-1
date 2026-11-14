@@ -3,6 +3,34 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "home_bottles:ask"
+      },
+      "lines": [
+        "Bottles washed up by Willow Pond!",
+        "With notes inside! Bring me three?"
+      ],
+      "set": "bottles_asked"
+    },
+    {
+      "when": {
+        "quest_step": "home_bottles:find"
+      },
+      "lines": [
+        "By the pond. Mind the ducks."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "home_bottles:back"
+      },
+      "lines": [
+        "The notes are all smudged... Pity.",
+        "Still. Treasure! Thank you."
+      ],
+      "set": "bottles_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

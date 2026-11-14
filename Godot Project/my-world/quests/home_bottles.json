@@ -1,0 +1,60 @@
+{
+  "name": "Bottles in the Pond",
+  "giver": "lionel",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done.",
+  "start": {
+    "flag": "home_bottles_start"
+  },
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Mr. Page needs you!",
+      "done": {
+        "flag": "bottles_asked"
+      },
+      "where": [
+        "lionel"
+      ]
+    },
+    {
+      "id": "find",
+      "text": "Find 3 bottles by the pond.",
+      "checklist": [
+        [
+          "bottle_1",
+          "By the pond path"
+        ],
+        [
+          "bottle_2",
+          "North of the dock"
+        ],
+        [
+          "bottle_3",
+          "On the south bank"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "bottle_1",
+          "bottle_2",
+          "bottle_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Mr. Page.",
+      "done": {
+        "flag": "bottles_back"
+      },
+      "where": [
+        "lionel"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Mr. Page is thrilled! +8 sparkles."
+  }
+}

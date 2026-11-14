@@ -3,6 +3,33 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "home_plushies:ask"
+      },
+      "lines": [
+        "{player}! My plushies ran away!",
+        "Bear, Bunny and Frog. Help me find them?"
+      ],
+      "set": "plush_asked"
+    },
+    {
+      "when": {
+        "quest_step": "home_plushies:find"
+      },
+      "lines": [
+        "Bear likes swings. Frog likes water."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "home_plushies:back"
+      },
+      "lines": [
+        "All nine! You're the best!"
+      ],
+      "set": "plush_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

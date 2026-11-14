@@ -1,0 +1,60 @@
+{
+  "name": "Wren's Wind Chimes",
+  "giver": "wren",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done.",
+  "start": {
+    "flag": "home_chimes_start"
+  },
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Mrs. Wren needs you!",
+      "done": {
+        "flag": "chimes_asked"
+      },
+      "where": [
+        "wren"
+      ]
+    },
+    {
+      "id": "find",
+      "text": "Find 3 wind chimes.",
+      "checklist": [
+        [
+          "chime_1",
+          "By the market"
+        ],
+        [
+          "chime_2",
+          "By the park gate"
+        ],
+        [
+          "chime_3",
+          "By the diner"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "chime_1",
+          "chime_2",
+          "chime_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Mrs. Wren.",
+      "done": {
+        "flag": "chimes_back"
+      },
+      "where": [
+        "wren"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Chimes back up! +8 sparkles."
+  }
+}

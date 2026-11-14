@@ -174,7 +174,7 @@ func _check_quake() -> void:
 		if o.id != ID and portals.is_built(o.id):
 			apart = minf(apart, w.at.distance_to(o.at))
 	check(apart > 20.0, "...and well apart from the other portals (%.0f m)" % apart)
-	check(portals._portal_offer(ID) == "look down the crack to The Far Future", "it offers a trip to the Far Future (%s)" % portals._portal_offer(ID))
+	check(portals._portal_offer(ID) == "to The Far Future", "it offers a trip to the Far Future (%s)" % portals._portal_offer(ID))
 
 
 func _check_inside() -> void:

@@ -20,6 +20,7 @@ extends Node
 
 const PlaceIntro := preload("res://scripts/place_intro.gd")
 const EARTH_FLAG := "cut_crack_earth"
+const AGAIN := "It's open again. Jump in whenever you're ready."
 
 # What spills out of each world's crack, and what you see down it. "bits": colour of the little things that come out,
 # "rise": how they move (up and floating, down and falling...), "sound": as it splits open, "look": the caption
@@ -243,6 +244,24 @@ func earth(world: Node3D, crack: Node3D, open_it: Callable) -> bool:
 	if shots.is_empty():
 		return false
 	Dialogue.set_flag(EARTH_FLAG)
+	showing = "earth"
+	_opened = false
+	_then = func(opened: bool) -> void:
+		if not opened and open_it.is_valid():
+			open_it.call()
+	cut.play(shots)
+	return true
+
+
+func earth_again(world: Node3D, crack: Node3D, open_it: Callable) -> bool:
+	# The crack by the old oak opening again, once Stars Hollow's chapter is done (scripts/home_calls.gd): the same
+	# shots, with the last line saying it's open again
+	if headless() or crack == null or not can_play():
+		return false
+	var shots := earth_shots(crack, open_it)
+	if shots.is_empty():
+		return false
+	(shots[shots.size() - 1] as Dictionary)["caption"] = AGAIN
 	showing = "earth"
 	_opened = false
 	_then = func(opened: bool) -> void:

@@ -298,6 +298,9 @@ func _ch_first_night() -> void:
 	await _get_blueprint("popper")                  # (in the Market Square, a few metres from his stall)
 	await _frames(30)
 	check(_step("bike_boy") == "king", "the Star Popper: on to the Gloop King (%s)" % _step("bike_boy"))
+	# (The First Night's home step pulls you home 14 s after the Void day's list is done, real time: a player meets
+	# Dash on a later visit. Here the Bike Boy's played on in one go, so that pull's held back till Dash is done.)
+	root.get_node("FirstNight")._home_t = 0.0
 	# He's in his own kingdom now, through the Gloop Gate in the west fields (scripts/gloop_kingdom.gd)
 	var gate := current_scene.get_node_or_null("Gloop Gate") as Node3D
 	check(gate != null, "the Gloop Gate's in the west fields")
@@ -316,6 +319,7 @@ func _ch_first_night() -> void:
 	await _frames(10)
 	await _physics(20)
 	check(current_scene.scene_file_path == TOWN, "the goo bubble takes you back to the Void")
+	root.get_node("FirstNight")._home_t = 0.0
 	await _physics(10)
 	await _talk("dash")                               # (the fountain's lost watch first: Dash always takes those first)
 	await _frames(10)
@@ -650,16 +654,84 @@ func _wait_talk(most := 10.0) -> Array:
 
 
 func _home_from(id: String) -> void:
-	# The way home, back to the Void by the portal
+	# The way home. Once a world's mended (all but Dark Hollow and the Far Future) it pulls you all the way home to
+	# Stars Hollow for a chapter there (scripts/home_calls.gd), and the crack by the oak opens again after it
+	var pulled: bool = portals.home_calls.is_due(id)
 	var way := current_scene.get_node_or_null("WayHome/Way Home/Spot")
 	check(way != null, "%s has a way home" % id)
+	# (A friend's thank-you or lesson can still be talking, or holding the controls, on a slow machine: the crack
+	# won't take you mid-talk, so let it finish first. Flurry's frost breath lesson did that on Hayden's PC.)
+	await _answer()
+	var player := _player()
+	var wait := 0
+	while player and player.input_locked and wait < 600:
+		await physics_frame
+		wait += 1
 	if way:
 		way.use()
 	else:
 		portals.go_home()
+	if pulled:
+		await _wait_for_scene(EARTH)
+		await _physics(10)
+		check(current_scene.scene_file_path == EARTH and portals.home_calls.sealed(), "pulled all the way home to Stars Hollow from %s" % id)
+		await _earth_chapter(id)
+		await _through_oak()
+		await create_timer(3.5).timeout
+		return
 	await _wait_for_scene(TOWN)
 	await _physics(10)
 	check(current_scene.scene_file_path == TOWN and portals.here == "", "home to the Void from %s" % id)
+
+
+# A Stars Hollow chapter, after a world's mended: who asks, the things to find, and (for a season) Nina's quest
+const EARTH_CHAPTERS := {
+	"home_chimes": ["wren", ["chime_1", "chime_2", "chime_3"]],
+	"home_plushies": ["prue", ["plush_1", "plush_2", "plush_3"]],
+	"home_lamps": ["hank", ["lamp_1", "lamp_2", "lamp_3"]],
+	"home_bottles": ["lionel", ["bottle_1", "bottle_2", "bottle_3"]],
+}
+const SEASON_STEPS := {
+	"first_snow": ["snow_carrot", "snow_scarf", "snow_built", "snow_sledded", "snow_cocoa"],
+	"duckling_day": ["duckling_1", "duckling_2", "duckling_3", "duckling_4", "duckling_5", "ducks_home", "puddle_1",
+		"puddle_2", "puddle_3", "spring_buns"],
+	"summer_splash": ["splash_ring", "splash_bucket", "splash_castle", "splash_jumped", "splash_lemonade"],
+}
+
+
+func _earth_chapter(id: String) -> void:
+	var calls: Node = portals.home_calls
+	var c: Dictionary = calls.CHAPTERS[id]
+	var q := str(c.quest)
+	check(quests.is_started(q), "%s: Stars Hollow's chapter %s starts" % [id, q])
+	await create_timer(calls.SHUT_AFTER + 4.0).timeout          # (it snaps shut, then takes 2.5 s to close over)
+	check(not portals.CRACK.is_open(current_scene.get("crack")), "...and the crack by the oak snaps shut")
+	if EARTH_CHAPTERS.has(q):
+		var who := str(EARTH_CHAPTERS[q][0])
+		await _talk(who)
+		check(not quests.on_step(q, "ask"), "%s asks for help" % who)
+		for f in EARTH_CHAPTERS[q][1]:
+			var spot := current_scene.get_node_or_null("Home Calls/Home Spot " + str(f)) as Node3D
+			check(spot != null, "%s is there to find" % f)
+			if spot:
+				_player().global_position = spot.global_position + Vector3(0, 0.6, 1.2)
+				await _physics(4)
+				spot.use()
+				await _frames(2)
+		await create_timer(1.2).timeout
+		await _talk(who)
+	else:
+		await _talk("nina_earth")
+		var inner := str(c.until)
+		await create_timer(1.2).timeout
+		check(quests.is_started(inner), "Nina starts %s" % inner)
+		# (Nina's seasonal quests are played through in their own tests: test_winter, test_spring, test_summer)
+		for f in SEASON_STEPS.get(inner, []):
+			dialogue.set_flag(str(f))
+			quests.check()
+			await _frames(2)
+	await create_timer(1.5).timeout
+	check(quests.is_done(str(c.until)) and not calls.sealed(), "%s's chapter done: the crack by the oak opens again" % id)
 
 
 func _time_check(id: String) -> void:
@@ -765,16 +837,17 @@ func _ch_lanternmoor() -> void:
 	var launch := (s.get_node("Launch") as Node3D).global_position
 	var rock := (s.get_node("Beacon2") as Node3D).global_position
 	var dir := Vector3(rock.x - launch.x, 0, rock.z - launch.z).normalized()
+	# (Pip's talk lets go of the controls a moment after it closes, on a timer: on a slow machine that can still be
+	# holding them here, and with the controls held Jump doesn't glide. So let it finish before standing on the tree.)
+	await _answer()
+	var wait := 0
+	while player.input_locked and wait < 600:
+		await physics_frame
+		wait += 1
 	player.global_position = launch + dir * 1.8 + Vector3(0, 0.6, 0)
 	player.velocity = Vector3.ZERO
 	player.spring_arm.global_rotation = Vector3(0, atan2(-dir.x, -dir.z), 0)
 	await _physics(10)
-	# (Pip's talk lets go of the controls a moment after it closes, on a timer: on a slow machine that can still be
-	# holding them here, and with the controls held Jump doesn't glide.)
-	var wait := 0
-	while player.input_locked and wait < 300:
-		await physics_frame
-		wait += 1
 	Input.action_press("move_forward")
 	Input.action_press("jump")
 	player.velocity = dir * 5.0 + Vector3(0, 6.0, 0)

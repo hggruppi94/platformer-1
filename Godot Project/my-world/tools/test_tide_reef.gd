@@ -52,6 +52,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	portals = root.get_node("Portals")
+	portals.home_calls.enabled = false      # (this world on its own: no pull home to Stars Hollow, test_home_calls.gd)
 	rem = root.get_node("Remnants")
 	quests = root.get_node("Quests")
 	clock = root.get_node("Clock")
@@ -155,7 +156,7 @@ func _check_quake() -> void:
 	check(apart > 20.0, "...and well apart from the other portals (%.0f m)" % apart)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the lake and town")
-	check(portals._portal_offer("tide_reef") == "look down the crack to The Tide Reef", "it offers a trip to the Tide Reef (%s)" % portals._portal_offer("tide_reef"))
+	check(portals._portal_offer("tide_reef") == "to The Tide Reef", "it offers a trip to the Tide Reef (%s)" % portals._portal_offer("tide_reef"))
 
 
 func _check_inside() -> void:

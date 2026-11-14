@@ -1,0 +1,60 @@
+{
+  "name": "Lamps Out!",
+  "giver": "hank",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done.",
+  "start": {
+    "flag": "home_lamps_start"
+  },
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Hank needs you!",
+      "done": {
+        "flag": "lamps_asked"
+      },
+      "where": [
+        "hank"
+      ]
+    },
+    {
+      "id": "fix",
+      "text": "Fix 3 street lamps.",
+      "checklist": [
+        [
+          "lamp_1",
+          "Main Street, by the diner"
+        ],
+        [
+          "lamp_2",
+          "Main Street, by the shops"
+        ],
+        [
+          "lamp_3",
+          "Main Street, by the fire station"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "lamp_1",
+          "lamp_2",
+          "lamp_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Tell Hank they're lit.",
+      "done": {
+        "flag": "lamps_back"
+      },
+      "where": [
+        "hank"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Main Street's bright! +8 sparkles."
+  }
+}

@@ -50,6 +50,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	portals = root.get_node("Portals")
+	portals.home_calls.enabled = false      # (this world on its own: no pull home to Stars Hollow, test_home_calls.gd)
 	rem = root.get_node("Remnants")
 	quests = root.get_node("Quests")
 	clock = root.get_node("Clock")
@@ -128,7 +129,7 @@ func _check_quake() -> void:
 	check(loop.is_empty() or nearest > 8.0, "...well off the Lake Loop's track (%.1f m)" % nearest)
 	var front := Vector2(sin(float(w.yaw)), cos(float(w.yaw)))
 	check(front.dot(-w.at.normalized()) > 0.8, "...facing back towards the lake and town")
-	check(portals._portal_offer("rhythm_springs") == "look down the crack to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
+	check(portals._portal_offer("rhythm_springs") == "to Rhythm Springs", "it offers a trip to Rhythm Springs (%s)" % portals._portal_offer("rhythm_springs"))
 
 
 func _check_inside() -> void:

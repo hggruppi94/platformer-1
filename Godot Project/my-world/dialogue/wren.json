@@ -3,6 +3,34 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "home_chimes:ask"
+      },
+      "lines": [
+        "My wind chimes! The wind took them last night.",
+        "Three of them. Find them, dear?"
+      ],
+      "set": "chimes_asked"
+    },
+    {
+      "when": {
+        "quest_step": "home_chimes:find"
+      },
+      "lines": [
+        "Three chimes. Not two. Three."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "home_chimes:back"
+      },
+      "lines": [
+        "My chimes! Listen... they're in tune again.",
+        "Thank you, dear."
+      ],
+      "set": "chimes_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [

@@ -247,7 +247,9 @@ func way_home() -> Array:
 	if here and here.scene_file_path == Clock.EARTH:
 		# On Earth, home: a quick way through the oak's crack to the Void, any time once it's open (Hayden, 14 Nov
 		# 2026: no waiting for midnight). Not before the first fall, and not on the first evening: no spoilers.
-		if HummingOak.awake() and not (FirstNight.running() and FirstNight.step() in FirstNight.NO_SHIFT_SLEEP):
+		# Not while Stars Hollow's chapter is on, after a world's mended (scripts/home_calls.gd): the crack's shut.
+		if HummingOak.awake() and not Portals.home_calls.sealed() \
+				and not (FirstNight.running() and FirstNight.step() in FirstNight.NO_SHIFT_SLEEP):
 			return [["Go through the crack to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
 		return []
 	if here and Clock.in_shift():

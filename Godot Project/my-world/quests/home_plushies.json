@@ -1,0 +1,60 @@
+{
+  "name": "Prue's Plushies",
+  "giver": "prue",
+  "story": true,
+  "about": "A chapter in Stars Hollow after mending a portal world (Hayden, 14 Nov 2026: Earth stays relevant). scripts/home_calls.gd starts it when the crack pulls you home; the crack by the old oak opens again once it's done.",
+  "start": {
+    "flag": "home_plushies_start"
+  },
+  "steps": [
+    {
+      "id": "ask",
+      "text": "Prue needs you!",
+      "done": {
+        "flag": "plush_asked"
+      },
+      "where": [
+        "prue"
+      ]
+    },
+    {
+      "id": "find",
+      "text": "Find Prue's 3 plushies.",
+      "checklist": [
+        [
+          "plush_1",
+          "By the playground"
+        ],
+        [
+          "plush_2",
+          "Down the hollow"
+        ],
+        [
+          "plush_3",
+          "By the park path"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "plush_1",
+          "plush_2",
+          "plush_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Prue.",
+      "done": {
+        "flag": "plush_back"
+      },
+      "where": [
+        "prue"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Prue's got all nine! +8 sparkles."
+  }
+}
