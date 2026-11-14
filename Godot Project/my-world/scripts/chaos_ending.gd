@@ -765,6 +765,7 @@ func _sky_eye() -> Vector3:
 func _say(who: String, line: String) -> void:
 	_caption.text = ("%s: %s" % [who, line]) if who != "" else line
 	_caption.add_theme_font_size_override("font_size", int(34 * Settings.text_scale))
+	UiStyle.bottom_caption(_caption)
 	_caption.modulate.a = 0.0
 	create_tween().tween_property(_caption, "modulate:a", 1.0, 0.25)
 	if who != "":

@@ -7,7 +7,7 @@
       "id": "ask",
       "text": "Ask Mr. Palmer with Melanie.",
       "done": {"flag": "slide_asked"},
-      "where": ["town_hall"]
+      "where": ["mr_palmer"]
     },
     {
       "id": "why",
@@ -54,7 +54,7 @@
       "id": "palmer",
       "text": "Take her plan to Mr. Palmer.",
       "done": {"flag": "slide_yes"},
-      "where": ["town_hall"]
+      "where": ["mr_palmer"]
     }
   ],
   "reward": {

@@ -10,7 +10,9 @@ extends CanvasLayer
 # A shot is {"from": Vector3, "look": Vector3, "time": seconds, "title": "", "caption": ""}: the camera moves from the
 # last shot's spot to this one's over its time, easing, looking from the last target to this one. A shot can also have
 # "start" (and "start_look"): the camera cuts there first and glides on from it (the opening's first shot, scripts/
-# opening.gd), and "sound": a sound played as the shot begins (the knock at the door). No class_name on purpose
+# opening.gd), "sound": a sound played as the shot begins (the knock at the door), "shake": a camera shake as it
+# begins (scripts/juice.gd), and "call": a Callable called as it begins (a crack splitting open on cue, scripts/
+# crack_opening.gd). No class_name on purpose
 # (preload it), so --script tools can load it before the autoloads exist.
 
 signal done
@@ -160,6 +162,12 @@ func _cut_in() -> void:
 		_look_from = shot.get("start_look", shot.look)
 	if str(shot.get("sound", "")) != "":
 		Audio.play(str(shot.sound), -2.0, 0.0)
+	if float(shot.get("shake", 0.0)) > 0.0:
+		Juice.shake(float(shot.shake))
+		Juice.rumble(0.5 * float(shot.shake), 0.6, 0.3 * float(shot.shake))
+	var cue = shot.get("call")
+	if cue is Callable and (cue as Callable).is_valid():
+		(cue as Callable).call()
 
 
 func _show_words() -> void:
@@ -170,6 +178,8 @@ func _show_words() -> void:
 			continue
 		l.text = str(pair[1])
 		l.add_theme_font_size_override("font_size", int(int(pair[2]) * Settings.text_scale))
+		if l == _caption:
+			UiStyle.bottom_caption(_caption)
 		l.modulate.a = 0.0
 		create_tween().tween_property(l, "modulate:a", 1.0, 0.4)
 	if str(shot.get("caption", "")) != "":

@@ -562,6 +562,7 @@ func _say(who: String, line: String) -> void:
 	var text := Settings.fill(line)
 	_caption.text = ("%s: %s" % [who, text]) if who != "" else text
 	_caption.add_theme_font_size_override("font_size", int(34 * Settings.text_scale))
+	UiStyle.bottom_caption(_caption)
 	_caption.modulate.a = 0.0
 	create_tween().tween_property(_caption, "modulate:a", 1.0, 0.25)
 	if who != "":

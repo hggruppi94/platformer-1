@@ -99,6 +99,58 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **A cutscene every time a crack opens** (Hayden: "We need to make it more obvious when a crack opens up,
+  with a cutscene for each one"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/crack_opening.gd`** (node "Crack Opening" under `Portals`: `Portals.opening_cut`), played with
+    `scripts/place_intro.gd` (which gained `"shake"` and `"call"` per shot). Skippable (Jump/Interact), about 13 s.
+  - **Each portal world's quake** (`quake()`, from `Portals.quake()`): the ground shakes where you are ("A Time
+    Quake!"), the camera flies over to the world's spot and the crack only splits open then, on cue, with a pillar of
+    the world's light shooting up into the sky and something of that world spilling out (`WORLDS`: crystal sparkles,
+    leaves, snowflakes that hang, lantern lights, petals, bubbles, a beat that stumbles, neon sparks), then a look down
+    it with a line of its own (the preview wakes at the bottom), then the world's name over a wide shot. Then the
+    usual message and the voice in your mind. Skipped, the crack's open all the same. A quake now waits for a quiet
+    moment (`Portals._quiet()`: no talk, menu, other cutscene or race). The camera picks a way round the crack that
+    no building or tree blocks (`_best_turn()`, `_blocked()`: trees aren't solid, so they're checked by where they
+    stand). Headless runs keep the old quick quake unless `force`.
+  - **The crack by the old oak** (`earth()`, from `earth_world.gd _show_opening()`): the first time you're in Stars
+    Hollow after your first trip to the Void (it's open any time since #110; flag `cut_crack_earth`), the crack's held
+    shut (`_held_shut`) till the camera gets there: the oak hums, the green splits open, a look down ("just like the
+    night you fell"), "The Crack by the Old Oak", "It's staying open now". Once only.
+  - Not given a cutscene: the way home in each world (always open), the little visitor cracks, Dark Hollow (no crack).
+  - No spoilers: the words only say what's happening and what you can see; no bosses or reasons (the test checks).
+  - Tests: new `tools/test_crack_opening.gd`; portals, cracks, earth (both runs), first_night, opening,
+    practice_trips, far_future, lore_order, meetings, rootmind, first_hour and races pass. Previews:
+    `tools/capture_crack_opening.gd` (shots in the project files under world/previews/crack_opening).
+  - My choices Hayden may change: every caption (first drafts), the pillar of light, what spills out of each, the
+    title on the last shot, no cutscene for the ways home.
+
+- 2026-11-14: **No cut-off words anywhere, and Mr. Palmer's window you can see** (Hayden: "when melanie asks you to fix
+  the slide, the window is cut off. we need to check every single windowed text in the game and make sure nothing is
+  getting cut off", then "We need to fix mr palmers' window/quest"). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **Melanie's slide quest:** the to-do list said just "Go with her to ask Mr." (`Quests.short_goal()` took "Mr." as
+    the end of a sentence). Titles (Mr., Mrs., Ms., Dr., St....) no longer end one (`_is_title()`), for every quest.
+  - **Mr. Palmer's Town Hall window:** Tally's request board stood right in front of it, so from the Market Square
+    the board hid it (`Requests.BOARD_ANGLE` 250 -> 232), and Mr. Palmer stood on its "knock on the window" sign
+    (`routines/places.json palmers_step` to the window's other side, (-78.2, 22.6)). The slide and Doggie Bill quests'
+    map stars point at the window now (`"where": ["mr_palmer"]`, was the Town Hall's door).
+  - **`tools/ui_watch.gd`** (preload it): lists anything on the screen that's off the edge, has words bigger than their
+    box, or words spilling out of their window (scroll lists and round-clipped things count only what shows). Its own
+    test: `tools/test_ui_watch.gd`. `tools/audit_ui.gd` uses it, and now also opens the quest card (with the longest
+    quest step) and the voice in your mind. **`tools/playthrough.gd -- all --ui-watch`** watches the whole game for
+    cut-off words (anything cut off for a second or more is listed at the end).
+  - **What it found, fixed:** at a big text and HUD size, the to-do list ran off the bottom (`hud.gd _fit_todo()`:
+    shrinks to fit under the stats), the clock covered the stats (`_fit_clock()`: moves right of them, shrinks if
+    needed), and cutscene subtitles ran off the bottom (the Agent of Chaos's ending; `UiStyle.bottom_caption()` in
+    chaos_ending, dash_goodbye, place_intro and race_intro: never wider than the screen, grows upwards;
+    `void_arrival.gd` grows up too). The voice in your mind sits under the clock now and follows the text size
+    (`divine_mind.gd _place()`; the HUD is in group `"hud"`).
+  - Every menu and card at four screen shapes and four text sizes, and the whole game at normal and big text: nothing
+    cut off. Tests: ui_watch, kid_ui, quests, dialogue, routines, palmer, episodes, request_board, chaos_ending,
+    dash_goodbye, race_intros, opening, first_night, cracks, ui_style, map, following, town_quests, player_menu,
+    layout, walk_through, earth, party, meetings pass. Previews: `tools/capture_text_windows.gd` (before and after in
+    the project files under world/previews/text_windows).
+  - My choices Hayden may change: where the board and Mr. Palmer stand now, shrinking (not cutting) the to-do list.
 - 2026-11-14: **Nothing in the game waits on the clock, and Pass the time is gone** (Hayden, after the 13 Nov Pass the
   time buttons: "I didnt mean to add time skip buttons, I mean everything should be playable all the way through
   without needing to skip time at all"). Built and tested in the cloud (own Godot user folders, no save touched).

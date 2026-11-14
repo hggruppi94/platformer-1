@@ -34,6 +34,12 @@ var shots_dir := ""
 var shot_n := 0
 var said: Array = []
 var messages: Array = []
+var ui_watch := false
+var ui_seen := {}                       # each cut-off thing once: what's wrong + its words -> where it was seen
+var _ui_tick := 0
+var _ui_pending := {}                   # cut off right now: since which frame
+var _chapter := ""
+const UI_WATCH := preload("res://tools/ui_watch.gd")
 
 var game: Node
 var clock: Node
@@ -64,7 +70,13 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var args := OS.get_cmdline_user_args()
+	var args := Array(OS.get_cmdline_user_args())
+	if args.has("--ui-watch"):
+		# Watch the screen the whole way through for cut-off words (tools/ui_watch.gd; Hayden, 14 Nov 2026: "check every
+		# single windowed text in the game and make sure nothing is getting cut off")
+		args.erase("--ui-watch")
+		ui_watch = true
+		process_frame.connect(_watch_ui)
 	var chapter := str(args[0]) if args.size() > 0 else "all"
 	shots_dir = str(args[1]) if args.size() > 1 else ""
 	if shots_dir != "":
@@ -92,6 +104,7 @@ func _run() -> void:
 		if i > 0 and not await _load_from(CHAPTERS[i - 1]):
 			break
 		print("\n=== Chapter: %s ===" % c)
+		_chapter = c
 		var before := failures
 		await call("_ch_" + c)
 		await _frames(4)
@@ -128,11 +141,36 @@ func _finish() -> void:
 	if FileAccess.file_exists(SETTINGS_BACKUP):
 		DirAccess.remove_absolute(SETTINGS)
 		DirAccess.rename_absolute(SETTINGS_BACKUP, SETTINGS)
+	if ui_watch:
+		print("\n--- Cut-off words seen on the way: %d ---" % ui_seen.size())
+		for k in ui_seen:
+			print("  UI CUT OFF (%s) %s" % [ui_seen[k], k])
 	print("\n--- What came up ---")
 	for n in notes:
 		print("  * " + str(n))
 	print("RESULT %s (%d failed)" % ["OK" if failures == 0 else "FAILED", failures])
 	quit(failures)
+
+
+func _watch_ui() -> void:
+	_ui_tick += 1
+	if _ui_tick % 6 != 0:
+		return
+	# Only what stays cut off for a second counts (a card sliding in from the edge is off the screen for a moment)
+	var now := {}
+	for p in UI_WATCH.scan(root):
+		var key := str(p).get_slice(" [", 0)
+		now[key] = true
+		if not _ui_pending.has(key):
+			_ui_pending[key] = _ui_tick
+		if _ui_tick - int(_ui_pending[key]) >= 60 and not ui_seen.has(key):
+			ui_seen[key] = "%s, %s" % [_chapter, current_scene.name if current_scene else "?"]
+			print("UI CUT OFF  " + str(p))
+			if shots_dir != "":
+				shot("ui_cut_%02d" % ui_seen.size())
+	for k in _ui_pending.keys():
+		if not now.has(k):
+			_ui_pending.erase(k)
 
 
 # =============================================================================
