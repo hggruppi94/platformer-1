@@ -99,6 +99,15 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The Hush can be lured into the light again, and the Rainbow Ray is a little see-through** (Hayden:
+  "the ghost boss in dusks embrace gets stuck and wont walk in the light, so it cant be killed", "make the rainbow ray
+  slightly less opaque"). Dark Hollow's Hush (`the_hush.gd`) read its `home` in `_ready()`, but `dark_hollow.gd` only
+  moves it onto Hush Hill after adding it, so home was the middle of the hollow and its 15 m `ARENA` leash held it
+  short of every moon lamp (9.5 m round the hill, 22 to 36 m from the middle): it hung in the dark for good. Home is
+  now taken on its first physics frame (it sleeps with physics off, so that's on the hill). `test_dark_hollow` now
+  checks its home and that it really drifts into a lamp's light after you, no teleport. The Rainbow Ray's stripes are
+  70% opaque (`rainbow_ray.gd` shader `opacity`). dark_hollow, arsenal, chaos_trials, world_detail and arena pass.
+
 - 2026-11-14: **The palace school, slice 2 of 4: floors 2 and 3** (the Void School Sensory Plan, after slice 1). All in
   `tools/build_school.gd` (rebuilt `school.tscn`); the quests' rooms are where they were. Built and tested in the cloud.
   - **Floor 2:** a glass **skybridge** straight across the library's hole (`_skybridge()`, the gallery rail opens for

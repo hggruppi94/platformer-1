@@ -19,6 +19,8 @@ const WOBBLE_SHADER := """shader_type spatial;
 render_mode unshaded, cull_disabled, shadows_disabled;
 uniform vec4 colour : source_color = vec4(1.0);
 uniform float phase = 0.0;
+// A little see-through, so you can still see what you're shining it on (Hayden, 14 Nov 2026: "slightly less opaque").
+uniform float opacity = 0.7;
 instance uniform float span = 1.0;
 void vertex() {
 	float along = clamp(0.5 - VERTEX.z, 0.0, 1.0);      // 0 at the wand, 1 at the far end (the beam looks down -Z)
@@ -30,6 +32,7 @@ void vertex() {
 }
 void fragment() {
 	ALBEDO = colour.rgb;
+	ALPHA = opacity;
 }
 """
 const STRIPES := [Color(1.0, 0.45, 0.6), Color(1.0, 0.85, 0.3), Color(0.45, 1.0, 0.6), Color(0.4, 0.8, 1.0),
