@@ -264,6 +264,10 @@ func _build() -> void:
 	_floor_3()
 	_library_atrium()
 	_music_pods()
+	_skybridge()
+	_floor_2_extras()
+	_floor_3_extras()
+	_hidden_stair()
 	_foyer_dressing()
 	_palace()
 	_grounds()
@@ -352,6 +356,11 @@ func _shell() -> void:
 			# Floor 2 is open over the library: an oval hole the library rises through (_library_atrium)
 			holed_slab(slab, "Gallery Floor", Rect2(X_W, Z_N, X_E - X_W, Z_S - Z_N), LIBRARY_AT, LIBRARY_HOLE, y, 0.3, floors[f],
 				pal("Palace Trim", P_TRIM, 0.6))
+			continue
+		if f == 2:
+			# Floor 3 has a round hole in its secret hallway for the hidden stair down (_hidden_stair)
+			holed_slab(slab, "Office Floor", Rect2(X_W, Z_N, X_E - X_W, Z_S - Z_N), HIDDEN_STAIR,
+				Vector2(STAIR_R + 0.1, STAIR_R + 0.1), y, 0.3, floors[f], pal("Palace Trim", P_TRIM, 0.6), -1.0, 40)
 			continue
 		solid_box(Vector3(X_E - X_W, 0.3, Z_S - Z_N), floors[f], Vector3((X_W + X_E) / 2, y - 0.15, (Z_N + Z_S) / 2), slab)
 	solid_box(Vector3(X_E - ATRIUM_W, 0.3, Z_S - Z_N), stone, Vector3((ATRIUM_W + X_E) / 2, 3 * FLOOR_H - 0.15, 0), shell)
@@ -560,7 +569,8 @@ func _floor_2() -> void:
 	_behind_the_walls(behind)
 
 	# Classrooms with round bays, laid out like the drawing
-	room(f, "Classroom A", -26, -19, -11, -9, class_mat, {"s": [0.2], "e": [0.6]}, "s")
+	# (Classroom A is the Nova Lab since slice 2 of the palace: _floor_2_extras() fits it out)
+	room(f, "Nova Lab", -26, -19, -11, -9, class_mat, {"s": [0.2], "e": [0.6]}, "s")
 	# (B is shallower and C moved east since the library opened up through this floor: they stood over its hole)
 	room(f, "Classroom B", 2, -19, 20, -13, class_mat, {"w": [0.5], "s": [0.8]})
 	room(f, "Classroom C", 12, -10, 25, 3, class_mat, {"w": [0.5], "s": [0.5]})
@@ -1105,6 +1115,9 @@ const POOL_FLOOR := -2.4
 const PROMENADE_Z := Vector2(-39, -28)          # the overlook walk along the north edge
 const LIBRARY_HOLE := Vector2(11.0, 6.5)        # the hole over the library in floor 2's slab (centre LIBRARY_AT)
 const LIBRARY_AT := Vector2(0, -6)
+const BRIDGE_HALF := 11.0 * 0.258819                # the skybridge's half width: where the gallery rail's 75 degree post is
+const HIDDEN_STAIR := Vector2(28.55, -14)          # the spiral stair from floor 3's secret hallway down Behind the Walls
+const STAIR_R := 1.3
 
 # The palette, straight (not run through theme.gd's tint: these are the picture's own colours)
 const P_STONE := Color(0.80, 0.73, 0.93)
@@ -2298,6 +2311,8 @@ func _library_atrium() -> void:
 		var p1 := Vector2(cos(t1) * LIBRARY_HOLE.x, sin(t1) * LIBRARY_HOLE.y) + LIBRARY_AT
 		var mid := (p0 + p1) / 2
 		var yaw := atan2(p1.x - p0.x, p1.y - p0.y)
+		if absf(p0.x) < BRIDGE_HALF - 0.01 or absf(p1.x) < BRIDGE_HALF - 0.01:
+			continue                                  # open where the skybridge meets the gallery (_skybridge)
 		static_box(a, Vector3(0.2, 1.15, p0.distance_to(p1) + 0.05), Vector3(mid.x, FLOOR_H + 0.575, mid.y), yaw)
 		panes.append([box(Vector3(0.04, 0.95, p0.distance_to(p1))), xf(Vector3(mid.x, FLOOR_H + 0.55, mid.y), Vector3(0, yaw, 0))])
 		rails.append([box(Vector3(0.14, 0.1, p0.distance_to(p1) + 0.06)), xf(Vector3(mid.x, FLOOR_H + 1.12, mid.y), Vector3(0, yaw, 0))])
@@ -2316,7 +2331,7 @@ func _library_atrium() -> void:
 		for k in int(r * 6):
 			var t := TAU * k / int(r * 6)
 			crystals.append([cylinder(0.0, 0.1, 0.45, 5), xf(Vector3(cos(t) * r, y - 0.3, sin(t) * r), Vector3(PI, 0, 0))])
-	crystals.append([cylinder(0.0, 0.5, 1.4, 6), xf(Vector3(0, -3.6, 0), Vector3(PI, 0, 0))])
+	crystals.append([cylinder(0.0, 0.5, 1.0, 6), xf(Vector3(0, -3.0, 0), Vector3(PI, 0, 0))])
 	merged_at(crystals, pal("Chandelier Glow", Color(1.0, 0.86, 0.95), 0.2, 0.2, 1.8), ch, "Crystals")
 	for k in 4:
 		mesh_at(cylinder(0.02, 0.02, 1.0, 4), gold, Vector3(cos(k * PI / 2) * 2.6, -0.5, sin(k * PI / 2) * 2.6), ch)
@@ -2338,7 +2353,7 @@ func _library_atrium() -> void:
 		if absf(q.x) < 3.0 and q.y > 0.0:
 			continue
 		bench(a, Vector3(q.x, FLOOR_H, q.y), atan2(-cos(t), -sin(t)))
-	for q in [Vector2(-12.6, -6), Vector2(0, -13.8)]:
+	for q in [Vector2(-12.6, -6), Vector2(-4.6, -13.6)]:
 		var p := node("Gallery Plant", a, Vector3(q.x, FLOOR_H, q.y))
 		mesh_at(cylinder(0.45, 0.35, 0.7, 12), pal("Planter", P_PLANTER, 0.8), Vector3(0, 0.35, 0), p)
 		mesh_at(sphere(0.75, 10), pal("Planter Leaf", Color(0.25, 0.55, 0.32), 0.9), Vector3(0, 1.2, 0), p)
@@ -2481,3 +2496,216 @@ func _player() -> void:
 	player.position = Vector3(0, 1.0, Z_S + 13)
 	school.add_child(player)
 	player.owner = school
+
+
+# ----------------------------------------------------------------------------- Slice 2: floors 2 and 3
+func _skybridge() -> void:
+	# A glass bridge straight across the open library on floor 2, north to south, between the gallery's two sides: a
+	# shortcut with the library glowing below and the chandelier overhead.
+	var b := node("Skybridge", school)
+	var x := BRIDGE_HALF
+	var z0 := LIBRARY_AT.y - LIBRARY_HOLE.y - 0.6
+	var z1 := LIBRARY_AT.y + LIBRARY_HOLE.y + 0.6
+	var glass := pal("Bridge Glass", Color(0.78, 0.9, 1.0), 0.05, 0.0, 0.25, 0.45)
+	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
+	var rail_glass := pal("Rail Glass", Color(0.8, 0.9, 1.0), 0.05, 0.0, 0.2, 0.3)
+	static_box(b, Vector3(2 * x, 0.2, z1 - z0), Vector3(0, FLOOR_H - 0.1, (z0 + z1) / 2)).name = "Bridge Deck"
+	mesh_at(box(Vector3(2 * x, 0.12, z1 - z0)), glass, Vector3(0, FLOOR_H - 0.06, (z0 + z1) / 2), b)
+	# its edges, a gold frame under the glass, and a pale strip down the middle to walk along
+	var frame := []
+	for sx in [-1.0, 1.0]:
+		frame.append([box(Vector3(0.2, 0.3, z1 - z0)), xf(Vector3(sx * (x - 0.1), FLOOR_H - 0.2, (z0 + z1) / 2))])
+	for k in 7:
+		frame.append([box(Vector3(2 * x, 0.12, 0.12)), xf(Vector3(0, FLOOR_H - 0.16, lerpf(z0, z1, k / 6.0)))])
+	merged_at(frame, gold, b, "Bridge Frame")
+	mesh_at(box(Vector3(1.2, 0.02, z1 - z0)), pal("Bridge Runner", Color(0.93, 0.8, 1.0), 0.6, 0.0, 0.3), Vector3(0, FLOOR_H + 0.01, (z0 + z1) / 2), b)
+	# Railings along both sides, from where the gallery's rail stops to where it starts again
+	var rz := LIBRARY_HOLE.y * sqrt(1.0 - (x / LIBRARY_HOLE.x) * (x / LIBRARY_HOLE.x))
+	var ra := LIBRARY_AT.y - rz
+	var rb := LIBRARY_AT.y + rz
+	var rails := []
+	var panes := []
+	for sx in [-1.0, 1.0]:
+		static_box(b, Vector3(0.2, 1.15, rb - ra), Vector3(sx * x, FLOOR_H + 0.575, (ra + rb) / 2))
+		panes.append([box(Vector3(0.04, 0.95, rb - ra)), xf(Vector3(sx * x, FLOOR_H + 0.55, (ra + rb) / 2))])
+		rails.append([box(Vector3(0.14, 0.1, rb - ra + 0.06)), xf(Vector3(sx * x, FLOOR_H + 1.12, (ra + rb) / 2))])
+		for k in 9:
+			rails.append([cylinder(0.04, 0.04, 1.1, 6), xf(Vector3(sx * x, FLOOR_H + 0.55, lerpf(ra, rb, k / 8.0)))])
+	merged_at(panes, rail_glass, b, "Bridge Glass Rail")
+	merged_at(rails, gold, b, "Bridge Rail")
+	# Little glowing studs in the deck, so it sparkles from below
+	var studs := []
+	for k in 12:
+		for sx in [-1.0, 1.0]:
+			studs.append([cylinder(0.07, 0.07, 0.03, 8), xf(Vector3(sx * (x - 0.45), FLOOR_H + 0.01, lerpf(z0 + 0.5, z1 - 0.5, k / 11.0)))])
+	merged_at(studs, pal("Bridge Stud", Color(0.75, 0.9, 1.0), 0.3, 0.0, 2.0), b, "Bridge Lights")
+	label(b, "Skybridge", Vector3(0, FLOOR_H + 2.6, z1 - 0.8), 0.0, 56)
+
+
+func _floor_2_extras() -> void:
+	var f := school.get_node("Floor 2") as Node3D
+	# The library mezzanine: a reading nook on the gallery south of the hole, with beanbags, a lamp and low shelves,
+	# looking down into the library over the glass rail.
+	var m := node("Library Mezzanine", f, Vector3(-7.2, 0, 2.6))
+	solid_box(Vector3(6.0, 0.04, 3.4), pal("Mezzanine Rug", Color(0.55, 0.38, 0.85), 0.95), Vector3(0, 0.02, 0), m)
+	var bags := [P_PINK, Color(0.45, 0.82, 1.0), Color(1.0, 0.85, 0.4), Color(0.7, 0.55, 1.0)]
+	for k in 4:
+		var bb := mesh_at(sphere(0.6, 12), pal("Beanbag %d" % k, bags[k], 0.95), Vector3(-2.2 + k * 1.45, 0.38, -0.6 + 0.4 * (k % 2)), m)
+		bb.scale = Vector3(1.1, 0.62, 1.0)
+	var shelf := pal("Library Shelf", P_NAVY, 0.7)
+	solid_box(Vector3(5.6, 1.1, 0.5), shelf, Vector3(0, 0.55, 1.95), m)
+	var books := []
+	for k in 14:
+		books.append([box(Vector3(0.3, 0.42 + 0.08 * (k % 3), 0.4)), xf(Vector3(-2.6 + k * 0.4, 1.3, 1.95))])
+	merged_at(books, pal("Book 0", P_PINK, 0.7), m, "Books")
+	mesh_at(cylinder(0.04, 0.04, 1.6, 6), pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), Vector3(2.7, 0.8, 1.2), m)
+	mesh_at(cylinder(0.18, 0.32, 0.36, 12), pal("Lamp Glow", P_GLOW, 0.3, 0.0, 2.2), Vector3(2.7, 1.7, 1.2), m)
+	var lamp := OmniLight3D.new()
+	lamp.position = Vector3(2.7, 1.8, 1.0)
+	lamp.light_color = Color(1.0, 0.82, 0.62)
+	lamp.light_energy = 0.8
+	lamp.omni_range = 5.0
+	m.add_child(lamp)
+	label(m, "Library Mezzanine", Vector3(0, 2.4, 0), 0.0, 48)
+
+	# The Nova Lab: classroom A fitted out as an inventor's lab, benches of bubbling glass and blinking panels.
+	var lab := node("Nova Lab Kit", f)
+	var bench_mat := pal("Lab Bench", Color(0.95, 0.94, 1.0), 0.5)
+	var top_mat := pal("Lab Top", P_NAVY, 0.4, 0.2)
+	var fluids := [pal("Lab Fluid Pink", P_PINK, 0.2, 0.0, 1.4, 0.8), pal("Lab Fluid Cyan", Color(0.4, 0.95, 1.0), 0.2, 0.0, 1.4, 0.8),
+		pal("Lab Fluid Lime", Color(0.65, 1.0, 0.45), 0.2, 0.0, 1.4, 0.8), pal("Lab Fluid Gold", Color(1.0, 0.8, 0.35), 0.2, 0.0, 1.4, 0.8)]
+	var flask_glass := pal("Lab Glass", Color(0.85, 0.95, 1.0), 0.05, 0.0, 0.0, 0.35)
+	for bz in [-16.5, -12.5]:
+		solid_box(Vector3(9.0, 0.95, 1.2), bench_mat, Vector3(-18.5, 0.475, bz), lab)
+		mesh_at(box(Vector3(9.1, 0.06, 1.3)), top_mat, Vector3(-18.5, 0.98, bz), lab)
+		for k in 8:
+			var at := Vector3(-22.3 + k * 1.1, 1.01, bz + (0.2 if k % 2 == 0 else -0.2))
+			var h := 0.3 + 0.12 * (k % 3)
+			mesh_at(cylinder(0.11, 0.16, h, 10), fluids[k % 4], at + Vector3(0, h / 2, 0), lab)
+			mesh_at(cylinder(0.05, 0.19, h + 0.25, 10), flask_glass, at + Vector3(0, (h + 0.25) / 2, 0), lab)
+			for q in 2:
+				mesh_at(sphere(0.04 + 0.02 * q, 6), flask_glass, at + Vector3(0.03 * q, h + 0.35 + 0.18 * q, 0), lab)
+	# a wall of blinking lights and dials on the west wall, and a glowing coil in the corner
+	var panel := node("Lab Panel", lab, Vector3(-25.75, 0, -14.0), PI / 2)
+	solid_box(Vector3(6.0, 2.8, 0.3), pal("Lab Panel", Color(0.25, 0.2, 0.42), 0.5, 0.3), Vector3(0, 1.6, 0), panel)
+	var lights := [[], [], []]
+	for r in 4:
+		for c in 12:
+			lights[(r * 5 + c * 3) % 3].append([sphere(0.07, 6), xf(Vector3(-2.6 + c * 0.47, 2.6 - r * 0.3, 0.17))])
+	merged_at(lights[0], pal("Lab Light Red", Color(1.0, 0.4, 0.55), 0.3, 0.0, 2.5), panel, "Lights A")
+	merged_at(lights[1], pal("Lab Light Green", Color(0.5, 1.0, 0.6), 0.3, 0.0, 2.5), panel, "Lights B")
+	merged_at(lights[2], pal("Lab Light Blue", Color(0.45, 0.8, 1.0), 0.3, 0.0, 2.5), panel, "Lights C")
+	for c in 4:
+		mesh_at(cylinder(0.28, 0.28, 0.06, 18), pal("Lab Dial", Color(0.95, 0.93, 1.0), 0.4), Vector3(-2.1 + c * 1.4, 1.05, 0.17), panel, 0.0, Vector3(PI / 2, 0, 0))
+	var coil := node("Nova Coil", lab, Vector3(-24.5, 0, -10.5))
+	solid_cylinder(0.45, 1.0, pal("Lab Top", P_NAVY, 0.4, 0.2), Vector3(0, 0.5, 0), coil)
+	for k in 8:
+		mesh_at(cylinder(0.32, 0.32, 0.06, 16), pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), Vector3(0, 1.1 + k * 0.14, 0), coil)
+	mesh_at(sphere(0.38, 14), pal("Coil Glow", Color(0.75, 0.6, 1.0), 0.2, 0.0, 2.8), Vector3(0, 2.4, 0), coil)
+	var spark := OmniLight3D.new()
+	spark.position = Vector3(0, 2.4, 0)
+	spark.light_color = Color(0.75, 0.6, 1.0)
+	spark.light_energy = 1.2
+	spark.omni_range = 6.0
+	coil.add_child(spark)
+
+	# The gadget wall beside the west break corner: screens, switches and dials to press and turn
+	var g := node("Gadget Wall", f, Vector3(X_W + 0.3, 0, 12.5), PI / 2)   # between the two west break corners
+	solid_box(Vector3(6.4, 2.6, 0.25), pal("Gadget Board", Color(0.35, 0.3, 0.6), 0.5, 0.2), Vector3(0, 1.5, 0), g)
+	var screens := [Color(0.45, 0.95, 1.0), P_PINK, Color(1.0, 0.85, 0.4), Color(0.65, 1.0, 0.5)]
+	for k in 4:
+		mesh_at(box(Vector3(1.2, 0.8, 0.06)), pal("Gadget Screen %d" % k, screens[k], 0.2, 0.0, 1.6), Vector3(-2.3 + k * 1.53, 2.15, 0.15), g)
+	var buttons := [[], []]
+	for k in 10:
+		buttons[k % 2].append([cylinder(0.12, 0.12, 0.08, 12), xf(Vector3(-2.7 + k * 0.6, 1.2, 0.16), Vector3(PI / 2, 0, 0))])
+	merged_at(buttons[0], pal("Gadget Button A", P_MAGENTA, 0.4, 0.0, 1.0), g, "Buttons A")
+	merged_at(buttons[1], pal("Gadget Button B", Color(0.45, 0.95, 1.0), 0.4, 0.0, 1.0), g, "Buttons B")
+	var switches := []
+	for k in 8:
+		switches.append([box(Vector3(0.08, 0.3, 0.08)), xf(Vector3(-2.4 + k * 0.7, 0.75, 0.2), Vector3(0.4 if k % 2 == 0 else -0.4, 0, 0))])
+	merged_at(switches, pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), g, "Switches")
+	label(g, "Gadget Wall", Vector3(0, 3.2, 0.3), 0.0, 48)
+
+
+func _floor_3_extras() -> void:
+	var f := school.get_node("Floor 3") as Node3D
+	# Window seats: cushioned benches along the window wall, with pillows, looking out over the Void
+	var seat := node("Window Seats", f)
+	var base := pal("Seat Base", Color(0.93, 0.9, 1.0), 0.6)
+	var cushion := pal("Seat Cushion", Color(0.6, 0.42, 0.9), 0.95)
+	var pillows := [P_PINK, Color(0.45, 0.82, 1.0), Color(1.0, 0.85, 0.4)]
+	for span: Vector2 in [Vector2(-17, -9), Vector2(-3.5, 3.5), Vector2(9, 17)]:
+		var mid := (span.x + span.y) / 2
+		var w := span.y - span.x
+		solid_box(Vector3(w, 0.5, 0.9), base, Vector3(mid, 0.25, Z_N + 0.95), seat)
+		mesh_at(box(Vector3(w - 0.1, 0.16, 0.8)), cushion, Vector3(mid, 0.58, Z_N + 0.95), seat)
+		for k in int(w / 1.6):
+			var px := span.x + 0.8 + k * 1.6
+			var pill := mesh_at(sphere(0.28, 10), pal("Pillow %d" % (k % 3), pillows[k % 3], 0.95), Vector3(px, 0.82, Z_N + 0.7), seat)
+			pill.scale = Vector3(1.2, 0.8, 0.5)
+	label(seat, "Window Seats", Vector3(0, 2.2, Z_N + 1.6), 0.0, 48)
+
+
+func _hidden_stair() -> void:
+	# A narrow spiral stair inside floor 3's secret hallway, winding down two turns to Behind the Walls on floor 2:
+	# the two hidden routes join up. (The lower level it will reach later is still to be built.)
+	var s := node("Hidden Stair", school, Vector3(HIDDEN_STAIR.x, 0, HIDDEN_STAIR.y))
+	var stone := pal("Hidden Stone", Color(0.55, 0.5, 0.7), 0.9)
+	var turns := 2.0
+	var steps := 36
+	var top := 2 * FLOOR_H
+	var bottom := FLOOR_H
+	var start := PI / 2                             # the top step leaves floor 3 on the south side, along the hallway
+	var inner := 0.22
+	# Walking surface: a smooth helix (a stair you can't trip on), steps drawn on top of it
+	var faces := PackedVector3Array()
+	var n := steps * 3
+	for k in n:
+		var t0 := float(k) / n
+		var t1 := float(k + 1) / n
+		var a0 := start + TAU * turns * t0
+		var a1 := start + TAU * turns * t1
+		var y0 := lerpf(top, bottom, t0) - 0.02
+		var y1 := lerpf(top, bottom, t1) - 0.02
+		var i0 := Vector3(cos(a0) * inner, y0, sin(a0) * inner)
+		var o0 := Vector3(cos(a0) * STAIR_R, y0, sin(a0) * STAIR_R)
+		var i1 := Vector3(cos(a1) * inner, y1, sin(a1) * inner)
+		var o1 := Vector3(cos(a1) * STAIR_R, y1, sin(a1) * STAIR_R)
+		faces.append_array(PackedVector3Array([i0, o0, o1, i0, o1, i1]))
+	var body := StaticBody3D.new()
+	body.name = "Stair Ramp"
+	var shape := ConcavePolygonShape3D.new()
+	shape.backface_collision = true
+	shape.set_faces(faces)
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	s.add_child(body)
+	var treads := []
+	for k in steps:
+		var a := start + TAU * turns * (k + 0.5) / steps
+		var y := lerpf(top, bottom, (k + 0.5) / steps)
+		var mid := (inner + STAIR_R) / 2
+		treads.append([box(Vector3(STAIR_R - inner, 0.12, 0.42)), Transform3D(Basis(Vector3.UP, -a), Vector3(cos(a) * mid, y - 0.08, sin(a) * mid))])
+	merged_at(treads, stone, s, "Steps")
+	solid_cylinder(inner, top - bottom + 1.0, stone, Vector3(0, (top + bottom) / 2 + 0.5, 0), s)
+	# a dim glow on the way down, and a rail round the hole up on floor 3 except where the top step leaves
+	for y in [bottom + 1.8, (top + bottom) / 2 + 1.5]:
+		var o := OmniLight3D.new()
+		o.position = Vector3(0, y, 0)
+		o.light_color = Color(0.7, 0.55, 1.0)
+		o.light_energy = 0.6
+		o.omni_range = 4.0
+		s.add_child(o)
+	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
+	var posts := []
+	for k in 12:
+		var a0 := start + PI / 3 + (TAU - PI / 3 - 0.2) * k / 12.0
+		var a1 := start + PI / 3 + (TAU - PI / 3 - 0.2) * (k + 1) / 12.0
+		var p0 := Vector3(cos(a0), 0, sin(a0)) * (STAIR_R + 0.15)
+		var p1 := Vector3(cos(a1), 0, sin(a1)) * (STAIR_R + 0.15)
+		var mid := (p0 + p1) / 2
+		static_box(s, Vector3(0.1, 1.0, p0.distance_to(p1) + 0.05), Vector3(mid.x, top + 0.5, mid.z), atan2(p1.x - p0.x, p1.z - p0.z))
+		posts.append([box(Vector3(0.08, 0.08, p0.distance_to(p1) + 0.05)), Transform3D(Basis(Vector3.UP, atan2(p1.x - p0.x, p1.z - p0.z)), mid + Vector3(0, top + 1.0, 0))])
+		posts.append([cylinder(0.03, 0.03, 1.0, 6), xf(p0 + Vector3(0, top + 0.5, 0))])
+	merged_at(posts, gold, s, "Rail")
