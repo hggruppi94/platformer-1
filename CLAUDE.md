@@ -99,6 +99,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The castle school is a lilac palace now, slice 1 of 4: the grounds and the 1st floor** (Hayden's
+  picture: "I want the school to look like this now", then "the sensory school is going to replace the old school":
+  the Void School Sensory Plan, https://claude.ai/artifact/Cpv5mUbWHh4jn6we7ZPipA). All in `tools/build_school.gd`
+  (rebuilt `school.tscn`); the floor plan inside, where the quests live (the Sliver, the centipede's corner, the
+  principal's office), is unchanged. Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The palace:** lilac stone faces on all four sides with pilasters, cornices, glowing arched windows and
+    crescent-moon banners, a frontispiece with a rose window and "The Castle School", a balustrade round the roof and
+    four domed corner towers. A soft purple sky with glow.
+  - **The grounds** (`CAMPUS` 150 x 103 m, walled in all round by see-through walls, a fall net under it): the
+    fountain forecourt (a tiered fountain, tulip planters, puff trees, lamps), the greenhouse and vegetable beds, the
+    rose arch and the "To Town" hedge arch (the way out), the **courtyard garden** (a cloister with blossom trees, a
+    small fountain, through the atrium's west door), the **palm grove** with hammocks, a 12 x 8 **hedge maze** with
+    a sundial, the **overlook walk** along the north edge, a golf-cart loop, the **east quad** (two fountains, a
+    smoothie cart, an art studio), the sunken **festival lawn** with a stage, food stalls and string lights, and the
+    **pool** (swim in it: `water.gd`).
+  - **Inside, floor 1:** the library is a **two-floor atrium** (a hole in the 2nd floor with a glass balustrade, a
+    chandelier and banners), navy shelves with bright book rows; four glass **music pods** with instruments; the
+    foyer has a rug, a chandelier and banners. Classroom C and a restroom pod on floor 2 moved to make room.
+  - The flower lost watch moved to the new greenhouse (`watches.gd`). `tools/test_school_garden.gd` now checks the
+    whole campus (ground everywhere, walls all round even high up, a big jump at the edge, the way out, the fall net).
+    Previews: new `tools/capture_school_look.gd` (14 views; before and after in the project files under
+    world/previews/school_palace).
+  - Still to come: slice 2 (floor 2 mezzanine, skybridge, Nova Lab, gadget wall; floor 3 window seats, hidden stair),
+    slice 3 (floor 4, the roof's palm terrace, roof garden with gazebo and telescope), slice 4 (the hidden lower level).
+  - My choices Hayden may change: everything's place on the grounds, the colours, the maze, the pool's spot.
+
 - 2026-11-14: **Mending a world pulls you home to Stars Hollow, and the crack stays shut till you've helped there**
   (Hayden: "After completing worlds in the void, the player should be sucked back to earth, where they must complete
   more quests (can be season-related or one-off) in order to unlock the ability to go back to the void. That way earth

@@ -104,7 +104,7 @@ const WATCHES := [
 		"place": "At the school's top window",
 		"hint": "By a mountain view.",
 		"note": "3,000 beads, one for each day!"},
-	{"id": "flower", "name": "Flower Clock", "scene": "school", "pos": Vector3(-12, 1.5, 33), "how": "walk",
+	{"id": "flower", "name": "Flower Clock", "scene": "school", "pos": Vector3(-14, 1.5, 48), "how": "walk",
 		"place": "In the school greenhouse",
 		"hint": "Somewhere warm and green, at school.",
 		"note": "Petal's flower watch. Smell the time!"},
