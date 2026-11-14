@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 # Autoload "PauseMenu": Esc / P / Start pauses the game.
-#   Paused:   Resume · (a way home) · Pass the time · Settings · New Game · Quit
+#   Paused:   Resume · (a way home) · Settings · New Game · Quit
 #   Settings: Audio · Controls · Display · Accessibility · Assist   (all saved by scripts/settings.gd)
 # Works with mouse, keyboard (arrows/Tab + Enter) and controller (d-pad/stick + A, B to go back).
 # The player menu's Settings sheet (scripts/player_menu.gd) shows these same settings tabs (settings_into()).
@@ -17,7 +17,6 @@ var _rebind_label: Label
 var _suppress_sound := false
 var _host: Control                     # where the settings tabs are: this menu's box, or the player menu's sheet
 
-const PASS_TIME := preload("res://scripts/pass_time.gd")
 
 
 func _ready() -> void:
@@ -149,7 +148,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _back() -> void:
-	if page in ["settings", "confirm", "worlds", "time"]:
+	if page in ["settings", "confirm", "worlds"]:
 		_show_main()
 	else:
 		close()
@@ -174,7 +173,7 @@ func _title(text: String) -> Label:
 
 # A picture for each of the main page's buttons (scripts/ui_icons.gd), so little ones can find Resume without reading
 const ICONS := {"Resume": "resume", "Go ": "home", "Settings": "settings", "How-to tips again": "tips",
-	"Show me the menu": "tour", "Pass the time": "clock", "New Game": "new_game", "Quit": "quit", "Skate lesson": "lesson", "Stop the skate lesson": "lesson"}
+	"Show me the menu": "tour", "New Game": "new_game", "Quit": "quit", "Skate lesson": "lesson", "Stop the skate lesson": "lesson"}
 
 
 func _button(text: String, cb: Callable, parent: Node = null) -> Button:
@@ -212,8 +211,6 @@ func _show_main() -> void:
 		_button(way[0], func():
 			close()
 			(way[1] as Callable).call())
-	if PASS_TIME.can_pass():
-		_button("Pass the time", _show_time)                # (scripts/pass_time.gd: no waiting around for the clock)
 	if Portals.practice:
 		_button("End practice trip", func():
 			close()
@@ -248,38 +245,14 @@ func way_home() -> Array:
 	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
 		return [["Go home to town", func(): Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town")]]   # an easy way out, any time
 	if here and here.scene_file_path == Clock.EARTH:
-		# On Earth, home: in the Shift, a quick way through the portal to the Void
-		if Clock.in_shift():
-			return [["Go through the portal to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
-		if PASS_TIME.to_the_shift_ok():
-			# Pulled home at 1 AM? No waiting a whole day: pass the time to midnight and go straight through
-			return [["Go to the Void at midnight", func(): PASS_TIME.go_to_the_void()]]
+		# On Earth, home: a quick way through the oak's crack to the Void, any time once it's open (Hayden, 14 Nov
+		# 2026: no waiting for midnight). Not before the first fall, and not on the first evening: no spoilers.
+		if HummingOak.awake() and not (FirstNight.running() and FirstNight.step() in FirstNight.NO_SHIFT_SLEEP):
+			return [["Go through the crack to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
 		return []
 	if here and Clock.in_shift():
 		return [["Go home to Earth", func(): Game.go(Clock.EARTH, Clock.EARTH_ARRIVAL, "Earth")]]   # before the Shift ends
 	return []
-
-
-func _show_time() -> void:
-	# Pass the time (scripts/pass_time.gd): a button for each time the clock can jump to from here
-	page = "time"
-	_clear()
-	_title("Pass the time")
-	var l := Label.new()
-	l.text = ("It's %s on Earth." % Clock.earth_time_string()) if Clock.on_earth else \
-		("It's %s in the Void." % Clock.time_string())
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(l)
-	var first: Control = null
-	for c in PASS_TIME.choices():
-		var length := float(c.minutes)
-		var b := _button(str(c.text), func():
-			close()
-			PASS_TIME.run(length))
-		if first == null:
-			first = b
-	var back := _button("Back", _show_main)
-	_focus(first if first else back)
 
 
 func _show_worlds() -> void:

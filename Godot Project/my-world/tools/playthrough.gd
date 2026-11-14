@@ -1437,7 +1437,7 @@ func _do_section(id: String) -> void:
 
 # =============================================================================
 func _sleep_until_shift() -> void:
-	# Home to bed, and sleep "Until the Shift" (the next midnight on Earth)
+	# Home to bed on the first evening, and sleep (it stops at midnight that night, when the ground cracks open)
 	if current_scene.scene_file_path != EARTH:
 		await _go(EARTH, "HomeSpawn")
 	var bed := current_scene.find_child("SleepSpot", true, false)
@@ -1459,7 +1459,7 @@ func _sleep_until_shift() -> void:
 
 
 func _through_oak() -> void:
-	# Jump into the crack by the oak (it's open in the Shift)
+	# Jump into the crack by the oak (it's open any time once the oak's awake)
 	if current_scene.scene_file_path != EARTH:
 		await _go(EARTH, "Entrance")
 	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
@@ -1476,18 +1476,21 @@ func _through_oak() -> void:
 
 
 func _end_shift() -> void:
-	# The Shift runs out (it lasts an Earth hour), and the portal pulls them home
-	clock.pulls_home = true
-	clock.end_shift()
+	# Home to Earth: on The First Night the Shift runs out and the portal pulls them home; after that the Void's day
+	# never ends by itself (Hayden, 14 Nov 2026: no waiting), so they jump into the crack home
+	if root.get_node("FirstNight").running():
+		clock.pulls_home = true
+		clock.end_shift()
+	else:
+		game.go(EARTH, clock.EARTH_ARRIVAL, "Earth")
 	await _wait_for_scene(EARTH, 400)
 	await _frames(10)
 
 
 func _next_visit() -> void:
-	# Another night: home, to bed till midnight, through the oak
+	# Another visit: home, then straight back through the oak's crack (it's open any time)
 	if clock.in_shift() and current_scene.scene_file_path == TOWN:
 		await _end_shift()
-	await _sleep_until_shift()
 	await _through_oak()
 	await create_timer(3.5).timeout
 

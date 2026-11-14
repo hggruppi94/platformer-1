@@ -40,6 +40,7 @@ const GARDEN_YAW := -PI / 2.0           # turned so the gate (the plot's local +
 const BEDS := 12
 const COLS := 3                          # beds across the plot's local x (north to south), rows along its local z
 const BED_SIZE := Vector2(1.4, 1.1)
+const FIRST_BOOST := 8.0                # how much faster the very first crops grow (first_boost())
 const WATER_LASTS := 360.0              # Void minutes a watering lasts (about 4 real minutes in the Shift)
 const DAY := 1440.0
 
@@ -124,8 +125,18 @@ func update() -> void:
 			b.last = t
 			b.water_until = minf(float(b.water_until), t)
 		var wet := clampf(minf(t, float(b.water_until)) - float(b.last), 0.0, DAY * 30.0)
-		b.grown = minf(float(b.grown) + wet, grow_time(str(b.crop)))
+		b.grown = minf(float(b.grown) + wet * first_boost(), grow_time(str(b.crop)))
 		b.last = t
+
+
+var boost_first := true                 # (tests that time the garden's own pace turn the first-crop boost off)
+
+
+func first_boost() -> float:
+	# Bramble's Harvest waits on the first crop: until it's picked, Bramble's green fingers make everything grow
+	# FIRST_BOOST times as fast, so a Blinkberry's ready in about half a minute (Hayden, 14 Nov 2026: no waiting on the
+	# clock to get through the story). After that it's the garden's own pace.
+	return 1.0 if Dialogue.flags.has("farm_first_harvest") or not boost_first else FIRST_BOOST
 
 
 static func grow_time(crop: String) -> float:
@@ -157,7 +168,7 @@ func stage(i: int) -> int:
 
 func hours_left(i: int) -> int:
 	var b: Dictionary = beds[i]
-	return ceili(maxf(grow_time(str(b.crop)) - float(b.grown), 0.0) / 60.0)
+	return ceili(maxf(grow_time(str(b.crop)) - float(b.grown), 0.0) / 60.0 / first_boost())
 
 
 # -----------------------------------------------------------------------------

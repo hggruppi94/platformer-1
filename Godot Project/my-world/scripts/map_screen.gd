@@ -295,7 +295,7 @@ func _talker(s: Node, id: String) -> Node:
 
 
 func portal_open() -> bool:
-	return Clock.in_shift()
+	return Clock.in_shift() or (Clock.on_earth and HummingOak.awake())   # (the oak's crack is open any time)
 
 
 # -----------------------------------------------------------------------------

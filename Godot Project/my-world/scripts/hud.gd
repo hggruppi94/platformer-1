@@ -386,7 +386,7 @@ func _refresh_clock() -> void:
 		# Nothing about the portal until they've seen the old oak open for themselves (Hayden's day 1 playtest, 11 Nov
 		# 2026: the game mustn't give away what's going to happen)
 		if HummingOak.awake():
-			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The crack opens at midnight")
+			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The crack by the old oak is open")
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text
