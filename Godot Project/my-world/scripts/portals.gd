@@ -36,6 +36,7 @@ const SCHOOL := "res://scenes/school/school.tscn"
 const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
 const CENTIPEDE_HOLES := preload("res://scripts/centipede_holes.gd")
 const CRACK := preload("res://scripts/crack.gd")
+const CRACK_OPENING := preload("res://scripts/crack_opening.gd")
 const QUAKE_DELAY := 6.0                # seconds after arriving in the Void before a due quake shakes it
 const PREVIEW_NEAR := 14.0              # the preview window wakes up this close to a portal...
 const PREVIEW_FAR := 22.0               # ...and goes to sleep again past this
@@ -115,12 +116,16 @@ var _card_label: Label
 var stage_prize_day := -1              # the visit Melody's dance-off encore was last won (scripts/melody_stage.gd)
 var practice := false                   # on a practice trip (practice_trip()): nothing is kept
 var _held_before := false               # Game.hold_saves before the practice trip (tools set it), put back after
+var opening_cut: Node                   # the cutscene for each crack that opens (scripts/crack_opening.gd)
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	Dialogue.finished.connect(_on_talked)
 	_make_hud()
+	opening_cut = CRACK_OPENING.new()
+	opening_cut.name = "Crack Opening"
+	add_child(opening_cut)
 
 
 func _process(delta: float) -> void:
@@ -134,7 +139,7 @@ func _process(delta: float) -> void:
 		_process_flowers()
 		_process_flurry(delta)
 		_in_town_for += delta
-		if not _quaking and _in_town_for >= QUAKE_DELAY and not Dialogue.is_active():
+		if not _quaking and _in_town_for >= QUAKE_DELAY and not Dialogue.is_active() and _quiet():
 			var due := next_due()
 			if due != "":
 				quake(due)
@@ -278,6 +283,13 @@ func quake_due(id: String) -> bool:
 	return false
 
 
+func _quiet() -> bool:
+	# A quake waits for a quiet moment, so its cutscene doesn't cut into a race, another cutscene or a menu
+	if opening_cut.headless():
+		return true
+	return opening_cut.can_play()
+
+
 func next_due() -> String:
 	for w in WORLDS:
 		if quake_due(str(w.id)):
@@ -298,6 +310,9 @@ func quake(id: String, instant := false) -> void:
 		Game.save_game()
 		return
 	_quaking = true
+	# Hayden, 14 Nov 2026: "more obvious when a crack opens up, with a cutscene for each one"
+	if opening_cut.quake(id, _place_portal.bind(id, true), _quake_shown.bind(id)):
+		return
 	Game.message("The ground shakes... a TIME QUAKE! Something is cracking open by %s." % near_words(id))
 	Audio.play("stomp", -2.0)
 	Juice.shake(0.5)
@@ -318,6 +333,19 @@ func quake(id: String, instant := false) -> void:
 		changed.emit()
 		quaked.emit(id)
 		Game.save_game())
+
+
+func _quake_shown(opened: bool, id: String) -> void:
+	# The quake's cutscene is over (watched or skipped): the crack's open whatever happened
+	if not opened:
+		_place_portal(id, false)
+	_quaking = false
+	Game.message("A crack has split the ground open by %s! It leads to %s." % [near_words(id), world(id).name])
+	DivineMind.say(["Do you feel that? The Shift has broken somewhere new.",
+		"A world on the other side of that crack needs you. Jump in when you're ready."])
+	changed.emit()
+	quaked.emit(id)
+	Game.save_game()
 
 
 func near_words(id: String) -> String:
@@ -634,7 +662,7 @@ func _update_previews() -> void:
 		var view := g.get_node_or_null("Preview") as SubViewport
 		if view == null and d < PREVIEW_NEAR and not _quaking:
 			_open_preview(g, str(id))
-		elif view and d > PREVIEW_FAR:
+		elif view and d > PREVIEW_FAR and str(id) != opening_cut.showing:
 			_close_preview(g)
 		view = g.get_node_or_null("Preview") as SubViewport
 		if view:
@@ -645,6 +673,20 @@ func _update_previews() -> void:
 				var c: Vector3 = cam.get_meta("centre", Vector3.ZERO)
 				cam.position = c + Vector3(cos(t) * r * 0.35, r * 0.9, sin(t) * r * 0.35)
 				cam.look_at(c, Vector3.UP)
+
+
+func show_preview(id: String) -> void:
+	# The crack's live window, opened for a cutscene looking down it (scripts/crack_opening.gd)
+	var g := crack(id)
+	if g and g.get_node_or_null("Preview") == null:
+		_open_preview(g, id)
+
+
+func hide_preview_if_far(id: String) -> void:
+	var g := crack(id)
+	var player := get_tree().get_first_node_in_group("player") as Node3D
+	if g and g.get_node_or_null("Preview") and (player == null or player.global_position.distance_to(g.global_position) > PREVIEW_FAR):
+		_close_preview(g)
 
 
 func preview_scene(id: String) -> Node3D:
