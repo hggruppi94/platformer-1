@@ -268,6 +268,7 @@ func _build() -> void:
 	_floor_2_extras()
 	_floor_3_extras()
 	_hidden_stair()
+	_roof()
 	_foyer_dressing()
 	_palace()
 	_grounds()
@@ -363,7 +364,13 @@ func _shell() -> void:
 				Vector2(STAIR_R + 0.1, STAIR_R + 0.1), y, 0.3, floors[f], pal("Palace Trim", P_TRIM, 0.6), -1.0, 40)
 			continue
 		solid_box(Vector3(X_E - X_W, 0.3, Z_S - Z_N), floors[f], Vector3((X_W + X_E) / 2, y - 0.15, (Z_N + Z_S) / 2), slab)
-	solid_box(Vector3(X_E - ATRIUM_W, 0.3, Z_S - Z_N), stone, Vector3((ATRIUM_W + X_E) / 2, 3 * FLOOR_H - 0.15, 0), shell)
+	# The roof, with an opening over the atrium for the escalators up to it (ROOF_HOLE, _atrium)
+	var rh := ROOF_HOLE
+	for piece: Rect2 in [Rect2(X_W, Z_N, X_E - X_W, Z_S - Z_N), Rect2(ATRIUM_W, Z_N, X_W - ATRIUM_W, rh.position.y - Z_N),
+			Rect2(ATRIUM_W, rh.end.y, X_W - ATRIUM_W, Z_S - rh.end.y), Rect2(ATRIUM_W, rh.position.y, rh.position.x - ATRIUM_W, rh.size.y),
+			Rect2(rh.end.x, rh.position.y, X_W - rh.end.x, rh.size.y)]:
+		solid_box(Vector3(piece.size.x, 0.3, piece.size.y), stone,
+			Vector3(piece.get_center().x, 3 * FLOOR_H - 0.15, piece.get_center().y), shell)
 	solid_box(Vector3(X_W - ATRIUM_W, 0.3, Z_S - Z_N), pal("Floor 1", Color()),
 		Vector3((ATRIUM_W + X_W) / 2, -0.15, 0), shell)
 	var h := 3 * FLOOR_H
@@ -449,11 +456,16 @@ func _atrium() -> void:
 	escalator(a, "Escalator 2 Up", -37.5, 0, -12, FLOOR_H, true)
 	escalator(a, "Escalator 2 Down", -35.0, 0, -12, FLOOR_H, false)
 	solid_box(Vector3(8, 0.3, 6), deck, Vector3(-36, 2 * FLOOR_H - 0.15, -15), a)
+	# Floor 3 -> the roof (the sky stair): up through the opening in the roof, from a landing off floor 3's balcony
+	escalator(a, "Escalator 3 Up", -37.5, 6, 18, 2 * FLOOR_H, true)
+	escalator(a, "Escalator 3 Down", -35.0, 6, 18, 2 * FLOOR_H, false)
+	solid_box(Vector3(8, 0.3, 4), deck, Vector3(-36, 2 * FLOOR_H - 0.15, 4), a)
+	label(a, "To the Roof", Vector3(-36, 2 * FLOOR_H + 3.6, 3), 0.0, 64)
 	# Stairs from floor 1 to floor 2 at the north end, landing on their own platform
 	stairs(a, -36, -8, -20, 0)
 	solid_box(Vector3(8, 0.3, 4), deck, Vector3(-36, FLOOR_H - 0.15, -22), a)
 	# Balconies along the floors' west edge on floors 2 and 3, with glass railings
-	var railings := {1: [[-20.0, 0.0], [6.0, 24.0]], 2: [[-24.0, -18.0], [-12.0, 24.0]]}   # gaps where platforms join
+	var railings := {1: [[-20.0, 0.0], [6.0, 24.0]], 2: [[-24.0, -18.0], [-12.0, 2.0], [6.0, 24.0]]}   # gaps where platforms join
 	for f in [1, 2]:
 		var y2: float = f * FLOOR_H
 		solid_box(Vector3(2.0, 0.3, Z_S - Z_N), deck, Vector3(X_W - 1.0, y2 - 0.15, 0), a)
@@ -1117,6 +1129,8 @@ const LIBRARY_HOLE := Vector2(11.0, 6.5)        # the hole over the library in f
 const LIBRARY_AT := Vector2(0, -6)
 const BRIDGE_HALF := 11.0 * 0.258819                # the skybridge's half width: where the gallery rail's 75 degree post is
 const HIDDEN_STAIR := Vector2(28.55, -14)          # the spiral stair from floor 3's secret hallway down Behind the Walls
+const ROOF_HOLE := Rect2(-39, 5.5, 5.5, 12.5)    # the opening in the roof over the atrium the escalators up go through
+const ROOF_Y := 3 * FLOOR_H                      # the roof: the palm terrace, the roof garden and the 4th floor's pavilion
 const STAIR_R := 1.3
 
 # The palette, straight (not run through theme.gd's tint: these are the picture's own colours)
@@ -2709,3 +2723,248 @@ func _hidden_stair() -> void:
 		posts.append([box(Vector3(0.08, 0.08, p0.distance_to(p1) + 0.05)), Transform3D(Basis(Vector3.UP, atan2(p1.x - p0.x, p1.z - p0.z)), mid + Vector3(0, top + 1.0, 0))])
 		posts.append([cylinder(0.03, 0.03, 1.0, 6), xf(p0 + Vector3(0, top + 0.5, 0))])
 	merged_at(posts, gold, s, "Rail")
+
+
+# ----------------------------------------------------------------------------- The roof (slice 3)
+func _roof() -> void:
+	# Up on the roof, reached by the escalators through the atrium: the 4th floor's Sky Pavilion (the upper commons
+	# and the magic-craft pods), the palm terrace with loungers, hammocks and string lights, and the roof garden with
+	# its gazebo and telescope. The balustrade round the edge is the palace's (_roof_edge).
+	var r := node("Floor 4", school, Vector3(0, ROOF_Y, 0))
+	label(r, "Roof", Vector3(-30, 3.6, 21), 0.0, 80)
+	# A rail round the opening the escalators come up through, open at the end they arrive at
+	var rh := ROOF_HOLE
+	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
+	var rails := []
+	for e: Array in [[Vector2(rh.position.x, rh.position.y), Vector2(rh.end.x, rh.position.y)],
+			[Vector2(rh.position.x, rh.position.y), Vector2(rh.position.x, rh.end.y)],
+			[Vector2(rh.end.x, rh.position.y), Vector2(rh.end.x, rh.end.y)]]:
+		var a: Vector2 = e[0]
+		var b: Vector2 = e[1]
+		var mid := (a + b) / 2
+		var yaw := atan2(b.x - a.x, b.y - a.y)
+		static_box(r, Vector3(0.12, 1.1, a.distance_to(b)), Vector3(mid.x, 0.55, mid.y), yaw)
+		rails.append([box(Vector3(0.12, 0.1, a.distance_to(b))), xf(Vector3(mid.x, 1.1, mid.y), Vector3(0, yaw, 0))])
+		for k in int(a.distance_to(b) / 1.2) + 1:
+			var q := a.lerp(b, k * 1.2 / a.distance_to(b))
+			rails.append([cylinder(0.035, 0.035, 1.1, 6), xf(Vector3(q.x, 0.55, q.y))])
+	merged_at(rails, gold, r, "Opening Rail")
+	# A pale path from the escalators to everything up here
+	var path := pal("Roof Path", Color(0.93, 0.89, 0.99), 0.7)
+	var paths := [[box(Vector3(30, 0.04, 2.4)), xf(Vector3(-18, 0.02, 21))], [box(Vector3(2.4, 0.04, 26)), xf(Vector3(-2, 0.02, 9))],
+		[box(Vector3(2.4, 0.04, 6)), xf(Vector3(2, 0.02, -4))], [box(Vector3(4.4, 0.04, 2.4)), xf(Vector3(0, 0.02, -2.2))]]
+	merged_at(paths, path, r, "Paths")
+	_sky_pavilion(r)
+	_palm_terrace(r)
+	_roof_garden(r)
+
+
+func half_dome(r: float) -> SphereMesh:
+	# The top half of a ball, for domes that sit on a roof without bulging down into the room under them
+	var m := sphere(r, 24)
+	m.is_hemisphere = true
+	m.height = r
+	return m
+
+
+func _sky_pavilion(r: Node3D) -> void:
+	# The 4th floor: a glass pavilion on the roof's north side. Three magic-craft pods along its back (potions, star
+	# charms, crystals), and the upper commons in front: sofas, a rug, beanbags and lamps.
+	var p := node("Sky Pavilion", r)
+	var x0 := -10.0
+	var x1 := 14.0
+	var z0 := -21.0
+	var z1 := -7.0
+	var base := pal("Palace Stone", P_STONE, 0.8)
+	var glass := pal("Pavilion Glass", Color(0.8, 0.9, 1.0), 0.05, 0.1, 0.0, 0.22)
+	var trim := pal("Palace Trim", P_TRIM, 0.6)
+	var h := 4.2
+	# low stone walls with glass above, a door in the middle of the front
+	for e: Array in [[Vector2(x0, z0), Vector2(x1, z0), []], [Vector2(x0, z1), Vector2(x1, z1), [0.5]],
+			[Vector2(x0, z0), Vector2(x0, z1), []], [Vector2(x1, z0), Vector2(x1, z1), []]]:
+		wall(p, e[0], e[1], glass, e[2], h, 0.12)
+		var a: Vector2 = e[0]
+		var b: Vector2 = e[1]
+		var mid := (a + b) / 2
+		var yaw := atan2(b.x - a.x, b.y - a.y)
+		var parts := [[box(Vector3(0.3, 0.2, a.distance_to(b) + 0.3)), xf(Vector3(mid.x, h, mid.y), Vector3(0, yaw, 0))]]
+		if e[2].is_empty():
+			mesh_at(box(Vector3(0.3, 0.9, a.distance_to(b))), base, Vector3(mid.x, 0.45, mid.y), p, yaw)
+		for k in int(a.distance_to(b) / 3.0) + 1:
+			var q := a.lerp(b, minf(1.0, k * 3.0 / a.distance_to(b)))
+			parts.append([box(Vector3(0.22, h, 0.22)), xf(Vector3(q.x, h / 2, q.y))])
+		merged_at(parts, trim, p, "Frame")
+	# the roof: a flat slab and a lavender dome with a gold tip, like the towers'
+	solid_box(Vector3(x1 - x0 + 0.6, 0.3, z1 - z0 + 0.6), pal("Dome", P_ROOF, 0.45, 0.2), Vector3((x0 + x1) / 2, h + 0.25, (z0 + z1) / 2), p)
+	var dome := mesh_at(half_dome(4.5), pal("Dome", P_ROOF, 0.45, 0.2), Vector3((x0 + x1) / 2, h + 0.4, (z0 + z1) / 2), p)
+	dome.scale = Vector3(1, 0.7, 1)
+	mesh_at(sphere(0.4, 12), pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), Vector3((x0 + x1) / 2, h + 3.7, (z0 + z1) / 2), p)
+	var lamp := OmniLight3D.new()
+	lamp.position = Vector3((x0 + x1) / 2, h - 0.6, (z0 + z1) / 2)
+	lamp.light_color = Color(1.0, 0.85, 0.95)
+	lamp.light_energy = 0.8
+	lamp.omni_range = 16.0
+	p.add_child(lamp)
+	label(p, "4th Floor - Sky Pavilion", Vector3((x0 + x1) / 2, h + 1.0, z1 + 0.4), 0.0, 64)
+	# The magic-craft pods: round glass booths, each with a table, a glowing ball and stools
+	var pods := [["Potion Pod", Color(0.55, 1.0, 0.7)], ["Star Charm Pod", Color(1.0, 0.85, 0.4)], ["Crystal Pod", Color(0.7, 0.6, 1.0)]]
+	for k in 3:
+		var c := Vector2(-4.0 + k * 8.0, z0 + 3.4)
+		var pod := node(str(pods[k][0]), p, Vector3(c.x, 0, c.y))
+		var tint: Color = pods[k][1]
+		arc_wall(pod, Vector2.ZERO, 2.6, PI * 1.15, PI * 1.85 + PI * 0.3, pal("Pod Glass", Color(0.85, 0.9, 1.0), 0.05, 0.1, 0.0, 0.25), 8, 2.8)
+		mesh_at(cylinder(2.7, 2.7, 0.12, 24), pal("Pod Top", P_ROOF, 0.45, 0.2), Vector3(0, 2.9, 0), pod)
+		mesh_at(cylinder(2.5, 2.5, 0.03, 24), pal("Pod Rug %d" % k, tint.lerp(Color(0.6, 0.5, 0.9), 0.5), 0.95), Vector3(0, 0.02, 0), pod)
+		solid_cylinder(0.75, 0.8, pal("Craft Table", Color(0.55, 0.42, 0.75), 0.7), Vector3(0, 0.4, -0.3), pod)
+		mesh_at(sphere(0.32, 16), pal("Craft Glow %d" % k, tint, 0.2, 0.0, 2.2), Vector3(0, 1.15, -0.3), pod)
+		var glow := OmniLight3D.new()
+		glow.position = Vector3(0, 1.4, -0.3)
+		glow.light_color = tint
+		glow.light_energy = 0.7
+		glow.omni_range = 3.5
+		pod.add_child(glow)
+		for s in [-1.0, 1.0]:
+			solid_cylinder(0.28, 0.5, pal("Stool", P_PINK, 0.8), Vector3(s * 1.1, 0.25, 0.5), pod)
+		var bits := []
+		for j in 5:
+			var a := TAU * j / 5.0
+			bits.append([sphere(0.07, 6), xf(Vector3(cos(a) * 0.55, 0.88, -0.3 + sin(a) * 0.45))])
+		merged_at(bits, pal("Craft Bits %d" % k, tint, 0.3, 0.0, 1.0), pod, "Bits")
+		label(pod, str(pods[k][0]), Vector3(0, 2.5, 1.0), 0.0, 40)
+	label(p, "Magic-Craft Pods", Vector3(4, 3.4, z0 + 6.8), 0.0, 48)
+	# The upper commons: two sofas facing over a rug, beanbags, lamps and plants
+	var cm := node("Upper Commons", p, Vector3(2, 0, z1 - 3.4))
+	mesh_at(box(Vector3(9, 0.03, 4.6)), pal("Commons Rug", Color(0.62, 0.45, 0.88), 0.95), Vector3(0, 0.02, 0), cm)
+	var sofa := pal("Sofa", Color(0.98, 0.6, 0.82), 0.95)
+	for s in [-1.0, 1.0]:
+		var so := node("Sofa", cm, Vector3(s * 3.6, 0, 0), PI / 2 * -s)
+		solid_box(Vector3(3.2, 0.45, 1.0), sofa, Vector3(0, 0.22, 0), so)
+		mesh_at(box(Vector3(3.2, 0.7, 0.3)), sofa, Vector3(0, 0.7, -0.45), so)
+		for x in [-1.75, 1.75]:
+			mesh_at(box(Vector3(0.3, 0.6, 1.0)), sofa, Vector3(x, 0.4, 0), so)
+	solid_box(Vector3(1.6, 0.4, 1.0), pal("Craft Table", Color()), Vector3(0, 0.2, 0), cm)
+	var bean_cols := [Color(0.45, 0.82, 1.0), P_PINK, Color(1.0, 0.85, 0.4)]
+	for k in 3:
+		var b := mesh_at(sphere(0.55, 12), pal("Beanbag %d" % k, bean_cols[k], 0.95), Vector3(-1.4 + k * 1.4, 0.32, 1.7), cm)
+		b.scale = Vector3(1, 0.6, 1)
+	for q in [Vector3(-5.6, 0, -1.8), Vector3(5.6, 0, -1.8)]:
+		mesh_at(cylinder(0.03, 0.03, 1.6, 6), pal("Lamp Iron", P_NAVY, 0.5, 0.5), q + Vector3(0, 0.8, 0), cm)
+		mesh_at(cylinder(0.18, 0.3, 0.35, 12), pal("Lamp Shade", Color(1.0, 0.92, 0.8), 0.6, 0.0, 1.2), q + Vector3(0, 1.7, 0), cm)
+	label(cm, "Upper Commons", Vector3(0, 2.6, 0), 0.0, 48)
+
+
+func _palm_terrace(r: Node3D) -> void:
+	# The roof's south-east: a wooden deck with palms in big planters, striped hammocks slung between them,
+	# loungers looking out over the grounds and string lights criss-crossing overhead.
+	var t := node("Palm Terrace", r)
+	var planks := []
+	for k in 22:
+		planks.append([box(Vector3(22.6, 0.05, 0.86)), xf(Vector3(16, 0.03, 1.5 + k * 0.92))])
+	merged_at(planks, pal("Deck", Color(0.78, 0.6, 0.55), 0.8), t, "Deck")
+	var spots := [Vector2(8, 5), Vector2(16, 5), Vector2(24, 5), Vector2(8, 13), Vector2(16, 13), Vector2(24, 13)]
+	var tops := []
+	for k in spots.size():
+		var sp: Vector2 = spots[k]
+		solid_cylinder(0.8, 0.6, pal("Planter", P_PLANTER, 0.8), Vector3(sp.x, 0.3, sp.y), t)
+		mesh_at(cylinder(0.72, 0.72, 0.05, 16), pal("Planter Soil", Color(0.3, 0.22, 0.26)), Vector3(sp.x, 0.62, sp.y), t)
+		tops.append(palm(t, Vector3(sp.x, 0.6, sp.y), 0.6 + k * 1.1, 5.0 + (k % 3) * 0.5))
+	var cols := [P_PINK, Color(0.7, 0.55, 0.98), Color(0.45, 0.8, 0.95)]
+	for k in 3:
+		var a: Vector2 = spots[k]
+		var b: Vector2 = spots[k + 3]
+		hammock(t, Vector3(a.x, 1.9, a.y + 0.4), Vector3(b.x, 1.9, b.y - 0.4), cols[k])
+	# loungers along the front, under little parasols
+	for k in 5:
+		var lo := node("Lounger", t, Vector3(6.5 + k * 4.6, 0, 19.5), PI)
+		var frame := pal("Lounger Frame", P_TRIM, 0.6)
+		solid_box(Vector3(0.8, 0.35, 1.5), frame, Vector3(0, 0.18, 0.3), lo)
+		mesh_at(box(Vector3(0.8, 0.7, 0.12)), frame, Vector3(0, 0.6, -0.6), lo, 0.0, Vector3(-0.6, 0, 0))
+		mesh_at(box(Vector3(0.7, 0.08, 1.4)), pal("Lounger Pad %d" % (k % 3), cols[k % 3], 0.95), Vector3(0, 0.39, 0.3), lo)
+		mesh_at(box(Vector3(0.7, 0.08, 0.65)), pal("Lounger Pad %d" % (k % 3), cols[k % 3], 0.95), Vector3(0, 0.66, -0.52), lo, 0.0, Vector3(-0.6, 0, 0))
+		if k < 4:
+			var u := node("Parasol", t, Vector3(8.8 + k * 4.6, 0, 20.4))
+			mesh_at(cylinder(0.04, 0.04, 2.4, 6), pal("Lamp Iron", P_NAVY, 0.5, 0.5), Vector3(0, 1.2, 0), u)
+			mesh_at(cylinder(0.05, 1.3, 0.5, 16), pal("Parasol %d" % (k % 3), cols[(k + 1) % 3], 0.9), Vector3(0, 2.45, 0), u)
+	# string lights from poles at the deck's corners and over the palms
+	var poles := [Vector3(4.6, 0, 1.6), Vector3(27.4, 0, 1.6), Vector3(27.4, 0, 21.6), Vector3(4.6, 0, 21.6)]
+	var iron := pal("Lamp Iron", P_NAVY, 0.5, 0.5)
+	for q: Vector3 in poles:
+		solid_cylinder(0.07, 3.6, iron, q + Vector3(0, 1.8, 0), t)
+	var bulbs := []
+	var cords := []
+	for pair in [[0, 1], [1, 2], [2, 3], [3, 0], [0, 2], [1, 3]]:
+		var a: Vector3 = poles[pair[0]] + Vector3(0, 3.5, 0)
+		var b: Vector3 = poles[pair[1]] + Vector3(0, 3.5, 0)
+		var m := int(a.distance_to(b) / 1.3)
+		for k in m + 1:
+			var u := float(k) / m
+			var q := a.lerp(b, u) - Vector3(0, sin(PI * u) * 0.9, 0)
+			bulbs.append([sphere(0.11, 8), xf(q - Vector3(0, 0.13, 0))])
+			if k < m:
+				var q2 := a.lerp(b, float(k + 1) / m) - Vector3(0, sin(PI * float(k + 1) / m) * 0.9, 0)
+				cords.append([box(Vector3(0.03, 0.03, q.distance_to(q2))), Transform3D(Basis.looking_at((q2 - q).normalized(), Vector3.UP), (q + q2) / 2)])
+	merged_at(bulbs, pal("Bulb", Color(1.0, 0.88, 0.6), 0.3, 0.0, 3.0), t, "String Lights")
+	merged_at(cords, iron, t, "Cords")
+	var glow := OmniLight3D.new()
+	glow.position = Vector3(16, 3.0, 11)
+	glow.light_color = Color(1.0, 0.85, 0.6)
+	glow.light_energy = 0.8
+	glow.omni_range = 14.0
+	t.add_child(glow)
+	label(t, "Palm Terrace", Vector3(16, 4.2, 9), 0.0, 64)
+
+
+func _roof_garden(r: Node3D) -> void:
+	# The roof's south-west: flower planters and little trees in pots round a gazebo with a dome, and inside it a
+	# brass telescope pointing up at the Void's sky.
+	var g := node("Roof Garden", r)
+	var c := Vector2(-16, 11)
+	mesh_at(cylinder(9.0, 9.0, 0.04, 40), pal("Roof Lawn", P_LAWN, 0.95), Vector3(c.x, 0.02, c.y), g)
+	# the gazebo: a raised round floor, eight slim columns, a ring and a dome with a gold tip
+	var gz := node("Gazebo", g, Vector3(c.x, 0, c.y))
+	var trim := pal("Palace Trim", P_TRIM, 0.6)
+	solid_cylinder(3.6, 0.25, trim, Vector3(0, 0.125, 0), gz)
+	var cols := []
+	for k in 8:
+		var a := TAU * k / 8.0 + PI / 8
+		cols.append([cylinder(0.14, 0.17, 3.2, 10), xf(Vector3(cos(a) * 3.2, 1.85, sin(a) * 3.2))])
+	cols.append([cylinder(3.5, 3.5, 0.3, 32), xf(Vector3(0, 3.55, 0))])
+	merged_at(cols, trim, gz, "Columns")
+	var dome := mesh_at(half_dome(3.7), pal("Dome", P_ROOF, 0.45, 0.2), Vector3(0, 3.7, 0), gz)
+	dome.scale = Vector3(1, 0.75, 1)
+	mesh_at(sphere(0.3, 12), pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35), Vector3(0, 6.5, 0), gz)
+	var lamp := OmniLight3D.new()
+	lamp.position = Vector3(0, 3.0, 0)
+	lamp.light_color = Color(1.0, 0.85, 0.65)
+	lamp.light_energy = 0.6
+	lamp.omni_range = 6.0
+	gz.add_child(lamp)
+	# the telescope: a tripod, a brass tube tipped up to the north-east, an eyepiece
+	var ts := node("Telescope", gz, Vector3(0, 0.25, 0))
+	var brass := pal("Brass", P_GOLD, 0.3, 0.8)
+	var legs := []
+	for k in 3:
+		var a := TAU * k / 3.0
+		var foot := Vector3(cos(a) * 0.6, 0, sin(a) * 0.6)
+		var top := Vector3(0, 1.3, 0)
+		legs.append([cylinder(0.03, 0.03, foot.distance_to(top), 6), Transform3D(Basis.looking_at((top - foot).normalized(), Vector3.RIGHT if absf((top - foot).normalized().dot(Vector3.UP)) > 0.99 else Vector3.UP) * Basis(Vector3.RIGHT, PI / 2), (foot + top) / 2)])
+	merged_at(legs, pal("Lamp Iron", P_NAVY, 0.5, 0.5), ts, "Tripod")
+	var tube := mesh_at(cylinder(0.14, 0.2, 1.8, 16), brass, Vector3(0, 1.55, 0), ts)
+	tube.rotation = Vector3(-0.75, PI * 0.75, 0)
+	var eye := mesh_at(cylinder(0.05, 0.05, 0.3, 8), brass, Vector3(0.35, 1.2, 0.35), ts)
+	eye.rotation = Vector3(-0.75, PI * 0.75, 0)
+	label(gz, "Telescope", Vector3(0, 2.6, 0), 0.0, 40)
+	# planters and potted trees round it, and benches facing it
+	for k in 6:
+		var a := TAU * k / 6.0
+		var q := c + Vector2(cos(a), sin(a)) * 7.2
+		if k % 2 == 0:
+			planter(g, Vector3(q.x, 0, q.y), Vector2(2.6, 1.0), -a + PI / 2, 60 + k)
+		else:
+			solid_cylinder(0.7, 0.7, pal("Planter", P_PLANTER, 0.8), Vector3(q.x, 0.35, q.y), g)
+			blossom_tree(g, Vector3(q.x, 0.7, q.y), 0.6)
+	for k in 3:
+		var a := TAU * (k + 0.5) / 6.0 * 2.0 + PI / 6
+		var q := c + Vector2(cos(a), sin(a)) * 5.2
+		bench(g, Vector3(q.x, 0, q.y), atan2(c.x - q.x, c.y - q.y))
+	label(g, "Roof Garden", Vector3(c.x, 6.8, c.y), 0.0, 64)

@@ -35,6 +35,15 @@ const VIEWS := [
 	["19_window_seats", Vector3(5.5, 13.8, -19), Vector3(-6, 12.4, -23.2)],
 	["20_hidden_stair_top", Vector3(26.5, 14.5, -11), Vector3(28.55, 9, -14)],
 	["21_hidden_stair_bottom", Vector3(28.5, 7.6, -7.5), Vector3(28.55, 9.5, -14)],
+	["22_escalators_to_the_roof", Vector3(-31, 14.2, -2), Vector3(-36.5, 15.5, 10)],
+	["23_roof_arrival", Vector3(-36, 20.0, 21.5), Vector3(-10, 18.5, 8)],
+	["24_palm_terrace", Vector3(3.5, 21.5, -1), Vector3(18, 18.8, 14)],
+	["25_terrace_loungers", Vector3(28, 20.2, 10), Vector3(14, 18.5, 20)],
+	["26_roof_garden_gazebo", Vector3(-5, 21.5, 3), Vector3(-16, 19.5, 11)],
+	["27_telescope", Vector3(-13.5, 20.2, 13.5), Vector3(-16, 19.6, 11)],
+	["28_sky_pavilion", Vector3(2, 21.0, 0.5), Vector3(2, 19.5, -12)],
+	["29_magic_craft_pods", Vector3(9, 20.2, -10), Vector3(0, 19.0, -17.5)],
+	["30_roof_from_above", Vector3(10, 48, 62), Vector3(-2, 18, 0)],
 ]
 
 var out_dir := "user://school_look_shots"
