@@ -12,10 +12,12 @@ extends Node
 #   Juice.squash(node, 0.25)                 # squash and stretch a node's scale, then spring back
 #   Juice.rumble(0.3, 0.15)                  # controller rumble (weak/strong 0..1, seconds), if Settings.rumble
 #   Juice.blip("chime", 1.2)                 # a short sound made in code (no .wav: those need LFS)
+#   (bumping into things from the side or overhead: scripts/bumps.gd, which uses all of these)
 #   Juice.chime_pickup()                     # the sparkle chime, rising in pitch on quick pickups
 #   Juice.hit(pos, colour, amount)           # the usual mix for a pop: burst + shake + rumble (+ hitstop if big)
 #
-# Settings > Assist has "Screen shake" (0 to 100%) and "Controller rumble". Reduce motion turns the shake off too.
+# Settings > Assist has "Screen shake" (0 to 100%), "Controller rumble", "Rumble strength" (0 to 100%) and "Bumps and
+# boinks". Reduce motion turns the shake off too.
 # tools/test_juice.gd checks every call with both off and both on.
 
 const MAX_OFFSET := 0.35                      # metres of camera wobble at full shake
@@ -211,10 +213,19 @@ func squash(node: Node3D, amount := 0.25, time := 0.22) -> void:
 
 func rumble(weak := 0.3, seconds := 0.15, strong := 0.0) -> void:
 	calls += 1
-	if not bool(Settings.get("rumble")):
+	var k := rumble_scale()
+	if k <= 0.0:
 		return
 	for pad in Input.get_connected_joypads():
-		Input.start_joy_vibration(pad, clampf(weak, 0.0, 1.0) * 0.7, clampf(strong, 0.0, 1.0) * 0.6, minf(seconds, 0.5))
+		Input.start_joy_vibration(pad, clampf(weak, 0.0, 1.0) * 0.7 * k, clampf(strong, 0.0, 1.0) * 0.6 * k, minf(seconds, 0.5))
+
+
+func rumble_scale() -> float:
+	# Off, or the Rumble strength slider (0..1)
+	if not bool(Settings.get("rumble")):
+		return 0.0
+	var k = Settings.get("rumble_strength")
+	return 1.0 if k == null else clampf(float(k), 0.0, 1.0)
 
 
 func hit(parent: Node, pos: Vector3, colour: Color, big := false) -> void:
@@ -231,7 +242,9 @@ func hit(parent: Node, pos: Vector3, colour: Color, big := false) -> void:
 # -----------------------------------------------------------------------------
 func blip(kind: String, pitch := 1.0, volume_db := -8.0) -> void:
 	# "chime" (pickups), "pop" (bubbles), "tick" (countdowns, menus), "whoosh" (boosts, portals), "thud" (landings),
-	# "sparkle" (rewards), "buzz" (grinds), "rewind" (a Time Goblin blinking back in time). Each made once, then played at any pitch.
+	# "sparkle" (rewards), "buzz" (grinds), "rewind" (a Time Goblin blinking back in time), and the bumps' (scripts/bumps.gd):
+	# "boink" (something soft and springy), "bonk" (wood), "clunk" (stone), "clink" (ice, crystal, metal), "squish"
+	# (water, goo). Each made once, then played at any pitch.
 	calls += 1
 	if not _blips.has(kind):
 		_blips[kind] = _make(kind)
@@ -262,7 +275,8 @@ func chime_step() -> int:
 
 
 func _make(kind: String) -> AudioStreamWAV:
-	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3, "rewind": 0.45}
+	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3, "rewind": 0.45,
+		"boink": 0.3, "bonk": 0.12, "clunk": 0.16, "clink": 0.35, "squish": 0.22}
 	if not length.has(kind):
 		return null
 	var n := int(RATE * float(length[kind]))
@@ -299,6 +313,25 @@ func _make(kind: String) -> AudioStreamWAV:
 				phase += TAU * lerpf(1400.0, 300.0, f) * (1.0 + 0.08 * sin(TAU * 18.0 * t)) / RATE
 				var tick := 1.0 if fmod(t, 0.06) < 0.006 else 0.0
 				v = sin(phase) * sin(PI * f) * 0.6 + tick * 0.5
+			"boink":
+				# a springy cartoon boing: a quick rise, then a wobbling fall
+				var bf := lerpf(220.0, 520.0, minf(f * 6.0, 1.0)) * (1.0 - 0.45 * f) * (1.0 + 0.12 * sin(TAU * 14.0 * t))
+				phase += TAU * bf / RATE
+				v = sin(phase) * pow(env, 1.4) * minf(f * 40.0, 1.0)
+			"bonk":
+				# a hollow woody knock: two short wooden notes and a click
+				v = (sin(TAU * 420.0 * t) + 0.6 * sin(TAU * 1130.0 * t)) * pow(env, 6.0) + rng.randf_range(-1.0, 1.0) * pow(env, 20.0) * 0.5
+			"clunk":
+				# a soft stony knock: a low thump with a puff of grit
+				phase += TAU * lerpf(140.0, 70.0, f) / RATE
+				v = sin(phase) * pow(env, 3.0) + rng.randf_range(-1.0, 1.0) * pow(env, 8.0) * 0.35
+			"clink":
+				# a little bell: two bright notes ringing out
+				v = (sin(TAU * 2100.0 * t) * 0.6 + sin(TAU * 3170.0 * t) * 0.4) * pow(env, 3.0) * minf(f * 60.0, 1.0)
+			"squish":
+				# a wet squelch: rough noise sliding down
+				phase += TAU * lerpf(500.0, 120.0, f) / RATE
+				v = (sin(phase) * 0.5 + rng.randf_range(-0.5, 0.5)) * sin(PI * f)
 		var s := int(clampf(v * 0.5, -1.0, 1.0) * 32767.0)
 		data.encode_s16(i * 2, s)
 	var w := AudioStreamWAV.new()
