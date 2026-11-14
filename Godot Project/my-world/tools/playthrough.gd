@@ -1069,13 +1069,16 @@ func _ch_dark_hollow() -> void:
 	await _frames(4)
 	check(s.pieces_found() == 2, "the Big Hole spits you up the Crooked Spire: the second piece")
 	var races := root.get_node("Races")
+	# The Hollow Run is a circuit of its own: Pip's gate takes you there, and the piece waits when you come back
+	check(races.enter_circuit("hollow_run"), "off to the Hollow Run from Pip's gate")
+	var path: String = races.TRACKS.hollow_run.scene
+	for k in 240:
+		if current_scene != null and current_scene.scene_file_path == path and races.racing():
+			break
+		await physics_frame
 	var t: Node3D = races.track_node("hollow_run")
-	check(t != null, "the Hollow Run is here")
 	if t:
 		var p := _player()
-		p.global_position = t.point_at(-3.0) + Vector3.UP * 0.9
-		await _physics(4)
-		races.start("hollow_run")
 		await _physics(int(races.COUNTDOWN * 60) + 10)
 		for lap in int(races.TRACKS.hollow_run.laps):
 			for i in range(1, t.cp_dist.size() + 1):
@@ -1087,9 +1090,16 @@ func _ch_dark_hollow() -> void:
 				await _physics(3)
 				if races.state != races.State.RACING:
 					break
-		await _physics(int(races.RESULTS_TIME * 60) + 20)
-		if game.riding:
-			game.toggle_skateboard()
+	races.leave_circuit()
+	for k in 240:
+		if current_scene != null and current_scene.scene_file_path == "res://scenes/portal_worlds/dark_hollow.tscn":
+			break
+		await physics_frame
+	await _frames(10)
+	await _physics(10)
+	s = current_scene
+	if game.riding:
+		game.toggle_skateboard()
 	check(s.pieces_found() == 3, "the Hollow Run finished: the third piece")
 	var h: CharacterBody3D = s.hush()
 	var hill := (s.get_node("Hush") as Node3D).global_position
