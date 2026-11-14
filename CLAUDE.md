@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The race circuits come alive: things go off all round you as you race** (Hayden: "I want the maps to
+  feel like they are alive and things are happening all around"; our own set pieces, nothing copied). Built and tested
+  in the cloud (own Godot user folders, no save touched).
+  - **`scripts/race_life.gd`** (no class_name, preload it; a "Life" node `race_circuit.gd` puts on every circuit):
+    five set pieces per circuit (`SETS`, by checkpoint), each a "Set <n> <kind>" node with metas `kind`, `d` and
+    `fired`. Each goes off when you're 18 to 46 m before it and gets ready again once you're 90 m past, so once a lap,
+    always just ahead of you. **Lake Loop:** a Lake Puff leaps out of the lake right over the road, two rows of
+    geysers, three saucers swooping low along the road, crystal spires bursting up. **Meadow Wiggle:** giant flowers
+    opening (twice), a Bounce Bun leaping over, a swarm of glowing moths crossing, a bunch of balloons let go.
+    **Observatory Hill:** shooting stars landing in the fields (twice), a boulder rolling down beside the road,
+    saucers, crystals. **Pumpkin Run:** a flock of crows taking off (twice), a hay stack bursting, a hot-air balloon
+    going up, fireworks over the road. The crowd in the stand jumps up and cheers as you go by (`cheering`), and a
+    blimp with the circuit's name circles overhead.
+  - **Nothing is solid** and nothing is ever left on the road: it's all for show, so it can't get in a racer's way.
+  - Tests: new `tools/test_race_life.gd` (sets and kinds, nothing solid, nothing on the road before or after, each
+    goes off once a lap just ahead of you, the crowd); races, race_tracks, race_tutorial, earth_race and race_intros
+    pass. Previews: `tools/capture_race_life.gd` (shots in the project files under world/previews/race_life).
+  - My choices Hayden may change: which set pieces go on which circuit and where, how big they are, the blimp.
+
 - 2026-11-14: **The Gloop Gate looks as big outside as the kingdom is inside** (Hayden: "I like the current gloop
   kingdom entrance, but it makes it seem like the kingdom is small and then when you enter it's huge"). Built and
   tested in the cloud (own Godot user folders, no save touched).

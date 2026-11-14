@@ -13,6 +13,7 @@ extends Node3D
 # Races (scripts/races.gd) puts the race itself on it as everywhere else (scripts/race_track.gd: the arch, the
 # starter, rings, boost pads, Star Boxes, goo and the obstacles), and starts the race once it's ready.
 
+const LIFE := preload("res://scripts/race_life.gd")
 const WALL_H := 1.1                   # how high the walls stand above the road
 const WALL_T := 0.5                   # ...and how thick
 const KERB := 0.9                     # the striped strip along each edge
@@ -90,6 +91,10 @@ func _ready() -> void:
 	else:
 		_void_scenery()
 	_crowd(str(c.get("theme", "void")))
+	# Things happening all round the road as you race by (scripts/race_life.gd)
+	var life: Node3D = LIFE.new()
+	life.setup(self)
+	add_child(life)
 
 
 func half_width() -> float:
