@@ -532,6 +532,15 @@ func _check_circuit(id: String, t: Node3D, p: CharacterBody3D) -> void:
 		if absf(side) + extent > hw + 0.1:
 			bad.append(str(o.name))
 	check(t.obstacles.size() == tr.obstacles.size() and bad.is_empty(), "%s: %d obstacles, all on the road (%s)" % [tr.name, t.obstacles.size(), ", ".join(bad)])
+	# The start is clear: nothing on the grid or just past the line (Hayden, 13 Nov 2026: "THE LAKE LOOP RACE STARTS OFF
+	# WITH A BUMPER RIGHT IN FRONT OF YOU"). The grid reaches 22 m back, so nothing from 34 m before the line to 12 m on.
+	var on_grid: Array[String] = []
+	for o in t.obstacles + t.goo:
+		var d: float = t.nearest((o as Node3D).global_position)
+		var rel: float = d if d < L / 2.0 else d - L
+		if rel > -34.0 and rel < 12.0:
+			on_grid.append("%s %.0f m" % [o.name, rel])
+	check(on_grid.is_empty(), "%s: nothing in the way on the grid or just past the line (%s)" % [tr.name, ", ".join(on_grid)])
 	var kinds := {}
 	for o in t.obstacles:
 		kinds[str(o.get_meta("kind"))] = true

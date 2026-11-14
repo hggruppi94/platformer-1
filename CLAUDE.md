@@ -97,6 +97,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **A clear start on every circuit, and a race tutorial** (Hayden's 13 Nov 2026 playtest: "THE LAKE LOOP RACE
+  STARTS OFF WITH A BUMPER RIGHT IN FRONT OF YOU. there needs to be a tutorial for starting races"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **The start:** every circuit had its last obstacle (and on two, a goo puddle) on the grid: the Lake Loop's bumper
+    was 14.5 m before the line, 1.5 m in front of you in fifth. They moved back round the last bend (`Races.TRACKS`):
+    nothing from 34 m before the line (the grid reaches 22 m back) to 12 m after it. `test_races` and the new
+    `test_race_tutorial` check that on every circuit.
+  - **`scripts/race_tutorial.gd`** (node "Tutorial" under `Races`, the movement tutorial's calm card, on the left under
+    the level box): near a race gate with something to ride, the card says to talk to Zippy (or Pepper) under the arch
+    (flag `race_gate_seen`, ticked by talking to them). The first race then teaches as you go, one step at a time:
+    ride forward at GO, through the gold ring, ride into a Star Box, press Aim to use it, what the obstacles do, the map
+    and the laps (flags `race_tut_<step>`; a race left half way carries on next time). Finishing a race ends it for good
+    (`race_tut_done`). A save that's raced before, or tips off, never sees it (the gate card still shows with tips off).
+  - Tests: new `tools/test_race_tutorial.gd`; races, earth_race, race_intros, ride_upgrades and boosters pass.
+    Previews: `tools/capture_race_tutorial.gd` (shots in the project files under world/previews/race_tutorial).
+  - My choices Hayden may change: every card's words, where the card sits, which steps there are.
+
 - 2026-11-13: **Bug sweep: the whole suite and the whole-game playthrough, and what they turned up** (Hayden picked "a bug
   sweep"). Ran all 109 tests in the cloud (own Godot user folders, four at a time, no save touched): 106 passed. Then
   read every log for errors and warnings, and ran `tools/playthrough.gd -- all` from a new game to the ending.
