@@ -630,8 +630,11 @@ func lines() -> Array:
 		out.append("%d of my four spores! Keep looking." % n
 			if n > 0 else "Your glow will show the way.")
 		return out
-	out.append_array(["All FOUR! Oh, they're warm!",
-		{"do": "Farm/Caves.hand_in"}])
+	# (The hand-in used to be a {"do": ...} line here, but Dialogue.say() drops anything that isn't a line, so the
+	# talk ended on "All FOUR!" and nothing happened: Hayden, 14 Nov 2026, "it says to talk to the old taproot, but
+	# nothing happens". It's done straight away now and its lines follow.)
+	out.append("All FOUR! Oh, they're warm!")
+	out.append_array(hand_in())
 	return out
 
 

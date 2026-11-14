@@ -535,7 +535,10 @@ func _floor_2() -> void:
 	sensory_hall(f, Vector2(8.5, 10), Vector2(8.5, 21))
 
 	# Break corners with beanbags
-	break_corner(f, Vector2(X_E - 4, Z_N + 4), -0.8)
+	# (The north-east one sits clear of the Behind the Walls passage: at (X_E - 4, Z_N + 4) its rug and a beanbag stuck
+	# through the passage's wall. Hayden, 14 Nov 2026: "Behind the school wall, carpet and bean bags are clipping
+	# through". school.tscn had just this node's spot changed, rather than a rebuild's ID shuffle.)
+	break_corner(f, Vector2(X_E - 6.7, Z_N + 6.7), -0.8)
 	break_corner(f, Vector2(-27, 4), 0.6)
 	break_corner(f, Vector2(-27, 21), 0.2)
 	break_corner(f, Vector2(22, 21), -0.3)

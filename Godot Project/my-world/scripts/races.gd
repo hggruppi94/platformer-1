@@ -178,22 +178,33 @@ const TRACKS := {
 			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
 			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]},
 	},
-	# In Dark Hollow (scripts/dark_hollow.gd): a spooky lap round the misty hollow, past the crooked trees and the glow
-	# mushrooms, lit by little lamp posts. Pip starts it (their glow knows the way in the dark). Open from the start;
-	# finishing it at all gives you the third Moon Piece. (tools/build_dark_hollow.gd keeps everything off these points.)
+	# Dark Hollow's (Hayden's 14 Nov 2026 playtest: "The dark hollow race is pretty lame and needs a rework like the
+	# other races"): a circuit of its own like the Void's and Earth's, started at Pip's race gate in Dark Hollow (HUBS),
+	# a night-time run past crooked trees, glowing mushrooms and lamp posts, round the misty hollow with the Moon Clock
+	# in the middle. Open from the start; finishing it at all still gives you the third Moon Piece (scripts/dark_hollow.gd
+	# gives it when you're back). Its first win's the Lantern Hat (FIRST_HATS).
 	"hollow_run": {
 		"name": "Hollow Run",
-		"blurb": "two spooky laps round Dark Hollow, past the crooked trees and the glowing mushrooms",
-		"scene": DARK_HOLLOW,
-		"laps": 2,
-		"points": [Vector2(8, 40), Vector2(-14, 40), Vector2(-32, 30), Vector2(-43, 12), Vector2(-45, -8),
-			Vector2(-38, -28), Vector2(-22, -41), Vector2(0, -45), Vector2(22, -41), Vector2(38, -28), Vector2(45, -8),
-			Vector2(43, 12), Vector2(32, 30), Vector2(18, 39)],
-		"boosts": [[0.5, 0.0], [4.5, 0.0], [7.5, 0.0], [10.5, 0.0]],
-		"boxes": [[2.5], [6.5], [11.5]],
-		"goo": [[3.5, -1.8], [8.5, 1.8], [12.4, -1.6]],
-		"prizes": [16, 11, 6, 3],
-		"rivals": ["rook", "green_man", "dash"],
+		"blurb": "three spooky laps round the misty hollow at midnight, past the crooked trees and the glowing mushrooms",
+		"scene": "res://scenes/races/hollow_run.tscn",
+		"hub": "dark_hollow",
+		"circuit": {"theme": "dark", "feature": "hollow"},
+		"width": 14.0,
+		"ring": 8.6,
+		"laps": 3,
+		"points": [Vector3(0, 0.2, 72), Vector3(-36, 0.2, 66), Vector3(-66, 2.0, 48), Vector3(-80, 5.0, 18), Vector3(-74, 6.0, -14),
+			Vector3(-58, 4.0, -40), Vector3(-30, 1.0, -58), Vector3(4, 3.0, -66), Vector3(36, 6.0, -60), Vector3(62, 8.0, -36),
+			Vector3(78, 5.0, -6), Vector3(70, 2.0, 24), Vector3(48, 0.2, 44), Vector3(26, 0.2, 62)],
+		"boosts": [[0.5, 0.0], [3.5, 0.0], [7.0, 0.0], [10.5, 0.0]],
+		"boxes": [[1.8], [5.2], [8.4], [12.2]],
+		"goo": [[4.2, -2.5], [6.6, 2.5], [11.4, -2.5]],
+		"obstacles": [[1.2, "sweeper", 0.0], [2.4, "bumper", 0.0], [5.0, "zapper", -3.4], [5.8, "sweeper", 0.0], [7.6, "ramp", 0.0],
+			[9.6, "slider", 0.0], [10.1, "bumper", -3.0], [10.3, "bumper", 3.0], [11.0, "popup", 0.0], [11.9, "zapper", 3.4]],
+		"shortcuts": [{"name": "Root Tunnel", "from": 8.4, "to": 12.8}],
+		"tunnels": [[3.0, 4.0]],
+		"tunnel_name": "HOLLOW LOG",
+		"prizes": [22, 16, 12, 9, 6, 4, 3, 2],
+		"rivals": ["rook", "green_man", "dash", "bruno", "clover", "nina", "rex"],
 		"starter": {"name": "Pip", "model": "res://models/characters/moth_kid.glb", "scale": 1.0},
 	},
 	# In the Far Future (scripts/far_future.gd): the Skyway, a sky road ten metres up that rings Lumen City (built by
@@ -226,6 +237,9 @@ const HUBS := {
 		"starter": {"name": "Pepper", "look": {"colors": {"fur": 3, "hair": 6, "brows": 6, "top": 9, "bottoms": 6,
 			"shoes": 7}, "hairstyle": 2, "extras": false, "height": 0.95, "head": 1.0, "build": 1.0},
 			"extras": [{"kind": "cap", "color": Color(0.1, 0.1, 0.12)}, {"kind": "scarf", "color": Color(0.95, 0.55, 0.15)}]}},
+	# Where the old Hollow Run started, in Dark Hollow: Pip's glow knows the way in the dark
+	"dark_hollow": {"name": "Races", "scene": DARK_HOLLOW, "at": Vector2(8, 40), "toward": Vector2(-14, 40), "place": "Dark Hollow",
+		"starter": {"name": "Pip", "model": "res://models/characters/moth_kid.glb", "scale": 1.0}},
 }
 # Earth kids who race, and the ride from scripts/rides.gd each one rides (Nina's board, Bruno's SK8 Deck...)
 const TOWNSFOLK_RIDES := {"nina_earth": "nina", "bruno": "bruno", "ozzie": "nina", "juniper": "nina", "theo": "nina", "prue": "nina"}
@@ -661,6 +675,37 @@ func _watch_sky() -> void:
 			return
 
 
+func fly_to_sky(id: String) -> bool:
+	# From Zippy: the mothership comes down over you, beams you up, and you're at the start ring with the race on (no
+	# need to find the Mothership Pad and fly through the ring yourself, though that still works)
+	var t := track_node(id)
+	var ship := _ship()
+	var p := _player()
+	if racing() or t == null or not t.sky or ship == null or p == null or not unlocked(id):
+		return false
+	if not ship.is_piloted():
+		if int(ship.get("state")) != 0:                    # (on its way somewhere, or beaming: try again in a moment)
+			return false
+		ship.global_position = p.global_position + Vector3(0, float(ship.get("hover_height")), 0)
+		ship.call("board", p)
+		var wait := 0.0
+		while is_instance_valid(ship) and not ship.is_piloted() and wait < 4.0:
+			await get_tree().process_frame
+			wait += get_process_delta_time()
+		if not is_instance_valid(ship) or not ship.is_piloted():
+			return false
+	# Just behind the start ring, facing through it
+	var f := t.dir_at(0.0)
+	ship.global_position = t.point_at(0.0) - f * 18.0
+	ship.set("velocity", f * 6.0)
+	ship.rotation.y = atan2(f.x, f.z)
+	p.global_position = ship.call("_seat_position")
+	var arm := p.get_node_or_null("SpringArm3D") as Node3D
+	if arm:
+		arm.rotation.y = atan2(-f.x, -f.z)
+	return start_sky(id)
+
+
 func start_sky(id: String) -> bool:
 	var t := track_node(id)
 	var ship := _ship()
@@ -792,7 +837,7 @@ func hub_lines(hub: String) -> Array:
 	if raced > 0 and mine.any(func(k: String) -> bool: return unlocked(k) and not TRACKS[k].get("shortcuts", []).is_empty() \
 			and shortcuts_found(k) == 0):
 		out.append("Psst! Every track's got a secret shortcut. Look for a %s in the wall on the inside of a bend..." %
-			("patch of cornstalks" if HUBS[hub].scene != TOWN else "leafy bit"))
+			("patch of cornstalks" if HUBS[hub].scene == EARTH else "leafy bit"))
 	var choice: Array = []
 	for id in mine:
 		if unlocked(id):
@@ -800,8 +845,15 @@ func hub_lines(hub: String) -> Array:
 	var locked: Array = mine.filter(func(k: String) -> bool: return not unlocked(k))
 	if not locked.is_empty():
 		out.append("The %s opens once you've finished the %s." % [TRACKS[locked[0]].name, TRACKS[str(TRACKS[locked[0]].after)].name])
-	if HUBS[hub].scene == TOWN and unlocked("sky_rings") and not best.has("sky_rings"):
-		out.append("And the Sky Rings are open! Fly the mothership through the big gold ring over the lake to start.")
+	# The Sky Rings start up in the air, so they're easy to miss (Hayden, 14 Nov 2026: "Im not sure how to start the
+	# current spaceship race if it exists"): Zippy offers them too, and calls the mothership down for you
+	if HUBS[hub].scene == TOWN and Game.has_item("skateboard"):
+		if unlocked("sky_rings"):
+			choice.append({"text": "The Sky Rings! (in the mothership)", "set": "race_go_sky_rings"})
+			if not best.has("sky_rings"):
+				out.append("The Sky Rings are open! A race in the sky, in the mothership.")
+		else:
+			out.append("Finish the Lake Loop and I'll open the Sky Rings: a race in the sky!")
 	choice.append({"text": "Not right now."})
 	out.append({"choice": choice})
 	return out
@@ -860,6 +912,8 @@ func _on_talked(id: String) -> void:
 			var tid := str(f).trim_prefix("race_go_")
 			if TRACKS.has(tid) and TRACKS[tid].has("circuit"):
 				enter_circuit.call_deferred(tid)
+			elif TRACKS.has(tid) and TRACKS[tid].get("sky", false):
+				fly_to_sky.call_deferred(tid)
 			else:
 				start.call_deferred(tid)
 			return

@@ -36,6 +36,8 @@ const GOLDWHISTLE_AT := Vector2(-101.5, -114.5)        # on the path to the Haun
 const SLIDE_SIGN_AT := Vector2(-95.7, -122.5)          # the old slide's CLOSED sign
 const GOO_AT := Vector2(-105.0, -119.5)                # a glowing puddle near the Haunted House door
 const HOUSE_DOOR_AT := Vector2(-107.0, -122.0)         # just in front of its door
+const HOUSE_YAW := 0.82                                # the way it faces (tools/build_town.gd HAUNTED_HOUSE)
+const SPIRIT_AWAY := Vector3(0.6, 0.35, 0.7)           # the way the escaped spirit zooms off
 const LEO_AT := Vector2(-58.0, 31.0)                   # at the Market's northeast corner, checking his list
 const BUNKER_AT := Vector2(11.0, 35.0)                 # Leo's emergency bunker, in the meadow south of the lake (clear of
 const LEO_BUNKER_AT := Vector2(15.5, 38.0)             # the Lake Loop and Meadow Wiggle race lines)
@@ -77,6 +79,7 @@ var _guests := {}                                      # id -> its node, while i
 var _pond_glow: Node3D
 var _spirit: Node3D
 var _spirit_t := 0.0
+var _cut: CanvasLayer                                  # the Haunted House door's cutscene (scripts/place_intro.gd)
 var _rook_howled := false
 
 
@@ -237,6 +240,11 @@ func _place_town(holder: Node3D) -> void:
 		"Giggling green goo! It leads to the Haunted House.",
 		_goo())
 	_spot(holder, "slide_mystery", "door", "slide_spirit", HOUSE_DOOR_AT, "try the old door", "", null)
+	# Its walk-in doorway goes nowhere yet (there's no inside built), and walking up to try the door used to bump into
+	# it and say "The Haunted House isn't open yet." right as the quest said to try it: it's the quest's door only now
+	var walk_in := _scene.get_node_or_null("Haunted House/Door") as Area3D if _scene else null
+	if walk_in and not ResourceLoader.exists(str(walk_in.get("destination"))):
+		walk_in.set_deferred("monitoring", false)
 	# Leo's kit, and his bunker
 	for k in KIT:
 		_spot(holder, "emergency_prep", "kit", str(k[0]), k[1], str(k[2]), "", _thing(str(k[3])))
@@ -381,7 +389,41 @@ func aftershock_now() -> void:
 
 
 func _release_spirit() -> void:
-	# The pilot's cliffhanger: the door creaks, and something small, green and giggly zooms out and away over the trees
+	# The pilot's cliffhanger: the door creaks, and something small, green and giggly zooms out and away over the
+	# trees. Shown as a little cutscene (Hayden, 14 Nov 2026: "Maybe have a cutscene for the haunted house quest, not
+	# sure what happened when I clicked the door"): the camera on the door as it creaks, a giggle inside, then it
+	# follows the thing up and away over the trees.
+	if _scene == null or _scene.scene_file_path != TOWN:
+		return
+	if DisplayServer.get_name() == "headless" or not _scene is Node3D:
+		_spirit_out()                               # (the tests: no cutscene, straight to what happens)
+		return
+	var door := _ground(Vector3(HOUSE_DOOR_AT.x, 0, HOUSE_DOOR_AT.y))
+	var front := Vector3(sin(HOUSE_YAW), 0, cos(HOUSE_YAW))        # the way the house faces
+	var side := front.cross(Vector3.UP)
+	var eye := door + front * 7.0 + side * 2.0 + Vector3.UP * 2.4
+	var away := SPIRIT_AWAY.normalized()
+	var high := door + Vector3.UP * 1.4 + away * 30.0
+	if not is_instance_valid(_cut):
+		_cut = (load("res://scripts/place_intro.gd") as GDScript).new() as CanvasLayer
+		_cut.name = "Haunted House Cutscene"
+		add_child(_cut)
+	_cut.call("play", [
+		{"start": eye, "start_look": door + Vector3.UP * 1.6, "from": eye - front * 1.5, "look": door + Vector3.UP * 1.6,
+			"time": 2.2, "title": "", "caption": "Creeeak...", "call": _creak},
+		{"from": eye - front * 2.2, "look": door + Vector3.UP * 1.6, "time": 1.2, "title": "", "caption": "Hee hee hee!",
+			"call": _spirit_out},
+		{"from": door + front * 9.0 - side * 3.0 + Vector3.UP * 5.0, "look": high, "time": 2.8, "title": "",
+			"caption": "Something zooms away!"},
+	])
+
+
+func _creak() -> void:
+	Audio.play("door", -2.0, 0.0)
+	Juice.shake(0.15)
+
+
+func _spirit_out() -> void:
 	if _scene == null or _scene.scene_file_path != TOWN:
 		return
 	Audio.play("door", -4.0)
@@ -413,16 +455,17 @@ func _release_spirit() -> void:
 	_scene.add_child(_spirit)
 	_spirit.global_position = _ground(Vector3(HOUSE_DOOR_AT.x, 0, HOUSE_DOOR_AT.y)) + Vector3(0, 1.4, 0)
 	_spirit_t = 0.0
-	Game.message("Something small and GIGGLING zooms out!")
+	if not (is_instance_valid(_cut) and _cut.call("playing")):
+		Game.message("Something small and GIGGLING zooms out!")
 
 
 func _fly_spirit(delta: float) -> void:
 	_spirit_t += delta
-	var away := Vector3(0.6, 0.35, 0.7).normalized()
+	var away := SPIRIT_AWAY.normalized()
 	_spirit.global_position += (away * 9.0 + Vector3(sin(_spirit_t * 6.0) * 4.0, 0, cos(_spirit_t * 5.0) * 4.0)) * delta
 	if Engine.get_process_frames() % 6 == 0:
 		Fx.burst(_scene, _spirit.global_position, Color(0.55, 1.0, 0.6), 3, 0.06, 0.6, 0.0, 0.6)
-	if _spirit_t > 6.0:
+	if _spirit_t > 8.0:
 		_spirit.queue_free()
 		_spirit = null
 

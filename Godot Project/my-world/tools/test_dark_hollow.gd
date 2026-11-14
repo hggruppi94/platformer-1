@@ -169,7 +169,7 @@ func _check_inside() -> void:
 	await _physics(6)
 	var s := current_scene
 	var names := ["WayHome/Way Home/Spot", "Vein1/Remnant Vein/Spot", "Centipede/Model",
-		"Centipede/Model/Head/Spot", "The Hush", "Hush/Snoring", "Stars", "MoonClock/Moon Clock", "Piece2/Moon Piece", "Race hollow_run"]
+		"Centipede/Model/Head/Spot", "The Hush", "Hush/Snoring", "Stars", "MoonClock/Moon Clock", "Piece2/Moon Piece", "Race Gate dark_hollow"]
 	for i in 4:
 		names.append("Lamp%d/Spot" % (i + 1))
 		names.append("Lamp%d/Hit" % (i + 1))
@@ -276,49 +276,36 @@ func _check_hole() -> void:
 
 
 func _check_race() -> void:
+	# The Hollow Run is a circuit of its own now (Hayden, 14 Nov 2026): Pip's gate here takes you there, and the
+	# Moon Piece is waiting when you come back
 	var s := current_scene
-	var t: Node3D = races.track_node("hollow_run")
-	for k in 30:
-		if t and t.ready_to_race:
+	var gate: Node3D = races.hub_node("dark_hollow")
+	for k in 60:
+		if gate and gate.ready_to_race:
 			break
 		await physics_frame
-	check(t != null and t.ready_to_race, "the Hollow Run is laid out in Dark Hollow")
-	if t == null:
+	check(gate != null and gate.ready_to_race, "Pip's race gate is in Dark Hollow")
+	check(races.track_node("hollow_run") == null and races.track_node("lake_loop") == null, "...and no track's laid out here any more")
+	if gate == null:
 		return
-	check(races.unlocked("hollow_run") and races.track_node("lake_loop") == null, "it's open, and the Void's tracks aren't here")
-	var pip := t.get_node_or_null("Pip") as Node3D
-	check(pip != null and pip.global_position.distance_to(t.point_at(0.0)) > 6.0, "Pip starts it, standing off the track")
-	var L: float = t.length
-	check(L > 180.0 and L < 420.0, "a lap is a good length (%.0f m)" % L)
-	var space: PhysicsDirectSpaceState3D = (s as Node3D).get_world_3d().direct_space_state
-	var blocked: Array[String] = []
-	var low := 0
-	for i in t.line.size():
-		var a: Vector3 = t.line[i]
-		var b: Vector3 = t.line[(i + 1) % t.line.size()]
-		if a.y < -0.2:
-			low += 1
-		for side in [-2.2, 0.0, 2.2]:
-			var off: Vector3 = t.side_at(t.dist[i]) * side
-			for h in [0.6, 1.3]:
-				var q := PhysicsRayQueryParameters3D.create(a + off + Vector3.UP * h, b + off + Vector3.UP * h)
-				q.exclude = [_player().get_rid()]
-				var hit: Dictionary = space.intersect_ray(q)
-				if not hit.is_empty() and hit.collider is StaticBody3D and blocked.size() < 12:
-					blocked.append("%s at (%.0f, %.0f)" % [(hit.collider as Node).get_parent().name, a.x, a.z])
-	check(blocked.is_empty(), "nothing in the way, in any lane (%s)" % ", ".join(blocked))
-	check(low == 0, "...and never near the Big Hole (%d low points)" % low)
-	var far := 0.0
-	for a in t.line:
-		far = maxf(far, Vector2(a.x, a.z).length())
-	check(far < 52.0, "...and well inside the hollow's edge (%.0f m out)" % far)
-	# A whole race, round the rings
-	var p := _player()
-	p.global_position = t.point_at(-3.0) + Vector3.UP * 0.9
-	await _physics(4)
-	check(races.start("hollow_run"), "saying yes to Pip starts the race")
+	var pip := gate.get_node_or_null("Pip") as Node3D
+	check(pip != null, "Pip starts it")
+	var picks: Array = races.hub_lines("dark_hollow").filter(func(l) -> bool: return l is Dictionary and l.has("choice"))
+	check(not picks.is_empty() and picks[0].choice.any(func(c: Dictionary) -> bool: return c.get("set", "") == "race_go_hollow_run"),
+		"...and offers the Hollow Run")
+	check(not s.is_piece_found(2), "(no third Moon Piece yet)")
+	check(races.enter_circuit("hollow_run"), "off to the Hollow Run")
+	var path: String = races.TRACKS.hollow_run.scene
+	for k in 240:
+		if current_scene != null and current_scene.scene_file_path == path and races.racing():
+			break
+		await physics_frame
+	check(current_scene.scene_file_path == path and races.racing(), "...its own circuit, and the race is on")
+	check(races.rivals.size() == 7, "racing seven friends (%d)" % races.rivals.size())
+	var t: Node3D = races.track_node("hollow_run")
+	check(t != null and t.length > 380.0, "a long lap (%.0f m)" % (t.length if t else 0.0))
 	await _physics(int(races.COUNTDOWN * 60) + 10)
-	check(races.state == races.State.RACING, "GO: the race is on")
+	var p := _player()
 	for lap in int(races.TRACKS.hollow_run.laps):
 		for i in range(1, t.cp_dist.size() + 1):
 			var d: float = t.cp_dist[i % t.cp_dist.size()]
@@ -329,10 +316,19 @@ func _check_race() -> void:
 			await _physics(3)
 			if races.state != races.State.RACING:
 				break
-	check(races.state == races.State.RESULTS, "two laps and it's finished")
-	await _frames(2)
-	check(s.is_piece_found(2) and s.pieces_found() == 3, "finishing gives you the third Moon Piece")
-	await _physics(int(races.RESULTS_TIME * 60) + 20)
+	check(races.state == races.State.RESULTS, "three laps and it's finished")
+	check(races.finished_once.has("hollow_run"), "...it counts as finished")
+	races.leave_circuit()
+	for k in 240:
+		if current_scene != null and current_scene.scene_file_path == WORLD:
+			break
+		await physics_frame
+	await _frames(10)
+	await _physics(10)
+	s = current_scene
+	check(s.scene_file_path == WORLD and portals.here == ID, "back in Dark Hollow, by Pip's gate")
+	check(s.is_piece_found(2) and s.pieces_found() == 3, "...and Pip's kept the third Moon Piece for you")
+	check(not root.get_node("Clock").running, "the Void's clock still waits while you're in Dark Hollow")
 	if game.riding:
 		game.toggle_skateboard()
 	await _physics(10)

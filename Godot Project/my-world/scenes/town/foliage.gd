@@ -53,6 +53,8 @@ uniform float glow = 0.1;
 uniform float sway = 0.06;
 uniform float push = 0.9;
 uniform float reach = 1.4;
+uniform float body_r = 0.38;      // her outline: how wide (metres from her middle)...
+uniform float body_h = 1.5;       // ...and how tall
 global uniform vec3 nina_pos;
 void vertex() {
 	// Gentle wind: tips move more than the base, each plant on its own beat
@@ -60,12 +62,19 @@ void vertex() {
 	float w = sin(TIME * 1.3 + o.x * 0.37 + o.z * 0.29) * sway * UV.y * UV.y;
 	VERTEX.x += w;
 	VERTEX.z += w * 0.6;
-	// Lean away from Nina when she's close, tips the most, and press down a little
+	// Part round her body only (Hayden, 14 Nov 2026: "should just be the outline of your character, not a big circle
+	// around their body"): only the bits of a plant that would be inside her (an upright capsule about her size, from
+	// her feet to over her head) are pushed out to just past its edge, roots staying put, so the plants hug her shape
+	// as she walks or rides through and spring straight back behind her. `reach` and `push` are kept for old callers.
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	vec2 away = wp.xz - nina_pos.xz;
 	float d = length(away);
-	float near = (1.0 - smoothstep(reach * 0.25, reach, d)) * step(abs(wp.y - nina_pos.y), 2.2) * UV.y;
-	vec3 shove = vec3(away.x / max(d, 0.001), -0.35, away.y / max(d, 0.001)) * near * push;
+	float up = wp.y - nina_pos.y;
+	float in_height = smoothstep(-0.35, -0.05, up) * (1.0 - smoothstep(body_h, body_h + 0.25, up));
+	float r = body_r * (up < 0.35 ? 0.8 : 1.0);           // a little narrower round her feet
+	float inside = max(r + 0.06 - d, 0.0) * in_height * UV.y;
+	vec2 out_dir = away / max(d, 0.001);
+	vec3 shove = vec3(out_dir.x, -0.25, out_dir.y) * inside;
 	VERTEX += (inverse(MODEL_MATRIX) * vec4(shove, 0.0)).xyz;
 }
 void fragment() {

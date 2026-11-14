@@ -120,9 +120,9 @@ func _run() -> void:
 	check(land > float(crack.get_meta("r", 1.4)) + 0.9, "arrivals from the Void land beside it, not in it (%.1f m)" % land)
 	var space := (current_scene as Node3D).get_world_3d().direct_space_state
 	var c := crack.global_position
-	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
+	var hit := _down(crack)
 	check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0, "it's a real hole in the ground (down to %.1f, hit %s, crack y %.2f)" % [((hit.position as Vector3).y if hit else 0.0), (str((hit.collider as Node).get_path()) if hit else ""), c.y])
-	check(door.global_position.distance_to(c) < 1.5, "the way through is down it")
+	check(door.global_position.distance_to(c) < 2.5 and door.global_position.y < c.y - 1.0, "the way through is down it")
 	# Jump in: a tumble down into it first, the screen filling with its colour
 	await _drop_into(crack)
 	var faller := current_scene.find_child("Player", true, false) as CharacterBody3D
@@ -162,7 +162,7 @@ func _run() -> void:
 	check(player.get("carried") != true and vis.visible and player.get("input_locked") != true and player.global_position.distance_to(by.global_position) < 2.5 and player.global_position.distance_to(back.global_position) > 3.0,
 		"...and land beside it, free to go (%.1f m from the marker, %.1f m from the crack)" % [player.global_position.distance_to(by.global_position), player.global_position.distance_to(back.global_position)])
 	c = back.global_position
-	hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
+	hit = _down(back)
 	check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0, "...a real hole too")
 	await _drop_into(back)
 	await _wait_for_scene(EARTH, 900)
@@ -190,7 +190,7 @@ func _run() -> void:
 		check((crack.get_node("Broken Earth") as Node3D).visible and (crack.get_node("Broken Earth") as Node3D).scale.x < 0.9, "opening, it unzips from the middle (%.2f long)" % (crack.get_node("Broken Earth") as Node3D).scale.x)
 		crack_mod.set_open(crack, 1.0)
 		await _frames(2)
-		hit = space_of().intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0)))
+		hit = _down(crack)
 		check(not hit.is_empty() and (hit.position as Vector3).y < c.y - 3.0 and (crack.get_node("Broken Earth") as Node3D).scale.x > 0.99, "...and open, it's a hole again (hit %s at %.2f)" % [(str((hit.collider as Node).get_path()) if hit else ""), ((hit.position as Vector3).y - c.y if hit else 0.0)])
 		crack_mod.set_open(crack, 0.0)
 		current_scene.set_process(true)
@@ -209,14 +209,35 @@ func space_of() -> PhysicsDirectSpaceState3D:
 	return (current_scene as Node3D).get_world_3d().direct_space_state
 
 
+func _down(g: Node3D) -> Dictionary:
+	# Straight down through a crack's middle, past its unseen cover: is the ground really cut away?
+	var c := g.global_position
+	var q := PhysicsRayQueryParameters3D.create(c + Vector3(0, 20, 0), c + Vector3(0, -20, 0))
+	var cover := g.get_node_or_null("Cover") as CollisionObject3D
+	if cover:
+		q.exclude = [cover.get_rid()]
+	return space_of().intersect_ray(q)
+
+
 func _drop_into(g: Node3D) -> void:
+	# Hayden, 14 Nov 2026: no falling in by walking over it. Stand on its middle: still up on top. Then Interact.
 	var p := current_scene.find_child("Player", true, false) as CharacterBody3D
 	p.global_position = g.global_position + Vector3(4.0, 1.0, 0)
 	for i in 4:
 		await physics_frame
 	p.global_position = g.global_position + Vector3(0, 1.0, 0)
 	p.velocity = Vector3.ZERO
-	for i in 6:
+	for i in 30:
+		await physics_frame
+	check(p.get("carried") != true and p.global_position.y > g.global_position.y - 0.2,
+		"standing on a crack doesn't drop you in (y %.2f)" % (p.global_position.y - g.global_position.y))
+	var spot := g.get_node_or_null("Jump Spot")
+	if spot == null:
+		spot = g.get_node_or_null("Spot")
+	check(spot != null and str(spot.what()).begins_with("jump in"), "...it says Press E to jump in (%s)" % (str(spot.what()) if spot else "none"))
+	if spot:
+		spot.use()
+	for i in 2:
 		await physics_frame
 
 

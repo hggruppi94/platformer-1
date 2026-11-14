@@ -12,7 +12,8 @@ extends "res://scripts/portal_world.gd"
 #           wisps of light gather into the first piece
 #   Piece2  on top of the Crooked Spire, far too sheer to climb: jump into the Big Hole in the middle of the hollow and
 #           it spits you out up there (after that it spits you out somewhere else each time)
-#   Piece3  the Hollow Run (scripts/races.gd "hollow_run", started by Pip by the line): finish it, any place
+#   Piece3  the Hollow Run (scripts/races.gd "hollow_run", a circuit of its own started at Pip's race gate): finish it,
+#           any place, and it's yours when you're back
 # With all three, the Hush (scripts/the_hush.gd, a big shadow ghost) wakes over Hush Hill when you come near. It's
 # only shadow in the dark, so lure it into the light of the four moon lamps round the hill (or your own Pip's glow) and
 # pop it there. Then the pieces fly home, the Moon Clock ticks past midnight, the mist thins and the stars come out.
@@ -91,7 +92,8 @@ func setup() -> void:
 	if not Portals.is_cleared(world_id):
 		_add_hush()
 	set_mended(1.0 if Portals.is_cleared(world_id) else 0.0)
-	Races.finished.connect(_on_race_finished)
+	if not is_piece_found(2) and Races.finished_once.has(RACE):
+		_race_piece.call_deferred()                  # (back from the Hollow Run's circuit, finished)
 	if not Portals.is_cleared(world_id) and pieces_found() == 0 and not Portals.has_found(world_id, "met_centipede"):
 		Game.message.call_deferred("Dark Hollow. Misty and quiet... The centipede's coming too!")
 
@@ -420,12 +422,12 @@ static func moon_piece_model() -> Node3D:
 	return g
 
 
-func _on_race_finished(track_id: String, place: int) -> void:
-	if track_id != RACE or not is_inside_tree():
+func _race_piece() -> void:
+	# The Hollow Run's a circuit of its own (scripts/races.gd, since 14 Nov 2026): finish it at all and Pip has the
+	# third Moon Piece waiting when you're back at the race gate
+	if not is_inside_tree() or is_piece_found(2):
 		return
-	if is_piece_found(2):
-		return
-	Game.message("Hollow Run done%s! A Moon Piece!" % (" in first place" if place == 1 else ""))
+	Game.message("Hollow Run done! Pip kept a Moon Piece for you!")
 	pick_piece(2)
 
 

@@ -2410,10 +2410,13 @@ func _old_slide() -> void:
 
 
 func _scary_gate() -> void:
-	# The way to the Scary World (where the centipede lives): a stone wall across the far northwest woods with an old
-	# iron gate. Going in is up to Nina (scenes/scary_world/scary_world.tscn, built by tools/build_scary_world.gd).
-	var c := ground(-128, -150)
-	var g := group("Scary World Gate", c, 0.7)
+	# The way to Dusk's Embrace (where the centipede lives): the old back gate of the Haunted House's garden, 19 m out
+	# of the house's back, facing it (scripts/dusk_gate.gd BEHIND_HOUSE, which also builds the walled hollow round it
+	# at play time and hides these straight walls). Going in is up to the player (scenes/scary_world/scary_world.tscn,
+	# built by tools/build_scary_world.gd).
+	var yaw: float = HAUNTED_HOUSE.z
+	var c := ground(HAUNTED_HOUSE.x - sin(yaw) * 19.0, HAUNTED_HOUSE.y - cos(yaw) * 19.0)
+	var g := group("Scary World Gate", c, yaw)
 	var stone := mat("Old Wall Stone", Color(0.32, 0.3, 0.36), 0.95, 0.0, 0.0, 1.0, false)
 	var iron := mat("Gate Iron", Color(0.12, 0.12, 0.14), 0.4, 0.8, 0.0, 1.0, false)
 	for side in [-1, 1]:
@@ -2856,7 +2859,10 @@ func _cloud_slide() -> void:
 	g.set_meta("unlock_flag", SLIDE_FLAG)
 	var center := Vector3(SLIDE_CLOUD.x, SLIDE_CLOUD.z, SLIDE_CLOUD.y)
 	var cloud := mat("Cloud", Color(0.97, 0.97, 1.0), 0.9)
-	puff(g, center - Vector3(0, 1.2, 0), 8.5, cloud, 77, 12)
+	# (Low enough that its puffs stay under the deck: 1.2 m down they bulged up round the Toy Store and the slide's top
+	# and buried them. Hayden, 14 Nov 2026. town.tscn had just these 13 puffs moved down, rather than a rebuild's ID
+	# shuffle.)
+	puff(g, center - Vector3(0, 4.4, 0), 8.5, cloud, 77, 12)
 	mesh_at(cylinder(8.2, 8.2, 0.3, 40), cloud, center, g)
 	solid(_cyl_shape(8.3, 1.6), center - Vector3(0, 0.8, 0), g)
 	cloud_zone(g, center, 8.3)

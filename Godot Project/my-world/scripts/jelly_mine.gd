@@ -106,13 +106,22 @@ func _physics_process(delta: float) -> void:
 	for e in get_tree().get_nodes_in_group("enemies"):
 		if stuck.has(e) or not e is Node3D or e.get("defeated") == true or e.is_in_group("bosses"):
 			continue
+		if e.has_meta("jelly_stuck"):
+			continue                                # (already stuck in another mine: one jelly at a time)
 		if e.has_method("shelled") and e.shelled():
 			continue
 		var n := e as Node3D
 		var flat := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
 		if flat < radius * 0.7 + 0.3 and absf(n.global_position.y - global_position.y) < 1.5:
 			_stick(n)
+	# (Popping one splats the whole mine and empties `stuck`, so with lots of enemies in one mine the rest of this
+	# loop used to read enemies that weren't in it any more: a script error every frame, which stopped the game when
+	# Jelly Mines got lots of enemies at once. Hayden, 14 Nov 2026.)
 	for e in stuck.keys():
+		if _done:
+			break
+		if not stuck.has(e):
+			continue
 		if not is_instance_valid(e):
 			stuck.erase(e)
 			continue
@@ -138,6 +147,7 @@ func _physics_process(delta: float) -> void:
 
 func _stick(e: Node3D) -> void:
 	stuck[e] = 0.0
+	e.set_meta("jelly_stuck", true)
 	e.set_physics_process(false)
 	if e is CharacterBody3D:
 		(e as CharacterBody3D).velocity = Vector3.ZERO
@@ -152,10 +162,22 @@ func _pop_one(e: Node3D) -> void:
 		v.rotation.z = 0.0
 		v.scale = Vector3.ONE * size
 	stuck.erase(e)
-	e.set_physics_process(true)
+	_let_go(e)
 	Arsenal.hit(e, 99, Vector3.UP, "jelly")
 	popped += 1
 	splat()
+
+
+func _let_go(e) -> void:
+	if is_instance_valid(e):
+		(e as Node3D).set_physics_process(true)
+		(e as Node3D).remove_meta("jelly_stuck")
+
+
+func _exit_tree() -> void:
+	for e in stuck.keys():                          # (a mine freed some other way never leaves anyone stuck)
+		_let_go(e)
+	stuck = {}
 
 
 func splat() -> void:
@@ -164,8 +186,7 @@ func splat() -> void:
 		return
 	_done = true
 	for e in stuck.keys():
-		if is_instance_valid(e):
-			(e as Node3D).set_physics_process(true)
+		_let_go(e)
 	stuck = {}
 	var parent := get_parent()
 	Fx.burst(parent, global_position + Vector3(0, 0.3, 0), PINK, 20, 0.08, 4.0, -4.0, 0.7)
@@ -186,8 +207,7 @@ func melt() -> void:
 		return
 	_done = true
 	for e in stuck.keys():
-		if is_instance_valid(e):
-			(e as Node3D).set_physics_process(true)
+		_let_go(e)
 	stuck = {}
 	var tw := create_tween()
 	tw.tween_property(_dome, "scale", Vector3(radius, 0.02, radius), 0.4)

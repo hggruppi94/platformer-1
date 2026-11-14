@@ -350,33 +350,74 @@ func _add_flurry() -> void:
 	m.add_child(spot)
 
 
+const TAIL_BEHIND := -0.27              # the cat body's own tail is everything behind this (its back is in front)
+
+
+static func fox_tail() -> Node3D:
+	# A normal bushy fox tail (Hayden, 14 Nov 2026: the old one, a long stretched ball sticking up with a round knob on
+	# the end, looked wrong): from her hips it droops down and back, fattens out into a soft brush in the middle, then
+	# tapers to a frosty point that curls up a little. Built from overlapping fluffy ovals along a curve, with a few
+	# tufts so the outline's furry, never smooth.
+	var tail := Node3D.new()
+	tail.name = "Fox Tail"
+	tail.position = Vector3(0, 0.42, -0.15)
+	var fur := _mat(Color(0.95, 0.96, 1.0), 0.0, 0.95)
+	var tip := _mat(Color(0.74, 0.85, 1.0), 0.0, 0.95)
+	# The curve, in her frame (-Z is behind her): out and down, along, then the tip lifting
+	var pts := [Vector3(0, 0, 0), Vector3(0.0, -0.1, -0.14), Vector3(0.03, -0.2, -0.32), Vector3(0.06, -0.2, -0.5),
+		Vector3(0.07, -0.1, -0.64)]
+	var curve := Curve3D.new()
+	for i in pts.size():
+		var t := Vector3.ZERO
+		if i > 0 and i < pts.size() - 1:
+			t = (pts[i + 1] - pts[i - 1]) * 0.25
+		curve.add_point(pts[i], -t, t)
+	var length := curve.get_baked_length()
+	var n := 11
+	for i in n:
+		var s := i / float(n - 1)
+		var at := curve.sample_baked(s * length)
+		var ahead := curve.sample_baked(minf(s * length + 0.02, length))
+		var behind := curve.sample_baked(maxf(s * length - 0.02, 0.0))
+		var along := (ahead - behind).normalized()
+		# Thin at the root, widest a bit past half way, then tapering to a point
+		var r := 0.035 + 0.1 * pow(sin(PI * clampf(s * 0.95 + 0.05, 0.0, 1.0)), 0.7)
+		if s > 0.82:
+			r *= lerpf(1.0, 0.35, (s - 0.82) / 0.18)
+		var puff := MeshInstance3D.new()
+		puff.name = "Fur %d" % i
+		puff.mesh = _ball(1.0, 10)
+		puff.material_override = tip if s > 0.78 else fur
+		var side := along.cross(Vector3.UP).normalized() if absf(along.y) < 0.95 else Vector3.RIGHT
+		var up := side.cross(along).normalized()
+		puff.transform = Transform3D(Basis(side * r, up * r * 0.92, along * r * 1.5), at)
+		tail.add_child(puff)
+		# A couple of tufts poking out round the fattest part, so the edge looks furry
+		if s > 0.25 and s < 0.75:
+			for k in 2:
+				var tuft := MeshInstance3D.new()
+				tuft.name = "Tuft %d %d" % [i, k]
+				tuft.mesh = _ball(1.0, 6)
+				tuft.material_override = fur
+				var a := (i * 2.3 + k * PI)
+				var out := (side * cos(a) + up * sin(a)) * r * 0.75
+				var tr := r * 0.45
+				tuft.transform = Transform3D(Basis(side * tr, up * tr, along * tr * 1.6).rotated(along, a), at + out)
+				tail.add_child(tuft)
+	return tail
+
+
 static func flurry_model() -> Node3D:
 	# An arctic fox kid in a frosty blue-white coat with a puffy scarf, made like the townsfolk (scripts/townsfolk.gd)
-	# from the cat body, with a big bushy tail and her pocket watch, frozen on one tick, on a chain
+	# from the cat body, with a bushy fox tail (fox_tail()) and her pocket watch, frozen on one tick, on a chain
 	var p := (load("res://scripts/townsfolk.gd") as GDScript).new() as Node3D
 	p.name = "Model"
 	p.set("look", {"body": "cat", "colors": {"fur": 7, "eyes": 14, "accent": 14, "top": 14, "bottoms": 7, "shoes": 15},
 		"extras": true, "height": 0.9})
 	p.set("extras", [{"kind": "scarf", "color": Color(0.45, 0.7, 1.0)}])
-	var tail := Node3D.new()
-	tail.name = "Tail"
-	tail.position = Vector3(0, 0.45, -0.2)
-	tail.rotation.x = -0.9
-	p.add_child(tail)
-	var fur := _mat(Color(0.95, 0.96, 1.0), 0.0, 0.9)
-	var tip := _mat(Color(0.75, 0.87, 1.0), 0.0, 0.9)
-	var bush := MeshInstance3D.new()
-	bush.mesh = _ball(0.12)
-	bush.material_override = fur
-	bush.scale = Vector3(1.0, 3.2, 1.0)
-	bush.position.y = 0.34
-	tail.add_child(bush)
-	var end := MeshInstance3D.new()
-	end.mesh = _ball(0.1)
-	end.material_override = tip
-	end.scale = Vector3(1.0, 1.4, 1.0)
-	end.position.y = 0.7
-	tail.add_child(end)
+	p.add_child(fox_tail())
+	# The cat body's own thin curly tail would poke up behind the fox tail, so it's tucked away once she's made
+	p.tree_entered.connect(func(): _tuck_cat_tail(p), CONNECT_ONE_SHOT)
 	var watch := MeshInstance3D.new()
 	var c := CylinderMesh.new()
 	c.top_radius = 0.06
@@ -388,6 +429,34 @@ static func flurry_model() -> Node3D:
 	watch.rotation.x = PI / 2
 	p.add_child(watch)
 	return p
+
+
+static func _tuck_cat_tail(p: Node3D) -> void:
+	# The cat's tail is part of its Fur surfaces (no bone of its own): everything far enough behind the hips is
+	# pulled in to a point inside her back, on her own copy of the mesh, so other cats keep theirs
+	for mi in p.find_children("*", "MeshInstance3D", true, false):
+		var src := (mi as MeshInstance3D).mesh as ArrayMesh
+		if src == null or (mi as MeshInstance3D).skin == null:
+			continue
+		var m := ArrayMesh.new()
+		var changed := false
+		for i in src.get_surface_count():
+			var arrays := src.surface_get_arrays(i)
+			var name := src.surface_get_name(i)
+			if name.begins_with("Fur"):
+				var v: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+				for k in v.size():
+					if v[k].z < TAIL_BEHIND and v[k].y > 0.3:
+						v[k] = Vector3(v[k].x * 0.2, clampf(v[k].y, 0.42, 0.5), -0.2)
+						changed = true
+				arrays[Mesh.ARRAY_VERTEX] = v
+			m.add_surface_from_arrays(src.surface_get_primitive_type(i), arrays, [], {},
+				src.surface_get_format(i) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS)
+			m.surface_set_material(i, src.surface_get_material(i))
+			m.surface_set_name(i, name)
+		if changed:
+			(mi as MeshInstance3D).mesh = m
+			p.set_meta("cat_tail_tucked", true)
 
 
 func flurry_lines() -> Array:

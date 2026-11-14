@@ -19,6 +19,8 @@ const BUSES := ["Music", "SFX", "Voices"]      # Voices: the little blips people
 const SFX_DIR := "res://audio/sfx/"
 const MUSIC_DIR := "res://audio/music/"
 const FADE := 1.5
+const TRACKS := "Tracks"                         # the music tracks themselves, sent into Music (underground() turns it down)
+const UNDER_DB := -36.0                          # the tracks, all the way underground
 
 const SCENE_MUSIC := {
 	"res://scenes/town/town.tscn": "town",
@@ -71,6 +73,7 @@ var _music_db := 0.0                           # the Music bus's own level from 
 var _duck_db := 0.0                            # how far the music is ducked now (under dialogue)
 var _duck_to := 0.0                            # where the duck is heading
 var _duck_tween: Tween
+var _under := 0.0                               # 0..1: how far underground (scripts/cave_echo.gd)
 
 
 func _ready() -> void:
@@ -81,6 +84,11 @@ func _ready() -> void:
 			var i := AudioServer.bus_count - 1
 			AudioServer.set_bus_name(i, b)
 			AudioServer.set_bus_send(i, "Master")
+	if AudioServer.get_bus_index(TRACKS) == -1:
+		AudioServer.add_bus()
+		var t := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(t, TRACKS)
+		AudioServer.set_bus_send(t, "Music")
 	for i in 8:
 		var p := AudioStreamPlayer.new()
 		p.bus = "SFX"
@@ -94,7 +102,7 @@ func _ready() -> void:
 
 func _make_music_player() -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
-	p.bus = "Music"
+	p.bus = TRACKS                               # (into Music, so the player's Music volume and ducking still apply)
 	p.volume_db = -80.0
 	add_child(p)
 	return p
@@ -266,3 +274,18 @@ func duck(amount_db: float, time := 0.4) -> void:
 
 func ducked_by() -> float:
 	return _duck_db
+
+
+# Underground (Hayden, 14 Nov 2026: "Can the music change when you go underground? like ambient sound"): the place's
+# music fades away while scripts/cave_echo.gd fades its soft cave music up in its place. 0 = up top, 1 = underground.
+func underground(k: float) -> void:
+	_under = clampf(k, 0.0, 1.0)
+	var i := AudioServer.get_bus_index(TRACKS)
+	if i == -1:
+		return
+	AudioServer.set_bus_volume_db(i, lerpf(0.0, UNDER_DB, _under))
+	AudioServer.set_bus_mute(i, _under > 0.99)
+
+
+func underground_amount() -> float:
+	return _under

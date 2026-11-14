@@ -41,6 +41,8 @@ const FALL_DEPTH := 3.4              # how far down they go before they're throu
 const POP_TIME := 0.75               # flying up out of one at the other end
 const POP_HEIGHT := 2.4              # how high over the ground they go
 const POP_WITHIN := 10.0             # a crack this close to where they arrive is the one they came out of
+const COVER_THICK := 0.4             # the unseen floor over the middle (you only go in by Interact)
+const PROMPT_R := 2.8                # how near its middle the "jump in" prompt shows
 
 const SOIL := Color(0.31, 0.22, 0.15)      # the walls' top, damp dark soil
 const DEEP := Color(0.035, 0.027, 0.025)   # where the light runs out
@@ -129,10 +131,61 @@ static func make(colour: Color, on_fall: Callable = Callable(), r := R) -> Node3
 	fall.add_child(fcs)
 	g.add_child(fall)
 	if on_fall.is_valid():
+		g.set_meta("on_fall", on_fall)
 		fall.body_entered.connect(func(b: Node3D) -> void:
-			if b.is_in_group("player") and float(g.get_meta("open", 1.0)) > 0.5 and not g.has_meta("falling"):
+			# (only someone who's got down into it somehow: the cover keeps everyone else up on top)
+			if b.is_in_group("player") and float(g.get_meta("open", 1.0)) > 0.5 and not g.has_meta("falling") \
+					and b.global_position.y < g.global_position.y - 0.3:
 				fall_in(g, b, on_fall))
+	# The cover (Hayden, 14 Nov 2026: "Instead of automatically falling in the world cracks, make it an interact
+	# prompt"): an unseen floor over the open middle, so walking or riding over a crack never drops you in. Interact
+	# at it ("Press E to jump in", add_prompt()) is how you go through.
+	var cover := StaticBody3D.new()
+	cover.name = "Cover"
+	var ccs := CollisionShape3D.new()
+	var cbox := BoxShape3D.new()
+	cbox.size = Vector3((r + 0.3) * 2.0, COVER_THICK, (r + 0.3) * 2.0)
+	ccs.shape = cbox
+	ccs.position.y = -COVER_THICK * 0.5
+	ccs.disabled = true                        # (till sink() has cut the hole and read the ground)
+	cover.add_child(ccs)
+	g.add_child(cover)
 	return g
+
+
+# "Press E to jump in" over a crack's middle. `what` gives the words after "jump in" ("to Shard Isle"), or "" when it
+# can't take you just now. Interact drops you in (jump_in()).
+static func add_prompt(g: Node3D, what: Callable = Callable(), spot_name := "Jump Spot") -> Area3D:
+	var old := g.get_node_or_null(spot_name)
+	if old:
+		old.free()
+	var offer := func() -> String:
+		if not is_instance_valid(g) or not is_open(g) or g.has_meta("falling"):
+			return ""
+		var w := str(what.call()) if what.is_valid() else ""
+		if what.is_valid() and w == "":
+			return ""
+		return "jump in" + ((" " + w) if w != "" and w != "-" else "")
+	var spot: Area3D = load("res://scripts/use_spot.gd").make(Vector3.ZERO, offer, func() -> void: jump_in(g),
+		PROMPT_R, 2.4)
+	spot.name = spot_name
+	g.add_child(spot)
+	return spot
+
+
+# Into the crack now (the prompt's Interact, or "Jump in!" from somewhere else): the tumble, then through. A crack
+# with a door down inside it (the old oak's, the Void's way back to Earth) goes by that door.
+static func jump_in(g: Node3D) -> void:
+	if not is_instance_valid(g) or not is_open(g) or g.has_meta("falling"):
+		return
+	var player := g.get_tree().get_first_node_in_group("player") as Node3D
+	if player == null:
+		return
+	var door = g.get_meta("door") if g.has_meta("door") else null
+	if is_instance_valid(door) and door.has_method("go_down_crack"):
+		door.go_down_crack(player)
+	elif g.has_meta("on_fall"):
+		fall_in(g, player, g.get_meta("on_fall"))
 
 
 # Cut the ground away under a crack that's in the scene already (at its spot, on the ground), and build the split
@@ -217,6 +270,9 @@ static func set_open(g: Node3D, k: float) -> void:
 	var fall := g.get_node_or_null("Fall") as Area3D
 	if fall:
 		fall.monitoring = k > 0.5
+	var cover := g.get_node_or_null("Cover") as StaticBody3D
+	if cover:
+		(cover.get_child(0) as CollisionShape3D).disabled = not shown or not g.has_meta("hole")   # (only over a real cut)
 	if was <= 0.001 and shown and k < 0.6 and g.is_inside_tree() and g.has_meta("hole"):
 		Juice.dust(g, g.global_position, 0.9)          # (splitting open, not made open: a puff of dirt as it goes)
 
@@ -415,13 +471,9 @@ static func _veil(g: Node3D, colour: Color) -> ColorRect:
 	return rect
 
 
-# Put the player right over a crack's middle, so they drop in (the "Jump in!" answer at its spot)
+# Send the player down a crack (the "Jump in!" answer, the prompt): the same as jump_in()
 static func drop_player(g: Node3D) -> void:
-	var player := g.get_tree().get_first_node_in_group("player") as CharacterBody3D
-	if player == null:
-		return
-	player.global_position = g.global_position + Vector3(0, 0.6, 0)
-	player.velocity = Vector3(0, 1.5, 0)
+	jump_in(g)
 
 
 # -----------------------------------------------------------------------------

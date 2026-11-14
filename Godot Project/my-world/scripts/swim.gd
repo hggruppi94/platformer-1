@@ -243,10 +243,14 @@ func physics(delta: float) -> void:
 		stop(HOP)                                   # at the top: hop out
 		return
 	var vy := 0.0
-	if diving:
-		vy = -DIVE
-	elif rising and y < top - 0.05:
+	# Jump beats Dive: if Shift ever sticks down (Hayden, 14 Nov 2026, twice: "the shift button gets stuck, forcing you
+	# in a constant state of swimming down, until it's pressed again"), Jump still brings her up. The game gets no
+	# "let go" for the key at all then (Windows' Sticky Keys locks Shift after quick taps, and the dive is all taps),
+	# so it can't tell a stuck Shift from a held one; this way she's never dragged down.
+	if rising and y < top - 0.05:
 		vy = RISE
+	elif diving:
+		vy = -DIVE
 	elif not can_dive:
 		vy = clampf((top - y) * 3.0, -2.5, 5.0)     # can't swim yet: up you bob, to paddle along the top
 	elif y > top - 0.7:

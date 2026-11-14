@@ -65,7 +65,9 @@ func _make_crack() -> void:
 		crack.global_position = hit.position
 	CRACK.sink(crack, get_tree().current_scene)
 	_door.set_meta("crack", crack)            # (falling in: the crack's tumble, then through)
-	_door.global_position = crack.global_position + Vector3(0, -1.0, 0)
+	crack.set_meta("door", _door)             # (Interact at the crack goes by the door)
+	CRACK.add_prompt(crack, func() -> String: return "to go home" if _door.closed_message == "" else "")
+	_door.global_position = crack.global_position + Vector3(0, -2.0, 0)   # (down under the cover)
 	var shape := (_door.get_child(0) as CollisionShape3D) if _door.get_child_count() > 0 else null
 	if shape and shape.shape is BoxShape3D:
 		var b := (shape.shape as BoxShape3D).duplicate() as BoxShape3D
