@@ -11,14 +11,14 @@ extends Node
 # stuck). A section only comes up if you've learned its move (old saves that opened the fight with the three bosses
 # might not have them all).
 #
-#   Phase 1 (30 to 21 chaos)
+#   Phase 1 (45 to 31 chaos)
 #     burrow   Bramble     The Static Storm: crackling static all round his feet buzzes you away on foot. Burrow under
 #                          it to the Root Knot by his feet: roots burst up and trip him.
 #     frost    Flurry      The River of Melted Time: a ring of glowing time sludge round him sweeps you back out.
 #                          Freeze it (Frost breath) and cross on the ice to the knot by his feet.
 #     glow     Pip         Lights Out: he swallows the daylight. Pip's glow wakes three lantern stones, and the third is
 #                          on a floating rock: ride the moth swirl up and glide over on Pip's moth wings.
-#   Phase 2 (20 to 11)
+#   Phase 2 (30 to 16)
 #     groove   Melody      The Off-Beat Stomp: he stamps a wonky beat (rings to jump). Groove on the beat three times
 #                          close enough for him to hear it and he can't help dancing.
 #     swim     Otto        The Time Flood: the field floods over your head. Dive to the bottom and pull the plug.
@@ -26,7 +26,7 @@ extends Node
 #                          his chest: Spring Step (or a rainbow) up onto it, face to face with his clock.
 #     gadgets  Dash        Glitch Crystals: three crystals shield his clock and bubbles bounce off them. Any of Dash's
 #                          other gadgets shatters them (he throws you some ammo).
-#   Phase 3 (10 to 0)
+#   Phase 3 (15 to 0)
 #     crawl    the centipede  The Clock Tower: a tower of glitch cubes shoots up in front of his clock. Climb it (wall
 #                          crawl) and leap onto his clock from the top.
 #     watch    Rex and Dash   The Big Rewind: his clock spins too fast to touch, winding a huge rewind. Hold up your

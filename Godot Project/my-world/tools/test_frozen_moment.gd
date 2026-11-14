@@ -234,7 +234,7 @@ func _check_gloop() -> void:
 	await _physics(30)
 	var before: int = rem.count
 	player.global_position = Vector3(0, 0.6, 20)                     # out of its reach while it's popped
-	for i in 6:
+	for i in int(g.stomps_to_defeat):
 		g.shot(1, g.global_position, Vector3.FORWARD)
 	await _frames(4)
 	check(portals.is_cleared("frozen_moment"), "popping it mends the Frozen Moment")

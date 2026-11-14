@@ -950,7 +950,7 @@ func _add_stormram() -> void:
 	s.set("asleep", true)
 	s.set("world", self)
 	s.set("size", 2.2)
-	s.set("stomps_to_defeat", 8)
+	s.set("stomps_to_defeat", 13)
 	s.set("damage", 2)
 	s.set("xp_reward", 60)
 	s.set("wander_radius", 5.0)

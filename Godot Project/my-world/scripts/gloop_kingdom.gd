@@ -20,6 +20,7 @@ extends Node3D
 # the west fields in front of the Gloop Gate (Bosses.GATE_OUT).
 
 const KING_SCENE := "res://scenes/enemies/gloop_king.tscn"
+const SLIME_FLOOD := preload("res://scripts/slime_flood.gd")
 const GLOOP_SCENE := "res://scenes/enemies/gloop.tscn"
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const TOWN := "res://scenes/town/town.tscn"
@@ -32,6 +33,7 @@ const WAKE_RANGE := 16.0                      # come this far into his court (fr
 const TREASURE := 12                          # sparkles in the Royal Treasure
 
 var king: CharacterBody3D
+var flood: Node3D                              # his court floods with goo in the fight (scripts/slime_flood.gd)
 var awake := false
 var treasure_open := false
 var popped := false                            # he's been popped this visit (the treasure's open and a way home's up)
@@ -65,6 +67,7 @@ func _ready() -> void:
 	_throne()
 	_walls()
 	_add_king()
+	_add_flood()
 	_add_guards()
 	_way_home(Vector3(0, 0, -1.5), "Way Out")
 	_player = get_tree().get_first_node_in_group("player") as Node3D
@@ -591,7 +594,7 @@ func _add_king() -> void:
 	king.set("size", 2.2)
 	king.set("color", Color(0.95, 0.78, 0.25))
 	king.set("goldness", 0.7)
-	king.set("stomps_to_defeat", 6)
+	king.set("stomps_to_defeat", 12)
 	king.set("damage", 3)
 	king.set("xp_reward", 40)
 	king.set("wander_radius", 8.0)
@@ -602,8 +605,22 @@ func _add_king() -> void:
 	king.set("respawns", false)                              # (popped for this visit; he's back on the next one)
 	king.process_mode = Node.PROCESS_MODE_DISABLED           # sat on his throne until you come into his court
 	king.position = THRONE + Vector3(0, 3.25, 0.4)
-	king.rotation.y = PI                                      # (looking down the court)
 	add_child(king)
+	# Looking down the court (towards the gate, -z). Only his Visual turns: Gloops steer by turning the Visual to their
+	# world heading (scripts/gloop.gd), so turning his whole body round as well left him walking backwards once the
+	# fight started (Hayden's playtest, 14 Nov 2026).
+	(king.get("visual") as Node3D).rotation.y = PI
+
+
+func _add_flood() -> void:
+	# The court's Lily Pads and the goo that floods it once the fight's on (Hayden, 14 Nov 2026: "Can we add a
+	# mechanic where the arena fills with slime?")
+	flood = SLIME_FLOOD.new()
+	flood.name = "Slime Flood"
+	flood.position = COURT
+	add_child(flood)
+	flood.call("build", COURT_RADIUS, _goo_mat(), _gold())
+	flood.set("king", king)
 
 
 func _add_guards() -> void:
@@ -692,6 +709,14 @@ func wake() -> void:
 	king.set("home", COURT + Vector3(0, 0.8, 4.0))
 	king.set("target", COURT + Vector3(0, 0.8, 4.0))
 	king.velocity = Vector3(0, 7.0, -4.0)
+	if flood:
+		flood.call("start")
+	# Ammo crates round the court (he takes a lot of popping now, and the Star Popper's tank can run dry)
+	var supplies := Node3D.new()
+	supplies.name = "Court Supplies"
+	add_child(supplies)
+	supplies.global_position = global_position + COURT + Vector3(0, 1.0, 0)
+	Arsenal.supply_boss(supplies, 8.5, 4)
 	Game.message("THE GLOOP KING: \"WHO DARES drip into MY court?! Guards! ...Oh, I'll do it myself.\"")
 	Audio.play_at("gloop_giggle", king.global_position, 4.0)
 	Juice.shake(0.3)

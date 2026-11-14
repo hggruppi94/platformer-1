@@ -459,7 +459,7 @@ func _add_snatcher() -> void:
 	g.set("world", self)
 	g.set("size", 2.4)
 	g.set("color", Color(1.0, 0.75, 0.4))
-	g.set("stomps_to_defeat", 8)
+	g.set("stomps_to_defeat", 13)
 	g.set("damage", 2)
 	g.set("xp_reward", 50)
 	g.set("wander_radius", 5.0)

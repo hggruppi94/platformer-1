@@ -35,6 +35,7 @@ var bar_colour := Color(0.75, 0.6, 0.45)
 func _ready() -> void:
 	super()
 	add_to_group("bosses")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	_bar = BossBar.make(self, title, bar_colour, 2.3 * size + 0.4, 2.0)
 	_base = [roll_speed, rolls_in_a_row]
 	_boulders()

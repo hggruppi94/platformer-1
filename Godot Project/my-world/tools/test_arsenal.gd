@@ -603,7 +603,7 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 	check(wheel.slot_angle(6) != wheel.slot_angle(0) and arsenal.ORDER.size() == 7, "the wheel has room for all seven gadgets")
 
 	# --- Ammo crates ---
-	var crates := get_nodes_in_group("ammo_crates")
+	var crates := get_nodes_in_group("ammo_crates").filter(func(c: Node) -> bool: return not c.has_meta("boss_supply"))
 	check(crates.size() == arsenal.CRATES.size(), "%d ammo crates round the Void" % crates.size())
 	var space := p.get_world_3d().direct_space_state
 	var bad := []

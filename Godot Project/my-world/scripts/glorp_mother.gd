@@ -10,7 +10,7 @@ extends "res://scripts/gloop_king.gd"
 # Made in code: MOTHER.make() (the Gloop King's scene with this script).
 
 const GLORP := preload("res://scripts/glorp.gd")
-const HITS := 9
+const HITS := 15
 const BOW := Color(1.0, 0.45, 0.75)
 
 var world: Node                               # the arena, told when she's popped

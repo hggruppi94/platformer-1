@@ -17,7 +17,7 @@ const NAME := "Grandfather Tock"
 const HELPER := preload("res://scenes/enemies/time_goblin.tscn")
 const MAX_HELPERS := 4
 
-@export var chime_every := 7.0
+@export var chime_every := 6.0
 @export var chime_reach := 9.0
 
 var _chime_t := 4.0
@@ -42,6 +42,7 @@ var ring_colour := Color(0.45, 1.0, 0.9)
 func _ready() -> void:
 	super()
 	add_to_group("bosses")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	_pendulum = get_node_or_null("Visual/Head/Clock/Pendulum") as Node3D
 	_clock_hand = get_node_or_null("Visual/Head/Clock/Hand") as Node3D
 	_bar = BossBar.make(self, title, bar_colour, 2.0 * size + 0.5)

@@ -17,14 +17,14 @@ extends CharacterBody3D
 
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
-const HITS := 8
-const HELP_AT := [3, 6]                       # hits at which it calls up little ghosts
+const HITS := 13
+const HELP_AT := [4, 9]                       # hits at which it calls up little ghosts
 const LIT_NEAR := 6.0                         # metres from a lit lamp that count as in its light
 const SNUFF_NEAR := 2.2                       # this close to a lit lamp and it hushes it out
 const DRIFT := 1.9                            # m/s after you (you run at 5)
 const RETREAT := 5.5                          # m/s darting off after a hit...
 const RETREAT_TIME := 1.6                     # ...for this long
-const RING_EVERY := 7.0
+const RING_EVERY := 6.0
 const RING_REACH := 9.0
 const ARENA := 15.0                           # it never strays further than this from the hill
 const HOVER := 1.2
@@ -53,6 +53,7 @@ var _hitbox: Area3D
 
 func _ready() -> void:
 	add_to_group("enemies")
+	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	home = global_position
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	var cs := CollisionShape3D.new()

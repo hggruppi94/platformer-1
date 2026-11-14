@@ -835,7 +835,7 @@ func _add_riptide() -> void:
 	g.set("size", 2.4)
 	g.set("color", SEA)
 	g.set("goldness", 0.5)
-	g.set("stomps_to_defeat", 6)
+	g.set("stomps_to_defeat", 10)
 	g.set("damage", 2)
 	g.set("xp_reward", 45)
 	g.set("wander_radius", 5.0)
