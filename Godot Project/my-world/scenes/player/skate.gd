@@ -46,6 +46,10 @@ const CREASE := 0.2                  # going uphill, a bend in the ground this s
 const HILL_MIN_Y := 0.75             # ground this flat or flatter (about 40 degrees) is a hill she can push up
 const STEP := 0.32                   # kerbs and steps this high she rolls up onto by herself
 const SIDE_RADIUS := 0.35            # the capsule's radius
+const Bumps := preload("res://scripts/bumps.gd")
+const BUMP_MIN := 4.5                # m/s straight into a wall on a ride before it's a bump (scripts/bumps.gd)
+const BUMP_FULL := 14.0
+const BUMP_BOUNCE := 0.6             # a board bounces back off a wall a bit less than feet do
 const BAIL_LINES := ["Whoops!", "Oof!", "Wobbly!", "Banana peel!", "Bonk!", "Ta-da? No...", "Wipeout!"]
 const SLIP_LINES := ["Phew!", "Saved it!", "Close one!", "Wobble... OK!"]
 # Rocket flight (rocket rides: "flight" in scripts/rides.gd)
@@ -496,6 +500,13 @@ func _move(v: Vector3, on_ground: bool) -> void:
 	# Rolling into a kerb or a step: hop up onto it rather than stopping dead (a board's wheels would ride up it)
 	if blocked and on_ground and was and flat.length() > 0.8 and _step_up(before, flat, v):
 		return
+	# A boink off a wall or a tree (not the kerb she just rolled up, not a ramp she rides). The slide's contacts are
+	# still the ones from move_and_slide() above: the step-up only tested moves.
+	if Bumps.after_slide(p, v, p.model, BUMP_MIN, BUMP_FULL, FEET, 0.12, FLOOR_MIN_Y, BUMP_BOUNCE) >= 0.0:
+		var back := Vector3(p.velocity.x, 0, p.velocity.z)
+		if back.dot(flat) < 0.0 and back.length() > 0.3:
+			fakie = not fakie                         # bounced straight back: she rolls away backwards, board the same way round
+		v = p.velocity
 	# Going up a slope she's moving upwards, but along the ground: where a road's surface bends a little over a crease
 	# (a race circuit's road climbing round a bend is made of slightly twisted pieces) she stays on it too, instead of
 	# hopping off every crease and plopping back down (Hayden, 14 Nov 2026, Observatory Hill). Over a real lip (the top
@@ -565,6 +576,9 @@ func _step_up(from: Transform3D, flat: Vector3, v: Vector3) -> bool:
 	_ground_n = down.get_normal()
 	_grounded = true
 	p.velocity = v
+	if flat.length() > 3.0 and bool(Settings.bumps):
+		Juice.rumble(0.12, 0.05)                          # a little clack of the wheels up the kerb
+		Juice.blip("tick", 0.6, -18.0)
 	return true
 
 

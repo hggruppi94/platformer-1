@@ -572,6 +572,8 @@ func _tab_assist(tabs: TabContainer) -> void:
 		"Relaxed: hardly ever fall, and keep your combo. Normal: forgiving, keeps half a combo. Pro: the strict rules")
 	_slider(g, "Screen shake", "screen_shake", 0.0, 1.0, 0.1, func(x): return "%d%%" % roundi(x * 100.0))
 	_check(g, "Controller rumble", "rumble", "The controller buzzes a little on bumps, landings and big pops")
+	_slider(g, "Rumble strength", "rumble_strength", 0.0, 1.0, 0.1, func(x): return "%d%%" % roundi(x * 100.0))
+	_check(g, "Bumps and boinks", "bumps", "A boink, a puff and a wobble when you knock into things")
 	_check(g, "How-to tips", "tips", "Little pop-ups the first time you do something")
 	_check(g, "Race intros", "race_intros", "A flyover of the track and your rivals before each race (Jump skips it)")
 	_check(g, "Playtest notes", "playtest",

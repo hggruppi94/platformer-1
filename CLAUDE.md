@@ -99,6 +99,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Bumps and boinks when you run into things, and echoes in caves and tunnels** (Hayden: "sensory boinks
+  and bumps when you collide with surfaces", "a sort of bounce with a puff of smoke when you run into things", "Have
+  cave sounds/echo when inside tunnels"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/bumps.gd`** (no class_name, preload it): `after_slide(body, velocity_before, model, min, full, ...)` right
+    after `move_and_slide()` in `player.gd` (on foot: 4 to 12 m/s) and `skate.gd _move()` (on a ride: 4.5 to 14 m/s,
+    after the kerb step-up so kerbs aren't bumps). A knock into a wall or a ceiling (not ground, not a kerb at her feet,
+    not enemies or bosses: they have their own hits) at more than `min` m/s straight into it: she **bounces back**
+    (`bounce_off()`: some of the speed back out plus a push; soft things bounce further; on foot she can't steer for
+    0.14 s, `_bump_timer`, not a stun so hopping on a ride after doesn't bail; on a board bounced straight back she rolls
+    away fakie, the board the same way round), a **puff of smoke** (`smoke()`) and coloured bits at the spot, a squash,
+    a sound by what it is (`Surfaces.wall_kind()` in `surfaces.gd`: wood bonk, stone clunk, soft boink, crystal and metal
+    clink, water squish, grass thud; a node can set meta `"surface"`), a camera nudge towards it, a little shake for big
+    ones, rumble, and stars for a head bonk. 0.3 s between bumps, so leaning on a wall doesn't rattle. Landings keep
+    their own feedback.
+  - **New sounds** in `Juice._make()`: boink, bonk, clunk, clink, squish. `Juice.rumble()` scales by `rumble_scale()`.
+  - **Settings > Assist:** "Rumble strength" (0 to 100%, `Settings.rumble_strength`) and "Bumps and boinks"
+    (`Settings.bumps`, off: no bumps at all), next to Screen shake and Controller rumble.
+  - **`scripts/cave_echo.gd`** ("CaveEcho" on the player): in a `cave_dark` zone (the Undergardens, the Glimmer Caves),
+    under a race tunnel's roof (group `race_roof`), in a secret shortcut (`shortcut_at()`), under anything named
+    Tunnel/Cave/Grotto/Burrow/Shortcut or in group `"echo"`, or burrowing: a reverb and a soft echo on the SFX bus and a
+    quiet cave bed (a hollow hum and drips, made in code) ease in; out again they ease away and come off the bus.
+  - Tests: new `tools/test_bumps.gd`; juice, skate_help, races, race_tracks, race_tutorial, earth_race, walk_through,
+    layout, swim, burrow and the rest listed in the PR pass. Previews: `tools/capture_bumps.gd` (shots in the project
+    files under world/previews/bumps).
+  - My choices Hayden may change: how hard a knock has to be, how far she bounces, the sounds, the smoke's colour and
+    size, which places echo and how much.
+
 - 2026-11-14: **Speed coins only in races, a whole set puts you in the flow, and a smooth ride up Observatory Hill**
   (Hayden: "the speed coins should be in the races only, not the overworld. Once the player picks up a full "set" of
   coins, they enter a "flow" state where their speed is slightly increased and the screen becomes a little bit blurred
