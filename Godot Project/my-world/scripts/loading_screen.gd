@@ -16,7 +16,7 @@ const TIPS := [
 	"The Goals page in your menu always shows something to aim for.",
 	"Lost watches tick in their own ways. Dash would love to see them.",
 	"On your board, hold Jump to crouch, and let go to ollie.",
-	"Sleep in your bed \"Until the Shift\" to get to midnight quicker.",
+	"The crack by the old oak is open any time. Jump in!",
 	"Pop a Gloop while you're grinding: it counts as a trick!",
 	"Zippy's races open one after another. Any place counts!",
 	"Feeling stuck? Open the map: the stars show where to go.",

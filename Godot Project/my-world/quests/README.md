@@ -43,7 +43,7 @@ quest over.
 | Key | What it does |
 | --- | --- |
 | `"checklist": [["flag", "Label"], ...]` | shows each flag as a tick-box line in the quest log |
-| `"wait": {"hours": 3, "text": "..."}` | the step can't be done until this many of the Void's hours after it started (Pause > Pass the time gets there, so nobody has to wait for real). `"days": 1` waits for the next Void visit instead: don't use it for the story (Hayden: no forced waiting). The text shows in the log while waiting |
+| `"wait": {"hours": 3, "text": "..."}` | the step can't be done until this many of the Void's hours after it started; `"days": 1` waits for the next Void visit. **Don't use either** (Hayden, 14 Nov 2026: "everything should be playable all the way through without needing to skip time at all"), and don't put a story step behind a time of day either (no `"time"` in a step's override or its lines). Someone a step points at (`"where"`) never goes away for the night (`Quests.needs()`). The text shows in the log while waiting |
 | `"where": ["rex", {"who": "dash", "unless": "asked_dash"}, "town_hall"]` | stars on the map (M) for who to talk to (a character id) or where to go (a point in `res://routines/places.json`); `unless` drops one once its flag is set. Open quest spots get a star by themselves |
 | `"where": [{"at": [-134, 2]}]` | a star on a spot of its own in the Void (`[x, z]`), when there's no place or person for it (the Gloop King's court). Add `"world": "earth"` for a spot on Earth (the First Night's glowing acorns) |
 | `"override": {"rex": {...}}` | while the step is on, that character follows this routine block instead of their schedule (same keys as `res://routines/README.md`, plus `"time"`: only during those times of day) |

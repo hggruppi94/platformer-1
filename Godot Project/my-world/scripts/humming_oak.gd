@@ -44,6 +44,9 @@ func awake() -> bool:
 	# Asleep only on a First Night that hasn't had its fall yet; awake for everyone else, for good
 	if Dialogue.flags.has("oak_woken"):
 		return true
+	# (a new game whose hero isn't made yet is about to start The First Night: no crack showing on its first morning)
+	if Game.needs_creator:
+		return false
 	if not FirstNight.running():
 		return true
 	return not FirstNight.step() in ASLEEP_STEPS

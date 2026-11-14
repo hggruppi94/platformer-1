@@ -103,7 +103,7 @@ static func _shapes(kind: String) -> Array:
 			return [[_box(0.5, 0.52, 0.27, 0.38, 0.05), Color(0.75, 0.45, 0.3)],
 				[_box(0.5, 0.52, 0.18, 0.3, 0.03), Color(0.9, 0.58, 0.38)],
 				[_circle(0.6, 0.55, 0.045), GOLD]]
-		"clock":                               # a clock face (Pass the time)
+		"clock":                               # a clock face
 			return [[_circle(0.5, 0.5, 0.4), WHITE],
 				[_ring(0.5, 0.5, 0.33, 0.03), LAVENDER, false],
 				[_seg(0.5, 0.5, 0.5, 0.24, 0.045), INK, false],

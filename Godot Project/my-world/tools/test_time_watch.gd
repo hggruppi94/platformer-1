@@ -103,9 +103,9 @@ func _run() -> void:
 
 	hud.check_watch()
 	var said: String = hud.glance_label.text
-	check(hud.glance.visible and said.contains("Shift Watch") and said.contains("Earth: ") and said.contains("midnight"),
+	check(hud.glance.visible and said.contains("Shift Watch") and said.contains("Earth: ") and said.contains("crack by the old oak is open"),
 		"checking it holds it up: \"%s\"" % said.replace("\n", " / "))
-	check(said.contains("3 hours"), "...and says how long till the portal opens (9 PM: 3 hours)")
+	check(said.contains("any time") and not said.contains("3 hours"), "...and that there's no waiting for midnight")
 	hud.check_watch()
 	check(not hud.glance.visible, "pressing again puts it away")
 
@@ -119,7 +119,7 @@ func _run() -> void:
 		"in the Void the Shift Watch still shows Earth's time (%s)" % clock.earth_time_string())
 	hud.check_watch()
 	said = hud.glance_label.text
-	check(said.contains("The Void: day") and said.contains("left before the portal"), "it says how much of the Shift is left: \"%s\"" % said.replace("\n", " / "))
+	check(said.contains("The Void: day") and said.contains("Stay as long as you like"), "it says there's no hurry home: \"%s\"" % said.replace("\n", " / "))
 	hud.check_watch()
 
 	# The Time Keeper keeps your own time, with the other world on its little dial

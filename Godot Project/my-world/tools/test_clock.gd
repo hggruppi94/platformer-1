@@ -86,18 +86,40 @@ func _run() -> void:
 	check(is_equal_approx(shift_real_minutes, clock.DAY_LENGTH_MINUTES),
 		"one Earth hour in the Shift lasts a whole Void day (%.0f real minutes)" % shift_real_minutes)
 
-	# The end of the Shift: Earth's 1 AM is the Void's next dawn, exactly
+	# The Void's dawn, in the Void: its day just goes round again, nobody's pulled home (Hayden, 14 Nov 2026: no
+	# waiting on the clock). Earth's clock goes back to the start of the Shift with it.
 	clock.on_earth = false
 	clock.set_time(5, 6 * 60.0 + 59.0, true)                       # (one minute before the next dawn)
 	check(clock.in_shift() and absf(clock.earth_minutes - (60.0 - 1.0 / clock.SHIFT_RATIO)) < 0.01,
 		"The Void's 6:59 AM is Earth's 12:59 AM (%s)" % clock.earth_time_string())
 	events.clear()
 	clock._process(5.0)
-	check(not clock.in_shift() and events == ["ended"], "1 AM: the Shift ended (%s)" % [events])
-	check(clock.day == 5 and clock.time_string() == "7:00 AM" and clock.earth_time_string() == "1:00 AM",
-		"...right at the Void's dawn: day %d, %s, Earth %s" % [clock.day, clock.time_string(), clock.earth_time_string()])
+	check(clock.in_shift() and events.is_empty() and clock.endless(), "the Void's dawn: the Shift goes on (%s)" % [events])
+	check(clock.day == 5 and clock.hour() == 7 and clock.earth_minutes < 1.0,
+		"...into the next Void day: day %d, %s, Earth %s" % [clock.day, clock.time_string(), clock.earth_time_string()])
+	# The end of the Shift on Earth (staying home through midnight): Earth's 1 AM is the Void's next dawn, exactly
+	clock.set_time(clock.day, 6 * 60.0 + 59.5, true)               # (Earth 12:59 and a bit, in step with it)
+	clock.on_earth = true
+	events.clear()
+	clock._process(1.0)
+	check(not clock.in_shift() and events == ["ended"], "on Earth, 1 AM: the Shift ended (%s)" % [events])
+	check(clock.time_string() == "7:00 AM", "...right at the Void's dawn (%s, Earth %s)" % [clock.time_string(), clock.earth_time_string()])
 	clock._process(10.0)
-	check(clock.time_string() == "7:00 AM", "The Void waits at dawn for the next Shift")
+	check(clock.time_string() == "7:00 AM", "The Void waits at dawn till they go through")
+	# Through the crack any time: it's the Shift as soon as they're through, and home the next morning
+	clock.set_earth_time(15 * 60.0, true)
+	var e_day: int = clock.earth_day()
+	clock.into_the_void()
+	check(clock.in_shift() and clock.time_string() == "7:00 AM" and clock.earth_day() == e_day + 1,
+		"into the crack at 3 PM: the Shift, the Void at dawn (%s), Earth's midnight (day %d)" % [clock.time_string(), clock.earth_day()])
+	clock.on_earth = false
+	clock.set_time(clock.day, 15 * 60.0, true)
+	clock.on_earth = true
+	clock.home_from_void()
+	check(not clock.in_shift() and clock.earth_time_string() == "7:00 AM" and clock.earth_day() == e_day + 1
+		and clock.time_string() == "7:00 AM",
+		"home again: Earth's next morning, 7 AM (day %d), the Void waits at its dawn" % clock.earth_day())
+	clock.on_earth = false
 
 	# Jumps in the Void keep Earth's clock in step
 	clock.set_time(5, 13 * 60.0, true)
@@ -111,25 +133,20 @@ func _run() -> void:
 	clock.advance(12 * 60.0 + 30.0)
 	check(clock.day == 6 and clock.time_string() == "11:30 AM", "advance 12.5 hours from 11 PM -> day 6, 11:30 AM")
 
-	# How long a sleep lasts. In the Void: no further than the end of the Shift, which ends it.
+	# How long a sleep lasts. In the Void: as long as she likes (its day goes round); it never ends the Shift.
 	clock.set_time(6, 13 * 60.0, true)
 	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "The Void: an 8-hour sleep at 1 PM lasts 8 hours")
-	check(is_equal_approx(clock.sleep_length(20 * 60.0), 18 * 60.0), "The Void: 20 hours from 1 PM stops at dawn (18 hours)")
+	check(is_equal_approx(clock.sleep_length(20 * 60.0), 20 * 60.0), "The Void: 20 hours from 1 PM lasts 20 hours")
 	events.clear()
 	clock.sleep(clock.sleep_length(20 * 60.0))
-	check(not clock.in_shift() and events == ["ended"] and clock.day == 7 and clock.time_string() == "7:00 AM",
-		"sleeping until dawn in the Void ends the Shift (day %d, %s, %s)" % [clock.day, clock.time_string(), events])
-	# On Earth: a nap stops at midnight so the Shift isn't skipped, unless she's already in it
+	check(clock.in_shift() and events.is_empty() and clock.day == 7 and clock.time_string() == "9:00 AM",
+		"sleeping past dawn in the Void: still in the Shift (day %d, %s, %s)" % [clock.day, clock.time_string(), events])
+	# On Earth: a nap lasts as long as it says (nothing waits for midnight now)
 	clock.on_earth = true
 	clock.set_earth_time(14 * 60.0, true)
 	check(is_equal_approx(clock.sleep_length(3 * 60.0), 3 * 60.0), "Earth: a 3-hour nap at 2 PM lasts 3 hours")
 	clock.set_earth_time(21 * 60.0 + 30.0, true)
-	check(is_equal_approx(clock.sleep_length(8 * 60.0), 150.0), "Earth: 8 hours from 9:30 PM stops at midnight (2.5 hours)")
-	events.clear()
-	clock.sleep(150.0)
-	check(clock.in_shift() and events == ["started"] and clock.time_string() == "7:00 AM",
-		"...and wakes her for the Shift, with the Void at dawn (%s)" % [events])
-	check(is_equal_approx(clock.minutes_until_hour(0), 1440.0), "'until the Shift' from its very start waits for the next one")
+	check(is_equal_approx(clock.sleep_length(8 * 60.0), 8 * 60.0), "Earth: 8 hours from 9:30 PM lasts 8 hours")
 
 	# Old saves: one made in the Void (before the player lived on Earth) carries on right there, in the Shift
 	clock.on_earth = false
@@ -173,26 +190,28 @@ func _run() -> void:
 	_press("ui_right")
 	await _frames(2)
 	check(bed.hours == 10 and bed._hours_button.text.contains("10 hours"), "right twice: " + bed._hours_button.text.strip_edges())
-	check(bed._preview.text.contains("12:00 AM") and bed._preview.text.contains("Shift"), "preview: " + bed._preview.text)
+	check(bed._preview.text.contains("7:30 AM"), "preview: " + bed._preview.text)
 	_press("interact")
 	await _frames(2)
 	check(bed._picker == null and paused, "picking it closes the picker and she falls asleep")
 	await create_timer(5.0).timeout
 	check(not paused, "...and wakes up again")
-	check(clock.in_shift() and clock.earth_time_string() == "12:00 AM",
-		"10 hours from 9:30 PM woke her at midnight for the Shift (Earth %s)" % clock.earth_time_string())
-	check(not messages.is_empty() and messages[-1].contains("the Shift has begun"), "wake-up message: %s" % [messages])
-	check(game.hp == 1 + ceili(game.max_hp * 2.5 / 8.0), "a 2.5-hour sleep fills part of her HP (%d/%d)" % [game.hp, game.max_hp])
+	check(not clock.in_shift() and clock.earth_time_string().begins_with("7:3"),
+		"10 hours from 9:30 PM: she sleeps right through to 7:30 AM (Earth %s)" % clock.earth_time_string())
+	check(messages.any(func(m: String) -> bool: return m.contains("Good morning")), "wake-up message: %s" % [messages])
+	check(game.hp == game.max_hp, "a 10-hour sleep fills her HP (%d/%d)" % [game.hp, game.max_hp])
 	var hud := player.get_node("HUD")
+	game.needs_creator = false                                     # (as if the hero's made: the oak's awake)
 	hud._refresh_clock()
-	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("The Shift"),
+	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("crack by the old oak is open"),
 		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
 	# Cancel does nothing
+	var before_cancel: float = clock.earth_minutes
 	_press("interact")
 	await _frames(2)
 	_press("ui_cancel")
 	await _frames(2)
-	check(bed._picker == null and not paused and clock.earth_time_string() == "12:00 AM", "Cancel closes the picker without sleeping")
+	check(bed._picker == null and not paused and absf(clock.earth_minutes - before_cancel) < 2.0, "Cancel closes the picker without sleeping")
 	# "Until morning" from the picker sleeps straight through the night, Shift and all
 	clock.set_earth_time(22 * 60.0, true)
 	_press("interact")
@@ -205,7 +224,7 @@ func _run() -> void:
 	check(clock.earth_time_string() == "7:00 AM" and not clock.in_shift(), "'until morning' at 10 PM -> Earth %s" % clock.earth_time_string())
 	check(game.hp == game.max_hp, "a full night's sleep fills HP")
 
-	# A bed in the Void, in the Shift: sleeping until morning ends it, and she wakes up back home on Earth
+	# A bed in the Void, in the Shift: sleeping until morning is just morning in the Void, and she stays
 	clock.set_earth_time(23 * 60.0 + 59.0, true)
 	clock.set_earth_time(10.0, true)
 	game.go(HOUSE, "BedSpawn")
@@ -213,13 +232,14 @@ func _run() -> void:
 	check(current_scene.scene_file_path == HOUSE and clock.in_shift() and not clock.on_earth, "in the Void, in the Shift (%s)" % clock.time_string())
 	var gbed := current_scene.find_child("SleepSpot", true, false)
 	gbed.sleep_for(clock.minutes_until_hour(7))
+	await create_timer(5.0).timeout
+	check(current_scene.scene_file_path == HOUSE and clock.in_shift() and clock.time_string().begins_with("7:0"),
+		"slept until morning in the Void: still there, at %s" % clock.time_string())
+	# Going home from the Void: Stars Hollow's next morning, with everyone up
+	game.go(EARTH, "Entrance")
 	await _wait_for_scene(EARTH, 600)
-	check(current_scene.scene_file_path == EARTH and not clock.in_shift() and clock.earth_time_string() == "1:00 AM",
-		"slept until morning in the Void: home on Earth at %s" % clock.earth_time_string())
-	await _frames(4)
-	player = current_scene.find_child("Player", true, false) as Node3D
-	var told: String = player.get_node("HUD").message_label.text
-	check(told.contains("wakes up back home on Earth"), "\"%s\"" % told)
+	check(current_scene.scene_file_path == EARTH and not clock.in_shift() and clock.earth_time_string() == "7:00 AM",
+		"home from the Void: Earth at %s" % clock.earth_time_string())
 
 	# Saved at home on Earth, 7 AM
 	clock.set_earth_time(7 * 60.0, true)

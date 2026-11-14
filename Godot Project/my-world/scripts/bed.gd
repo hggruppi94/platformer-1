@@ -113,20 +113,15 @@ func open_picker() -> void:
 	var tip := _label(box, "Left / right: more or less sleep", 15)
 	tip.modulate.a = 0.7
 	var morning := _option(box, "Until morning (%s)%s" % [Clock.format_time(Clock.WAKE_HOUR * 60.0),
-		"" if Clock.on_earth else ": home to Earth"],
+		"" if Clock.on_earth or Clock.endless() else ": home to Earth"],
 		func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.WAKE_HOUR), _morning_stops()))
-	var shift: Button = null
-	if Clock.on_earth and not Clock.in_shift() and FirstNight.shift_sleep_ok():
-		shift = _option(box, "Until the Shift (midnight)" if HummingOak.awake() else "Until midnight",
-			func() -> void: _start_sleep(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
+	# (no "Until the Shift" any more: the crack by the old oak is open any time, Hayden 14 Nov 2026)
 	_option(box, "Not now", close_picker)
 	_preview = _label(box, "", 18)
 	_preview.add_theme_color_override("font_color", Color(1, 1, 0.6) if hc else Color(0.9, 0.78, 1.0))
 	# The preview line says when she'll wake up for whichever option is highlighted
 	_hours_button.focus_entered.connect(func() -> void: _show_wake(hours * 60.0))
 	morning.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.WAKE_HOUR), _morning_stops()))
-	if shift:
-		shift.focus_entered.connect(func() -> void: _show_wake(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
 	get_tree().root.add_child(_picker)
 	_set_hours(hours)
 	_hours_button.grab_focus()
