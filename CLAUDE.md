@@ -97,6 +97,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-13: **No waiting around for the clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
+  "There's a lot locked behind time. We need to make the game playable all the way through without forcing the player
+  to wait"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/pass_time.gd`** (no class_name, preload it): `choices()` lists where the clock can jump to from here.
+    On Earth: morning (7 AM), noon, evening (6 PM), night (9 PM), the crack opening (midnight) and the next **Saturday
+    fair** on the green. In the Void: noon, evening (5 PM), night, midnight, early morning (5 AM: still "morning" for
+    lines that want the daytime) while that's still in the Shift, and dawn, which ends the Shift and the portal takes
+    you home. `run(length)` fades out, races the clock's numbers round, `Clock.sleep()`s, saves and fades back in
+    ("Time flies! It's ..."). Routines, watered crops and quest waits follow the jump the way they follow the bed's. Not in a portal world or on a race circuit (their clocks stand still), not mid-race, in a
+    talk, a cutscene or anything holding the controls (`why_not()`), and not on Earth while the crack's open (go
+    through instead). No HP refill: that's still the bed's.
+  - **Pause menu** (`scripts/pause_menu.gd`): a **Pass the time** button (new `clock` icon in `ui_icons.gd`) opens a page
+    of those times. On Earth outside the Shift, once they've been through, **Go to the Void at midnight**
+    (`way_home()`, so the player menu's Save sheet has it too) passes the time to midnight and goes straight through
+    the crack. The pulled-home message, the 1 AM message and the watch (T) say so.
+  - **No spoilers, and The First Night's rules:** before the first fall nothing names the crack, the Shift or the Void
+    and there's no quick way to the Void; the first day still never passes 6 PM until the town and the board are done
+    (`FirstNight.earth_hold_minutes()`); its evening stops at midnight ("Until late at night"), when the ground cracks
+    open. The watch's "The crack by the old oak opens at midnight" line now only shows once the oak's awake.
+  - **Quest waits in hours** (`Quests.is_waiting()`): a step's `"wait"` can say `"hours"` (the Void's hours, from
+    `since_at`, saved in the quest's state; old saves count from that day's dawn). Rex's campaign was the only quest
+    with day waits: the posters now take 3 hours and Mr. Palmer's window 8 (after the evening rally, so first thing in
+    the morning), with Rex's "come back tomorrow" lines changed to match.
+  - Already no waiting before this: the story quests start as soon as the one before is done (scripts/meetings.gd),
+    portal worlds open by the story (`Portals.quake_due`), worlds have no timer, the Season Dial switches seasons, and
+    practice trips (Settings > Assist) visit any world.
+  - Tests: new `tools/test_pass_time.gd`; the whole suite and `tools/playthrough.gd -- all` (see the PR). Previews:
+    `tools/capture_pass_time.gd` (shots in the project files under world/previews/pass_time).
+  - My choices Hayden may change: the stops and their times, the fair stop, the button names, no HP refill, being able
+    to skip a night's Shift by passing the time to the morning.
+
 - 2026-11-14: **A clear start on every circuit, and a race tutorial** (Hayden's 13 Nov 2026 playtest: "THE LAKE LOOP RACE
   STARTS OFF WITH A BUMPER RIGHT IN FRONT OF YOU. there needs to be a tutorial for starting races"). Built and tested in
   the cloud (own Godot user folders, no save touched).

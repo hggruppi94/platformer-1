@@ -109,10 +109,27 @@ func current_step(id: String) -> Dictionary:
 
 
 func is_waiting(id: String) -> bool:
-	# On a step that says to come back later, and it isn't later yet
+	# On a step that says to come back later, and it isn't later yet. "days" counts the Void's day number (a whole new
+	# visit); "hours" counts the Void's own hours, so Pause > Pass the time (scripts/pass_time.gd) gets there in the same
+	# visit. (Hayden, 13 Nov 2026: "we need to make the game playable all the way through without forcing the player
+	# to wait", so the story's own waits are hours now, not days.)
 	var step := current_step(id)
-	var days := int(step.get("wait", {}).get("days", 0))
-	return not step.is_empty() and Clock.day < int(state[id].since_day) + days
+	if step.is_empty():
+		return false
+	var wait: Dictionary = step.get("wait", {})
+	if Clock.day < int(state[id].since_day) + int(wait.get("days", 0)):
+		return true
+	var hours := float(wait.get("hours", 0.0))
+	if hours <= 0.0:
+		return false
+	# (a save from before "since_at" counts from the start of that day's visit)
+	var since := float(state[id].get("since_at", int(state[id].since_day) * Clock.MINUTES_PER_DAY + Clock.DAWN_HOUR * 60.0))
+	return now_at() < since + hours * 60.0
+
+
+func now_at() -> float:
+	# The Void's time as one number of minutes, for the "hours" waits (whole minutes, so it saves and loads exactly)
+	return float(Clock.day * Clock.MINUTES_PER_DAY + floori(Clock.minutes))
 
 
 func on_step(id: String, step_id: String) -> bool:
@@ -387,7 +404,7 @@ func check() -> void:
 		var q := quest(id)
 		if not is_started(id):
 			if _flags_ok(q.get("start", {})) and not q.get("start", {}).is_empty():
-				state[id] = {"step": 0, "since_day": Clock.day, "done": false}
+				state[id] = {"step": 0, "since_day": Clock.day, "since_at": now_at(), "done": false}
 				_announce("New quest: %s" % q.get("name", id), current_step(id).get("text", ""))
 				tracked = id
 				# (a story quest, where the next friend sends you on, is followed too: res://scripts/meetings.gd)
@@ -409,6 +426,7 @@ func _advance(id: String) -> void:
 	var steps: Array = q.get("steps", [])
 	state[id].step = int(state[id].step) + 1
 	state[id].since_day = Clock.day
+	state[id].since_at = now_at()
 	if int(state[id].step) >= steps.size():
 		state[id].done = true
 		var reward: Dictionary = q.get("reward", {})
@@ -425,7 +443,7 @@ func _advance(id: String) -> void:
 		var step := current_step(id)
 		var text: String = step.get("text", "")
 		if is_waiting(id):
-			text += "\n" + str(step.get("wait", {}).get("text", "(Come back tomorrow.)"))
+			text += "\n" + str(step.get("wait", {}).get("text", "(Come back later.)"))
 		# A step with "quiet" has a cutscene that shows where to go (the First Night: scripts/opening.gd), so no
 		# banner as well; the to-do list still changes
 		if not bool(step.get("quiet", false)):
@@ -451,6 +469,9 @@ func skip(id: String) -> void:
 	var wait := int(step.get("wait", {}).get("days", 0))
 	if wait > 0:
 		state[id].since_day = Clock.day - wait
+	var wait_hours := float(step.get("wait", {}).get("hours", 0.0))
+	if wait_hours > 0.0:
+		state[id].since_at = now_at() - wait_hours * 60.0
 	if cond.has("flag"):
 		Dialogue.flags[str(cond.flag)] = true
 	for f in cond.get("flags", []):
@@ -489,6 +510,8 @@ func load_data(data: Dictionary) -> void:
 	for id in data:
 		var s: Dictionary = data[id]
 		state[str(id)] = {"step": int(s.get("step", 0)), "since_day": int(s.get("since_day", 1)), "done": bool(s.get("done", false))}
+		if s.has("since_at"):
+			state[str(id)].since_at = float(s.since_at)    # (for "hours" waits: is_waiting())
 
 
 func reset() -> void:
@@ -692,7 +715,7 @@ func card(id: String) -> PanelContainer:
 		tick.name = "Tick"
 		tick.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if is_waiting(id):
-		_card_label(v, str(step.get("wait", {}).get("text", "(Come back tomorrow.)")), 18, Color(0.96, 0.9, 0.64)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_card_label(v, str(step.get("wait", {}).get("text", "(Come back later.)")), 18, Color(0.96, 0.9, 0.64)).autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var reward := reward_text(id)
 	if reward != "":
 		_card_label(v, "Reward: " + reward, 18, Color(1.0, 0.88, 0.45)).name = "Reward"
@@ -783,7 +806,7 @@ func log_text() -> String:
 		for item in checklist(id):
 			lines.append("    %s %s" % ["[color=#b8f5b8](done)[/color]" if item[1] else "( )", item[0]])
 		if is_waiting(id):
-			lines.append("  [color=#f5e6a3]%s[/color]" % step.get("wait", {}).get("text", "(Come back tomorrow.)"))
+			lines.append("  [color=#f5e6a3]%s[/color]" % step.get("wait", {}).get("text", "(Come back later.)"))
 		lines.append("")
 	if not any:
 		lines.append("No quests yet. Talk to people around town!")

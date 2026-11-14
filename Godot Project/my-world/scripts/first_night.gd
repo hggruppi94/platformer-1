@@ -141,6 +141,14 @@ func shift_sleep_ok() -> bool:
 	return not running() or not step() in NO_SHIFT_SLEEP
 
 
+func earth_hold_minutes() -> float:
+	# Where Earth's clock is waiting on the first day (6 PM, until the town and the board are done: _hold()), or -1.
+	# Pause > Pass the time (scripts/pass_time.gd) never jumps past it.
+	if running() and step() in ["morning", "board"]:
+		return DUSK_HOUR * 60.0
+	return -1.0
+
+
 func sleep_stops_at_midnight() -> bool:
 	# The first night, any sleep ends at midnight, even "until morning": that's when the ground cracks open
 	# (scripts/bed.gd)

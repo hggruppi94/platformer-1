@@ -67,8 +67,8 @@
       "id": "posters",
       "text": "Hang Rex's VOTE REX posters around town.",
       "wait": {
-        "days": 1,
-        "text": "Rex is still painting the posters. Come back tomorrow!"
+        "hours": 3,
+        "text": "Rex is still painting the posters. Come back in a few hours! (Can't wait? Pause and pick Pass the time.)"
       },
       "checklist": [
         [
@@ -125,8 +125,8 @@
       "id": "palmer",
       "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall in the daytime.",
       "wait": {
-        "days": 1,
-        "text": "Mr. Palmer has gone home for the day. Try tomorrow!"
+        "hours": 8,
+        "text": "Mr. Palmer has gone home for the night. Try first thing in the morning! (Can't wait? Pause and pick Pass the time.)"
       },
       "done": {
         "flag": "palmer_said_no"

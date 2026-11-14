@@ -177,7 +177,10 @@ func _run() -> void:
 	await _frames(4)
 	var told: String = player.get_node("HUD").message_label.text
 	check(told.contains("home to Earth"), "\"%s\"" % told)
-	check(pause.way_home().is_empty(), "on Earth after the Shift there's no portal shortcut")
+	# (no waiting a whole day for the next Shift: the quick way there passes the time to midnight, scripts/pass_time.gd)
+	var ways: Array = pause.way_home()
+	check(ways.size() == 1 and str(ways[0][0]) == "Go to the Void at midnight",
+		"on Earth after the Shift the shortcut waits for midnight first (%s)" % [ways.map(func(w): return w[0])])
 
 	# An old save made out on Earth, from before the town grew, wakes up at home (where she stood might be a shop now)
 	game.save_game()

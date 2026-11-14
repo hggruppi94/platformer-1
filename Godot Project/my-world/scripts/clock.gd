@@ -128,7 +128,8 @@ func _check_changes(announce := true) -> void:
 			elif shift:
 				Game.message("It's midnight: the Shift has begun! The crack by the old oak is open to the Void.")
 			elif on_earth:
-				Game.message("1 AM: the Shift is over, and the portal has closed until tomorrow night.")
+				# (no waiting a whole day for the next one: Pause > "Go to the Void at midnight", scripts/pass_time.gd)
+				Game.message("1 AM: the Shift is over, and the crack has closed until midnight. Can't wait? Pause and pick \"Go to the Void at midnight\".")
 		(shift_started if shift else shift_ended).emit()
 		if not shift:
 			_pull_home()
@@ -152,7 +153,8 @@ func _pull_home() -> void:
 	if scene == null or scene.scene_file_path == EARTH or get_tree().get_first_node_in_group("player") == null:
 		return
 	_pulling = true
-	Game.pending_message = "The Shift is over! The portal swirls up and pulls %s home to Earth." % Dialogue.player_name()
+	Game.pending_message = ("The Shift is over! The portal swirls up and pulls %s home to Earth. Can't wait for midnight? " +
+		"Pause and pick \"Go to the Void at midnight\".") % Dialogue.player_name()
 	if pull_spawn != "":
 		# The first night ends in bed (scripts/first_night.gd says what happened once Earth's up)
 		Game.pending_message = ""
