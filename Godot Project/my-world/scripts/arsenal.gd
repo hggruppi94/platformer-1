@@ -3,7 +3,9 @@ extends Node
 # Autoload "Arsenal": the hero's toy gadgets, Ratchet and Clank style. Every gadget is a toy and nothing is ever hurt:
 # enemies get bubbled and pop, or dance, like everywhere else in the game.
 #
-#   Star Popper   (scripts/star_popper.gd, star_bubble.gd) the bubble blaster. It never runs out.
+#   Star Popper   (scripts/star_popper.gd, star_bubble.gd) the bubble blaster. It holds a tank of bubbles (Hayden, 13 Nov
+#                 playtest: no more endless ammo), and when it's nearly empty and she isn't shooting it slowly mixes a
+#                 few new ones (POPPER_TOP_UP), so a young player is never left with nothing at all.
 #   Fizz Flinger  (scripts/fizz_bomb.gd) lobs a fizzy soda bomb in an arc that pops everything close to where it lands.
 #   Disco Ball    (scripts/disco_ball.gd) floats up and spins, and every enemy near it dances till the music stops.
 #   Plushinator   (scripts/plush_bolt.gd) a fluffy bolt that turns an enemy into a soft toy for a few seconds. A
@@ -44,7 +46,7 @@ const ORDER := ["popper", "fizz", "disco", "plush", "buzz", "rainbow", "jelly"]
 const MAX_LEVEL := 5
 const LEVEL_XP := [0, 5, 14, 28, 48]      # points to reach V1..V5
 const GADGETS := {
-	"popper": {"name": "Star Popper", "mega": "Mega Popper", "colour": Color(0.72, 0.58, 0.98), "ammo": [-1, -1, -1, -1, -1],
+	"popper": {"name": "Star Popper", "mega": "Mega Popper", "colour": Color(0.72, 0.58, 0.98), "ammo": [40, 50, 60, 70, 80],
 		"cooldown": [0.2, 0.18, 0.16, 0.14, 0.12],
 		"says": ["", "Bubbles come quicker.", "Even quicker bubbles!", "Bigger bubbles!", "It blows two bubbles at once!"]},
 	"fizz": {"name": "Fizz Flinger", "mega": "Mega Fizz", "colour": Color(0.35, 0.9, 1.0), "ammo": [8, 10, 12, 14, 16],
@@ -91,7 +93,7 @@ const COMBOS := {               # two mods in one gadget (sorted, joined with +)
 	"magnet+split": {"name": "Lucky Split", "says": "Ammo bubbles drop twice as often."},
 	"bounce+magnet": {"name": "Lucky Bounce", "says": "Ammo bubbles drop twice as often."},
 }
-# Upgrades from the workbench: three levels each. "ammo" doesn't go on the Star Popper (it never runs out).
+# Upgrades from the workbench: three levels each (a gadget with endless ammo, ammo -1, would skip the Bigger Tank)
 const UPGRADE_ORDER := ["ammo", "reload", "splash"]
 const UPGRADES := {
 	"ammo": {"name": "Bigger Tank", "says": "+25% ammo a level", "price": [4, 8, 12]},
@@ -112,6 +114,13 @@ const CRATES := [                         # ammo crates round the Void (x, z; dr
 const STALL_ANGLE := 105.0                # Dash's stall: degrees round the fountain, just off the south way in...
 const STALL_RING := 15.5                  # ...out past the market stalls' ring (12 m), so it's in nobody's way
 const DROP_CHANCE := 0.35                 # a gadget pop leaves an ammo bubble this often (for a gadget that isn't full)
+# The Star Popper's top-up: with fewer than POPPER_TOP_UP bubbles left and no shot for POPPER_TOP_UP_WAIT seconds, it
+# mixes one new bubble every POPPER_TOP_UP_EVERY seconds, up to POPPER_TOP_UP. A safety net, not a refill: the tank only
+# fills from ammo bubbles, ammo crates and Dash's stall.
+const POPPER_TOP_UP := 10
+const POPPER_TOP_UP_WAIT := 2.5
+const POPPER_TOP_UP_EVERY := 1.0
+const LOW_AMMO := 0.2                     # at this much of a tank left, the readout turns orange and she's told once
 
 var owned: Array[String] = []
 var current := "popper"
@@ -122,12 +131,30 @@ var mods_owned: Array[String] = []
 var slots := {}                           # id -> [mod or "", mod or ""]
 var upgrades := {}                        # id -> {"ammo": 0..3, "reload": 0..3, "splash": 0..3}
 var _credit := {}                         # id -> a node standing in for a gadget's shot, for pops with no shot
+var _popper_rest := 0.0                   # seconds since the Star Popper last fired (for its top-up)
+var _popper_mix := 0.0
+var _told_low := {}                       # id -> true once she's been told it's running low (till it's filled again)
 
 
 func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
 	_register_shop()
+
+
+func _process(delta: float) -> void:
+	# The Star Popper's top-up (POPPER_TOP_UP). Not while the game's paused (autoloads pause with the tree).
+	if not owns("popper") or ammo_of("popper") >= mini(POPPER_TOP_UP, max_ammo("popper")):
+		_popper_mix = 0.0
+		return
+	_popper_rest += delta
+	if _popper_rest < POPPER_TOP_UP_WAIT:
+		return
+	_popper_mix += delta
+	if _popper_mix >= POPPER_TOP_UP_EVERY:
+		_popper_mix = 0.0
+		ammo["popper"] = ammo_of("popper") + 1
+		changed.emit()
 
 
 # ----------------------------------------------------------------------------- what she has
@@ -262,11 +289,23 @@ func use_ammo(id := "") -> bool:
 	id = id if id != "" else current
 	if max_ammo(id) < 0:
 		return true
+	if id == "popper":
+		_popper_rest = 0.0
+		_popper_mix = 0.0
 	if ammo_of(id) <= 0:
 		return false
 	ammo[id] = ammo_of(id) - 1
+	if low(id) and not _told_low.has(id) and ammo_of(id) > 0:
+		_told_low[id] = true
+		Game.message("The %s is running low! Pop enemies for ammo bubbles, open ammo crates, or get a refill at Dash's stall."
+			% gadget_name(id))
 	changed.emit()
 	return true
+
+
+func low(id: String) -> bool:
+	# Running low: a fifth of the tank or less (the readout and wheel show it orange)
+	return max_ammo(id) > 0 and ammo_of(id) <= floori(max_ammo(id) * LOW_AMMO)
 
 
 func refill(id: String, amount: int) -> int:
@@ -276,6 +315,8 @@ func refill(id: String, amount: int) -> int:
 	var room := max_ammo(id) - ammo_of(id)
 	var put := mini(room, amount)
 	ammo[id] = ammo_of(id) + put
+	if not low(id):
+		_told_low.erase(id)
 	changed.emit()
 	return put
 
@@ -697,7 +738,9 @@ func load_data(d: Dictionary) -> void:
 			xp[str(id)] = int(x[id])
 	var am = d.get("ammo", {})
 	for id in owned:
-		ammo[id] = clampi(int(am.get(id, max_ammo(id))) if am is Dictionary else max_ammo(id), 0, maxi(max_ammo(id), 0))
+		# (a saved -1 is from when the Star Popper never ran out: it comes full)
+		var was := int(am.get(id, -1)) if am is Dictionary else -1
+		ammo[id] = max_ammo(id) if was < 0 else clampi(was, 0, maxi(max_ammo(id), 0))
 	current = str(d.get("current", "popper")) if owns(str(d.get("current", "popper"))) else "popper"
 	last = str(d.get("last", "popper")) if owns(str(d.get("last", "popper"))) else "popper"
 
@@ -719,4 +762,5 @@ func reset() -> void:
 	mods_owned = []
 	slots = {}
 	upgrades = {}
+	_told_low = {}
 	changed.emit()

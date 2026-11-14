@@ -217,13 +217,14 @@ func shoot(charged: bool) -> Node3D:
 		return null                                # the ray shines while Shoot is held (shine())
 	if id == "popper" and StarBubble.flying() >= MAX_FLYING:
 		return null
-	if id != "popper" and not Arsenal.use_ammo(id):
+	if not Arsenal.use_ammo(id):
 		_cooldown = 0.3
 		Audio.play("ui_back", -8.0, 0.0)
 		if _told_empty <= 0.0:
 			_told_empty = 4.0
-			Game.message("The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall."
-				% Arsenal.gadget_name(id))
+			Game.message(("Out of bubbles! Stop shooting for a moment and the Star Popper mixes a few more. Ammo bubbles, "
+				+ "ammo crates and Dash's stall fill it right up.") if id == "popper" else
+				"The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall." % Arsenal.gadget_name(id))
 		return null
 	_cooldown = float(Arsenal.stat(id, "cooldown"))
 	var from := muzzle()
