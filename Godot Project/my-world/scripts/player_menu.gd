@@ -842,6 +842,7 @@ func _scroller() -> ScrollContainer:
 	s.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	s.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	s.follow_focus = true
+	UiStyle.scroll_bar(s)                                # a bar on the side you can see and drag
 	_body.add_child(s)
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL

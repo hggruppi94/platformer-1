@@ -397,6 +397,7 @@ func _grid(tabs: TabContainer, name: String) -> GridContainer:
 	var scroll := ScrollContainer.new()
 	scroll.name = name
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	UiStyle.scroll_bar(scroll)                           # a bar on the side you can see and drag
 	tabs.add_child(scroll)
 	var g := GridContainer.new()
 	g.columns = 2

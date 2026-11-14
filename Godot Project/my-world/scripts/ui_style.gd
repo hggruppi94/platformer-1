@@ -176,13 +176,10 @@ static func theme(scale := -1.0, hc := false, use_settings := true) -> Theme:
 	var fill := box(Color(1, 0.9, 0.1) if hc else TEAL_DEEP, 6, INK, 0)
 	t.set_stylebox("grabber_area", "HSlider", fill)
 	t.set_stylebox("grabber_area_highlight", "HSlider", fill)
-	var bar := box(Color(1, 1, 1, 0.08), 8, Color(0, 0, 0, 0), 0)
-	var thumb := box(Color(0.6, 0.48, 0.95, 0.85), 8, Color(0, 0, 0, 0), 0)
-	var thumb_hi := box(TEAL, 8, Color(0, 0, 0, 0), 0)
-	t.set_stylebox("scroll", "VScrollBar", bar)
-	t.set_stylebox("grabber", "VScrollBar", thumb)
-	t.set_stylebox("grabber_highlight", "VScrollBar", thumb_hi)
-	t.set_stylebox("grabber_pressed", "VScrollBar", thumb_hi)
+	var bars := scroll_styles(scale, hc)
+	for k in bars:
+		t.set_stylebox(k, "VScrollBar", bars[k])
+	t.set_constant("scrollbar_v_separation", "ScrollContainer", roundi(8 * scale))
 	var field := box(Color(0.08, 0.05, 0.14), 10, Color(0.47, 0.34, 0.8), 2)
 	field.set_content_margin_all(fs.call(8))
 	var field_focus := field.duplicate() as StyleBoxFlat
@@ -261,6 +258,42 @@ static func fit_full_screen(root: Control, content: Control) -> void:
 	var s := minf(1.0, minf(vp.x / maxf(need.x, 1.0), vp.y / maxf(need.y, 1.0)))
 	root.scale = Vector2(s, s)
 	root.size = vp / s
+
+
+static func scroll_styles(scale := 1.0, hc := false) -> Dictionary:
+	# A scroll bar you can see (Hayden, 13 Nov playtest: "every menu that scrolls, can we put a scroll bar on the
+	# side?"): a dark track with a lavender edge and a bright, chunky thumb, wide enough to grab with the mouse
+	var w := maxi(roundi(8 * scale), 6)
+	var bar := box(Color(1, 1, 1, 0.5) if hc else Color(0.05, 0.02, 0.1, 0.55), 10, Color(1, 1, 1) if hc else EDGE, 2)
+	bar.content_margin_left = w
+	bar.content_margin_right = w
+	var thumb := box(Color(1, 0.9, 0.1) if hc else Color(0.72, 0.6, 1.0), 10, INK, 2)
+	thumb.content_margin_left = w
+	thumb.content_margin_right = w
+	var thumb_hi := box(Color(1, 1, 0.6) if hc else TEAL, 10, INK, 2)
+	thumb_hi.content_margin_left = w
+	thumb_hi.content_margin_right = w
+	return {"scroll": bar, "scroll_focus": bar, "grabber": thumb, "grabber_highlight": thumb_hi, "grabber_pressed": thumb_hi}
+
+
+static func scroll_bar(sc: ScrollContainer, scale := -1.0) -> ScrollContainer:
+	# Gives a scroll box the visible bar (scroll_styles) even where the menu's theme isn't UiStyle's (the map's
+	# legend), and a gap between the bar and the words. The bar shows whenever there's more than fits.
+	var hc := false
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree and tree.root.has_node("Settings"):
+		var st := tree.root.get_node("Settings")
+		scale = float(st.text_scale) if scale < 0.0 else scale
+		hc = bool(st.high_contrast)
+	if scale < 0.0:
+		scale = 1.0
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	var bars := scroll_styles(scale, hc)
+	var v := sc.get_v_scroll_bar()
+	for k in bars:
+		v.add_theme_stylebox_override(k, bars[k])
+	sc.add_theme_constant_override("scrollbar_v_separation", roundi(8 * scale))
+	return sc
 
 
 static func box(c: Color, radius: int, border: Color, width: int) -> StyleBoxFlat:

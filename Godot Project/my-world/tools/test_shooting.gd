@@ -108,6 +108,7 @@ func _run() -> void:
 		(g as Node3D).global_position += Vector3(0, -300, 0)      # out of the way: each check brings one up close
 
 	# --- From the hip: it finds a Gloop in front of her ---
+	root.get_node("Arsenal").give("popper", false)      # (bubbles come out of its tank now: she needs one bought)
 	var g0 := gloops[0] as CharacterBody3D
 	_stage(p, g0, flat, Vector3(7, 0, 1.5))
 	await _frames(3)

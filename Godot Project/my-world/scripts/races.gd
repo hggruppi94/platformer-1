@@ -61,9 +61,9 @@ const TRACKS := {
 			Vector3(-26, 0.2, -56), Vector3(-54, 0.2, -48), Vector3(-76, 0.2, -26), Vector3(-84, 0.2, 4), Vector3(-72, 0.2, 32)],
 		"boosts": [[0.5, 0.0], [3.5, -3.0], [7.5, 0.0], [10.5, 3.0], [13.5, 0.0]],
 		"boxes": [[1.5], [5.0], [8.5], [12.0]],
-		"goo": [[4.4, -3.0], [9.4, 3.0], [11.4, -2.5], [14.3, 2.0]],
+		"goo": [[4.4, -3.0], [9.4, 3.0], [11.4, -2.5], [14.0, 2.0]],
 		"obstacles": [[2.5, "bumper", -3.5], [2.6, "bumper", 3.5], [6.0, "ramp", 0.0], [6.8, "zapper", -3.4],
-			[7.2, "zapper", 3.4], [9.0, "sweeper", 0.0], [11.0, "bumper", 0.0], [13.0, "ramp", 0.0], [14.6, "bumper", -3.0]],
+			[7.2, "zapper", 3.4], [9.0, "sweeper", 0.0], [11.0, "bumper", 0.0], [13.0, "ramp", 0.0], [13.8, "bumper", -3.0]],
 		"prizes": [20, 15, 11, 8, 6, 4, 3, 2],
 		"rivals": ["dash", "rex", "clover", "rook", "pip", "green_man", "nina"],
 		"starter": {"name": "Zippy", "model": "res://models/characters/little_alien_pink.glb"},
@@ -87,7 +87,7 @@ const TRACKS := {
 		"goo": [[3.5, 2.5], [7.5, -2.5], [11.5, 2.5], [15.5, -2.5]],
 		"obstacles": [[1.3, "bumper", -2.5], [1.5, "bumper", 3.0], [3.0, "ramp", 0.0], [5.3, "bumper", 0.0], [6.6, "sweeper", 0.0],
 			[9.3, "ramp", 0.0], [10.6, "bumper", -3.5], [10.8, "bumper", 3.5], [13.3, "zapper", 3.4], [13.6, "zapper", -3.4],
-			[15.0, "sweeper", 0.0], [17.3, "ramp", 0.0]],
+			[15.0, "sweeper", 0.0], [16.2, "ramp", 0.0]],
 		"prizes": [22, 16, 12, 9, 6, 4, 3, 2],
 		"rivals": ["rook", "pip", "green_man", "clover", "bruno", "mr_palmer", "nina"],
 		"starter": {"name": "Dart", "model": "res://models/characters/little_alien_orange.glb"},
@@ -127,7 +127,7 @@ const TRACKS := {
 		"boxes": [[1.6], [5.0], [8.6], [12.0]],
 		"goo": [[4.3, -2.5], [6.4, 2.5], [11.3, -2.5]],
 		"obstacles": [[2.4, "bumper", 0.0], [4.7, "zapper", -3.4], [5.6, "zapper", 3.4], [7.0, "sweeper", 0.0], [8.0, "ramp", 0.0],
-			[9.4, "bumper", -3.0], [9.6, "bumper", 3.0], [11.7, "ramp", 0.0], [12.6, "sweeper", 0.0], [14.3, "bumper", 0.0]],
+			[9.4, "bumper", -3.0], [9.6, "bumper", 3.0], [11.7, "ramp", 0.0], [12.6, "sweeper", 0.0], [13.7, "bumper", 0.0]],
 		"prizes": [24, 17, 12, 9, 6, 4, 3, 2],
 		"rivals": ["dash", "rex", "mr_palmer", "bruno", "pip", "clover", "green_man"],
 		"starter": {"name": "Comet", "model": "res://models/characters/little_alien_blue.glb"},
@@ -149,10 +149,10 @@ const TRACKS := {
 			Vector3(-24, 0.2, -55), Vector3(-55, 0.2, -57), Vector3(-73, 0.2, -32), Vector3(-66, 0.2, -3), Vector3(-72, 0.2, 26)],
 		"boosts": [[0.5, 0.0], [4.5, 0.0], [8.5, 0.0], [12.5, 0.0]],
 		"boxes": [[2.0], [6.0], [10.0], [13.5]],
-		"goo": [[3.4, -2.5], [7.4, 2.5], [11.4, -2.5], [14.4, 2.5]],
+		"goo": [[3.4, -2.5], [7.4, 2.5], [11.4, -2.5], [13.9, 2.5]],
 		"obstacles": [[1.4, "bumper", -3.0], [1.6, "bumper", 3.0], [3.0, "ramp", 0.0], [5.0, "sweeper", 0.0], [6.6, "bumper", 0.0],
 			[8.0, "zapper", -3.4], [9.4, "ramp", 0.0], [10.7, "bumper", -3.5], [10.9, "bumper", 3.5], [12.0, "sweeper", 0.0],
-			[13.0, "zapper", 3.4], [14.6, "ramp", 0.0]],
+			[13.0, "zapper", 3.4], [14.15, "ramp", 0.0]],
 		"prizes": [20, 15, 11, 8, 5, 3, 2],
 		"rivals": ["nina_earth", "bruno", "ozzie", "juniper", "theo", "prue"],
 		"spares": [],
@@ -261,6 +261,7 @@ const SKY_BOOST := 2.0
 const RAMP_POP := 8.0                # a circuit's jump ramp (metres a second up)
 const KNOCK_SAFE := 2.5              # after being knocked over, a moment when nothing can knock you again
 const ATTACKS := preload("res://scripts/race_attacks.gd")
+const TUTORIAL := preload("res://scripts/race_tutorial.gd")
 
 var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
@@ -281,6 +282,7 @@ var place := 1
 var progress := 0.0                  # how far round the player is, all laps together
 var hud: RaceHud
 var intro: RaceIntro                 # the cutscene before a race (scripts/race_intro.gd)
+var tutorial: CanvasLayer            # how races work, the first time (scripts/race_tutorial.gd)
 var _count := 0.0
 var _results := 0.0
 var _shield := 0.0
@@ -313,6 +315,9 @@ func _ready() -> void:
 	intro.name = "RaceIntro"
 	add_child(intro)
 	intro.done.connect(_after_intro)
+	tutorial = TUTORIAL.new()
+	tutorial.name = "Tutorial"
+	add_child(tutorial)
 	attacks = ATTACKS.new()
 	attacks.name = "Attacks"
 	add_child(attacks)
@@ -672,6 +677,7 @@ func unlocked(id: String) -> bool:
 func talk(talker: Node3D) -> void:
 	if racing():
 		return
+	tutorial.gate_talked()
 	var holder := talker.get_parent()                                       # the talk spot is on the starter
 	if holder.has_meta("hub_id") and str(holder.get_meta("hub_id")) != "":
 		var hub := str(holder.get_meta("hub_id"))
@@ -904,6 +910,7 @@ func start(id: String, with_intro := true) -> bool:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("fakie", false)
 	skate.set("_boost_time", 0.0)                         # a boost from a booster on the way here (scripts/boosters.gd)
 	skate.set("_boost_fade", 0.0)                         # ...doesn't carry her over the line before GO
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
@@ -949,6 +956,8 @@ func start(id: String, with_intro := true) -> bool:
 	t.show_race(true)
 	hud.clear()
 	hud.show_map(t)
+	if not t.sky:
+		tutorial.begin()                          # the first race teaches as you go (scripts/race_tutorial.gd)
 	if Settings.race_intros and with_intro:
 		state = State.INTRO                       # the cutscene first (scripts/race_intro.gd), then the countdown
 		intro.play(t, rivals, str(TRACKS[id].name), str(TRACKS[id].blurb))
@@ -1204,6 +1213,7 @@ func _finish() -> void:
 	_clear_power()
 	track.show_race(false)
 	_refresh_boards()
+	tutorial.finish()
 	finished.emit(track_id, place)
 
 
@@ -1398,6 +1408,7 @@ func _back_on_track(p: Player, d: float) -> void:
 	var skate = p.get("skate")
 	skate.set("_yaw", yaw)
 	skate.set("_shown_yaw", yaw)
+	skate.set("fakie", false)
 	p.spring_arm.rotation.y = atan2(-f.x, -f.z)
 	hud.shout("Back on track!", Color(0.75, 0.9, 1.0), 0.4)
 	_along = -1.0

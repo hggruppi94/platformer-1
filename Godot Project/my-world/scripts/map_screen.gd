@@ -153,6 +153,14 @@ func has_snap() -> bool:
 	return s != null and not _snap.is_empty() and _snap.scene == s.get_instance_id()
 
 
+func minimap_width() -> float:
+	# How much of the bottom-right corner the minimap takes up on screen (0 when it's hidden), so the gadget readout
+	# can sit beside it rather than under it
+	if _mini_layer == null or not _mini_layer.visible:
+		return 0.0
+	return (MINI_SIZE + 16.0 + MINI_RING + 10.0) * _mini_layer.scale.x
+
+
 func has_map() -> bool:
 	# Somewhere with a map (not indoors)
 	return in_town() or on_earth() or has_snap()
@@ -832,6 +840,7 @@ func _build() -> void:
 	_legend_scroll = ScrollContainer.new()
 	_legend_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_legend_scroll.follow_focus = true
+	UiStyle.scroll_bar(_legend_scroll)                   # a bar on the side you can see and drag
 	_legend_box.add_child(_legend_scroll)
 	_legend_list = VBoxContainer.new()
 	_legend_list.add_theme_constant_override("separation", 4)

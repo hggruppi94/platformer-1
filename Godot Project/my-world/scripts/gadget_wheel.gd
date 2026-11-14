@@ -8,8 +8,8 @@ extends Control
 #   Tap it                             swaps back to the last gadget.
 #   1-8 / D-pad left and right         pick one straight away / the one before or after.
 #
-# The readout shows the gadget that's out, its version, its ammo and how close it is to growing a version. It only
-# shows once she has more than the Star Popper (or a mod).
+# The readout shows the gadget that's out, its version, its ammo (orange when it's running low) and how close it is to
+# growing a version. It shows as soon as she has a gadget.
 # Each gadget's two mod slots (Arsenal: mods) show as little dots under it, in the mod's colour (an empty ring for an
 # empty slot), and the middle of the wheel names the mods and their combo. Mods are swapped in the Bag.
 
@@ -145,7 +145,7 @@ func slot_angle(i: int) -> float:
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	var s := Settings.text_scale
-	if (Arsenal.owned.size() > 1 or not Arsenal.mods_owned.is_empty()) and not open:
+	if not Arsenal.owned.is_empty() and not open:     # (every gadget has ammo now, the Star Popper too)
 		_draw_readout(font, s)
 	if open:
 		_draw_wheel(font, s)
@@ -155,7 +155,8 @@ func _draw_readout(font: Font, s: float) -> void:
 	var id := Arsenal.current
 	var w := 250.0 * s
 	var h := 64.0 * s
-	var at := Vector2(size.x - w - 24.0, size.y - h - 24.0)
+	# (left of the minimap, which shares the bottom-right corner)
+	var at := Vector2(size.x - w - 24.0 - TownMap.minimap_width(), size.y - h - 24.0)
 	draw_rect(Rect2(at, Vector2(w, h)), Color(0.12, 0.07, 0.2, 0.7))
 	draw_circle(at + Vector2(h / 2.0, h / 2.0), h * 0.32, Arsenal.colour(id))
 	_icon(id, at + Vector2(h / 2.0, h / 2.0), h * 0.26)
@@ -165,7 +166,7 @@ func _draw_readout(font: Font, s: float) -> void:
 	var am := Arsenal.ammo_of(id)
 	var ammo_text := "∞" if am < 0 else "%d / %d" % [am, Arsenal.max_ammo(id)]
 	draw_string(font, Vector2(x, at.y + 46.0 * s), ammo_text, HORIZONTAL_ALIGNMENT_LEFT, -1, roundi(17 * s),
-		Color(1.0, 0.55, 0.6) if am == 0 else Color(0.8, 1.0, 0.95))
+		Color(1.0, 0.55, 0.6) if am == 0 else (Color(1.0, 0.75, 0.35) if Arsenal.low(id) else Color(0.8, 1.0, 0.95)))
 	_mod_dots(id, Vector2(at.x + w - 40.0 * s, at.y + 42.0 * s), 6.0 * s)
 	var bar := Rect2(Vector2(x, at.y + h - 10.0 * s), Vector2(w - h - 12.0, 5.0 * s))
 	draw_rect(bar, Color(1, 1, 1, 0.15))
@@ -191,7 +192,7 @@ func _draw_wheel(font: Font, s: float) -> void:
 			draw_arc(p, rad + 9.0, -PI / 2.0, -PI / 2.0 + TAU * Arsenal.progress(id), 32, Color(1.0, 0.82, 0.3), 4.0, true)
 			var am := Arsenal.ammo_of(id)
 			draw_string(font, p + Vector2(-rad, rad + 28.0 * s), "∞" if am < 0 else str(am), HORIZONTAL_ALIGNMENT_CENTER,
-				rad * 2.0, roundi(16 * s), Color(1.0, 0.55, 0.6) if am == 0 else Color(1, 1, 1))
+				rad * 2.0, roundi(16 * s), Color(1.0, 0.55, 0.6) if am == 0 else (Color(1.0, 0.75, 0.35) if Arsenal.low(id) else Color(1, 1, 1)))
 			_mod_dots(id, p + Vector2(0, -rad - 14.0 * s), 5.0 * s)
 		else:
 			draw_string(font, p + Vector2(-rad, 10.0 * s), "?", HORIZONTAL_ALIGNMENT_CENTER, rad * 2.0, roundi(30 * s),
