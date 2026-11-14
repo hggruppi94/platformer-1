@@ -71,7 +71,6 @@ var _stun_timer := 0.0
 var _roll_timer := 0.0
 var _roll_dir := Vector3.ZERO
 var _roll_buffer_timer := 0.0
-var _roll_boost := 1.0                      # a kinetic burst roll goes faster (scripts/kinetic.gd)
 var _dash_held := 0.0                       # how long the roll button's been held (sprinting after sprint_hold)
 var sprinting := false
 # Sprinting needs the roll button pressed fresh, on foot, and held ever since. Anything else she does in between (a
@@ -587,7 +586,7 @@ func _physics_process(delta: float) -> void:
 	if _roll_timer > 0.0:
 		_roll_timer -= delta
 		var f := 1.0 - maxf(_roll_timer, 0.0) / roll_time
-		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f) * _roll_boost   # fast start, eases into a run
+		horizontal = _roll_dir * lerpf(roll_speed, roll_end_speed, f * f)   # fast start, eases into a run
 	elif _stun_timer > 0.0:
 		pass                                # knocked back: ride out the hit
 	else:
@@ -657,7 +656,6 @@ func _try_roll(direction: Vector3) -> void:
 	_roll_dir.y = 0.0
 	_roll_dir = _roll_dir.normalized()
 	_roll_timer = roll_time
-	_roll_boost = kinetic.roll_boost() if kinetic else 1.0     # a full kinetic charge lets go as a burst
 	_spin(roll_time, 0.5, true)
 	Audio.play("roll", -2.0, 0.08)
 	Juice.burst(get_parent(), global_position + Vector3(0, 0.1, 0), Color(0.9, 0.85, 0.75, 0.7), 8, 0.08, 1.5, 0.5)

@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Screenshots of Dash's kinetic energy and Nina and Bruno's making power (scripts/kinetic.gd, scripts/make.gd): Bruno
-# teaching it, the kinetic meter full, a kinetic burst popping Gloops, a made bridge out over the lake, and a step
+# teaching it, the kinetic meter full, a kinetic boost on a ride, a made bridge out over the lake, and a step
 # made in mid-air. Opens a window (not --headless):
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_powers.gd -- <output folder>
@@ -99,30 +99,28 @@ func _bruno() -> void:
 
 
 func _kinetic() -> void:
-	var s := current_scene as Node3D
+	# The gold KE bar full in the stats corner, then a full charge let out as a boost on the skateboard
 	var p := _player()
+	var game := root.get_node("Game")
 	p.global_position = _ground(-18.0, 50.0) + Vector3(0, 1.0, 0)
 	await _physics(20)
 	var k := p.get_node("Kinetic")
 	k.charge = 1.0
-	k._changed_at = k._now()
 	_look(p.global_position + Vector3(4.0, 2.4, 5.5), p.global_position + Vector3(0, 0.5, 0))
 	await _frames(6)
-	await _shot("02_kinetic_charge_full")
-	var gloops: Array = []
-	for e in get_nodes_in_group("enemies"):
-		if e is CharacterBody3D and str(e.name).begins_with("Gloop") and not e.get("defeated") and gloops.size() < 3:
-			gloops.append(e)
-	for i in gloops.size():
-		var a := i * TAU / 3.0 + 0.5
-		(gloops[i] as Node3D).global_position = p.global_position + Vector3(sin(a) * 3.5, 0.3, cos(a) * 3.5)
-	await _physics(4)
-	root.get_node("Game").sp = root.get_node("Game").max_sp
-	p._try_roll(Vector3(1, 0, 0))
-	await create_timer(0.18).timeout
-	_look(p.global_position + Vector3(6.0, 4.5, 7.0), p.global_position)
-	await _shot("03_kinetic_burst_pops_gloops")
-	await create_timer(1.0).timeout
+	await _shot("02_kinetic_bar_full")
+	game.riding = true
+	game.equipment_changed.emit()
+	p.visual.rotation.y = PI * 0.5
+	await _physics(20)
+	k.ride_boost()
+	await _physics(14)
+	_look(p.global_position + Vector3(-3.0, 2.2, 5.0), p.global_position + Vector3(2.0, 0.4, 0))
+	await _shot("03_kinetic_ride_boost")
+	await create_timer(2.5).timeout
+	game.riding = false
+	game.equipment_changed.emit()
+	await _physics(10)
 
 
 func _bridge() -> void:
