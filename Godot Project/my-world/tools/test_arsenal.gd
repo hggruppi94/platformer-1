@@ -85,7 +85,8 @@ func _run() -> void:
 	check(shop.buy("star_popper") and arsenal.owned == ["popper"] and arsenal.current == "popper" and arsenal.armed(),
 		"buying the Star Popper: it's her first gadget, and it's out")
 	shop.close()
-	check(arsenal.ammo_of("popper") < 0 and arsenal.has_ammo("popper"), "...which never runs out")
+	check(arsenal.ammo_of("popper") == arsenal.max_ammo("popper") and arsenal.max_ammo("popper") == 40,
+		"...with a full tank of bubbles (%d), not endless any more" % arsenal.ammo_of("popper"))
 	var stall_items: Array = shop.for_stall("Gadget")
 	check(stall_items.size() >= 4, "Dash's stall sells gadgets and refills (%d things)" % stall_items.size())
 
@@ -279,7 +280,7 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 	var mods_sold: int = bench.filter(func(it: Dictionary) -> bool: return it.kind == "mod").size()
 	check(mods_sold == 4, "...it sells the four mods (%d)" % mods_sold)
 	var ups: Array = bench.filter(func(it: Dictionary) -> bool: return it.kind == "gadget_upgrade")
-	check(ups.size() == 8 and ups.all(func(it: Dictionary) -> bool: return int(it.level) == 1),
+	check(ups.size() == 9 and ups.all(func(it: Dictionary) -> bool: return int(it.level) == 1),
 		"...and the first level of each upgrade for the gadgets she has (%d)" % ups.size())
 	var dear: Array = shop.items.values().filter(func(it: Dictionary) -> bool:
 		return it.stall in ["Gadget", "Workbench"] and int(it.price) > 20)
@@ -302,8 +303,8 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 	arsenal.upgrade("disco", "splash")
 	check(float(arsenal.stat("disco", "cooldown")) < cd and float(arsenal.stat("disco", "radius")) > rad,
 		"Quick Hands and Big Splash make the Disco Ball quicker and bigger")
-	check(shop.can_buy("upgrade_popper_reload_2") == "Needs level 1 first" and not shop.items.has("upgrade_popper_ammo_1"),
-		"upgrades go in order, and the Star Popper has no tank to upgrade")
+	check(shop.can_buy("upgrade_popper_reload_2") == "Needs level 1 first" and shop.items.has("upgrade_popper_ammo_1"),
+		"upgrades go in order, and the Star Popper's tank can be made bigger too")
 	shop.close()
 
 	# --- The four new gadgets (bought, then each tried with every mod) ---
@@ -313,7 +314,7 @@ func _slice_2_and_3(town: Node, p: CharacterBody3D, popper: Node, gloops: Array[
 		shop.close()
 	check(["plush", "buzz", "rainbow", "jelly"].all(func(id: String) -> bool: return arsenal.owns(id)),
 		"Dash's stall sells the Plushinator, Buzz Bots, Rainbow Ray and Jelly Mines")
-	check(shop.for_stall("Gadget").filter(func(it: Dictionary) -> bool: return it.kind == "ammo").size() == 6,
+	check(shop.for_stall("Gadget").filter(func(it: Dictionary) -> bool: return it.kind == "ammo").size() == 7,
 		"...and refills for each gadget she has")
 	await _frames(2)
 	for id in ["plush", "buzz", "rainbow", "jelly"]:

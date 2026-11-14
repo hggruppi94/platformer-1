@@ -584,8 +584,7 @@ func _raise_gear() -> void:
 
 func _start_gadgets() -> void:
 	for id in Arsenal.owned:
-		if id != "popper":
-			Arsenal.refill(id, 99)
+		Arsenal.refill(id, 99)
 	for a in [-1.0, 0.0, 1.0]:
 		var c := _crystal()
 		root.add_child(c)

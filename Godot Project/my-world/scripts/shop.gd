@@ -20,6 +20,7 @@ signal bought(item_id: String)
 signal opened(stall: String)         # a stall opened (scripts/first_night.gd: looking at Dash's gadget stall)
 
 const DATA := "res://shop/items.json"
+const TOUR_FLAG := "tour_dash_shop"     # Dash has shown you round his stall (scripts/shop_tour.gd FLAG)
 
 var items := {}                    # id -> item
 var stall_blurbs := {}
@@ -39,6 +40,10 @@ var _scroll: ScrollContainer
 var _note: Label
 var _close: Button
 var _keep_focus := ""              # the wardrobe button to stay on after the window refills
+var _row_focus := ""               # the stall button to stay on after a buy refills the window
+var _help: Button                  # Dash's stall: "How does it work?" (scripts/shop_tour.gd)
+var tour: Control                  # Dash's walk round his stall (scripts/shop_tour.gd)
+var auto_tour := false             # tests: start Dash's tour on the first open even in a headless run
 var who := "hero"                  # whose outfit and looks the wardrobe is changing (scripts/clothes.gd WHO)
 var outfit_slot := 0               # which of the quick outfit wheel's places "Save this outfit" saves to
 var kinds := {}                    # kind -> {can_buy: Callable(item) -> String, buy: Callable(item) -> String, button}
@@ -157,6 +162,7 @@ func buy(id: String) -> bool:
 	Game.equipment_changed.emit()
 	Game.save_game()
 	bought.emit(id)
+	_row_focus = "Button " + id                       # (stay on that row, don't jump down the list)
 	_fill()
 	return true
 
@@ -274,8 +280,17 @@ func open(stall: String) -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	Audio.play("ui_accept", -4.0, 0.0)
-	if not stall in ["Wardrobe", "Decorate"]:
+	# Dash walks you round his stall the first time it's open to you (scripts/shop_tour.gd), instead of the usual tip
+	if stall == "Gadget" and not Dialogue.flags.has(TOUR_FLAG) and (auto_tour or DisplayServer.get_name() != "headless"):
+		start_tour()
+	elif not stall in ["Wardrobe", "Decorate"]:
 		Tips.show_tip("shop")                      # the first time at a stall (scripts/tips.gd)
+
+
+func start_tour() -> void:
+	# Dash's walk round his gadget stall: the stall's "How does it work?" button, and the first time it opens
+	if is_open() and _stall == "Gadget":
+		tour.call("start")
 
 
 func close() -> void:
@@ -331,9 +346,15 @@ func _fill() -> void:
 	for c in _rows.get_children():
 		_rows.remove_child(c)
 		c.queue_free()
+	# The window opens at the top of the list with the top row picked, and after a buy it stays on that row (Hayden, 13
+	# Nov playtest: Dash's gadget window opened scrolled right to the bottom, on the first thing that could be bought).
+	# Rows that can't be bought yet can still be picked, so a controller can read down the whole list.
 	var first: Button = null
+	var kept: Button = null
+	_help.visible = _stall == "Gadget"
 	for it in for_stall(_stall):
 		var row := HBoxContainer.new()
+		row.name = "Row " + str(it.id)
 		row.add_theme_constant_override("separation", 16)
 		var words := Label.new()
 		words.text = "%s   %s%s\n%s" % [it.name, "pays " if sells(it) else "", price_text(it), it.text]
@@ -363,12 +384,17 @@ func _fill() -> void:
 			b.disabled = why != ""
 			b.pressed.connect(buy.bind(id))
 		b.name = "Button " + id
+		b.focus_mode = Control.FOCUS_ALL
 		row.add_child(b)
 		_rows.add_child(row)
-		if first == null and not b.disabled:
+		if first == null:
 			first = b
-	_fit_later.call_deferred()
-	_focus_later.call_deferred(first if first else _close)
+		if b.name == _row_focus:
+			kept = b
+	var fresh := _row_focus == ""
+	_row_focus = ""
+	_fit_later.call_deferred(fresh)
+	_focus_later.call_deferred(kept if kept else (first if first else _close))
 
 
 func _focus_later(b: Control) -> void:
@@ -377,12 +403,17 @@ func _focus_later(b: Control) -> void:
 		b.grab_focus()
 
 
-func _fit_later() -> void:
-	# Once now, and again when the wrapped text has been laid out at the window's real width
+func _fit_later(to_top := false) -> void:
+	# Once now, and again when the wrapped text has been laid out at the window's real width. A window that's just
+	# opened (not refilled after a buy) starts at the top of its list.
 	_fit_scroll()
+	if to_top:
+		_scroll.scroll_vertical = 0
 	await get_tree().process_frame
 	if is_open():
 		_fit_scroll()
+		if to_top:
+			_scroll.scroll_vertical = 0
 
 
 func _fit_scroll() -> void:
@@ -601,6 +632,7 @@ func _build() -> void:
 	_scroll = ScrollContainer.new()
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.follow_focus = true
+	UiStyle.scroll_bar(_scroll)                          # a bar on the side you can see and drag
 	v.add_child(_scroll)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 10)
@@ -610,10 +642,18 @@ func _build() -> void:
 	_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	v.add_child(_note)
 	_blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # Zippy's long hello wrapped, not off the screen
+	_help = Button.new()
+	_help.name = "Help"
+	_help.text = "How does it work?"
+	_help.visible = false
+	_help.pressed.connect(func() -> void: start_tour())
+	v.add_child(_help)
 	_close = Button.new()
 	_close.text = "Bye!"
 	_close.pressed.connect(close)
 	v.add_child(_close)
+	tour = (load("res://scripts/shop_tour.gd") as GDScript).new(self)
+	_layer.add_child(tour)
 	UiStyle.keep_on_screen(_panel)
 
 
@@ -633,3 +673,8 @@ func _apply_look() -> void:
 	_note.add_theme_font_size_override("font_size", roundi(18 * Settings.text_scale))
 	_note.add_theme_color_override("font_color", Color(0.75, 1.0, 0.8))
 	_close.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
+	_help.add_theme_font_size_override("font_size", roundi(19 * Settings.text_scale))
+	_help.icon = UiIcons.get_icon("tour", roundi(26 * Settings.text_scale))
+	UiStyle.scroll_bar(_scroll)
+	if tour:
+		tour.call("apply_look")
