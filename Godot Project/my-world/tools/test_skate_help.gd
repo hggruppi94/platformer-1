@@ -172,6 +172,12 @@ func _fakie() -> void:
 	var going := Vector3(p.velocity.x, 0, p.velocity.z).normalized()
 	check(bails[0] == 0 and s.fakie, "landing backwards rides away fakie, no bail")
 	check(s._facing().dot(going) < -0.9, "...and she stays that way round as she rolls (no snapping back)")
+	var looks := p.visual.global_basis.z
+	looks = Vector3(looks.x, 0, looks.z).normalized()
+	var board_points := p.board.global_basis.z
+	board_points = Vector3(board_points.x, 0, board_points.z).normalized()
+	check(looks.dot(going) > 0.9 and board_points.dot(going) < -0.9,
+		"...looking forward, where she's going, with the board turned round under her (%.2f, %.2f)" % [looks.dot(going), board_points.dot(going)])
 	p.velocity = Vector3(0, 2, -7)
 	s._pop()
 	s._yaw = PI                                           # a 180: the right way round again

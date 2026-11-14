@@ -178,6 +178,26 @@ func use_layout(style: String) -> void:
 
 func _input(event: InputEvent) -> void:
 	note_device(event)
+	_unstick_modifiers(event)
+
+
+func _unstick_modifiers(event: InputEvent) -> void:
+	# Shift (Roll / sprint / dive) or Ctrl sometimes stayed held down after it was let go (Hayden, 14 Nov playtest:
+	# "the shift is getting stuck putting them in descend mode or sprint mode until it's pressed again"): the
+	# computer can lose a key's "let go". Every other key and mouse button press says which of those keys are really
+	# down, so when one says Shift (or Ctrl, Alt) isn't but the game still thinks it is, let go of it for real.
+	if not (event is InputEventKey or event is InputEventMouseButton):
+		return
+	var we := event as InputEventWithModifiers
+	if event is InputEventKey and (event as InputEventKey).physical_keycode in [KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_META]:
+		return                                      # (the key itself: its own up and down are the truth)
+	for pair in [[KEY_SHIFT, we.shift_pressed], [KEY_CTRL, we.ctrl_pressed], [KEY_ALT, we.alt_pressed]]:
+		if not pair[1] and Input.is_physical_key_pressed(pair[0]):
+			var up := InputEventKey.new()
+			up.physical_keycode = pair[0]
+			up.keycode = pair[0]
+			up.pressed = false
+			Input.parse_input_event.call_deferred(up)
 
 
 func note_device(event: InputEvent) -> void:

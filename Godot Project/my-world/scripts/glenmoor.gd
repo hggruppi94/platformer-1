@@ -391,6 +391,7 @@ func fluff_step(player: Node3D, delta: float) -> void:
 					_fluffs[i][1] = p + Vector3(cos(a), 0, sin(a)) * 3.0
 				move = (_fluffs[i][1] - p) * Vector3(1, 0, 1)
 				move = move.normalized() * GRAZE_SPEED if move.length() > 0.1 else Vector3.ZERO
+		move = _fluff_slide(f, p, move, delta, player)
 		var q := p + move * delta
 		q = _keep_fluff_out(q, i)
 		if hill:
@@ -415,6 +416,56 @@ func fluff_step(player: Node3D, delta: float) -> void:
 			pen_fluff(i)
 
 
+func _fluff_slide(f: Node3D, p: Vector3, move: Vector3, delta: float, player: Node3D) -> Vector3:
+	# Fluffkins go round walls, fences and houses instead of through them, and one that's pinned in a corner while
+	# you chase it slips out sideways (Hayden, 14 Nov playtest: one got stuck behind a wall)
+	if move.length() < 0.01 or not is_inside_tree():
+		return move
+	var space := get_world_3d().direct_space_state
+	var dir := move.normalized()
+	for k in 2:
+		var from := p + Vector3(0, 0.45, 0)
+		var q := PhysicsRayQueryParameters3D.create(from, from + dir * (move.length() * delta + 0.75))
+		if player is CollisionObject3D:
+			q.exclude = [(player as CollisionObject3D).get_rid()]
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			break
+		var fold_wall := get_node_or_null("The Fold")
+		if fold_wall and fold_wall.is_ancestor_of(hit.collider):
+			break                                       # (the Fold's own wall: _keep_fluff_out sees to that)
+		var n: Vector3 = hit.normal
+		n.y = 0.0
+		if n.length() < 0.2:
+			break                                       # (the ground rising: walk on up)
+		n = n.normalized()
+		var along := move - n * move.dot(n)
+		if along.length() < move.length() * 0.3:
+			# Head on: slip off to the side away from you (or either side, grazing)
+			var side := Vector3(-n.z, 0, n.x)
+			if player and side.dot(p - player.global_position) < 0.0:
+				side = -side
+			along = side * move.length()
+		move = along
+		dir = move.normalized()
+	# Pinned (in a corner) while running away: a little slip sideways for a moment
+	var stuck := float(f.get_meta("stuck", 0.0))
+	var last: Vector3 = f.get_meta("last_at", p)
+	if f.get_meta("bounce", false) and (p - last).length() < move.length() * delta * 0.25:
+		stuck += delta
+	else:
+		stuck = maxf(stuck - delta, 0.0)
+	f.set_meta("last_at", p)
+	if stuck > 0.6:
+		var slip := Vector3(-move.z, 0, move.x).normalized()
+		if f.get_index() % 2 == 1:
+			slip = -slip
+		move = slip * FLEE_SPEED
+		stuck = 0.0 if stuck > 1.6 else stuck
+	f.set_meta("stuck", stuck)
+	return move
+
+
 func _keep_fluff_out(q: Vector3, i: int) -> Vector3:
 	# The Fold's wall: a Fluffkin outside it can only come in through the gate (and a penned one stays in)
 	var fold := _fold()
@@ -431,7 +482,10 @@ func _keep_fluff_out(q: Vector3, i: int) -> Vector3:
 			return Vector3(c.x + back.x, q.y, c.z + back.y)
 		return q
 	if not at_gate and d.length() < r + 0.9 and d.length() > r - 1.0:
-		var out := d.normalized() * (r + 0.9)
+		# Pushed up against the Fold's wall: it edges round the wall towards the gate rather than sticking there
+		var gate := float(fold.get_meta("gate"))
+		var a2 := a + clampf(wrapf(gate - a, -PI, PI), -0.006, 0.006)
+		var out := Vector2(cos(a2), sin(a2)) * (r + 0.9)
 		return Vector3(c.x + out.x, q.y, c.z + out.y)
 	return q
 
