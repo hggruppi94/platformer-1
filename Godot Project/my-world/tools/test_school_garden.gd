@@ -53,11 +53,14 @@ func _run() -> void:
 
 	# --- Ground everywhere on the campus (the sunken festival lawn and the pool are lower on purpose) ---
 	var holes := []
+	var hatch := school.get_node_or_null("Lower Level/Maze Hatch") as Node3D     # the hatch down: a hole on purpose
 	for x in range(int(CAMPUS.position.x) + 1, int(CAMPUS.end.x)):
 		for z in range(int(CAMPUS.position.y) + 1, int(CAMPUS.end.y)):
 			var p := Vector3(x, 30, z)
 			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p, p + Vector3(0, -60, 0)))
 			var low := -3.0 if (BOWL.has_point(Vector2(x, z)) or POOL.has_point(Vector2(x, z))) else -0.5
+			if hatch and Vector2(x, z).distance_to(Vector2(hatch.position.x, hatch.position.z)) < 1.6:
+				continue
 			if hit.is_empty() or (hit.position as Vector3).y < low:
 				holes.append(Vector2(x, z))
 	check(holes.is_empty(), "ground under every step of the campus: holes at %s" % [holes])

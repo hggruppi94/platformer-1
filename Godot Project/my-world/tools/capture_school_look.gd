@@ -44,6 +44,16 @@ const VIEWS := [
 	["28_sky_pavilion", Vector3(2, 21.0, 0.5), Vector3(2, 19.5, -12)],
 	["29_magic_craft_pods", Vector3(9, 20.2, -10), Vector3(0, 19.0, -17.5)],
 	["30_roof_from_above", Vector3(10, 48, 62), Vector3(-2, 18, 0)],
+	# slice 4: the hidden lower level
+	["31_maze_hatch", Vector3(-30.5, 6.5, 48.0), Vector3(-34, -0.5, 44.9)],
+	["32_hatch_spiral_down", Vector3(-33.4, 0.9, 44.3), Vector3(-34.3, -5.5, 45.4)],
+	["33_west_tunnel", Vector3(-34, -4.3, 41), Vector3(-34, -4.6, 20)],
+	["34_into_the_logia", Vector3(-15, -4.2, -6), Vector3(0, -5, -6)],
+	["35_logia_chambers", Vector3(-10, -2.2, -12.5), Vector3(1, -5.6, -4)],
+	["36_logia_table", Vector3(3.6, -3.7, -2.4), Vector3(0, -5.1, -6)],
+	["37_hidden_stair_foot", Vector3(28.55, -4.3, -7.6), Vector3(28.55, -4.6, -14)],
+	["38_east_tunnel", Vector3(36, -4.3, -8.5), Vector3(36, -4.6, -30)],
+	["39_pool_plant_room", Vector3(41.5, -3.4, -31.2), Vector3(52, -5.2, -36)],
 ]
 
 var out_dir := "user://school_look_shots"
@@ -83,6 +93,22 @@ func _run(night: bool) -> void:
 	cam.make_current()
 	for v: Array in VIEWS:
 		await _view(str(v[0]) + ("_night" if night else ""), v[1], v[2])
+	# The centipede's jumpscare at the north Sliver, caught as it drops down in front of her
+	game.mp_level = 9
+	game.stats_changed.emit()
+	var sl := current_scene.find_child("Sliver", true, false)
+	if sl and sl.has_method("jumpscare"):
+		var base: Vector3 = sl.global_position
+		var behind: Vector3 = sl.behind_dir()
+		player.global_position = base - behind * 1.0 + behind.cross(Vector3.UP) * 0.45 + Vector3(0, 0.9, 0)
+		await create_timer(0.3).timeout
+		sl.jumpscare(player)
+		cam.global_position = base - behind * 1.75 + behind.cross(Vector3.UP) * -0.5 + Vector3(0, 2.2, 0)
+		cam.look_at(base - behind * 0.35 + Vector3(0, 1.5, 0))
+		await create_timer(0.35).timeout
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(out_dir.path_join("40_sliver_jumpscare.png"))
+		print("SHOT 40_sliver_jumpscare")
 	_finish()
 
 
