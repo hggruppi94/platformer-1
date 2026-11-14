@@ -17,6 +17,9 @@ const WALL_H := 1.1                   # how high the walls stand above the road
 const WALL_T := 0.5                   # ...and how thick
 const KERB := 0.9                     # the striped strip along each edge
 const GROUND_SIZE := 900.0
+const SC_HALF := 3.6                  # a secret shortcut's half width (the road's is 7)
+const SC_ROOF := 5.4                  # ...and how high its tunnel's roof is over its floor
+const TUNNEL_TOP := 9.5               # a tunnel over the road: its arch's top over the road (rings stand 7.2 m tall)
 
 @export var circuit_id := ""
 
@@ -25,6 +28,16 @@ var line: Array[Vector3] = []          # the middle of the road, about a metre b
 var _samples: PackedVector2Array      # every third point of the line, flat, for "how far from the road?"
 var _rng := RandomNumberGenerator.new()
 var _mats := {}
+var dist: Array[float] = []           # how far round each point of the line is (flat metres)
+var cp_idx: Array[int] = []           # where each checkpoint is in the line
+var total := 0.0                      # the whole loop's length
+# Secret shortcuts (Hayden's 13 Nov 2026 playtest: "secret shortcuts, tunnels"): a gap in the wall on the inside of a
+# bend, hidden behind a curtain of vines (corn on Earth), into a tunnel that cuts across the middle and comes out
+# further round. Each: {name, from, to (checkpoint segments, as everything else in Races.TRACKS), inner (-1 left,
+# 1 right), path (the middle of its floor, a point a metre), d0, d1 (how far round the road it leaves and joins)}.
+# Races (scripts/races.gd _shortcut()) moves you on past the rings it skips.
+var shortcuts: Array = []
+var _open := {}                       # line index -> which side's wall is open for a shortcut's mouth (-1 / 1)
 
 
 func _enter_tree() -> void:
@@ -33,9 +46,16 @@ func _enter_tree() -> void:
 	if track.is_empty():
 		push_error("race_circuit.gd: no track called %s" % circuit_id)
 		return
-	line = RaceTrack.spline(track.points)
+	line = RaceTrack.spline(track.points, cp_idx)
 	for i in range(0, line.size(), 3):
 		_samples.append(Vector2(line[i].x, line[i].z))
+	total = 0.0
+	for i in line.size():
+		if i > 0:
+			total += Vector2(line[i].x, line[i].z).distance_to(Vector2(line[i - 1].x, line[i - 1].z))
+		dist.append(total)
+	total += Vector2(line[0].x, line[0].z).distance_to(Vector2(line[-1].x, line[-1].z))
+	_plan_shortcuts()
 	var a := line[line.size() - 8]
 	var b := line[0]
 	for n in [get_node_or_null("Entrance"), get_node_or_null("Player")]:
@@ -52,6 +72,10 @@ func _ready() -> void:
 	_environment(str(c.get("theme", "void")))
 	_ground(str(c.get("theme", "void")))
 	_road(str(c.get("theme", "void")))
+	for k in shortcuts.size():
+		_shortcut(k, str(c.get("theme", "void")))
+	for tn in track.get("tunnels", []):
+		_road_tunnel(float(tn[0]), float(tn[1]), str(c.get("theme", "void")))
 	match str(c.get("feature", "")):
 		"lake":
 			_lake()
@@ -228,18 +252,14 @@ func _road(theme: String) -> void:
 	for i in n:
 		var j := (i + 1) % n
 		var kerb := kerb_a if (i / 2) % 2 == 0 else kerb_b
-		var profile := [
-			[-hw - WALL_T, -1, bank_c], [-hw - WALL_T, WALL_H, top_c], [-hw, WALL_H, wall_c], [-hw, 0.0, kerb],
-			[-hw + KERB, 0.0, road_c], [hw - KERB, 0.0, kerb], [hw, 0.0, wall_c], [hw, WALL_H, top_c],
-			[hw + WALL_T, WALL_H, bank_c], [hw + WALL_T, -1, null]]
-		for k in profile.size() - 1:
-			var a: Array = profile[k]
-			var b: Array = profile[k + 1]
-			var ai := _at(i, sides[i], a)
-			var aj := _at(j, sides[j], a)
-			var bi := _at(i, sides[i], b)
-			var bj := _at(j, sides[j], b)
-			var c: Color = a[2]
+		var pi := _profile(i, hw, [bank_c, top_c, wall_c, kerb, road_c])
+		var pj := _profile(j, hw, [bank_c, top_c, wall_c, kerb, road_c])
+		for k in pi.size() - 1:
+			var ai := _at(i, sides[i], pi[k])
+			var aj := _at(j, sides[j], pj[k])
+			var bi := _at(i, sides[i], pi[k + 1])
+			var bj := _at(j, sides[j], pj[k + 1])
+			var c: Color = pi[k][2]
 			# Winding: clockwise seen from the face's outside (the road's top from above)
 			for v in [ai, aj, bj, ai, bj, bi]:
 				st.set_color(c)
@@ -279,11 +299,378 @@ func _road(theme: String) -> void:
 	_mesh(self, dashes.commit(), Vector3.ZERO, _mat("Road Dash", dash_c, 0.6), false).name = "Dashes"
 
 
+func _profile(i: int, hw: float, c: Array) -> Array:
+	# The road's cross-section at line point i, left to right: [metres to the right, metres up (or -1: down to the
+	# ground), colour]. Where a secret shortcut's mouth is, that side's wall is down to the road (_open).
+	var wl := 0.0 if int(_open.get(i, 0)) == -1 else WALL_H
+	var wr := 0.0 if int(_open.get(i, 0)) == 1 else WALL_H
+	return [[-hw - WALL_T, -1, c[0]], [-hw - WALL_T, wl, c[1]], [-hw, wl, c[2]], [-hw, 0.0, c[3]],
+		[-hw + KERB, 0.0, c[4]], [hw - KERB, 0.0, c[3]], [hw, 0.0, c[2]], [hw, wr, c[1]],
+		[hw + WALL_T, wr, c[0]], [hw + WALL_T, -1, null]]
+
+
 func _at(i: int, side: Vector3, p: Array) -> Vector3:
 	# A point of the cross-section at line point i: "-1" for the height means down into the ground
 	var c := line[i]
 	var y := c.y + float(p[1]) if float(p[1]) >= 0.0 else -0.4
 	return Vector3(c.x, y, c.z) + side * float(p[0])
+
+
+# -----------------------------------------------------------------------------
+# Secret shortcuts and tunnels
+# -----------------------------------------------------------------------------
+func d_at(seg: float) -> float:
+	# How far round the road a checkpoint segment value is (2.5: halfway from checkpoint 2 to 3)
+	var i := clampi(int(floor(seg)), 0, cp_idx.size() - 1)
+	var a := dist[cp_idx[i]]
+	var b := dist[cp_idx[i + 1]] if i + 1 < cp_idx.size() else total
+	return a + (b - a) * (seg - i)
+
+
+func index_at(d: float) -> int:
+	d = fposmod(d, total)
+	var lo := 0
+	var hi := dist.size() - 1
+	while lo < hi:
+		var mid := (lo + hi + 1) / 2
+		if dist[mid] <= d:
+			lo = mid
+		else:
+			hi = mid - 1
+	return lo
+
+
+func _fwd(i: int) -> Vector3:
+	var n := line.size()
+	var f := line[(i + 1) % n] - line[(i - 1 + n) % n]
+	f.y = 0.0
+	return f.normalized()
+
+
+func _plan_shortcuts() -> void:
+	# Each shortcut's path: a smooth curve leaving the road on the inside of the bend, angled in, across the middle
+	# and back onto the road further round, angled out again
+	var hw := half_width()
+	var n := line.size()
+	for sc in track.get("shortcuts", []):
+		var d0 := d_at(float(sc.from))
+		var d1 := d_at(float(sc.to))
+		var i0 := index_at(d0)
+		var i1 := index_at(d1)
+		var f0 := _fwd(i0)
+		var f1 := _fwd(i1)
+		var s0 := f0.cross(Vector3.UP).normalized()
+		var s1 := f1.cross(Vector3.UP).normalized()
+		var probe := line[i0] + s0 * 25.0
+		var inner := 1.0 if _inside_loop(Vector2(probe.x, probe.z)) else -1.0
+		var a := line[i0] + s0 * inner * (hw - SC_HALF)             # (it starts on the road, so the floors meet)
+		var b := line[i1] + s1 * inner * (hw - SC_HALF)
+		var span := Vector2(a.x, a.z).distance_to(Vector2(b.x, b.z))
+		var t0 := (f0 * cos(0.55) + s0 * inner * sin(0.55)).normalized()
+		var t1 := (f1 * cos(0.55) - s1 * inner * sin(0.55)).normalized()
+		var p1 := a + t0 * span * 0.3
+		var p2 := b - t1 * span * 0.3
+		var dense: Array[Vector3] = []
+		for k in 401:
+			var u := k / 400.0
+			var v := 1.0 - u
+			dense.append(v * v * v * a + 3.0 * v * v * u * p1 + 3.0 * v * u * u * p2 + u * u * u * b)
+		var path: Array[Vector3] = [dense[0]]
+		var run := 0.0
+		for k in range(1, dense.size()):
+			run += Vector2(dense[k].x, dense[k].z).distance_to(Vector2(dense[k - 1].x, dense[k - 1].z))
+			if run >= 1.0 or k == dense.size() - 1:
+				path.append(dense[k])
+				run = 0.0
+		# Near the mouths the floor is at the road's own height where it lies over the road, easing to the curve's
+		# height further off, so on a hill there's no step up onto it from the lane next to it
+		for k in path.size():
+			if k > path.size() / 4 and k < path.size() * 3 / 4:
+				continue
+			var xz := Vector2(path[k].x, path[k].z)
+			var best := INF
+			var road_y := 0.0
+			for ri in n:
+				var dd := xz.distance_squared_to(Vector2(line[ri].x, line[ri].z))
+				if dd < best:
+					best = dd
+					road_y = line[ri].y
+			var off := clampf((sqrt(best) - hw) / 8.0, 0.0, 1.0)
+			path[k].y = lerpf(road_y - 0.02, path[k].y, off)
+		var length := 0.0
+		for k in range(1, path.size()):
+			length += Vector2(path[k].x, path[k].z).distance_to(Vector2(path[k - 1].x, path[k - 1].z))
+		shortcuts.append({"name": str(sc.get("name", "Secret Shortcut")), "from": float(sc.from), "to": float(sc.to),
+			"inner": inner, "path": path, "length": length, "d0": d0, "d1": d1})
+		# The road's wall on that side opens wherever the shortcut's floor runs through it
+		for i in range(-30, 31):
+			for at: int in [i0, i1]:
+				var ii: int = (at + i + n) % n
+				var w := line[ii] + _fwd(ii).cross(Vector3.UP).normalized() * inner * (hw + WALL_T * 0.5)
+				if _to_path(Vector2(w.x, w.z), path) < SC_HALF + WALL_T + 0.4:
+					_open[ii] = int(inner)
+
+
+static func _to_path(xz: Vector2, path: Array) -> float:
+	var best := INF
+	for k in range(1, path.size()):
+		var a := Vector2(path[k - 1].x, path[k - 1].z)
+		var b := Vector2(path[k].x, path[k].z)
+		best = minf(best, xz.distance_to(Geometry2D.get_closest_point_to_segment(xz, a, b)))
+	return best
+
+
+func shortcut_at(pos: Vector3) -> int:
+	# Which secret shortcut a spot is in (-1: none): over its floor, give or take a metre
+	for k in shortcuts.size():
+		var path: Array = shortcuts[k].path
+		var xz := Vector2(pos.x, pos.z)
+		var near := INF
+		var y := 0.0
+		for i in range(0, path.size(), 2):
+			var q: Vector3 = path[i]
+			var dd := xz.distance_squared_to(Vector2(q.x, q.z))
+			if dd < near:
+				near = dd
+				y = q.y
+		if sqrt(near) < SC_HALF + 2.0 and absf(pos.y - y) < 4.5:
+			return k
+	return -1
+
+
+func shortcut_progress(k: int, pos: Vector3) -> float:
+	# How far through shortcut k a spot is, 0 at its mouth on the road to 1 where it comes back out
+	var path: Array = shortcuts[k].path
+	var xz := Vector2(pos.x, pos.z)
+	var best := 0
+	var near := INF
+	for i in path.size():
+		var dd := xz.distance_squared_to(Vector2(path[i].x, path[i].z))
+		if dd < near:
+			near = dd
+			best = i
+	return float(best) / maxf(1.0, path.size() - 1)
+
+
+func near_shortcut(xz: Vector2, margin: float) -> bool:
+	for sc in shortcuts:
+		if _to_path(xz, sc.path) < SC_HALF + WALL_T + margin:
+			return true
+	return false
+
+
+func _shortcut(k: int, theme: String) -> void:
+	# Its floor and walls (one ribbon with its own collision, like the road), then a tunnel over it from where its walls
+	# are up, lit by a row of glowing lamps along the top, with a curtain hiding each end from the road
+	var sc: Dictionary = shortcuts[k]
+	var path: Array = sc.path
+	var hw := half_width()
+	var h := SC_HALF
+	var earth := theme == "earth"
+	var floor_c := Color(0.45, 0.33, 0.22) if earth else Color(0.24, 0.2, 0.38)
+	var wall_c := Color(0.6, 0.42, 0.26) if earth else Color(0.5, 0.4, 0.85)
+	var top_c := Color(0.72, 0.55, 0.32) if earth else Color(1.0, 0.82, 0.35)
+	var bank_c := Color(0.36, 0.42, 0.3) if earth else Color(0.32, 0.36, 0.5)
+	var holder := Node3D.new()
+	holder.name = "Shortcut %d" % k
+	add_child(holder)
+	var n := path.size()
+	var sides: Array[Vector3] = []
+	var walls: Array[float] = []
+	for i in n:
+		var f: Vector3 = path[mini(i + 1, n - 1)] - path[maxi(i - 1, 0)]
+		f.y = 0.0
+		var sd := f.normalized().cross(Vector3.UP).normalized()
+		sides.append(sd)
+		# (Its walls only stand where they're off the road: at each end its floor runs onto the road)
+		var up := true
+		for sgn in [-1.0, 1.0]:
+			var w: Vector3 = path[i] + sd * sgn * (h + WALL_T * 0.5)
+			if off_road(Vector2(w.x, w.z)) < hw + WALL_T + 0.6:
+				up = false
+		walls.append(WALL_H if up else 0.0)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	for i in n - 1:
+		var j := i + 1
+		var pi := [[-h - WALL_T, -1.0, bank_c], [-h - WALL_T, walls[i], top_c], [-h, walls[i], wall_c], [-h, 0.0, floor_c],
+			[h, 0.0, wall_c], [h, walls[i], top_c], [h + WALL_T, walls[i], bank_c], [h + WALL_T, -1.0, null]]
+		var pj := [[-h - WALL_T, -1.0], [-h - WALL_T, walls[j]], [-h, walls[j]], [-h, 0.0],
+			[h, 0.0], [h, walls[j]], [h + WALL_T, walls[j]], [h + WALL_T, -1.0]]
+		for q in pi.size() - 1:
+			var ai := _sc_at(path[i], sides[i], pi[q])
+			var aj := _sc_at(path[j], sides[j], pj[q])
+			var bi := _sc_at(path[i], sides[i], pi[q + 1])
+			var bj := _sc_at(path[j], sides[j], pj[q + 1])
+			for v in [ai, aj, bj, ai, bj, bi]:
+				st.set_color(pi[q][2])
+				st.add_vertex(v)
+			faces.append_array(PackedVector3Array([ai, aj, bj, ai, bj, bi]))
+	st.generate_normals()
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Shortcut"
+	m.vertex_color_use_as_albedo = true
+	m.roughness = 0.85
+	var floor_mi := MeshInstance3D.new()
+	floor_mi.name = "Floor"
+	floor_mi.mesh = st.commit()
+	floor_mi.material_override = m
+	holder.add_child(floor_mi)
+	_solid(floor_mi, faces)
+	# The tunnel, over the stretch where both walls stand
+	var first := -1
+	var last := -1
+	for i in n:
+		if walls[i] > 0.0:
+			if first < 0:
+				first = i
+			last = i
+	if first < 0:
+		return
+	var rows: Array[Vector3] = []
+	var rsides: Array[Vector3] = []
+	for i in range(first, last + 1):
+		rows.append(path[i])
+		rsides.append(sides[i])
+	_arch(holder, rows, rsides, h + WALL_T * 0.5, WALL_H, SC_ROOF, Color(0.55, 0.38, 0.22) if earth else Color(0.36, 0.28, 0.62),
+		Color(1.0, 0.7, 0.3) if earth else Color(0.3, 0.95, 0.95), 5)
+	for end in [first, last]:
+		_curtain(holder, path[end], sides[end], h, earth)
+	sc["mouths"] = [path[first], path[last]]
+
+
+func _sc_at(c: Vector3, side: Vector3, p: Array) -> Vector3:
+	var y := c.y - 0.03 + float(p[1]) if float(p[1]) >= 0.0 else -0.4
+	var v := Vector3(c.x, y, c.z) + side * float(p[0])
+	if float(p[1]) == 0.0:
+		# Where the floor's edge lies over the road (at a mouth, on a hill), keep it just under the road's surface
+		var best := INF
+		var road_y := 0.0
+		for i in line.size():
+			var dd := Vector2(v.x, v.z).distance_squared_to(Vector2(line[i].x, line[i].z))
+			if dd < best:
+				best = dd
+				road_y = line[i].y
+		if sqrt(best) < half_width() + 4.0:
+			v.y = minf(v.y, road_y - 0.08)
+	return v
+
+
+func _arch(holder: Node3D, rows: Array[Vector3], rsides: Array[Vector3], half: float, foot: float, top: float, c: Color,
+		lamp_c: Color, lamp_every: int) -> void:
+	# A round-topped roof over a row of points: from both walls' tops up to "top" over the middle. Seen from inside and
+	# out (no back faces culled), solid (so a big jump bumps your head), with a glowing lamp every few metres
+	const SEGS := 12
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	var ring := func(i: int, a: int) -> Vector3:
+		var ang := PI * a / SEGS
+		return rows[i] + rsides[i] * half * cos(ang) + Vector3.UP * (foot + (top - foot) * sin(ang))
+	for i in rows.size() - 1:
+		for a in SEGS:
+			var p00: Vector3 = ring.call(i, a)
+			var p01: Vector3 = ring.call(i, a + 1)
+			var p10: Vector3 = ring.call(i + 1, a)
+			var p11: Vector3 = ring.call(i + 1, a + 1)
+			var shade := c.darkened(0.12) if (i / 2) % 2 == 0 else c
+			for v in [p00, p10, p11, p00, p11, p01]:
+				st.set_color(shade)
+				st.add_vertex(v)
+			faces.append_array(PackedVector3Array([p00, p10, p11, p00, p11, p01]))
+	st.generate_normals()
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Tunnel"
+	m.vertex_color_use_as_albedo = true
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.roughness = 0.9
+	var roof := MeshInstance3D.new()
+	roof.name = "Tunnel Roof"
+	roof.mesh = st.commit()
+	roof.material_override = m
+	holder.add_child(roof)
+	_solid(roof, faces, true)
+	var lamp := SphereMesh.new()
+	lamp.radius = 0.28
+	lamp.height = 0.4
+	var lm := _mat("Tunnel Lamp %s" % lamp_c.to_html(), lamp_c, 0.4, 2.5)
+	for i in range(2, rows.size() - 2, lamp_every):
+		for sgn in [-0.55, 0.55]:
+			var at: Vector3 = rows[i] + rsides[i] * half * sgn + Vector3.UP * (foot + (top - foot) * 0.82 - 0.2)
+			_mesh(holder, lamp, at, lm, false)
+
+
+func _solid(mi: MeshInstance3D, faces: PackedVector3Array, roof := false) -> void:
+	var body := StaticBody3D.new()
+	if roof:
+		body.add_to_group("race_roof")             # (RaceTrack.ground_at looks through it for the road underneath)
+	var cs := CollisionShape3D.new()
+	var shape := ConcavePolygonShape3D.new()
+	shape.set_faces(faces)
+	shape.backface_collision = true
+	cs.shape = shape
+	body.add_child(cs)
+	mi.add_child(body)
+
+
+func _curtain(holder: Node3D, at: Vector3, side: Vector3, half: float, earth: bool) -> void:
+	# Hanging vines (cornstalks on Earth) right across a tunnel's mouth: from the road it looks like a leafy bit of wall.
+	# Nothing solid: ride straight through.
+	var c := holder.get_node_or_null("Curtain")
+	var strands := Node3D.new()
+	strands.name = "Curtain" if c == null else "Curtain 2"
+	strands.position = at
+	holder.add_child(strands)
+	var greens := [Color(0.3, 0.75, 0.35), Color(0.45, 0.85, 0.3), Color(0.25, 0.6, 0.4)] if not earth else \
+		[Color(0.78, 0.66, 0.32), Color(0.66, 0.55, 0.25), Color(0.85, 0.75, 0.4)]
+	var count := int(half * 2.0 / 0.42)
+	for k in count + 1:
+		var x := -half + 2.0 * half * k / count
+		var ln := SC_ROOF - 0.4 - absf(x) * 0.25 - _rng.randf_range(0.0, 1.0)
+		var vine := BoxMesh.new()
+		vine.size = Vector3(0.28, ln, 0.08)
+		var v := _mesh(strands, vine, side * x + Vector3.UP * (SC_ROOF - ln / 2.0 - 0.2), _mat("Vine %d" % (k % 3),
+			greens[k % 3]), false)
+		v.basis = Basis(side, Vector3.UP, side.cross(Vector3.UP).normalized())
+		for b in 3:
+			var leaf := SphereMesh.new()
+			leaf.radius = 0.22
+			leaf.height = 0.18
+			_mesh(strands, leaf, side * (x + _rng.randf_range(-0.12, 0.12)) + Vector3.UP * (SC_ROOF - 0.6 - _rng.randf() * ln),
+				_mat("Leaf %d" % (b % 3), greens[(k + b) % 3]), false)
+
+
+func _road_tunnel(from: float, to: float, theme: String) -> void:
+	# A tunnel right over the road between two checkpoints (never round a ring): crystal on the Void's tracks, a
+	# covered bridge's red barn roof on Earth's
+	var a := index_at(d_at(from))
+	var b := index_at(d_at(to))
+	var rows: Array[Vector3] = []
+	var rsides: Array[Vector3] = []
+	var i := a
+	while i != b:
+		rows.append(line[i])
+		rsides.append(_fwd(i).cross(Vector3.UP).normalized())
+		i = (i + 1) % line.size()
+	var holder := Node3D.new()
+	holder.name = "Tunnel %.1f" % from
+	add_child(holder)
+	var earth := theme == "earth"
+	_arch(holder, rows, rsides, half_width() + WALL_T * 0.5, WALL_H, TUNNEL_TOP,
+		Color(0.7, 0.2, 0.16) if earth else Color(0.55, 0.45, 0.95), Color(1.0, 0.75, 0.35) if earth else Color(1.0, 0.82, 0.35), 4)
+	# A name over each end, so you know it's a tunnel and not the end of the road
+	for end in [0, rows.size() - 1]:
+		var sign_l := Label3D.new()
+		sign_l.text = str(track.get("tunnel_name", "TUNNEL"))
+		sign_l.font_size = 64
+		sign_l.pixel_size = 0.02
+		sign_l.outline_size = 16
+		sign_l.modulate = Color(1.0, 0.92, 0.6)
+		sign_l.outline_modulate = Color(0.15, 0.08, 0.2)
+		sign_l.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		sign_l.position = rows[end] + Vector3.UP * (TUNNEL_TOP + 0.9)
+		holder.add_child(sign_l)
 
 
 # -----------------------------------------------------------------------------
@@ -392,7 +779,7 @@ func _meadow() -> void:
 		var spots: Array[Transform3D] = []
 		for k in 900:
 			var p := Vector2(_rng.randf_range(-170, 170), _rng.randf_range(-170, 170))
-			if off_road(p) < half_width() + 2.0:
+			if off_road(p) < half_width() + 2.0 or near_shortcut(p, 0.8):
 				continue
 			spots.append(Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * _rng.randf_range(0.7, 1.4)), Vector3(p.x, 0.35, p.y)))
 		mm.instance_count = spots.size()
@@ -444,7 +831,7 @@ func _farm() -> void:
 	var spots: Array[Transform3D] = []
 	for k in 500:
 		var p := Vector2(_rng.randf_range(-170, 170), _rng.randf_range(-170, 170))
-		if off_road(p) < half_width() + 3.0 or p.distance_to(Vector2(barn.position.x, barn.position.z)) < 16.0:
+		if off_road(p) < half_width() + 3.0 or near_shortcut(p, 1.0) or p.distance_to(Vector2(barn.position.x, barn.position.z)) < 16.0:
 			continue
 		spots.append(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.6, 1.3)), Vector3(p.x, 0.3, p.y)))
 	mm.instance_count = spots.size()
@@ -465,7 +852,7 @@ func _free_spot(near: float, far: float) -> Vector2:
 	for k in 60:
 		var p := Vector2(_rng.randf_range(-far - 60.0, far + 60.0), _rng.randf_range(-far - 60.0, far + 60.0))
 		var d := off_road(p)
-		if d > near and d < far:
+		if d > near and d < far and not near_shortcut(p, 4.0):
 			return p
 	return Vector2(far, far)
 

@@ -179,7 +179,7 @@ func ground_at(xz: Vector2) -> Vector3:
 		var hit := space.intersect_ray(q)
 		if hit.is_empty():
 			break
-		if hit.collider is StaticBody3D:
+		if hit.collider is StaticBody3D and not (hit.collider as Node).is_in_group("race_roof"):
 			return hit.position
 		skip.append(hit.rid)
 	return Vector3(xz.x, 0.0, xz.y)
@@ -723,6 +723,10 @@ const SWEEP_SPEED := 1.1             # radians a second (a little faster for eve
 const ZAP_PERIOD := 3.2              # seconds: a zapper's whole on-and-off
 const ZAP_ON := 1.3                  # ...of which it's on
 const ZAP_WARN := 0.6                # ...and it flickers this long before
+const POP_PERIOD := 4.2              # seconds: a pop-up wall's whole round (Hayden's playtest: "moving maps")
+const POP_WARN := 0.9                # ...glowing on the road first
+const POP_UP := 1.7                  # ...then up out of the road this long
+const POP_HALF := 3.0                # half its width
 
 
 func zap_on(o: Node3D) -> bool:
@@ -731,6 +735,16 @@ func zap_on(o: Node3D) -> bool:
 
 func zap_warning(o: Node3D) -> bool:
 	return fposmod(_t + float(o.get_meta("phase", 0.0)), ZAP_PERIOD) > ZAP_PERIOD - ZAP_WARN
+
+
+func pop_up(o: Node3D) -> bool:
+	# A pop-up wall's up (solid) or rising: the glow's had its turn
+	var x := fposmod(_t + float(o.get_meta("phase", 0.0)), POP_PERIOD)
+	return x >= POP_WARN and x < POP_WARN + POP_UP
+
+
+func pop_warning(o: Node3D) -> bool:
+	return fposmod(_t + float(o.get_meta("phase", 0.0)), POP_PERIOD) < POP_WARN
 
 
 func arm_angle(o: Node3D) -> float:
@@ -770,6 +784,10 @@ func _obstacle(kind: String, d: float, side: float, k: int) -> Node3D:
 			_zapper(o, k)
 		"ramp":
 			_ramp(o)
+		"slider":
+			_slider(o, k)
+		"popup":
+			_popup(o, k)
 	return o
 
 
@@ -787,6 +805,34 @@ func _animate(o: Node3D, delta: float) -> void:
 			for lamp in [o.get_node("Lamp0"), o.get_node("Lamp1")]:
 				((lamp as MeshInstance3D).material_override as StandardMaterial3D).emission_energy_multiplier = \
 					3.0 if on else (1.6 if warn else 0.3)
+		"slider":
+			# Gliding from one side of the road to the other and back, along its glowing track
+			var side := float(o.get_meta("amp")) * sin(_t * float(o.get_meta("speed")) + float(o.get_meta("phase")))
+			o.set_meta("side", side)
+			o.get_node("Puck").position.x = -side        # (its +X is the road's left: "side" is metres to the right)
+			var top := o.get_node("Puck/Top") as Node3D
+			var sq := float(o.get_meta("squash", 0.0))
+			if sq > 0.0:
+				sq -= delta
+				o.set_meta("squash", sq)
+			var k := sin(clampf(sq / 0.35, 0.0, 1.0) * PI) if sq > 0.0 else 0.0
+			top.scale = Vector3(1.0 + 0.25 * k, 1.0 - 0.35 * k, 1.0 + 0.25 * k)
+			if earth:
+				top.rotation.z = -side / 1.0          # (the hay bale rolls as it goes)
+		"popup":
+			var x := fposmod(_t + float(o.get_meta("phase", 0.0)), POP_PERIOD)
+			var wall := o.get_node("Wall") as Node3D
+			var glow := o.get_node("Glow") as MeshInstance3D
+			var h := 0.0
+			if x >= POP_WARN and x < POP_WARN + POP_UP:
+				h = clampf((x - POP_WARN) / 0.18, 0.0, 1.0)
+				h = minf(h, clampf((POP_WARN + POP_UP - x) / 0.25, 0.0, 1.0))
+			wall.position.y = -1.75 + 1.75 * h
+			wall.visible = h > 0.0
+			var warn := x < POP_WARN
+			glow.visible = warn or h > 0.0
+			(glow.material_override as StandardMaterial3D).emission_energy_multiplier = \
+				(2.5 if fmod(_t, 0.25) < 0.125 or Settings.reduce_flashing else 0.6) if warn else 1.2
 		"bumper":
 			var sq := float(o.get_meta("squash", 0.0))
 			var top := o.get_node("Top") as Node3D
@@ -917,6 +963,66 @@ func _zapper(o: Node3D, k: int) -> void:
 			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			var b := _mesh(beam, bolt, Vector3(0, y, 0), m)
 			b.rotation.z = y * 0.15
+
+
+func _slider(o: Node3D, k: int) -> void:
+	# A bumper that glides across the road and back along a glowing track (Hayden: "moving maps, obstacles"). Void:
+	# a teal mushroom bumper. Earth: a hay bale that rolls from side to side.
+	var reach := (width / 2.0 if width > 0.0 else 6.0) - 2.2
+	o.set_meta("amp", reach)
+	o.set_meta("speed", 0.9 + 0.25 * (k % 3))
+	o.set_meta("phase", k * 1.7)
+	o.set_meta("radius", BUMPER_RADIUS)
+	var groove := BoxMesh.new()
+	groove.size = Vector3(reach * 2.0 + 2.0, 0.04, 0.5)
+	var gm := _mat(Color(0.3, 0.95, 0.95) if not earth else Color(0.55, 0.4, 0.25), 1.2 if not earth else 0.0)
+	_mesh(o, groove, Vector3(0, 0.03, 0), gm)
+	var puck := Node3D.new()
+	puck.name = "Puck"
+	o.add_child(puck)
+	_bumper(puck)
+	if not earth:
+		for mi in puck.find_children("*", "MeshInstance3D", true, false):
+			var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
+			if m and m.albedo_color.is_equal_approx(Color(1.0, 0.45, 0.75)):
+				(mi as MeshInstance3D).material_override = _mat(Color(0.3, 0.9, 0.95), 0.6, 0.3)
+
+
+func _popup(o: Node3D, k: int) -> void:
+	# A wall that pops up out of the road and drops back down, over and over. Its patch of road glows (flashing) just
+	# before it comes up, so there's time to steer round. Void: a wobbly lilac jelly block. Earth: a big wooden crate.
+	o.set_meta("half", POP_HALF)
+	o.set_meta("phase", k * 1.3)
+	var glow := MeshInstance3D.new()
+	glow.name = "Glow"
+	var pm := BoxMesh.new()
+	pm.size = Vector3(POP_HALF * 2.0, 0.04, 1.4)
+	glow.mesh = pm
+	var gm := _mat(Color(1.0, 0.85, 0.3), 1.5)
+	gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.material_override = gm
+	glow.position.y = 0.04
+	o.add_child(glow)
+	var wall := Node3D.new()
+	wall.name = "Wall"
+	wall.position.y = -1.75
+	o.add_child(wall)
+	var block := BoxMesh.new()
+	block.size = Vector3(POP_HALF * 2.0, 1.7, 1.2)
+	var bm := _mat(Color(0.62, 0.42, 0.24), 0.0, 0.9) if earth else _mat(Color(0.7, 0.5, 1.0, 0.85), 0.8, 0.2)
+	_mesh(wall, block, Vector3(0, 0.85, 0), bm)
+	if earth:
+		for x in [-2.0, 0.0, 2.0]:
+			var slat := BoxMesh.new()
+			slat.size = Vector3(0.18, 1.6, 1.25)
+			_mesh(wall, slat, Vector3(x, 0.85, 0), _mat(Color(0.45, 0.3, 0.18)))
+	else:
+		for x in [-2.0, 0.0, 2.0]:
+			var eye := SphereMesh.new()
+			eye.radius = 0.18
+			eye.height = 0.36
+			_mesh(wall, eye, Vector3(x - 0.25, 1.2, 0.62), _mat(Color(0.15, 0.08, 0.2)))
+			_mesh(wall, eye, Vector3(x + 0.25, 1.2, 0.62), _mat(Color(0.15, 0.08, 0.2)))
 
 
 func _ramp(o: Node3D) -> void:

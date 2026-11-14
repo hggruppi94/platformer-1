@@ -486,7 +486,8 @@ func _check_circuit(id: String, t: Node3D, p: CharacterBody3D) -> void:
 		worst = maxf(worst, absf(b.y - a.y) / maxf(run, 0.01))
 		if absf(b.y - a.y) / maxf(run, 0.01) > 0.25:
 			steep += 1
-		if i % 10 == 0:
+		# (Where a secret shortcut leaves or joins the road its wall is open on purpose: tools/test_race_tracks.gd)
+		if i % 10 == 0 and not circ._open.has(circ.index_at(t.dist[i])):
 			for side in [-1.0, 1.0]:
 				var from: Vector3 = a + Vector3.UP * 0.5
 				var q := PhysicsRayQueryParameters3D.create(from, from + t.side_at(t.dist[i]) * side * (hw + 3.0))
@@ -544,7 +545,8 @@ func _check_circuit(id: String, t: Node3D, p: CharacterBody3D) -> void:
 	var kinds := {}
 	for o in t.obstacles:
 		kinds[str(o.get_meta("kind"))] = true
-	check(kinds.size() == 4, "%s: bumpers, sweepers, zappers and ramps (%s)" % [tr.name, ", ".join(kinds.keys())])
+	check(["bumper", "sweeper", "zapper", "ramp"].all(func(k: String) -> bool: return kinds.has(k)),
+		"%s: bumpers, sweepers, zappers and ramps (%s)" % [tr.name, ", ".join(kinds.keys())])
 	var st := t.get_node_or_null(str(tr.starter.name)) as Node3D
 	check(st != null and t.off_line(st.global_position, t.nearest(st.global_position)) > hw + 1.0, "%s: %s stands off the road" % [tr.name, tr.starter.name])
 	# Nothing solid across the road (the arch's towers stand outside the walls)
