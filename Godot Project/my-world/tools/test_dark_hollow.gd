@@ -346,6 +346,22 @@ func _check_hush() -> void:
 	await _frames(4)
 	check(s.hush_awake and h.process_mode == Node.PROCESS_MODE_INHERIT and s.get_node_or_null("Hush/Snoring") == null, "with all three pieces, it wakes")
 	await _physics(10)
+	# It stays round its own hill, and really comes into a lamp's light after you (14 Nov 2026: its home used to be the
+	# middle of the hollow, which kept it out of reach of every lamp)
+	check(Vector2(h.home.x - hill.x, h.home.z - hill.z).length() < 0.5, "it stays round Hush Hill, not the middle of the hollow")
+	var lure: Vector3 = s.lamp_pos(0)
+	var out := lure - hill
+	out.y = 0
+	var stand := lure + out.normalized() * 1.5
+	var got_lit := false
+	for f in 60 * 12:
+		player.global_position = Vector3(stand.x, player.global_position.y, stand.z)
+		player.velocity = Vector3.ZERO
+		await physics_frame
+		if h.lit:
+			got_lit = true
+			break
+	check(got_lit, "stand by a moon lamp and it drifts into the light after you (no teleport)")
 	# In the dark: nothing touches it
 	for i in 4:
 		s.lamps_lit[i] = false

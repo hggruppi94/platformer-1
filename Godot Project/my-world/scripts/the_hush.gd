@@ -49,12 +49,12 @@ var _told_dark := 0.0
 var _told_lit := false
 var _body_mat: StandardMaterial3D
 var _hitbox: Area3D
+var _homed := false
 
 
 func _ready() -> void:
 	add_to_group("enemies")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
-	home = global_position
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
 	var cs := CollisionShape3D.new()
 	var sp := SphereShape3D.new()
@@ -107,6 +107,13 @@ func _crown() -> void:
 func _physics_process(delta: float) -> void:
 	if defeated:
 		return
+	if not _homed:
+		# Its home is the hill it wakes on. This used to be read in _ready(), but dark_hollow.gd only moves it onto
+		# the hill after adding it, so home was the middle of the hollow and the ARENA leash kept it 15 m from there,
+		# too far from every moon lamp: it hung in the dark and could never be lit (Hayden, 14 Nov 2026). It sleeps
+		# with physics off until woken, so the first physics frame is always on the hill.
+		_homed = true
+		home = global_position
 	_find_player()
 	_t += delta
 	lit = world != null and world.call("lights_hush", global_position + Vector3(0, 0.95 * SIZE, 0))
