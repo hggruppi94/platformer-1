@@ -124,6 +124,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     chaos_fight, chaos_trials, far_future, frozen_moment, lanternmoor, arsenal and the rest of the boss worlds updated
     to read each boss's own number; see the PR for the full list.
   - My choices Hayden may change: every number above, the flood's timing and depth, the pads' places, the bump.
+
 - 2026-11-14: **Signs you can read walking in, name tags that stay behind walls, and a slimmer Seer** (Hayden's 13 Nov
   2026 playtest: "the signs arent always orientated the right way for you to read them when entering a new area (the
   gloop kingdom sign when you enter)", "Tally's name is visibile through objects", "Can we make the seer a little
