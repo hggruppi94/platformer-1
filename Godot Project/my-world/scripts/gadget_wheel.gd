@@ -9,13 +9,16 @@ extends Control
 #   1-8 / D-pad left and right         pick one straight away / the one before or after.
 #
 # The readout shows the gadget that's out, its version, its ammo (orange when it's running low) and how close it is to
-# growing a version. It shows as soon as she has a gadget.
+# growing a version. It pops up for a moment when she switches gadget (READOUT_SHOW seconds, then fades), or when she
+# runs out, and is hidden the rest of the time so it never covers what she's reading (Hayden, 14 Nov playtest).
 # Each gadget's two mod slots (Arsenal: mods) show as little dots under it, in the mod's colour (an empty ring for an
 # empty slot), and the middle of the wheel names the mods and their combo. Mods are swapped in the Bag.
 
 const HOLD := 0.2                         # seconds held before the wheel opens (shorter is a tap)
 const SLOW := 0.2                         # how fast the game runs while the wheel is open
 const PICK := 40.0                        # pixels the mouse has to move from the middle to point at a slot
+const READOUT_SHOW := 2.5                 # seconds the readout stays up after a switch
+const READOUT_FADE := 0.5                 # ...and how long it takes to fade away
 
 var popper: StarPopper
 var open := false
@@ -23,6 +26,18 @@ var hover := ""                           # the gadget being pointed at
 var _held := 0.0
 var _pressed := false
 var _mouse := Vector2.ZERO                # how far the mouse has moved since the wheel opened
+var readout_left := 0.0                   # seconds the readout has left on screen
+var _shown := ""                          # the gadget the readout last popped up for
+var _was_empty := false
+
+
+func show_readout() -> void:
+	readout_left = READOUT_SHOW + READOUT_FADE
+	queue_redraw()
+
+
+func readout_alpha() -> float:
+	return clampf(readout_left / READOUT_FADE, 0.0, 1.0)
 
 
 func _ready() -> void:
@@ -38,6 +53,17 @@ func _exit_tree() -> void:
 
 func _process(delta: float) -> void:
 	var real := delta / maxf(Engine.time_scale, 0.01)         # the wheel's own timing ignores the slow-down
+	if Arsenal.current != _shown:
+		if _shown != "" or Arsenal.owns(Arsenal.current):
+			show_readout()
+		_shown = Arsenal.current
+	var empty := Arsenal.owns(Arsenal.current) and Arsenal.ammo_of(Arsenal.current) == 0
+	if empty and not _was_empty:
+		show_readout()                                      # out of ammo: say so
+	_was_empty = empty
+	if readout_left > 0.0:
+		readout_left = maxf(readout_left - real, 0.0)
+	modulate.a = 1.0 if open else readout_alpha()
 	var ok := popper != null and popper.can_shoot()
 	if not ok:
 		if open:
@@ -145,7 +171,7 @@ func slot_angle(i: int) -> float:
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
 	var s := Settings.text_scale
-	if not Arsenal.owned.is_empty() and not open:     # (every gadget has ammo now, the Star Popper too)
+	if not Arsenal.owned.is_empty() and not open and readout_left > 0.0:   # (only just after a switch)
 		_draw_readout(font, s)
 	if open:
 		_draw_wheel(font, s)

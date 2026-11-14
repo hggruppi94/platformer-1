@@ -31,6 +31,7 @@ signal cleared(id: String)
 
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 
+const WATER_SCRIPT := preload("res://scripts/water.gd")
 const TOWN := "res://scenes/town/town.tscn"
 const SCHOOL := "res://scenes/school/school.tscn"
 const CENTIPEDE_CORNER := preload("res://scripts/centipede_corner.gd")
@@ -715,6 +716,7 @@ func _open_preview(g: Node3D, id: String) -> void:
 	view.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	g.add_child(view)
 	view.add_child(copy)
+	_only_a_picture(copy)
 	var cam := Camera3D.new()
 	cam.name = "Cam"
 	cam.fov = 60.0
@@ -731,6 +733,18 @@ func _open_preview(g: Node3D, id: String) -> void:
 	m.emission_energy_multiplier = 0.4
 	disc.set_meta("swirl", disc.material_override)
 	disc.material_override = m
+
+
+func _only_a_picture(copy: Node) -> void:
+	# The copy in the window is only a picture: nothing in it may count as being in the Void. Its groups go (its water
+	# was the Void's: the Tide Reef's flooded sea, 13 m deep, "covered" the Void round the portal and she swam in thin
+	# air, the 14 Nov playtest's "the void is flooded with water"), and its water stops looking for the player.
+	for n in [copy] + copy.find_children("*", "", true, false):
+		for grp in n.get_groups():
+			if not str(grp).begins_with("_"):
+				n.remove_from_group(grp)
+		if n.get_script() == WATER_SCRIPT:
+			n.set_physics_process(false)
 
 
 func _close_preview(g: Node3D) -> void:

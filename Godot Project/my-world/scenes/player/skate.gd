@@ -126,6 +126,9 @@ var _feet := []                      # skates to keep under her feet: [skate, sk
 var _ride_anim: AnimationPlayer      # the ride's own animation (the BMX's pedals)
 var _flames: Node3D                  # a rocket ride's flames (ride_kit.gd), bigger while pushing and boosting
 var _shown_yaw := 0.0                # where the model is turned right now (it catches up with _yaw)
+var body_turn := 0.0                 # riding fakie she turns round on the board to look where she's going (0 or PI;
+                                     # Hayden, 14 Nov playtest: "they need to be looking forward"). The board under
+                                     # her is turned back by the same amount, so it still points the fakie way.
 var _shown_up := Vector3.UP          # ...and which way is up for it
 var _trick_hold := -1.0              # Simple controls: how long the trick button's been held this air (-1: it isn't)
 # Races (scripts/races.gd): boost pads and the Zoom Star push her past her own top speed for a moment, goo slows
@@ -180,6 +183,7 @@ func start() -> void:
 	_yaw = p.visual.rotation.y
 	fakie = false
 	_shown_yaw = _yaw
+	body_turn = 0.0
 	_shown_up = Vector3.UP
 	_charge = -1.0
 	balance = 0.0
@@ -1155,7 +1159,8 @@ func _pose(delta: float) -> void:
 	var tilt := Basis(Quaternion(Vector3.UP, new_up)) if new_up.dot(Vector3.UP) < 0.9999 else Basis.IDENTITY
 	if state != State.BAIL:
 		_shown_yaw = lerp_angle(_shown_yaw, _yaw, 1.0 - exp(-(30.0 if state == State.AIR else 16.0) * delta))
-	p.visual.basis = tilt * Basis(Vector3.UP, _shown_yaw) * Basis(Vector3.BACK, -_lean * 0.6) * _body_trick()
+	body_turn = move_toward(body_turn, PI if fakie and state != State.BAIL else 0.0, delta * 9.0)
+	p.visual.basis = tilt * Basis(Vector3.UP, _shown_yaw + body_turn) * Basis(Vector3.BACK, -_lean * 0.6) * _body_trick()
 	# Her feet stay where the capsule touches a steep ramp (its side, not the bottom of its middle)
 	p.visual.position = p.visual.position.lerp((new_up - Vector3.UP) * (FEET - SIDE_RADIUS), k)
 	var grabbing := 0.3 if not tricks.grab.is_empty() else 0.0
@@ -1272,7 +1277,7 @@ func _board_pose() -> void:
 	elif _manual != 0:
 		b = Basis(Vector3.RIGHT, -0.3 * _manual)
 		lift = 0.08
-	p.board.transform = Transform3D(b, Vector3(0, -FEET + lift, 0))
+	p.board.transform = Transform3D(Basis(Vector3.UP, -body_turn) * b, Vector3(0, -FEET + lift, 0))
 
 
 func _plane(d: Vector3, n: Vector3) -> Vector3:

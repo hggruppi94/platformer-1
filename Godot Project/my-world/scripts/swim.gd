@@ -31,6 +31,11 @@ const LEAN := 1.15                        # radians she leans forward into a str
 const BUBBLE_EVERY := 0.45
 const SEA := Color(0.2, 0.58, 0.7)
 const CAM_DROP := -1.3                    # how far the camera comes down while she's under
+const DRY_TIME := 14.0                    # seconds she takes to dry off after a swim
+const DRIP_TIME := 6.0                    # ...dripping for the first few of them
+const WET_SHADE := Color(0.6, 0.62, 0.7)  # how much darker soaked clothes (and hair) look
+const HELMET_R := 0.42                    # the bubble round her head...
+const HELMET_UP := 0.26                   # ...its middle this far up from the head bone (the bone sits at the neck)
 
 var player: CharacterBody3D
 var active := false
@@ -52,14 +57,25 @@ var _env: Environment
 var _env_was := {}
 var _lowpass := -1
 
+# Wet after a swim (Hayden, 14 Nov: "you should drip and be noticeably wet, maybe dampen your clothes"): her clothes
+# and hair go darker and drip, and dry off over DRY_TIME. A darkening overlay (multiply) goes over her model's meshes.
+var wet := 0.0                            # 1 = soaked, just out; 0 = dry
+var _drip_t := 0.0
+var _wet_mat: StandardMaterial3D
+var _wet_on: Array = []                   # the meshes wearing the overlay
+
 
 func setup(p: CharacterBody3D) -> void:
 	player = p
+	_make_helmet()
+
+
+func _make_helmet() -> void:
 	_helmet = MeshInstance3D.new()
 	_helmet.name = "Bubble Helmet"
 	var s := SphereMesh.new()
-	s.radius = 0.4
-	s.height = 0.8
+	s.radius = HELMET_R
+	s.height = HELMET_R * 2.0
 	s.radial_segments = 20
 	s.rings = 10
 	_helmet.mesh = s
@@ -67,7 +83,42 @@ func setup(p: CharacterBody3D) -> void:
 	_helmet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_helmet.visible = false
 	player.tumble.add_child(_helmet)
-	_helmet.position = Vector3(0, 0.62, 0.02)           # round her head (the tumble's pivot is her middle)
+	_helmet.position = Vector3(0, 0.36, 0.02)           # round her head (the tumble's pivot is her middle)
+
+
+func _fit_helmet() -> void:
+	if not is_instance_valid(_helmet):
+		_make_helmet()                                  # (her model was rebuilt with the bubble on it)
+	# The bubble sits on her head bone, so it stays round her head as she strokes and leans, whoever she is (Hayden,
+	# 14 Nov playtest: it didn't cover her head properly; it used to float a fixed height over her middle)
+	var model: Node3D = player.get("model")
+	var skel: Skeleton3D = null
+	var bone := -1
+	if model:
+		for sk in model.find_children("*", "Skeleton3D", true, false):
+			var k := (sk as Skeleton3D).find_bone("head")
+			if k >= 0:
+				skel = sk
+				bone = k
+				break
+	if skel == null:
+		if _helmet.get_parent() != player.tumble:
+			_helmet.reparent(player.tumble, false)
+			_helmet.position = Vector3(0, 0.36, 0.02)
+			_helmet.scale = Vector3.ONE
+		return
+	var mount := skel.get_node_or_null("Helmet Mount") as BoneAttachment3D
+	if mount == null:
+		mount = BoneAttachment3D.new()
+		mount.name = "Helmet Mount"
+		skel.add_child(mount)
+	mount.bone_idx = bone
+	if _helmet.get_parent() != mount:
+		_helmet.reparent(mount, false)
+	var grow := mount.global_basis.get_scale()
+	var k := Vector3(1.0 / maxf(grow.x, 0.001), 1.0 / maxf(grow.y, 0.001), 1.0 / maxf(grow.z, 0.001))
+	_helmet.scale = k                                   # the same size whatever size the model's built at
+	_helmet.position = Vector3(0, HELMET_UP, 0.02) * k
 
 
 static func helmet_mat() -> StandardMaterial3D:
@@ -147,11 +198,14 @@ func stop(hop := 0.0) -> void:
 		return
 	active = false
 	under = false
+	if not is_instance_valid(_helmet):
+		_make_helmet()
 	_helmet.visible = false
 	if _dropped:
 		_dropped = false
 		var tw := player.create_tween()
 		tw.tween_property(player.get("spring_arm"), "lift", 0.0, 0.4)
+	soak()
 	if hop > 0.0:
 		player.velocity.y = player.jump_velocity * hop
 		Audio.play_at("splash", player.global_position, -4.0)
@@ -162,6 +216,9 @@ func stop(hop := 0.0) -> void:
 func physics(delta: float) -> void:
 	# Her physics while she's swimming. The player calls this instead of its own walking.
 	_just += delta
+	if not is_instance_valid(_helmet):
+		_make_helmet()
+		under = false
 	if Game.riding or player.carried:
 		stop()
 		return
@@ -214,7 +271,10 @@ func physics(delta: float) -> void:
 	player.tumble.rotation.x = lerp_angle(player.tumble.rotation.x, lean, k)
 	player.tumble.scale = player.tumble.scale.lerp(Vector3.ONE, k)
 	player.tumble.position.y = lerpf(player.tumble.position.y, 0.0, k)
+	var was_under := under and is_instance_valid(_helmet)
 	under = player.global_position.y + 0.6 < surface
+	if under and not was_under:
+		_fit_helmet()
 	_helmet.visible = under
 	# Under, the camera comes down closer behind her, so in a shallow pond you see the underwater too, not the top
 	var arm: Node3D = player.get("spring_arm")
@@ -250,10 +310,73 @@ func _animate(going: float) -> void:
 	anim.speed_scale = 0.55 if target == "run" else 0.6       # slow strokes; arms drifting out when still
 
 
+# Wet after a swim ---------------------------------------------------------------------------------------------------
+func soak() -> void:
+	wet = 1.0
+	_drip_t = 0.0
+	_show_wet()
+
+
+func _dry(delta: float) -> void:
+	if wet <= 0.0:
+		return
+	if active:
+		wet = 1.0                                         # (still in: soaked)
+		_show_wet()
+		return
+	var was := wet
+	wet = maxf(wet - delta / DRY_TIME, 0.0)
+	_show_wet()
+	if was > 1.0 - DRIP_TIME / DRY_TIME:
+		_drip_t -= delta
+		if _drip_t <= 0.0:
+			var heavy := (was - (1.0 - DRIP_TIME / DRY_TIME)) / (DRIP_TIME / DRY_TIME)     # 1 just out, 0 done
+			_drip_t = lerpf(0.25, 0.05, heavy)
+			var p := player.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(-0.4, 0.65), randf_range(-0.25, 0.25))
+			Fx.burst(player.get_parent(), p, Color(0.75, 0.92, 1.0, 0.8), 1 + int(heavy * 2.0), 0.035, 0.2, -12.0, 0.45, 15.0)
+
+
+func _show_wet() -> void:
+	var model: Node3D = player.get("model")
+	if wet <= 0.0 or model == null:
+		for m in _wet_on:
+			if is_instance_valid(m) and (m as GeometryInstance3D).material_overlay == _wet_mat:
+				(m as GeometryInstance3D).material_overlay = null
+		_wet_on = []
+		return
+	if _wet_mat == null:
+		_wet_mat = StandardMaterial3D.new()
+		_wet_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_wet_mat.blend_mode = BaseMaterial3D.BLEND_MODE_MUL
+		_wet_mat.cull_mode = BaseMaterial3D.CULL_BACK
+	var k := clampf(wet * 1.6, 0.0, 1.0)                  # stays soaked-looking a while, then fades as she dries
+	_wet_mat.albedo_color = Color(1, 1, 1).lerp(WET_SHADE, k)
+	if _wet_on.is_empty() or not is_instance_valid(_wet_on[0]) or not model.is_ancestor_of(_wet_on[0]):
+		_wet_on = []
+		for g in model.find_children("*", "MeshInstance3D", true, false):
+			var mi := g as MeshInstance3D
+			if mi.material_overlay == null and mi != _helmet and _solid(mi):
+				mi.material_overlay = _wet_mat
+				_wet_on.append(mi)
+
+
+static func _solid(mi: MeshInstance3D) -> bool:
+	# Only plain see-nothing-through meshes get darker (a see-through one, like a hair card or a glow, would darken
+	# its whole square)
+	if mi.mesh == null or not mi.is_visible_in_tree():
+		return false
+	for i in mi.mesh.get_surface_count():
+		var m := mi.get_active_material(i)
+		if not (m is BaseMaterial3D) or (m as BaseMaterial3D).transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+			return false
+	return true
+
+
 # The view from under the water -------------------------------------------------------------------------------------
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if player == null or not player.is_inside_tree():
 		return
+	_dry(delta)
 	var cam := player.get_viewport().get_camera_3d()
 	var now := false
 	if cam:

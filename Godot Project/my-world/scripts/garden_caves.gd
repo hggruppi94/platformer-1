@@ -470,13 +470,21 @@ func _grotto() -> void:
 		cap.material_override = _mat(caps[i], 0.9)
 		b.add_child(cap)
 		cap.position.y = h - 0.05
+		# Solid all over (Hayden, 14 Nov playtest: you went right through them): the dome itself, so she stands on
+		# its top, not sunk into it, and the stem, so she can't walk through it
 		var cs := CollisionShape3D.new()
-		var cy := CylinderShape3D.new()
-		cy.radius = 1.2
-		cy.height = 0.3
-		cs.shape = cy
-		cs.position.y = h - 0.1
+		cs.name = "Cap Shape"
+		cs.shape = sp.create_convex_shape()
+		cs.position.y = cap.position.y
 		b.add_child(cs)
+		var ss := CollisionShape3D.new()
+		ss.name = "Stem Shape"
+		var cy := CylinderShape3D.new()
+		cy.radius = 0.42
+		cy.height = h
+		ss.shape = cy
+		ss.position.y = h * 0.5
+		b.add_child(ss)
 		var light := OmniLight3D.new()
 		light.light_color = caps[i]
 		light.light_energy = 0.7
