@@ -22,13 +22,13 @@ extends CanvasLayer
 signal finished
 
 const STEPS := [
-	{"id": "look", "text": "Look around! Move the mouse to turn the camera.", "pad": "Look around! Push the right stick to turn the camera."},
-	{"id": "walk", "text": "Walk about with {moves}."},
-	{"id": "jump", "text": "Press {jump} to jump."},
-	{"id": "double", "text": "Jump, then press {jump} again in the air for a double jump!"},
-	{"id": "roll", "text": "Press {dash} to do a roll."},
-	{"id": "sprint", "text": "Keep holding {dash} while you move to sprint!"},
-	{"id": "door", "text": "Great moves! Now go out of the front door and see who's knocking."},
+	{"id": "look", "text": "Move the mouse to look!", "pad": "Right stick to look!"},
+	{"id": "walk", "text": "{moves} to walk!"},
+	{"id": "jump", "text": "{jump} to jump!"},
+	{"id": "double", "text": "{jump} again in the air!"},
+	{"id": "roll", "text": "{dash} to roll!"},
+	{"id": "sprint", "text": "Hold {dash} to run fast!"},
+	{"id": "door", "text": "Now open the door!"},
 ]
 const LOOK_TURN := 1.2               # radians of camera turn that count as having looked round
 const WALK_METRES := 4.0

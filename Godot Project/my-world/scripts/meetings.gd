@@ -130,13 +130,12 @@ func stall_open() -> bool:
 
 func closed_lines(stall: String) -> Array:
 	# What the stall says while it's shut (scripts/shop_stall.gd)
-	var sign := "(A hand-painted sign hangs on the %s: GONE TINKERING. BACK SOON! -D)" % \
-		("workbench" if stall == "Workbench" else "stall")
+	var sign := "(GONE TINKERING. BACK SOON! -D)"
 	var out: Array = [sign]
 	if Quests.is_started(QUEST):
-		out.append("(Under it, in smaller writing: \"If my Buzz Bot's loose again, PLEASE catch it.\")")
+		out.append("(PS: catch my Buzz Bot, PLEASE!)")
 	else:
-		out.append("(Somebody's drawn a little bike under it, going very fast.)")
+		out.append("(A little bike is drawn on it.)")
 	return out
 
 
@@ -183,7 +182,7 @@ func king_from_dash() -> Array:
 	# his kinetic energy (scripts/kinetic.gd), then sends you on to Pip
 	var lines: Array = FirstNight.crown_from_dash()
 	lines.append_array(KINETIC.teach_lines())
-	lines.append("Right! I nearly forgot. My friend Pip's been waiting by the portal ALL day. They've got something to show you. Go on!")
+	lines.append("Oh! Pip's waiting by the portal. Go on!")
 	return lines
 
 
@@ -270,9 +269,9 @@ func _pick(id: String, n: Node3D) -> void:
 	var what: String = {"coil": "a springy coil", "bulb": "a fizzing bulb", "cog": "a tiny cog"}.get(
 		str(PARTS[int(id) - 1].kind), "a gadget bit")
 	if got < PARTS.size():
-		Game.message("You picked up %s! (%d of %d) The tyre tracks carry on..." % [what, got, PARTS.size()])
+		Game.message("Got %s! (%d of %d)" % [what, got, PARTS.size()])
 	else:
-		Game.message("You picked up %s! That's all three. The tracks end at a shed past Dash's house..." % what)
+		Game.message("Got %s! That's all three!" % what)
 
 
 func _catch_bot() -> void:
@@ -283,7 +282,7 @@ func _catch_bot() -> void:
 	_bot.queue_free()
 	_bot = null
 	_flag("bb_bot_caught")
-	Game.message("Gotcha! The Buzz Bot buzzes happily in your hands. Take it back to Dash!")
+	Game.message("Got the Buzz Bot! Back to Dash!")
 
 
 func _ground(s: Node, x: float, z: float) -> float:

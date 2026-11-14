@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Yo! Ozzie. You skate? You totally should. The Big Vert's huge. I've dropped in once. Okay, half once. I sat down halfway."
+        "Yo! I'm Ozzie. You skate? The Big Vert is HUGE!"
       ]
     },
     {
@@ -15,8 +15,7 @@
         "season": "winter"
       },
       "lines": [
-        "I caught zero fish. ZERO. The barrel's rigged. Hank's rigged it.",
-        "Next year I'm bringing a snorkel."
+        "I caught zero fish. ZERO. It's rigged!"
       ]
     },
     {
@@ -25,8 +24,7 @@
         "season": "summer"
       },
       "lines": [
-        "I got zero apples. ZERO. The barrel's rigged. Hank's rigged it.",
-        "I even brought a snorkel this time. A SNORKEL."
+        "Zero apples. ZERO. Even with a snorkel!"
       ]
     },
     {
@@ -35,8 +33,7 @@
         "season": "autumn"
       },
       "lines": [
-        "I got zero apples. ZERO. The barrel's rigged. Hank's rigged it.",
-        "Next year I'm bringing a snorkel."
+        "I got zero apples. ZERO. It's rigged!"
       ]
     },
     {
@@ -45,8 +42,7 @@
         "season": "spring"
       },
       "lines": [
-        "I hooked zero ducks. ZERO. The pond's rigged. Hank's rigged it.",
-        "Next year I'm bringing a fishing rod."
+        "I hooked zero ducks. ZERO. It's rigged!"
       ]
     },
     {
@@ -54,8 +50,7 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "Tried to grind the railing round the tree. Mrs. Wren saw. I'm just standing here now.",
-        "Lights at night, frozen pond tomorrow. Best week."
+        "I tried to grind the tree railing. Mrs. Wren saw."
       ]
     },
     {
@@ -63,7 +58,6 @@
         "activity": "kites"
       },
       "lines": [
-        "Tied my kite to my board. Free tow up the hill! ...Not really. It doesn't work.",
         "My kite's in that tree. It lives there now."
       ]
     },
@@ -72,8 +66,7 @@
         "activity": "fireworks"
       },
       "lines": [
-        "Every time one goes off I do a kickflip. In my head.",
-        "The finale's at ten. Front row's the dock. Trust me."
+        "Every firework, I do a kickflip. In my head."
       ]
     },
     {
@@ -81,8 +74,7 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "I'm a skeleton on a skateboard! A skate-leton! (He waits for you to laugh.)",
-        "Ten doors on Maple Lane. I've done all ten. Twice. Don't tell my dad."
+        "I'm a skate-leton! Get it?"
       ]
     },
     {
@@ -91,8 +83,7 @@
         "activity": "skating"
       },
       "lines": [
-        "Weekend sesh! Bruno says he's landing a kickflip today. I've got snacks for when he doesn't.",
-        "Want to skate with us?"
+        "Weekend skate! Want to come?"
       ]
     },
     {
@@ -100,7 +91,7 @@
         "activity": "snacks"
       },
       "lines": [
-        "Mrs. Wren's got the good crisps at the market. The cheesy ones. I've got three bags. For training."
+        "Cheesy crisps. Three bags. For training."
       ]
     },
     {
@@ -108,7 +99,7 @@
         "activity": "hill"
       },
       "lines": [
-        "Bruno says the hill's for rolling. I say it's for racing. We're still arguing."
+        "The hill's for racing, not rolling!"
       ]
     },
     {
@@ -116,7 +107,7 @@
         "activity": "skating"
       },
       "lines": [
-        "Watch this! (Ozzie kickflips. Lands it. Looks very surprised.) Did you see that?! Nobody ever sees that!"
+        "(Ozzie kickflips!) Did you SEE that?!"
       ]
     },
     {
@@ -124,19 +115,19 @@
         "activity": "recess"
       },
       "lines": [
-        "Recess. No boards allowed at school. I'm practising in my head."
+        "No boards at school. I practise in my head."
       ]
     },
     {
       "rotate": [
         [
-          "Bruno's the best skater in town. Don't tell him I said that. His head's big enough with the beanie on."
+          "Bruno's the best skater. Don't tell him!"
         ],
         [
-          "There's a rail all the way down Lookout Hill. Take the kicker at the bottom and you go SO high. Like, bird high."
+          "The Lookout Hill rail goes SO high!"
         ],
         [
-          "Hank says I can use his loading dock if I don't scare the pigeons. The pigeons scare me."
+          "The pigeons at Hank's dock scare me."
         ]
       ]
     }

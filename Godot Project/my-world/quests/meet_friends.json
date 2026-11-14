@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "melody",
-      "text": "Bramble says someone's singing her heart out in the Market Square. Go and say hi to Melody.",
+      "text": "Say hi to Melody in the Market Square.",
       "done": {"flag": "mf_melody"},
       "where": ["melody"],
       "override": {
@@ -17,7 +17,7 @@
     },
     {
       "id": "heather",
-      "text": "Melody's written a new song, and she wants her best friend Heather to hear it. Find Heather in the green meadow and ask her to come.",
+      "text": "Find Heather in the green meadow.",
       "done": {"flag": "mf_heather"},
       "where": ["clover"],
       "override": {
@@ -27,7 +27,7 @@
     },
     {
       "id": "song",
-      "text": "Heather's on her way! Meet them both in the Market Square for Melody's new song.",
+      "text": "Meet them in the Market Square!",
       "done": {"flag": "mf_song"},
       "where": ["melody"],
       "override": {
@@ -37,7 +37,7 @@
     }
   ],
   "reward": {
-    "message": "Two new friends! Dash came by looking for you: he's waiting by the portal! (+8 sparkles)",
+    "message": "Two new friends! (+8 sparkles)",
     "sparkles": 8
   }
 }

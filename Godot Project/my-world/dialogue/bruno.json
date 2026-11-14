@@ -10,10 +10,8 @@
         ]
       },
       "lines": [
-        "(Bruno's voice drops. It goes low and slow and very, very Italian. This only happens when he's stressed.)",
-        "Thomebody... put mud pies... in Mrs. Crumb's bakery. And they let my thister take the blame.",
-        "You find this other Nina. You tell her... Bruno sends his regards.",
-        "(He blinks. His normal voice comes back.) ...Sorry. That just comes out sometimes. Please help Nina."
+        "Thomebody let my thister take the blame.",
+        "Find thith other Nina. Pleathe."
       ]
     },
     {
@@ -22,9 +20,8 @@
         "not_flag": "bruno_after_aftershock"
       },
       "lines": [
-        "You sent the other Nina back through the pond? For real?",
-        "(The voice creeps in again.) You have done this family... a great favour. One day, I may ask you for a favour in return.",
-        "(Normal again.) Probably a skate favour. Like filming me. Not when I fall."
+        "You thent her back? For real?",
+        "I owe you a favour. A thkate favour!"
       ],
       "set": "bruno_after_aftershock"
     },
@@ -33,10 +30,8 @@
         "talks": 0
       },
       "lines": [
-        "(Bruno nods at you from under his black SK8 beanie.) 'Thup. Bruno. Nina's brother. The little one, but don't thay little.",
-        "{player}: Did you just say 'thup'?",
-        "(He points at the gap in his grin.) Lotht a tooth. On the Big Vert. Totally worth it.",
-        "You thkate? Come find me at the Thkate Yard after school. I'll show you thtuff."
+        "'Thup. I'm Bruno. Nina's little brother.",
+        "You thkate? Find me at the Thkate Yard!"
       ]
     },
     {
@@ -45,10 +40,9 @@
         "not_flag": "bruno_caught_up"
       },
       "lines": [
-        "(Bruno pulls you behind the bushes and drops his voice.) Okay. Don't tell Mum. Latht night I had a bad dream, tho I went in Nina'th room.",
-        "Then her floor jutht... CRACKED. I grabbed her hand and... WHOOMPH. Next thing I know, I'm a HIPPO, falling out of a GREEN SKY.",
-        "You got a watch. Nina got a watch. I got nothing. Nina thays that'th 'cauthe I'm not one of the chothen. I'm jutht... caught up in it.",
-        "(He shrugs and grins through the gap in his teeth.) Fine by me. Chothen people have to thave the world. I jutht get to thkate there."
+        "Pssst. Don't tell Mum. Nina'th floor CRACKED!",
+        "I grabbed her hand and... WHOOMPH! I was a HIPPO!",
+        "No watch for me. I jutht came along."
       ],
       "set": "bruno_caught_up"
     },
@@ -59,7 +53,7 @@
       },
       "lines": [
         "Thleigh rideth are for babieth.",
-        "...Okay, it'th kind of fun. Don't tell Prue."
+        "...Okay, it'th fun."
       ]
     },
     {
@@ -68,8 +62,8 @@
         "season": "summer"
       },
       "lines": [
-        "Hayride'th for babieth. It'th too hot for hay anyway.",
-        "...Okay, it'th kind of fun. Don't tell Prue."
+        "Hayride'th for babieth.",
+        "...Okay, it'th fun."
       ]
     },
     {
@@ -79,7 +73,7 @@
       },
       "lines": [
         "Hayride'th for babieth.",
-        "...Okay, it'th kind of fun. Don't tell Prue."
+        "...Okay, it'th fun."
       ]
     },
     {
@@ -89,7 +83,7 @@
       },
       "lines": [
         "Hook-a-duck ith for babieth.",
-        "...Okay, I hooked four. Don't tell Prue. She got five."
+        "...I hooked four. Prue got five."
       ]
     },
     {
@@ -97,8 +91,7 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "The tree'th got thixty-four lighth. I counted. Then I lotht count. Thixty-thomething.",
-        "(Bruno lowers his voice.) Nobody touches the prethentth. Capiche? (Back to normal.) They're empty boxeth anyway."
+        "The tree'th got thixty-thomething lighth!"
       ]
     },
     {
@@ -106,8 +99,7 @@
         "activity": "kites"
       },
       "lines": [
-        "My kite'th a thkateboard kite. It doethn't fly. I'm jutht holding it up.",
-        "Nina thayth kiteth are for babieth. Then she flew hers for three hourth."
+        "My kite'th a thkateboard. It doethn't fly."
       ]
     },
     {
@@ -115,8 +107,7 @@
         "activity": "fireworks"
       },
       "lines": [
-        "Ten! Eleven! ...What comth after eleven? Big one! BIG one!",
-        "Firefly Night meanth no bedtime till ALMOTHT eleven. Betht night."
+        "Ten! Eleven! ...BIG one!"
       ]
     },
     {
@@ -124,8 +115,8 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "Trick or treat! I'm a meatball. A thpooky meatball.",
-        "(Bruno lowers his voice.) I'm gonna make you a treat you can't refuthe... (Back to normal.) It'th a gummy worm. Want one?"
+        "Trick or treat! I'm a thpooky meatball.",
+        "Want a gummy worm?"
       ]
     },
     {
@@ -137,8 +128,7 @@
         ]
       },
       "lines": [
-        "No thchool! Two whole dayth of thkating!",
-        "I'm gonna land a kickflip off the Big Vert before Monday. Probably. Maybe."
+        "No thchool! Two dayth of thkating!"
       ]
     },
     {
@@ -146,7 +136,7 @@
         "activity": "lunch"
       },
       "lines": [
-        "Pancakeths for breakfatht AND grilled cheese for lunch. Weekendth are the betht."
+        "Pancaketh AND grilled cheese! Weekendth!"
       ]
     },
     {
@@ -154,8 +144,7 @@
         "activity": "hill"
       },
       "lines": [
-        "Lookout Hill ith the betht for rolling down. Watch!",
-        "(Bruno lies down and rolls. He gets about a metre.)",
+        "Lookout Hill ith for rolling down. Watch!",
         "...It'th better when you're dizzy."
       ]
     },
@@ -164,19 +153,19 @@
         "activity": "skating"
       },
       "lines": [
-        "(He's lining up the Big Vert.) Watch. And don't film it if I fall.",
+        "Watch me on the Big Vert!",
         {
           "choice": [
             {
               "text": "Teach me something!",
               "lines": [
-                "Okay. Thecret one. Pop the ollie at the very top of the ramp, not before. Patience. Like Mr. Palmer thays. Ugh."
+                "Ollie at the very top of the ramp!"
               ]
             },
             {
               "text": "Go for it!",
               "lines": [
-                "(He drops in, flies up the far side, grabs his board and lands it clean.) ...You thaw that, right? Tell Nina."
+                "...You thaw that, right? Tell Nina!"
               ]
             }
           ]
@@ -188,7 +177,7 @@
         "activity": "his_room"
       },
       "lines": [
-        "My room. Pothterth. Board. Ramp. Mum thays no rampth indoorth. It'th a thmall ramp."
+        "Mum thays no rampth indoorth. It'th a thmall ramp."
       ]
     },
     {
@@ -196,7 +185,7 @@
         "activity": "breakfast"
       },
       "lines": [
-        "(Mouth full of cereal.) Mm. Nina'th being weird again. Thtaring at the clock like it owes her money."
+        "Nina'th being weird. Thtaring at the clock."
       ]
     },
     {
@@ -207,22 +196,22 @@
         ]
       },
       "lines": [
-        "Recess is the only good part. Juniper keeps trying to interview me. No comment."
+        "Recess is the only good part."
       ]
     },
     {
       "rotate": [
         [
-          "The gap jump? Theven metreth. I've cleared it. Twice. Okay, once and a half."
+          "The gap jump? I cleared it! Once and a half."
         ],
         [
-          "Nina goes quiet near midnight. Like she's listening for something. Weird, right? ...Right?"
+          "Nina goes quiet near midnight. Weird, right?"
         ],
         [
-          "Grandma thays my beanie makes me look like I'm about to rob the bakery. It'th a SKATE beanie. It thays SK8 on it."
+          "My beanie thays SK8 on it!"
         ],
         [
-          "(He whistles through the gap in his teeth.) The tooth fairy gave me a whole dollar. I'm thaving it for wheelth."
+          "The tooth fairy gave me a dollar. For wheelth!"
         ]
       ]
     }

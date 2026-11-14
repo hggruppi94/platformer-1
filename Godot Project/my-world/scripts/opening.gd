@@ -96,13 +96,13 @@ func wake_shots(player: Node3D, home: Node3D) -> Array:
 	var corner_in := home.global_transform * Vector3(2.2, 2.2, -2.4)
 	return [
 		{"start": g + Vector3(34, 34, -46), "start_look": g, "from": g + Vector3(-6, 24, -34), "look": g, "time": 5.0,
-			"title": "Stars Hollow", "caption": "A sleepy little town, where nothing much ever happens..."},
+			"title": "Stars Hollow", "caption": "A sleepy little town..."},
 		{"from": oak + ((g - oak) * Vector3(1, 0, 1)).normalized() * 10.0 + Vector3.UP * 3.0, "look": oak + Vector3.UP * 4.0, "time": 3.6,
-			"title": "", "caption": "...well, almost nothing."},
+			"title": "", "caption": "...mostly."},
 		{"from": door + front * 6.0 + home.global_basis.x * 3.0 + Vector3.UP * 1.9, "look": door + Vector3.UP * 2.0, "time": 3.6,
-			"title": "", "caption": "And this is home, where %s lives." % Dialogue.player_name()},
+			"title": "", "caption": "Home sweet home."},
 		{"start": corner, "start_look": mid, "from": corner_in, "look": mid, "time": 3.4, "sound": "door",
-			"title": "", "caption": "Knock knock! Somebody's at the door!"},
+			"title": "", "caption": "Knock knock!"},
 	]
 
 
@@ -189,18 +189,18 @@ func guide_shots(id: String) -> Array:
 	match id:
 		"nina":
 			var nina := _who("nina_earth", p + Vector3(0, 0, 8))
-			return [_look_at(p, nina, "", "That's Nina, from next door! Walk up to her and press {interact} to say hi.", 4.5)]
+			return [_look_at(p, nina, "", "Nina! Say hi with {interact}.", 4.5)]
 		"green":
 			var palmer := _who("palmer_earth", _at(GAZEBO))
-			return [_look_at(p, palmer, "", "Mr. Palmer's by the gazebo. Say hello to him...", 3.6),
+			return [_look_at(p, palmer, "", "Say hi to Mr. Palmer...", 3.6),
 				{"from": _at(GAZEBO) + Vector3(14, 12, 18), "look": _at(GAZEBO), "time": 3.6, "title": "",
-					"caption": "...and to two more people round the green."}]
+					"caption": "...and two more friends!"}]
 		"board":
-			return [_close_up(_at(BOARD), "The Notice Board", "People pin jobs up here, and they pay sparkles! Nina will show you how.", 4.5, 6.0, 1.6)]
+			return [_close_up(_at(BOARD), "The Notice Board", "Jobs for sparkles!", 4.5, 6.0, 1.6)]
 		"evening":
-			return [_close_up(_at(MY_HOME), "Home", "Nina's gone home for dinner. Enjoy the evening, then head to bed when you're sleepy.", 4.5, 12.0, 2.0)]
+			return [_close_up(_at(MY_HOME), "Home", "Bedtime soon!", 4.5, 12.0, 2.0)]
 		"skate_park":
-			return [_close_up(_at(SKATE_PARK), "The Skate Park", "Rex is waiting for you at the Skate Park!", 4.5, 16.0, 6.0)]
+			return [_close_up(_at(SKATE_PARK), "The Skate Park", "Rex is waiting!", 4.5, 16.0, 6.0)]
 	return []
 
 

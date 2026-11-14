@@ -141,7 +141,7 @@ func _announce() -> void:
 	if FirstNight.running():
 		return                                   # (the first look round the Void shows Tally's board instead)
 	_told = rolled_visit
-	Game.message("New requests are up on the board in the Market Square!")
+	Game.message("New requests on Tally's board!")
 
 
 func kinds_for(tier: String) -> Array[String]:
@@ -487,7 +487,7 @@ func _check_done(r: Dictionary) -> void:
 	Audio.play("pickup", -2.0, 0.0)
 	Juice.blip("sparkle", 1.1, -8.0)
 	Juice.rumble(0.25, 0.12)
-	Game.message("%s done: %s! Turn it in at the board for ✦ %d." % [noun(), text_of(r), int(r.sparkles)])
+	Game.message("%s done! Back to the board for ✦ %d." % [noun(), int(r.sparkles)])
 
 
 func _check_places() -> void:
@@ -668,57 +668,49 @@ func _on_follow_picked(id: String) -> void:
 		elif Dialogue.flags.has(f):
 			Quests.follow(key_of(r), not Quests.is_followed(key_of(r)))
 			if Quests.is_followed(key_of(r)):
-				Game.message("Following: %s. Look for the star on your map!" % text_of(r))
+				Game.message("Following! Look for the star.")
 		Dialogue.flags.erase(f)
 	if all:
-		Game.message("Following all of them. Look for the stars on your map!")
+		Game.message("Following all! Look for the stars.")
 
 
 func lines(talker: Node3D = null) -> Array:
 	if not is_live():
-		return ["(Tally taps the empty clipboard.) Nothing tonight yet, {player}! New requests go up every Shift."]
+		return ["Nothing yet! Come back next Shift."]
 	var out: Array = []
 	var paid := turn_in(talker)
 	if paid > 0:
-		out.append("Ooh, {player}, you did it! Tick, tick, tick! Here's ✦ %d, all yours." % paid)
+		out.append("You did it! Here's ✦ %d!" % paid)
 		if ready_to_turn_in().is_empty() and list.all(func(r: Dictionary) -> bool: return r.paid):
-			out.append("That's every request tonight! Everyone in the Void is talking about {them}.")
+			out.append("That's every request! WOW!")
 			return out
 	elif not Dialogue.flags.has("tally_hi") and self == Requests and FirstNight.running() and FirstNight.step() == "shift":
 		# The night the sky cracked (scripts/void_arrival.gd): Tally's as rattled as everyone, then carries on with the
 		# notice board's tutorial
-		out.append("(Tally's clipboard is shaking.) Seven. SEVEN! Out of the SKY! Oh my stars. Oh my clipboard.")
-		out.append("Sorry, sorry. Hello! Tally's the name, requests are my game. Normally. This morning it's mostly panicking.")
-		out.append("Folks pop in and out of the Void through cracks in the ground all the time. Little ones. Quiet ones. Never the SKY. Never seven at once.")
-		out.append("(Tally peers at the watch on your wrist and writes something down.) A watch. Same as the others. The old stories call that being 'chosen'. Hmm. Hmm hmm hmm.")
-		out.append("Right! Deep breaths. You're here now, and a busy {player} is a happy {player}. Folks pin their requests on my board every night. Just like the notice board back on Earth, I hear!")
-		out.append("Pick one to follow and it gets a star on your map. Finish it, come back to me or the board, and I pay you in sparkles.")
-		out.append("Here's who needs a hand tonight:")
+		out.append("SEVEN of you! Out of the SKY! Oh my clipboard!")
+		out.append("And a watch, just like the others... hmm.")
+		out.append("I'm Tally! Help folks on my board, earn sparkles!")
 	elif not Dialogue.flags.has("tally_hi"):
 		# The first hello: the notice board's tutorial carries on here (the board works just like Earth's)
-		out.append("Oh! A new face! Hello, hello! Tally's the name, requests are my game. (They wave the clipboard.)")
-		out.append("Folks in the Void pin their requests on my board every night. Just like the notice board back on Earth, I hear!")
-		out.append("Pick one to follow and it gets a star on your map. Finish it, come back to me or the board, and I pay you in sparkles.")
-		out.append("Here's who needs a hand tonight:")
+		out.append("A new face! I'm Tally!")
+		out.append("Help folks on my board, earn sparkles!")
 	elif not Dialogue.flags.has("tally_comers") and not Dialogue.flags.has("dash_goodbye") and self == Requests:
 		# Who lives here and who just visits (Hayden, 12 Nov 2026: the Void's townsfolk come and go; Tally, the little
 		# aliens and the Astronaut live here for keeps). Once, the hello after their first one.
 		Dialogue.flags["tally_comers"] = true
-		out.append("Hello again, {player}! Have you noticed? Folks come and go here all the time. Pop up out of a crack in the morning, drop back through one at night.")
-		out.append("Only a few of us live in the Void for keeps: me, the little ones and the Astronaut. And Dash, Rex and Rook. They can't leave. Not yet, anyway.")
-		out.append("Everyone else is only visiting. Like you! Right, here's who needs a hand tonight:")
+		out.append("Folks pop in and out through cracks all day!")
+		out.append("Only a few of us live here. Like Dash, Rex and Rook.")
 	else:
-		out.append("Hello, {player}! Tally's the name, requests are my game. Here's who needs a hand tonight:")
+		out.append("Hi, {player}! Tonight's requests:")
 	for r in list:
 		if not r.paid:
 			var extra := progress_text(r)
 			out.append("%s, for ✦ %d.%s" % [text_of(r), int(r.sparkles), (" (%s)" % extra.capitalize()) if extra != "" else ""])
-	out.append("No rush, and no worries if {they} can't do them all. Whatever's left just fades at the end of the Shift.")
 	if self == Requests and FirstNight.running() and FirstNight.step() in ["shift", "day"] \
 			and not Dialogue.flags.has("skate_lesson_ollie"):
 		# The First Night's Void day: Tally sends them on to Rex (Hayden's meeting order, scripts/meetings.gd)
-		out.append("Oh! And Rex at the Skate Park's been asking after you all morning. He'll teach you to skate!")
-		out.append("Those wobbly goo blobs round the Market are Gloops, by the way. Jump right on top of them and they pop!")
+		out.append("Oh! Rex wants you at the Skate Park!")
+		out.append("See the goo blobs? Gloops! Jump on them!")
 	return out
 
 

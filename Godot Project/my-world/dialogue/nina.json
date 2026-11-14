@@ -7,8 +7,8 @@
         "not_flag": "dogs_sign_nina"
       },
       "lines": [
-        "Rex is doing a Bill of Rights? For dogs? That's so Rex. I'm in.",
-        "(Nina signs NINA in big round letters and draws a bone next to it.)"
+        "A Bill of Rights for dogs? So Rex! I'm in.",
+        "(Nina signs it, with a bone.)"
       ],
       "set": "dogs_sign_nina"
     },
@@ -17,12 +17,11 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "{player}! Are you okay? I'm okay. I think. I'm... different.",
+        "{player}! Are you okay? I'm... different!",
         "{player}: Nina?! You look... different!",
-        "So do you! (She looks down at her hands.) My bedroom floor cracked open. We fell right through it, and then out of the SKY.",
-        "Bruno grabbed my hand. He's FINE. He's already asking where the skate park is.",
-        "(She holds up her wrist. A watch is ticking on it. There's one on yours, too.) Where did THESE come from?",
-        "Everyone's staring at us, {player}. That tall yellow one with the clipboard keeps counting us. Let's go and say hi."
+        "So do you! We fell out of the SKY!",
+        "And where did THESE watches come from?",
+        "That yellow one with the clipboard keeps counting us. Let's say hi."
       ],
       "first_night": true
     },
@@ -33,12 +32,8 @@
       "lines": [
         "{player}! You fell too! It's me, Nina!",
         "{player}: Nina?! You look... different!",
-        "So do you, a bit! (She giggles, a bit shakily.) I think the Void changes Earth kids. Same me on the inside, though. Same Nina from Maple Lane.",
-        "My bedroom floor cracked open right under my bed. Bruno grabbed my hand and we fell straight through. Then out of the SKY!",
-        "And look! (She holds up her wrist. A watch is ticking on it.) I got one too. Tally says that means I'm chosen, like you. Whatever chosen means. We'll find out together!",
-        "Bruno didn't get a watch. He's already found the Skate Park, obviously.",
-        "There's a little yellow house by the park we can nap in till it's time to go home. Yours is the one with the round door. Neighbours in both worlds!",
-        "If you need anything, I'm usually down by the lake in the morning and at the Skate Park after lunch."
+        "So do you! The Void changes Earth kids, I think.",
+        "And we both got watches. Tally says we're 'chosen'!"
       ]
     },
     {
@@ -46,9 +41,8 @@
         "quest_step": "first_night:day"
       },
       "lines": [
-        "(Nina keeps looking up at the sky, where the cracks were.) Tally says folks pop in and out of the Void through cracks in the ground all the time. Never out of the SKY. Never seven at once.",
-        "I keep thinking someone must have done it. Skies don't just break.",
-        "Go and find Rex at the Skate Park. Bruno's already there. Of course he is."
+        "Skies don't just break. Someone did it.",
+        "Go find Rex at the Skate Park!"
       ],
       "first_night": true
     },
@@ -57,10 +51,9 @@
         "quest_step": "make_together:show"
       },
       "lines": [
-        "Ooh, you tried it! Did it wobble? It always wobbles.",
+        "You tried it! Did it wobble?",
         "{player}: I made a bridge and a step in the air!",
-        "That's SO good. It's even littler with three of us sharing, but it's still ours. All three of ours.",
-        "Bruno says the trick is not to think about it too hard. I say the trick is to think about it LOTS. We're both right, I think."
+        "SO good! It works when we share it."
       ],
       "set": "make_showed_nina"
     },
@@ -69,8 +62,7 @@
         "quest_step": "make_together:try"
       },
       "lines": [
-        "Go on, try it! Make a bridge in front of you, or jump and make a step under your feet. Three things!",
-        "Don't worry if it pops. They always pop. That's the bit that makes Bruno laugh."
+        "Try it! Make a bridge, or a step in the air!"
       ]
     },
     {
@@ -78,7 +70,7 @@
         "quest_step": "make_together:bruno"
       },
       "lines": [
-        "Did you find Bruno yet? He's probably at the Skate Park, showing off to a Gloop."
+        "Found Bruno yet? Try the Skate Park."
       ]
     },
     {
@@ -88,10 +80,9 @@
         "min_talks": 1
       },
       "lines": [
-        "{player}! Okay, okay, I have to tell someone or I'll burst.",
-        "Bruno and me found out something. Something BIG. Well, something little. But big!",
-        "No, I can't say it. He wants to show you himself. He's been practising all day.",
-        "Go and find him. He'll be at the Skate Park, or wherever there's something to skate on."
+        "{player}! Bruno and me found out something BIG!",
+        "He wants to show you himself!",
+        "He's at the Skate Park. Go!"
       ],
       "set": "make_start"
     },
@@ -101,8 +92,7 @@
         "every": 3
       },
       "lines": [
-        "Bruno made a little bridge over a puddle this morning. It popped halfway. He got very wet. He says it was on purpose.",
-        "It's funny. On our own we can't make anything. It only works when there's two of us. Three, now!"
+        "Bruno's bridge popped over a puddle. He got SO wet."
       ]
     },
     {
@@ -111,8 +101,7 @@
         "min_talks": 1
       },
       "lines": [
-        "Morning, {player}! I'm deciding what to do today.",
-        "The lake first, I think. Then skating. Then maybe more skating."
+        "Morning! The lake first, then skating!"
       ]
     },
     {
@@ -121,20 +110,19 @@
         "min_talks": 1
       },
       "lines": [
-        "Hi, {player}! Have you been to the Clothing Boutique yet?",
-        "They've got butterfly wings now. BUTTERFLY WINGS.",
+        "The Boutique has BUTTERFLY WINGS now!",
         {
           "choice": [
             {
               "text": "I love the wings!",
               "lines": [
-                "Right?! We should both get some. Then we'd be a team."
+                "Let's both get some!"
               ]
             },
             {
-              "text": "I'm more of a cape person.",
+              "text": "I like capes more.",
               "lines": [
-                "Ooh, a super cape. Very heroic. That suits you."
+                "Ooh, very heroic!"
               ]
             }
           ]
@@ -147,9 +135,8 @@
         "min_talks": 1
       },
       "lines": [
-        "{player}! Watch this! ...Okay, I'll do the kickflip later. My board needs a rest.",
-        "Did you find all the S-K-A-T-E letters? The K is way up high over the quarter pipe.",
-        "Try a vert air off the big ramp and go straight up. That's how I got it."
+        "Found all the S-K-A-T-E letters?",
+        "The K is way up over the big ramp!"
       ]
     },
     {
@@ -158,9 +145,8 @@
         "min_talks": 1
       },
       "lines": [
-        "The sky's turning all gold. This is my favourite part of the day.",
-        "{player}: Mine too.",
-        "Then a nap in our little yellow house, and home to Maple Lane before Mum even wakes up. See you tomorrow, neighbour!"
+        "The sky's going gold. My favourite bit!",
+        "See you tomorrow, neighbour!"
       ]
     },
     {
@@ -168,7 +154,7 @@
         "min_talks": 1
       },
       "lines": [
-        "Hi again, {player}! The Void's even better with a neighbour. And Maple Lane is too."
+        "Hi again, {player}! Neighbours in both worlds!"
       ]
     }
   ]

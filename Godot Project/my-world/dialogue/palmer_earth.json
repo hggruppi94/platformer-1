@@ -8,14 +8,10 @@
       },
       "set": "fn_palmer",
       "lines": [
-        "Well, hello there, neighbour! You must be {player}, the new one on the green. I'm Mr. Palmer.",
-        "I look after things round here. The town meetings, the gazebo lights, the pumpkins that roll off Poppy's cart.",
-        "{player}: Nina said you know everything about this town.",
-        "(Mr. Palmer chuckles and checks his pocket watch.) Everything? No, no. Nearly everything. The old oak keeps a secret or two.",
-        "Now, a few tips for a new neighbour. Press {interact} to talk to anyone. People do different things at different times of day, so try again later if someone's busy.",
-        "{player_menu} opens your menu: your quests, the map, your bag. {map} goes straight to the map, and the star on it shows where to go next.",
-        "And if you're ever tired, your bed will let you sleep the hours away.",
-        "Off you go and say hello to a few more folks. Theo and Mr. Page are on the bench, and Dottie and Ozzie are about the green. They'll be glad to meet you."
+        "Hello there, neighbour! You must be {player}. I'm Mr. Palmer.",
+        "The old oak keeps a secret or two. Heh.",
+        "Lost? {map} opens the map. Follow the star!",
+        "Now go say hello to a few more folks!"
       ],
       "first_night": true
     },
@@ -24,8 +20,8 @@
         "quest_step": "first_night:morning"
       },
       "lines": [
-        "Met a few of the neighbours? Good, good. Everyone's a little bit odd here, and that's what makes it home.",
-        "(He glances over at the gazebo.) Nina's waiting for you over there, I see. That girl's always up to something."
+        "Met the neighbours? Good, good!",
+        "Nina's waiting for you at the gazebo."
       ],
       "first_night": true
     },
@@ -34,9 +30,9 @@
         "quest_step": "first_night:evening"
       },
       "lines": [
-        "Out for an evening stroll, {player}? Lovely night for it.",
-        "(He checks his pocket watch. Then checks it again, and frowns.) Hm. That's odd. It's running backwards.",
-        "Off to bed with you soon. Big day tomorrow. Every day's a big day, at your age."
+        "Lovely night for a stroll, {player}.",
+        "Hm. My pocket watch is running backwards.",
+        "Off to bed soon! Big day tomorrow."
       ],
       "first_night": true
     },
@@ -45,13 +41,10 @@
         "talks": 0
       },
       "lines": [
-        "Well, hello there, neighbour! I'm Mr. Palmer. I look after things round here. Town meetings, the gazebo, that sort of thing.",
-        "{player}: Mr. Palmer?! You look just like the mayor of the Void!",
-        "(Mr. Palmer looks left. Then right. Then he leans down and whispers.)",
-        "Shh! Nobody here knows about that. On this side of the portal I'm just plain old Mr. Palmer.",
-        "Lots of us have a Void side, you know. You look a bit different over there yourself, I expect.",
-        "{player}: I do?",
-        "Everyone does! That's the fun of it."
+        "Hello there, neighbour! I'm Mr. Palmer.",
+        "{player}: You look just like the mayor of the Void!",
+        "Shh! Nobody here knows about that.",
+        "Lots of us have a Void side. You do too!"
       ]
     },
     {
@@ -60,8 +53,8 @@
         "season": "winter"
       },
       "lines": [
-        "Ahem! Friends, neighbours, and anyone who's had too much gingerbread! In a moment, we let our lanterns go.",
-        "May they carry our wishes up... and wherever else they might be going. (He glances at the old oak.)"
+        "Ahem! Friends, neighbours! Let the lanterns go!",
+        "May they carry our wishes up... and wherever else."
       ]
     },
     {
@@ -70,8 +63,8 @@
         "season": "summer"
       },
       "lines": [
-        "Ahem! Friends, neighbours, and anyone who's had too many ice lollies! In a moment, we let our lanterns go.",
-        "May they carry our wishes up, through the fireflies... and wherever else they might be going. (He glances at the old oak.)"
+        "Ahem! Friends, neighbours! Let the lanterns go!",
+        "May they carry our wishes up... and wherever else."
       ]
     },
     {
@@ -80,8 +73,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Ahem! Friends, neighbours, and anyone who's had too much kettle corn! In a moment, we let our lanterns go.",
-        "May they carry our wishes up... and wherever else they might be going. (He glances at the old oak.)"
+        "Ahem! Friends, neighbours! Let the lanterns go!",
+        "May they carry our wishes up... and wherever else."
       ]
     },
     {
@@ -90,8 +83,8 @@
         "season": "spring"
       },
       "lines": [
-        "Ahem! Friends, neighbours, and anyone who's had too many strawberry tarts! In a moment, we let our lanterns go.",
-        "May they carry our wishes up... and wherever else they might be going. (He glances at the old oak.)"
+        "Ahem! Friends, neighbours! Let the lanterns go!",
+        "May they carry our wishes up... and wherever else."
       ]
     },
     {
@@ -101,9 +94,8 @@
       },
       "set": "palmer_tremor_talk",
       "lines": [
-        "A tremor? Oh, that. The old pipes under the green. Yes. Pipes. Very old pipes.",
-        "(He checks his pocket watch. Then the old oak. Then his watch again.)",
-        "Off you pop, {player}. Nothing to worry about. Nothing at all."
+        "A tremor? Oh, that's just... old pipes. Yes. Pipes.",
+        "Nothing to worry about. Nothing at all."
       ]
     },
     {
@@ -113,9 +105,8 @@
       },
       "set": "palmer_letter_talk",
       "lines": [
-        "Hm? You saw an envelope on my porch? Oh! That's from my... pen pal. Lives very far away. Terrible handwriting. Lovely person.",
-        "(He tucks something lilac into his coat pocket, very quickly.)",
-        "The Void? Ha! Did it say the Void? It must have said... Devon. Yes. Devon. Lovely place, Devon. Well! Lovely weather for it."
+        "An envelope? From my pen pal! Lives far away.",
+        "The Void? Ha! It said... Devon. Yes. Devon."
       ]
     },
     {
@@ -124,8 +115,8 @@
         "season": "winter"
       },
       "lines": [
-        "Ah, the Frost Fair! Every year since I was a boy. And every year, the sleigh goes round exactly once more than anyone expects.",
-        "Have you tried the ice fishing? Hank keeps the best fish for the third go."
+        "The Frost Fair! Every year since I was a boy.",
+        "Try the ice fishing! Third go's the best."
       ]
     },
     {
@@ -134,8 +125,8 @@
         "season": "summer"
       },
       "lines": [
-        "Ah, the Summer Fair! Every year since I was a boy. And every year, the hayride goes round exactly once more than anyone expects.",
-        "Have you tried bobbing for apples? Lovely and cool on a hot night. Hank keeps the best ones for the third go."
+        "The Summer Fair! Every year since I was a boy.",
+        "Try bobbing for apples! Third go's the best."
       ]
     },
     {
@@ -144,8 +135,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Ah, the Autumn Festival! Every year since I was a boy. And every year, the hayride goes round exactly once more than anyone expects.",
-        "Have you tried bobbing for apples? Hank keeps the best ones for the third go."
+        "The Autumn Festival! Every year since I was a boy.",
+        "Try bobbing for apples! Third go's the best."
       ]
     },
     {
@@ -154,8 +145,8 @@
         "season": "spring"
       },
       "lines": [
-        "Ah, the Spring Fair! Every year since I was a boy. And every year, the hayride goes round exactly once more than anyone expects.",
-        "Have you tried hooking a duck? Hank keeps the luckiest ones for the third go."
+        "The Spring Fair! Every year since I was a boy.",
+        "Try hooking a duck! Third go's the luckiest."
       ]
     },
     {
@@ -163,9 +154,8 @@
         "activity": "oak_watch"
       },
       "lines": [
-        "(Mr. Palmer jumps.) Oh! Goodness! {player}! Just... admiring the old oak. Lovely tree. Lovely bark.",
-        "{player}: At midnight?",
-        "Best time for it! It hums a bit this time of night, doesn't it? (He winks.) Off you go, then. And mind you're home by one."
+        "Oh! {player}! Just... admiring the old oak.",
+        "It hums at night, doesn't it? Off you go!"
       ]
     },
     {
@@ -173,7 +163,7 @@
         "activity": "tea"
       },
       "lines": [
-        "Morning, neighbour! Tea on the porch. Best way to start the day. Well, second best. The first is not losing the string lights."
+        "Morning! Tea on the porch. Best start to a day."
       ]
     },
     {
@@ -181,7 +171,7 @@
         "activity": "lunch"
       },
       "lines": [
-        "Lunch at the diner. Gus pretends he doesn't save me the window seat. He saves me the window seat."
+        "Gus always saves me the window seat."
       ]
     },
     {
@@ -190,7 +180,7 @@
         "every": 2
       },
       "lines": [
-        "Town business! Today: should the gazebo be painted white, or a slightly different white? Very important."
+        "Today's big question: white, or slightly different white?"
       ]
     },
     {
@@ -199,22 +189,21 @@
         "season": "winter"
       },
       "lines": [
-        "Oh dear, oh dear. The Frost Fair's coming, and I've lost the string lights for the gazebo!",
-        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        "Oh dear! I've lost the gazebo's string lights!",
+        "Three boxes! By the diner? The bookshop? The inn?",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "earth_lights_start",
               "lines": [
-                "Would you? You're a star. Just like back home, eh?",
-                "No rush. You live just round the corner, after all."
+                "You're a star!"
               ]
             },
             {
               "text": "Maybe next time.",
               "lines": [
-                "No rush. The festival can wait. The gazebo's very patient."
+                "No rush!"
               ]
             }
           ]
@@ -227,22 +216,21 @@
         "season": "summer"
       },
       "lines": [
-        "Oh dear, oh dear. The Summer Fair's coming, and I've lost the string lights for the gazebo!",
-        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        "Oh dear! I've lost the gazebo's string lights!",
+        "Three boxes! By the diner? The bookshop? The inn?",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "earth_lights_start",
               "lines": [
-                "Would you? You're a star. Just like back home, eh?",
-                "No rush. You live just round the corner, after all."
+                "You're a star!"
               ]
             },
             {
               "text": "Maybe next time.",
               "lines": [
-                "No rush. The fair can wait. The gazebo's very patient. It's just sunbathing."
+                "No rush!"
               ]
             }
           ]
@@ -255,22 +243,21 @@
         "season": "autumn"
       },
       "lines": [
-        "Oh dear, oh dear. The autumn festival's coming, and I've lost the string lights for the gazebo!",
-        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        "Oh dear! I've lost the gazebo's string lights!",
+        "Three boxes! By the diner? The bookshop? The inn?",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "earth_lights_start",
               "lines": [
-                "Would you? You're a star. Just like back home, eh?",
-                "No rush. You live just round the corner, after all."
+                "You're a star!"
               ]
             },
             {
               "text": "Maybe next time.",
               "lines": [
-                "No rush. The festival can wait. The gazebo's very patient."
+                "No rush!"
               ]
             }
           ]
@@ -283,22 +270,21 @@
         "season": "spring"
       },
       "lines": [
-        "Oh dear, oh dear. The Spring Fair's coming, and I've lost the string lights for the gazebo!",
-        "Three boxes of them. I put them down somewhere on my way round the green... by the diner? The bookshop? The inn?",
+        "Oh dear! I've lost the gazebo's string lights!",
+        "Three boxes! By the diner? The bookshop? The inn?",
         {
           "choice": [
             {
               "text": "I'll find them!",
               "set": "earth_lights_start",
               "lines": [
-                "Would you? You're a star. Just like back home, eh?",
-                "No rush. You live just round the corner, after all."
+                "You're a star!"
               ]
             },
             {
               "text": "Maybe next time.",
               "lines": [
-                "No rush. The festival can wait. The gazebo's very patient."
+                "No rush!"
               ]
             }
           ]
@@ -310,7 +296,7 @@
         "quest_step": "earth_lights:find"
       },
       "lines": [
-        "Any luck with those lights? By the diner, the bookshop or the inn, I'm sure of it. Fairly sure. A bit sure."
+        "Any luck? The diner, the bookshop or the inn!"
       ]
     },
     {
@@ -320,12 +306,9 @@
       },
       "set": "earth_lights_given",
       "lines": [
-        "{player}: Mr. Palmer! I found all three boxes!",
-        "You found them! Splendid! Let's get them up.",
-        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
-        "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
-        "There. Now it's a proper winter evening.",
-        "Come by tomorrow and you can help with the fair. There's gingerbread and hot cocoa."
+        "You found them all! Splendid!",
+        "There! A proper winter evening.",
+        "Come help with the fair tomorrow!"
       ]
     },
     {
@@ -335,12 +318,9 @@
       },
       "set": "earth_lights_given",
       "lines": [
-        "{player}: Mr. Palmer! I found all three boxes!",
-        "You found them! Splendid! Let's get them up.",
-        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
-        "(The gazebo glows warm and golden. A few people on the green stop to say ooh. The fireflies come to have a look.)",
-        "There. Now it's a proper summer evening.",
-        "Come by on Saturday and you can help with the Summer Fair. There's blueberry pie and ice-cold lemonade."
+        "You found them all! Splendid!",
+        "There! A proper summer evening.",
+        "Come help with the Summer Fair on Saturday!"
       ]
     },
     {
@@ -350,12 +330,9 @@
       },
       "set": "earth_lights_given",
       "lines": [
-        "{player}: Mr. Palmer! I found all three boxes!",
-        "You found them! Splendid! Let's get them up.",
-        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
-        "(The gazebo glows warm and golden. A few people on the green stop to say ooh.)",
-        "There. Now it's a proper autumn evening.",
-        "Come by tomorrow and you can help with the festival. There's apple pie and hot apple juice."
+        "You found them all! Splendid!",
+        "There! A proper autumn evening.",
+        "Come help with the festival tomorrow!"
       ]
     },
     {
@@ -365,12 +342,9 @@
       },
       "set": "earth_lights_given",
       "lines": [
-        "{player}: Mr. Palmer! I found all three boxes!",
-        "You found them! Splendid! Let's get them up.",
-        "(Mr. Palmer strings the lights round the gazebo roof. {player} holds the ladder. Click!)",
-        "(The gazebo glows soft pink and gold among the blossom. A few people on the green stop to say ooh.)",
-        "There. Now it's a proper spring evening.",
-        "Come by on Saturday and you can help with the Spring Fair. There's strawberry tart and pink lemonade."
+        "You found them all! Splendid!",
+        "There! A proper spring evening.",
+        "Come help with the Spring Fair on Saturday!"
       ]
     },
     {
@@ -379,20 +353,20 @@
       },
       "rotate": [
         [
-          "Doesn't the gazebo look lovely? I keep walking past it just to look."
+          "Doesn't the gazebo look lovely?"
         ],
         [
-          "Off through the portal again tonight? Say hello to my other side for me."
+          "Off to the Void tonight? Say hi to my other side!"
         ]
       ]
     },
     {
       "rotate": [
         [
-          "Lovely evening for it. Winter's my favourite. Everything smells like snow and woodsmoke."
+          "Winter smells like snow and woodsmoke."
         ],
         [
-          "Have you heard the old oak at night? It hums. Some say it's waiting for something. But you didn't hear that from me."
+          "The old oak hums at night. You didn't hear it from me."
         ]
       ],
       "when": {
@@ -402,10 +376,10 @@
     {
       "rotate": [
         [
-          "Lovely evening for it. Summer evenings go on for ever. Everything smells like cut grass and sun cream."
+          "Summer evenings go on for ever."
         ],
         [
-          "Have you heard the old oak at night? It hums. Some say it's waiting for something. But you didn't hear that from me."
+          "The old oak hums at night. You didn't hear it from me."
         ]
       ],
       "when": {
@@ -415,10 +389,10 @@
     {
       "rotate": [
         [
-          "Lovely evening for it. Autumn's my favourite. Everything smells like leaves."
+          "Autumn smells like leaves. My favourite."
         ],
         [
-          "Have you heard the old oak at night? It hums. Some say it's waiting for something. But you didn't hear that from me."
+          "The old oak hums at night. You didn't hear it from me."
         ]
       ],
       "when": {
@@ -428,10 +402,10 @@
     {
       "rotate": [
         [
-          "Lovely evening for it. Spring's my favourite. Everything smells like blossom."
+          "Spring smells like blossom. My favourite."
         ],
         [
-          "Have you heard the old oak at night? It hums. Some say it's waiting for something. But you didn't hear that from me."
+          "The old oak hums at night. You didn't hear it from me."
         ]
       ],
       "when": {
