@@ -288,6 +288,11 @@ const RAMP_POP := 8.0                # a circuit's jump ramp (metres a second up
 const KNOCK_SAFE := 2.5              # after being knocked over, a moment when nothing can knock you again
 const ATTACKS := preload("res://scripts/race_attacks.gd")
 const TUTORIAL := preload("res://scripts/race_tutorial.gd")
+const FLOW := preload("res://scripts/race_flow.gd")
+const COIN_RADIUS := 1.6             # speed coins (circuits only: race_track.gd _place_coins)
+const COIN_SPEED := 2.5              # each coin's little push...
+const COIN_TIME := 0.5
+const COIN_BACK := 12.0              # ...and how long until a taken coin comes back (so once a lap)
 
 var best := {}                       # track id -> best time in seconds
 var wins := {}                       # track id -> how many times you came 1st
@@ -309,6 +314,8 @@ var progress := 0.0                  # how far round the player is, all laps tog
 var hud: RaceHud
 var intro: RaceIntro                 # the cutscene before a race (scripts/race_intro.gd)
 var tutorial: CanvasLayer            # how races work, the first time (scripts/race_tutorial.gd)
+var flow: CanvasLayer                # a whole set of speed coins: quicker, and the screen's edges melt (race_flow.gd)
+var _coin_got := {}                  # coin set (its index on the track) -> coins taken from it this time round
 var _count := 0.0
 var _results := 0.0
 var _shield := 0.0
@@ -350,6 +357,9 @@ func _ready() -> void:
 	attacks = ATTACKS.new()
 	attacks.name = "Attacks"
 	add_child(attacks)
+	flow = FLOW.new()
+	flow.name = "Flow"
+	add_child(flow)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
 	Dialogue.finished.connect(_on_talked)
@@ -976,6 +986,7 @@ func start(id: String, with_intro := true) -> bool:
 	_close_choice()
 	track_id = id
 	track = t
+	_coin_got.clear()
 	if not Game.riding:
 		Game.riding = true
 		Game.equipment_changed.emit()
@@ -1220,6 +1231,7 @@ func _race(delta: float) -> void:
 		_sky_boosts(ship)
 	else:
 		_pick_up(p, t)
+		_take_coins(p, t)
 		_use_power(p)
 		_tick_shield(p, delta)
 		attacks.tick(delta)
@@ -1392,6 +1404,8 @@ func _end(_done: bool) -> void:
 	rivals.clear()
 	_clear_power()
 	attacks.clear()
+	flow.stop()
+	_coin_got.clear()
 	hud.show_map(null)
 	if is_instance_valid(track):
 		track.show_race(false)
@@ -1458,6 +1472,37 @@ func _pick_up(p: Player, t: RaceTrack) -> void:
 		if _over(p.global_position, (g as Node3D).global_position, GOO_RADIUS, 1.0):
 			goo_hit(p)
 			break
+
+
+func _take_coins(p: Player, t: RaceTrack) -> void:
+	# Speed coins: each a little push; all of one set (without missing one) and you're in the flow. A set starts
+	# counting again once its coins have all come back.
+	for si in t.coin_sets.size():
+		var cs: Array = t.coin_sets[si]
+		var all_back := true
+		for c in cs:
+			all_back = all_back and float((c as Node3D).get_meta("gone", 0.0)) <= 0.0
+		if all_back:
+			_coin_got.erase(si)
+		for c in cs:
+			var coin := c as Node3D
+			if float(coin.get_meta("gone", 0.0)) > 0.0 or not coin.visible or not _over(p.global_position, coin.global_position, COIN_RADIUS, 2.0):
+				continue
+			coin.set_meta("gone", COIN_BACK)
+			var got := int(_coin_got.get(si, 0)) + 1
+			_coin_got[si] = got
+			var skate = p.get("skate")
+			skate.call("boost", COIN_SPEED, COIN_TIME)
+			Juice.chime_pickup()
+			Juice.burst(p.get_parent(), coin.global_position + Vector3.UP * 1.2, Color(1.0, 0.85, 0.3), 8, 0.06, 2.5, 0.4)
+			if got >= cs.size():
+				flow.start()
+				skate.hud.shout("FLOW!", Color(0.85, 0.6, 1.0))
+				Audio.play("level_up", -4.0)
+				Juice.rumble(0.35, 0.25)
+				Juice.burst(p.get_parent(), p.global_position + Vector3.UP, Color(0.75, 0.55, 1.0), 24, 0.08, 4.0, 0.7)
+			else:
+				skate.hud.shout("Coins %d/%d" % [got, cs.size()], Color(1.0, 0.85, 0.35))
 
 
 func goo_hit(p: Player) -> void:

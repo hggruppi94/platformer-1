@@ -23,6 +23,12 @@ const RING_HEIGHT := 3.0             # the ring's middle above the ground
 const STEP := 1.0                    # metres between the line's points
 const PAD_SIZE := Vector3(2.6, 0.06, 3.4)
 const BOX_SPACING := 2.6             # metres between the Star Boxes across the track
+const COIN_SETS := 4                 # at most this many sets of speed coins a lap on a circuit (as many as fit: _place_coins)
+const COINS_IN_SET := 5
+const COIN_GAP := 3.0                # metres between the coins of a set
+const COIN_CLEAR := 8.5              # ...how far a set keeps from obstacles, goo, shortcuts and the line
+const COIN_NEAR_BOX := 3.0           # ...from Star Boxes
+const COIN_NEAR_PAD := 2.0           # ...and from boost pads
 
 const NEXT_COLOUR := Color(1.0, 0.82, 0.3)
 const LATER_COLOUR := Color(0.62, 0.5, 0.95)
@@ -46,6 +52,7 @@ var hub := false                     # only the race gate (Races.HUBS): arch, st
 var width := 0.0                     # a circuit's road width (0: no road, the old tracks over open ground)
 var earth := false                   # Earth-looking obstacles (hay bales, a windmill, sprinklers)
 var obstacles: Array[Node3D] = []    # bumpers, sweepers, zappers and ramps (circuits): see Races / race_attacks.gd
+var coin_sets: Array = []            # circuits only: sets of speed coins (each an Array of coin nodes): see _place_coins()
 var _t := 0.0
 var _ring_mats: Array[StandardMaterial3D] = []
 
@@ -95,6 +102,8 @@ func _ready() -> void:
 	for k in track.get("obstacles", []).size():
 		var o: Array = track.obstacles[k]
 		obstacles.append(_obstacle(str(o[1]), at(float(o[0])), float(o[2]), k))
+	if track.has("circuit"):
+		_place_coins()
 	show_race(false)
 	ready_to_race = true
 	if board_text:
@@ -277,6 +286,10 @@ func show_race(on: bool) -> void:
 		b.set_meta("gone", 0.0)
 	for g in goo:
 		g.visible = on
+	for cs in coin_sets:
+		for c in cs:
+			(c as Node3D).visible = on
+			(c as Node3D).set_meta("gone", 0.0)
 	if on:
 		light_rings(1)
 
@@ -311,6 +324,15 @@ func _process(delta: float) -> void:
 			gone -= delta
 			b.set_meta("gone", gone)
 			if spin:
+				spin.visible = gone <= 0.0
+	for cs in coin_sets:
+		for c in cs:
+			var spin := (c as Node3D).get_node("Spin") as Node3D
+			spin.rotation.y = _t * 3.0 + (c as Node3D).position.x
+			var gone := float(c.get_meta("gone", 0.0))
+			if gone > 0.0:
+				gone -= delta
+				c.set_meta("gone", gone)
 				spin.visible = gone <= 0.0
 	for r in rings:
 		if r.visible:
@@ -683,6 +705,90 @@ func _box(d: float, side: float) -> Node3D:
 	var q := _label(spin, "?", 48, Vector3(0, 0, 0.47), Color(1, 1, 1))
 	q.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	holder.set_meta("d", d)
+	return holder
+
+
+func _place_coins() -> void:
+	# Speed coins (Hayden, 14 Nov 2026: in the races only, and a whole set puts you in the flow: Races, race_flow.gd).
+	# COIN_SETS sets of COINS_IN_SET a lap, each a gentle S across the road so catching them all takes steering. They go
+	# where nothing else on the road is (boost pads, Star Boxes, goo, obstacles, a shortcut's mouths, the start), as
+	# near as can be to evenly round the lap.
+	var busy: Array = [[0.0, COIN_CLEAR], [length, COIN_CLEAR]]   # [where, how far to keep off it]
+	for key in ["obstacles", "goo"]:
+		for b in track.get(key, []):
+			busy.append([at(float(b[0])), COIN_CLEAR])
+	# Star Boxes are friendly, so a set can come closer to those, and a line of coins running onto a boost pad is a
+	# good line to follow, so only the pad itself is kept clear
+	for b in track.get("boxes", []):
+		busy.append([at(float(b[0])), COIN_NEAR_BOX])
+	for b in track.get("boosts", []):
+		busy.append([at(float(b[0])), COIN_NEAR_PAD])
+	for sc in track.get("shortcuts", []):
+		busy.append([at(float(sc.from)), COIN_CLEAR])
+		busy.append([at(float(sc.to)), COIN_CLEAR])
+	var span := COIN_GAP * (COINS_IN_SET - 1)
+	var spots: Array[float] = []
+	var d := 45.0
+	while d + span < length - 35.0:
+		var clear := true
+		for b in busy:
+			if float(b[0]) > d - float(b[1]) and float(b[0]) < d + span + float(b[1]):
+				clear = false
+				break
+		if clear:
+			spots.append(d)
+		d += 1.0
+	# As many sets as fit (up to COIN_SETS), as evenly round the lap as they'll go: try starting from each free spot,
+	# taking the next free spot at least a step on each time (an even share of the lap first, then less), and keep the
+	# try with the most sets and the widest gaps.
+	var used: Array[float] = []
+	var best_gap := -1.0
+	for share in [1.0, 0.8, 0.6, 0.0]:
+		var step := maxf(length / COIN_SETS * share, span + 34.0)
+		for first in spots:
+			var got: Array[float] = [first]
+			for sp in spots:
+				if got.size() < COIN_SETS and sp >= got[-1] + step and first + length - sp >= span + 34.0:
+					got.append(sp)
+			var gap := length
+			if got.size() > 1:
+				for k in got.size():
+					gap = minf(gap, fposmod(got[(k + 1) % got.size()] - got[k], length))
+			if got.size() > used.size() or (got.size() == used.size() and gap > best_gap):
+				used = got
+				best_gap = gap
+	used.sort()
+	for k in used.size():
+		var cs: Array[Node3D] = []
+		for j in COINS_IN_SET:
+			cs.append(_speed_coin(used[k] + j * COIN_GAP, sin(j * 0.8 + k * 1.7) * width * 0.2, k))
+		coin_sets.append(cs)
+
+
+func _speed_coin(d: float, side: float, set_index: int) -> Node3D:
+	# A speed coin: a big glowing gold coin standing on its edge, with a teal lightning bolt on each face
+	var holder := Node3D.new()
+	holder.name = "Speed Coin %d" % set_index
+	add_child(holder)
+	place_on(holder, d, side)
+	var spin := Node3D.new()
+	spin.name = "Spin"
+	spin.position.y = 1.2
+	holder.add_child(spin)
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.55
+	disc.bottom_radius = 0.55
+	disc.height = 0.12
+	disc.radial_segments = 20
+	_mesh(spin, disc, Vector3.ZERO, _mat(Color(1.0, 0.82, 0.25), 1.6, 0.25)).rotation.x = PI / 2.0
+	var bolt := _mat(Color(0.3, 1.0, 0.95), 2.2)
+	for f in [-1.0, 1.0]:
+		var top := BoxMesh.new()
+		top.size = Vector3(0.14, 0.34, 0.03)
+		_mesh(spin, top, Vector3(0.05, 0.13, 0.07 * f), bolt).rotation.z = -0.5
+		_mesh(spin, top, Vector3(-0.05, -0.13, 0.07 * f), bolt).rotation.z = -0.5
+	holder.set_meta("d", d)
+	holder.set_meta("set", set_index)
 	return holder
 
 
