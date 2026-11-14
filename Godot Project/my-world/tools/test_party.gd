@@ -98,7 +98,7 @@ func _check_buttons() -> void:
 	check(settings.default_bindings().get("friend_wheel") == KEY_X and settings.default_pad_bindings().get("friend_wheel") == JOY_BUTTON_LEFT_SHOULDER,
 		"Switch friend (and its wheel) is X and LB")
 	var on_foot: Array = settings.PAD_GROUPS[0]
-	check(on_foot.size() == 13, "the on-foot controller actions are down from 18 to %d" % on_foot.size())
+	check(on_foot.size() == 14, "the on-foot controller actions are down from 18 to %d (13, and Spray paint since)" % on_foot.size())
 	# One menu: the quests and the map are its tabs, with no controller buttons of their own
 	for a in ["quest_log", "map"]:
 		check(settings.default_pad_bindings().get(a, -1) < 0 and not settings.PAD_REBINDABLE.any(func(q: Array) -> bool: return q[0] == a),

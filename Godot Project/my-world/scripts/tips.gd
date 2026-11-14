@@ -30,6 +30,8 @@ const TIPS := {
 		"done": ["gadget_wheel"]},
 	"skate_shoot": {"text": "{shoot} to pop Gloops!",
 		"done": ["shoot"]},
+	"spray": {"text": "{spray} for spray paint!", "done": ["spray"]},
+	"spray_on": {"text": "Hold {shoot} to paint!", "done": ["shoot"]},
 }
 const BASICS := ["move", "jump", "map", "pause"]
 

@@ -71,6 +71,8 @@ var _tipped := false
 var _wheel: GadgetWheel
 var _told_empty := 0.0                    # seconds till "out of ammo" can be said again
 var ray: RainbowRay                       # the Rainbow Ray's beam (made the first time it shines)
+var painting := false                     # the spray cans are out (scripts/spray_can.gd): she aims like this, the
+                                          # can's in her hand, and no gadget fires
 var _ray_drain := 0.0                     # seconds till the ray uses another shot of ammo
 
 
@@ -125,7 +127,7 @@ func can_shoot() -> bool:
 		return false
 	if Dialogue.is_active() or Creator.is_open() or PlayerMenu.is_open() or Shop.is_open() or get_tree().paused:
 		return false
-	if not Arsenal.armed():
+	if painting or not Arsenal.armed():
 		return false
 	# The click that grabs the mouse back into the game window isn't a shot
 	if Settings.last_device == "keyboard" and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED and not _in_test():
@@ -156,7 +158,7 @@ func _physics_process(delta: float) -> void:
 	# give the story away. Hayden's 12 Nov 2026 playtest.)
 	# Aiming works on a ride too (the board then steers from where she's going, not the camera: skate.gd
 	# _camera_dir), except in a race, where Aim uses the power-up (scripts/races.gd)
-	aiming = ok and Input.is_action_pressed("aim") and not (Game.riding and Races.racing())
+	aiming = (ok and Input.is_action_pressed("aim") and not (Game.riding and Races.racing())) or painting
 	aim_blend = move_toward(aim_blend, 1.0 if aiming else 0.0, delta / 0.16)
 	player.spring_arm.aim = aim_blend * aim_blend * (3.0 - 2.0 * aim_blend)      # eased
 	_cooldown -= delta
@@ -196,7 +198,7 @@ func _physics_process(delta: float) -> void:
 			_held = 0.0
 			charge = 0.0
 	_update_target()
-	_cross.visible = aim_blend > 0.5
+	_cross.visible = aim_blend > 0.5 and not painting       # the cans have a crosshair of their own
 	_cross.queue_redraw()
 	# The popper's in her hand while she aims, and for a moment after a shot
 	_prop.visible = _arm != null and (aim_blend > 0.05 or _raise > 0.0 or charge > 0.0)
@@ -493,8 +495,16 @@ func place_prop(hand: Transform3D, dir: Vector3) -> void:
 	_prop.global_transform = Transform3D(b.scaled(Vector3.ONE * s), hand.origin + dir * 0.06)
 
 
+func set_painting(on: bool) -> void:
+	# The spray cans out or away (SprayCan.set_active): the can goes in her hand instead of the gadget
+	painting = on
+	_recolour()
+
+
 func _hand_prop() -> Node3D:
-	# What's in her hand: the gadget that's out (the Star Popper in its colours)
+	# What's in her hand: the gadget that's out (the Star Popper in its colours), or a spray can
+	if painting:
+		return SprayCan.build_prop()
 	match Arsenal.current:
 		"fizz":
 			return FizzBomb.build_prop()
@@ -518,7 +528,8 @@ func _recolour() -> void:
 	if _prop == null:
 		return
 	var gadget := str(_prop.get_meta("gadget", "popper"))
-	if gadget == Arsenal.current and (gadget != "popper" or str(_prop.get_meta("colour", "")) == Game.popper_colour):
+	var want := "spray" if painting else Arsenal.current
+	if gadget == want and (gadget != "popper" or str(_prop.get_meta("colour", "")) == Game.popper_colour):
 		return
 	var shown := _prop.visible
 	var at := _prop.global_transform
@@ -528,7 +539,7 @@ func _recolour() -> void:
 	_prop.visible = shown
 	add_child(_prop)
 	_prop.global_transform = at
-	if gadget != Arsenal.current and player and not aiming:
+	if gadget != want and player and not aiming:
 		_raise = SHOW_AFTER_SHOT              # a new gadget out: she holds it up for a moment, so you can see it
 		_shot_dir = player.visual.global_transform.basis.z.normalized()
 

@@ -57,6 +57,7 @@ DivineMind="*res://scripts/divine_mind.gd"
 Wilds="*res://scripts/wilds.gd"
 Arena="*res://scripts/arena.gd"
 Party="*res://scripts/party.gd"
+Paint="*res://scripts/paint.gd"
 
 [display]
 

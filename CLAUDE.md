@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Spray paint that stays put until it's washed off** (Hayden's 14 Nov 2026 playtest: "I also want to add
+  spray painting that stays put until it is washed offf, allowing the character to create any permanent design they
+  want"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Getting the cans:** "Spray Cans", 3 sparkles, at the Toy Shop in Stars Hollow (`spray_can`) or the Toys stall in
+    the Void (`spray_cans`), shop kind `"spray"` (registered by `Paint`). They give the item `spray_can`.
+  - **Controls** (`scripts/spray_can.gd`, class `SprayCan`, a "SprayCan" node on the player like the Star Popper): new
+    action **Spray paint** (V / R3, on-foot pad group; hidden in Controls until you have the cans) gets the cans out and
+    puts them away. With them out the camera's over the shoulder like aiming (`StarPopper.painting`,
+    `set_painting()`: her arm points a little spray can, gadgets don't fire). **Hold Shoot** to spray where the
+    crosshair is (up to 9 m; closer is a fine line, further a fat one), **hold Aim** to spray water that washes paint
+    off. Colour: mouse wheel, 1-0 (and -), or D-pad left/right; the palette is a column of pots down the right side
+    with the water drop last, and four button chips beside it ("Spray", "Wash", "Colour", "Done"). The crosshair is a
+    ring in the paint's colour, as big as the splat. A puff joins up with the last one, so a sweep is a line. Not on a
+    ride, burrowing, swimming, in a talk or a menu (riding puts the cans away). A soft hiss made in code.
+  - **The paint** (`scripts/paint.gd`, autoload `Paint`): each puff is a "dab" (spot, normal, colour, size, spin, lift)
+    kept per place (scene path) and drawn by one MultiMeshInstance3D "Paint Layer" per place, alpha-scissored splat
+    texture made in code, sRGB colours, matt. Newer coats sit a hair further out (`LIFT`, `LIFT_STEP`); painting over
+    the same spot recolours the dab there (`SAME_SPOT`), so going over and over doesn't pile up. `MAX_DABS` 9000 a
+    place ("Full of paint! Wash some off."). **Saved** in the save as `"paint"` (base64 floats per place), so it's
+    there on every later visit until washed. Only still, visible things take paint (`Paint.paintable(collider, at)`):
+    no people, rides, moving platforms (AnimatableBody3D), Make's bridges or frost's ice (`TEMPORARY` groups), group
+    `no_paint`, or the invisible walls round a world (`NOT_PAINT` names, and a body needs a visible mesh that reaches
+    the spot).
+  - Tests: new `tools/test_spray.gd`; `test_party` counts 14 on-foot pad actions now; shooting, arsenal, player_menu,
+    controls_lock, kid_ui, shop, layout, dash_shop and ui_style pass. Previews: `tools/capture_spray.gd` (shots in the
+    project files under world/previews/spray_paint).
+  - My choices Hayden may change: V and R3, Aim to wash, the ten colours, 3 sparkles and where they're sold, 9 m
+    reach, no paint on things that move, no "wash it all" button.
+
 - 2026-11-14: **Bumps and boinks when you run into things, and echoes in caves and tunnels** (Hayden: "sensory boinks
   and bumps when you collide with surfaces", "a sort of bounce with a puff of smoke when you run into things", "Have
   cave sounds/echo when inside tunnels"). Built and tested in the cloud (own Godot user folders, no save touched).
