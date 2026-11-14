@@ -10,8 +10,8 @@ extends Node
 #            ramps really pull on you, so you can pump a halfpipe.
 #   Ollie:   hold Jump to crouch, let go to pop (a longer hold pops higher).
 #   Air:     left and right spin. Land facing the way you're going (or straight backwards) to ride away; land
-#            sideways and she bails. Landing backwards she rides away fakie and stays that way round (no snapping
-#            back) until a spin lands her the right way round again, she bails, or she hops off. Going straight up off a steep ramp is a vert air: she turns round by herself
+#            sideways and she bails. Landing a 180 turns her round for real: she rolls off the way she's facing now
+#            (the board's back end is its new front), never riding backwards or turning back round on the board. Going straight up off a steep ramp is a vert air: she turns round by herself
 #            and comes back down onto the ramp.
 #   Grind:   press (or hold) Grind near a rail or a ledge edge to lock on. Keep the balance needle in the middle with
 #            left and right, Jump to pop off. Rails sloping down speed you up.
@@ -41,6 +41,7 @@ enum State { ROLL, AIR, GRIND, BAIL }
 
 const FEET := 0.8                    # from the body's middle down to her feet (the collision capsule's half height)
 const FLOOR_MIN_Y := 0.17            # ground up to 80 degrees steep counts as something to ride on
+const TURN_KEEP := 0.8               # landing a 180 she rolls off the way she faces with this much of her speed
 const SNAP := 0.35                   # how far she's pulled down onto a slope that drops away under her
 const CREASE := 0.2                  # going uphill, a bend in the ground this sharp or less (radians) she rides over
 const HILL_MIN_Y := 0.75             # ground this flat or flatter (about 40 degrees) is a hill she can push up
@@ -79,7 +80,7 @@ var state := State.ROLL
 var rng := RandomNumberGenerator.new()
 
 var _yaw := 0.0                      # which way the board points (the model faces +Z, so atan2(x, z))
-var fakie := false                   # riding backwards (landed the other way round): she keeps that stance
+var fakie := false                   # rolling backwards (bounced back off a wall, or locked onto a rail board-first the other way)
 var _normal := Vector3.UP            # the ground under the board (UP in the air)
 var _grounded := false               # touching something to ride on after the last move (see _move)
 var _ground_n := Vector3.UP          # ...and which way it faces
@@ -890,7 +891,16 @@ func _land() -> void:
 		# Relaxed and Normal land wider; never so wide it runs into landing backwards
 		var window := minf(float(ride.land_window) * float(assist().land), PI / 2.0 - 0.05)
 		if off > PI - window:
-			fakie = true                               # landed backwards: she rides away fakie, and stays that way
+			# Landed a 180: it turns her round for real (Hayden, 14 Nov playtest: no swapping back, her head faces the
+			# new forward). The board's back end is its new front and she rolls off the way she's facing now, keeping
+			# most of her speed. No riding backwards and no turning round on the board.
+			var ahead := _plane(facing, n) * h.length() * TURN_KEEP
+			v = ahead
+			p.velocity = v
+			fakie = false
+			# The camera turns round with her, so holding forward keeps her going (steering follows the camera)
+			if not (p.popper and p.popper.aiming):
+				p.spring_arm.rotation.y = atan2(-ahead.x, -ahead.z)
 		elif off < window:
 			fakie = false                              # landed the right way round (a 180 out of fakie gets her back)
 		else:

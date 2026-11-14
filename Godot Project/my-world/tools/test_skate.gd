@@ -209,7 +209,7 @@ func _run() -> void:
 	s._pop()
 	s._yaw = 0.0                                      # backwards
 	await _physics(80)
-	check(bails[0] == 0, "...and so is landing backwards (she rides away fakie)")
+	check(bails[0] == 0, "...and so is landing a 180 (she rolls off the way she faces)")
 
 	# --- Tricks and combos ---
 	var t: SkateTricks = s.tricks
