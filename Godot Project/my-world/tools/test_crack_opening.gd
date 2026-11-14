@@ -162,35 +162,31 @@ func _check_waits() -> void:
 
 
 func _check_earth() -> void:
+	# Since 14 Nov 2026 (#110) the oak's crack is open any time once it's woken: the cutscene plays the first time
+	# you're on Earth after your first trip to the Void
 	dialogue.flags["fn_fell"] = true
 	dialogue.flags["oak_woken"] = true
 	dialogue.flags["fn_arrived"] = true
-	clock.set_earth_time(22 * 60.0, true)
-	change_scene_to_file(EARTH)
-	await _frames(10)
-	await _physics(4)
-	check(current_scene.scene_file_path == EARTH, "on Earth")
 	check(cut.earth_due(), "the oak's crack hasn't had its cutscene yet")
-	clock.set_earth_time(0.2, true)
-	for i in 300:
+	change_scene_to_file(EARTH)
+	for i in 100:
 		if cut.playing():
 			break
-		await process_frame
-	check(cut.playing() and cut.showing == "earth", "at midnight the crack by the old oak plays its cutscene")
+		await create_timer(0.1).timeout
+	check(current_scene.scene_file_path == EARTH, "on Earth")
+	check(cut.playing() and cut.showing == "earth", "back on Earth, the crack by the old oak plays its cutscene")
 	check(dialogue.flags.has(cut.EARTH_FLAG) and not cut.earth_due(), "...once only")
 	var crack: Node3D = current_scene.get("crack")
-	await create_timer(1.2).timeout
+	await create_timer(1.0).timeout
 	check(crack != null and float(crack.get_meta("open", 1.0)) < 0.01, "...the crack stays shut till the camera gets there")
-	await create_timer(2.6).timeout
+	await create_timer(2.8).timeout
 	check(crack != null and float(crack.get_meta("open", 0.0)) > 0.05, "...then it splits open")
 	cut.cut.stop()
 	await create_timer(3.0).timeout
 	check(not cut.playing() and crack != null and float(crack.get_meta("open", 0.0)) > 0.99, "after it, the crack's wide open")
-	clock.set_earth_time(1.5 * 60.0, true)
-	await create_timer(3.0).timeout
-	clock.set_earth_time(0.3, true)
-	await _frames(20)
-	check(not cut.playing(), "the next night it just opens, no cutscene")
+	change_scene_to_file(EARTH)
+	await create_timer(4.0).timeout
+	check(not cut.playing(), "the next time you're home it's just there, no cutscene")
 
 
 func _frames(n: int) -> void:

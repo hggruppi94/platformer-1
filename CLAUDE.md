@@ -112,10 +112,10 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     moment (`Portals._quiet()`: no talk, menu, other cutscene or race). The camera picks a way round the crack that
     no building or tree blocks (`_best_turn()`, `_blocked()`: trees aren't solid, so they're checked by where they
     stand). Headless runs keep the old quick quake unless `force`.
-  - **The crack by the old oak** (`earth()`, from `earth_world.gd _show_opening()`): the first Shift it opens with you
-    on Earth after your first trip to the Void (flag `cut_crack_earth`), the crack's held shut (`_held_shut`) till the
-    camera gets there: "Midnight", the oak hums, the green splits open, a look down ("just like the night you fell"),
-    "The Crack by the Old Oak". Once only.
+  - **The crack by the old oak** (`earth()`, from `earth_world.gd _show_opening()`): the first time you're in Stars
+    Hollow after your first trip to the Void (it's open any time since #110; flag `cut_crack_earth`), the crack's held
+    shut (`_held_shut`) till the camera gets there: the oak hums, the green splits open, a look down ("just like the
+    night you fell"), "The Crack by the Old Oak", "It's staying open now". Once only.
   - Not given a cutscene: the way home in each world (always open), the little visitor cracks, Dark Hollow (no crack).
   - No spoilers: the words only say what's happening and what you can see; no bosses or reasons (the test checks).
   - Tests: new `tools/test_crack_opening.gd`; portals, cracks, earth (both runs), first_night, opening,

@@ -9,8 +9,9 @@ extends Node
 #              light shoots up into the sky, something of that world spills out of it (snowflakes for the Frozen
 #              Moment, bubbles for the Tide Reef, a beat for Rhythm Springs...), the camera looks down it at the world
 #              swirling at the bottom, and pulls back to show where it is, with the world's name.
-#   earth()    The first time the crack by the old oak opens in Stars Hollow (the second Shift on: the first night you
-#              fall wherever you are, scripts/void_arrival.gd). The oak hums and the green splits open in front of it.
+#   earth()    The first time you're in Stars Hollow after your first trip to the Void (the first night you fall
+#              wherever you are, scripts/void_arrival.gd; since then the oak's crack is open any time). The oak hums
+#              and the green splits open in front of it.
 #
 # Every shot is skippable (Jump, Interact or Accept: scripts/place_intro.gd), and skipping still leaves the crack open.
 # Nothing here looks ahead (Hayden's no-spoilers rule): the words only say what's happening right now and what you can
@@ -229,7 +230,7 @@ static func _pillar(parent: Node, at: Vector3, colour: Color) -> void:
 # The crack by the old oak, on Earth
 # -----------------------------------------------------------------------------
 func earth_due() -> bool:
-	# The first Shift the oak's crack opens with you there, once you've been to the Void (the first night you fell
+	# The first time you're home with the oak's crack open, once you've been to the Void (the first night you fell
 	# wherever you stood instead)
 	return not Dialogue.flags.has(EARTH_FLAG) and Dialogue.flags.has("fn_arrived") and not headless()
 
@@ -269,8 +270,8 @@ func earth_shots(crack: Node3D, open_it: Callable = Callable()) -> Array:
 	var back := (p - at) * Vector3(1, 0, 1)
 	back = back.normalized() if back.length() > 0.5 else side
 	return [
-		{"from": _near_player(p, back), "look": p + Vector3.UP * 1.0, "time": 2.2, "title": "Midnight",
-			"caption": "The whole town goes quiet... and the old oak starts to hum.", "sound": "faint", "shake": 0.25},
+		{"from": _near_player(p, back), "look": p + Vector3.UP * 1.0, "time": 2.2, "title": "",
+			"caption": "The ground rumbles... and the old oak starts to hum.", "sound": "faint", "shake": 0.25},
 		{"start": _clear(at, at + side * 16.0 + across * 5.0 + Vector3.UP * 9.0), "start_look": oak + Vector3.UP * 3.0,
 			"from": _clear(at, at + side * 8.0 + across * 2.0 + Vector3.UP * 4.5), "look": at + Vector3.UP * 0.5,
 			"time": 3.8, "title": "", "caption": "The ground in front of it splits wide open!", "shake": 0.45,
@@ -283,7 +284,7 @@ func earth_shots(crack: Node3D, open_it: Callable = Callable()) -> Array:
 		{"from": _clear(at, at + side * 2.2 + Vector3.UP * 4.4), "look": at + Vector3.DOWN * 3.0, "time": 3.6, "title": "",
 			"caption": "Far down at the bottom, a light swirls... just like the night you fell."},
 		{"from": _clear(at, at + side * 11.0 - across * 6.0 + Vector3.UP * 6.0), "look": oak + Vector3.UP * 2.0,
-			"time": 3.2, "title": "The Crack by the Old Oak", "caption": "It's open till 1 AM. Jump in when you're ready."},
+			"time": 3.2, "title": "The Crack by the Old Oak", "caption": "It's staying open now. Jump in whenever you're ready."},
 	]
 
 
