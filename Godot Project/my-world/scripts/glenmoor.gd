@@ -586,7 +586,8 @@ func isla_lines() -> Array:
 		Portals.note_found(world_id, "met_isla")
 		return ["Och, hiya! I'm Isla, Heather's best friend!",
 			"Well. We were. The glen's split in two.",
-			"Want the Moon Charm? Race me up the hill!"]
+			"Want the Moon Charm? Race me up past the cairns!",
+			"Ben Bonnie's the top. Ready?"]
 	if is_mended():
 		return [["Proper days AND nights! Cartwheels!"],
 			["Me and Heather had a sunset picnic!"],
@@ -892,8 +893,8 @@ func heather_lines() -> Array:
 	if not Portals.has_found(world_id, "met_heather"):
 		Portals.note_found(world_id, "met_heather")
 		return ["Welcome to Glenmoor, sugar! Look: day, night, day again!",
-			"The Stormram's spinnin' it all. Now the glen's split in two.",
-			"We need three charms to fix it. Stars on your map!"]
+			"The Stormram's spinnin' it all. Sunfolk and Moonfolk are fightin'!",
+			"Three charms make the Balance Charm. Stars on your map!"]
 	var left: Array = []
 	for i in 3:
 		if not has_bell(i):
@@ -910,7 +911,7 @@ func heather_lines() -> Array:
 
 func thank_lines() -> Array:
 	return ["You did it! Day and night take turns again!",
-		"And everyone's friends again!",
+		"Sunfolk and Moonfolk are friends again!",
 		"And spring can come to Earth now!",
 		"Two gifts for you!",
 		"April Showers: {showers_how}. Walk on the rainbow!",

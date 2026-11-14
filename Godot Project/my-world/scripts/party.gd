@@ -452,7 +452,7 @@ func ask_lines(id: String) -> Array:
 			"lines": ["Really? Yay! I'll be right behind you. Press %s and I'll do my %s!" % [Settings.prompt("friend"),
 				str(f.verb).to_lower()]]},
 		{"text": "Not yet.", "answer": "not_yet", "record": RECORD, "set": "party_asked_" + id,
-			"lines": ["That's OK! Ask me any time. Well, I'll ask you. You know what I mean."]}]}]
+			"lines": ["That's OK! Another time."]}]}]
 
 
 # ----------------------------------------------------------------------------- the card

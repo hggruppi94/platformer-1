@@ -95,7 +95,7 @@ func _follow() -> void:
 	var d := p.distance_to(w)
 	if not Dialogue.flags.has("sg_wren_seen") and d < SEEN_FROM:
 		Dialogue.set_flag("sg_wren_seen")
-		Game.message("A little wren hops along ahead of you, looking back over its wing. It seems to want you to follow!")
+		Game.message("A little wren! Follow it!")
 	_wren.look_at(Vector3(player.global_position.x, _wren.global_position.y, player.global_position.z), Vector3.UP, true)
 	if d < CATCH_UP and _wren_at < TRAIL.size() - 1:
 		hop_on()
@@ -126,7 +126,7 @@ func hop_on() -> void:
 			(_wren.get_node("Body/Wings") as Node3D).scale.x = 1.0
 		if _wren_at == TRAIL.size() - 1:
 			_show_key()
-			Game.message("The wren flutters down the cliff to an old wall thick with ivy, and pecks at the ground..."))
+			Game.message("The wren pecks by an old wall..."))
 
 
 static func wren_model() -> Node3D:
@@ -309,7 +309,7 @@ func dig_key() -> void:
 	if is_instance_valid(_key_mound):
 		Fx.burst(_holder, _key_mound.global_position + Vector3(0, 0.3, 0), Color(0.5, 0.36, 0.2))
 		_key_mound.queue_free()
-	Game.message("You dig... and find an old iron key, warm from the sun! The wren hops up onto the wall, by a thick curtain of ivy.")
+	Game.message("An old iron key!")
 	if is_instance_valid(_wren):
 		_flying = true
 		var tw := create_tween()
@@ -330,12 +330,12 @@ func _wall_act() -> void:
 		enter_garden()
 		return
 	if not has_key():
-		Game.message("It's just an old brick wall, thick with ivy... but something rustles behind it, and the leaves smell of roses.")
+		Game.message("An old wall. It smells of roses...")
 		return
 	Dialogue.set_flag("sg_found")
 	Juice.blip("chime")
 	Juice.shake(0.12)
-	Game.message("You part the ivy... there's a little wooden door! The old key fits, and it creaks open. The Secret Garden!")
+	Game.message("A hidden door! The Secret Garden!")
 	_open_door(true)
 	if is_instance_valid(_wren):
 		var tw := create_tween()

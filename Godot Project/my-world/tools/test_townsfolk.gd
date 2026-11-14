@@ -326,14 +326,14 @@ func _roof_over(pos: Vector3) -> String:
 # -----------------------------------------------------------------------------
 func _check_talk() -> void:
 	var cases := [
-		["gus", "07:00", ["own the diner"], ["Coffee?"]],
-		["dottie", "11:30", ["Maple Inn"], ["little chat"]],
-		["barnaby", "21:30", ["troubadour"], ["flickers green"]],
+		["gus", "07:00", ["I'm Gus"], ["Coffee."]],
+		["dottie", "11:30", ["Maple Inn"], ["Tuesdays"]],
+		["barnaby", "21:30", ["Strum"], ["flickers green"]],
 		["kip", "13:30", ["six"], ["Pumpkins!"]],
-		["nina_earth", "17:45", ["Nina Blastoff"], ["hums louder near midnight"]],
-		["palmer_earth", "23:50", ["plain old Mr. Palmer"], ["admiring the old oak"]],
+		["nina_earth", "17:45", ["I'm Nina"], ["hums louder at night"]],
+		["palmer_earth", "23:50", ["I'm Mr. Palmer"], ["admiring the old oak"]],
 		["juniper", "17:30", ["star reporter"], ["Just pie"]],
-		["poppy", "15:30", ["cauldron cakes"], ["fresh air"]],
+		["poppy", "15:30", ["I'm Poppy"], ["Smell that?"]],
 	]
 	for c in cases:
 		var id: String = c[0]

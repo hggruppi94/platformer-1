@@ -24,7 +24,7 @@
       },
       "lines": [
         "Ahh. A shell.",
-        "I'm the Wizard Lizard, principal of the castle school.",
+        "I am the Wizard Lizard, principal of the castle school.",
         "{player}: Why do I have a SHELL?",
         "Magic! Some days the Void dreams, and we wake up different.",
         "Every version of you has purpose and value. Even a shelly one.",
@@ -83,10 +83,10 @@
         "flag": "turtle_met_lizard"
       },
       "lines": [
-        "{player}! Welcome to my school. I'm the principal!",
+        "{player}! The turtles' helper! I'm the principal here!",
         "Rule one: every version of you is welcome here.",
         "Rule two: no running in the halls. Unless something's chasing you.",
-        "Rule three: naps are allowed!"
+        "Rule three: naps are allowed! Questions? Ask the Seer."
       ],
       "set": "met_lizard"
     },
@@ -98,7 +98,7 @@
         "A new face! I'm the principal: the Wizard Lizard.",
         "Rule one: every version of you is welcome here.",
         "Rule two: no running in the halls. Unless something's chasing you.",
-        "Rule three: naps are allowed!"
+        "Rule three: naps are allowed! Questions? Ask the Seer."
       ],
       "set": "met_lizard"
     },
@@ -115,7 +115,7 @@
           "Every version of anything has purpose and value."
         ],
         [
-          "(The Wizard Lizard naps on his rock, smiling.)"
+          "Zzz..."
         ]
       ]
     },

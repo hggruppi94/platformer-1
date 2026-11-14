@@ -39,11 +39,11 @@ const VEINS := [
 # The harvesting tool's three parts (the quest's first step): each one lies about while that step's on.
 const PARTS := [
 	{"id": "handle", "name": "Rootwood Handle", "flag": "harvest_part_handle", "at": Vector2(-88, -38),
-		"found": "A rootwood handle! It's warm, and it hums a little, like it's happy to be held."},
+		"found": "A rootwood handle! It hums."},
 	{"id": "scoop", "name": "Moonshell Scoop", "flag": "harvest_part_scoop", "at": Vector2(17, 25),
-		"found": "A moonshell scoop, washed up by the dock. It's shiny on the inside, like a rainbow."},
+		"found": "A moonshell scoop! Shiny!"},
 	{"id": "crystal", "name": "Hum Crystal", "flag": "harvest_part_crystal", "at": Vector2(96, -74),
-		"found": "A hum crystal from the Observatory hill! Hold it near the ground and it buzzes."},
+		"found": "A hum crystal! It buzzes."},
 ]
 
 # What the tool can look like (the player picks when Bramble puts it together)
@@ -157,7 +157,7 @@ func _vein_offer(id: String) -> String:
 
 func _use_vein(id: String) -> void:
 	if not has_tool():
-		Game.message("Glowing crystals, deep in the rock. Too deep to dig out by hand... Bramble might know how.")
+		Game.message("Too deep! Ask Bramble.")
 		Audio.play("ui_back", -8.0)
 		return
 	if not is_ready(id) or _busy:

@@ -81,7 +81,7 @@ func shot(power: int, point: Vector3, dir: Vector3) -> String:
 	if state != State.DIZZY:
 		if not _told_shell:
 			_told_shell = true
-			Game.message("Boing! Its hide is too thick. Dodge its rolls, then pop it while it's dizzy!")
+			Game.message("Boing! Pop it while it's dizzy!")
 		return "bounce"
 	return super(power, point, dir)
 

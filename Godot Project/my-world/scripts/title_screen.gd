@@ -28,7 +28,7 @@ const OPENING := [
 	["earth", "Stars Hollow. A quiet town, fast asleep.", 5.5],
 	["oak", "Well... almost everything's asleep. The old oak on the green is humming.", 6.0],
 	["flash", "", 0.6],
-	["galaxity", "Somewhere outside of time there's a planet where a whole day fits inside one hour.", 7.0],
+	["galaxity", "Far away, a world sits outside of time.", 5.0],
 	["watches", "And a few kids have watches that tick... differently.", 6.5],
 	["you", "Tonight, one of them is you.", 4.0],
 ]

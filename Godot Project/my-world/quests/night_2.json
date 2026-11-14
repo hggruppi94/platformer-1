@@ -9,7 +9,7 @@
   "steps": [
     {
       "id": "pip",
-      "text": "Say hi to Pip by the portal.",
+      "text": "Dash says: say hi to Pip!",
       "done": {
         "flag": "n2_pip"
       },

@@ -588,7 +588,7 @@ func _fill_cards(box: VBoxContainer) -> void:
 		box.remove_child(c)
 		c.queue_free()
 	var any := false
-	var hint := _card_label(box, "Press Follow on a quest or a job to put it on your map and to-do list. Follow as many as you like!", 17, Color(0.8, 0.75, 0.95))
+	var hint := _card_label(box, "Press Follow to put it on your map!", 17, Color(0.8, 0.75, 0.95))
 	hint.name = "Follow Hint"
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for id in _order:

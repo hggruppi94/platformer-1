@@ -250,7 +250,7 @@
         "quest_step": "first_night:evening"
       },
       "lines": [
-        "Best first day! Spaghetti for dinner, gotta go!",
+        "Best first day! Mum made spaghetti! Gotta go!",
         "Huh. Did the stars just... flicker?",
         "See you tomorrow, {player}!"
       ],

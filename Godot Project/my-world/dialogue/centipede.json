@@ -9,7 +9,7 @@
       "lines": [
         "{player}! You came! You found my home!",
         "The Moon Clock's ticking again. Because of you.",
-        "A secret: everyone always runs away from me.",
+        "Psst. Everyone always runs away from me.",
         "Will you stay when I'm at my very SCARIEST?",
         "It's only a game. You'll only get bumped.",
         "When I'm dizzy, bop my head! Stay till the end to win!",
@@ -43,7 +43,7 @@
       },
       "set": "centipede_gifts",
       "lines": [
-        "You STAYED! Even when I was my scariest!",
+        "You stayed! You STAYED! Even at my scariest!",
         "Nobody's ever done that. Not once.",
         {
           "choice": [
@@ -66,7 +66,7 @@
           ]
         },
         "Here's my trick: walk at a wall and keep going. UP!",
-        "Climb onto a ceiling and walk upside down!",
+        "Now you can climb onto a ceiling and walk upside down!",
         "{jump} to hop off.",
         "And knock on my holes round the Void!",
         "I'll gulp you up and take you to any hole you've found."

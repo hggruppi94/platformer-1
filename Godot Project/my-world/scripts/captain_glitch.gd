@@ -97,7 +97,7 @@ func wake() -> void:
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("buzz", 0.6, -2.0)
 	_say("I am CAPTAIN GLITCH! And my master's clock runs BACKWARDS!")
-	Game.message("Captain Glitch wakes up! Dodge the glowing marks. When he crashes down, jump the ring, then pop the clock on his chest while it glows!")
+	Game.message("Captain Glitch! Jump the ring, pop his chest clock!")
 
 
 func _set_state(s: State) -> void:

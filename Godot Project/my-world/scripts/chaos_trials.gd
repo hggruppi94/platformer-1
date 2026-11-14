@@ -397,7 +397,7 @@ func _update_glow(_delta: float) -> bool:
 	if _flat(p.global_position - swirl_at) < SWIRL_R and p.global_position.y < swirl_at.y + SWIRL_TOP \
 			and Input.is_action_pressed("jump"):
 		p.velocity.y = LIFT
-		_tell("glow_lift", "Up you go! Now hold %s on the way down to glide to the floating rock." % Settings.key_name("jump"))
+		_tell("glow_lift", "Hold %s to glide to the rock!" % Settings.key_name("jump"))
 	if _tick <= 0.0:
 		_tick = 0.3
 		Fx.burst(root, swirl_at + Vector3(randf_range(-1, 1), randf_range(0.5, SWIRL_TOP), randf_range(-1, 1)),
@@ -703,41 +703,41 @@ func _say(id: String, what: String) -> void:
 	var f := str(info(id).get("friend", ""))
 	var lines := {
 		"burrow": {
-			"start": "He shakes a storm of static out of his clock! Bramble: \"Static can't get you under the ground! Burrow (%s) to the Root Knot by his feet!\"" % Settings.key_name("burrow"),
+			"start": "Static storm! Bramble: \"Burrow (%s) to the Root Knot!\"" % Settings.key_name("burrow"),
 			"win": "Roots burst up and tangle round his ankles! He stumbles: pop his clock!",
 		},
 		"frost": {
-			"start": "A river of melted time pours round him! Flurry: \"Freeze it with your frost breath (%s) and cross on the ice!\"" % Settings.key_name("frost_breath"),
-			"win": "You reach the Frost Knot: the river freezes solid, and him with it! Pop his clock!",
+			"start": "A time river! Flurry: \"Freeze it (%s)!\"" % Settings.key_name("frost_breath"),
+			"win": "He's frozen! Pop his clock!",
 		},
 		"glow": {
-			"start": "He swallows the daylight! Pip: \"Don't be scared, my glow's with you. Wake the three lantern stones! One's up on that floating rock: ride the moth swirl up (hold %s) and glide!\"" % Settings.key_name("jump"),
+			"start": "Dark! Pip: \"Wake 3 lantern stones! Ride the swirl up (hold %s)!\"" % Settings.key_name("jump"),
 			"win": "All three lanterns blaze! The light comes back and dazzles him: pop his clock!",
 		},
 		"groove": {
-			"start": "He stomps a wonky beat! Melody: \"Ugh, he's off the beat! Groove (%s) on MY beat, close to him, and he won't be able to help himself!\"" % Settings.key_name("groove"),
+			"start": "Melody: \"Groove (%s) on MY beat, close to him!\"" % Settings.key_name("groove"),
 			"win": "He can't help it: the Agent of Chaos is DANCING! Pop his clock!",
 		},
 		"swim": {
-			"start": "He floods the field with time! Otto: \"Dive down (hold %s) and pull the glowing plug by his feet!\"" % Settings.key_name("dash"),
-			"win": "You pull the plug! The flood drains away and he's left soggy and dazed: pop his clock!",
+			"start": "A flood! Otto: \"Dive (hold %s), pull the plug!\"" % Settings.key_name("dash"),
+			"win": "Soggy and dazed! Pop his clock!",
 		},
 		"spring": {
-			"start": "Glitch fires spring up round him! Heather: \"Well I'll be! Put 'em out with April Showers (%s), sugar!\"" % Settings.key_name("showers"),
-			"gear": "A big clock gear rises in front of his chest! Heather: \"Spring Step up there: jump the second you land, three times!\"",
+			"start": "Fires! Heather: \"April Showers (%s), sugar!\"" % Settings.key_name("showers"),
+			"gear": "Heather: \"Spring Step up! Jump as you land!\"",
 			"win": "You're face to face with his clock! Heather: \"Yeehaw! Give it a pop!\"",
 		},
 		"gadgets": {
-			"start": "Glitch Crystals shield his clock! Dash: \"Bubbles won't crack those. Here, ammo! Try something with a bit more fizz (hold %s).\"" % Settings.key_name("gadget_wheel"),
+			"start": "Crystals! Dash: \"Try a gadget (hold %s)!\"" % Settings.key_name("gadget_wheel"),
 			"win": "Every crystal's shattered! Dash: \"Ha! Told you it'd work!\" Pop his clock!",
 		},
 		"crawl": {
-			"start": "A tower of glitch cubes shoots up in front of his clock! The centipede: \"Walk right into it and climb! Up up up, like me!\"",
-			"win": "From the top of the tower you leap right onto his clock! He's dazed: pop it!",
+			"start": "A tower! The centipede: \"Walk into it and climb!\"",
+			"win": "You leap onto his clock! Pop it!",
 		},
 		"watch": {
-			"start": "His clock spins backwards too fast to touch: he's winding up the BIGGEST rewind! Rex: \"Your watch ticks Earth's way! Hold it up (%s), quick!\"" % Settings.key_name("check_watch"),
-			"win": "Your watch ticks on, steady as Earth! The rewind can't take you, so it knots him up instead. Pop his clock!",
+			"start": "A BIG rewind! Rex: \"Hold up your watch (%s)!\"" % Settings.key_name("check_watch"),
+			"win": "Your watch holds! He's knotted up. Pop his clock!",
 		},
 	}
 	var line := ""

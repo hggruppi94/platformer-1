@@ -17,10 +17,10 @@ const EARTH := "res://scenes/earth/earth.tscn"
 const TIME := 3.6                         # seconds the haze takes to clear
 const LINE_AFTER := 0.9                   # seconds before the line shows (after the loading screen's gone)
 const LINES := [
-	"Back in Stars Hollow. Everything from the Void is still there to remember... just fuzzy round the edges, like a dream that hasn't quite let go.",
-	"{who} blinks. Wasn't the sky green a minute ago? Everything feels a little bit like deja vu...",
-	"Home again. Every bit of the Void is still there, soft and hazy, like waking up from a really good dream. (The watch is still ticking.)",
-	"Stars Hollow looks just the same as ever. But for a moment, {who} gets the funny feeling of having been somewhere much, much further away.",
+	"Back home. The Void feels like a dream...",
+	"Wasn't the sky green a minute ago?",
+	"Home again. The watch is still ticking.",
+	"Home. But it feels like you've been far away...",
 ]
 
 var homecomings := 0                      # how many times it's played this session (picks the next line)

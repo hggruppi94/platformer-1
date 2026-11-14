@@ -943,7 +943,7 @@ func proud_lines() -> Array:
 	# The turn in Otto's story: he saved the day, and he knows it
 	return ["Did you SEE? I held it! With MY arms!",
 		"I thought I was no use. I was wrong!",
-		"The tide's coming in! Thank you!"]
+		"I still need my chair. And we always need a friend!"]
 
 
 func _proud(tries := 0) -> void:
@@ -963,7 +963,7 @@ func _proud(tries := 0) -> void:
 func teach_lines() -> Array:
 	# Otto's gift: a bubble for your head, so you can go under with him (scripts/swim.gd)
 	return ["The sea's coming back. ALL of it!",
-		"Hold still... a bubble helmet for you!",
+		"Hold still... a bubble helmet! You'll never run out of air!",
 		"Now swim! {jump} goes up, {dash} goes down.",
 		"And Dash's Jelly Mines blueprint. For you!",
 		"Here comes the sea! Hold on!"]

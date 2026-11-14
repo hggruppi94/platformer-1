@@ -174,7 +174,7 @@ func _process(delta: float) -> void:
 				open_wheel()
 			elif not _hinted:
 				_hinted = true
-				Game.message("No saved outfits yet! Put one together in your wardrobe and press \"Save this outfit\".")
+				Game.message("No saved outfits yet!")
 	elif _pressed:
 		_pressed = false
 		if wheel.open:

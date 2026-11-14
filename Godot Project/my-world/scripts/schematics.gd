@@ -179,7 +179,7 @@ func note_for(kind: String, what: String) -> String:
 	if hint_ready(str(e.id)):
 		return "[Blueprint] " + str(e.hint) if kind == "gadget" else "[Schematic] " + str(e.hint)
 	if e.has("reward") or e.has("world"):
-		return "[Blueprint] Not yet. Dash says somebody out there's got one, and they're saving it for a friend..."
+		return "[Blueprint] Not yet. A friend has it..."
 	return "[Schematic] Not out yet. Maybe on night %d..." % int(e.night)
 
 
@@ -220,7 +220,7 @@ func award(id: String, quiet := false) -> bool:
 	Juice.rumble(0.35, 0.2)
 	if not quiet:
 		var from := str(e.get("reward", {}).get("from", ""))
-		Game.message("%s %s! Take it to Dash's gadget stall in the Void's Market Square and he'll build it for you."
+		Game.message("%s %s! Take it to Dash's stall."
 			% ["%s gives you a blueprint!" % from if from != "" else "A blueprint!", "It's " + blueprint_of(e)])
 	found_one.emit(id)
 	Game.save_game()
@@ -250,9 +250,9 @@ func pick_up(id: String, at := Vector3.ZERO) -> void:
 		Fx.burst(s, at, Color(0.45, 0.75, 1.0), 20, 0.07, 3.5, -2.0, 0.8)
 		Fx.burst(s, at, Color(1.0, 1.0, 1.0), 10, 0.05, 2.5, -1.0, 0.7)
 	if str(e.kind) == "gadget":
-		Game.message("A blueprint for the %s! Take it to Dash's gadget stall in the Void's Market Square and he can build it for you." % thing_name(e))
+		Game.message("The %s blueprint! Take it to Dash." % thing_name(e))
 	else:
-		Game.message("A schematic for the %s! Zippy can build it now, at the Tune-Up by the race board." % thing_name(e))
+		Game.message("The %s schematic! Take it to Zippy." % thing_name(e))
 	found_one.emit(id)
 	Game.save_game()
 
@@ -294,7 +294,7 @@ func _buy_ride(it: Dictionary) -> String:
 	var r := str(it.ride)
 	Game.give_item("ride:" + r)
 	use_ride(r)
-	return "Your %s is ready! It's what you ride now. Swap rides on the Skate page of your menu (%s)." % [str(it.name),
+	return "Your %s is ready! Swap rides in your menu (%s)." % [str(it.name),
 		Settings.prompt("player_menu")]
 
 

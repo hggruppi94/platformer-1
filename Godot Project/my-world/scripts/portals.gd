@@ -313,7 +313,7 @@ func quake(id: String, instant := false) -> void:
 	tw.tween_callback(func() -> void:
 		_quaking = false
 		Game.message("A crack by %s! It leads to %s." % [near_words(id), w.name])
-		DivineMind.say(["Feel that? Something broke.",
+		DivineMind.say(["Feel that? A new crack opened.",
 			"A world needs you!"])
 		changed.emit()
 		quaked.emit(id)
@@ -472,7 +472,7 @@ func clear(id: String) -> void:
 		Remnants.add(n)
 	Game.message(str(w.get("cleared_text", "%s's time is fixed!" % w.name)) + ("  (+%d Remnants)" % n if n > 0 else ""))
 	Juice.blip("chime", 1.0, -4.0)
-	DivineMind.say(["Well done. Time flows again."])
+	DivineMind.say(["Well done. %s is mended." % w.name])
 	changed.emit()
 	cleared.emit(id)
 	Game.save_game()

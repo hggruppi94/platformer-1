@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Say hi to Bramble by the portal.",
+      "text": "Pip says: say hi to Bramble!",
       "done": {
         "flag": "n3_hi"
       },

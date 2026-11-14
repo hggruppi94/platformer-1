@@ -37,7 +37,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if not Game.has_item(key):
 		Game.items.append(key)
 		var found := Game.items.filter(func(i: String) -> bool: return i.begins_with("happy_place:")).size()
-		Game.message("Happy place found: %s (%d/%d). Breathe in... and out. You feel calm. +%d sparkles" % [place_name,
+		Game.message("Happy place: %s (%d/%d). Breathe... +%d sparkles" % [place_name,
 			found, total, Game.HAPPY_PLACE_SPARKLES])
 		Game.add_sparkles(Game.HAPPY_PLACE_SPARKLES)
 		Audio.play("pickup")

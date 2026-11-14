@@ -222,9 +222,8 @@ func shoot(charged: bool) -> Node3D:
 		Audio.play("ui_back", -8.0, 0.0)
 		if _told_empty <= 0.0:
 			_told_empty = 4.0
-			Game.message(("Out of bubbles! Stop shooting for a moment and the Star Popper mixes a few more. Ammo bubbles, "
-				+ "ammo crates and Dash's stall fill it right up.") if id == "popper" else
-				"The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall." % Arsenal.gadget_name(id))
+			Game.message("Out of bubbles! Wait a moment..." if id == "popper" else
+				"The %s is empty!" % Arsenal.gadget_name(id))
 		return null
 	_cooldown = float(Arsenal.stat(id, "cooldown"))
 	var from := muzzle()
@@ -320,7 +319,7 @@ func shine(delta: float) -> void:
 			if _told_empty <= 0.0:
 				_told_empty = 4.0
 				Audio.play("ui_back", -8.0, 0.0)
-				Game.message("The %s is empty! Pop enemies for ammo bubbles, or get a refill at Dash's gadget stall."
+				Game.message("The %s is empty!"
 					% Arsenal.gadget_name("rainbow"))
 			return
 		_ray_drain = float(Arsenal.stat("rainbow", "cooldown"))

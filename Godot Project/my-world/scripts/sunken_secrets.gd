@@ -631,7 +631,7 @@ func lines_for(s: Dictionary) -> Array:
 			lines.append("\"%s\"" % s.note)
 			lines.append("(%d of 8 Seer's Bottles.)" % n)
 			if n == 8:
-				lines.append("\"You found them all! I knew you would. The Seer.\"")
+				lines.append("\"You found them all! See you then. The Seer.\"")
 				Remnants.add(BOTTLE_REWARD, "the seer's bottles")
 				lines.append("(You got %s!)" % Remnants.words(BOTTLE_REWARD))
 	return lines

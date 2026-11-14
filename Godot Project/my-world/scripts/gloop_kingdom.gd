@@ -719,7 +719,7 @@ func wake() -> void:
 	add_child(supplies)
 	supplies.global_position = global_position + COURT + Vector3(0, 1.0, 0)
 	Arsenal.supply_boss(supplies, 8.5, 4)
-	Game.message("THE GLOOP KING: \"WHO DARES drip into MY court?! Guards! ...Oh, I'll do it myself.\"")
+	Game.message("THE GLOOP KING: \"WHO DARES drip in MY court?!\"")
 	Audio.play_at("gloop_giggle", king.global_position, 4.0)
 	Juice.shake(0.3)
 
@@ -749,7 +749,7 @@ func _open_treasure() -> void:
 	treasure_open = true
 	var flag := "gloop_treasure_%d" % Requests.visit_day()
 	if Dialogue.flags.has(flag):
-		Game.message("The Royal Treasure's empty today. (He'll have filled it again by your next visit.)")
+		Game.message("Empty today. Come back next time!")
 		return
 	Dialogue.set_flag(flag)
 	Game.add_sparkles(TREASURE)

@@ -111,7 +111,7 @@ func _take_carrot() -> void:
 	if not _wants("Snow Carrot"):
 		return
 	Dialogue.set_flag("snow_carrot")
-	Game.message("Kip waves from the till: \"Take the wonkiest one! Snowmen love a wonky nose.\"")
+	Game.message("Kip: \"Take the wonkiest one!\"")
 	Audio.play("pickup", -4.0)
 	_refresh()
 
@@ -124,7 +124,7 @@ func _take_scarf() -> void:
 	if not _wants("Snow Scarf"):
 		return
 	Dialogue.set_flag("snow_scarf")
-	Game.message("A note's pinned to the scarf, in Prue's writing: \"FOR THE SNOWMAN. HE GETS COLD.\"")
+	Game.message("Prue's note: \"FOR THE SNOWMAN. HE GETS COLD.\"")
 	Audio.play("pickup", -4.0)
 	_refresh()
 
@@ -137,7 +137,7 @@ func _build() -> void:
 	if not Quests.on_step(QUEST, "build"):
 		return
 	Dialogue.set_flag("snow_built")
-	Game.message("You roll, Nina pats, and up goes a snowman with a wonky carrot nose and Prue's red scarf!")
+	Game.message("A snowman! With a wonky carrot nose!")
 	Juice.blip("sparkle", 1.2, -4.0)
 
 
@@ -211,7 +211,7 @@ func sled_down() -> void:
 		Juice.blip("thud", 1.0, -8.0)
 		if Quests.on_step(QUEST, "sled"):
 			Dialogue.set_flag("snow_sledded")
-			Game.message("WHEEEE! Nina's waiting at the bottom: \"Again! No wait, cocoa first. My nose is frozen. Hollow Diner!\""))
+			Game.message("WHEEEE! Nina: \"Cocoa! Hollow Diner!\""))
 
 
 func is_sledding() -> bool:

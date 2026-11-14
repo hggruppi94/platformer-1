@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "See Mr. Palmer at the Town Hall.",
+      "text": "Rex says: go and see Mr. Palmer!",
       "done": {
         "flag": "n7_hi"
       },

@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Say hi to the Astronaut.",
+      "text": "Dash says: say hi to the Astronaut!",
       "done": {
         "flag": "n5_hi"
       },

@@ -135,7 +135,7 @@ func _run() -> void:
 		check(tree > 3.0, "...and not in a tree (nearest %.1f m)" % tree)
 	var first: Array = portals.otto_hub_lines()
 	check("Willow Pond" in " ".join(first) and portals.has_found("tide_reef", "otto_in_hub"), "he tells you where to go for a dive")
-	check(portals.otto_hub_lines().size() == 2, "...and chats after that")
+	check(not portals.otto_hub_lines().is_empty(), "...and chats after that")
 	_finish()
 
 

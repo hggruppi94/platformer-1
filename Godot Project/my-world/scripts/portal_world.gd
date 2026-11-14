@@ -134,7 +134,7 @@ func _vein_offer(id: String) -> String:
 
 func _use_vein(id: String) -> void:
 	if not Remnants.has_tool():
-		Game.message("Remnant crystals! Too deep to pull out by hand. Bramble's harvesting tool could do it.")
+		Game.message("Too deep! Bramble's tool could do it.")
 		Audio.play("ui_back", -8.0)
 		return
 	if not vein_ready(id):

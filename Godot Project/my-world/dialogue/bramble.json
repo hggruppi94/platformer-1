@@ -88,7 +88,7 @@
       },
       "lines": [
         "Rights for dogs? Of course! I love Rook.",
-        "(Bramble signs it. Snappy tries to eat the pen.)"
+        "(Snappy tries to eat the pen!)"
       ],
       "set": "dogs_sign_bramble"
     },
@@ -158,7 +158,7 @@
       "lines": [
         "{player}: All the window boxes are full!",
         "I felt them bloom, all the way down in my roots!",
-        "Thank you!"
+        "I did the rest of the town too! Thank you!"
       ]
     },
     {
@@ -372,7 +372,7 @@
       },
       "lines": [
         "Fresh flowers! Some are my cousins.",
-        "(She tucks a flower behind your ear.)"
+        "A flower for you!"
       ]
     },
     {

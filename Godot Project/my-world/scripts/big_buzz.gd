@@ -266,7 +266,7 @@ func shot(power: int, _point: Vector3, _dir: Vector3) -> String:
 	if state != State.DAZED:
 		Fx.burst(get_parent(), _point, FIZZLER.STATIC, 6, 0.05, 2.0, 0.0, 0.3)
 		if _told_fizzle <= 0.0:
-			Game.message("The bubble fizzled off his static! Wait till he slams down and fizzles out.")
+			Game.message("Fizzled! Wait till he slams down.")
 			_told_fizzle = 8.0
 		return "miss"
 	hurt(mini(power, MAX_PER_DAZE - _daze_hits))
@@ -328,7 +328,7 @@ func _burst() -> void:
 	Juice.rumble(0.7, 0.4, 0.7)
 	Juice.blip("sparkle", 1.0, -2.0)
 	Game.add_xp(50)
-	Game.message("You popped Big Buzz! Bzzzzzip... and the air goes all calm and quiet.")
+	Game.message("You popped Big Buzz! Bzzzzzip...")
 	var tw := create_tween()
 	tw.tween_property(visual, "scale", Vector3(1.8, 0.05, 1.8), 0.25)
 	tw.tween_callback(func() -> void: visual.visible = false)

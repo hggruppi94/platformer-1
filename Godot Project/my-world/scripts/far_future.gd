@@ -557,7 +557,7 @@ func rex_lines() -> Array:
 			"Pull the big lever when you're ready!"]
 	if not Portals.has_found(world_id, "met_rex"):
 		Portals.note_found(world_id, "met_rex")
-		return ["Welcome to Lumen City! Our home... in the future.",
+		return ["Welcome to the Far Future! Lumen City, our home.",
 			"But look, it's FADING!",
 			"The big clock lost three Time Cores.",
 			"Find them! I'll guard the door. With my nose."]
@@ -594,17 +594,17 @@ func dash_lines() -> Array:
 		if AFTER.rex_home():
 			return home_lines()
 		if Dialogue.flags.has("beat_agent_of_chaos"):
-			return ["His clock's stopped! All quiet!",
+			return ["His clock's stopped! The knot's come loose!",
 				"Pull the lever, {player}. For good!"]
 		if Dialogue.flags.has(SWAP_FLAG):
 			return swap_lines()
 		return ["The whole city's humming! You did that!",
-			"Pull the lever when you're ready!"]
+			"Pull the Swap-o-Tron's lever when you're ready!"]
 	if not Portals.has_found(world_id, "met_dash"):
 		Portals.note_found(world_id, "met_dash")
 		return ["{player}! In MY lab! Sorry about the sparks.",
-			"The first Swap-o-Tron. It blew three fuses!",
-			"Put the new ones in! Ride the lifts up!"]
+			"The first Swap-o-Tron. It blew three Chrono Fuses!",
+			"New ones are up in the gallery. Ride the lifts!"]
 	if fuses_fixed() < FUSES:
 		return ["%d of %d fuses in!" % [fuses_fixed(), FUSES]]
 	return ["It's on! The first core's home!"]
@@ -639,7 +639,7 @@ func hand_ins() -> Array:
 
 func thank_lines() -> Array:
 	return ["You did it! Look at the TOWERS!",
-		"Captain Glitch got away, though.",
+		"Captain Glitch got away. Back to his master...",
 		"And the Swap-o-Tron's mended! Maybe... my own body...",
 		"Come to Dash's lab! Let's TRY it!"]
 
@@ -972,7 +972,7 @@ func home_lines() -> Array:
 		"Rex: Rook? I'm sorry I swapped us on purpose, boy.",
 		"Rook: Woof!",
 		"The cracks are closing, in every world!",
-		"When the last one shuts, everyone goes home.",
+		"When the last one shuts, everyone goes home. You to Stars Hollow.",
 		"Rex: And us?",
 		"We're already home, Rex.",
 		"Meet us at the Tomorrow Clock, {player}!"]
@@ -1104,7 +1104,7 @@ func letter_lines() -> Array:
 	return ["\"Dear {player}. Everybody's home. You did that.\"",
 		"\"Lumen City is where Stars Hollow is. Same oak!\"",
 		"\"I'm not far away. I'm just LATER.\"",
-		"\"Keep the cap!\"",
+		"\"Look after Rex for me. And keep the cap!\"",
 		"\"See you later. Love, Dash.\"",
 		"\"P.S. Rook says woof.\""]
 
@@ -1217,7 +1217,7 @@ func oak_lines() -> Array:
 		return ["(The old oak hums under your hand, slow and warm.)",
 			"(It's the same tree as back home!)"]
 	return ["(The old oak hums under your hand, slow and warm.)",
-		"(It hums just like the oak back home!)"]
+		"(It hums just like the oak in Stars Hollow!)"]
 
 
 func touch_oak() -> void:

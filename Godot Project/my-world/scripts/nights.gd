@@ -226,7 +226,7 @@ func _watch_goal() -> String:
 		return ""
 	var left := int(nr.at) - Watches.given_count()
 	var pocket := Watches.to_give().size()
-	var t := "Watches: %d more for Dash (%s)" % [left, str(nr.text)]
+	var t := "Lost watches: %d more for Dash (%s)" % [left, str(nr.text)]
 	if pocket > 0:
 		t += ". You've got %d in your pocket for him!" % pocket
 	return t
@@ -280,13 +280,13 @@ func _ride_goal() -> String:
 	for r in Rides.HERO_ORDER:
 		var item: Dictionary = Shop.items.get("ride_" + str(r), {})
 		if not item.is_empty() and RideUpgrades.ready_to_build(str(r)):
-			return "Rides: the %s at the Tune-Up, ✦ %d" % [str(item.name), int(item.price)]
+			return "Rides: Zippy can build you the %s, ✦ %d" % [str(item.name), int(item.price)]
 	# ...or the next ride a level will open (its schematic found, if it needs one)
 	for r in Rides.HERO_ORDER:
 		var rr := str(r)
 		if not Schematics.owns_ride(rr) and Schematics.ride_unlocked(rr) and RideUpgrades.needs_ok(rr) \
 				and not RideUpgrades.level_ok(rr):
-			return "Rides: Lv %d for the %s" % [RideUpgrades.level_for(rr),
+			return "Rides: reach Lv %d for the %s" % [RideUpgrades.level_for(rr),
 				str(Rides.HERO_RIDES[rr].name)]
 	return ""
 

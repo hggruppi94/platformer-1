@@ -150,7 +150,7 @@ func _slip(what: String) -> void:
 	Juice.blip("pop", 1.6, -8.0)
 	if _slip_cd <= 0.0:
 		_slip_cd = 3.0
-		Game.message("%s slide right off: it's too slippery! Wait for Otto to grab hold of it." % what)
+		Game.message("%s slide off! Wait for Otto." % what)
 
 
 func shot(power: int, point: Vector3, dir: Vector3) -> String:
@@ -202,7 +202,7 @@ func _hurt_message(stomped: bool) -> void:
 func _defeated() -> void:
 	held = false
 	pulling = false
-	Game.message("You and Otto popped the Riptide Gloop! All the water it swallowed comes rushing out...")
+	Game.message("Popped! The water rushes out...")
 	Juice.hitstop(0.09)
 	Juice.shake(0.6)
 	Juice.rumble(0.7, 0.4, 0.7)

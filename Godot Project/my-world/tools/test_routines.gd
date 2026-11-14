@@ -191,9 +191,9 @@ func _run() -> void:
 		_check_where(id, "after sleeping, 07:00")
 
 	# Dialogue that knows where they are and what they're doing
-	for c in [["rex", "11:00", 2, "Vote Rex"], ["dash", "12:45", 2, "Snack break"],
+	for c in [["rex", "11:00", 2, "Vote Rex"], ["dash", "12:45", 2, "snacks"],
 			["rook", "13:30", 2, "Zzzz"], ["bramble", "13:30", 2, "flower"], ["bruno_alien", "10:00", 2, "eththon"],
-			["melody", "10:00", 2, "YES"], ["bramble", "07:00", 2, "roots"], ["clover", "11:00", 2, "meadow"]]:
+			["melody", "10:00", 2, "YES"], ["bramble", "07:00", 2, "grows"], ["clover", "11:00", 2, "grass"]]:
 		clock.set_time(4, clock.parse_time(c[1]), true)
 		await _settle()
 		dialogue.talks[c[0]] = c[2]
@@ -208,7 +208,7 @@ func _run() -> void:
 		if routines.pip.is_travelling():
 			break
 	dialogue.talks["pip"] = 3
-	check(routines.pip.is_travelling() and _first_line("pip").contains("Can't stop"), "Pip setting off at dusk: \"%s\"" % _first_line("pip"))
+	check(routines.pip.is_travelling() and _first_line("pip").contains("See you"), "Pip setting off at dusk: \"%s\"" % _first_line("pip"))
 
 	# Melody dances at the Market between her little walks (her block's "anim")
 	clock.set_time(4, 10 * 60.0, true)

@@ -320,7 +320,7 @@ func judge_pie() -> Array:
 	if pie_day == today:
 		return ["Your %s already won, sweetheart!" % bake]
 	if not Game.has_item("contest_pie"):
-		return ["Got a %s for the contest? Poppy's bakery sells them!" % bake]
+		return ["Got a %s? The contest bakes at the bakery!" % bake]
 	Game.items.erase("contest_pie")
 	pie_day = today
 	# The very first pie wins; after that the judges are a little harder to please (the same answer all evening)

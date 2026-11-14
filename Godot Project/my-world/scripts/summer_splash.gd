@@ -368,7 +368,7 @@ func _take_ring() -> void:
 	if not _wants("Swim Ring"):
 		return
 	Dialogue.set_flag("splash_ring")
-	Game.message("There's a note stuck on it, in Prue's writing: \"IT HAS A HOLE. BLOW HARDER.\"")
+	Game.message("Prue's note: \"IT HAS A HOLE. BLOW HARDER.\"")
 	Audio.play("pickup", -4.0)
 	_refresh()
 
@@ -381,7 +381,7 @@ func _take_bucket() -> void:
 	if not _wants("Bucket"):
 		return
 	Dialogue.set_flag("splash_bucket")
-	Game.message("Hank waves from the loading dock: \"On the house! Bring it back full of shells.\"")
+	Game.message("Hank: \"On the house!\"")
 	Audio.play("pickup", -4.0)
 	_refresh()
 
@@ -394,7 +394,7 @@ func _build() -> void:
 	if not Quests.on_step(QUEST, "build"):
 		return
 	Dialogue.set_flag("splash_castle")
-	Game.message("You dig, Nina pats, Prue's swim ring makes a moat, and up goes a sandcastle with four towers and a flag!")
+	Game.message("A sandcastle with four towers!")
 	Juice.blip("sparkle", 1.2, -4.0)
 
 
@@ -464,7 +464,7 @@ func cannonball() -> void:
 		Juice.shake(0.25)
 		if Quests.on_step(QUEST, "jump"):
 			Dialogue.set_flag("splash_jumped")
-			Game.message("KER-SPLOOSH! Nina's soaked on the dock: \"That was a TEN! Now I'm all wet. Lemonade at the Hollow Diner, go!\""))
+			Game.message("KER-SPLOOSH! Nina: \"A TEN! Lemonade time!\""))
 
 
 func is_jumping() -> bool:

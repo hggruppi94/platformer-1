@@ -29,33 +29,33 @@ const GATE_WIDE := 7.0                         # the gateway's half-width (to th
 # (0: no clock). "needs": a round you must have won first.
 const CHALLENGES := [
 	{"id": "gloops", "name": "Pop 100 Gloops", "kind": "count", "enemy": "gloop", "goal": 100, "time": 0, "at_once": 10,
-		"about": "One hundred Gloops, ten at a time. No clock: just keep popping!",
+		"about": "100 Gloops. Keep popping!",
 		"first": {"sparkles": 20, "remnants": 2}, "again": {"sparkles": 5}},
 	{"id": "glorps", "name": "Glorp Splitter", "kind": "count", "enemy": "glorp", "goal": 40, "time": 0, "at_once": 4,
-		"about": "Pop 40 Glorps. Every bit they split into counts!",
+		"about": "Pop 40 Glorps!",
 		"first": {"sparkles": 15, "remnants": 1}, "again": {"sparkles": 4}},
 	{"id": "goblins", "name": "Goblin Waves", "kind": "waves", "enemy": "goblin", "goal": [4, 6, 8], "time": 0,
-		"about": "Three waves of Time Goblins: 4, then 6, then 8. They blink back in time, so be quick!",
+		"about": "3 waves of Time Goblins. Be quick!",
 		"first": {"sparkles": 15, "remnants": 1}, "again": {"sparkles": 4}},
 	{"id": "fizzlers", "name": "Fizzler Frenzy", "kind": "timed", "enemy": "fizzler", "goal": 25, "time": 180, "at_once": 6,
-		"about": "Pop 25 Fizzlers before three minutes are up. Jump their little zaps!",
+		"about": "25 Fizzlers in 3 minutes!",
 		"first": {"sparkles": 15, "remnants": 1}, "again": {"sparkles": 4}},
 	{"id": "shadows", "name": "Shadow Night", "kind": "count", "enemy": "ghost", "goal": 20, "time": 0, "at_once": 5,
 		"dark": true,
-		"about": "The lights go down and 20 shadow ghosts come out. Pop them all!",
+		"about": "Lights out! Pop 20 shadow ghosts!",
 		"first": {"sparkles": 15, "remnants": 1}, "again": {"sparkles": 4}},
 	{"id": "mama_glorp", "name": "Mama Glorp", "kind": "boss", "boss": "mama_glorp", "needs": "glorps",
-		"about": "The biggest Glorp there is. Every hit, a little Glorp splits off her!",
+		"about": "The biggest Glorp of all!",
 		"first": {"sparkles": 25, "remnants": 3}, "again": {"sparkles": 6}},
 	{"id": "big_buzz", "name": "Big Buzz", "kind": "boss", "boss": "big_buzz", "needs": "fizzlers",
-		"about": "A storm cloud of static. Jump the zap, then pop him while he's fizzled out!",
+		"about": "Jump the zap, then pop him!",
 		"first": {"sparkles": 25, "remnants": 3}, "again": {"sparkles": 6}},
 	{"id": "gloam", "name": "The Gloam", "kind": "boss", "boss": "gloam", "needs": "shadows", "dark": true,
-		"about": "A shadow too dark to touch, until the spotlights catch it.",
+		"about": "Catch it in the spotlight!",
 		"first": {"sparkles": 25, "remnants": 3}, "again": {"sparkles": 6}},
 	{"id": "cup", "name": "Champion's Cup", "kind": "rush", "bosses": ["mama_glorp", "big_buzz", "gloam"],
 		"needs": ["mama_glorp", "big_buzz", "gloam"],
-		"about": "All three arena bosses, one after another. Win and the Champion's Cup is yours!",
+		"about": "All 3 bosses! Win the Cup!",
 		"first": {"sparkles": 50, "remnants": 5, "item": "champion_cup"}, "again": {"sparkles": 10}},
 ]
 
@@ -210,7 +210,7 @@ func _land_by_gate() -> void:
 
 func enter() -> void:
 	if not gate_open():
-		Game.message("The Star Arena's doors are shut. A sign says: \"Opening soon!\"")
+		Game.message("Shut. \"Opening soon!\"")
 		return
 	Game.pending_message = ""
 	Game.go(LEVEL, "Entrance", "the Star Arena")

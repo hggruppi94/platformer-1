@@ -97,7 +97,7 @@ func _say_later(text: String) -> void:
 
 func _tell_new() -> void:
 	await get_tree().create_timer(2.0).timeout
-	Game.message("Something new has grown out of the old oak's roots: a Season Dial! Turn it to change Stars Hollow's season.")
+	Game.message("A Season Dial by the old oak!")
 
 
 # The model -------------------------------------------------------------------------------------------------------
@@ -225,8 +225,7 @@ func _sign(face: Node3D, s: String, open: bool) -> void:
 func lines() -> Array:
 	# What the dial says, and the seasons it offers: every open one but this one
 	var now := Clock.season()
-	var out: Array = ["An old stone sundial has grown up out of the oak's roots. Its brass face is split into the "
-		+ "seasons, and the pointer rests on %s." % now.capitalize()]
+	var out: Array = ["The Season Dial points to %s." % now.capitalize()]
 	var choice: Array = []
 	for s in ORDER:
 		if s != now and Clock.season_open(str(s)):
@@ -309,10 +308,10 @@ func _change(season: String) -> void:
 
 
 func _hello(season: String) -> String:
-	return {"spring": "Spring in Stars Hollow! Blossom on the trees and puddles on the green.",
-		"summer": "Summer in Stars Hollow! The sun's high and the pond's warm.",
-		"autumn": "Autumn in Stars Hollow! Leaves, pumpkins and cider.",
-		"winter": "Winter in Stars Hollow! Snow on every roof."}.get(season, "A new season in Stars Hollow!")
+	return {"spring": "Spring!",
+		"summer": "Summer!",
+		"autumn": "Autumn!",
+		"winter": "Winter!"}.get(season, "A new season in Stars Hollow!")
 
 
 func _fix_jobs() -> void:

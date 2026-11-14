@@ -52,12 +52,12 @@ const FRIENDS := [
 # What's said (first drafts): [who, line]. Line GIFT_LINE is when he gives you his cap
 const LINES := [
 	["Dash", "Everyone came! Even Otto."],
-	["Otto"],
+	["Otto", "I made a bubble ramp!"],
 	["Dash", "When the clock strikes, everyone goes home."],
 	["Bramble", "I'll miss you lot. Snappy will too."],
-	["Heather"],
+	["Heather", "Glenmoor's got its days back, sugar."],
 	["Pip", "And it isn't goodbye. It's see you later."],
-	["Flurry"],
+	["Flurry", "Things come round again."],
 	["Rex", "Rook. I'm sorry I swapped us, boy."],
 	["Rook", "Woof! (LICK!)"],
 	["Dash", "You'll be a brilliant mayor, Rex."],

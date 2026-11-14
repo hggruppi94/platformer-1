@@ -454,7 +454,7 @@ func _add_bramble() -> void:
 func bramble_lines() -> Array:
 	# Bramble's quieter here: short, soft lines about what to do next
 	if Portals.is_cleared(world_id):
-		return ["Everything blinks together again!", "Soft ground, {burrow}, down you go!"]
+		return ["Thank you! Everything blinks together again!", "Soft ground, {burrow}, down you go!"]
 	var n := blooms_awake()
 	if n == 0:
 		return ["Shh... this is my home.",

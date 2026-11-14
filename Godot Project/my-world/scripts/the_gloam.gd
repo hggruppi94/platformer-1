@@ -182,7 +182,7 @@ func _look(delta: float) -> void:
 	_halo.rotation.y += delta * 0.8
 	if lit and not _told_lit and hits == 0:
 		_told_lit = true
-		Game.message("The spotlight's caught the Gloam! In the light it can be popped: quick!")
+		Game.message("It's in the light! Pop it, quick!")
 
 
 func gloom_wave() -> void:
@@ -208,7 +208,7 @@ func shot(power: int, _point: Vector3, dir: Vector3) -> String:
 		return "miss"
 	if not lit:
 		if _told_dark <= 0.0:
-			Game.message("The bubble went straight through! In the dark the Gloam is only shadow. Lead it into a spotlight.")
+			Game.message("Straight through! Lead it into a spotlight.")
 			_told_dark = 8.0
 		return "miss"
 	hurt(mini(power, 1), dir)
@@ -272,7 +272,7 @@ func _burst() -> void:
 	Juice.rumble(0.7, 0.4, 0.7)
 	Juice.blip("sparkle", 0.9, -2.0)
 	Game.add_xp(50)
-	Game.message("You popped the Gloam! It bursts into a sky full of evening stars.")
+	Game.message("You popped the Gloam! Stars everywhere!")
 	var tw := create_tween()
 	tw.tween_property(visual, "scale", Vector3(1.6, 0.05, 1.6), 0.3)
 	tw.tween_callback(func() -> void: visual.visible = false)

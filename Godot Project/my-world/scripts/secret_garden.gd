@@ -840,7 +840,7 @@ func _wake_garden() -> void:
 	awake = true
 	Game.add_sparkles(WAKE_SPARKLES)
 	Remnants.add(WAKE_REMNANTS)
-	Game.message("All five seeds are awake, and so is the whole Secret Garden! ✦ %d sparkles and %s." % [WAKE_SPARKLES, Remnants.words(WAKE_REMNANTS)])
+	Game.message("The Secret Garden's awake! ✦ %d and %s." % [WAKE_SPARKLES, Remnants.words(WAKE_REMNANTS)])
 	Juice.shake(0.2)
 	var tw := create_tween()
 	tw.tween_method(_set_awake, 0.0, 1.0, 3.0)

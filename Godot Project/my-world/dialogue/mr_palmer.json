@@ -37,7 +37,7 @@
         },
         "This town has plenty of fun already!",
         "The answer is no. Not now. Sometimes the best thing is to wait.",
-        "(He winced when Melanie said \"the old slide\"...)"
+        "(He winced at \"the old slide\"...)"
       ],
       "set": "slide_asked"
     },
@@ -182,7 +182,7 @@
       },
       "lines": [
         "(The curtains are closed.)",
-        "(OPEN: MORNING TILL TEATIME)"
+        "(OFFICE HOURS: MORNING TILL TEATIME)"
       ]
     },
     {

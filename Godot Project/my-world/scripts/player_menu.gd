@@ -20,9 +20,9 @@ const SHEETS := [["quests", "Quests"], ["goals", "Goals"], ["map", "Map"], ["cal
 # A sentence for each sheet, under the tabs (and what the menu tour says about it: scripts/menu_tour.gd). Short words
 # for young players: the menus were made friendlier after Hayden's 7 Nov 2026 playtest.
 const ABOUT := {
-	"quests": "People who need your help. Each card says what to do next.",
+	"quests": "People who need your help.",
 	"goals": "Fun things to aim for tonight and tomorrow.",
-	"map": "Find where you are and where to go next. Zoom in, and pick what shows on the list.",
+	"map": "Where you are, and where to go.",
 	"calendar": "What day it is on Earth, and what's coming up.",
 	"hero": "That's you! Change your clothes or your look.",
 	"bag": "Everything you've found and collected.",
@@ -107,13 +107,13 @@ func start_tour() -> void:
 		auto_tour = true
 		if not is_open():
 			return
-	var steps: Array = [["quests", "This is your menu! The game waits while it's open. Let's have a quick look round."]]
+	var steps: Array = [["quests", "Your menu! The game waits here."]]
 	for pair in SHEETS:
 		var line := "%s: %s" % [pair[1], ABOUT[pair[0]]]
 		if pair[0] == "quests":
 			line += " Press %s (or click a picture) to see the next page." % ("RB" if Settings.last_device == "pad" else "E")
 		steps.append([pair[0], line])
-	steps.append(["quests", "That's everything! Press {player_menu} any time to open this menu again. Have fun!"])
+	steps.append(["quests", "That's it! {player_menu} opens this menu."])
 	tour.start(steps)
 
 
@@ -360,7 +360,7 @@ func _sheet_calendar() -> Control:
 	_heading("%s, Year %d" % [Clock.season_name(first_day), Clock.year(first_day)], box)
 	_line("Today is %s. %s" % [Clock.date_string(), _school_line()], true, box)
 	if Clock.seasons_open.size() >= 2 and HummingOak.awake():
-		_line("Turn the Season Dial by the old oak to switch to any season you've opened.", true, box).name = "Dial hint"
+		_line("Change seasons at the Season Dial.", true, box).name = "Dial hint"
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	box.add_child(row)
@@ -536,12 +536,12 @@ func _sheet_bag() -> Control:
 	var wallet := _heading("✦ %d sparkle%s" % [Game.sparkles, "" if Game.sparkles == 1 else "s"], box)
 	wallet.name = "Sparkles"
 	wallet.add_theme_color_override("font_color", Color(1.0, 0.88, 0.45))
-	_line("Bits of broken time. Find them round town and from quests, and spend them at the Market.", true, box)
+	_line("Bits of broken time. Spend them!", true, box)
 	if Remnants.shown():
 		var rem := _heading(Remnants.words(Remnants.count), box)
 		rem.name = "Remnants"
 		rem.add_theme_color_override("font_color", Color(0.55, 1.0, 0.45))
-		_line("Sparkles squeezed into crystals: rarer, and worth more. Bramble helps you harvest them from the glowing veins, once a Void day each.", true, box)
+		_line("Rare crystals. Harvest them with Bramble.", true, box)
 	var things := []
 	var clothes := []
 	var places := []
@@ -581,7 +581,7 @@ func _gadgets_page(box: VBoxContainer) -> Control:
 	var head := _heading("Gadgets", box, 26)
 	head.name = "Gadgets"
 	if Arsenal.mods_owned.is_empty():
-		_line("Mods slot into any gadget, two each. Dash sells them at his workbench, beside his gadget stall.", true, box)
+		_line("Two mods fit each gadget.", true, box)
 	var first: Control = null
 	for id in Arsenal.owned:
 		var am := Arsenal.ammo_of(id)
@@ -704,7 +704,7 @@ func _sheet_skate() -> Control:
 	var first: Control = null
 	_heading("Coach Bruno's skate lesson", box, 26)
 	if not Game.has_item("skateboard"):
-		_line("Pick up the skateboard in the middle of the Skate Park first, then Rook can teach you!", true, box)
+		_line("Get the Skate Park board first!", true, box)
 	else:
 		var done := 0
 		var steps := []
@@ -746,7 +746,7 @@ func _sheet_skate() -> Control:
 			" In the air, hold %s to fire the rockets and fly." % Settings.prompt("jump") if Rides.HERO_RIDES[Game.hero_ride].get("flight", false) else ""], true, box)
 	var locked := Rides.HERO_ORDER.size() - Schematics.rides_owned().size()
 	if locked > 0:
-		_line("%s ride%s still to unlock. Boards and bikes go up to hover and then rocket versions as you level up (you're Lv %d): find the schematics round the Void, and Zippy builds them at the Tune-Up." % [
+		_line("%s ride%s to unlock (you're Lv %d)." % [
 			locked, "" if locked == 1 else "s", Game.level], true, box)
 	_gap(box)
 	_heading("Skate Park goals", box, 26)

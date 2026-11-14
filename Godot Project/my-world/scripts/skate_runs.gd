@@ -204,9 +204,9 @@ func lines(id: String) -> Array:
 	var r: Dictionary = RUNS[id]
 	if not Game.has_item("skateboard"):
 		return ["SKATE RUN: two minutes to score as much as you can!",
-			"You'll need something to ride first. There's a skateboard waiting at the Void's Skate Park."]
+			"You need a ride first!"]
 	var m: Array = r.medals
-	var out: Array = ["SKATE RUN: you've got %d seconds to score as much as you can, anywhere you like. Combos count, gaps count, and the combo you're in when the buzzer goes counts if you land it!" % int(r.time),
+	var out: Array = ["SKATE RUN: %d seconds. Score big!" % int(r.time),
 		"Bronze %s (✦ %d), Silver %s (✦ %d), Gold %s (✦ %d)." % [_num(m[0][1]), m[0][2], _num(m[1][1]), m[1][2], _num(m[2][1]), m[2][2]]]
 	if best.has(id):
 		out.append("Your best here is %s." % _num(int(best[id])))
@@ -311,7 +311,7 @@ func _countdown(delta: float) -> void:
 func _still_riding() -> bool:
 	if Game.riding and not Races.racing():
 		return true
-	Game.message("You stepped off your ride, so the skate run's off. The Run Clock's there when you want another go!" \
+	Game.message("Off your ride! Run's off." \
 		if not Races.racing() else "A race! The skate run's off.")
 	_end()
 	return false

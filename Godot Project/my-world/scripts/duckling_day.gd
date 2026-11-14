@@ -182,7 +182,7 @@ func bring_home() -> void:
 		return
 	Dialogue.set_flag("ducks_home")
 	_swim_t = 0.0
-	Game.message("QUACK! Mother Duck counts them: one, two, three, four, five. And off they all paddle onto Willow Pond.")
+	Game.message("QUACK! All five home!")
 	Juice.blip("sparkle", 1.2, -4.0)
 	var g := _group()
 	if g:

@@ -297,7 +297,7 @@ func use_ammo(id := "") -> bool:
 	ammo[id] = ammo_of(id) - 1
 	if low(id) and not _told_low.has(id) and ammo_of(id) > 0:
 		_told_low[id] = true
-		Game.message("The %s is running low! Pop enemies for ammo bubbles, open ammo crates, or get a refill at Dash's stall."
+		Game.message("The %s is running low!"
 			% gadget_name(id))
 	changed.emit()
 	return true

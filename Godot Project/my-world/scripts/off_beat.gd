@@ -108,7 +108,7 @@ func wake() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("pop", 0.5, -2.0)
-	Game.message("The Off-Beat wakes up: TICK... TOCK-TICK-TICK! Jump on the drum that lights up, and jump his heat rings!")
+	Game.message("The Off-Beat! Jump on the lit drum!")
 
 
 func swing_len() -> float:
@@ -238,7 +238,7 @@ func _back_in_time() -> void:
 	Juice.hitstop(0.09)
 	Juice.shake(0.6)
 	Juice.rumble(0.7, 0.4, 0.7)
-	Game.message("The Off-Beat's back in time! TICK. TOCK. TICK. TOCK. He's shrinking down to a happy little metronome...")
+	Game.message("TICK. TOCK. The Off-Beat's back in time!")
 	var model := get_node_or_null("Model") as Node3D
 	var tw := create_tween()
 	if model:

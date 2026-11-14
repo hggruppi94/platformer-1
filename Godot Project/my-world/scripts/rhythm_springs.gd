@@ -634,7 +634,7 @@ func melody_lines() -> Array:
 		Portals.note_found(world_id, "met_melody")
 		return ["Welcome to Rhythm Springs! Phew... HOT!",
 			"The Off-Beat broke our beat! Now the sun's stuck.",
-			"Stay cool! Shade and cool pools!",
+			"The Heat bar fills in the sun. Find shade and cool pools!",
 			"Find three Song Shells to fix it!"]
 	var left: Array = []
 	for i in 3:
