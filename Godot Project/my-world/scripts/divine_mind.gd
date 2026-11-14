@@ -14,6 +14,23 @@ extends Node
 signal spoke(text: String)
 
 const SPEAKER := "A voice in your mind"
+
+# Everything it says. They're spoken aloud too (Hayden, 14 Nov 2026: "can we give the brain dialogue in your mind a
+# voice?"): each line has its own .ogg in VOICE_DIR, made by tools/make_mind_voice.py from the list that
+# tools/dump_mind_lines.gd writes (all_lines() below). A line with no file yet is just shown, as before. If you change
+# or add a line, run both tools again.
+const ARRIVAL := "Don't be afraid. You're exactly where you're meant to be."
+const CRACK_OPENED := ["Feel that? A new crack opened.", "A world needs you!"]
+const MENDED := "Well done. %s is mended."
+const OAK_FIRST := "Don't be afraid. I chose you, {player}. Whenever you're lost, come and touch the old oak, and I'll help you find the way."
+const HINT_CRACK := "A crack lies open in the Void, by %s. Time is broken on the other side."
+const HINT_FRIEND := "Jump in. Someone there is waiting for a friend."
+const HINT_FIX := "Jump in. Put it right."
+const HINT_GOAL := "Remember what you set out to do..."
+const HINT_REST := "Rest, and be with the people you love. The ground here is open, whenever you're ready."
+const HINT_LOOK := "Look around you. Help where you can. When you're needed, I will tell you."
+const VOICE_DIR := "res://audio/mind/"
+const VOICE_TAIL := 0.6                # seconds a spoken line stays up after the voice stops
 const MIN_TIME := 3.2                  # seconds a line stays up, at least...
 const PER_CHAR := 0.055                # ...plus this much for each letter
 const FADE := 0.4
@@ -26,11 +43,19 @@ var _layer: CanvasLayer
 var _box: PanelContainer
 var _who: Label
 var _text: Label
+var _voice: AudioStreamPlayer
+var spoken := 0                        # lines it has said aloud this run (tests read it)
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
+	_voice = AudioStreamPlayer.new()
+	_voice.bus = "Voices" if AudioServer.get_bus_index("Voices") >= 0 else "Master"
+	add_child(_voice)
+	# Its lines in a talk (the old oak) are spoken as they come up, and the voice stops when the talk moves on
+	Dialogue.line_shown.connect(_on_dialogue_line)
+	Dialogue.finished.connect(func(_id: String) -> void: stop_voice())
 
 
 func say(lines: Array) -> void:
@@ -54,6 +79,7 @@ func clear() -> void:
 	_queue.clear()
 	_showing = false
 	_box.visible = false
+	stop_voice()
 
 
 func _process(delta: float) -> void:
@@ -83,6 +109,78 @@ func _next() -> void:
 	_box.visible = true
 	_showing = true
 	Juice.blip("chime", 0.55, -14.0)
+	var secs := speak(s)
+	if secs > 0.0:
+		_t = maxf(_t, secs + VOICE_TAIL)       # the words stay up till it's finished saying them
+
+
+# -----------------------------------------------------------------------------
+# Its voice
+# -----------------------------------------------------------------------------
+static func voice_key(text: String) -> String:
+	# The line's file name: the same in tools/make_mind_voice.py
+	return text.strip_edges().md5_text().substr(0, 16)
+
+
+static func voice_path(text: String) -> String:
+	return VOICE_DIR + voice_key(text) + ".ogg"
+
+
+static func has_voice(text: String) -> bool:
+	return ResourceLoader.exists(voice_path(text))
+
+
+func speak(text: String) -> float:
+	# Says a line aloud (cutting off whatever it was saying). Returns how long it takes, or 0 with no file for it
+	stop_voice()
+	if not has_voice(text):
+		return 0.0
+	var stream := load(voice_path(text)) as AudioStream
+	if stream == null:
+		return 0.0
+	_voice.stream = stream
+	_voice.play()
+	spoken += 1
+	return stream.get_length()
+
+
+func stop_voice() -> void:
+	if _voice and _voice.playing:
+		_voice.stop()
+
+
+func is_talking() -> bool:
+	return _voice != null and _voice.playing
+
+
+func _on_dialogue_line(speaker: String, _text_shown: String) -> void:
+	# In a talk the line's own words come from the file as written, with {player} still in (the voice can't know the
+	# name the player chose, so the recording leaves it out)
+	if speaker == SPEAKER:
+		speak(str(Dialogue.get("raw_line")))
+	else:
+		stop_voice()
+
+
+func all_lines() -> Array:
+	# Every line it can ever say, for tools/dump_mind_lines.gd: the fixed ones, the ones naming each world, and every
+	# quest goal its hints can remind you of
+	var out: Array = [ARRIVAL, OAK_FIRST, HINT_FRIEND, HINT_FIX, HINT_GOAL, HINT_REST, HINT_LOOK]
+	out.append_array(CRACK_OPENED)
+	for w in Portals.WORLDS:
+		out.append(MENDED % w.name)
+		out.append(HINT_CRACK % Portals.near_words(str(w.id)))
+	for id in Quests._order:
+		for step in Quests.quest(id).get("steps", []):
+			if not step is Dictionary:
+				continue
+			for item in step.get("checklist", []):
+				out.append(str(item[1]))
+			out.append(Quests.short_goal(step))
+			if step.has("wait"):
+				out.append(str(step.get("wait", {}).get("text", "Come back tomorrow.")).trim_prefix("(").trim_suffix(")"))
+	out.append("Come back tomorrow.")
+	return out
 
 
 # -----------------------------------------------------------------------------
@@ -95,19 +193,19 @@ func hint() -> Array:
 		var id := str((w0 as Dictionary).id)
 		if not Portals.is_cleared(str(id)) and Portals.has_portal(str(id)):
 			var w := Portals.world(str(id))
-			lines.append("A crack lies open in the Void, by %s. Time is broken on the other side." % Portals.near_words(str(id)))
-			lines.append("Jump in. %s" % ("Someone there is waiting for a friend." if str(w.get("owner", "")) != "" else "Put it right."))
+			lines.append(HINT_CRACK % Portals.near_words(str(id)))
+			lines.append(HINT_FRIEND if str(w.get("owner", "")) != "" else HINT_FIX)
 			return lines
 	var goals := Quests.objectives()
 	if not goals.is_empty():
 		for item in goals.items:
 			if not bool(item[1]):
-				lines.append("Remember what you set out to do...")
+				lines.append(HINT_GOAL)
 				lines.append(str(item[0]))
 				return lines
 	if Clock.on_earth and not Clock.in_shift():
-		return ["Rest, and be with the people you love. The ground here is open, whenever you're ready."]
-	return ["Look around you. Help where you can. When you're needed, I will tell you."]
+		return [HINT_REST]
+	return [HINT_LOOK]
 
 
 func _place() -> void:

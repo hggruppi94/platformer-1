@@ -227,6 +227,9 @@ func voice_of(id: String, speaker: String) -> Array:
 func _on_line(speaker: String, text: String) -> void:
 	if speaker == "":
 		return                                # narration is quiet
+	if speaker == DivineMind.SPEAKER:
+		_voice_left = 0
+		return                                # the voice in your mind speaks for real (scripts/divine_mind.gd)
 	var v := voice_of(str(Dialogue.get("_id")), speaker)
 	_voice_pitch = float(v[0])
 	_voice_kind = str(v[1])
