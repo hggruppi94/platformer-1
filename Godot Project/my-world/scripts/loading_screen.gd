@@ -16,7 +16,7 @@ const TIPS := [
 	"Stuck? Look at your Goals!",
 	"Found a watch? Show Dash!",
 	"Hold Jump, let go: ollie!",
-	"Sleepy? Your bed skips time.",
+	"The oak's crack is always open!",
 	"Pop Gloops for tricks!",
 	"Any race place counts!",
 	"Stars on the map show the way.",

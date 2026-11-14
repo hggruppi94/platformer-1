@@ -142,7 +142,7 @@
     },
     {
       "id": "evening",
-      "text": "What a day! Go home to bed when you're sleepy.",
+      "text": "What a day! Look round, or go home to bed.",
       "done": {
         "flag": "fn_fell"
       },
@@ -317,7 +317,7 @@
     },
     {
       "id": "home",
-      "text": "Enjoy the Void! Your watch is ticking...",
+      "text": "Your watch is tingling... (Then find Nina.)",
       "done": {
         "flag": "fn_home_nina"
       },
@@ -341,7 +341,7 @@
     }
   ],
   "reward": {
-    "message": "What a first night! (+10 sparkles)",
+    "message": "The crack by the oak stays open now! (+10 sparkles)",
     "sparkles": 10
   }
 }

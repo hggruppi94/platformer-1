@@ -236,6 +236,18 @@ func is_present() -> bool:
 	return _present
 
 
+static func stay_out(list: Array, i: int) -> Dictionary:
+	# A quest wants them but their day says they're away (asleep, at school, gone home through a crack): they carry on
+	# with the last thing they were out doing instead, so nobody has to wait for the morning (Hayden, 14 Nov 2026)
+	for k in range(1, list.size() + 1):
+		var b: Dictionary = list[posmod(i - k, list.size())]
+		if str(b.get("do", "")) != "away":
+			var out := b.duplicate()
+			out["label"] = str(b.get("label", "quest"))
+			return out
+	return {}
+
+
 func now() -> float:
 	# The time of day their schedule follows: Earth's for people on Earth, the Void's for everyone else
 	return Clock.earth_minutes if earth else Clock.minutes
@@ -273,6 +285,8 @@ func _physics_process(delta: float) -> void:
 	var list := today_blocks()
 	var i := block_index_at(list, now())
 	var o := Quests.override_for(character_id)
+	if o.is_empty() and i >= 0 and i < list.size() and str(list[i].get("do", "")) == "away" and Quests.needs(character_id):
+		o = stay_out(list, i)
 	if o.is_empty() and not festival.is_empty() and Festival.is_on():
 		o = festival[block_index_at(festival, now())]
 	elif o.is_empty() and not hallows.is_empty() and Festival.hallows_on():

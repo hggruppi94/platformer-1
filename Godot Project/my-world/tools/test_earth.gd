@@ -1,9 +1,9 @@
 extends SceneTree
 
 # Checks life on Earth and the trips to the Void: a new game starting at home on Earth, the people and Mr. Palmer's
-# lights quest, the crack by the old oak closed until midnight, through it to the Void in the Shift (its day at full
-# speed, Earth's clock crawling), home early and back (the portals, the pause menu), the warning at the Void's 6 AM,
-# being pulled home at the end of the Shift, and a save made in the Void in the Shift loading there. Run it twice.
+# lights quest, the crack by the old oak open any time, through it to the Void in the Shift (its day at full
+# speed, Earth's clock crawling), home (to the next morning) and back (the portals, the pause menu), the Void's dawn
+# coming round with nobody pulled home, and a save made in the Void in the Shift loading there. Run it twice.
 # Also the grown-up town (since Oct 30, 2026): every place there, a way in to every walk-in building, nothing floating,
 # the ground's pond and hill, wading, the skate spots, the Earth map, and an old save made on Earth waking up at home.
 # And what's added as it loads (Oct 31): the notice board, the shop counters, the oak's hum and Mr. Palmer's envelope.
@@ -72,7 +72,10 @@ func _run() -> void:
 	check(str(hud.message_label.text).contains("Welcome home") and not str(hud.message_label.text).contains("portal"),
 		"no spoilers on a new game: \"%s\"" % hud.message_label.text)
 	hud._refresh_clock()
-	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("opens at midnight"),
+	# (the creator never opens in a headless run: as if the hero's made, with no First Night, so the oak's awake)
+	game.needs_creator = false
+	hud._refresh_clock()
+	check(hud.clock_label.text.begins_with("Earth") and hud.clock_label.text.contains("crack by the old oak is open"),
 		"the HUD: \"%s\"" % hud.clock_label.text.replace("\n", " / "))
 	check(clock.weekday() == "Friday" and hud.clock_label.text.begins_with("Earth, Friday"), "a new game starts on a Friday evening")
 	# Things added when the town loads (tools/test_notice_board.gd and test_festival.gd check them properly)
@@ -86,14 +89,6 @@ func _run() -> void:
 	check(current_scene.get_node_or_null("Autumn Festival") == null, "Friday: no festival on the green")
 
 	await _town_layout()
-
-	# Outside the Shift the portal by the old oak is asleep
-	var portal := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
-	await _walk_into(portal)
-	check(current_scene.scene_file_path == EARTH and messages.any(func(m: String) -> bool: return m.contains("closed")),
-		"8 PM: the crack by the oak is closed")
-	var crack := current_scene.get("crack") as Node3D
-	check(crack == null or (crack.get_meta("open", 1.0) < 0.1 and not (crack.get_node("Broken Earth") as Node3D).is_visible_in_tree()), "...no crack open by the oak")
 
 	# The people, and Mr. Palmer's lights
 	var palmer := _talker("palmer_earth")
@@ -117,16 +112,16 @@ func _run() -> void:
 	check(not lit_before and (current_scene.find_child("Gazebo Lights", true, false) as Node3D).visible, "the gazebo lights up")
 	check(quests.is_done("earth_lights") and game.sparkles == 8, "quest done, +8 sparkles")
 
-	# Midnight: the Shift begins, and the portal opens
-	clock.set_earth_time(23 * 60.0 + 59.7, true)
+	# No waiting for midnight (Hayden, 14 Nov 2026): the crack by the oak is open in the evening, and jumping in starts
+	# the Shift there and then
 	await create_timer(3.0).timeout
-	check(clock.in_shift() and messages.any(func(m: String) -> bool: return m.contains("the Shift has begun")),
-		"midnight on Earth: the Shift has begun")
-	crack = current_scene.get("crack") as Node3D
-	check(crack != null and crack.get_meta("open", 0.0) > 0.9 and not (crack.get_node("Lid") as Node3D).visible, "...and the crack by the oak opens")
+	var crack := current_scene.get("crack") as Node3D
+	check(not clock.in_shift() and crack != null and crack.get_meta("open", 0.0) > 0.9 and not (crack.get_node("Lid") as Node3D).visible,
+		"8 PM: the crack by the oak is already open")
 	await _walk_into(current_scene.find_child("PortalToGalaxity", true, false))
 	await _wait_for_scene(TOWN)
-	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "through the portal to the Void")
+	check(current_scene.scene_file_path == TOWN and not clock.on_earth, "through the crack to the Void")
+	check(clock.in_shift() and clock.earth_time_string().begins_with("12:0"), "...and it's the Shift (Earth %s)" % clock.earth_time_string())
 	player = current_scene.find_child("Player", true, false) as Node3D
 	var by_portal := current_scene.find_child("FromPortaltoEarth", true, false) as Node3D
 	check(player.global_position.distance_to(by_portal.global_position) < 1.5, "...arriving by the Void's portal")
@@ -145,42 +140,30 @@ func _run() -> void:
 	check(absf(g_rate - 1440.0 / (clock.DAY_LENGTH_MINUTES * 60.0)) < 0.05, "The Void's day runs at full speed (%.2f min/s)" % g_rate)
 	check(absf(e_rate * clock.SHIFT_RATIO - g_rate) < 0.05, "Earth's clock crawls along, %dx slower (%.3f min/s)" % [int(clock.SHIFT_RATIO), e_rate])
 
-	# Home early and back again: the Void's portal, the pause menu both ways
+	# Home and back again: the Void's portal, the pause menu both ways
 	await _walk_into(current_scene.find_child("Portal to Earth", false, false).find_child("Door", true, false))
 	await _wait_for_scene(EARTH)
-	check(current_scene.scene_file_path == EARTH and clock.in_shift(), "The Void's portal takes her home early, still in the Shift")
+	check(current_scene.scene_file_path == EARTH and not clock.in_shift() and clock.earth_time_string().begins_with("7:0") and clock.earth_day() == 2,
+		"The Void's portal takes her home, to the next morning (Earth day %d, %s)" % [clock.earth_day(), clock.earth_time_string()])
 	player = current_scene.find_child("Player", true, false) as Node3D
 	check(player.global_position.distance_to(current_scene.find_child("Entrance", false, false).global_position) < 1.5,
 		"...by the old oak")
 	var pause := root.get_node("PauseMenu")
 	var way: Array = pause.way_home()
-	check(way.size() == 1 and way[0][0] == "Go through the portal to the Void", "on Earth in the Shift, the pause menu has \"%s\"" % [way[0][0] if way.size() else "nothing"])
+	check(way.size() == 1 and way[0][0] == "Go through the crack to the Void", "on Earth, the pause menu has \"%s\"" % [way[0][0] if way.size() else "nothing"])
 	if way.size():
 		way[0][1].call()
 	await _wait_for_scene(TOWN)
-	check(current_scene.scene_file_path == TOWN, "...back to the Void")
+	check(current_scene.scene_file_path == TOWN and clock.in_shift(), "...back to the Void, straight away")
 	way = pause.way_home()
 	check(way.size() == 1 and way[0][0] == "Go home to Earth", "in the Void, the pause menu has \"%s\"" % [way[0][0] if way.size() else "nothing"])
 
-	# Near the end: the Void's dawn is coming. Then the Shift ends and the portal pulls her home.
-	clock.set_time(2, 5 * 60.0 + 59.9, true)
-	await create_timer(1.0).timeout
-	check(messages.any(func(m: String) -> bool: return m.contains("the portal will pull you home")), "6 AM in the Void: the portal will pull her home soon")
+	# The Void's dawn comes round and nobody's pulled home: its day just goes on
+	messages.clear()
 	clock.set_time(2, 6 * 60.0 + 59.5, true)
-	await _wait_for_scene(EARTH, 600)
-	check(current_scene.scene_file_path == EARTH and not clock.in_shift(), "The Void's dawn, Earth's 1 AM: the Shift's over and she's home")
-	check(clock.day == 2 and clock.time_string() == "7:00 AM" and clock.earth_time_string() == "1:00 AM",
-		"The Void waits at day 2's dawn (%s), Earth %s" % [clock.time_string(), clock.earth_time_string()])
-	player = current_scene.find_child("Player", true, false) as Node3D
-	check(player.global_position.distance_to(current_scene.find_child("Entrance", false, false).global_position) < 1.5,
-		"...by the old oak")
-	await _frames(4)
-	var told: String = player.get_node("HUD").message_label.text
-	check(told.contains("home to Earth"), "\"%s\"" % told)
-	# (no waiting a whole day for the next Shift: the quick way there passes the time to midnight, scripts/pass_time.gd)
-	var ways: Array = pause.way_home()
-	check(ways.size() == 1 and str(ways[0][0]) == "Go to the Void at midnight",
-		"on Earth after the Shift the shortcut waits for midnight first (%s)" % [ways.map(func(w): return w[0])])
+	await create_timer(3.0).timeout
+	check(current_scene.scene_file_path == TOWN and clock.in_shift() and not messages.any(func(m: String) -> bool: return m.contains("pull")),
+		"the Void's dawn: still in the Void, nobody pulled home (%s)" % clock.time_string())
 
 	# An old save made out on Earth, from before the town grew, wakes up at home (where she stood might be a shop now)
 	game.save_game()

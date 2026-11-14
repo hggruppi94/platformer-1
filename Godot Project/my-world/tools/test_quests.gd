@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the quest system (scripts/quests.gd, quest_spot.gd, res://quests/*.json) by playing Rex's whole campaign in
-# town, the way a player would: talking, waiting for the next day, hanging posters, the evening rally at the
+# town, the way a player would: talking, hanging posters, the rally at the
 # fountain, Mr. Palmer's window and the ending. Run it twice: the first run plays it and saves, the second starts up
 # like the real game and checks it all came back.
 #
@@ -115,25 +115,17 @@ func _run() -> void:
 	check(dialogue.flags.has("asked_pip") and _said(pip, "LAMPS"), "asked Pip at lamp time: \"%s\"" % _last(pip))
 	check(quests.on_step(Q, "report") and quests.note_text().contains("Quest updated"), "all four asked: on to 'report'")
 
-	# --- Telling Rex (the dog gag), then a day's wait for the posters
+	# --- Telling Rex (the dog gag): the posters are ready straight away (Hayden, 14 Nov 2026: nothing waits on the clock)
 	clock.set_time(1, 20 * 60.0, true)
 	var report := await _talk("rex")
-	check(_said(report, "Even a woof is an idea"), "the report has \"I'm REX! He's the dog!\"")
-	check(quests.on_step(Q, "posters") and quests.is_waiting(Q), "on 'posters', waiting for tomorrow")
-	check(quests.log_text().contains("Come back in a few hours"), "the log says to come back in a few hours")
+	check(_said(report, "I'm REX! He's the dog!"), "the report has \"I'm REX! He's the dog!\"")
+	check(quests.on_step(Q, "posters") and not quests.is_waiting(Q), "on 'posters', no waiting")
 	game.save_game()
 	var mid = JSON.parse_string(FileAccess.get_file_as_string(SAVE))
 	var saved_q: Dictionary = mid.get("quests", {}).get(Q, {}) if mid is Dictionary else {}
-	check(int(saved_q.get("step", -1)) == 2 and int(saved_q.get("since_day", 0)) == 1, "save.json keeps the step: %s" % [saved_q])
-	await _stand_at_spot(1)
-	check(dialogue._nearest != spots[1] and not spots[1]._prompt.visible, "no posters to hang yet on day 1")
-	var paint := await _talk("rex")
-	check(_said(paint, "Painting"), "Rex is painting: \"%s\"" % _first(paint))
+	check(int(saved_q.get("step", -1)) == 2, "save.json keeps the step: %s" % [saved_q])
 
-	# --- Day 2: hang the four posters
-	clock.set_time(2, 9 * 60.0, true)
-	await create_timer(1.3).timeout                       # the quest notices the new day on its own
-	check(not quests.is_waiting(Q), "day 2: the posters are ready")
+	# --- Hang the four posters, the same evening
 	for k in [1, 2, 3, 4]:
 		await _stand_at_spot(k)
 		var spot: Area3D = spots[k]
@@ -146,33 +138,26 @@ func _run() -> void:
 		check(dialogue._nearest != spot, "...and it doesn't offer again")
 	check(quests.on_step(Q, "rally"), "all posters up: on to 'rally'")
 
-	# --- The rally: Rex goes to the fountain in the evening (not before)
-	clock.set_time(2, 14 * 60.0, true)
-	var early := await _talk("rex")
-	check(_said(early, "this evening"), "afternoon, Rex: \"%s\"" % _first(early))
+	# --- The rally: Rex is at the fountain whatever the time
 	var rex_routine := _routine("rex")
-	clock.set_time(2, 18 * 60.0, true)
+	clock.set_time(1, 22 * 60.0, true)
 	for i in 5:
 		await physics_frame
 	var rex_body := talkers["rex"].get_parent() as Node3D
 	var fountain := Vector2(-72, 42)
 	var rex_xz := Vector2(rex_body.global_position.x, rex_body.global_position.z)
 	check(rex_routine.activity() == "rally" and rex_xz.distance_to(fountain) < 9.0,
-		"6 PM: Rex is at the fountain for his rally (%.1f m away)" % rex_xz.distance_to(fountain))
+		"10 PM: Rex is at the fountain for his rally (%.1f m away)" % rex_xz.distance_to(fountain))
 	var rally := await _talk("rex", [1])
 	check(_said(rally, "MORE BRAIN BREAKS"), "Nina picks his big finish: \"More brain breaks\"")
-	check(quests.on_step(Q, "palmer") and quests.is_waiting(Q), "rally done: on to 'palmer', tomorrow")
+	check(quests.on_step(Q, "palmer") and not quests.is_waiting(Q), "rally done: on to 'palmer', no waiting")
 	for i in 5:
 		await physics_frame
 	check(rex_routine.activity() != "rally", "Rex's rally is over (%s)" % rex_routine.activity())
 
-	# --- Mr. Palmer: closed in the evening, says no on day 3
-	var closed := await _talk("mr_palmer")
-	check(_said(closed, "OFFICE HOURS") and closed[0][0] == "", "evening: his window's closed (narration)")
-	clock.set_time(3, 10 * 60.0, true)
-	quests.check()
+	# --- Mr. Palmer says no straight away, even late in the evening
 	var palmer := await _talk("mr_palmer")
-	check(_said(palmer, "the answer is no") and _said(palmer, "patient"), "day 3: Mr. Palmer says no, and to be patient")
+	check(_said(palmer, "the answer is no") and _said(palmer, "patient"), "Mr. Palmer says no, and to be patient")
 	check(palmer.any(func(l: Array) -> bool: return l[0] == "Mr. Palmer"), "his lines are under his name")
 	check(quests.on_step(Q, "finale"), "on to 'finale'")
 
@@ -181,7 +166,7 @@ func _run() -> void:
 	check(sash != null and not sash.visible, "no sash before the end")
 	var finale := await _talk("rex")
 	check(_said(finale, "about listening"), "Rex learns being mayor is about listening")
-	check(quests.is_done(Q) and clock.day <= 3, "the campaign is done, on day %d" % clock.day)
+	check(quests.is_done(Q) and clock.day == 1, "the campaign is done, all on day %d" % clock.day)
 	check(game.has_item("campaign_sash") and sash.visible, "Nina gets (and wears) the campaign sash")
 	check(quests.note_text().contains("Quest complete"), "the note: \"%s\"" % quests.note_text().replace("\n", " / "))
 	await _stand_by("rex", 1.5)

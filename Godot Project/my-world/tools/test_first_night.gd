@@ -106,7 +106,7 @@ func _run() -> void:
 	await _frames(4)
 	check(absf(clock.earth_minutes - 18 * 60.0) < 0.5, "Earth's clock waits at 6 PM until the town and the board are done (%s)" % clock.earth_time_string())
 	clock.earth_minutes = 10 * 60.0
-	check(not root.get_node("FirstNight").shift_sleep_ok(), "...and the bed doesn't offer \"Until the Shift\" yet")
+	check(not root.get_node("FirstNight").shift_sleep_ok(), "...and nothing offers a way to the Void yet")
 	lines = await _talk("theo")
 	check(_step() == "morning" and not dialogue.flags.has("fn_folk"), "one hello isn't two")
 	lines = await _talk("lionel")

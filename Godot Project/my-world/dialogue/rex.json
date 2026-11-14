@@ -175,7 +175,7 @@
         "quest_step": "dog_rights:hall"
       },
       "lines": [
-        "Five names! Take it to Mr. Palmer's window. In the daytime!"
+        "Five names! Take it to Mr. Palmer's window at the Town Hall."
       ]
     },
     {
@@ -484,16 +484,9 @@
         "{player}: Pip wants more lamps, so nobody's scared.",
         "{player}: And Rook said 'Woof.' Naps in the sun, I think.",
         "Even a woof is an idea!",
-        "I'll paint posters! Come back in a few hours!"
-      ]
-    },
-    {
-      "when": {
-        "quest_waiting": "rex_campaign:posters"
-      },
-      "lines": [
-        "Painting! I've got paint on my tail.",
-        "Come back later!"
+        "{player}: Wait. Which one of you is the dog?",
+        "I'm REX! He's the dog!",
+        "I painted the posters last night. Help me hang them!"
       ]
     },
     {
@@ -540,7 +533,7 @@
             }
           ]
         },
-        "That went GREAT! Tomorrow morning: Mr. Palmer!"
+        "That went GREAT! Now, to Mr. Palmer!"
       ]
     },
     {
@@ -548,16 +541,7 @@
         "quest_step": "rex_campaign:rally"
       },
       "lines": [
-        "The speech is this evening at the fountain!"
-      ]
-    },
-    {
-      "when": {
-        "quest_waiting": "rex_campaign:palmer"
-      },
-      "lines": [
-        "In the morning we see Mr. Palmer!",
-        "I'm not nervous. My tail just wags."
+        "The speech is at the Market fountain! Meet me there!"
       ]
     },
     {

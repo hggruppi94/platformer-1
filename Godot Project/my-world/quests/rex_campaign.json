@@ -55,7 +55,7 @@
     },
     {
       "id": "report",
-      "text": "Tell Rex at the Town Hall.",
+      "text": "Tell Rex what everyone said.",
       "done": {
         "flag": "reported_ideas"
       },
@@ -66,10 +66,6 @@
     {
       "id": "posters",
       "text": "Hang 4 VOTE REX posters.",
-      "wait": {
-        "hours": 3,
-        "text": "Rex is painting. Come back in a few hours!"
-      },
       "checklist": [
         [
           "poster_1",
@@ -99,12 +95,9 @@
     },
     {
       "id": "rally",
-      "text": "Cheer Rex's speech (5-9 PM)!",
+      "text": "Cheer Rex's speech at the fountain!",
       "override": {
         "rex": {
-          "time": [
-            "evening"
-          ],
           "place": "market",
           "do": "idle",
           "label": "rally",
@@ -124,10 +117,6 @@
     {
       "id": "palmer",
       "text": "Tell Mr. Palmer Rex's ideas.",
-      "wait": {
-        "hours": 8,
-        "text": "Mr. Palmer's gone home. Try the morning!"
-      },
       "done": {
         "flag": "palmer_said_no"
       },

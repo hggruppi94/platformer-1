@@ -110,9 +110,8 @@ func current_step(id: String) -> Dictionary:
 
 func is_waiting(id: String) -> bool:
 	# On a step that says to come back later, and it isn't later yet. "days" counts the Void's day number (a whole new
-	# visit); "hours" counts the Void's own hours, so Pause > Pass the time (scripts/pass_time.gd) gets there in the same
-	# visit. (Hayden, 13 Nov 2026: "we need to make the game playable all the way through without forcing the player
-	# to wait", so the story's own waits are hours now, not days.)
+	# visit); "hours" counts the Void's own hours. No quest uses either now (Hayden, 14 Nov 2026: "everything should be
+	# playable all the way through without needing to skip time at all"): keep it that way.
 	var step := current_step(id)
 	if step.is_empty():
 		return false
@@ -180,6 +179,23 @@ func override_for(character_id: String) -> Dictionary:
 		if list.is_empty() or now in list or (now == "shift" and "night" in list):
 			return o
 	return {}
+
+
+func needs(character_id: String) -> bool:
+	# Is someone a quest step is pointing at right now (its "where": "rex", or {"who": "rex"})? Then they don't go away
+	# for the night or off to school (scripts/routine.gd): nobody ever has to wait for the clock to find them.
+	for id in _order:
+		var step := current_step(id)
+		if step.is_empty() or is_waiting(id):
+			continue
+		for w in step.get("where", []):
+			if w is Dictionary:
+				if str(w.get("who", "")) == character_id and \
+						not (w.has("unless") and Dialogue.flags.has(str(w.unless))):
+					return true
+			elif str(w) == character_id:
+				return true
+	return false
 
 
 func display_name(character_id: String, default: String) -> String:

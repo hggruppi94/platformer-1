@@ -65,10 +65,13 @@ const FOUNTAIN_WATCH := "water_clock"         # the lost watch on the Market Squ
 const WATCH := "shift_watch"                  # the watch that appears on their wrist (res://shop/items.json)
 const CROWN := "gloop_crown"                  # Dash's reward for popping the King (res://shop/items.json)
 const KING_SPARKLES := 15
+const HOME_WARN := 6.0                        # seconds into the home step in the Void: the sky gets light...
+const HOME_PULL := 14.0                       # ...and the portal pulls them home to bed
 # Earth's townsfolk who count as "people round the green" (not Nina or Mr. Palmer, who have their own lines)
 const EARTH_FOLK := ["gus", "dottie", "barnaby", "marigold", "poppy", "otis", "wren", "hank", "kip", "lionel",
 	"juniper", "ozzie", "ivy", "theo", "celeste", "prue", "bruno"]
 
+var _home_t := 0.0                            # the home step in the Void: how long since it began (the pull comes soon)
 var _woke_home := false                       # the portal put them to bed tonight: say so once Earth's up
 var intro: CanvasLayer                        # the first look round the Void (scripts/place_intro.gd)
 var meetings: Node                            # who you meet next (scripts/meetings.gd)
@@ -137,13 +140,12 @@ func held_back(night: int) -> bool:
 
 
 func shift_sleep_ok() -> bool:
-	# The bed's "Until the Shift" (scripts/bed.gd) only once they've been through once (nothing hints at midnight before)
+	# Whether the bed and the pause menu may hint at the Void yet: only once they've been through once (no spoilers)
 	return not running() or not step() in NO_SHIFT_SLEEP
 
 
 func earth_hold_minutes() -> float:
 	# Where Earth's clock is waiting on the first day (6 PM, until the town and the board are done: _hold()), or -1.
-	# Pause > Pass the time (scripts/pass_time.gd) never jumps past it.
 	if running() and step() in ["morning", "board"]:
 		return DUSK_HOUR * 60.0
 	return -1.0
@@ -275,6 +277,21 @@ func _process(_delta: float) -> void:
 			_check_requests()
 		"home":
 			Clock.pull_spawn = "HomeSpawn"            # the end of the Shift puts them to bed tonight (scripts/clock.gd)
+			_pull_soon(_delta)
+
+
+func _pull_soon(delta: float) -> void:
+	# The first day's jobs are done: the sky gets light and the portal pulls them home a moment later, so nobody waits
+	# for the Void's whole day to run out (Hayden, 14 Nov 2026: no waiting on the clock)
+	if Clock.on_earth or not Clock.in_shift() or Dialogue.is_active() or arrival.playing() \
+			or not get_tree().get_nodes_in_group("cutscene_playing").is_empty():
+		return
+	var was := _home_t
+	_home_t += delta
+	if was < HOME_WARN and _home_t >= HOME_WARN:
+		Game.message("The sky's getting light... and your new watch has started to tingle. Something's about to happen.")
+	if was < HOME_PULL and _home_t >= HOME_PULL:
+		Clock.end_shift()                         # (the portal pulls them home to bed: scripts/clock.gd)
 
 
 func _hold(hour: float) -> void:

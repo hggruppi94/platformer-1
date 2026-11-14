@@ -265,13 +265,13 @@
         "{player}! Did you FALL too?",
         "Me too! Right through my bedroom floor!",
         "And we both got watches. 'Chosen'... for WHAT?",
-        "Will it happen again?",
+        "There's a glowing crack by the old oak now. Can we go back?",
         {
           "choice": [
             {
               "text": "Let's find out!",
               "lines": [
-                "Midnight, then!"
+                "The crack by the oak! Any time you're ready!"
               ]
             },
             {

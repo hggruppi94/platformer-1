@@ -275,9 +275,19 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 		message(("The %s isn't open yet." % place_name) if place_name != "" else "This door doesn't open yet.")
 		return
 	next_spawn = spawn
+	_between_worlds(scene_path)
 	Audio.play("door", -4.0)
 	Loading.show_for(scene_path)               # between Earth and the Void: a tip and a little alien (loading_screen.gd)
 	get_tree().call_deferred("change_scene_to_file", scene_path)
+
+
+func _between_worlds(scene_path: String) -> void:
+	# Stars Hollow to the Void through the crack, any time (it's the Shift as soon as they're through), and home again
+	# the next morning (scripts/clock.gd: nobody waits for midnight, or for the sun to come up)
+	if scene_path == TOWN_SCENE and Clock.on_earth:
+		Clock.into_the_void()
+	elif scene_path == Clock.EARTH and not Clock.on_earth and Clock.in_shift():
+		Clock.home_from_void()
 
 
 func go_to_point(scene_path: String, pos: Vector3, yaw: float, place_name := "") -> void:

@@ -22,11 +22,7 @@
     },
     {
       "when": {
-        "quest_ready": "slide_mystery:ask",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "slide_mystery:ask"
       },
       "lines": [
         "Melanie. {player}. Is this about the slide again?",
@@ -43,11 +39,7 @@
     },
     {
       "when": {
-        "quest_ready": "slide_mystery:palmer",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "slide_mystery:palmer"
       },
       "lines": [
         "Back again? You two are very patient.",
@@ -70,10 +62,6 @@
     {
       "when": {
         "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ],
         "flag": "dogs_right_zoomies"
       },
       "lines": [
@@ -95,10 +83,6 @@
     {
       "when": {
         "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ],
         "flag": "dogs_right_bath"
       },
       "lines": [
@@ -119,11 +103,7 @@
     },
     {
       "when": {
-        "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "dog_rights:hall"
       },
       "lines": [
         {
@@ -155,11 +135,7 @@
     },
     {
       "when": {
-        "quest_ready": "rex_campaign:palmer",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "rex_campaign:palmer"
       },
       "set": "palmer_said_no",
       "lines": [

@@ -2,9 +2,11 @@
 
 A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
 character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live on
-**Earth**, in a small Stars Hollow style town. During the Shift (midnight to 1 AM, Earth time) the portal by the old
-oak opens to **the Void**, the alien town, and that one Earth hour lasts a whole Void day (7 AM to 7 AM). At 1 AM
-the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in the Void and visited Earth).
+**Earth**, in a small Stars Hollow style town (since Oct 28, 2026: before that they lived in the Void and visited
+Earth). The crack by the old oak leads to **the Void**, the alien town. Since Nov 14, 2026 nothing waits on the clock:
+once the oak's awake the crack is open any time, jumping in makes it the Shift (Earth's midnight, the Void's dawn),
+the Void's day loops round for as long as they stay, and going home lands them on Earth the next morning. Only The
+First Night keeps the old shape (its fall at midnight, the pull home at the Void's dawn).
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
 
@@ -97,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Nothing in the game waits on the clock, and Pass the time is gone** (Hayden, after the 13 Nov Pass the
+  time buttons: "I didnt mean to add time skip buttons, I mean everything should be playable all the way through
+  without needing to skip time at all"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The crack by the old oak is open any time** once the oak's awake (`earth_world.gd _door_open()`). Jumping in
+    (`Game.go()` -> `_between_worlds()` -> `Clock.into_the_void()`) sets Earth to midnight and the Void to dawn, so
+    it's the Shift. Going home (`Clock.home_from_void()`) ends the Shift and lands them at 7 AM the next morning, so
+    Earth's day only goes forward and the town's awake. The pause menu's way on Earth is "Go through the crack to the
+    Void". A new game's oak is asleep until the hero's made (`HummingOak.awake()` checks `Game.needs_creator`).
+  - **The Void's day never ends by itself** (`Clock.endless()`, everything but The First Night): at its dawn Earth's
+    clock wraps back to midnight, no 6 AM warning, no pull home, and sleeping there doesn't end the Shift.
+  - **The First Night** keeps its fall at midnight, but its evening runs at 12x (`Clock.earth_speed()`), and its home
+    step pulls them home by itself 14 s in (`first_night.gd _pull_soon()`), with a warning at 6 s.
+  - **No more waits:** Rex's campaign has no waits and no time windows (posters straight after the report, the rally
+    any time, Mr. Palmer's window answers any time). A friend the step you're on points at stays out instead of going
+    home or to school (`Quests.needs()`, `routine.gd stay_out()`). Your first crop grows 8x as fast (`Farm.first_boost()`).
+    Festivals, fairs, Melody's show and seasonal quests are left on their days: they're extras, and the Season Dial
+    reaches every season.
+  - **Gone:** `scripts/pass_time.gd`, the pause menu's Pass the time page, the bed's "Until the Shift", "Go to the Void
+    at midnight", and the midnight / 1 AM messages. The watch, the HUD, the map and the Divine Mind say the crack's open.
+  - Tests: test_clock, test_earth, test_cracks, test_quests, test_map, test_time_watch, test_first_hour updated; the
+    whole suite and `tools/playthrough.gd -- all` (it now jumps straight back through the crack each visit).
+  - My choices Hayden may change: home at 7 AM, the 12x first evening, the 14 s pull home, the 8x first crop.
 - 2026-11-14: **Secret shortcuts, road tunnels, sliding bumpers and pop-up walls on every circuit** (Hayden's 13 Nov
   2026 playtest: "The races need a lot of work; moving maps, obstacles, secret shortcuts, tunnels"). Built and tested in
   the cloud (own Godot user folders, no save touched).
@@ -168,7 +192,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     (both runs), earth, party and meetings pass. Previews in the project files under world/previews/signs_tags_seer.
   - My choices Hayden may change: how slim she is, 12 m for Tally's tag.
 
-- 2026-11-13: **No waiting around for the clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
+- 2026-11-13 (replaced on 14 Nov: Hayden didn't want skip buttons, see the entry above): **No waiting around for the
+  clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
   "There's a lot locked behind time. We need to make the game playable all the way through without forcing the player
   to wait"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/pass_time.gd`** (no class_name, preload it): `choices()` lists where the clock can jump to from here.
