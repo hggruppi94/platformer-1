@@ -1439,6 +1439,10 @@ func _sleep_until_shift() -> void:
 	check(bed != null, "the bed's there to sleep in")
 	if bed == null:
 		return
+	if clock.in_shift():
+		# Already the Shift (a chapter's save from just after midnight): sleeping "until midnight" now would sleep
+		# through the whole Shift and wake at 1 AM
+		return
 	_player().global_position = (current_scene.find_child("HomeSpawn", true, false) as Node3D).global_position
 	await _frames(2)
 	bed.sleep_for(clock.minutes_until_hour(0))
