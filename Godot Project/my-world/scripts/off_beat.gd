@@ -14,7 +14,7 @@ extends Node3D
 #   - HITS hits put him back in time: he shrinks to a little metronome ticking steadily, and the world mends.
 
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
-const HITS := 8
+const HITS := 12
 const SLOW := 1.2                          # seconds a swing takes on his slow tempo...
 const QUICK := 0.55                        # ...and his quick one (quicker still when he's cross)
 const TEMPO_EVERY := Vector2(4.0, 6.0)     # seconds between tempo swaps
@@ -52,6 +52,7 @@ var _player: CharacterBody3D
 
 
 func _ready() -> void:
+	Arsenal.supply_boss(self, 9.0)                  # ammo crates round the stage (scripts/arsenal.gd)
 	var m := model()
 	m.name = "Model"
 	add_child(m)

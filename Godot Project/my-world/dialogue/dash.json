@@ -97,9 +97,9 @@
       "lines": [
         "You caught it! (Dash hugs the Buzz Bot. It buzzes happily.) You're a natural!",
         "OK, you've earned it. I've got a gadget stall in the Market Square, by the fountain. Gadgets do even sillier things than bubbles!",
-        "My best one's the Star Popper. It blows bubbles that pop Gloops from a long way off. But I can only build one from its blueprint...",
-        "...and SOMEBODY left the window open. (He looks at the Buzz Bot. The Buzz Bot looks away.) It blew off towards the Market.",
-        "It glows blue. Find it, and meet me at my stall!"
+        "My best one's the Star Popper. It blows bubbles that pop Gloops from a long way off. I build them from blueprints...",
+        "...and here's the Star Popper's! (He hands you a rolled-up blue blueprint.) A thank-you, for catching my bot.",
+        "I give my blueprints to people who help out, or win races. Bring that one to my stall and I'll build you a Star Popper!"
       ]
     },
     {
@@ -108,7 +108,7 @@
         "not_flag": "bb_popper"
       },
       "lines": [
-        "Found the blueprint yet? It glows blue, somewhere near the Market. Bring it to my stall and I'll build you a Star Popper for a few sparkles."
+        "Got the blueprint? Bring it to my stall in the Market Square and I'll build you a Star Popper for a few sparkles."
       ]
     },
     {
@@ -119,7 +119,7 @@
       "do": "FirstNight.popper_from_dash",
       "lines": [
         "Your very own Star Popper! Press {shoot} to blow a bubble, and hold {aim} to aim.",
-        "Have a look round my stall while you're here. New gadgets need their own blueprints. They blow about all over the Void, glowing blue!"
+        "Have a look round my stall while you're here. New gadgets need their own blueprints. Win races, help people out, and you'll earn them!"
       ]
     },
     {

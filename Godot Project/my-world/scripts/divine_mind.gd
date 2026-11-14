@@ -106,7 +106,7 @@ func hint() -> Array:
 				lines.append(str(item[0]))
 				return lines
 	if Clock.on_earth and not Clock.in_shift():
-		return ["Rest, and be with the people you love. When the moon is at its highest, the ground here opens."]
+		return ["Rest, and be with the people you love. The ground here is open, whenever you're ready."]
 	return ["Look around you. Help where you can. When you're needed, I will tell you."]
 
 

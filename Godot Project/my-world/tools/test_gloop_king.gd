@@ -148,13 +148,15 @@ func _run() -> void:
 	var xp: int = game.xp
 	var level: int = game.level
 	var meter := king.get_node("GooMeter") as Node3D
-	for i in 5:
+	var need: int = king.stomps_to_defeat
+	check(need >= 12, "the King takes %d pops now (14 Nov 2026: was 6)" % need)
+	for i in need - 1:
 		king.shot(1, king.global_position, Vector3.FORWARD)
-	check(not king.defeated and king.hits == 5, "five bubbles aren't enough for the King")
+	check(not king.defeated and king.hits == need - 1, "%d bubbles aren't enough for the King" % (need - 1))
 	var courtiers := town.find_children("Courtier Gloop *", "", true, false)
 	check(courtiers.size() == 4, "he calls in his court as he goes (%d more Gloops)" % courtiers.size())
 	king.shot(1, king.global_position, Vector3.FORWARD)
-	check(king.defeated, "...the sixth pops him")
+	check(king.defeated, "...the last one pops him")
 	check(game.xp >= xp + 40 or game.level > level, "...for lots of XP")
 	check(meter != null, "he has a goo meter over his crown")
 	for c in courtiers:

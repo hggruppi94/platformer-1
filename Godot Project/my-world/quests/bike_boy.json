@@ -3,7 +3,7 @@
   "giver": "rex",
   "story": true,
   "skippable": true,
-  "about": "Building up to meeting Dash (Hayden's day 1 playtest, 11 Nov 2026): Rex's twin is always off on his bike tinkering. Follow his tyre tracks and the gadget bits he dropped to his lab, catch his runaway Buzz Bot, then his gadget stall opens: find the Star Popper's blueprint and buy one. Then the Gloop King, and Dash sends you on to Pip. scripts/meetings.gd puts the tracks, parts and bot in at play time.",
+  "about": "Building up to meeting Dash (Hayden's day 1 playtest, 11 Nov 2026): Rex's twin is always off on his bike tinkering. Follow his tyre tracks and the gadget bits he dropped to his lab, catch his runaway Buzz Bot, then he gives you the Star Popper's blueprint and his gadget stall opens: buy one. Then the Gloop King, and Dash sends you on to Pip. scripts/meetings.gd puts the tracks, parts and bot in at play time.",
   "start": {"flag": "bike_boy_start"},
   "steps": [
     {
@@ -53,15 +53,13 @@
     },
     {
       "id": "stall",
-      "text": "Dash's gadget stall in the Market Square is open! His Star Popper blueprint blew out of the window. Find it, then take it to his stall and he'll build you one.",
+      "text": "Dash gave you the Star Popper's blueprint for catching his bot, and his gadget stall in the Market Square is open! Take the blueprint to his stall and he'll build you one.",
       "checklist": [
         ["bb_stall", "Have a look at Dash's gadget stall in the Market Square"],
-        ["schematic_popper", "Find the Star Popper's blueprint (it glows, near the Market)"],
         ["bb_popper", "Buy the Star Popper at Dash's stall"]
       ],
-      "done": {"flags": ["bb_stall", "schematic_popper", "bb_popper"]},
+      "done": {"flags": ["bb_stall", "bb_popper"]},
       "where": [
-        {"at": [-84.0, 55.0], "unless": "schematic_popper"},
         {"who": "dash", "unless": "bb_popper"}
       ],
       "override": {

@@ -54,7 +54,7 @@ func _label(text: String, size: int, color: Color) -> Label3D:
 	l.modulate = color
 	l.outline_modulate = Color(0.15, 0.08, 0.2)
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.no_depth_test = true
+	l.no_depth_test = false                         # walls and roofs hide it (it showed through them before 14 Nov 2026)
 	l.top_level = false
 	add_child(l)
 	return l

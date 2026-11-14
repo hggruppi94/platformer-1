@@ -23,11 +23,7 @@
     },
     {
       "when": {
-        "quest_ready": "slide_mystery:ask",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "slide_mystery:ask"
       },
       "lines": [
         "({player} knocks on the window. Melanie stands beside you wearing her most serious face.)",
@@ -52,11 +48,7 @@
     },
     {
       "when": {
-        "quest_ready": "slide_mystery:palmer",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "slide_mystery:palmer"
       },
       "lines": [
         "({player} knocks. Melanie's beside you, holding a drawing of a cloud.)",
@@ -82,10 +74,6 @@
     {
       "when": {
         "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ],
         "flag": "dogs_right_zoomies"
       },
       "lines": [
@@ -108,10 +96,6 @@
     {
       "when": {
         "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ],
         "flag": "dogs_right_bath"
       },
       "lines": [
@@ -133,11 +117,7 @@
     },
     {
       "when": {
-        "quest_ready": "dog_rights:hall",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "dog_rights:hall"
       },
       "lines": [
         "({player} knocks, and holds up the Doggie Bill of Rights. Rex is beside you, standing very tall for a husky.)",
@@ -171,11 +151,7 @@
     },
     {
       "when": {
-        "quest_ready": "rex_campaign:palmer",
-        "time": [
-          "morning",
-          "day"
-        ]
+        "quest_ready": "rex_campaign:palmer"
       },
       "set": "palmer_said_no",
       "lines": [

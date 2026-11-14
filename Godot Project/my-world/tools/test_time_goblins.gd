@@ -145,10 +145,10 @@ func _run() -> void:
 	var blinked: bool = tock.blink()
 	check(blinked and tock.hits == 0, "when he blinks back in time he rewinds the hit too (blinked %s, hits %d, %d spots)"
 		% [blinked, tock.hits, tock._hist.size()])
-	tock.shot(3, tock.global_position, Vector3.FORWARD)
+	tock.shot(ceili(tock.stomps_to_defeat / 3.0), tock.global_position, Vector3.FORWARD)
 	await _frames(2)
 	check(town.find_children("Tock's Goblin *", "", true, false).size() == 2, "at a third he whistles up two goblins")
-	tock.shot(3, tock.global_position, Vector3.FORWARD)
+	tock.shot(ceili(tock.stomps_to_defeat * 2 / 3.0) - tock.hits, tock.global_position, Vector3.FORWARD)
 	await _frames(2)
 	check(town.find_children("Tock's Goblin *", "", true, false).size() == 4, "...and two more at two-thirds")
 	check(tock._cross, "past half he gets cross (quicker, more chimes)")
@@ -182,7 +182,8 @@ func _run() -> void:
 	check(bumped, "standing where the ring rolls past gets you bumped")
 	game.hp = hp
 	tock.set_physics_process(true)
-	tock.shot(3, tock.global_position, Vector3.FORWARD)
+	check(tock.stomps_to_defeat >= 13, "he takes %d pops now (14 Nov 2026: was 8)" % tock.stomps_to_defeat)
+	tock.shot(tock.stomps_to_defeat - tock.hits, tock.global_position, Vector3.FORWARD)
 	check(tock.defeated, "...and enough bubbles pop him")
 	check(root.get_node("Dialogue").flags.has("popped_grandfather_tock"), "popping Tock is remembered")
 	_end()

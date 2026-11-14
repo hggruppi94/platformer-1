@@ -835,7 +835,7 @@ func _add_riptide() -> void:
 	g.set("size", 2.4)
 	g.set("color", SEA)
 	g.set("goldness", 0.5)
-	g.set("stomps_to_defeat", 6)
+	g.set("stomps_to_defeat", 10)
 	g.set("damage", 2)
 	g.set("xp_reward", 45)
 	g.set("wander_radius", 5.0)
@@ -976,7 +976,8 @@ func teach_lines() -> Array:
 		"You can't breathe water, can you? Hang on. Hold still... (Otto blows a big bubble, and it settles round your head like a glass helmet.)",
 		"There! My best one. It'll go with you everywhere, the way my chair goes with my friends.",
 		"Now you can swim under. Hold {jump} to swim up, hold {dash} to dive down, and steer like walking. At the top, press {jump} to hop out.",
-		"And you'll never run out of air. It's a VERY good bubble. Here it comes, {player}. Hold on!"]
+		"And you'll never run out of air. It's a VERY good bubble. Here it comes, {player}. Hold on!",
+		"Oh, and one more thing! (He fishes a soggy blueprint out from under his chair.) Dash's Jelly Mines. He said give it to a friend. That's you!"]
 
 
 func _teach_swim(tries := 0) -> void:
@@ -987,6 +988,8 @@ func _teach_swim(tries := 0) -> void:
 		return
 	teach_swim()
 	var spot := get_node_or_null("Otto the Octopus/Spot") as Node3D
+	if not Portals.practice:
+		Schematics.award("jelly", spot != null)           # (his last line says it; Schematics.LIST "jelly")
 	if spot:
 		Dialogue.say(spot, "Otto", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "tide_reef_swim")
 	else:

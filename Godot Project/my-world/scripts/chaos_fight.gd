@@ -30,7 +30,7 @@ extends Node
 signal phase_changed(phase: int)
 signal won
 
-const CHAOS_MAX := 30
+const CHAOS_MAX := 45
 const SWAP_FLAG := "swap_tried"              # the Far Future's Swap-o-Tron try: the other way his fight opens
 const START_NEAR := 24.0                     # metres from him that starts the fight (once it's unlocked)
 const GIVE_UP_FAR := 70.0                    # this far away and the fight's called off
@@ -183,6 +183,7 @@ func start() -> void:
 	giant.set("size", HEART_Y / 0.45)           # ...at his chest clock (it aims 0.45 x size up)
 	giant.add_to_group("bosses")
 	giant.set_meta("no_dance", true)             # the groove and the Disco Ball would stop him (and the fight) dead
+	Arsenal.supply_boss(giant, 14.0, 4)           # ammo crates round where the fight starts (scripts/arsenal.gd)
 	_bar.show_within = GIVE_UP_FAR
 	Game.message("The Agent of Chaos turns to face you. Pop the glowing clock on his chest!")
 	Juice.shake(0.5)
@@ -450,7 +451,7 @@ func _rewind() -> void:
 	var back := _trail[0] if not _trail.is_empty() else player.global_position
 	player.global_position = back + Vector3(0, 0.3, 0)
 	player.velocity = Vector3.ZERO
-	chaos = mini(chaos + 3, CHAOS_MAX / 3)            # never undoes past the start of the last phase
+	chaos = mini(chaos + 4, CHAOS_MAX / 3)            # never undoes past the start of the last phase
 	Juice.blip("rewind", 0.7, 0.0)
 	Game.message("Time rewound! The Agent of Chaos got some chaos back.")
 	_flash()

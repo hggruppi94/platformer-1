@@ -220,7 +220,7 @@ func _add_frost_gloop() -> void:
 	g.set("size", 2.2)
 	g.set("color", Color(0.7, 0.9, 1.0))
 	g.set("goldness", 0.55)
-	g.set("stomps_to_defeat", 6)
+	g.set("stomps_to_defeat", 10)
 	g.set("damage", 2)
 	g.set("xp_reward", 40)
 	g.set("wander_radius", 6.0)

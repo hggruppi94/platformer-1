@@ -98,7 +98,7 @@ func _place_clockyard(scene: Node) -> void:
 	tock.name = "Grandfather Tock"                        # not "Time Goblin …", so finding goblins by name skips him
 	tock.set("size", 2.4)
 	tock.set("color", Color(0.5, 1.0, 0.9))
-	tock.set("stomps_to_defeat", 8)
+	tock.set("stomps_to_defeat", 13)
 	tock.set("damage", 2)
 	tock.set("xp_reward", 50)
 	tock.set("wander_radius", 5.0)
@@ -166,7 +166,7 @@ func _place_hollow(scene: Node) -> void:
 	boss.set_script(load("res://scripts/crocodillo_boss.gd"))
 	boss.name = "The Boulderdillo"                       # not "Crocodillo …", so finding Crocodillos by name skips it
 	boss.set("size", 2.6)
-	boss.set("stomps_to_defeat", 10)
+	boss.set("stomps_to_defeat", 16)
 	boss.set("damage", 3)
 	boss.set("xp_reward", 60)
 	boss.set("wander_radius", 6.0)
@@ -176,7 +176,7 @@ func _place_hollow(scene: Node) -> void:
 	boss.set("roll_speed", 11.0)
 	boss.set("roll_time", 1.3)
 	boss.set("dizzy_time", 3.6)
-	boss.set("roll_cooldown", 2.0)
+	boss.set("roll_cooldown", 1.6)
 	boss.set("respawn_time", 180.0)
 	boss.position = _local(parent, hollow.global_position + Vector3(0, 0.4, 0))
 	parent.add_child(boss)

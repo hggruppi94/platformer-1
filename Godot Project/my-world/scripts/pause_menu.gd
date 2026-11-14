@@ -1,7 +1,7 @@
 extends CanvasLayer
 
 # Autoload "PauseMenu": Esc / P / Start pauses the game.
-#   Paused:   Resume · Settings · New Game · Quit
+#   Paused:   Resume · (a way home) · Settings · New Game · Quit
 #   Settings: Audio · Controls · Display · Accessibility · Assist   (all saved by scripts/settings.gd)
 # Works with mouse, keyboard (arrows/Tab + Enter) and controller (d-pad/stick + A, B to go back).
 # The player menu's Settings sheet (scripts/player_menu.gd) shows these same settings tabs (settings_into()).
@@ -16,6 +16,7 @@ var _rebinding_pad := ""               # ...or for a controller button
 var _rebind_label: Label
 var _suppress_sound := false
 var _host: Control                     # where the settings tabs are: this menu's box, or the player menu's sheet
+
 
 
 func _ready() -> void:
@@ -244,9 +245,10 @@ func way_home() -> Array:
 	if here and here.scene_file_path == "res://scenes/scary_world/scary_world.tscn":
 		return [["Go home to town", func(): Game.go(Game.TOWN_SCENE, "FromScaryWorld", "town")]]   # an easy way out, any time
 	if here and here.scene_file_path == Clock.EARTH:
-		# On Earth, home: in the Shift, a quick way through the portal to the Void
-		if Clock.in_shift():
-			return [["Go through the portal to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
+		# On Earth, home: a quick way through the oak's crack to the Void, any time once it's open (Hayden, 14 Nov
+		# 2026: no waiting for midnight). Not before the first fall, and not on the first evening: no spoilers.
+		if HummingOak.awake() and not (FirstNight.running() and FirstNight.step() in FirstNight.NO_SHIFT_SLEEP):
+			return [["Go through the crack to the Void", func(): Game.go(Game.TOWN_SCENE, "FromPortaltoEarth", "Void")]]
 		return []
 	if here and Clock.in_shift():
 		return [["Go home to Earth", func(): Game.go(Clock.EARTH, Clock.EARTH_ARRIVAL, "Earth")]]   # before the Shift ends

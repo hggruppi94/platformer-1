@@ -180,7 +180,7 @@
         "quest_step": "dog_rights:hall"
       },
       "lines": [
-        "Five names! It's ready. Let's take it to Mr. Palmer's window at the Town Hall. In the morning or daytime: he gets grumpy after teatime."
+        "Five names! It's ready. Let's take it to Mr. Palmer's window at the Town Hall."
       ]
     },
     {
@@ -518,16 +518,7 @@
         "{player}: Wait. Which one of you is the dog again?",
         "I'm REX! He's the dog!",
         "...Even if I'm the one with the tail right now. Long story. Lots of paperwork.",
-        "Okay! Bike lanes, flowers, lamps and naps. I'll paint posters tonight. Come back tomorrow and help me hang them!"
-      ]
-    },
-    {
-      "when": {
-        "quest_waiting": "rex_campaign:posters"
-      },
-      "lines": [
-        "Painting posters! I've got paint on my paws. And my ears. And somehow my tail.",
-        "Come back tomorrow, Campaign Manager!"
+        "Okay! Bike lanes, flowers, lamps and naps. I painted the posters last night, just in case. Help me hang them!"
       ]
     },
     {
@@ -535,7 +526,7 @@
         "quest_step": "rex_campaign:posters"
       },
       "lines": [
-        "The posters are ready! Fresh and only a little bit smudgy.",
+        "The posters! Fresh and only a little bit smudgy. I've got paint on my paws. And somehow my tail.",
         "One for the signpost west of the Market, one for the signpost by the dock, one for the signpost by the Homes gate...",
         "...and one for the noticeboard in the Market Square, right where everybody walks by!"
       ]
@@ -578,7 +569,7 @@
             }
           ]
         },
-        "That went GREAT! Tomorrow we take my ideas straight to Mr. Palmer. He's the mayor right now."
+        "That went GREAT! Now we take my ideas straight to Mr. Palmer. He's the mayor right now."
       ]
     },
     {
@@ -586,17 +577,8 @@
         "quest_step": "rex_campaign:rally"
       },
       "lines": [
-        "The big speech is this evening, at the Market Square fountain! Between 5 and 9 o'clock!",
+        "The big speech is at the Market Square fountain! Meet me there!",
         "I've been practicing on the Town Hall. It hasn't clapped yet."
-      ]
-    },
-    {
-      "when": {
-        "quest_waiting": "rex_campaign:palmer"
-      },
-      "lines": [
-        "Tomorrow we go and see Mr. Palmer! He's the mayor right now. A very busy, very nice mayor.",
-        "I'm not nervous. My tail is just wagging for exercise."
       ]
     },
     {

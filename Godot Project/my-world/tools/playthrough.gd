@@ -579,9 +579,6 @@ func _quake_and_enter(id: String, extra := 0) -> bool:
 	check(current_scene.scene_file_path == str(portals.world(id).scene) and portals.here == id, "stepped through to %s" % id)
 	await _physics(20)
 	await shot(id + "_inside")
-	for e in root.get_node("Schematics").LIST:
-		if str(e.get("world", "")) == id:
-			await _get_blueprint(str(e.id))
 	return portals.here == id
 
 
@@ -1244,7 +1241,15 @@ var _giant: Node3D
 func _ch_chaos() -> void:
 	await _in_void()
 	var ars := root.get_node("Arsenal")
-	check(ars.ORDER.all(func(g: String) -> bool: return ars.owns(g)), "every gadget's been found and bought by now (%s)" % str(ars.owned))
+	# Blueprints are rewards since 13 Nov 2026 (Schematics.LIST "reward"): the story gives the Star Popper (Dash), the
+	# Disco Ball (Melody) and the Jelly Mines (Otto); the rest are first prizes in races, which this doesn't race to win.
+	# Buy whatever's been given, as a player would on their next visit to Dash's stall.
+	var S := root.get_node("Schematics")
+	for e in S.LIST:
+		if str(e.kind) == "gadget" and S.is_found(str(e.id)) and not ars.owns(str(e.what)):
+			await _get_blueprint(str(e.id))
+	check(["popper", "disco", "jelly"].all(func(g: String) -> bool: return ars.owns(g)),
+		"the story's gadgets have been given and bought by now (%s)" % str(ars.owned))
 	_giant = current_scene.find_child("ChaosGiant", true, false) as Node3D
 	check(_giant != null, "the Agent of Chaos is in his field")
 	if _giant == null:
@@ -1470,12 +1475,16 @@ func _do_section(id: String) -> void:
 
 # =============================================================================
 func _sleep_until_shift() -> void:
-	# Home to bed, and sleep "Until the Shift" (the next midnight on Earth)
+	# Home to bed on the first evening, and sleep (it stops at midnight that night, when the ground cracks open)
 	if current_scene.scene_file_path != EARTH:
 		await _go(EARTH, "HomeSpawn")
 	var bed := current_scene.find_child("SleepSpot", true, false)
 	check(bed != null, "the bed's there to sleep in")
 	if bed == null:
+		return
+	if clock.in_shift():
+		# Already the Shift (a chapter's save from just after midnight): sleeping "until midnight" now would sleep
+		# through the whole Shift and wake at 1 AM
 		return
 	_player().global_position = (current_scene.find_child("HomeSpawn", true, false) as Node3D).global_position
 	await _frames(2)
@@ -1488,7 +1497,7 @@ func _sleep_until_shift() -> void:
 
 
 func _through_oak() -> void:
-	# Jump into the crack by the oak (it's open in the Shift)
+	# Jump into the crack by the oak (it's open any time once the oak's awake)
 	if current_scene.scene_file_path != EARTH:
 		await _go(EARTH, "Entrance")
 	var door := current_scene.find_child("PortalToGalaxity", true, false) as Node3D
@@ -1505,18 +1514,21 @@ func _through_oak() -> void:
 
 
 func _end_shift() -> void:
-	# The Shift runs out (it lasts an Earth hour), and the portal pulls them home
-	clock.pulls_home = true
-	clock.end_shift()
+	# Home to Earth: on The First Night the Shift runs out and the portal pulls them home; after that the Void's day
+	# never ends by itself (Hayden, 14 Nov 2026: no waiting), so they jump into the crack home
+	if root.get_node("FirstNight").running():
+		clock.pulls_home = true
+		clock.end_shift()
+	else:
+		game.go(EARTH, clock.EARTH_ARRIVAL, "Earth")
 	await _wait_for_scene(EARTH, 400)
 	await _frames(10)
 
 
 func _next_visit() -> void:
-	# Another night: home, to bed till midnight, through the oak
+	# Another visit: home, then straight back through the oak's crack (it's open any time)
 	if clock.in_shift() and current_scene.scene_file_path == TOWN:
 		await _end_shift()
-	await _sleep_until_shift()
 	await _through_oak()
 	await create_timer(3.5).timeout
 

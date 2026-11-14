@@ -156,7 +156,7 @@ func show_results(text: String) -> void:
 	for l in [lap_label, place_label, time_label]:
 		l.text = ""
 	results_label.text = text
-	results_label.add_theme_font_size_override("font_size", int((22 if text.count("\n") > 10 else 28) * Settings.text_scale))
+	results_label.add_theme_font_size_override("font_size", int((19 if text.count("\n") > 14 else (22 if text.count("\n") > 10 else 28)) * Settings.text_scale))
 	results.visible = true
 	power_box.visible = false
 

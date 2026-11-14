@@ -71,12 +71,15 @@ static func lines() -> Array[String]:
 	var keeper := style() == "keeper"
 	out.append("%s: %s" % [watch_name(), "keeps your own time" if keeper else "ticks Earth's way"])
 	out.append("Earth: %s, %s (Year %d)" % [Clock.date_string(), Clock.earth_time_string(), Clock.year()])
-	if Clock.in_shift():
-		var left := Clock.shift_minutes_left()
+	if Clock.in_shift() and not Clock.on_earth:
 		out.append("The Void: day %d, %s" % [Clock.day, Clock.time_string()])
-		out.append("The Shift: %s of the Void's day left before the portal pulls you home" % _span(left))
+		if Clock.endless():
+			out.append("Stay as long as you like. The crack home to Earth is always open")
+		else:
+			out.append("The Shift: %s of the Void's day left before the portal pulls you home" % _span(Clock.shift_minutes_left()))
 	elif Clock.on_earth:
-		out.append("The crack by the old oak opens at midnight: %s to go" % _span(Clock.minutes_until_hour(Clock.SHIFT_START_HOUR)))
+		if HummingOak.awake():                     # (nothing about the crack before the first fall: no spoilers)
+			out.append("The crack by the old oak is open: jump in to go to the Void, any time")
 		if Festival.is_festival_day() and not Festival.is_on() and Clock.earth_minutes < Festival.start_time():
 			out.append("The %s starts at %d PM today, on the green" % [Festival.fair_name(), int(Festival.fair().start) - 12])
 		elif Festival.is_on():

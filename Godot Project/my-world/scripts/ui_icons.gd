@@ -7,7 +7,7 @@ extends RefCounted
 # time it's asked for and kept.
 #
 #   Player menu sheets: quests, goals, map, calendar, hero, bag, skate, settings, save
-#   Pause menu:         resume, home, tips, tour, new_game, quit, lesson
+#   Pause menu:         resume, home, tips, tour, new_game, quit, lesson, clock
 #   And:                close (the menus' round X button)
 
 const SIZE := 48                               # pixels; buttons draw them at this size, or smaller
@@ -26,7 +26,7 @@ static func get_icon(kind: String, size := SIZE) -> Texture2D:
 
 static func kinds() -> Array[String]:
 	return ["quests", "goals", "map", "calendar", "hero", "bag", "skate", "settings", "save",
-		"resume", "home", "tips", "tour", "new_game", "quit", "lesson", "close"]
+		"resume", "home", "tips", "tour", "new_game", "quit", "lesson", "clock", "close"]
 
 
 # ----------------------------------------------------------------------------- the pictures
@@ -103,6 +103,12 @@ static func _shapes(kind: String) -> Array:
 			return [[_box(0.5, 0.52, 0.27, 0.38, 0.05), Color(0.75, 0.45, 0.3)],
 				[_box(0.5, 0.52, 0.18, 0.3, 0.03), Color(0.9, 0.58, 0.38)],
 				[_circle(0.6, 0.55, 0.045), GOLD]]
+		"clock":                               # a clock face
+			return [[_circle(0.5, 0.5, 0.4), WHITE],
+				[_ring(0.5, 0.5, 0.33, 0.03), LAVENDER, false],
+				[_seg(0.5, 0.5, 0.5, 0.24, 0.045), INK, false],
+				[_seg(0.5, 0.5, 0.69, 0.6, 0.045), INK, false],
+				[_circle(0.5, 0.5, 0.05), MAGENTA, false]]
 		"close":                               # a round X
 			return [[_circle(0.5, 0.5, 0.4), MAGENTA],
 				[_seg(0.35, 0.35, 0.65, 0.65, 0.055), WHITE, false], [_seg(0.65, 0.35, 0.35, 0.65, 0.055), WHITE, false]]

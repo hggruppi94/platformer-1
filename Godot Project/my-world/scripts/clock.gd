@@ -33,6 +33,7 @@ const MINUTES_PER_DAY := 24 * 60
 const SHIFT_RATIO := float(MINUTES_PER_DAY) / ((SHIFT_END_HOUR - SHIFT_START_HOUR) * 60.0)   # Void min per Earth min
 const EARTH_HOUR_SECONDS := 60.0     # outside the Shift, an Earth hour takes a real minute
 const EARTH_START := 20 * 60.0       # a new game starts at 8:00 PM on Earth, a few hours before the first Shift
+const FIRST_EVENING_SPEED := 12.0    # The First Night's evening: an Earth hour in 5 real seconds, so midnight's soon
 const WARN_HOUR := 6                 # the Void's 6 AM in the Shift: "the portal will pull you home soon"
 const EARTH := "res://scenes/earth/earth.tscn"
 const EARTH_ARRIVAL := "Entrance"    # where the portal puts the player on Earth: by the old oak
@@ -80,6 +81,14 @@ func _process(delta: float) -> void:
 	if in_shift():
 		# (no further than the end of the Shift, so it always ends right on the Void's dawn)
 		var game_minutes := delta * MINUTES_PER_DAY / (DAY_LENGTH_MINUTES * 60.0)
+		if game_minutes >= shift_minutes_left() - 0.0001 and endless() and not on_earth:
+			# In the Void the day just goes round again: nobody's pulled home, they go when they like (Hayden, 14 Nov
+			# 2026: "everything should be playable all the way through without needing to skip time at all")
+			var shift_len := (SHIFT_END_HOUR - SHIFT_START_HOUR) * 60.0
+			earth_minutes = SHIFT_START_HOUR * 60.0 + fposmod(earth_minutes + game_minutes / SHIFT_RATIO
+				- SHIFT_START_HOUR * 60.0, shift_len)
+			_advance(game_minutes)
+			return
 		if game_minutes >= shift_minutes_left() - 0.0001:
 			_finish_shift()
 			_check_changes()
@@ -87,7 +96,7 @@ func _process(delta: float) -> void:
 		earth_minutes += game_minutes / SHIFT_RATIO
 		_advance(game_minutes)
 	else:
-		earth_minutes = fposmod(earth_minutes + delta * 60.0 / EARTH_HOUR_SECONDS, MINUTES_PER_DAY)
+		earth_minutes = fposmod(earth_minutes + delta * 60.0 * earth_speed() / EARTH_HOUR_SECONDS, MINUTES_PER_DAY)
 		if in_shift() and not _in_shift:
 			_to_dawn()                               # midnight on Earth: the Void's day begins
 		_check_changes()
@@ -115,20 +124,14 @@ func _check_changes(announce := true) -> void:
 	if h != _last_hour:
 		_last_hour = h
 		hour_changed.emit(h)
-		if announce and h == WARN_HOUR and in_shift() and not on_earth:
+		if announce and h == WARN_HOUR and in_shift() and not on_earth and not endless():
 			# The very first night, only a hint: they find out what the end of the Shift does when it happens
 			Game.message("The sky's getting light... and your new watch has started to tingle. Something's about to happen."
 				if FirstNight.running() else "The sky's getting light. At 7 AM the Shift ends, and the portal will pull you home to Earth.")
 	var shift := in_shift()
 	if shift != _in_shift:
 		_in_shift = shift
-		if announce:
-			if not HummingOak.awake():
-				pass                              # the first midnight: the fall says it all (scripts/void_arrival.gd)
-			elif shift:
-				Game.message("It's midnight: the Shift has begun! The crack by the old oak is open to the Void.")
-			elif on_earth:
-				Game.message("1 AM: the Shift is over, and the portal has closed until tomorrow night.")
+		# (no message either way: the crack by the old oak is open any time now)
 		(shift_started if shift else shift_ended).emit()
 		if not shift:
 			_pull_home()
@@ -157,6 +160,8 @@ func _pull_home() -> void:
 		# The first night ends in bed (scripts/first_night.gd says what happened once Earth's up)
 		Game.pending_message = ""
 		FirstNight.pulled_home()
+	earth_minutes = WAKE_HOUR * 60.0                 # (home in the morning, with everyone up: nobody waits for the sun)
+	_check_changes(false)
 	Game.go(EARTH, pull_spawn if pull_spawn != "" else EARTH_ARRIVAL, "Earth")
 	_done_pulling.call_deferred()
 
@@ -164,6 +169,44 @@ func _pull_home() -> void:
 func _done_pulling() -> void:
 	await get_tree().process_frame
 	_pulling = false
+
+
+func endless() -> bool:
+	# Once The First Night is over the Void's day goes round and round for as long as they stay: no pulling home at its
+	# dawn. (That first night still ends at dawn, in bed: it's the story.)
+	return not FirstNight.running()
+
+
+func earth_speed() -> float:
+	# How fast Earth's clock runs. The First Night's evening flies by to midnight, when the ground cracks open, so
+	# nobody waits for the fall (scripts/void_arrival.gd)
+	return FIRST_EVENING_SPEED if FirstNight.sleep_stops_at_midnight() and on_earth else 1.0
+
+
+func into_the_void() -> void:
+	# Through the crack by the old oak, any time once it's woken (Hayden, 14 Nov 2026: no waiting for midnight). The
+	# crack's a way into the Shift itself: Earth's clock is at its midnight, the Void's at its dawn.
+	if in_shift():
+		return
+	earth_minutes = SHIFT_START_HOUR * 60.0
+	_to_dawn()
+	_check_changes(false)
+	time_changed.emit()
+	jumped.emit()
+
+
+func home_from_void() -> void:
+	# Back on Earth from the Void: the Shift's over behind them and it's the next morning in Stars Hollow, so everyone's
+	# up and about (nobody waits for the sun). The Void waits at its next dawn, as after any Shift.
+	if not in_shift():
+		return
+	_finish_shift()
+	earth_minutes = WAKE_HOUR * 60.0
+	_in_shift = false
+	_check_changes(false)
+	shift_ended.emit()
+	time_changed.emit()
+	jumped.emit()
 
 
 # -----------------------------------------------------------------------------
@@ -377,8 +420,8 @@ func sleep_length(want_minutes: float) -> float:
 	# never sleeps through the Shift without knowing (already in it, she can sleep on). In the Void, sleep can't last
 	# past the end of the Shift: she wakes up back home on Earth.
 	if not on_earth:
-		return minf(want_minutes, shift_minutes_left()) if in_shift() else want_minutes
-	if in_shift():
+		return minf(want_minutes, shift_minutes_left()) if in_shift() and not endless() else want_minutes
+	if in_shift() or not FirstNight.sleep_stops_at_midnight():
 		return want_minutes
 	return minf(want_minutes, minutes_until_hour(SHIFT_START_HOUR))
 
@@ -444,7 +487,7 @@ func sleep(length: float) -> void:
 			jumped.emit()
 			return
 		set_earth_time(before + length, true)
-	elif in_shift() and length >= shift_minutes_left() - 0.01:
+	elif in_shift() and length >= shift_minutes_left() - 0.01 and not endless():
 		end_shift()
 	else:
 		advance(length)

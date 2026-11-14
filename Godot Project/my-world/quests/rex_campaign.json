@@ -55,7 +55,7 @@
     },
     {
       "id": "report",
-      "text": "Tell Rex what everyone said. He's at the Town Hall in the daytime.",
+      "text": "Tell Rex what everyone said.",
       "done": {
         "flag": "reported_ideas"
       },
@@ -66,10 +66,6 @@
     {
       "id": "posters",
       "text": "Hang Rex's VOTE REX posters around town.",
-      "wait": {
-        "days": 1,
-        "text": "Rex is still painting the posters. Come back tomorrow!"
-      },
       "checklist": [
         [
           "poster_1",
@@ -99,12 +95,9 @@
     },
     {
       "id": "rally",
-      "text": "Rex is giving a speech at the Market Square fountain this evening (5 to 9 PM). Go cheer him on!",
+      "text": "Rex is giving a speech at the Market Square fountain. Go cheer him on!",
       "override": {
         "rex": {
-          "time": [
-            "evening"
-          ],
           "place": "market",
           "do": "idle",
           "label": "rally",
@@ -123,11 +116,7 @@
     },
     {
       "id": "palmer",
-      "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall in the daytime.",
-      "wait": {
-        "days": 1,
-        "text": "Mr. Palmer has gone home for the day. Try tomorrow!"
-      },
+      "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall.",
       "done": {
         "flag": "palmer_said_no"
       },

@@ -18,9 +18,10 @@ extends Townsfolk
 const SHAWL_SHADER := preload("res://scripts/star_shawl.gdshader")
 const LANTERN_SHADER := preload("res://scripts/seer_lantern.gdshader")
 # Her look, in the creator's terms (colours are numbers into Hero.SWATCHES, from 1): warm brown skin, white hair in a
-# bun (the Top knot), grey eyes, a lavender top and a deep blue skirt
+# bun (the Top knot), grey eyes, a lavender top and a deep blue skirt. Her build was 1.12 and is a slimmer 0.94 since
+# 14 Nov 2026 (Hayden: "make the seer a little skinnier"); her shawl and skirt sit on her bones, so they slim with her
 const LOOK := {"colors": {"fur": 22, "hair": 7, "brows": 7, "eyes": 8, "top": 16, "bottoms": 15, "shoes": 4},
-	"hairstyle": 28, "extras": false, "height": 1.22, "head": 0.88, "build": 1.12, "eyes": 0.95}
+	"hairstyle": 28, "extras": false, "height": 1.22, "head": 0.88, "build": 0.94, "eyes": 0.95}
 const SKIRT := Color(0.2, 0.2, 0.5)
 const GOLD := Color(0.95, 0.75, 0.32)
 const OWL := Color(0.62, 0.48, 0.36)
@@ -92,14 +93,15 @@ func _on(skel: Skeleton3D, bone_name: String, thing: Node3D) -> void:
 
 
 func _shawl() -> Node3D:
-	# Over her shoulders and down past her elbows, front and back: an open cone of night sky with a gold edge
+	# Over her shoulders and down past her elbows, front and back: an open cone of night sky with a gold edge (a
+	# narrower cone and skirt since 14 Nov 2026, with her slimmer build, so she doesn't read as a big bell)
 	var g := Node3D.new()
 	g.name = "Shawl"
 	var sky := ShaderMaterial.new()
 	sky.shader = SHAWL_SHADER
 	var cone := CylinderMesh.new()
-	cone.top_radius = 0.17
-	cone.bottom_radius = 0.36
+	cone.top_radius = 0.16
+	cone.bottom_radius = 0.3
 	cone.height = 0.38
 	cone.radial_segments = 28
 	cone.rings = 2
@@ -113,10 +115,10 @@ func _shawl() -> Node3D:
 	mi.scale = Vector3(1.0, 1.0, 0.9)
 	g.add_child(mi)
 	_mesh(g, _torus(0.15, 0.2), Color(0.3, 0.15, 0.46), Vector3(0, 0.89, -0.01), Vector3.ZERO, Vector3(1.0, 0.8, 0.92))
-	_mesh(g, _torus(0.345, 0.37), GOLD, Vector3(0, 0.52, -0.01), Vector3.ZERO, Vector3(1.0, 1.0, 0.9))
+	_mesh(g, _torus(0.285, 0.31), GOLD, Vector3(0, 0.52, -0.01), Vector3.ZERO, Vector3(1.0, 1.0, 0.9))
 	for k in 20:
 		var a := TAU * k / 20.0
-		_mesh(g, _ball(0.02), GOLD, Vector3(cos(a) * 0.36, 0.495, sin(a) * 0.36 * 0.9 - 0.01))
+		_mesh(g, _ball(0.02), GOLD, Vector3(cos(a) * 0.3, 0.495, sin(a) * 0.3 * 0.9 - 0.01))
 	# A gold star brooch pinning it at the front
 	_mesh(g, _ball(0.028), GOLD.lightened(0.2), Vector3(0, 0.84, 0.17))
 	return g
@@ -138,8 +140,8 @@ func _skirt() -> Node3D:
 	# A long skirt down to her ankles, with a darker hem
 	var g := Node3D.new()
 	g.name = "Skirt"
-	_mesh(g, _cyl(0.16, 0.27, 0.46), SKIRT, Vector3(0, 0.3, 0.0))
-	_mesh(g, _cyl(0.272, 0.28, 0.04), SKIRT.darkened(0.35), Vector3(0, 0.085, 0.0))
+	_mesh(g, _cyl(0.15, 0.23, 0.46), SKIRT, Vector3(0, 0.3, 0.0))
+	_mesh(g, _cyl(0.232, 0.24, 0.04), SKIRT.darkened(0.35), Vector3(0, 0.085, 0.0))
 	return g
 
 

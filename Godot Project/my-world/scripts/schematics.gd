@@ -21,26 +21,27 @@ const SKY_RADIUS := 10.0                  # ...or the mothership's, for the one 
 
 # kind: "gadget" (its id in Arsenal.GADGETS) or "ride" (its id in Rides.HERO_RIDES). "at" is x, z, dropped onto the
 # ground when it's placed; "sky" is a point in the air that only the mothership can reach.
-# Gadgets (Hayden, 11 Nov playtest: "weapons should not be unlocked until you purchase them, including your starting
-# blaster ... weapon blueprints being found in the world where they make the most sense"): the Star Popper's
-# blueprint is in the Void on the First Night, and every other gadget's is in the portal world it fits ("world": its
-# id in Portals.WORLDS; "at" is then in that world's own scene). A world's blueprint is there from your first trip, and
-# its hint only names the world once that world's portal is open. Rides stay on their nights.
+# Gadgets (Hayden, 13 Nov 2026 playtest: "Instead of randomly finding blueprints, make them rewards for completing
+# races/quests"; before that, since 11 Nov, they were found lying in the portal worlds): every gadget's blueprint is a
+# "reward" now, given to you the moment you earn it (award()): for a quest (a Dialogue flag), for winning a race the
+# first time (a track id in scripts/races.gd), or as a friend's thank-you when their world's mended (a Portals.WORLDS
+# id). They're never put out in the world. A world's hint only names the world once its portal is open, so nothing
+# gives away a world before it turns up. Rides stay on their nights.
 const LIST := [
-	{"id": "popper", "kind": "gadget", "what": "popper", "night": 1, "scene": "town", "at": Vector2(-84, 55),
-		"hint": "In the Market Square, by the stalls, not far from Dash's gadget stall."},
-	{"id": "fizz", "kind": "gadget", "what": "fizz", "world": "shard_isle", "at": Vector2(-3.5, -25.5),
-		"hint": "On Shard Isle, up on the highest of the little islands."},
-	{"id": "buzz", "kind": "gadget", "what": "buzz", "world": "rootmind", "at": Vector2(19, -1),
-		"hint": "In the Rootmind, where the hive hums loudest: in the tall grass."},
-	{"id": "rainbow", "kind": "gadget", "what": "rainbow", "world": "lanternmoor", "at": Vector2(32, -20),
-		"hint": "In Lanternmoor, on Moon Rock. Only a glide will get you there."},
-	{"id": "disco", "kind": "gadget", "what": "disco", "world": "rhythm_springs", "at": Vector2(16, 22),
-		"hint": "In Rhythm Springs, on the Dance Floor."},
-	{"id": "jelly", "kind": "gadget", "what": "jelly", "world": "tide_reef", "at": Vector2(28, 6),
-		"hint": "In the Tide Reef, by the Kelp Grotto, where the jellies drift."},
-	{"id": "plush", "kind": "gadget", "what": "plush", "world": "glenmoor", "at": Vector2(-26, 17),
-		"hint": "In Glenmoor, in the Fold, with the Fluffkins."},
+	{"id": "popper", "kind": "gadget", "what": "popper", "reward": {"flag": "bb_thanked", "from": "Dash"},
+		"hint": "Dash's thank-you for catching his runaway Buzz Bot."},
+	{"id": "fizz", "kind": "gadget", "what": "fizz", "reward": {"race": "lake_loop", "from": "Zippy"},
+		"hint": "The prize for winning the Lake Loop. Talk to Zippy at the race gate!"},
+	{"id": "buzz", "kind": "gadget", "what": "buzz", "reward": {"race": "meadow_wiggle", "from": "Zippy"},
+		"hint": "The prize for winning the Meadow Wiggle, at Zippy's race gate."},
+	{"id": "rainbow", "kind": "gadget", "what": "rainbow", "reward": {"race": "observatory_hill", "from": "Zippy"},
+		"hint": "The prize for winning Observatory Hill, at Zippy's race gate."},
+	{"id": "plush", "kind": "gadget", "what": "plush", "reward": {"race": "pumpkin_run", "from": "Pepper"},
+		"hint": "The prize for winning the Pumpkin Run. Pepper starts it, on Maple Lane in Stars Hollow."},
+	{"id": "disco", "kind": "gadget", "what": "disco", "reward": {"world": "rhythm_springs", "from": "Melody"},
+		"hint": "Melody's thank-you, once Rhythm Springs has its beat back."},
+	{"id": "jelly", "kind": "gadget", "what": "jelly", "reward": {"world": "tide_reef", "from": "Otto"},
+		"hint": "Otto's thank-you, once the tide's back in on the Tide Reef."},
 	{"id": "overboard", "kind": "ride", "what": "overboard", "night": 3, "scene": "town", "at": Vector2(34, 58),
 		"hint": "In the south meadow, on the side nearest the lake."},
 	{"id": "bike", "kind": "ride", "what": "bike", "night": 4, "scene": "town", "at": Vector2(84, -98),
@@ -59,13 +60,18 @@ const RIDE_PRICES := {"overboard": 14, "bike": 16, "hover_bike": 17, "rocket_boa
 
 var _night := 0                   # the night they were last put out for
 var _scene: Node
+var _reward_wait := 2.0            # (checked twice a second; not straight away, while a save's still loading)
 
 
 func _ready() -> void:
 	_register_shop()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_reward_wait -= delta
+	if _reward_wait <= 0.0:
+		_reward_wait = 0.5
+		_check_rewards()
 	var s := get_tree().current_scene
 	# A new night's schematics go out the moment the night ticks over too: the request board counts the nights
 	# (Nights.night()) and it can roll a moment after landing, so placing them only on arrival left tonight's
@@ -95,8 +101,8 @@ func out_tonight(id: String) -> bool:
 	# A schematic is out from its own night on (an old save on a later night gets every one up to it at once). One in a
 	# portal world is always there, for whenever you get there.
 	var e := entry(id)
-	if e.is_empty():
-		return false
+	if e.is_empty() or e.has("reward"):
+		return false                     # (a reward's never out in the world: it's given to you)
 	# (or that night's story quest has started early: they follow on without waiting for a visit, scripts/meetings.gd)
 	return e.has("world") or Nights.night() >= int(e.night) or Dialogue.flags.has("night_%d" % int(e.night))
 
@@ -107,6 +113,13 @@ func hint_ready(id: String) -> bool:
 	var e := entry(id)
 	if e.is_empty():
 		return false
+	if e.has("reward"):
+		var r: Dictionary = e.reward
+		if r.has("world"):
+			return Portals.is_open(str(r.world)) or Portals.is_cleared(str(r.world))
+		if r.has("flag"):
+			return Dialogue.flags.has("bike_boy_start") or Dialogue.flags.has(str(r.flag))
+		return true                      # (a race: the race boards show every one)
 	if e.has("world"):
 		return Portals.is_open(str(e.world)) or Portals.is_cleared(str(e.world))
 	return out_tonight(id)
@@ -146,6 +159,12 @@ func next_hint() -> Dictionary:
 	return {}
 
 
+func blueprint_of(e: Dictionary) -> String:
+	# "the Fizz Flinger's blueprint", "the Buzz Bots' blueprint"
+	var n := thing_name(e)
+	return "the %s%s blueprint" % [n, "'" if n.ends_with("s") else "'s"]
+
+
 func thing_name(e: Dictionary) -> String:
 	if str(e.kind) == "gadget":
 		return Arsenal.gadget_name(str(e.what))
@@ -159,9 +178,62 @@ func note_for(kind: String, what: String) -> String:
 		return ""
 	if hint_ready(str(e.id)):
 		return "[Blueprint] " + str(e.hint) if kind == "gadget" else "[Schematic] " + str(e.hint)
-	if e.has("world"):
-		return "[Blueprint] Not found yet. Dash says it blew somewhere far away..."
+	if e.has("reward") or e.has("world"):
+		return "[Blueprint] Not yet. Dash says somebody out there's got one, and they're saving it for a friend..."
 	return "[Schematic] Not out yet. Maybe on night %d..." % int(e.night)
+
+
+# -----------------------------------------------------------------------------
+# Rewards: blueprints you're given for a quest, a race won, or a world mended
+# -----------------------------------------------------------------------------
+func for_race(track_id: String) -> Dictionary:
+	# The blueprint that's first prize in a race, or {}
+	for e in LIST:
+		if str(e.get("reward", {}).get("race", "")) == track_id:
+			return e
+	return {}
+
+
+func earned(id: String) -> bool:
+	# Whether its reward's been earned (whether or not it's been given yet)
+	var r: Dictionary = entry(id).get("reward", {})
+	if r.has("race"):
+		return int(Races.wins.get(str(r.race), 0)) > 0
+	if r.has("flag"):
+		return Dialogue.flags.has(str(r.flag))
+	if r.has("world"):
+		# (In the world itself the friend hands it over in their thank-you: rhythm_springs.gd, tide_reef.gd. This is for
+		# a save that mended it before blueprints were rewards, or a thank-you that was skipped.)
+		var here := get_tree().current_scene
+		return Portals.is_cleared(str(r.world)) and (here == null or scene_key(here.scene_file_path) != str(r.world))
+	return false
+
+
+func award(id: String, quiet := false) -> bool:
+	# Gives you a reward's blueprint (once). quiet: no message (the race results say it instead)
+	var e := entry(id)
+	if e.is_empty() or is_found(id):
+		return false
+	Dialogue.set_flag("schematic_" + id)
+	Audio.play("pickup", -2.0, 0.0)
+	Juice.blip("chime", 1.0, -6.0)
+	Juice.rumble(0.35, 0.2)
+	if not quiet:
+		var from := str(e.get("reward", {}).get("from", ""))
+		Game.message("%s %s! Take it to Dash's gadget stall in the Void's Market Square and he'll build it for you."
+			% ["%s gives you a blueprint!" % from if from != "" else "A blueprint!", "It's " + blueprint_of(e)])
+	found_one.emit(id)
+	Game.save_game()
+	return true
+
+
+func _check_rewards() -> void:
+	# Hands over anything earned and not given yet: straight after the quest step or the world's mending, and for an
+	# old save the first time it loads (a race already won, a world already mended, Dash already thanked)
+	for e in LIST:
+		var id := str(e.id)
+		if e.has("reward") and not is_found(id) and earned(id):
+			award(id)
 
 
 func pick_up(id: String, at := Vector3.ZERO) -> void:
@@ -274,8 +346,10 @@ func _place_in(scene: Node) -> void:
 
 
 func where(e: Dictionary) -> String:
-	# Which scene it's in: "town", "school" or a portal world's id
-	return str(e.world) if e.has("world") else str(e.scene)
+	# Which scene it's in: "town", "school" or a portal world's id ("" for a reward: it's never put out)
+	if e.has("reward"):
+		return ""
+	return str(e.world) if e.has("world") else str(e.get("scene", ""))
 
 
 func scene_key(path: String) -> String:

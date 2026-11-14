@@ -15,6 +15,7 @@ var sparkle_label: Label                    # "✦ 12": sparkles, the money (scr
 var remnant_label: Label                    # "◆ 3 Remnants", the rarer crystal money, once there are any (scripts/remnants.gd)
 var mp_bar: ProgressBar
 var sp_bar: ProgressBar                     # stamina, spent by rolling
+var ke_bar: ProgressBar                     # Dash's kinetic charge, under SP once he's taught it (scripts/kinetic.gd)
 var hp_bar: ProgressBar
 var xp_bar: ProgressBar
 var todo: PanelContainer                    # the to-do list
@@ -61,6 +62,11 @@ func _ready() -> void:
 	hp_bar = _bar_row(v, "HP", "HP: your health. Lose it all and you wake up at home")
 	mp_bar = _bar_row(v, "MP", "MP: magic. A big Star Popper bubble (hold Shoot) takes 1. Refills over time")
 	sp_bar = _bar_row(v, "SP", "SP: stamina, spent by rolling. Refills quickly")
+	ke_bar = _bar_row(v, "KE", "Kinetic: the go you store up running and riding. Full? Press Flip on a ride for a boost")
+	ke_bar.name = "Kinetic"
+	ke_bar.max_value = 1.0
+	ke_bar.step = 0.0
+	ke_bar.get_parent().visible = false       # hidden until Dash teaches it (set_kinetic)
 	sparkle_label = Label.new()
 	sparkle_label.tooltip_text = "Sparkles: bits of broken time. Find them round town, spend them at the market"
 	v.add_child(sparkle_label)
@@ -203,6 +209,14 @@ func _apply_look() -> void:
 		bar_labels[i].add_theme_font_size_override("font_size", _fs(14))
 		bar_labels[i].add_theme_color_override("font_color", Color(1, 1, 1))
 		bar_labels[i].custom_minimum_size.x = _fs(28)
+	var ke_fill := StyleBoxFlat.new()
+	ke_fill.bg_color = Color(1.0, 0.9, 0.2) if hc else Color(1.0, 0.82, 0.25)                # kinetic gold
+	ke_fill.set_corner_radius_all(4)
+	ke_bar.add_theme_stylebox_override("fill", ke_fill)
+	ke_bar.add_theme_stylebox_override("background", back)
+	ke_bar.custom_minimum_size = Vector2(_fs(150), _fs(9))
+	bar_labels[3].add_theme_font_size_override("font_size", _fs(14))
+	bar_labels[3].custom_minimum_size.x = _fs(28)
 	var xp_fill := StyleBoxFlat.new()
 	xp_fill.bg_color = Color(1, 1, 0.5) if hc else Color(1.0, 0.85, 0.35)
 	xp_fill.set_corner_radius_all(4)
@@ -402,7 +416,7 @@ func _refresh_clock() -> void:
 		# Nothing about the portal until they've seen the old oak open for themselves (Hayden's day 1 playtest, 11 Nov
 		# 2026: the game mustn't give away what's going to happen)
 		if HummingOak.awake():
-			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The crack opens at midnight")
+			text += "\n" + ("The Shift! The Void: %s" % Clock.time_string() if Clock.in_shift() else "The crack by the old oak is open")
 	elif Clock.in_shift():
 		text += "\nThe Shift (Earth %s)" % Clock.earth_time_string()
 	clock_label.text = text
@@ -412,6 +426,25 @@ func _refresh_clock() -> void:
 	clock_label.visible = not watch or Settings.clock_style != "watch"
 	var shift_tint := Color(1.0, 0.8, 1.0) if Settings.high_contrast else Color(0.9, 0.7, 1.0)
 	clock_label.add_theme_color_override("font_color", shift_tint if Clock.in_shift() else Color(1, 1, 1))
+
+
+func set_kinetic(shown: bool, value: float, full: bool) -> void:
+	# Dash's kinetic charge (scripts/kinetic.gd), a gold bar under SP, out of the way of the riding meters. Full, the
+	# letters glow gold.
+	ke_bar.get_parent().visible = shown
+	if not shown:
+		return
+	ke_bar.value = value
+	var l := bar_labels[3]
+	if full:
+		var k := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 1000.0 * 8.0)
+		l.add_theme_color_override("font_color", Color(1, 1, 1).lerp(Color(1.0, 0.82, 0.25), k))
+	else:
+		l.add_theme_color_override("font_color", Color(1, 1, 1))
+
+
+func kinetic_shown() -> bool:
+	return ke_bar != null and ke_bar.get_parent().visible
 
 
 func _refresh_sp() -> void:

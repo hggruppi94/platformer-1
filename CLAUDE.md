@@ -2,9 +2,11 @@
 
 A Godot 4.7 3D platformer built by Hayden from Sofi's characters and drawings. The player makes their own hero in the
 character creator (since Oct 23, 2026: before that the player was Nina, who is now a friend in town). They live on
-**Earth**, in a small Stars Hollow style town. During the Shift (midnight to 1 AM, Earth time) the portal by the old
-oak opens to **the Void**, the alien town, and that one Earth hour lasts a whole Void day (7 AM to 7 AM). At 1 AM
-the portal pulls them home to Earth (since Oct 28, 2026: before that they lived in the Void and visited Earth).
+**Earth**, in a small Stars Hollow style town (since Oct 28, 2026: before that they lived in the Void and visited
+Earth). The crack by the old oak leads to **the Void**, the alien town. Since Nov 14, 2026 nothing waits on the clock:
+once the oak's awake the crack is open any time, jumping in makes it the Shift (Earth's midnight, the Void's dawn),
+the Void's day loops round for as long as they stay, and going home lands them on Earth the next morning. Only The
+First Night keeps the old shape (its fall at midnight, the pull home at the Void's dawn).
 
 Read this first in every session so each iteration builds on the last one and doesn't start over.
 
@@ -124,6 +126,152 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     layout, walk_through, earth, party, meetings pass. Previews: `tools/capture_text_windows.gd` (before and after in
     the project files under world/previews/text_windows).
   - My choices Hayden may change: where the board and Mr. Palmer stand now, shrinking (not cutting) the to-do list.
+- 2026-11-14: **Nothing in the game waits on the clock, and Pass the time is gone** (Hayden, after the 13 Nov Pass the
+  time buttons: "I didnt mean to add time skip buttons, I mean everything should be playable all the way through
+  without needing to skip time at all"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **The crack by the old oak is open any time** once the oak's awake (`earth_world.gd _door_open()`). Jumping in
+    (`Game.go()` -> `_between_worlds()` -> `Clock.into_the_void()`) sets Earth to midnight and the Void to dawn, so
+    it's the Shift. Going home (`Clock.home_from_void()`) ends the Shift and lands them at 7 AM the next morning, so
+    Earth's day only goes forward and the town's awake. The pause menu's way on Earth is "Go through the crack to the
+    Void". A new game's oak is asleep until the hero's made (`HummingOak.awake()` checks `Game.needs_creator`).
+  - **The Void's day never ends by itself** (`Clock.endless()`, everything but The First Night): at its dawn Earth's
+    clock wraps back to midnight, no 6 AM warning, no pull home, and sleeping there doesn't end the Shift.
+  - **The First Night** keeps its fall at midnight, but its evening runs at 12x (`Clock.earth_speed()`), and its home
+    step pulls them home by itself 14 s in (`first_night.gd _pull_soon()`), with a warning at 6 s.
+  - **No more waits:** Rex's campaign has no waits and no time windows (posters straight after the report, the rally
+    any time, Mr. Palmer's window answers any time). A friend the step you're on points at stays out instead of going
+    home or to school (`Quests.needs()`, `routine.gd stay_out()`). Your first crop grows 8x as fast (`Farm.first_boost()`).
+    Festivals, fairs, Melody's show and seasonal quests are left on their days: they're extras, and the Season Dial
+    reaches every season.
+  - **Gone:** `scripts/pass_time.gd`, the pause menu's Pass the time page, the bed's "Until the Shift", "Go to the Void
+    at midnight", and the midnight / 1 AM messages. The watch, the HUD, the map and the Divine Mind say the crack's open.
+  - Tests: test_clock, test_earth, test_cracks, test_quests, test_map, test_time_watch, test_first_hour updated; the
+    whole suite and `tools/playthrough.gd -- all` (it now jumps straight back through the crack each visit).
+  - My choices Hayden may change: home at 7 AM, the 12x first evening, the 14 s pull home, the 8x first crop.
+- 2026-11-14: **Secret shortcuts, road tunnels, sliding bumpers and pop-up walls on every circuit** (Hayden's 13 Nov
+  2026 playtest: "The races need a lot of work; moving maps, obstacles, secret shortcuts, tunnels"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **Secret shortcuts** (`Races.TRACKS` `"shortcuts"`, built by `scripts/race_circuit.gd _plan_shortcuts()` /
+    `_shortcut()`): one per circuit, the Lily Tunnel (Lake Loop), Root Run (Meadow Wiggle), Star Tunnel (Observatory
+    Hill) and Corn Cut (Pumpkin Run). A gap in the wall on the inside of a bend (`_open`), hidden behind a curtain of
+    vines (cornstalks on Earth) you ride straight through, then a lit tunnel across the middle and back out further
+    round, 30 to 60 m shorter. Riding it through moves you on past the rings it skips (`Races._in_shortcut()`,
+    `_took_shortcut()`); the first time it shouts "SECRET SHORTCUT!" and pays 3 sparkles (`SHORTCUT_PRIZE`, flag
+    `race_shortcut_<track>_<n>`). In at the wrong end counts for nothing. The board says "Secret shortcut: ???" until
+    it's found, and Zippy and Pepper drop a hint once you've raced. Rivals stay on the road.
+  - **Road tunnels** (`"tunnels"`, `_road_tunnel()`): an arch over the road with lamps and a name: the Crystal Tunnel,
+    Mushroom Tunnel, Stargazer Tunnel and the Covered Bridge. Its roof joins group `race_roof`, so the racing line
+    isn't dropped onto it (`RaceTrack.ground_at`).
+  - **Sliding bumpers** (`"slider"`) glide from side to side across the road, and **pop-up walls** (`"popup"`) glow
+    for 0.9 s, then rise out of the road for 1.7 s in every 4.2 (a jelly block with eyes in the Void, a crate on
+    Earth). Both bounce you back like a bumper (`race_attacks.gd`), you ride over a pop-up wall when it's down, and
+    rivals steer round them. Some obstacles moved a little to keep clear of the shortcuts' mouths.
+  - Tests: new `tools/test_race_tracks.gd`; `test_races` (walls skip a shortcut's opening), race_tutorial, earth_race,
+    race_intros, boosters, ride_upgrades, map and schematics pass. Previews: `tools/capture_race_tracks.gd` (shots in
+    the project files under world/previews/race_tracks).
+  - My choices Hayden may change: the names, where each shortcut goes, 3 sparkles, the curtains' look, the obstacles'
+    timings. Not done from the note: "moving maps" (if that means parts of the track that move, the sliders and
+    pop-up walls are a start).
+
+- 2026-11-14: **Every boss is tougher, the Gloop King faces the right way, and his court floods with goo** (Hayden's
+  13 Nov 2026 playtest: "the gloop king faces backwards when you start his fight. Can we add a mechanic where the arena
+  fills with slime? And we need to make all the bosses harder with more health"). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **More health** (damage is unchanged: still bumps, never more): Gloop King 6 to 12, Frost Gloop and Riptide Gloop 6
+    to 10, Grandfather Tock and the Dawn Snatcher 8 to 13, Boulderdillo 10 to 16, the Stormram 8 to 13, the Off-Beat 8
+    to 12, Captain Glitch 9 to 15, the Hush 8 to 13, the centipede's game 6 to 10 (she burrows from 5), Mama Glorp and
+    Big Buzz 9 to 15, the Gloam 8 to 13, the Agent of Chaos 30 to 45 chaos (phases at 30 and 15; the friends' sections
+    hold him at 31 / 16 / 1; a rewind gives back 4). Helpers come at about a third and two-thirds.
+  - **Tougher attacks:** the Gloop King (and the Gloops built on him) flops every 5 s (was 6), Tock chimes every 6 s
+    (7), the Boulderdillo rests 1.6 s between rolls (2), the Riptide pulls every 7.5 s (9), Captain Glitch's volleys
+    2.0 s (2.4), the Hush's rings 6 s (7), Big Buzz stays up 4.4 s (5), the Gloam's waves 6.5 s (7.5).
+  - **He faces the right way** (`gloop_kingdom.gd _add_king()`): his whole body was turned round to face down the
+    court, but Gloops steer by turning their Visual to their world heading, so once he moved he walked backwards. Now
+    only his Visual is turned at the start.
+  - **The court floods** (`scripts/slime_flood.gd`, node "Slime Flood" at the court's middle): 10 s into his fight,
+    then every 20 s (14 when he's cross), the goo-falls gush (a warning, 2.5 s), the court fills with goo 0.6 m deep
+    (2 s), stays 6 s and drains (2 s). In it you're slowed to half and every 2 s it bumps you (1, towards the nearest
+    pad). Eight gold-rimmed **Royal Lily Pads** (1 m high, `PADS`) and the throne's dais stand clear of it. Each flood
+    burps up one Gloop of his court. Popping him drains it for good.
+  - **Ammo for boss fights** (`Arsenal.supply_boss(boss, reach, count)`): every boss puts 3 ammo crates (4 round the
+    King's court and round the Agent of Chaos) in a ring round where it starts, dropped onto the floor, and they come
+    back 25 s after a pop (`ammo_crate.gd regrow`, meta `boss_supply`). The Star Popper's top-up to 10 still works too.
+  - Tests: gloop_kingdom (facing, crates, the flood, 12 pops), gloop_king, boss_versions, time_goblins, arena,
+    chaos_fight, chaos_trials, far_future, frozen_moment, lanternmoor, arsenal and the rest of the boss worlds updated
+    to read each boss's own number; see the PR for the full list.
+  - My choices Hayden may change: every number above, the flood's timing and depth, the pads' places, the bump.
+
+- 2026-11-14: **Signs you can read walking in, name tags that stay behind walls, and a slimmer Seer** (Hayden's 13 Nov
+  2026 playtest: "the signs arent always orientated the right way for you to read them when entering a new area (the
+  gloop kingdom sign when you enter)", "Tally's name is visibile through objects", "Can we make the seer a little
+  skinnier"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Signs:** the Gloop Kingdom's three signs (`gloop_kingdom.gd _sign()`) had their writing on the far side of the
+    board, so walking in you saw the back. The label now sits on the board's +Z face. New **`tools/audit_signs.gd`**
+    loads every place you arrive in (the Gloop Kingdom, the Star Arena, all nine portal worlds, the four circuits, Dusk's
+    Embrace, the Secret Garden, the school, the Observatory) and fails if a flat sign within 120 m of the way in (and on
+    your floor) faces away; signs written on both sides and race boards (they face the road) are skipped. Everything else
+    already faced the way in.
+  - **Name tags:** Tally's name (`request_alien.gd`, node "Name Tag") and every townsfolk name and "Press F" prompt
+    (`talker.gd _label()`) are depth tested now, so walls, roofs and stalls hide them. Tally's tag also only shows
+    within 12 m (`NAME_RANGE`), like everyone else's only shows close up. `test_request_board` checks it.
+  - **The Seer** (`seer.gd`): build 1.12 -> 0.94, and her shawl and skirt are narrower to match.
+  - Tests: audit_signs, request_board, gloop_kingdom, council, townsfolk, first_night, layout, walk_through, dialogue
+    (both runs), earth, party and meetings pass. Previews in the project files under world/previews/signs_tags_seer.
+  - My choices Hayden may change: how slim she is, 12 m for Tally's tag.
+
+- 2026-11-13 (replaced on 14 Nov: Hayden didn't want skip buttons, see the entry above): **No waiting around for the
+  clock: Pause > "Pass the time", and "Go to the Void at midnight"** (Hayden:
+  "There's a lot locked behind time. We need to make the game playable all the way through without forcing the player
+  to wait"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/pass_time.gd`** (no class_name, preload it): `choices()` lists where the clock can jump to from here.
+    On Earth: morning (7 AM), noon, evening (6 PM), night (9 PM), the crack opening (midnight) and the next **Saturday
+    fair** on the green. In the Void: noon, evening (5 PM), night, midnight, early morning (5 AM: still "morning" for
+    lines that want the daytime) while that's still in the Shift, and dawn, which ends the Shift and the portal takes
+    you home. `run(length)` fades out, races the clock's numbers round, `Clock.sleep()`s, saves and fades back in
+    ("Time flies! It's ..."). Routines, watered crops and quest waits follow the jump the way they follow the bed's. Not in a portal world or on a race circuit (their clocks stand still), not mid-race, in a
+    talk, a cutscene or anything holding the controls (`why_not()`), and not on Earth while the crack's open (go
+    through instead). No HP refill: that's still the bed's.
+  - **Pause menu** (`scripts/pause_menu.gd`): a **Pass the time** button (new `clock` icon in `ui_icons.gd`) opens a page
+    of those times. On Earth outside the Shift, once they've been through, **Go to the Void at midnight**
+    (`way_home()`, so the player menu's Save sheet has it too) passes the time to midnight and goes straight through
+    the crack. The pulled-home message, the 1 AM message and the watch (T) say so.
+  - **No spoilers, and The First Night's rules:** before the first fall nothing names the crack, the Shift or the Void
+    and there's no quick way to the Void; the first day still never passes 6 PM until the town and the board are done
+    (`FirstNight.earth_hold_minutes()`); its evening stops at midnight ("Until late at night"), when the ground cracks
+    open. The watch's "The crack by the old oak opens at midnight" line now only shows once the oak's awake.
+  - **Quest waits in hours** (`Quests.is_waiting()`): a step's `"wait"` can say `"hours"` (the Void's hours, from
+    `since_at`, saved in the quest's state; old saves count from that day's dawn). Rex's campaign was the only quest
+    with day waits: the posters now take 3 hours and Mr. Palmer's window 8 (after the evening rally, so first thing in
+    the morning), with Rex's "come back tomorrow" lines changed to match.
+  - Already no waiting before this: the story quests start as soon as the one before is done (scripts/meetings.gd),
+    portal worlds open by the story (`Portals.quake_due`), worlds have no timer, the Season Dial switches seasons, and
+    practice trips (Settings > Assist) visit any world.
+  - Tests: new `tools/test_pass_time.gd`; the whole suite and `tools/playthrough.gd -- all` (see the PR). Previews:
+    `tools/capture_pass_time.gd` (shots in the project files under world/previews/pass_time).
+  - My choices Hayden may change: the stops and their times, the fair stop, the button names, no HP refill, being able
+    to skip a night's Shift by passing the time to the morning.
+
+- 2026-11-14: **Blueprints are prizes now, and winning a race first time wins something** (Hayden's 13 Nov 2026 playtest:
+  "Instead of randomly finding blueprints, make them rewards for completing races/quests", "unique rewards for finishing
+  first, something to incentivize the player to race"). Built and tested in the cloud (own Godot user folders, no save
+  touched). This replaces the 11 Nov rule that gadget blueprints lie in the worlds that fit them.
+  - **No gadget blueprint lies on the ground any more** (`Schematics.LIST` `"reward"`): the Star Popper's is Dash's
+    thank-you for catching his Buzz Bot (`bb_thanked`, `Meetings.thanks_from_dash()`, his lines and `quests/bike_boy.json`
+    say so); the Fizz Flinger, Buzz Bots, Rainbow Ray and Plushinator are the first-win prizes of the Lake Loop, Meadow
+    Wiggle, Observatory Hill and Pumpkin Run (`Schematics.for_race()`); the Disco Ball is Melody's thank-you when Rhythm
+    Springs is mended and the Jelly Mines Otto's when the Tide Reef is (`teach_lines()`). `Schematics.award(id)` sets
+    `schematic_<id>` and says who gave it; old saves that already earned one get it a moment after loading
+    (`_check_rewards()`, only outside that world). Rides' schematics stay on their nights.
+  - **First-win prizes** (`Races.first_prize()`): the circuits give those blueprints; the Sky Rings the **Aviator Cap**,
+    the Hollow Run the **Lantern Hat**, the Skyway Run the **Rocket Helmet** (`FIRST_HATS`); winning all four circuits
+    the **Champion's Helmet** (`CHAMPION_HAT`, `champion()`). New hats in `cosmetics.gd` and `shop/items.json`
+    (`"reward": true`). Each race's board says what winning it gives ("WIN IT for...", then "Won: ..."), the gate's
+    board lists every circuit's prize (smaller text), Zippy and Pepper mention them, and the results say what you won.
+  - Tests: `test_schematics` rewritten for rewards, `test_race_tutorial` checks the prizes; races, meetings, arsenal,
+    rhythm_springs, tide_reef, dialogue, first_night, nights, shop and more pass, and `tools/playthrough.gd -- all` (now
+    buying the gadgets it was given) passes start to ending. Previews: `tools/capture_race_prizes.gd` (shots in the
+    project files under world/previews/race_prizes).
+  - My choices Hayden may change: which race or friend gives which gadget, the three hats and the helmet.
 
 - 2026-11-14: **A clear start on every circuit, and a race tutorial** (Hayden's 13 Nov 2026 playtest: "THE LAKE LOOP RACE
   STARTS OFF WITH A BUMPER RIGHT IN FRONT OF YOU. there needs to be a tutorial for starting races"). Built and tested in

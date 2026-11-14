@@ -253,7 +253,7 @@ func _check_snatcher() -> void:
 	await _physics(30)
 	var before: int = rem.count
 	player.global_position = Vector3(0, 0.6, 20)                          # out of his reach while he's popped
-	for i in 8:
+	for i in 3 * int(g.stomps_to_defeat):
 		if is_instance_valid(g) and not g.defeated:
 			g.shot(1, g.global_position, Vector3.FORWARD)
 	await _frames(4)
