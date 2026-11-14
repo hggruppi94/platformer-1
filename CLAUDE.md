@@ -147,6 +147,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     race_tracks, race_tutorial, earth_race, race_intros, race_life, first_hour and layout pass. Previews:
     `tools/capture_race_flow.gd` (shots in the project files under world/previews/race_flow).
   - My choices Hayden may change: 5 coins a set, how many sets, 8 s and +2 m/s, the look of the coins and the flow.
+- 2026-11-14: **The Frozen Moment's fish and snowmen carry on, Pip's moth wings are a back piece you keep, and the
+  Gloop King's subjects fight harder** (Hayden's 14 Nov 2026 playtest: "does it make sense that the fish is jumping
+  into an ice lake? Can the snowmen continuously throw snowballs at each other? the moth wings float over the players
+  head ... it can become an equipable cape", "the gloop kings subjects arent aggressive enough"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **The fish** (`frozen_moment.gd moment_model(0)`): its hole is now a real hole broken through the ice: dark open
+    water ("Water"), a ring that ripples once it moves ("Ripple"), nine broken ice slabs tipped up round it and a heap
+    of snow. Once thawed (or the world's mended) it keeps leaping out and diving back in every ~3 s
+    (`_moments_carry_on()`, `_fish_leap()`, `leaps`).
+  - **The snowmen** ("SnowmanL" / "SnowmanR") take turns lobbing snowballs at each other every ~1.1 s for good once
+    thawed: the thrower leans back, the ball arcs over and splats, the other wobbles (`_throw_snowball()`, `throws`).
+  - **Pip's moth wings** are shop item `moth_wings` (a back piece, `"reward": true`; `clothes.gd hat_or_piece`, node
+    `Clothes.MOTH_WINGS` with "WingL"/"WingR" pivots), fitted to the hero's back like the other back pieces (they used
+    to be stuck to the Visual at a fixed height, over the head). Pip gives them to keep and puts them on
+    (`lanternmoor.gd give_wings()`); old saves that met Pip get them next visit. **They glide wherever you wear them**
+    (`player.gd glide_speed()`, `wearing_moth_wings()`, `MOTH_GLIDE` 1.2; `glide_fall` is still how a scene lends a
+    glide). They fold back while you walk and spread and beat while you glide (`_flap_moth_wings()`). The final
+    fight's Pip section puts them on and puts back what you wore (`chaos_trials.gd _give_wings()`).
+  - **His subjects** (`gloop.gd`: new exports `pounce`, `pounce_range`, `pounce_every`, `pounce_speed`, `pack`; off
+    for every other Gloop): close up they crouch for 0.45 s (the warning) and leap at you; one that spots you calls
+    its pack in (`alert()`, 20 m, 4 s). His four guards (`gloop_kingdom.gd SUBJECT`: sight 16, chase 4.3) and every
+    Gloop in his court fight that way. When he wakes, two courtiers jump down off the stands into the fight, then
+    another every 14 s (`_jump_down()`, at most 3 at once, `jumpers()`), and he calls three at a time, not two
+    (`gloop_king.gd court_stats`, `court_call`). Popping him bubbles the jumpers away.
+  - Tests: frozen_moment, lanternmoor (the wings on the back, below the head and behind), gloop_kingdom (jumpers,
+    guards, a real crouch and leap), chaos_trials, clothing_fit and the whole suite. Previews:
+    `tools/capture_world_tweaks.gd` (shots in the project files under world/previews/world_tweaks).
+  - My choices Hayden may change: gliding anywhere in the wings, Pip putting them on for you, how often the fish leaps
+    and the snowmen throw, the subjects' numbers (leap range, speed, how many jump in).
 
 - 2026-11-14: **The race circuits come alive: things go off all round you as you race** (Hayden: "I want the maps to
   feel like they are alive and things are happening all around"; our own set pieces, nothing copied). Built and tested

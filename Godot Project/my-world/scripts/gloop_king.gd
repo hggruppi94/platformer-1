@@ -27,6 +27,8 @@ var _cross := false                           # under half his goo: quicker, flo
 var _base := []
 var title := NAME                             # the name over the meter (the Frost Gloop, scripts/frost_gloop.gd, has its own)
 var ring_colour := Color(0.6, 0.85, 0.15)     # the goo ring's colour: green goo for the King
+var court_stats := {}                         # set on every Gloop he calls in (his kingdom's fiercer subjects)
+var court_call := 2                           # how many he calls in each time
 
 
 func _ready() -> void:
@@ -135,10 +137,11 @@ func _hurt_message(_stomped: bool) -> void:
 		due = 1
 	while _calls_made < due:
 		_calls_made += 1
-		_call_court(2)
+		_call_court(court_call)
 
 
 func _call_court(count: int) -> void:
+	# (also called by his kingdom when the fight starts: scripts/gloop_kingdom.gd)
 	_court.assign(_court.filter(func(n: Node) -> bool: return is_instance_valid(n)))
 	for i in count:
 		if _court.size() >= MAX_COURT:
@@ -147,6 +150,8 @@ func _call_court(count: int) -> void:
 		g.name = "Courtier Gloop %d" % randi_range(100, 999)
 		g.set("respawns", false)
 		g.set("xp_reward", 2)
+		for k in court_stats:
+			g.set(k, court_stats[k])
 		get_parent().add_child(g)
 		var a := randf() * TAU
 		g.global_position = global_position + Vector3(cos(a), 0.4, sin(a)) * (1.6 * size)

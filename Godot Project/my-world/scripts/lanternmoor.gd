@@ -11,7 +11,8 @@ extends "res://scripts/portal_world.gd"
 #            Catch them (run into them, or pop a bubble at them) and they fly home into it
 # With all three lit, the Dawn Snatcher wakes on Sunrise Hill when you come near. Pop him and the world mends
 # (Portals.clear): the dawn floats out of his clock and up into the sky, and the night turns to morning.
-# Pip, the moth kid, waits by the way in, and the first time you talk they lend you their moth wings. They only work here.
+# Pip, the moth kid, waits by the way in, and the first time you talk they give you their moth wings to keep (a back piece
+# you can wear anywhere, scripts/clothes.gd: they glide wherever you wear them).
 # Nothing here hurts more than a normal bump; falling off the tree or the rock just lands you softly on the moor.
 # Slice two, the reward: as the sun comes up Pip teaches you Pip's glow (scripts/pip_glow.gd: in the dark you shine,
 # anywhere), and a hollow opens in the moor near the way in, down into the Glimmer Caves (scripts/glimmer_caves.gd),
@@ -25,7 +26,6 @@ const TEACH_AFTER := DAWN_TIME + 1.5      # seconds after the Snatcher's popped:
 const LANTERNS := 5
 const BEACON_NAMES := ["the Night Path's beacon", "the beacon on Moon Rock", "the Lantern Grove's beacon"]
 const LIGHTS := 3
-const GLIDE_FALL := 1.2                   # m/s: with the moth wings, holding Jump while falling floats you down this slowly
 const WAKE_NEAR := 16.0                   # coming this close to Sunrise Hill with all three beacons lit wakes him
 const FLEE_NEAR := 6.0                    # a runaway light flits off when you're this close...
 const LIGHT_SPEED := 3.6                  # ...this fast (slower than you run: chase it into the grove's edge)
@@ -53,7 +53,6 @@ var _lights: Array = []                   # the runaway lights still loose (Node
 var _homing := 0                          # caught lights still flying home to the beacon
 var _moth_mm: MultiMesh
 var _moths: Array = []                    # [centre, radius, speed, phase, height] for each moth
-var _wings: Node3D
 var _t := 0.0
 var caves: Node3D                         # the Glimmer Caves, once it's mended (scripts/glimmer_caves.gd)
 
@@ -128,8 +127,8 @@ func setup() -> void:
 	if not Portals.is_cleared(world_id):
 		_add_snatcher()
 	set_dawn(1.0 if Portals.is_cleared(world_id) else 0.0)
-	if Portals.has_found(world_id, "met_pip") or Portals.is_cleared(world_id):
-		give_wings()
+	if (Portals.has_found(world_id, "met_pip") or Portals.is_cleared(world_id)) and not Game.has_item("shop:moth_wings"):
+		give_wings()                                       # (met Pip before the wings were yours to keep)
 	if Portals.is_cleared(world_id):
 		open_caves()
 	if not Portals.is_cleared(world_id) and beacons_lit() == 0 and not Portals.has_found(world_id, "met_pip"):
@@ -220,47 +219,26 @@ func _swap(marker: Node3D, child: String, model: Node3D) -> void:
 func _look_across() -> void:
 	if has_wings():
 		return
-	Game.message("Too far to jump. If only you had wings...")
+	Game.message("Too far to jump. Wear Pip's moth wings!" if Game.has_item("shop:moth_wings")
+		else "Too far to jump. If only you had wings...")
 	Audio.play("ui_back", -8.0)
 
 
 # Pip's moth wings ---------------------------------------------------------------------------------------------------
+# Since 14 Nov 2026 (Hayden's playtest) the wings are a back piece you keep, like a cape (shop item "moth_wings",
+# scripts/clothes.gd): Pip gives them and puts them on, and they glide wherever you wear them (scenes/player/player.gd).
 func has_wings() -> bool:
-	return _wings != null and is_instance_valid(_wings)
+	var player := get_tree().get_first_node_in_group("player")
+	return player != null and bool(player.call("wearing_moth_wings"))
 
 
 func give_wings() -> void:
-	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
-	if player == null or has_wings():
-		return
-	player.set("glide_fall", GLIDE_FALL)
-	var visual := player.get_node_or_null("Visual") as Node3D
-	if visual == null:
-		return
-	_wings = wings_model()
-	_wings.name = "Moth Wings"
-	visual.add_child(_wings)
-
-
-static func wings_model() -> Node3D:
-	# Two pairs of soft, see-through moth wings in Pip's own pink with glowing yellow spots, worn on the back (the
-	# model faces +Z)
-	var g := Node3D.new()
-	g.position = Vector3(0, 1.05, -0.18)
-	var wing := _mat(Color(1.0, 0.62, 0.85, 0.65), 0.4, 0.4)
-	wing.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	wing.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var spot := _mat(Color(1.0, 0.9, 0.4), 1.5)
-	for side in [-1.0, 1.0]:
-		var pivot := Node3D.new()
-		pivot.name = "WingL" if side < 0 else "WingR"
-		g.add_child(pivot)
-		var upper := _put(pivot, _ball(0.3), wing, Vector3(side * 0.32, 0.12, 0), Vector3(1.1, 1.0, 0.08), Vector3(0, 0, side * -0.5))
-		upper.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		var lower := _put(pivot, _ball(0.2), wing, Vector3(side * 0.24, -0.2, 0), Vector3(1.0, 1.0, 0.08), Vector3(0, 0, side * 0.4))
-		lower.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_put(pivot, _ball(0.06), spot, Vector3(side * 0.38, 0.16, 0.01), Vector3(1, 1, 0.3))
-	return g
+	# Theirs to keep, and on their back (whatever was there comes off: they can swap it back at a wardrobe)
+	if not Game.has_item("shop:moth_wings"):
+		Game.give_item("shop:moth_wings")
+	if str(Game.outfit.get("back", "")) != "moth_wings":
+		Game.outfit["back"] = "moth_wings"
+		Game.equipment_changed.emit()
 
 
 # The runaway lights -------------------------------------------------------------------------------------------------
@@ -716,7 +694,6 @@ func _process(delta: float) -> void:
 		return
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	_move_lights(player, delta)
-	_flap_wings(player, delta)
 	_face_player(player, delta)
 	if Portals.is_cleared(world_id):
 		return
@@ -724,20 +701,6 @@ func _process(delta: float) -> void:
 	if not snatcher_awake and player and hill and beacons_lit() == 3 \
 			and player.global_position.distance_to(hill.global_position) < WAKE_NEAR:
 		wake_snatcher()
-
-
-func _flap_wings(player: Node3D, delta: float) -> void:
-	# The moth wings fold in when you walk, spread wide and beat slowly while you glide
-	if not has_wings() or player == null:
-		return
-	var open := bool(player.get("gliding"))
-	for k in ["WingL", "WingR"]:
-		var w := _wings.get_node_or_null(k) as Node3D
-		if w == null:
-			continue
-		var side := -1.0 if k == "WingL" else 1.0
-		var want := (0.15 + sin(_t * 6.0) * 0.25) if open else 1.1
-		w.rotation.y = lerp_angle(w.rotation.y, side * want, minf(1.0, delta * 8.0))
 
 
 func _face_player(player: Node3D, delta: float) -> void:

@@ -123,7 +123,7 @@ var _tick := 0.0
 var _safe := Vector3.ZERO                     # the player's last spot outside the sludge
 var _wet_for := 0
 var _told := {}
-var _wings: Node3D
+var _back_was := "moth_wings"              # what was on your back before the moth wings went on for the glow bit
 var _glide_was := 0.0
 var _model_was := Transform3D.IDENTITY
 
@@ -250,7 +250,7 @@ func _end(ok: bool) -> void:
 
 func cleanup() -> void:
 	# Everything this go put out (the gear and the tower stay until his clock closes again: they're how you reach it)
-	if current == "glow" or _wings != null:
+	if current == "glow" or _back_was != "moth_wings":
 		_take_wings()
 	if current == "glow":
 		_free_dark()
@@ -406,23 +406,28 @@ func _update_glow(_delta: float) -> bool:
 
 
 func _give_wings() -> void:
+	# Pip's moth wings on your back for this bit (their own back piece, scripts/clothes.gd), whatever you were wearing
+	# goes back on afterwards
 	var p := _player()
 	_glide_was = float(p.get("glide_fall"))
 	p.set("glide_fall", 1.2)
-	var visual := p.get_node_or_null("Visual") as Node3D
-	if visual and visual.get_node_or_null("Moth Wings") == null:
-		_wings = load("res://scripts/lanternmoor.gd").call("wings_model")
-		_wings.name = "Moth Wings"
-		visual.add_child(_wings)
+	_back_was = str(Game.outfit.get("back", ""))
+	if _back_was != "moth_wings":
+		Game.outfit["back"] = "moth_wings"
+		Game.equipment_changed.emit()
 
 
 func _take_wings() -> void:
 	var p := _player()
 	if p:
 		p.set("glide_fall", _glide_was)
-	if _wings != null and is_instance_valid(_wings):
-		_wings.queue_free()
-	_wings = null
+	if _back_was != "moth_wings" and str(Game.outfit.get("back", "")) == "moth_wings":
+		if _back_was == "":
+			Game.outfit.erase("back")
+		else:
+			Game.outfit["back"] = _back_was
+		Game.equipment_changed.emit()
+	_back_was = "moth_wings"
 
 
 func _free_dark() -> void:

@@ -219,6 +219,10 @@ func _check_moments() -> void:
 	check(not (s.get_node("Moment1/Moment/Thing") as Node3D).visible and not (s.get_node("Moment3/Moment/Thing") as Node3D).visible,
 		"the fish splashed back in and the bird flew off")
 	check(not (s.get_node("Moment2/Moment/Shell") as Node3D).visible, "the ice shells are gone")
+	# Hayden's playtest, 14 Nov 2026: the fish has a real hole in the ice, and once thawed the moments carry on
+	check(s.get_node_or_null("Moment1/Moment/Water") != null, "the fish's hole is open water in the ice")
+	check(int(s.leaps) >= 1, "the fish keeps leaping out of its hole and back in (%d leaps)" % s.leaps)
+	check(int(s.throws) >= 3, "the snowmen keep throwing snowballs at each other (%d throws)" % s.throws)
 
 
 func _check_gloop() -> void:

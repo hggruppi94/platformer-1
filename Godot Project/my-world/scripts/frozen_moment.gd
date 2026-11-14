@@ -7,8 +7,9 @@ extends "res://scripts/portal_world.gd"
 #   Moment2  a snowball fight on top of Snowball Hill, the snowballs hanging mid-throw (jump up the snowy steps)
 #   Moment3  a snowbird mid-flight at the far end of the icicle cave
 # Chip a moment's ice three times (Interact, or a Star Popper bubble) and it thaws: the fish splashes back in, the
-# snowballs fly, the bird flies out of the cave. With all three thawed the Frost Gloop (scripts/frost_gloop.gd), frozen
-# on its throne at the far end, cracks out of its ice when you come near. Pop it and the world mends
+# snowballs fly, the bird flies out of the cave. The fish and the snowmen carry on from then on: the fish keeps
+# leaping out of its hole and back in, and the snowmen keep up their snowball fight. With all three thawed the Frost
+# Gloop (scripts/frost_gloop.gd), frozen on its throne at the far end, cracks out of its ice when you come near. Pop it and the world mends
 # (Portals.clear): the snow starts falling and the clock ticks on.
 # Flurry, the arctic fox kid (a chosen one, working name), waits by the way in. She's the only thing here that still
 # moves, and she's shy: talking to her says what to do next. The ice slide from the top of the hill brings you down.
@@ -37,6 +38,16 @@ var _t := 0.0
 var _tick := 0.0
 var _second := 0.0                         # the clock's second hand (radians)
 var _flying := false                       # the snowbird's flying off (wings flapping)
+# Once thawed, the moments carry on for good (Hayden's playtest, 14 Nov 2026): the fish keeps leaping out of its hole
+# and diving back in, and the two snowmen keep pelting each other with snowballs
+const FISH_EVERY := 3.2                    # seconds between the fish's leaps
+const THROW_EVERY := 1.1                   # seconds between snowballs (the snowmen take turns)
+var _fish_wait := 1.5
+var _fish_busy := false
+var _throw_wait := 0.8
+var _thrower := 0
+var leaps := 0                             # how many times the fish has leapt (tests)
+var throws := 0                            # how many snowballs have flown (tests)
 
 
 func picture() -> void:
@@ -492,6 +503,7 @@ func _process(delta: float) -> void:
 				w.rotation.z = sin(_t * 18.0) * 0.8 * (1.0 if k == "WingL" else -1.0)
 	if has_meta("preview"):
 		return
+	_moments_carry_on(delta)
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	_face_player(player, delta)
 	if Portals.is_cleared(world_id):
@@ -512,6 +524,85 @@ func _face_player(player: Node3D, delta: float) -> void:
 		return
 	var want := atan2(to.x, to.z) - (m.get_parent() as Node3D).global_rotation.y
 	m.rotation.y = lerp_angle(m.rotation.y, want, minf(1.0, delta * 4.0))
+
+
+func _moments_carry_on(delta: float) -> void:
+	var fish_on := is_thawed(0) or Portals.is_cleared(world_id)
+	var fight_on := is_thawed(1) or Portals.is_cleared(world_id)
+	var ripple := get_node_or_null("Moment1/Moment/Ripple") as Node3D
+	if ripple:                                           # the open water rings gently once it's moving again
+		var k := fmod(_t * 0.6, 1.0) if fish_on else 0.0
+		ripple.scale = Vector3(0.6 + k * 1.1, 0.05, 0.6 + k * 1.1)
+	if fish_on and not _fish_busy:
+		_fish_wait -= delta
+		if _fish_wait <= 0.0:
+			_fish_wait = FISH_EVERY * randf_range(0.8, 1.3)
+			_fish_leap()
+	if fight_on:
+		_throw_wait -= delta
+		if _throw_wait <= 0.0:
+			_throw_wait = THROW_EVERY * randf_range(0.8, 1.25)
+			_throw_snowball(_thrower)
+			_thrower = 1 - _thrower
+
+
+func _fish_leap() -> void:
+	# Up out of the hole in a splash, a curving arc, and head first back into the water on the far side
+	var m := get_node_or_null("Moment1/Moment") as Node3D
+	if m == null:
+		return
+	var fish := m.get_node("Thing") as Node3D
+	_fish_busy = true
+	leaps += 1
+	var side := 1.0 if leaps % 2 == 0 else -1.0
+	var from := Vector3(-0.45 * side, -0.3, 0)
+	var to := Vector3(0.45 * side, -0.3, 0)
+	fish.position = from
+	fish.scale = Vector3(side, 1, 1)                     # it faces the way it's going
+	fish.visible = true
+	Fx.burst(self, m.global_position + Vector3(from.x, 0.1, 0), Color(0.6, 0.85, 1.0), 8, 0.06, 2.5, -6.0, 0.6)
+	Juice.blip("whoosh", 1.8, -14.0)
+	var tw := create_tween()
+	tw.tween_method(func(k: float) -> void:
+		fish.position = from.lerp(to, k) + Vector3(0, sin(k * PI) * 1.6, 0)
+		fish.rotation.z = lerpf(0.9, -0.9, k) * side, 0.0, 1.0, 0.9)
+	tw.tween_callback(func() -> void:
+		Fx.burst(self, m.global_position + Vector3(to.x, 0.1, 0), Color(0.6, 0.85, 1.0), 12, 0.07, 3.0, -6.0, 0.7)
+		Juice.blip("whoosh", 1.5, -12.0)
+		fish.visible = false
+		_fish_busy = false)
+
+
+func _throw_snowball(who: int) -> void:
+	# One snowman leans back and lobs a snowball over to the other, which splats on him
+	var thing := get_node_or_null("Moment2/Moment/Thing") as Node3D
+	var g := get_node_or_null("Moment2/Moment") as Node3D
+	if thing == null or g == null:
+		return
+	var by := g.get_node_or_null("SnowmanL" if who == 0 else "SnowmanR") as Node3D
+	var at := g.get_node_or_null("SnowmanR" if who == 0 else "SnowmanL") as Node3D
+	if by == null or at == null:
+		return
+	throws += 1
+	var dir := signf(at.position.x - by.position.x)
+	var lean := create_tween()
+	lean.tween_property(by, "rotation:z", dir * 0.18, 0.12)
+	lean.tween_property(by, "rotation:z", -dir * 0.12, 0.1)
+	lean.tween_property(by, "rotation:z", 0.0, 0.25)
+	var ball := _put(thing, _ball(0.15), _mat(Color(0.97, 0.98, 1.0), 0.0, 0.95), by.position + Vector3(dir * 0.5, 1.5, 0.25))
+	ball.name = "Thrown Snowball"
+	var from := ball.position
+	var to := at.position + Vector3(-dir * 0.3, 1.3 + randf_range(-0.2, 0.4), randf_range(-0.15, 0.15))
+	var tw := ball.create_tween()
+	tw.tween_method(func(k: float) -> void:
+		ball.position = from.lerp(to, k) + Vector3(0, sin(k * PI) * 0.9, 0), 0.0, 1.0, 0.55)
+	tw.tween_callback(func() -> void:
+		Fx.burst(self, ball.global_position, Color(1, 1, 1), 8, 0.06, 2.2, -5.0, 0.5)
+		Juice.blip("thud", 1.4, -16.0)
+		var wob := at.create_tween()
+		wob.tween_property(at, "rotation:z", dir * 0.1, 0.07)
+		wob.tween_property(at, "rotation:z", 0.0, 0.2)
+		ball.queue_free())
 
 
 # Looks --------------------------------------------------------------------------------------------------------------
@@ -576,7 +667,31 @@ static func moment_model(i: int) -> Node3D:
 	var shell_scale := Vector3.ONE * 1.4
 	match i:
 		0:                                                   # the leaping fish, over its hole in the ice
-			_put(g, _cone(0.9, 0.9, 0.04), _mat(Color(0.1, 0.25, 0.4), 0.0, 0.05), Vector3(0, 0.02, 0))
+			# A real hole broken through the lake's ice (Hayden's playtest, 14 Nov 2026: a fish jumping into an ice
+			# lake didn't make sense): dark open water, a ragged rim of broken ice slabs tipped up round it and a
+			# ring of snow, so it reads as a fishing hole the fish can go in and out of
+			var water := _cone(0.95, 0.95, 0.05)
+			water.radial_segments = 20
+			var deep := _put(g, water, _mat(Color(0.04, 0.16, 0.3), 0.15, 0.02), Vector3(0, 0.035, 0))
+			deep.name = "Water"
+			var ripple := TorusMesh.new()
+			ripple.inner_radius = 0.42
+			ripple.outer_radius = 0.5
+			ripple.rings = 20
+			var rip := _put(g, ripple, _mat(Color(0.55, 0.8, 1.0), 0.6, 0.05), Vector3(0, 0.065, 0), Vector3(1, 0.05, 1))
+			rip.name = "Ripple"
+			var slab := _mat(Color(0.8, 0.92, 1.0), 0.1, 0.1)
+			for k in 9:
+				var a := k * TAU / 9.0 + 0.2
+				var chunk := BoxMesh.new()
+				chunk.size = Vector3(0.42 + 0.12 * (k % 3), 0.12, 0.26)
+				_put(g, chunk, slab, Vector3(cos(a) * 1.05, 0.1, sin(a) * 1.05), Vector3.ONE,
+					Vector3(0, -a, 0.25 + 0.12 * (k % 2)))     # (yawed round the hole, tipped up at its inner edge)
+			var heap := TorusMesh.new()
+			heap.inner_radius = 1.05
+			heap.outer_radius = 1.55
+			heap.rings = 24
+			_put(g, heap, snow, Vector3(0, 0.04, 0), Vector3(1, 0.25, 1))
 			var fish := _mat(Color(1.0, 0.6, 0.35), 0.15, 0.3)
 			thing.position = Vector3(0, 1.3, 0)
 			thing.rotation.z = 0.6
@@ -590,6 +705,7 @@ static func moment_model(i: int) -> Node3D:
 		1:                                                   # the snowball fight: two snowmen, three snowballs mid-throw
 			for s in [-1.0, 1.0]:
 				var man := Node3D.new()
+				man.name = "SnowmanL" if s < 0 else "SnowmanR"
 				man.position = Vector3(s * 2.1, 0, 0)
 				g.add_child(man)
 				_put(man, _ball(0.55), snow, Vector3(0, 0.5, 0))

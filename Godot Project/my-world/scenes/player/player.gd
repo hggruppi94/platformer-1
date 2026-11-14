@@ -139,10 +139,13 @@ const BUMP_MIN := 4.0                 # m/s straight into a wall before it's a b
 const BUMP_FULL := 12.0               # ...and the hardest bump (a sprint or a booster rush)
 const BUMP_STUN := 0.14               # seconds the bounce back can't be steered out of
 const LAND_SOUNDS := {"water": "splash", "cloud": "fwump", "crystal": "step_crystal", "mushroom": "boing"}
-# Gliding: while glide_fall is over 0 (only in Lanternmoor, where Pip lends moth wings; the player is part of each
-# scene, so it's gone again everywhere else), holding Jump while falling slows the fall to this many metres a second.
+# Gliding: while glide_speed() is over 0, holding Jump while falling slows the fall to that many metres a second. Pip's
+# moth wings (scripts/lanternmoor.gd gives them; a back piece in scripts/clothes.gd) glide wherever you wear them;
+# glide_fall is for a scene lending a glide for a while (the Agent of Chaos fight, scripts/chaos_trials.gd).
+const MOTH_GLIDE := 1.2
 var glide_fall := 0.0
 var gliding := false
+var _moth_wings: Node3D                     # the worn moth wings' piece, found again after each change of clothes
 const ICE_GRIP := 0.12                      # on ice (anything in the "ice" group) she speeds up and stops this much slower
 const MUSHROOM_BOUNCE := 9.5                # landing on a big mushroom cap bounces her up this fast
 
@@ -476,7 +479,35 @@ func facing_dir() -> Vector3:
 	return Vector3(sin(visual.rotation.y), 0.0, cos(visual.rotation.y))
 
 
+func wearing_moth_wings() -> bool:
+	return rider == "hero" and str(Game.outfit.get("back", "")) == "moth_wings"
+
+
+func glide_speed() -> float:
+	return maxf(glide_fall, MOTH_GLIDE if wearing_moth_wings() else 0.0)
+
+
+func _flap_moth_wings(delta: float) -> void:
+	# The moth wings fold back while you walk, then spread wide and beat slowly while you glide
+	if not wearing_moth_wings():
+		_moth_wings = null
+		return
+	if _moth_wings == null or not is_instance_valid(_moth_wings):
+		_moth_wings = model.find_child(Clothes.MOTH_WINGS, true, false) as Node3D if model else null
+		if _moth_wings == null:
+			return
+	var t := Time.get_ticks_msec() / 1000.0
+	for k in ["WingL", "WingR"]:
+		var w := _moth_wings.get_node_or_null(k) as Node3D
+		if w == null:
+			continue
+		var side := -1.0 if k == "WingL" else 1.0
+		var want := (0.15 + sin(t * 6.0) * 0.25) if gliding else Clothes.MOTH_FOLDED + sin(t * 1.5) * 0.06
+		w.rotation.y = lerp_angle(w.rotation.y, side * want, minf(1.0, delta * 8.0))
+
+
 func _physics_process(delta: float) -> void:
+	_flap_moth_wings(delta)
 	if _hat and _hat.has_node("Propeller"):
 		(_hat.get_node("Propeller") as Node3D).rotate_y(delta * 14.0)    # the propeller cap spins
 	if burrow.active and (carried or Game.riding):
@@ -532,9 +563,10 @@ func _physics_process(delta: float) -> void:
 		velocity += gravity * delta
 		velocity.y = maxf(velocity.y, -_zone_min("fall_cap", 1000.0))       # floaty in clouds and the bath
 		# Moth wings (Pip lends them in Lanternmoor, scripts/lanternmoor.gd): holding Jump on the way down glides
-		gliding = glide_fall > 0.0 and velocity.y < 0.0 and Input.is_action_pressed("jump") and not input_locked
+		var glide := glide_speed()
+		gliding = glide > 0.0 and velocity.y < 0.0 and Input.is_action_pressed("jump") and not input_locked
 		if gliding:
-			velocity.y = maxf(velocity.y, -glide_fall)
+			velocity.y = maxf(velocity.y, -glide)
 	else:
 		gliding = false
 

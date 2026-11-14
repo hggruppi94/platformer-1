@@ -46,6 +46,8 @@ const OWN_CLOTHES := {
 	"mr_palmer": {"top": ["Suit", "Suit Shade"], "feet": ["Shoes", "Sole"]},
 }
 const BACKPACKS := ["Backpack", "Backpack Mesh", "Backpack Dark", "Zipper"]
+const MOTH_WINGS := "Moth Wings"             # the moth wings' piece (worn on the back, it lets you glide)
+const MOTH_FOLDED := 1.0                     # how far back each moth wing folds while you're not gliding (radians)
 
 # Restyles: [main colour, second colour (pattern, trim, soles), pattern]
 const RESTYLE := {
@@ -1067,6 +1069,29 @@ static func hat_or_piece(slot: String, id: String) -> Node3D:
 				_mesh(g, _sphere(0.22), wing, Vector3(s * 0.22, 0.85, -0.3), Vector3(0, s * 0.5, s * 0.4), Vector3(1.0, 1.2, 0.08))
 				_mesh(g, _sphere(0.14), wing, Vector3(s * 0.17, 0.58, -0.28), Vector3(0, s * 0.5, -s * 0.5), Vector3(1.0, 1.0, 0.08))
 				_mesh(g, _sphere(0.05), spot, Vector3(s * 0.26, 0.9, -0.33), Vector3.ZERO, Vector3(1, 1, 0.3))
+		"moth_wings":                                      # Pip's, from Lanternmoor (scripts/lanternmoor.gd)
+			# Two pairs of soft, see-through moth wings in Pip's own pink with glowing yellow spots, fixed between her
+			# shoulder blades like the other back pieces (Hayden's playtest, 14 Nov 2026: the old ones floated over
+			# the player's head). Each side hangs from its own pivot ("WingL", "WingR") so it can fold back while she
+			# walks and spread and beat while she glides (scenes/player/player.gd _flap_moth_wings).
+			g.name = MOTH_WINGS
+			var wing := _mat(Color(1.0, 0.62, 0.85, 0.65), 0.4, 0.0, 0.4)
+			wing.cull_mode = BaseMaterial3D.CULL_DISABLED
+			var spot := _mat(Color(1.0, 0.9, 0.4), 0.4, 0.0, 1.5)
+			# A soft fuzzy root between the shoulder blades, where both pairs join (it keeps them against her back)
+			_mesh(g, _sphere(0.07), _mat(Color(0.95, 0.75, 0.9), 0.9), Vector3(0, 0.74, -0.27), Vector3.ZERO, Vector3(1.4, 1.0, 0.8))
+			for s in [-1, 1]:
+				var pivot := Node3D.new()
+				pivot.name = "WingL" if s < 0 else "WingR"
+				pivot.position = Vector3(s * 0.04, 0.74, -0.31)
+				pivot.rotation.y = s * MOTH_FOLDED
+				g.add_child(pivot)
+				var upper := _mesh(pivot, _sphere(0.26), wing, Vector3(s * 0.27, 0.12, 0), Vector3(0, 0, s * -0.5), Vector3(1.1, 1.0, 0.08))
+				var lower := _mesh(pivot, _sphere(0.17), wing, Vector3(s * 0.2, -0.17, 0), Vector3(0, 0, s * 0.4), Vector3(1.0, 1.0, 0.08))
+				for w in [upper, lower]:
+					(w as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				_mesh(pivot, _sphere(0.05), spot, Vector3(s * 0.33, 0.15, 0.012), Vector3.ZERO, Vector3(1, 1, 0.3))
+				_mesh(pivot, _sphere(0.035), spot, Vector3(s * 0.22, -0.2, 0.012), Vector3.ZERO, Vector3(1, 1, 0.3))
 		"super_cape":
 			var cloth := _mat(Color(0.95, 0.25, 0.45), 0.6)
 			# Hanging from her shoulders, just touching her back at the top; its gold collar goes round her neck
