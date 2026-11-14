@@ -12,6 +12,26 @@ extends Node3D
 
 const WIDTH := 0.05
 const SPREAD := 0.12                      # radians between the two beams with Split
+# The beam wobbles (Hayden, 14 Nov 2026: "Can we make the rainbow ray beam wobbly?"): each stripe is a long thin box
+# cut into many slices along its length, and this bends it side to side and up and down in waves that run out from
+# the wand, still at the wand and widest towards the far end, so the stripes ripple together like a ribbon of light.
+const WOBBLE_SHADER := """shader_type spatial;
+render_mode unshaded, cull_disabled, shadows_disabled;
+uniform vec4 colour : source_color = vec4(1.0);
+uniform float phase = 0.0;
+instance uniform float span = 1.0;
+void vertex() {
+	float along = clamp(0.5 - VERTEX.z, 0.0, 1.0);      // 0 at the wand, 1 at the far end (the beam looks down -Z)
+	float metres = along * span;
+	float amp = 0.16 * smoothstep(0.0, 1.6, metres) * (0.55 + 0.45 * along);
+	VERTEX.x += sin(metres * 1.7 - TIME * 9.0 + phase) * amp;
+	VERTEX.y += cos(metres * 1.15 - TIME * 6.5 + phase * 0.6) * amp * 0.75;
+	VERTEX.xy *= 1.0 + 0.25 * sin(metres * 3.0 - TIME * 14.0);
+}
+void fragment() {
+	ALBEDO = colour.rgb;
+}
+"""
 const STRIPES := [Color(1.0, 0.45, 0.6), Color(1.0, 0.85, 0.3), Color(0.45, 1.0, 0.6), Color(0.4, 0.8, 1.0),
 	Color(0.75, 0.55, 1.0)]
 
@@ -184,6 +204,8 @@ func _draw_beams(pieces: Array) -> void:
 		var up := Vector3.UP if absf((z - a).normalized().dot(Vector3.UP)) < 0.95 else Vector3.RIGHT
 		b.global_transform = Transform3D(Basis.looking_at(z - a, up), (a + z) / 2.0)
 		b.scale = Vector3(1, 1, span)
+		for mi in b.get_children():
+			(mi as GeometryInstance3D).set_instance_shader_parameter("span", span)
 
 
 func _beam() -> Node3D:
@@ -194,13 +216,27 @@ func _beam() -> Node3D:
 		var mi := MeshInstance3D.new()
 		var bm := BoxMesh.new()
 		bm.size = Vector3(WIDTH, WIDTH, 1.0)
+		bm.subdivide_depth = 60                      # slices along it, so it can bend
 		mi.mesh = bm
-		var m := StarBubble._flat(STRIPES[k])
-		mi.material_override = m
+		mi.material_override = _wobble(STRIPES[k], k * 0.15)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.position = Vector3((k - (STRIPES.size() - 1) / 2.0) * WIDTH, 0, 0)
 		root.add_child(mi)
 	return root
+
+
+static var _wobble_shader: Shader
+
+
+static func _wobble(c: Color, phase: float) -> ShaderMaterial:
+	if _wobble_shader == null:
+		_wobble_shader = Shader.new()
+		_wobble_shader.code = WOBBLE_SHADER
+	var m := ShaderMaterial.new()
+	m.shader = _wobble_shader
+	m.set_shader_parameter("colour", c)
+	m.set_shader_parameter("phase", phase)
+	return m
 
 
 func _exit_tree() -> void:

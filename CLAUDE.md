@@ -99,6 +99,40 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **A look pass: real alien mountains, ground with detail everywhere, big waterfalls with secret coves, a
+  new spot for Dusk's Embrace's gate, a fox tail for Flurry, a wobbly rainbow, and plants that part round your outline**
+  (Hayden's 14 Nov 2026 playtest). Built and tested in the cloud (own Godot user folders, no save touched). All put in
+  at play time by the new autoload **`WorldDetail`** (`scripts/world_detail.gd`) as each scene loads, so no built
+  `.tscn` changed.
+  - **Mountains** (`scripts/alien_mountains.gd`): every cone under a "Mountains" node (the town, and the school's
+    3rd-floor view) is hidden and a jagged, faceted peak stands in its place (ridges from ridged noise, lower summits
+    round it, a ragged foot): indigo rock with paler bands, icy lavender snow up high, now and then glowing crystals. A
+    taller, paler range of 16 stands behind. Same seed every time; nothing solid.
+  - **Ground** (`scripts/ground_detail.gdshader`): every big flat ground mesh in every scene (`ground_meshes()`: 10 m+
+    both ways, flat, a plain material; never water, goo, roads, roofs or walls) keeps its colour and gets soft patches,
+    mottling, grain, grass streaks and pebble flecks close up (fading out with distance, so nothing shimmers), rock
+    bands on steep slopes, and in the Void specks that twinkle. No textures.
+  - **Waterfalls** (`scripts/big_falls.gd`): the plateau's two, the castle's two, Mossy Falls and Rhythm Springs' mesa
+    falls are rebuilt bigger: a cascade down the cliff, a rock arch, two curtains, foam, spray, mist, a faint rainbow
+    and a rushing sound. Behind each is a **secret cove** (walk through the curtain and you're splashed): a solid rock
+    floor, glowing crystals and glowcaps, and a chest that pays 6 sparkles and 1 Remnant once (flag
+    `cove_<place>_<id>`). A fall slides along its cliff if its cove would land in a building (`_clear_spot()`: the
+    castle's east one moved 15 m off a tower).
+  - **Dusk's Embrace's gate** (`scripts/dusk_gate.gd`, builder `_scary_gate` agrees): it stood alone in a meadow, a
+    bit of wall you could walk round. Now it's the Haunted House's old back garden gate, 19 m out of the house's back
+    and facing it, with stepping stones to it, in a ring wall round a hollow stuck at dusk (dead trees, the hollow log,
+    purple mist over the wall, fireflies, blinking eyes). Its Talk spot and way back out moved with it.
+  - **Flurry's tail** (`frozen_moment.gd fox_tail()`): a normal bushy fox tail that droops down and back with a frosty
+    tip; the cat body's own thin tail is tucked away on her copy of the mesh (`_tuck_cat_tail()`).
+  - **The Rainbow Ray** (`rainbow_ray.gd`): each stripe waves and wobbles along its length, more towards the far end.
+  - **Riding through plants** (`scenes/town/foliage.gd`): they bend away from a capsule the size of your body, so the
+    gap is your outline, not a big circle round you.
+  - Tests: new `tools/test_world_detail.gd`; layout, map, walk_through, earth (both runs), rhythm_springs,
+    frozen_moment, scary_world, dark_hollow, arsenal and the rest listed in the PR pass. Previews:
+    `tools/capture_world_detail.gd` (before and after in the project files under world/previews/world_detail).
+  - My choices Hayden may change: the mountains' colours and how many, how strong the ground's detail is, the coves'
+    reward, the gate's new spot and the hollow, the tail's shape, how much the beam wobbles.
+
 - 2026-11-14: **Spray paint shows on windows** (Hayden: "I noticed the paint is behind the window"). The builders make
   windows (and many signs and trims) as thin meshes stuck a little way out from a wall, with only the wall's collision
   behind them, so paint landed on the wall and was hidden behind the glass. `Paint.outside(at, normal)` moves a spot
