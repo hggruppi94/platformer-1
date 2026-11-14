@@ -448,7 +448,7 @@ func _fill() -> void:
 				for b in row.find_children("*", "Button", false, false):
 					(b as Button).disabled = Shop.owned_for(slot).is_empty()
 		"Void":
-			_content.add_child(_label("When you cross into the Void you change a little: your watch on your wrist, a glow in your eyes and one alien feature. Pick yours!", 18, Color(0.85, 0.85, 1.0)))
+			_content.add_child(_label("In the Void you change a little. Pick a feature!", 18, Color(0.85, 0.85, 1.0)))
 			var grid := GridContainer.new()
 			grid.name = "Void features"
 			grid.columns = 2

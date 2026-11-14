@@ -7,7 +7,7 @@
   "steps": [
     {
       "id": "ask",
-      "text": "Rex wants to know what the Void needs. Ask around town!",
+      "text": "Ask what the Void needs.",
       "checklist": [
         [
           "asked_dash",
@@ -19,7 +19,7 @@
         ],
         [
           "asked_pip",
-          "Ask Pip (out to see the lamps in the evening)"
+          "Ask Pip"
         ],
         [
           "asked_rook",
@@ -65,23 +65,23 @@
     },
     {
       "id": "posters",
-      "text": "Hang Rex's VOTE REX posters around town.",
+      "text": "Hang 4 VOTE REX posters.",
       "checklist": [
         [
           "poster_1",
-          "The signpost west of the Market"
+          "Signpost west of the Market"
         ],
         [
           "poster_2",
-          "The signpost by the dock"
+          "Signpost by the dock"
         ],
         [
           "poster_3",
-          "The signpost by the Homes gate"
+          "Signpost by the Homes gate"
         ],
         [
           "poster_4",
-          "The noticeboard in the Market Square"
+          "Market noticeboard"
         ]
       ],
       "done": {
@@ -95,7 +95,7 @@
     },
     {
       "id": "rally",
-      "text": "Rex is giving a speech at the Market Square fountain. Go cheer him on!",
+      "text": "Cheer Rex's speech at the fountain!",
       "override": {
         "rex": {
           "place": "market",
@@ -116,7 +116,7 @@
     },
     {
       "id": "palmer",
-      "text": "Take Rex's ideas to Mr. Palmer, the mayor. Knock on his office window at the Town Hall.",
+      "text": "Tell Mr. Palmer Rex's ideas.",
       "done": {
         "flag": "palmer_said_no"
       },
@@ -126,7 +126,7 @@
     },
     {
       "id": "finale",
-      "text": "Tell Rex what Mr. Palmer said.",
+      "text": "Tell Rex what he said.",
       "done": {
         "flag": "campaign_done"
       },
@@ -137,7 +137,7 @@
   ],
   "reward": {
     "item": "campaign_sash",
-    "message": "Rex gave you his VOTE REX sash! (And he's Future Mayor Rex now.) (+15 sparkles)",
+    "message": "Rex's VOTE REX sash is yours! +15 sparkles.",
     "sparkles": 15
   },
   "titles": {

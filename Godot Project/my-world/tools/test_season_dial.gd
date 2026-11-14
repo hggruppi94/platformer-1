@@ -231,7 +231,7 @@ func _check_turning() -> void:
 	# Nina knows about it, and so does the Calendar sheet
 	quests.state["first_snow"] = {"step": 0, "done": true, "since_day": 1}     # (her winter quest comes first)
 	var nina: Array = dialogue.pick_conversation("nina_earth")
-	check(" ".join(nina.map(func(l) -> String: return str(l))).contains("old stone dial"), "Nina talks about the dial (%s)" % str(nina).left(120))
+	check(" ".join(nina.map(func(l) -> String: return str(l))).contains("stone dial"), "Nina talks about the dial (%s)" % str(nina).left(120))
 	var menu := root.get_node("PlayerMenu")
 	menu.call("open", "calendar") if menu.has_method("open") else null
 	await _frames(3)

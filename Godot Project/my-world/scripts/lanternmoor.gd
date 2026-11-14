@@ -133,7 +133,7 @@ func setup() -> void:
 	if Portals.is_cleared(world_id):
 		open_caves()
 	if not Portals.is_cleared(world_id) and beacons_lit() == 0 and not Portals.has_found(world_id, "met_pip"):
-		Game.message.call_deferred("Lanternmoor: it's night, and the sun just won't come up. Someone's fluttering by the way in...")
+		Game.message.call_deferred("Lanternmoor: the sun won't come up!")
 
 
 func _own_sky() -> void:
@@ -220,7 +220,7 @@ func _swap(marker: Node3D, child: String, model: Node3D) -> void:
 func _look_across() -> void:
 	if has_wings():
 		return
-	Game.message("Moon Rock's much too far to jump to. If only you had wings... Pip's by the way in.")
+	Game.message("Too far to jump. If only you had wings...")
 	Audio.play("ui_back", -8.0)
 
 
@@ -310,7 +310,7 @@ func catch_light(i: int) -> bool:
 	_lights.erase(l)
 	var n := lights_caught()
 	Juice.blip("sparkle", 1.2 + n * 0.15, -4.0)
-	Game.message("You caught a runaway light! (%d of %d)" % [n, LIGHTS] if n < LIGHTS else "That's all three! They're flying home...")
+	Game.message("Caught a light! (%d of %d)" % [n, LIGHTS] if n < LIGHTS else "That's all three! They're flying home...")
 	var beacon := get_node_or_null("Beacon3") as Node3D
 	if l == null or beacon == null:
 		if n >= LIGHTS:
@@ -410,36 +410,32 @@ func pip_lines() -> Array:
 	if Portals.is_cleared(world_id):
 		var found: int = caves.moths_found() if caves else 0
 		if found >= GLIMMER_CAVES.MOTHS.size():
-			return ["All five moonmoths came home! Listen to them, they're humming. That's moth for thank you.",
-				"The Glimmer Caves are yours to explore whenever you like. Your glow knows the way now."]
+			return ["All five moonmoths are home! Hmmmm!"]
 		if found > 0:
-			return ["%d moonmoth%s home, %d still lost in the Glimmer Caves." % [found, "" if found == 1 else "s",
+			return ["%d moonmoth%s home, %d lost!" % [found, "" if found == 1 else "s",
 				GLIMMER_CAVES.MOTHS.size() - found],
-				"They only show up in your glow. Look high, look low, and look across the pool!"]
-		return ["Look at that morning! I'm a moth, I'm supposed to like the night, but nights are cosier when you know the morning's coming.",
-			"Don't forget the Glimmer Caves, down the hollow by the way in. Your glow lights them up.",
-			"There's a moth lift at the bottom: hold {jump} in it and it floats you back up."]
+				"Look for them in your glow!"]
+		return ["Look at that morning!",
+			"Try the Glimmer Caves! Your glow lights them."]
 	if not Portals.has_found(world_id, "met_pip"):
 		Portals.note_found(world_id, "met_pip")
 		give_wings()
-		return ["{player}! You found Lanternmoor! This is my home. Isn't it glowy?",
-			"But it's been night for ages and ages. The sun just... won't... come... up.",
-			"A big grumpy Time Goblin snatched the dawn and shut it in his clock. He's asleep on Sunrise Hill, hugging it.",
-			"If we light the three beacons, the dawn might be strong enough to get out!",
-			"Oh! Here, have some wings. Moth wings! Hold {jump} on the way down and you'll float. Like me!",
-			"One beacon's at the end of the Night Path, one's on Moon Rock, and one's in the Lantern Grove."]
+		return ["You found Lanternmoor! My home!",
+			"But the sun won't come up.",
+			"A Time Goblin snatched the dawn!",
+			"Light three beacons to free it!",
+			"Here, moth wings! Hold {jump} to float!"]
 	var left: Array = []
 	for i in 3:
 		if not is_beacon_lit(i):
-			left.append(["light the five lanterns along the Night Path", "glide to Moon Rock from the top of the Tall Lantern Tree",
-				"catch the runaway lights in the Lantern Grove"][i])
+			left.append(["the Night Path", "Moon Rock",
+				"the Lantern Grove"][i])
 	if left.size() > 0:
-		return ["%d beacon%s lit! It's getting brighter, I can feel it." % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
-			if left.size() < 3 else "Remember: hold {jump} while you're falling, and your wings float you.",
+		return ["%d beacon%s lit!" % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
+			if left.size() < 3 else "Hold {jump} to float!",
 			"Still to do: %s." % ", and ".join(left)]
-	return ["All three beacons! The Dawn Snatcher's waking up on Sunrise Hill...",
-		"Pop him with bubbles or stomps! When his clock goes BONG, jump the rings.",
-		"I'll hold my lantern up so you can see. Go, go, go!"]
+	return ["All three! The Dawn Snatcher's waking up...",
+		"Pop him! When it goes BONG, jump!"]
 
 
 func _talk_pip() -> void:
@@ -495,7 +491,7 @@ func _look_at_snatcher() -> void:
 	if snatcher_awake:
 		return
 	var left := 3 - beacons_lit()
-	Game.message("A huge Time Goblin, snoring, with a golden glow shut up in his clock hat: the dawn! Light the %d beacon%s first." % [left, "" if left == 1 else "s"]
+	Game.message("A snoring goblin. Light %d beacon%s first!" % [left, "" if left == 1 else "s"]
 		if left > 0 else "He's stirring...")
 	Audio.play("ui_back", -8.0)
 
@@ -513,7 +509,7 @@ func wake_snatcher() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("pop", 0.5, -2.0)
-	Game.message("The Dawn Snatcher wakes up, grumpy! Bubbles or stomps pop him. When his clock goes BONG, jump the rings!")
+	Game.message("He's awake! Pop him! Jump the rings!")
 
 
 func mend() -> void:
@@ -559,12 +555,10 @@ func open_caves() -> void:
 
 
 func teach_lines() -> Array:
-	return ["{player}, wait! Before you go, I want to give you something. My glow!",
-		"Moths are made of a little bit of moonlight. Now you are too.",
-		"Whenever it's dark, you'll glow. Caves, tunnels, the night time. No buttons, it just happens!",
-		"And look, the morning opened up the old hollow by the way in. It goes down into the Glimmer Caves.",
-		"It's SO dark down there, nobody's been in for ages. Five of my moonmoths got lost in there, too.",
-		"Your glow will light the way. Crystals wake up when it touches them, and there's a bridge only glow can see!"]
+	return ["Wait! Here's my glow!",
+		"Now you glow in the dark!",
+		"And look! The Glimmer Caves opened up.",
+		"Five of my moonmoths are lost in there."]
 
 
 func _teach_glow(tries := 0) -> void:
@@ -580,7 +574,7 @@ func _teach_glow(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Pip", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "lanternmoor_glow")
 	else:
-		Game.message("New: Pip's glow! In the dark you shine. The Glimmer Caves have opened by the way in.")
+		Game.message("New: Pip's glow! You shine in the dark.")
 
 
 func is_morning() -> bool:

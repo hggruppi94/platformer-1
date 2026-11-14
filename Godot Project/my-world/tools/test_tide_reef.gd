@@ -458,7 +458,7 @@ func _check_mended() -> void:
 		t += 1
 	check(s.otto_near(player.global_position, 4.0), "Otto's bubble still comes along with you")
 	var chat: Array = s.otto_lines()
-	check(chat.size() == 2 and not "no use, really" in " ".join(chat), "...and he's happy to chat")
+	check(not chat.is_empty() and not "no use, really" in " ".join(chat), "...and he's happy to chat")
 
 
 func _check_swim() -> void:

@@ -141,7 +141,7 @@ func buy(id: String) -> bool:
 	var wrapped_for := Requests.wrap(id) if str(it.kind) == "snack" else ""
 	match str(it.kind):
 		"snack" when wrapped_for != "":
-			_say("Wrapped up with a bow for %s! (Now go and find them.)" % wrapped_for)    # a request board delivery
+			_say("Wrapped for %s! Go find them." % wrapped_for)    # a request board delivery
 		"snack":
 			Game.hp = mini(Game.hp + int(it.get("hp", 0)), Game.max_hp)
 			Game.mp = mini(Game.mp + int(it.get("mp", 0)), Game.max_mp)
@@ -505,7 +505,7 @@ func _fill_wardrobe() -> void:
 	# else Nina owns), then their looks (arrows through the colours)
 	var name: String = Rides.ride(who).rider
 	_title.text = "Your Wardrobe" if who == "hero" else "%s's Wardrobe" % name
-	_blurb.text = "Mix and match, for you or a friend! Buy more at the Clothing Boutique in the Market."
+	_blurb.text = "Mix and match! More at the Boutique."
 	_wallet.text = ""
 	for c in _rows.get_children():
 		_rows.remove_child(c)
@@ -583,8 +583,6 @@ func _fill_wardrobe() -> void:
 		var tip := Label.new()
 		tip.name = "Outfit Tip"
 		tip.text = "Hold %s anywhere to change outfits." % Settings.prompt("outfit_wheel")
-		if Skins.owned().size() < Skins.ORDER.size():
-			tip.text += " More skins come from requests, lost watches and races."
 		tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		tip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tip.add_theme_font_size_override("font_size", roundi(15 * Settings.text_scale))

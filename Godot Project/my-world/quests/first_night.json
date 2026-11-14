@@ -9,19 +9,19 @@
   "steps": [
     {
       "id": "morning",
-      "text": "It's a sunny morning in Stars Hollow, and someone's knocking! Say hi to Nina outside, then go and meet the town.",
+      "text": "Someone's knocking! Say hi to Nina, then meet the town.",
       "checklist": [
         [
           "fn_nina",
-          "Talk to Nina, outside your house"
+          "Talk to Nina"
         ],
         [
           "fn_palmer",
-          "Meet Mr. Palmer by the gazebo"
+          "Meet Mr. Palmer"
         ],
         [
           "fn_folk",
-          "Say hello to two more people round the green"
+          "Say hi to two more people"
         ]
       ],
       "done": {
@@ -96,19 +96,19 @@
     {
       "id": "board",
       "quiet": true,
-      "text": "Nina wants to show you the notice board on the green, by the gazebo. People in Stars Hollow pin up jobs there, and they pay sparkles!",
+      "text": "Nina wants to show you the notice board.",
       "checklist": [
         [
           "fn_board_look",
-          "Read the notice board by the gazebo"
+          "Look at the notice board"
         ],
         [
           "fn_board_follow",
-          "Follow a job, to put a star on your map"
+          "Follow a job"
         ],
         [
           "fn_board_job",
-          "Finish a job and turn it in at the board"
+          "Finish a job"
         ]
       ],
       "done": {
@@ -142,7 +142,7 @@
     },
     {
       "id": "evening",
-      "text": "What a first day! Nina's gone home for dinner. The evening's flying by in Stars Hollow. Have a look round, or head home to bed.",
+      "text": "What a day! Look round, or go home to bed.",
       "done": {
         "flag": "fn_fell"
       },
@@ -158,7 +158,7 @@
     },
     {
       "id": "shift",
-      "text": "The sky cracked open and dropped you in a strange new place, with six other kids! Tally, the one with the clipboard, wants a word.",
+      "text": "You fell into a strange new place! Talk to Tally.",
       "done": {
         "flag": "fn_met_tally"
       },
@@ -264,15 +264,15 @@
     },
     {
       "id": "day",
-      "text": "A whole day in the Void! Tally says Rex is at the Skate Park, and the Gloops round the Market need popping.",
+      "text": "A whole day in the Void! Explore!",
       "checklist": [
         [
           "fn_request",
-          "Finish a request from Tally's board"
+          "Finish a request for Tally"
         ],
         [
           "skate_lesson_push",
-          "Skate Park: push along with Rex, Rook and Coach Bruno"
+          "Skate Park: push along"
         ],
         [
           "skate_lesson_ollie",
@@ -280,11 +280,11 @@
         ],
         [
           "fn_gloops",
-          "Pop 3 Gloops: jump on them!"
+          "Jump on 3 Gloops"
         ],
         [
           "fn_fountain_watch",
-          "Find the lost watch on the Market fountain"
+          "Find the watch on the fountain"
         ]
       ],
       "done": {
@@ -317,7 +317,7 @@
     },
     {
       "id": "home",
-      "text": "What a day! Your new watch has started to tingle. Something's about to happen... (Then find Nina.)",
+      "text": "Your watch is tingling... (Then find Nina.)",
       "done": {
         "flag": "fn_home_nina"
       },
@@ -341,7 +341,7 @@
     }
   ],
   "reward": {
-    "message": "That was the first night of many. The crack by the old oak stays open now: jump in whenever you like. (+10 sparkles)",
+    "message": "The crack by the oak stays open now! (+10 sparkles)",
     "sparkles": 10
   }
 }

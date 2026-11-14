@@ -100,7 +100,7 @@ func _run() -> void:
 	check(not quests.is_log_open() and not paused and not root.get_node("PauseMenu").is_open(), "Pause closes the log (not opening the menu)")
 
 	var nag := await _talk("rex")
-	check(_said(nag, "How's the asking going"), "Rex while she's still asking: \"%s\"" % _first(nag))
+	check(_said(nag, "Ask Dash, Bramble, Pip and Rook"), "Rex while she's still asking: \"%s\"" % _first(nag))
 
 	# --- Asking around: Dash at his snack break, Bramble at her stall, Rook, and Pip once the lamps come on
 	clock.set_time(1, 12 * 60 + 45.0, true)

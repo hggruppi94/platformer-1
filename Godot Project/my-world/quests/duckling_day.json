@@ -7,13 +7,13 @@
   "steps": [
     {
       "id": "find",
-      "text": "Spring's here! Last night's shower scattered Mother Duck's five ducklings round Stars Hollow. Find them all: walk up to one and it follows you.",
+      "text": "Find 5 lost ducklings!",
       "checklist": [
-        ["duckling_1", "The duckling by the gazebo"],
-        ["duckling_2", "The duckling in the playground"],
-        ["duckling_3", "The duckling outside the bakery"],
-        ["duckling_4", "The duckling by the footbridge"],
-        ["duckling_5", "The duckling in the Tulip Field"]
+        ["duckling_1", "By the gazebo"],
+        ["duckling_2", "In the playground"],
+        ["duckling_3", "By the bakery"],
+        ["duckling_4", "By the footbridge"],
+        ["duckling_5", "In the Tulip Field"]
       ],
       "where": [
         {"at": [4.5, 9.5], "world": "earth", "unless": "duckling_1"},
@@ -31,7 +31,7 @@
     },
     {
       "id": "home",
-      "text": "Lead the ducklings home to Mother Duck, on the bank of Willow Pond by the dock.",
+      "text": "Lead them to Mother Duck.",
       "where": [
         {"at": [-67.5, 9.0], "world": "earth"}
       ],
@@ -44,7 +44,7 @@
     },
     {
       "id": "puddles",
-      "text": "The shower left puddles on the green. Jump in three of them with Nina!",
+      "text": "Puddle jump with Nina!",
       "checklist": [
         ["puddle_1", "A big puddle"],
         ["puddle_2", "A bigger puddle"],
@@ -64,7 +64,7 @@
     },
     {
       "id": "buns",
-      "text": "Dry off with warm honey buns at Crumb & Cauldron. Ask Poppy!",
+      "text": "Honey buns! Ask Poppy.",
       "where": ["poppy"],
       "override": {
         "nina_earth": {"place": "bakery", "do": "idle", "label": "duckling_day"}
@@ -76,6 +76,6 @@
   ],
   "reward": {
     "sparkles": 12,
-    "message": "Duckling Day: five ducklings home, three puddles splashed and honey buns with Nina. Happy spring! (+12 sparkles)"
+    "message": "Duckling Day done! Happy spring! +12 sparkles."
   }
 }

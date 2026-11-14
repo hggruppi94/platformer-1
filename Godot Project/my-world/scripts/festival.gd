@@ -96,7 +96,7 @@ func _pie_can_buy(_it: Dictionary) -> String:
 func _pie_buy(_it: Dictionary) -> String:
 	Game.items.append("contest_pie")
 	var f := fair()
-	return "A %s, boxed up with a bow! Take it to the judge at the %s (Saturday, %s)." % [f.bake, f.name, hours_text()]
+	return "A %s! Take it to the judge at the %s (Saturday, %s)." % [f.bake, f.name, hours_text()]
 
 
 # -----------------------------------------------------------------------------
@@ -244,11 +244,11 @@ func _announce(on: bool) -> void:
 	var f := fair()
 	if on and _told_day != -today:
 		_told_day = -today
-		Game.message("The %s is on the green till %d PM! Treats, the baking contest, %s and the %s." % [f.name,
-			int(f.end) - 12, str(f.game).to_lower(), f.ride])
+		Game.message("The %s is on the green till %d PM!" % [f.name,
+			int(f.end) - 12])
 	elif is_festival_day() and not on and Clock.earth_minutes < start_time() and Clock.hour() >= 6 and _told_day != today and _told_day != -today:
 		_told_day = today
-		Game.message("It's Saturday: the %s is on the green this evening, %s!" % [f.name, hours_text()])
+		Game.message("The %s is on the green tonight, %s!" % [f.name, hours_text()])
 
 
 var _told_hallows := 0
@@ -258,11 +258,11 @@ func _announce_hallows(on: bool) -> void:
 	var today := Clock.earth_day()
 	if on and _told_hallows != -today:
 		_told_hallows = -today
-		Game.message("Happy Hallow's Eve! The lanterns are lit on Maple Lane: knock on the doors for trick-or-treat till 9 PM.")
+		Game.message("Happy Hallow's Eve! Trick-or-treat on Maple Lane!")
 	elif is_hallows_eve() and not on and Clock.earth_minutes < HALLOWS.start and Clock.hour() >= 6 and _told_hallows != today \
 			and _told_hallows != -today:
 		_told_hallows = today
-		Game.message("It's Hallow's Eve! Trick-or-treat on Maple Lane from 5 PM.")
+		Game.message("Hallow's Eve! Maple Lane, from 5 PM.")
 
 
 func log_lines() -> Array[String]:
@@ -318,9 +318,9 @@ func judge_pie() -> Array:
 		return []
 	var bake := str(fair().bake)
 	if pie_day == today:
-		return ["Your %s's already got its ribbon, sweetheart! Go and enjoy the fair." % bake]
+		return ["Your %s already won, sweetheart!" % bake]
 	if not Game.has_item("contest_pie"):
-		return ["Have you got a %s for the baking contest? Poppy sells contest bakes at the bakery on Main Street. Hurry, the judging's tonight!" % bake]
+		return ["Got a %s? The contest bakes at the bakery!" % bake]
 	Game.items.erase("contest_pie")
 	pie_day = today
 	# The very first pie wins; after that the judges are a little harder to please (the same answer all evening)
@@ -331,17 +331,17 @@ func judge_pie() -> Array:
 	changed.emit()
 	Game.save_game()
 	var verdict := [
-		["(Dottie takes a bite. Her eyes go wide. She takes another bite.)", "Oh. Oh my. That's the best %s I've had since 1987!" % bake,
-			"FIRST PRIZE! A big blue ribbon for {player}! Oh, wait till Gus hears. He'll be so cross. Ha!"],
-		["(Dottie takes a bite and nods slowly.)", "Lovely crust. Lovely! A smidge more cinnamon next time, sweetheart.",
-			"SECOND PRIZE! A red ribbon for {player}! Poppy's lemon meringue just pipped you."],
-		["(Dottie takes a bite. Then a sip of %s. Then another bite.)" % ("cocoa" if Clock.season() == "winter" else ("lemonade"
+		["Oh my! The best %s EVER!" % bake,
+			"FIRST PRIZE! A blue ribbon for {player}!"],
+		["Lovely crust!",
+			"SECOND PRIZE! A red ribbon for {player}!"],
+		["(Dottie sips %s. Hmm.)" % ("cocoa" if Clock.season() == "winter" else ("lemonade"
 			if Clock.season() in ["spring", "summer"] else "cider")), "Hm! Interesting! Very... %s!" % {"autumn": "autumnal",
 			"winter": "wintry", "spring": "springy", "summer": "summery"}.get(Clock.season(), "autumnal"),
-			"THIRD PRIZE! A yellow ribbon, and everybody gets a ribbon for trying. That's the rule. I made it."],
+			"THIRD PRIZE! A yellow ribbon!"],
 	]
 	var out: Array = verdict[place].duplicate()
-	out.append("(✦ %d sparkles for the baking contest!)" % PIE_PRIZES[place])
+	out.append("(✦ %d sparkles!)" % PIE_PRIZES[place])
 	return out
 
 
@@ -371,14 +371,14 @@ func _lantern_hour() -> String:
 func lantern_lines() -> Array:
 	var today := Clock.earth_day()
 	if lanterns_up():
-		return ["Oh, the lanterns have all gone up! Aren't they beautiful? Like little stars going home."]
+		return ["The lanterns went up! Like little stars!"]
 	if lantern_day == today:
-		return ["You've got your lantern! Keep it safe. At %s o'clock, everyone lets theirs go together." % _lantern_hour()]
+		return ["Let your lantern go at %s o'clock!" % _lantern_hour()]
 	lantern_day = today
 	changed.emit()
-	return ["A lantern for you, {player}! Paper and string and a little candle, made by the library's craft club.",
-		"At %s o'clock we all let them go together. My grandmother said they carry wishes up to the stars." % _lantern_hour(),
-		"(You got a paper lantern. Be on the green at %d PM!)" % (int(fair().lanterns) - 12)]
+	return ["A lantern for you, {player}!",
+		"At %s o'clock we let them go. Make a wish!" % _lantern_hour(),
+		"(A lantern! The green, %d PM!)" % (int(fair().lanterns) - 12)]
 
 
 func let_lanterns_go() -> void:
@@ -388,7 +388,7 @@ func let_lanterns_go() -> void:
 	lantern_day = -lantern_day                  # (let go: no second one tonight)
 	lanterns_let_go += 1
 	Game.add_sparkles(LANTERN_PRIZE, "You let your lantern go!")
-	Game.message("Your lantern floats up with all the others, higher and higher, over the old oak.")
+	Game.message("Up it floats, over the old oak!")
 	changed.emit()
 
 
@@ -432,13 +432,13 @@ func kite_lines() -> Array:
 	# The kite stand at the foot of Lookout Hill (its spot is "Kite Stand"): a box of kites from the toy shop and a note
 	var today := Clock.earth_day()
 	if big_day_on() != "kites":
-		return ["(The kite stand's all packed up. Kite Day's on 14 Spring, from 10 till 5.)"]
+		return ["(Kite Day's on 14 Spring.)"]
 	if kite_day == today:
-		return ["(You've already got a kite. Up the hill with it: the wind's best right at the top!)"]
+		return ["(Fly it from the top of the hill!)"]
 	kite_day = today
 	changed.emit()
-	return ["(A note on the box: \"Happy Kite Day! Borrow a kite, fly it high, bring it back by five. Love, Otis, Gizmo & Gumdrop Toys.\")",
-		"(You take the one with a gold star on it. Now run it up Lookout Hill and let the wind do the rest!)"]
+	return ["(Happy Kite Day! Borrow a kite!)",
+		"(You take a star kite! Up the hill!)"]
 
 
 func _announce_big(on: String) -> void:
@@ -449,9 +449,9 @@ func _announce_big(on: String) -> void:
 	var b: Dictionary = BIG_DAYS[id]
 	if on != "" and _told_big != -today:
 		_told_big = -today
-		var start_line: String = {"lights": "Winter Lights on the green! The Winter Tree gets lit at 6 PM.",
-			"kites": "It's Kite Day! Borrow a kite at the stand by Lookout Hill and fly it from the top.",
-			"fireworks": "Firefly Night! Fireworks over Willow Pond till 11, and the big finale at 10."}[id]
+		var start_line: String = {"lights": "Winter Lights! The tree lights up at 6 PM.",
+			"kites": "Kite Day! Fly one from Lookout Hill!",
+			"fireworks": "Firefly Night! Fireworks at 10!"}[id]
 		Game.message(start_line)
 	elif on == "" and Clock.earth_minutes < b.start and Clock.hour() >= 6 and _told_big != today and _told_big != -today:
 		_told_big = today
@@ -477,16 +477,16 @@ static func _clock_words(m: float) -> String:
 
 # --- Hallow's Eve: trick-or-treat (scripts/hallows_eve.gd puts a lantern and a knock spot at each door) ------------
 const HALLOWS_DOORS := {
-	"palmer_house": ["Mr. Palmer", "(Mr. Palmer opens the door in a tall pointy hat.) Trick or... oh, I'm meant to say treat. Here. Don't tell anyone I'm fun."],
-	"blastoff_door": ["Mrs. Blastoff", "Oh, look at you! Nina's out with Prue and Bruno somewhere. Have a toffee apple, and one for the road!"],
-	"hollis_house": ["Miss Marigold", "Happy Hallow's Eve! A little bag of star-shaped biscuits, made at the library's craft club."],
-	"quill_house": ["Barnaby", "(Barnaby plays a spooky chord on his banjo.) Ooooh! Here, have a lollipop. And a second spooky chord. Ooooh!"],
-	"bramblewood_house": ["Hank", "Trick or treat, eh? I've got a treat. It's a carrot. ...Kidding! Chocolate coins. Don't tell Hank Jr."],
-	"okafor_house": ["Mrs. Okafor", "Juniper's already been out three times in three different costumes. Take two, sweetheart!"],
-	"pemberton_house": ["Mr. Pemberton", "Theo says knights don't trick-or-treat, they 'collect tribute'. Here's your tribute: a fudge square."],
-	"larkspur_house": ["Ozzie's dad", "Ozzie ate half the bowl before we opened the door. Here's what's left: one big gummy worm!"],
-	"home_1": ["Old Mrs. Fennimore", "Oh, a little monster! How frightening! Here's a peppermint. I've had it since last year. It's fine."],
-	"home_3": ["The Pickwicks", "(The whole family answers in matching pumpkin jumpers.) HAPPY HALLOW'S EVE! Have a cupcake!"],
+	"palmer_house": ["Mr. Palmer", "Here! Don't tell anyone I'm fun."],
+	"blastoff_door": ["Mrs. Blastoff", "Look at you! Have a toffee apple!"],
+	"hollis_house": ["Miss Marigold", "Happy Hallow's Eve! Star biscuits!"],
+	"quill_house": ["Barnaby", "Ooooh! Have a lollipop!"],
+	"bramblewood_house": ["Hank", "A carrot! ...Kidding! Chocolate coins!"],
+	"okafor_house": ["Mrs. Okafor", "Take two, sweetheart!"],
+	"pemberton_house": ["Mr. Pemberton", "Your tribute: a fudge square!"],
+	"larkspur_house": ["Ozzie's dad", "Ozzie ate most. Here's a gummy worm!"],
+	"home_1": ["Old Mrs. Fennimore", "A little monster! Here's a peppermint!"],
+	"home_3": ["The Pickwicks", "HAPPY HALLOW'S EVE! Have a cupcake!"],
 }
 
 
@@ -499,20 +499,20 @@ func knock(door: String) -> void:
 func treat_lines(door: String) -> Array:
 	var today := Clock.earth_day()
 	if not hallows_on():
-		return ["(The porch light's off. Nobody's answering.)"]
+		return ["(Nobody's home.)"]
 	if treats_day != today:
 		treats_day = today
 		treat_doors.clear()
 	if door in treat_doors:
-		return ["Back again? (They laugh.) I've seen that costume before! Go on, try the next house."]
+		return ["Back again? Try the next house!"]
 	treat_doors.append(door)
 	Game.add_sparkles(TREAT_PRIZE, "Trick or treat!")
 	var out: Array = ["{player}: Trick or treat!", str(HALLOWS_DOORS.get(door, ["", "Here you go!"])[1])]
-	out.append("(✦ %d sparkle. %d of %d doors on Maple Lane.)" % [TREAT_PRIZE, treat_doors.size(), HALLOWS_DOORS.size()])
+	out.append("(✦ %d. %d of %d doors.)" % [TREAT_PRIZE, treat_doors.size(), HALLOWS_DOORS.size()])
 	if treat_doors.size() == HALLOWS_DOORS.size() and hallows_bonus_day != today:
 		hallows_bonus_day = today
 		Game.add_sparkles(TREAT_BONUS, "Every door on Maple Lane!")
-		out.append("(Your bucket's full! Every door on Maple Lane: ✦ %d bonus sparkles!)" % TREAT_BONUS)
+		out.append("(Every door! ✦ %d bonus!)" % TREAT_BONUS)
 	changed.emit()
 	return out
 

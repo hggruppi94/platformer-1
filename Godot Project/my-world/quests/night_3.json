@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "Pip says Bramble's waiting by the portal, and she's very excited about the south meadow. Go and say hi!",
+      "text": "Pip says: say hi to Bramble!",
       "done": {
         "flag": "n3_hi"
       },
@@ -25,15 +25,15 @@
     },
     {
       "id": "explore",
-      "text": "The south meadow's full of new things tonight.",
+      "text": "Explore the south meadow!",
       "checklist": [
         [
           "schematic_overboard",
-          "Find the Overboard's schematic, on the lake side of the meadow"
+          "Find the Overboard schematic"
         ],
         [
           "n3_race",
-          "Race on any track (Zippy starts them by the Lake Loop)"
+          "Race on any track"
         ]
       ],
       "done": {
@@ -62,6 +62,6 @@
   ],
   "reward": {
     "sparkles": 10,
-    "message": "The Meadow in Bloom done! Take the Overboard's schematic to Zippy at the Tune-Up and ride on air. Bramble says someone's singing in the Market Square. Go and see! (+10 sparkles)"
+    "message": "Meadow in Bloom done! Take the schematic to Zippy. +10 sparkles."
   }
 }

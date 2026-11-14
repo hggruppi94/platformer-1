@@ -7,27 +7,27 @@
   "steps": [
     {
       "id": "find",
-      "text": "Pip needs glowy things for new lanterns. Find the glow shells round the lake. They shine brightest at night!",
+      "text": "Find 5 glow shells!",
       "checklist": [
         [
           "glow_1",
-          "A glow shell by the southwest shore"
+          "Southwest shore"
         ],
         [
           "glow_2",
-          "A glow shell by the south shore"
+          "South shore"
         ],
         [
           "glow_3",
-          "A glow shell by the dock"
+          "By the dock"
         ],
         [
           "glow_4",
-          "A glow shell by the west shore"
+          "West shore"
         ],
         [
           "glow_5",
-          "A glow shell by the north boardwalk"
+          "North boardwalk"
         ]
       ],
       "done": {
@@ -42,7 +42,7 @@
     },
     {
       "id": "bring",
-      "text": "Bring the glow shells to Pip, who's out looking at lamps in the evening.",
+      "text": "Bring them to Pip.",
       "done": {
         "flag": "pip_got_shells"
       },
@@ -52,7 +52,7 @@
     }
   ],
   "reward": {
-    "message": "Pip's moon-lamps are up along the boardwalks! Go and see them glow after dark. (+10 sparkles)",
+    "message": "Pip's moon-lamps are up! +10 sparkles.",
     "sparkles": 10
   },
   "titles": {

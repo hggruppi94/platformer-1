@@ -153,7 +153,7 @@ func _explain() -> void:
 	if Portals.stage_prize_day == today:
 		Game.message("Melody: \"Dance with me again! Just for fun this time.\"")
 	else:
-		Game.message("Melody's show! Groove on the beat with her (%s), %d in a row, for an encore." % [Settings.prompt("groove"), DANCE_OFF])
+		Game.message("Melody's show! Groove (%s) %d in a row!" % [Settings.prompt("groove"), DANCE_OFF])
 
 
 # Every frame ------------------------------------------------------------------------------------------------------

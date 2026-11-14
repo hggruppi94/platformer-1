@@ -56,16 +56,16 @@ const FRIENDS := [
 # What the figure of light says, freed (first drafts)
 const FIGURE_LINES := [
 	"...You stopped my clock. Thank you. It had me for such a long time.",
-	"I was chosen too, once. Teddy, from Stars Hollow. I went back for one more trip, and something got into my watch.",
-	"It calls itself Chaos. You beat it. You didn't end it. Keep your watch close.",
+	"I was chosen too, once. Teddy. Something got into my watch.",
+	"You beat Chaos. Keep your watch close.",
 ]
 # What's said when the friends arrive (first drafts): [who, line]
 const LINES := [
-	["Dash", "His clock's stopped. All the broken time he was holding just... let go."],
+	["Dash", "His clock's stopped!"],
 	["Rex", "The knot in my tummy's gone! Dash. DASH. Does this mean...?"],
-	["Dash", "It means the Swap-o-Tron can finally finish what it started. Soon, Rex. I promise."],
-	["Bramble", "The whole hive felt that, all the way from the Rootmind. Every plant just breathed out."],
-	["Pip", "And look up. The sky's mended. We did that. All of us, together."],
+	["Dash", "The Swap-o-Tron can finish now. Soon, Rex!"],
+	["Bramble", "Every plant just breathed out!"],
+	["Pip", "The sky's mended. We did that, together!"],
 ]
 
 var fight: Node                                  # scripts/chaos_fight.gd
@@ -278,7 +278,7 @@ func _finish() -> void:
 	(load("res://scripts/after_the_ending.gd") as GDScript).call("start_if_due")
 	var p := _player()
 	if p and _friends_from != Vector3.ZERO:
-		Game.message("The friends who taught you every move are here with you. Go and say hi... or just look at the sky.")
+		Game.message("Your friends are here! Go say hi.")
 	done.emit()
 
 
@@ -505,7 +505,7 @@ func _check_watch() -> void:
 	Dialogue.set_flag(WATCH_FLAG)
 	Fx.burst(root, watch.global_position, Color(0.85, 0.8, 1.0), 16, 0.1, 2.0, -1.0, 0.8)
 	Juice.blip("chime", 1.2, -4.0)
-	Game.message("A little old pocket watch, stopped at midnight. Scratched inside the lid: T.M. It's still warm.")
+	Game.message("An old pocket watch. Inside: T.M.")
 	watch.queue_free()
 	watch = null
 

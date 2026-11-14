@@ -233,7 +233,7 @@ func _check_jobs() -> void:
 				water_job = r.duplicate(true)
 	check(seen.has("sandcastle") and seen.has("rake") and seen.has("bakery"), "summer has sandcastle, watering and strawberry jobs")
 	check(bad.is_empty(), "no summer job says pumpkins, leaves or snow%s" % ("" if bad.is_empty() else " (%s)" % bad[0]))
-	check(str(jobs.text_of(water_job)).contains("Water the thirsty flowers"), "raking's watering in summer")
+	check(str(jobs.text_of(water_job)).contains("Water flowers"), "raking's watering in summer")
 	# Build the sandcastles: walk into each heap of sand
 	var player := current_scene.find_child("Player", true, false) as Node3D
 	jobs.list.clear()

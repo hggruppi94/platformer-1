@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Hey there. Hank. Nuts and Bolts Hardware. If it's broken, I've got the bit for it. If it's not broken, give it time."
+        "Hank. Nuts and Bolts Hardware. Broken? I've got the bit."
       ]
     },
     {
@@ -15,8 +15,8 @@
         "season": "winter"
       },
       "lines": [
-        "Step right up and go ice fishing! Line in the barrel, wait for the tug, and no grabbing the fish with your hands. Kip tried.",
-        "Three goes. The fish get sneakier every go. I've got mittens."
+        "Ice fishing! Line in, wait for the tug. No hands!",
+        "Three goes. The fish get sneakier."
       ]
     },
     {
@@ -25,8 +25,8 @@
         "season": "summer"
       },
       "lines": [
-        "Step right up and bob for apples! It's summer, so the water's nice and cold. You're welcome.",
-        "Three goes. The apples get sneakier every go. I've got towels. You'll dry off in about a minute in this sun."
+        "Bob for apples! The water's nice and cold.",
+        "Three goes. The apples get sneakier."
       ]
     },
     {
@@ -35,8 +35,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Step right up and bob for apples! Hands behind your back, face in the barrel, and no biting the barrel. Kip tried.",
-        "Three goes. The apples get sneakier every go. I've got towels."
+        "Bob for apples! Hands behind your back!",
+        "Three goes. The apples get sneakier."
       ]
     },
     {
@@ -45,8 +45,8 @@
         "season": "spring"
       },
       "lines": [
-        "Step right up and hook a duck! Every duck's got a number on the bottom. Some numbers win. Some numbers are just numbers.",
-        "Three goes. The ducks get sneakier every go. I don't know how ducks get sneaky. They just do."
+        "Hook a duck! Some numbers win.",
+        "Three goes. The ducks get sneakier. Somehow."
       ]
     },
     {
@@ -54,22 +54,22 @@
         "activity": "porch"
       },
       "lines": [
-        "Evening. Just sitting on the porch, watching the lights. Best part of the day."
+        "Evening. Watching the lights. Best part of the day."
       ]
     },
     {
       "rotate": [
         [
-          "Shovels are out front. Lot of snow this year. The town's going to need some help shovelling. Hint, hint."
+          "Lots of snow. The town needs shovellers. Hint, hint."
         ],
         [
-          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+          "Skaters use my dock as a ramp. I put the rail there."
         ],
         [
-          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+          "Gus came for another hinge. He likes the walk."
         ],
         [
-          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+          "The ground shook last night. Like the town hiccuped."
         ]
       ],
       "when": {
@@ -79,16 +79,16 @@
     {
       "rotate": [
         [
-          "Watering cans are out front. Hot summer. The town's flowers are thirsty. Could use some help watering. Hint, hint."
+          "Hot summer. The flowers need watering. Hint, hint."
         ],
         [
-          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+          "Skaters use my dock as a ramp. I put the rail there."
         ],
         [
-          "Gus was in for a fan. Third one this month. I think he just likes the walk."
+          "Gus came for another fan. He likes the walk."
         ],
         [
-          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+          "The ground shook last night. Like the town hiccuped."
         ]
       ],
       "when": {
@@ -98,16 +98,16 @@
     {
       "rotate": [
         [
-          "Rakes are out front. Lot of leaves this year. The town's going to need some help raking. Hint, hint."
+          "Lots of leaves. The town needs rakers. Hint, hint."
         ],
         [
-          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+          "Skaters use my dock as a ramp. I put the rail there."
         ],
         [
-          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+          "Gus came for another hinge. He likes the walk."
         ],
         [
-          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+          "The ground shook last night. Like the town hiccuped."
         ]
       ],
       "when": {
@@ -117,16 +117,16 @@
     {
       "rotate": [
         [
-          "Seed packets are out front. Everybody's planting this spring. The window boxes on Maple Lane look like a rainbow."
+          "Everybody's planting! Maple Lane looks like a rainbow."
         ],
         [
-          "Skaters keep using my loading dock as a ramp. I pretend to be grumpy about it. I put the rail there."
+          "Skaters use my dock as a ramp. I put the rail there."
         ],
         [
-          "Gus was in for a hinge. Third one this month. I think he just likes the walk."
+          "Gus came for another hinge. He likes the walk."
         ],
         [
-          "Funny thing: the ground shook a bit last night. Just a little. Like the town hiccuped. Shelves rattled, nothing broke."
+          "The ground shook last night. Like the town hiccuped."
         ]
       ],
       "when": {

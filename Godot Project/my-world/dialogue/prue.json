@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Hi! I'm Prue! I'm Nina's sister! I'm seven and three quarters! Do you like plushies? I have nine. Ten if you count the sock."
+        "Hi! I'm Prue, Nina's sister! I have nine plushies!"
       ]
     },
     {
@@ -15,8 +15,8 @@
         "season": "winter"
       },
       "lines": [
-        "Look, look! I won a ribbon for the best snowman drawing! Mine's got a cape.",
-        "Bruno says the sleigh's for babies. He's been on it three times."
+        "I won a ribbon for my snowman drawing!",
+        "Bruno says the sleigh's for babies. He went three times."
       ]
     },
     {
@@ -25,8 +25,8 @@
         "season": "summer"
       },
       "lines": [
-        "Look, look! I won a ribbon for the best sunflower drawing! Mine's got a cape.",
-        "Bruno says the hayride's for babies. He's been on it three times."
+        "I won a ribbon for my sunflower drawing!",
+        "Bruno says the hayride's for babies. He went three times."
       ]
     },
     {
@@ -35,8 +35,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Look, look! I won a ribbon for the best scarecrow drawing! Mine's got a cape.",
-        "Bruno says the hayride's for babies. He's been on it three times."
+        "I won a ribbon for my scarecrow drawing!",
+        "Bruno says the hayride's for babies. He went three times."
       ]
     },
     {
@@ -45,8 +45,8 @@
         "season": "spring"
       },
       "lines": [
-        "Look, look! I won a ribbon for the best duck drawing! Mine's got a cape.",
-        "Bruno says the hayride's for babies. He's been on it three times."
+        "I won a ribbon for my duck drawing!",
+        "Bruno says the hayride's for babies. He went three times."
       ]
     },
     {
@@ -54,8 +54,8 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "I brought Mr. Snuggles to see the lights. He's never seen a tree glow before.",
-        "The star looks like it's winking at me."
+        "Mr. Snuggles has never seen a tree glow!",
+        "The star is winking at me."
       ]
     },
     {
@@ -63,8 +63,7 @@
         "activity": "kites"
       },
       "lines": [
-        "My kite is a butterfly. It's shy, so it only flies a little bit.",
-        "Look how small the town looks from up here! Like a toy town!"
+        "My butterfly kite is shy. It flies a little bit."
       ]
     },
     {
@@ -72,8 +71,7 @@
         "activity": "fireworks"
       },
       "lines": [
-        "The pink ones are mine. I decided.",
-        "The real fireflies are hiding because the fireworks are too loud. I'll tell them it's okay."
+        "The pink ones are mine. I decided."
       ]
     },
     {
@@ -81,8 +79,8 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "I'm a ghost! Wooooo! (Her sheet slips over her eyes.) Wooo... where did everyone go?",
-        "Nina says if you knock on EVERY door on Maple Lane your bucket gets full. I've done four. My arms are tired."
+        "I'm a ghost! Wooooo! Where did everyone go?",
+        "I've knocked on four doors. My arms are tired."
       ]
     },
     {
@@ -94,8 +92,8 @@
         ]
       },
       "lines": [
-        "It's the weekend! I don't have to do spellings till Sunday night.",
-        "Do you want to play on the slide? You go first. I'll count."
+        "It's the weekend! No spellings!",
+        "Slide? You go first. I'll count."
       ]
     },
     {
@@ -103,8 +101,8 @@
         "activity": "bakery"
       },
       "lines": [
-        "Poppy lets me lick the spoon if I say please in a posh voice.",
-        "Pleeease, Miss Poppy. (She giggles.)"
+        "Poppy lets me lick the spoon if I say please!",
+        "Pleeease, Miss Poppy!"
       ]
     },
     {
@@ -112,7 +110,7 @@
         "activity": "library"
       },
       "lines": [
-        "I'm reading a book about a dragon who's scared of the dark. He gets a nightlight. It's very good."
+        "My book's about a dragon who's scared of the dark!"
       ]
     },
     {
@@ -121,7 +119,7 @@
         "season": "winter"
       },
       "lines": [
-        "I'm making the biggest snowman in the whole patch. This one's big. But mine's going to be BIGGER."
+        "Mine's going to be the BIGGEST snowman!"
       ]
     },
     {
@@ -130,7 +128,7 @@
         "season": "summer"
       },
       "lines": [
-        "I'm looking for the tallest sunflower in the whole field. This one's tall. But that one's TALLER."
+        "I'm finding the TALLEST sunflower!"
       ]
     },
     {
@@ -139,7 +137,7 @@
         "season": "autumn"
       },
       "lines": [
-        "I'm looking for the biggest pumpkin in the whole patch. This one's big. But that one's BIGGER."
+        "I'm finding the BIGGEST pumpkin!"
       ]
     },
     {
@@ -148,7 +146,7 @@
         "season": "spring"
       },
       "lines": [
-        "I'm looking for the prettiest tulip in the whole field. This one's pretty. But that one's PRETTIER."
+        "I'm finding the PRETTIEST tulip!"
       ]
     },
     {
@@ -156,7 +154,7 @@
         "activity": "playing"
       },
       "lines": [
-        "Swings! Push me! Higher! HIGHER! ...Okay that's high enough."
+        "Push me! Higher! HIGHER! ...Okay, that's high enough."
       ]
     },
     {
@@ -164,19 +162,19 @@
         "activity": "her_room"
       },
       "lines": [
-        "This is my room. It's lilac. Lilac is purple but nicer."
+        "My room is lilac. Purple, but nicer."
       ]
     },
     {
       "rotate": [
         [
-          "I saw a little green alien making snow angels! Nina says it was a squirrel. Squirrels don't make snow angels!"
+          "I saw a little green alien making snow angels!"
         ],
         [
-          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+          "Bruno lets me ride his skateboard sitting down!"
         ],
         [
-          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
+          "Mr. Palmer gave me a green sweet. It fizzed!"
         ]
       ],
       "when": {
@@ -186,13 +184,13 @@
     {
       "rotate": [
         [
-          "I saw a little green alien in the sunflowers! Nina says it was a grasshopper. Grasshoppers don't wave!"
+          "I saw a little green alien in the sunflowers!"
         ],
         [
-          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+          "Bruno lets me ride his skateboard sitting down!"
         ],
         [
-          "Mr. Palmer gave me an ice lolly. It was green. It fizzed. I don't know where he got it."
+          "Mr. Palmer gave me a green ice lolly. It fizzed!"
         ]
       ],
       "when": {
@@ -202,13 +200,13 @@
     {
       "rotate": [
         [
-          "I saw a little green alien in the pumpkin patch! Nina says it was a squash. Squashes don't wave!"
+          "I saw a little green alien in the pumpkins!"
         ],
         [
-          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+          "Bruno lets me ride his skateboard sitting down!"
         ],
         [
-          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
+          "Mr. Palmer gave me a green sweet. It fizzed!"
         ]
       ],
       "when": {
@@ -218,13 +216,13 @@
     {
       "rotate": [
         [
-          "I saw a little green alien in the tulip field! Nina says it was a frog. Frogs don't wave!"
+          "I saw a little green alien in the tulips!"
         ],
         [
-          "Bruno lets me ride his skateboard if I sit down on it. It's still skating!"
+          "Bruno lets me ride his skateboard sitting down!"
         ],
         [
-          "Mr. Palmer gave me a sweet. It was green. It fizzed. I don't know where he got it."
+          "Mr. Palmer gave me a green sweet. It fizzed!"
         ]
       ],
       "when": {

@@ -6,9 +6,8 @@
         "talks": 0
       },
       "lines": [
-        "Oh! Hi. I'm Theo. I'm reading. Well, I was reading. Now I'm talking.",
-        "{player}: What are you reading?",
-        "A book about a world where kids turn into creatures when they step through a door. It's pretty silly.",
+        "Oh! Hi. I'm Theo. I was reading.",
+        "It's about kids who turn into creatures. Silly!",
         "{player}: Ha. Ha. Yeah. Silly."
       ]
     },
@@ -17,8 +16,7 @@
         "activity": "festival"
       },
       "lines": [
-        "I'm guarding the pie table. Not for any reason. I just like being near pies.",
-        "Dottie says I can't be a judge until I'm 'taller than the table'. Hmph."
+        "I'm guarding the pies. For no reason."
       ]
     },
     {
@@ -26,8 +24,7 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "There's a book about a tree that remembers every winter. I think about it every Winter Lights.",
-        "It's warmer by the tree. That might be science, or it might just be cocoa."
+        "It's warmer by the tree. Or it's the cocoa."
       ]
     },
     {
@@ -35,8 +32,7 @@
         "activity": "kites"
       },
       "lines": [
-        "Kites were invented over two thousand years ago. Mine was invented on Tuesday, by me. With tape.",
-        "I've got a book in my pocket in case the wind stops."
+        "I made my kite on Tuesday. With tape."
       ]
     },
     {
@@ -44,8 +40,7 @@
         "activity": "fireworks"
       },
       "lines": [
-        "The colours come from different metals. Copper makes the blue ones! ...Sorry, it's still pretty.",
-        "I'm counting the seconds between the flash and the bang."
+        "Copper makes the blue ones! Still pretty."
       ]
     },
     {
@@ -53,7 +48,7 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "I'm a knight. This is my shield. It's also my treat bucket. Very practical, knights."
+        "I'm a knight! My shield is also my treat bucket."
       ]
     },
     {
@@ -63,8 +58,7 @@
         "season": "winter"
       },
       "lines": [
-        "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
-        "I've read fourteen books about knights this winter. Ask me anything about castles."
+        "Weekends are reading days. I made the rules."
       ]
     },
     {
@@ -74,8 +68,7 @@
         "season": "summer"
       },
       "lines": [
-        "Saturday is reading day. Sunday is ALSO reading day. In summer, every day is reading day. I made the rules.",
-        "I've read fourteen books about pirates this summer. Ask me anything about treasure."
+        "Weekends are reading days. I made the rules."
       ]
     },
     {
@@ -85,8 +78,7 @@
         "season": "autumn"
       },
       "lines": [
-        "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
-        "I've read fourteen books about knights this autumn. Ask me anything about castles."
+        "Weekends are reading days. I made the rules."
       ]
     },
     {
@@ -96,8 +88,7 @@
         "season": "spring"
       },
       "lines": [
-        "Saturday is reading day. Sunday is ALSO reading day. I made the rules.",
-        "I've read fourteen books about knights this spring. Ask me anything about castles."
+        "Weekends are reading days. I made the rules."
       ]
     },
     {
@@ -105,7 +96,7 @@
         "activity": "pond"
       },
       "lines": [
-        "I'm counting ducks. There were seven. Now there are eight. Nobody saw where the eighth came from."
+        "Seven ducks. Now eight! Where did that one come from?"
       ]
     },
     {
@@ -114,7 +105,7 @@
         "not_flag": "lights_bookshop"
       },
       "lines": [
-        "String lights? There's a box by the bookshop window. I thought it was a mystery. I was going to solve it."
+        "String lights? Try by the bookshop window!"
       ]
     },
     {
@@ -123,7 +114,7 @@
         "place": "green_bench"
       },
       "lines": [
-        "Evening's the best for reading on the green. The lamps come on and everything looks like a story."
+        "At night the green looks like a story."
       ]
     },
     {
@@ -131,7 +122,7 @@
         "activity": "morning"
       },
       "lines": [
-        "School in a minute. I've read the whole reading book already. Is that cheating? It feels like cheating."
+        "I read the whole school reading book already."
       ]
     },
     {
@@ -139,19 +130,19 @@
         "time": "shift"
       },
       "lines": [
-        "You're up late too? Sometimes I see a green glow from my window. Over by the old oak. I've written it down."
+        "Up late? I see a green glow by the old oak!"
       ]
     },
     {
       "rotate": [
         [
-          "The bookshop has a cat. The cat has a favourite shelf. I'm not allowed to read on that shelf."
+          "The bookshop cat has her own shelf."
         ],
         [
-          "If you ever find a door to another world, you should tell me. I won't tell anyone. Probably."
+          "Find a door to another world? Tell me!"
         ],
         [
-          "Do you like stories? I like the ones where someone's scared but they do the brave thing anyway."
+          "I like stories where scared people are brave anyway."
         ]
       ]
     }

@@ -115,7 +115,7 @@ func setup() -> void:
 		_add_off_beat()
 	set_cool(1.0 if Portals.is_cleared(world_id) else 0.0)
 	if not Portals.is_cleared(world_id) and shells() == 0 and not Portals.has_found(world_id, "met_melody"):
-		Game.message.call_deferred("Rhythm Springs: phew, it's HOT! The sun's stuck at noon. Someone's dancing by the way in...")
+		Game.message.call_deferred("Rhythm Springs: phew, it's HOT!")
 
 
 func _own_sky() -> void:
@@ -198,7 +198,7 @@ func heat_step(player: Node3D, delta: float) -> void:
 		heat += HEAT_SPRING * delta
 		if _hot_cd <= 0.0:
 			_hot_cd = 3.0
-			Game.message("Ouch, that spring's BOILING! The broken beat's turned it right up.")
+			Game.message("Ouch! BOILING!")
 			Audio.play("splash", -4.0)
 	elif in_shade(p):
 		heat -= COOL_SHADE * delta
@@ -209,7 +209,7 @@ func heat_step(player: Node3D, delta: float) -> void:
 			heat += HEAT_BOSS * delta
 	heat = clampf(heat, 0.0, HEAT_MAX)
 	if was < 70.0 and heat >= 70.0:
-		Game.message("You're getting really hot! Find some shade, or splash into a cool pool.")
+		Game.message("Too hot! Find shade or a cool pool!")
 	if heat >= HEAT_MAX:
 		too_hot(player)
 
@@ -242,7 +242,7 @@ func too_hot(player: Node3D) -> void:
 	Fx.burst(self, to + Vector3(0, 0.4, 0), Color(0.75, 0.95, 1.0), 26, 0.1, 4.0, -8.0, 0.9)
 	Audio.play("splash", -1.0)
 	Juice.shake(0.15)
-	Game.message("Phew, TOO HOT! You dived into the nearest cool pool. Stay in the shade when you can!")
+	Game.message("TOO HOT! Splash! Into the cool pool.")
 
 
 # The Sizzle Steps --------------------------------------------------------------------------------------------------
@@ -343,8 +343,8 @@ func burn(player: CharacterBody3D, coals: bool) -> void:
 	if start:
 		player.global_position = start.global_position + Vector3(0, 0.9, 0)
 		player.velocity = Vector3.ZERO
-	Game.message("Ouch! Hot hot HOT! %s" % ("The coals are much too hot to stand on: hop from stone to stone." if coals
-		else "That stone was flaring! Watch them glow, and hop when the fire's gone."))
+	Game.message("Ouch! Hot hot HOT! %s" % ("Hot coals! Hop stone to stone." if coals
+		else "Hop when the fire's gone!"))
 
 
 # The Song Shells ---------------------------------------------------------------------------------------------------
@@ -388,9 +388,9 @@ func take_shell(i: int) -> void:
 	Juice.blip("sparkle", 1.0 + shells() * 0.15, -3.0)
 	Juice.rumble(0.3, 0.2)
 	var n := shells()
-	var extra := " Now ride the water slide down: it's at the falls' edge!" if i == 1 else ""
+	var extra := " Now ride the slide down!" if i == 1 else ""
 	Game.message(("You found %s! (%d of 3)%s" % [SHELL_NAMES[i], n, extra]) if n < 3
-		else "That's all three Song Shells! Over on the Bandstand, something big just went TICK... TOCK... TICK-TICK.")
+		else "All three Song Shells! Something goes TICK... TOCK...")
 
 
 func _process_shells(player: Node3D) -> void:
@@ -515,7 +515,7 @@ func start_dance() -> void:
 	if _dance_box:
 		_dance_box.visible = true
 	_show_dance()
-	Game.message(Settings.fill("Melody: \"Listen to MY beat, not the broken one! Press {jump} when the ring closes. Eight in a row-ish!\""))
+	Game.message(Settings.fill("Melody: \"Press {jump} when the ring closes!\""))
 
 
 func dance_press() -> bool:
@@ -527,7 +527,7 @@ func dance_press() -> bool:
 	if off > DANCE_WINDOW or nearest == _dance_scored:
 		Juice.blip("tick", 0.7, -10.0)
 		if _dance_label:
-			_dance_label.text = "Oops, off the beat! Listen for it...  %d / %d" % [dance_good, DANCE_NEEDED]
+			_dance_label.text = "Oops! Listen...  %d / %d" % [dance_good, DANCE_NEEDED]
 		return false
 	_dance_scored = nearest
 	dance_good += 1
@@ -580,12 +580,12 @@ func end_dance(won: bool) -> void:
 			Fx.burst(self, m.global_position + Vector3(0, 1.5, 0), SHELL_PINK, 40, 0.12, 5.0, -1.0, 1.2)
 		Juice.blip("sparkle", 1.2, -3.0)
 		var n := shells()
-		Game.message(("Melody: \"You've GOT it! Here, the Dance Floor's Song Shell!\" (%d of 3)" % n) if n < 3
-			else "Melody: \"That's all three Song Shells!\" Over on the Bandstand, something big just went TICK... TOCK... TICK-TICK.")
+		Game.message(("Melody: \"You GOT it! A Song Shell!\" (%d of 3)" % n) if n < 3
+			else "Melody: \"All three!\" Something goes TICK... TOCK...")
 	elif won:
 		Game.message("Melody: \"Woo! Best dance partner EVER.\"")
 	else:
-		Game.message("Melody: \"Phew! Let's catch our breath. Come and dance again when you're ready!\"")
+		Game.message("Melody: \"Phew! Again later?\"")
 
 
 func _show_dance() -> void:
@@ -623,37 +623,31 @@ func melody_lines() -> Array:
 	# Melody's bouncy and musical, but the broken beat's got her flustered (and very hot)
 	if is_mended() and not Portals.has_found(world_id, "thanked"):
 		Portals.note_found(world_id, "thanked")
-		return ["Hear that? Tick, tock, tick, tock... a STEADY beat! The springs are singing again!",
-			"And feel that breeze! Summer's supposed to be warm, not boiling.",
-			"Thank you, {player}! Come back for a soak in the hot springs any time. They're just right now."]
+		return ["Hear that? A STEADY beat!",
+			"Thank you! Come back for a soak!"]
 	if is_mended():
-		return [["Hear that? Tick, tock, tick, tock... a STEADY beat! The springs are singing again!",
-			"And feel that breeze! Summer's supposed to be warm, not boiling.",
-			"Thank you, {player}! Come back for a soak in the hot springs any time. They're just right now."],
-			["How's your groove? Press {groove} on the beat, then again, and again! The more in a row, the bigger the ring.",
-			"Four in a row and the music carries you along. Wheee!"],
-			["I've got a stage in the Void now, by my portal! I do a show every evening.",
-			"Come up on the stage and groove with me. Eight on the beat and you get an encore prize!"]].pick_random()
+		return [["Hear that? A STEADY beat!",
+			"Thank you! Come back for a soak!"],
+			["Groove! Press {groove} on the beat!"],
+			["I do a show in the Void every evening!"]].pick_random()
 	if not Portals.has_found(world_id, "met_melody"):
 		Portals.note_found(world_id, "met_melody")
-		return ["{player}! You came! Welcome to Rhythm Springs! Isn't it... phew... HOT?",
-			"The Off-Beat's broken our beat. He's a great big metronome, and he's stuck between two speeds!",
-			"So time goes fast, then slow, then fast... and the sun's got stuck at the hottest bit of noon.",
-			"Watch your Heat meter! Shade cools you down, and the cool pools cool you right off. The hot springs are BOILING, so stay out!",
-			"If we find the three Song Shells, we can put the beat back. One's over the Sizzle Steps, one's on top of Waterfall Mesa...",
-			"...and one's right here! Dance with me on the Dance Floor and it's yours."]
+		return ["Welcome to Rhythm Springs! Phew... HOT!",
+			"The Off-Beat broke our beat! Now the sun's stuck.",
+			"The Heat bar fills in the sun. Find shade and cool pools!",
+			"Find three Song Shells to fix it!"]
 	var left: Array = []
 	for i in 3:
 		if not has_shell(i):
-			left.append(["hop across the Sizzle Steps (hop when the fire's gone)", "climb Waterfall Mesa and slide back down",
-				"dance with me on the Dance Floor"][i])
+			left.append(["the Sizzle Steps", "Waterfall Mesa",
+				"dance with me"][i])
 	if left.size() > 0:
-		return ["%d Song Shell%s! I can almost hear the beat coming back." % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
-			if left.size() < 3 else "Stay cool! Shade, pools, shade, pools. That's the summer rule.",
+		return ["%d Song Shell%s!" % [3 - left.size(), "" if 3 - left.size() == 1 else "s"]
+			if left.size() < 3 else "Stay cool!",
 			"Still to do: %s." % ", and ".join(left)]
-	return ["All three Song Shells! The Off-Beat's waking up on the Bandstand...",
-		"Jump on the drum that lights up, or pop a bubble at his red-hot weight! That knocks him back into time.",
-		"When his arm swings, a heat ring rolls out across the stage. Jump it! And cool off in the pool by the stage."]
+	return ["All three! The Off-Beat's waking up...",
+		"Jump on the glowing drum!",
+		"Jump his heat rings!"]
 
 
 func _talk_melody() -> void:
@@ -707,12 +701,11 @@ func mend() -> void:
 
 func teach_lines() -> Array:
 	# Melody's thank-you: Rhythm Springs' reward is her groove (scripts/groove.gd)
-	return ["{player}! You did it! You put the beat back! (Melody bounces all the way over, ponytail flying.)",
-		"I want to give you something. My groove! Everybody has a beat inside, you just have to find it.",
-		"Press {groove} to dance. A ring of music bursts out, and anyone grumpy nearby can't help dancing too. Gloops, goblins, anyone!",
-		"Now press it ON the beat. Then again. And again! The more in a row, the bigger the ring.",
-		"Four in a row and the music carries you along. Try it! One, two, three, four...",
-		"Oh! And Dash gave me this ages ago, for whoever helped me most. (She hands you a blueprint with a glittery ball on it.) The Disco Ball's blueprint! Take it to his stall."]
+	return ["You did it! You put the beat back!",
+		"Here's my groove!",
+		"Press {groove} to dance! Grumpy things dance too!",
+		"On the beat makes it bigger!",
+		"And Dash's Disco Ball blueprint. Take it to his stall!"]
 
 
 func _teach_groove(tries := 0) -> void:
@@ -727,7 +720,7 @@ func _teach_groove(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Melody", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "rhythm_springs_groove")
 	else:
-		Game.message("New: Melody's Groove! With her along, press %s to dance, and press it on the beat for a bigger groove." % Settings.prompt("groove"))
+		Game.message("New: Melody's Groove! %s to dance." % Settings.prompt("groove"))
 
 
 func set_cool(k: float) -> void:

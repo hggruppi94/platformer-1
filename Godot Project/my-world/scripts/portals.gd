@@ -47,39 +47,39 @@ const PREVIEW_FAR := 22.0               # ...and goes to sleep again past this
 const WORLDS := [
 	{"id": "shard_isle", "name": "Shard Isle", "owner": "", "scene": "res://scenes/portal_worlds/shard_isle.tscn",
 		"at": Vector2(62, -58), "yaw": -0.72, "preview": true, "colour": Color(0.55, 1.0, 0.75),
-		"blurb": "A little floating island of crystals: a broken bit of the brain land, humming out of tune.",
+		"blurb": "A floating crystal island, humming out of tune.",
 		"reward_remnants": 5,
-		"cleared_text": "Shard Isle hums in tune again! Back in the Void, a Portal Plaza has grown round its portal."},
+		"cleared_text": "Shard Isle hums in tune again!"},
 	{"id": "rootmind", "name": "The Rootmind", "owner": "Bramble", "scene": "res://scenes/portal_worlds/rootmind.tscn",
 		"at": Vector2(-70, -24), "yaw": -1.3, "preview": true, "colour": Color(0.5, 0.95, 0.4),
-		"blurb": "Bramble's home, where every plant has eyes, and time is running backwards.",
+		"blurb": "Bramble's home. Time runs backwards!",
 		"reward_remnants": 6,
-		"cleared_text": "The Rootmind blinks in step again! Back in the Void, watching flowers have sprung up round its portal and your garden."},
+		"cleared_text": "The Rootmind blinks in step again!"},
 	{"id": "frozen_moment", "name": "The Frozen Moment", "owner": "Flurry",
 		"scene": "res://scenes/portal_worlds/frozen_moment.tscn", "at": Vector2(46, -226), "yaw": 0.0, "preview": true,
-		"colour": Color(0.7, 0.9, 1.0), "blurb": "Flurry's home, where time has stopped mid-moment: snowflakes hang in the air.",
+		"colour": Color(0.7, 0.9, 1.0), "blurb": "Flurry's home. Time has stopped!",
 		"reward_remnants": 7, "season": "winter",
-		"cleared_text": "The Frozen Moment ticks again! Snow is falling for the first time in for ever, and winter can come to Stars Hollow at last."},
+		"cleared_text": "The Frozen Moment ticks again! Winter can come!"},
 	{"id": "lanternmoor", "name": "Lanternmoor", "owner": "Pip", "scene": "res://scenes/portal_worlds/lanternmoor.tscn",
 		"at": Vector2(-100, -104), "yaw": 0.77, "preview": true, "colour": Color(0.75, 0.6, 1.0),
-		"blurb": "Pip's home, a moor of lanterns and moths, where it's been night for ages: the sun won't rise.",
+		"blurb": "Pip's home. The sun won't rise!",
 		"reward_remnants": 8,
-		"cleared_text": "The sun's up over Lanternmoor for the first time in ages! Pip's moths are going to sleep, very happily."},
+		"cleared_text": "The sun's up over Lanternmoor!"},
 	{"id": "glenmoor", "name": "Glenmoor", "owner": "Heather", "scene": "res://scenes/portal_worlds/glenmoor.tscn",
 		"at": Vector2(-120, -48), "yaw": 1.19, "preview": true, "colour": Color(1.0, 0.75, 0.85),
-		"blurb": "Heather's home, misty highland hills of heather and stone walls, where the seasons spin round too fast for anything to grow.",
+		"blurb": "Heather's home. Day and night spin round!",
 		"reward_remnants": 11, "season": "spring",
-		"cleared_text": "The seasons have stopped spinning in Glenmoor! Blossom's out, the Fluffkins are frolicking, and spring can come to Stars Hollow at last."},
+		"cleared_text": "Glenmoor's fixed! Spring can come!"},
 	{"id": "tide_reef", "name": "The Tide Reef", "owner": "Otto", "scene": "res://scenes/portal_worlds/tide_reef.tscn",
 		"at": Vector2(50, 28), "yaw": -2.08, "preview": true, "colour": Color(0.4, 0.8, 1.0),
-		"blurb": "Otto's home, a reef city of coral houses that should be under the sea, where the tide went out and never came back.",
+		"blurb": "Otto's home. The sea's gone!",
 		"reward_remnants": 10,
-		"cleared_text": "The tide's back in the Tide Reef! The pools are full, the corals are in bloom, and Otto held on when it counted."},
+		"cleared_text": "The tide's back in the Tide Reef!"},
 	{"id": "rhythm_springs", "name": "Rhythm Springs", "owner": "Melody", "scene": "res://scenes/portal_worlds/rhythm_springs.tscn",
 		"at": Vector2(-34, 34), "yaw": 2.36, "preview": true, "colour": Color(1.0, 0.6, 0.9),
-		"blurb": "Melody's home, a summer valley of springs and music, where the beat is broken and the sun's stuck at its hottest.",
+		"blurb": "Melody's home. The beat is broken!",
 		"reward_remnants": 9, "season": "summer",
-		"cleared_text": "The beat's back in Rhythm Springs! A cool breeze blows, the springs are singing, and summer can come to Stars Hollow at last."},
+		"cleared_text": "The beat's back! Summer can come!"},
 	# Dark Hollow (plan items 19a world 7 and 21) has no portal and never quakes: its way in is a secret, through the
 	# centipede in her corner Behind the Walls in the castle school (scripts/centipede_corner.gd), who gulps you down to
 	# it (enter_dark_hollow()). Going home comes out at the school's front gate ("home_spawn"), never back through the
@@ -87,16 +87,16 @@ const WORLDS := [
 	{"id": "dark_hollow", "name": "Dark Hollow", "owner": "the centipede", "scene": "res://scenes/portal_worlds/dark_hollow.tscn",
 		"at": Vector2(15, -84), "yaw": 0.0, "preview": false, "portal": false, "home_spawn": "FromSchool",
 		"colour": Color(0.6, 0.5, 1.0),
-		"blurb": "The centipede's home, a misty moonlit hollow where the shadows are eating up moments of time.",
+		"blurb": "The centipede's home. Shadows eat time!",
 		"reward_remnants": 8,
-		"cleared_text": "The Moon Clock ticks past midnight in Dark Hollow! The mist thins, the stars come out, and somewhere far up the tunnels a centipede is cheering with all her feet."},
+		"cleared_text": "The Moon Clock ticks again in Dark Hollow!"},
 	# The Far Future (19a world 8, the last): its portal rises out of the fault line Rex and Dash's experiments cracked,
 	# just past the hedge behind their lab (scripts/lab.gd), facing back past it towards town.
 	{"id": "far_future", "name": "The Far Future", "owner": "Dash and Rex", "scene": "res://scenes/portal_worlds/far_future.tscn",
 		"at": Vector2(117, -18), "yaw": -1.42, "preview": true, "colour": Color(0.4, 1.0, 1.0),
-		"blurb": "Dash and Rex's home, Lumen City, a neon city from the furthest future, and it's fading away.",
+		"blurb": "Dash and Rex's home. It's fading!",
 		"reward_remnants": 12,
-		"cleared_text": "Lumen City is lit up again! The future's stopped fading. But Captain Glitch slipped away through a rift..."},
+		"cleared_text": "Lumen City is lit up again!"},
 ]
 
 var quakes: Array = []                  # world ids whose quake has happened (their portal stands in the Void)
@@ -313,7 +313,7 @@ func quake(id: String, instant := false) -> void:
 	# Hayden, 14 Nov 2026: "more obvious when a crack opens up, with a cutscene for each one"
 	if opening_cut.quake(id, _place_portal.bind(id, true), _quake_shown.bind(id)):
 		return
-	Game.message("The ground shakes... a TIME QUAKE! Something is cracking open by %s." % near_words(id))
+	Game.message("A TIME QUAKE! Something cracks open by %s." % near_words(id))
 	Audio.play("stomp", -2.0)
 	Juice.shake(0.5)
 	Juice.rumble(0.6, 0.8, 0.4)
@@ -327,9 +327,9 @@ func quake(id: String, instant := false) -> void:
 	tw.tween_interval(3.0)
 	tw.tween_callback(func() -> void:
 		_quaking = false
-		Game.message("A crack has split the ground open by %s! Look down it: it leads to %s." % [near_words(id), w.name])
-		DivineMind.say(["Do you feel that? The Shift has broken somewhere new.",
-			"A world on the other side of that crack needs you. Jump in when you're ready."])
+		Game.message("A crack by %s! It leads to %s." % [near_words(id), w.name])
+		DivineMind.say(["Feel that? A new crack opened.",
+			"A world needs you!"])
 		changed.emit()
 		quaked.emit(id)
 		Game.save_game())
@@ -340,9 +340,9 @@ func _quake_shown(opened: bool, id: String) -> void:
 	if not opened:
 		_place_portal(id, false)
 	_quaking = false
-	Game.message("A crack has split the ground open by %s! It leads to %s." % [near_words(id), world(id).name])
-	DivineMind.say(["Do you feel that? The Shift has broken somewhere new.",
-		"A world on the other side of that crack needs you. Jump in when you're ready."])
+	Game.message("A crack by %s! It leads to %s." % [near_words(id), world(id).name])
+	DivineMind.say(["Feel that? A new crack opened.",
+		"A world needs you!"])
 	changed.emit()
 	quaked.emit(id)
 	Game.save_game()
@@ -365,7 +365,7 @@ func near_words(id: String) -> String:
 		"rhythm_springs":
 			return "the lake's south-west shore"
 		"far_future":
-			return "the hedge behind Rex and Dash's lab, right where their experiments cracked the ground"
+			return "the hedge behind the lab"
 	return "the town"
 
 
@@ -391,7 +391,7 @@ func enter(id: String) -> bool:
 	if not is_open(id) or not is_built(id):
 		return false
 	var w := world(id)
-	Game.pending_message = "%s! Stay as long as you like. The crack behind you takes you home any time." % w.name
+	Game.pending_message = "%s! The crack behind you goes home." % w.name
 	Game.go(str(w.scene), "Entrance", str(w.name))
 	return true
 
@@ -404,7 +404,7 @@ func enter_dark_hollow() -> bool:
 	var w := world(id)
 	Game.pending_message = "PTOO! The centipede spat you out, gently, in %s." % w.name
 	if not is_cleared(id):
-		Game.pending_message += " She waves a dozen legs and scuttles back up her tunnel. You're on your own down here..."
+		Game.pending_message += " She waves and scuttles off."
 	else:
 		Game.pending_message += " The way home takes you to the school's front gate."
 
@@ -426,7 +426,7 @@ func go_home(why := "") -> void:
 		if id == "dark_hollow" and is_cleared(id) and not CENTIPEDE_HOLES.gifts_given():
 			# The first time home after mending it, the way out comes up by her hollow log behind the old gate, where
 			# she lives now and is waiting to say thank you (scripts/scary_world.gd)
-			Game.pending_message = why if why != "" else "The way home comes up somewhere new: a misty clearing, and a hollow log... Somebody's waiting."
+			Game.pending_message = why if why != "" else "Somewhere new... Somebody's waiting."
 			Game.go_to_point(CENTIPEDE_HOLES.SCARY, CENTIPEDE_HOLES.HOME_AT, CENTIPEDE_HOLES.HOME_YAW, "Dusk's Embrace")
 			return
 		# No portal to land by (Dark Hollow): out at its "home_spawn", the castle school's front gate
@@ -467,7 +467,7 @@ func practice_trip(id: String) -> bool:
 		quakes.append(id)
 	here = ""
 	Playtest.note("practice_trip", {"world": id})
-	Game.pending_message = "Practice trip to %s! Nothing here is kept. The crack behind you, or Pause > End practice trip, takes you back." % w.name
+	Game.pending_message = "Practice trip to %s! Nothing is kept." % w.name
 	Game.go(str(w.scene), "Entrance", str(w.name))
 	changed.emit()
 	return true
@@ -482,7 +482,7 @@ func end_practice() -> void:
 	Playtest.note("practice_end", {"world": here})
 	Game._reset_state()
 	Game.load_game()
-	Game.pending_message = "Back from your practice trip. Everything's just as it was."
+	Game.pending_message = "Back from your practice trip."
 	Game.continue_game()
 
 
@@ -500,7 +500,7 @@ func clear(id: String) -> void:
 		Remnants.add(n)
 	Game.message(str(w.get("cleared_text", "%s's time is fixed!" % w.name)) + ("  (+%d Remnants)" % n if n > 0 else ""))
 	Juice.blip("chime", 1.0, -4.0)
-	DivineMind.say(["Well done. Time flows true in %s again." % w.name])
+	DivineMind.say(["Well done. %s is mended." % w.name])
 	changed.emit()
 	cleared.emit(id)
 	Game.save_game()
@@ -626,8 +626,8 @@ func _use_portal(id: String) -> void:
 	if str(w.owner) != "":
 		lines.append("It's %s's home world." % w.owner)
 	if is_cleared(id):
-		lines.append("You fixed its time already. You can still visit!")
-	lines.append("Down at the bottom of the crack, the world swirls. Jump in, and stay as long as you like.")
+		lines.append("Fixed already! Visit any time.")
+	lines.append("Jump in!")
 	lines.append({"choice": [{"text": "Jump in!", "set": "portal_go", "say": false}, {"text": "Not now.", "say": false}]})
 	Dialogue.say(spot, "Crack to %s" % w.name, lines, "portal_ask")
 
@@ -976,21 +976,17 @@ func _otto_in_hub() -> void:
 func otto_hub_lines() -> Array:
 	if not has_found("tide_reef", "otto_in_hub"):
 		note_found("tide_reef", "otto_in_hub")
-		return ["{player}! Over here! Dash floated my bubble through. He's very good at it. Not as good as you.",
-			"So THIS is the Void. It's very... dry. No offence.",
-			"Your bubble still works out here, you know. Any water deep enough to be over your head, you can swim in.",
-			"There's a deep bit in the middle of Willow Pond on your Earth. Go and have a dive! Hold {dash} to go down.",
-			"And keep your eyes open down there. Mum always says the deep water keeps secrets."]
-	return [["Flurry says it's cold where she's from. I said it's wet where I'm from. We're best friends now.",
-		"(Flurry, very quietly: \"We are.\")"],
-		["I'm practising holding things. Look: one, two, three... eight cups of tea. Don't drink them, they're seawater.",
-		"Nobody ever asked me to hold anything before. Now everyone does!"],
-		["Is your lake deep? It doesn't look deep. It looks like a puddle that's trying its best.",
-		"Willow Pond's the place for a swim. Hold {jump} to swim up and {dash} to dive."],
-		["I still need a friend to float my bubble along.",
-		"Lucky I've got lots now."],
-		["Mum says time drops things, like a pocket with a hole in it. They sink, and deep water keeps them.",
-		"Have a look at the bottom of anything deep. There's a Wishing Well just over there, past the plaza!"]].pick_random()
+		return ["{player}! Over here! Dash floated me through.",
+			"So THIS is the Void. Very... dry.",
+			"You can swim in any deep water here!",
+			"Try Willow Pond on Earth! {dash} dives.",
+			"Deep water keeps secrets!"]
+	return [["Flurry and me are best friends now!"],
+		["Look! Eight cups of tea at once!"],
+		["Your lake looks like a puddle trying its best."],
+		["I've got lots of friends now!"],
+		["Time drops things. Deep water keeps them.",
+		"Try the Wishing Well past the plaza!"]].pick_random()
 
 
 func _talk_otto() -> void:
@@ -1054,31 +1050,27 @@ func flurry_hub_lines() -> Array:
 	var lines: Array = []
 	if not has_found("frozen_moment", "flurry_in_hub"):
 		note_found("frozen_moment", "flurry_in_hub")
-		lines = ["Oh! {player}! I... I came through after you. Is that OK?",
-			"It's so warm here. And green! My snow keeps following me about, look.",
-			"Dash says your Earth has seasons. Winter got stuck in my moment too, so now it can come to you.",
-			"Oh! And... watch this. Breathe in, then huff, like this. (A puff of frost sparkles out of her.)",
-			"My frost breath! It freezes water into ice you can walk on, and it makes Gloops go all slow.",
-			"Can I come with you? I'd walk right behind you, and when you press {frost_breath} I'll huff for you."]
+		lines = ["Oh! {player}! I came through after you. OK?",
+			"It's so warm and green here!",
+			"Watch this! (Huff! Frost sparkles out.)",
+			"My frost breath makes ice you can walk on!",
+			"Can I come with you? Press {frost_breath} and I'll huff!"]
 		Dialogue.flags["party_asked_flurry"] = true
 		lines.append_array(Party.ask_lines("flurry"))
 	elif not Dialogue.flags.has("party_yes_flurry") and (not Dialogue.flags.has("party_asked_flurry") or randi() % 3 == 0):
 		# She'd like to come along with you (scripts/party.gd), and asks again now and then after a "not yet"
 		Dialogue.flags["party_asked_flurry"] = true
-		lines = ["{player}... can I come with you? When you go places, I mean. Into the town, and the worlds.",
-			"I'd walk right behind you. And when there's water, I'll do my frost breath for you. I'm really good at it now."]
+		lines = ["{player}... can I come with you?",
+			"I'll do my frost breath for you!"]
 		lines.append_array(Party.ask_lines("flurry"))
 	else:
-		lines = [["Tick, tick, tick. I keep listening to my watch. I missed it.",
-			"Do you have snow days on Earth? Real ones? With sledges?"],
-			["Bramble showed me her garden. The plants stared at me. I stared back.",
-			"I think we're friends now. The plants and me."],
-			["If you go into another portal world... be careful, OK?",
-			"Time's broken in lots of places. You're good at fixing it, though."],
-			["It's winter in Stars Hollow when the calendar gets there. I made sure.",
-			"(She looks very pleased with herself, then very shy about it.)"],
-			["Take me to a pond some time! {frost_breath} and I'll make little ice islands, all the way across.",
-			"They melt after a bit, so don't stand about. Hop hop hop!"]].pick_random()
+		lines = [["Tick, tick. I missed my watch ticking.",
+			"Do you have snow days on Earth?"],
+			["Bramble's plants stared at me. I stared back."],
+			["Be careful in the portal worlds, OK?"],
+			["Winter comes to Stars Hollow now. I made sure!"],
+			["At a pond, press {frost_breath} for ice islands!",
+			"They melt, so hop hop hop!"]].pick_random()
 	return lines
 
 

@@ -179,7 +179,7 @@ func _check_jobs() -> void:
 				rhubarb_job = r.duplicate(true)
 	check(seen.has("rake") and seen.has("bakery"), "spring has planting and rhubarb jobs")
 	check(bad.is_empty(), "no spring job says pumpkins, leaves, snow or summer things%s" % ("" if bad.is_empty() else " (%s)" % bad[0]))
-	check(str(jobs.text_of(plant_job)).contains("Plant tulip bulbs"), "raking's planting tulip bulbs in spring")
+	check(str(jobs.text_of(plant_job)).contains("Plant bulbs"), "raking's planting tulip bulbs in spring")
 	check(str(jobs.text_of(rhubarb_job)).contains("rhubarb"), "Poppy wants rhubarb in spring")
 	var player := current_scene.find_child("Player", true, false) as Node3D
 	jobs.list.clear()

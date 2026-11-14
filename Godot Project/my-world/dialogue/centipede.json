@@ -7,13 +7,12 @@
         "not_flag": "centipede_fought"
       },
       "lines": [
-        "(Something long and dark is curled around the hollow log. Every leg goes still. Then a pale face turns... and lights up.)",
         "{player}! You came! You found my home!",
-        "Can you hear it, all the way down the tunnels? Tick... tick... The Moon Clock's going again. Because of you.",
-        "Can I tell you a secret? Everyone always runs away from me. Every single time. And then I'm on my own again.",
-        "So before we're friends for keeps... I need to know. Will you still stay when I'm at my very SCARIEST?",
-        "I'll do my biggest scary. Rearing up, glowing eyes, charging about, the lot. It's only a game. You'll only ever get bumped.",
-        "When I get dizzy, bop me on the head, or pop me with a bubble. Stay till the end and you win!",
+        "The Moon Clock's ticking again. Because of you.",
+        "Psst. Everyone always runs away from me.",
+        "Will you stay when I'm at my very SCARIEST?",
+        "It's only a game. You'll only get bumped.",
+        "When I'm dizzy, bop my head! Stay till the end to win!",
         {
           "choice": [
             {
@@ -22,7 +21,7 @@
               "record": "centipede_scary_game",
               "set": "centipede_game_yes",
               "lines": [
-                "Really? REALLY? Okay. Ahem. Here I come... RAAAH!"
+                "REALLY? Okay. Here I come... RAAAH!"
               ]
             },
             {
@@ -31,7 +30,7 @@
               "record": "centipede_scary_game",
               "set": "centipede_game_no",
               "lines": [
-                "That's okay. Saying no is brave too. I'll be right here, by my log, whenever you're ready."
+                "That's okay. Saying no is brave too."
               ]
             }
           ]
@@ -44,37 +43,33 @@
       },
       "set": "centipede_gifts",
       "lines": [
-        "(She's curled back round her hollow log, still giggling, legs twitching.)",
-        "You stayed. You actually STAYED! Even when I was my scariest!",
-        "Nobody's ever done that. Not once. Not in my whole long life.",
-        "And you jumped down a hole for me, and mended Dark Hollow. You're the bravest person I know.",
+        "You stayed! You STAYED! Even at my scariest!",
+        "Nobody's ever done that. Not once.",
         {
           "choice": [
             {
               "text": "Of course! That's what friends do.",
               "set": "centipede_friend",
               "lines": [
-                "Friends. FRIENDS! (All the legs wiggle at once. {player} thinks that means happy.)",
-                "I'm your friend now, for keeps. That's a centipede promise, and I've got a LOT of feet to keep it with."
+                "FRIENDS! (All her legs wiggle.)",
+                "For keeps. A centipede promise!"
               ]
             },
             {
               "text": "I was a bit scared of you, at first. I'm sorry.",
               "set": "centipede_friend",
               "lines": [
-                "(The centipede blinks. Slowly, she smiles.)",
-                "Thank you. Nobody's ever said sorry to me before. You were brave anyway. That's the best kind of brave.",
-                "Friends, then? For keeps? (She doesn't wait for an answer. Her legs have already decided.)"
+                "Nobody's ever said sorry to me. You were brave anyway.",
+                "Friends, then? For keeps!"
               ]
             }
           ]
         },
-        "And friends share their best tricks. Here's mine: walk at a wall and keep going. Don't stop! Just... go UP.",
-        "Push towards the wall to climb, away to climb down, sideways to scuttle along. Climb right up into a ceiling and you can walk along it upside down, like me!",
-        "Jump to hop off, or roll to let go. (You can't climb the invisible walls at the edge of a world. Nobody can. Not even me.)",
-        "One more thing. I've dug holes all round the Void, by the places everyone likes best. Find one and knock!",
-        "I'll gulp you up and take you along my tunnels to any other hole you've found, or down to Dark Hollow, or back home here. Or knock on my log, right here.",
-        "Gulp, slide, ptoo! Come and see me whenever you like."
+        "Here's my trick: walk at a wall and keep going. UP!",
+        "Now you can climb onto a ceiling and walk upside down!",
+        "{jump} to hop off.",
+        "And knock on my holes round the Void!",
+        "I'll gulp you up and take you to any hole you've found."
       ]
     },
     {
@@ -83,7 +78,7 @@
         "not_flag": "centipede_named"
       },
       "lines": [
-        "{player}... would you give me a name? I don't have one. Nobody's ever stayed long enough to ask. I think a friend should have a name.",
+        "{player}... would you give me a name?",
         {
           "choice": [
             {
@@ -91,7 +86,7 @@
               "set": "centipede_named",
               "name": "Wiggles",
               "lines": [
-                "Wiggles. WIGGLES! (All the legs wiggle.) It fits!"
+                "WIGGLES! It fits!"
               ]
             },
             {
@@ -99,7 +94,7 @@
               "set": "centipede_named",
               "name": "Shelby",
               "lines": [
-                "Shelby. Shelby the centipede. That sounds like someone people would want to meet."
+                "Shelby the centipede. I like it!"
               ]
             },
             {
@@ -107,7 +102,7 @@
               "set": "centipede_named",
               "name": "Sir Legs-a-Lot",
               "lines": [
-                "SIR Legs-a-Lot? (The centipede sits up very straight.) I'm a knight now. A very leggy knight."
+                "SIR Legs-a-Lot? I'm a knight now!"
               ]
             }
           ]
@@ -119,21 +114,20 @@
         "not_flag": "centipede_friend"
       },
       "lines": [
-        "You came back! Most people only come once. If they come at all.",
+        "You came back! Most people only come once.",
         {
           "choice": [
             {
               "text": "I'll be your friend!",
               "set": "centipede_friend",
               "lines": [
-                "(All of the centipede's legs wiggle at once.)",
                 "A friend! A real one!"
               ]
             },
             {
               "text": "I just wanted to see you again.",
               "lines": [
-                "That's... that's the nicest thing anyone's ever said to me."
+                "That's the nicest thing anyone's said to me."
               ]
             }
           ]
@@ -143,20 +137,16 @@
     {
       "rotate": [
         [
-          "Did you know there are thirty-seven kinds of mushroom round my log? I've named every one.",
-          "{player}: Even the tiny ones?",
-          "ESPECIALLY the tiny ones."
+          "I've named all 37 mushrooms round my log!"
         ],
         [
-          "I counted the glow-bugs last night. I got to a hundred, then forgot where I was. So I started again. It was lovely."
+          "I counted the glow-bugs. Then forgot. Lovely!"
         ],
         [
-          "I used to hide behind the walls at the school, just to hear people laughing. Now I've got a friend who laughs right here.",
-          "Being scary is lonely. Being friends is much better. Thank you for not running away, {player}."
+          "Being scary is lonely. Being friends is better."
         ],
         [
-          "If you ever feel scared in here, it's okay to go home. The gate's always there.",
-          "I'll still be here when you come back. And if you knock on my log, I'll take you anywhere my tunnels go."
+          "Scared? It's okay to go home. I'll be here."
         ]
       ]
     }

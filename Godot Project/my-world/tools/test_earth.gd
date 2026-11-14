@@ -94,7 +94,7 @@ func _run() -> void:
 	var palmer := _talker("palmer_earth")
 	check(palmer != null and _talker("ivy") != null and _talker("theo") != null, "Mr. Palmer (in person), Miss Ivy and Theo are here")
 	var hello := await _talk(palmer)
-	check(_said(hello, "just plain old Mr. Palmer") and _said(hello, "neighbour"), "Mr. Palmer, a neighbour, keeps his Void side a secret")
+	check(_said(hello, "Nobody here knows") and _said(hello, "neighbour"), "Mr. Palmer, a neighbour, keeps his Void side a secret")
 	var ask := await _talk(_talker("palmer_earth"), [0])
 	check(_said(ask, "string lights") and quests.on_step("earth_lights", "find"), "the hook quest: find the gazebo's lights")
 	var boxes := current_scene.find_children("Light Box *", "Area3D", true, false)

@@ -49,20 +49,20 @@ const DAY := 1440.0
 const CROPS := {
 	"blinkberry": {"name": "Blinkberry", "plural": "Blinkberries", "grow": 240.0, "gives": 3, "sells": 2,
 		"colour": Color(1.0, 0.35, 0.75), "look": "berry", "seed": 2,
-		"says": "Little pink berries that blink back at you. Quick to grow!"},
+		"says": "Blinking pink berries. Quick to grow!"},
 	"peekaroot": {"name": "Peekaroot", "plural": "Peekaroots", "grow": 480.0, "gives": 2, "sells": 5,
 		"colour": Color(0.3, 0.95, 0.85), "look": "root", "seed": 4,
-		"says": "A crunchy teal root that peeks up out of the soil to see who's there."},
+		"says": "A root that peeks out at you."},
 	"gogglegourd": {"name": "Goggle Gourd", "plural": "Goggle Gourds", "grow": 720.0, "gives": 1, "sells": 14,
 		"colour": Color(0.7, 0.45, 1.0), "look": "gourd", "seed": 6,
-		"says": "A big round purple gourd with big round goggly eyes. Takes a while, worth it."},
+		"says": "A big goggly-eyed gourd. Slow, but worth it."},
 	"remnant_sprout": {"name": "Remnant Sprout", "plural": "Remnant Sprouts", "grow": 1440.0, "gives": 2,
 		"sells": 0, "colour": Color(0.45, 1.0, 0.3), "look": "crystal", "remnant_seed": 1,
-		"says": "Grows a tiny Remnant crystal at its tip. A whole Void day of growing, and it gives two back."},
+		"says": "Grows Remnant crystals. Takes a day."},
 	# From the Old Taproot in the Undergardens (scripts/garden_caves.gd): no shop sells the seeds, only he has them
 	"glowcap": {"name": "Glowcap", "plural": "Glowcaps", "grow": 600.0, "gives": 2, "sells": 9,
 		"colour": Color(0.55, 0.95, 1.0), "look": "mushroom", "seed": 0,
-		"says": "A sleepy blue mushroom from the caves under the garden. It glows softly all night long."},
+		"says": "A sleepy mushroom that glows at night."},
 }
 const ORDER := ["blinkberry", "peekaroot", "gogglegourd", "remnant_sprout", "glowcap"]
 
@@ -214,7 +214,7 @@ func plant(i: int, crop: String) -> bool:
 	if not Dialogue.flags.has("farm_planted"):
 		Dialogue.set_flag("farm_planted")
 	_fx(i, "plant")
-	Game.message("You planted a %s seed. Now give it some water!" % CROPS[crop].name)
+	Game.message("Planted a %s! Now water it!" % CROPS[crop].name)
 	changed.emit()
 	Game.save_game()
 	return true
@@ -294,14 +294,14 @@ func _use(i: int) -> void:
 				water(i)
 			else:
 				var c: Dictionary = CROPS[str(beds[i].crop)]
-				Game.message("%s: it's drinking happily. About %d more Void hour%s to go." % [c.name, hours_left(i),
+				Game.message("%s: %d more hour%s to go." % [c.name, hours_left(i),
 					"" if hours_left(i) == 1 else "s"])
 
 
 func _ask_seed(i: int) -> void:
 	var have := ORDER.filter(func(c: String) -> bool: return int(seeds.get(c, 0)) > 0)
 	if have.is_empty():
-		Game.message("No seeds in your bag! Bramble's Flowers stall in the Market sells them.")
+		Game.message("No seeds! Bramble's stall sells them.")
 		Audio.play("ui_back", -8.0)
 		return
 	if have.size() == 1:
@@ -349,11 +349,10 @@ func tour() -> Array:
 	give_seeds("peekaroot", 1)
 	changed.emit()
 	Game.save_game()
-	return ["(Bramble dives into the soil and wiggles along under two of the beds. They come up dug, soft and ready.)",
-		"There! Two beds ready, and here's a bag of seeds to start you off: three Blinkberries and a Peekaroot.",
-		"Plant one in a dug bed, then give it a drink. Plants only grow while they've got water, so check on them.",
-		"Don't worry if you forget, though. My plants never mind waiting. They'll just look at you a bit sadly till you come back.",
-		"You can dig the other beds yourself with your {tool}. The Flowers stall has more seeds, and the Fruit stall buys what you grow!"]
+	return ["(Bramble digs two beds for you!)",
+		"Here are some seeds to start!",
+		"Plant one, then water it!",
+		"Dig more beds with your {tool}!"]
 
 
 # -----------------------------------------------------------------------------

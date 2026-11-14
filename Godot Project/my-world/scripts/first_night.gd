@@ -334,10 +334,9 @@ func board_tutorial_lines() -> Array:
 	if not running() or step() != "board" or Dialogue.flags.has("fn_board_look"):
 		return []
 	return [
-		{"speaker": "Nina", "text": "This is the notice board! Everyone in Stars Hollow pins up little jobs they need a hand with."},
-		{"speaker": "Nina", "text": "Do one, then come back and press %s here to turn it in. They pay sparkles!" % Settings.prompt("interact")},
-		{"speaker": "Nina", "text": "Pick one to FOLLOW and a star shows you where to go, on your map and your minimap. You can follow more than one!"},
-		{"speaker": "Nina", "text": "You can change your mind any time in your Quests, too (%s). Each job and quest has a Follow button." % Settings.prompt("player_menu")},
+		{"speaker": "Nina", "text": "The notice board! Jobs for sparkles!"},
+		{"speaker": "Nina", "text": "Do one, then come back here. Press %s!" % Settings.prompt("interact")},
+		{"speaker": "Nina", "text": "FOLLOW one and a star shows the way!"},
 	]
 
 
@@ -353,8 +352,7 @@ func _on_scene_changed() -> void:
 		_arrive.call_deferred()
 	elif scene.scene_file_path == EARTH and _woke_home:
 		_woke_home = false
-		Game.message("%s wakes up in bed, back on Earth. Was it all a dream? The watch on %s wrist is still ticking... Go and find Nina!" %
-			[Dialogue.player_name(), Hero.pronoun(Game.hero, "their")])
+		Game.message("Was it a dream? The watch still ticks...")
 
 
 func _arrive() -> void:
@@ -382,18 +380,18 @@ func void_intro(after: Callable = Callable(), force := false) -> void:
 	var to_sq := (square.global_position - p) * Vector3(1, 0, 1)
 	var shots: Array = [
 		{"from": p + Vector3.UP * 22.0 - to_sq.normalized() * 18.0, "look": p + to_sq * 0.25, "time": 3.2,
-			"title": "The Void", "caption": "{player}'s first morning on the other side of the oak."},
+			"title": "The Void", "caption": "First morning in the Void!"},
 		{"from": square.global_position + Vector3(18, 26, 26), "look": square.global_position, "time": 4.0,
-			"title": "", "caption": "The Market Square, right in the middle of town."},
+			"title": "", "caption": "The Market Square."},
 	]
 	if board:
 		var b := board.global_position
 		var out := ((square.global_position - b) * Vector3(1, 0, 1)).normalized()
 		shots.append({"from": b + out * 6.5 + Vector3.UP * 2.8, "look": b + Vector3.UP * 1.6, "time": 4.0,
 			"title": "Tally's Request Board",
-			"caption": "Folks in the Void pin up requests here every night. Follow one and a star shows the way!"})
+			"caption": "Requests! Follow one for a star."})
 		shots.append({"from": b + out * 5.5 + Vector3.UP * 2.4, "look": b + Vector3.UP * 1.5, "time": 2.2,
-			"title": "Tally's Request Board", "caption": "Just like the notice board back home."})
+			"title": "Tally's Request Board", "caption": "Just like back home!"})
 	if after.is_valid():
 		intro.done.connect(after, CONNECT_ONE_SHOT)
 	intro.play(shots)
@@ -428,12 +426,12 @@ func lesson_from_rex() -> Array:
 	var out: Array = []
 	if not Game.has_item("skateboard"):
 		Game.give_item("skateboard")
-		out.append("(Rex slides a skateboard over with one paw.) Here, borrow my spare. It's yours now. Mayors share.")
+		out.append("Here, have my spare board!")
 	if Dialogue.flags.has("skate_lesson_ollie"):
-		out.append("You already know the basics! Bruno's at the Lesson Pad if you want the fancy stuff.")
+		out.append("You know the basics! Bruno's got more.")
 		return out
 	out.append("COACH BRUNO! We have a student!")
-	out.append({"speaker": "Bruno", "text": "(Nina's little brother skids up on a black SK8 deck.) A new one? Thweet. Lesson Pad. Let'th go."})
+	out.append({"speaker": "Bruno", "text": "A new one? Thweet! Let'th go!"})
 	out.append({"speaker": "Rook", "text": "Woof!"})
 	Dialogue.finished.connect(_start_lesson, CONNECT_ONE_SHOT)
 	return out
@@ -506,7 +504,7 @@ func _cheer() -> void:
 		var at := player.global_position + Vector3(0, 2.0, 0)
 		for c in [Color(1.0, 0.85, 0.3), Color(0.7, 0.55, 1.0), Color(0.4, 0.95, 0.8), Color(1.0, 0.5, 0.75)]:
 			Fx.burst(player.get_parent(), at, c, 14, 0.09, 4.0, -4.0, 1.6)
-	Game.message("HOORAY! You popped the Gloop King! Dash is waiting out by the west fields. Take the goo bubble home and tell him!")
+	Game.message("HOORAY! The Gloop King's popped! Tell Dash!")
 
 
 func crown_from_dash() -> Array:
@@ -517,7 +515,7 @@ func crown_from_dash() -> Array:
 		Game.outfit["head"] = CROWN
 		Game.add_sparkles(KING_SPARKLES, "Dash's prize:")
 		Game.equipment_changed.emit()
-	return ["(The Gloop Crown is yours! You're wearing it. Find it in your wardrobe any time.)"]
+	return ["(You got the Gloop Crown!)"]
 
 
 # -----------------------------------------------------------------------------

@@ -17,13 +17,13 @@ const FLAG := "tour_dash_shop"
 # [what it points at, what Dash says]. "row:<item>" / "button:<item>" are a row of the list and its button (the first
 # of the ids that's showing), "wallet", "title", "help" and "close" are parts of the window.
 const STEPS := [
-	["title", "Hi! I'm Dash, and this is my gadget stall. Let me show you how it works!"],
-	["wallet", "These are your sparkles. You get them from quests, jobs and popping enemies, and you pay for gadgets with them."],
-	["row:star_popper", "Every gadget needs its blueprint first. You earn blueprints by helping people and winning races. Bring me one and I'll build it!"],
-	["button:star_popper", "When I can build one, this button says Get it! Press it to buy the gadget. The Star Popper's the best one to start with."],
-	["row:popper_refill,star_popper", "Gadgets use ammo, the number in the corner of your screen. Pop enemies for ammo bubbles, smash ammo crates, or buy a refill here."],
-	["help", "Forgot something? Press How does it work? and I'll show you again."],
-	["close", "Press Bye! when you're done. My workbench is right next door: mods and upgrades make your gadgets even better. Have fun!"],
+	["title", "My gadget stall! Here's how it works."],
+	["wallet", "Your sparkles. Spend them here!"],
+	["row:star_popper", "Bring me a blueprint. I'll build it!"],
+	["button:star_popper", "Press Get it! to buy."],
+	["row:popper_refill,star_popper", "Gadgets need ammo. Pop enemies for more!"],
+	["help", "Forgot? Press How does it work?"],
+	["close", "Press Bye! when you're done. Have fun!"],
 ]
 
 var shop: Node                              # the Shop autoload

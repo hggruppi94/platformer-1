@@ -451,7 +451,7 @@ func catch_moth(i: int) -> bool:
 	if n >= MOTHS.size():
 		Remnants.add(MOTH_REMNANTS, "moonmoths")
 		Game.add_sparkles(MOTH_SPARKLES, "moonmoths")
-		Game.message("All five moonmoths are flying home to Pip! Pip sends you %s and %d sparkles. Thank you!" %
+		Game.message("All five moonmoths home! %s and %d sparkles!" %
 			[Remnants.words(MOTH_REMNANTS), MOTH_SPARKLES])
 		Juice.blip("chime", 1.0, -3.0)
 	else:

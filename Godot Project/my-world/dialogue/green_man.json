@@ -6,16 +6,14 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(The Green Man is staring up at the cracks in the sky. He doesn't blink.)",
-        "...",
-        "(He looks at the watch on your wrist. Then at you.)",
+        "(He stares at your watch.)",
         "...Already?"
       ]
     },
     {
       "when": {"time": "shift"},
       "lines": [
-        "(The Green Man looks at the portal. Then he looks at {player}.)",
+        "(He stares at the portal. Then at you.)",
         "..."
       ]
     },
@@ -25,7 +23,7 @@
           "..."
         ],
         [
-          "(He gives {player} a tiny smile.)",
+          "(A tiny smile.)",
           "..."
         ],
         [

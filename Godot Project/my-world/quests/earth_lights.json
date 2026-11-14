@@ -7,7 +7,7 @@
   "steps": [
     {
       "id": "find",
-      "text": "Mr. Palmer lost the gazebo's string lights. Find the three boxes round the town green on Earth: by the diner, the bookshop and the inn.",
+      "text": "Find 3 boxes of lights.",
       "checklist": [
         [
           "lights_diner",
@@ -32,7 +32,7 @@
     },
     {
       "id": "bring",
-      "text": "Bring the lights to Mr. Palmer at the gazebo.",
+      "text": "Bring them to Mr. Palmer.",
       "where": [
         "palmer_earth"
       ],
@@ -43,6 +43,6 @@
   ],
   "reward": {
     "sparkles": 8,
-    "message": "The gazebo's all lit up! Mr. Palmer says come by on Saturday for the fair. (+8 sparkles)"
+    "message": "The gazebo's lit up! +8 sparkles."
   }
 }

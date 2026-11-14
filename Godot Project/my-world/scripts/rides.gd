@@ -298,7 +298,7 @@ const HERO_RIDES := {
 	"board": {"name": "Skateboard", "says": "Your trusty board."},
 	"overboard": {
 		"name": "Overboard", "kit": "overboard", "deck": 0.32, "hover": true, "level": 2,
-		"says": "A hoverboard that floats over the ground, and over water too: long glides, smooth carves, a soft landing.",
+		"says": "Floats over ground and water!",
 		# Floats, so the ground's bumps and slopes pull on it less, and it glides on and on
 		"push_speed": 10.0, "max_speed": 20.0, "coast": 0.22, "carve": 3.0, "slope": 0.75, "fall_gravity": 1.05,
 		"ollie_min": 4.5, "ollie_max": 6.6, "land_window": 0.85,
@@ -322,7 +322,7 @@ const HERO_RIDES := {
 	},
 	"bike": {
 		"name": "Bike", "kit": "bmx", "stance": 0.0, "deck": 0.0, "anim": "ride", "tricks_from": "dash",
-		"says": "A BMX of your own: faster than a board, with big bunny hops.",
+		"says": "Fast, with big bunny hops!",
 		"push_speed": 11.0, "max_speed": 21.0, "coast": 0.5, "carve": 2.3,
 		"ollie_min": 4.6, "ollie_max": 6.8, "spin_speed": 6.4, "fall_gravity": 1.4,
 	},
@@ -330,13 +330,13 @@ const HERO_RIDES := {
 		# The Bike, made to float by Zippy: no schematic, just the Bike and a bit more experience
 		"name": "Hover Bike", "kit": "hover_bike", "stance": 0.0, "deck": 0.3, "anim": "ride", "tricks_from": "dash",
 		"hover": true, "level": 3, "needs": "bike",
-		"says": "Your Bike with its wheels swapped for pads of light: it floats over bumps and right across the lake.",
+		"says": "A bike that floats over water!",
 		"push_speed": 11.5, "max_speed": 22.0, "coast": 0.28, "carve": 2.6, "slope": 0.75,
 		"ollie_min": 4.7, "ollie_max": 7.0, "spin_speed": 6.4, "fall_gravity": 1.15, "land_window": 0.85,
 	},
 	"rocket_board": {
 		"name": "Rocket Board", "kit": "rocket_board", "flames": true, "boost_power": 1.4, "flight": true, "level": 5,
-		"says": "A skateboard with two rockets that can FLY: hold Jump in the air to blast up, steer, let go to float down.",
+		"says": "A board that FLIES! Hold Jump in the air.",
 		"push_speed": 11.5, "max_speed": 23.0, "push_accel": 9.5, "coast": 0.4,
 		"tricks": {
 			"flips": {
@@ -359,13 +359,13 @@ const HERO_RIDES := {
 	"rocket_bike": {
 		"name": "Rocket Bike", "kit": "rocket_bike", "stance": 0.0, "deck": 0.0, "anim": "ride", "tricks_from": "dash",
 		"flames": true, "boost_power": 1.5, "flight": true, "level": 6,
-		"says": "A BMX with a big rocket on the back that can FLY: hold Jump in the air to blast up and soar over town.",
+		"says": "A bike that FLIES! Hold Jump in the air.",
 		"push_speed": 12.5, "max_speed": 24.0, "push_accel": 9.0, "coast": 0.45, "carve": 2.2,
 		"ollie_min": 4.6, "ollie_max": 6.8, "spin_speed": 6.2, "fall_gravity": 1.4,
 	},
 	"saucer": {
 		"name": "Flying Saucer", "kit": "saucer", "stance": 0.0, "deck": 0.42, "anim": "idle", "tricks_from": "pip", "hover": true,
-		"says": "Your own little saucer: it skims along, floats a long way off jumps and glides while you hold Jump.",
+		"says": "Your own saucer! Hold Jump to glide.",
 		"push_speed": 10.5, "max_speed": 20.0, "coast": 0.3, "carve": 3.0, "slope": 0.7,
 		"ollie_min": 4.8, "ollie_max": 7.4, "fall_gravity": 0.7, "glide": 2.4, "air_drift": 5.0, "spin_speed": 6.8,
 	},

@@ -91,7 +91,7 @@ func setup() -> void:
 		_add_frost_gloop()
 	_refresh()
 	if not Portals.is_cleared(world_id) and moments_thawed() == 0:
-		Game.message.call_deferred("The Frozen Moment: everything's stopped, even the snowflakes. Someone's waving by the way in...")
+		Game.message.call_deferred("The Frozen Moment: everything's stopped!")
 
 
 # The frozen moments -------------------------------------------------------------------------------------------------
@@ -132,13 +132,13 @@ func _chip(i: int) -> bool:
 			var tw := shell.create_tween()
 			tw.tween_property(shell, "scale", Vector3.ONE * (k - 0.06), 0.06)
 			tw.tween_property(shell, "scale", Vector3.ONE * k, 0.12)
-		Game.message("Crack! The ice round %s splinters. (%d more)" % [MOMENT_NAMES[i], THAW_HITS - _chips[i]])
+		Game.message("Crack! (%d more)" % (THAW_HITS - _chips[i]))
 		return true
 	Portals.note_found(world_id, moment_id(i))
 	_thaw(i)
 	var n := moments_thawed()
-	Game.message("%s thaws and moves again! (%d of 3)" % [MOMENT_NAMES[i].capitalize(), n] if n < 3
-		else "All three moments are moving again! Something on the icy throne just cracked...")
+	Game.message("%s moves again! (%d of 3)" % [MOMENT_NAMES[i].capitalize(), n] if n < 3
+		else "All three! Something on the throne cracked...")
 	return true
 
 
@@ -258,7 +258,7 @@ func _look_at_block() -> void:
 	if gloop_awake:
 		return
 	var left := 3 - moments_thawed()
-	Game.message("A huge Gloop, frozen solid on its throne, hugging the stopped moment. Thaw the %d frozen moment%s first." % [left, "" if left == 1 else "s"]
+	Game.message("A frozen Gloop. Thaw %d moment%s first." % [left, "" if left == 1 else "s"]
 		if left > 0 else "The ice round it is cracking...")
 	Audio.play("ui_back", -8.0)
 
@@ -278,7 +278,7 @@ func wake_gloop() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("pop", 0.5, -2.0)
-	Game.message("The Frost Gloop cracks out of its ice! Bubbles or stomps pop it. When it flops, jump the ring of frost!")
+	Game.message("The Frost Gloop's out! Pop it! Jump the frost ring!")
 
 
 func mend() -> void:
@@ -382,27 +382,25 @@ static func flurry_model() -> Node3D:
 func flurry_lines() -> Array:
 	# Flurry's shy at first: short lines, and more of them as she warms to you. Then what to do next.
 	if Portals.is_cleared(world_id):
-		return ["It's snowing. Real snow, falling down! I forgot what it sounds like.",
-			"And listen... my watch is ticking again. Tick. Tick. Tick.",
-			"Thank you, {player}. I don't know what I'd... um. Thank you."]
+		return ["It's snowing! Real snow!",
+			"And my watch ticks again!",
+			"Thank you, {player}."]
 	var n := moments_thawed()
 	if not Portals.has_found(world_id, "met_flurry"):
 		Portals.note_found(world_id, "met_flurry")
-		return ["Oh! You can move too? I... hi. I'm Flurry.",
-			"Everything stopped. The snow, the birds, all of it. Right in the middle of a moment.",
-			"My watch stopped on one tick. See? It keeps trying to get past it.",
-			"Three moments are stuck in the ice. A fish on the lake, a snowball fight up the hill, a bird in the icicle cave.",
-			"If you chip the ice off them, maybe... maybe they'll carry on?"]
+		return ["Oh! You can move too? Hi. I'm Flurry.",
+			"Everything stopped. Even the snow.",
+			"Three moments are stuck in ice.",
+			"Chip them free? Stars on your map."]
 	if n < 3:
 		var left: Array = []
 		for i in MOMENTS.size():
 			if not is_thawed(i):
 				left.append(["the fish out on the lake", "the snowball fight on the hilltop", "the bird in the icicle cave"][i])
-		return ["%d moving again. You're really good at this." % n if n > 0 else "Chip the ice three times and it breaks. Or pop it with bubbles.",
-			"Still frozen: %s." % " and ".join(left), "The lake's slippery. Slide, don't run!"]
-	return ["The big Gloop on the throne... it's been hugging the moment the whole time, so time can't move.",
-		"It's waking up. Pop it! And when it flops, jump the frost ring.",
-		"I'll... I'll be brave and watch from here."]
+		return ["%d moving again!" % n if n > 0 else "Chip it three times!",
+			"Still frozen: %s." % " and ".join(left)]
+	return ["The big Gloop's hugging time still!",
+		"Pop it! Jump the frost ring!"]
 
 
 func _talk_flurry() -> void:

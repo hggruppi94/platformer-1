@@ -10,33 +10,33 @@ const MIN_TIME := 1.4
 const WORLDS := ["res://scenes/earth/earth.tscn", "res://scenes/town/town.tscn",
 	"res://scenes/scary_world/scary_world.tscn", "res://scenes/title/title.tscn"]
 const TIPS := [
-	"An hour on Earth is a whole day in the Void. Make the most of every Shift!",
-	"Hold Aim to look over your shoulder, and Shoot to blow star bubbles.",
-	"Tally's board has three new requests every night you visit.",
-	"The Goals page in your menu always shows something to aim for.",
-	"Lost watches tick in their own ways. Dash would love to see them.",
-	"On your board, hold Jump to crouch, and let go to ollie.",
-	"The crack by the old oak is open any time. Jump in!",
-	"Pop a Gloop while you're grinding: it counts as a trick!",
-	"Zippy's races open one after another. Any place counts!",
-	"Feeling stuck? Open the map: the stars show where to go.",
-	"The little aliens love it when you wave back.",
-	"Every Saturday evening there's a fair on the green: a different one each season.",
-	"On the last day of autumn it's Hallow's Eve. Knock on every door on Maple Lane!",
-	"Winter Lights, Kite Day and Firefly Night: one big day every season. Check the Calendar!",
-	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
-	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
+	"An Earth hour is a whole Void day!",
+	"Hold Aim, then Shoot!",
+	"Tally has new requests every night.",
+	"Stuck? Look at your Goals!",
+	"Found a watch? Show Dash!",
+	"Hold Jump, let go: ollie!",
+	"The oak's crack is always open!",
+	"Pop Gloops for tricks!",
+	"Any race place counts!",
+	"Stars on the map show the way.",
+	"Wave at the little aliens!",
+	"Saturday evening: a fair!",
+	"Hallow's Eve: knock knock!",
+	"A big party every season!",
+	"Check the Calendar!",
+	"Weekends: friends play outside!",
 ]
 
 # Before the old oak has opened for them (a new game's first day), only tips that don't give the Void away
 # (Hayden's day 1 playtest, 11 Nov 2026: no spoilers before things happen)
 const FIRST_DAY_TIPS := [
-	"The Goals page in your menu always shows something to aim for.",
-	"Feeling stuck? Open the map: the stars show where to go.",
-	"Every Saturday evening there's a fair on the green: a different one each season.",
-	"On the last day of autumn it's Hallow's Eve. Knock on every door on Maple Lane!",
-	"Every season on Earth lasts four weeks. The Calendar page in your menu shows what's coming.",
-	"No school at weekends: Nina, Bruno and their friends are out round town all day.",
+	"Stuck? Look at your Goals!",
+	"Stars on the map show the way.",
+	"Saturday evening: a fair!",
+	"Hallow's Eve: knock knock!",
+	"Check the Calendar!",
+	"Weekends: friends play outside!",
 ]
 
 var tip := ""

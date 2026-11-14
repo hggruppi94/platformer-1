@@ -168,7 +168,7 @@ func catch(id: String) -> void:
 		Fx.burst(_scene, at, Color(0.8, 0.7, 1.0), 10, 0.05, 2.0, -0.5, 0.7)
 	var n := caught_count()
 	if n >= RIPPLES.size():
-		Game.message("Your watch gulps up the last time ripple! That's all three. Back to the lab past Dash's house.")
+		Game.message("All three ripples! Back to the lab!")
 	else:
 		Game.message("Your watch gulps up a time ripple! (%d of %d) It's still humming..." % [n, RIPPLES.size()])
 	Game.save_game()
@@ -273,7 +273,7 @@ func _bang() -> void:
 func _done_running() -> void:
 	_running = false
 	Game.hold_controls(&"lab", false)                          # (a talk going on keeps its own hold)
-	Game.message("FZZZT! The pods hiss open, and Rex and Rook stagger out in a puff of lavender smoke. Did it work?")
+	Game.message("FZZZT! Did it work?")
 
 
 # -----------------------------------------------------------------------------

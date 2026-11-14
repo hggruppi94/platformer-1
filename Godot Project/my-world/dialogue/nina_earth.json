@@ -6,11 +6,10 @@
         "quest_step": "aftershock:nina"
       },
       "lines": [
-        "{player}: Nina! A girl came out of Willow Pond after the rumble. She says she's you. She's got freckles, orange hair and a stripy hat.",
-        "A me? From the pond? (Nina goes very quiet.)",
-        "Mum says the pond's deep. Deeper than ponds should be. I guess it goes somewhere else too. Like the portal.",
-        "She's not me. She's not a part of me, either. She's just another Nina, from another world. And I don't think she's a very nice one.",
-        "Go and find her at the pond. I'll be right here. Being... sensible. (She makes a face.)"
+        "{player}: Nina! A girl from the pond says she's you!",
+        "A me? From the pond?",
+        "She's not me. Just another Nina. Not a nice one.",
+        "Go find her at the pond. I'll wait here."
       ],
       "set": "aftershock_told"
     },
@@ -20,8 +19,7 @@
         "not_flag": "aftershock_nina_after"
       },
       "lines": [
-        "She went back through the pond? Good. I think. Is it weird that I feel a bit sorry for her?",
-        "Everyone there must be sweet on the outside and tricky on the inside. That sounds tiring."
+        "She went back? Good. I feel a bit sorry for her."
       ],
       "set": "aftershock_nina_after"
     },
@@ -33,11 +31,10 @@
       },
       "set": "first_snow_start",
       "lines": [
-        "{player}! {player}! Look! It's SNOWING!",
-        "It never snows here. Not ever. Mum says it's been autumn in Stars Hollow for as long as anyone can remember.",
-        "(She catches a snowflake on her mitten and stares at it.) It's like something somewhere got unstuck.",
-        "We HAVE to build a snowman. It needs a carrot nose. Kip's got carrots at the Corner Market.",
-        "And Prue's got an old red scarf she never wears. It's by our door. Meet me on the green!"
+        "{player}! Look! It's SNOWING!",
+        "It never snows here. Not ever!",
+        "Let's build a snowman! Get a carrot from Kip...",
+        "...and Prue's red scarf by our door. Meet me on the green!"
       ]
     },
     {
@@ -48,10 +45,9 @@
       },
       "set": "summer_splash_start",
       "lines": [
-        "{player}! {player}! Feel that? The sun's actually HOT!",
-        "Mum says Stars Hollow's never had a proper summer. Not ever. It's like the whole year got its rhythm back.",
-        "(She's already wearing sunglasses. They're upside down.) We are having a BEACH DAY. At Willow Pond. Today.",
-        "Prue's got an old swim ring by our door, and Hank sells buckets and spades at the hardware store. Meet me by the dock!"
+        "{player}! The sun's actually HOT!",
+        "BEACH DAY! At Willow Pond!",
+        "Get Prue's swim ring and a bucket from Hank. Meet me by the dock!"
       ]
     },
     {
@@ -62,9 +58,9 @@
       },
       "set": "duckling_day_start",
       "lines": [
-        "{player}! Smell that? Rain AND flowers. Mum says Stars Hollow's never had a proper spring. Not ever.",
-        "But there was a big shower in the night, and Mother Duck's lost all five of her ducklings! She's on the bank of Willow Pond, quacking her head off.",
-        "They'll have waddled all over town. Find them and they'll follow you, ducklings follow ANYONE. Then we take them home. Go go go!"
+        "{player}! Rain AND flowers! It's spring!",
+        "But Mother Duck's lost her five ducklings!",
+        "Find them, they'll follow you. Go go go!"
       ]
     },
     {
@@ -74,9 +70,8 @@
       },
       "set": "nina_dial_talk",
       "lines": [
-        "You turned the old stone dial by the oak, didn't you? I KNEW it. The whole town went whoosh!",
-        "Mr. Page says it's in his book. When a season comes home from wherever seasons go, the oak lets you pick it. Like a radio, but for weather!",
-        "Prue wants to turn it every five minutes. Mum said once a day. Prue said that's not what the dial said."
+        "You turned the stone dial by the oak? The town went WHOOSH!",
+        "Prue wants to turn it every five minutes."
       ]
     },
     {
@@ -84,7 +79,7 @@
         "quest_step": "first_snow:gather"
       },
       "lines": [
-        "A carrot from the Corner Market, and Prue's scarf from our door. Then the green! Hurry, before it melts! (It won't melt. I just like saying it.)"
+        "A carrot from Kip, Prue's scarf from our door. Hurry!"
       ]
     },
     {
@@ -92,7 +87,7 @@
         "quest_step": "first_snow:build"
       },
       "lines": [
-        "You got them! OK. You roll the big ball, I'll do the head. Go on, start rolling! (It's just here by me.)"
+        "You got them! Roll the big ball! It's right here."
       ]
     },
     {
@@ -100,7 +95,7 @@
         "quest_step": "first_snow:sled"
       },
       "lines": [
-        "I left my sled on top of Lookout Hill. Go on, you first! I'll watch from the bottom and do the scores."
+        "My sled's on top of Lookout Hill. You go first!"
       ]
     },
     {
@@ -108,7 +103,7 @@
         "quest_step": "first_snow:cocoa"
       },
       "lines": [
-        "That was a ten. A ten! Now cocoa. Gus makes it with tiny marshmallows, but only if you ask nicely. Ask him!"
+        "That was a TEN! Now ask Gus for cocoa!"
       ]
     },
     {
@@ -118,7 +113,7 @@
       },
       "every": 2,
       "lines": [
-        "Our snowman's still on the green. Prue visits him every morning. She's named him Sir Carrots."
+        "Prue named our snowman Sir Carrots."
       ]
     },
     {
@@ -126,7 +121,7 @@
         "quest_step": "summer_splash:gather"
       },
       "lines": [
-        "Prue's swim ring from our door, and a bucket and spade from Hank's. Then the beach by the dock! Last one there's a soggy sandwich."
+        "Swim ring from our door, bucket from Hank's. Then the beach!"
       ]
     },
     {
@@ -134,7 +129,7 @@
         "quest_step": "summer_splash:build"
       },
       "lines": [
-        "You got them! OK. You dig, I'll do the towers. The beach is just there, by the dock. Four towers. And a flag. Non-negotiable."
+        "You got them! You dig, I'll do the towers!"
       ]
     },
     {
@@ -142,7 +137,7 @@
         "quest_step": "summer_splash:jump"
       },
       "lines": [
-        "Best sandcastle EVER. Now: cannonball off the end of the dock! Run all the way to the end. I'll do the scores."
+        "Best sandcastle EVER! Now cannonball off the dock!"
       ]
     },
     {
@@ -150,7 +145,7 @@
         "quest_step": "summer_splash:lemonade"
       },
       "lines": [
-        "That was a ten. A TEN! I'm soaked. Lemonade time. Gus does pink lemonade in summer, but only if you ask nicely. Ask him!"
+        "A TEN! I'm soaked. Ask Gus for pink lemonade!"
       ]
     },
     {
@@ -160,7 +155,7 @@
       },
       "every": 2,
       "lines": [
-        "Our sandcastle's still on the beach. Prue's put a crab in charge of it. Well, a pebble. She says it's a crab."
+        "Prue put a crab in charge of our castle. Well, a pebble."
       ]
     },
     {
@@ -168,7 +163,7 @@
         "quest_step": "duckling_day:find"
       },
       "lines": [
-        "Five ducklings: by the gazebo, the playground, outside the bakery, the footbridge, and the Tulip Field. Walk right up to them. They'll follow you in a line!"
+        "Find five ducklings round town. Walk up to them!"
       ]
     },
     {
@@ -176,7 +171,7 @@
         "quest_step": "duckling_day:home"
       },
       "lines": [
-        "Look at them all, in a line behind you! Take them to Mother Duck, on the bank by the dock. Don't walk too fast, their legs are THIS long."
+        "They're following you! Take them to Mother Duck."
       ]
     },
     {
@@ -184,7 +179,7 @@
         "quest_step": "duckling_day:puddles"
       },
       "lines": [
-        "They're home! Now the best bit of a spring shower: PUDDLES. There's three on the green. Jump in them. Properly. With both feet."
+        "They're home! Now jump in the three puddles on the green!"
       ]
     },
     {
@@ -192,7 +187,7 @@
         "quest_step": "duckling_day:buns"
       },
       "lines": [
-        "I'm wet up to my knees. Honey buns! Poppy makes them warm in spring. Ask her at the bakery, I'll be there!"
+        "I'm SO wet. Honey buns at Poppy's!"
       ]
     },
     {
@@ -202,7 +197,7 @@
       },
       "every": 2,
       "lines": [
-        "The ducklings swim round the pond in a line behind their mum now. Prue's named them all. They're all called Gerald."
+        "Prue named all the ducklings Gerald."
       ]
     },
     {
@@ -212,15 +207,10 @@
       },
       "set": "fn_nina",
       "lines": [
-        "Oh! Hi. Good morning! You opened the door. I wasn't sure anyone lived here yet.",
-        "I'm Nina. Nina Blastoff. I live on Maple Lane, with my sister Prue and my little brother Bruno.",
+        "Oh! Hi! I'm Nina, from Maple Lane. My sister's Prue, my brother's Bruno.",
         "{player}: Hi Nina! I'm {player}.",
-        "{player}. Cool name. So... can I tell you something weird?",
-        "(She glances up at the sky for a second, then back at you.)",
-        "Have you ever had the feeling something's about to happen? Something big? No? Just me. Never mind!",
-        "First, go and meet everyone! Mr. Palmer's by the gazebo. He knows everything about this town. Probably more than he says.",
-        "Walk up to anyone and press {interact} to say hi. And {player_menu} opens your menu, with your quests and a map of town. {map} goes straight to the map.",
-        "Then come and find me by the gazebo. I want to show you something. (She's already walking off.)"
+        "Do you ever feel like something BIG is coming? No? Just me!",
+        "Go meet everyone! Mr. Palmer's by the gazebo."
       ],
       "first_night": true
     },
@@ -229,8 +219,8 @@
         "quest_step": "first_night:morning"
       },
       "lines": [
-        "Have you met Mr. Palmer yet? Gazebo. Middle of the green. Can't miss him. He waves a lot.",
-        "And say hi to a couple of the others. Theo and Mr. Page are on the bench by the gazebo. Ozzie tells a lot of jokes."
+        "Mr. Palmer's at the gazebo. He waves a lot.",
+        "And say hi to two more people!"
       ],
       "first_night": true
     },
@@ -240,8 +230,8 @@
         "not_flag": "fn_board_look"
       },
       "lines": [
-        "You've met everyone! Well, nearly. Now I want to show you something.",
-        "This is the notice board, right here by the gazebo. Go on, press {interact} on it. I'll tell you how it works."
+        "You met everyone! Now look at this.",
+        "The notice board! Press {interact} on it."
       ],
       "first_night": true
     },
@@ -250,9 +240,8 @@
         "quest_step": "first_night:board"
       },
       "lines": [
-        "Pick a job and follow it, and a star shows you where to go. You can follow two, or all three!",
-        "When it's done, come back to the board and press {interact} to turn it in. Sparkles!",
-        "(She grins.) That's how you get rich in Stars Hollow. Well. Sparkle-rich."
+        "Follow a job and a star shows the way!",
+        "Then come back here for sparkles!"
       ],
       "first_night": true
     },
@@ -261,10 +250,9 @@
         "quest_step": "first_night:evening"
       },
       "lines": [
-        "That was the BEST first day. I have to go home now, though. Mum's making spaghetti, and Bruno always eats mine.",
-        "Stars Hollow's pretty at night. Have a look round, then get some sleep!",
-        "(She stops, and looks up at the sky.) Huh. Did the stars just... flicker?",
-        "Never mind. See you tomorrow, {player}!"
+        "Best first day! Mum made spaghetti! Gotta go!",
+        "Huh. Did the stars just... flicker?",
+        "See you tomorrow, {player}!"
       ],
       "first_night": true
     },
@@ -274,26 +262,22 @@
       },
       "set": "fn_home_nina",
       "lines": [
-        "{player}! You're back! Did you... did you FALL too?",
-        "{player}: The ground cracked open right under me! And then I fell out of the SKY!",
-        "Me too! Right through my bedroom floor. Bruno grabbed my hand and down we went.",
-        "(She lowers her voice.) And all those little aliens hugging us. And everyone else staring like we were a thunderstorm.",
-        "And look, we both got watches. (She holds hers next to yours.) Tally kept saying we're 'chosen'. Chosen for WHAT?",
-        "Bruno didn't get one. He's being SO smug about it anyway.",
-        "Oh! And Mr. Page says the ground in front of the old oak went CRACK at midnight too. He heard it from his window. And now there's a crack there, still open, glowing way down deep.",
-        "I don't think last night was an accident, {player}. Something made it happen. Do you think we can go back?",
+        "{player}! Did you FALL too?",
+        "Me too! Right through my bedroom floor!",
+        "And we both got watches. 'Chosen'... for WHAT?",
+        "There's a glowing crack by the old oak now. Can we go back?",
         {
           "choice": [
             {
-              "text": "Only one way to find out!",
+              "text": "Let's find out!",
               "lines": [
-                "Then let's jump in that crack by the oak. Any time you're ready! (She does a little twirl.)"
+                "The crack by the oak! Any time you're ready!"
               ]
             },
             {
               "text": "I hope so!",
               "lines": [
-                "Me too. Mostly. (She grins.) The Void's still there, I can feel it. Like a song stuck in my head."
+                "Me too!"
               ]
             }
           ]
@@ -309,21 +293,20 @@
       },
       "set": "fn_offered",
       "lines": [
-        "Hey, {player}. I was thinking. You know the old oak, and the Shift, and the Void?",
-        "I could show you round properly. Like it was your first night all over again. Everyone, everything, start to finish.",
+        "Want your first night all over again? From the start?",
         {
           "choice": [
             {
               "text": "Yes, show me!",
               "set": "first_night_start",
               "lines": [
-                "Brilliant! First: go and say hi to Mr. Palmer by the gazebo. I'll explain the rest on the way."
+                "Yay! Say hi to Mr. Palmer first!"
               ]
             },
             {
-              "text": "No thanks, I know my way.",
+              "text": "No thanks!",
               "lines": [
-                "Fair enough! If you change your mind, it's in your quest log. Any time."
+                "Okay! It's in your quests any time."
               ]
             }
           ]
@@ -336,10 +319,9 @@
         "talks": 0
       },
       "lines": [
-        "Oh. Hey. You're the new kid on the green. I'm Nina. Nina Blastoff.",
-        "{player}: Nina? But you look... different.",
-        "(She tugs her bow and gives you a long look.)",
-        "Different from what? ...Never mind. Don't answer that. Not here."
+        "Oh. Hey. I'm Nina.",
+        "{player}: Nina? You look... different.",
+        "Different from what? ...Not here."
       ]
     },
     {
@@ -348,8 +330,8 @@
         "season": "winter"
       },
       "lines": [
-        "{player}! Isn't the Frost Fair the best? I've had four cups of cocoa. Maybe five.",
-        "Watch the lanterns at nine. Last year they all floated right over the old oak and... kind of shimmered. Green. Weird, right?"
+        "The Frost Fair! I've had five cocoas!",
+        "Watch the lanterns at nine. They go green over the oak!"
       ]
     },
     {
@@ -358,8 +340,8 @@
         "season": "summer"
       },
       "lines": [
-        "{player}! Isn't the Summer Fair the best? I've had four ice lollies. Maybe five. My tongue's every colour.",
-        "Watch the lanterns at ten. Last year they all floated right over the old oak and... kind of shimmered. Green. Weird, right?"
+        "The Summer Fair! My tongue's every colour!",
+        "Watch the lanterns at ten. They go green over the oak!"
       ]
     },
     {
@@ -368,8 +350,8 @@
         "season": "autumn"
       },
       "lines": [
-        "{player}! Isn't the festival the best? I've had four caramel apples. Maybe five.",
-        "Watch the lanterns at nine. Last year they all floated right over the old oak and... kind of shimmered. Green. Weird, right?"
+        "The festival! I've had five caramel apples!",
+        "Watch the lanterns at nine. They go green over the oak!"
       ]
     },
     {
@@ -378,8 +360,8 @@
         "season": "spring"
       },
       "lines": [
-        "{player}! Isn't the Spring Fair the best? I've had four strawberry tarts. Maybe five.",
-        "Watch the lanterns at nine. Last year they all floated right over the old oak and... kind of shimmered. Green. Weird, right?"
+        "The Spring Fair! I've had five strawberry tarts!",
+        "Watch the lanterns at nine. They go green over the oak!"
       ]
     },
     {
@@ -387,8 +369,8 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "Every year I think the tree can't be bigger than last year. Every year it is.",
-        "Make a wish when the star lights up. I always do. ...No, I'm not telling you what it is."
+        "The tree's bigger every year!",
+        "Make a wish when the star lights up!"
       ]
     },
     {
@@ -396,8 +378,7 @@
         "activity": "kites"
       },
       "lines": [
-        "Mine's the red one with the black bow. Obviously.",
-        "If you run backwards up the hill it goes higher. If you trip, it also goes higher. Ask me how I know."
+        "Mine's the red kite with the black bow."
       ]
     },
     {
@@ -405,8 +386,7 @@
         "activity": "fireworks"
       },
       "lines": [
-        "Firefly Night's my favourite. Real fireflies AND fake ones that go boom.",
-        "Bruno counts every single rocket. He loses count at about nine."
+        "Real fireflies AND fireworks! Best night!"
       ]
     },
     {
@@ -414,8 +394,7 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "Happy Hallow's Eve! I'm a vampire. (She shows you her plastic fangs.) Bruno's a meatball. Don't ask.",
-        "Mr. Palmer gives the best treats, but you have to listen to a story about the old oak first. Worth it."
+        "Happy Hallow's Eve! I'm a vampire. Bruno's a meatball."
       ]
     },
     {
@@ -424,8 +403,7 @@
         "activity": "breakfast"
       },
       "lines": [
-        "No school today! Mum's making pancakes. Bruno's already had four.",
-        "Saturdays and Sundays are the best. Nobody tells you what to learn. You just... find things out."
+        "No school today! Bruno's had four pancakes."
       ]
     },
     {
@@ -434,8 +412,7 @@
         "season": "winter"
       },
       "lines": [
-        "Gus does a grilled cheese on weekends that's shaped like a snowflake. Well. He says it is.",
-        "It's a grilled cheese with a bite out of it. But I like it."
+        "Gus does a snowflake grilled cheese. Kind of."
       ]
     },
     {
@@ -444,8 +421,7 @@
         "season": "summer"
       },
       "lines": [
-        "Gus does a grilled cheese on weekends that's shaped like the sun. Well. He says it is.",
-        "It's a grilled cheese with chips sticking out round it. But I like it."
+        "Gus does a sunshine grilled cheese. Kind of."
       ]
     },
     {
@@ -454,8 +430,7 @@
         "season": "autumn"
       },
       "lines": [
-        "Gus does a grilled cheese on weekends that's shaped like a pumpkin. Well. He says it is.",
-        "It's a grilled cheese with a bite out of it. But I like it."
+        "Gus does a pumpkin grilled cheese. Kind of."
       ]
     },
     {
@@ -464,8 +439,7 @@
         "season": "spring"
       },
       "lines": [
-        "Gus does a grilled cheese on weekends that's shaped like a flower. Well. He says it is.",
-        "It's a grilled cheese with four bites out of it. But I like it."
+        "Gus does a flower grilled cheese. Kind of."
       ]
     },
     {
@@ -473,8 +447,7 @@
         "activity": "pond"
       },
       "lines": [
-        "Willow Pond goes all still when there's nobody about. Like it's listening.",
-        "I come here at weekends to think. Mostly about the oak. And about where the ripples go."
+        "The pond goes so still. Like it's listening."
       ]
     },
     {
@@ -482,8 +455,7 @@
         "activity": "toy_shop"
       },
       "lines": [
-        "Otis has a telescope in the window. I'm saving up for it.",
-        "Then I can see what's really up there at midnight."
+        "I'm saving up for Otis's telescope."
       ]
     },
     {
@@ -491,7 +463,7 @@
         "activity": "oak"
       },
       "lines": [
-        "(Nina's looking at the old oak.) It hums louder near midnight. You've noticed too, haven't you? Thought so."
+        "The oak hums louder at night. You noticed too?"
       ]
     },
     {
@@ -499,7 +471,7 @@
         "activity": "her_room"
       },
       "lines": [
-        "My room. Red and black. Prue says it's 'gloomy'. I say it's 'dramatic'."
+        "My room! Red and black. Dramatic!"
       ]
     },
     {
@@ -507,7 +479,7 @@
         "activity": "skating"
       },
       "lines": [
-        "Skating with Bruno. He's better than me. For now."
+        "Skating with Bruno. He's better. For now."
       ]
     },
     {
@@ -515,19 +487,19 @@
         "activity": "breakfast"
       },
       "lines": [
-        "Breakfast. Prue's built a fort out of cereal boxes. Mum's pretending not to see."
+        "Prue built a cereal box fort!"
       ]
     },
     {
       "rotate": [
         [
-          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+          "This town's a bit odd, if you look closely."
         ],
         [
-          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+          "Out at midnight? Be careful."
         ],
         [
-          "Prue thinks she saw a little green alien building a snowman. I told her it was Kip. It was probably Kip."
+          "Prue saw a little green alien! It was probably Kip."
         ]
       ],
       "when": {
@@ -537,16 +509,16 @@
     {
       "rotate": [
         [
-          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+          "This town's a bit odd, if you look closely."
         ],
         [
-          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+          "Out at midnight? Be careful."
         ],
         [
-          "Prue thinks she saw a little green alien in the sunflowers. I told her it was a grasshopper. It was probably a grasshopper."
+          "Prue saw a little green alien! Probably a grasshopper."
         ],
         [
-          "No school all summer! The pond, the skate yard, the pond again. Best. Season. Ever."
+          "No school all summer! Best. Season. Ever."
         ]
       ],
       "when": {
@@ -556,13 +528,13 @@
     {
       "rotate": [
         [
-          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+          "This town's a bit odd, if you look closely."
         ],
         [
-          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+          "Out at midnight? Be careful."
         ],
         [
-          "Prue thinks she saw a little green alien in the pumpkin patch. I told her it was a squash. It was probably a squash."
+          "Prue saw a little green alien! Probably a squash."
         ]
       ],
       "when": {
@@ -572,13 +544,13 @@
     {
       "rotate": [
         [
-          "Things in this town are a bit odd, if you look closely. Most people don't look closely."
+          "This town's a bit odd, if you look closely."
         ],
         [
-          "If you're ever out at midnight... be careful. And be back by one. Trust me."
+          "Out at midnight? Be careful."
         ],
         [
-          "Prue thinks she saw a little green alien in the tulip field. I told her it was a frog. It was probably a frog."
+          "Prue saw a little green alien! Probably a frog."
         ]
       ],
       "when": {

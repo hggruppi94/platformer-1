@@ -6,9 +6,9 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "Well, I'll be. One minute I'm countin' Fluffkins, the next I'm fallin' out of a green sky.",
-        "I'm Heather, sugar. You alright? You look about as rattled as a fence post in a twister.",
-        "(She looks round at the Void folk, all staring.) Folks round here look plum scared of us. Reckon we oughta say hello proper."
+        "Well, I'll be! I just fell out of a green sky!",
+        "I'm Heather, sugar. You alright?",
+        "Folks here look scared of us. Let's say hello proper."
       ]
     },
     {
@@ -17,9 +17,9 @@
       },
       "set": "mf_heather",
       "lines": [
-        "Well, hey there, sugar! Ain't you just the sweetest thing. I'm Heather.",
+        "Well, hey there, sugar! I'm Heather.",
         "{player}: Melody's written a new song, and she won't sing it without you!",
-        "A new song? Well, why didn't you say so! Hold onto your hat, I'm comin'! (She hops on her scooter.) Meet you at the Market, hon!"
+        "A new song? I'm comin'! Meet you at the Market!"
       ]
     },
     {
@@ -27,16 +27,15 @@
         "quest_step": "meet_friends:song"
       },
       "lines": [
-        "Go on, sugar, the Market Square! Melody gets awful nervous if I'm not in the front row."
+        "The Market Square, sugar! Melody needs me up front."
       ]
     },
     {
       "when": {"mended": "glenmoor", "not_flag": "party_asked_heather"},
       "set": "party_asked_heather",
       "lines": [
-        "(Heather trots up, tail swishing.) Well, howdy, sugar! You know what I've been thinkin'?",
-        "A body can't mend a whole glen and then go off adventurin' all by their lonesome. Can I tag along with you?",
-        "And when you need some rain, or a rainbow to walk on, you just press {showers} and I'll call up some April Showers.",
+        "Howdy, sugar! Can I tag along with you?",
+        "Need rain or a rainbow? Press {showers}!",
         {"choice": [
           {"text": "Yes! Come with me!", "answer": "yes", "record": "party_join", "set": "party_yes_heather",
             "lines": ["Yay! I'll be right behind you. Press {friend} any time you need me!"]},
@@ -60,10 +59,10 @@
         "talks": 0
       },
       "lines": [
-        "Well, hey there, sugar! Ain't you just the sweetest thing.",
-        "I'm Heather. I came up from a little farm a long, long way from here. Or a long, long WHEN from here. I'm still workin' that out.",
+        "Well, hey there, sugar!",
+        "I'm Heather. I came from a farm, a long WHEN from here.",
         "{player}: Do you like it here?",
-        "I sure do! The grass tastes like candy floss, and Bramble lets me help in the gardens on her busy days."
+        "I sure do! The grass tastes like candy floss!"
       ]
     },
     {
@@ -72,10 +71,9 @@
         "every": 2
       },
       "lines": [
-        "{player}! Did you see? My blossom trees came through the portal after you! There's a whole orchard by Glenmoor's door now.",
-        "And two of the Fluffkins snuck through with 'em. Little rascals. They seem happy grazin' under the blossom though.",
-        "And Isla says the Moonfolk are teachin' my Sunfolk the stars. Ain't that somethin'?",
-        "Don't forget your April Showers, sugar: {showers_how} and there's a rainbow after. And hop as you land for a Spring Step!"
+        "{player}! My blossom trees came through! An orchard by Glenmoor's door!",
+        "Two Fluffkins snuck through too. Little rascals.",
+        "April Showers: {showers_how}. Hop as you land to Spring Step!"
       ]
     },
     {
@@ -84,8 +82,7 @@
         "every": 2
       },
       "lines": [
-        "Mornin'! This meadow's got the springiest grass in the whole town. Go on, give it a bounce.",
-        "Back home I'd be up before the rooster. Here I just get up when the sky turns green."
+        "Mornin'! The springiest grass in town. Give it a bounce!"
       ]
     },
     {
@@ -94,8 +91,7 @@
         "every": 2
       },
       "lines": [
-        "Watch this! (Heather kicks off on her scooter and spins round.) Ha! Moo-ve over, Dash!",
-        "Zippy says I'm a natural. I say I'm just stubborn. Same thing, mostly."
+        "Watch this! Ha! Moo-ve over, Dash!"
       ]
     },
     {
@@ -103,7 +99,7 @@
         "activity": "lake"
       },
       "lines": [
-        "I like to sit by the water at the end of the day. It looks just like the pond on the farm, if the pond glowed. And had aliens in it."
+        "The water here glows. And has aliens in it!"
       ]
     },
     {
@@ -117,14 +113,13 @@
     {
       "rotate": [
         [
-          "My best friend's from Scotland. She says 'wee' and I say 'y'all'.",
-          "Put us together and we're a whole dictionary!"
+          "My best friend says 'wee'. I say 'y'all'."
         ],
         [
-          "Bramble says I'm the only person she knows who can out-stubborn a carrot."
+          "Bramble says I can out-stubborn a carrot."
         ],
         [
-          "When I miss home, I hum a farm song. Want to hear? ...Moooo. That's the whole song."
+          "My farm song? ...Moooo. That's the whole song."
         ]
       ]
     }

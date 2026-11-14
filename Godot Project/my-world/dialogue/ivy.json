@@ -6,10 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Well hi, sweetie! Welcome to the Hollow Diner. Best pancakes this side of anywhere.",
-        "{player}: Even better than Void pancakes?",
-        "Gala-what-ia? Never heard of it. Is that one of those fancy places in the city?",
-        "{player}: ...Yes. Very fancy."
+        "Hi, sweetie! Best pancakes this side of anywhere!"
       ]
     },
     {
@@ -18,8 +15,8 @@
         "season": "winter"
       },
       "lines": [
-        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
-        "Try the hot cocoa. Then try it again. That's what I did."
+        "Night off! I'm eating everything Poppy makes.",
+        "Try the hot cocoa. Twice."
       ]
     },
     {
@@ -28,8 +25,8 @@
         "season": "summer"
       },
       "lines": [
-        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
-        "Try the ice lollies. The rainbow ones. Then try them again. That's what I did."
+        "Night off! I'm eating everything Poppy makes.",
+        "Try the rainbow ice lollies. Twice."
       ]
     },
     {
@@ -38,8 +35,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
-        "Try the cider donuts. Then try them again. That's what I did."
+        "Night off! I'm eating everything Poppy makes.",
+        "Try the cider donuts. Twice."
       ]
     },
     {
@@ -48,8 +45,8 @@
         "season": "spring"
       },
       "lines": [
-        "Night off from the diner! I'm eating everything Poppy makes. Everything.",
-        "Try the strawberry tarts. Then try them again. That's what I did."
+        "Night off! I'm eating everything Poppy makes.",
+        "Try the strawberry tarts. Twice."
       ]
     },
     {
@@ -58,7 +55,7 @@
         "not_flag": "lights_diner"
       },
       "lines": [
-        "Lights for the gazebo? I saw Mr. Palmer put a box down by the corner of my diner. Over to the left, sweetie."
+        "Lights? Mr. Palmer left a box by my diner. To the left!"
       ]
     },
     {
@@ -67,7 +64,7 @@
         "every": 2
       },
       "lines": [
-        "Morning, sweetie! Pancakes are on. Gus is grumpy. So, a normal morning."
+        "Morning, sweetie! Pancakes on. Gus grumpy. Normal."
       ]
     },
     {
@@ -75,7 +72,7 @@
         "activity": "break"
       },
       "lines": [
-        "My break! Fifteen whole minutes of looking at books I'll never have time to read. Bliss."
+        "My break! Fifteen minutes of books. Bliss."
       ]
     },
     {
@@ -84,19 +81,19 @@
         "every": 2
       },
       "lines": [
-        "Nearly closing time. Gus is wiping the same spot on the counter. That means he's happy. Don't tell him I told you."
+        "Gus is wiping the counter. That means he's happy."
       ]
     },
     {
       "rotate": [
         [
-          "Coffee's on, pie's warm, and the whole town comes in sooner or later. That's how I hear everything."
+          "The whole town comes in. I hear everything."
         ],
         [
-          "You look like you've come a long way. Here, have a cookie. No charge for first-timers."
+          "Have a cookie, sweetie. Free for first-timers."
         ],
         [
-          "Is that a crack I saw in the ground by the old oak earlier? No... must've been the sunset."
+          "Was that a crack by the old oak? No... the sunset."
         ]
       ]
     }

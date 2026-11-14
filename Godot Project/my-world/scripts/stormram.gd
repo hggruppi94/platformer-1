@@ -44,7 +44,7 @@ func wake() -> void:
 	Juice.shake(0.3)
 	Juice.rumble(0.5, 0.4, 0.4)
 	Audio.play_at("stomp", global_position, 4.0, -0.4)
-	Game.message("The Stormram wakes up with a BLEAT and a gust! Dodge its whirlwind charges, jump the gusts, then pop it while it's dizzy!")
+	Game.message("The Stormram! Dodge, then pop it when it's dizzy!")
 
 
 func _bar_shown(on: bool) -> void:
@@ -175,7 +175,7 @@ func _slam(reach: float) -> void:
 func shot(power: int, point: Vector3, dir: Vector3) -> String:
 	if not defeated and state != State.DIZZY and not _told_shell:
 		_told_shell = true
-		Game.message("Boing! Its wool's far too thick. Dodge its whirlwind, then pop it while it's dizzy!")
+		Game.message("Boing! Pop it while it's dizzy!")
 	return super(power, point, dir)
 
 

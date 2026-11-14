@@ -7,11 +7,11 @@
   "steps": [
     {
       "id": "deliver",
-      "text": "Fill the window boxes with Bramble's flowers.",
+      "text": "Fill the window boxes.",
       "checklist": [
         [
           "flowers_town_hall",
-          "Mr. Palmer's window at the Town Hall"
+          "Mr. Palmer's window"
         ],
         [
           "flowers_ninas_house",
@@ -42,7 +42,7 @@
     },
     {
       "id": "thanks",
-      "text": "Tell Bramble the flowers are in.",
+      "text": "Tell Bramble.",
       "done": {
         "flag": "bramble_thanked"
       },
@@ -52,7 +52,7 @@
     }
   ],
   "reward": {
-    "message": "Bramble planted the rest too: every window box in town is blooming! (+10 sparkles)",
+    "message": "The whole town's blooming! +10 sparkles.",
     "sparkles": 10
   }
 }

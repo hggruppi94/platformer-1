@@ -107,7 +107,7 @@ func _ready() -> void:
 	Dialogue.finished.connect(_on_talked)
 	set_dark(false)
 	if not Dialogue.flags.has("arena_met_blip"):
-		Game.message("The Star Arena! Talk to Blip, the little announcer by the tunnel, to pick a round.")
+		Game.message("Star Arena! Talk to Blip.")
 
 
 func _exit_tree() -> void:
@@ -650,27 +650,26 @@ func talk() -> void:
 	_log_before = Dialogue.choice_log.size()
 	if round_id != "":
 		_menu = "stop"
-		Dialogue.say(_host_spot, HOST, ["(Blip covers the megaphone.) Psst! The round's still on! Want to stop it?",
+		Dialogue.say(_host_spot, HOST, ["Psst! Stop the round?",
 			{"choice": [
-				{"text": "Stop the round.", "answer": "stop", "record": RECORD, "lines": ["Okay! Round's off. No harm done: try again any time!"]},
+				{"text": "Stop the round.", "answer": "stop", "record": RECORD, "lines": ["Round's off! Try again any time!"]},
 				{"text": "No, I'll keep going!", "answer": "go", "record": RECORD, "lines": ["That's the spirit! GO GO GO!"]}]}], "arena")
 		return
 	_menu = "top"
 	var lines: Array = []
 	if not Dialogue.flags.has("arena_met_blip"):
 		Dialogue.set_flag("arena_met_blip")
-		lines.append_array(["(A little yellow alien on a podium swings a megaphone round at you.) WELCOME, WELCOME, WELCOME to the STAR ARENA!",
-			"I'm Blip! I call the rounds. You pick one, the hatches open, and you pop everything that comes out. The crowd LOVES a pop.",
-			"Win a round and there's a prize. Win the round with the little ones, and their great big boss comes out to play. Bosses you won't meet anywhere else!",
-			"If you get bumped too much and faint, it's no bother: the round just starts over."])
+		lines.append_array(["WELCOME to the STAR ARENA!",
+			"I'm Blip! Pick a round and pop everything!",
+			"Win rounds for prizes. And big bosses!"])
 	else:
-		lines.append(["{player}! The crowd's been chanting your name! Well... beeping it. What'll it be?",
+		lines.append(["{player}! The crowd's beeping your name!",
 			"Back for more? The hatches are ready!", "The Star Arena's champion-in-training! What's it to be?"][_rng.randi() % 3])
 	lines.append({"choice": [
 		{"text": "A challenge round!", "answer": "challenge", "record": RECORD, "say": true},
 		{"text": "A boss round!", "answer": "boss", "record": RECORD},
 		{"text": "How am I doing?", "answer": "medals", "record": RECORD},
-		{"text": "Not right now.", "answer": "no", "record": RECORD, "lines": ["Come back soon! The crowd'll wait. They've got snacks."]}]})
+		{"text": "Not right now.", "answer": "no", "record": RECORD, "lines": ["Come back soon!"]}]})
 	Dialogue.say(_host_spot, HOST, lines, "arena")
 
 
@@ -696,18 +695,18 @@ func boss_lines() -> Array:
 				"lines": [str(c.about)]})
 		else:
 			options.append({"text": "??? (locked)", "answer": "locked_" + id, "record": RECORD,
-				"lines": ["Ooh, that one's not ready for you yet. %s" % Arena.needs_text(id)]})
+				"lines": ["Not yet! %s" % Arena.needs_text(id)]})
 	options.append({"text": "Never mind.", "answer": "no", "record": RECORD})
 	return ["Boss rounds! These ones only live here:", {"choice": options}]
 
 
 func medal_lines() -> Array:
 	var won := Arena.medals()
-	var out: Array = ["You've won %d of the %d rounds! (The Round Board has the lot, with your best times.)" % [won, Arena.CHALLENGES.size()]]
+	var out: Array = ["You've won %d of %d rounds!" % [won, Arena.CHALLENGES.size()]]
 	if won == 0:
-		out.append("Start with Pop 100 Gloops. Everyone starts with Pop 100 Gloops!")
+		out.append("Start with Pop 100 Gloops!")
 	elif won == Arena.CHALLENGES.size():
-		out.append("Every single one! You're the Star Arena's CHAMPION! (The crowd goes wild. Beep beep beep!)")
+		out.append("You're the CHAMPION! Beep beep beep!")
 	return out
 
 
@@ -815,7 +814,7 @@ func _won() -> void:
 		line += " Prize: %s%s" % [Arena.prize_text(prize), " (first win!)" if prize.get("first", false) else ""]
 	Game.message(line)
 	if prize.has("item") and prize.get("first", false):
-		Game.message("The Champion's Cup is yours! Wear it from the wardrobe. CHAMPION!")
+		Game.message("The Champion's Cup! (In your wardrobe.)")
 	Juice.blip("sparkle", 1.0, -2.0)
 	cheer(true)
 	for i in 5:
@@ -981,7 +980,7 @@ func _physics_process(delta: float) -> void:
 			if kind == "timed":
 				time_left -= delta
 				if time_left <= 0.0:
-					_lost("Time's up! %d of %d popped. So close! Talk to Blip to try again." % [count, goal])
+					_lost("Time's up! %d of %d. So close!" % [count, goal])
 					return
 			while alive() < int(c.get("at_once", 6)) and count + alive() < goal:
 				if spawn(str(c.enemy)) == null:

@@ -185,7 +185,7 @@ func start() -> void:
 	giant.set_meta("no_dance", true)             # the groove and the Disco Ball would stop him (and the fight) dead
 	Arsenal.supply_boss(giant, 14.0, 4)           # ammo crates round where the fight starts (scripts/arsenal.gd)
 	_bar.show_within = GIVE_UP_FAR
-	Game.message("The Agent of Chaos turns to face you. Pop the glowing clock on his chest!")
+	Game.message("Pop the glowing clock on his chest!")
 	Juice.shake(0.5)
 	Juice.rumble(0.5, 0.4, 0.6)
 	giant.call("_play", "chaos", 1.0)

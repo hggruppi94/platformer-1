@@ -6,9 +6,9 @@
         "quest_step": "stop_his_clock:clock"
       },
       "lines": [
-        "{player}. For five seconds in that pod I had my own hands. Then HIS clock yanked me back.",
-        "The Agent of Chaos. The far field, behind the castle hill. While his clock runs backwards, I'm a husky. Forever, maybe.",
-        "So we stop it. Pop his chest clock when it glows. I'll be cheering. Loudly. With my whole tail."
+        "{player}. For five seconds I had hands. Then HIS clock yanked me back.",
+        "The Agent of Chaos. In the far field. While his clock runs, I'm a husky.",
+        "Pop his chest clock when it glows! I'll cheer!"
       ]
     },
     {
@@ -17,9 +17,9 @@
         "watches_to_give": false
       },
       "lines": [
-        "You felt that, right? The knot in my tummy's GONE, {player}.",
-        "Dash ran off to his lab in the Far Future. The real one. He says the Swap-o-Tron can finish what it started.",
-        "Meet us there? I'll bring Rook. I owe him a ball. And a sorry. Mostly a sorry."
+        "The knot in my tummy's GONE, {player}!",
+        "Dash ran to his lab in the Far Future.",
+        "Meet us there? I'll bring Rook."
       ]
     },
     {
@@ -28,9 +28,8 @@
         "watches_to_give": false
       },
       "lines": [
-        "(Rex flexes his fingers. He keeps doing that.)",
-        "Hands, {player}. Still hands. I keep checking.",
-        "Dash is at the Tomorrow Clock, in Lumen City. Everyone's going. I'll be there. Will you?"
+        "Hands, {player}! Still hands!",
+        "Everyone's going to the Tomorrow Clock. Will you?"
       ]
     },
     {
@@ -39,10 +38,9 @@
       },
       "set": "n6_hi",
       "lines": [
-        "Ahem! Citizens of the Void! Oh, it's you, {player}. Hi! I've been practising.",
-        "Tonight's campaign stop is the castle school. Every future voter goes to school! Well, every future voter's little brother, anyway.",
-        "Come with me? Well, not with me. I'll meet you there. I'm faster on skates.",
-        "Dash says there's a schematic up there too, on the hill path by the long rail. Vote Rex! Sorry. Habit."
+        "Ahem! Citizens! Oh, hi {player}!",
+        "Tonight's campaign stop: the castle school!",
+        "Meet you there!"
       ]
     },
     {
@@ -50,10 +48,10 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(Rex's ears are flat against his head.) Oh! Hi. Hello. A new citizen. Citizens. LOTS of you. That's... great! Totally normal. Happens all the time.",
+        "Oh! Hi! LOTS of new citizens! Totally normal!",
         "{player}: Tally said it's never happened before.",
-        "(He glances at Rook. Then at the sky. Then at his paws.) Did they. Huh. Well. Tally counts a lot of things.",
-        "Come and find me at the Skate Park when you've said hi to everyone, OK? I need to... think about something."
+        "Did they. Huh.",
+        "Find me at the Skate Park later, OK?"
       ],
       "first_night": true
     },
@@ -64,8 +62,8 @@
       },
       "do": "FirstNight.lesson_from_rex",
       "lines": [
-        "Ah! A new citizen! Rex, future mayor of the Void. And yes, I'm a husky. For now. It's a long story with a lot of paperwork.",
-        "Tally says you need to learn to skate. Excellent. Every great citizen skates. It's in my plans for the town."
+        "A new citizen! I'm Rex, future mayor. And a husky. For now.",
+        "Tally says you need to skate! Let's go!"
       ],
       "first_night": true
     },
@@ -78,10 +76,9 @@
       "set": "bike_boy_start",
       "first_night": true,
       "lines": [
-        "What an ollie! You're a natural, citizen. I'm putting it in my speech.",
-        "Say, have you seen my twin? Dash. Cap, goggles, never stops moving. He zoomed off on his bike this morning with a box of gadget bits.",
-        "He drops them everywhere. Follow his tyre tracks: they glow! They start right here by the Skate Park.",
-        "He'll want to meet you. He just doesn't know it yet. Mayors know these things."
+        "What an ollie! You're a natural!",
+        "Seen my twin, Dash? He dropped gadget bits everywhere.",
+        "Follow his glowing tyre tracks!"
       ]
     },
     {
@@ -89,7 +86,7 @@
         "quest_step": "bike_boy:tracks"
       },
       "lines": [
-        "Found Dash's tracks? They glow! Start by the Skate Park and pick up all the bits he dropped. He drops EVERYTHING."
+        "Follow Dash's glowing tracks! Grab the bits!"
       ]
     },
     {
@@ -97,8 +94,8 @@
         "quest_step": "bike_boy:king"
       },
       "lines": [
-        "Citizen! Have you heard? The Gloop King is holding court in his kingdom again. The gooey gate in the west fields, past the Market.",
-        "Pop him and you'll be the talk of the town. Possibly a statue. I'll put it on my list."
+        "The Gloop King's back! Through the gooey gate, west fields.",
+        "Pop him! You might get a statue."
       ]
     },
     {
@@ -107,23 +104,22 @@
         "quest_done": "emergency_prep"
       },
       "lines": [
-        "{player}! Citizen! I've been thinking. Deeply. Like a mayor.",
-        "Since I got stuck in this husky body, I've noticed things. Nobody lets dogs in the bubble bath. Nobody asks dogs what they think about ANYTHING.",
-        "When I was a person I never even thought about it. Now I think about it all day. Usually while scratching my ear.",
-        "I'm writing a Doggie Bill of Rights. For Rook, and every dog in the Void. Will you help me?",
+        "{player}! I've been thinking. Like a mayor.",
+        "Nobody asks dogs what they think. About ANYTHING.",
+        "Help me write a Doggie Bill of Rights?",
         {
           "choice": [
             {
-              "text": "Dogs deserve rights. Let's do it!",
+              "text": "Let's do it!",
               "lines": [
-                "I KNEW you'd say that. Good citizen. Very good citizen. Let's write it!"
+                "I KNEW it! Good citizen!"
               ],
               "set": "dogs_start"
             },
             {
               "text": "Maybe later.",
               "lines": [
-                "The fight for justice can wait a little. Not long, though. My ear's itchy."
+                "Okay. Not too long!"
               ]
             }
           ]
@@ -135,35 +131,34 @@
         "quest_step": "dog_rights:write"
       },
       "lines": [
-        "Rule one is easy: DOGS ARE WELCOME EVERYWHERE. Shops, the castle school, the Town Hall. Everywhere.",
-        "But rule two... I need your help. What's the most important thing a dog should be allowed to do?",
+        "Rule one: DOGS ARE WELCOME EVERYWHERE!",
+        "Rule two? What should dogs get to do?",
         {
           "choice": [
             {
-              "text": "Zoomies in the Market Square!",
+              "text": "Zoomies!",
               "lines": [
-                "The right to zoomies! Running in circles for no reason at all. Beautiful."
+                "The right to zoomies! Beautiful."
               ],
               "set": "dogs_right_zoomies"
             },
             {
-              "text": "A turn in the magic bubble bath.",
+              "text": "Bubble baths!",
               "lines": [
-                "The right to bubbles! Rook's going to love that. I'M going to love that."
+                "The right to bubbles! Yes!"
               ],
               "set": "dogs_right_bath"
             },
             {
-              "text": "Sniffing absolutely everything.",
+              "text": "Sniffing everything!",
               "lines": [
-                "The right to sniff! Every lamp post, every flower, every new friend. Yes!"
+                "The right to sniff! Yes!"
               ],
               "set": "dogs_right_sniff"
             }
           ]
         },
-        "(Rex writes it down very carefully, holding the pen in his mouth.)",
-        "Done! Now we need names. Lots of names. Get Dash, Bramble, Pip and Nina to sign it. And Rook! A paw print counts."
+        "Now get Dash, Bramble, Pip, Nina and Rook to sign it!"
       ],
       "set": "dogs_written"
     },
@@ -172,7 +167,7 @@
         "quest_step": "dog_rights:sign"
       },
       "lines": [
-        "How are the signatures coming? Dash, Bramble, Pip, Nina and Rook's paw. Every name makes it stronger!"
+        "Signatures: Dash, Bramble, Pip, Nina and Rook!"
       ]
     },
     {
@@ -180,7 +175,7 @@
         "quest_step": "dog_rights:hall"
       },
       "lines": [
-        "Five names! It's ready. Let's take it to Mr. Palmer's window at the Town Hall."
+        "Five names! Take it to Mr. Palmer's window at the Town Hall."
       ]
     },
     {
@@ -189,13 +184,13 @@
       },
       "rotate": [
         [
-          "Did you see the sign by the fountain? DOGS WELCOME! I wrote that. With my mouth. It took nine tries."
+          "DOGS WELCOME! I wrote that sign. With my mouth."
         ],
         [
-          "Rook drank from the doggy fountain for twenty minutes. He's so proud. Then he had to go to the toilet for twenty minutes."
+          "Rook LOVES the doggy fountain."
         ],
         [
-          "When I get my body back, I'm keeping the Bill of Rights. Some things you learn as a husky, you don't want to forget."
+          "I'll keep the Bill of Rights, even with hands."
         ]
       ]
     },
@@ -207,25 +202,23 @@
         "not_flag": "lab_later"
       },
       "lines": [
-        "Psst. {player}. Can you keep a secret? A mayor-sized secret?",
-        "Dash and I have a lab. In a shed past his house. It's a very scientific shed.",
-        "Where we come from, everyone runs experiments. That's how I ended up a husky. And how all three of us ended up here.",
-        "I think I've worked out how to switch back! I just need a helper. One with hands. And a watch.",
+        "Psst. {player}. Can you keep a secret?",
+        "Dash and I have a lab. In a shed.",
+        "I think I can switch back! I need a helper with hands.",
         {
           "choice": [
             {
               "text": "I'll help!",
               "set": "lab_start",
               "lines": [
-                "EXCELLENT! Meet me at the lab: the shed in the yard past Dash's house. Look for the sign.",
-                "(It's on your map now. Press {map} to look.)"
+                "EXCELLENT! The shed past Dash's house!"
               ]
             },
             {
               "text": "Not right now.",
               "set": "lab_later",
               "lines": [
-                "That's okay. A good mayor is patient. I'm practising. Again. Come and find me when you're ready."
+                "Okay. A good mayor is patient."
               ]
             }
           ]
@@ -239,20 +232,20 @@
         "every": 2
       },
       "lines": [
-        "The lab's still there, you know. Behind Dash's house. The Swap-o-Tron isn't going to pull its own lever.",
+        "The lab's still there! Behind Dash's house.",
         {
           "choice": [
             {
-              "text": "Okay, let's do it!",
+              "text": "Let's do it!",
               "set": "lab_start",
               "lines": [
-                "YES! See you at the lab. Look for the sign!"
+                "YES! See you there!"
               ]
             },
             {
-              "text": "Still not yet.",
+              "text": "Not yet.",
               "lines": [
-                "Patient. Very patient. Extremely patient mayor."
+                "Patient. Very patient."
               ]
             }
           ]
@@ -266,33 +259,28 @@
       "set": "lab_seen",
       "do": "Watches/Lab.tune_watch",
       "lines": [
-        "Welcome to the lab! Mind the cables. And the beakers. And Dash.",
+        "Welcome to the lab! Mind the cables.",
         {
           "speaker": "Dash",
           "text": "Hi {player}! Don't touch the big lever."
         },
-        "This is the Swap-o-Tron. Back home, in the furthest future, I built one for the science fair. To prove it worked, I swapped with Rook. On purpose. For a day. That was the plan.",
-        "But at that exact same moment, Dash ran HIS experiment...",
+        "The Swap-o-Tron! I swapped with Rook. On purpose. For a day.",
+        "But Dash ran HIS time experiment at the same time...",
         {
           "speaker": "Dash",
-          "text": "...a time one. And WHOOSH. Both at once sent all three of us backwards in time. The only time anyone's ever done that, and it cracked time itself. We fell through a crack, into the Void."
+          "text": "...and WHOOSH! It cracked time, and we fell into the Void."
         },
-        "Me in Rook's body, and Rook in mine. Stuck.",
-        "And here, it won't swap back. We think it needs a push from time itself. Little bits of broken time: time ripples.",
+        "Now we can't swap back.",
+        "It needs little bits of broken time. Time ripples!",
         {
           "speaker": "Dash",
-          "text": "And please don't ask us about the future. Talking about it makes more ripples. Messy ones."
+          "text": "Your watch can feel ripples. Hold still..."
         },
         {
           "speaker": "Dash",
-          "text": "Your watch can feel ripples, though. Hold still a sec..."
+          "text": "There! Follow the pink pointer. Find three!"
         },
-        "(Dash taps your watch with a tiny screwdriver. It gives a little hum.)",
-        {
-          "speaker": "Dash",
-          "text": "There! When it hums, a ripple's near. Follow the pink pointer on its rim. We need three."
-        },
-        "Press {check_watch} to check your watch any time. Go, go, go! Future mayor's orders!"
+        "{check_watch} checks your watch. Go go go!"
       ]
     },
     {
@@ -301,10 +289,10 @@
       },
       "rotate": [
         [
-          "Three time ripples! Your watch's pink pointer knows the way. Mine just points at snacks."
+          "Three ripples! Follow your watch's pink pointer!"
         ],
         [
-          "Ripples wobble about a bit, like jelly. Very scientific jelly. Grab them with your watch!"
+          "Ripples wobble, like jelly. Grab them!"
         ]
       ]
     },
@@ -313,9 +301,9 @@
         "quest_step": "rex_lab:rook"
       },
       "lines": [
-        "Three ripples! You're brilliant. Now the hard part.",
-        "Rook has to get in the other pod. He doesn't like the lab. Last time his fur went curly for a week.",
-        "Go and find him. Be persuasive! Like a campaign manager."
+        "Three ripples! Brilliant!",
+        "Now Rook has to get in the other pod. He's scared of the lab.",
+        "Go and talk him into it!"
       ]
     },
     {
@@ -323,8 +311,8 @@
         "quest_step": "rex_lab:try"
       },
       "lines": [
-        "We're in! Rook's in the other pod. Dash found him a ball, so he's happy.",
-        "When you're ready, pull the big lever on the console. For science! And for democracy!"
+        "Rook's in the pod!",
+        "Pull the big lever! For science!"
       ]
     },
     {
@@ -333,37 +321,32 @@
       },
       "set": "lab_after",
       "lines": [
-        "(Rex blinks. He looks down at his paws.)",
-        "Woof! ...WOOF? Why did I just say woof?",
+        "Woof! ...WOOF? Why did I say woof?",
         {
           "speaker": "Rook",
           "text": "I'M REX! HE'S THE DOG!"
         },
-        "(Everyone stares at Rook.)",
         {
           "speaker": "Rook",
           "text": "...Woof."
         },
         {
           "speaker": "Dash",
-          "text": "Whoa! For one second, it swapped your VOICES!"
-        },
-        "So close! My own voice! Did you hear how mayoral it sounded?",
-        {
-          "speaker": "Dash",
-          "text": "Look at the reading, though. The swap's all knotted up in the Shift itself. In the crack our experiments made."
+          "text": "Whoa! It swapped your VOICES for a second!"
         },
         {
           "speaker": "Dash",
-          "text": "So to undo it, we'd have to fix the crack first. And fixing that is... a much bigger job."
+          "text": "The swap's all knotted up in the crack."
         },
-        "(For a moment Dash looks very far away. Then he grins.)",
         {
           "speaker": "Dash",
-          "text": "Next time. We'll get you back, Rex. Promise."
+          "text": "We'd have to fix the crack first. That's a BIG job."
         },
-        "Then it's settled. Science continues! {player}, you're officially our lab assistant. Here: these were mine.",
-        "(Rex hands you a pair of brass goggles with pink lenses. They smell a bit like husky.)"
+        {
+          "speaker": "Dash",
+          "text": "We'll get you back, Rex. Promise."
+        },
+        "You're our lab assistant now! Here, my goggles."
       ]
     },
     {
@@ -373,10 +356,10 @@
       },
       "rotate": [
         [
-          "I've been practising my speech in my own voice. Well, my own voice in my head. It's very good."
+          "I practise speeches in my head. In my own voice."
         ],
         [
-          "The lab's always open for you, lab assistant. Just don't pull the lever without me."
+          "Don't pull the lever without me!"
         ]
       ]
     },
@@ -385,11 +368,9 @@
         "talks": 0
       },
       "lines": [
-        "Ah, a citizen! Hello! Rex, future mayor of the Void, at your service.",
+        "A citizen! I'm Rex, future mayor of the Void!",
         "{player}: A talking husky?",
-        "Technically I'm Dash's twin. I'm just borrowing a husky right now. It's a long story with a lot of paperwork.",
-        "{player}: Wait... aren't you Rook?",
-        "I'm REX! He's the dog! ...Even though he's the one with hands right now."
+        "I'm Dash's twin. Just borrowing a husky. Long story."
       ]
     },
     {
@@ -400,25 +381,23 @@
         "not_flag": "rex_campaign_later"
       },
       "lines": [
-        "My favorite voter! You already gave me your vote... so now I need something even bigger.",
-        "{player}: Bigger than a vote?",
-        "A CAMPAIGN MANAGER! Someone to help me find out what the whole town needs.",
+        "You already gave me your vote! Now I need something bigger.",
+        "A CAMPAIGN MANAGER!",
         {
           "choice": [
             {
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
-                "(Press {quest_log} to see the quest log.)"
+                "YES! I'll make you a badge!",
+                "Ask Dash, Bramble, Pip and Rook what the Void needs!"
               ]
             },
             {
               "text": "Maybe later.",
               "set": "rex_campaign_later",
               "lines": [
-                "That's okay! A good mayor is patient. I'm practicing."
+                "Okay! I'm practising patience."
               ]
             }
           ]
@@ -433,25 +412,23 @@
         "not_flag": "rex_campaign_later"
       },
       "lines": [
-        "Citizen! Every great mayor needs a great team.",
-        "Right now my team is me. And a lamp post. The lamp post isn't very chatty.",
-        "Will you be my campaign manager?",
+        "Citizen! A great mayor needs a great team.",
+        "Be my campaign manager?",
         {
           "choice": [
             {
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
-                "(Press {quest_log} to see the quest log.)"
+                "YES! I'll make you a badge!",
+                "Ask Dash, Bramble, Pip and Rook what the Void needs!"
               ]
             },
             {
               "text": "Maybe later.",
               "set": "rex_campaign_later",
               "lines": [
-                "That's okay! A good mayor is patient. I'm practicing."
+                "Okay! I'm practising patience."
               ]
             }
           ]
@@ -465,22 +442,21 @@
         "every": 2
       },
       "lines": [
-        "Changed your mind about being my campaign manager? The badge is still available. It's very shiny.",
+        "Be my campaign manager? The badge is shiny!",
         {
           "choice": [
             {
               "text": "I'll help!",
               "set": "rex_campaign_start",
               "lines": [
-                "YES! Campaign Manager {player}! I'll make you a badge. A big one.",
-                "First job: find out what the Void needs. Ask Dash, Bramble, Pip... and Rook. Even if he only says woof.",
-                "(Press {quest_log} to see the quest log.)"
+                "YES! I'll make you a badge!",
+                "Ask Dash, Bramble, Pip and Rook what the Void needs!"
               ]
             },
             {
               "text": "Not yet.",
               "lines": [
-                "Patience! I'm getting really good at it."
+                "Patience! I'm good at it now."
               ]
             }
           ]
@@ -492,9 +468,8 @@
         "quest_step": "rex_campaign:ask"
       },
       "lines": [
-        "How's the asking going, Campaign Manager?",
-        "Remember: Dash, Bramble, Pip and Rook. Pip only comes out in the evenings, to look at the lamps.",
-        "Rook will probably just say woof. Write it down anyway. Every voice counts!"
+        "Ask Dash, Bramble, Pip and Rook!",
+        "Pip comes out in the evenings."
       ]
     },
     {
@@ -503,22 +478,15 @@
       },
       "set": "reported_ideas",
       "lines": [
-        "Campaign Manager! What did everyone say?",
-        "{player}: Dash wants a bike lane all the way round the lake.",
-        "Zoom zoom! Love it.",
-        "{player}: Bramble wants flowers in every window box.",
-        "Pretty! And they smell nice!",
-        "{player}: Pip wants more lamps, so nobody's scared of the dark.",
-        "Oh. That's a really good one.",
-        "{player}: And Rook said... 'Woof.'",
-        "(Rex thinks very hard.)",
-        "Hmm. What kind of woof?",
-        "{player}: A sunny, sleepy, a-little-bit-waggy woof. I think he means more naps in the sun.",
-        "See? Even a grumbly woof is an idea!",
-        "{player}: Wait. Which one of you is the dog again?",
+        "What did everyone say?",
+        "{player}: Dash wants a bike lane round the lake.",
+        "{player}: Bramble wants flowers in every window.",
+        "{player}: Pip wants more lamps, so nobody's scared.",
+        "{player}: And Rook said 'Woof.' Naps in the sun, I think.",
+        "Even a woof is an idea!",
+        "{player}: Wait. Which one of you is the dog?",
         "I'm REX! He's the dog!",
-        "...Even if I'm the one with the tail right now. Long story. Lots of paperwork.",
-        "Okay! Bike lanes, flowers, lamps and naps. I painted the posters last night, just in case. Help me hang them!"
+        "I painted the posters last night. Help me hang them!"
       ]
     },
     {
@@ -526,9 +494,9 @@
         "quest_step": "rex_campaign:posters"
       },
       "lines": [
-        "The posters! Fresh and only a little bit smudgy. I've got paint on my paws. And somehow my tail.",
-        "One for the signpost west of the Market, one for the signpost by the dock, one for the signpost by the Homes gate...",
-        "...and one for the noticeboard in the Market Square, right where everybody walks by!"
+        "The posters are ready!",
+        "Hang them on the three signposts...",
+        "...and the Market noticeboard!"
       ]
     },
     {
@@ -538,38 +506,34 @@
       },
       "lines": [
         "Citizens of the Void! Thank you for coming!",
-        "(A few people stop to listen. A pigeon listens too.)",
-        "I'm Rex, and I want to be your mayor! Bike lanes! Flowers! Lamps! And naps in the sun!",
-        "(Rex leans over and whispers.) Campaign Manager, I need a big finish. What do I say?",
+        "Vote Rex! Bike lanes! Flowers! Lamps! Naps!",
+        "Psst! I need a big finish. What do I say?",
         {
           "choice": [
             {
-              "text": "Every voice counts, even the small ones!",
+              "text": "Every voice counts!",
               "set": "rally_done",
               "lines": [
-                "EVERY VOICE COUNTS! Even the small ones! ESPECIALLY the small ones!",
-                "(Everybody claps. The pigeon coos.)"
+                "EVERY VOICE COUNTS! Even the small ones!"
               ]
             },
             {
-              "text": "More brain breaks for everybody!",
+              "text": "More brain breaks!",
               "set": "rally_done",
               "lines": [
-                "MORE BRAIN BREAKS! For everybody! Even grown-ups!",
-                "(Everybody cheers. Somebody takes a brain break right away.)"
+                "MORE BRAIN BREAKS! For everybody!"
               ]
             },
             {
-              "text": "Vote Rex, the one who's NOT the dog!",
+              "text": "I'm NOT the dog!",
               "set": "rally_done",
               "lines": [
-                "VOTE REX! I'm the one who's NOT the dog!",
-                "(Everybody laughs. Somewhere far away, Rook grumbles.)"
+                "VOTE REX! The one who's NOT the dog!"
               ]
             }
           ]
         },
-        "That went GREAT! Now we take my ideas straight to Mr. Palmer. He's the mayor right now."
+        "That went GREAT! Now, to Mr. Palmer!"
       ]
     },
     {
@@ -577,8 +541,7 @@
         "quest_step": "rex_campaign:rally"
       },
       "lines": [
-        "The big speech is at the Market Square fountain! Meet me there!",
-        "I've been practicing on the Town Hall. It hasn't clapped yet."
+        "The speech is at the Market fountain! Meet me there!"
       ]
     },
     {
@@ -586,8 +549,7 @@
         "quest_step": "rex_campaign:palmer"
       },
       "lines": [
-        "Can you knock on Mr. Palmer's window? It's the lit one at the front of the Town Hall, with the flower box.",
-        "I'd go myself, but my tail wags too hard when I'm nervous. I'd knock over the flowers."
+        "Knock on Mr. Palmer's window? The lit one at the Town Hall."
       ]
     },
     {
@@ -596,18 +558,13 @@
       },
       "set": "campaign_done",
       "lines": [
-        "Well? What did Mr. Palmer say? Am I mayor? Is there a parade?",
+        "Well? Am I mayor? Is there a parade?",
         "{player}: He said no. Not this year.",
-        "(Rex's ears droop.)",
         "Oh.",
-        "{player}: But he loved your ideas. He said a good mayor is patient, and listens to everybody first.",
-        "{player}: And he said you've already started. You asked the whole town. Even Rook!",
-        "(Rex's tail starts wagging again. Slowly at first. Then very, very fast.)",
-        "I did, didn't I? Dash, Bramble, Pip... even a grumbly woof!",
-        "Maybe being mayor isn't about big speeches. Maybe it's about listening.",
-        "Then I'll keep listening. And one day... Future Mayor Rex!",
-        "{player}: Future Mayor Rex. I like it.",
-        "This is for you, Campaign Manager. My very best sash. Thank you for listening with me."
+        "{player}: But he loved your ideas! A good mayor listens first.",
+        "I DID listen! Even to a woof!",
+        "Being mayor is about listening. One day... Future Mayor Rex!",
+        "Here, Campaign Manager. My best sash. Thank you!"
       ]
     },
     {
@@ -617,18 +574,15 @@
       },
       "rotate": [
         [
-          "Future Mayor Rex, on listening duty! What's on your mind, citizen?",
+          "Future Mayor Rex, listening! What's up?",
           "{player}: More brain breaks.",
-          "Writing it down. In my heart. And on a poster."
+          "Writing it down!"
         ],
         [
-          "Mr. Palmer put flowers in the window boxes! Bramble's idea! I'm so proud of this town."
+          "Flowers in the window boxes! Bramble's idea!"
         ],
         [
-          "You look great in that sash, Campaign Manager!",
-          "{player}: Thanks, Future Mayor Rex.",
-          "Hee hee. Say it again.",
-          "{player}: Future Mayor Rex."
+          "Great sash, Campaign Manager!"
         ]
       ]
     },
@@ -637,8 +591,8 @@
         "time": "shift"
       },
       "lines": [
-        "The portal is open! As your future mayor, I'd like to remind everyone:",
-        "No jumping into portals after bedtime. Or before bedtime. Just... ask a grown-up first."
+        "The portal is open! Mayor reminder:",
+        "Ask a grown-up first!"
       ]
     },
     {
@@ -647,9 +601,9 @@
         "every": 2
       },
       "lines": [
-        "Citizens of the Void! Vote Rex! More parks! More snacks!",
+        "Vote Rex! More parks! More snacks!",
         "{player}: Who are you talking to?",
-        "The Town Hall. It's a practice speech. The Town Hall is a very good listener."
+        "The Town Hall. It's a great listener."
       ]
     },
     {
@@ -658,8 +612,7 @@
         "every": 2
       },
       "lines": [
-        "Morning laps around Nina's house! A future mayor has to know every neighborhood.",
-        "Even the ones with a giant red bow on top."
+        "Morning laps! A mayor knows every street."
       ]
     },
     {
@@ -668,7 +621,7 @@
         "every": 2
       },
       "lines": [
-        "Evening skate! A mayor has to stay in shape. And go wheeee."
+        "Evening skate! Wheeee!"
       ]
     },
     {
@@ -678,8 +631,7 @@
       },
       "lines": [
         "A good mayor never sleeps.",
-        "(Rex yawns a big husky yawn.)",
-        "...A good mayor has naps. Lots of naps."
+        "...A good mayor naps. Lots."
       ]
     },
     {
@@ -688,9 +640,7 @@
         "every": 2
       },
       "lines": [
-        "Good morning, citizen! Today's plan: more parks, more snacks, and more brain breaks!",
-        "{player}: Here's to more brain breaks!",
-        "That's going on a poster."
+        "Today's plan: parks, snacks and brain breaks!"
       ]
     },
     {
@@ -699,36 +649,35 @@
         "every": 3
       },
       "lines": [
-        "My favorite voter! I'm putting your name on a park bench. A small one. Very official."
+        "My favourite voter! You get a park bench!"
       ]
     },
     {
       "rotate": [
         [
-          "My big promise: a skate ramp on every corner.",
-          "And a water bowl on every corner. For... other people. Not me. Definitely not me."
+          "My big promise: a skate ramp on every corner!"
         ],
         [
-          "Can I count on your vote, citizen?",
+          "Can I count on your vote?",
           {
             "choice": [
               {
                 "text": "You've got my vote!",
                 "set": "voted_rex",
                 "lines": [
-                  "Wonderful! Here's to more brain breaks!"
+                  "Wonderful! More brain breaks!"
                 ]
               },
               {
                 "text": "What's a vote?",
                 "lines": [
-                  "It's when everybody gets a say. Even small people. ESPECIALLY small people."
+                  "When everybody gets a say. Even small people!"
                 ]
               },
               {
                 "text": "Are you Rook?",
                 "lines": [
-                  "I'm REX! HE'S the dog! I'm the one with the speeches!"
+                  "I'm REX! HE'S the dog!"
                 ]
               }
             ]
@@ -736,8 +685,7 @@
         ],
         [
           "Someone called me Rook again today.",
-          "{player}: Oh no.",
-          "I'm REX! He's the dog! I'm making badges. Big ones."
+          "I'm REX! He's the dog!"
         ]
       ]
     }

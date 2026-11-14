@@ -364,8 +364,8 @@ func _mouth(g: float, reach: float) -> void:
 func _peer() -> void:
 	var spot := _holder.get_node_or_null("The Rootwell/Peer") as Node3D if is_instance_valid(_holder) else null
 	if spot:
-		Dialogue.say(spot, "The Rootwell", ["(Way down under the roots it's pitch dark. Something down there is snoring, very slowly.)",
-			"(You'd need a light of your own to go down there. Maybe someone who glows could help...)"], "ug_peer")
+		Dialogue.say(spot, "The Rootwell", ["(It's pitch dark. Something's snoring...)",
+			"(You need a light. Someone who glows?)"], "ug_peer")
 
 
 func _update_lid() -> void:
@@ -598,8 +598,8 @@ func _taproot_offer() -> String:
 func _talk() -> void:
 	var spot := _taproot.get_node_or_null("Taproot Talk") as Node3D
 	if not taproot_awake():
-		Dialogue.say(spot, "???", ["(A huge root, snoring so slowly that each snore takes a whole minute.)",
-			"(It's far too dark in here. If only you had a light...)"], "ug_snore")
+		Dialogue.say(spot, "???", ["(A huge root, snoring very slowly.)",
+			"(Too dark! If only you had a light...)"], "ug_snore")
 		return
 	Dialogue.say(spot, "The Old Taproot", lines(), "ug_taproot")
 
@@ -607,23 +607,22 @@ func _talk() -> void:
 func lines() -> Array:
 	# What the Old Taproot says, from first hello to after the spores
 	if given():
-		return ["Ahh, {player}. My Glowcaps are happy in your garden, I can feel it. Roots hear everything, you know.",
-			"Come and sit in the dark with me any time. It's cosy, once you've got a little light."]
+		return ["Ahh, {player}. My Glowcaps love your garden!"]
 	var n := spores_found()
 	var out: Array = []
 	if not Dialogue.flags.has("ug_taproot_met"):
 		Dialogue.set_flag("ug_taproot_met")
-		out.append_array(["Mmmmh? A LIGHT? Down here? Oh, how lovely. I haven't seen a light since the Void cracked.",
-			"I'm the Old Taproot. Every plant on this hill grows from me, Bramble's garden too. She's a dear. She waters me.",
-			"When the crack came, it shook four of my Glowcap spores loose and they rolled off into the dark.",
-			"Without them, nothing down here glows. Would you bring them back to me?"])
+		out.append_array(["Mmmh? A LIGHT? How lovely!",
+			"I'm the Old Taproot. Every plant here grows from me.",
+			"I lost four glowing spores in the dark.",
+			"Will you find them?"])
 		if not Dialogue.flags.has("undergardens_start"):
 			Dialogue.set_flag("undergardens_start")
 	if n < SPORES.size():
-		out.append("You've found %d of my four spores. The others are out there in the dark somewhere: the Root Hall, the Grotto, the Pool, the Crack." % n
-			if n > 0 else "Look in the Root Hall, the Mushroom Grotto, the Crystal Pool and the Deep Crack. Your glow will show the way.")
+		out.append("%d of my four spores! Keep looking." % n
+			if n > 0 else "Your glow will show the way.")
 		return out
-	out.append_array(["All FOUR! Oh, they're warm. (The spores roll off your hands and sink into his bark, glowing.)",
+	out.append_array(["All FOUR! Oh, they're warm!",
 		{"do": "Farm/Caves.hand_in"}])
 	return out
 
@@ -638,8 +637,8 @@ func hand_in() -> Array:
 	var lights := _taproot.get_node_or_null("Glow") as OmniLight3D if is_instance_valid(_taproot) else null
 	if lights:
 		lights.light_energy = 2.5
-	return ["Here. Three Glowcap seeds, from my own roots. Plant them in your garden up top.",
-		"They'll glow every night, so the hill never forgets the dark isn't scary. (You got %d Glowcap seeds!)" % GIVE_SEEDS]
+	return ["Here, Glowcap seeds for your garden!",
+		"(You got %d Glowcap seeds!)" % GIVE_SEEDS]
 
 
 func _collect(flag: String) -> void:
@@ -655,8 +654,8 @@ func _collect(flag: String) -> void:
 	_spores.erase(flag)
 	var n := spores_found()
 	Juice.chime_pickup()
-	Game.message("A Glowcap spore! (%d of %d) Take them to the Old Taproot." % [n, SPORES.size()] if n < SPORES.size()
-		else "That's all four Glowcap spores! Take them to the Old Taproot, deep in the caves.")
+	Game.message("A Glowcap spore! (%d of %d)" % [n, SPORES.size()] if n < SPORES.size()
+		else "All four! Take them to the Old Taproot.")
 	Game.save_game()
 
 

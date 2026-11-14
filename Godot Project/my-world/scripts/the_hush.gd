@@ -195,7 +195,7 @@ func shot(power: int, _point: Vector3, dir: Vector3) -> String:
 		_told_dark -= 1.0
 		if _told_dark <= 0.0:
 			_told_dark = 4.0
-			Game.message("The bubble went straight through! In the dark the Hush is only shadow. Lure it into a lamp's light.")
+			Game.message("Straight through! Lure it into the light.")
 		return "miss"
 	hurt(mini(power, 2), dir)
 	return "hit"
@@ -212,7 +212,7 @@ func hurt(amount: int, dir: Vector3) -> void:
 	Fx.burst(get_parent(), global_position + Vector3(0, 0.95 * SIZE, 0), Color(0.75, 0.95, 1.0), 16, 0.08, 3.0, -0.5, 0.8)
 	if not _told_lit:
 		_told_lit = true
-		Game.message("Got it! In the light the Hush can be popped. It's darting off into the dark: lure it back to a lamp!")
+		Game.message("Got it! Lure it back to a lamp!")
 	if hits >= HITS:
 		defeat()
 		return
@@ -224,7 +224,7 @@ func hurt(amount: int, dir: Vector3) -> void:
 	for at in HELP_AT:
 		if before < int(at) and hits >= int(at) and world:
 			world.call("call_ghosts", global_position, 3)
-			Game.message("The Hush calls up little shadow ghosts! Pop them, then lure it back into the light.")
+			Game.message("Shadow ghosts! Pop them!")
 
 
 func shush() -> void:

@@ -6,9 +6,8 @@
         "quest_step": "emergency_prep:alarm"
       },
       "lines": [
-        "(Bruno's frozen too. When he talks, his voice is low and slow and very Italian.)",
-        "Thomething... is howling. In MY Void. On my day off.",
-        "(He takes a big breath, like Leo's learning to.) ...Okay. It'th probably Rook. It'th always Rook."
+        "Thomething ith howling. In MY Void.",
+        "Big breath... It'th probably Rook."
       ]
     },
     {
@@ -16,19 +15,16 @@
         "quest_step": "make_together:bruno"
       },
       "lines": [
-        "(Bruno spots you and skids to a stop.) Finally. Nina told you? She told you. She can't keep a thecret.",
-        "Watch thith. (He holds out his paw. Nothing happens.) ...Okay, wait. Nina! NINA!",
-        "(Nina runs over and takes his other paw. A wobbly pink and blue plank pops into the air in front of them, hums, and floats there.)",
+        "Nina told you? She can't keep a thecret!",
+        "Watch thith. ...Nina! NINA!",
+        "(Together, they make a wobbly plank in the air!)",
         "{player}: You MADE that?",
-        "We made it. Together. On my own, nothing. On her own, nothing. Both of uth? Plankth. Thtepth. One time, a very thmall chair.",
-        "It'th not thtrong, cos it'th thplit two wayth. They wobble and they pop. But they're OURTH.",
+        "Only together! Plankth. Thtepth. Once, a chair.",
         {
           "speaker": "Nina",
-          "text": "(Nina grins.) And we think... we can split it three ways. Hold out your hands!"
+          "text": "Let's share it three ways! Hold out your hands!"
         },
-        "(They each take one of your hands. Something warm and fizzy runs up your arms, pink on one side and blue on the other.)",
-        "Now you try. Pressth {make}. On the ground it'th a little bridge in front of you. Jump and pressth it, and it'th a thtep under your feet. Make three thingth.",
-        "Thmaller than ourth, and they pop quicker. But that'th how tharing workth."
+        "Now you! Pressth {make}. Make three thingth!"
       ],
       "set": "make_taught"
     },
@@ -37,7 +33,7 @@
         "quest_step": "make_together:try"
       },
       "lines": [
-        "Make three thingth! A bridge on the ground, a thtep in the air. Don't think too hard. Or do. Nina thays think hard. I don't."
+        "Make three thingth! {make} on the ground, or in the air!"
       ]
     },
     {
@@ -45,10 +41,9 @@
         "quest_step": "first_night:shift"
       },
       "lines": [
-        "(A little hippo in a black SK8 beanie is sitting on the ground, rubbing his head.) Did we jutht fall out of the THKY?",
-        "{player}: I think so. Bruno? Is that you?",
-        "Yeah. Bruno. Nina'th brother. I'm a hippo now, apparently. (He wiggles his ears.) Cool. Can we do it again?",
-        "(He looks round at everyone staring.) Why'th everyone looking at uth like we're a thunderthtorm?"
+        "Did we jutht fall out of the THKY?",
+        "{player}: Bruno? Is that you?",
+        "I grabbed Nina'th hand when her floor cracked open. Now I'm a hippo! Cool!"
       ],
       "first_night": true
     },
@@ -57,11 +52,9 @@
         "talks": 0
       },
       "lines": [
-        "(A little hippo in a black SK8 beanie skids up on his board.) Yo! The new kid! Bruno. Nina'th brother.",
+        "Yo! The new kid! I'm Bruno.",
         "{player}: You're a hippo!",
-        "Yeah, here I am. I grabbed Nina'th hand when her floor cracked open and got thucked in too. Nina'th one too. We match. She thays that's thpecial. I thay it's thkating.",
-        "I didn't get a watch like you two. Nina thays that meanth I'm not chothen, jutht caught up. I thay I'm the coach.",
-        "(He grins. There's a gap where a tooth should be.) Thkate Park'th mine. Come by. I teach the leththonth now. Rook helpth."
+        "The Thkate Park'th mine. I teach leththonth!"
       ]
     },
     {
@@ -70,9 +63,7 @@
         "not_flag": "skate_lesson_done"
       },
       "lines": [
-        "You haven't done my leththon yet? Lesson Pad, right there. Rook'th the cheerleader. I'm the coach.",
-        "{player}: What's the first thing you teach?",
-        "Puthing. Then ollieth. Then thtyle. You can't teach thtyle. But I'll try."
+        "Leththon time! The Lesson Pad, right there."
       ]
     },
     {
@@ -80,9 +71,7 @@
         "activity": "skating"
       },
       "lines": [
-        "Thtill thkating? Good. Try my Offer You Can't Refuthe: get the thpecial meter full and press Flip and Grab together.",
-        "{player}: What does it do?",
-        "(He drops his voice.) ...It makes the ramp an offer. And the ramp... thays yeth."
+        "Fill the thpecial meter, then Flip and Grab together!"
       ]
     },
     {
@@ -90,7 +79,7 @@
         "activity": "morning"
       },
       "lines": [
-        "Morning. Nina'th already at the lake. I'm waiting for the thkate park to warm up. Ramps are cold in the morning. That'th thcience."
+        "Rampth are cold in the morning. Thcience."
       ]
     },
     {
@@ -98,7 +87,7 @@
         "activity": "lunch"
       },
       "lines": [
-        "Thtardutht noodleth by the lake. From the market. They glow. My tongue'th glowing now, look. Bleh."
+        "Glowing noodleth! Now my tongue glowth."
       ]
     },
     {
@@ -106,22 +95,22 @@
         "activity": "evening"
       },
       "lines": [
-        "Thun'th going down. Back on Earth it'th thtill only, like, half patht midnight. Thith place is weird. I love it."
+        "Thith place ith weird. I love it."
       ]
     },
     {
       "rotate": [
         [
-          "Rex thays I should run for mayor. Of the thkate park. I'd win."
+          "I should be mayor. Of the thkate park."
         ],
         [
-          "Dash thayth hith BMX is fathter than my board. We're racing at the Lake Loop. Thomeday."
+          "Dash and me are racing at the Lake Loop. Thomeday."
         ],
         [
-          "When I'm thtressed my voice goes all... (deep voice) ...Italian. Nina thays it'th my 'other part'. I think it'th cool."
+          "When I'm thtressed, my voice goes Italian!"
         ],
         [
-          "The Gloops keep thtealing my wheelth. Not cool, Gloopth. NOT. COOL."
+          "The Gloops keep thtealing my wheelth!"
         ]
       ]
     }

@@ -49,9 +49,9 @@ func _ready() -> void:
 		Dialogue.started.connect(func(id: String) -> void:
 			if id == "centipede":
 				_talk_before = Dialogue.choice_log.size())
-	var hello := "Dusk's Embrace. It's misty and strange... but nothing here can hurt you. The gate behind you goes home, any time."
+	var hello := "Dusk's Embrace. Nothing here can hurt you."
 	if home and not HOLES.gifts_given():
-		hello = "Dusk's Embrace. Warm violet light by the hollow log... and lots and lots of little feet, pattering about. Somebody's expecting you."
+		hello = "Dusk's Embrace. Somebody's expecting you!"
 	Game.message.call_deferred(hello)
 
 
@@ -74,8 +74,8 @@ func knock_lines() -> Array:
 		"lines": ["Down we go! Gulp, slide, ptoo!"]}]
 	choice.append_array(HOLES.travel_choices("home"))
 	choice.append({"text": "Not now, thanks.", "answer": "no", "record": HOLES.RECORD,
-		"lines": ["Okay! Knock any time. I'm always in. Well, nearly always."]})
-	return ["(Knock knock knock. The hollow log rumbles, and her pale face pops out of the end.)",
+		"lines": ["Okay! Knock any time."]})
+	return ["Knock knock! Rumble rumble...",
 		"{player}! Going somewhere? I know all the shortcuts.",
 		{"choice": choice}]
 
@@ -153,12 +153,12 @@ func start_game() -> void:
 	boss.global_position = ARENA_MIDDLE
 	boss.connect("won", _on_won)
 	Audio.play_at("centipede_skitter", ARENA_MIDDLE, 0.0)
-	Game.message("She rears right up, eyes glowing... It's only a game! Dodge her charges, and bop her on the head when she's dizzy.")
+	Game.message("It's a game! Dodge her, bop her when she's dizzy!")
 
 
 func _on_won() -> void:
 	Dialogue.set_flag("centipede_fought")
-	Game.message("She flops over with all her legs waving in the air, giggling. \"You STAYED!\"")
+	Game.message("\"You STAYED!\"")
 	get_tree().create_timer(2.0).timeout.connect(_back_home)
 
 

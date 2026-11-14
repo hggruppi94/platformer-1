@@ -80,7 +80,7 @@ func setup() -> void:
 		for b in floor_node.find_children("*", "StaticBody3D", true, false):
 			b.add_to_group("soil")                      # the moss is soft: once she can burrow, she can here (burrow.gd)
 	if not Portals.is_cleared(world_id) and blooms_awake() == 0:
-		Game.message.call_deferred("The Rootmind: every plant here is watching you, and blinking. Talk to Bramble, by the way in.")
+		Game.message.call_deferred("The Rootmind: every plant is watching you!")
 
 
 func _gather() -> void:
@@ -129,7 +129,7 @@ func _wake_bloom(i: int) -> void:
 	Juice.blip("chime", 0.8 + i * 0.25, -5.0)
 	var n := blooms_awake()
 	Game.message("%s opens and turns to the light! (%d of 3)" % [BLOOM_NAMES[i].capitalize(), n] if n < 3
-		else "All three Sun Blooms are awake! The hive is nearly in step... but something in the Heart Glade isn't.")
+		else "All three Sun Blooms! But something's out of step...")
 	_refresh()
 
 
@@ -242,7 +242,7 @@ func _knot_offer(k: int) -> String:
 
 func _use_knot(k: int) -> void:
 	if not calming:
-		Game.message("A grumpy tangle of thorny weeds, blinking all on its own, out of step with everything. %s" %
+		Game.message("A grumpy thorny tangle. %s" %
 			("Bramble might know what to do." if blooms_awake() == 3 else "Wake the three Sun Blooms first."))
 		Audio.play("ui_back", -8.0)
 		return
@@ -266,7 +266,7 @@ func knot_hit(k: int) -> String:
 	if knots_calm() >= KNOTS:
 		mend()
 	else:
-		Game.message("The knot hums along and loosens into flowers. (%d of 3)" % knots_calm())
+		Game.message("The knot turns to flowers! (%d of 3)" % knots_calm())
 	return "hit"
 
 
@@ -285,11 +285,10 @@ func mend() -> void:
 
 func teach_lines() -> Array:
 	# Bramble's thank-you: the Rootmind's reward is her own way of getting about (scripts/burrow.gd)
-	return ["You did it, {player}. You didn't fight it. You listened.",
-		"Let me give you something. The way I get about: under the ground.",
-		"On soft ground, press {burrow} and dive in. Nothing can bump you down there, and you're quick.",
-		"Press {burrow} again, or {jump}, and pop back up. Paths and wood are too hard to dig, so you'll pop up there too.",
-		"Try it! Just here, on the moss."]
+	return ["You did it! You didn't fight. You listened.",
+		"Here's a gift: burrowing!",
+		"On soft ground, press {burrow} to dive in!",
+		"{burrow} or {jump} pops you back up."]
 
 
 func _teach_burrow(tries := 0) -> void:
@@ -302,14 +301,14 @@ func _teach_burrow(tries := 0) -> void:
 	if spot:
 		Dialogue.say(spot, "Bramble", teach_lines(), "rootmind_burrow")
 	else:
-		Game.message("New: Bramble's Burrow! With her along, press %s on soft ground to dive under, and %s again to sprout up." % [Settings.prompt("burrow"), Settings.prompt("burrow")])
+		Game.message("New: Bramble's Burrow! %s on soft ground, %s to pop up." % [Settings.prompt("burrow"), Settings.prompt("burrow")])
 
 
 func _start_calming() -> void:
 	calming = true
 	_beat = int(_t / HIVE_BEAT)
 	_lashed = _beat
-	Game.message("The Thornknot! It lashes its thorns out of step: jump them. When the hive blinks, a knot glows: hum along (Interact, or a bubble).")
+	Game.message("The Thornknot! Jump its thorns. Hum along when a knot glows!")
 	Juice.shake(0.12)
 
 
@@ -455,22 +454,20 @@ func _add_bramble() -> void:
 func bramble_lines() -> Array:
 	# Bramble's quieter here: short, soft lines about what to do next
 	if Portals.is_cleared(world_id):
-		return ["Listen. Everything's blinking together again. Even the Thornknot.", "Thank you, {player}. Home feels like home.",
-			"Remember: soft ground, {burrow}, and down you go. {burrow} or {jump} to come back up."]
+		return ["Thank you! Everything blinks together again!", "Soft ground, {burrow}, down you go!"]
 	var n := blooms_awake()
 	if n == 0:
-		return ["Shh... this is home. Can you feel it? Everything blinks together. Almost.",
-			"Time's going backwards here. The flowers are closing, and our newest seedling is shrinking back into a seed.",
-			"Wake the three Sun Blooms. One up the leaves on the big stem, one hiding in the tall grass, one through the roots."]
+		return ["Shh... this is my home.",
+			"But time's going backwards!",
+			"Wake the three Sun Blooms! Stars on your map."]
 	if n < 3:
 		var left: Array = []
 		for i in BLOOMS.size():
 			if not is_awake(i):
 				left.append(["up the leaf climb", "in the tall grass", "at the end of the root tunnel"][i])
-		return ["%d awake. The hive feels it." % n, "Still sleeping: %s." % " and ".join(left)]
-	return ["Now the Thornknot, round the seedling. It's not bad. It just can't hear the rest of us.",
-		"Don't fight it. When the whole hive blinks, one of its knots glows. Hum along then.",
-		"And when it lashes its thorns... jump."]
+		return ["%d awake!" % n, "Still sleeping: %s." % " and ".join(left)]
+	return ["Now the Thornknot. It just can't hear us.",
+		"When a knot glows, hum along!"]
 
 
 func _talk_bramble() -> void:

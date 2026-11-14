@@ -6,9 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Oh my goodness, a new face! Welcome, welcome! I'm Dottie, I run the Maple Inn, well, me and Kip, well, Kip runs everything a little bit, have you met Kip?",
-        "{player}: Not yet!",
-        "Oh you will, sweetheart, you will. He'll sell you a pumpkin, a stamp and a fire safety leaflet in one go."
+        "A new face! Welcome! I'm Dottie, from the Maple Inn!"
       ]
     },
     {
@@ -17,7 +15,7 @@
       },
       "do": "Festival.judge_pie",
       "lines": [
-        "Welcome to the pie contest, sweetheart! I'm the judge. I've been practising all week. Mostly the eating part."
+        "I'm the pie judge! I practised the eating part."
       ]
     },
     {
@@ -26,7 +24,7 @@
         "every": 2
       },
       "lines": [
-        "Did you feel that wobble? My teacups rattled right off the shelf! Mr. Palmer says it's pipes. I've never seen a pipe in my life."
+        "That wobble! My teacups fell right off the shelf!"
       ]
     },
     {
@@ -38,7 +36,7 @@
         "every": 2
       },
       "lines": [
-        "Can you hear that hum? Every night, about now. Comes from the old oak, I'm sure of it. Kip says it's bees. Bees, at midnight!"
+        "Hear that hum? From the old oak, every night!"
       ]
     },
     {
@@ -46,7 +44,7 @@
         "time": "morning"
       },
       "lines": [
-        "Isn't it a lovely morning? I said that to the postman, and the postman said 'it's raining, Dottie' and I said 'lovely for ducks!'"
+        "Isn't it a lovely morning? Even in the rain!"
       ]
     },
     {
@@ -54,7 +52,7 @@
         "activity": "chatting"
       },
       "lines": [
-        "Just having a little sit and a little chat. Did you know Mrs. Wren has a new clock? Ninety years old, and it only chimes on Tuesdays!"
+        "Mrs. Wren's clock only chimes on Tuesdays!"
       ]
     },
     {
@@ -62,23 +60,22 @@
         "activity": "evening"
       },
       "lines": [
-        "The gazebo looks so pretty at night. Mr. Palmer put the lights up himself, bless him. Well, someone helped. Was it you? I bet it was you."
+        "The gazebo's so pretty at night! Did you help?"
       ]
     },
     {
       "rotate": [
         [
-          "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+          "A quiet man at the inn asked about the old oak. Funny!"
         ],
         [
-          "Have you tried Poppy's snowball cakes? They're blue inside! For winter! I had three. Don't tell my doctor."
+          "Poppy's snowball cakes are blue inside! I had three."
         ],
         [
-          "Sometimes at midnight I hear a whoosh from the green. Probably the wind. Probably! Ha!"
+          "At midnight I hear a whoosh from the green. The wind?"
         ],
         [
-          "You come back any time, sweetheart. The kettle's always on.",
-          "(She pats your hand. Twice.)"
+          "Come back any time, sweetheart!"
         ]
       ],
       "when": {
@@ -88,17 +85,16 @@
     {
       "rotate": [
         [
-          "Guests at the inn this week: a family of nine on a sunshine holiday, a man who collects spoons, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+          "A quiet man at the inn asked about the old oak. Funny!"
         ],
         [
-          "Have you tried Poppy's sunshine cakes? They're yellow inside! For summer! I had three. Don't tell my doctor."
+          "Poppy's sunshine cakes are yellow inside! I had three."
         ],
         [
-          "Sometimes at midnight I hear a whoosh from the green. Probably the fireflies. Probably! Ha!"
+          "At midnight I hear a whoosh from the green. Fireflies?"
         ],
         [
-          "You come back any time, sweetheart. There's always a jug of lemonade in the fridge.",
-          "(She pats your hand. Twice.)"
+          "Come back any time, sweetheart!"
         ]
       ],
       "when": {
@@ -108,17 +104,16 @@
     {
       "rotate": [
         [
-          "Guests at the inn this week: a man who collects spoons, two ladies who only eat soup, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+          "A quiet man at the inn asked about the old oak. Funny!"
         ],
         [
-          "Have you tried Poppy's cauldron cakes? They're green inside! For Halloween! I had three. Don't tell my doctor."
+          "Poppy's cauldron cakes are green inside! I had three."
         ],
         [
-          "Sometimes at midnight I hear a whoosh from the green. Probably the wind. Probably! Ha!"
+          "At midnight I hear a whoosh from the green. The wind?"
         ],
         [
-          "You come back any time, sweetheart. The kettle's always on.",
-          "(She pats your hand. Twice.)"
+          "Come back any time, sweetheart!"
         ]
       ],
       "when": {
@@ -128,17 +123,16 @@
     {
       "rotate": [
         [
-          "Guests at the inn this week: a man who collects teaspoons, two ladies who only eat salad, and a very quiet gentleman who asked about the old oak. Isn't that funny?"
+          "A quiet man at the inn asked about the old oak. Funny!"
         ],
         [
-          "Have you tried Poppy's strawberry tarts? Pink all the way through! I had three. Don't tell my doctor."
+          "Poppy's strawberry tarts are pink inside! I had three."
         ],
         [
-          "Sometimes at midnight I hear a whoosh from the green. Probably the spring breeze. Probably! Ha!"
+          "At midnight I hear a whoosh from the green. The breeze?"
         ],
         [
-          "You come back any time, sweetheart. The kettle's always on.",
-          "(She pats your hand. Twice.)"
+          "Come back any time, sweetheart!"
         ]
       ],
       "when": {

@@ -8,11 +8,11 @@
   "steps": [
     {
       "id": "tracks",
-      "text": "Rex says his twin Dash zoomed off on his bike and dropped bits of gadget everywhere. Follow the glowing tyre tracks from the Skate Park and pick up what he dropped.",
+      "text": "Dash dropped gadget bits! Follow the glowing tyre tracks.",
       "checklist": [
-        ["bb_part_1", "A springy coil, by the Skate Park"],
-        ["bb_part_2", "A fizzing bulb, by the gate to the houses"],
-        ["bb_part_3", "A tiny cog, outside Dash's house"]
+        ["bb_part_1", "A springy coil"],
+        ["bb_part_2", "A fizzing bulb"],
+        ["bb_part_3", "A tiny cog"]
       ],
       "done": {"flags": ["bb_part_1", "bb_part_2", "bb_part_3"]},
       "where": [
@@ -26,7 +26,7 @@
     },
     {
       "id": "lab",
-      "text": "The tracks end at a shed past Dash's house. Something inside is going BZZZT. Go and see who's in there.",
+      "text": "Something in the shed goes BZZZT!",
       "done": {"flag": "bb_met_dash"},
       "where": ["dash"],
       "override": {
@@ -35,7 +35,7 @@
     },
     {
       "id": "bot",
-      "text": "Dash's Buzz Bot has got loose and it's zooming round the lab! Catch it: walk right into it.",
+      "text": "Catch the Buzz Bot: walk into it!",
       "done": {"flag": "bb_bot_caught"},
       "where": [{"at": [95.0, -16.0]}],
       "override": {
@@ -53,10 +53,10 @@
     },
     {
       "id": "stall",
-      "text": "Dash gave you the Star Popper's blueprint for catching his bot, and his gadget stall in the Market Square is open! Take the blueprint to his stall and he'll build you one.",
+      "text": "Take Dash's blueprint to his stall!",
       "checklist": [
-        ["bb_stall", "Have a look at Dash's gadget stall in the Market Square"],
-        ["bb_popper", "Buy the Star Popper at Dash's stall"]
+        ["bb_stall", "Visit Dash's gadget stall"],
+        ["bb_popper", "Buy the Star Popper"]
       ],
       "done": {"flags": ["bb_stall", "bb_popper"]},
       "where": [
@@ -68,10 +68,10 @@
     },
     {
       "id": "king",
-      "text": "Dash says there's a big golden Gloop with a kingdom of his own, through a gooey gate in the west fields past the Market. Pop the Gloop King, then tell Dash!",
+      "text": "Pop the Gloop King, then tell Dash!",
       "checklist": [
-        ["popped_gloop_king", "Pop the Gloop King in his kingdom (the gate's in the west fields)"],
-        ["fn_told_dash", "Tell Dash all about it"]
+        ["popped_gloop_king", "Pop the Gloop King"],
+        ["fn_told_dash", "Tell Dash"]
       ],
       "done": {"flags": ["popped_gloop_king", "fn_told_dash"]},
       "where": [
@@ -84,7 +84,7 @@
     }
   ],
   "reward": {
-    "message": "You met Dash, and the Void's got a new Gloop King champion! Dash says Pip's been waiting by the portal for you! (+10 sparkles)",
+    "message": "You met Dash! (+10 sparkles)",
     "sparkles": 10
   }
 }

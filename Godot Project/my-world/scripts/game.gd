@@ -121,8 +121,7 @@ func give_item(item: String) -> void:
 		return
 	items.append(item)
 	if item == "skateboard":
-		message("You got a Skateboard! Press %s to ride, %s again to step off." % [Settings.prompt("toggle_skateboard"),
-			Settings.prompt("toggle_skateboard")])
+		message("Skateboard! %s to ride!" % Settings.prompt("toggle_skateboard"))
 	Audio.play("pickup")
 	save_game()
 
@@ -154,7 +153,7 @@ func take_sparkle(id: String) -> void:
 
 func toggle_skateboard() -> void:
 	if not has_item("skateboard"):
-		message("You don't have a skateboard yet. There's one at the Skate Park!")
+		message("No skateboard yet!")
 		return
 	riding = not riding
 	equipment_changed.emit()
@@ -187,7 +186,7 @@ func _level_up() -> void:
 	sp_changed.emit()
 	mp_level += 1
 	Audio.play("level_up")
-	message("Level up! You're now Lv %d (MP Lv %d)." % [level, mp_level])
+	message("Level up! Lv %d!" % level)
 	leveled_up.emit(level)
 
 
@@ -547,12 +546,12 @@ func load_game() -> void:
 		# Saved outdoors in the old town: start at the market entrance rather than where she stood
 		_resume = {"scene": TOWN_SCENE}
 		next_spawn = "MarketEntrance"
-		pending_message = "Welcome back! The town has had a makeover. You're at the Market Square."
+		pending_message = "Welcome back! The town's had a makeover!"
 	if _resume.get("scene", "") == Clock.EARTH and int(data.get("earth_layout", 1)) < EARTH_LAYOUT:
 		# Saved outdoors on Earth before the town grew: where she stood might be inside a new shop now, so wake up at home
 		_resume = {"scene": Clock.EARTH}
 		next_spawn = NEW_GAME_SPAWN
-		pending_message = "Welcome back! The town's grown while you were away: Main Street, Maple Lane and a park. Have a look at the map!"
+		pending_message = "Welcome back! The town's grown!"
 
 
 func _sparkles_already_earned() -> int:

@@ -10,5 +10,5 @@ func _ready() -> void:
 	if not Game.riding:
 		Game.riding = true
 		Game.equipment_changed.emit()
-	Game.message("The Practice Park! Hold %s to crouch and let go to ollie. %s grinds rails and ledges." %
+	Game.message("Practice Park! %s to ollie, %s to grind." %
 		[Settings.prompt("jump"), Settings.prompt("skate_grind")])

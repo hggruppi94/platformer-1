@@ -153,7 +153,7 @@ func _run() -> void:
 	check(piles.all(func(p: Node3D) -> bool:
 		return absf(p.global_position.y - EarthLand.height(p.global_position.x, p.global_position.z)) < 0.35),
 		"...on the ground, not on a fence or a roof")
-	check(J.text_of(rake) == "Rake up the leaves at the Hollis house (4 piles)", "\"%s\"" % J.text_of(rake))
+	check(J.text_of(rake) == "Rake leaves at the Hollis house (4)", "\"%s\"" % J.text_of(rake))
 	for p in piles:
 		await _walk_into(p)
 	check(rake.done and int(rake.progress) == 4 and town.find_children("Job Leaves *", "", true, false).is_empty(),
@@ -226,7 +226,7 @@ func _run() -> void:
 		dialogue._next()
 	check(game.sparkles == before + want and J.list[0].paid and J.list[2].paid and not J.list[1].paid,
 		"...and turns the two finished jobs in: ✦ %d (got %d)" % [want, game.sparkles - before])
-	check(said.contains("Done!") and said.contains(J.text_of(J.list[1])), "...saying so, and what's left: %s" % said.left(160))
+	check(said.contains("done!") and said.contains(J.text_of(J.list[1])), "...saying so, and what's left: %s" % said.left(160))
 	check(J.turn_in(board) == 0, "nothing is paid twice")
 	var log: String = root.get_node("Quests").log_text()
 	check(log.contains("Today's jobs") and log.contains(J.text_of(J.list[1])), "the Quests sheet lists today's jobs")

@@ -322,7 +322,7 @@ func talk(spot: Node3D) -> void:
 
 func letter_lines() -> Array:
 	Dialogue.flags["read_palmer_letter"] = true
-	return ["(A lilac envelope on Mr. Palmer's porch table, sealed with a blob of green wax that glows, just a little.)",
-		"(It's addressed in swirly silver writing: \"To His Honour the Mayor, Mr. Palmer. Town Hall, Market Square, THE VOID.\")",
-		"(The Void? The Mayor? How does Mr. Palmer get post from the Void?)",
-		"(Better not open it. You put it back exactly how it was.)"]
+	return ["A lilac letter, with glowing green wax.",
+		"\"To Mr. Palmer. Town Hall, THE VOID.\"",
+		"The Void? Post from the Void?",
+		"Better put it back."]

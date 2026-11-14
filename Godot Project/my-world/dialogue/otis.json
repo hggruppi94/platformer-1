@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Ah ha! A customer! Or a friend! Or both! I'm Otis Gumdrop, toy maker. Everything here's handmade, and only some of it squeaks on purpose."
+        "A customer! I'm Otis Gumdrop, toy maker!"
       ]
     },
     {
@@ -15,8 +15,8 @@
         "season": "winter"
       },
       "lines": [
-        "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
-        "Have you ridden the sleigh? Scarecrow Sam waved at me. I think. Probably the wind."
+        "The festival! Best night of the year!",
+        "Scarecrow Sam waved at me. I think."
       ]
     },
     {
@@ -25,8 +25,8 @@
         "season": "summer"
       },
       "lines": [
-        "The Summer Fair! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
-        "Have you ridden the hayride? Scarecrow Sam's wearing sunglasses. I think he winked at me. Probably the heat."
+        "The Summer Fair! Best night of the year!",
+        "Scarecrow Sam winked at me. I think."
       ]
     },
     {
@@ -35,8 +35,8 @@
         "season": "autumn"
       },
       "lines": [
-        "The festival! The best night of the year, after Christmas Eve, and the day new yo-yos come in.",
-        "Have you ridden the hayride? Scarecrow Sam waved at me. I think. Probably the wind."
+        "The festival! Best night of the year!",
+        "Scarecrow Sam waved at me. I think."
       ]
     },
     {
@@ -45,8 +45,8 @@
         "season": "spring"
       },
       "lines": [
-        "The Spring Fair! The best night of the spring, after the day new yo-yos come in.",
-        "Have you ridden the hayride? Scarecrow Sam waved at me. I think. Probably the breeze."
+        "The Spring Fair! Best night of spring!",
+        "Scarecrow Sam waved at me. I think."
       ]
     },
     {
@@ -54,22 +54,22 @@
         "activity": "testing_toys"
       },
       "lines": [
-        "Testing a new spinning top. Very serious work. (It wobbles and falls over.) Back to the drawing board!"
+        "A new spinning top! ...Oops. It fell over."
       ]
     },
     {
       "rotate": [
         [
-          "Have you seen the little clockwork mice? They run in circles. I made them to run in straight lines. They have their own ideas."
+          "My clockwork mice run in circles. They have ideas."
         ],
         [
-          "When I was a boy, a toy rocket of mine flew right over the old oak and never came down. I still look for it sometimes."
+          "My toy rocket flew over the oak and never came down."
         ],
         [
-          "Gizmo was my partner. He made the gizmos, I made the gumdrops. Well, the gumdrop-coloured toys. Gizmo moved to the city. I kept the name."
+          "Gizmo made the gizmos. I made the gumdrops!"
         ],
         [
-          "Every toy needs a name. That bear's called Captain Biscuit. Don't ask him about the war with the rubber ducks."
+          "That bear's Captain Biscuit. Ducks are his enemy."
         ]
       ]
     }

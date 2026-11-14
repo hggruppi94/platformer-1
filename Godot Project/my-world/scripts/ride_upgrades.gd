@@ -70,7 +70,7 @@ func level_note(r: String) -> String:
 	# The line under a level-locked ride in the shop
 	if Schematics.owns_ride(r) or level_ok(r):
 		return ""
-	return "[Lv %d] You're Lv %d: %d XP to go. Race, skate runs, new gaps and popping Gloops all give XP." % [
+	return "[Lv %d] You're Lv %d: %d XP to go." % [
 		level_for(r), Game.level, xp_to_level(level_for(r))]
 
 
@@ -87,7 +87,7 @@ func _on_level_up(lv: int) -> void:
 	# A ride that just opened (and can be built now), once each
 	for r in Rides.HERO_ORDER:
 		if level_for(str(r)) == lv and ready_to_build(str(r)):
-			Game.message("Lv %d! Zippy can build you the %s now, at the Tune-Up by the race board." % [lv,
+			Game.message("Lv %d! Zippy can build the %s!" % [lv,
 				str(Rides.HERO_RIDES[r].name)])
 
 

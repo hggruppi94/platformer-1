@@ -42,7 +42,7 @@ func setup() -> void:
 		m.add_child(spot)
 	_refresh()
 	if not Portals.is_cleared(world_id) and echoes_found() == 0:
-		Game.message.call_deferred("Shard Isle hums out of tune. Find the three Echo Crystals on the little islets, and bring their song back to the Heart Stone.")
+		Game.message.call_deferred("Find three Echo Crystals!")
 
 
 # The Echo Crystals -------------------------------------------------------------------------------------------------
@@ -76,8 +76,8 @@ func _take_echo(i: int) -> void:
 	Audio.play("pickup", -2.0, 0.0)
 	Juice.blip("chime", 0.9 + i * 0.2, -5.0)
 	var n := echoes_found()
-	Game.message("An Echo Crystal! It sings one clear note. (%d of 3)" % n if n < 3
-		else "The third Echo Crystal! All three are singing. Take them to the Heart Stone in the middle of the island.")
+	Game.message("An Echo Crystal! (%d of 3)" % n if n < 3
+		else "All three! Take them to the Heart Stone.")
 	_refresh()
 
 
@@ -90,10 +90,10 @@ func _heart_offer() -> String:
 
 func _use_heart() -> void:
 	if Portals.is_cleared(world_id):
-		Game.message("The Heart Stone hums a calm, steady tune. Shard Isle's time is right again.")
+		Game.message("The Heart Stone hums happily.")
 		return
 	if echoes_found() < 3:
-		Game.message("The Heart Stone has three empty hollows, and it hums a wobbly, broken tune. (%d of 3 Echo Crystals found)" % echoes_found())
+		Game.message("It needs three crystals. (%d of 3)" % echoes_found())
 		Audio.play("ui_back", -8.0)
 		return
 	mend()

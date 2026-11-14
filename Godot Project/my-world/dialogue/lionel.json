@@ -6,7 +6,7 @@
         "talks": 0
       },
       "lines": [
-        "Welcome to Turn the Page. I'm Lionel Page. Yes, really. With a name like that, what else could I do?"
+        "Welcome to Turn the Page! I'm Mr. Page. Yes, really."
       ]
     },
     {
@@ -15,8 +15,7 @@
         "season": "winter"
       },
       "lines": [
-        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
-        "Don't tell anyone, but I came for the gingerbread."
+        "My lantern wish every year: more bookshelves."
       ]
     },
     {
@@ -25,8 +24,7 @@
         "season": "summer"
       },
       "lines": [
-        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
-        "Don't tell anyone, but I came for the ice lollies."
+        "My lantern wish every year: more bookshelves."
       ]
     },
     {
@@ -35,8 +33,7 @@
         "season": "autumn"
       },
       "lines": [
-        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
-        "Don't tell anyone, but I came for the kettle corn."
+        "My lantern wish every year: more bookshelves."
       ]
     },
     {
@@ -45,8 +42,7 @@
         "season": "spring"
       },
       "lines": [
-        "I'm here for the lanterns. Every year I write a wish on mine. Every year it's 'more bookshelves'.",
-        "Don't tell anyone, but I came for the strawberry tarts."
+        "My lantern wish every year: more bookshelves."
       ]
     },
     {
@@ -54,22 +50,22 @@
         "activity": "evening"
       },
       "lines": [
-        "A quiet evening on the green. Best place to finish a chapter."
+        "A quiet evening. Perfect for a chapter."
       ]
     },
     {
       "rotate": [
         [
-          "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
+          "Theo reads a book a day here. Never buys one!"
         ],
         [
-          "The cat? That's Footnote. She sleeps on the mystery shelf. She's solved most of them."
+          "The cat's called Footnote. She sleeps on the mystery shelf."
         ],
         [
-          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+          "A book about portals? Fiction, of course! ...Mostly."
         ],
         [
-          "Winter's my favourite season for books. Snow stories, cosy stories, a snowman who reads..."
+          "Winter's best for cosy books."
         ]
       ],
       "when": {
@@ -79,16 +75,16 @@
     {
       "rotate": [
         [
-          "Theo's my best customer. Reads a book a day. In summer, two. Never buys one. I don't mind."
+          "Theo reads a book a day here. Never buys one!"
         ],
         [
-          "The cat? That's Footnote. She sleeps on the mystery shelf. In summer she sleeps in the window, in the sun."
+          "The cat's called Footnote. She naps in the sunny window."
         ],
         [
-          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+          "A book about portals? Fiction, of course! ...Mostly."
         ],
         [
-          "Summer's my favourite season for books. Pirate stories, desert island stories, a pirate on a desert island..."
+          "Summer's best for pirate books."
         ]
       ],
       "when": {
@@ -98,16 +94,16 @@
     {
       "rotate": [
         [
-          "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
+          "Theo reads a book a day here. Never buys one!"
         ],
         [
-          "The cat? That's Footnote. She sleeps on the mystery shelf. She's solved most of them."
+          "The cat's called Footnote. She sleeps on the mystery shelf."
         ],
         [
-          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+          "A book about portals? Fiction, of course! ...Mostly."
         ],
         [
-          "Halloween's my favourite season for books. Ghost stories, pumpkin stories, a pumpkin who's a ghost..."
+          "Halloween's best for ghost books."
         ]
       ],
       "when": {
@@ -117,16 +113,16 @@
     {
       "rotate": [
         [
-          "Theo's my best customer. Reads a book a day. Sometimes two. Never buys one. I don't mind."
+          "Theo reads a book a day here. Never buys one!"
         ],
         [
-          "The cat? That's Footnote. She sleeps on the mystery shelf. She's solved most of them."
+          "The cat's called Footnote. She sleeps on the mystery shelf."
         ],
         [
-          "I've a book about portals to other worlds. Fiction, of course. Of course! ...Mostly fiction."
+          "A book about portals? Fiction, of course! ...Mostly."
         ],
         [
-          "Spring's my favourite season for books. Garden books, bird books, a bird who's a gardener..."
+          "Spring's best for bird books."
         ]
       ],
       "when": {

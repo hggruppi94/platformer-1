@@ -18,33 +18,31 @@ signal finished
 
 const REWARD := 10
 const STEPS := [
-	{"id": "push", "woof": "Woof!", "says": "Firtht thing: puth. Get thome thpeed up. Don't be thcared of it.", "text": "Push along: hold {move_forward}. Get some speed up!"},
-	{"id": "ollie", "woof": "Woof woof!", "says": "Ollie time. Crouch... wait for it... POP.", "text": "Ollie: hold {jump} to crouch, then let go to pop. Hold it longer to go higher."},
-	{"id": "spin", "woof": "Woof?", "says": "Now thpin it. A 180. Land backwardth if you have to. That'th thtill cool.", "text": "Spin: ollie, then hold {move_left} or {move_right} in the air. Land a 180!"},
-	{"id": "flip", "woof": "Woof!", "says": "Flip trick! My favourite'th the Gap-Tooth Flip. Named after me. Obviouthly.", "text": "Flip trick: in the air, press {skate_flip}. Push a direction too for other flips.",
-		"simple": "Flip trick: in the air, tap {skate_flip}. Push a direction too for other flips."},
-	{"id": "grab", "woof": "Woof woof!", "says": "Grab your board in the air. Like it owetht you money. Then let go!", "text": "Grab: in the air, hold {skate_grab} to grab your board. Let go before you land!",
-		"simple": "Grab: in the air, hold {skate_flip} to grab your board. Let go before you land!"},
-	{"id": "grind", "woof": "Grrr-ind!", "says": "Rails! Thlide along it. Lean, don't panic. Rook panicth. Don't be Rook.",
-		"text": "Grind: ollie up to a rail or the ledge and press {skate_grind}. Balance with {move_left} and {move_right}.",
-		"simple": "Grind: ollie and come down on a rail or the ledge. You'll grind by yourself! Balance with {move_left} and {move_right}."},
-	{"id": "manual", "woof": "Woof!", "says": "Manual: two wheelth, nice and balanthed. Like a waiter with a pizza.",
-		"text": "Manual: rolling on the flat, tap {move_forward} then {move_back} quickly. Balance with {move_forward} and {move_back}.",
-		"simple": "Manual: rolling on the flat, press {skate_grind}. Balance with {move_forward} and {move_back}."},
-	{"id": "combo", "woof": "WOOF!", "says": "Latht one. Link three trickth before you land. Thith is where it getth good.",
-		"text": "Combo: link three tricks before you land and roll away (a flip, a grab and a spin, or a grind into a manual). Popping a Gloop with {shoot} counts too!"},
+	{"id": "push", "woof": "Woof!", "says": "Firtht: puth! Go fatht!", "text": "Hold {move_forward} to push!"},
+	{"id": "ollie", "woof": "Woof woof!", "says": "Crouch... and POP!", "text": "Hold {jump}, let go to ollie!"},
+	{"id": "spin", "woof": "Woof?", "says": "Now thpin it!", "text": "Ollie, then hold {move_left} or {move_right}!"},
+	{"id": "flip", "woof": "Woof!", "says": "Flip it! The Gap-Tooth Flip!", "text": "In the air, press {skate_flip}!",
+		"simple": "In the air, tap {skate_flip}!"},
+	{"id": "grab", "woof": "Woof woof!", "says": "Grab it! Then let go!", "text": "In the air, hold {skate_grab}!",
+		"simple": "In the air, hold {skate_flip}!"},
+	{"id": "grind", "woof": "Grrr-ind!", "says": "Rails! Thlide along it!",
+		"text": "Ollie onto a rail, press {skate_grind}!",
+		"simple": "Ollie onto a rail!"},
+	{"id": "manual", "woof": "Woof!", "says": "Two wheelth! Like a pizza waiter.",
+		"text": "Tap {move_forward} then {move_back}!",
+		"simple": "Press {skate_grind} on the flat!"},
+	{"id": "combo", "woof": "WOOF!", "says": "Latht one! Three trickth, one jump!",
+		"text": "3 tricks, then land! {shoot} pops count."},
 ]
 # Rook's the dog in Rex's human body (Rex is the husky): a boy on his hands and knees who thinks he's still a dog. No
 # tail to wag and no paws, so his cheering is a boy's body doing dog things. (Hayden's day 1 playtest: the lesson had
 # Rex and Rook mixed up, describing the husky.)
-const PRAISE := ["Thick! (Rook wiggles his whole bottom, since he hasn't got a tail any more.)",
-	"YETH! (Rook chases his own back in a proud little circle.)",
-	"Nithe one. (Rook licks your hand. Ew. Nice, though.)", "Okay that wath actually good. (Rook howls: \"AWOOOO!\")"]
+const PRAISE := ["Thick!", "YETH!", "Nithe one!", "AWOOOO!"]
 # Under stress (two bails on one step): his Godfather voice, our own parody lines, then he's himself again
 const STRESSED := [
-	"(Bruno's voice goes low and slow and very Italian.) You come to MY thkate park... and you fall on MY ramp... (Normal again.) It'th fine. Again.",
-	"(Very Italian.) Thith ramp... hath dithrethpected you. We will dithcuth thith with the ramp. (Normal.) Try again, you got it.",
-	"(Deep voice.) I'm gonna make you an offer... a thnack break. Then you try again. (Normal.) Theriouthly, you're cloth.",
+	"You fall on MY ramp...? It'th fine. Again!",
+	"Thith ramp dithrethpected you. Again!",
+	"An offer: a thnack break. Then again!",
 ]
 const COACH_SPOT := Vector3(1.6, 0.0, -1.0)   # where Bruno stands, from the Lesson Pad
 const HELPER_SPOT := Vector3(2.6, 0.0, -0.2)  # and Rook beside him
@@ -107,7 +105,7 @@ func answer(yes: bool) -> void:
 	if yes:
 		start()
 	else:
-		Game.message("Any time! Bruno's at the Lesson Pad in the Skate Park, or pick Skate lesson in the pause menu.")
+		Game.message("Any time!")
 
 
 func is_offering() -> bool:
@@ -119,7 +117,7 @@ func start() -> bool:
 	if player == null or player.get("skate") == null:
 		return false
 	if not Game.has_item("skateboard"):
-		Game.message("Pick up the skateboard first! It's in the middle of the Skate Park.")
+		Game.message("Grab the skateboard first!")
 		return false
 	if active:
 		return true
@@ -266,9 +264,9 @@ func _finish() -> void:
 	Dialogue.set_flag("skate_lesson_done")
 	stop()
 	if first:
-		Game.add_sparkles(REWARD, "Skate lesson done! Bruno says you're a natural. Rook agrees. Woof!")
+		Game.add_sparkles(REWARD, "Skate lesson done! Woof!")
 	else:
-		Game.message("Skate lesson done again! Thick! Woof!")
+		Game.message("Lesson done! Thick!")
 	Game.save_game()
 	finished.emit()
 
@@ -372,7 +370,7 @@ func _build() -> void:
 	_woof = _label(v, 22, Color(0.75, 0.9, 1.0))
 	_text = _label(v, 20, Color(1, 0.97, 0.9))
 	var stop_hint := _label(v, 15, Color(0.8, 0.8, 0.9))
-	stop_hint.text = "(Stop the lesson any time from the pause menu)"
+	stop_hint.text = "(Stop: pause menu)"
 	# The offer, the first time on a ride
 	_offer = _box(Control.PRESET_CENTER)
 	_offer.name = "Offer"
@@ -382,7 +380,7 @@ func _build() -> void:
 	o.add_theme_constant_override("separation", 12)
 	_offer.add_child(o)
 	_label(o, 20, Color(1.0, 0.85, 0.5)).text = "Bruno"
-	_label(o, 22, Color(1, 0.97, 0.9)).text = "Yo! You thkate? I'm the coach round here. Want a leththon? Rook helpth.\n(Rook: Woof woof!)"
+	_label(o, 22, Color(1, 0.97, 0.9)).text = "Yo! Want a thkate leththon?"
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER

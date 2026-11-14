@@ -8,7 +8,7 @@
   "steps": [
     {
       "id": "hi",
-      "text": "The Astronaut says Rex is waiting by the portal, with a speech. Go and say hi!",
+      "text": "The Astronaut says: say hi to Rex!",
       "done": {
         "flag": "n6_hi"
       },
@@ -25,11 +25,11 @@
     },
     {
       "id": "explore",
-      "text": "Up to the castle school tonight.",
+      "text": "Up to the castle school!",
       "checklist": [
         [
           "schematic_rocket_bike",
-          "Find the Rocket Bike's schematic, on the way up to the castle school"
+          "Find the Rocket Bike schematic"
         ],
         [
           "n6_school",
@@ -62,6 +62,6 @@
   ],
   "reward": {
     "sparkles": 14,
-    "message": "Rex for Mayor done! Rex says it was the best campaign stop ever, and Mr. Palmer wants a quiet word. (+14 sparkles)"
+    "message": "Rex for Mayor done! +14 sparkles."
   }
 }

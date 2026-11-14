@@ -6,9 +6,9 @@
         "talks": 0
       },
       "lines": [
-        "Hi! I'm Juniper, star reporter for the Old Oak Elementary newsletter! Can I ask you three questions? Question one: where are you from? Question two: why? Question three: do you like newts?",
-        "{player}: Uh... here? Because? Yes?",
-        "Great answers. Front page."
+        "I'm Juniper, star reporter! Do you like newts?",
+        "{player}: Uh... yes?",
+        "Great answer. Front page."
       ]
     },
     {
@@ -17,8 +17,8 @@
         "season": "winter"
       },
       "lines": [
-        "Juniper Okafor, Old Oak Elementary Gazette, covering the Frost Fair LIVE! Any comment on the ice fishing?",
-        "My headline: 'Local Barrel Defeats Local Boy'. Ozzie caught zero fish. Zero!"
+        "Juniper, live at the Frost Fair! Any comment?",
+        "Headline: 'Barrel Beats Ozzie'. Zero fish!"
       ]
     },
     {
@@ -27,8 +27,8 @@
         "season": "summer"
       },
       "lines": [
-        "Juniper Okafor, Old Oak Elementary Gazette, covering the Summer Fair LIVE! Any comment on the apple bobbing?",
-        "My headline: 'Local Barrel Defeats Local Boy, Again, In The Sunshine'. Ozzie got zero apples. Zero!"
+        "Juniper, live at the Summer Fair! Any comment?",
+        "Headline: 'Barrel Beats Ozzie'. Zero apples!"
       ]
     },
     {
@@ -37,8 +37,8 @@
         "season": "autumn"
       },
       "lines": [
-        "Juniper Okafor, Old Oak Elementary Gazette, covering the festival LIVE! Any comment on the apple bobbing?",
-        "My headline: 'Local Barrel Defeats Local Boy'. Ozzie got zero apples. Zero!"
+        "Juniper, live at the festival! Any comment?",
+        "Headline: 'Barrel Beats Ozzie'. Zero apples!"
       ]
     },
     {
@@ -47,8 +47,8 @@
         "season": "spring"
       },
       "lines": [
-        "Juniper Okafor, Old Oak Elementary Gazette, covering the Spring Fair LIVE! Any comment on the duck pond?",
-        "My headline: 'Local Duck Outsmarts Local Boy'. Ozzie hooked zero ducks. Zero!"
+        "Juniper, live at the Spring Fair! Any comment?",
+        "Headline: 'Duck Beats Ozzie'. Zero ducks!"
       ]
     },
     {
@@ -56,8 +56,8 @@
         "activity": "winter_lights"
       },
       "lines": [
-        "Hollow Herald, Winter Lights edition: 'Tree Lit, Town Delighted, Gus Seen Smiling.' Unconfirmed.",
-        "I'm interviewing everyone about their wishes. Strictly off the record. Mostly."
+        "Headline: 'Tree Lit, Gus Seen Smiling.'",
+        "What's your wish? Off the record!"
       ]
     },
     {
@@ -65,8 +65,8 @@
         "activity": "kites"
       },
       "lines": [
-        "Kite Day report: wind, west-ish. Kites, many. Tangles so far: two.",
-        "Ozzie's kite has been stuck in the same tree for an hour. I'm calling it a story."
+        "Kite Day report: tangles so far, two.",
+        "Ozzie's kite is stuck in a tree. Big story."
       ]
     },
     {
@@ -74,7 +74,6 @@
         "activity": "fireworks"
       },
       "lines": [
-        "I'm timing the gaps between rockets for the paper. Nobody asked. Readers deserve facts.",
         "Headline: 'Sky Goes Boom, Ducks Unimpressed.'"
       ]
     },
@@ -83,8 +82,8 @@
         "activity": "trick_or_treat"
       },
       "lines": [
-        "I'm a detective dressed as a witch dressed as a detective. It's a disguise inside a disguise.",
-        "Clue: the Pickwicks give cupcakes. Second clue: GO NOW."
+        "I'm a detective dressed as a witch!",
+        "Clue: the Pickwicks give cupcakes. GO NOW."
       ]
     },
     {
@@ -92,8 +91,8 @@
         "weekend": true
       },
       "lines": [
-        "Weekends are for investigating. No homework, just clues.",
-        "Did you know Mr. Palmer goes for a walk at midnight? Every night? Suspicious."
+        "Weekends are for clues!",
+        "Mr. Palmer walks at midnight. Every night. Suspicious."
       ]
     },
     {
@@ -101,7 +100,7 @@
         "activity": "snooping"
       },
       "lines": [
-        "I'm investigating why Gus is grumpy. So far: no clues. Just pie."
+        "Why is Gus grumpy? No clues. Just pie."
       ]
     },
     {
@@ -109,19 +108,19 @@
         "activity": "recess"
       },
       "lines": [
-        "Recess! Ten minutes of freedom. I'm interviewing the hopscotch."
+        "Recess! I'm interviewing the hopscotch."
       ]
     },
     {
       "rotate": [
         [
-          "Breaking news: the big oak hummed at bedtime. My mum says it's the wind. The wind doesn't hum in tune!"
+          "Breaking news: the old oak hums in tune!"
         ],
         [
-          "Exclusive: Mr. Palmer was seen standing by the old oak at midnight. He said he was 'checking on it'. Checking on a TREE?"
+          "Mr. Palmer was by the oak at midnight. Checking on a TREE?"
         ],
         [
-          "I want to interview Nina's family but Bruno says 'no comment' and skates off. Every time!"
+          "Bruno always says 'no comment' and skates off!"
         ]
       ]
     }

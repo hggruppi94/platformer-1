@@ -108,7 +108,7 @@ static func travel_choices(from: String) -> Array:
 				"lines": ["%s? Right you are. Hold on to your hat!" % str(h.name).capitalize()]})
 	if from != "home":
 		out.append({"text": "Your home, by the old gate.", "answer": "home", "record": RECORD,
-			"lines": ["Home! I'll put the kettle on. (I don't have a kettle.) Here we go..."]})
+			"lines": ["Home! Here we go..."]})
 	return out
 
 
@@ -136,7 +136,7 @@ static func arrive(id: String, overlay: CanvasLayer) -> void:
 		return
 	if id == "home":
 		_free_later(tree, overlay)
-		Game.pending_message = "PTOO! Out you pop by her hollow log, behind the old gate."
+		Game.pending_message = "PTOO! Home, by the old gate."
 		Game.go_to_point(SCARY, HOME_AT, HOME_YAW, "Dusk's Embrace")
 		return
 	var h := hole(id)
@@ -231,7 +231,7 @@ func _process(delta: float) -> void:
 		var near := d < PEEK_NEAR and absf(player.global_position.y - root.global_position.y) < 4.0
 		if near and d < FIND_NEAR and not found(h.id):
 			Portals.note_found(WORLD, "hole_" + str(h.id))
-			Game.message("You found one of the centipede's holes, by %s! Knock on it and she'll take you along her tunnels." % h.name)
+			Game.message("A centipede hole, by %s! Knock to travel!" % h.name)
 			Juice.blip("chime", 1.2, -6.0)
 		var head: Node3D = heads[h.id]
 		if gulping and _from == h.id:
@@ -267,11 +267,11 @@ func lines(id: String) -> Array:
 		"lines": ["Home sweet home! Gulp, slide, ptoo!"]}]
 	choice.append_array(travel_choices(id))
 	choice.append({"text": "Not now, thanks.", "answer": "no", "record": RECORD,
-		"lines": ["Okay! Knock any time. I can hear a knock from anywhere in my tunnels."]})
-	var out: Array = ["(Knock knock knock. Lots and lots of little feet come pattering up the tunnel, and her pale face pops out.)",
+		"lines": ["Okay! Knock any time."]})
+	var out: Array = ["Knock knock! Patter patter patter...",
 		"{player}! You knocked! Where shall I take you?"]
 	if found_count() < HOLES.size():
-		out.append("(I've got %d holes round the Void. You've found %d. The rest are near the places everyone likes best.)" % [HOLES.size(), found_count()])
+		out.append("You've found %d of my %d holes!" % [found_count(), HOLES.size()])
 	out.append({"choice": choice})
 	return out
 
