@@ -45,8 +45,18 @@ static func move(scene: Node) -> bool:
 	gate.global_transform = spot(scene)
 	var player := scene.find_child("Player", true, false) as Node3D
 	if out and player and player.global_position.distance_to(old_out) < 2.5:
+		# Only her model and the camera turn, the way player.gd places her at any spawn marker. Turning the body
+		# itself (as this used to) left the controls and camera twisted round after coming back out (Hayden, 14 Nov
+		# 2026: "When leaving dusks embrace, the directional orientation of the character gets thrown off").
 		player.global_position = out.global_position + Vector3(0, 0.2, 0)
-		player.global_rotation.y = out.global_rotation.y
+		player.rotation = Vector3.ZERO
+		var yaw := out.global_rotation.y
+		var visual := player.get_node_or_null("Visual") as Node3D
+		if visual:
+			visual.rotation.y = yaw + PI                    # models face +Z
+		var arm = player.get("spring_arm")
+		if arm is Node3D:
+			(arm as Node3D).rotation.y = yaw                # camera behind her, looking the same way
 	# The old straight walls either side go (look and collision): the ring takes their place
 	for c in gate.get_children():
 		if c is MeshInstance3D and (c as MeshInstance3D).mesh is BoxMesh and ((c as MeshInstance3D).mesh as BoxMesh).size.x > 10.0:
