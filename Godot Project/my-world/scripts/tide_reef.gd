@@ -1400,6 +1400,10 @@ static func _cyl(top: float, bottom: float, h: float, seg := 8) -> CylinderMesh:
 	return c
 
 
+const BUBBLE_MID := Vector3(0, 0.28, 0)   # the middle of his bubble, from his Body (bubble 1.1 up, body 0.82)
+const ARM_ROOM := 1.04                     # how far an arm reaches from there (the bubble's 1.15 round)
+
+
 static func otto_model() -> Node3D:
 	# Otto: a round orange octopus with big kind eyes, a pair of pearl-diver's goggles pushed up on his head and eight
 	# curly arms, sitting on a scallop-shell seat inside the bubble he blew for a chair. It floats just off the ground.
@@ -1408,7 +1412,7 @@ static func otto_model() -> Node3D:
 	var chair := Node3D.new()
 	chair.name = "Chair"
 	g.add_child(chair)
-	var bubble := _put(chair, _ball(1.0, 20), bubble_mat(0.3), Vector3(0, 0.95, 0))
+	var bubble := _put(chair, _ball(1.15, 20), bubble_mat(0.3), Vector3(0, 1.1, 0))     # (big enough for his head too)
 	bubble.name = "Bubble"
 	bubble.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var shell := _mat(Color(1.0, 0.9, 0.86), 0.0, 0.5)
@@ -1483,7 +1487,14 @@ static func _wiggle(model: Node3D, t: float, lively: float) -> void:
 			var out := 0.3 + j * 0.15
 			var drop := 0.14 - j * j * 0.012 + sin(t * 2.2 + i * 0.9 + j * 0.7) * 0.022 * j * lively
 			var curl := dir.cross(Vector3.UP) * sin(t * 1.6 + i * 1.7 + j * 0.5) * 0.02 * j * lively
-			(arm[j] as Node3D).position = dir * out + Vector3(0, drop, 0) + curl
+			var at := dir * out + Vector3(0, drop, 0) + curl
+			# Kept inside his bubble (Hayden, 14 Nov 2026: "Otto's arms clip out of the walls of his bubble"): an arm
+			# that reaches the wall curls along the inside of it
+			var room := ARM_ROOM - lerpf(0.13, 0.05, j / 6.0)
+			var from_mid := at - BUBBLE_MID
+			if from_mid.length() > room:
+				at = BUBBLE_MID + from_mid.normalized() * room
+			(arm[j] as Node3D).position = at
 	var body := model.get_node_or_null("Body") as Node3D
 	if body:
 		body.position.y = 0.82 + sin(t * 2.0) * 0.03

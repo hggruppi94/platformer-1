@@ -19,6 +19,10 @@ signal done
 
 const BAR := 0.11
 const SKIP_ACTIONS := ["jump", "interact", "ui_accept"]
+# A skip only counts this long into the first shot. It was 0.3 s, so a jump while walking out of the door skipped
+# the shot of Nina half a second in, and all that showed was a jolt of Nina and Bruno staring at the camera (Hayden,
+# 14 Nov 2026: "theres a weird screen pause with nina and bruno staring at you for a half second").
+const SKIP_AFTER := 1.2
 
 var shots: Array = []
 var cam: Camera3D
@@ -131,7 +135,7 @@ func _process(delta: float) -> void:
 		return
 	_t += delta
 	for a in SKIP_ACTIONS:
-		if InputMap.has_action(a) and Input.is_action_just_pressed(a) and (_t > 0.3 or _i > 0):
+		if InputMap.has_action(a) and Input.is_action_just_pressed(a) and (_t > SKIP_AFTER or _i > 0):
 			stop()
 			return
 	var shot: Dictionary = shots[_i]

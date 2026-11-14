@@ -143,8 +143,10 @@ func _make_crack() -> void:
 	crack.global_position = hit.position if hit else Vector3(at.x, EarthLand.height(at.x, at.z), at.z)
 	CRACK.sink(crack, self)
 	_portal_door.set_meta("crack", crack)            # (falling in: the crack's tumble, then through)
+	crack.set_meta("door", _portal_door)             # (Interact at the crack goes by the door)
+	CRACK.add_prompt(crack, func() -> String: return "to the Void" if HummingOak.awake() else "")
 	CRACK.set_open(crack, smoothstep(0.0, 1.0, _open))
-	_portal_door.global_position = crack.global_position + Vector3(0, -1.0, 0)
+	_portal_door.global_position = crack.global_position + Vector3(0, -2.0, 0)   # (down under the cover)
 	var shape := _portal_door.get_child(0) as CollisionShape3D if _portal_door.get_child_count() > 0 else null
 	if shape and shape.shape is BoxShape3D:
 		var b := (shape.shape as BoxShape3D).duplicate() as BoxShape3D

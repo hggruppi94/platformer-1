@@ -8,8 +8,9 @@ extends Node3D
 #
 # What's built: the sky, the light and the ground; the road, a wide ribbon laid along the same smooth line the racers
 # follow (RaceTrack.spline()), with low walls both sides so nobody rolls off, striped kerbs and dashes down it, built
-# up on banks where it climbs; and the scenery round it, by the circuit's "theme" (the Void's alien look, or autumn on
-# Earth) and "feature" (a lake in the middle, a flower meadow, a hill with an observatory on top, a farm).
+# up on banks where it climbs; and the scenery round it, by the circuit's "theme" (the Void's alien look, autumn on
+# Earth, or Dark Hollow's midnight: "dark") and "feature" (a lake in the middle, a flower meadow, a hill with an
+# observatory on top, a farm, the misty hollow with the Moon Clock).
 # Races (scripts/races.gd) puts the race itself on it as everywhere else (scripts/race_track.gd: the arch, the
 # starter, rings, boost pads, Star Boxes, goo and the obstacles), and starts the race once it's ready.
 
@@ -86,10 +87,15 @@ func _ready() -> void:
 			_meadow()
 		"farm":
 			_farm()
-	if str(c.get("theme", "void")) == "earth":
-		_earth_scenery()
-	else:
-		_void_scenery()
+		"hollow":
+			_hollow()
+	match str(c.get("theme", "void")):
+		"earth":
+			_earth_scenery()
+		"dark":
+			_dark_scenery()
+		_:
+			_void_scenery()
 	_crowd(str(c.get("theme", "void")))
 	# Things happening all round the road as you race by (scripts/race_life.gd)
 	var life: Node3D = LIFE.new()
@@ -144,7 +150,13 @@ func _environment(theme: String) -> void:
 	var env := Environment.new()
 	var sky := Sky.new()
 	var sm := ProceduralSkyMaterial.new()
-	if theme == "earth":
+	var dark := theme == "dark"
+	if dark:
+		sm.sky_top_color = Color(0.05, 0.04, 0.14)            # Dark Hollow's midnight: deep violet, a misty glow low down
+		sm.sky_horizon_color = Color(0.26, 0.2, 0.42)
+		sm.ground_horizon_color = Color(0.2, 0.16, 0.32)
+		sm.ground_bottom_color = Color(0.05, 0.04, 0.1)
+	elif theme == "earth":
 		sm.sky_top_color = Color(0.32, 0.55, 0.88)
 		sm.sky_horizon_color = Color(0.86, 0.85, 0.78)
 		sm.ground_horizon_color = Color(0.7, 0.62, 0.45)
@@ -159,13 +171,13 @@ func _environment(theme: String) -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.9
+	env.ambient_light_energy = 0.9 if not dark else 0.55
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.glow_enabled = true
 	env.glow_intensity = 0.5
 	env.fog_enabled = true
 	env.fog_light_color = sm.sky_horizon_color
-	env.fog_density = 0.0025
+	env.fog_density = 0.0025 if not dark else 0.006
 	env.fog_sky_affect = 0.3
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -174,11 +186,41 @@ func _environment(theme: String) -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.rotation = Vector3(deg_to_rad(-52), deg_to_rad(35), 0)
-	sun.light_energy = 1.15
-	sun.light_color = Color(1.0, 0.96, 0.88) if theme == "earth" else Color(1.0, 0.97, 0.85)
+	sun.light_energy = 1.15 if not dark else 0.55          # (in Dark Hollow it's moonlight)
+	sun.light_color = Color(1.0, 0.96, 0.88) if theme == "earth" else (Color(0.65, 0.7, 1.0) if dark else Color(1.0, 0.97, 0.85))
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 140.0
 	add_child(sun)
+	if dark:
+		_night_sky()
+
+
+func _night_sky() -> void:
+	# Stars all over, and a big moon (the Moon Clock's in the middle of the hollow, so this one's just the moon)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	var s := SphereMesh.new()
+	s.radius = 0.9
+	s.height = 1.8
+	s.radial_segments = 4
+	s.rings = 2
+	mm.mesh = s
+	mm.instance_count = 420
+	for k in 420:
+		var a := _rng.randf() * TAU
+		var up := _rng.randf_range(0.12, 1.0)
+		var dir := Vector3(cos(a) * sqrt(1.0 - up * up), up, sin(a) * sqrt(1.0 - up * up))
+		mm.set_instance_transform(k, Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * _rng.randf_range(0.5, 1.4)), dir * 380.0))
+	var mi := MultiMeshInstance3D.new()
+	mi.name = "Stars"
+	mi.multimesh = mm
+	mi.material_override = _mat("Star", Color(1.0, 0.97, 0.85), 0.5, 3.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(mi)
+	var moon := SphereMesh.new()
+	moon.radius = 22.0
+	moon.height = 44.0
+	_mesh(self, moon, Vector3(-160, 190, -240), _mat("Moon", Color(0.95, 0.93, 0.8), 0.6, 1.6), false).name = "Moon"
 
 
 func _ground(theme: String) -> void:
@@ -199,7 +241,10 @@ func _ground(theme: String) -> void:
 	n.frequency = 0.03
 	noise.noise = n
 	var grad := Gradient.new()
-	if theme == "earth":
+	if theme == "dark":
+		grad.set_color(0, Color(0.13, 0.12, 0.22))               # moss in the moonlight
+		grad.set_color(1, Color(0.2, 0.26, 0.3))
+	elif theme == "earth":
 		grad.set_color(0, Color(0.42, 0.52, 0.22))
 		grad.set_color(1, Color(0.62, 0.6, 0.28))
 	else:
@@ -220,7 +265,7 @@ func _ground(theme: String) -> void:
 	body.add_child(cs)
 	g.add_child(body)
 	# Hills all round the edge, far off, so the world doesn't just stop
-	var hill_m := _mat("Far Hills", Color(0.5, 0.55, 0.3) if theme == "earth" else Color(0.38, 0.55, 0.62))
+	var hill_m := _mat("Far Hills", Color(0.5, 0.55, 0.3) if theme == "earth" else (Color(0.12, 0.1, 0.2) if theme == "dark" else Color(0.38, 0.55, 0.62)))
 	for k in 26:
 		var a := TAU * k / 26.0 + _rng.randf_range(-0.08, 0.08)
 		var r := _rng.randf_range(250.0, 320.0)
@@ -238,13 +283,14 @@ func _ground(theme: String) -> void:
 func _road(theme: String) -> void:
 	var hw := half_width()
 	var n := line.size()
-	var road_c := Color(0.36, 0.33, 0.42) if theme == "earth" else Color(0.3, 0.26, 0.42)
+	var dark := theme == "dark"
+	var road_c := Color(0.36, 0.33, 0.42) if theme == "earth" else (Color(0.2, 0.18, 0.28) if dark else Color(0.3, 0.26, 0.42))
 	var dash_c := Color(0.95, 0.92, 0.8)
-	var kerb_a := Color(0.85, 0.2, 0.18) if theme == "earth" else Color(1.0, 0.45, 0.75)
+	var kerb_a := Color(0.85, 0.2, 0.18) if theme == "earth" else (Color(0.55, 0.35, 0.95) if dark else Color(1.0, 0.45, 0.75))
 	var kerb_b := Color(0.97, 0.95, 0.9)
-	var wall_c := Color(0.62, 0.5, 0.95) if theme != "earth" else Color(0.78, 0.68, 0.55)
-	var top_c := Color(1.0, 0.82, 0.35) if theme != "earth" else Color(0.6, 0.42, 0.25)
-	var bank_c := Color(0.36, 0.42, 0.3) if theme == "earth" else Color(0.32, 0.36, 0.5)
+	var wall_c := Color(0.62, 0.5, 0.95) if theme == "void" else (Color(0.3, 0.26, 0.42) if dark else Color(0.78, 0.68, 0.55))
+	var top_c := Color(1.0, 0.82, 0.35) if theme != "earth" else Color(0.6, 0.42, 0.25)   # (Dark Hollow: lantern gold)
+	var bank_c := Color(0.36, 0.42, 0.3) if theme == "earth" else (Color(0.16, 0.16, 0.26) if dark else Color(0.32, 0.36, 0.5))
 	# The road's cross-section, left to right: [metres to the right, metres up (or "down" to the ground), colour]
 	var sides: Array[Vector3] = []
 	for i in n:
@@ -849,6 +895,80 @@ func _farm() -> void:
 	add_child(mi)
 
 
+func _hollow() -> void:
+	# Dark Hollow: the misty hollow in the middle of the loop, with the Moon Clock standing in it, its hands ticking on
+	# (it's mended now: Dark Hollow's moon pieces are why you're racing)
+	var mid := _inside()
+	var r := INF
+	for s in _samples:
+		r = minf(r, s.distance_to(mid))
+	r -= half_width() + 8.0
+	var pit := CylinderMesh.new()
+	pit.top_radius = r
+	pit.bottom_radius = r * 0.85
+	pit.height = 0.3
+	pit.radial_segments = 48
+	_mesh(self, pit, Vector3(mid.x, 0.02, mid.y), _mat("Hollow Floor", Color(0.06, 0.05, 0.12)), false).name = "Hollow"
+	# Mist lying in it, in see-through layers
+	for k in 3:
+		var mist := CylinderMesh.new()
+		mist.top_radius = r * (0.95 - k * 0.12)
+		mist.bottom_radius = mist.top_radius
+		mist.height = 0.05
+		mist.radial_segments = 40
+		_mesh(self, mist, Vector3(mid.x, 0.5 + k * 0.9, mid.y), _mat("Mist %d" % k, Color(0.7, 0.65, 1.0, 0.16 - k * 0.04), 0.9, 0.4), false)
+	# The Moon Clock on its crooked stone pillar
+	var clock := Node3D.new()
+	clock.name = "Moon Clock"
+	clock.position = Vector3(mid.x, 0, mid.y)
+	add_child(clock)
+	var pillar := CylinderMesh.new()
+	pillar.top_radius = 1.6
+	pillar.bottom_radius = 2.6
+	pillar.height = 16.0
+	pillar.radial_segments = 7
+	_mesh(clock, pillar, Vector3(0, 8.0, 0), _mat("Pillar", Color(0.25, 0.22, 0.32)))
+	var face := Node3D.new()
+	face.name = "Face"
+	face.position = Vector3(0, 21.0, 0)
+	clock.add_child(face)
+	var disc := CylinderMesh.new()
+	disc.top_radius = 6.0
+	disc.bottom_radius = 6.0
+	disc.height = 0.8
+	disc.radial_segments = 40
+	_mesh(face, disc, Vector3.ZERO, _mat("Moon Face", Color(0.95, 0.92, 0.72), 0.5, 1.4), false).rotation.x = PI / 2.0
+	var rim := TorusMesh.new()
+	rim.inner_radius = 5.9
+	rim.outer_radius = 6.6
+	_mesh(face, rim, Vector3.ZERO, _mat("Clock Rim", Color(0.55, 0.45, 0.95), 0.4, 0.8), false).rotation.x = PI / 2.0
+	for k in 12:
+		var a := TAU * k / 12.0
+		var tick := BoxMesh.new()
+		tick.size = Vector3(0.35, 1.0 if k % 3 == 0 else 0.6, 0.2)
+		var t := _mesh(face, tick, Vector3(sin(a) * 5.0, cos(a) * 5.0, 0.5), _mat("Clock Ink", Color(0.2, 0.14, 0.35)), false)
+		t.rotation.z = -a
+	for hand in [["Hour Hand", 3.0, 0.5], ["Minute Hand", 4.6, 0.32]]:
+		var pivot := Node3D.new()
+		pivot.name = str(hand[0])
+		pivot.position = Vector3(0, 0, 0.62)
+		face.add_child(pivot)
+		var bar := BoxMesh.new()
+		bar.size = Vector3(float(hand[2]), float(hand[1]), 0.12)
+		_mesh(pivot, bar, Vector3(0, float(hand[1]) / 2.0 - 0.3, 0), _mat("Clock Ink", Color(0.2, 0.14, 0.35)), false)
+	# (The clock faces the start straight, so you see it ticking as you come round)
+	var start := line[0]
+	face.look_at(Vector3(start.x, face.global_position.y if face.is_inside_tree() else 21.0, start.z), Vector3.UP)
+	face.rotate_object_local(Vector3.UP, PI)
+	var glow := OmniLight3D.new()
+	glow.light_color = Color(0.85, 0.82, 1.0)
+	glow.light_energy = 2.5
+	glow.omni_range = 40.0
+	glow.position = Vector3(0, 20.0, 0)
+	clock.add_child(glow)
+	set_meta("moon_clock", face)
+
+
 # -----------------------------------------------------------------------------
 # Scenery
 # -----------------------------------------------------------------------------
@@ -876,6 +996,105 @@ func _void_scenery() -> void:
 
 func _inside_loop(p: Vector2) -> bool:
 	return Geometry2D.is_point_in_polygon(p, _samples)
+
+
+func _dark_scenery() -> void:
+	# Dark Hollow: crooked bare trees, glowing mushrooms and lamp posts along the road's edge
+	for k in 44:
+		var p := _free_spot(half_width() + 6.0, 95.0)
+		if p.distance_to(_inside()) < 45.0 and _inside_loop(p):
+			continue                                     # (the hollow's there)
+		if k % 3 == 2:
+			_glow_mushrooms(Vector3(p.x, 0, p.y))
+		else:
+			_crooked_tree(Vector3(p.x, 0, p.y), _rng.randf_range(0.8, 1.5))
+	# Lamp posts round the outside of the road, every so far, warm lantern light (a real light on every third)
+	var lamps := Node3D.new()
+	lamps.name = "Lamp Posts"
+	add_child(lamps)
+	var n := line.size()
+	var step := 26
+	var lit := 0
+	for i in range(0, n, step):
+		var f := _fwd(i)
+		var side := f.cross(Vector3.UP).normalized()
+		var out := side if not _inside_loop(Vector2(line[i].x + side.x * 25.0, line[i].z + side.z * 25.0)) else -side
+		var at := line[i] + out * (half_width() + 2.2)
+		if near_shortcut(Vector2(at.x, at.z), 3.0):
+			continue
+		var post := Node3D.new()
+		post.name = "Lamp Post"
+		post.position = Vector3(at.x, line[i].y - 0.2, at.z)
+		lamps.add_child(post)
+		var pole := CylinderMesh.new()
+		pole.top_radius = 0.1
+		pole.bottom_radius = 0.16
+		pole.height = 4.6
+		_mesh(post, pole, Vector3(0, 2.3, 0), _mat("Lamp Pole", Color(0.18, 0.14, 0.26)))
+		var bulb := SphereMesh.new()
+		bulb.radius = 0.38
+		bulb.height = 0.76
+		_mesh(post, bulb, Vector3(0, 4.8, 0), _mat("Lamp Glow", Color(1.0, 0.82, 0.45), 0.4, 3.0), false)
+		var cap := CylinderMesh.new()
+		cap.top_radius = 0.0
+		cap.bottom_radius = 0.55
+		cap.height = 0.45
+		_mesh(post, cap, Vector3(0, 5.3, 0), _mat("Lamp Pole", Color(0.18, 0.14, 0.26)), false)
+		if (i / step) % 3 == 0 and lit < 10:
+			lit += 1
+			var l := OmniLight3D.new()
+			l.light_color = Color(1.0, 0.8, 0.5)
+			l.light_energy = 1.6
+			l.omni_range = 13.0
+			l.position = Vector3(0, 4.6, 0)
+			post.add_child(l)
+
+
+func _crooked_tree(at: Vector3, size: float) -> void:
+	# A bare, twisty tree: a leaning trunk and a few bent branches, purple-black against the sky
+	var tree := Node3D.new()
+	tree.name = "Crooked Tree"
+	tree.position = at
+	tree.rotation.y = _rng.randf() * TAU
+	add_child(tree)
+	var bark := _mat("Night Bark", Color(0.12, 0.1, 0.16))
+	var trunk := CylinderMesh.new()
+	trunk.top_radius = 0.2 * size
+	trunk.bottom_radius = 0.55 * size
+	trunk.height = 6.0 * size
+	var t := _mesh(tree, trunk, Vector3(0, 2.9 * size, 0), bark)
+	t.rotation.z = _rng.randf_range(-0.2, 0.2)
+	for b in 4:
+		var br := CylinderMesh.new()
+		br.top_radius = 0.04 * size
+		br.bottom_radius = 0.18 * size
+		br.height = _rng.randf_range(2.0, 3.4) * size
+		var m := _mesh(tree, br, Vector3(0, (3.8 + b * 0.7) * size, 0), bark)
+		var a := b * 1.7 + _rng.randf()
+		m.rotation = Vector3(cos(a) * 0.9, 0, sin(a) * 0.9)
+		m.position += Vector3(sin(a), 0.5, cos(a)) * 0.9 * size
+
+
+func _glow_mushrooms(at: Vector3) -> void:
+	# A clump of glowing mushrooms (teal, pink or gold), a bit of light in the dark
+	var cols := [Color(0.3, 0.95, 0.95), Color(1.0, 0.45, 0.85), Color(1.0, 0.85, 0.35)]
+	var holder := Node3D.new()
+	holder.name = "Glow Mushrooms"
+	holder.position = at
+	add_child(holder)
+	var col: Color = cols[_rng.randi() % cols.size()]
+	for k in 4:
+		var size := _rng.randf_range(0.5, 1.5)
+		var off := Vector3(_rng.randf_range(-1.6, 1.6), 0, _rng.randf_range(-1.6, 1.6))
+		var stalk := CylinderMesh.new()
+		stalk.top_radius = 0.15 * size
+		stalk.bottom_radius = 0.22 * size
+		stalk.height = 1.4 * size
+		_mesh(holder, stalk, off + Vector3(0, 0.7 * size, 0), _mat("Glow Stalk", Color(0.85, 0.85, 0.95)), false)
+		var cap := SphereMesh.new()
+		cap.radius = 0.8 * size
+		cap.height = 0.8 * size
+		_mesh(holder, cap, off + Vector3(0, 1.45 * size, 0), _mat("Glow Cap %s" % col.to_html(), col, 0.4, 2.2), false)
 
 
 func _earth_scenery() -> void:
@@ -938,6 +1157,12 @@ func _process(delta: float) -> void:
 	var sails: Node3D = get_meta("sails") if has_meta("sails") else null
 	if sails:
 		sails.rotation.z += delta * 0.6
+	var face: Node3D = get_meta("moon_clock") if has_meta("moon_clock") else null
+	if face:
+		# The Moon Clock's hands: the minute hand ticks round once a minute, the hour hand a twelfth as fast
+		var t := Time.get_ticks_msec() / 1000.0
+		(face.get_node("Minute Hand") as Node3D).rotation.z = -floorf(t) / 60.0 * TAU
+		(face.get_node("Hour Hand") as Node3D).rotation.z = -t / 720.0 * TAU
 
 
 func _orb_tree(at: Vector3, size: float) -> void:

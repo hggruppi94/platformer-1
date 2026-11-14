@@ -1,0 +1,95 @@
+{
+  "name": "Rare Fish",
+  "giver": "otto",
+  "start": {
+    "flag": "aquarium_start"
+  },
+  "steps": [
+    {
+      "id": "catch",
+      "text": "Catch 8 rare fish.",
+      "checklist": [
+        [
+          "fish_wishfin",
+          "Wishing Well"
+        ],
+        [
+          "fish_pond_prince",
+          "Willow Pond"
+        ],
+        [
+          "fish_crystal_guppy",
+          "Shard Isle"
+        ],
+        [
+          "fish_leafy_minnow",
+          "Rootmind"
+        ],
+        [
+          "fish_frostfin",
+          "Frozen Moment"
+        ],
+        [
+          "fish_glowbelly",
+          "Lanternmoor"
+        ],
+        [
+          "fish_bopfish",
+          "Rhythm Springs"
+        ],
+        [
+          "fish_rainbow_puffer",
+          "Tide Reef"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "fish_wishfin",
+          "fish_pond_prince",
+          "fish_crystal_guppy",
+          "fish_leafy_minnow",
+          "fish_frostfin",
+          "fish_glowbelly",
+          "fish_bopfish",
+          "fish_rainbow_puffer"
+        ]
+      },
+      "where": [
+        {
+          "at": [
+            50,
+            -66
+          ],
+          "unless": "fish_wishfin"
+        },
+        {
+          "at": [
+            -85,
+            0
+          ],
+          "world": "earth",
+          "unless": "fish_pond_prince"
+        }
+      ]
+    },
+    {
+      "id": "visit",
+      "text": "Visit the Aquarium.",
+      "done": {
+        "flag": "aquarium_full"
+      },
+      "where": [
+        {
+          "at": [
+            26,
+            -54
+          ]
+        }
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 40,
+    "message": "Every tank is full! +40 sparkles."
+  }
+}

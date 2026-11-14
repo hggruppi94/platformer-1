@@ -2859,7 +2859,10 @@ func _cloud_slide() -> void:
 	g.set_meta("unlock_flag", SLIDE_FLAG)
 	var center := Vector3(SLIDE_CLOUD.x, SLIDE_CLOUD.z, SLIDE_CLOUD.y)
 	var cloud := mat("Cloud", Color(0.97, 0.97, 1.0), 0.9)
-	puff(g, center - Vector3(0, 1.2, 0), 8.5, cloud, 77, 12)
+	# (Low enough that its puffs stay under the deck: 1.2 m down they bulged up round the Toy Store and the slide's top
+	# and buried them. Hayden, 14 Nov 2026. town.tscn had just these 13 puffs moved down, rather than a rebuild's ID
+	# shuffle.)
+	puff(g, center - Vector3(0, 4.4, 0), 8.5, cloud, 77, 12)
 	mesh_at(cylinder(8.2, 8.2, 0.3, 40), cloud, center, g)
 	solid(_cyl_shape(8.3, 1.6), center - Vector3(0, 0.8, 0), g)
 	cloud_zone(g, center, 8.3)

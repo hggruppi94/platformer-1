@@ -160,31 +160,28 @@ func _assists() -> void:
 
 
 func _fakie() -> void:
-	# Landing backwards: she rides away fakie and stays that way round, until a spin lands her the right way again
+	# Landing a 180 turns her round for real (Hayden, 14 Nov playtest): she rolls off the way she's facing now, the
+	# board's back end its new front, looking where she's going. No riding backwards, no turning back round.
 	settings.skate_assist = 1
 	_place(Vector3(-30, 3.0, 30), PI)
 	p.velocity = Vector3(0, 2, -7)
 	s._pop()
-	s._yaw = 0.0                                          # board pointing back the way she came
+	s._yaw = 0.0                                          # board (and her) turned round to face back the way she came
 	bails[0] = 0
 	await _until_rolling()
 	await _physics(30)
 	var going := Vector3(p.velocity.x, 0, p.velocity.z).normalized()
-	check(bails[0] == 0 and s.fakie, "landing backwards rides away fakie, no bail")
-	check(s._facing().dot(going) < -0.9, "...and she stays that way round as she rolls (no snapping back)")
+	check(bails[0] == 0 and not s.fakie, "landing a 180: no bail, and she isn't riding backwards")
+	check(going.z > 0.9 and p.velocity.length() > 3.0, "...she rolls off the way she faces now (%s)" % going)
+	check(s._facing().dot(going) > 0.9, "...the board's new front leads (no swapping back)")
 	var looks: Vector3 = p.visual.global_basis.z
 	looks = Vector3(looks.x, 0, looks.z).normalized()
 	var board_points: Vector3 = p.board.global_basis.z
 	board_points = Vector3(board_points.x, 0, board_points.z).normalized()
-	check(looks.dot(going) > 0.9 and board_points.dot(going) < -0.9,
-		"...looking forward, where she's going, with the board turned round under her (%.2f, %.2f)" % [looks.dot(going), board_points.dot(going)])
-	p.velocity = Vector3(0, 2, -7)
-	s._pop()
-	s._yaw = PI                                           # a 180: the right way round again
-	await _until_rolling()
-	await _physics(30)
-	going = Vector3(p.velocity.x, 0, p.velocity.z).normalized()
-	check(bails[0] == 0 and not s.fakie and s._facing().dot(going) > 0.9, "a 180 out of fakie lands her the usual way round")
+	check(looks.dot(going) > 0.9 and board_points.dot(going) > 0.9,
+		"...looking forward, where she's going, board and her the same way round (%.2f, %.2f)" % [looks.dot(going), board_points.dot(going)])
+	var cam: Vector3 = -p.spring_arm.global_basis.z
+	check(Vector3(cam.x, 0, cam.z).normalized().dot(going) > 0.7, "...and the camera turned round behind her")
 	await _get_up()
 
 

@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/race_circuit.gd" id="1_j20wi"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_wo5vy"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="3_0amlq"]
+
+[node name="HollowRunCircuit" type="Node3D" unique_id=35347208]
+script = ExtResource("1_j20wi")
+circuit_id = "hollow_run"
+
+[node name="Entrance" type="Marker3D" parent="." unique_id=1593127075]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1925731828 instance=ExtResource("2_wo5vy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("3_0amlq")

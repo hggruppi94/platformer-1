@@ -133,6 +133,91 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: the mountains' colours and how many, how strong the ground's detail is, the coves'
     reward, the gate's new spot and the hollow, the tail's shape, how much the beam wobbles.
 
+- 2026-11-14: **Bug fixes from the afternoon playtest** (Hayden's 14 Nov 2026 afternoon notes; other threads took the
+  board, look, cracks, music, aquarium and race notes). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **The to-do list stops above the friend's face** (`hud.gd _fit_todo()`: its room ends 40 px over
+    `FriendFace.badge_rect()` when the badge is up).
+  - **No "Kinetic full!" words** (`kinetic.gd`): the sparkle sound still plays when it fills.
+  - **Stuck Shift while swimming** (`swim.gd physics()`): nothing in the game holds Shift down (no `action_press`, no
+    modifier bindings), so it's most likely Windows Sticky Keys (five Shift taps), where no key-up ever arrives. Jump
+    (rise) is now checked before Shift (dive), so Jump always brings her up. #117's `Settings._unstick_modifiers` stays.
+  - **Otto's arms stay in his bubble** (`tide_reef.gd`): the bubble's 1.15 m (was 1.0) and every arm piece is pulled
+    back inside it as it wiggles (`ARM_ROOM`, `BUBBLE_MID`).
+  - **No second Flurry** (`party.gd _hide_hub_flurry()`): her Portal Plaza self is hidden on every check, not only
+    when her copy's made, so coming out of a building (the plaza put back up after the copy) no longer leaves two.
+  - **The haunted house** (`episodes.gd _release_spirit()`): knocking plays a short cutscene (the door creaks, "Hee hee
+    hee!", the spirit zooms off), and its walk-in doorway is off while there's no inside to go to (it used to say
+    "isn't open yet").
+  - **The Old Taproot answers** (`garden_caves.gd lines()`): a `{"do": ...}` in `Dialogue.say()` lines is dropped
+    (only conversation files run them), so handing in the Glowcaps did nothing. It hands them in straight away now.
+  - **Jelly Mines with lots of enemies** (`jelly_mine.gd`): a mine went on touching enemies it had let go of or that
+    were already gone ("Invalid access to key" every frame). Each enemy is held by one mine at most
+    (meta `jelly_stuck`), let go properly (`_let_go()`), and a mine that's freed lets everyone go.
+  - **The Sky Rings** existed but were hard to find: Zippy now offers them once the Lake Loop's done ("The Sky Rings!
+    (in the mothership)"), and picking it puts you in the mothership behind the first ring with the race on
+    (`races.gd fly_to_sky()`). Before that he says finishing the Lake Loop opens them.
+  - **Grind rails buried in buildings** (`grind_rail.gd`, the "town square" note): town rails check themselves as the
+    town loads and take themselves out if they run inside something solid (`inside_something()`). In the Void that's
+    Town Rail 1 (through the Library by Island Park), 4 (a house) and 14 (the Star Arena gate). 19 town rails left.
+  - **Cloud Toy Store and slide start** (`build_town.gd _cloud_slide`): the cloud's puffs sat 3.2 m too high and
+    swallowed them; they're lower now (only those 13 puffs' lines changed in `town.tscn`).
+  - **Break corner by Behind the Walls** (`build_school.gd`): the north-east one moved to (X_E - 6.7, Z_N + 6.7), so
+    its rug and beanbags no longer poke through into the passage (only its line changed in `school.tscn`).
+  - **The jolt of Nina and Bruno leaving the house** (`place_intro.gd SKIP_AFTER` 1.2 s, was 0.3): the shot of Nina as
+    you step out of the door was skipped by a jump half a second in. A skip only counts after 1.2 s now.
+  - Tests: new `tools/test_playtest_nov14b.gd`; `test_garden_caves` and `test_opening` updated; see the PR for the
+    rest. Previews: `tools/capture_nov14b.gd` (shots in the project files under world/previews/nov14b_bugfixes).
+  - My choices Hayden may change: the cutscene's words, the Sky Rings offer, 1.2 s before a cutscene can be skipped.
+
+- 2026-11-14: **Cracks take Interact, the music changes underground, and rare fish for the Aquarium** (Hayden's 14 Nov
+  playtest: "Instead of automatically falling in the world cracks, make it an interact prompt", "Can the music change
+  when you go underground? like ambient sound", "an aquarium quest where you collect all the exotic fish species of
+  different worlds; You need the swim ability"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Cracks** (`scripts/crack.gd`): an unseen floor ("Cover", only over a real cut, off when shut) over every crack's
+    open middle, so walking or riding over one never drops you in. `add_prompt(g, what)` puts a "Press E to jump in
+    ..." spot on its middle ("to Shard Isle", "to go home", "to the Void"); `jump_in(g)` (also what `drop_player()`
+    does now) plays the tumble and goes. Cracks with a door down inside (the old oak's, the Void's way back to Earth)
+    go by `door.gd go_down_crack()`; those doors sit 2 m down, under the cover. The portals' old "look down the crack"
+    question is gone (`Portals._use_portal()` jumps straight in). The "Fall" area and the "down in a crack" checks stay
+    as a safety net for anyone who gets below the cover. Rays that check the hole (tests) exclude the Cover.
+  - **Underground music** (`scripts/cave_echo.gd`, `Audio.underground()`): music tracks now play on a "Tracks" bus sent
+    into Music. In a `cave_dark` zone, under anything named Cave/Cavern/Grotto/Undergarden/Burrow (or group
+    `"underground"`), or burrowing, the place's music fades out and soft cave music fades in ("Cave Music" on the Music
+    bus: slow A minor, F, C, E minor chords with a twinkle now and then, `make_pad()`, made in code a slice a frame,
+    `PAD_SLICE`). Race tunnels and shortcuts only echo, as before.
+  - **Rare Fish** (`scripts/rare_fish.gd`, node "Watches/Fish"; `quests/aquarium.json`, giver Otto): eight fish, one in
+    each sunken-secrets place (Wishfin in the Wishing Well, Pond Prince in Willow Pond, Crystal Guppy, Leafy Minnow,
+    Frostfin, Glowbelly, Bopfish, Rainbow Puffer in the Tide Reef once it floods). Each circles down deep, darts when
+    you're near, and is caught by touching it while diving (paddling on top isn't close enough). Flags `fish_<id>`; the
+    first catch starts the quest if Otto hasn't. Otto asks on the Portal Plaza (`Portals.otto_fish_lines()`). In the
+    Aquarium each caught fish swims in its own wall tank with its name ("?" for the rest); with all eight, "Every tank
+    is full!" (flag `aquarium_full`), 40 sparkles.
+  - Tests: new `tools/test_rare_fish.gd`; `test_cracks`, `test_portals` (standing on a crack keeps you up, then
+    Interact), `test_bumps` (the music changing over); earth (both runs), crack_opening, swim, sunken_secrets, quests
+    (both runs), soundscape, dialogue (both runs), garden_caves and practice_trips pass. Previews:
+    `tools/capture_crack_fish.gd` (shots in the project files under world/previews/crack_fish).
+  - My choices Hayden may change: the fish names and looks, touching to catch, the eight places (Glenmoor, the Far
+    Future and Dark Hollow have no deep water, so no fish), 40 sparkles, the cave music.
+
+- 2026-11-14: **The Hollow Run is a real circuit now** (Hayden's 14 Nov playtest: "The dark hollow race is pretty
+  lame and needs a rework like the other races"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Its own level** (`scenes/races/hollow_run.tscn`, `tools/build_race_circuits.gd`): Dark Hollow keeps only Pip's
+    race gate (`Races.HUBS` "dark_hollow", where the old start was); the race is three laps of a 14 m road round a
+    misty hollow at midnight, about 420 m a lap, up and down little hills. Eight racers like the other circuits.
+  - **The look** (`race_circuit.gd` theme `"dark"`, feature `"hollow"`): a night sky with stars and a moon, dark moss,
+    lilac kerbs, crooked trees, glowing mushrooms, lamp posts along the road, and the **Moon Clock** standing in the
+    misty hollow in the middle with its hands ticking round.
+  - **Things going on** (`race_life.gd`): ghosts swooping over the road, lanterns floating up, bats, moths, a dark
+    blimp over the stand. Obstacles all round (bumpers, zappers, sweepers, a slider, a pop-up, a ramp), the **Hollow
+    Log** tunnel, the **Root Tunnel** shortcut, Star Boxes, goo, boost pads, and speed coins and flow like every circuit.
+  - **Prizes:** 22 to 2 sparkles, and the Lantern Hat the first win (as before). The third Moon Piece now waits when you
+    come back to Dark Hollow after finishing (`dark_hollow.gd _race_piece()`, from `Races.finished_once`).
+  - Tests: `test_dark_hollow` (the gate, the circuit, three laps, the piece on return), `tools/playthrough.gd`;
+    races, race_tracks, race_life, race_flow, race_intros, race_tutorial and earth_race pass. Previews:
+    `tools/capture_hollow_run.gd` (shots in the project files under world/previews/hollow_run).
+  - My choices Hayden may change: the road's shape, the night look, the set pieces, the shortcut's spot.
+
 - 2026-11-14: **Spray paint shows on windows** (Hayden: "I noticed the paint is behind the window"). The builders make
   windows (and many signs and trims) as thin meshes stuck a little way out from a wall, with only the wall's collision
   behind them, so paint landed on the wall and was hidden behind the glass. `Paint.outside(at, normal)` moves a spot

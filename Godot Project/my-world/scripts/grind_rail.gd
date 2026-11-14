@@ -20,6 +20,52 @@ var _cells: Array[Vector2i] = []
 func _ready() -> void:
 	add_to_group("grind")
 	_file()
+	if get_parent() and String(get_parent().name).begins_with("Town Rail"):
+		_clear_check.call_deferred()
+
+
+# The town's own rails (tools/build_town.gd _town_rails) are laid out by the builder from hand-kept keep-clear lists,
+# so one could end up running inside something: through the Library, a house, or the Star Arena's gate walls that are
+# put in at play time. Pressing the grind button by one grabbed a rail nobody could see (Hayden, 14 Nov 2026: "making
+# weird interaction when you press E, like grinding a rail that isn't there"). So once the world's in place, a town
+# rail that runs inside anything solid takes itself out.
+const PlantClearance := preload("res://scripts/plant_clearance.gd")
+const CLEAR_STEP := 0.6               # metres between the spots checked along it
+const CLEAR_BOX := Vector3(0.3, 0.5, 0.3)   # what has to be free just over the rail at each spot
+
+var buried := false                   # tests: it found itself inside something and took itself out
+
+
+func _clear_check() -> void:
+	for wait in [0.2, 2.5]:               # (a moment for the world, then again for things put in at play time)
+		if not is_inside_tree():
+			return
+		await get_tree().create_timer(wait).timeout
+		if not is_inside_tree():
+			return
+		if inside_something():
+			buried = true
+			var holder := get_parent()
+			remove_from_group("grind")
+			_exit_tree()
+			holder.queue_free()
+			return
+
+
+func inside_something() -> bool:
+	var space := get_world_3d().direct_space_state
+	var q := PhysicsShapeQueryParameters3D.new()
+	var box := BoxShape3D.new()
+	box.size = CLEAR_BOX
+	q.shape = box
+	q.collide_with_areas = false
+	var n := maxi(int(length() / CLEAR_STEP), 1)
+	for k in n + 1:
+		q.transform = Transform3D(Basis.IDENTITY, point_at(length() * k / n) + Vector3(0, CLEAR_BOX.y / 2.0 + 0.05, 0))
+		for hit in space.intersect_shape(q, 8):
+			if PlantClearance._blocks(hit.get("collider"), get_parent()):
+				return true
+	return false
 
 
 func _exit_tree() -> void:

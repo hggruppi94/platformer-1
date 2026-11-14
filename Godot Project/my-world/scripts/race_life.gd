@@ -6,7 +6,8 @@ extends Node3D
 #
 #   Set pieces (SETS, by circuit): each waits beside the road and goes off as you come up to it, every lap. Something
 #   leaps over the road, geysers or crystals burst up, saucers or crows swoop over, meteors land in the fields, a
-#   boulder rolls down the hill, fireworks go up...
+#   boulder rolls down the hill, fireworks go up; in Dark Hollow shadow ghosts swoop over, lanterns float up and bats
+#   burst out of the trees...
 #   The crowd in the stand jumps up and cheers as you go by, and a blimp with the track's name circles overhead.
 #
 # Each set piece is a Node3D named "Set <n> <kind>" with metas "kind", "d" (how far round the road it goes off) and
@@ -23,6 +24,7 @@ const SETS := {
 	"meadow_wiggle": [[2.2, "bloom"], [5.0, "leaper"], [10.2, "moths"], [12.0, "balloons"], [15.6, "bloom"]],
 	"observatory_hill": [[1.6, "meteors"], [6.0, "boulder"], [8.6, "saucers"], [11.4, "crystals"], [12.8, "meteors"]],
 	"pumpkin_run": [[1.7, "crows"], [5.5, "hayburst"], [8.2, "hot_air"], [10.3, "fireworks"], [13.4, "crows"]],
+	"hollow_run": [[1.4, "ghosts"], [4.6, "lanterns"], [6.4, "crows"], [8.2, "moths"], [11.0, "ghosts"]],
 }
 
 var c: Node3D                        # the circuit (race_circuit.gd)
@@ -68,6 +70,10 @@ func _ready() -> void:
 
 func earth() -> bool:
 	return str(c.track.get("circuit", {}).get("theme", "void")) == "earth"
+
+
+func dark() -> bool:
+	return str(c.track.get("circuit", {}).get("theme", "void")) == "dark"
 
 
 # -----------------------------------------------------------------------------
@@ -241,7 +247,7 @@ func _blimp_build() -> void:
 	var body := CapsuleMesh.new()
 	body.radius = 2.6
 	body.height = 13.0
-	var col := Color(0.95, 0.85, 0.3) if earth() else Color(0.75, 0.55, 1.0)
+	var col := Color(0.95, 0.85, 0.3) if earth() else (Color(0.3, 0.26, 0.45) if dark() else Color(0.75, 0.55, 1.0))
 	var hull: MeshInstance3D = c._mesh(_blimp, body, Vector3.ZERO, _mat("Blimp", col, 0.1), false)
 	hull.rotation.x = PI / 2.0                         # (lying along its own +Z, the way it flies)
 	for k in 4:
@@ -255,7 +261,7 @@ func _blimp_build() -> void:
 		l.font_size = 140
 		l.outline_size = 28
 		l.pixel_size = 0.012
-		l.modulate = Color(0.25, 0.12, 0.4) if not earth() else Color(0.6, 0.15, 0.1)
+		l.modulate = Color(0.6, 0.15, 0.1) if earth() else (Color(1.0, 0.85, 0.45) if dark() else Color(0.25, 0.12, 0.4))
 		l.position = Vector3(2.65 * sd, 0, 0)
 		l.rotation.y = PI / 2.0 * sd
 		_blimp.add_child(l)
@@ -663,7 +669,7 @@ func _fire_boulder(s: Node3D) -> void:
 # -----------------------------------------------------------------------------
 func _build_crows(s: Node3D) -> void:
 	var d: float = s.get_meta("d")
-	var black := _mat("Crow", Color(0.12, 0.1, 0.14))
+	var black := _mat("Bat", Color(0.22, 0.12, 0.32), 0.3) if dark() else _mat("Crow", Color(0.12, 0.1, 0.14))   # (bats in Dark Hollow)
 	for k in 24:
 		var b := Node3D.new()
 		b.name = "Crow %d" % k
@@ -673,7 +679,11 @@ func _build_crows(s: Node3D) -> void:
 		b.position = home
 		b.set_meta("home", home)
 		_ball(b, 0.3, Vector3.ZERO, black).scale = Vector3(0.8, 0.8, 1.4)
-		_cone(b, 0.1, 0.3, Vector3(0, 0, 0.5), _mat("Beak", Color(0.95, 0.75, 0.2))).rotation.x = PI / 2.0
+		if dark():
+			for sd in [-1.0, 1.0]:                     # glowing eyes, not a beak
+				_ball(b, 0.06, Vector3(sd * 0.1, 0.08, 0.38), _mat("Bat Eye", Color(1.0, 0.85, 0.3), 2.0))
+		else:
+			_cone(b, 0.1, 0.3, Vector3(0, 0, 0.5), _mat("Beak", Color(0.95, 0.75, 0.2))).rotation.x = PI / 2.0
 		for sd in [-1.0, 1.0]:
 			var w := _box(b, Vector3(0.8, 0.05, 0.4), Vector3(sd * 0.45, 0.05, 0), black)
 			w.name = "Wing L" if sd < 0 else "Wing R"
@@ -797,3 +807,80 @@ func _fire_fireworks(s: Node3D) -> void:
 			rocket.queue_free()
 			_splash(top, col, 34, 16.0, 0.5)
 			_sound("pop", -4.0))
+
+
+# -----------------------------------------------------------------------------
+# Ghosts (Dark Hollow): friendly shadow ghosts rise out of the ground on one side, swoop right over the road in a
+# wave and sink into the ground on the other
+# -----------------------------------------------------------------------------
+func _build_ghosts(s: Node3D) -> void:
+	var ink := _mat("Ghost", Color(0.16, 0.12, 0.3, 0.85), 0.4)
+	var eye := _mat("Ghost Eye", Color(0.7, 1.0, 0.95), 2.5)
+	for k in 7:
+		var g := Node3D.new()
+		g.name = "Ghost %d" % k
+		g.scale = Vector3.ONE * 1.8
+		s.add_child(g)
+		var body := _ball(g, 0.7, Vector3.ZERO, ink)
+		body.scale = Vector3(1.0, 1.4, 1.0)
+		var tail := _cone(g, 0.6, 1.2, Vector3(0, -1.2, 0), ink, 8)
+		tail.rotation.x = PI
+		for sd in [-1.0, 1.0]:
+			_ball(g, 0.15, Vector3(sd * 0.25, 0.3, 0.6), eye)
+		g.visible = false
+
+
+func _fire_ghosts(s: Node3D) -> void:
+	var d: float = s.get_meta("d")
+	_sound("fwump", -4.0)
+	for k in s.get_child_count():
+		var g := s.get_child(k) as Node3D
+		var dk := d + (k - 3) * 3.5
+		var a := _off(dk, 12.0, true) + Vector3.DOWN * 2.0
+		var b := _off(dk + 4.0, 12.0, false) + Vector3.DOWN * 2.0
+		var top := 9.0 + (k % 3) * 1.5
+		var tw := create_tween()
+		tw.tween_interval(k * 0.12)
+		tw.tween_callback(func() -> void:
+			g.visible = true
+			g.position = a)
+		tw.tween_method(func(u: float) -> void:
+			var p := a.lerp(b, u) + Vector3.UP * (4.0 * top * u * (1.0 - u) + sin(u * 9.0 + k) * 0.6)
+			g.look_at(p + (b - a).normalized(), Vector3.UP)
+			g.rotate_object_local(Vector3.UP, PI)
+			g.position = p, 0.0, 1.0, 2.2)
+		tw.tween_callback(func() -> void: g.visible = false)
+
+
+# -----------------------------------------------------------------------------
+# Lanterns (Dark Hollow): a row of paper lanterns beside the road let go, glowing up into the night
+# -----------------------------------------------------------------------------
+func _build_lanterns(s: Node3D) -> void:
+	var d: float = s.get_meta("d")
+	var cols := [Color(1.0, 0.75, 0.35), Color(1.0, 0.5, 0.75), Color(0.6, 0.95, 1.0)]
+	for k in 16:
+		var l := Node3D.new()
+		l.name = "Lantern %d" % k
+		l.scale = Vector3.ONE * 1.6
+		s.add_child(l)
+		var home := _off(d + (k - 8) * 2.6, 4.0 + (k % 3) * 2.0, true) + Vector3.UP * (0.8 + (k % 2) * 0.6)
+		l.position = home
+		l.set_meta("home", home)
+		var paper := CylinderMesh.new()
+		paper.top_radius = 0.42
+		paper.bottom_radius = 0.32
+		paper.height = 0.75
+		paper.radial_segments = 10
+		c._mesh(l, paper, Vector3.ZERO, _mat("Lantern %d" % (k % 3), cols[k % 3], 2.2), false)
+
+
+func _fire_lanterns(s: Node3D) -> void:
+	_sound("pickup", -12.0)
+	for l in s.get_children():
+		var home: Vector3 = l.get_meta("home")
+		var drift := Vector3(_rng.randf_range(-6, 6), 30.0 + _rng.randf_range(0, 10), _rng.randf_range(-6, 6))
+		var tw := create_tween()
+		tw.tween_interval(_rng.randf_range(0, 0.6))
+		tw.tween_property(l, "position", home + drift, 7.5 + _rng.randf_range(0, 2)).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_SINE)
+		tw.tween_callback(func() -> void: (l as Node3D).position = home - Vector3.UP * 3.0)
+		tw.tween_property(l, "position", home, 1.0).set_ease(Tween.EASE_OUT)

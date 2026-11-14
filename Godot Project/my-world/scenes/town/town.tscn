@@ -24289,79 +24289,79 @@ flag = "cloud_slide"
 metadata/unlock_flag = "cloud_slide"
 
 [node name="@MeshInstance3D@1602" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1423775245]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 18.8, 6)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 15.6, 6)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_e7cct")
 
 [node name="@MeshInstance3D@1603" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1142124975]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.240654, 19.574255, 5.257541)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.240654, 16.3743, 5.257541)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_xj8hi")
 
 [node name="@MeshInstance3D@1604" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=964151448]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.62783, 18.667274, 8.373914)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.62783, 15.4673, 8.373914)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_8hika")
 
 [node name="@MeshInstance3D@1605" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=792897451]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.928156, 19.022081, 12.066612)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.928156, 15.8221, 12.066612)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_tvcv2")
 
 [node name="@MeshInstance3D@1606" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1177021454]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.299822, 18.631943, 12.674614)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.299822, 15.4319, 12.674614)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_465ek")
 
 [node name="@MeshInstance3D@1607" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1619936368]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.460026, 18.995272, 11.133048)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.460026, 15.7953, 11.133048)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_3rbad")
 
 [node name="@MeshInstance3D@1608" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=2051485005]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.35902, 18.165707, 8.4089155)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.35902, 14.9657, 8.4089155)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_rth0l")
 
 [node name="@MeshInstance3D@1609" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=526064307]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.761314, 18.621143, 5.2757015)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34.761314, 15.4211, 5.2757015)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_yn7c8")
 
 [node name="@MeshInstance3D@1610" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1583319446]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.539375, 18.929684, 2.0559757)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -33.539375, 15.7297, 2.0559757)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_ir48e")
 
 [node name="@MeshInstance3D@1611" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1755895184]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.290411, 18.77924, -0.4026575)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.290411, 15.5792, -0.4026575)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_ph5dk")
 
 [node name="@MeshInstance3D@1612" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=1416293992]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.607336, 19.642641, -0.7886534)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27.607336, 16.4426, -0.7886534)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_fqc0s")
 
 [node name="@MeshInstance3D@1613" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=272669416]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.67051, 18.965094, 0.7563834)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.67051, 15.7651, 0.7563834)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_kippu")
 
 [node name="@MeshInstance3D@1614" type="MeshInstance3D" parent="Cloud Water Slide" unique_id=696895774]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.912638, 17.613144, 2.9694839)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.912638, 14.4131, 2.9694839)
 material_override = SubResource("StandardMaterial3D_uds3t")
 cast_shadow = 0
 mesh = SubResource("SphereMesh_wd44w")

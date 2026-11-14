@@ -385,7 +385,13 @@ func _fit_todo() -> void:
 	# Three followed quests with long checklists, at a big text size, made the list run off the bottom of the screen
 	# (Hayden, 14 Nov 2026: "check every single windowed text in the game and make sure nothing is getting cut off").
 	# It shrinks from its top left corner to fit the room left under the stats instead.
-	var room := get_viewport().get_visible_rect().size.y / maxf(scale.y, 0.01) - todo.position.y - 12.0
+	# It also stops above the friend's face badge in the bottom left (Hayden, 14 Nov 2026 afternoon: "The party
+	# character you have blocks the quest window").
+	var bottom := get_viewport().get_visible_rect().size.y
+	var face := get_parent().get_node_or_null("FriendFace") if get_parent() else null
+	if face and face.has_method("badge_shown") and face.badge_shown():
+		bottom = face.badge_rect().position.y - 40.0 * Settings.text_scale     # (and the bubble that pops up beside it)
+	var room := bottom / maxf(scale.y, 0.01) - todo.position.y - 12.0
 	var need := todo.get_combined_minimum_size().y
 	todo.size = Vector2.ZERO                    # back to what its rows need (a box never shrinks by itself after a long list)
 	var k := clampf(room / maxf(need, 1.0), 0.3, 1.0)

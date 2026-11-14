@@ -366,6 +366,7 @@ func _keep_followers() -> void:
 	var who := current()
 	var key := "%s|%s" % [scene.scene_file_path if scene else "", who]
 	if key == _built_for and _followers.all(func(f) -> bool: return is_instance_valid(f)):
+		_hide_hub_flurry(who)
 		return
 	_clear_followers()
 	_built_for = key
@@ -387,12 +388,21 @@ func _keep_followers() -> void:
 		fol.set("side", -0.9 if i == 0 and models.size() > 1 else (0.9 if i > 0 else 0.0))
 		scene.add_child(fol)
 		_followers.append(fol)
-	if who == "flurry" and is_instance_valid(Portals._holder):
-		var g := Portals._holder.get_node_or_null("Flurry") as Node3D
-		if g:
-			g.visible = false
-			g.process_mode = Node.PROCESS_MODE_DISABLED
-			_hid.append(g)
+	_hide_hub_flurry(who)
+
+
+func _hide_hub_flurry(who: String) -> void:
+	# Flurry's other self on the Portal Plaza hides while her copy walks with you. Checked every time, not just when
+	# the copy's made: coming back out of a building, the plaza's put back up after the copy's already been made, and
+	# the new Flurry there stood about as a second one (Hayden, 14 Nov 2026: "I had flurry in my party, went in a
+	# building, and when I exited, he was standing in another spot, basically duplicating him").
+	if who != "flurry" or _followers.is_empty() or not is_instance_valid(Portals._holder):
+		return
+	var g := Portals._holder.get_node_or_null("Flurry") as Node3D
+	if g and not _hid.has(g):
+		g.visible = false
+		g.process_mode = Node.PROCESS_MODE_DISABLED
+		_hid.append(g)
 
 
 func _clear_followers() -> void:
