@@ -251,6 +251,14 @@ const UPGRADES := {
 }
 const TURBO := 0.25
 
+# First prizes (Hayden, 13 Nov 2026: "unique rewards for finishing first, something to incentivize the player to race",
+# "make [blueprints] rewards for completing races/quests"): winning a race the first time gives something you can't get
+# any other way. The four circuits give a gadget's blueprint (Schematics.LIST "reward": {"race": ...}); the others a
+# hat (shop/items.json, scripts/cosmetics.gd). Winning all four circuits makes you the Race Champion, with a helmet.
+const FIRST_HATS := {"sky_rings": "aviator_cap", "hollow_run": "lantern_hat", "skyway_run": "rocket_helmet"}
+const CHAMPION_TRACKS := ["lake_loop", "meadow_wiggle", "observatory_hill", "pumpkin_run"]
+const CHAMPION_HAT := "racing_helmet"
+
 const SHIELD_TIME := 8.0
 const ZOOM_SPEED := 8.0
 const ZOOM_TIME := 2.2
@@ -525,6 +533,45 @@ func _refresh_boards() -> void:
 			g.board_text.text = hub_board_text(id)
 
 
+func first_prize(id: String) -> String:
+	# What winning this race the first time gives you, in words ("" if nothing special)
+	var e: Dictionary = Schematics.for_race(id)
+	if not e.is_empty():
+		return Schematics.blueprint_of(e)
+	if FIRST_HATS.has(id):
+		return "the %s" % _hat_name(str(FIRST_HATS[id]))
+	return ""
+
+
+func _hat_name(hat: String) -> String:
+	return str(Shop.items.get(hat, {}).get("name", hat.capitalize()))
+
+
+func champion() -> bool:
+	# Every circuit won at least once
+	return CHAMPION_TRACKS.all(func(k: String) -> bool: return int(wins.get(k, 0)) > 0)
+
+
+func _give_hat(hat: String) -> bool:
+	if Game.has_item("shop:" + hat):
+		return false
+	Game.items.append("shop:" + hat)                   # (worn from the wardrobe like the Champion's Cup: scripts/arena.gd)
+	return true
+
+
+func _prize_line(id: String, short := false) -> String:
+	# The board's line about the first prize: what it is, or that it's yours (short: the gate's board, no room)
+	var what := first_prize(id)
+	if what == "":
+		return ""
+	if short:
+		what = what.trim_prefix("the ").replace("'s blueprint", "").replace("' blueprint", "")
+		return ("  ★ won" if int(wins.get(id, 0)) > 0 else "  ★ " + what)
+	if int(wins.get(id, 0)) > 0:
+		return "\n★ Won: %s" % what
+	return "\n★ WIN IT for %s!" % what
+
+
 func board_text(id: String) -> String:
 	var tr: Dictionary = TRACKS[id]
 	var prizes: Array = tr.prizes
@@ -534,21 +581,23 @@ func board_text(id: String) -> String:
 	out += "Best time: %s" % (RaceHud.clock(float(best[id])) if best.has(id) else "not yet!")
 	out += "\nBeat it for ✦ %d more" % BEST_BONUS if best.has(id) else ""
 	out += "\nWins: %d" % int(wins.get(id, 0))
+	out += _prize_line(id)
 	return out
 
 
 func hub_board_text(hub: String) -> String:
 	# The race gate's board: every circuit started there, open or not, with its best time
-	var out := "RACES\nTalk to %s to race!\n" % HUBS[hub].starter.name
+	var out := "RACES  (talk to %s)\n" % HUBS[hub].starter.name
 	for id in TRACKS:
 		if hub_of(id) != hub:
 			continue
 		var tr: Dictionary = TRACKS[id]
-		out += "\n%s  (1st ✦ %d)\n" % [str(tr.name).to_upper(), int(tr.prizes[0])]
+		out += "\n%s%s\n" % [str(tr.name).to_upper(), _prize_line(id, true)]
 		if not unlocked(id):
 			out += "Opens after the %s" % TRACKS[str(tr.after)].name
 		else:
 			out += "Best: %s   Wins: %d" % [RaceHud.clock(float(best[id])) if best.has(id) else "not yet!", int(wins.get(id, 0))]
+	out += "\n\n%s" % ("★ RACE CHAMPION! ★" if champion() else "Win all four: the Champion's Helmet")
 	return out
 
 
@@ -695,12 +744,18 @@ func hub_lines(hub: String) -> Array:
 			"But {they}'ll need something to ride first! There's a skateboard waiting at the Skate Park."]
 	var mine: Array = TRACKS.keys().filter(func(k: String) -> bool: return hub_of(k) == hub)
 	var out: Array = []
+	var prizes: Array = mine.filter(func(k: String) -> bool: return unlocked(k) and first_prize(k) != "" and int(wins.get(k, 0)) == 0)
 	if raced == 0:
 		out.append("Vroom vroom, {player}! I'm %s, and I start the races. Each race has a whole track of its own: say which and I'll whizz you there!" % me)
 		out.append("Ride through every ring, in order: the next one glows gold. Star Boxes give you a power-up: a Zoom Star, a Bubble Shield, a Super Spring, or something to throw. Press %s to use it!" % Settings.prompt("aim"))
 		out.append("Watch out: the others have power-ups too, and they'll throw them at you! A Bubble Shield stops one.")
 	else:
 		out.append("Back for more, {player}? Which one?")
+	if not prizes.is_empty():
+		# The first prize for each open race not won yet: something worth racing for
+		out.append("Win the %s and you get %s! Nobody else has one of those." % [TRACKS[prizes[0]].name, first_prize(prizes[0])]
+			if prizes.size() == 1 else "First prizes! " + " ".join(prizes.map(func(k: String) -> String:
+				return "Win the %s for %s." % [TRACKS[k].name, first_prize(k)])))
 	var choice: Array = []
 	for id in mine:
 		if unlocked(id):
@@ -738,6 +793,8 @@ func lines(id := "lake_loop") -> Array:
 		out.append("Back for more, {player}? The %s is %s." % [tr.name, tr.blurb])
 		if best.has(id):
 			out.append("Your best time here is %s. Beat it for ✦ %d more!" % [RaceHud.clock(float(best[id])), BEST_BONUS])
+	if first_prize(id) != "" and int(wins.get(id, 0)) == 0:
+		out.append("Win it and you get %s! Nobody else has one of those." % first_prize(id))
 	if not unlocked(id):
 		out.append("This one opens once you've finished the %s. %s starts that one!" % [TRACKS[str(tr.after)].name,
 			starter_name(str(tr.after))])
@@ -1175,6 +1232,8 @@ func _finish() -> void:
 	var bonus := BEST_BONUS if new_best and old_best > 0.0 else 0
 	if new_best:
 		best[track_id] = time
+	var first_win := place == 1 and int(wins.get(track_id, 0)) == 0
+	var was_champion := champion()
 	if place == 1:
 		wins[track_id] = int(wins.get(track_id, 0)) + 1
 	var opens := TRACKS.keys().filter(func(k: String) -> bool: return str(TRACKS[k].get("after", "")) == track_id and not finished_once.has(track_id))
@@ -1200,6 +1259,7 @@ func _finish() -> void:
 		text += "\nYour first best time: %s" % RaceHud.clock(time)
 	for k in opens:
 		text += "\nThe %s is open now!" % TRACKS[k].name
+	text += _first_prizes(first_win, was_champion)
 	hud.shout("FINISH!", Color(1.0, 0.85, 0.3), 0.8)
 	if circuit != "":
 		_offer_choice(text)                           # on a circuit: race again, or go back (no hurry)
@@ -1215,6 +1275,20 @@ func _finish() -> void:
 	_refresh_boards()
 	tutorial.finish()
 	finished.emit(track_id, place)
+
+
+func _first_prizes(first_win: bool, was_champion: bool) -> String:
+	# A first win's prize (once ever, per race), and the Champion's Helmet for the last of the four circuits
+	var text := ""
+	if first_win:
+		var e: Dictionary = Schematics.for_race(track_id)
+		if not e.is_empty() and Schematics.award(str(e.id), true):
+			text += "\n★ FIRST WIN PRIZE: %s! Dash can build it now." % Schematics.blueprint_of(e)
+		elif FIRST_HATS.has(track_id) and _give_hat(str(FIRST_HATS[track_id])):
+			text += "\n★ FIRST WIN PRIZE: the %s! Wear it from your wardrobe." % _hat_name(str(FIRST_HATS[track_id]))
+	if not was_champion and champion() and _give_hat(CHAMPION_HAT):
+		text += "\n★ All four circuits won: RACE CHAMPION! The %s is yours." % _hat_name(CHAMPION_HAT)
+	return text
 
 
 func _end(_done: bool) -> void:

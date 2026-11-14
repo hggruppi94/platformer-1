@@ -177,8 +177,10 @@ func _sign(parent: Node3D, text: String, at: Vector3, yaw := PI, size := 34) -> 
 	label.modulate = Color(1.0, 0.88, 0.45)
 	label.outline_size = 8
 	label.outline_modulate = Color(0.12, 0.08, 0.15)
-	label.position = Vector3(0, 0, -0.08)
-	label.rotation.y = PI
+	# The writing faces along the board's +Z: a sign turned with yaw PI faces back down the Bog Road (-Z), towards you
+	# as you come in. (It was on the far side, so you only saw the back of the board walking in: Hayden's 14 Nov 2026
+	# playtest. tools/audit_signs.gd checks it.)
+	label.position = Vector3(0, 0, 0.08)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.width = 520
 	board.add_child(label)

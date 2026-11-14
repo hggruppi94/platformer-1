@@ -75,6 +75,19 @@ func _run() -> void:
 	var ring := _flat(tally.global_position - square.global_position)
 	check(absf(ring - 9.0) < 0.5, "...round the ring between the benches and the stalls (%.1f m out)" % ring)
 	check(tally.global_position.distance_to(t0) > 0.05 or tally.get("_pause") > 0.0, "...and gets about")
+	# Tally's name tag hides behind walls and stalls, and only shows close up (Hayden's 14 Nov 2026 playtest: "Tally's name is
+	# visible through objects")
+	var tag := tally.get_node_or_null("Name Tag") as Label3D
+	check(tag != null and not tag.no_depth_test, "Tally's name tag doesn't show through walls")
+	var was := p.global_position
+	p.global_position = tally.global_position + Vector3(40, 0, 0)
+	await _physics(2)
+	check(tag != null and not tag.visible, "...and isn't shown from the other side of town")
+	p.global_position = tally.global_position + Vector3(3, 0.5, 0)
+	await _physics(2)
+	check(tag != null and tag.visible, "...but is when you're near")
+	p.global_position = was
+	await _physics(2)
 
 	# --- Rolling ---
 	await _frames(40)                                         # (the board checks twice a second)

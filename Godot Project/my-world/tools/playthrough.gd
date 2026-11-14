@@ -541,9 +541,6 @@ func _quake_and_enter(id: String, extra := 0) -> bool:
 	check(current_scene.scene_file_path == str(portals.world(id).scene) and portals.here == id, "stepped through to %s" % id)
 	await _physics(20)
 	await shot(id + "_inside")
-	for e in root.get_node("Schematics").LIST:
-		if str(e.get("world", "")) == id:
-			await _get_blueprint(str(e.id))
 	return portals.here == id
 
 
@@ -1206,7 +1203,15 @@ var _giant: Node3D
 func _ch_chaos() -> void:
 	await _in_void()
 	var ars := root.get_node("Arsenal")
-	check(ars.ORDER.all(func(g: String) -> bool: return ars.owns(g)), "every gadget's been found and bought by now (%s)" % str(ars.owned))
+	# Blueprints are rewards since 13 Nov 2026 (Schematics.LIST "reward"): the story gives the Star Popper (Dash), the
+	# Disco Ball (Melody) and the Jelly Mines (Otto); the rest are first prizes in races, which this doesn't race to win.
+	# Buy whatever's been given, as a player would on their next visit to Dash's stall.
+	var S := root.get_node("Schematics")
+	for e in S.LIST:
+		if str(e.kind) == "gadget" and S.is_found(str(e.id)) and not ars.owns(str(e.what)):
+			await _get_blueprint(str(e.id))
+	check(["popper", "disco", "jelly"].all(func(g: String) -> bool: return ars.owns(g)),
+		"the story's gadgets have been given and bought by now (%s)" % str(ars.owned))
 	_giant = current_scene.find_child("ChaosGiant", true, false) as Node3D
 	check(_giant != null, "the Agent of Chaos is in his field")
 	if _giant == null:

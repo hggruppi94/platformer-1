@@ -521,7 +521,7 @@ func _board() -> void:
 	var top := BoxMesh.new()
 	top.size = Vector3(3.1, 0.12, 0.16)
 	_mesh(board, top, Vector3(0, 3.25, 0.01), _mat(Color(1.0, 0.82, 0.35), 0.4, 0.3))
-	board_text = _label(board, "", 18 if hub else 24, Vector3(0, 2.0, 0.07))
+	board_text = _label(board, "", 13 if hub else 24, Vector3(0, 2.05, 0.07))  # (the gate's board lists every circuit: smaller)
 	board_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	board_text.width = 270
 	var body := StaticBody3D.new()

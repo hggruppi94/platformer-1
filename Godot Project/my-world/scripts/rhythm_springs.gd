@@ -711,7 +711,8 @@ func teach_lines() -> Array:
 		"I want to give you something. My groove! Everybody has a beat inside, you just have to find it.",
 		"Press {groove} to dance. A ring of music bursts out, and anyone grumpy nearby can't help dancing too. Gloops, goblins, anyone!",
 		"Now press it ON the beat. Then again. And again! The more in a row, the bigger the ring.",
-		"Four in a row and the music carries you along. Try it! One, two, three, four..."]
+		"Four in a row and the music carries you along. Try it! One, two, three, four...",
+		"Oh! And Dash gave me this ages ago, for whoever helped me most. (She hands you a blueprint with a glittery ball on it.) The Disco Ball's blueprint! Take it to his stall."]
 
 
 func _teach_groove(tries := 0) -> void:
@@ -721,6 +722,8 @@ func _teach_groove(tries := 0) -> void:
 		get_tree().create_timer(1.0).timeout.connect(_teach_groove.bind(tries + 1))
 		return
 	var spot := get_node_or_null("Melody/Spot") as Node3D
+	if not Portals.practice:
+		Schematics.award("disco", spot != null)           # (her last line says it; Schematics.LIST "disco")
 	if spot:
 		Dialogue.say(spot, "Melody", teach_lines().map(func(l: String) -> String: return Settings.fill(l)), "rhythm_springs_groove")
 	else:
