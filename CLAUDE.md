@@ -99,6 +99,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **The centipede's burrow attack can be dodged, and you face the right way out of Dusk's Embrace**
+  (Hayden: "the centipedes tunnel under you attack ... right now it is instant, it should give the player a chance to
+  dodge. When leaving dusks embrace, the directional orientation of the character gets thrown off").
+  - **Burrow** (`centipede_boss.gd _dive()`, `_rumble()`, `_pop_up()`): the warning used to be a `ShockRing` started
+    at your feet, which bumped you the moment it appeared. Now the spot under you is marked as she dives (a lilac rim
+    that fills in, cracks, dust puffs and a growing rumble) and stays put; she comes up there `POP_WARN` (1.8 s) later
+    and only bumps you if you're still within `POP_R` (1.9 m) and not high in a jump. "She's coming up! Move!"
+  - **Facing** (`dusk_gate.gd move()`): when the gate moved as the town loaded it turned the player's body to its way
+    out, which twisted the controls and camera. Now only her model and the camera turn, the way `player.gd` places her
+    at any spawn marker.
+  - `test_scary_world` (both runs) checks the mark, the time to get off it, a miss, a bump, and the body, model and
+    camera after coming home; world_detail, dark_hollow, wall_crawl and layout pass.
+
 - 2026-11-14: **The Hush can be lured into the light again, and the Rainbow Ray is a little see-through** (Hayden:
   "the ghost boss in dusks embrace gets stuck and wont walk in the light, so it cant be killed", "make the rainbow ray
   slightly less opaque"). Dark Hollow's Hush (`the_hush.gd`) read its `home` in `_ready()`, but `dark_hollow.gd` only

@@ -134,6 +134,43 @@ func _run() -> void:
 	check(str(t0.shot(1, t0.global_position, Vector3.FORWARD)) == "bounce", "bubbles boing off her while she's zooming about")
 	boss.state = "dizzy"
 	check(str(t0.shot(1, t0.global_position, Vector3.FORWARD)) == "hit" and boss.hits == 1, "...but pop her when she's dizzy")
+	# Her burrow-under-you move gives you time to get out of the way (Hayden, 14 Nov 2026: "right now it is instant")
+	var me := current_scene.find_child("Player", true, false) as CharacterBody3D
+	boss.hits = boss.HIDE_AT
+	me.global_position = boss.middle + Vector3(2, 0.9, 0)
+	me.velocity = Vector3.ZERO
+	await create_timer(1.3).timeout                  # (any bump from her charge wears off)
+	boss.state = "dizzy"
+	boss._left = 99.0
+	var hp0: int = int(game.hp)
+	boss._dive()
+	var mark: Node3D = boss._warn
+	var spot: Vector3 = mark.global_position if mark else Vector3.INF
+	check(mark != null and mark.visible and Vector2(spot.x - me.global_position.x, spot.z - me.global_position.z).length() < 0.3,
+		"she dives: the spot under you is marked")
+	check(boss.warn_left() >= 1.5, "...with %.1f s to get off it" % boss.warn_left())
+	await create_timer(0.5).timeout
+	check(int(game.hp) == hp0 and boss.state == "under", "nothing hits you straight away")
+	me.global_position = spot + Vector3(4.5, 0.9, 0)      # step out of it
+	await create_timer(0.3).timeout
+	check(mark.global_position.distance_to(spot) < 0.01, "the mark stays put (it doesn't follow you)")
+	while boss.state == "under":
+		await create_timer(0.05).timeout
+	check(int(game.hp) == hp0 and not mark.visible, "stepped off it: she pops up and misses")
+	# ...and staying on it is a bump
+	await create_timer(1.3).timeout
+	boss.state = "dizzy"
+	boss._left = 99.0
+	me.global_position = boss.middle + Vector3(-2, 0.9, 0)
+	me.velocity = Vector3.ZERO
+	await create_timer(1.3).timeout
+	hp0 = int(game.hp)
+	boss._dive()
+	while boss.state == "under":
+		me.velocity = Vector3.ZERO
+		await create_timer(0.05).timeout
+	check(int(game.hp) < hp0, "stayed on it: a bump")
+	boss.hits = 1
 	while boss.hits < boss.HITS:
 		boss.state = "dizzy"
 		boss.hurt(1)
@@ -180,6 +217,13 @@ func _run() -> void:
 	check(current_scene.scene_file_path == TOWN and player.global_position.distance_to(marker.global_position) < 1.5,
 		"...back in town, just outside the gate")
 	check(not paused, "...and not paused")
+	var arm := player.get_node("SpringArm3D") as Node3D
+	var face := (player.get_node("Visual") as Node3D).global_transform.basis.z
+	var gate_at := (current_scene.find_child("Scary World Gate", true, false) as Node3D).global_position
+	var from_gate := Vector3(player.global_position.x - gate_at.x, 0, player.global_position.z - gate_at.z).normalized()
+	check(player.rotation.length() < 0.01, "her body isn't turned (so the controls and camera are the right way round)")
+	check(Vector3(face.x, 0, face.z).normalized().dot(from_gate) > 0.7, "...she faces away from the gate")
+	check(-arm.global_transform.basis.z.dot(from_gate) > 0.7, "...and the camera looks the same way")
 
 	# ...and the gate: back in (it asks again), then out through the gate
 	await _talk(_talker("scary_gate"), [1])
