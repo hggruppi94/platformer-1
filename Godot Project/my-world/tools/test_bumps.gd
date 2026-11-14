@@ -287,16 +287,35 @@ func _echo() -> void:
 	check(echo.inside and echo.why == "tunnel", "under a tunnel roof she's in a tunnel (%s)" % echo.why)
 	check(echo.amount > 0.9 and echo.has_effects(), "...the sounds echo (%.2f)" % echo.amount)
 	check(echo.get_node("Cave Bed").playing, "...and the cave drips and hums")
+	var audio := root.get_node("Audio")
+	check(echo.music_amount == 0.0 and audio.underground_amount() == 0.0, "...but a tunnel keeps the music as it is")
 	# A dark cave zone, like the Undergardens'
 	_place(Vector3(10, UP + 0.85, 10))
 	var kit: GDScript = load("res://scripts/cave_kit.gd")
 	var zone: Node3D = kit.dark_zone(current_scene, Vector3(10, UP + 2.0, 10), Vector3(8, 6, 8), "Test Dark")
 	await _seconds(0.4)
 	check(echo.inside and echo.why == "cave", "in a dark cave too (%s)" % echo.why)
+	# Underground, the music changes over to the cave music (Hayden, 14 Nov 2026)
+	var waited := 0.0
+	while not echo.pad_ready() and waited < 20.0:
+		await _seconds(0.25)
+		waited += 0.25
+	var pad: AudioStreamWAV = echo.make_pad() if not echo.pad_ready() else echo._pad_sound
+	check(pad != null and pad.data.size() > 100000 and pad.loop_mode == AudioStreamWAV.LOOP_FORWARD, "the cave music is made in code, and loops")
+	await _seconds(2.2)
+	var tracks := AudioServer.get_bus_index(audio.TRACKS)
+	check(echo.music_amount > 0.99 and audio.underground_amount() > 0.99 and tracks >= 0 and AudioServer.is_bus_mute(tracks),
+		"underground, the place's music fades away (%.2f)" % echo.music_amount)
+	var cave_music := echo.get_node("Cave Music") as AudioStreamPlayer
+	check(cave_music.playing and cave_music.bus == "Music" and cave_music.volume_db > -12.0, "...and soft cave music plays instead (%.1f dB)" % cave_music.volume_db)
+	check(AudioServer.get_bus_send(tracks) == "Music", "...the place's music still goes through the Music volume")
 	zone.queue_free()
 	await _seconds(0.9)
 	check(not echo.inside and echo.amount == 0.0 and not echo.has_effects(), "out again, it all eases away and the bus is clean")
 	check(not echo.get_node("Cave Bed").playing, "...and the drips stop")
+	await _seconds(1.6)
+	check(echo.music_amount == 0.0 and audio.underground_amount() == 0.0 and not AudioServer.is_bus_mute(tracks) and not cave_music.playing,
+		"...and back up top the place's music comes back")
 
 
 func _seconds(t: float) -> void:

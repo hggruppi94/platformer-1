@@ -136,6 +136,36 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     rest. Previews: `tools/capture_nov14b.gd` (shots in the project files under world/previews/nov14b_bugfixes).
   - My choices Hayden may change: the cutscene's words, the Sky Rings offer, 1.2 s before a cutscene can be skipped.
 
+- 2026-11-14: **Cracks take Interact, the music changes underground, and rare fish for the Aquarium** (Hayden's 14 Nov
+  playtest: "Instead of automatically falling in the world cracks, make it an interact prompt", "Can the music change
+  when you go underground? like ambient sound", "an aquarium quest where you collect all the exotic fish species of
+  different worlds; You need the swim ability"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Cracks** (`scripts/crack.gd`): an unseen floor ("Cover", only over a real cut, off when shut) over every crack's
+    open middle, so walking or riding over one never drops you in. `add_prompt(g, what)` puts a "Press E to jump in
+    ..." spot on its middle ("to Shard Isle", "to go home", "to the Void"); `jump_in(g)` (also what `drop_player()`
+    does now) plays the tumble and goes. Cracks with a door down inside (the old oak's, the Void's way back to Earth)
+    go by `door.gd go_down_crack()`; those doors sit 2 m down, under the cover. The portals' old "look down the crack"
+    question is gone (`Portals._use_portal()` jumps straight in). The "Fall" area and the "down in a crack" checks stay
+    as a safety net for anyone who gets below the cover. Rays that check the hole (tests) exclude the Cover.
+  - **Underground music** (`scripts/cave_echo.gd`, `Audio.underground()`): music tracks now play on a "Tracks" bus sent
+    into Music. In a `cave_dark` zone, under anything named Cave/Cavern/Grotto/Undergarden/Burrow (or group
+    `"underground"`), or burrowing, the place's music fades out and soft cave music fades in ("Cave Music" on the Music
+    bus: slow A minor, F, C, E minor chords with a twinkle now and then, `make_pad()`, made in code a slice a frame,
+    `PAD_SLICE`). Race tunnels and shortcuts only echo, as before.
+  - **Rare Fish** (`scripts/rare_fish.gd`, node "Watches/Fish"; `quests/aquarium.json`, giver Otto): eight fish, one in
+    each sunken-secrets place (Wishfin in the Wishing Well, Pond Prince in Willow Pond, Crystal Guppy, Leafy Minnow,
+    Frostfin, Glowbelly, Bopfish, Rainbow Puffer in the Tide Reef once it floods). Each circles down deep, darts when
+    you're near, and is caught by touching it while diving (paddling on top isn't close enough). Flags `fish_<id>`; the
+    first catch starts the quest if Otto hasn't. Otto asks on the Portal Plaza (`Portals.otto_fish_lines()`). In the
+    Aquarium each caught fish swims in its own wall tank with its name ("?" for the rest); with all eight, "Every tank
+    is full!" (flag `aquarium_full`), 40 sparkles.
+  - Tests: new `tools/test_rare_fish.gd`; `test_cracks`, `test_portals` (standing on a crack keeps you up, then
+    Interact), `test_bumps` (the music changing over); earth (both runs), crack_opening, swim, sunken_secrets, quests
+    (both runs), soundscape, dialogue (both runs), garden_caves and practice_trips pass. Previews:
+    `tools/capture_crack_fish.gd` (shots in the project files under world/previews/crack_fish).
+  - My choices Hayden may change: the fish names and looks, touching to catch, the eight places (Glenmoor, the Far
+    Future and Dark Hollow have no deep water, so no fish), 40 sparkles, the cave music.
+
 - 2026-11-14: **The Hollow Run is a real circuit now** (Hayden's 14 Nov playtest: "The dark hollow race is pretty
   lame and needs a rework like the other races"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **Its own level** (`scenes/races/hollow_run.tscn`, `tools/build_race_circuits.gd`): Dark Hollow keeps only Pip's
