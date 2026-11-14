@@ -211,6 +211,32 @@ static func fit_width(node: Node, px: float) -> float:
 	return minf(px, screen_size(node).x - 2.0 * SCREEN_MARGIN)
 
 
+static func bottom_caption(l: Label, width := 1000.0, above := 110.0) -> void:
+	# A cutscene's subtitle near the bottom of the screen: never wider than the screen, and long lines (or a big text
+	# size) grow it upwards instead of off the bottom. Call it after setting the words and their size. (The Agent of
+	# Chaos's ending ran its lines off the bottom at a big text size: Hayden, 14 Nov 2026, "make sure nothing is
+	# getting cut off".)
+	var w := fit_width(l, width)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.custom_minimum_size.x = w
+	l.anchor_left = 0.5
+	l.anchor_right = 0.5
+	l.anchor_top = 1.0
+	l.anchor_bottom = 1.0
+	l.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	l.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	l.offset_left = -w / 2.0
+	l.offset_right = w / 2.0
+	l.offset_bottom = -above
+	l.offset_top = -above
+	# Too tall even so (a very big text size on a small screen): shrink it round its bottom middle
+	var need := l.get_combined_minimum_size()
+	var room := screen_size(l).y - above - SCREEN_MARGIN
+	var k := minf(1.0, room / maxf(need.y, 1.0))
+	l.pivot_offset = Vector2(w / 2.0, need.y)
+	l.scale = Vector2(k, k)
+
+
 static func shrink_to_fit(c: Control, pivot := Vector2(0.5, 0.5)) -> void:
 	# Shrinks a window (scales it down round the pivot: the middle, or the bottom middle for a banner) when it's still
 	# bigger than the screen once its text has wrapped. Call it after the window's been filled and laid out.

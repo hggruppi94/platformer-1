@@ -110,6 +110,7 @@ func _ready() -> void:
 	_caption.offset_right = 0
 	_caption.offset_top = -230
 	_caption.offset_bottom = -100
+	_caption.grow_vertical = Control.GROW_DIRECTION_BEGIN       # more lines (a big text size) grow up, not off the bottom
 	_title = _label(64, Color(1.0, 0.92, 0.6))
 	_title.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	_title.offset_left = -700

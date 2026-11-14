@@ -79,6 +79,7 @@ func _next() -> void:
 	_text.text = s
 	_t = MIN_TIME + s.length() * PER_CHAR
 	_box.modulate.a = 0.0
+	_place()
 	_box.visible = true
 	_showing = true
 	Juice.blip("chime", 0.55, -14.0)
@@ -107,6 +108,25 @@ func hint() -> Array:
 	if Clock.on_earth and not Clock.in_shift():
 		return ["Rest, and be with the people you love. The ground here is open, whenever you're ready."]
 	return ["Look around you. Help where you can. When you're needed, I will tell you."]
+
+
+func _place() -> void:
+	# Just under the HUD's clock (it used to sit at a fixed height, and a bigger HUD's clock poked out from under it),
+	# as wide as the text size wants but never wider than the screen, and taller if the words wrap onto more lines
+	var ts := Settings.text_scale
+	_who.add_theme_font_size_override("font_size", roundi(15 * ts))
+	_text.add_theme_font_size_override("font_size", roundi(21 * ts))
+	var half := UiStyle.fit_width(_box, 660.0 * ts) / 2.0
+	_box.offset_left = -half
+	_box.offset_right = half
+	var top := 64.0
+	var hud := get_tree().get_first_node_in_group("hud") as CanvasLayer
+	var clock := hud.get("clock_panel") as Control if hud else null
+	if clock and clock.is_visible_in_tree():
+		var r := clock.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, clock.size)
+		top = maxf(top, r.end.y + 8.0)
+	_box.offset_top = top
+	_box.offset_bottom = top + 86.0
 
 
 # -----------------------------------------------------------------------------

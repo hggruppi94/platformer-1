@@ -20,7 +20,7 @@ const SETTINGS_BACKUP := "user://settings.ui_audit_backup.cfg"
 const WINDOWS := [["16x9", Vector2i(1280, 720)], ["4x3", Vector2i(1024, 768)], ["16x10", Vector2i(1280, 800)],
 	["21x9", Vector2i(2560, 1080)]]
 const TEXT_SIZES := [["normal", 1.0], ["large", 1.25], ["larger", 1.5], ["largest", 2.0]]
-const SLACK := 2.0                         # pixels a box may go past the edge before it counts as cut off
+const UI_WATCH := preload("res://tools/ui_watch.gd")
 
 var out_dir := ""
 var quick := false
@@ -128,7 +128,38 @@ func _screens() -> Array:
 	list.append(["outfit_wheel", func(): outfits.open_wheel(), func(): outfits.close(false)])
 	var lesson := _node("SkateLesson")
 	list.append(["skate_lesson_offer", func(): lesson.offer(true), func(): lesson.answer(false)])
+	# The quest card that slides in at the top right (Hayden, 14 Nov 2026: Melanie's slide quest), with the longest
+	# quest step there is, and the voice in your mind at the top of the screen
+	var quests := _node("Quests")
+	list.append(["quest_banner", func(): _banner(), func(): quests._note_time = 0.0; quests._note.modulate.a = 0.0])
+	var mind := _node("DivineMind")
+	list.append(["voice_in_your_mind", func(): mind.say([LONG_VOICE]), func(): _hush(mind)])
 	return list
+
+
+const LONG_VOICE := "Do you feel that? The Shift has broken somewhere new. Follow the tremor, little one, and don't be afraid of the dark."
+
+
+func _banner() -> void:
+	var quests := _node("Quests")
+	var longest := ""
+	var name := ""
+	for id in quests._order:
+		for step in quests.quest(id).get("steps", []):
+			var t := str(step.get("text", ""))
+			if t.length() > longest.length():
+				longest = t
+				name = str(quests.quest(id).get("name", id))
+	quests._announce("New quest: " + name, longest)
+	if quests._note_tween:
+		quests._note_tween.kill()
+	quests._note.scale = Vector2.ONE
+	quests._note.position.x = quests._note_x()
+
+
+func _hush(mind: Node) -> void:
+	if mind.has_method("clear"):
+		mind.clear()
 
 
 var _talker: Node3D
@@ -203,32 +234,9 @@ func _check(screen: Array, setup: String) -> void:
 		await process_frame
 
 
-func _overflows(vp: Rect2) -> Array[String]:
-	var out: Array[String] = []
-	for c in _all_controls(root):
-		var ctl := c as Control
-		if not ctl.is_visible_in_tree() or ctl.size.x < 1 or ctl.size.y < 1:
-			continue
-		if not (ctl is Label or ctl is Button or ctl is RichTextLabel or ctl is PanelContainer or ctl is TextureRect or ctl is Panel):
-			continue
-		if ctl is Label and (ctl as Label).text.strip_edges() == "":
-			continue
-		if _faded(ctl):
-			continue                               # see-through (the quest banner waiting off to the side)
-		var r := _screen_rect(ctl)
-		var clip := _clip_rect(ctl, vp)
-		r = r.intersection(clip) if r.intersects(clip) else Rect2()
-		if r.size == Vector2.ZERO:
-			continue                               # scrolled out of its box: that's fine, it scrolls
-		if r.position.x < vp.position.x - SLACK or r.position.y < vp.position.y - SLACK \
-				or r.end.x > vp.end.x + SLACK or r.end.y > vp.end.y + SLACK:
-			var what := "%s %s" % [ctl.get_class(), _short_path(ctl)]
-			if ctl is Label:
-				what += " \"%s\"" % (ctl as Label).text.left(30).replace("\n", " ")
-			elif ctl is Button:
-				what += " \"%s\"" % (ctl as Button).text.left(30)
-			out.append("%s [%d,%d %dx%d]" % [what, r.position.x, r.position.y, r.size.x, r.size.y])
-	return out
+func _overflows(_vp: Rect2) -> Array[String]:
+	# The shared rules (tools/ui_watch.gd): off the screen, words bigger than their box, words spilling out of their window
+	return UI_WATCH.scan(root)
 
 
 func _faded(n: Node) -> bool:
