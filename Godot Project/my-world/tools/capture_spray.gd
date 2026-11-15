@@ -204,7 +204,7 @@ func _stroke(on: Callable, pts: Array, colour: int, size: float) -> void:
 			var q := a.lerp(b, float(s) / steps)
 			var hit: Dictionary = on.call(q.x, q.y)
 			if not hit.is_empty():
-				paint.dab(hit.position, hit.normal, colour, size * randf_range(0.9, 1.1), randf() * TAU)
+				paint.dab(hit.position, hit.normal, colour, size, 0.0)      # as the can lays them: one size, on the line
 
 
 func _ring(on: Callable, c: Vector2, r: float, colour: int, size: float) -> void:

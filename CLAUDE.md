@@ -109,6 +109,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   shut tight. Not yet. Mrs. Wren needs you!"). Board jobs never open the crack. `test_home_calls` checks it with a
   pile of jobs followed; home_calls, quests (both runs), mind_voice, crack_opening, earth (both runs), cracks,
   first_night and following pass.
+- 2026-11-15: **Spray paint goes on smooth and even** (Hayden: "Can you make the spray paint more uniform when it's
+  applied? or maybe make it line up"). Each dab used to be a wobbly blob with speckles, nudged a little off the line,
+  a bit bigger or smaller and turned at random, and a stroke got thinner or fatter as the wall got nearer or further.
+  Now the splat is a clean round dot (`Paint.splat_texture()`), every dab sits right on the line at one size with no
+  spin, the dabs are closer together (`SprayCan.STEP` 0.3 of their size), and a stroke keeps the width it started with
+  (`_last.size`), so lines have straight, even edges. test_spray passes. Before and after shots in the project files
+  under world/previews/spray_paint/even.
 
 - 2026-11-14: **The centipede's burrow attack can be dodged, and you face the right way out of Dusk's Embrace**
   (Hayden: "the centipedes tunnel under you attack ... right now it is instant, it should give the player a chance to
