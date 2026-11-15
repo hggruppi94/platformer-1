@@ -22,6 +22,7 @@ const WASH_RADIUS := 0.5
 const NEAR_SIZE := 0.12                   # a dab's size right up close...
 const FAR_SIZE := 0.5                     # ...and at the far end of REACH
 const JOIN := 1.4                         # a puff this close to the last one fills the gap between them
+const STEP := 0.3                          # dabs along a stroke this far apart (times their size): close enough for a smooth edge
 const WATER := -1                         # the palette's water drop (washing)
 
 var player: Player
@@ -166,8 +167,11 @@ func spray_at(at: Vector3, normal: Vector3, collider: Object = null) -> int:
 	var spots: Array[Vector3] = [at]
 	if not _last.is_empty() and (_last.at as Vector3).distance_to(at) < JOIN \
 			and (_last.normal as Vector3).dot(normal) > 0.8:
+		# Carrying on a stroke: keep the width it started with, so a line stays the same thickness all along
+		# (Hayden: "more uniform ... make it line up"), even as the wall gets nearer or further.
+		size = _last.size
 		var from: Vector3 = _last.at
-		var step := size * 0.35
+		var step := size * STEP
 		var n := int(from.distance_to(at) / step)
 		spots.clear()
 		for i in range(1, n + 1):
@@ -176,13 +180,11 @@ func spray_at(at: Vector3, normal: Vector3, collider: Object = null) -> int:
 			spots.append(at)
 	var got := 0
 	for p in spots:
-		# a touch of spread, like a real can
-		var jitter := Vector3(randf() - 0.5, randf() - 0.5, randf() - 0.5) * size * 0.15
-		jitter -= normal * jitter.dot(normal)
-		if Paint.dab(p + jitter, normal, colour, size * randf_range(0.9, 1.1), randf() * TAU):
+		# Every dab the same size, right on the line, so strokes come out smooth and even
+		if Paint.dab(p, normal, colour, size, 0.0):
 			got += 1
 	dabs += got
-	_last = {"at": at, "normal": normal}
+	_last = {"at": at, "normal": normal, "size": size}
 	if got == 0 and Paint.full() and not _told_full:
 		_told_full = true
 		Game.message("Full of paint! Wash some off.")

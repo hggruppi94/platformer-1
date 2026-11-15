@@ -298,17 +298,22 @@ static func _rockets(ride: Node3D, at: Array, radius: float) -> Node3D:
 	# one node, so the skating can make them burn brighter while she pushes and boosts (skate.gd)
 	var tube := _mat(Color(0.95, 0.35, 0.55), 0.3, 0.5)
 	var fin := _mat(Color(1.0, 0.85, 0.35), 0.4, 0.6)
+	# Tubes, fins and flames all sit in one "Rockets" node, so riding fakie (the board back end first) can turn the
+	# whole lot round to the end that's trailing and the fire still comes out the back (skate.gd _pose)
+	var rockets := Node3D.new()
+	rockets.name = "Rockets"
+	ride.add_child(rockets)
 	var flames := Node3D.new()
 	flames.name = "Flames"
-	ride.add_child(flames)
+	rockets.add_child(flames)
 	var fire := _mat(Color(1.0, 0.65, 0.2), 0.5, 0.0, 3.0)
 	fire.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	fire.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	fire.albedo_color.a = 0.85
 	for p in at:
 		var pos: Vector3 = p
-		_rod(ride, pos + Vector3(0, 0, 0.16), pos - Vector3(0, 0, 0.02), radius, tube)
-		_box(ride, Vector3(radius * 3.0, 0.01, 0.06), pos + Vector3(0, 0, 0.02), fin)
+		_rod(rockets, pos + Vector3(0, 0, 0.16), pos - Vector3(0, 0, 0.02), radius, tube)
+		_box(rockets, Vector3(radius * 3.0, 0.01, 0.06), pos + Vector3(0, 0, 0.02), fin)
 		var pivot := Node3D.new()                  # at the tube's mouth, so a flame grows out backwards from it
 		pivot.position = pos - Vector3(0, 0, 0.02)
 		flames.add_child(pivot)

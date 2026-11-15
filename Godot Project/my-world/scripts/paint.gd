@@ -338,34 +338,15 @@ func material() -> StandardMaterial3D:
 
 
 static func splat_texture() -> ImageTexture:
-	# A round blob of spray paint with a speckled edge (alpha-scissored, so no sorting trouble with thousands)
+	# A clean round dot of paint with a smooth edge (alpha-scissored, so no sorting trouble with thousands).
+	# No wobbles or speckles: dabs overlap along a stroke, and a plain circle makes the line's edges even.
 	var n := 64
 	var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 1414
-	var wobble := []
-	for k in 16:
-		wobble.append(rng.randf_range(-0.035, 0.035))
 	for y in n:
 		for x in n:
-			var p := Vector2(x + 0.5, y + 0.5) / n - Vector2(0.5, 0.5)
-			var ang := fposmod(p.angle(), TAU) / TAU * 16.0
-			var k0 := int(ang) % 16
-			var edge := 0.4 + lerpf(wobble[k0], wobble[(k0 + 1) % 16], ang - floorf(ang))
-			var r := p.length()
-			var a := clampf((edge - r) * 30.0 + 0.5, 0.0, 1.0)
+			var r := (Vector2(x + 0.5, y + 0.5) / n - Vector2(0.5, 0.5)).length()
+			var a := clampf((0.46 - r) * 30.0 + 0.5, 0.0, 1.0)
 			img.set_pixel(x, y, Color(1, 1, 1, a))
-	# a few fine speckles round the outside, like a real can
-	for k in 26:
-		var ang := rng.randf() * TAU
-		var r := rng.randf_range(0.42, 0.49)
-		var c := (Vector2(cos(ang), sin(ang)) * r + Vector2(0.5, 0.5)) * n
-		var rad := rng.randf_range(0.8, 1.8)
-		for y in range(maxi(0, int(c.y - 3)), mini(n, int(c.y + 3))):
-			for x in range(maxi(0, int(c.x - 3)), mini(n, int(c.x + 3))):
-				if Vector2(x + 0.5, y + 0.5).distance_to(c) < rad:
-					img.set_pixel(x, y, Color(1, 1, 1, 1))
-
 	return ImageTexture.create_from_image(img)
 
 

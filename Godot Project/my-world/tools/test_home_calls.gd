@@ -80,12 +80,16 @@ func _run() -> void:
 	check(current_scene.scene_file_path == ISLE and portals.here == "shard_isle", "in Shard Isle")
 	portals.clear("shard_isle")
 	check("shard_isle" in calls.owed and calls.is_due("shard_isle"), "mending it owes Stars Hollow a visit")
+	# (Hayden's own save followed eight board jobs, and the to-do list only shows the first few)
+	quests.followed.assign(["job:bakery", "job:snowman", "job:grind", "req:gloops", "req:visit"])
 	portals.go_home()
 	await _wait_for_scene(EARTH, 300)
 	check(current_scene.scene_file_path == EARTH, "the way home goes all the way to Stars Hollow, not the Void")
 	check(calls.sealed() and calls.chapter == "shard_isle" and not "shard_isle" in calls.owed, "Shard Isle's chapter is on")
 	check(clock.on_earth and not clock.in_shift(), "...and it's morning on Earth")
 	check(quests.is_started("home_chimes") and quests.is_followed("home_chimes"), "Wren's Wind Chimes starts, and is followed")
+	check(quests.followed[0] == "home_chimes", "...at the top of what's followed, above the board jobs (%s)" % str(quests.followed))
+	check(calls.goal() == "Mrs. Wren needs you!", "the chapter's goal is Mrs. Wren (%s)" % calls.goal())
 	var player := current_scene.get_tree().get_first_node_in_group("player") as Node3D
 	var oak := current_scene.get_node("Portal Home/Old Oak") as Node3D
 	check(player.global_position.distance_to(oak.global_position) < 12.0, "...landing by the old oak")
@@ -95,14 +99,17 @@ func _run() -> void:
 	check(crack != null and float(crack.get_meta("open", 1.0)) < 0.05, "...and is gone from the green")
 	var door := current_scene.find_child("PortalToGalaxity", true, false)
 	check(str(door.get("closed_message")) != "", "walking onto it does nothing but a message")
+	check(str(door.get("closed_message")).contains("Mrs. Wren"), "...that says who needs you (%s)" % door.get("closed_message"))
 	var menu := root.get_node("PauseMenu")
 	check(menu.way_home().is_empty(), "the pause menu has no way to the Void")
 	var hint: Array = mind.hint()
 	check(not str(hint).contains("open"), "the oak's hint doesn't say the ground's open (%s)" % str(hint))
+	check(hint == [mind.HINT_GOAL, "Mrs. Wren needs you!"], "...it names the chapter's goal (%s)" % str(hint))
 	quests.followed.clear()
 	quests.chose_none = true
-	check(mind.hint() == [mind.HINT_HOME], "...with nothing followed, it says Stars Hollow needs you")
+	check(mind.hint() == [mind.HINT_GOAL, "Mrs. Wren needs you!"], "...even with nothing followed")
 	quests.chose_none = false
+	quests.follow("home_chimes", true)
 
 	# --- The chapter: Mrs. Wren's chimes ---
 	var lines: Array = dialogue.pick_conversation("wren")

@@ -213,6 +213,18 @@ func _run() -> void:
 	await _frames(20)
 	var flame := flames.get_child(0) as Node3D if flames else null
 	check(flame != null and flame.scale.z > 1.3, "...and its flames burn big while it boosts (%.2f)" % (flame.scale.z if flame else 0.0))
+	# Riding fakie (board back end first) the rockets turn round with her, so the fire still comes out the back
+	for fk in [false, true]:
+		skate.set("fakie", fk)
+		await _frames(30)
+		var ahead: Vector3 = player.visual.global_basis.z
+		ahead = Vector3(ahead.x, 0, ahead.z).normalized()
+		var mouth := flame.global_position - player.global_position if flame else Vector3.ZERO
+		var fire: Vector3 = -flame.global_basis.z if flame else Vector3.ZERO
+		fire = Vector3(fire.x, 0, fire.z).normalized()
+		check(flame != null and mouth.dot(ahead) < -0.2 and fire.dot(ahead) < -0.9,
+			"...%s, the rockets are at the back and the fire points backwards (%.2f, %.2f)" % ["fakie" if fk else "riding normally", mouth.dot(ahead), fire.dot(ahead)])
+	skate.set("fakie", false)
 
 	# --- The Skate page swaps rides ---
 	var menu := root.get_node("PlayerMenu")

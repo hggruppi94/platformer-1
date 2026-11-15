@@ -176,7 +176,7 @@ func _portal() -> void:
 		if not HummingOak.awake():
 			_portal_door.set("closed_message", "It's just a big old oak tree... isn't it? Something's ticking inside it.")
 		elif not _door_open():
-			_portal_door.set("closed_message", Portals.home_calls.SHUT_DOOR)
+			_portal_door.set("closed_message", Portals.home_calls.shut_words())
 		else:
 			_portal_door.set("closed_message", "")
 

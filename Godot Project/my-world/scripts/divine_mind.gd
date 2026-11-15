@@ -197,6 +197,11 @@ func hint() -> Array:
 			lines.append(HINT_CRACK % Portals.near_words(str(id)))
 			lines.append(HINT_FRIEND if str(w.get("owner", "")) != "" else HINT_FIX)
 			return lines
+	# Pulled home after mending a world: Stars Hollow's chapter comes before anything else that's followed, so a
+	# notice board job or another quest never hides what opens the crack again (Hayden, 15 Nov 2026: "how do I know?")
+	var chapter_goal: String = str(Portals.home_calls.goal())
+	if chapter_goal != "":
+		return [HINT_GOAL, chapter_goal]
 	var goals := Quests.objectives()
 	if not goals.is_empty():
 		for item in goals.items:
