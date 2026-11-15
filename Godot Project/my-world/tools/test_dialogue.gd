@@ -24,6 +24,8 @@ var talkers := {}
 var said: Array = []
 
 
+var _checked_safe := false
+
 func check(ok: bool, what: String) -> void:
 	print(("PASS  " if ok else "FAIL  ") + what)
 	if not ok:
@@ -68,7 +70,8 @@ func _run() -> void:
 	await _stand_by("dash", 8.0)
 	check(not _name_shown("dash") and not _name_shown("green_man"), "names hidden while far away")
 	await _stand_by("dash", 1.5)
-	check(_name_shown("dash") and _prompt_shown("dash"), "close to Dash: name and '%s'" % talkers["dash"]._prompt.text)
+	check(_name_shown("dash") and _prompt_shown("dash"), "close to Dash: name and '%s' (nearest: %s)" % [
+		talkers["dash"]._prompt.text, dialogue.get("_nearest").get_path() if dialogue.get("_nearest") else "nobody"])
 	check(not _name_shown("green_man") and not _name_shown("bramble"), "...and nobody else's name")
 
 	# First meetings, at 7 PM when everyone's out and about
@@ -200,6 +203,9 @@ func _talk(id: String, picks: Array = []) -> Array:
 	if not dialogue.is_active():
 		check(false, "couldn't start talking to " + id)
 		return []
+	if not _checked_safe:
+		_checked_safe = true
+		check(player.is_invulnerable(), "nothing can hurt you while you're in a talk (you can't move)")
 	await _finish(picks)
 	return said.duplicate()
 
@@ -219,6 +225,8 @@ func _finish(picks: Array = []) -> void:
 	while dialogue.is_active() and guard > 0:
 		guard -= 1
 		if dialogue._choosing:
+			# (the answers focus their first button at the end of the frame they appear in, so let that happen first)
+			await _frames(1)
 			var buttons: Array = dialogue.current_choices()
 			var pick: int = picks.pop_front() if picks.size() > 0 else 0
 			buttons[pick].grab_focus()
@@ -227,6 +235,12 @@ func _finish(picks: Array = []) -> void:
 		else:
 			_press("interact")                   # first press shows the whole line, the next one moves on
 			await _frames(1)
+			# On a slow run the line had already finished typing, so that press moved on by itself: to the end of the
+			# talk, or to a question, where a second press would answer it with the first answer before we chose
+			if not dialogue.is_active():
+				break
+			if dialogue._choosing:
+				continue
 			_press("interact")
 		await _frames(2)
 
@@ -249,6 +263,14 @@ func _stand_by(id: String, distance: float) -> void:
 	if side == Vector3.ZERO:
 		side = Vector3(1.7, 0, 0.6).normalized()
 	var at := who.global_position + side * distance + Vector3(0, 0.6, 0)
+	# Tally walks a ring round the fountain with a talk spot of their own and can stroll right past the spot picked
+	# here, taking the prompt (a likely cause of a flaky "close to Dash" on the PC, 15 Nov 2026; its message now says
+	# who had it). The ring is checked by the request board's own test; here Tally waits well out of the way.
+	var tally := current_scene.get_node_or_null("Tally") as Node3D
+	if tally:
+		var away := Vector3(tally.get("centre")) + Vector3(0, -40.0, 0)
+		tally.set("post", away)
+		tally.global_position = away
 	player.global_position = at
 	player.velocity = Vector3.ZERO
 	for i in 6:
@@ -280,6 +302,12 @@ func _in_town() -> void:
 	player = current_scene.find_child("Player", true, false)
 	for t in current_scene.find_children("Talk", "Area3D", true, false):
 		talkers[t.get("character_id")] = t
+	# Gloops amble about town and now and then bumped her just as she walked up to someone (knocked out of reach, or
+	# hurt between Bramble's pick-me-up and the HP check, 15 Nov 2026). They're not what this test is about.
+	for e in get_nodes_in_group("enemies"):
+		if (e as Node).process_mode != Node.PROCESS_MODE_DISABLED:
+			(e as Node).process_mode = Node.PROCESS_MODE_DISABLED
+			(e as Node3D).global_position += Vector3(0, -60.0, 0)
 
 
 func _name_shown(id: String) -> bool:

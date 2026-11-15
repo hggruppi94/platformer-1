@@ -195,9 +195,14 @@ func _run() -> void:
 	check(caves.spores_found() == 0, "no spores found yet")
 	for sp in caves.SPORES:
 		_put(player, sp.at + Vector3(0, 0.4, 0))
-		await _physics(3)
-		await _frames(14)
+		# The caves look for the player every 0.15 s of real time, and on a fast PC 14 frames could all fit in less
+		# than that (the pillar spore failed now and then, 15 Nov 2026), so wait on the clock, up to 1.5 s
+		var waited := 0.0
+		while not dialogue.flags.has(sp.flag) and waited < 1.5:
+			await create_timer(0.05).timeout
+			waited += 0.05
 		check(dialogue.flags.has(sp.flag), "walking into the spore %s finds it" % sp.where)
+		await _frames(2)                           # (it's freed at the end of the frame it was found in)
 	check(caves.spores_found() == 4, "all four found")
 	check(ug.find_child("Spore ug_*", true, false) == null, "...and they're gone from the caves")
 

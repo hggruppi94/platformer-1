@@ -404,8 +404,11 @@ func _add_sash() -> void:
 
 
 func is_invulnerable() -> bool:
-	# Nothing can hurt her: blinking after a hit, the invulnerable frames of a roll, or underground
+	# Nothing can hurt her: blinking after a hit, the invulnerable frames of a roll, underground, or in a talk (she
+	# can't move then, so a Gloop wandering into her mid-conversation used to knock off HP she'd no way to save)
 	if burrow and burrow.active:
+		return true
+	if Dialogue.is_active():
 		return true
 	return _invulnerable_timer > 0.0 or (_roll_timer > 0.0 and roll_time - _roll_timer < roll_iframes)
 
