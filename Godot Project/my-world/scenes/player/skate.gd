@@ -1193,6 +1193,9 @@ func _pose(delta: float) -> void:
 	if _ride_anim:
 		_ride_anim.speed_scale = clampf(p.velocity.length() / 6.0, 0.0, 2.0) if _pushing else 0.0
 	if _flames and is_instance_valid(_flames):
+		# Riding fakie the board's tail leads, so its rockets turn round with her to the end that's trailing: the fire
+		# always comes out the back (Hayden, 14 Nov: "the fire comes out of the front instead of the back")
+		(_flames.get_parent() as Node3D).rotation.y = body_turn
 		var burn := 2.6 if flying else (1.8 if _boost_time > 0.0 else (1.0 if _pushing else 0.35))
 		var flick := 1.0 + sin(Time.get_ticks_msec() * 0.05) * 0.12
 		for f in _flames.get_children():
