@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/skyreach_trail.gd" id="1_vkheo"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_sa0ua"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="3_8p03f"]
+
+[node name="TheSkyreachTrail" type="Node3D" unique_id=572943568]
+script = ExtResource("1_vkheo")
+
+[node name="Entrance" type="Marker3D" parent="." unique_id=718121443]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=649450581 instance=ExtResource("2_sa0ua")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3)
+script = ExtResource("3_8p03f")
