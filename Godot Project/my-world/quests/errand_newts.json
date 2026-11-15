@@ -1,0 +1,49 @@
+{
+  "name": "Juniper's Newts",
+  "giver": "juniper",
+  "about": "An errand in Stars Hollow (overnight polish, 15 Nov 2026: going home always has something fun to do). Offered by juniper any time once the old oak's woken (scripts/home_calls.gd ERRANDS; a bobbing ! shows over them). Never opens or shuts the crack. First draft for Hayden.",
+  "start": {
+    "flag": "errand_newts_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Catch 3 newts.",
+      "checklist": [
+        [
+          "newt_1",
+          "By the pond"
+        ],
+        [
+          "newt_2",
+          "In the hollow"
+        ],
+        [
+          "newt_3",
+          "On the park path"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "newt_1",
+          "newt_2",
+          "newt_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Juniper.",
+      "done": {
+        "flag": "errand_newts_back"
+      },
+      "where": [
+        "juniper"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 6,
+    "message": "Newts home! +6 sparkles."
+  }
+}

@@ -82,6 +82,10 @@ func _ready() -> void:
 	wheel = FriendWheel.new()
 	wheel.name = "Friend Wheel"
 	_wheel_layer.add_child(wheel)
+	var cheer := Node.new()
+	cheer.name = "Cheer"
+	cheer.set_script(load("res://scripts/friend_cheer.gd"))   # the friend with you cheers (scripts/friend_cheer.gd)
+	add_child(cheer)
 
 
 # ----------------------------------------------------------------------------- who's who

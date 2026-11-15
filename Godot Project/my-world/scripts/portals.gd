@@ -1069,6 +1069,9 @@ func _flurry_in_hub() -> void:
 	flakes.set_meta("seeds", range(FLURRY_FLAKES).map(func(k) -> Vector3:
 		return Vector3(randf_range(-1.5, 1.5), randf_range(0.0, 3.2), randf_range(-1.5, 1.5))))
 	g.add_child(flakes)
+	# Her copy may already be walking with you (coming back out of a building): hide this one straight away, not on
+	# the party's next check a moment later (the PC's overnight run saw both for a few frames, 15 Nov 2026)
+	Party._hide_hub_flurry(Party.current())
 
 
 func flurry_hub_lines() -> Array:

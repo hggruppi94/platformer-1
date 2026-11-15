@@ -3,12 +3,58 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "errand_newts:find"
+      },
+      "lines": [
+        "Newts! Three! Go go go!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "errand_newts:back"
+      },
+      "lines": [
+        "All three newts! Safe and sound!",
+        "Tomorrow's front page: {player} saves the day!"
+      ],
+      "set": "errand_newts_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
         "I'm Juniper, star reporter! Do you like newts?",
         "{player}: Uh... yes?",
         "Great answer. Front page."
+      ]
+    },
+    {
+      "when": {
+        "flag": "oak_woken",
+        "quest_not_started": "errand_newts",
+        "min_talks": 1
+      },
+      "lines": [
+        "BREAKING NEWS! My newts got out!",
+        "Three of them. Very fast. Very orange.",
+        {
+          "choice": [
+            {
+              "text": "Sure!",
+              "lines": [
+                "Thank you!"
+              ],
+              "set": "errand_newts_start"
+            },
+            {
+              "text": "Not now.",
+              "lines": [
+                "Okay. Maybe later!"
+              ]
+            }
+          ]
+        }
       ]
     },
     {

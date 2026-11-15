@@ -1,0 +1,49 @@
+{
+  "name": "Leaf Piles",
+  "giver": "kip",
+  "about": "An errand in Stars Hollow (overnight polish, 15 Nov 2026: going home always has something fun to do). Offered by kip any time once the old oak's woken (scripts/home_calls.gd ERRANDS; a bobbing ! shows over them). Never opens or shuts the crack. First draft for Hayden.",
+  "start": {
+    "flag": "errand_leaves_start"
+  },
+  "steps": [
+    {
+      "id": "jump",
+      "text": "Jump in 3 leaf piles.",
+      "checklist": [
+        [
+          "leaves_1",
+          "By the green"
+        ],
+        [
+          "leaves_2",
+          "On Maple Lane"
+        ],
+        [
+          "leaves_3",
+          "On Main Street"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "leaves_1",
+          "leaves_2",
+          "leaves_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Tell Kip!",
+      "done": {
+        "flag": "errand_leaves_back"
+      },
+      "where": [
+        "kip"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 6,
+    "message": "Best jumps ever! +6 sparkles."
+  }
+}

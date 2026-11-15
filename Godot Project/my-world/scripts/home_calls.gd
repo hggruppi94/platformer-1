@@ -55,9 +55,36 @@ const SPOTS := [
 	["home_bottles", "find", "bottle_1", Vector2(-60.5, 9.0), "pick up the bottle", "bottle"],
 	["home_bottles", "find", "bottle_2", Vector2(-62.5, -4.0), "pick up the bottle", "bottle"],
 	["home_bottles", "find", "bottle_3", Vector2(-75.0, 14.5), "pick up the bottle", "bottle"],
+	# Errands (overnight polish, 15 Nov 2026: "going home always has something fun to do"): little jobs for
+	# neighbours, any time once the old oak's woken. They never open or shut the crack. First drafts for Hayden.
+	["errand_song", "find", "song_1", Vector2(19.5, -19.0), "pick up the song sheet", "song"],
+	["errand_song", "find", "song_2", Vector2(1.8, -33.0), "pick up the song sheet", "song"],
+	["errand_song", "find", "song_3", Vector2(-45.0, -16.0), "pick up the song sheet", "song"],
+	["errand_books", "find", "book_1", Vector2(-50.0, 23.0), "pick up the book", "book"],
+	["errand_books", "find", "book_2", Vector2(-26.0, 60.0), "pick up the book", "book"],
+	["errand_books", "find", "book_3", Vector2(-1.8, -79.0), "pick up the book", "book"],
+	["errand_newts", "find", "newt_1", Vector2(-55.0, 13.0), "catch the newt", "newt"],
+	["errand_newts", "find", "newt_2", Vector2(-24.5, 40.0), "catch the newt", "newt"],
+	["errand_newts", "find", "newt_3", Vector2(-45.0, 11.5), "catch the newt", "newt"],
+	["errand_toys", "find", "toy_1", Vector2(1.8, -57.0), "catch the toy", "toy"],
+	["errand_toys", "find", "toy_2", Vector2(-1.8, -68.0), "catch the toy", "toy"],
+	["errand_toys", "find", "toy_3", Vector2(6.0, -92.0), "catch the toy", "toy"],
+	["errand_leaves", "jump", "leaves_1", Vector2(-19.0, 19.0), "jump in the leaves", "leaves"],
+	["errand_leaves", "jump", "leaves_2", Vector2(-10.0, 60.0), "jump in the leaves", "leaves"],
+	["errand_leaves", "jump", "leaves_3", Vector2(-1.8, -96.0), "jump in the leaves", "leaves"],
 ]
 const FOUND := {"chime": "A wind chime! %d of 3.", "plush": "A plushie! %d of 3.", "lamp": "Lamp lit! %d of 3.",
-	"bottle": "A bottle! %d of 3."}
+	"bottle": "A bottle! %d of 3.", "song": "A song sheet! %d of 3.", "book": "A book! %d of 3.",
+	"newt": "Got a newt! %d of 3.", "toy": "Got a toy! %d of 3.", "leaves": "WHUMPF! %d of 3."}
+# errand quest -> who gives it (they get a bobbing "!" over their head while it's on offer) and the season it's only
+# offered in ("" for any)
+const ERRANDS := {
+	"errand_song": {"giver": "barnaby", "season": ""},
+	"errand_books": {"giver": "marigold", "season": ""},
+	"errand_newts": {"giver": "juniper", "season": ""},
+	"errand_toys": {"giver": "otis", "season": ""},
+	"errand_leaves": {"giver": "kip", "season": "autumn"},
+}
 
 var enabled := true                     # tests of one world alone can turn the pull off
 var owed: Array = []                    # mended worlds whose pull home hasn't happened yet
@@ -152,9 +179,11 @@ func _process(delta: float) -> void:
 		_shut_in -= delta
 		if _shut_in < 0.0:
 			_snap_shut()
+	_bob_marks()
 	_check -= delta
 	if _check <= 0.0:
 		_check = 0.5
+		_marks(s)
 		if chapter != "" and Quests.is_done(str(CHAPTERS[chapter].until)):
 			_finish()
 
@@ -229,6 +258,81 @@ func shut_words() -> String:
 	return SHUT_DOOR if g == "" else "%s %s" % [SHUT_DOOR, g]
 
 
+func _pop_at(flag: String, kind: String) -> void:
+	# A little moment as each one's found: a puff of colour and a sound. Jumping in the leaves sends them flying.
+	var s := get_tree().current_scene
+	var holder := s.get_node_or_null("Home Calls") if s else null
+	var spot := holder.get_node_or_null("Home Spot " + flag) as Node3D if holder else null
+	if spot == null:
+		return
+	if kind == "leaves":
+		for c in [Color(0.95, 0.5, 0.15), Color(0.9, 0.25, 0.15), Color(1.0, 0.75, 0.2)]:
+			Juice.burst(s, spot.global_position + Vector3(0, 0.4, 0), c, 14, 0.12, 4.5, 1.4)
+		Audio.play("rustle", -2.0)
+		Juice.shake(0.15)
+		var p := get_tree().get_first_node_in_group("player") as Node3D
+		var model := p.get_node_or_null("Visual") as Node3D if p else null
+		if model:
+			Juice.squash(model, 0.3)
+	else:
+		Juice.burst(s, spot.global_position + Vector3(0, 0.3, 0), Color(1.0, 0.92, 0.6), 10, 0.08, 2.5, 0.7)
+		Juice.chime_pickup()
+
+
+# -----------------------------------------------------------------------------
+# Errands: a bobbing "!" over a neighbour with a job for you
+# -----------------------------------------------------------------------------
+func errand_open(id: String) -> bool:
+	# Can this errand be offered right now? After the oak's woken, not started yet, and in its season if it has one
+	var e: Dictionary = ERRANDS[id]
+	return Dialogue.flags.has("oak_woken") and not Quests.is_started(id) \
+		and (str(e.season) == "" or Clock.season() == str(e.season))
+
+
+func _marks(s: Node) -> void:
+	if s == null or s.scene_file_path != EARTH:
+		return
+	var want := {}
+	for id in ERRANDS:
+		if errand_open(id):
+			want[str(ERRANDS[id].giver)] = true
+	for t in get_tree().get_nodes_in_group("errand_givers"):
+		if not want.has(str(t.get("character_id"))):
+			var old := t.get_node_or_null("Errand Mark")
+			if old:
+				old.queue_free()
+			t.remove_from_group("errand_givers")
+	var missing := false
+	for who in want:
+		if not get_tree().get_nodes_in_group("errand_givers").any(func(t: Node) -> bool: return str(t.get("character_id")) == who):
+			missing = true
+	if not missing:
+		return
+	for t in s.find_children("*", "Area3D", true, false):
+		var who := str(t.get("character_id")) if "character_id" in t else ""
+		if want.has(who) and t.get_node_or_null("Errand Mark") == null:
+			var mark := Label3D.new()
+			mark.name = "Errand Mark"
+			mark.text = "!"
+			mark.font_size = 64
+			mark.pixel_size = 0.01
+			mark.outline_size = 14
+			mark.modulate = Color(1.0, 0.85, 0.3)
+			mark.outline_modulate = Color(0.25, 0.1, 0.3)
+			mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+			mark.position.y = float(t.get("name_height")) + 0.55
+			t.add_child(mark)
+			t.add_to_group("errand_givers")
+
+
+func _bob_marks() -> void:
+	var bob := sin(Time.get_ticks_msec() / 250.0) * 0.08
+	for t in get_tree().get_nodes_in_group("errand_givers"):
+		var m := t.get_node_or_null("Errand Mark") as Node3D
+		if m:
+			m.position.y = float(t.get("name_height")) + 0.55 + bob
+
+
 func _on_flag(f: String) -> void:
 	for k in SPOTS:
 		if str(k[2]) == f:
@@ -238,6 +342,7 @@ func _on_flag(f: String) -> void:
 				if str(j[0]) == str(k[0]) and Dialogue.flags.has(str(j[2])):
 					n += 1
 			Game.message(str(FOUND.get(kind, "Found one! %d of 3.")) % n)
+			_pop_at(str(k[2]), kind)
 			return
 
 
@@ -265,6 +370,10 @@ func _spot(holder: Node3D, k: Array) -> Area3D:
 		var lit := _thing(kind, true)          # (a lamp stays lit once its bulb's in)
 		lit.name = "Done"
 		spot.add_child(lit)
+	elif kind == "leaves":
+		var flat := _thing("leaves_done", false)   # (a pile you've jumped in stays spread about)
+		flat.name = "Done"
+		spot.add_child(flat)
 	spot.set_script(load("res://scripts/quest_spot.gd"))
 	spot.set("quest", str(k[0]))
 	spot.set("step", str(k[1]))
@@ -328,6 +437,60 @@ func _thing(kind: String, lit: bool) -> Node3D:
 			_cyl(g, 0.04, 0.12, Vector3(0.2, 0.17, 0), _mat(Color(0.45, 0.85, 0.75, 0.6)), Vector3(0, 0, PI / 2.3))
 			_cyl(g, 0.045, 0.05, Vector3(0.27, 0.2, 0), _mat(Color(0.7, 0.5, 0.3)), Vector3(0, 0, PI / 2.3))
 			_box(g, Vector3(0.14, 0.05, 0.06), Vector3(0, 0.1, 0), _mat(Color(0.95, 0.9, 0.75)))
+		"song":
+			# a sheet of music caught on the grass, propped up a little so it shows, with notes on it
+			var sheet := Node3D.new()
+			sheet.rotation = Vector3(-1.1, 0.4, 0)
+			sheet.position = Vector3(0, 0.2, 0)
+			g.add_child(sheet)
+			_box(sheet, Vector3(0.34, 0.44, 0.01), Vector3.ZERO, _glow(Color(1.0, 0.97, 0.88), 0.25))
+			for i in 4:
+				_box(sheet, Vector3(0.28, 0.008, 0.012), Vector3(0, 0.12 - 0.07 * i, 0.006), _mat(Color(0.3, 0.25, 0.4)))
+				_ball(sheet, 0.022, Vector3(-0.1 + 0.07 * i, 0.1 - 0.05 * (i % 2) - 0.07 * i, 0.012), _mat(Color(0.15, 0.1, 0.25)))
+		"book":
+			var col: Color = [Color(0.85, 0.3, 0.35), Color(0.3, 0.55, 0.9), Color(0.4, 0.75, 0.45)][randi() % 3]
+			_box(g, Vector3(0.36, 0.07, 0.26), Vector3(0, 0.04, 0), _mat(col))
+			_box(g, Vector3(0.34, 0.055, 0.24), Vector3(0.012, 0.04, 0), _mat(Color(0.98, 0.95, 0.85)))
+			_box(g, Vector3(0.05, 0.075, 0.26), Vector3(-0.17, 0.04, 0), _mat(col.darkened(0.25)))
+			_box(g, Vector3(0.1, 0.075, 0.03), Vector3(0.05, 0.04, 0.12), _glow(Color(1.0, 0.85, 0.4), 0.6))   # a gold label
+		"newt":
+			# a little orange newt with a curly tail, looking up at you
+			var orange := _mat(Color(1.0, 0.5, 0.2))
+			_ball(g, 0.09, Vector3(0, 0.07, 0), orange)
+			_ball(g, 0.07, Vector3(0, 0.08, 0.13), orange)
+			_ball(g, 0.06, Vector3(0, 0.06, -0.12), orange)
+			_cyl(g, 0.025, 0.2, Vector3(0.05, 0.04, -0.25), orange, Vector3(PI / 2, 0.6, 0))
+			for x in [-1.0, 1.0]:
+				_ball(g, 0.022, Vector3(0.04 * x, 0.13, 0.18), _mat(Color(0.05, 0.05, 0.08)))
+				for z in [0.06, -0.08]:
+					_cyl(g, 0.018, 0.1, Vector3(0.09 * x, 0.03, z), orange, Vector3(0, 0, PI / 2))
+			for i in 3:
+				_ball(g, 0.018, Vector3(0, 0.155, 0.02 - 0.07 * i), _mat(Color(1.0, 0.85, 0.3)))     # spots
+		"toy":
+			# a wind-up tin robot with a key in its back
+			var tin := _mat(Color(0.55, 0.75, 0.95))
+			_box(g, Vector3(0.22, 0.24, 0.16), Vector3(0, 0.22, 0), tin)
+			_box(g, Vector3(0.16, 0.14, 0.14), Vector3(0, 0.42, 0), tin)
+			for x in [-1.0, 1.0]:
+				_ball(g, 0.025, Vector3(0.04 * x, 0.44, 0.075), _glow(Color(1.0, 0.95, 0.5), 1.2))
+				_box(g, Vector3(0.06, 0.1, 0.08), Vector3(0.06 * x, 0.05, 0), _mat(Color(0.3, 0.35, 0.5)))
+				_cyl(g, 0.025, 0.16, Vector3(0.14 * x, 0.24, 0), tin)
+			_cyl(g, 0.012, 0.1, Vector3(0, 0.52, 0), _mat(Color(0.3, 0.35, 0.5)))
+			_ball(g, 0.03, Vector3(0, 0.58, 0), _glow(Color(1.0, 0.4, 0.5), 1.0))
+			_box(g, Vector3(0.12, 0.06, 0.02), Vector3(0, 0.26, -0.11), _mat(Color(0.95, 0.8, 0.35)))     # the key
+		"leaves", "leaves_done":
+			# a big pile of autumn leaves (and once you've jumped in, the leaves spread flat all round)
+			var cols := [Color(0.95, 0.5, 0.15), Color(0.9, 0.25, 0.15), Color(1.0, 0.75, 0.2), Color(0.7, 0.4, 0.2)]
+			var rng := RandomNumberGenerator.new()
+			rng.seed = 7
+			if kind == "leaves":
+				for i in 5:
+					_ball(g, 0.42 - 0.05 * i, Vector3(rng.randf_range(-0.3, 0.3), 0.15 + 0.08 * i, rng.randf_range(-0.3, 0.3)),
+						_mat(cols[i % cols.size()]))
+			for i in 26:
+				var a := rng.randf() * TAU
+				var r := rng.randf_range(0.2, 1.4 if kind == "leaves_done" else 0.75)
+				_box(g, Vector3(0.12, 0.012, 0.08), Vector3(cos(a) * r, 0.01, sin(a) * r), _mat(cols[i % cols.size()]))
 	return g
 
 

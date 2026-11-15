@@ -454,7 +454,9 @@ func _roll(dir: Vector3, delta: float) -> void:
 	if _slow_time > 0.0:
 		speed = minf(speed, float(ride.push_speed) * 0.45)
 	v = fwd * minf(speed, cap)
-	if speed > 0.3:
+	# Turning on the spot counts too: standing still, her heading comes from the board, so if it only followed her
+	# moving, a board pointing straight at the camera never turned round when you pushed away from it
+	if speed > 0.3 or (dir and _manual == 0):
 		_yaw = _stance_yaw(fwd)
 	if speed > 2.0:
 		p.spring_arm.follow(atan2(-v.x, -v.z), delta)

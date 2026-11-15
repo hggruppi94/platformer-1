@@ -308,7 +308,10 @@ func _rides_along(player: CharacterBody3D) -> bool:
 	# Push forward for a second on open ground, and see she gets going without falling off
 	player.global_position = Vector3(-4, 1.5, 24)
 	player.velocity = Vector3.ZERO
-	await _physics(4)
+	# Wait a little before pushing: tapping forward again within 0.35 s of letting go starts a manual
+	# (skate.gd _manual_input), and in a manual forward balances instead of pushing, so a ride straight after the last
+	# one could stand still (14 and 15 Nov 2026, test runs only)
+	await _physics(40)
 	Input.action_press("move_forward")
 	var top := 0.0
 	for i in 70:
