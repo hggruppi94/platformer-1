@@ -16,6 +16,7 @@ extends CharacterBody3D
 
 const FIZZLER := preload("res://scripts/fizzler.gd")
 
+const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 15
 const HELP_AT := [3, 9]
 const MAX_PER_DAZE := 3
@@ -147,6 +148,9 @@ func _physics_process(delta: float) -> void:
 				to.y = 0
 				if to.length() > 1.0:
 					h = to.normalized() * DRIFT * (1.2 if cross else 1.0) * Arsenal.slow(self)
+			if _state_t <= TELL.lead() and not TELL.showing(self):
+				TELL.warn(self, "jump", RING_REACH * (1.5 if cross else 1.0), FIZZLER.STATIC, maxf(_state_t, 0.0) + DIVE_TIME,
+					{"visual": visual, "ground_y": _ground_y})
 			if _state_t <= 0.0:
 				state = State.DIVE
 				_state_t = DIVE_TIME

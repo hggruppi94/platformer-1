@@ -17,6 +17,7 @@ extends CharacterBody3D
 
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
+const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 13
 const HELP_AT := [4, 9]                       # hits at which it calls up little ghosts
 const LIT_NEAR := 6.0                         # metres from a lit lamp that count as in its light
@@ -153,6 +154,9 @@ func _physics_process(delta: float) -> void:
 			world.call("snuff_lamp", near)
 			_hunting = -1
 	_ring -= delta
+	if _ring <= TELL.lead() and not TELL.showing(self) and world:
+		TELL.warn(self, "jump", RING_REACH, Color(0.55, 0.45, 0.95), maxf(_ring, 0.0),
+			{"visual": visual, "ground_y": (world.call("ground_below", global_position) as Vector3).y})
 	if _ring <= 0.0:
 		_ring = RING_EVERY * (0.75 if hits >= HITS / 2 else 1.0)
 		shush()

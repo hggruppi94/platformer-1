@@ -20,6 +20,7 @@ enum State { STATUE, HOVER, SLAM, OPEN }
 
 const GOBLIN := preload("res://scenes/enemies/time_goblin.tscn")
 
+const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 15
 const HITS_PER_OPEN := 3
 const HELP_AT := [3, 9]
@@ -134,6 +135,9 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, want.x, 8.0 * delta)
 			velocity.z = move_toward(velocity.z, want.z, 8.0 * delta)
 			velocity.y = (_ground_y + HOVER_Y + sin(_t * 1.6) * 0.3 - global_position.y) * 3.0
+			if _volleys == VOLLEYS - 1 and _timer <= TELL.lead() and not TELL.showing(self):
+				# After this volley he crashes down: his landing ring's reach is marked under him the whole way
+				TELL.warn(self, "jump", RING_REACH, MAGENTA, maxf(_timer, 0.0) + 0.6, {"ground_y": _ground_y, "head": 3.2})
 			if _timer <= 0.0:
 				_volley()
 				_volleys += 1

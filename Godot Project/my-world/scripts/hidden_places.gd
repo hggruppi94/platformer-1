@@ -49,6 +49,7 @@ const FIND_AT := {"star_well": Vector3(0, 0, 2.8), "upside_tree": Vector3(0, 0, 
 const SET_HATS := {"void": "starfinder_hat", "earth": "wanderer_hat"}
 
 var enabled := true                    # tests can switch it off
+var guardians := true                  # ...and the guardians (scripts/guardian.gd) on their own
 var _last: Node
 
 
@@ -127,6 +128,8 @@ func _place_all(scene: Node) -> void:
 		var builder := Callable(self, "_look_" + str(p.id))
 		builder.call(look)
 		_finder(root, str(p.id))
+	if world == "void" and guardians:
+		load("res://scripts/guardian.gd").place(scene as Node3D, holder)   # the guardians of places already found
 
 
 func _finder(root: Node3D, id: String) -> void:
@@ -183,6 +186,8 @@ func find(id: String) -> bool:
 	if scene and Juice.has_method("rumble"):
 		Juice.rumble(0.3, 0.2)
 	Game.save_game()
+	if p.world == "void" and guardians:
+		load("res://scripts/guardian.gd").wake_for(id)           # its guardian (if it has one) curls up beside it
 	return true
 
 

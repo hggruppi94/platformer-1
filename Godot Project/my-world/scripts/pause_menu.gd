@@ -576,6 +576,7 @@ func _tab_assist(tabs: TabContainer) -> void:
 	_check(g, "Controller rumble", "rumble", "The controller buzzes a little on bumps, landings and big pops")
 	_slider(g, "Rumble strength", "rumble_strength", 0.0, 1.0, 0.1, func(x): return "%d%%" % roundi(x * 100.0))
 	_check(g, "Bumps and boinks", "bumps", "A boink, a puff and a wobble when you knock into things")
+	_check(g, "Early boss warnings", "boss_warn_early", "Bosses show what they're about to do a bit sooner")
 	_check(g, "Camera follows you", "camera_follow", "When you run, the camera slowly swings round behind you")
 	_check(g, "How-to tips", "tips", "Little pop-ups the first time you do something")
 	_check(g, "Race intros", "race_intros", "A flyover of the track and your rivals before each race (Jump skips it)")

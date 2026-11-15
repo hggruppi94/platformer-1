@@ -16,6 +16,7 @@ extends CharacterBody3D
 
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
+const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 13
 const HELP_AT := [4, 9]
 const SIZE := 3.2
@@ -158,6 +159,8 @@ func _physics_process(delta: float) -> void:
 	velocity.y = (_ground_y - SINK + bob - global_position.y) * 3.0
 	move_and_slide()
 	_wave -= delta
+	if _wave <= TELL.lead() and not TELL.showing(self):
+		TELL.warn(self, "jump", WAVE_REACH, DUSK.lightened(0.45), maxf(_wave, 0.0), {"visual": visual, "ground_y": _ground_y})
 	if _wave <= 0.0:
 		_wave = (WAVE_EVERY * 0.65 if cross else WAVE_EVERY) * randf_range(0.9, 1.1)
 		gloom_wave()

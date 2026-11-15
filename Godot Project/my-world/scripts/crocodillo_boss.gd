@@ -17,6 +17,7 @@ extends "res://scripts/crocodillo.gd"
 const NAME := "Boulderdillo"
 const PEBBLE := preload("res://scenes/enemies/crocodillo.tscn")
 const MAX_PEBBLES := 4
+const TELL := preload("res://scripts/boss_tell.gd")
 
 @export var rolls_in_a_row := 3
 @export var slam_reach := 7.0
@@ -49,6 +50,10 @@ func _physics_process(delta: float) -> void:
 	_bar.fill = 1.0 - float(hits) / stomps_to_defeat
 	if state == State.CURL and was != State.CURL:
 		_rolls_left = rolls_in_a_row - 1                 # a new pinball run starts
+		# It holds the curl a moment longer, with arrows on the ground the way it's about to roll: it never turns
+		# once it's going, so stepping off the arrows is the dodge.
+		_state_t = maxf(_state_t, TELL.lead())
+		_roll_tell(_state_t)
 
 
 func _roll_ended() -> void:
@@ -62,8 +67,14 @@ func _roll_ended() -> void:
 		_state_t = roll_time
 		velocity = Vector3.ZERO
 		Audio.play_at("roll", global_position, 2.0, -0.1)
+		_roll_tell(0.6)
 		return
 	super()
+
+
+func _roll_tell(secs: float) -> void:
+	TELL.warn(self, "dash", minf(roll_speed * roll_time, 22.0), bar_colour, secs,
+		{"dir": _roll_dir, "follow": null, "at": Vector3(global_position.x, global_position.y + 0.06, global_position.z)})
 
 
 func _slam(reach: float) -> void:

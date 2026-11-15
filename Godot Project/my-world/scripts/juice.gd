@@ -244,7 +244,7 @@ func blip(kind: String, pitch := 1.0, volume_db := -8.0) -> void:
 	# "chime" (pickups), "pop" (bubbles), "tick" (countdowns, menus), "whoosh" (boosts, portals), "thud" (landings),
 	# "sparkle" (rewards), "buzz" (grinds), "rewind" (a Time Goblin blinking back in time), and the bumps' (scripts/bumps.gd):
 	# "boink" (something soft and springy), "bonk" (wood), "clunk" (stone), "clink" (ice, crystal, metal), "squish"
-	# (water, goo). Each made once, then played at any pitch.
+	# (water, goo), and "windup" (a boss about to attack: scripts/boss_tell.gd). Each made once, then played at any pitch.
 	calls += 1
 	if not _blips.has(kind):
 		_blips[kind] = _make(kind)
@@ -276,7 +276,7 @@ func chime_step() -> int:
 
 func _make(kind: String) -> AudioStreamWAV:
 	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3, "rewind": 0.45,
-		"boink": 0.3, "bonk": 0.12, "clunk": 0.16, "clink": 0.35, "squish": 0.22}
+		"boink": 0.3, "bonk": 0.12, "clunk": 0.16, "clink": 0.35, "squish": 0.22, "windup": 0.55}
 	if not length.has(kind):
 		return null
 	var n := int(RATE * float(length[kind]))
@@ -325,6 +325,10 @@ func _make(kind: String) -> AudioStreamWAV:
 				# a soft stony knock: a low thump with a puff of grit
 				phase += TAU * lerpf(140.0, 70.0, f) / RATE
 				v = sin(phase) * pow(env, 3.0) + rng.randf_range(-1.0, 1.0) * pow(env, 8.0) * 0.35
+			"windup":
+				# a boss winding up: a rising whistle with a wobble, louder as it climbs, so it says "something's coming"
+				phase += TAU * lerpf(260.0, 900.0, f * f) * (1.0 + 0.05 * sin(TAU * 22.0 * t)) / RATE
+				v = sin(phase) * minf(f * 3.0, 1.0) * (1.0 - pow(f, 6.0)) * 0.7
 			"clink":
 				# a little bell: two bright notes ringing out
 				v = (sin(TAU * 2100.0 * t) * 0.6 + sin(TAU * 3170.0 * t) * 0.4) * pow(env, 3.0) * minf(f * 60.0, 1.0)
