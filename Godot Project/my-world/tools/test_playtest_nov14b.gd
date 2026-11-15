@@ -106,10 +106,21 @@ func _check_jelly() -> void:
 	await _physics(240)
 	var popped := gloops.filter(func(g) -> bool: return not is_instance_valid(g) or g.get("defeated") == true).size()
 	check(popped >= 10, "...and they pop, and the game carries on (%d popped)" % popped)
-	check(gloops.all(func(g) -> bool: return not is_instance_valid(g) or g.is_physics_processing()),
+	# A Gloop can still be held, rightly, by one of the Jamboree's little mines when the check runs (more so on a busy
+	# PC, where the frames fall a little differently), so only one left frozen with no live jelly holding it is wrong
+	var held_by_live := func(g) -> bool:
+		for j in get_nodes_in_group("jelly_mines"):
+			if is_instance_valid(j) and not j._done and j.stuck.has(g):
+				return true
+		return false
+	check(gloops.all(func(g) -> bool: return not is_instance_valid(g) or g.is_physics_processing() or held_by_live.call(g)),
 		"...and nobody's left frozen in jelly that's gone")
 	for j in get_nodes_in_group("jelly_mines"):
 		j.melt()
+	await _physics(60)
+	check(get_nodes_in_group("jelly_mines").is_empty() and gloops.all(func(g) -> bool:
+			return not is_instance_valid(g) or g.is_physics_processing()),
+		"...and once the jelly's all melted, everyone moves again")
 	for g in gloops:
 		if is_instance_valid(g):
 			g.queue_free()
