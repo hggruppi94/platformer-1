@@ -176,12 +176,57 @@ func _snap_shut() -> void:
 
 
 func _on_quest(id: String) -> void:
-	# A seasonal chapter leads to Nina's quest: once it starts, it's the one that's followed
+	# The chapter's quest (and the seasonal quest a chapter leads to) goes to the top of what's followed, so it's the
+	# first thing on the to-do list and the map. The to-do list shows only the first few things followed, and a player
+	# following a pile of board jobs never saw it (Hayden, 15 Nov 2026: "how do I know?").
 	if chapter == "":
 		return
-	var until := str(CHAPTERS[chapter].until)
-	if id == until and Quests.is_started(until) and not Quests.is_done(until):
-		Quests.follow(until, true)
+	var c: Dictionary = CHAPTERS[chapter]
+	if id != str(c.quest) and id != str(c.until):
+		return
+	if Quests.is_started(id) and not Quests.is_done(id):
+		_to_top(id)
+
+
+func _to_top(id: String) -> void:
+	if Quests.followed.size() > 0 and Quests.followed[0] == id:
+		return
+	Quests.followed.erase(id)
+	Quests.followed.insert(0, id)
+	Quests.chose_none = false
+	Quests.follow_changed.emit()
+
+
+func current_quest() -> String:
+	# The quest that's on now in this chapter: the seasonal one it leads to once that's started, else its own
+	if chapter == "":
+		return ""
+	var c: Dictionary = CHAPTERS[chapter]
+	var until := str(c.until)
+	if Quests.is_started(until) and not Quests.is_done(until):
+		return until
+	var own := str(c.quest)
+	if Quests.is_started(own) and not Quests.is_done(own):
+		return own
+	return ""
+
+
+func goal() -> String:
+	# What to do next to open the crack again, in the to-do list's own words ("" when no chapter's on)
+	var id := current_quest()
+	if id == "":
+		return ""
+	var o := Quests.objectives_of(id)
+	for item in o.get("items", []):
+		if not bool(item[1]):
+			return str(item[0])
+	return ""
+
+
+func shut_words() -> String:
+	# The crack's door, while it's shut: what to do, so nobody has to guess
+	var g := goal()
+	return SHUT_DOOR if g == "" else "%s %s" % [SHUT_DOOR, g]
 
 
 func _on_flag(f: String) -> void:

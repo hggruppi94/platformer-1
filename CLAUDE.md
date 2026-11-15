@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **The Earth chapter is easy to find** (Hayden: "I cant seem to get any more void cracks to open even
+  though i completed a notice board quest on earth? ... how do i Know?"). Their save had no chapter on (the worlds were
+  mended before home calls; Rhythm Springs' crack was open and waiting), but it showed a real gap: they followed eight
+  board jobs, and the to-do list only shows the first few, so a chapter quest added at the end would never have shown.
+  Now `home_calls.gd _on_quest()` puts the chapter's quest (and the seasonal quest it leads to) at the top of
+  `Quests.followed`; `goal()` is its next to-do line; the oak's hint names it first (`DivineMind.hint()`: HINT_GOAL
+  and that goal, before anything else followed); and the shut crack's door says it too (`shut_words()`: "The crack's
+  shut tight. Not yet. Mrs. Wren needs you!"). Board jobs never open the crack. `test_home_calls` checks it with a
+  pile of jobs followed; home_calls, quests (both runs), mind_voice, crack_opening, earth (both runs), cracks,
+  first_night and following pass.
+
 - 2026-11-14: **The centipede's burrow attack can be dodged, and you face the right way out of Dusk's Embrace**
   (Hayden: "the centipedes tunnel under you attack ... right now it is instant, it should give the player a chance to
   dodge. When leaving dusks embrace, the directional orientation of the character gets thrown off").
