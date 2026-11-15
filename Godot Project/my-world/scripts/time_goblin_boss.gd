@@ -37,6 +37,7 @@ var title := NAME
 var short_title := "Tock"
 var bar_colour := Color(0.3, 0.95, 0.85)
 var ring_colour := Color(0.45, 1.0, 0.9)
+var cross_line := "%s is cross now! His clock ticks faster."
 
 
 func _ready() -> void:
@@ -63,7 +64,7 @@ func _physics_process(delta: float) -> void:
 		chase_speed *= 1.15
 		chime_every *= 0.7
 		blink_cooldown *= 0.75
-		Game.message("%s is cross now! His clock ticks faster." % title)
+		Game.message(cross_line % title)
 	# The chimes: three strikes, each a ring to jump
 	if _chimes_left > 0:
 		_chime_gap -= delta

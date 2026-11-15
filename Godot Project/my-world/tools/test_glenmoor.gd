@@ -407,7 +407,8 @@ func _check_stormram() -> void:
 	player.global_position = (s.get_node("Stormram") as Node3D).global_position + Vector3(0, 0.6, 14)
 	await _frames(4)
 	check(not storm.get("asleep") and storm.process_mode == Node.PROCESS_MODE_INHERIT, "with all three charms, it wakes up")
-	check(str(storm.get("title")) == "Stormram" and storm.get_node_or_null("BossMeter") != null, "...with its own name over it")
+	check(str(storm.get("title")) == "Stormram" and storm.get_node_or_null("Visual/Body/Fleece") != null
+		and storm.get_node_or_null("Visual/Body/Head/Horn L") != null and (storm.get_node("Visual/Body/ArmL") as Node3D).position.y < 1.0 and storm.get_node_or_null("BossMeter") != null, "...with its own name over it")
 	# Its charges: a whirlwind spins up round it
 	storm.set("_cooldown", 0.0)
 	var spun := false
