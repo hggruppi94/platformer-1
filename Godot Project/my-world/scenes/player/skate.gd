@@ -937,7 +937,7 @@ func _find_rail() -> GrindRail:
 		var side := Vector2(d.x, d.z).length()
 		if side > float(ride.grind_reach) or d.y < low or d.y > high:
 			continue
-		if side < best_d:
+		if side < best_d and _rail_in_sight(r, feet):
 			best_d = side
 			best = r
 	return best
@@ -989,7 +989,15 @@ func _grind(input: Vector2, delta: float) -> void:
 	var off_end := _rail_offset < 0.0 or _rail_offset > _rail.length()
 	var target := _rail.point_at(_rail_offset) + Vector3.UP * (FEET + 0.04)
 	_rail_snap = minf(_rail_snap + delta / 0.08, 1.0)
-	p.global_position = _snap_from.lerp(target, _rail_snap) if _rail_snap < 1.0 else target
+	var to := _snap_from.lerp(target, _rail_snap) if _rail_snap < 1.0 else target
+	if _wall_in_way(to - p.global_position):
+		# A rail that runs into a wall (or right up against one) used to carry her straight into it, and the push out
+		# of it could fling her through to the other side (Hayden's 14 Nov evening playtest). Now she stops at the
+		# wall and drops off the rail back the way she came.
+		_leave_rail(-t * 1.5 + Vector3.UP * 1.5)
+		_pop()
+		return
+	p.global_position = to
 	p.spring_arm.follow(atan2(-t.x, -t.z), delta)
 
 	# Balance: left and right keep the needle in the middle
@@ -1020,6 +1028,31 @@ func _grind(input: Vector2, delta: float) -> void:
 			_spark_timer = 0.05
 			Fx.burst(get_tree().current_scene, p.global_position - Vector3.UP * FEET, Color(1.0, 0.85, 0.4), 3, 0.03,
 				3.0, -9.0, 0.35, 60.0)
+
+
+func _wall_in_way(motion: Vector3) -> bool:
+	# Would moving her body this far hit a wall: something solid facing back against the way she's going? The rail
+	# itself and the ground under it don't count (they face up).
+	if motion.length() < 0.001:
+		return false
+	var hit := KinematicCollision3D.new()
+	if not p.test_move(p.global_transform, motion, hit, 0.02):
+		return false
+	var dir := motion.normalized()
+	for i in hit.get_collision_count():
+		var n := hit.get_normal(i)
+		if absf(n.y) < 0.55 and n.dot(dir) < -0.3:
+			return true
+	return false
+
+
+func _rail_in_sight(r: GrindRail, feet: Vector3) -> bool:
+	# No grabbing a rail on the far side of a wall: the snap onto it would carry her straight through
+	var at := r.point_at(r.closest_offset(feet))
+	var q := PhysicsRayQueryParameters3D.create(feet + Vector3.UP * 0.6, at + Vector3.UP * 0.6)
+	q.exclude = [p.get_rid()]
+	var hit := p.get_world_3d().direct_space_state.intersect_ray(q)
+	return hit.is_empty() or absf((hit.normal as Vector3).y) >= 0.55
 
 
 func _leave_rail(v: Vector3) -> void:

@@ -36,6 +36,7 @@ var _title: Label
 var _blurb: Label
 var _wallet: Label
 var _rows: VBoxContainer
+var _preview: CenterContainer       # holds the wardrobe's picture of who's being dressed (_wardrobe_preview())
 var _scroll: ScrollContainer
 var _note: Label
 var _close: Button
@@ -331,7 +332,18 @@ func _say(text: String) -> void:
 	_note.text = text
 
 
+func _show_preview(picture: Control) -> void:
+	for c in _preview.get_children():
+		_preview.remove_child(c)
+		c.queue_free()
+	_preview.visible = picture != null
+	if picture:
+		_preview.add_child(picture)
+
+
 func _fill() -> void:
+	if _stall != "Wardrobe":
+		_show_preview(null)
 	if _stall == "Wardrobe":
 		_fill_wardrobe()
 		return
@@ -456,6 +468,10 @@ func _fill_decorate() -> void:
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 36)
 	_rows.add_child(columns)
+	# A picture of whoever's being dressed, turning slowly, made again each time anything changes, so you can see
+	# what the arrows did (Hayden, 14 Nov 2026: "show a picture of your character so you can see the changes").
+	# It sits beside the rows, outside their scroll, so it stays in view.
+	_show_preview(_wardrobe_preview())
 	var left := VBoxContainer.new()
 	var right := VBoxContainer.new()
 	for col in [left, right]:
@@ -515,6 +531,10 @@ func _fill_wardrobe() -> void:
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 36)
 	_rows.add_child(columns)
+	# A picture of whoever's being dressed, turning slowly, made again each time anything changes, so you can see
+	# what the arrows did (Hayden, 14 Nov 2026: "show a picture of your character so you can see the changes").
+	# It sits beside the rows, outside their scroll, so it stays in view.
+	_show_preview(_wardrobe_preview())
 	var left := VBoxContainer.new()
 	var right := VBoxContainer.new()
 	for col in [left, right]:
@@ -602,6 +622,89 @@ func _fill_wardrobe() -> void:
 	_focus_later.call_deferred(first if first else _close)
 
 
+func _wardrobe_preview() -> Control:
+	# Their model in a little world of its own (own_world_3d, so nothing in the place shows), dressed the way the
+	# player's model is (scenes/player/player.gd): the hero by Hero.apply(), a friend by Clothes.dress(). The game is
+	# paused while the wardrobe's open, so the picture runs on regardless (PROCESS_MODE_ALWAYS) to play idle and turn.
+	var box := SubViewportContainer.new()
+	box.name = "Preview"
+	box.stretch = true
+	box.custom_minimum_size = Vector2(roundi(250 * Settings.text_scale), roundi(380 * Settings.text_scale))
+	box.process_mode = Node.PROCESS_MODE_ALWAYS
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vp := SubViewport.new()
+	vp.own_world_3d = true
+	vp.transparent_bg = true
+	vp.msaa_3d = Viewport.MSAA_4X
+	box.add_child(vp)
+	var env := WorldEnvironment.new()
+	env.environment = Environment.new()
+	env.environment.background_mode = Environment.BG_CLEAR_COLOR
+	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.environment.ambient_light_color = Color(0.85, 0.82, 0.95)
+	env.environment.ambient_light_energy = 0.55
+	vp.add_child(env)
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-35, 30, 0)
+	sun.light_energy = 1.2
+	vp.add_child(sun)
+	var pivot := Node3D.new()
+	pivot.name = "Pivot"
+	vp.add_child(pivot)
+	var path := Hero.model_path(Game.hero) if who == "hero" else str(Rides.ride(who).get("model", ""))
+	var scene := load(path) as PackedScene if path != "" and ResourceLoader.exists(path) else null
+	var cam := Camera3D.new()
+	cam.fov = 30.0
+	vp.add_child(cam)
+	if scene == null:
+		cam.position = Vector3(0, 1, 4)
+		return box
+	var model := scene.instantiate() as Node3D
+	model.name = "Model"
+	pivot.add_child(model)
+	if who == "hero":
+		Hero.apply(model, Game.hero, Game.outfits.get("hero", {}))
+	else:
+		Clothes.dress(model, who, Game.outfits.get(who, {}), Game.looks.get(who, {}))
+	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if anim and anim.has_animation("idle"):
+		anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
+		anim.play("idle")
+	# Frame them whole, however tall they are: the box round every mesh, seen from in front
+	var bounds := AABB()
+	var first := true
+	for mi in model.find_children("*", "VisualInstance3D", true, false):
+		var vi := mi as VisualInstance3D
+		if not vi.is_visible_in_tree():
+			continue
+		var b: AABB = _under(model, vi) * vi.get_aabb()     # (not in the tree yet, so no global transforms)
+		bounds = b if first else bounds.merge(b)
+		first = false
+	var height := maxf(bounds.size.y, 0.5)
+	var mid := bounds.get_center()
+	pivot.position = Vector3(-mid.x, 0, -mid.z)
+	var dist := height * 0.62 / tan(deg_to_rad(cam.fov * 0.5))
+	cam.position = Vector3(0, mid.y + height * 0.04, dist)
+	cam.basis = Basis.looking_at(Vector3(0, mid.y, 0) - cam.position)
+	var spin := Node3D.new()
+	vp.add_child(spin)
+	pivot.reparent(spin, false)
+	var t := spin.create_tween().set_loops()
+	t.tween_property(spin, "rotation:y", TAU, 10.0).from(0.0)
+	return box
+
+
+static func _under(top: Node3D, n: Node3D) -> Transform3D:
+	# Where n is in top's space, from the transforms between them
+	var t := Transform3D.IDENTITY
+	var at: Node = n
+	while at and at != top:
+		if at is Node3D:
+			t = (at as Node3D).transform * t
+		at = at.get_parent()
+	return t
+
+
 func _saved_name(i: int) -> String:
 	var o = QuickOutfits.get_slot(i)
 	return "(empty)" if o == null else "%s (%s)" % [o.name, QuickOutfits.describe(o)]
@@ -631,7 +734,15 @@ func _build() -> void:
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.follow_focus = true
 	UiStyle.scroll_bar(_scroll)                          # a bar on the side you can see and drag
-	v.add_child(_scroll)
+	var side := HBoxContainer.new()                      # the wardrobe's picture of who you're dressing, then the rows
+	side.add_theme_constant_override("separation", 24)
+	v.add_child(side)
+	_preview = CenterContainer.new()
+	_preview.name = "PreviewHolder"
+	_preview.visible = false
+	side.add_child(_preview)
+	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.add_child(_scroll)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 10)
 	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -661,7 +772,7 @@ func _apply_look() -> void:
 	var style := UiStyle.box(Color(0, 0, 0, 0.95) if hc else UiStyle.PANEL, 18, Color(1, 1, 1) if hc else UiStyle.EDGE, 3)
 	style.set_content_margin_all(roundi(22 * Settings.text_scale))
 	_panel.add_theme_stylebox_override("panel", style)
-	_panel.custom_minimum_size.x = UiStyle.fit_width(_panel, roundi((1000 if _stall in ["Wardrobe", "Decorate"] else 640) * Settings.text_scale))
+	_panel.custom_minimum_size.x = UiStyle.fit_width(_panel, roundi((1240 if _stall == "Wardrobe" else 1000 if _stall == "Decorate" else 640) * Settings.text_scale))
 	_title.add_theme_font_size_override("font_size", roundi(30 * Settings.text_scale))
 	_title.add_theme_color_override("font_color", UiStyle.GOLD)
 	_title.add_theme_constant_override("outline_size", roundi(8 * Settings.text_scale))

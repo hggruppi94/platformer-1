@@ -137,7 +137,7 @@ func _detailed(src: StandardMaterial3D, alien: bool) -> ShaderMaterial:
 		return _cache[key]
 	var m := ShaderMaterial.new()
 	m.resource_name = "Ground Detail"
-	m.shader = GROUND_SHADER
+	m.shader = _two_sided() if src.cull_mode == BaseMaterial3D.CULL_DISABLED else GROUND_SHADER
 	m.set_shader_parameter("base", src.albedo_color)
 	m.set_shader_parameter("use_vertex", src.vertex_color_use_as_albedo)
 	m.set_shader_parameter("vertex_srgb", src.vertex_color_is_srgb)
@@ -146,6 +146,18 @@ func _detailed(src: StandardMaterial3D, alien: bool) -> ShaderMaterial:
 	m.set_shader_parameter("glints", 1.0 if alien else 0.0)
 	_cache[key] = m
 	return m
+
+
+var _two_sided_shader: Shader
+
+
+func _two_sided() -> Shader:
+	# The same shader drawn from both sides, for grounds whose own material was (Hayden's 14 Nov evening playtest:
+	# with only front faces drawn, the school's floors could be seen through from the floor below)
+	if _two_sided_shader == null:
+		_two_sided_shader = Shader.new()
+		_two_sided_shader.code = GROUND_SHADER.code.replace("shader_type spatial;", "shader_type spatial;\nrender_mode cull_disabled;")
+	return _two_sided_shader
 
 
 static func _alien(scene: Node) -> bool:

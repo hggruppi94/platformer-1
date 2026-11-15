@@ -59,6 +59,8 @@ var visiting := ""                              # who's come along for a final-f
 var _followers: Array = []                      # copies following you (scripts/party_follower.gd)
 var _built_for := ""                            # "<scene path>|<who>" the followers were made for
 var _hid: Array = []                            # nodes hidden while a copy walks with you (Flurry on the plaza)
+var _twins: Array = []                          # other copies of a follower's friend in this place (_no_doubles())
+var _twins_at := 0.0
 var _town_time := 0.0
 var _tick := 0.0
 var _card: CanvasLayer
@@ -367,6 +369,7 @@ func _keep_followers() -> void:
 	var key := "%s|%s" % [scene.scene_file_path if scene else "", who]
 	if key == _built_for and _followers.all(func(f) -> bool: return is_instance_valid(f)):
 		_hide_hub_flurry(who)
+		_no_doubles()
 		return
 	_clear_followers()
 	_built_for = key
@@ -389,6 +392,60 @@ func _keep_followers() -> void:
 		scene.add_child(fol)
 		_followers.append(fol)
 	_hide_hub_flurry(who)
+	_twins_at = 0.0
+	_no_doubles()
+
+
+func _no_doubles() -> void:
+	# Never two of the same friend at once (Hayden's 14 Nov evening playtest: "certain interactions create a
+	# duplicate of the same character. that needs to be fixed for all characters"). A copy walking with you hides
+	# itself whenever the place already has that friend in it, whatever put them there: someone standing in the
+	# school or a world, a cutscene's copy (the goodbye, the final fight), Melody's stage, a quest. It comes back as
+	# soon as they're gone. (Flurry on the Portal Plaza is the other way round: she hides, _hide_hub_flurry().)
+	var scene := get_tree().current_scene
+	if scene == null or _followers.is_empty():
+		return
+	_twins_at -= 0.25
+	if _twins_at <= 0.0:
+		_twins_at = 2.0
+		_twins.clear()
+		var sources := {}
+		for f in followers():
+			sources[str(f.get("source"))] = true
+		for n in scene.find_children("*", "Node3D", true, false):
+			var src := str(n.get_meta("model_source", n.scene_file_path))
+			if src != "" and sources.has(src) and not _in_follower(n):
+				_twins.append(n)
+	for f in followers():
+		var src := str(f.get("source"))
+		var other := false
+		for n in _twins:
+			if is_instance_valid(n) and (n as Node3D).is_visible_in_tree() and str(n.get_meta("model_source", n.scene_file_path)) == src:
+				other = true
+				break
+		(f as Node3D).visible = not other
+
+
+func _in_follower(n: Node) -> bool:
+	var p := n
+	while p:
+		if p in _followers:
+			return true
+		p = p.get_parent()
+	return false
+
+
+func doubles() -> Array:
+	# Friends showing twice right now (tests read it): a follower copy and another of the same, both seen
+	var out := []
+	for f in followers():
+		if not (f as Node3D).is_visible_in_tree():
+			continue
+		for n in get_tree().current_scene.find_children("*", "Node3D", true, false):
+			if str(n.get_meta("model_source", n.scene_file_path)) == str(f.get("source")) and not _in_follower(n) \
+					and (n as Node3D).is_visible_in_tree():
+				out.append(n)
+	return out
 
 
 func _hide_hub_flurry(who: String) -> void:

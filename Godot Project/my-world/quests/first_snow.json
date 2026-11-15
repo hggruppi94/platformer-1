@@ -23,7 +23,7 @@
     {
       "id": "build",
       "text": "Build the snowman with Nina.",
-      "where": ["nina_earth"],
+      "where": [{"at": [1.5, -11.0], "world": "earth"}],
       "override": {
         "nina_earth": {"place": "fest_pies", "do": "idle", "label": "first_snow"}
       },

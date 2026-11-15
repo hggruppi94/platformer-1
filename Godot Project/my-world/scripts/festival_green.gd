@@ -226,12 +226,13 @@ func _hayride() -> void:
 	var black := _mat(Color(0.12, 0.12, 0.13))
 	var hub := _mat(Color(0.95, 0.8, 0.3))
 	_box(tractor, Vector3(1.1, 0.7, 1.8), Vector3(0, 0.95, 0.3), red)               # the bonnet and body
-	_box(tractor, Vector3(1.0, 0.9, 0.7), Vector3(0, 1.55, -0.55), red)             # the seat's back
+	_box(tractor, Vector3(0.9, 0.12, 0.6), Vector3(0, 1.36, -0.25), black)          # the seat...
+	_box(tractor, Vector3(0.9, 0.75, 0.14), Vector3(0, 1.7, -0.58), red)             # ...and its back, behind Sam
 	_cyl(tractor, 0.06, 0.06, 0.6, Vector3(0.25, 1.6, 0.9), black)                   # the chimney
 	for side in [-1, 1]:
 		_wheel(tractor, Vector3(side * 0.75, 0.6, -0.6), 0.6, 0.35, black, hub)
 		_wheel(tractor, Vector3(side * 0.62, 0.36, 0.95), 0.36, 0.25, black, hub)
-	_scarecrow_driver(tractor, Vector3(0, 1.3, -0.35))
+	_scarecrow_driver(tractor, Vector3(0, 1.62, -0.25))
 	wagon = Node3D.new()
 	wagon.name = "Hay Wagon"
 	add_child(wagon)
@@ -241,6 +242,21 @@ func _hayride() -> void:
 	_box(wagon, Vector3(2.0, 0.15, 3.4), Vector3(0, 0.75, 0), wood)
 	for side in [-1, 1]:
 		_box(wagon, Vector3(0.08, 0.5, 3.4), Vector3(side * 1.0, 1.05, 0), wood)
+		if sleigh:
+			# a sleigh slides on gold runners that curl up at the front, not wheels
+			_box(wagon, Vector3(0.1, 0.08, 3.6), Vector3(side * 0.95, 0.12, 0), hub)
+			var curl := MeshInstance3D.new()
+			var tm := TorusMesh.new()
+			tm.inner_radius = 0.28
+			tm.outer_radius = 0.36
+			curl.mesh = tm
+			curl.material_override = hub
+			curl.position = Vector3(side * 0.95, 0.44, 1.8)
+			curl.rotation = Vector3(0, 0, PI / 2)
+			wagon.add_child(curl)
+			for z in [-1.2, 0.0, 1.2]:
+				_box(wagon, Vector3(0.07, 0.6, 0.07), Vector3(side * 0.95, 0.45, z), hub)
+			continue
 		_wheel(wagon, Vector3(side * 1.05, 0.42, 1.1), 0.42, 0.18, black, hub)
 		_wheel(wagon, Vector3(side * 1.05, 0.42, -1.1), 0.42, 0.18, black, hub)
 	_box(wagon, Vector3(0.1, 0.1, 1.6), Vector3(0, 0.6, 2.4), wood)                  # the hitch
@@ -274,21 +290,119 @@ func _wheel(parent: Node3D, at: Vector3, r: float, w: float, tyre: Material, hub
 
 
 func _scarecrow_driver(parent: Node3D, at: Vector3) -> void:
-	# Scarecrow Sam: a sack head with a stitched smile, a straw hat, a plaid shirt and straw at his cuffs
-	var shirt := _mat(Color(0.75, 0.2, 0.2))
-	var sack := _mat(Color(0.85, 0.75, 0.55))
-	var straw := _mat(Color(0.92, 0.8, 0.4))
-	_box(parent, Vector3(0.5, 0.55, 0.3), at + Vector3(0, 0.3, 0), shirt)
-	_ball(parent, 0.2, at + Vector3(0, 0.78, 0), sack)
-	_cyl(parent, 0.34, 0.34, 0.03, at + Vector3(0, 0.95, 0), straw)
-	_cyl(parent, 0.13, 0.17, 0.18, at + Vector3(0, 1.04, 0), straw)
-	for sx in [-0.07, 0.07]:
-		_ball(parent, 0.03, at + Vector3(sx, 0.82, 0.18), _mat(Color(0.1, 0.08, 0.06)))
-	_box(parent, Vector3(0.18, 0.02, 0.02), at + Vector3(0, 0.71, 0.19), _mat(Color(0.1, 0.08, 0.06)))
-	for sx in [-1, 1]:
-		_box(parent, Vector3(0.12, 0.12, 0.45), at + Vector3(sx * 0.3, 0.35, 0.2), shirt)             # arms to the wheel
-		_ball(parent, 0.06, at + Vector3(sx * 0.3, 0.35, 0.44), straw)
-	_cyl(parent, 0.2, 0.2, 0.04, at + Vector3(0, 0.45, 0.6), _mat(Color(0.12, 0.12, 0.13)))       # the steering wheel
+	# Scarecrow Sam, sitting at the wheel (reworked after Hayden's 14 Nov evening playtest: he was a box with a ball
+	# on it). A stuffed sack head with button eyes, a stitched smile, rosy cheeks and a patch, straw poking out from
+	# under a wide straw hat with a red band, a plaid shirt under blue overalls with brass buttons, legs bent at the
+	# seat, boots on the floor, sleeves out to gloves on the wheel with straw at the cuffs. In winter he's bundled up
+	# in a knitted scarf and earmuffs.
+	var d := Node3D.new()
+	d.name = "Scarecrow Sam"
+	d.position = at
+	parent.add_child(d)
+	var shirt := _mat(Color(0.78, 0.2, 0.2))
+	var check := _mat(Color(0.45, 0.08, 0.1))
+	var denim := _mat(Color(0.25, 0.38, 0.62))
+	var sack := _mat(Color(0.86, 0.74, 0.52), 0.95)
+	var straw := _mat(Color(0.95, 0.8, 0.38), 0.9)
+	var dark := _mat(Color(0.1, 0.08, 0.06))
+	var brass := _mat(Color(0.95, 0.75, 0.3), 0.35, 0.0, 0.6)
+	var glove := _mat(Color(0.93, 0.78, 0.35))
+	var boot := _mat(Color(0.3, 0.18, 0.1))
+	# legs: thighs along the seat, shins down, boots
+	for sx in [-0.13, 0.13]:
+		_tilted(_cyl(d, 0.09, 0.1, 0.42, Vector3(sx, 0.02, 0.2), denim), Vector3(PI / 2, 0, 0))
+		_cyl(d, 0.085, 0.09, 0.42, Vector3(sx, -0.18, 0.42), denim)
+		_box(d, Vector3(0.16, 0.12, 0.26), Vector3(sx, -0.42, 0.47), boot)
+		for k in 3:                                                           # straw out of each trouser leg
+			_tilted(_cyl(d, 0.0, 0.02, 0.1, Vector3(sx - 0.05 + k * 0.05, -0.37, 0.52), straw), Vector3(0.4, 0, (k - 1) * 0.5))
+	# body: a plaid shirt under the overalls' bib
+	_cyl(d, 0.2, 0.24, 0.55, Vector3(0, 0.32, 0), shirt)
+	for y in [0.18, 0.32, 0.46]:
+		_cyl(d, 0.205 + (0.46 - y) * 0.07, 0.21 + (0.46 - y) * 0.07, 0.03, Vector3(0, y, 0), check)
+	_box(d, Vector3(0.34, 0.32, 0.05), Vector3(0, 0.24, 0.21), denim)
+	_box(d, Vector3(0.42, 0.16, 0.44), Vector3(0, 0.08, 0.02), denim)
+	for sx in [-0.12, 0.12]:
+		_tilted(_box(d, Vector3(0.06, 0.4, 0.03), Vector3(sx, 0.42, 0.18), denim), Vector3(-0.25, 0, 0))
+		_tilted(_cyl(d, 0.03, 0.03, 0.02, Vector3(sx, 0.38, 0.245), brass), Vector3(PI / 2, 0, 0))
+	# arms out to the wheel, gloves on it, straw at the cuffs
+	for sx in [-1.0, 1.0]:
+		_tilted(_cyl(d, 0.07, 0.08, 0.32, Vector3(sx * 0.25, 0.42, 0.06), shirt), Vector3(0.6, 0, -sx * 0.35))
+		_tilted(_cyl(d, 0.06, 0.07, 0.32, Vector3(sx * 0.24, 0.32, 0.32), shirt), Vector3(PI / 2 - 0.15, 0, 0))
+		for k in 3:
+			_tilted(_cyl(d, 0.0, 0.02, 0.09, Vector3(sx * 0.24 + (k - 1) * 0.035, 0.33, 0.49), straw), Vector3(PI / 2, 0, (k - 1) * 0.4))
+		_ball(d, 0.075, Vector3(sx * 0.2, 0.34, 0.56), glove)
+	# straw tufting out at the neck
+	for k in 7:
+		var a := TAU * k / 7.0
+		_tilted(_cyl(d, 0.0, 0.03, 0.12, Vector3(cos(a) * 0.1, 0.62, sin(a) * 0.1), straw), Vector3(sin(a) * 0.5, 0, -cos(a) * 0.5))
+	# the head: a stuffed sack tied off with twine
+	var head := _ball(d, 0.22, Vector3(0, 0.84, 0.02), sack)
+	head.scale = Vector3(1.0, 1.08, 0.95)
+	var twine := MeshInstance3D.new()
+	var t := TorusMesh.new()
+	t.inner_radius = 0.09
+	t.outer_radius = 0.12
+	twine.mesh = t
+	twine.material_override = _mat(Color(0.6, 0.45, 0.25))
+	twine.position = Vector3(0, 0.66, 0.0)
+	twine.scale = Vector3(1, 0.5, 1)
+	d.add_child(twine)
+	# button eyes with four holes' worth of cross-stitch, rosy cheeks, a patch, and a stitched smile
+	for sx in [-0.08, 0.08]:
+		_tilted(_cyl(d, 0.045, 0.045, 0.02, Vector3(sx, 0.9, 0.215), dark), Vector3(PI / 2, 0, 0))
+		_tilted(_box(d, Vector3(0.05, 0.008, 0.01), Vector3(sx, 0.9, 0.228), straw), Vector3(0, 0, 0.785))
+		_tilted(_box(d, Vector3(0.05, 0.008, 0.01), Vector3(sx, 0.9, 0.228), straw), Vector3(0, 0, -0.785))
+		_tilted(_cyl(d, 0.035, 0.035, 0.01, Vector3(sx * 1.6, 0.8, 0.19), _mat(Color(0.95, 0.5, 0.5))), Vector3(PI / 2, 0, 0))
+	_tilted(_box(d, Vector3(0.09, 0.08, 0.01), Vector3(0.1, 1.0, 0.17), _mat(Color(0.5, 0.65, 0.4))), Vector3(-0.5, 0.3, 0.2))
+	for k in 7:
+		var a := lerpf(-1.0, 1.0, k / 6.0)
+		_tilted(_box(d, Vector3(0.012, 0.035, 0.01), Vector3(a * 0.09, 0.77 - (1.0 - a * a) * 0.03, 0.21 - absf(a) * 0.02), dark),
+			Vector3(0, 0, a * 0.5))
+	_tilted(_box(d, Vector3(0.2, 0.012, 0.01), Vector3(0, 0.765, 0.205), dark), Vector3(0, 0, 0))
+	# the straw hat: a wide floppy brim, a crown with a red band, straw poking out under it
+	var brim := _cyl(d, 0.38, 0.4, 0.03, Vector3(0, 1.0, 0.0), straw)
+	_tilted(brim, Vector3(0.12, 0, 0.05))
+	_cyl(d, 0.15, 0.19, 0.2, Vector3(0, 1.11, -0.01), straw)
+	_cyl(d, 0.195, 0.195, 0.05, Vector3(0, 1.04, -0.01), shirt)
+	for k in 9:
+		var a := PI * 0.15 + TAU * 0.7 * k / 8.0 + PI / 2
+		_tilted(_cyl(d, 0.0, 0.025, 0.14, Vector3(cos(a) * 0.2, 0.96, sin(a) * 0.18 - 0.02), straw), Vector3(sin(a) * 0.9, 0, -cos(a) * 0.9))
+	if _season == "winter":
+		# bundled up for the sleigh: a striped knitted scarf with a tail, and fluffy earmuffs
+		var scarf := _mat(Color(0.2, 0.6, 0.35))
+		var wrap := MeshInstance3D.new()
+		var st := TorusMesh.new()
+		st.inner_radius = 0.1
+		st.outer_radius = 0.17
+		wrap.mesh = st
+		wrap.material_override = scarf
+		wrap.position = Vector3(0, 0.64, 0.01)
+		wrap.scale = Vector3(1, 0.7, 1)
+		d.add_child(wrap)
+		_tilted(_box(d, Vector3(0.1, 0.32, 0.04), Vector3(0.1, 0.5, 0.2), scarf), Vector3(-0.2, 0, 0.15))
+		_box(d, Vector3(0.102, 0.04, 0.042), Vector3(0.1, 0.42, 0.205), _mat(Color(0.95, 0.95, 1.0)))
+		for sx in [-1.0, 1.0]:
+			_ball(d, 0.07, Vector3(sx * 0.22, 0.86, 0.0), _mat(Color(0.95, 0.35, 0.45)))
+	# the steering wheel
+	var wheel := MeshInstance3D.new()
+	var wt := TorusMesh.new()
+	wt.inner_radius = 0.15
+	wt.outer_radius = 0.2
+	wheel.mesh = wt
+	wheel.material_override = _mat(Color(0.12, 0.12, 0.13))
+	wheel.position = Vector3(0, 0.36, 0.6)
+	wheel.rotation = Vector3(PI / 2 - 0.5, 0, 0)
+	d.add_child(wheel)
+	# its column runs from the wheel's middle down into a little dashboard on the bonnet (Hayden: "the steering
+	# wheel isnt attached")
+	_tilted(_cyl(d, 0.035, 0.035, 0.8, Vector3(0, 0.02, 0.775), _mat(Color(0.12, 0.12, 0.13))), Vector3(-0.475, 0, 0))
+	_box(d, Vector3(0.5, 0.22, 0.2), Vector3(0, -0.24, 0.98), _mat(Color(0.12, 0.12, 0.13)))
+	_tilted(_cyl(d, 0.05, 0.05, 0.04, Vector3(0, 0.36, 0.6), _mat(Color(0.95, 0.8, 0.3))), Vector3(PI / 2 - 0.5, 0, 0))
+
+
+func _tilted(mi: MeshInstance3D, rot: Vector3) -> MeshInstance3D:
+	mi.rotation = rot
+	return mi
 
 
 # -----------------------------------------------------------------------------

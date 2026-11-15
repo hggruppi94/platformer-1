@@ -172,6 +172,14 @@ func _check_jobs() -> void:
 				snow_job = r.duplicate(true)
 	check(seen.has("snowman") and seen.has("rake") and seen.has("bakery"), "winter has snowmen, shovelling and winterberry jobs")
 	check(bad.is_empty(), "no winter job says pumpkins or leaves%s" % ("" if bad.is_empty() else " (%s)" % bad[0]))
+	# No snowball waits down the crack in front of the old oak (Hayden's 14 Nov evening playtest), and each one sits
+	# on solid ground you can walk up to
+	var crack := current_scene.find_child("Crack to the Void", true, false) as Node3D
+	var near_crack := []
+	for s: Vector2 in jobs.SNOWMAN_SPOTS:
+		if crack and s.distance_to(Vector2(crack.global_position.x, crack.global_position.z)) < 6.0:
+			near_crack.append(s)
+	check(crack != null and near_crack.is_empty(), "no snowman spot is near the oak's crack%s" % ("" if near_crack.is_empty() else " (%s)" % [near_crack]))
 	# Build the snowmen: walk into each snowball
 	jobs.list.clear()
 	jobs.list.append(snow_job)
@@ -192,6 +200,15 @@ func _check_jobs() -> void:
 
 
 # --- The First Snow ------------------------------------------------------------------------------------------------
+func _build_star() -> Array:
+	# Where the First Snow's build step puts its star on the map (quests/first_snow.json)
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://quests/first_snow.json"))
+	for st: Dictionary in data.steps:
+		if st.id == "build":
+			return st.where[0].at
+	return [999, 999]
+
+
 func _check_first_snow() -> void:
 	_to_season("winter")
 	change_scene_to_file(EARTH)
@@ -216,9 +233,20 @@ func _check_first_snow() -> void:
 	quests.check()
 	check(quests.on_step("first_snow", "build"), "with the carrot and scarf, it's time to build")
 	check(fs._build_offer() != "", "...beside Nina on the green")
+	# The big snowball Nina asks you to roll: there to see on the green, and the map's star is on it (14 Nov evening
+	# playtest: "she asks me to roll the big ball, but i cant find it")
+	fs._refresh()
+	var ball := snow.get_node_or_null("Snowman Spot/Big Snowball") as Node3D
+	check(ball != null and ball.is_visible_in_tree(), "the big snowball is there to find on the green")
+	var star: Array = _build_star()
+	if ball:
+		check(Vector2(ball.global_position.x, ball.global_position.z).distance_to(Vector2(star[0], star[1])) < 3.0,
+			"...and the map's star points at it")
 	fs._build()
 	quests.check()
 	await _frames(3)
+	fs._refresh()
+	check(ball == null or not ball.is_visible_in_tree(), "...and it's gone once it's the snowman")
 	check(snow.get_node_or_null("Our Snowman") != null and quests.on_step("first_snow", "sled"), "the snowman goes up on the green")
 	# The sled run: on the snow all the way, nothing solid in the way, and it really goes down the hill
 	var line: Array[Vector3] = fs.sled_line()
