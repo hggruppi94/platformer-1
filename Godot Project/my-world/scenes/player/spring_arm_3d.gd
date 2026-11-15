@@ -18,6 +18,11 @@ var boom_length := 5.0
 var lift := 0.0
 var _origin := Vector3.ZERO           # ...and where it's fixed on her
 var _since_look := 10.0               # seconds since the player last turned the camera themselves
+# When something gets between her and the camera the boom snaps in at once (so the camera never goes through a wall),
+# but it used to snap straight back out too the moment the way was clear, which jolts. Now it eases back out.
+const EASE_OUT := 5.0                 # metres a second the boom grows back out after being pushed in
+var _shown := 5.0                     # how long the boom is now, eased
+var _easing := false                  # growing back out after a wall (anything else that changes the boom is at once)
 
 
 func _ready() -> void:
@@ -25,6 +30,7 @@ func _ready() -> void:
 	# Don't let the camera boom collide with the player's own body
 	add_excluded_object(get_parent().get_rid())
 	boom_length = spring_length
+	_shown = spring_length
 	_origin = position
 	Settings.changed.connect(_apply_settings)
 	_apply_settings()
@@ -57,15 +63,37 @@ func _process(delta: float) -> void:
 	fov_kick = move_toward(fov_kick, 0.0, 30.0 * delta)
 	camera.fov = Settings.fov + fov_kick - AIM_ZOOM * aim
 	spring_length = lerpf(boom_length, AIM_LENGTH, aim)
+	_ease_camera(delta)
 	# The boom places its camera itself, so the shoulder shift moves the boom: to the camera's right, a bit up
 	var turn := Basis(Vector3.UP, rotation.y)
 	position = _origin + Vector3(0, lift, 0) + turn * AIM_SHIFT * aim
 
 
-func follow(yaw: float, delta: float, rate := 2.5) -> void:
-	# Swing round behind something moving (Nina on her board, scenes/player/skate.gd), unless the player has just
-	# turned the camera themselves: then it's theirs for a moment. While she aims it's the player's all the time.
-	if _since_look > 0.8 and aim <= 0.0:
+func _ease_camera(delta: float) -> void:
+	# The boom puts the camera at its hit length every physics frame. This runs after that, before the frame's drawn:
+	# in at once if the way's blocked, but back out only bit by bit. spring_length itself is left alone (the
+	# mothership and aiming set the length they want through boom_length and aim).
+	var hit := get_hit_length()
+	if hit < _shown - 0.05:
+		_shown = hit
+		_easing = true
+	if _easing:
+		_shown = minf(move_toward(_shown, hit, EASE_OUT * delta), hit)
+		_easing = _shown < spring_length - 0.01     # (still held in by the wall counts: keep easing till fully out)
+		camera.position.z = _shown
+	else:
+		_shown = hit
+
+
+func shown_length() -> float:
+	return _shown
+
+
+func follow(yaw: float, delta: float, rate := 2.5, quiet := 0.8) -> void:
+	# Swing round behind something moving (Nina on her board, scenes/player/skate.gd; running on foot, player.gd,
+	# slower), unless the player has turned the camera themselves in the last `quiet` seconds: then it's theirs for a
+	# moment. While she aims it's the player's all the time.
+	if _since_look > quiet and aim <= 0.0:
 		rotation.y = lerp_angle(rotation.y, yaw, 1.0 - exp(-rate * delta))
 
 

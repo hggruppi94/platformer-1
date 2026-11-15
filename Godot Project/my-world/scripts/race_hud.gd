@@ -245,11 +245,11 @@ func _draw_map() -> void:
 	var start := _to_map(_map_track.point_at(0.0))
 	map.draw_circle(start, 5.0, Color(1, 1, 1))
 	for r in Races.rivals:
-		if is_instance_valid(r):
+		if is_instance_valid(r) and r.is_inside_tree():     # (a rival being swapped out between races isn't)
 			map.draw_circle(_to_map(r.global_position), 5.0, Color(1.0, 0.55, 0.75))
 			map.draw_arc(_to_map(r.global_position), 5.0, 0, TAU, 12, Color(0.25, 0.05, 0.15), 1.5)
 	var p := get_tree().get_first_node_in_group("player") as Node3D
-	if p:
+	if p and p.is_inside_tree():
 		map.draw_circle(_to_map(p.global_position), 7.0, Color(1.0, 0.85, 0.3))
 		map.draw_arc(_to_map(p.global_position), 7.0, 0, TAU, 14, Color(0.2, 0.1, 0.05), 2.0)
 

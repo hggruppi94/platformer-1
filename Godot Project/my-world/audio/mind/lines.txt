@@ -107,6 +107,27 @@ Snack box: the dock
 Find 4 things for Leo.
 Take the kit to Leo's bunker.
 A wail! Talk to Leo.
+By the playground
+On Maple Lane
+On Main Street
+Find 3 library books.
+Take them to Miss Marigold.
+By the green
+Jump in 3 leaf piles.
+Tell Kip!
+By the pond
+In the hollow
+On the park path
+Catch 3 newts.
+Take them to Juniper.
+By the market
+On the north path
+Find 3 song sheets.
+Take them to Barnaby.
+By the toy shop
+By the skate park
+Catch 3 wind-up toys.
+Take them to Mr. Gumdrop.
 Talk to Nina
 Meet Mr. Palmer
 Say hi to two more people
@@ -137,7 +158,6 @@ On the south bank
 Find 3 bottles by the pond.
 Take them to Mr. Page.
 Mrs. Wren needs you!
-By the market
 By the park gate
 By the diner
 Find 3 wind chimes.
@@ -149,7 +169,6 @@ Main Street, by the fire station
 Fix 3 street lamps.
 Tell Hank they're lit.
 Prue needs you!
-By the playground
 Down the hollow
 By the park path
 Find Prue's 3 plushies.

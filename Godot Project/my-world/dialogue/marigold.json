@@ -3,12 +3,58 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "errand_books:find"
+      },
+      "lines": [
+        "Three books. Quietly, please."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "errand_books:back"
+      },
+      "lines": [
+        "All three! Thank you.",
+        "THUNK! THUNK! THUNK! All stamped."
+      ],
+      "set": "errand_books_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
         "Hello! I'm Miss Marigold. We whisper in the library.",
         "{player}: (whispering) Hi!",
         "Perfect whisper."
+      ]
+    },
+    {
+      "when": {
+        "flag": "oak_woken",
+        "quest_not_started": "errand_books",
+        "min_talks": 1
+      },
+      "lines": [
+        "Psst. Three books are overdue.",
+        "I think they're still out in town.",
+        {
+          "choice": [
+            {
+              "text": "Sure!",
+              "lines": [
+                "Thank you!"
+              ],
+              "set": "errand_books_start"
+            },
+            {
+              "text": "Not now.",
+              "lines": [
+                "Okay. Maybe later!"
+              ]
+            }
+          ]
+        }
       ]
     },
     {

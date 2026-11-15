@@ -3,11 +3,59 @@
   "conversations": [
     {
       "when": {
+        "quest_step": "errand_leaves:jump"
+      },
+      "lines": [
+        "Three piles. Jump right in!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "errand_leaves:back"
+      },
+      "lines": [
+        "Did they go WHUMPF?",
+        "{player}: SO WHUMPF!",
+        "Perfect. Here's your stamp."
+      ],
+      "set": "errand_leaves_back"
+    },
+    {
+      "when": {
         "talks": 0
       },
       "lines": [
         "Hi! Kip. I've got six jobs in town!",
         "I counted twice. Want a stamp?"
+      ]
+    },
+    {
+      "when": {
+        "flag": "oak_woken",
+        "quest_not_started": "errand_leaves",
+        "min_talks": 1,
+        "season": "autumn"
+      },
+      "lines": [
+        "Job number seven: raking leaves!",
+        "I made three big piles. They need testing.",
+        {
+          "choice": [
+            {
+              "text": "Sure!",
+              "lines": [
+                "Thank you!"
+              ],
+              "set": "errand_leaves_start"
+            },
+            {
+              "text": "Not now.",
+              "lines": [
+                "Okay. Maybe later!"
+              ]
+            }
+          ]
+        }
       ]
     },
     {

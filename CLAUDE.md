@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **Overnight polish: bugs from a whole-game run, menu sounds, a calmer camera, fresh loading tips, five
+  neighbour errands, and friends who cheer** (Hayden said yes to the overnight plan: playthrough bug hunt, polish,
+  more Earth quests, small juice). Played start to ending and ran all 127 tests on Hayden's PC first (own APPDATA, the
+  save untouched): 122 passed; the 5 that failed are fixed. Built and tested in the cloud.
+  - **Bugs found:** standing still on a ride facing the camera, pushing away from it never turned her round (her
+    heading only followed her once moving: `skate.gd _roll()` now turns on the spot too); the Rainbow Puffer could
+    swim into the reef's rock (`rare_fish.gd` checks a ring round its middle); a second Flurry on the plaza after
+    building the hub (`portals.gd _flurry_in_hub()` asks `Party._hide_hub_flurry()`); the race map drew rivals that
+    had left the tree (`race_hud.gd`). Tests: glimmer_caves turns home calls off, skate_pieces accepts the ground
+    detail shader, schematics waits before pushing.
+  - **Menu sounds** (`audio.gd _on_node_added()`): every button clicks when pressed and ticks when you move onto it,
+    unless its own code already plays a menu sound, it's disabled or hidden, or it has meta `no_ui_sound`. Test
+    `tools/test_ui_sounds.gd`.
+  - **Camera** (`spring_arm_3d.gd`): a wall pushes it in at once, then it eases back out (`EASE_OUT`, no snap).
+    Running forwards on a slant it slowly swings round behind her (`player.gd`, not straight after you turned it,
+    not running at the camera). Settings > Assist > **Camera follows you** (`Settings.camera_follow`, on). Test
+    `tools/test_camera_polish.gd`.
+  - **Loading screen** (`loading_screen.gd`): each tip waits for what it talks about (`TIPS` pairs, `tips_now()`),
+    shows the real button names, the stale ones are gone, and stars twinkle behind the alien. test_title checks it.
+  - **Neighbour errands** (`home_calls.gd ERRANDS`, `quests/errand_*.json`): once the oak's awake, a bobbing "!" over
+    Barnaby (his lost song pages), Miss Marigold (overdue books), Juniper (her newts), Mr. Gumdrop (runaway toys) and
+    Kip in autumn (jump in his leaf piles, which stay spread about). Three things round town each, 6 sparkles. Never
+    touches the crack. 19 new mind voice lines in `audio/mind/`. Test `tools/test_errands.gd`.
+  - **Friends cheer** (`scripts/friend_cheer.gd`, "Cheer" under `Party`): the friend with you hops and a star or heart
+    floats up when you find a watch, level up or finish a quest (once per 1.2 s). test_party checks it.
+  - Previews: `tools/capture_overnight.gd` (before and after in the project files under world/previews/overnight_polish).
+  - My choices Hayden may change: the errands, their names and lines (first drafts), Camera follows you on by default,
+    the cheer's emotes, the tips.
+
 - 2026-11-15: **The Earth chapter is easy to find** (Hayden: "I cant seem to get any more void cracks to open even
   though i completed a notice board quest on earth? ... how do i Know?"). Their save had no chapter on (the worlds were
   mended before home calls; Rhythm Springs' crack was open and waiting), but it showed a real gap: they followed eight

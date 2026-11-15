@@ -66,7 +66,11 @@ func _check_place(place: String, where: Node) -> void:
 		var mat := mi.material_override as StandardMaterial3D
 		check(mi.is_visible_in_tree() and mi.mesh != null and mi.mesh.get_surface_count() > 0,
 			"%s, %s: has a mesh, shown" % [place, piece])
-		check(mat != null and mat.albedo_color.a > 0.99 and mat.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED,
+		# A big flat piece (the park's ground) gets the ground look (scripts/world_detail.gd): its shader keeps the
+		# colour, opaque, so that counts as solid too
+		var detailed := mi.has_meta("ground_detail") and mi.material_override is ShaderMaterial \
+			and ((mi.material_override as ShaderMaterial).get_shader_parameter("base") as Color).a > 0.99
+		check(detailed or (mat != null and mat.albedo_color.a > 0.99 and mat.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED),
 			"%s, %s: solid colour, not see-through" % [place, piece])
 		var inside_out := 0
 		var faces := 0

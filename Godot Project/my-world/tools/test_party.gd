@@ -264,6 +264,19 @@ func _check_water() -> void:
 	check(party.with_you == "flurry", "...and pressing it swaps her in")
 	await _physics(30)
 	check(party.followers().size() == 1, "she has no town self, so a copy walks with you")
+	# She cheers when something good happens (scripts/friend_cheer.gd)
+	var cheer: Node = party.get_node("Cheer")
+	var before: int = cheer.cheers
+	root.get_node("Watches").found_watch.emit("test")
+	await _frames(2)
+	var f: Node = party.followers()[0] if party.followers().size() > 0 else null
+	check(cheer.cheers == before + 1 and f != null and f.find_child("Cheer", true, false) is Label3D,
+		"finding a watch, the friend with you hops and a star pops up over her")
+	game.leveled_up.emit(2)
+	check(cheer.cheers == before + 1, "...and not again straight away")
+	cheer.set("_last_at", -10.0)
+	game.leveled_up.emit(2)
+	check(cheer.cheers == before + 2 and cheer.last_kind == "level", "...but a level gained a moment later is cheered too")
 	var hub := portals._holder.get_node_or_null("Flurry") as Node3D if is_instance_valid(portals._holder) else null
 	check(hub == null or not hub.visible, "...and she's not on the Portal Plaza at the same time")
 	party.with_you = "bramble"

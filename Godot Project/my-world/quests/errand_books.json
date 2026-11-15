@@ -1,0 +1,49 @@
+{
+  "name": "Overdue Books",
+  "giver": "marigold",
+  "about": "An errand in Stars Hollow (overnight polish, 15 Nov 2026: going home always has something fun to do). Offered by marigold any time once the old oak's woken (scripts/home_calls.gd ERRANDS; a bobbing ! shows over them). Never opens or shuts the crack. First draft for Hayden.",
+  "start": {
+    "flag": "errand_books_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Find 3 library books.",
+      "checklist": [
+        [
+          "book_1",
+          "By the playground"
+        ],
+        [
+          "book_2",
+          "On Maple Lane"
+        ],
+        [
+          "book_3",
+          "On Main Street"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "book_1",
+          "book_2",
+          "book_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Miss Marigold.",
+      "done": {
+        "flag": "errand_books_back"
+      },
+      "where": [
+        "marigold"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 6,
+    "message": "Books back! +6 sparkles."
+  }
+}

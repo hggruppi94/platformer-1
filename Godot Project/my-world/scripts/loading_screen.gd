@@ -9,35 +9,41 @@ extends CanvasLayer
 const MIN_TIME := 1.4
 const WORLDS := ["res://scenes/earth/earth.tscn", "res://scenes/town/town.tscn",
 	"res://scenes/scary_world/scary_world.tscn", "res://scenes/title/title.tscn"]
+# Short, true tips (Hayden's 14 Nov 2026 rule: a few words, the button's name filled in by Settings.fill). Each can
+# wait for a flag, so a tip never talks about something the player hasn't met yet. The overnight polish (15 Nov 2026)
+# took out the ones the game had moved past: "An Earth hour is a whole Void day" (the Void's day loops now), "new
+# requests every night", and the unclear "Any race place counts".
 const TIPS := [
-	"An Earth hour is a whole Void day!",
-	"Hold Aim, then Shoot!",
-	"Tally has new requests every night.",
-	"Stuck? Look at your Goals!",
-	"Found a watch? Show Dash!",
-	"Hold Jump, let go: ollie!",
-	"The oak's crack is always open!",
-	"Pop Gloops for tricks!",
-	"Any race place counts!",
-	"Stars on the map show the way.",
-	"Wave at the little aliens!",
-	"Saturday evening: a fair!",
-	"Hallow's Eve: knock knock!",
-	"A big party every season!",
-	"Check the Calendar!",
-	"Weekends: friends play outside!",
+	["Stuck? Touch the old oak!", "oak_woken"],
+	["{player_menu} opens your map and quests.", ""],
+	["Stars on the map show the way.", ""],
+	["Hold {aim}, then {shoot}!", "bb_thanked"],
+	["{gadget_wheel} picks a gadget.", "bb_thanked"],
+	["Found a watch? Show Dash!", "bb_thanked"],
+	["On a board: hold {jump}, let go!", ""],
+	["Pop Gloops for sparkles!", ""],
+	["Tally's board has jobs!", "fn_met_tally"],
+	["{friend} does your friend's move!", "party"],
+	["Wave at the little aliens!", "fn_met_tally"],
+	["Saturday evening: a fair!", ""],
+	["Hallow's Eve: knock knock!", ""],
+	["A big party every season!", ""],
+	["Check the Calendar!", ""],
+	["Weekends: friends play outside!", ""],
+	["Bump into things. Boink!", ""],
 ]
 
 # Before the old oak has opened for them (a new game's first day), only tips that don't give the Void away
 # (Hayden's day 1 playtest, 11 Nov 2026: no spoilers before things happen)
 const FIRST_DAY_TIPS := [
-	"Stuck? Look at your Goals!",
+	"{player_menu} opens your map and quests.",
 	"Stars on the map show the way.",
 	"Saturday evening: a fair!",
 	"Hallow's Eve: knock knock!",
 	"Check the Calendar!",
 	"Weekends: friends play outside!",
 ]
+const STARS := 60                            # little twinkling stars behind the alien
 
 var tip := ""
 var showing := false
@@ -45,6 +51,8 @@ var _panel: Control
 var _tip_label: Label
 var _where_label: Label
 var _alien: Control
+var _sky: Control
+var _stars: Array = []                       # [position 0..1, size, twinkle speed, phase]
 var _shown_at := 0
 var _rng := RandomNumberGenerator.new()
 
@@ -72,8 +80,8 @@ func show_for(scene_path: String) -> void:
 			worlds.append(str(Races.TRACKS[id].scene))
 	if scene_path == from or not scene_path in worlds or not (from in worlds or from == ""):
 		return                                   # a door into a shop or a room, or back out of one: no loading screen
-	var tips: Array = TIPS if HummingOak.awake() else FIRST_DAY_TIPS
-	tip = tips[_rng.randi() % tips.size()]
+	var tips := tips_now()
+	tip = Settings.fill(tips[_rng.randi() % tips.size()])
 	_tip_label.text = tip
 	_where_label.text = {"res://scenes/earth/earth.tscn": "Off to Earth...", "res://scenes/town/town.tscn": "Off to the Void...",
 		"res://scenes/scary_world/scary_world.tscn": "Off to Dusk's Embrace..."}.get(scene_path,
@@ -85,6 +93,19 @@ func show_for(scene_path: String) -> void:
 	_panel.modulate.a = 1.0
 	showing = true
 	_shown_at = Time.get_ticks_msec()
+
+
+func tips_now() -> Array:
+	# The tips that fit this save: none that give the Void away before the oak's opened, and none about someone or
+	# something the player hasn't met yet
+	if not HummingOak.awake():
+		return FIRST_DAY_TIPS
+	var out := []
+	for t in TIPS:
+		var need := str(t[1])
+		if need == "" or (need == "party" and not Party.joined.is_empty()) or Dialogue.flags.has(need):
+			out.append(str(t[0]))
+	return out
 
 
 func _on_scene_changed() -> void:
@@ -103,6 +124,7 @@ func _on_scene_changed() -> void:
 func _process(_delta: float) -> void:
 	if showing:
 		_alien.queue_redraw()
+		_sky.queue_redraw()
 
 
 func _build() -> void:
@@ -115,6 +137,13 @@ func _build() -> void:
 	bg.color = Color(0.1, 0.06, 0.2)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_panel.add_child(bg)
+	for i in STARS:
+		_stars.append([Vector2(_rng.randf(), _rng.randf()), _rng.randf_range(1.0, 2.6), _rng.randf_range(1.5, 4.0), _rng.randf() * TAU])
+	_sky = Control.new()
+	_sky.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sky.draw.connect(_draw_sky)
+	_panel.add_child(_sky)
 	_alien = Control.new()
 	_alien.set_anchors_preset(Control.PRESET_CENTER)
 	_alien.position = Vector2(0, -60)
@@ -137,6 +166,15 @@ func _build() -> void:
 	_tip_label.add_theme_font_size_override("font_size", 24)
 	_tip_label.add_theme_color_override("font_color", Color(0.75, 1.0, 0.95))
 	_panel.add_child(_tip_label)
+
+
+func _draw_sky() -> void:
+	# Stars twinkling slowly behind everything (still with Reduce motion: they only fade, they don't move)
+	var t := Time.get_ticks_msec() / 1000.0
+	var size := _sky.size
+	for st in _stars:
+		var a := 0.35 + 0.45 * (0.5 + 0.5 * sin(t * float(st[2]) + float(st[3])))
+		_sky.draw_circle(Vector2(st[0].x * size.x, st[0].y * size.y), float(st[1]), Color(0.9, 0.85, 1.0, a))
 
 
 func _draw_alien() -> void:

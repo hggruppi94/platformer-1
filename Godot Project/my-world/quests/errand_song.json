@@ -1,0 +1,49 @@
+{
+  "name": "Barnaby's Lost Song",
+  "giver": "barnaby",
+  "about": "An errand in Stars Hollow (overnight polish, 15 Nov 2026: going home always has something fun to do). Offered by barnaby any time once the old oak's woken (scripts/home_calls.gd ERRANDS; a bobbing ! shows over them). Never opens or shuts the crack. First draft for Hayden.",
+  "start": {
+    "flag": "errand_song_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Find 3 song sheets.",
+      "checklist": [
+        [
+          "song_1",
+          "By the market"
+        ],
+        [
+          "song_2",
+          "On Main Street"
+        ],
+        [
+          "song_3",
+          "On the north path"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "song_1",
+          "song_2",
+          "song_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Barnaby.",
+      "done": {
+        "flag": "errand_song_back"
+      },
+      "where": [
+        "barnaby"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 6,
+    "message": "Barnaby sings for you! +6 sparkles."
+  }
+}

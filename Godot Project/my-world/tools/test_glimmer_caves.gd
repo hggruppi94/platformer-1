@@ -56,6 +56,7 @@ func _run() -> void:
 	game.needs_creator = false
 	game.pending_message = ""
 	clock.set("pulls_home", false)
+	portals.home_calls.enabled = false               # one world on its own: mending it doesn't pull you home to Earth
 	clock.set_time(3, 9 * 60.0, true)
 	root.get_node("Quests").state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	for w in ["shard_isle", "rootmind", "frozen_moment", "lanternmoor"]:

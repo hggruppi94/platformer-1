@@ -1,0 +1,49 @@
+{
+  "name": "Runaway Toys",
+  "giver": "otis",
+  "about": "An errand in Stars Hollow (overnight polish, 15 Nov 2026: going home always has something fun to do). Offered by otis any time once the old oak's woken (scripts/home_calls.gd ERRANDS; a bobbing ! shows over them). Never opens or shuts the crack. First draft for Hayden.",
+  "start": {
+    "flag": "errand_toys_start"
+  },
+  "steps": [
+    {
+      "id": "find",
+      "text": "Catch 3 wind-up toys.",
+      "checklist": [
+        [
+          "toy_1",
+          "On Main Street"
+        ],
+        [
+          "toy_2",
+          "By the toy shop"
+        ],
+        [
+          "toy_3",
+          "By the skate park"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "toy_1",
+          "toy_2",
+          "toy_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Take them to Mr. Gumdrop.",
+      "done": {
+        "flag": "errand_toys_back"
+      },
+      "where": [
+        "otis"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 6,
+    "message": "Toys back! +6 sparkles."
+  }
+}

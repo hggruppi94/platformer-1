@@ -616,6 +616,11 @@ func _physics_process(delta: float) -> void:
 	right = right.normalized()
 
 	var direction := (right * input_dir.x - forward * input_dir.y).normalized()
+	# Running forwards (or on a slant), the camera eases round behind her by itself, slowly, the way kids expect
+	# (Settings > Assist "Camera follows you"; overnight polish, 15 Nov 2026). Never while aiming, and never just
+	# after the player turned it themselves.
+	if Settings.camera_follow and direction != Vector3.ZERO and input_dir.y < -0.2 and not popper.aiming:
+		spring_arm.follow(atan2(-direction.x, -direction.z), delta, 0.6, 1.5)
 
 	# Roll (the "dash" action): on the ground only; pressed in the air, it waits a moment for her to land
 	_roll_buffer_timer = roll_buffer if Input.is_action_just_pressed("dash") and not input_locked and not made_now else _roll_buffer_timer - delta

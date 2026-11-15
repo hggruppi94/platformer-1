@@ -109,6 +109,19 @@ func _run() -> void:
 	game.go(TOWN, "FromPortaltoEarth", "Void")
 	await _frames(1)
 	check(loading.showing and loading.tip != "" and loading._panel.visible, "Earth to the Void shows the loading screen, with a tip")
+	check(not "{" in loading.tip, "...its tip has the buttons filled in: %s" % loading.tip)
+	var long_tip := ""
+	for one in loading.TIPS + loading.FIRST_DAY_TIPS:
+		var words := str(one[0] if one is Array else one).split(" ").size()
+		if words > 7:
+			long_tip = str(one)
+	check(long_tip == "", "every loading tip is a few words (%s)" % long_tip)
+	var flags: Dictionary = root.get_node("Dialogue").flags
+	var had_dash := flags.has("bb_thanked")
+	flags.erase("bb_thanked")
+	check(not loading.tips_now().has("Found a watch? Show Dash!"), "no tip about Dash before you've met him")
+	if had_dash:
+		flags["bb_thanked"] = true
 	await _wait_for_scene(TOWN)
 	await create_timer(2.0).timeout
 	check(not loading.showing and not loading._panel.visible, "...and it goes once the Void's ready")

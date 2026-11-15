@@ -149,7 +149,16 @@ func _put_in() -> void:
 	var g := Node3D.new()
 	g.name = "Rare Fish " + str(f.id)
 	g.set_meta("id", f.id)
-	g.set_meta("middle", Vector3(at.x, bed + clampf(depth * 0.4, 1.0, 1.6), at.y))
+	# High enough over everything under its circle (a rock or coral on the bed): it used to swim through one now and
+	# then on the flooded Tide Reef (the PC's overnight run, 15 Nov 2026), so the ring is felt out all the way round
+	var high := bed
+	for i in 12:
+		var a := TAU * i / 12.0
+		for r in [LOOP_R * 0.6, LOOP_R * 1.3]:
+			high = maxf(high, _ground(Vector3(at.x + cos(a) * r, 60.0, at.y + sin(a) * r)))
+	var water_y := bed + depth
+	var y := maxf(bed + clampf(depth * 0.4, 1.0, 1.6), minf(high + 0.8, water_y - 1.2))
+	g.set_meta("middle", Vector3(at.x, y, at.y))
 	var m := model(f)
 	m.name = "Model"
 	g.add_child(m)
@@ -181,7 +190,8 @@ func _swim(delta: float) -> void:
 	var r := LOOP_R * (1.0 + 0.25 * sin(_t * 0.7))
 	_fish.global_position = mid + Vector3(cos(_t) * r, sin(_t * 1.3) * 0.25, sin(_t) * r)
 	var dir := _fish.global_position - prev
-	if dir.length() > 0.0001:
+	# (only once it's really moved sideways: look_at() fails, and says so every frame, for a step too small or straight up)
+	if _fish.is_inside_tree() and Vector2(dir.x, dir.z).length() > 0.001:
 		_fish.look_at(_fish.global_position + dir, Vector3.UP)
 	var m := _fish.get_node_or_null("Model") as Node3D
 	if m:

@@ -74,6 +74,9 @@ var _duck_db := 0.0                            # how far the music is ducked now
 var _duck_to := 0.0                            # where the duck is heading
 var _duck_tween: Tween
 var _under := 0.0                               # 0..1: how far underground (scripts/cave_echo.gd)
+var _ui_frame := -1                             # the frame a menu sound last played in (so buttons don't play two)
+var _ui_move_at := -1000                        # when the last move/hover tick played (ms), so a quick sweep isn't a rattle
+var ui_sounds := 0                              # how many button sounds the shared hook has played (tools/test_ui_sounds.gd)
 
 
 func _ready() -> void:
@@ -98,6 +101,9 @@ func _ready() -> void:
 	_music_b = _make_music_player()
 	get_tree().scene_changed.connect(_on_scene_changed)
 	_on_scene_changed.call_deferred()
+	# Every button in every menu clicks when it's pressed and ticks softly when you move onto it (overnight polish,
+	# 15 Nov 2026: many menus were silent). Hooked here as each button joins the tree, so new menus get it for free.
+	get_tree().node_added.connect(_on_node_added)
 
 
 func _make_music_player() -> AudioStreamPlayer:
@@ -118,6 +124,8 @@ func _stream(name: String) -> AudioStream:
 
 
 func play(name: String, volume_db := 0.0, pitch_jitter := 0.05) -> void:
+	if name.begins_with("ui_"):
+		_ui_frame = Engine.get_process_frames()
 	var s := _stream(name)
 	if s == null:
 		return
@@ -152,6 +160,54 @@ func play_at(name: String, pos: Vector3, volume_db := 0.0, pitch_jitter := 0.08)
 	p.finished.connect(p.queue_free)
 	p.play()
 	_caption(name)
+
+
+# ----------------------------------------------------------------------------- menu sounds
+func _on_node_added(n: Node) -> void:
+	if not n is BaseButton:
+		return
+	var b := n as BaseButton
+	b.pressed.connect(_ui_pressed.bind(b))
+	b.focus_entered.connect(_ui_moved.bind(b))
+	b.mouse_entered.connect(_ui_moved.bind(b))
+
+
+func _quiet(b: BaseButton) -> bool:
+	# A button can opt out (meta "no_ui_sound"), and nothing ticks for a button that can't be used or isn't shown
+	return not is_instance_valid(b) or b.has_meta("no_ui_sound") or b.disabled or not b.is_visible_in_tree()
+
+
+func _ui_pressed(b: BaseButton) -> void:
+	if not is_instance_valid(b) or b.has_meta("no_ui_sound"):
+		return                                  # (not _quiet(): a press often hides its own menu straight away)
+	# Wait till the end of the frame: the button's own code runs after this hook and may play its own sound
+	# (the pause menu does), and then this one stays quiet
+	_ui_after_press.call_deferred(Engine.get_process_frames())
+
+
+func _ui_after_press(frame: int) -> void:
+	if _ui_frame == frame or _ui_frame == frame + 1:
+		return
+	ui_sounds += 1
+	play("ui_accept", -9.0, 0.03)
+
+
+func _ui_moved(b: BaseButton) -> void:
+	if _quiet(b):
+		return
+	var now := Time.get_ticks_msec()
+	if now - _ui_move_at < 70:
+		return
+	_ui_move_after.call_deferred(Engine.get_process_frames(), now)
+
+
+func _ui_move_after(frame: int, now: int) -> void:
+	if _ui_frame == frame or _ui_frame == frame + 1:
+		return                                  # a menu opening (or a press) already made its sound this frame
+	_ui_move_at = now
+	ui_sounds += 1
+	play("ui_move", -15.0, 0.04)
+	_ui_frame = -1                              # a tick isn't a reason to hush the next press
 
 
 func _caption(name: String) -> void:
