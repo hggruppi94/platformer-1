@@ -572,7 +572,23 @@ func _sheet_bag() -> Control:
 	_gadgets_page(box)
 	_gap(box)
 	_watches_page(box)
+	if Hidden.found_count() > 0:
+		_gap(box)
+		_hidden_page(box)
 	return null
+
+
+func _hidden_page(box: VBoxContainer) -> void:
+	# The hidden places (scripts/hidden_places.gd): how many found, the found ones by name and ??? for the rest. No
+	# hints: finding them is the fun. Only shown once one's been found, so the Bag never gives them away.
+	var head := _heading("Hidden places: %d of %d found" % [Hidden.found_count(), Hidden.PLACES.size()], box, 26)
+	head.name = "Hidden Places"
+	for world in [["earth", "Stars Hollow"], ["void", "The Void"]]:
+		var names := []
+		for p in Hidden.places_in(world[0]):
+			names.append(str(p.name) if Hidden.is_found(p.id) else "???")
+		var line := _line("%s: %s" % [world[1], ", ".join(names)], true, box)
+		line.name = "Hidden " + str(world[0])
 
 
 func _gadgets_page(box: VBoxContainer) -> Control:

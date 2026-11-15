@@ -168,6 +168,35 @@ static func hat(id: String) -> Node3D:
 				_mesh(h, _torus(0.05, 0.075), _mat(Color(0.85, 0.7, 0.35), 0.3, 0.8), Vector3(side * 0.08, 0.1, 0.22), Vector3(PI / 2.0 - 0.4, 0, 0))
 				_mesh(h, _cyl(0.05, 0.05, 0.015), _mat(Color(0.5, 0.85, 1.0), 0.6), Vector3(side * 0.08, 0.1, 0.225), Vector3(PI / 2.0 - 0.4, 0, 0))
 			_mesh(h, _cyl(0.3, 0.3, 0.03), _mat(Color(0.4, 0.25, 0.15)), Vector3(0, 0.08, 0), Vector3(-0.35, 0, 0), Vector3(1, 1, 0.25))
+		"shell_crown":
+			# Found at the Humming Shell (scripts/hidden_places.gd): a ring of little pink shells round the head
+			var pink := _mat(Color(1.0, 0.7, 0.82), 0.2)
+			_mesh(h, _torus(0.2, 0.24), _mat(Color(1.0, 0.9, 0.8)), Vector3(0, 0.0, 0))
+			for k in 7:
+				var a := k * TAU / 7
+				_mesh(h, _cyl(0.0, 0.07, 0.16, 8), pink, Vector3(sin(a) * 0.22, 0.08, cos(a) * 0.22), Vector3(0, 0, 0))
+				_mesh(h, _sphere(0.035), _mat(Color(1.0, 0.95, 0.9), 0.5), Vector3(sin(a) * 0.24, 0.02, cos(a) * 0.24))
+		"acorn_cap":
+			# Found at the Fairy Ring: a big acorn cup worn as a cap, with its little stalk on top
+			_mesh(h, _sphere(0.28), _mat(Color(0.6, 0.42, 0.25)), Vector3(0, -0.02, 0), Vector3.ZERO, Vector3(1, 0.55, 1))
+			for k in 10:
+				var a := k * TAU / 10
+				_mesh(h, _sphere(0.05), _mat(Color(0.48, 0.32, 0.18)), Vector3(sin(a) * 0.24, 0.0, cos(a) * 0.24))
+			_mesh(h, _cyl(0.025, 0.035, 0.12, 6), _mat(Color(0.4, 0.28, 0.15)), Vector3(0, 0.17, 0), Vector3(0, 0, 0.3))
+		"starfinder_hat":
+			# For finding all six hidden places in the Void: a deep blue explorer's hat with a gold star compass on it
+			var blue := _mat(Color(0.22, 0.25, 0.6))
+			_mesh(h, _cyl(0.36, 0.36, 0.025), blue, Vector3(0, -0.01, 0))
+			_mesh(h, _cyl(0.2, 0.22, 0.2), blue, Vector3(0, 0.1, 0))
+			_mesh(h, _torus(0.2, 0.23), _mat(Color(1.0, 0.8, 0.3), 0.3, 0.8), Vector3(0, 0.03, 0))
+			_mesh(h, _sphere(0.06), _mat(Color(1.0, 0.9, 0.5), 1.2, 0.6), Vector3(0, 0.09, 0.22), Vector3.ZERO, Vector3(1, 1, 0.4))
+		"wanderer_hat":
+			# For finding all six hidden places in Stars Hollow: a floppy green bucket hat with a feather in its band
+			var green := _mat(Color(0.35, 0.55, 0.35))
+			_mesh(h, _cyl(0.34, 0.38, 0.06), green, Vector3(0, -0.01, 0), Vector3(0.08, 0, 0))
+			_mesh(h, _cyl(0.2, 0.24, 0.2), green, Vector3(0, 0.1, 0))
+			_mesh(h, _torus(0.235, 0.255), _mat(Color(0.75, 0.55, 0.3)), Vector3(0, 0.03, 0))
+			_mesh(h, _cyl(0.0, 0.03, 0.32, 6), _mat(Color(1.0, 0.45, 0.35)), Vector3(0.22, 0.14, -0.05), Vector3(0, 0, -0.7))
 		"lantern_hat":
 			# First prize for the Hollow Run: a little witchy hat with a glowing moth-lantern hung off its tip
 			var night := _mat(Color(0.22, 0.16, 0.38))

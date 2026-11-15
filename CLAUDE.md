@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **Hidden places: six in the Void and six in Stars Hollow** (slice 1 of the "feels bigger" plan,
+  https://claude.ai/artifact/KaGrzJgy9bvxU891Bchtog; Hayden: "Lets get started on the making the game feel bigger like
+  elden ring plan"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/hidden_places.gd`** (autoload `Hidden`, put in at play time, no `.tscn` changed): `PLACES` lists twelve
+    spots near the edges of each world, each with a landmark you can spot from far off and nothing solid in it. The
+    Void: the Star Well (a beam of light), the Upside-Down Tree, the Sky Swing (on a cloud), Bubble Spring, the Humming
+    Shell, Kite Hill. Stars Hollow: the Fairy Ring (fireflies and a gold beam), the Sleeping Giant (a big stone head
+    that snores), the Old Lookout (a tower with a red flag), the Smoky Chimney, the Stuck Balloon, the Bottle Tree.
+  - **Walk in and it's found** (`find(id)`, flag `hidden_<id>`, so it's saved): 6 sparkles, +1 Remnant in the Void, a
+    hat at two of them (Humming Shell: Shell Crown; Fairy Ring: Acorn Cap). All six in a world: 20 sparkles and that
+    world's hat (Starfinder Hat in the Void, Wanderer Hat on Earth). New reward hats in `cosmetics.gd` and
+    `shop/items.json`.
+  - **Nothing shows before it's found** (no spoilers): then a gold star on the map and minimap (legend row "Hidden
+    places", `map_screen.gd hidden_found()`) and a "Hidden places: N of 12 found" page in the Bag (`player_menu.gd
+    _hidden_page()`, names you haven't found are ???).
+  - Tests: new `tools/test_hidden_places.gd` (open flat ground, inside the walls, off trees and Earth's rolling hills,
+    40 m apart, finding once, the hats, map, Bag, save and load); earth (both runs), map, layout, walk_through,
+    world_detail, wilds, player_menu, clothes, clothing_fit, shop, quests and the rest touched pass. Previews:
+    `tools/capture_hidden_places.gd` (shots in the project files under world/previews/hidden_places).
+  - My choices Hayden may change: every name, look and spot, the rewards and the four hats, finding by walking in.
+
 - 2026-11-15: **The Hum Heads: five giant stone heads in Rhythm Springs** (Hayden: "Are there any eastern island head
   assets in the game?", then "Can we add some to melodies world"). Built and tested in the cloud (own Godot user
   folders, no save touched). `scripts/stone_heads.gd` (no class_name, preload it; `rhythm_springs.gd` calls
