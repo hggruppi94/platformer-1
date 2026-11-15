@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Checks the Time Goblins and their boss, Grandfather Tock (tools/build_time_goblin.gd, scripts/time_goblin.gd,
-# scripts/time_goblin_boss.gd, placed by scripts/bosses.gd): the Goblin Clockyard is in town and on the map with its
+# scripts/time_goblin_boss.gd, placed by scripts/bosses.gd and scripts/clock_tower.gd): the Goblin Clockyard is in town
+# and on the map with its
 # goblins about; a goblin's watch runs backwards; it blinks back in time to where it was, leaving ghosts, then is
 # dizzy and can't blink again for a while; it dodges a bubble by blinking; it pops while dizzy; it snatches a sparkle
 # when it bumps you and gives it back when popped. Tock is big, has a meter, rewinds a hit when he blinks, chimes rings
@@ -53,8 +54,8 @@ func _run() -> void:
 	check(yard != null and yard.find_children("Clock *", "", false, false).size() == 7, "...with its ring of old clocks")
 	var goblins := town.find_children("Time Goblin *", "", true, false)
 	check(goblins.size() == 8, "Time Goblins are about (%d)" % goblins.size())
-	var tock := town.find_child("Grandfather Tock", true, false)
-	check(tock != null and tock.is_in_group("bosses"), "Grandfather Tock keeps the clockyard")
+	check(town.find_child("Grandfather Tock", true, false) == null and yard.get_node_or_null("Tower Door") != null,
+		"Grandfather Tock lives in his Clockwork Tower now, through the Tower Door")
 	var off := []
 	for g in goblins:
 		var at := (g as Node3D).global_position
@@ -129,7 +130,21 @@ func _run() -> void:
 	g2.shot(1, g2.global_position, Vector3.FORWARD)
 	check(game.sparkles == 5, "pop it and you get the sparkle back")
 
-	# --- Grandfather Tock ---
+	# --- Grandfather Tock, in his Clockwork Tower (scripts/clock_tower.gd) ---
+	change_scene_to_file("res://scenes/bosses/clock_tower.tscn")
+	await _frames(8)
+	await _physics(4)
+	town = current_scene as Node3D
+	p = town.find_child("Player", true, false) as CharacterBody3D
+	var tock := town.find_child("Grandfather Tock", true, false)
+	check(tock != null and tock.is_in_group("bosses"), "Grandfather Tock keeps his tower")
+	town.call("wake")
+	town.set("hand_on", false)                              # (the floor hand is tools/test_boss_lairs.gd's)
+	await _physics(10)
+	for i in 240:                                           # (he hops down off his dais)
+		await physics_frame
+		if (tock as CharacterBody3D).is_on_floor() and (tock as Node3D).global_position.y < 1.0:
+			break
 	p.global_position = tock.global_position + Vector3(0, 1, 12)
 	tock.player = p
 	await _physics(3)

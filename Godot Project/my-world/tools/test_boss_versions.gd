@@ -50,17 +50,27 @@ func _run() -> void:
 	check(hollow != null and hollow.is_in_group("map_landmarks"), "Boulder Hollow is in town and on the map")
 	check(hollow != null and hollow.find_children("Boulder *", "StaticBody3D", false, false).size() == 12,
 		"...ringed with big boulders (two ways in)")
+	check(town.find_child("The Boulderdillo", true, false) == null and hollow.get_node_or_null("Canyon Mouth") != null,
+		"the Boulderdillo lives in Boulder Canyon now, through the Canyon Mouth")
+	var plain := town.find_child("Crocodillo 0", true, false)
+	check(plain != null and plain.size == 1.0 and (plain.get_node("Visual") as Node3D).scale.is_equal_approx(Vector3.ONE),
+		"ordinary Crocodillos are their old size")
+	# --- In Boulder Canyon (scripts/boulder_canyon.gd) ---
+	change_scene_to_file("res://scenes/bosses/boulder_canyon.tscn")
+	await _frames(8)
+	await _physics(4)
+	town = current_scene as Node3D
+	p = town.find_child("Player", true, false) as CharacterBody3D
 	var boss := town.find_child("The Boulderdillo", true, false) as CharacterBody3D
 	check(boss != null and boss.is_in_group("bosses") and boss.is_in_group("enemies"), "the Boulderdillo lives there")
-	await _physics(10)
+	town.call("wake")
+	town.set("rocks_on", false)                             # (the falling rocks are tools/test_boss_lairs.gd's)
+	await _physics(40)
 	check(_height(boss) > 4.0, "it's huge (%.1f m tall)" % _height(boss))
 	check(boss.get_node_or_null("BossMeter") != null, "it has a meter with its name")
 	check(boss.find_children("Boulder*", "MeshInstance3D", true, false).size() >= 9
 		and boss.get_node("Visual/Ball").find_children("BallBoulder*", "", false, false).size() >= 12,
 		"boulders have grown into its shell, curled up or not")
-	var plain := town.find_child("Crocodillo 0", true, false)
-	check(plain != null and plain.size == 1.0 and (plain.get_node("Visual") as Node3D).scale.is_equal_approx(Vector3.ONE),
-		"ordinary Crocodillos are their old size")
 
 	# --- Thick hide ---
 	boss.set_physics_process(false)
@@ -106,9 +116,10 @@ func _run() -> void:
 	boss.shot(boss.stomps_to_defeat - boss.hits, boss.global_position, Vector3.FORWARD)
 	check(boss.defeated, "enough bubbles pop it")
 	check(root.get_node("Dialogue").flags.has("popped_boulderdillo"), "popping it is remembered")
+	check(not boss._cross and boss.rolls_in_a_row == 3, "it calms down again for next time")
 	await create_timer(3.2).timeout
 	check(town.find_children("Pebbledillo *", "", true, false).is_empty(), "popped Pebbledillos are gone for good")
-	check(not boss._cross and boss.rolls_in_a_row == 3, "it calms down again for next time")
+	check(not is_instance_valid(boss), "...and it's gone from its canyon till your next visit")
 
 	# --- The Gloop King gets cross (in his own kingdom: scripts/gloop_kingdom.gd) ---
 	root.get_node("Bosses").enter_kingdom()

@@ -182,6 +182,9 @@ func place_name() -> String:
 		return "The Gloop Kingdom"
 	if path == Arena.LEVEL:
 		return "The Star Arena"
+	if Bosses.lair_for_scene(path) != "":
+		var lair := str(Bosses.LAIRS[Bosses.lair_for_scene(path)].name)
+		return lair[0].to_upper() + lair.substr(1)
 	if path.begins_with("res://scenes/scary_world/"):
 		return "Dusk's Embrace"
 	if path.begins_with("res://scenes/races/"):
