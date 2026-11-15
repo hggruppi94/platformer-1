@@ -25,6 +25,7 @@ extends "res://scripts/portal_world.gd"
 # heat breaks and the sun eases down to a golden evening.
 
 const OFF_BEAT := preload("res://scripts/off_beat.gd")
+const STONE_HEADS := preload("res://scripts/stone_heads.gd")   # the Hum Heads round the north-west edge (15 Nov 2026)
 const STONES := 9
 const SHELL_NAMES := ["the Sizzle Steps' shell", "the shell on top of Waterfall Mesa", "the Dance Floor's shell"]
 const HEAT_MAX := 100.0
@@ -100,6 +101,7 @@ func picture() -> void:
 	if ob:
 		ob.add_child(OFF_BEAT.model())
 	_add_notes()
+	STONE_HEADS.place(self)
 
 
 func setup() -> void:
@@ -110,6 +112,7 @@ func setup() -> void:
 	_add_melody()
 	_add_slide()
 	_add_notes()
+	STONE_HEADS.place(self)
 	_make_hud()
 	if not Portals.is_cleared(world_id):
 		_add_off_beat()
