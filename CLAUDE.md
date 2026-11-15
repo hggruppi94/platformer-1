@@ -120,6 +120,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `tools/capture_hidden_places.gd` (shots in the project files under world/previews/hidden_places).
   - My choices Hayden may change: every name, look and spot, the rewards and the four hats, finding by walking in.
 
+- 2026-11-15: **The Hum Heads: five giant stone heads in Rhythm Springs** (Hayden: "Are there any eastern island head
+  assets in the game?", then "Can we add some to melodies world"). Built and tested in the cloud (own Godot user
+  folders, no save touched). `scripts/stone_heads.gd` (no class_name, preload it; `rhythm_springs.gd` calls
+  `STONE_HEADS.place(self)` in `setup()` and `picture()`, so the scene isn't rebuilt): five island-style heads in an arc
+  round the valley's north-west edge (`RING` 41 m, `ANGLES` 215 to 255 degrees), facing in. Dark grey stone, long
+  faces, heavy brows, long noses, pursed lips, long ears, carved arms, each on a plinth with a coloured stone topknot
+  and eyes in the same colour. Solid. Their faces turn a little to watch you go by (14 m). Walk up to one (4.5 m) and
+  it hums its note (C D E G A, a "mmm" made in code): its mouth opens, its eyes glow and a note floats up. While the
+  beat's broken they hum out of tune and wobble ("Out of tune! Fix the beat." once a visit when all five have hummed);
+  once Rhythm Springs is mended, humming all five makes them sing their chord together: 5 sparkles once (flag
+  `hum_heads_song`, none on practice trips). Standing beside one is shade for the heat ("Shade Head <n>" markers).
+  New `tools/test_hum_heads.gd`; rhythm_springs, peepers, world_detail, practice_trips and portals pass. Previews:
+  `tools/capture_hum_heads.gd` (project files, world/previews/hum_heads).
+  - My choices Hayden may change: the name, how many and where, the colours, the humming and the reward.
+
 - 2026-11-15: **The portal worlds' bosses get looks of their own** (Hayden: "the portal worlds bosses each need new
   unique designs instead of being copy paste of old bosses"). Each is still built on its old boss's scene and fights
   exactly as before (so saves, tests and the fight code are unchanged), but every old mesh is taken off
