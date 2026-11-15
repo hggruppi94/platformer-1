@@ -259,7 +259,7 @@ func _add_frost_gloop() -> void:
 	cs.position.y = 1.1
 	body.add_child(cs)
 	block.add_child(body)
-	var spot := USE_SPOT.make(Vector3(0, -0.6, 3.2), func() -> String: return "" if gloop_awake else "look at the frozen Gloop",
+	var spot := USE_SPOT.make(Vector3(0, -0.6, 3.2), func() -> String: return "" if gloop_awake else "look at the frozen walrus",
 		_look_at_block, 2.6, 3.0)
 	spot.name = "Spot"
 	m.add_child(spot)
@@ -269,7 +269,7 @@ func _look_at_block() -> void:
 	if gloop_awake:
 		return
 	var left := 3 - moments_thawed()
-	Game.message("A frozen Gloop. Thaw %d moment%s first." % [left, "" if left == 1 else "s"]
+	Game.message("A frozen walrus. Thaw %d moment%s first." % [left, "" if left == 1 else "s"]
 		if left > 0 else "The ice round it is cracking...")
 	Audio.play("ui_back", -8.0)
 
@@ -289,7 +289,7 @@ func wake_gloop() -> void:
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.3, 0.5)
 	Juice.blip("pop", 0.5, -2.0)
-	Game.message("The Frost Gloop's out! Pop it! Jump the frost ring!")
+	Game.message("Tuskwinter's out! Pop it! Jump the frost ring!")
 
 
 func mend() -> void:
@@ -480,7 +480,7 @@ func flurry_lines() -> Array:
 				left.append(["the fish out on the lake", "the snowball fight on the hilltop", "the bird in the icicle cave"][i])
 		return ["%d moving again!" % n if n > 0 else "Chip it three times!",
 			"Still frozen: %s." % " and ".join(left)]
-	return ["The big Gloop's hugging time still!",
+	return ["The big walrus is hugging time still!",
 		"Pop it! Jump the frost ring!"]
 
 

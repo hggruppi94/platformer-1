@@ -1,18 +1,24 @@
 extends "res://scripts/gloop_king.gd"
 
-# The Riptide Gloop, the Gloop King's seaside cousin and the Tide Reef's boss (plan item 19a world 5,
-# scripts/tide_reef.gd). The same goo as the King, but sea-blue and foamy, with a crown of coral. It swallowed the whole
-# tide and has been snoozing in the Deep Basin ever since, swollen with it. It wakes once the three Tide Pearls are
-# found.
+# Grumblefin, the Tide Reef's boss (plan item 19a world 5, scripts/tide_reef.gd). The file and node names still say
+# "riptide_gloop" / "The Riptide Gloop" because saves and tests know them; nobody sees those. Since 15 Nov 2026
+# (Hayden: "the portal worlds bosses each need new unique designs instead of being copy paste of old bosses") it isn't
+# a sea-blue Gloop King any more: it's a giant grumpy pufferfish, crusted with barnacles, wearing a crown of pink
+# coral, with a pouty mouth, little flapping fins and a fan tail. It swallowed the whole tide and has been snoozing in
+# the Deep Basin ever since. It wakes once the three Tide Pearls are found.
 #
 # It's far too slippery to pop: bubbles slide off and stomps just bounce. That's where Otto comes in (the friend who
 # thought he was no use): every few seconds he wraps his arms round it and HOLDS it still (hold(), called by the
-# world), and only then do bubbles and stomps count. Between holds it belly-flops a wave to jump, like the King, calls
-# in little Splash Gloops, and now and then it sucks the water in: a riptide that drags you towards it while you're on
-# the ground (jump to break free). Popping it lets the tide go: it tells the world, which mends (Portals.clear).
-# Kid-safe like every Gloop: a normal bump, nothing more, and it doesn't count as popping the King.
+# world), and only then do bubbles and stomps count. Between holds it belly-flops a wave to jump, calls in little
+# Splash Gloops, and now and then it sucks the water in: a riptide that drags you towards it while you're on the
+# ground (jump to break free). It puffs right up while it sucks, spines out, and goes flat and flustered while Otto
+# holds it. Popping it lets the tide go: it tells the world, which mends (Portals.clear). Kid-safe: a normal bump,
+# nothing more, and it doesn't count as popping the King. Its look is built here in code on the Gloop King scene's
+# Body (strip() takes the goo off), so the fight's own squash and bob still move it.
 
+const PARTS := preload("res://scripts/boss_parts.gd")
 const SEA := Color(0.3, 0.75, 0.95)
+const BOSS_NAME := "Grumblefin"
 const PULL_EVERY := 7.5                        # seconds between riptides
 const PULL_TIME := 2.2
 const PULL_SPEED := 3.2                        # metres a second it drags you
@@ -25,43 +31,88 @@ var _hold_t := 0.0
 var _pull_cd := 6.0
 var _pull_t := 0.0
 var _slip_cd := 0.0
+var _fish: Node3D
+var _spines: Node3D
+var _fins: Array[Node3D] = []
+var _tail: Node3D
+var _puff := 0.0                              # 0 its normal round self, 1 puffed right up
 
 
 func _ready() -> void:
-	title = "Riptide Gloop"
+	title = BOSS_NAME
 	ring_colour = SEA
 	super()
-	_sea(self)
-	var crown := get_node_or_null("Visual/Body/Crown")
-	if crown:
-		_coral_crown(crown)
+	_sea_puddle()
+	var body := visual.get_node("Body") as Node3D
+	PARTS.strip(visual)
+	for d in _drops:                                         # no goo, so no drips
+		(d.mesh as Node).queue_free()
+	_drops.clear()
+	_pufferfish(body)
 
 
-func _sea(n: Node) -> void:
-	# Its goo, deep sea-blue swirled with white foam
-	for m in _goo:
-		m.set_shader_parameter("deep", Color(0.08, 0.25, 0.5))
-		m.set_shader_parameter("green", Color(0.25, 0.7, 0.9))
-		m.set_shader_parameter("gold", Color(0.9, 1.0, 1.0))
-	var puddle := n.get_node_or_null("Puddle") as MeshInstance3D
+func _sea_puddle() -> void:
+	var puddle := get_node_or_null("Puddle") as MeshInstance3D
 	if puddle and puddle.material_override is StandardMaterial3D:
 		var pm := (puddle.material_override as StandardMaterial3D).duplicate() as StandardMaterial3D
 		pm.albedo_color = Color(0.3, 0.7, 0.95, 0.5)
 		puddle.material_override = pm
 
 
-func _coral_crown(crown: Node) -> void:
-	# The King's gold crown and gem turned to pink coral
-	var pink := StandardMaterial3D.new()
-	pink.albedo_color = Color(1.0, 0.5, 0.62)
-	pink.roughness = 0.6
-	pink.emission_enabled = true
-	pink.emission = Color(1.0, 0.45, 0.6)
-	pink.emission_energy_multiplier = 0.3
-	for c in crown.find_children("*", "MeshInstance3D", true, false):
-		(c as MeshInstance3D).material_override = pink
-	if crown is MeshInstance3D:
-		(crown as MeshInstance3D).material_override = pink
+func _pufferfish(body: Node3D) -> void:
+	_fish = PARTS.pivot(body, Vector3(0, 0.55, 0), "Pufferfish")
+	var skin := PARTS.mat(Color(0.98, 0.7, 0.3), 0.55)                   # sunny orange
+	var belly := PARTS.mat(Color(1.0, 0.93, 0.75), 0.6)
+	var spot := PARTS.mat(Color(0.75, 0.38, 0.2), 0.6)
+	var spine := PARTS.mat(Color(1.0, 0.86, 0.6), 0.5)
+	var fin := PARTS.mat(Color(0.35, 0.8, 0.95), 0.4, 0.15, 0.85)
+	var coral := PARTS.mat(Color(1.0, 0.48, 0.62), 0.6, 0.3)
+	var shell := PARTS.mat(Color(0.93, 0.9, 0.84), 0.9)
+	var dark := PARTS.mat(Color(0.06, 0.08, 0.14), 0.25)
+	var white := PARTS.mat(Color(1, 1, 1), 0.2, 0.6)
+	PARTS.ball(_fish, 0.52, Vector3.ZERO, skin, Vector3(1.0, 0.95, 1.05), "Skin")
+	PARTS.ball(_fish, 0.42, Vector3(0, -0.14, 0.12), belly, Vector3(1.0, 0.8, 1.0), "Belly")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 23
+	for k in 9:                                                 # dark spots on its back
+		var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(0.2, 1.0), rng.randf_range(-1, 0.4)).normalized()
+		PARTS.face(PARTS.ball(_fish, 0.05, d * 0.5, spot, Vector3(1, 0.4, 1)), d)
+	# Spines all over it (not its face or its belly), on their own node so they can stand up when it puffs
+	_spines = PARTS.pivot(_fish, Vector3.ZERO, "Spines")
+	for k in 46:
+		var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.35, 1), rng.randf_range(-1, 1)).normalized()
+		if d.z > 0.55 and d.y < 0.5:
+			continue
+		PARTS.spike(_spines, d * 0.46, d, 0.16, 0.035, spine)
+	# Barnacles crusted on its back and sides
+	for k in 8:
+		var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.1, 0.7), rng.randf_range(-1, -0.1)).normalized()
+		PARTS.face(PARTS.cyl(_fish, 0.03, 0.06, 0.06, d * 0.52, shell), d)
+	# Its grumpy face: big eyes on the sides, heavy brows, a pouty little mouth
+	for side in [-1.0, 1.0]:
+		PARTS.ball(_fish, 0.13, Vector3(side * 0.3, 0.14, 0.36), white)
+		PARTS.ball(_fish, 0.075, Vector3(side * 0.31, 0.13, 0.46), dark)
+		PARTS.ball(_fish, 0.022, Vector3(side * 0.29, 0.17, 0.52), white)
+		PARTS.box(_fish, Vector3(0.2, 0.05, 0.08), Vector3(side * 0.27, 0.3, 0.42), spot, Vector3(0, 0, side * -0.4))
+		# Little side fins that flap
+		var f := PARTS.pivot(_fish, Vector3(side * 0.47, -0.05, 0.1), "Fin %s" % ("L" if side < 0 else "R"))
+		PARTS.ball(f, 0.16, Vector3(side * 0.1, 0, -0.04), fin, Vector3(0.9, 0.55, 0.15)).rotation.y = side * 1.2
+		_fins.append(f)
+	PARTS.ring(_fish, 0.05, 0.1, Vector3(0, -0.08, 0.53), PARTS.mat(Color(0.95, 0.45, 0.4), 0.4), Vector3(PI / 2, 0, 0),
+		"Mouth")
+	# A fan tail and a fin on top
+	_tail = PARTS.pivot(_fish, Vector3(0, 0.02, -0.5), "Tail")
+	for side in [-1.0, 1.0]:
+		PARTS.ball(_tail, 0.2, Vector3(side * 0.1, 0.05, -0.14), fin, Vector3(0.45, 1.0, 0.12)).rotation = \
+			Vector3(0.0, PI / 2, side * 0.5)
+	PARTS.ball(_fish, 0.16, Vector3(0, 0.5, -0.12), fin, Vector3(0.12, 0.8, 1.0))
+	# A crown of pink coral
+	var crown := PARTS.pivot(_fish, Vector3(0, 0.46, 0.08), "Coral Crown")
+	for k in 6:
+		var a := TAU * k / 6.0
+		var at := Vector3(cos(a) * 0.15, 0.0, sin(a) * 0.12)
+		PARTS.spike(crown, at, Vector3(cos(a) * 0.4, 1.0, sin(a) * 0.3), 0.24, 0.035, coral)
+		PARTS.ball(crown, 0.035, at + Vector3(cos(a) * 0.09, 0.22, sin(a) * 0.07), coral)
 
 
 func hold(seconds: float) -> void:
@@ -105,8 +156,10 @@ func _physics_process(delta: float) -> void:
 			_touch_player()
 		if _hold_t <= 0.0:
 			release()
+		_puff_look(delta)
 		return
 	super(delta)
+	_puff_look(delta)
 	if defeated or player == null:
 		pulling = false
 		return
@@ -120,6 +173,21 @@ func _physics_process(delta: float) -> void:
 		_pull_cd -= delta
 		if _pull_cd <= 0.0:
 			start_pull()
+
+
+func _puff_look(delta: float) -> void:
+	# It puffs right up (spines out) while it sucks the water in, and squashes flat and flustered while Otto holds it;
+	# its fins never stop flapping and its tail sways
+	if _fish == null:
+		return
+	var want := 1.0 if pulling else (-0.4 if held else 0.0)
+	_puff = lerpf(_puff, want, 1.0 - exp(-6.0 * delta))
+	var k := 1.0 + 0.3 * _puff
+	_fish.scale = Vector3(k, k * (1.0 if _puff >= 0.0 else 1.0 + 0.3 * _puff), k)
+	_spines.scale = Vector3.ONE * (1.0 + 0.6 * maxf(_puff, 0.0))
+	for i in _fins.size():
+		_fins[i].rotation.z = sin(_t * (14.0 if held else 6.0) + i * PI) * 0.5
+	_tail.rotation.y = sin(_t * 4.0) * 0.4
 
 
 func start_pull() -> void:
@@ -196,7 +264,7 @@ func _call_court(count: int) -> void:
 func _hurt_message(stomped: bool) -> void:
 	super(stomped)
 	var left := stomps_to_defeat - hits
-	Game.message("The Riptide Gloop sloshes! %d more to pop it." % left if left > 1 else "One more and the Riptide Gloop pops!")
+	Game.message("%s sputters! %d more to pop it." % [BOSS_NAME, left] if left > 1 else "One more and %s pops!" % BOSS_NAME)
 
 
 func _defeated() -> void:

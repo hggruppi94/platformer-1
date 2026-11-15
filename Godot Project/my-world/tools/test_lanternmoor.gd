@@ -267,8 +267,9 @@ func _check_snatcher() -> void:
 	await _frames(4)
 	var g := s._snatcher as CharacterBody3D
 	check(s.snatcher_awake and g.process_mode == Node.PROCESS_MODE_INHERIT, "with all three beacons lit, he wakes up")
-	check(g.get("title") == "The Dawn Snatcher" and s.get_node_or_null("Snatcher/Snoring") == null, "...the Dawn Snatcher, with his own name, no longer snoring")
-	check(g.get_node_or_null("Visual/Head/Clock/Dawn Glow") != null, "...the dawn glowing in his clock hat")
+	check(g.get("title") == "The Dawn Snatcher" and g.get_node_or_null("Visual/Body/Swag Bag/Dawn/Dawn Glow") != null
+		and g.get_node_or_null("Visual/ArmL/Flap/Wing") != null and (g.get_node("Visual/Head/Clock/Case") as MeshInstance3D).mesh == null and s.get_node_or_null("Snatcher/Snoring") == null, "...the Dawn Snatcher, with his own name, no longer snoring")
+	check(g.get_node_or_null("Visual/Body/Swag Bag/Dawn/Dawn Glow") != null, "...the dawn glowing in his swag bag")
 	await _physics(30)
 	var before: int = rem.count
 	player.global_position = Vector3(0, 0.6, 20)                          # out of his reach while he's popped

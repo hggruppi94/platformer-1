@@ -372,7 +372,7 @@ func otto_lines() -> Array:
 	if is_mended() and not Portals.has_found(world_id, "thanked"):
 		Portals.note_found(world_id, "thanked")
 		return ["Listen! The sea's coming HOME!",
-			"And who held the Gloop still? ME!"]
+			"And who held Grumblefin still? ME!"]
 	if is_mended() and flood > 0.5:
 		if lamps_lit() < LAMPS.size():
 			return ["Isn't it lovely, being under the sea again? Look at the fish!",
@@ -393,7 +393,7 @@ func otto_lines() -> Array:
 		Portals.note_found(world_id, "met_otto")
 		return ["Oh! Hello. I'm Otto. This bubble's my chair.",
 			"It only moves if a friend comes along.",
-			"A Gloop swallowed the sea! Three Tide Pearls bring it back.",
+			"A giant pufferfish swallowed the sea! Three Tide Pearls bring it back.",
 			"You'd take me WITH you? Okay!"]
 	if riptide_awake:
 		if grabs == 0:
@@ -408,7 +408,7 @@ func otto_lines() -> Array:
 				"the Kelp Grotto",
 				"the Coral Spire"][i])
 	if left.size() == 0:
-		return ["All three! The Gloop's waking up...",
+		return ["All three! Grumblefin's waking up...",
 			"I'll come!"]
 	var n := 3 - left.size()
 	var first := "Stay close, my bubble follows!"
@@ -850,7 +850,7 @@ func _add_riptide() -> void:
 	snore.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	snore.position = Vector3(0.8, 4.4, 0)
 	m.add_child(snore)
-	var spot := USE_SPOT.make(Vector3(0, -0.3, 4.0), func() -> String: return "" if riptide_awake else "look at the sleeping Gloop",
+	var spot := USE_SPOT.make(Vector3(0, -0.3, 4.0), func() -> String: return "" if riptide_awake else "look at the sleeping pufferfish",
 		_look_at_riptide, 2.8, 3.0)
 	spot.name = "Spot"
 	m.add_child(spot)
@@ -860,7 +860,7 @@ func _look_at_riptide() -> void:
 	if riptide_awake:
 		return
 	var left := 3 - pearls()
-	Game.message("A huge sleeping Gloop, full of sea! %s" %
+	Game.message("A huge sleeping pufferfish, full of sea! %s" %
 		("The %d Tide Pearl%s would wake it." % [left, "" if left == 1 else "s"]) if left > 0 else "It's stirring...")
 	Audio.play("ui_back", -8.0)
 

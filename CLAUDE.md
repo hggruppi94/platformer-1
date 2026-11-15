@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **The portal worlds' bosses get looks of their own** (Hayden: "the portal worlds bosses each need new
+  unique designs instead of being copy paste of old bosses"). Each is still built on its old boss's scene and fights
+  exactly as before (so saves, tests and the fight code are unchanged), but every old mesh is taken off
+  (`scripts/boss_parts.gd strip()`) and a new look is built in code on the same nodes, so the fight's squash, bob and
+  swings still move it. Internal names stay ("The Frost Gloop", "The Riptide Gloop", the scripts' file names).
+  - **Tuskwinter** (Frozen Moment, `frost_gloop.gd`): a huge grumpy frost walrus with icicle tusks, frosty whiskers,
+    snow on its back, a crown of icicles and a gold pocket watch frozen in ice on a chain from its tusk (the stopped
+    moment). Flippers paddle as it moves. Its minions are still Snow Gloops.
+  - **Grumblefin** (Tide Reef, `riptide_gloop.gd`): a giant cross pufferfish, sunny yellow with spots, 46 spines,
+    barnacles and a coral crown. It puffs right up when it sucks the sea in, squashes when Otto holds it, flaps its
+    fins and wags its tail.
+  - **The Dawn Snatcher** (Lanternmoor, `dawn_snatcher.gd`): a giant night magpie thief: glossy black with a teal and
+    purple sheen, a white belly, a robber's mask, a striped scarf, a long tail, and a swag bag over his shoulder with
+    the stolen dawn glowing out of it. His wings beat (faster when he's cross: `time_goblin_boss.gd cross_line`).
+  - **The Stormram** (Glenmoor, `stormram.gd`): a ram made of storm cloud on four sturdy legs, with gold curling horns,
+    glowing eyes and little lightning bolts flickering in its fleece; its ball is a rolling cloud.
+  - Words that called them Gloops changed (`frozen_moment.gd`, `tide_reef.gd`); test_crack_opening keeps the new names
+    out of the cutscenes. Tests: frozen_moment, tide_reef, lanternmoor, glenmoor (each checks the new look),
+    boss_versions, gloop_king, chaos_trials, time_goblins, world_detail pass. Previews: `tools/capture_boss_designs.gd`
+    (project files, world/previews/boss_designs).
+  - My choices Hayden may change: the names Tuskwinter and Grumblefin, every look.
+
 - 2026-11-15: **Grandfather Tock and the Boulderdillo get levels of their own** (Hayden: "I want the time goblins, and
   the crocodillo boss to get their own arenas as well"). Built like the Gloop Kingdom: a tiny scene, everything made at
   load. Shared base `scripts/boss_lair.gd` (the boss asleep until you reach the arena, the treasure once a visit, flag

@@ -195,7 +195,11 @@ func _run_speed(player: CharacterBody3D, at: Vector3) -> float:
 func _check_moments() -> void:
 	var s := current_scene
 	var player := s.get_tree().get_first_node_in_group("player") as CharacterBody3D
-	check(s.get_node("FrostGloop/Spot").what() == "look at the frozen Gloop", "the Frost Gloop sits frozen on its throne")
+	check(s.get_node("FrostGloop/Spot").what() == "look at the frozen walrus", "the Frost Gloop sits frozen on its throne")
+	var walrus := s.get_node_or_null("The Frost Gloop/Visual/Body/Walrus")
+	check(walrus != null and walrus.get_node_or_null("Head/Frozen Watch") != null
+		and (s.get_node("The Frost Gloop/Visual/Body") as MeshInstance3D).mesh == null,
+		"it's Tuskwinter, a frost walrus with a frozen watch on its tusk, not a blue Gloop King")
 	check(s._gloop.process_mode == Node.PROCESS_MODE_DISABLED, "...not moving at all")
 	player.global_position = (s.get_node("FrostGloop") as Node3D).global_position + Vector3(0, 0, 6)
 	await _frames(10)
@@ -235,7 +239,7 @@ func _check_gloop() -> void:
 	await _frames(4)
 	var g := s._gloop as CharacterBody3D
 	check(s.gloop_awake and g.process_mode == Node.PROCESS_MODE_INHERIT, "with all three thawed, it cracks out of its ice")
-	check(g.get("title") == "Frost Gloop" and g.ring_colour.b > 0.9, "...the Frost Gloop, with its own name and a ring of frost")
+	check(g.get("title") == "Tuskwinter" and g.ring_colour.b > 0.9, "...the Frost Gloop, with its own name and a ring of frost")
 	await _physics(30)
 	var before: int = rem.count
 	player.global_position = Vector3(0, 0.6, 20)                     # out of its reach while it's popped

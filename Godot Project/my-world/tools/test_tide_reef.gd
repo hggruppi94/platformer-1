@@ -374,7 +374,8 @@ func _check_riptide() -> void:
 	await _frames(4)
 	check(s.riptide_awake and g.process_mode == Node.PROCESS_MODE_INHERIT and s.get_node_or_null("RiptideGloop/Snoring") == null,
 		"with all three pearls, it wakes up")
-	check(str(g.get("title")) == "Riptide Gloop" and not portals.has_found("tide_reef", "x") and not root.get_node("Dialogue").flags.has("popped_gloop_king"),
+	check(str(g.get("title")) == "Grumblefin" and g.get_node_or_null("Visual/Body/Pufferfish/Spines") != null
+		and (g.get_node("Visual/Body") as MeshInstance3D).mesh == null and not portals.has_found("tide_reef", "x") and not root.get_node("Dialogue").flags.has("popped_gloop_king"),
 		"(it's the King's cousin, not the King)")
 	# Too slippery
 	check(not g.held and g.shot(3, g.global_position, Vector3.FORWARD) == "bounce" and g.hits == 0, "it's too slippery: bubbles slide right off")

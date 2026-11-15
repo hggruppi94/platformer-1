@@ -20,7 +20,7 @@ const SETTINGS_BACKUP := "user://settings.crack_opening_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
 const EARTH := "res://scenes/earth/earth.tscn"
 # Nothing a crack's cutscene says may name these (they're met later: Hayden's no-spoilers rule)
-const SPOILERS := ["Gloop", "Thornknot", "Snatcher", "Stormram", "Riptide", "Glitch", "Chaos", "Agent", "Hush",
+const SPOILERS := ["Gloop", "Tuskwinter", "Grumblefin", "Thornknot", "Snatcher", "Stormram", "Riptide", "Glitch", "Chaos", "Agent", "Hush",
 	"boss", "Boss", "Dash and Rex's", "experiment"]
 
 var failures := 0
