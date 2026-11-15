@@ -60,7 +60,7 @@ const ZOOM_STEP := 1.5                              # a button, a key or a click
 
 # The kinds of things on the maps, in the order the list shows them: [id, name in the list]
 const KINDS := [["quests", "Quest stars"], ["people", "People"], ["homes", "People at home"], ["places", "Places & shops"],
-	["portals", "Portals"], ["races", "Races"], ["boosters", "Boosters"], ["watches", "Watches found"]]
+	["portals", "Portals"], ["races", "Races"], ["boosters", "Boosters"], ["watches", "Watches found"], ["hidden", "Hidden places"]]
 # Each followed quest's star colour, in the order they were followed
 const STAR_COLOURS := [Color(1.0, 0.85, 0.2), Color(1.0, 0.5, 0.75), Color(0.4, 0.9, 1.0), Color(0.6, 1.0, 0.45),
 	Color(1.0, 0.62, 0.3), Color(0.8, 0.65, 1.0)]
@@ -347,7 +347,18 @@ func legend_kinds() -> Array:
 		out.append("boosters")
 	if in_town() and not Watches.found_in_town().is_empty():
 		out.append("watches")
+	if not hidden_found().is_empty():
+		out.append("hidden")
 	return out
+
+
+func hidden_found() -> Array:
+	# The hidden places found in this world (scripts/hidden_places.gd): never one that's still to find
+	if in_town():
+		return Hidden.found_in("void")
+	if on_earth():
+		return Hidden.found_in("earth")
+	return []
 
 
 func _home_portal() -> Node3D:
@@ -698,6 +709,8 @@ func _legend_icon(c: Control, kind: String, at: Vector2, r: float) -> void:
 			_booster(c, at, r * 1.1, PI / 2.0, "strip")
 		"watches":
 			_watch(c, at, r * 0.8)
+		"hidden":
+			_hidden_mark(c, at, r * 0.9)
 
 
 # -----------------------------------------------------------------------------
@@ -964,6 +977,16 @@ func _flag(c: Control, at: Vector2, open: bool, h := 16.0) -> void:
 		Color(1.0, 0.82, 0.3) if open else Color(0.8, 0.8, 0.9, 0.6))
 
 
+func _hidden_mark(c: Control, at: Vector2, r: float) -> void:
+	# A hidden place you've found: a four-pointed gold star on a dark disc
+	c.draw_circle(at, r * 1.05, Color(0.12, 0.06, 0.2, 0.85))
+	var pts := PackedVector2Array()
+	for k in 8:
+		var a := k * PI / 4.0 - PI / 2.0
+		pts.append(at + Vector2(cos(a), sin(a)) * (r * 0.95 if k % 2 == 0 else r * 0.35))
+	c.draw_colored_polygon(pts, Color(1.0, 0.85, 0.35))
+
+
 func _watch(c: Control, at: Vector2, r: float) -> void:
 	c.draw_circle(at, r, Color(1.0, 0.82, 0.3))
 	c.draw_arc(at, r, 0, TAU, 16, Color(0.3, 0.15, 0.35), 1.5)
@@ -1034,6 +1057,12 @@ func _draw_full() -> void:
 		for d in DISTRICTS:
 			_text(c, r.position + to_map(Vector3(d[1].x, 0, d[1].y)) * r.size, d[0], _fs(24 if names_shown() else 17), Color(1, 1, 0.85), true, true)
 	_draw_people(c, r)
+	if shows("hidden"):
+		for h in hidden_found():
+			var at: Vector2 = r.position + to_map(h.pos) * r.size
+			_hidden_mark(c, at, 9.0)
+			if names_shown():
+				_text(c, at + Vector2(0, -_fs(16)), str(h.name), _fs(14), Color(1.0, 0.9, 0.55), true, true)
 	if in_town() and shows("places"):
 		for b in BUILDINGS:
 			var n := s.get_node_or_null(b) as Node3D
@@ -1174,6 +1203,11 @@ func _draw_mini_places(c: Control, origin: Vector2, size: float) -> void:
 			var at: Vector2 = origin + to_map(n.global_position) * size
 			if at.distance_to(mid) < MINI_SIZE / 2.0 - 6.0:
 				_bag(c, at, 6.0)
+	if shows("hidden"):
+		for h in hidden_found():
+			var at: Vector2 = origin + to_map(h.pos) * size
+			if at.distance_to(mid) < MINI_SIZE / 2.0 - 6.0:
+				_hidden_mark(c, at, 6.0)
 	if not shows("portals") or (on_earth() and not HummingOak.awake()):
 		return
 	var portal := s.get_node_or_null("Portal to Earth" if in_town() else "Portal Home") as Node3D
