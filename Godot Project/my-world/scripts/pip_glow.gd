@@ -131,6 +131,8 @@ func _process(delta: float) -> void:
 	if on != _on:
 		_on = on
 		glow_changed.emit(on)
+		if on and in_dark:
+			Juice.blip("sparkle", 1.4, -12.0)           # a soft twinkle as Pip's light comes on in the dark
 	strength = move_toward(strength, 1.0 if on else 0.0, delta * 2.0)
 	_dark = move_toward(_dark, 1.0 if in_dark else 0.0, delta * 1.5)
 	var full := in_dark or force

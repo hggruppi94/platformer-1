@@ -63,7 +63,9 @@ func _on_scene_changed() -> void:
 	var porch := _spot(g, "Porch", paths.position_of("blastoff_door", space, skip) + PORCH_OFF,
 		func() -> String: return "light the jack-o'-lantern" if Quests.on_step(QUEST, "porch") else "",
 		_light)
-	porch.add_child(_thing("Unlit", pumpkin_model(true, false)))
+	var unlit := _thing("Unlit", pumpkin_model(true, false))
+	porch.add_child(unlit)
+	unlit.global_rotation.y = atan2(-porch.global_position.x, -porch.global_position.z)
 	_place_lantern()
 	_refresh()
 
@@ -141,6 +143,8 @@ func _place_lantern() -> void:
 	lantern.name = "Our Lantern"
 	g.add_child(lantern)
 	lantern.global_position = (g.get_node("Porch") as Node3D).global_position
+	# Its grin faces the town green, out over Maple Lane, so people going by see it
+	lantern.rotation.y = atan2(-lantern.global_position.x, -lantern.global_position.z)
 	Fx.burst(g, lantern.global_position + Vector3(0, 0.4, 0), GLOW, 14, 0.06, 2.0, -1.5, 0.8)
 
 
