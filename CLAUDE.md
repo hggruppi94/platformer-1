@@ -123,6 +123,12 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     test_dialogue's two presses could end a talk and start it again, or answer a question before it chose, and
     Gloops or Tally got in the way; test_garden_caves' caves look for you every 0.15 s of real time. Both fixed in
     the tests. To shake these out, run the same test six at once in the cloud.
+  - **A boss finish** (`boss_bar.gd _finish_blow()`): every boss with a meter (Tock, the Boulderdillo, the Off-Beat,
+    Captain Glitch, the Hush, the centipede, Big Buzz, the Gloam, the Agent of Chaos) gets the same last-hit moment:
+    a tiny freeze, a shake and kick, rumble, a deep pop and a sparkle, gold bits, and a ring of light and a spray of
+    gold and boss-coloured stars (shapes on a tween). It goes off when the boss's `defeated` turns on or its meter
+    reaches 0, once, and not for a boss already beaten when the place loads. Shots: `tools/capture_boss_finish.gd`
+    (project files, world/previews/overnight_polish/pass2, 08 and 09).
 
 - 2026-11-15: **Overnight polish: bugs from a whole-game run, menu sounds, a calmer camera, fresh loading tips, five
   neighbour errands, and friends who cheer** (Hayden said yes to the overnight plan: playthrough bug hunt, polish,
