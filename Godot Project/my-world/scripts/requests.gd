@@ -144,6 +144,8 @@ func _announce() -> void:
 		return
 	if FirstNight.running():
 		return                                   # (the first look round the Void shows Tally's board instead)
+	if Game.needs_creator or Creator.is_open():
+		return                                   # (a new game, still making the hero: The First Night hasn't begun yet)
 	_told = rolled_visit
 	Game.message("New requests on Tally's board!")
 

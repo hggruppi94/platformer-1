@@ -1,0 +1,61 @@
+{
+  "name": "Pumpkin Night",
+  "giver": "nina_earth",
+  "start": {
+    "flag": "pumpkin_night_start"
+  },
+  "steps": [
+    {
+      "id": "gather",
+      "text": "Get a pumpkin and a candle!",
+      "checklist": [
+        ["pn_pumpkin", "Pumpkin: the pumpkin patch"],
+        ["pn_candle", "Candle: Hank's hardware store"]
+      ],
+      "where": [
+        {"place": "pumpkin_patch", "unless": "pn_pumpkin"},
+        {"place": "hardware", "unless": "pn_candle"}
+      ],
+      "done": {
+        "flags": ["pn_pumpkin", "pn_candle"]
+      }
+    },
+    {
+      "id": "carve",
+      "text": "Carve it with Nina.",
+      "where": [{"at": [1.5, -11.0], "world": "earth"}],
+      "override": {
+        "nina_earth": {"place": "fest_pies", "do": "idle", "label": "pumpkin_night"}
+      },
+      "done": {
+        "flag": "pn_carved"
+      }
+    },
+    {
+      "id": "porch",
+      "text": "Light it on Nina's porch.",
+      "where": ["blastoff_door"],
+      "override": {
+        "nina_earth": {"place": "blastoff_door", "do": "idle", "label": "pumpkin_night"}
+      },
+      "done": {
+        "flag": "pn_lit"
+      }
+    },
+    {
+      "id": "cider",
+      "text": "Warm cider! Ask Gus.",
+      "where": ["gus"],
+      "override": {
+        "nina_earth": {"place": "diner", "do": "idle", "label": "pumpkin_night"}
+      },
+      "done": {
+        "flag": "pn_cider"
+      }
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "Spookiest porch on Maple Lane! +12 sparkles."
+  }
+}

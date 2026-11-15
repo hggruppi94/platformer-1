@@ -23,6 +23,17 @@
     },
     {
       "when": {
+        "quest_step": "pumpkin_night:cider",
+        "season": "autumn"
+      },
+      "set": "pn_cider",
+      "lines": [
+        "Two warm ciders. Extra cinnamon.",
+        "Happy pumpkin night, kids."
+      ]
+    },
+    {
+      "when": {
         "quest_step": "summer_splash:lemonade"
       },
       "set": "splash_lemonade",
