@@ -13,6 +13,7 @@ extends Node3D
 # "preview" meta set and no player: then only picture() runs, so nothing gets saved, found or said.
 
 const USE_SPOT := preload("res://scripts/use_spot.gd")
+const PEEPER := preload("res://scripts/peeper.gd")
 const VEIN_GIVES := 2
 
 @export var world_id := ""
@@ -79,6 +80,8 @@ func _place_shared() -> void:
 			spot.name = "Spot"
 			v.add_child(spot)
 			_show_vein(m)
+			# A shy Peeper hides beside it (scripts/peeper.gd): a little secret in every world
+			PEEPER.place(self, m, world_id, info().get("colour", Color(1, 0.8, 1)))
 
 
 func _jump_home() -> void:
