@@ -6,9 +6,11 @@ extends Node
 # Placed into the town at runtime (like the request board, scripts/requests.gd), so none of it needs the town rebuilt:
 #   - The Goblin Clockyard, out in the northeast fields by the Agent's patrol: a ring of tumbledown grandfather clocks
 #     where the Time Goblins (scripts/time_goblin.gd) live, plus a few goblins roaming towards the Observatory.
-#     Their boss, Grandfather Tock (scripts/time_goblin_boss.gd), keeps the middle of it.
-#   - Boulder Hollow, in the far northwest: a ring of big boulders where the Boulderdillo (scripts/crocodillo_boss.gd),
-#     the Crocodillos' boss, rolls about.
+#     Their boss, Grandfather Tock (scripts/time_goblin_boss.gd), has lived in a lair of his own since 15 Nov 2026
+#     (Hayden: "I want the time goblins, and the crocodillo boss to get their own arenas as well"): the Clockwork Tower
+#     (scripts/clock_tower.gd), through the Tower Door, a giant grandfather clock in the middle of the clockyard.
+#   - Boulder Hollow, in the far northwest: a ring of big boulders round the Canyon Mouth, the way into Boulder Canyon
+#     (scripts/boulder_canyon.gd), where the Boulderdillo (scripts/crocodillo_boss.gd), the Crocodillos' boss, lives.
 #   - The Gloop Gate, out in the west fields where the Gloop King used to hold court: since Nov 11, 2026 (Hayden: "I
 #     want the gloop king to have his own domain instead of just being in a field") he lives in the Gloop Kingdom, a
 #     level of his own (scripts/gloop_kingdom.gd), and the gate is the way in. The King the town builder still puts in
@@ -33,6 +35,14 @@ const CLOCKYARD := Vector2(128, -150)          # x, z: open, flat ground east of
                                               # wall is at x 146, so it keeps well in from that)
 const CLOCKYARD_RADIUS := 9.0
 # Where the goblins start: the clockyard gang, and pairs out roaming
+# The bosses' own lairs (scripts/boss_lair.gd): where each one's way in stands in town, which way its mouth faces, how
+# far in front of its middle the mouth is, and what it's called
+const LAIRS := {
+	"clock_tower": {"scene": "res://scenes/bosses/clock_tower.tscn", "at": CLOCKYARD, "facing": Vector2(-1, 0),
+		"front": 1.0, "name": "the Clockwork Tower"},
+	"boulder_canyon": {"scene": "res://scenes/bosses/boulder_canyon.tscn", "at": HOLLOW, "facing": Vector2(0.22, 0.975),
+		"front": 3.2, "name": "Boulder Canyon"},
+}
 const GOBLIN_SPOTS := [
 	Vector2(124, -146), Vector2(133, -153), Vector2(129, -143), Vector2(124, -154),
 	Vector2(120, -125), Vector2(126, -121),
@@ -57,6 +67,10 @@ func _on_scene_changed() -> void:
 	if coming_out:
 		coming_out = false
 		_land_by_gate.call_deferred()
+	if coming_out_of != "":
+		var id := coming_out_of
+		coming_out_of = ""
+		_land_by_lair.call_deferred(id)
 
 
 func ground(scene: Node3D, x: float, z: float) -> Vector3:
@@ -94,24 +108,8 @@ func _place_clockyard(scene: Node) -> void:
 		g.position = _local(parent, ground(scene, p.x, p.y) + Vector3(0, 0.2, 0))    # before _ready reads its home
 		parent.add_child(g)
 		i += 1
-	var tock := (load(TOCK) as PackedScene).instantiate() as Node3D
-	tock.name = "Grandfather Tock"                        # not "Time Goblin …", so finding goblins by name skips him
-	tock.set("size", 2.4)
-	tock.set("color", Color(0.5, 1.0, 0.9))
-	tock.set("stomps_to_defeat", 13)
-	tock.set("damage", 2)
-	tock.set("xp_reward", 50)
-	tock.set("wander_radius", 5.0)
-	tock.set("sight_range", 16.0)
-	tock.set("leash_range", 26.0)
-	tock.set("wander_speed", 1.2)
-	tock.set("chase_speed", 3.3)
-	tock.set("blink_cooldown", 7.0)
-	tock.set("blink_chance", 0.85)
-	tock.set("dizzy_time", 2.4)
-	tock.set("respawn_time", 150.0)
-	tock.position = _local(parent, ground(scene, CLOCKYARD.x, CLOCKYARD.y) + Vector3(0, 0.3, 0))
-	parent.add_child(tock)
+	# Tock himself lives in the Clockwork Tower: the Tower Door stands in the middle of the yard
+	_tower_door(yard)
 
 
 # -----------------------------------------------------------------------------
@@ -160,26 +158,8 @@ func _place_hollow(scene: Node) -> void:
 		cs.shape = ss
 		b.add_child(cs)
 		hollow.add_child(b)
-	var enemies := scene.find_child("Enemies", true, false)
-	var parent: Node = enemies if enemies else scene
-	var boss := (load(CROC) as PackedScene).instantiate() as CharacterBody3D
-	boss.set_script(load("res://scripts/crocodillo_boss.gd"))
-	boss.name = "The Boulderdillo"                       # not "Crocodillo …", so finding Crocodillos by name skips it
-	boss.set("size", 2.6)
-	boss.set("stomps_to_defeat", 16)
-	boss.set("damage", 3)
-	boss.set("xp_reward", 60)
-	boss.set("wander_radius", 6.0)
-	boss.set("sight_range", 20.0)
-	boss.set("leash_range", 30.0)
-	boss.set("stalk_speed", 2.6)
-	boss.set("roll_speed", 11.0)
-	boss.set("roll_time", 1.3)
-	boss.set("dizzy_time", 3.6)
-	boss.set("roll_cooldown", 1.6)
-	boss.set("respawn_time", 180.0)
-	boss.position = _local(parent, hollow.global_position + Vector3(0, 0.4, 0))
-	parent.add_child(boss)
+	# The Boulderdillo itself lives in Boulder Canyon: the Canyon Mouth is in the middle of the hollow
+	_canyon_mouth(hollow)
 
 
 func _arm_the_agent(scene: Node) -> void:
@@ -430,3 +410,154 @@ func _place_gloop_gate(scene: Node) -> void:
 func enter_kingdom() -> void:
 	Game.pending_message = ""
 	Game.go(KINGDOM, "Entrance", "the Gloop Kingdom")
+
+
+# -----------------------------------------------------------------------------
+# The bosses' own lairs: the Tower Door and the Canyon Mouth
+# -----------------------------------------------------------------------------
+var coming_out_of := ""                        # the lair you're on your way home from (set by boss_lair.gd go_home())
+
+
+func lair_out(id: String) -> Dictionary:
+	# Where you come out, back from a lair: just in front of its way in, facing away from it
+	var l: Dictionary = LAIRS[id]
+	var f: Vector2 = l.facing.normalized()
+	var at: Vector2 = l.at + f * (float(l.front) + 3.0)
+	return {"position": Vector3(at.x, 2.0, at.y), "yaw": atan2(f.x, f.y)}
+
+
+func enter_lair(id: String) -> void:
+	Game.pending_message = ""
+	Game.go(str(LAIRS[id].scene), "Entrance", str(LAIRS[id].name))
+
+
+func lair_for_scene(path: String) -> String:
+	for id in LAIRS:
+		if LAIRS[id].scene == path:
+			return id
+	return ""
+
+
+func lair_scenes() -> Array[String]:
+	var out: Array[String] = []
+	for id in LAIRS:
+		out.append(str(LAIRS[id].scene))
+	return out
+
+
+func _land_by_lair(id: String) -> void:
+	await get_tree().physics_frame
+	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	var scene := get_tree().current_scene as Node3D
+	if player == null or scene == null:
+		return
+	var at: Vector3 = lair_out(id).position
+	player.global_position = ground(scene, at.x, at.z) + Vector3(0, 1.0, 0)        # (her middle: a capsule on the ground)
+	player.velocity = Vector3.ZERO
+
+
+func _lair_gate(parent: Node3D, id: String, name: String) -> Node3D:
+	# The way in, turned so its +Z (its mouth) faces LAIRS[id].facing, with a spot in front to go in by
+	var g := Node3D.new()
+	g.name = name
+	parent.add_child(g)
+	var f: Vector2 = LAIRS[id].facing
+	g.rotation.y = atan2(f.x, f.y)
+	var spot = (load("res://scripts/use_spot.gd") as GDScript).call("make", Vector3(0, 0, float(LAIRS[id].front) + 0.8),
+		func() -> String: return "go in to %s" % LAIRS[id].name, enter_lair.bind(id), 2.6, 2.6)
+	spot.name = "Lair Spot"
+	g.add_child(spot)
+	return g
+
+
+func _lair_sign(g: Node3D, text: String, at: Vector3, col: Color) -> void:
+	var sign := Label3D.new()
+	sign.name = "Lair Sign"
+	sign.text = text
+	sign.font_size = 48
+	sign.pixel_size = 0.01
+	sign.modulate = col
+	sign.outline_size = 12
+	sign.outline_modulate = Color(0.12, 0.08, 0.05)
+	sign.position = at
+	g.add_child(sign)
+
+
+func _tower_door(yard: Node3D) -> void:
+	# A giant grandfather clock, its case door open on a swirl of teal light, its pendulum swinging inside
+	var g := _lair_gate(yard, "clock_tower", "Tower Door")
+	var wood := _mat(Color(0.42, 0.2, 0.15))
+	var brass := _mat(Color(0.88, 0.64, 0.26), 0.05, 0.85)
+	var body := StaticBody3D.new()
+	body.name = "Tower Door Case"
+	g.add_child(body)
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(2.8, 7.6, 1.8)
+	cs.shape = bs
+	cs.position = Vector3(0, 3.8, 0)
+	body.add_child(cs)
+	_box(g, Vector3(2.8, 7.6, 1.8), Vector3(0, 3.8, 0), wood)
+	_box(g, Vector3(3.3, 0.6, 2.2), Vector3(0, 7.9, 0), wood)
+	_box(g, Vector3(3.3, 0.4, 2.2), Vector3(0, 0.2, 0), wood)
+	var face := _cyl(g, 1.05, 0.08, Vector3(0, 6.2, 0.92), _mat(Color(0.98, 0.94, 0.82), 0.4))
+	face.rotation.x = PI / 2
+	var rim := _cyl(g, 1.2, 0.05, Vector3(0, 6.2, 0.9), brass)
+	rim.rotation.x = PI / 2
+	var ink := _mat(Color(0.08, 0.05, 0.12))
+	for k in 2:
+		var h := _box(g, Vector3(0.08, 0.6 + k * 0.3, 0.03), Vector3(0, 6.2, 0.98), ink)
+		h.name = "Door Hand %d" % k
+		h.rotation.z = 1.2 + k * 2.4
+	var door := _box(g, Vector3(1.6, 3.0, 0.06), Vector3(0, 2.2, 0.91), _mat(Color(0.35, 1.0, 0.88), 1.2))
+	door.name = "Door Light"
+	_box(g, Vector3(0.12, 3.2, 0.12), Vector3(-0.86, 2.2, 0.92), brass)
+	_box(g, Vector3(0.12, 3.2, 0.12), Vector3(0.86, 2.2, 0.92), brass)
+	_box(g, Vector3(1.84, 0.12, 0.12), Vector3(0, 3.8, 0.92), brass)
+	var bob := _cyl(g, 0.35, 0.06, Vector3(0, 1.4, 0.96), brass)
+	bob.rotation.x = PI / 2
+	_lair_sign(g, "THE CLOCKWORK TOWER", Vector3(0, 8.8, 1.0), Color(0.6, 1.0, 0.92))
+
+
+func _canyon_mouth(hollow: Node3D) -> void:
+	# A heap of big boulders with a cave in its front, glowing warm inside
+	var g := _lair_gate(hollow, "boulder_canyon", "Canyon Mouth")
+	var rock := _mat(Color(0.62, 0.36, 0.26))
+	var stone := _mat(Color(0.5, 0.44, 0.55))
+	var body := StaticBody3D.new()
+	body.name = "Canyon Mouth Heap"
+	g.add_child(body)
+	var cs := CollisionShape3D.new()
+	var ss := SphereShape3D.new()
+	ss.radius = 3.0
+	cs.shape = ss
+	cs.position = Vector3(0, 0.8, -0.4)
+	body.add_child(cs)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1511
+	for k in 9:
+		var a := TAU * k / 9.0
+		var r := rng.randf_range(1.4, 2.2)
+		var mi := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = r
+		sm.height = r * 1.7
+		mi.mesh = sm
+		mi.material_override = rock if k % 2 else stone
+		mi.position = Vector3(cos(a) * 2.0, r * 0.7 + (1.6 if k % 3 == 0 else 0.0), sin(a) * 2.0 - 0.6)
+		g.add_child(mi)
+	var top := MeshInstance3D.new()
+	var tm := SphereMesh.new()
+	tm.radius = 2.2
+	tm.height = 3.2
+	top.mesh = tm
+	top.material_override = stone
+	top.position = Vector3(0, 4.0, -0.6)
+	g.add_child(top)
+	var hole := _cyl(g, 1.5, 0.1, Vector3(0, 1.6, 2.7), _mat(Color(0.15, 0.08, 0.05)))
+	hole.rotation.x = PI / 2
+	hole.scale = Vector3(1.0, 1.0, 1.3)
+	var glow := _cyl(g, 1.0, 0.06, Vector3(0, 1.4, 2.8), _mat(Color(1.0, 0.75, 0.35), 1.0))
+	glow.rotation.x = PI / 2
+	glow.scale = Vector3(1.0, 1.0, 1.4)
+	_lair_sign(g, "BOULDER CANYON", Vector3(0, 6.6, 1.5), Color(1.0, 0.8, 0.5))

@@ -47,14 +47,16 @@ func _run() -> void:
 	root.get_node("Quests").state[root.get_node("FirstNight").ID] = {"step": 0, "done": true, "since_day": 1}
 	root.get_node("Clock").set_time(2, 13 * 60.0, true)
 	root.get_node("Portals").quakes = ["shard_isle"]  # (no crack cutscene in the middle of the shot)
-	if true:                                   # (one shot a run: a second town load mid-run left Tock half gone)
-		change_scene_to_file(TOWN)
+	if true:                                   # (one shot a run: a second scene load mid-run left Tock half gone)
+		change_scene_to_file("res://scenes/bosses/clock_tower.tscn")     # (he lives in his tower since 15 Nov 2026)
 		await _frames(60)
 		await create_timer(1.5).timeout
 		var s := current_scene as Node3D
 		var p := s.find_child("Player", true, false) as CharacterBody3D
 		p.get_node("HUD").visible = false
 		var tock := s.find_child("Grandfather Tock", true, false) as CharacterBody3D
+		s.call("wake")
+		await create_timer(1.5).timeout
 		p.global_position = tock.global_position + Vector3(0, 1.0, 9.0)
 		tock.set_physics_process(false)
 		cam = Camera3D.new()

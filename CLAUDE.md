@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **Grandfather Tock and the Boulderdillo get levels of their own** (Hayden: "I want the time goblins, and
+  the crocodillo boss to get their own arenas as well"). Built like the Gloop Kingdom: a tiny scene, everything made at
+  load. Shared base `scripts/boss_lair.gd` (the boss asleep until you reach the arena, the treasure once a visit, flag
+  `<lair>_treasure_<visit day>`, a way out by the door and one by the treasure); `Bosses.LAIRS`, `enter_lair()`,
+  `lair_out()`. Scenes from `tools/build_boss_lairs.gd`.
+  - **The Clockwork Tower** (`scripts/clock_tower.gd`, `scenes/bosses/clock_tower.tscn`): in town Tock's old spot in the
+    Goblin Clockyard is a giant grandfather clock door. Inside: the Pendulum Walk (three swinging pendulums that bump
+    you, four Time Goblins), the Cog Gate, and the Clock Floor, a giant clock face with the Big Clock running backwards.
+    Once Tock's awake the clock's teal hand sweeps round the floor (jump it). Treasure: the Cuckoo Chest.
+  - **Boulder Canyon** (`scripts/boulder_canyon.gd`, `scenes/bosses/boulder_canyon.tscn`): Boulder Hollow's mouth in town
+    is a heap of boulders with a glowing cave. Inside: a canyon run with boulders rolling down three lanes, two
+    Crocodillos, the Rock Arch, then the Pinball Pit, a ring of boulders and pillars round its Rock Throne. Once it's
+    awake rocks fall where a shadow grows (step off it) and stay a while as cover. Treasure: the Big Geode.
+  - Tests: new `tools/test_boss_lairs.gd`; time_goblins and boss_versions now fight in the lairs; gloop_kingdom, arena,
+    map, layout, walk_through, chaos_fight, lanternmoor, glenmoor pass. Previews: `tools/capture_boss_lairs.gd` (project
+    files, world/previews/boss_lairs).
+  - My choices Hayden may change: the names, the pendulums, the sweeping hand, the rolling and falling rocks, the chests.
+
 - 2026-11-15: **Overnight polish, pass 2: a second whole-game run, Pumpkin Night, Peepers, and the S-K-A-T-E letters**
   (the same overnight plan Hayden said yes to). Built and tested in the cloud (own Godot user folders, no save touched).
   - **Second run:** `tools/playthrough.gd -- all --ui-watch` start to ending: OK, nothing cut off; `audit_ui --quick`
