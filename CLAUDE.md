@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **The Skyreach Trail and the Starhorn: one big optional boss at the end of the longest trail** (slice 4
+  of the "feels bigger" plan; Hayden: "Go ahead"). Built and tested in the cloud (own Godot user folders, no save
+  touched). First we read open-source boss fights (Hayden's rule): CodingQuests/godot-enemy-ai (MIT: telegraph,
+  attack, recover) and euuuuuuan/cairnfall-public (Apache 2.0: phases with a one-way latch, a beat between phases, a
+  burst never skips a phase, things in the arena you break). Credited in `starhorn.gd`'s header.
+  - **The way in** (`Bosses.LAIRS` "skyreach", `SKYREACH` (70, -249), `_place_skyreach()`): a narrow cleft between two
+    leaning slabs at the foot of the northern mountains, a lantern on a little stone, its sign only shows within 12 m,
+    and it's not on the map. Nothing mentions the Starhorn until you're on top.
+  - **The trail** (`scripts/skyreach_trail.gd`, extends `boss_lair.gd`; `scenes/bosses/skyreach_trail.tscn` from
+    `tools/build_boss_lairs.gd`, which now takes root names after `--` to build only those): a path winding one and a
+    half times round a mountain, 431 m long and 36 m up (`trail_point(a)`, static). The cliffs and slopes are one
+    body "Edge Mountain" (too steep to walk, no wall crawl), an unseen rail runs along the outside, and there are kerb
+    stones, prayer flags, crystals, pines and drifting clouds. Five **Waystones** light as you pass: fall off and you
+    float back to the last one, and a faint starts you there too (`Bosses` meta `lair_resume`, cleared by a fresh trip
+    or going home). A round summit with a ring of stones, the Star Chest (25 sparkles once a visit) and the way home.
+  - **The Starhorn** (`scripts/starhorn.gd`): a giant stone stag with glowing crystal antlers, asleep on the summit.
+    18 pops in three phases (`PHASES`), at most 3 a daze. Every move is warned (`boss_tell.gd`). Phase 1: stomp ring
+    and charge. Phase 2 starts with a roar it can't be hit in: its antlers shield it until you break three **Star
+    Shards** on pillars round the summit (a bubble, or jump into one), which knocks it over. Falling stars join in.
+    Phase 3: quicker, plus its breath pulling you in (jump free). Walk back down and it goes back to sleep, all its
+    puff back. Calmed the first time: 40 sparkles, 5 Remnants and the **Starhorn Antlers** hat (`cosmetics.gd`,
+    `shop/items.json`), flag `starhorn_calmed`. It's back next visit (no second reward).
+  - Tests: new `tools/test_skyreach_trail.gd` (really walks the whole trail, the cliffs, the Waystones and falling,
+    phases, shards, calming down, the reward once, home); `test_boss_tells` lists it; boss_lairs, map, layout,
+    walk_through, shop (both runs), clothing_fit, clothes, hidden_places, guardians, world_detail, title and
+    audit_signs pass. Previews: `tools/capture_skyreach.gd` (project files, world/previews/skyreach).
+  - My choices Hayden may change: the names (Skyreach Trail, the Starhorn, Star Shards), its look, where the cleft is,
+    the trail's length and shape, 18 pops and the three phases, the rewards and the hat.
+
 - 2026-11-15: **Learnable bosses: every big attack is warned first, and three sleeping guardians** (slice 2 of the
   "feels bigger" plan; Hayden: "Yes to both"). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/boss_tell.gd`** (no class_name, preload it): `TELL.warn(boss, kind, reach, colour, length, opts)` puts a

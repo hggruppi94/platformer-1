@@ -6,17 +6,22 @@ extends SceneTree
 # scripts/boulder_canyon.gd), so changing a lair means changing that script. Re-run this only if a lair is added or
 # renamed, or the scene's three nodes need to change.
 #
-#   godot --headless --path "Godot Project/my-world" --script res://tools/build_boss_lairs.gd
+#   godot --headless --path "Godot Project/my-world" --script res://tools/build_boss_lairs.gd [-- <RootName> ...]
+# Names after -- build only those (so the others' scenes don't get new ids for nothing).
 
 const LAIRS := [
 	["TheClockworkTower", "res://scripts/clock_tower.gd", "res://scenes/bosses/clock_tower.tscn"],
 	["BoulderCanyon", "res://scripts/boulder_canyon.gd", "res://scenes/bosses/boulder_canyon.tscn"],
+	["TheSkyreachTrail", "res://scripts/skyreach_trail.gd", "res://scenes/bosses/skyreach_trail.tscn"],
 ]
 
 
 func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://scenes/bosses"))
+	var only := OS.get_cmdline_user_args()
 	for l in LAIRS:
+		if not only.is_empty() and not only.has(l[0]):
+			continue
 		var root := Node3D.new()
 		root.name = l[0]
 		root.set_script(load(l[1]))

@@ -211,6 +211,17 @@ static func hat(id: String) -> Node3D:
 			for k in 4:
 				_mesh(h, BoxMesh.new(), _mat(Color(1.0, 0.85, 0.3) if k % 2 == 0 else Color(0.4, 0.75, 1.0)),
 					Vector3(0, 0.05 - k * 0.08, -0.06 - k * 0.04), Vector3(0.4, 0, 0.4 * (1 if k % 2 == 0 else -1)), Vector3(0.05, 0.07, 0.01))
+		"starhorn_antlers":
+			# For calming the Starhorn on top of the Skyreach Trail: little antlers of glowing crystal on a headband,
+			# a star on each tip
+			_mesh(h, _torus(0.22, 0.245), _mat(Color(0.5, 0.46, 0.62)), Vector3(0, -0.02, 0))
+			var ice := _mat(Color(0.6, 0.85, 1.0), 1.2)
+			var star := _mat(Color(1.0, 0.95, 0.65), 1.8)
+			for side in [-1.0, 1.0]:
+				_mesh(h, _cyl(0.015, 0.035, 0.28, 6), ice, Vector3(side * 0.16, 0.12, 0), Vector3(0, 0, -side * 0.35))
+				_mesh(h, _cyl(0.01, 0.025, 0.14, 6), ice, Vector3(side * 0.24, 0.16, 0.02), Vector3(0, 0, -side * 1.0))
+				_mesh(h, _cyl(0.01, 0.025, 0.12, 6), ice, Vector3(side * 0.2, 0.24, -0.02), Vector3(0.3, 0, -side * 0.1))
+				_mesh(h, _sphere(0.035), star, Vector3(side * 0.22, 0.27, 0))
 		"starfinder_hat":
 			# For finding all six hidden places in the Void: a deep blue explorer's hat with a gold star compass on it
 			var blue := _mat(Color(0.22, 0.25, 0.6))

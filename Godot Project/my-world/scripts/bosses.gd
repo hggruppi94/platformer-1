@@ -37,11 +37,16 @@ const CLOCKYARD_RADIUS := 9.0
 # Where the goblins start: the clockyard gang, and pairs out roaming
 # The bosses' own lairs (scripts/boss_lair.gd): where each one's way in stands in town, which way its mouth faces, how
 # far in front of its middle the mouth is, and what it's called
+const SKYREACH := Vector2(70, -249)
 const LAIRS := {
 	"clock_tower": {"scene": "res://scenes/bosses/clock_tower.tscn", "at": CLOCKYARD, "facing": Vector2(-1, 0),
 		"front": 1.0, "name": "the Clockwork Tower"},
 	"boulder_canyon": {"scene": "res://scenes/bosses/boulder_canyon.tscn", "at": HOLLOW, "facing": Vector2(0.22, 0.975),
 		"front": 3.2, "name": "Boulder Canyon"},
+	# The Skyreach Trail (scripts/skyreach_trail.gd): a narrow cleft at the very foot of the mountains, far north, with
+	# only a small sign you can read up close. Not on the map: it's there to be found.
+	"skyreach": {"scene": "res://scenes/bosses/skyreach_trail.tscn", "at": SKYREACH, "facing": Vector2(0, 1),
+		"front": 2.0, "name": "the Skyreach Trail", "hidden": true},
 }
 const GOBLIN_SPOTS := [
 	Vector2(124, -146), Vector2(133, -153), Vector2(129, -143), Vector2(124, -154),
@@ -63,6 +68,7 @@ func _on_scene_changed() -> void:
 	_place_clockyard(scene)
 	_place_hollow(scene)
 	_place_gloop_gate(scene)
+	_place_skyreach(scene)
 	_arm_the_agent(scene)
 	if coming_out:
 		coming_out = false
@@ -428,6 +434,8 @@ func lair_out(id: String) -> Dictionary:
 
 func enter_lair(id: String) -> void:
 	Game.pending_message = ""
+	if has_meta("lair_resume"):
+		remove_meta("lair_resume")                 # (a fresh trip starts at the bottom: scripts/skyreach_trail.gd)
 	Game.go(str(LAIRS[id].scene), "Entrance", str(LAIRS[id].name))
 
 
@@ -517,6 +525,49 @@ func _tower_door(yard: Node3D) -> void:
 	var bob := _cyl(g, 0.35, 0.06, Vector3(0, 1.4, 0.96), brass)
 	bob.rotation.x = PI / 2
 	_lair_sign(g, "THE CLOCKWORK TOWER", Vector3(0, 8.8, 1.0), Color(0.6, 1.0, 0.92))
+
+
+func _place_skyreach(scene: Node) -> void:
+	# A narrow cleft in the rocks at the foot of the mountains: two tall leaning slabs, a stone across their tops, a
+	# glow between them and a lantern on a Waystone. Its little sign only shows close up, and it's not on the map.
+	var spot := Node3D.new()
+	spot.name = "Skyreach Cleft"
+	scene.add_child(spot)
+	spot.global_position = ground(scene, SKYREACH.x, SKYREACH.y)
+	var g := _lair_gate(spot, "skyreach", "Cleft")
+	var rock := _mat(Color(0.5, 0.45, 0.6))
+	var dark := _mat(Color(0.42, 0.38, 0.52))
+	for side in [-1.0, 1.0]:
+		var body := StaticBody3D.new()
+		body.name = "Cleft Rock"
+		g.add_child(body)
+		var cs := CollisionShape3D.new()
+		var bs := BoxShape3D.new()
+		bs.size = Vector3(2.4, 7.5, 3.4)
+		cs.shape = bs
+		cs.position = Vector3(side * 2.4, 3.6, 0)
+		cs.rotation.z = -side * 0.08
+		body.add_child(cs)
+		var slab := _box(g, Vector3(2.4, 7.5, 3.4), Vector3(side * 2.4, 3.6, 0), rock if side < 0 else dark)
+		slab.rotation.z = -side * 0.08
+		var top := _box(g, Vector3(1.6, 2.2, 2.6), Vector3(side * 2.6, 8.0, -0.2), dark if side < 0 else rock)
+		top.rotation = Vector3(0.1, 0.3 * side, -side * 0.2)
+	var lintel := _box(g, Vector3(5.6, 1.0, 2.0), Vector3(0, 7.6, 0.2), rock)
+	lintel.rotation.z = 0.05
+	var glow := _box(g, Vector3(2.2, 5.4, 0.1), Vector3(0, 2.7, -1.2), _mat(Color(0.75, 0.6, 1.0), 1.3))
+	glow.name = "Cleft Glow"
+	_cyl(g, 0.3, 1.4, Vector3(-1.9, 0.7, 2.4), _mat(Color(0.55, 0.52, 0.66)))
+	var lamp := _cyl(g, 0.24, 0.4, Vector3(-1.9, 1.6, 2.4), _mat(Color(1.0, 0.85, 0.5), 2.2))
+	lamp.name = "Cleft Lantern"
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.8, 0.55)
+	l.omni_range = 6.0
+	l.position = Vector3(-1.9, 1.9, 2.4)
+	g.add_child(l)
+	_lair_sign(g, "Skyreach Trail", Vector3(-1.9, 2.5, 2.5), Color(1.0, 0.88, 0.6))
+	var sign := g.get_node("Lair Sign") as Label3D
+	sign.font_size = 28
+	sign.visibility_range_end = 12.0               # (you only find it by coming close: nothing gives it away)
 
 
 func _canyon_mouth(hollow: Node3D) -> void:
