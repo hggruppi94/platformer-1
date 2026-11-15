@@ -39,9 +39,11 @@ const EARTH_KINDS := {
 	"snowman": {"easy": 2, "medium": 3, "hard": 4},          # snowmen on the green (winter only)
 	"sandcastle": {"easy": 2, "medium": 3, "hard": 4},       # sandcastles on Willow Pond's beach (summer only)
 }
-# Where the snowballs for the snowmen wait: round the town green, inside its ring of grass (x, z)
+# Where the snowballs for the snowmen wait: round the town green, inside its ring of grass (x, z). None near the
+# crack in front of the old oak (about (-8, 8)): one used to sit right on it, so with the crack open its snowball was
+# down the hole where nobody could reach it (Hayden's 14 Nov evening playtest); that one's at (-1, 11) now.
 const SNOWMAN_SPOTS := [Vector2(8.5, -3.0), Vector2(6.0, -8.5), Vector2(-1.5, -10.0), Vector2(-8.0, -6.5),
-	Vector2(-10.0, 1.0), Vector2(-8.0, 7.5), Vector2(4.0, 9.5), Vector2(9.5, 5.0)]
+	Vector2(-10.0, 1.0), Vector2(-1.0, 11.0), Vector2(4.0, 9.5), Vector2(9.5, 5.0)]
 # Who's who on Earth: dialogue id -> what the board calls them (names made up for Hayden to rename, like the people)
 const PEOPLE := {"gus": "Gus", "dottie": "Dottie", "barnaby": "Barnaby", "marigold": "Miss Marigold", "poppy": "Poppy",
 	"otis": "Mr. Gumdrop", "wren": "Mrs. Wren", "hank": "Hank", "kip": "Kip", "lionel": "Mr. Page", "juniper": "Juniper",

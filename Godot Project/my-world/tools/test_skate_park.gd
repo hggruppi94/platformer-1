@@ -166,7 +166,8 @@ func _run() -> void:
 	# --- Rails all round town, and every edge grindable ---
 	var town_rails := town.get_node_or_null("Town Rails")
 	var rail_count := town_rails.find_children("*", "GrindRail", true, false).size() if town_rails else 0
-	check(rail_count >= 20, "rails round town, alongside the paths and on the boardwalks (%d)" % rail_count)
+	# (22 built; the three that ran inside buildings take themselves out as the town loads: grind_rail.gd, 14 Nov)
+	check(rail_count >= 18, "rails round town, alongside the paths and on the boardwalks (%d)" % rail_count)
 	game.riding = true
 	game.equipment_changed.emit()
 	await _physics(3)

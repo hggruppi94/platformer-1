@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-14: **Bug fixes from the evening playtest: school floors, the pavilion door, grinds through walls, the Logia's
+  plane, big curls, the snowman quest, the hayride and sleigh, no doubled friends, and a picture in the wardrobe**
+  (Hayden's 14 Nov 2026 evening notes). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **See-through floors** (`build_school.gd holed_slab()`, `world_detail.gd _two_sided()`): the slabs with a hole
+    (over the library, the offices, the hidden stair) were drawn facing down, and the ground look drew only front
+    faces. Their tops face up now, and a two-sided material keeps its two sides under the ground look.
+  - **The Sky Pavilion's door** (`_pavilion_door()`): a gold frame, an arch of lights, a striped awning, a glowing
+    step and runner, two lamps and "Way In".
+  - **The Logia's plane** (`_view()`): the view's hill top was a whole disc (and the cliff had a lid) running through
+    the lower level. It's a ring round the campus now (`hill_ring()`), and the cliff has no lids.
+  - **Grinds through walls** (`skate.gd _wall_in_way()`, `_rail_in_sight()`): a grind that would carry her into a
+    wall pops her off the rail backwards, and she never snaps onto a rail behind a wall.
+  - **Big curls** (`hair_kit.gd _curls_round`): rows of curls all the way up to the crown, not only round the middle.
+  - **The snowman quest:** a snowman spot sat on the oak's crack (`earth_jobs.gd SNOWMAN_SPOTS`, moved); Nina's big
+    snowball is a real snowball on the green on the build step (`first_snow.gd _big_ball()`), with the map's star on it.
+  - **The hayride and sleigh** (`festival.gd talk()`): its spot asked the wagon to `hop_on()`, which only the green
+    has, so nobody could get on. **Scarecrow Sam** is reworked (`festival_green.gd _scarecrow_driver()`): plaid shirt,
+    overalls, sack head with button eyes and a stitched smile, straw hat, a scarf and earmuffs in winter, on a real
+    seat, holding a wheel on its column; the sleigh has runners.
+  - **Doubled friends** (`party.gd _no_doubles()`): a copy walking with you hides while the place already has that
+    friend in it (whatever put them there), and comes back after. Models made in code say where from
+    (meta `model_source`, as Flurry's does).
+  - **The wardrobe's picture** (`shop.gd _wardrobe_preview()`): who you're dressing, turning slowly beside the rows,
+    made again with every change (a SubViewport with its own world, running while the game's paused).
+  - Tests: new `tools/test_playtest_nov14c.gd`; `test_winter` (no snowman spot by the crack, the big snowball and its
+    star), `test_festival` (gets on through the talk spot). Previews: `tools/capture_nov14c.gd` and
+    `tools/capture_wardrobe.gd` (shots in the project files under world/previews/nov14c_bugfixes).
+  - My choices Hayden may change: the door's look, Scarecrow Sam's look, the picture's size and spin.
+
 - 2026-11-14: **The centipede's burrow attack can be dodged, and you face the right way out of Dusk's Embrace**
   (Hayden: "the centipedes tunnel under you attack ... right now it is instant, it should give the player a chance to
   dodge. When leaving dusks embrace, the directional orientation of the character gets thrown off").

@@ -555,14 +555,20 @@ static func _curls_round(g: Node3D, m: Material, count: int, bottom: float) -> v
 		var root := _sph(yaw, 18.0 + 10.0 * sin(k * 1.7), 0.035)
 		var out := Vector3(root.x - C.x, 0, root.z - C.z).normalized()
 		_curl(g, m, root, root.y - bottom - 0.04 * sin(k * 2.3), 0.042, 2.2, out)
-	# and bumps of curls over the top
+	# and curls all over the head from the crown down to where the ringlets hang from, rows of them all the way round,
+	# so the curls start at the top of the head (Hayden's 14 Nov evening playtest: they used to start halfway down,
+	# under a smooth cap). The face stays clear: in front only the top rows.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 17
-	for k in 16:
-		var p := _sph(rng.randf_range(-160, 160), rng.randf_range(40, 85), 0.04)
-		if p.z > 0.12 and p.y < 1.3:
-			continue
-		_ball(g, m, p, Vector3.ONE * rng.randf_range(0.045, 0.06))
+	for row: Array in [[30.0, 15], [45.0, 13], [60.0, 10], [74.0, 7], [86.0, 2]]:
+		var n: int = row[1]
+		for k in n:
+			var yaw := 360.0 * (k + 0.5 * (int(row[0]) % 2)) / n + rng.randf_range(-6, 6)
+			var front := absf(wrapf(yaw, -180.0, 180.0))
+			if front < 52.0 and row[0] < 60.0:
+				continue
+			var p := _sph(yaw, row[0] + rng.randf_range(-4, 4), 0.035)
+			_ball(g, m, p, Vector3.ONE * rng.randf_range(0.05, 0.064))
 
 
 static func _curl_fringe(g: Node3D, m: Material) -> void:

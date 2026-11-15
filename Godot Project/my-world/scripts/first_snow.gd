@@ -53,7 +53,8 @@ func _on_scene_changed() -> void:
 	var skip := TownPaths.skip_rids(scene)
 	_spot(g, "Snow Carrot", paths.position_of("market", space, skip) + Vector3(1.6, 0, 1.0), _carrot_offer, _take_carrot, true)
 	_spot(g, "Snow Scarf", paths.position_of("blastoff_door", space, skip) + Vector3(1.2, 0, 0.8), _scarf_offer, _take_scarf, true)
-	_spot(g, "Snowman Spot", Vector3(SNOWMAN_AT.x, EarthLand.height(SNOWMAN_AT.x, SNOWMAN_AT.y), SNOWMAN_AT.y), _build_offer, _build, false)
+	var spot := _spot(g, "Snowman Spot", Vector3(SNOWMAN_AT.x, EarthLand.height(SNOWMAN_AT.x, SNOWMAN_AT.y), SNOWMAN_AT.y), _build_offer, _build, false)
+	spot.add_child(_big_ball())
 	var sled := _spot(g, "Sled", sled_start(), _sled_offer, sled_down, false)
 	sled.add_child(sled_model())
 	_place_snowman()
@@ -86,6 +87,56 @@ func _spot(g: Node3D, name: String, at: Vector3, offer: Callable, act: Callable,
 	return n
 
 
+func _big_ball() -> Node3D:
+	# The big snowball Nina asks you to roll, waiting by her on the green with a soft glow round it while the quest
+	# wants it. There used to be nothing there to see, only a spot to press Interact on, so it couldn't be found
+	# (Hayden's 14 Nov evening playtest).
+	var ball := Node3D.new()
+	ball.name = "Big Snowball"
+	var snow := StandardMaterial3D.new()
+	snow.albedo_color = Color(0.96, 0.97, 1.0)
+	snow.roughness = 0.9
+	snow.emission_enabled = true
+	snow.emission = Color(0.75, 0.85, 1.0)
+	snow.emission_energy_multiplier = 0.25
+	var big := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.6
+	sm.height = 1.15
+	big.mesh = sm
+	big.material_override = snow
+	big.position.y = 0.55
+	ball.add_child(big)
+	var lumps := [Vector3(0.45, 0.25, 0.3), Vector3(-0.4, 0.2, -0.35), Vector3(0.1, 0.18, 0.55)]
+	for at: Vector3 in lumps:
+		var lump := MeshInstance3D.new()
+		var lm := SphereMesh.new()
+		lm.radius = 0.2
+		lm.height = 0.36
+		lump.mesh = lm
+		lump.material_override = snow
+		lump.position = at
+		ball.add_child(lump)
+	var ring := MeshInstance3D.new()
+	var tm := TorusMesh.new()
+	tm.inner_radius = 0.95
+	tm.outer_radius = 1.1
+	ring.mesh = tm
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color(0.7, 0.9, 1.0)
+	glow.emission_enabled = true
+	glow.emission = Color(0.7, 0.9, 1.0)
+	glow.emission_energy_multiplier = 1.5
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring.material_override = glow
+	ring.scale = Vector3(1, 0.15, 1)
+	ring.position.y = 0.03
+	ring.name = "Glow"
+	ball.add_child(ring)
+	ball.visible = Quests.on_step(QUEST, "build")
+	return ball
+
+
 func _wants(name: String) -> bool:
 	if not Quests.on_step(QUEST, "gather"):
 		return false
@@ -100,6 +151,9 @@ func _refresh() -> void:
 		var t := scene.get_node_or_null("First Snow/%s/Thing" % n) as Node3D
 		if t:
 			t.visible = _wants(n)
+	var ball := scene.get_node_or_null("First Snow/Snowman Spot/Big Snowball") as Node3D
+	if ball:
+		ball.visible = Quests.on_step(QUEST, "build")
 
 
 # --- The quest's steps -----------------------------------------------------------------------------------------------

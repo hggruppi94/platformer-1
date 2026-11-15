@@ -1067,10 +1067,15 @@ func _view() -> void:
 	var town_y := -IN_TOWN.y
 	# (wider than the town's hill top, so the whole campus stands on it)
 	var top_r := 112.0
-	mesh_at(cylinder(top_r, top_r, 0.1, 64), view_mat("View Hill Top", t.hill_grass),
-		Vector3(0, hill_top - 0.25, 0), v)
-	mesh_at(cylinder(top_r, top_r + 8.0, IN_TOWN.y, 64), view_mat("View Cliff", t.rock),
-		Vector3(0, hill_top - 0.1 - IN_TOWN.y / 2, 0), v)
+	# The hill top is a ring round the campus, not a whole disc: since slice 4 the lower level (the Logia chambers and
+	# the tunnels) is under the campus, and a disc at the hill's height ran right through them as a strange floor
+	# halfway up the walls (Hayden's 14 Nov evening playtest). The campus's own lawns cover the middle. The cliff's
+	# caps are off for the same reason.
+	mesh_at(hill_ring(top_r, hill_top - 0.2), view_mat("View Hill Top", t.hill_grass), Vector3.ZERO, v)
+	var cliff := cylinder(top_r, top_r + 8.0, IN_TOWN.y, 64)
+	cliff.cap_top = false
+	cliff.cap_bottom = false
+	mesh_at(cliff, view_mat("View Cliff", t.rock), Vector3(0, hill_top - 0.1 - IN_TOWN.y / 2, 0), v)
 	mesh_at(cylinder(700, 700, 0.2, 64), view_mat("View Land", t.far_grass), Vector3(0, town_y - 0.1, 0), v)
 	var far := view_mat("Mountain", t.mountain_far, 0.35 if alien else 1.0, 0.3 if alien else 0.0)
 	var near := view_mat("Mountain Near", t.mountain_near, 0.35 if alien else 1.0, 0.3 if alien else 0.0)
@@ -1095,6 +1100,33 @@ func _view() -> void:
 		var mi := mesh_at(sphere(1.0, 24), cloud, s[0] - IN_TOWN, cg, s[1], Vector3(0, 0, s[2]))
 		mi.scale = s[3]
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
+func hill_ring(radius: float, y: float, segs := 96) -> ArrayMesh:
+	# A flat ring facing up at height y (its triangles go round the way that faces up in Godot), from the campus's edge (CAMPUS) out to a circle of the radius round the
+	# middle: the hill top round the grounds, with nothing under the campus itself.
+	var c := Vector2.ZERO
+	var angles: Array = []
+	for k in segs:
+		angles.append(TAU * k / segs)
+	for corner in [CAMPUS.position, Vector2(CAMPUS.end.x, CAMPUS.position.y), CAMPUS.end, Vector2(CAMPUS.position.x, CAMPUS.end.y)]:
+		angles.append(fposmod(atan2(corner.y - c.y, corner.x - c.x), TAU))
+	angles.sort()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.UP)
+	for i in angles.size():
+		var a0: float = angles[i]
+		var a1: float = angles[(i + 1) % angles.size()] + (TAU if i == angles.size() - 1 else 0.0)
+		if a1 - a0 < 0.00001:
+			continue
+		var i0 := _rect_hit(c, a0, CAMPUS)
+		var i1 := _rect_hit(c, a1, CAMPUS)
+		var o0 := Vector2(cos(a0), sin(a0)) * radius
+		var o1 := Vector2(cos(a1), sin(a1)) * radius
+		for v: Vector2 in [i1, o1, i0, o1, o0, i0]:
+			st.add_vertex(Vector3(v.x, y, v.y))
+	return st.commit()
 
 
 func view_mat(name: String, color: Color, rough := 1.0, metal := 0.0) -> StandardMaterial3D:
@@ -1267,7 +1299,14 @@ func holed_slab(parent: Node, name: String, r: Rect2, c: Vector2, rad: Vector2, 
 			var n := Vector3.UP if y == top else Vector3.DOWN
 			var tri := [Vector3(e0.x, y, e0.y), Vector3(o0.x, y, o0.y), Vector3(o1.x, y, o1.y),
 				Vector3(e0.x, y, e0.y), Vector3(o1.x, y, o1.y), Vector3(e1.x, y, e1.y)]
-			for v: Vector3 in tri:
+			# The top's triangles are drawn the other way round from the collision's, so they face up, and the
+			# underside's face down. Both used to face down, which only showed because the slab's material is drawn
+			# from both sides: the ground look (scripts/world_detail.gd) used to draw only front faces, so the floors
+			# over the library, the offices and the hidden stair could be seen through (Hayden's 14 Nov evening playtest)
+			var drawn := tri.duplicate()
+			if y == top:
+				drawn.reverse()
+			for v: Vector3 in drawn:
 				top_st.set_normal(n)
 				top_st.add_vertex(v)
 			if y == top:
@@ -3160,6 +3199,7 @@ func _sky_pavilion(r: Node3D) -> void:
 	lamp.omni_range = 16.0
 	p.add_child(lamp)
 	label(p, "4th Floor - Sky Pavilion", Vector3((x0 + x1) / 2, h + 1.0, z1 + 0.4), 0.0, 64)
+	_pavilion_door(p, Vector2((x0 + x1) / 2, z1), base, h)
 	# The magic-craft pods: round glass booths, each with a table, a glowing ball and stools
 	var pods := [["Potion Pod", Color(0.55, 1.0, 0.7)], ["Star Charm Pod", Color(1.0, 0.85, 0.4)], ["Crystal Pod", Color(0.7, 0.6, 1.0)]]
 	for k in 3:
@@ -3205,6 +3245,61 @@ func _sky_pavilion(r: Node3D) -> void:
 		mesh_at(cylinder(0.03, 0.03, 1.6, 6), pal("Lamp Iron", P_NAVY, 0.5, 0.5), q + Vector3(0, 0.8, 0), cm)
 		mesh_at(cylinder(0.18, 0.3, 0.35, 12), pal("Lamp Shade", Color(1.0, 0.92, 0.8), 0.6, 0.0, 1.2), q + Vector3(0, 1.7, 0), cm)
 	label(cm, "Upper Commons", Vector3(0, 2.6, 0), 0.0, 48)
+
+
+func _pavilion_door(p: Node3D, at: Vector2, base: Material, h: float) -> void:
+	# The Sky Pavilion's way in (Hayden's 14 Nov evening playtest: "make the top of the castle glass doorway a little
+	# more obvious"). The doorway was only a gap in the glass, so it was hard to tell where it was: now it has a chunky
+	# gold frame with a glowing arch of lights over it, a striped awning, a glowing doorstep, a carpet runner out onto
+	# the roof, a lamp each side and the stone base the other walls have, broken only by the door.
+	var d := node("Pavilion Door", p, Vector3(at.x, 0, at.y))
+	var half := DOOR_W / 2
+	var gold := pal("Banner Gold", P_GOLD, 0.35, 0.6, 0.35)
+	var glow := pal("Door Glow", P_GLOW, 0.3, 0.0, 2.4)
+	# the stone base along the front, either side of the door (the pavilion's x0..x1 is -12..12 round its middle)
+	for s in [-1.0, 1.0]:
+		var len := 12.0 - half
+		mesh_at(box(Vector3(len, 0.9, 0.3)), base, Vector3(s * (half + len / 2), 0.45, 0), d)
+	# the frame: two thick posts and a lintel, all gold
+	var frame := []
+	for s in [-1.0, 1.0]:
+		frame.append([box(Vector3(0.4, DOOR_H + 0.2, 0.45)), xf(Vector3(s * (half + 0.2), (DOOR_H + 0.2) / 2, 0))])
+	frame.append([box(Vector3(DOOR_W + 0.8, 0.4, 0.45)), xf(Vector3(0, DOOR_H + 0.2, 0))])
+	merged_at(frame, gold, d, "Door Frame")
+	# an arch of glowing beads over the lintel
+	var beads := []
+	for k in 11:
+		var a := PI * k / 10.0
+		beads.append([sphere(0.13, 8), xf(Vector3(cos(a) * (half + 0.2), DOOR_H + 0.4 + sin(a) * 0.9, 0.12))])
+	merged_at(beads, glow, d, "Door Lights")
+	# a striped awning out over the doorstep
+	var stripes := []
+	var stripes_b := []
+	for k in 6:
+		var part := [box(Vector3((DOOR_W + 1.2) / 6.0, 0.08, 1.5)),
+			xf(Vector3(-(DOOR_W + 1.2) / 2 + (k + 0.5) * (DOOR_W + 1.2) / 6.0, DOOR_H + 0.45, 0.75), Vector3(0.28, 0, 0))]
+		(stripes if k % 2 == 0 else stripes_b).append(part)
+	merged_at(stripes, pal("Awning Pink", P_PINK, 0.8), d, "Awning")
+	merged_at(stripes_b, pal("Awning Cream", P_TRIM, 0.8), d, "Awning Stripes")
+	# a glowing doorstep and a carpet runner out from it
+	mesh_at(box(Vector3(DOOR_W, 0.05, 0.5)), glow, Vector3(0, 0.025, 0), d)
+	mesh_at(box(Vector3(1.8, 0.03, 5.0)), pal("Runner", P_MAGENTA, 0.95), Vector3(0, 0.015, 2.85), d)
+	var edges := []
+	for s in [-1.0, 1.0]:
+		edges.append([box(Vector3(0.1, 0.035, 5.0)), xf(Vector3(s * 0.95, 0.018, 2.85))])
+	merged_at(edges, gold, d, "Runner Edges")
+	# a lamp each side of the door
+	for s in [-1.0, 1.0]:
+		var q := Vector3(s * (half + 1.0), 0, 0.7)
+		mesh_at(cylinder(0.07, 0.09, 2.2, 8), pal("Lamp Iron", P_NAVY, 0.5, 0.5), q + Vector3(0, 1.1, 0), d)
+		mesh_at(sphere(0.26, 12), glow, q + Vector3(0, 2.35, 0), d)
+		var l := OmniLight3D.new()
+		l.position = q + Vector3(0, 2.35, 0.2)
+		l.light_color = P_GLOW
+		l.light_energy = 0.9
+		l.omni_range = 5.0
+		d.add_child(l)
+	label(d, "Way In", Vector3(0, DOOR_H + 1.55, 0.3), 0.0, 56)
 
 
 func _palm_terrace(r: Node3D) -> void:

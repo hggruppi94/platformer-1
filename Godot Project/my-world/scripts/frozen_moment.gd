@@ -412,6 +412,7 @@ static func flurry_model() -> Node3D:
 	# from the cat body, with a bushy fox tail (fox_tail()) and her pocket watch, frozen on one tick, on a chain
 	var p := (load("res://scripts/townsfolk.gd") as GDScript).new() as Node3D
 	p.name = "Model"
+	p.set_meta("model_source", "res://scripts/frozen_moment.gd:flurry_model")     # (so scripts/party.gd knows it's her)
 	p.set("look", {"body": "cat", "colors": {"fur": 7, "eyes": 14, "accent": 14, "top": 14, "bottoms": 7, "shoes": 15},
 		"extras": true, "height": 0.9})
 	p.set("extras", [{"kind": "scarf", "color": Color(0.45, 0.7, 1.0)}])

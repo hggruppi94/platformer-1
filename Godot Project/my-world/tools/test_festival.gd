@@ -168,7 +168,9 @@ func _run() -> void:
 		var side := maxf(absf(p.x), absf(p.z))
 		loop_ok = loop_ok and side > 17.0 and side < 22.0
 	check(loop_ok, "the hayride keeps to the street round the green (%.0f m a lap)" % gr.loop_length())
-	gr.hop_on()
+	# Through its talk spot, the way the player gets on (that's where it broke: Hayden's 14 Nov evening playtest)
+	var ride_spot := green.get_node("Hay Wagon/Hayride") as Node3D
+	F.talk(ride_spot)
 	await _physics(5)
 	check(gr.riding and player.get("carried") == true and player.global_position.distance_to(gr.wagon.global_position) < 2.0,
 		"hopping on: carried along on the wagon")

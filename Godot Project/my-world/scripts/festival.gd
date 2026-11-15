@@ -359,9 +359,14 @@ func talk(spot: Node3D) -> void:
 		"Kite Stand":
 			Dialogue.say(spot, "Kite Stand", kite_lines(), "kite_stand")
 		"Hayride":
-			var wagon := spot.get_parent()
-			if wagon and wagon.has_method("hop_on"):
-				wagon.call("hop_on")
+			# The spot sits on the wagon, but hop_on() is the green's (festival_green.gd), a step further up: asking
+			# only the wagon did nothing, so nobody could get on the hayride or the sleigh (Hayden's 14 Nov evening
+			# playtest)
+			var n := spot.get_parent()
+			while n and not n.has_method("hop_on"):
+				n = n.get_parent()
+			if n:
+				n.call("hop_on")
 
 
 func _lantern_hour() -> String:
