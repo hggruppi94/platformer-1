@@ -118,6 +118,11 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - Pip's glow twinkles when it comes on in the dark. Previews: `tools/capture_pass2.gd` (project files,
     world/previews/overnight_polish/pass2).
   - My choices Hayden may change: Pumpkin Night's steps and lines, the Peepers (name, look, reward).
+  - **After the PC's full run (131 of 133):** nothing can hurt you in a talk now (`player.gd is_invulnerable()`: a
+    Gloop could bump you while you couldn't move). The two that failed there were races only a busy machine shows:
+    test_dialogue's two presses could end a talk and start it again, or answer a question before it chose, and
+    Gloops or Tally got in the way; test_garden_caves' caves look for you every 0.15 s of real time. Both fixed in
+    the tests. To shake these out, run the same test six at once in the cloud.
 
 - 2026-11-15: **Overnight polish: bugs from a whole-game run, menu sounds, a calmer camera, fresh loading tips, five
   neighbour errands, and friends who cheer** (Hayden said yes to the overnight plan: playthrough bug hunt, polish,
