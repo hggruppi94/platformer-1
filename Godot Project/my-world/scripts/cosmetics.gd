@@ -183,6 +183,34 @@ static func hat(id: String) -> Node3D:
 				var a := k * TAU / 10
 				_mesh(h, _sphere(0.05), _mat(Color(0.48, 0.32, 0.18)), Vector3(sin(a) * 0.24, 0.0, cos(a) * 0.24))
 			_mesh(h, _cyl(0.025, 0.035, 0.12, 6), _mat(Color(0.4, 0.28, 0.15)), Vector3(0, 0.17, 0), Vector3(0, 0, 0.3))
+		"glimmer_antennae":
+			# For calming Glimmerwing at the Star Well (scripts/guardian.gd): a headband with two feathery moth
+			# antennae, each with a little glowing star on its tip
+			_mesh(h, _torus(0.22, 0.245), _mat(Color(0.25, 0.25, 0.55)), Vector3(0, -0.02, 0))
+			for side in [-1.0, 1.0]:
+				_mesh(h, _cyl(0.012, 0.02, 0.3, 6), _mat(Color(0.35, 0.35, 0.7)), Vector3(side * 0.1, 0.13, 0.02), Vector3(0.25, 0, -side * 0.35))
+				for k in 4:
+					_mesh(h, _sphere(0.03), _mat(Color(0.6, 0.65, 1.0), 0.4), Vector3(side * (0.13 + k * 0.02), 0.08 + k * 0.05, 0.05 + k * 0.012),
+						Vector3.ZERO, Vector3(1.6, 0.5, 0.5))
+				_mesh(h, _sphere(0.045), _mat(Color(1.0, 0.95, 0.6), 1.6), Vector3(side * 0.2, 0.28, 0.06))
+		"lily_pad_hat":
+			# For calming Old Bubblebeard at Bubble Spring: a lily pad worn flat like a beret, a pink flower on top
+			_mesh(h, _cyl(0.32, 0.32, 0.03, 20), _mat(Color(0.35, 0.7, 0.4)), Vector3(0, 0.0, 0), Vector3(0.12, 0, 0))
+			_mesh(h, BoxMesh.new(), _mat(Color(0.3, 0.6, 0.35)), Vector3(0, 0.02, 0.17), Vector3(0, 0.785, 0), Vector3(0.16, 0.035, 0.16))
+			for k in 6:
+				var a := k * TAU / 6
+				_mesh(h, _sphere(0.06), _mat(Color(1.0, 0.65, 0.8), 0.2), Vector3(sin(a) * 0.06 - 0.08, 0.07, cos(a) * 0.06 - 0.05),
+					Vector3.ZERO, Vector3(1, 0.5, 1.6))
+			_mesh(h, _sphere(0.04), _mat(Color(1.0, 0.9, 0.4), 0.6), Vector3(-0.08, 0.1, -0.05))
+		"kite_hat":
+			# For calming Ribbontail on Kite Hill: a little red and yellow diamond kite on a headband, its ribbon
+			# tail fluttering down the back
+			_mesh(h, _torus(0.22, 0.245), _mat(Color(0.95, 0.3, 0.3)), Vector3(0, -0.02, 0))
+			_mesh(h, BoxMesh.new(), _mat(Color(1.0, 0.35, 0.3), 0.15), Vector3(0, 0.22, 0.0), Vector3(0, 0, PI / 4), Vector3(0.2, 0.2, 0.02))
+			_mesh(h, BoxMesh.new(), _mat(Color(1.0, 0.85, 0.3), 0.15), Vector3(0, 0.22, 0.012), Vector3(0, 0, PI / 4), Vector3(0.1, 0.1, 0.02))
+			for k in 4:
+				_mesh(h, BoxMesh.new(), _mat(Color(1.0, 0.85, 0.3) if k % 2 == 0 else Color(0.4, 0.75, 1.0)),
+					Vector3(0, 0.05 - k * 0.08, -0.06 - k * 0.04), Vector3(0.4, 0, 0.4 * (1 if k % 2 == 0 else -1)), Vector3(0.05, 0.07, 0.01))
 		"starfinder_hat":
 			# For finding all six hidden places in the Void: a deep blue explorer's hat with a gold star compass on it
 			var blue := _mat(Color(0.22, 0.25, 0.6))

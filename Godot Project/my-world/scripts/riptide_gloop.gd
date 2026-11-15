@@ -171,6 +171,8 @@ func _physics_process(delta: float) -> void:
 			pulling = false
 	elif _was_chasing and not _flopping:
 		_pull_cd -= delta
+		if _pull_cd <= TELL.lead() and _pull_cd > 0.0 and not TELL.showing(self):
+			TELL.warn(self, "pull", minf(PULL_REACH, 9.0), Color(0.3, 0.75, 0.95), _pull_cd)  # arrows in: it's about to suck you in
 		if _pull_cd <= 0.0:
 			start_pull()
 

@@ -45,6 +45,7 @@ func _run() -> void:
 		DirAccess.copy_absolute(SETTINGS, SETTINGS_BACKUP)
 	game = root.get_node("Game")
 	hidden = root.get_node("Hidden")
+	hidden.guardians = false                           # (their own test: tools/test_guardians.gd)
 	root.get_node("Settings").tips = false
 	game._reset_state()
 	game.needs_creator = false

@@ -30,6 +30,7 @@ extends Node
 signal phase_changed(phase: int)
 signal won
 
+const TELL := preload("res://scripts/boss_tell.gd")
 const CHAOS_MAX := 45
 const SWAP_FLAG := "swap_tried"              # the Far Future's Swap-o-Tron try: the other way his fight opens
 const START_NEAR := 24.0                     # metres from him that starts the fight (once it's unlocked)
@@ -155,6 +156,9 @@ func drive(delta: float) -> bool:
 	_bar.fill = float(chaos) / CHAOS_MAX
 	match step:
 		Step.BURSTS:
+			if (_volleys + 1) % 2 == 0 and _t > 0.0 and _t <= TELL.lead() and not TELL.showing(giant):
+				# This volley comes with his big ring: the ground says "jump" first
+				TELL.warn(giant, "jump", 26.0, Color(0.9, 0.3, 0.55), _t + 1.0, {"head": 12.5})
 			if _t <= 0.0:
 				_volley()
 		Step.OPEN, Step.DAZED:

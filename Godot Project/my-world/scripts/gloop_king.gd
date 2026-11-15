@@ -17,6 +17,8 @@ const MAX_COURT := 4                          # never more than this many called
 @export var flop_every := 5.0                 # seconds between belly-flops while he's chasing
 @export var flop_reach := 4.5                 # how far the goo ring spreads (metres, at size 1; it grows with size)
 
+const TELL := preload("res://scripts/boss_tell.gd")
+
 var _flop_timer := 3.0
 var _flopping := false
 var _calls_made := 0
@@ -65,6 +67,10 @@ func _physics_process(delta: float) -> void:
 		return
 	if _was_chasing and is_on_floor() and _squash <= 0.0:
 		_flop_timer -= delta
+		if _flop_timer <= TELL.lead() and not TELL.showing(self):
+			# The warning: a ring on the ground as far as the goo will roll. It lasts through the hop, so it's
+			# still there when he lands.
+			TELL.warn(self, "jump", flop_reach * size * (1.6 if _cross else 1.0), ring_colour, maxf(_flop_timer, 0.0) + 1.2)
 		if _flop_timer <= 0.0:
 			_flop_timer = flop_every * randf_range(0.85, 1.2)
 			_flopping = true

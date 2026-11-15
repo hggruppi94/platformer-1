@@ -14,6 +14,7 @@ extends Node3D
 #   - HITS hits put him back in time: he shrinks to a little metronome ticking steadily, and the world mends.
 
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
+const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 12
 const SLOW := 1.2                          # seconds a swing takes on his slow tempo...
 const QUICK := 0.55                        # ...and his quick one (quicker still when he's cross)
@@ -130,6 +131,13 @@ func _physics_process(delta: float) -> void:
 		_arm.rotation.z = sin(Time.get_ticks_msec() / 1000.0 * 0.6) * 0.1                # dozing, barely swinging
 		return
 	_swing += delta / swing_len()
+	var left := (1.0 - _swing) * swing_len()
+	var rings_next := not quick or (ticks + 1) % 2 == 0
+	if rings_next and left <= TELL.lead() and not TELL.showing(self):
+		# His tick is the beat, so the warning is the swing itself: the ring's reach marked on the stage as the
+		# hot weight swings over to the tick that sends it.
+		TELL.warn(self, "jump", RING_REACH, WEIGHT_HOT, left,
+			{"visual": _weight, "follow": null, "at": global_position + Vector3(0, 0.11, 2.5)})
 	if _swing >= 1.0:
 		_swing -= 1.0
 		_side = -_side

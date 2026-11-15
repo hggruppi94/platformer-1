@@ -99,6 +99,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **Learnable bosses: every big attack is warned first, and three sleeping guardians** (slice 2 of the
+  "feels bigger" plan; Hayden: "Yes to both"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/boss_tell.gd`** (no class_name, preload it): `TELL.warn(boss, kind, reach, colour, length, opts)` puts a
+    mark on the ground that hugs the bumps (draped meshes from rays), a gold "!" over the boss, a glow on its meshes and
+    a "windup" blip; it goes away by itself when the attack comes. Four kinds: **jump** (a ring that fills: jump it),
+    **dash** (arrows along the charge: step aside), **drop** (a shadow that grows: move off it), **pull** (arrows
+    sliding in: jump to break free). The first time each shows, a short hint (flag `tell_seen_<kind>`). Warnings start
+    0.9 s before (`TELL.NORMAL`); Settings > Assist > **Early boss warnings** (`Settings.boss_warn_early`) makes it 1.6 s.
+  - **Every boss with a big attack uses it** without changing when the attack comes (the warning starts before the old
+    timer runs out): the Gloop King's flop (as wide as his goo goes) and his cousins, the Riptide's pull, Tock's chimes,
+    the Boulderdillo's roll (its curl is held at least the warning's length), the Hush, the Gloam, the Off-Beat,
+    Captain Glitch, Big Buzz and the Agent of Chaos's big ring.
+  - **Guardians** (`scripts/guardian.gd`, put in by `hidden_places.gd`; `Hidden.guardians` turns them off for tests):
+    once you've found the Star Well, Bubble Spring or Kite Hill, a big guardian sleeps on open ground beside it (its own
+    `"spot"` in `KINDS`): **Glimmerwing** (a star moth: falling star, swoop), **Old Bubblebeard** (a mossy toad with a
+    bubble beard: belly-flop, gulp) and **Ribbontail** (a paper kite dragon: swoop, dive). Come close and it wakes; every
+    move is warned, then it's puffed out for a moment and only then do bubbles, stomps and rolls count (3 a time, 9 to
+    calm it). Walk away and it settles back to sleep, all puffed up. Calmed: 15 sparkles, 2 Remnants and its hat once
+    (Glimmer Antennae, Lily Pad Hat, Kite Hat: `cosmetics.gd`, `shop/items.json`), flag `guardian_<place>`, gone next visit.
+  - Tests: new `tools/test_boss_tells.gd` and `tools/test_guardians.gd`; gloop_king, boss_versions, time_goblins,
+    chaos_fight, chaos_trials, arena, dark_hollow, rhythm_springs, far_future, tide_reef, glenmoor, frozen_moment,
+    lanternmoor, boss_lairs, gloop_kingdom, hidden_places, shop (both runs), clothes, clothing_fit, player_menu, ui_style
+    and juice pass. Previews: `tools/capture_boss_tells.gd` (project files, world/previews/boss_tells).
+  - My choices Hayden may change: the guardians' names, looks, moves and spots, the hats, 9 hits and the rewards, 0.9 s
+    and 1.6 s, the hint lines. Still to come from the plan: one big optional boss at the end of the longest trail.
+
 - 2026-11-15: **Hidden places: six in the Void and six in Stars Hollow** (slice 1 of the "feels bigger" plan,
   https://claude.ai/artifact/KaGrzJgy9bvxU891Bchtog; Hayden: "Lets get started on the making the game feel bigger like
   elden ring plan"). Built and tested in the cloud (own Godot user folders, no save touched).

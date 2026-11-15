@@ -30,6 +30,8 @@ var _bar: BossBar
 var _pendulum: Node3D
 var _clock_hand: Node3D
 var _cross := false
+const TELL := preload("res://scripts/boss_tell.gd")
+
 var _warned := false
 var _base := []                                # chase speed, chime gap, blink cooldown, before he got cross
 # Who he is, for a boss built on him (Lanternmoor's Dawn Snatcher, scripts/dawn_snatcher.gd, sets these before _ready)
@@ -73,6 +75,9 @@ func _physics_process(delta: float) -> void:
 		return
 	if state == State.CHASE and is_on_floor():
 		_chime_t -= delta
+		if _chime_t + 0.5 <= TELL.lead() and not TELL.showing(self):
+			# The warning lasts all three strikes: a ring on the ground as far as each chime will roll
+			TELL.warn(self, "jump", chime_reach, ring_colour, maxf(_chime_t, 0.0) + 0.5 + 2.0 * (0.6 if _cross else 0.75) + 0.3)
 		if _chime_t <= 0.0:
 			_chime_t = chime_every * randf_range(0.85, 1.2)
 			_chimes_left = 3
