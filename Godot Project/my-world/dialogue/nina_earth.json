@@ -65,6 +65,19 @@
     },
     {
       "when": {
+        "season": "autumn",
+        "quest_done": "first_night",
+        "quest_not_started": "pumpkin_night"
+      },
+      "set": "pumpkin_night_start",
+      "lines": [
+        "{player}! It's pumpkin time!",
+        "Let's make the spookiest porch on Maple Lane!",
+        "A pumpkin from the patch, a candle from Hank. Go!"
+      ]
+    },
+    {
+      "when": {
         "flag": "season_dial_turned",
         "not_flag": "nina_dial_talk"
       },
@@ -72,6 +85,42 @@
       "lines": [
         "You turned the stone dial by the oak? The town went WHOOSH!",
         "Prue wants to turn it every five minutes."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pumpkin_night:gather",
+        "season": "autumn"
+      },
+      "lines": [
+        "Pumpkin from the patch, candle from Hank's!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pumpkin_night:carve",
+        "season": "autumn"
+      },
+      "lines": [
+        "Got them? I'll do the eyes!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pumpkin_night:porch",
+        "season": "autumn"
+      },
+      "lines": [
+        "Put it by our door. Light it!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "pumpkin_night:cider",
+        "season": "autumn"
+      },
+      "lines": [
+        "So spooky! Now ask Gus for cider!"
       ]
     },
     {
@@ -114,6 +163,16 @@
       "every": 2,
       "lines": [
         "Prue named our snowman Sir Carrots."
+      ]
+    },
+    {
+      "when": {
+        "quest_done": "pumpkin_night",
+        "season": "autumn"
+      },
+      "every": 2,
+      "lines": [
+        "Prue says our pumpkin winked at her."
       ]
     },
     {

@@ -64,6 +64,11 @@ func _process(delta: float) -> void:
 	_t += delta
 	for l in _letters:
 		var a: Area3D = _letters[l]
+		# They come out as soon as night 2 does, even mid-visit (the story quests follow on straight away, so night 2
+		# can start while you're already in the Void and ask for a letter that was still held back when you landed)
+		var want := not Dialogue.flags.has("skate_letter_" + l) and not is_done("letters") and not FirstNight.held_back(2)
+		if a.visible != want:
+			a.visible = want
 		if a.visible:
 			(a.get_node("Look") as Node3D).position.y = sin(_t * 2.0 + LETTERS.find(l)) * 0.15
 

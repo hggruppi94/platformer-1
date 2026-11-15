@@ -155,6 +155,8 @@ func _announce() -> void:
 		return
 	if FirstNight.running():
 		return                                   # (Nina shows them the board on the First Night: no news pop-up)
+	if Game.needs_creator or Creator.is_open():
+		return                                   # (a new game, still making the hero: The First Night hasn't begun yet)
 	var scene := get_tree().current_scene
 	if scene == null or scene.scene_file_path != EARTH:
 		return

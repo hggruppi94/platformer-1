@@ -68,6 +68,10 @@ func _ready() -> void:
 	var ducks := (load("res://scripts/duckling_day.gd") as GDScript).new() as Node
 	ducks.name = "DucklingDay"
 	add_child(ducks)
+	# Autumn's quest with Nina, "Pumpkin Night" (scripts/pumpkin_night.gd), reachable as "EarthTown/PumpkinNight"
+	var pumpkins := (load("res://scripts/pumpkin_night.gd") as GDScript).new() as Node
+	pumpkins.name = "PumpkinNight"
+	add_child(pumpkins)
 	# The Season Dial by the old oak (scripts/season_dial.gd): switch to any season you've opened, as
 	# "EarthTown/SeasonDial"
 	var dial := (load("res://scripts/season_dial.gd") as GDScript).new() as Node

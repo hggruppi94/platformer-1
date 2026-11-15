@@ -74,7 +74,13 @@ func _run() -> void:
 	await _physics(90)
 	var ring := _flat(tally.global_position - square.global_position)
 	check(absf(ring - 9.0) < 0.5, "...round the ring between the benches and the stalls (%.1f m out)" % ring)
-	check(tally.global_position.distance_to(t0) > 0.05 or tally.get("_pause") > 0.0, "...and gets about")
+	# (Tally starts with a little pause, and can stop to tick something off, so give them a few seconds to set off:
+	# checking at one moment failed whenever that moment fell just as a pause ran out)
+	for i in 300:
+		if tally.global_position.distance_to(t0) > 0.05:
+			break
+		await physics_frame
+	check(tally.global_position.distance_to(t0) > 0.05, "...and gets about")
 	# Tally's name tag hides behind walls and stalls, and only shows close up (Hayden's 14 Nov 2026 playtest: "Tally's name is
 	# visible through objects")
 	var tag := tally.get_node_or_null("Name Tag") as Label3D

@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-15: **Overnight polish, pass 2: a second whole-game run, Pumpkin Night, Peepers, and the S-K-A-T-E letters**
+  (the same overnight plan Hayden said yes to). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Second run:** `tools/playthrough.gd -- all --ui-watch` start to ending: OK, nothing cut off; `audit_ui --quick`
+    150 screens, nothing cut off. It found the S-K-A-T-E letters never came out when night 2 started mid-visit
+    (`skate_goals.gd` now works out each letter's visibility every frame); the playthrough rides through its letter.
+  - **Flaky tests fixed:** a "New jobs" pop-up could land on a new game's creator (`requests.gd`/`earth_jobs.gd
+    _announce()` wait while the creator's up); test_request_board waits longer for Tally to move; test_playtest_nov14b's
+    jelly check only fails a Gloop frozen with no live mine.
+  - **Pumpkin Night** (`quests/pumpkin_night.json`, `scripts/pumpkin_night.gd`, "PumpkinNight" under `EarthTown`):
+    autumn's quest with Nina (the only season without one). A pumpkin from the patch, a candle from Hank, carve it with
+    Nina on the green, light it on the Blastoffs' porch (it glows there all autumn), warm cider with Gus. 12 sparkles.
+    Flags `pumpkin_night_start`, `pn_pumpkin`, `pn_candle`, `pn_carved`, `pn_lit`, `pn_cider`. Test
+    `tools/test_pumpkin_night.gd`; 6 new mind voice lines.
+  - **Peepers** (`scripts/peeper.gd`, placed by `portal_world.gd` beside each world's Remnant vein): a shy puffball in
+    the world's colour that ducks when you come near; walk right up and it squeaks, spins and gives 3 sparkles once
+    (flag `peeper_<world>`, none on practice trips). Test `tools/test_peepers.gd`.
+  - Pip's glow twinkles when it comes on in the dark. Previews: `tools/capture_pass2.gd` (project files,
+    world/previews/overnight_polish/pass2).
+  - My choices Hayden may change: Pumpkin Night's steps and lines, the Peepers (name, look, reward).
+
 - 2026-11-15: **Overnight polish: bugs from a whole-game run, menu sounds, a calmer camera, fresh loading tips, five
   neighbour errands, and friends who cheer** (Hayden said yes to the overnight plan: playthrough bug hunt, polish,
   more Earth quests, small juice). Played start to ending and ran all 127 tests on Hayden's PC first (own APPDATA, the

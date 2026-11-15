@@ -422,8 +422,16 @@ func _night_do(n: int, flag: String, S: Node) -> void:
 				if best == null or _flat(l.global_position - player.global_position) < _flat(best.global_position - player.global_position):
 					best = l
 			if best:
-				player.global_position = best.global_position
-				await _physics(10)
+				# Letters only count on a ride (like Tony Hawk's), so hop on the board and roll through it
+				game.riding = true
+				game.equipment_changed.emit()
+				await _physics(4)
+				player.global_position = best.global_position + Vector3(0, 2.5, 0)
+				player.velocity = Vector3.ZERO
+				await _physics(40)
+				game.riding = false
+				game.equipment_changed.emit()
+				await _physics(4)
 			if not dialogue.flags.has(flag):
 				dialogue.set_flag("skate_letter_K")
 				note("couldn't find an S-K-A-T-E letter to walk into on night 2, so one was given")
