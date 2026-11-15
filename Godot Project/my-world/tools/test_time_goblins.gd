@@ -185,6 +185,9 @@ func _run() -> void:
 	check(tock.stomps_to_defeat >= 13, "he takes %d pops now (14 Nov 2026: was 8)" % tock.stomps_to_defeat)
 	tock.shot(tock.stomps_to_defeat - tock.hits, tock.global_position, Vector3.FORWARD)
 	check(tock.defeated, "...and enough bubbles pop him")
+	await process_frame
+	await process_frame
+	check(tock._bar.finished, "the last hit plays the boss finish (scripts/boss_bar.gd _finish_blow)")
 	check(root.get_node("Dialogue").flags.has("popped_grandfather_tock"), "popping Tock is remembered")
 	_end()
 
