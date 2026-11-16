@@ -41,6 +41,11 @@ const COVERED_BRIDGE := "res://models/props/covered_bridge.glb"
 const FOOTBRIDGE := "res://models/props/footbridge.glb"
 const DOCK := "res://models/props/dock.glb"
 const TELESCOPE := "res://models/props/telescope.glb"
+const PALM := "res://models/props/palm.glb"
+const TIKI_TORCH := "res://models/props/tiki_torch.glb"
+const GROVE_LANTERN := "res://models/props/grove_lantern.glb"
+const SPRINGS_GATE := "res://models/props/springs_gate.glb"
+const PALM_H := 5.0                    # the model palm's height (tools/build_prop_island.py PALM_H)
 const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
 const FOUNTAINS := ["Market Square", "TownSquare"]
 const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/build_prop_fountain.py void_lamp)
@@ -155,6 +160,75 @@ static func dress_void(scene: Node) -> Dictionary:
 		stall.add_child(m)
 		out.stalls += 1
 	return out
+
+
+static func dress_rhythm(scene: Node) -> Dictionary:
+	# Melody's island in Rhythm Springs (16 Nov 2026, batch seven, made to look like Hayden's concept pictures:
+	# tools/build_prop_island.py): its palms, tiki torches, the bamboo grove's lanterns and the Springs Gate. The old
+	# pieces stop being drawn; their collisions, the torches' flames and lights, and the shade markers stay.
+	var out := {"palms": 0, "torches": 0, "lanterns": 0, "gate": 0}
+	var palm := _scene(PALM)
+	if palm:
+		for g in scene.find_children("Parasol Palm *", "Node3D", true, false):
+			out.palms += _palm(g, palm)
+	# The builder names only the first torch and lantern (the rest are "@Node3D@..."), so they're found by what's
+	# in them: a torch has its "Flame", a lantern its "Lantern Glow" box.
+	var torch := _scene(TIKI_TORCH)
+	var lantern := _scene(GROVE_LANTERN)
+	for g in scene.find_children("*", "Node3D", true, false):
+		var flame := g.get_node_or_null("Flame") as MeshInstance3D
+		if torch and flame and _mat_name(flame) == "Torch Flame" and g.get_parent().name == "Torch Paths":
+			out.torches += _dress_in(g, torch, "Detailed Torch", ["Flame"])
+		elif lantern and g.get_parent().name == "Bamboo Grove" and _has_mat(g, "Lantern Glow"):
+			out.lanterns += _dress_in(g, lantern, "Detailed Lantern", [])
+	var gate := _scene(SPRINGS_GATE)
+	var sg := scene.find_child("Springs Gate", true, false) as Node3D
+	if gate and sg:
+		out.gate = _dress_in(sg, gate, "Detailed Gate", [])
+	return out
+
+
+static func _has_mat(g: Node, mat_name: String) -> bool:
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) == mat_name:
+			return true
+	return false
+
+
+static func _dress_in(g: Node3D, model: PackedScene, new_name: String, keep: Array) -> int:
+	# Every plain piece straight under the node stops being drawn (except the ones named in keep) and the detailed
+	# one goes in the node, at its origin.
+	if g.get_script() != null or g.has_node(new_name):
+		return 0
+	for c in g.get_children():
+		if c is MeshInstance3D and not (String(c.name) in keep):
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = new_name
+	g.add_child(m)
+	return 1
+
+
+static func _palm(g: Node3D, model: PackedScene) -> int:
+	# A parasol palm (tools/build_rhythm_springs.gd _palm): its coconut hangs 0.3 m under the top of its leaning
+	# trunk, so it says how tall the palm is and which way it leans. The model curves over towards +X, so it's turned
+	# to lean the same way and scaled to the same height.
+	if g.get_script() != null or g.has_node("Detailed Palm"):
+		return 0
+	var top := Vector3(0, 5.0, 0)
+	for c in g.get_children():
+		if c is MeshInstance3D:
+			if _mat_name(c) == "Coconut":
+				top = c.position + Vector3(0, 0.3, 0)
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = "Detailed Palm"
+	var s := top.y / PALM_H
+	m.scale = Vector3(s, s, s)
+	var lean := Vector2(top.x, top.z)
+	m.rotation.y = atan2(-lean.y, lean.x) if lean.length() > 0.05 else fposmod(g.position.x * 1.7 + g.position.z, TAU)
+	g.add_child(m)
+	return 1
 
 
 static func _scene(path: String) -> PackedScene:

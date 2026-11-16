@@ -73,6 +73,8 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_earth(scene)
 	elif path == "res://scenes/town/town.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_void(scene)
+	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_rhythm(scene)
 	if batching:
 		last_batch = STATIC_BATCH.batch(scene)
 	if lods:

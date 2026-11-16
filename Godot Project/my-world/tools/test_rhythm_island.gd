@@ -69,6 +69,7 @@ func _run() -> void:
 	for n in ["Shade Pavilion", "Shade Hut 1", "Shade Hut 2", "Shade Hut 3", "Shade Cave", "Shade Legend Hut"]:
 		check(world.find_child(n, true, false) != null, n + " cools you down")
 	check(B.HUTS.size() == 3, "three stilt treehouses")
+	_check_detail()
 
 	# Where you arrive is on the ground
 	await _settle()
@@ -125,6 +126,56 @@ func _run() -> void:
 	await _route_blocked("through the fence beside the sandbar out onto the sea", fence_at + bar.cross(Vector3.UP) * 3.0 - bar * 3.0,
 		fence_at + bar.cross(Vector3.UP) * 3.0 + bar * 8.0)
 	_finish()
+
+
+func _check_detail() -> void:
+	# The baked island props (scripts/detail_props.gd dress_rhythm, tools/build_prop_island.py): every palm, torch,
+	# grove lantern and the gate has its detailed one, nothing old is drawn, and the collisions and flames stay
+	var props: Dictionary = root.get_node("WorldDetail").last_props
+	var palms := world.find_children("Parasol Palm *", "Node3D", true, false)
+	var torches := 0
+	for f in world.find_children("Flame", "MeshInstance3D", true, false):
+		if f.get_parent().get_parent().name == "Torch Paths":
+			torches += 1
+	check(palms.size() > 40 and props.get("palms", 0) == palms.size(),
+		"every palm is detailed (%d of %d)" % [props.get("palms", 0), palms.size()])
+	check(torches > 5 and props.get("torches", 0) == torches, "every tiki torch is detailed (%d of %d)" % [props.get("torches", 0), torches])
+	check(props.get("lanterns", 0) >= 2, "the bamboo grove's lanterns are detailed (%d)" % props.get("lanterns", 0))
+	check(props.get("gate", 0) == 1, "the Springs Gate is detailed")
+	var old_drawn := 0
+	var flames_hidden := 0
+	for g in palms + [world.find_child("Springs Gate", true, false)]:
+		for m in (g as Node).get_children():
+			if m is MeshInstance3D and (m as MeshInstance3D).layers != 0:
+				old_drawn += 1
+	for f in world.find_children("Flame", "MeshInstance3D", true, false):
+		if f.get_parent().get_parent().name == "Torch Paths" and (f as MeshInstance3D).layers == 0:
+			flames_hidden += 1
+	check(old_drawn == 0, "none of the old palm or gate pieces are drawn (%d)" % old_drawn)
+	check(flames_hidden == 0, "the torches' flames still burn")
+	var bodies := 0
+	for g in palms:
+		bodies += (g as Node).find_children("*", "StaticBody3D", true, false).size()
+	check(bodies >= palms.size(), "the palms are still solid (%d bodies)" % bodies)
+	# Each detailed palm is as tall as its old one and leans the same way
+	var worst := 0.0
+	for g in palms:
+		var d := (g as Node).get_node_or_null("Detailed Palm") as Node3D
+		var top := Vector3.ZERO
+		for m in (g as Node).get_children():
+			if m is MeshInstance3D and (m as MeshInstance3D).material_override and \
+					(m as MeshInstance3D).material_override.resource_name == "Coconut":
+				top = m.position + Vector3(0, 0.3, 0)
+		if d == null:
+			worst = INF
+			continue
+		var model_top: Vector3 = d.transform * Vector3(0.9, 5.0, 0)
+		var off := absf(model_top.y - top.y)
+		var lean := Vector2(top.x, top.z)
+		if lean.length() > 0.2:
+			off += 1.0 - Vector2(model_top.x, model_top.z).normalized().dot(lean.normalized())
+		worst = maxf(worst, off)
+	check(worst < 0.15, "each detailed palm stands as tall as its old one and leans its way (worst %.2f off)" % worst)
 
 
 func _route_blocked(what: String, start: Vector3, goal: Vector3) -> void:
