@@ -24743,7 +24743,7 @@ material_override = SubResource("StandardMaterial3D_pqykj")
 mesh = SubResource("SphereMesh_13ivq")
 
 [node name="@Node3D@1336" type="Node3D" parent="Main Street Things" unique_id=271113024]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -40)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -38.4)
 
 [node name="@StaticBody3D@1338" type="StaticBody3D" parent="Main Street Things/@Node3D@1336" unique_id=482261736]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
@@ -24863,7 +24863,7 @@ material_override = SubResource("StandardMaterial3D_pqykj")
 mesh = SubResource("SphereMesh_aoov6")
 
 [node name="@Node3D@1364" type="Node3D" parent="Main Street Things" unique_id=829781785]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -56)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -54.4)
 
 [node name="@StaticBody3D@1366" type="StaticBody3D" parent="Main Street Things/@Node3D@1364" unique_id=14746839]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
@@ -24983,7 +24983,7 @@ material_override = SubResource("StandardMaterial3D_pqykj")
 mesh = SubResource("SphereMesh_805ba")
 
 [node name="@Node3D@1392" type="Node3D" parent="Main Street Things" unique_id=535251203]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -88)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -86.4)
 
 [node name="@StaticBody3D@1394" type="StaticBody3D" parent="Main Street Things/@Node3D@1392" unique_id=89457448]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
@@ -25043,7 +25043,7 @@ material_override = SubResource("StandardMaterial3D_pqykj")
 mesh = SubResource("SphereMesh_yddm6")
 
 [node name="@Node3D@1406" type="Node3D" parent="Main Street Things" unique_id=504126378]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -104)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -3.8, 0, -102.4)
 
 [node name="@StaticBody3D@1408" type="StaticBody3D" parent="Main Street Things/@Node3D@1406" unique_id=1829254849]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)

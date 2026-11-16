@@ -28,6 +28,7 @@ const VIEWS := [
 	["07_main_street", Vector3(-1.5, 1.7, -32), Vector3(0, 2.2, -80), 11.0],
 	["08_green_at_dusk", Vector3(12, 2.2, 14), Vector3(-2, 2.5, -2), 18.4],
 	["09_green_at_night", Vector3(9.0, 1.7, 11.0), Vector3(0, 2.6, 0), 21.5],
+	["10_main_street_bench", Vector3(0.5, 1.7, -34.5), Vector3(-3.8, 0.8, -39.5), 12.0],
 ]
 
 var out_dir := "user://props_shots"
