@@ -99,6 +99,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Rhythm Springs is a tropical island now** (Hayden: "Okay now we are going to work on melodies world",
+  with a page of nine concept pictures: bamboo grove, sandstone cliffs and a waterfall to the sea, a thatched pavilion,
+  a crystal cave pool, a temple gate with crescent banners, a torch-lit path, stilt treehouses with rope bridges, a
+  boardwalk over the sea, a waterfall grotto). Built and tested in the cloud (own Godot user folders, no save touched).
+  The valley, its quests, the heat, the Off-Beat and the Hum Heads are unchanged: the island is built round them, all
+  in `tools/build_rhythm_springs.gd` (rebuilt `rhythm_springs.tscn`, which is plain text, no LFS).
+  - **The island** (`shore_r(θ)`, `ground_y()`): a wobbly coast 62 to 94 m out, a beach sloping into a sea that
+    fills the view, an unseen fence along the beach ("WorldBounds Fence", so the map's picture covers it). You arrive
+    on the beach (`ARRIVE` (0, 0, 60)) and walk up a torch-lit path through the **Springs Gate** (banded sandstone,
+    crescent banners) into the valley.
+  - **Round it:** a sandstone ridge along the north with a waterfall pouring down to the sea (its own secret cove:
+    `big_falls.gd` reads meta `fall_id` "ridge_falls"), three lagoon coves and a crystal cave pool (all cool pools for
+    the heat), a pier with a boat, a bamboo grove with stone lanterns, the overlook boardwalk on the east headland, a
+    thatched **pavilion** with curtains (floor flush with the ground), three **stilt treehouses** joined by rope
+    bridges with a ramp up, the **crystal cave**, a **flower glade** of giant flowers, the **legend hut** (the island's
+    story in four paintings, no words, round a drum), **tide pools** with starfish and a crab, and an **islet** out
+    along a sandbar with a palm and a glowing conch. 42 palms and 150 bushes. Every building is shade.
+  - Tests: new `tools/test_rhythm_island.gd` really walks through the gate, out along the pier, into the pavilion, up
+    the ramp and over both bridges, into the cave, the glade, the legend hut and out to the islet, and checks you
+    can't walk off the sandbar, the islet or past the fence; rhythm_springs, world_detail, hum_heads, groove,
+    sunken_secrets, rare_fish and practice_trips pass. Pictures: `tools/capture_rhythm_island.gd -- <folder>`
+    (project files, world/previews/rhythm_island/island).
+  - My choices Hayden may change: the names, where everything is, the island's size, nothing to find or win in the
+    new places yet (the boat and a sea cave could come next).
+
 - 2026-11-16: **Nina gets baked-in detail** (Hayden: "try this on a character. lets start with nina"). Built and tested
   in the cloud (own Godot user folders, no save touched). Her shape, rig, weights, animations and material names are
   unchanged (clothes, recolours, the wardrobe, the party and routines all work as before).

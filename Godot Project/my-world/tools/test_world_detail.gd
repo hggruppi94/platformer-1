@@ -73,7 +73,7 @@ func _run() -> void:
 	change_scene_to_file(RHYTHM)
 	await _frames(14)
 	_ground(current_scene, "Rhythm Springs")
-	_falls(current_scene, ["mesa_falls"], "Rhythm Springs")
+	_falls(current_scene, ["mesa_falls", "ridge_falls"], "Rhythm Springs")
 	_finish()
 
 
