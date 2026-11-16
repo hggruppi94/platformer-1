@@ -1659,7 +1659,9 @@ func _main_street() -> void:
 			_solid_mesh(Vector3(0.9, 0.55, 3.2), planter, Vector3(x, 0.28, z), g)
 			for k in 4:
 				mesh_at(ball(0.35, 8), mat("Mums %d" % k, mums[k], 0.9), Vector3(x + rng.randf_range(-0.15, 0.15), 0.7, z - 1.2 + k * 0.8), g)
-			_bench(g, Vector3(x, 0, z + 3.0), sx * -PI / 2, bench_m)        # (north of it: shop doors are south)
+			# North of it (shop doors are south). On the west side a lamp post stands 3 m north of each planter, so
+			# that bench sits a little further on, past the lamp (it used to stand right through it).
+			_bench(g, Vector3(x, 0, z + (4.6 if sx < 0 else 3.0)), sx * -PI / 2, bench_m)
 
 
 func _bench(parent: Node3D, at: Vector3, yaw: float, m: Material) -> void:

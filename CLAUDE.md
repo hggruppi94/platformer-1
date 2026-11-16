@@ -99,6 +99,12 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **The Main Street benches no longer stand inside lamp posts** (Hayden: "the lamp post is inside the
+  bench"). On the west side a lamp stood 3 m north of each planter, right where its bench went (four benches). Those
+  benches now sit 1.6 m further on, past the lamp (`build_earth.gd`, only their four lines changed in `earth.tscn`).
+  `test_detail_props` checks no bench is within 1.4 m of a lamp. Picture: `capture_detail_props.gd` shot
+  10_main_street_bench (project files, world/previews/bench_lamp_fix).
+
 - 2026-11-16: **Baked hay bales, corn sheaves, the fire engine and the rowing boat in Stars Hollow** (Hayden: "Then
   keep going", batch four). Built and tested in the cloud (own Godot user folders, no save touched).
   - **New bake script** (same bake kit): `tools/build_prop_farm.py <out.glb> hay_bale|corn_sheaf|fire_truck|rowing_boat`

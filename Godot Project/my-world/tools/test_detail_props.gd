@@ -89,6 +89,17 @@ func _run() -> void:
 	check(props.get("lamps", 0) == poles and poles >= 30, "every street lamp has its detailed model (%d of %d)" % [props.get("lamps", 0), poles])
 	check(props.get("benches", 0) >= 5, "the park benches have theirs (%d)" % props.get("benches", 0))
 	check(props.get("gazebo", 0) == 1, "and the gazebo")
+	# No bench stands through a lamp post (Hayden, 16 Nov 2026: four on Main Street did).
+	var lamp_spots := []
+	for n in s.find_children("Detailed Lamp *", "Node3D", true, false):
+		lamp_spots.append((n as Node3D).global_position)
+	var crowded := []
+	for n in s.find_children("Detailed Bench", "Node3D", true, false):
+		var bp := (n as Node3D).global_position
+		for lp: Vector3 in lamp_spots:
+			if Vector2(bp.x - lp.x, bp.z - lp.z).length() < 1.4:
+				crowded.append(n.get_parent().get_path())
+	check(lamp_spots.size() >= 30 and crowded.is_empty(), "no bench stands in a lamp post %s" % [crowded])
 	var gz := s.get_node("Gazebo")
 	check(gz.get_node_or_null("Detailed Gazebo") != null, "the detailed gazebo stands in the Gazebo")
 	var lit := gz.get_node_or_null("Gazebo Lights") as Node3D
