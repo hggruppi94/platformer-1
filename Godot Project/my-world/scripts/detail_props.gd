@@ -33,6 +33,10 @@ const HAY := "res://models/props/hay_bale.glb"
 const CORN := "res://models/props/corn_sheaf.glb"
 const FIRE_TRUCK := "res://models/props/fire_truck.glb"
 const BOAT := "res://models/props/rowing_boat.glb"
+const SLIDE := "res://models/props/slide_tower.glb"
+const SWINGS := "res://models/props/swing_set.glb"
+const SANDBOX := "res://models/props/sandbox.glb"
+const PLANTER := "res://models/props/mum_planter.glb"
 const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
 const FOUNTAINS := ["Market Square", "TownSquare"]
 const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/build_prop_fountain.py void_lamp)
@@ -47,7 +51,8 @@ const BENCH_SEAT := Vector3(1.8, 0.1, 0.5)
 
 static func dress_earth(scene: Node) -> Dictionary:
 	var out := {"lamps": 0, "benches": 0, "gazebo": 0, "pumpkins": 0, "jacks": 0, "scarecrows": 0, "mailboxes": 0,
-		"fences": 0, "porches": 0, "hay": 0, "corn": 0, "truck": 0, "boat": 0}
+		"fences": 0, "porches": 0, "hay": 0, "corn": 0, "truck": 0, "boat": 0,
+		"playground": 0, "planters": 0}
 	var lamp := _scene(LAMP)
 	var bench := _scene(BENCH)
 	var gazebo := _scene(GAZEBO)
@@ -95,6 +100,11 @@ static func dress_earth(scene: Node) -> Dictionary:
 	if boat:
 		# The detailed boat floats a little higher than the old red hull did, so its paint shows above the pond.
 		out.boat = _swap_node(scene, "Rowing Boat", boat, "Detailed Boat", 0.15)
+	# (16 Nov 2026, batch five: tools/build_prop_play.py)
+	out.playground = _playground(scene)
+	var planter := _scene(PLANTER)
+	if planter:
+		out.planters = _planters(scene, planter)
 	return out
 
 
@@ -615,3 +625,69 @@ static func _swap_node(scene: Node, node_name: String, model: PackedScene, new_n
 	m.position.y = lift
 	g.add_child(m)
 	return 1
+
+
+static func _playground(scene: Node) -> int:
+	# The playground by Willow Pond (tools/build_earth.gd _playground): the slide tower, the swings and the sandbox.
+	# Each old piece stops being drawn and the detailed one goes in its node, in the same frame (built to match), so
+	# the deck you climb onto and the sandbox's boards keep their collision. The sign and the bark stay as they are.
+	var p := scene.find_child("Playground", true, false) as Node3D
+	if p == null or p.get_script() != null:
+		return 0
+	var n := 0
+	var sandbox: Node3D = null
+	for c in p.get_children():
+		for m in c.find_children("*", "MeshInstance3D", true, false):
+			if _mat_name(m) == "Sand":
+				sandbox = c
+	for pair in [[p.get_node_or_null("Slide"), SLIDE, "Detailed Slide"], [p.get_node_or_null("Swings"), SWINGS,
+			"Detailed Swings"], [sandbox, SANDBOX, "Detailed Sandbox"]]:
+		var g := pair[0] as Node3D
+		var model := _scene(pair[1])
+		if g == null or model == null or g.has_node(pair[2]):
+			continue
+		for m in g.find_children("*", "MeshInstance3D", true, false):
+			_hide(m)
+		var d := model.instantiate() as Node3D
+		d.name = pair[2]
+		g.add_child(d)
+		n += 1
+	return n
+
+
+static func _planters(scene: Node, planter: PackedScene) -> int:
+	# Main Street's stone planters, each with four balls of mums along it (tools/build_earth.gd, "Main Street
+	# Things"). The detailed planter stands where the box was, with its mums planted in it in the same colours.
+	var g := scene.find_child("Main Street Things", true, false) as Node3D
+	if g == null:
+		return 0
+	var mums: Array[MeshInstance3D] = []
+	for m in g.find_children("*", "MeshInstance3D", true, false):
+		if _mat_name(m).begins_with("Mums ") and not m.has_meta(OLD_META):
+			mums.append(m)
+	var n := 0
+	for m in g.find_children("*", "MeshInstance3D", true, false):
+		var mi := m as MeshInstance3D
+		if _mat_name(mi) != "Planter Stone" or mi.has_meta(OLD_META) or not (mi.mesh is BoxMesh):
+			continue
+		var at := g.to_local(mi.global_transform.origin) if mi.is_inside_tree() else _local_to(g, mi)
+		_hide(mi)
+		for b in mums:
+			if not b.has_meta(OLD_META) and Vector2(b.position.x - at.x, b.position.z - at.z).length() < 2.2:
+				_hide(b)
+		var d := planter.instantiate() as Node3D
+		d.name = "Detailed Planter %d" % n
+		d.position = Vector3(at.x, 0, at.z)
+		g.add_child(d)
+		n += 1
+	return n
+
+
+static func _local_to(g: Node3D, mi: Node3D) -> Vector3:
+	# Outside the tree (a test building the scene by hand) global_transform can't be read: add up the parents.
+	var t := mi.transform
+	var p := mi.get_parent() as Node3D
+	while p and p != g:
+		t = p.transform * t
+		p = p.get_parent() as Node3D
+	return t.origin

@@ -222,6 +222,31 @@ func _run() -> void:
 	var th := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(tp)
 	check(th and th.position.y > truck.global_position.y + 1.5, "and you still bump into it")
 
+	# The playground and Main Street's planters (16 Nov 2026, batch five)
+	check(props.get("playground", 0) == 3, "the slide, swings and sandbox are detailed (%d)" % props.get("playground", 0))
+	check(props.get("planters", 0) == 6, "the six Main Street planters are detailed (%d)" % props.get("planters", 0))
+	var play_old_drawn := 0
+	for n in s.find_children("*", "MeshInstance3D", true, false):
+		var m := n as MeshInstance3D
+		var mn := String(m.material_override.resource_name) if m.material_override else ""
+		if m.layers != 0 and not m.has_meta("static_batch") and not (m.mesh is ArrayMesh) and (mn.begins_with("Mums ")
+				or mn in ["Planter Stone", "Slide Yellow", "Play Deck", "Play Roof", "Swing Seat", "Chain", "Sand"]):
+			play_old_drawn += 1
+	check(play_old_drawn == 0, "none of the old playground or planter pieces is drawn (%d)" % play_old_drawn)
+	var slide := s.find_child("Detailed Slide", true, false) as Node3D
+	if slide:
+		var dp := PhysicsRayQueryParameters3D.create(slide.global_position + Vector3(0, 4.5, 0), slide.global_position)
+		var dh := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(dp)
+		check(dh and absf(dh.position.y - slide.global_position.y - 2.075) < 0.1, "the slide's deck is still solid at 2 m")
+	else:
+		check(false, "the slide's deck is still solid at 2 m")
+	var planter_ok := true
+	for n in s.find_children("Detailed Planter *", "Node3D", true, false):
+		var pl := n as Node3D
+		if absf(pl.global_position.y - EarthLand.height(pl.global_position.x, pl.global_position.z)) > 0.2:
+			planter_ok = false
+	check(planter_ok, "each planter stands on the pavement")
+
 	# Batching
 	check(batch.get("pieces", 0) > 1500 and batch.get("meshes", 0) < batch.get("pieces", 0) / 3,
 		"still pieces are merged (%d pieces into %d meshes)" % [batch.get("pieces", 0), batch.get("meshes", 0)])
