@@ -151,6 +151,69 @@ func _run() -> void:
 	Input.action_release("move_forward")
 	check(walked, "the player walks in through the diner's door (%.1f m short)" % (target - player.global_position).length())
 
+	# With the centipede's wall crawl, a room's walls don't climb from inside (up the wallpaper she'd crawl the ceiling,
+	# slip out over the walls and fall out of the town), but the building still climbs from outside
+	var crawl: Node = player.get("wall_crawl")
+	var portals := root.get_node("/root/Portals")
+	var dlg := root.get_node("/root/Dialogue")
+	var had_world: bool = portals.cleared_worlds.has("dark_hollow")
+	var had_gifts := bool(dlg.flags.get("centipede_gifts", false))
+	if not had_world:
+		portals.cleared_worlds.append("dark_hollow")
+	dlg.set_flag("centipede_gifts")
+	check(crawl.unlocked(), "wall crawl's unlocked for the climb checks")
+	var dsize: Vector3 = diner.get_meta("no_crawl_size", Vector3.ZERO)
+	check(dsize.x > 1.0, "the diner's a room nobody can wall-crawl in")
+	var walls_tried := 0
+	var grabbed := false
+	var top := -INF
+	for room_name in ["Hollow Diner", "Corner Market"]:
+		var room := s.get_node(room_name) as Node3D
+		var spot := _bare_wall(s, room)
+		if spot.is_empty():
+			continue
+		player.global_position = room.to_global(spot.at)
+		player.velocity = Vector3.ZERO
+		await _frames(6)
+		var dir: Vector3 = room.global_transform.basis * (spot.dir as Vector3)
+		dir.y = 0
+		var y0 := player.global_position.y
+		walls_tried += 1
+		for i in 150:
+			Input.action_press("move_forward")
+			_face(player, dir)
+			await physics_frame
+			grabbed = grabbed or crawl.active
+			top = maxf(top, player.global_position.y - y0)
+		Input.action_release("move_forward")
+		if crawl.active:
+			crawl.stop()
+	check(walls_tried == 2 and not grabbed and top < 1.6, "inside the diner and the Corner Market, walking into its walls never starts a climb (rose %.1f m)" % top)
+	check(not crawl.in_room(diner.to_global(Vector3(0, 1, dsize.z / 2.0 + 2.0))), "just outside the door doesn't count as in the room")
+	# From outside, behind the diner: still climbs
+	var out_at := diner.to_global(Vector3(0, 0.9, -dsize.z / 2.0 - 1.2))
+	player.global_position = out_at
+	player.velocity = Vector3.ZERO
+	await _frames(6)
+	var in_dir: Vector3 = diner.global_transform.basis * Vector3(0, 0, 1)
+	in_dir.y = 0
+	var climbed_out := false
+	for i in 90:
+		Input.action_press("move_forward")
+		_face(player, in_dir)
+		await physics_frame
+		if crawl.active:
+			climbed_out = true
+			break
+	Input.action_release("move_forward")
+	if crawl.active:
+		crawl.stop()
+	check(climbed_out, "outside, the diner's back wall still climbs")
+	if not had_world:
+		portals.cleared_worlds.erase("dark_hollow")
+	if not had_gifts:
+		dlg.flags.erase("centipede_gifts")
+
 	# --- The Void: every dome door goes somewhere that's built, or is listed as still to come
 	change_scene_to_file(TOWN)
 	await _frames(16)
@@ -194,6 +257,29 @@ func _run() -> void:
 	hall.free()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
+
+
+func _bare_wall(s: Node3D, room: Node3D) -> Dictionary:
+	# A spot in a room with nothing between it and a bare stretch of wall 1.4 m ahead: {at, dir} in the room's space
+	var size: Vector3 = room.get_meta("no_crawl_size")
+	for dir in [Vector3(0, 0, 1), Vector3(0, 0, -1), Vector3(1, 0, 0), Vector3(-1, 0, 0)]:
+		var reach: float = absf(dir.x) * size.x / 2.0 + absf(dir.z) * size.z / 2.0 - 0.3
+		for k in 13:
+			var along := (float(k) / 12.0 - 0.5) * (absf(dir.z) * size.x + absf(dir.x) * size.z) * 0.8
+			var side := Vector3(absf(dir.z), 0, absf(dir.x)) * along
+			if dir.z > 0 and absf(along) < 1.3:
+				continue                                 # (not out through the doorway)
+			var at: Vector3 = side + dir * (reach - 1.4)
+			var clear := true
+			for y in [0.3, 0.9, 1.5]:
+				var a := room.to_global(Vector3(at.x, y, at.z) - dir * 0.6)
+				var hit := _hit(s, a, room.to_global(Vector3(at.x, y, at.z) + dir * 1.8))
+				if hit.is_empty() or room.to_local(hit.position).dot(dir) < reach - 0.05:
+					clear = false
+					break
+			if clear and _hit(s, room.to_global(at + Vector3(0, 1.5, 0)), room.to_global(at + Vector3(0, -0.3, 0))).has("position"):
+				return {"at": at + Vector3(0, 0.9, 0), "dir": dir}
+	return {}
 
 
 func _face(player: Node3D, dir: Vector3) -> void:

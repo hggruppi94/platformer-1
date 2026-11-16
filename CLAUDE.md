@@ -127,6 +127,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     concept_vs_game.png).
   - My choices Hayden may change: the heights, where each terrace and ramp is, the island's size.
 
+- 2026-11-16: **No wall crawl inside the walk-in rooms** (Hayden: "with the centipede ability, you can climb over the
+  wall inside shops and fall into the map"). Up a room's wallpaper she crawled the ceiling and slipped out over the
+  walls into the gap under the roof, then out of the town. Every room `scripts/insides.gd` hollows is now in group
+  `no_crawl_room` with its box (meta `no_crawl_size`); `wall_crawl.gd in_room()` says no crawling while she's inside
+  one (she lets go if she gets in on a wall). Outside, the buildings still climb as before. `test_insides` really
+  walks into bare walls in the diner and the Corner Market with wall crawl taught (it climbed 2.3 m before the fix),
+  and still climbs the diner's back wall from outside; wall_crawl, earth, doors, walk_through and detail_props pass.
+
 - 2026-11-16: **Baked palms, tiki torches, bamboo grove lanterns and the Springs Gate on Rhythm Springs' island**
   (Hayden: "I like the island, continue the baking details", "try to make it look as much like the original pictures
   as possible"; and "stick with scenery for now", so no more characters, Nina's detail stays). Built and tested in the

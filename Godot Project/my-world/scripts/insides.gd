@@ -21,6 +21,8 @@ extends RefCounted
 const STATIC_BATCH := preload("res://scripts/static_batch.gd")
 const FURNITURE := "res://models/props/furniture/"
 const HOLLOW_META := "hollowed"          # on the building's group once it's a room (tests and the occluders read it)
+const NO_CRAWL_GROUP := "no_crawl_room"   # rooms nobody can wall-crawl in (scripts/wall_crawl.gd reads them)
+const NO_CRAWL_META := "no_crawl_size"     # ...and the box, in the group's own space, that counts as inside
 const WALL := 0.3                         # wall thickness (m)
 const DOOR := Vector2(1.6, 2.5)           # the doorway's width and height
 const ROOM_RANGE := 45.0                  # a room's insides stop drawing past this (m); its windows still glow
@@ -183,6 +185,10 @@ static func hollow(g: Node3D, spec: Dictionary) -> bool:
 			mi.free()
 	_near_only(room)
 	g.set_meta(HOLLOW_META, true)
+	# No wall crawl in here (scripts/wall_crawl.gd): up a wall she'd crawl the ceiling and slip out through the gap
+	# over the walls, into the hollow under the roof and out of the town. Outside, the walls still climb as before.
+	g.set_meta(NO_CRAWL_META, size)
+	g.add_to_group(NO_CRAWL_GROUP)
 	return true
 
 
