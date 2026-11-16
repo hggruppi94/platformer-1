@@ -113,7 +113,23 @@ func _can() -> bool:
 		return false
 	if player.popper and player.popper.aiming:
 		return false
+	if in_room(player.global_position):
+		return false
 	return float(player.get("_stun_timer")) <= 0.0
+
+
+func in_room(at: Vector3) -> bool:
+	# Inside one of Stars Hollow's walk-in rooms (scripts/insides.gd)? No crawling there: up the wallpaper she'd reach
+	# the ceiling and slip out over the walls into the gap under the roof, and fall out of the town.
+	for g in player.get_tree().get_nodes_in_group("no_crawl_room"):
+		var room := g as Node3D
+		if room == null or not room.is_inside_tree():
+			continue
+		var size: Vector3 = room.get_meta("no_crawl_size", Vector3.ZERO)
+		var p := room.to_local(at)
+		if absf(p.x) < size.x / 2.0 and absf(p.z) < size.z / 2.0 and p.y > -1.0 and p.y < size.y + 0.5:
+			return true
+	return false
 
 
 func check(delta: float) -> bool:
