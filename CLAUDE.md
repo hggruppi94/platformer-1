@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Baked palms, tiki torches, bamboo grove lanterns and the Springs Gate on Rhythm Springs' island**
+  (Hayden: "I like the island, continue the baking details", "try to make it look as much like the original pictures
+  as possible"; and "stick with scenery for now", so no more characters, Nina's detail stays). Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_island.py <out.glb> palm|tiki_torch|grove_lantern|springs_gate`
+    (a curving ringed palm with 11 fronds of leaflets and coconuts, 45k triangles onto 1.4k, no normal map and soft
+    shadow like the corn sheaf; a carved tiki torch on stones with a woven cup and glowing coals; a stone-footed post
+    lantern with a paper box and a curled roof, like the concept's grove; the gate as the concept's temple gate: pale
+    stacked stone blocks, a round arch, a glowing sun on the lintel, purple banners with gold crescents). In
+    `models/props/`.
+  - **Swapped at run time** (`detail_props.gd dress_rhythm()`, called by `WorldDetail` for `rhythm_springs.tscn`):
+    every "Parasol Palm" is sized and leant to its own trunk (from its coconuts); torches and grove lanterns are found
+    by their flame and glow (the builder only names the first one); the gate keeps the builder's collision. The flames,
+    lights, shade markers and collisions stay. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_rhythm_island` checks 55 palms, 11 torches, the lanterns and the gate swapped, nothing old drawn,
+    flames still burning, palms still solid, each palm's height and lean; rhythm_springs, world_detail, detail_props,
+    detail_all, hum_heads and practice_trips pass. Pictures: `capture_rhythm_island.gd` and `capture_prop_studio.gd`
+    (project files, world/previews/rhythm_island/detail, with concept_vs_game.png).
+  - My choices Hayden may change: every look (the gate's stone and sun, the torches' carving, the palms' lean).
+
 - 2026-11-16: **Rhythm Springs is a tropical island now** (Hayden: "Okay now we are going to work on melodies world",
   with a page of nine concept pictures: bamboo grove, sandstone cliffs and a waterfall to the sea, a thatched pavilion,
   a crystal cave pool, a temple gate with crescent banners, a torch-lit path, stilt treehouses with rope bridges, a
