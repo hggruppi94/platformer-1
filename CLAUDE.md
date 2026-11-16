@@ -99,6 +99,41 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Detailed props without slowdown: Stars Hollow's town green gets baked lamps, benches and a gazebo,
+  and the town draws far fewer pieces** (Hayden: "How do AAA games have such detailed assets that dont slow down my
+  pc?", then "Yes" to a pipeline tried on one area first). Built and tested in the cloud (own Godot user folders, no
+  save touched). First we read open-source work (Hayden's rule): GarikDog/autobake_tools, leukbaars/EasyBake,
+  danielenger/Principled-Baker (Blender baking), godotengine/godot-benchmarks (how to measure), puchik/godot-extras,
+  arcaneenergy/godot-multimesh-scatter and wojtekpil/Godot-Octahedral-Impostors (LODs and instancing).
+  - **What measuring showed:** the slow part isn't triangles but how many separate pieces the graphics card is asked
+    to draw. The builders make everything out of little boxes and cylinders, each its own MeshInstance3D: Stars Hollow
+    asked for 4,400 to 5,700 draws a frame, the Void's Market 7,100 and over the Void 8,500 (and 15M triangles).
+  - **Merging still pieces** (`scripts/static_batch.gd`, run by `WorldDetail` on Stars Hollow only for now): every
+    builder piece nobody can find by name ("@MeshInstance3D@12") is merged with its siblings into one mesh per
+    material under the same parent. Never under a node with a script, a group, metas, a moving body, see-through
+    materials (except the sky's clouds and stars). The pieces stay in the tree (render layers 0, meta `static_batch`)
+    so collisions, paint, rays and tests see them as before. Small merged meshes stop being drawn past 70 or 140 m,
+    and townsfolk past 90 m (dithered fade). The stars aren't drawn by day (`earth_world.gd`).
+  - **Detailed props** (`scripts/detail_props.gd`): the 40 street lamps, 12 park benches and the gazebo are swapped for
+    models in `models/props/` (street_lamp, park_bench, gazebo .glb). The old pieces stay (layers 0, meta
+    `detail_prop_old`): their collision, names, lamp lights, the gazebo's bulbs, sign and pumpkins are unchanged.
+  - **How they're made** (`tools/bake_kit.py`, `tools/build_prop_lamp.py`, `build_prop_bench.py`,
+    `build_prop_gazebo.py`, Blender 4.5 or pip bpy): each script builds a very detailed HIGH version (fluted columns,
+    scrolls, wood grain, shingles, pitted iron: lamp 39k, bench 78k, gazebo 147k triangles) and a LOW one with the
+    same outline (2.7k, 2.8k, 7.9k), then bakes the high one's detail into textures on the low one (normal map, AO,
+    colour, roughness, metalness, glow; ORM packed) and exports only the low one. Godot's importer makes the
+    distance LODs (Generate LODs, on by default). Colours are written like the Godot builders' (sRGB). The gazebo's
+    bake takes about 20 minutes on 4 cores; `--preview` also writes the high version for comparison pictures.
+  - **Occlusion culling** (`scripts/town_occluders.gd`, project setting on): an invisible box inside every plain
+    building on the town map (not ones you go into, not the Dance Studio), switched off when the camera's inside one.
+  - **Numbers** (cloud, Forward+, same spots): the green 4,415 -> 2,658 draws, its corner 5,361 -> 2,942, Main Street
+    3,199 -> 2,104, over town 5,691 -> 2,118; the frame took less than half as long to draw. The Void is unchanged.
+  - Tests: new `tools/test_detail_props.gd` and `tools/test_perf_budget.gd` (needs a window: draws and triangles under
+    a budget at six spots, frame times printed; `--before` turns the whole pipeline off for comparison). Pictures:
+    `tools/capture_detail_props.gd -- <folder> [--old-props]` (project files, world/previews/detail_props).
+  - My choices Hayden may change: the props' looks (the gazebo's green trim, the lamps' brass), the fade distances,
+    which area is next (the Void's batching is the biggest win left).
+
 - 2026-11-15: **The Skyreach Trail and the Starhorn: one big optional boss at the end of the longest trail** (slice 4
   of the "feels bigger" plan; Hayden: "Go ahead"). Built and tested in the cloud (own Godot user folders, no save
   touched). First we read open-source boss fights (Hayden's rule): CodingQuests/godot-enemy-ai (MIT: telegraph,
