@@ -84,6 +84,7 @@ func _process(_delta: float) -> void:
 			WorkerThreadPool.wait_for_task_completion(_task)
 			_busy = false
 			_finish(_job)
+			_job = {}
 		return
 	while not queue.is_empty():
 		var item: Array = queue.pop_front()
@@ -97,7 +98,7 @@ func _process(_delta: float) -> void:
 			im.add_surface(Mesh.PRIMITIVE_TRIANGLES, mesh.surface_get_arrays(s), [], {}, mesh.surface_get_material(s),
 				mesh.surface_get_name(s))
 		_job = {"mesh": mesh, "users": users, "im": im}
-		_task = WorkerThreadPool.add_task(func() -> void: im.generate_lods(MERGE_ANGLE, SPLIT_ANGLE, []))
+		_task = WorkerThreadPool.add_task(im.generate_lods.bind(MERGE_ANGLE, SPLIT_ANGLE, []))
 		_busy = true
 		return
 
@@ -118,6 +119,16 @@ func _finish(job: Dictionary) -> void:
 			u.mesh = out
 	done += 1
 	saved += _tris(old)
+
+
+func _exit_tree() -> void:
+	# The place is going (a new scene, or the game closing): a sum still running on the worker would hold its mesh and
+	# materials past the end, so wait for it and let them go with everything else
+	if _busy:
+		WorkerThreadPool.wait_for_task_completion(_task)
+		_busy = false
+	_job = {}
+	queue.clear()
 
 
 func busy() -> bool:
