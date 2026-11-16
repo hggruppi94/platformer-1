@@ -29,6 +29,10 @@ const PORCH := "res://models/props/porch.glb"
 const PORCH_ROOF := "res://models/props/porch_roof.glb"
 const FOUNTAIN := "res://models/props/void_fountain.glb"
 const VOID_LAMP := "res://models/props/void_lamp.glb"
+const HAY := "res://models/props/hay_bale.glb"
+const CORN := "res://models/props/corn_sheaf.glb"
+const FIRE_TRUCK := "res://models/props/fire_truck.glb"
+const BOAT := "res://models/props/rowing_boat.glb"
 const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
 const FOUNTAINS := ["Market Square", "TownSquare"]
 const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/build_prop_fountain.py void_lamp)
@@ -43,7 +47,7 @@ const BENCH_SEAT := Vector3(1.8, 0.1, 0.5)
 
 static func dress_earth(scene: Node) -> Dictionary:
 	var out := {"lamps": 0, "benches": 0, "gazebo": 0, "pumpkins": 0, "jacks": 0, "scarecrows": 0, "mailboxes": 0,
-		"fences": 0, "porches": 0}
+		"fences": 0, "porches": 0, "hay": 0, "corn": 0, "truck": 0, "boat": 0}
 	var lamp := _scene(LAMP)
 	var bench := _scene(BENCH)
 	var gazebo := _scene(GAZEBO)
@@ -77,6 +81,20 @@ static func dress_earth(scene: Node) -> Dictionary:
 	var roof := _scene(PORCH_ROOF)
 	if porch and roof:
 		out.porches = _porches(scene, porch, roof)
+	# (16 Nov 2026, batch four: tools/build_prop_farm.py)
+	var hay := _scene(HAY)
+	if hay:
+		out.hay = _hay(scene, hay)
+	var corn := _scene(CORN)
+	if corn:
+		out.corn = _corn(scene, corn)
+	var truck := _scene(FIRE_TRUCK)
+	if truck:
+		out.truck = _swap_node(scene, "Fire Truck", truck, "Detailed Fire Truck")
+	var boat := _scene(BOAT)
+	if boat:
+		# The detailed boat floats a little higher than the old red hull did, so its paint shows above the pond.
+		out.boat = _swap_node(scene, "Rowing Boat", boat, "Detailed Boat", 0.15)
 	return out
 
 
@@ -518,3 +536,82 @@ static func _void_lamps(scene: Node, lamp: PackedScene) -> int:
 		parent.add_child(m)
 		n += 1
 	return n
+
+
+static func _hay(scene: Node, hay: PackedScene) -> int:
+	# The builder's round hay bales: a cylinder 1.2 m across and 1.2 m long laid on its side (by the dance studio, in
+	# the pumpkin patch and at the green's corners). The detailed one goes inside the old cylinder, so its axis is the
+	# cylinder's and the seasons hiding the Autumn Dressing hide it too; each is rolled round a bit so no two match.
+	var n := 0
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is CylinderMesh) or _mat_name(mi) != "Hay" or mi.has_meta(OLD_META):
+			continue
+		var cm := mi.mesh as CylinderMesh
+		if not (is_equal_approx(cm.top_radius, 0.6) and is_equal_approx(cm.height, 1.2)):
+			continue
+		_hide(mi)
+		var m := hay.instantiate() as Node3D
+		m.name = "Detailed Hay"
+		var p := mi.global_position if mi.is_inside_tree() else mi.position
+		m.rotation.y = fposmod(p.x * 1.9 + p.z * 2.7, TAU)
+		mi.add_child(m)
+		n += 1
+	return n
+
+
+static func _corn(scene: Node, corn: PackedScene) -> int:
+	# The cornstalk bundles tied to the street lamps round the green (tools/build_earth.gd _halloween): five thin
+	# cylinders 2.2 m tall round a spot. Each bundle becomes one sheaf standing on that spot, in the same place in the
+	# tree (the Autumn Dressing), so it comes and goes with the season.
+	var n := 0
+	var groups := {}
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is CylinderMesh) or _mat_name(mi) != "Cornstalk" or mi.has_meta(OLD_META):
+			continue
+		if not is_equal_approx((mi.mesh as CylinderMesh).height, 2.2):
+			continue
+		var parent := mi.get_parent() as Node3D
+		if parent == null or parent.get_script() != null:
+			continue
+		if not groups.has(parent):
+			groups[parent] = []
+		var put := false
+		for b: Array in groups[parent]:
+			if Vector2(b[0].position.x - mi.position.x, b[0].position.z - mi.position.z).length() < 0.6:
+				b.append(mi)
+				put = true
+				break
+		if not put:
+			groups[parent].append([mi])
+	for parent: Node3D in groups:
+		for b: Array in groups[parent]:
+			var mid := Vector3.ZERO
+			for mi: MeshInstance3D in b:
+				mid += mi.position
+				_hide(mi)
+			mid /= b.size()
+			var m := corn.instantiate() as Node3D
+			m.name = "Detailed Corn %d" % n
+			m.position = Vector3(mid.x, mid.y - 1.1, mid.z)
+			m.rotation.y = fposmod(mid.x * 1.3 + mid.z * 0.7, TAU)
+			parent.add_child(m)
+			n += 1
+	return n
+
+
+static func _swap_node(scene: Node, node_name: String, model: PackedScene, new_name: String, lift := 0.0) -> int:
+	# A one-off made of plain pieces under a node of its own (the fire engine, the rowing boat): its pieces stop
+	# being drawn and the detailed one goes in that node. The collision (a body of its own) stays.
+	var g := scene.find_child(node_name, true, false) as Node3D
+	if g == null or g.get_script() != null or g.has_node(new_name):
+		return 0
+	for c in g.get_children():
+		if c is MeshInstance3D:
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = new_name
+	m.position.y = lift
+	g.add_child(m)
+	return 1

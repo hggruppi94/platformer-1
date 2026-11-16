@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Baked hay bales, corn sheaves, the fire engine and the rowing boat in Stars Hollow** (Hayden: "Then
+  keep going", batch four). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_farm.py <out.glb> hay_bale|corn_sheaf|fire_truck|rowing_boat`
+    (a round bale with straw spiralling in from its ends, twine and loose straws, 70k triangles onto 324; a sheaf of 22
+    cornstalks tied at the waist with dry leaves and three ears of corn, 48k onto 1.9k; Fire Station No. 1's engine with
+    lockers, a ladder, a hose reel, chrome, a light bar and glowing lamps, 18k onto 2k; a clinker rowing boat painted
+    red outside, wood inside, with ribs, thwarts, oars and a rope, 29k onto 2k). In `models/props/`. The sheaf has no
+    normal map and only a soft share of the shadow: its stalks are thin, and each stalk draws from its own seed so the
+    low one sits right where the high one is (when they didn't match, the bake came out nearly black).
+  - **Swapped at run time** (`detail_props.gd _hay()`, `_corn()`, `_swap_node()`): the 1.2 m hay bales (each turned
+    its own way), the cornstalk bundles round the lamps (one sheaf for each lamp's bundle, in the Autumn Dressing so it
+    only shows in autumn), and the "Fire Truck" and "Rowing Boat" pieces (the boat floats 15 cm higher so its paint
+    shows). Old pieces stay (layers 0, meta `detail_prop_old`), so collisions are unchanged.
+  - Tests: `test_detail_props` (10 bales, 8 sheaves on the ground, the engine and boat, nothing old drawn, the engine's
+    collision); detail_all, seasons, winter, summer, spring, layout, map, world_detail, plant_clearance, insides and
+    earth (both runs) pass. Pictures: `tools/capture_detail_farm.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_farm).
+  - My choices Hayden may change: every look (the engine's lockers and ladder, the boat's red and white).
+
 - 2026-11-16: **Baked picket fences and porches on Maple Lane, a detailed fountain and lamp posts in the Void, and a
   crash fix** (Hayden: "Merge and then keep going"). Built and tested in the cloud (own Godot user folders, no save
   touched).
