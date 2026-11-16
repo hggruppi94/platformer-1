@@ -20,6 +20,7 @@ const DUSK_GATE := preload("res://scripts/dusk_gate.gd")
 const STATIC_BATCH := preload("res://scripts/static_batch.gd")
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 const TOWN_OCCLUDERS := preload("res://scripts/town_occluders.gd")
+const MESH_LODS := preload("res://scripts/mesh_lods.gd")
 
 const MIN_SPAN := 10.0          # a ground mesh is at least this wide both ways...
 const FLAT := 0.4               # ...and no taller than this much of its narrower side
@@ -28,9 +29,13 @@ const NOT_GROUND := ["water", "lake", "sea", "pond", "pool", "goo", "slime", "la
 	"partition", "gazebo", "dome", "stand", "tunnel", "white"]
 
 var enabled := true             # tests can switch the whole pass off
-var batching := true            # merge still builder pieces in Stars Hollow (scripts/static_batch.gd)
+var batching := true            # merge still builder pieces in every place (scripts/static_batch.gd)
 var detail_props := true        # the baked detailed props on the town green (scripts/detail_props.gd)
+var lods := true                # distance LODs for big meshes made in code (scripts/mesh_lods.gd)
+var plant_shadows := false      # ferns and grass cast no shadows (their shadows were 60% of the Void's triangles)
 var occluders := true           # invisible boxes in Stars Hollow's buildings for occlusion culling (town_occluders.gd)
+const SMALL_PLANTS := ["Ferns", "Grass"]   # the plant patches (scenes/town/foliage.gd) whose shadows are left out
+const LATER_BATCH := [1.0, 2.0]          # waits in turn (1 s, then 3 s after it loads) to merge what was put in since
 var last_batch := {}            # what the last merge did (tests read it)
 var last_props := {}            # and what detailed props went in
 var _last: Node
@@ -60,15 +65,52 @@ func _dress(scene: Node) -> void:
 	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn":
 		FALLS.dress_rhythm(scene)
 	detail_ground(scene)
+	if path == "res://scenes/earth/earth.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_earth(scene)
+	elif path == "res://scenes/town/town.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_void(scene)
+	if batching:
+		last_batch = STATIC_BATCH.batch(scene)
+	if lods:
+		MESH_LODS.on(scene).scan(scene)
+	if not plant_shadows:
+		small_plants_unshadowed(scene)
+	if batching or lods:
+		_batch_later(scene)
 	if path == "res://scenes/earth/earth.tscn":
-		if detail_props:
-			last_props = DETAIL_PROPS.dress_earth(scene)
-		if batching:
-			last_batch = STATIC_BATCH.batch(scene)
 		if occluders and scene is Node3D and scene.get_node_or_null("Town Occluders") == null:
 			var occ := TOWN_OCCLUDERS.new()
 			occ.name = "Town Occluders"
 			scene.add_child(occ)
+
+
+func small_plants_unshadowed(scene: Node) -> int:
+	# Big games don't let grass and little plants cast shadows: there are thousands of them, each shadow is drawn
+	# again for every split of the sun's shadow map, and on the ground under them nobody can tell. Measured in the
+	# Void on 16 Nov 2026 the ferns' and grass's shadows were 8.6M of the 14.4M triangles drawn a frame. The giant
+	# leaves, mushrooms and trees keep theirs. Returns how many were changed (tests read it).
+	var n := 0
+	for node in scene.find_children("*", "MultiMeshInstance3D", true, false):
+		if String(node.name) in SMALL_PLANTS:
+			(node as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			n += 1
+	return n
+
+
+func _batch_later(scene: Node) -> void:
+	# Some places are dressed a moment after they load (the Gloop Gate's view, the boss lairs' doors, the wilds, a
+	# world's own setup): merge those pieces too once they're in. Anything that moves later is put back by the
+	# scene's Batch Watch (scripts/batch_watch.gd).
+	for wait in LATER_BATCH:
+		await get_tree().create_timer(wait, false).timeout
+		if not is_instance_valid(scene) or scene != get_tree().current_scene:
+			return
+		if batching:
+			var more: Dictionary = STATIC_BATCH.batch(scene)
+			for k in more:
+				last_batch[k] = int(last_batch.get(k, 0)) + int(more[k])
+		if lods:
+			MESH_LODS.on(scene).scan(scene)
 
 
 func detail_ground(scene: Node) -> int:

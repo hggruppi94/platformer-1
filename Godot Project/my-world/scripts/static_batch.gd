@@ -31,6 +31,10 @@ const MID_END := 140.0
 const PEOPLE_END := 90.0               # townsfolk aren't drawn past this (m)
 const FADE := 8.0                       # metres of fade at the end (dithered, no pop)
 const BODY_OK := ["Node3D", "StaticBody3D", "Area3D", "Marker3D"]
+# Scripts that never touch the pieces under them (a map name, the lake's wading), so what's under them can be merged
+const SAFE_SCRIPTS := ["res://scripts/landmark.gd", "res://scripts/water.gd"]
+const SAFE_GROUPS := [&"map_landmarks", &"water"]
+const WATCH := preload("res://scripts/batch_watch.gd")
 
 
 static func batch(scene: Node) -> Dictionary:
@@ -51,14 +55,16 @@ static func batch(scene: Node) -> Dictionary:
 		by_parent[p].append(mi)
 	var merged := 0
 	var pieces := 0
+	var watch := WATCH.on(scene)
 	for p: Node3D in by_parent:
 		var list: Array = by_parent[p]
 		if list.size() < MIN_PIECES:
 			continue
 		var made := _merge(p, list)
-		if made > 0:
-			merged += made
+		if not made.is_empty():
+			merged += made.size()
 			pieces += list.size()
+			watch.add(p, list, made)
 	var faded := far_fade(scene.get_node_or_null("Characters"), PEOPLE_END)
 	return {"meshes": merged, "pieces": pieces, "people_faded": faded}
 
@@ -107,7 +113,11 @@ static func _chain_ok(p: Node, scene: Node, allowed: Dictionary) -> bool:
 	var ok := true
 	if p == scene:
 		ok = true
-	elif p == null or not (p is Node3D) or p.get_script() != null or not p.get_groups().is_empty():
+	elif p == null or not (p is Node3D):
+		ok = false
+	elif p.get_script() != null and not ((p.get_script() as Script).resource_path in SAFE_SCRIPTS):
+		ok = false
+	elif not _groups_ok(p):
 		ok = false
 	elif not (p.get_class() in BODY_OK):
 		ok = false
@@ -117,6 +127,13 @@ static func _chain_ok(p: Node, scene: Node, allowed: Dictionary) -> bool:
 		ok = _chain_ok(p.get_parent(), scene, allowed)
 	allowed[p] = ok
 	return ok
+
+
+static func _groups_ok(p: Node) -> bool:
+	for g in p.get_groups():
+		if not (g in SAFE_GROUPS) and not String(g).begins_with("_"):
+			return false
+	return true
 
 
 static func _material(mi: MeshInstance3D, s: int) -> Material:
@@ -135,7 +152,7 @@ static func _see_through(m: Material) -> bool:
 	return m is ShaderMaterial          # a shader can do anything (time, vertex moves): leave it alone
 
 
-static func _merge(p: Node3D, list: Array) -> int:
+static func _merge(p: Node3D, list: Array) -> Array:
 	# One SurfaceTool per (material, shadow setting), every piece added in the parent's own space.
 	var tools := {}
 	var inv := p.global_transform.affine_inverse() if p.is_inside_tree() else Transform3D.IDENTITY
@@ -152,14 +169,14 @@ static func _merge(p: Node3D, list: Array) -> int:
 			(tools[key] as SurfaceTool).append_from(mi.mesh, s, xf)
 		mi.layers = 0                    # still there for rays, paint and tests, just not drawn
 		mi.set_meta(MERGED_META, true)
-	var made := 0
+	var made: Array = []
 	for key in tools:
 		var st := tools[key] as SurfaceTool
 		var mesh := st.commit()
 		if mesh == null or mesh.get_surface_count() == 0:
 			continue
 		var out := MeshInstance3D.new()
-		out.name = "Batched %d" % made
+		out.name = "Batched %d" % made.size()
 		out.mesh = mesh
 		out.material_override = key[0]
 		out.cast_shadow = key[1]
@@ -173,5 +190,5 @@ static func _merge(p: Node3D, list: Array) -> int:
 			out.visibility_range_end_margin = FADE
 			out.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		p.add_child(out)
-		made += 1
+		made.append(out)
 	return made
