@@ -71,6 +71,12 @@ func _run() -> void:
 		["08_overlook", Vector3(58, 4.5, -4), Vector3(78, 1, -14)],
 		["09_pier_and_boat", Vector3(24, 6, 82), Vector3(8, 0, 96)],
 		["10_ridge_from_the_valley", Vector3(0, 3, 10), Vector3(0, 8, -60)],
+		["11_springs_gate", Vector3(2, 2.6, 60), Vector3(0, 3, 40)],
+		["12_pavilion", Vector3(20, 4, 44), Vector3(30, 1.5, 52)],
+		["13_stilt_huts", Vector3(-42, 7, 10), Vector3(-62, 3.5, 8)],
+		["14_rope_bridge", Vector3(-52, 6.5, 12), Vector3(-64, 4, 5)],
+		["15_crystal_cave", Vector3(53, 2.2, -27), Vector3(53, 1.2, -33)],
+		["16_crystal_cave_outside", Vector3(40, 5, -20), Vector3(53, 2, -31)],
 	]
 	for sh in shots:
 		p.global_position = sh[2] + Vector3(0, 1, 0)

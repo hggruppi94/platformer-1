@@ -63,6 +63,12 @@ const GROVE := Vector3(-60, 0, -22)          # the bamboo grove
 const GROVE_R := 11.0
 const OVERLOOK := Vector3(73, 0, -12)        # the boardwalk on the eastern headland
 const LAGOON_AT := [128.0, 150.0, 40.0]      # angles round the island (0 east, 90 south) of the lagoon coves
+const GATE := Vector3(0, 0, 47)              # the gate over the torch path, where it comes up into the valley
+const PAVILION := Vector3(30, 0, 52)         # the thatched pavilion on the south-east lawn
+const HUTS := [Vector3(-57, 0, 17), Vector3(-66, 0, 9), Vector3(-63, 0, -1)]   # the stilt treehouses (west)
+const HUT_DECK := 3.6                        # how high their decks are
+const CAVE := Vector3(53, 0, -31)            # the crystal cave (north-east)
+const CAVE_R := 7.5
 
 var all_pools: Array = []                    # the valley's pools, the lagoons and the falls pool
 var ridge_rocks: Array = []                  # Vector4(x, z, radius, height) of every ridge rock
@@ -97,6 +103,10 @@ func _initialize() -> void:
 	for i in PALMS.size():
 		_palm(PALMS[i], i)
 	_torch_path()
+	_gate()
+	_pavilion()
+	_stilt_huts()
+	_crystal_cave()
 	_pier()
 	_bamboo_grove()
 	_overlook()
@@ -326,6 +336,7 @@ func _plan_island() -> void:
 		var a := deg_to_rad(float(deg))
 		var r := shore_r(a) - 11.0
 		all_pools.append(Vector4(cos(a) * r, sin(a) * r, 4.2, 3.2))
+	all_pools.append(Vector4(CAVE.x, CAVE.z, 3.2, 2.6))           # the crystal cave's pool
 	var out := Vector3(-FALLS_ROCK.x, 0, -FALLS_ROCK.z).normalized()
 	var fp := FALLS_ROCK + out * (FALLS_ROCK_R + 5.0)
 	all_pools.append(Vector4(fp.x, fp.z, 4.5, 3.5))
@@ -531,7 +542,8 @@ func _pools() -> void:
 		var lagoon := i >= POOLS.size()
 		# The valley's springs are Pool1..4; out on the island the lagoon coves by the beach, and the pool the ridge's
 		# waterfall drops into (last)
-		holder.name = "Pool%d" % (i + 1) if not lagoon else ("Falls Pool" if i == all_pools.size() - 1 else "Lagoon %d" % (i - POOLS.size() + 1))
+		holder.name = "Pool%d" % (i + 1) if not lagoon else ("Falls Pool" if i == all_pools.size() - 1 else
+			("Crystal Pool" if i == all_pools.size() - 2 else "Lagoon %d" % (i - POOLS.size() + 1)))
 		holder.position = Vector3(e.x, 0, e.y)
 		g.add_child(holder)
 		var bm := mesh_at(cyl(1.0, 1.0, 0.04, 32), lagoon_bed if lagoon else bed, Vector3(0, 0.03, 0), holder)
@@ -902,6 +914,263 @@ func _torch_path() -> void:
 				lit += 1
 
 
+func _gate() -> void:
+	# The gate over the torch path where it comes up into the valley: two stacked sandstone pillars banded in teal, a
+	# carved lintel with a row of round "notes" along it, and a crescent banner hanging from each pillar
+	var g := Node3D.new()
+	g.name = "Springs Gate"
+	g.position = GATE
+	world.add_child(g)
+	var stone := [mat("Sandstone", Color(0.9, 0.62, 0.42), 0.9), mat("Sandstone Pale", Color(0.9, 0.68, 0.48), 0.9)]
+	var band := mat("Gate Teal", Color(0.2, 0.62, 0.65), 0.7)
+	var gold := mat("Banner Gold", Color(1.0, 0.8, 0.35), 0.4, 0.3, 1.0, 0.5)
+	var cloth := mat("Banner Teal", Color(0.2, 0.62, 0.65), 0.8)
+	for sx in [-1.0, 1.0]:
+		var x: float = sx * 3.2
+		for k in 4:
+			mesh_at(box(Vector3(1.3 - k * 0.08, 1.4, 1.3 - k * 0.08)), stone[k % 2], Vector3(x, 0.7 + k * 1.4, 0), g)
+			mesh_at(box(Vector3(1.45 - k * 0.08, 0.15, 1.45 - k * 0.08)), band, Vector3(x, 1.4 + k * 1.4, 0), g)
+		var b := BoxShape3D.new()
+		b.size = Vector3(1.3, 5.6, 1.3)
+		solid(b, Vector3(x, 2.8, 0), g)
+		# The banner on the pillar's valley side and its emblem (both faces)
+		mesh_at(box(Vector3(0.9, 2.2, 0.05)), cloth, Vector3(x, 3.4, -0.7), g).name = "Banner"
+		var moon := TorusMesh.new()
+		moon.inner_radius = 0.22
+		moon.outer_radius = 0.32
+		for face in [1.0, -1.0]:
+			mesh_at(moon, gold, Vector3(x, 3.6, -0.7 + 0.04 * face), g, Vector3(PI / 2.0, 0, 0))
+			mesh_at(cyl(0.24, 0.24, 0.04, 14), cloth, Vector3(x + 0.11, 3.66, -0.7 + 0.07 * face), g, Vector3(PI / 2.0, 0, 0))
+	mesh_at(box(Vector3(8.4, 0.9, 1.6)), stone[0], Vector3(0, 6.05, 0), g)
+	mesh_at(box(Vector3(9.0, 0.25, 1.8)), band, Vector3(0, 6.6, 0), g)
+	mesh_at(box(Vector3(5.0, 0.6, 1.2)), stone[1], Vector3(0, 7.0, 0), g)
+	for k in 9:
+		for face in [1.0, -1.0]:
+			mesh_at(ball(0.17, 8), gold, Vector3(-3.2 + k * 0.8, 6.05, 0.82 * face), g)
+	var top := BoxShape3D.new()
+	top.size = Vector3(8.4, 1.2, 1.6)
+	solid(top, Vector3(0, 6.2, 0), g)
+
+
+func _thatch(parent: Node3D, at: Vector3, r: float, h: float, layers := 3) -> void:
+	# A conical thatched roof: layers of straw-coloured cones, each a little wider and lower, with a knob on top
+	var straw := [mat("Thatch", Color(0.82, 0.66, 0.38), 0.95), mat("Thatch Dark", Color(0.7, 0.54, 0.3), 0.95)]
+	for k in layers:
+		var rr := r * (1.0 - k * 0.22)
+		var piece := mesh_at(cyl(0.05, rr, h / layers * 1.4, 14), straw[k % 2], at + Vector3(0, h / layers * (k + 0.7), 0), parent)
+		piece.name = "Thatch Roof"
+	mesh_at(ball(0.25, 8), straw[1], at + Vector3(0, h + 0.2, 0), parent)
+
+
+func _pavilion() -> void:
+	# The pavilion on the lawn: a round wooden floor laid nearly flush with the ground (you can't step up a ledge on
+	# foot, so its top is only 4 cm up), eight posts with curtains tied back to
+	# them, and a big thatched roof. Shade all through, and a breeze off the sea
+	var g := Node3D.new()
+	g.name = "Pavilion"
+	g.position = PAVILION
+	world.add_child(g)
+	var wood := mat("Boardwalk", Color(0.7, 0.5, 0.33), 0.85)
+	var post := mat("Pier Post", Color(0.42, 0.3, 0.2), 0.9)
+	var curtain := [mat("Curtain Cream", Color(1.0, 0.95, 0.85), 0.8), mat("Curtain Coral", Color(1.0, 0.6, 0.5), 0.8)]
+	var r := 5.5
+	mesh_at(cyl(r, r + 0.2, 0.3, 24), wood, Vector3(0, -0.11, 0), g)
+	cyl_solid(r, 0.3, Vector3(0, -0.11, 0), g)
+	for k in 8:
+		var a := k * TAU / 8.0
+		var p := Vector3(cos(a), 0, sin(a)) * (r - 0.3)
+		mesh_at(cyl(0.14, 0.17, 4.2, 8), post, p + Vector3(0, 2.4, 0), g)
+		cyl_solid(0.17, 4.2, p + Vector3(0, 2.4, 0), g)
+		# A curtain gathered at each post, swagged across the top between posts
+		var c := mesh_at(cyl(0.22, 0.4, 3.4, 8), curtain[k % 2], p + Vector3(0, 2.4, 0), g)
+		c.scale = Vector3(1, 1, 0.5)
+		c.rotation.y = -a
+		c.name = "Curtain"
+		var a2 := a + TAU / 16.0
+		var swag := mesh_at(ball(1.0, 10), curtain[k % 2], Vector3(cos(a2), 0, sin(a2)) * (r - 0.4) + Vector3(0, 4.15, 0), g)
+		swag.scale = Vector3(0.12, 0.35, 1.9)
+		swag.rotation.y = -a2
+	_thatch(g, Vector3(0, 4.4, 0), r + 1.4, 3.6)
+	# A low round table in the middle with cushions round it
+	mesh_at(cyl(1.0, 1.0, 0.1, 16), wood, Vector3(0, 0.75, 0), g)
+	mesh_at(cyl(0.15, 0.2, 0.45, 8), post, Vector3(0, 0.5, 0), g)
+	for k in 6:
+		var a := k * TAU / 6.0
+		var cu := mesh_at(ball(0.45, 8), curtain[(k + 1) % 2], Vector3(cos(a), 0, sin(a)) * 2.0 + Vector3(0, 0.45, 0), g)
+		cu.scale = Vector3(1.2, 0.4, 1.2)
+	var shade := _marker("Shade Pavilion", PAVILION)
+	shade.set_meta("radius", r)
+	shade.set_meta("height", 4.5)
+
+
+func _hut_ramp_mid() -> Vector3:
+	return HUTS[0] + (Vector3(-HUTS[0].x, 0, -HUTS[0].z).normalized() * 7.5)
+
+
+func _plank_walk(g: Node3D, from: Vector3, to: Vector3, w: float, walls := true) -> void:
+	# A walk of planks from one point to another (they may be at different heights), solid, with rope rails and
+	# unseen walls along both sides so nobody falls off
+	var plank := [mat("Pier Plank", Color(0.66, 0.48, 0.32), 0.85), mat("Pier Plank Dark", Color(0.56, 0.4, 0.27), 0.85)]
+	var rope := mat("Rope", Color(0.85, 0.75, 0.55), 0.9)
+	var post := mat("Pier Post", Color(0.42, 0.3, 0.2), 0.9)
+	var length := from.distance_to(to)
+	var dir := (to - from) / length
+	var flat := Vector3(dir.x, 0, dir.z).normalized()
+	var side := flat.cross(Vector3.UP)
+	var basis := Basis.looking_at(dir, Vector3.UP)
+	var n := int(length / 0.5)
+	for k in n:
+		var p := from.lerp(to, (k + 0.5) / n)
+		var pl := mesh_at(box(Vector3(w, 0.1, 0.42)), plank[k % 2], p - Vector3(0, 0.05, 0), g)
+		pl.basis = basis
+	var deck := BoxShape3D.new()
+	deck.size = Vector3(w, 0.2, length)
+	var body := solid(deck, (from + to) / 2.0 - basis.y * 0.1, g)
+	body.basis = basis
+	for sx in [-1.0, 1.0]:
+		var a: Vector3 = from + side * sx * (w / 2.0)
+		var b: Vector3 = to + side * sx * (w / 2.0)
+		var rail := mesh_at(cyl(0.035, 0.035, length, 6), rope, (a + b) / 2.0 + Vector3(0, 0.95, 0), g)
+		rail.basis = basis * Basis(Vector3.RIGHT, PI / 2.0)
+		for k in int(length / 2.5) + 1:
+			var pp := a.lerp(b, float(k) / maxf(1.0, float(int(length / 2.5))))
+			mesh_at(cyl(0.06, 0.06, 1.0, 6), post, pp + Vector3(0, 0.5, 0), g)
+		if walls:
+			var wall := BoxShape3D.new()
+			wall.size = Vector3(0.2, 2.4, length)
+			var wb := solid(wall, (a + b) / 2.0 + side * sx * 0.1 + Vector3(0, 1.1, 0), g)
+			wb.basis = basis
+
+
+func _stilt_huts() -> void:
+	# Three little treehouses up on stilts at the west of the island, joined by rope bridges, with a ramp up to the
+	# first. Each has a thatched roof and a hammock-shady deck; under them is shade too.
+	var g := Node3D.new()
+	g.name = "Stilt Huts"
+	world.add_child(g)
+	var wood := mat("Hut Wood", Color(0.62, 0.44, 0.3), 0.85)
+	var wall := mat("Hut Wall", Color(0.85, 0.7, 0.48), 0.9)
+	var post := mat("Pier Post", Color(0.42, 0.3, 0.2), 0.9)
+	var hammock := mat("Curtain Coral", Color(1.0, 0.6, 0.5), 0.8)
+	var half := 2.6
+	for i in HUTS.size():
+		var at: Vector3 = HUTS[i]
+		var h := Node3D.new()
+		h.name = "Stilt Hut %d" % (i + 1)
+		h.position = at
+		g.add_child(h)
+		mesh_at(box(Vector3(half * 2.0, 0.25, half * 2.0)), wood, Vector3(0, HUT_DECK - 0.125, 0), h)
+		var deck := BoxShape3D.new()
+		deck.size = Vector3(half * 2.0, 0.25, half * 2.0)
+		solid(deck, Vector3(0, HUT_DECK - 0.125, 0), h)
+		for sx in [-1.0, 1.0]:
+			for sz in [-1.0, 1.0]:
+				var p := Vector3(sx * (half - 0.2), 0, sz * (half - 0.2))
+				mesh_at(cyl(0.16, 0.2, HUT_DECK, 8), post, p + Vector3(0, HUT_DECK / 2.0, 0), h)
+				cyl_solid(0.2, HUT_DECK, p + Vector3(0, HUT_DECK / 2.0, 0), h)
+		# A hut on the back half of the deck: three walls and a doorway facing the valley, under a thatched roof
+		var face := Vector3(-at.x, 0, -at.z).normalized()
+		var hut := Node3D.new()
+		hut.name = "Hut"
+		hut.position = Vector3(0, HUT_DECK, 0)
+		hut.rotation.y = atan2(face.x, face.z)
+		h.add_child(hut)
+		# Small enough to leave a 1.2 m walk round it on the deck, so the ramp and both bridges join up
+		for wdef in [[Vector3(0, 1.1, -1.3), Vector3(2.75, 2.2, 0.15)], [Vector3(-1.3, 1.1, 0), Vector3(0.15, 2.2, 2.6)],
+				[Vector3(1.3, 1.1, 0), Vector3(0.15, 2.2, 2.6)], [Vector3(-0.95, 1.1, 1.3), Vector3(0.85, 2.2, 0.15)],
+				[Vector3(0.95, 1.1, 1.3), Vector3(0.85, 2.2, 0.15)]]:
+			mesh_at(box(wdef[1]), wall, wdef[0], hut)
+			var wbox := BoxShape3D.new()
+			wbox.size = wdef[1]
+			solid(wbox, wdef[0], hut)
+		_thatch(hut, Vector3(0, 2.2, 0), 2.3, 1.9, 2)
+		# A hammock slung under the deck, between two stilts
+		var hm := mesh_at(ball(1.0, 10), hammock, Vector3(0, 1.0, half - 0.2), h)
+		hm.scale = Vector3(1.9, 0.18, 0.5)
+		var shade := _marker("Shade Hut %d" % (i + 1), at)
+		shade.set_meta("radius", half)
+		shade.set_meta("height", HUT_DECK - 0.3)
+		# A rail round the deck's open edges (the bridges and the ramp come in through gaps)
+	# The ramp up to the first hut, from the valley side
+	var in_dir := Vector3(-HUTS[0].x, 0, -HUTS[0].z).normalized()
+	var top: Vector3 = HUTS[0] + in_dir * half + Vector3(0, HUT_DECK, 0)
+	var foot: Vector3 = HUTS[0] + in_dir * (half + 10.0)
+	_plank_walk(g, foot + Vector3(0, 0.0, 0), top, 1.8)
+	# The rope bridges between the huts
+	for i in HUTS.size() - 1:
+		var a: Vector3 = HUTS[i]
+		var b: Vector3 = HUTS[i + 1]
+		var d := (b - a).normalized()
+		_plank_walk(g, a + d * half + Vector3(0, HUT_DECK, 0), b - d * half + Vector3(0, HUT_DECK, 0), 1.4)
+	_marker("HutTop", HUTS[2] + Vector3(0, HUT_DECK + 0.1, 0))
+
+
+func _crystal_cave() -> void:
+	# The crystal cave: a hollow hill of rock in the north-east with a doorway facing the valley, a turquoise pool in
+	# the middle (one of the cool pools) and glowing crystals growing round the walls. Cool and shady inside
+	var g := Node3D.new()
+	g.name = "Crystal Cave"
+	g.position = CAVE
+	world.add_child(g)
+	var rock := [mat("Cave Rock", Color(0.66, 0.5, 0.42), 0.95), mat("Sandstone Red", Color(0.82, 0.48, 0.36), 0.9)]
+	var face := Vector3(-CAVE.x, 0, -CAVE.z).normalized()
+	var door_a := atan2(face.z, face.x)
+	for k in 22:
+		var a := k * TAU / 22.0
+		if absf(wrapf(a - door_a, -PI, PI)) < 0.32:
+			continue
+		var p := Vector3(cos(a), 0, sin(a)) * CAVE_R
+		var hh := rng.randf_range(4.0, 5.5)
+		var r := mesh_at(cyl(1.4, 1.9, hh, 10), rock[k % 2], p + Vector3(0, hh / 2.0, 0), g)
+		r.rotation.y = rng.randf() * TAU
+		cyl_solid(1.8, hh, p + Vector3(0, hh / 2.0, 0), g)
+	# The roof: a low dome seen from inside as well as out
+	var dome_mat := mat("Cave Roof", Color(0.6, 0.46, 0.4), 0.95).duplicate() as StandardMaterial3D
+	dome_mat.resource_name = "Cave Roof"
+	dome_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var dome := SphereMesh.new()
+	dome.radius = CAVE_R + 1.6
+	dome.height = (CAVE_R + 1.6) * 2.0
+	dome.is_hemisphere = true
+	dome.radial_segments = 24
+	dome.rings = 8
+	var roof := mesh_at(dome, dome_mat, Vector3(0, 3.2, 0), g)
+	roof.scale = Vector3(1, 0.42, 1)
+	roof.name = "Cave Roof"
+	mesh_at(cyl(1.6, 1.9, 1.2, 10), mat("Cliff Green", Color(0.38, 0.66, 0.32), 0.9), Vector3(0, 6.6, 0), g)
+	# The doorway's arch
+	var arch := TorusMesh.new()
+	arch.inner_radius = 1.8
+	arch.outer_radius = 2.6
+	var ar := mesh_at(arch, rock[1], face * CAVE_R + Vector3(0, 1.2, 0), g, Vector3(PI / 2.0, 0, 0))
+	ar.rotation = Vector3(PI / 2.0, -door_a + PI / 2.0, 0)
+	ar.scale = Vector3(1, 1, 1.3)
+	# Crystals round the walls and the pool, in teal, lilac and pink, glowing
+	var cols := [mat("Crystal Teal", Color(0.4, 0.95, 0.9), 0.2, 1.4), mat("Crystal Lilac", Color(0.75, 0.55, 1.0), 0.2, 1.4),
+		mat("Crystal Pink", Color(1.0, 0.55, 0.8), 0.2, 1.2)]
+	for k in 18:
+		var a := rng.randf() * TAU
+		if absf(wrapf(a - door_a, -PI, PI)) < 0.45:
+			continue
+		var d := rng.randf_range(4.2, CAVE_R - 1.2)
+		var base := Vector3(cos(a), 0, sin(a)) * d
+		for c in rng.randi_range(2, 4):
+			var hh := rng.randf_range(0.6, 1.8)
+			var cr := mesh_at(cyl(0.0, rng.randf_range(0.15, 0.3), hh, 6), cols[(k + c) % 3],
+				base + Vector3(rng.randf_range(-0.3, 0.3), hh / 2.0, rng.randf_range(-0.3, 0.3)), g)
+			cr.rotation = Vector3(rng.randf_range(-0.4, 0.4), rng.randf() * TAU, rng.randf_range(-0.4, 0.4))
+	for k in 2:
+		var l := OmniLight3D.new()
+		l.light_color = [Color(0.5, 0.95, 0.95), Color(0.85, 0.6, 1.0)][k]
+		l.light_energy = 1.2
+		l.omni_range = 9.0
+		l.position = Vector3(-1.5 + k * 3.0, 2.2, 0)
+		g.add_child(l)
+	var shade := _marker("Shade Cave", CAVE)
+	shade.set_meta("radius", CAVE_R - 0.5)
+	shade.set_meta("height", 4.0)
+
+
 func _pier() -> void:
 	# The pier: a plank walk on posts from the beach out over the sea, with rope rails (and unseen walls, so nobody
 	# tumbles in) and a little boat tied up at the end
@@ -1146,7 +1415,9 @@ func _blocked(p: Vector3, room: float) -> bool:
 	for rk: Vector4 in ridge_rocks:
 		if flat.distance_to(Vector2(rk.x, rk.y)) < rk.z + 2.0 + room:
 			return true
-	for c in [[GROVE, GROVE_R + 1.0], [OVERLOOK, 8.0], [ARRIVE, 7.0], [WAY_HOME, 6.0], [TIME_STONE, 3.0]]:
+	for c in [[GROVE, GROVE_R + 1.0], [OVERLOOK, 8.0], [ARRIVE, 7.0], [WAY_HOME, 6.0], [TIME_STONE, 3.0], [GATE, 5.0],
+			[PAVILION, 7.5], [CAVE, CAVE_R + 2.0], [HUTS[0], 4.0], [HUTS[1], 4.0], [HUTS[2], 4.0], [_hut_ramp_mid(), 6.0],
+			[(HUTS[0] + HUTS[1]) / 2.0, 3.0], [(HUTS[1] + HUTS[2]) / 2.0, 3.0]]:
 		if flat.distance_to(Vector2(c[0].x, c[0].z)) < float(c[1]) + room:
 			return true
 	if p.z > 40.0 and absf(p.x - PIER_X) < PIER_W / 2.0 + 1.5 + room:
