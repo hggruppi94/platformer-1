@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Nina gets baked-in detail** (Hayden: "try this on a character. lets start with nina"). Built and tested
+  in the cloud (own Godot user folders, no save touched). Her shape, rig, weights, animations and material names are
+  unchanged (clothes, recolours, the wardrobe, the party and routines all work as before).
+  - **New kit** `tools/char_detail.py` (Blender 4.5 or pip bpy): gives a character a second UV map ("Detail"), lays a
+    small procedural height and tint recipe over each material, bakes a normal map, AO and a soft tint on the
+    character's own mesh, and writes them into the glb (`detail_tint`, `detail_normal`, `detail_ao`; Godot extracts
+    them as `<name>_detail_*.png`). Eyes, mouth and teeth stay crisp (`FLAT`).
+  - **`tools/build_nina_detail.py <out.glb> [--size=2048]`** (about 2 minutes): jersey knit in her shirt, denim twill
+    and soft creases in her overalls, canvas shoes with ridged soles, ripstop and mesh on the backpack, strands in her
+    hair, satin folds in the bow, fine pores and mottling in her skin. Re-run it after `build_nina.py`.
+  - `clothes.gd _restyle()`: a patterned restyle (wrapped round with triplanar UVs) drops the baked normal and AO.
+  - Tests: clothing_fit, clothes, quick_outfits, party, creator and routines (both runs) pass. Pictures:
+    `tools/capture_nina_detail.gd -- <folder> [<model>]` (project files, characters/nina/detail).
+  - My choices Hayden may change: how strong every texture is; who's next.
+
 - 2026-11-16: **Baked bridges, Willow Pond's dock and the coin telescope in Stars Hollow** (Hayden: "Merge and then
   keep going", batch six). Built and tested in the cloud (own Godot user folders, no save touched).
   - **New bake script** (same bake kit): `tools/build_prop_creek.py <out.glb> covered_bridge|footbridge|dock|telescope`

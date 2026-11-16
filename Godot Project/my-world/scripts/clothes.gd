@@ -268,6 +268,12 @@ static func _restyle(model: Node3D, names: Array, look: Array) -> void:
 				m.albedo_texture = _pattern(look[2], look[0], look[1])
 				m.uv1_triplanar = true                     # their model's own UVs don't matter: the pattern wraps round
 				m.uv1_scale = Vector3(4, 4, 4)
+				# Baked-in detail (Nina's nina_detail_*.png) is laid out on her UVs, so wrapped round it would smear:
+				# a patterned garment goes without it
+				m.normal_enabled = false
+				m.normal_texture = null
+				m.ao_enabled = false
+				m.ao_texture = null
 		else:
 			m.albedo_color = look[1]
 			m.albedo_texture = null
