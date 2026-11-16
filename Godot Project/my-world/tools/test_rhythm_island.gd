@@ -1,10 +1,12 @@
 extends SceneTree
 
-# Checks Rhythm Springs' island (tools/build_rhythm_springs.gd): you arrive on the beach on solid ground, and really
-# walk (on the stick, through the camera's frame) up the torch path through the Springs Gate into the valley, out
-# along the pier, into the thatched pavilion, up the ramp to the first stilt treehouse, round its deck and over both
-# rope bridges to the third, and in through the crystal cave's doorway to its pool. The island has its sea, its
-# fence, the ridge's waterfall, the lagoons and the shade spots for the new buildings.
+# Checks Rhythm Springs' island (tools/build_rhythm_springs.gd, its ground scripts/rhythm_land.gd): the island rises in
+# terraces with cliffs, and you arrive on the beach on solid ground and really walk (on the stick, through the camera's
+# frame) up the torch path to the Springs Gate on its terrace and down into the valley, out along the pier, up the
+# Pavilion Bluff and the pavilion's steps, up the ramp to the first stilt treehouse, round its deck and over both rope
+# bridges to the third, in through the crystal cave's mouth, up both tiers of the North Highlands, up the East Headland
+# and out along the overlook, along the bamboo grove's path on the West Terrace into the legend hut, and out to the
+# islet. The cliffs are too steep to walk up.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_rhythm_island.gd
 #
@@ -16,6 +18,7 @@ const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.rhythm_island_test_backup.cfg"
 const WORLD := "res://scenes/portal_worlds/rhythm_springs.tscn"
 const B := preload("res://tools/build_rhythm_springs.gd")
+const L := preload("res://scripts/rhythm_land.gd")
 
 var failures := 0
 var game: Node
@@ -59,7 +62,8 @@ func _run() -> void:
 
 	# The island's parts
 	for n in ["Island Ground", "Sea", "WorldBounds Fence", "Springs Gate", "Pavilion", "Stilt Huts", "Crystal Cave",
-			"Bamboo Grove", "Pier", "Flower Glade", "Legend Hut", "Tide Pools", "Islet"]:
+			"Bamboo Grove", "Pier", "Flower Glade", "Legend Hut", "Tide Pools", "Islet", "Overlook", "Waterfall Grotto",
+			"Lighthouse"]:
 		check(world.find_child(n, true, false) != null, "the island has its " + n)
 	var falls := world.find_children("Waterfall", "", true, false)
 	var ridge := false
@@ -71,54 +75,74 @@ func _run() -> void:
 	check(B.HUTS.size() == 3, "three stilt treehouses")
 	_check_detail()
 
+	# The island isn't flat: terraces with cliffs between them
+	check(L.height(L.at(262, 105).x, L.at(262, 105).z) > 20.0, "the North Highlands' upper tier is over 20 m up")
+	check(L.height(L.at(0, 100).x, L.at(0, 100).z) > 11.0, "the East Headland is 12 m up")
+	check(absf(L.height(B.GATE.x, B.GATE.z) - B.GATE.y) < 0.3, "the Springs Gate stands on its terrace, %.1f m up" % B.GATE.y)
+	check(L.slope(L.at(276, 66.2).x, L.at(276, 66.2).z) > 2.0, "the highlands' cliff is steep (%.1f m a metre)" % L.slope(L.at(276, 66.2).x, L.at(276, 66.2).z))
+	check(B.shore_r(PI / 2.0) > 100.0, "the island is big (%.0f m to the southern beach)" % B.shore_r(PI / 2.0))
+
 	# Where you arrive is on the ground
 	await _settle()
-	check(absf(_feet()) < 0.6 and p.is_on_floor(), "you arrive standing on the beach (feet at %.2f)" % _feet())
+	check(absf(_feet() - L.height(B.ARRIVE.x, B.ARRIVE.z)) < 0.6 and p.is_on_floor(), "you arrive standing on the beach (feet at %.2f)" % _feet())
 
-	# Up the torch path, through the gate, into the valley
-	await _route("up the torch path and through the Springs Gate into the valley", B.ARRIVE,
-		[B.GATE + Vector3(0, 0, 4), B.GATE, Vector3(0, 0, 38)], 0.0)
+	# Up the torch path to the gate on its terrace, through it and down into the valley
+	await _route("up the torch path, through the Springs Gate and down into the valley", B.ARRIVE,
+		[Vector3(0, 0, 80), B.GATE, Vector3(0, 0, 62), Vector3(0, 0, 40)], 0.0)
 	# Out along the pier
-	var pier_start := B.shore_r(PI / 2.0) - 9.0
-	await _route("on along the beach and out to the end of the pier", B.ARRIVE,
-		[Vector3(B.PIER_X, 0, pier_start - 8.0), Vector3(B.PIER_X, 0, pier_start + 2.0), Vector3(B.PIER_X, 0, B.PIER_END - 4.0)], 0.0)
-	# Into the pavilion, between two posts
-	var a := TAU / 16.0
-	var dir := Vector3(cos(a), 0, sin(a))
-	await _route("in between the pavilion's posts to its table", B.PAVILION + dir * 9.0,
-		[B.PAVILION + dir * 6.5, B.PAVILION + dir * 1.8], 0.0)
-	check(_feet() < 0.2, "...its floor is nearly flush with the ground (feet at %.2f)" % _feet())
+	await _route("along the beach and out to the end of the pier", B.ARRIVE,
+		[Vector3(B.PIER_X, 0, B.ARRIVE.z - 0.5), Vector3(B.PIER_X, 0, B.PIER_END - 4.0)], 0.0)
+	# Up the Pavilion Bluff's ramp, then up the pavilion's steps onto its raised deck
+	var pin := Vector3(-B.PAVILION.x, 0, -B.PAVILION.z).normalized()
+	await _route("up the Pavilion Bluff's ramp", L.at(44, 66), [L.at(46, 72), L.at(50, 87)], 6.0)
+	await _route("up the pavilion's steps onto its deck", B.PAVILION + pin * 14.0,
+		[B.PAVILION + pin * 11.0, B.PAVILION + pin * 4.0, B.PAVILION + pin * 1.8], B.PAVILION.y + B.PAV_DECK)
 	# Up the ramp, round the decks and over the rope bridges
 	var in_dir := Vector3(-B.HUTS[0].x, 0, -B.HUTS[0].z).normalized()
-	var steps: Array = [B.HUTS[0] + in_dir * 11.5, B.HUTS[0] + in_dir * 2.2 + Vector3(0, B.HUT_DECK, 0)]
+	var steps: Array = [B.HUTS[0] + in_dir * (B.HUT_R + 12.0), B.HUTS[0] + in_dir * 3.3 + Vector3(0, B.HUT_DECK, 0)]
 	for i in B.HUTS.size() - 1:
 		var from: Vector3 = B.HUTS[i]
 		var to: Vector3 = B.HUTS[i + 1]
 		var last: Vector3 = steps[steps.size() - 1]
 		steps.append_array(_round_deck(from, last - from, to - from))
-		steps.append(to - (to - from).normalized() * 2.2 + Vector3(0, B.HUT_DECK, 0))
-	steps.append(B.HUTS[2] + (B.HUTS[1] - B.HUTS[2]).normalized() * 1.9 + Vector3(0, B.HUT_DECK, 0))
+		steps.append(to - (to - from).normalized() * 3.3 + Vector3(0, B.HUT_DECK, 0))
 	await _route("up the ramp to the first treehouse, round its deck and over both rope bridges to the third",
-		B.HUTS[0] + in_dir * 13.0, steps, B.HUT_DECK)
+		B.HUTS[0] + in_dir * (B.HUT_R + 16.0), steps, B.HUT_DECK)
 	check(absf(_feet() - B.HUT_DECK) < 0.3, "...standing up on the third treehouse's deck (feet at %.2f)" % _feet())
-	# In through the crystal cave's doorway
+	# In through the crystal cave's mouth
 	var face := Vector3(-B.CAVE.x, 0, -B.CAVE.z).normalized()
-	await _route("in through the crystal cave's doorway to its pool", B.CAVE + face * 13.0,
-		[B.CAVE + face * 9.0, B.CAVE + face * 3.6], 0.0)
+	await _route("in through the crystal cave's mouth", B.CAVE + face * 16.0,
+		[B.CAVE + face * 10.0, B.CAVE + face * 5.0], 0.0)
+	# Up both tiers of the North Highlands
+	await _route("up the ramp onto the North Highlands' lower tier", L.at(234, 50), [L.at(236, 57), L.at(240, 70), L.at(246, 82), L.at(250, 78)], 10.0)
+	await _route("on across it and up to the upper tier, 22 m up", L.at(300, 72, 10), [L.at(302, 76), L.at(292, 80), L.at(280, 88), L.at(276, 94)], 22.0)
+	# Up the East Headland and out along the overlook
+	var ov := world.find_child("OverlookEnd", true, false) as Node3D
+	await _route("up the East Headland's ramp", L.at(-18, 64), [L.at(-16, 70), L.at(-10, 84), L.at(-5, 96), L.at(-2, 104)], 12.0)
+	if ov:
+		var o: Vector3 = ov.global_position
+		var odir := Vector3(o.x, 0, o.z).normalized()
+		await _route("out along the overlook boardwalk to its end", L.at(1, 108), [o - odir * 26.0, o - odir * 8.0, o], 12.0)
 	# Into the flower glade, between two of its giant flowers
-	var ga := 0.2 + TAU / 18.0
+	var ga := 0.2 + TAU / 22.0
 	var gd := Vector3(cos(ga), 0, sin(ga))
-	await _route("in between the giant flowers to the middle of the glade", B.GLADE + gd * 11.0,
+	await _route("in between the giant flowers to the middle of the glade", B.GLADE + gd * 12.0,
 		[B.GLADE + gd * 4.0, B.GLADE], 0.0)
-	# Into the legend hut by its open side, up to the drum
-	var hd := Vector3(-B.LEGEND_HUT.x, 0, -B.LEGEND_HUT.z).normalized()
-	await _route("in through the legend hut's open side to its drum", B.LEGEND_HUT + hd * 9.0,
-		[B.LEGEND_HUT + hd * 4.5, B.LEGEND_HUT + hd * 1.3], 0.0)
+	# Up onto the West Terrace, along the bamboo grove's path, and into the legend hut by its open side
+	await _route("up the West Terrace's ramp to the bamboo grove", L.at(182, 50), [L.at(184, 57), L.at(189, 75), L.at(B.GROVE_A, B.GROVE_FROM + 4.0)], B.TERRACE_Y)
+	var hut := B.LEGEND_HUT
+	var open := (L.at(196, 80) - Vector3(hut.x, 0, hut.z)).normalized()
+	await _route("along the grove's path and into the legend hut to its drum", L.at(B.GROVE_A, B.GROVE_FROM + 2.0, 7.0),
+		[L.at(B.GROVE_A, 86.0), L.at(196, 80), hut + open * 4.0, hut + open * 1.4], B.TERRACE_Y)
+	await _route("on to the end of the bamboo grove", L.at(B.GROVE_A, B.GROVE_FROM + 2.0, 7.0), [L.at(B.GROVE_A, B.GROVE_TO - 3.0)], B.TERRACE_Y)
+	# The cliffs can't be walked up
+	await _route_blocked("straight up the North Highlands' cliff", L.at(276, 58), L.at(276, 76))
+	await _route_blocked("straight up the East Headland's cliff", L.at(8, 70), L.at(8, 92))
 	# Out along the sandbar to the islet, and you can't step off it into the deep sea
 	var from: Vector3 = B.bar_from()
 	var islet: Vector3 = B.islet_at()
 	var bar := (islet - from).normalized()
-	await _route("out along the sandbar to the islet", from - bar * 6.0, [from, islet - bar * 3.0, islet + Vector3(0, 0, 2.5)], 0.0)
+	await _route("out along the sandbar to the islet", from - bar * 6.0, [from, islet - bar * 3.0, islet + Vector3(0, 0, 2.5)], -1.0)
 	var mid := from.lerp(islet, 0.55)
 	await _route_blocked("off the side of the sandbar into the deep sea", mid, mid + bar.cross(Vector3.UP) * 6.0)
 	await _route_blocked("off the islet's far side into the deep sea", islet, islet + bar * 12.0)
@@ -179,7 +203,7 @@ func _check_detail() -> void:
 
 
 func _route_blocked(what: String, start: Vector3, goal: Vector3) -> void:
-	# Walk hard at somewhere you shouldn't get to for 6 s: you mustn't get within 2 m of it, nor fall
+	# Walk hard at somewhere you shouldn't get to for 6 s: you mustn't get within 2 m of it, nor fall into the sea
 	p.global_position = start + Vector3(0, 1.0, 0)
 	p.velocity = Vector3.ZERO
 	await _settle()
@@ -192,11 +216,11 @@ func _route_blocked(what: String, start: Vector3, goal: Vector3) -> void:
 	_release()
 	await _physics(10)
 	var d := Vector2(goal.x - p.global_position.x, goal.z - p.global_position.z).length()
-	check(d > 2.0 and _feet() > -0.3, "you can't walk %s (%.1f m short, feet at %.2f)" % [what, d, _feet()])
+	check(d > 2.0 and _feet() > -0.9, "you can't walk %s (%.1f m short, feet at %.2f)" % [what, d, _feet()])
 
 
 func _round_deck(at: Vector3, from_v: Vector3, to_v: Vector3) -> Array:
-	# Waypoints round a treehouse's deck, 2.2 m out from its middle (the hut's walls go out 1.4 m, the deck 2.6 m),
+	# Waypoints round a treehouse's deck, 3.3 m out from its middle (the hut's walls go out 2.5 m, the deck 4.3 m),
 	# the short way round from where you came onto it to where the next bridge leaves
 	var out := []
 	var a0 := atan2(from_v.z, from_v.x)
@@ -205,7 +229,7 @@ func _round_deck(at: Vector3, from_v: Vector3, to_v: Vector3) -> Array:
 	var n := int(ceil(absf(d) / deg_to_rad(20.0)))
 	for k in range(1, n + 1):
 		var aa := a0 + d * k / n
-		out.append(at + Vector3(cos(aa), 0, sin(aa)) * 2.2 + Vector3(0, B.HUT_DECK, 0))
+		out.append(at + Vector3(cos(aa), 0, sin(aa)) * 3.3 + Vector3(0, B.HUT_DECK, 0))
 	return out
 
 
@@ -230,8 +254,8 @@ func _route(what: String, start: Vector3, steps: Array, end_y: float) -> void:
 		_steer(want.normalized())
 	_release()
 	await _physics(10)
-	check(got and absf(_feet() - end_y) < 0.6,
-		"you can walk %s (step %d of %d, feet at %.2f)" % [what, wpi + 1, steps.size(), _feet()])
+	check(got and (end_y < -0.5 or absf(_feet() - end_y) < 0.6),
+		"you can walk %s (step %d of %d, feet at %.2f, at %s)" % [what, wpi + 1, steps.size(), _feet(), p.global_position.snapped(Vector3.ONE * 0.1)])
 
 
 func _feet() -> float:

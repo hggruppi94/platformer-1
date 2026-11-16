@@ -99,6 +99,34 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Rhythm Springs' island is bigger and has cliffs and terraces, like the concept pictures** (Hayden:
+  "you shrunk the size of the map compared to the reference photos ... keep iterating until it looks exactly like the
+  pictures", "the current world is extremely flat ... the reference has cliffs and multiple elevation changes"). Built
+  and tested in the cloud (own Godot user folders, no save touched). The valley, its quests and the Hum Heads are as
+  they were.
+  - **The ground** is new, `scripts/rhythm_land.gd` (no class_name, preload it; like `earth_land.gd` it builds its own
+    mesh and height map at load, so the scene stays small). One `height(x, z)` for the builder, the game and tests. The
+    coast is 95 to 140 m out (was 62 to 94), and round the flat valley the land rises in terraces (`PLATEAUS`) with
+    steep banded sandstone cliffs: the North Highlands (10 m, then 22 m), the East Headland (12 m), the Pavilion Bluff
+    (6 m), the Gate Terrace (6 m) and the West Terrace (7 m), with notches cut in the highlands' cliff for the crystal
+    cave and the waterfall grotto. You can't step up a ledge, so every level has a ramp (`RAMPS`), and nothing is put
+    on a ramp.
+  - **Every place rebuilt bigger on it** (`tools/build_rhythm_springs.gd`): the torch path climbs from the beach through
+    a cutting between rock stacks, fenced, to the Springs Gate on its terrace (1.6x, "Gate Core", with walls, towers and
+    big crescent banners) and down into the valley; the big waterfall off the highlands and one off their coast into
+    the sea (wide, with spray), sea stacks and ledges on the cliffs, trees along the cliff tops; a raised pavilion with
+    steps on the bluff's sea edge; three round stilt treehouses with rope bridges; the crystal cave in a ring of
+    boulders under a rock roof; a new **waterfall grotto**; the bamboo grove as a long lantern-lit stone path walled by
+    384 stalks on the West Terrace, the legend hut beside it; the overlook boardwalk off the headland's cliff over the
+    sea, and a lighthouse on a rock; a longer pier; 90 palms and 320 bushes. `detail_props.gd` puts the baked gate in
+    "Gate Core".
+  - Tests: `test_rhythm_island` rewritten (really walks up every ramp, both highland tiers, the gate, the pavilion's
+    steps, the huts, the cave, the overlook, the grove into the legend hut, the islet; the cliffs can't be walked up);
+    rhythm_springs, world_detail, detail_props, detail_all, hum_heads, practice_trips, groove, sunken_secrets and
+    rare_fish pass. Pictures: `capture_rhythm_island.gd` (project files, world/previews/rhythm_island/scale, with
+    concept_vs_game.png).
+  - My choices Hayden may change: the heights, where each terrace and ramp is, the island's size.
+
 - 2026-11-16: **No wall crawl inside the walk-in rooms** (Hayden: "with the centipede ability, you can climb over the
   wall inside shops and fall into the map"). Up a room's wallpaper she crawled the ceiling and slipped out over the
   walls into the gap under the roof, then out of the town. Every room `scripts/insides.gd` hollows is now in group
