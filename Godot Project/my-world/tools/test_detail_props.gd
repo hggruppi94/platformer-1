@@ -18,6 +18,7 @@ const BACKUP := "user://save.detail_props_test_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.detail_props_test_backup.cfg"
 const EARTH := "res://scenes/earth/earth.tscn"
+const STATIC_BATCH := preload("res://scripts/static_batch.gd")
 
 var failures := 0
 
@@ -58,6 +59,7 @@ func _run() -> void:
 	detail.occluders = false
 	change_scene_to_file(EARTH)
 	await _frames(16)
+	await create_timer(3.5).timeout              # WorldDetail merges again 1 s and 3 s in, and the rare fish come
 	var s := current_scene
 	var drawn_before := _drawn(s)
 	var hidden := 0
@@ -77,6 +79,7 @@ func _run() -> void:
 	detail.occluders = true
 	change_scene_to_file(EARTH)
 	await _frames(16)
+	await create_timer(3.5).timeout              # WorldDetail merges again 1 s and 3 s in, and the rare fish come
 	s = current_scene
 	var props: Dictionary = detail.last_props
 	var batch: Dictionary = detail.last_batch
@@ -129,7 +132,7 @@ func _run() -> void:
 		if mi.has_meta("static_batch") and mi.layers == 0:
 			var p := mi.get_parent()
 			while p and p != s:
-				if p.get_script() != null:
+				if p.get_script() != null and not (p.get_script().resource_path in STATIC_BATCH.SAFE_SCRIPTS):
 					scripted_touched += 1
 					break
 				p = p.get_parent()

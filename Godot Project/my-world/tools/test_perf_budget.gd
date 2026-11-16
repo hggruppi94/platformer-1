@@ -30,9 +30,11 @@ const SPOTS := [
 	["earth_green_corner", EARTH, Vector3(17, 1.7, 17), Vector3(-6, 2.0, -6), 3300, 3_000_000],
 	["earth_main_street", EARTH, Vector3(0, 1.7, -30), Vector3(0, 2.0, -90), 2500, 3_000_000],
 	["earth_over_town", EARTH, Vector3(0, 45, 75), Vector3(0, 0, -10), 2600, 3_000_000],
-	# The Void isn't batched yet (7,120 and 8,693 draws, 15.7M and 14.3M triangles): these only stop it getting worse
-	["void_market", TOWN, Vector3(-40, 4, 70), Vector3(-30, 2, 30), 7900, 17_500_000],
-	["void_over_town", TOWN, Vector3(0, 60, 110), Vector3(0, 0, 0), 9600, 16_000_000],
+	# The Void, after the 16 Nov 2026 whole-game pass (every place merged, LODs, no fern and grass shadows, detailed
+	# stalls): the cloud measured 4,035 and 4,516 draws, 10.5M and 9.5M triangles (before it: 6,997 and 8,552, 15.7M
+	# and 14.2M)
+	["void_market", TOWN, Vector3(-40, 4, 70), Vector3(-30, 2, 30), 4700, 12_000_000],
+	["void_over_town", TOWN, Vector3(0, 60, 110), Vector3(0, 0, 0), 5200, 11_000_000],
 ]
 const SETTLE := 20          # frames to wait after moving the camera (shaders compile, LODs settle)
 const SAMPLE := 30          # frames to average
@@ -82,12 +84,17 @@ func _run() -> void:
 		detail.batching = false
 	if detail and "--no-occluders" in args:
 		detail.occluders = false
+	if detail and "--no-lods" in args:
+		detail.lods = false
 	if "--before" in args and detail:       # everything this pipeline added, off: the game as it was
 		detail.detail_props = false
 		detail.batching = false
 		detail.occluders = false
+		detail.lods = false
+		detail.plant_shadows = true
 	report["props"] = "old" if "--old-props" in args else "detailed"
 	report["batching"] = not ("--no-batch" in args)
+	report["lods"] = detail.lods if detail else false
 	report["renderer"] = RenderingServer.get_current_rendering_method()
 	report["gpu"] = RenderingServer.get_video_adapter_name()
 	var headless := DisplayServer.get_name() == "headless"
@@ -95,6 +102,8 @@ func _run() -> void:
 	RenderingServer.viewport_set_measure_render_time(root.get_viewport_rid(), true)
 	for s in SPOTS:
 		if "--earth" in args and s[1] != EARTH:
+			continue
+		if "--void" in args and s[1] != TOWN:
 			continue
 		if s[1] != scene_now:
 			scene_now = s[1]
@@ -105,6 +114,12 @@ func _run() -> void:
 				clock.set_time(3, 11 * 60.0, true)
 			change_scene_to_file(scene_now)
 			await _frames(16)
+			# The later merging passes (1 and 3 s in) and the LODs being worked out in the background
+			await create_timer(3.5).timeout
+			var lw := current_scene.get_node_or_null("Mesh LODs")
+			var t0 := Time.get_ticks_msec()
+			while lw and lw.busy() and Time.get_ticks_msec() - t0 < 60000:
+				await process_frame
 			var player := current_scene.find_child("Player", true, false) as Node3D
 			if player:
 				var hud := player.get_node_or_null("HUD") as CanvasLayer
@@ -117,6 +132,9 @@ func _run() -> void:
 		if "--no-shadows" in args:          # (diagnostic: how much the sun's shadows cost)
 			for l in current_scene.find_children("*", "DirectionalLight3D", true, false):
 				(l as DirectionalLight3D).shadow_enabled = false
+		if "--no-foliage-shadows" in args:  # (diagnostic: how much the plants' shadows cost)
+			for f in current_scene.find_children("*", "MultiMeshInstance3D", true, false):
+				(f as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if "--no-people" in args:           # (diagnostic: how much the townsfolk cost)
 			var ch := current_scene.get_node_or_null("Characters") as Node3D
 			if ch:
@@ -126,8 +144,8 @@ func _run() -> void:
 		cam.look_at(s[3])
 		await _frames(SETTLE)
 		var r := await _sample()
-		if detail and scene_now == EARTH:
-			r["batch"] = detail.last_batch
+		if detail:
+			r["batch"] = detail.last_batch.duplicate()
 		report[s[0]] = r
 		print("%-20s draws %5d  objects %5d  triangles %9d  cpu %6.2f ms  gpu %6.2f ms  (%.0f fps)" % [
 			s[0], r.draws, r.objects, r.triangles, r.cpu_ms, r.gpu_ms, r.fps])

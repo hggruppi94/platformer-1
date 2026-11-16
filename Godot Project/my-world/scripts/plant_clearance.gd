@@ -80,6 +80,10 @@ static func _add_looks(n: Node, skip: bool) -> void:
 		return
 	if n is Node3D and not (n as Node3D).visible:
 		return
+	var nm := String(n.name)
+	if nm.begins_with("Batched ") or nm.begins_with("Detailed "):
+		return                                         # scripts/static_batch.gd and detail_props.gd: a merged mesh's
+		                                               # bounds wrap all its pieces, and the pieces still count here
 	if n is MeshInstance3D and (n as MeshInstance3D).mesh:
 		var mi := n as MeshInstance3D
 		var box := mi.global_transform * mi.get_aabb()

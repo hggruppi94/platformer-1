@@ -99,6 +99,41 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **The whole game gets the detail treatment: every place merges its still pieces, big meshes get
+  distance LODs, ferns and grass stop casting shadows, and the Void's Market has six detailed stalls** (Hayden: "Can
+  you give the whole game this treatment?", after the Stars Hollow pipeline below). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **Merging everywhere** (`WorldDetail` runs `scripts/static_batch.gd` on every scene now, then again 1 s and 3 s
+    after load, `LATER_BATCH`, for things put in late). Pieces under a landmark or water script (`SAFE_SCRIPTS`) or in
+    the `map_landmarks`/`water` groups or a "_" group (`SAFE_GROUPS`) can be merged too.
+  - **The Batch Watch** (`scripts/batch_watch.gd`, a "Batch Watch" node per scene): it remembers each merged piece's
+    place, visibility, mesh, materials and parent, checks 400 a frame, and if one changes or is freed it puts that
+    whole group back the old way (pieces drawn again, merged mesh gone). So doors, things that hide and anything a
+    script moves later keep working without anyone having to mark them.
+  - **Distance LODs for meshes made in code** (`scripts/mesh_lods.gd`, a "Mesh LODs" node): every still mesh of 3,000+
+    triangles that isn't imported (imported ones have them already), has no skin or blend shapes, gets simpler copies
+    for far away with the importer's own tool (`ImporterMesh.generate_lods`), one mesh at a time on a worker thread,
+    then swapped in (meta `lods`). Up close it's exactly the same shape. 139 meshes in the Void (the Gloop Kingdom's
+    view was 1.2M triangles on its own).
+  - **Plant shadows** (`WorldDetail.plant_shadows` false, `small_plants_unshadowed()`): the "Ferns" and "Grass"
+    MultiMeshes cast no shadows (in the Void 8.6M of the 14.4M triangles drawn were them, mostly in shadows). Giant
+    leaves, mushroom caps and trees still do.
+  - **The Market stalls** (`detail_props.gd dress_void()`, `tools/build_prop_stall.py <out.glb> <kind>`, the same bake
+    kit): fruit, sweets, crystals, flowers, records and toys, each 23k to 44k triangles high, baked onto 540 to 1,950.
+    The old pieces stay (layers 0, meta `detail_prop_old`), so the shop spots and name signs are unchanged.
+  - `scripts/plant_clearance.gd` skips the merged ("Batched N") and "Detailed ..." meshes: their bounds wrap many
+    pieces, and a foliage mushroom was being taken away for it.
+  - **Numbers** (cloud, Forward+): the Void's Market 6,997 -> 4,035 draws and 15.7M -> 10.5M triangles, over the Void
+    8,552 -> 4,516 and 14.2M -> 9.5M; the school 3,478 -> 2,305 meshes drawn, the Far Future 1,887 -> 489, the Secret
+    Garden 1,759 -> 628, the Tide Reef 1,110 -> 467. Stars Hollow over town 5,700 -> 1,872. The Void's occluders were
+    left out (no building list on its map, and they gave little on Earth).
+  - Tests: new `tools/test_detail_all.gd` (switches off change nothing, every collision shape and area is still
+    there, merges, LODs keep the shape, shadows, stalls, the Batch Watch, seven other places draw fewer meshes);
+    `test_perf_budget` has tighter Void budgets and `--void`, `--no-lods`. `tools/survey_batching.gd` lists every
+    scene's before and after. Pictures: `tools/capture_detail_all.gd -- <folder> [--old-props] [--studio]` (project
+    files, world/previews/detail_all).
+  - My choices Hayden may change: no fern and grass shadows, the stalls' looks, 3,000 triangles for LODs.
+
 - 2026-11-16: **Detailed props without slowdown: Stars Hollow's town green gets baked lamps, benches and a gazebo,
   and the town draws far fewer pieces** (Hayden: "How do AAA games have such detailed assets that dont slow down my
   pc?", then "Yes" to a pipeline tried on one area first). Built and tested in the cloud (own Godot user folders, no

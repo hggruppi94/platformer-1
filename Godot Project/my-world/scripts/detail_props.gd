@@ -15,6 +15,8 @@ extends RefCounted
 const LAMP := "res://models/props/street_lamp.glb"
 const BENCH := "res://models/props/park_bench.glb"
 const GAZEBO := "res://models/props/gazebo.glb"
+const STALL := "res://models/props/market_stall_%s.glb"
+const STALLS := ["Fruit", "Sweets", "Crystals", "Flowers", "Records", "Toys"]
 const OLD_META := "detail_prop_old"
 const GAZEBO_MATS := ["Gazebo White", "Gazebo Roof"]
 const POLE_H := 3.6                    # the builder's lamp pole (_lamp_post): a 3.6 m cylinder, centre 1.8 m up
@@ -34,6 +36,28 @@ static func dress_earth(scene: Node) -> Dictionary:
 	var gz := scene.get_node_or_null("Gazebo") as Node3D
 	if gazebo and gz:
 		out.gazebo = _gazebo(gz, gazebo)
+	return out
+
+
+static func dress_void(scene: Node) -> Dictionary:
+	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
+	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
+	var out := {"stalls": 0}
+	var market := scene.get_node_or_null("Market Square")
+	if market == null:
+		return out
+	for kind in STALLS:
+		var stall := market.get_node_or_null(kind + " Stall") as Node3D
+		var model := _scene(STALL % kind.to_lower())
+		if stall == null or model == null or stall.get_script() != null:
+			continue
+		for c in stall.get_children():
+			if c is MeshInstance3D and String(c.name).begins_with("@"):
+				_hide(c)
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Stall"
+		stall.add_child(m)
+		out.stalls += 1
 	return out
 
 
