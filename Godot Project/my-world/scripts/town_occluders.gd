@@ -24,8 +24,10 @@ func _ready() -> void:
 	if typeof(data) != TYPE_DICTIONARY:
 		return
 	var space := get_world_3d().direct_space_state
+	# Buildings that are rooms now (scripts/insides.gd): a box inside would hide the room seen through its door
+	var rooms: Array = load("res://scripts/insides.gd").hollowed(get_parent()) if get_parent() else []
 	for b in data.get("buildings", []):
-		if b.size() < 7 or b[6] != "building" or String(b[0]) in SKIP:
+		if b.size() < 7 or b[6] != "building" or String(b[0]) in SKIP or String(b[0]) in rooms:
 			continue
 		var at := Vector3(float(b[1]), 0.0, float(b[2]))
 		var yaw := float(b[5])
