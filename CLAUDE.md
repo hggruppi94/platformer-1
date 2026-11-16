@@ -125,6 +125,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     files, world/previews/detail_house).
   - My choices Hayden may change: every look (white pickets, the lattice, the lilac fountain's crystals, the lamps'
     brass cage and crystal).
+
 - 2026-11-16: **Insides for the buildings, slice 1: the Hollow Diner (Stars Hollow) and the Town Hall (the Void), with
   baked furniture** (Hayden: "I want to add insides to all the buildings and give everything the baked in details").
   Built and tested in the cloud (own Godot user folders, no save touched). First we read open-source work (Hayden's
