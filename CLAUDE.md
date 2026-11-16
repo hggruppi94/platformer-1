@@ -125,6 +125,72 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     files, world/previews/detail_house).
   - My choices Hayden may change: every look (white pickets, the lattice, the lilac fountain's crystals, the lamps'
     brass cage and crystal).
+- 2026-11-16: **Insides for the buildings, slice 1: the Hollow Diner (Stars Hollow) and the Town Hall (the Void), with
+  baked furniture** (Hayden: "I want to add insides to all the buildings and give everything the baked in details").
+  Built and tested in the cloud (own Godot user folders, no save touched). First we read open-source work (Hayden's
+  rule): DigitallyTailored/Godot-Open-World-Database (MIT: streaming chunks by distance), Rytelier/Godot-4-interior-
+  mapping-shader-no-cubemap and OBKF/Fake-Interior-Shader (MIT: "interior mapping", a window showing a room that isn't
+  there) and the walk-ins Stars Hollow already had. Picked: Stars Hollow's rooms are seamless (walk straight in, no
+  loading), the Void's domes keep a door to a room scene of its own, interior mapping is for windows you can't reach.
+  - **`scripts/insides.gd`** (no class_name, preload it; `WorldDetail` calls `dress_earth()` before it batches, switch
+    `WorldDetail.insides`): every building in `Insides.ROOMS` (found by name and the builder's box size) loses its solid
+    box and collision; walls go up with a real doorway where the painted door was (the door swings open inside), a
+    ceiling, a floor (the diner's is black and white tiles), wallpaper and skirting, an inner pane on each window, warm
+    lights (no shadows, faded out past 45 m), the "interior" music, and "Inside"/"Doorway" markers. The fallen leaves
+    (and spring's flowers, winter's drifts) inside the walls are tucked away. The room's pieces are merged at once
+    (`static_batch.gd`) and stop drawing past `ROOM_RANGE` 45 m, so the town costs the same from the street.
+    `town_occluders.gd` leaves out the hollow ones (`Insides.hollowed()`).
+  - **The Hollow Diner:** a mint counter with six chrome stools, eight red booths round four tables (ketchup, mustard,
+    napkins), the back bar with a coffee machine, milkshake cups and a pie case, the "ORDER UP!" hatch, a menu board,
+    a pink neon EAT, a glowing jukebox, pendant lamps and two turning ceiling fans.
+  - **The Void's Town Hall** (`tools/build_interiors.gd _town_hall()`, new `scenes/interiors/town_hall.tscn`; its town
+    door already led there): Mr. Palmer's office and the council room. His desk on a dais, his chair and nameplate,
+    the town map on the wall behind him (`ui/town_map.png`, from the show's pilot), a great clock with a swinging
+    pendulum (`scripts/pendulum_swing.gd`), the council's benches in an arc, crescent banners, flags, a window seat,
+    plants and a gold chandelier.
+  - **Baked furniture** (`tools/build_prop_furniture.py`, using `tools/bake_kit.py`): `diner_booth` (buttoned vinyl,
+    chrome trim: 5.2k triangles baked onto 108), `diner_stool` (8.7k onto 330) and `mayor_desk` (lilac wood, gold
+    scrolls and pulls, turned feet: 34k onto 80), in `models/props/furniture/`. Copies of a prop are one MultiMesh
+    (`Insides.many()`), one draw for the lot. `--preview` writes the detailed ones to compare (`models/props/_preview/`,
+    not committed).
+  - Tests: new `tools/test_insides.gd` (hollow, doorway open, walls/floor/ceiling solid, furniture you can sit on,
+    lights, music, markers, no occluder, merged and near-only, a real walk in; every built Void room's door, Entrance
+    and way out); `test_detail_props` turns insides off for its "as built" check. Previews:
+    `tools/capture_insides.gd -- <folder> [--studio] [--before]` (project files, world/previews/insides).
+  - My choices Hayden may change: everything in both rooms, the tiles, 45 m.
+
+- 2026-11-16: **Insides for every other building: 16 more Stars Hollow rooms, the Void's 11 unopened doors, and three
+  more baked props** (the same request, slice 2). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Stars Hollow** (`Insides.ROOMS`, 17 now): Turn the Page Books (shelves, a ladder, a reading nook, a cat), the
+    Corner Market (aisles of goods, a till, the shop counter moved inside: `spec.shop`, meta `shop_at`, read by
+    `earth_town.gd _place_shops`), the Maple Inn (a lobby with a fireplace, a desk with keys and real stairs up to a
+    "Rooms" door), Cobweb Corner Antiques (a ticking grandfather clock, a crystal ball, cobwebs), Nuts & Bolts Hardware
+    (tool wall, shelves, paint), Fire Station No. 1 (a brass pole, the crew's coats and helmets, chili night, Sparky the
+    dalmatian), Old Oak Elementary (24 desks facing the board, a reading corner, an art corner, cubbies), Mr. Palmer's
+    house (tea, his portrait, lilac envelopes) and eight homes (Home 1 and 3, Maple House 1-6: a living room with a
+    fireplace and a kitchen side, mirrored and coloured by house). Upper windows get inner panes too. Shared helpers
+    (`_table`, `_chair`, `_goods_shelf`, `_bookshelves`, `_armchairs`, `_fireplace`...). `hollowed()` also lists each
+    room's map label, so `town_occluders.gd` leaves out "Turn the Page Books" and friends.
+  - **Rooms don't cost frames:** each room's merged pieces are freed after the merge and its Batch Watch removed
+    (nothing in a room moves). 17 watches looking over 3,700 hidden pieces had made every frame ~25 ms slower.
+  - **Baked props** (`tools/build_prop_furniture.py`): `bookshelf` (11k triangles onto 144), `armchair` (2.6k onto
+    220), `school_desk` (desk and chair, 1.4k onto 240). The furniture glbs import with no LODs (they're tiny, and
+    LODs flattened the desks). `Insides.many()` now places each copy by its glb's own origin (`baked_offset()`):
+    Blender keeps an object's origin where it was made, so copies had been sunk into the floor (the booths by 16 cm).
+  - **The Void** (`tools/build_interiors.gd`, 11 new scenes in `scenes/interiors/`): the Museum (the Star Beast's
+    bones, treasure cases), the Library (22 bookcases, flying books), the Potion Shop, the Book Store (armchairs, a
+    cat), the Pet Shop (pens, fish tanks, cages), the Gaming Station, Dash's House (a robot, blueprints, Rex's dog
+    bed), Melanie's House (a toy slide, "WE NEED A SLIDE!"), the Empty Home, the Haunted House (dust sheets, a piano, a
+    goo trail; its door opens once the slide quest has let the spirit out: `episodes.gd _open_haunted_house()`) and the
+    Toy Store (a train, a giant teddy). Every dome door in the Void leads somewhere now. Music in `audio.gd SCENE_MUSIC`.
+  - **Numbers** (cloud, Forward+): the green 2,920 draws (budget 3,100), its corner 2,815, Main Street 2,332, over town
+    1,924; you can see into the shops from the street now, so a few hundred more than before.
+  - Tests: `test_insides` checks all 17 rooms (shop counters inside, no occluders), every Void door has a room, the
+    Haunted House door's shut before the spirit's out, the new rooms furnished and lit; insides, notice_board, earth
+    (both runs), doors, episodes, detail_props, detail_all, layout, map, walk_through, world_detail, townsfolk,
+    festival, fairs, first_night, spray and perf_budget (`--earth`) pass. Pictures: `capture_insides.gd -- <folder>
+    --all [--only=<building>]` and `--studio --new` (project files, world/previews/insides/slice2).
+  - My choices Hayden may change: what's in every room, the colours, the Void rooms' looks.
 
 - 2026-11-16: **More baked props: pumpkins, jack-o'-lanterns, scarecrows and mailboxes in Stars Hollow, and the
   Void's sign posts** (Hayden: "give everything the baked in details"; insides of buildings are another thread's).

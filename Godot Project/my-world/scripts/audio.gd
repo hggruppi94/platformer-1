@@ -32,6 +32,18 @@ const SCENE_MUSIC := {
 	"res://scenes/interiors/clothing_boutique.tscn": "interior",
 	"res://scenes/interiors/my_house.tscn": "interior",
 	"res://scenes/interiors/observatory.tscn": "interior",
+	"res://scenes/interiors/town_hall.tscn": "interior",
+	"res://scenes/interiors/museum.tscn": "interior",
+	"res://scenes/interiors/library.tscn": "interior",
+	"res://scenes/interiors/potion_shop.tscn": "interior",
+	"res://scenes/interiors/book_store.tscn": "interior",
+	"res://scenes/interiors/pet_shop.tscn": "interior",
+	"res://scenes/interiors/gaming_station.tscn": "interior",
+	"res://scenes/interiors/dashs_house.tscn": "interior",
+	"res://scenes/interiors/melanies_house.tscn": "interior",
+	"res://scenes/interiors/empty_home_2.tscn": "interior",
+	"res://scenes/interiors/haunted_house.tscn": "scary_world",
+	"res://scenes/interiors/toy_store.tscn": "interior",
 }
 
 # What each sound looks like as a caption. Sounds not listed here are too minor to caption.
