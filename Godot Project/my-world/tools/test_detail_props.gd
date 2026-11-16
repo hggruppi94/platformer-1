@@ -183,6 +183,34 @@ func _run() -> void:
 	var ph := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(hp)
 	check(ph and absf(ph.position.y - house.global_position.y - 0.3) < 0.05, "the porch floor is still solid at 0.3 m")
 
+	# Hay, corn, the fire engine and the boat (16 Nov 2026, batch four)
+	check(props.get("hay", 0) >= 10, "every round hay bale is detailed (%d)" % props.get("hay", 0))
+	check(props.get("corn", 0) == 8, "the eight cornstalk bundles are sheaves (%d)" % props.get("corn", 0))
+	check(props.get("truck", 0) == 1 and props.get("boat", 0) == 1, "the fire engine and the rowing boat are detailed")
+	var farm_old_drawn := 0
+	var sheaf_ok := true
+	for n in s.find_children("*", "MeshInstance3D", true, false):
+		var m := n as MeshInstance3D
+		var mn := String(m.material_override.resource_name) if m.material_override else ""
+		if m.layers != 0 and not m.has_meta("static_batch") and mn in ["Hay", "Cornstalk", "Truck Red", "Boat Red"] \
+				and not (m.mesh is ArrayMesh):
+			farm_old_drawn += 1
+	check(farm_old_drawn == 0, "none of the old hay, stalks, truck or boat pieces is drawn (%d)" % farm_old_drawn)
+	for n in s.find_children("Detailed Corn *", "Node3D", true, false):
+		var c := n as Node3D
+		if absf(c.global_position.y - EarthLand.height(c.global_position.x, c.global_position.z)) > 0.3:
+			sheaf_ok = false
+		if not c.get_parent().name == "Autumn Dressing":
+			sheaf_ok = false
+	check(sheaf_ok, "each sheaf stands on the ground, in the Autumn Dressing (so it goes with the season)")
+	var bale := s.find_child("Detailed Hay", true, false) as Node3D
+	check(bale and absf(bale.global_basis.y.normalized().y) < 0.05, "a bale lies on its side")
+	var truck := s.find_child("Detailed Fire Truck", true, false) as Node3D
+	check(truck and truck.get_parent().name == "Fire Truck", "the fire engine is parked where the old one was")
+	var tp := PhysicsRayQueryParameters3D.create(truck.global_position + Vector3(0, 5, 0), truck.global_position + Vector3(0, -1, 0))
+	var th := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(tp)
+	check(th and th.position.y > truck.global_position.y + 1.5, "and you still bump into it")
+
 	# Batching
 	check(batch.get("pieces", 0) > 1500 and batch.get("meshes", 0) < batch.get("pieces", 0) / 3,
 		"still pieces are merged (%d pieces into %d meshes)" % [batch.get("pieces", 0), batch.get("meshes", 0)])
