@@ -119,7 +119,8 @@ static func dress_rhythm(scene: Node) -> int:
 			if mi and mi.material_override and mi.material_override.resource_name == "Foam" \
 					and mi.global_position.distance_to(fall.global_position) < 10.0:
 				mi.visible = false
-		if _build(scene, fall, "mesa_falls", 6.5, "sand"):
+		# (The mesa's falls are "mesa_falls"; the island ridge's waterfall says its own id, so its cove's chest is its own)
+		if _build(scene, fall, str(fall.get_meta("fall_id", "mesa_falls")), 6.5, "sand"):
 			made += 1
 	return made
 
