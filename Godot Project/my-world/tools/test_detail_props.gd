@@ -115,7 +115,7 @@ func _run() -> void:
 			old_drawn += 1
 	check(old_drawn == 0, "the old gazebo pieces aren't drawn")
 	check(s.find_children("*", "CollisionShape3D", true, false).size() == bodies_before,
-		"every collision shape is still there (%d)" % bodies_before)
+		"every collision shape is still there (%d, was %d)" % [s.find_children("*", "CollisionShape3D", true, false).size(), bodies_before])
 	var named_after := _named(s)
 	var lost := 0
 	for k in named_before:
@@ -246,6 +246,44 @@ func _run() -> void:
 		if absf(pl.global_position.y - EarthLand.height(pl.global_position.x, pl.global_position.z)) > 0.2:
 			planter_ok = false
 	check(planter_ok, "each planter stands on the pavement")
+
+	# The bridges, the dock and the telescope (16 Nov 2026, batch six)
+	for k in ["covered_bridge", "footbridge", "dock", "telescope"]:
+		check(props.get(k, 0) == 1, "the %s is detailed" % k.replace("_", " "))
+	var water_old_drawn := 0
+	for gname in ["Covered Bridge", "Footbridge", "Dock"]:
+		var g := s.find_child(gname, true, false) as Node3D
+		if g == null:
+			continue
+		for c in g.get_children():
+			var m := c as MeshInstance3D
+			if m and m.layers != 0 and not m.has_meta("static_batch") and not (m.mesh is ArrayMesh):
+				var mn := String(m.material_override.resource_name) if m.material_override else ""
+				if mn != "Library Stone":
+					water_old_drawn += 1
+	check(water_old_drawn == 0, "none of the old bridge or dock pieces is drawn (%d)" % water_old_drawn)
+	var space := (s as Node3D).get_world_3d().direct_space_state
+	for pair in [["Detailed Covered Bridge", 0.15], ["Detailed Footbridge", 0.245], ["Detailed Dock", 0.25]]:
+		var d := s.find_child(pair[0], true, false) as Node3D
+		if d == null:
+			check(false, "%s: there" % pair[0])
+			continue
+		# Straight down onto the middle of the deck (off-centre for the covered bridge: its tie beams are overhead
+		# only in the model, the builder's roof isn't solid) lands on the builder's deck at the model's deck height.
+		var at := d.global_position + Vector3(0.6, 0, 0.0)
+		var dq := PhysicsRayQueryParameters3D.create(at + Vector3(0, 3.0, 0), at + Vector3(0, -1.0, 0))
+		var h := space.intersect_ray(dq)
+		check(h and absf(h.position.y - (d.global_position.y + float(pair[1]))) < 0.08,
+			"%s: you walk on its deck (%.2f)" % [pair[0], h.position.y - d.global_position.y if h else -99.0])
+	var cb := s.find_child("Detailed Covered Bridge", true, false) as Node3D
+	if cb:
+		var wq := PhysicsRayQueryParameters3D.create(cb.global_position + Vector3(0, 1.5, 0),
+			cb.global_position + Vector3(0, 1.5, 5.0))
+		check(space.intersect_ray(wq).size() > 0, "the covered bridge's walls are still solid")
+	var fb_rails := s.find_child("Footbridge", true, false)
+	check(fb_rails and fb_rails.find_child("Bridge Rail A", true, false) != null, "the footbridge keeps its grind rails")
+	var boat_ok := s.find_child("Detailed Boat", true, false) != null
+	check(boat_ok, "the rowing boat by the dock is still the detailed one")
 
 	# Batching
 	check(batch.get("pieces", 0) > 1500 and batch.get("meshes", 0) < batch.get("pieces", 0) / 3,
