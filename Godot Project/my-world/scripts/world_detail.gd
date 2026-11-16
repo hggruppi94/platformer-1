@@ -17,6 +17,9 @@ const GROUND_SHADER := preload("res://scripts/ground_detail.gdshader")
 const MOUNTAINS := preload("res://scripts/alien_mountains.gd")
 const FALLS := preload("res://scripts/big_falls.gd")
 const DUSK_GATE := preload("res://scripts/dusk_gate.gd")
+const STATIC_BATCH := preload("res://scripts/static_batch.gd")
+const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
+const TOWN_OCCLUDERS := preload("res://scripts/town_occluders.gd")
 
 const MIN_SPAN := 10.0          # a ground mesh is at least this wide both ways...
 const FLAT := 0.4               # ...and no taller than this much of its narrower side
@@ -25,6 +28,11 @@ const NOT_GROUND := ["water", "lake", "sea", "pond", "pool", "goo", "slime", "la
 	"partition", "gazebo", "dome", "stand", "tunnel", "white"]
 
 var enabled := true             # tests can switch the whole pass off
+var batching := true            # merge still builder pieces in Stars Hollow (scripts/static_batch.gd)
+var detail_props := true        # the baked detailed props on the town green (scripts/detail_props.gd)
+var occluders := true           # invisible boxes in Stars Hollow's buildings for occlusion culling (town_occluders.gd)
+var last_batch := {}            # what the last merge did (tests read it)
+var last_props := {}            # and what detailed props went in
 var _last: Node
 var _cache := {}                # source material -> its detailed ShaderMaterial
 
@@ -52,6 +60,15 @@ func _dress(scene: Node) -> void:
 	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn":
 		FALLS.dress_rhythm(scene)
 	detail_ground(scene)
+	if path == "res://scenes/earth/earth.tscn":
+		if detail_props:
+			last_props = DETAIL_PROPS.dress_earth(scene)
+		if batching:
+			last_batch = STATIC_BATCH.batch(scene)
+		if occluders and scene is Node3D and scene.get_node_or_null("Town Occluders") == null:
+			var occ := TOWN_OCCLUDERS.new()
+			occ.name = "Town Occluders"
+			scene.add_child(occ)
 
 
 func detail_ground(scene: Node) -> int:

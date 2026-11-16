@@ -219,3 +219,4 @@ nina_pos={
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+occlusion_culling/use_occlusion_culling=true

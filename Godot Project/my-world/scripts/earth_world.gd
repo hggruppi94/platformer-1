@@ -47,6 +47,7 @@ var _env: Environment
 var _moon: Node3D
 var _cloud_mat: StandardMaterial3D
 var _star_mat: StandardMaterial3D
+var _stars_node: Node3D
 var _moon_mats := {}                               # material -> its alpha at night
 var _last_minute := -1
 var _portal_door: Area3D
@@ -75,6 +76,7 @@ func _ready() -> void:
 	_moon = get_node_or_null("Sky/Moon") as Node3D
 	_cloud_mat = _first_material(get_node_or_null("Sky/Clouds"))
 	_star_mat = _first_material(get_node_or_null("Sky/Stars"))
+	_stars_node = get_node_or_null("Sky/Stars") as Node3D
 	if _moon:
 		for mi in _moon.get_children():
 			var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
@@ -266,6 +268,8 @@ func _light() -> void:
 	var stars := smoothstep(0.45, 0.05, day)
 	if _star_mat:
 		_star_mat.albedo_color.a = stars
+		if _stars_node:
+			_stars_node.visible = stars > 0.005          # nothing to draw by day (the frame budget check)
 	for m: StandardMaterial3D in _moon_mats:
 		m.albedo_color.a = _moon_mats[m] * stars
 	for l in get_tree().get_nodes_in_group("earth_lamps"):
