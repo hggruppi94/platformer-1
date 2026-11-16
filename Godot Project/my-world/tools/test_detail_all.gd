@@ -134,6 +134,14 @@ func _run() -> void:
 	# The market stalls
 	var props: Dictionary = detail.last_props
 	check(props.get("stalls", 0) == 6, "the six market stalls are detailed (%d)" % props.get("stalls", 0))
+	check(props.get("signs", 0) >= 30, "the Void's sign posts are detailed (%d)" % props.get("signs", 0))
+	var signs_ok := true
+	for d in s.find_children("Detailed Sign", "", true, false):
+		var boards := (d as Node).get_children().filter(func(c: Node) -> bool: return String(c.name).begins_with("Board"))
+		var old := (d.get_parent() as Node).find_children("*", "Label3D", false, false)
+		if boards.size() != 1 or old.size() != 1:
+			signs_ok = false
+	check(signs_ok, "each sign keeps one board (its width) and its words")
 	var market := s.get_node("Market Square")
 	var stalls_ok := true
 	for kind in ["Fruit", "Sweets", "Crystals", "Flowers", "Records", "Toys"]:

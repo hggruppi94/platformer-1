@@ -122,6 +122,35 @@ func _run() -> void:
 	var hit := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(q)
 	check(hit and absf(hit.position.y - 0.6) < 0.05, "the gazebo's deck is solid at 0.6 m")
 
+	# The autumn things (16 Nov 2026): pumpkins, jack-o'-lanterns, scarecrows and mailboxes
+	check(props.get("pumpkins", 0) >= 30 and props.get("jacks", 0) >= 20,
+		"pumpkins and jack-o'-lanterns are detailed (%d and %d)" % [props.get("pumpkins", 0), props.get("jacks", 0)])
+	check(props.get("scarecrows", 0) >= 4 and props.get("mailboxes", 0) >= 7,
+		"so are the scarecrows and mailboxes (%d and %d)" % [props.get("scarecrows", 0), props.get("mailboxes", 0)])
+	var under_ok := true
+	for d in s.find_children("Detailed Pumpkin", "", true, false) + s.find_children("Detailed Jack", "", true, false):
+		var old := d.get_parent() as MeshInstance3D
+		if old == null or old.layers != 0 or not old.has_meta("detail_prop_old"):
+			under_ok = false
+			continue
+		# round, the old ball's size (radius r, scaled 1.15 wide), on the old ball's spot
+		var g := (d as Node3D).global_transform
+		var r := (old.mesh as SphereMesh).radius
+		if absf(g.basis.get_scale().x - r) > 0.01 or absf(g.basis.get_scale().y - r) > 0.01 \
+				or absf(g.origin.y - (old.global_position.y - 0.7 * r)) > 0.01:
+			under_ok = false
+	check(under_ok, "each sits under its old ball (hidden with it in other seasons), the right size and place")
+	var mb := s.find_child("Mailbox", true, false)
+	check(mb and mb.get_node_or_null("Detailed Mailbox") and mb.find_children("*", "Label3D", false, false).size() == 1,
+		"a mailbox keeps the family's name over it")
+	var jack_glow_drawn := 0
+	for n in s.find_children("*", "MeshInstance3D", true, false):
+		var m := n as MeshInstance3D
+		if m.material_override and m.material_override.resource_name == "Jack Glow" and m.layers != 0 \
+				and not s.get_node("Autumn Dressing").is_ancestor_of(m):
+			jack_glow_drawn += 1
+	check(jack_glow_drawn == 0, "the old glowing faces are taken away from the swapped jacks (%d left)" % jack_glow_drawn)
+
 	# Batching
 	check(batch.get("pieces", 0) > 1500 and batch.get("meshes", 0) < batch.get("pieces", 0) / 3,
 		"still pieces are merged (%d pieces into %d meshes)" % [batch.get("pieces", 0), batch.get("meshes", 0)])
