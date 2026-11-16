@@ -99,6 +99,22 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Baked bridges, Willow Pond's dock and the coin telescope in Stars Hollow** (Hayden: "Merge and then
+  keep going", batch six). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_creek.py <out.glb> covered_bridge|footbridge|dock|telescope`
+    (the old covered bridge with board-and-batten walls, framed windows, Burr arches, posts, tie beams and rafters
+    inside, a shingled roof and bargeboards; the creek's footbridge on arched stringers with kick rails; the dock's
+    planks, bearers, piles with iron bands, cleats, a coil of rope and a ladder at the pond end; a coin telescope
+    with binocular barrels, brass rings and a coin slot). In `models/props/`.
+  - **Swapped at run time** (`detail_props.gd _covered_bridge()`, `_by_material()`, `_telescope()`): each goes in
+    its own node, built to the builder's sizes. The covered bridge keeps its stone feet, signs and lamps; the
+    footbridge keeps its grind rails; the dock keeps the detailed rowing boat. Old pieces stay (layers 0, meta
+    `detail_prop_old`), so every deck and wall keeps its collision.
+  - Tests: `test_detail_props` (all four swapped, nothing old drawn, you walk on each deck at the model's deck
+    height, the bridge's walls still solid, the footbridge's rails kept). Pictures:
+    `tools/capture_detail_creek.gd -- <folder> [--old-props]` (project files, world/previews/detail_creek).
+  - My choices Hayden may change: every look (the bridge's arches and shingles, the binocular telescope).
+
 - 2026-11-16: **Baked playground and flower planters in Stars Hollow** (Hayden: "Merge and keep going", batch five).
   Built and tested in the cloud (own Godot user folders, no save touched).
   - **New bake script** (same bake kit): `tools/build_prop_play.py <out.glb> slide_tower|swing_set|sandbox|mum_planter`

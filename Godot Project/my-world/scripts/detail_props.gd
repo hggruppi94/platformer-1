@@ -37,6 +37,10 @@ const SLIDE := "res://models/props/slide_tower.glb"
 const SWINGS := "res://models/props/swing_set.glb"
 const SANDBOX := "res://models/props/sandbox.glb"
 const PLANTER := "res://models/props/mum_planter.glb"
+const COVERED_BRIDGE := "res://models/props/covered_bridge.glb"
+const FOOTBRIDGE := "res://models/props/footbridge.glb"
+const DOCK := "res://models/props/dock.glb"
+const TELESCOPE := "res://models/props/telescope.glb"
 const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
 const FOUNTAINS := ["Market Square", "TownSquare"]
 const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/build_prop_fountain.py void_lamp)
@@ -52,7 +56,7 @@ const BENCH_SEAT := Vector3(1.8, 0.1, 0.5)
 static func dress_earth(scene: Node) -> Dictionary:
 	var out := {"lamps": 0, "benches": 0, "gazebo": 0, "pumpkins": 0, "jacks": 0, "scarecrows": 0, "mailboxes": 0,
 		"fences": 0, "porches": 0, "hay": 0, "corn": 0, "truck": 0, "boat": 0,
-		"playground": 0, "planters": 0}
+		"playground": 0, "planters": 0, "covered_bridge": 0, "footbridge": 0, "dock": 0, "telescope": 0}
 	var lamp := _scene(LAMP)
 	var bench := _scene(BENCH)
 	var gazebo := _scene(GAZEBO)
@@ -105,6 +109,19 @@ static func dress_earth(scene: Node) -> Dictionary:
 	var planter := _scene(PLANTER)
 	if planter:
 		out.planters = _planters(scene, planter)
+	# (16 Nov 2026, batch six: tools/build_prop_creek.py)
+	var cb := _scene(COVERED_BRIDGE)
+	if cb:
+		out.covered_bridge = _covered_bridge(scene, cb)
+	var fb := _scene(FOOTBRIDGE)
+	if fb:
+		out.footbridge = _by_material(scene, "Footbridge", ["Bridge Wood"], fb, "Detailed Footbridge")
+	var dk := _scene(DOCK)
+	if dk:
+		out.dock = _by_material(scene, "Dock", ["Bridge Wood", "Post Wood"], dk, "Detailed Dock", true)
+	var scope := _scene(TELESCOPE)
+	if scope:
+		out.telescope = _telescope(scene, scope)
 	return out
 
 
@@ -691,3 +708,65 @@ static func _local_to(g: Node3D, mi: Node3D) -> Vector3:
 		t = p.transform * t
 		p = p.get_parent() as Node3D
 	return t.origin
+
+
+static func _covered_bridge(scene: Node, model: PackedScene) -> int:
+	# The old covered bridge on Maple Lane (tools/build_earth.gd _covered_bridge): its deck, walls, windows, roof and
+	# end trims stop being drawn and the detailed bridge, built to the same sizes, goes in its node. The stone feet
+	# down in the creek (their heights follow the creek bed) stay, and so do the signs and lamps over each end.
+	var g := scene.find_child("Covered Bridge", true, false) as Node3D
+	if g == null or g.get_script() != null or g.has_node("Detailed Covered Bridge"):
+		return 0
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) != "Library Stone":
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = "Detailed Covered Bridge"
+	g.add_child(m)
+	return 1
+
+
+static func _by_material(scene: Node, node_name: String, mats: Array, model: PackedScene, new_name: String,
+		flat := false) -> int:
+	# A one-off whose plain pieces sit straight under a node of its own with other things beside them (the
+	# footbridge's grind rails, the dock's rowing boat): only the pieces in these materials stop being drawn. The
+	# detailed one goes where the first of them (the deck) was, turned the same way, on the ground's level.
+	var g := scene.find_child(node_name, true, false) as Node3D
+	if g == null or g.get_script() != null or g.has_node(new_name):
+		return 0
+	var deck: MeshInstance3D = null
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) in mats:
+			if deck == null:
+				deck = c
+			_hide(c)
+	if deck == null:
+		return 0
+	var m := model.instantiate() as Node3D
+	m.name = new_name
+	m.position = Vector3(deck.position.x, 0, deck.position.z)
+	m.rotation.y = 0.0 if flat else deck.rotation.y
+	g.add_child(m)
+	return 1
+
+
+static func _telescope(scene: Node, model: PackedScene) -> int:
+	# The coin telescope on Lookout Hill (tools/build_earth.gd _lookout_hill): a post and a tilted tube in its own
+	# little node. The detailed one looks the same way (towards the node's +Z, over the town).
+	var top := scene.find_child("Lookout", true, false) as Node3D
+	if top == null:
+		return 0
+	for m in top.find_children("*", "MeshInstance3D", true, false):
+		if _mat_name(m) != "Scope Metal" or m.has_meta(OLD_META):
+			continue
+		var holder := m.get_parent() as Node3D
+		if holder.has_node("Detailed Telescope"):
+			return 0
+		for o in holder.get_children():
+			if o is MeshInstance3D:
+				_hide(o)
+		var d := model.instantiate() as Node3D
+		d.name = "Detailed Telescope"
+		holder.add_child(d)
+		return 1
+	return 0
