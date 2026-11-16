@@ -119,6 +119,8 @@ func _place_shops(scene: Node) -> void:
 		var inside := building.get_node_or_null("Inside") as Node3D
 		var at: Vector3 = s[2]
 		spot.position = at + Vector3(0, inside.position.y if inside else 0.0, 0)
+		if building.has_meta("shop_at"):
+			spot.position = building.get_meta("shop_at")      # (a room now: scripts/insides.gd, the counter inside)
 		building.add_child(spot)
 
 

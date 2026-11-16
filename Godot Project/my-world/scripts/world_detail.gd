@@ -21,6 +21,7 @@ const STATIC_BATCH := preload("res://scripts/static_batch.gd")
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 const TOWN_OCCLUDERS := preload("res://scripts/town_occluders.gd")
 const MESH_LODS := preload("res://scripts/mesh_lods.gd")
+const INSIDES := preload("res://scripts/insides.gd")
 
 const MIN_SPAN := 10.0          # a ground mesh is at least this wide both ways...
 const FLAT := 0.4               # ...and no taller than this much of its narrower side
@@ -33,6 +34,7 @@ var batching := true            # merge still builder pieces in every place (scr
 var detail_props := true        # the baked detailed props on the town green (scripts/detail_props.gd)
 var lods := true                # distance LODs for big meshes made in code (scripts/mesh_lods.gd)
 var plant_shadows := false      # ferns and grass cast no shadows (their shadows were 60% of the Void's triangles)
+var insides := true            # Stars Hollow's plain buildings become rooms you walk into (scripts/insides.gd)
 var occluders := true           # invisible boxes in Stars Hollow's buildings for occlusion culling (town_occluders.gd)
 const SMALL_PLANTS := ["Ferns", "Grass"]   # the plant patches (scenes/town/foliage.gd) whose shadows are left out
 const LATER_BATCH := [1.0, 2.0]          # waits in turn (1 s, then 3 s after it loads) to merge what was put in since
@@ -65,6 +67,8 @@ func _dress(scene: Node) -> void:
 	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn":
 		FALLS.dress_rhythm(scene)
 	detail_ground(scene)
+	if path == "res://scenes/earth/earth.tscn" and insides:
+		INSIDES.dress_earth(scene)
 	if path == "res://scenes/earth/earth.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_earth(scene)
 	elif path == "res://scenes/town/town.tscn" and detail_props:

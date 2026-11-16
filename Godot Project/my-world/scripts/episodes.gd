@@ -243,7 +243,8 @@ func _place_town(holder: Node3D) -> void:
 	# Its walk-in doorway goes nowhere yet (there's no inside built), and walking up to try the door used to bump into
 	# it and say "The Haunted House isn't open yet." right as the quest said to try it: it's the quest's door only now
 	var walk_in := _scene.get_node_or_null("Haunted House/Door") as Area3D if _scene else null
-	if walk_in and not ResourceLoader.exists(str(walk_in.get("destination"))):
+	# (Since 16 Nov 2026 it has an inside, which opens once the spirit's been let out: the house is empty then)
+	if walk_in and (not ResourceLoader.exists(str(walk_in.get("destination"))) or not Dialogue.flags.has("slide_spirit")):
 		walk_in.set_deferred("monitoring", false)
 	# Leo's kit, and his bunker
 	for k in KIT:
@@ -314,6 +315,7 @@ func _on_flag(f: String) -> void:
 	match f:
 		"slide_spirit":
 			_release_spirit()
+			_open_haunted_house()
 		"prep_stored":
 			_rook_howl.call_deferred()
 		"turtle_done_talk":
@@ -322,6 +324,17 @@ func _on_flag(f: String) -> void:
 		var holder := _scene.get_node_or_null("Episodes")
 		if holder and holder.get_node_or_null("Dogs Welcome") == null:
 			_dogs_welcome(holder)
+
+
+func _open_haunted_house() -> void:
+	# Once the spirit's zoomed off the house is empty, so its walk-in door opens (after the cutscene's had its moment)
+	if _scene == null or _scene.scene_file_path != TOWN:
+		return
+	var walk_in := _scene.get_node_or_null("Haunted House/Door") as Area3D
+	if walk_in and ResourceLoader.exists(str(walk_in.get("destination"))):
+		get_tree().create_timer(6.0).timeout.connect(func() -> void:
+			if is_instance_valid(walk_in):
+				walk_in.monitoring = true)
 
 
 func _arrive_in_galaxity() -> void:

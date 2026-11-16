@@ -52,6 +52,7 @@ func _run() -> void:
 	clock.on_earth = true
 	clock.set_earth_time(12 * 60.0, true)
 	var detail := root.get_node("WorldDetail")
+	detail.insides = false                       # (the buildings' rooms have their own test: tools/test_insides.gd)
 
 	# --- Everything off: Stars Hollow as it was
 	detail.detail_props = false

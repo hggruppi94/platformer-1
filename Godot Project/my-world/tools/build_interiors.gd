@@ -2,7 +2,7 @@ extends SceneTree
 
 # Builds walkable interiors for town buildings, each a round domed room matching its building:
 #   res://scenes/interiors/cafe.tscn, aquarium.tscn, restaurant_and_cafe.tscn, ninas_house.tscn,
-#   clothing_boutique.tscn, my_house.tscn, observatory.tscn
+#   clothing_boutique.tscn, my_house.tscn, observatory.tscn, town_hall.tscn
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/build_interiors.gd [-- observatory ...]
 #
@@ -23,7 +23,11 @@ func _initialize() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
 	var only := OS.get_cmdline_user_args()
 	var all := {"cafe": _cafe, "aquarium": _aquarium, "restaurant_and_cafe": _restaurant, "ninas_house": _ninas_house,
-		"clothing_boutique": _clothing_boutique, "my_house": _my_house, "observatory": _observatory}
+		"clothing_boutique": _clothing_boutique, "my_house": _my_house, "observatory": _observatory,
+		"town_hall": _town_hall, "museum": _museum, "library": _library, "potion_shop": _potion_shop,
+		"book_store": _book_store, "pet_shop": _pet_shop, "gaming_station": _gaming_station, "dashs_house": _dashs_house,
+		"melanies_house": _melanies_house, "empty_home_2": _empty_home_2, "haunted_house": _haunted_house,
+		"toy_store": _toy_store}
 	for file in all:
 		if only.is_empty() or file in only:
 			_save(file, (all[file] as Callable).call())
@@ -841,3 +845,611 @@ func fish(parent: Node, color: Color, size: float) -> void:
 	tail.size = Vector3(size * 1.2, size * 1.2, size * 0.3)
 	var t := mesh_at(tail, mat("Fish " + str(color), color), Vector3(0, 0, size * 1.6), body)
 	t.rotation = Vector3(PI / 2, 0, 0)
+
+
+# -----------------------------------------------------------------------------
+# Town Hall: Mr. Palmer's office and the council room (16 Nov 2026, "insides for all the buildings"). The show's pilot
+# has the town map on his office wall, so the real map hangs there (ui/town_map.png). His big desk on a dais at the
+# back (a baked prop, tools/build_prop_furniture.py mayor_desk), a gold clock with a swinging pendulum (the clock
+# tower's insides), the council's benches in an arc, banners, the window seat by the window he talks from, plants.
+# -----------------------------------------------------------------------------
+const DESK := "res://models/props/furniture/mayor_desk.glb"
+
+
+func _town_hall() -> Node3D:
+	var r := 10.0
+	var root_node := dome_room("Town Hall", r, Color(0.95, 0.93, 0.88), Color(0.5, 0.36, 0.62), Color(1.0, 0.94, 0.86))
+	var gold := mat("Hall Gold", Color(0.98, 0.78, 0.3), 0.3, 0.9)
+	var lilac := mat("Hall Lilac", Color(0.68, 0.55, 0.85), 0.6)
+	var carpet := mat("Hall Carpet", Color(0.75, 0.2, 0.45), 0.9)
+	var stone := mat("Hall Stone", Color(0.92, 0.9, 0.85), 0.7)
+	# A carpet runner from the door to the dais, and the dais at the back
+	mesh_at(box(Vector3(2.2, 0.03, 12.5)), carpet, Vector3(0, 0.02, 1.2), root_node)
+	solid_box(Vector3(7.5, 0.4, 3.4), stone, Vector3(0, 0.2, -6.4), root_node)
+	mesh_at(box(Vector3(7.3, 0.04, 3.2)), carpet, Vector3(0, 0.42, -6.4), root_node)
+	solid_box(Vector3(1.6, 0.2, 0.6), stone, Vector3(0, 0.1, -4.45), root_node)          # a step up
+	# Mr. Palmer's desk (baked), his tall chair and a nameplate
+	var office := node("Office", root_node, Vector3(0, 0.4, -6.5))
+	if ResourceLoader.exists(DESK):
+		var desk := (load(DESK) as PackedScene).instantiate() as Node3D
+		desk.name = "Mayor Desk"
+		desk.scale = Vector3.ONE * 1.25                 # a mayor's desk: bigger than life
+		office.add_child(desk)
+	var desk_shape := BoxShape3D.new()
+	desk_shape.size = Vector3(1.9, 0.8, 0.9) * 1.25
+	solid(desk_shape, null, null, Vector3(0, 0.5, 0), office)
+	var chair := node("Chair", office, Vector3(0, 0, -1.1))
+	mesh_at(box(Vector3(0.8, 0.12, 0.7)), lilac, Vector3(0, 0.5, 0), chair)
+	mesh_at(box(Vector3(0.8, 1.1, 0.12)), lilac, Vector3(0, 1.05, -0.3), chair)
+	mesh_at(sphere(0.1, 12), gold, Vector3(-0.38, 1.62, -0.3), chair)
+	mesh_at(sphere(0.1, 12), gold, Vector3(0.38, 1.62, -0.3), chair)
+	label(office, "MAYOR PALMER", Vector3(0, 1.25, 0.6), 18, Color(0.3, 0.2, 0.05))
+	# The town map on the wall behind him (pilot, part 1), in a gold frame
+	var map_m := StandardMaterial3D.new()
+	map_m.resource_name = "Town Map Picture"
+	map_m.albedo_texture = load("res://ui/town_map.png")
+	map_m.roughness = 0.8
+	var quad := QuadMesh.new()
+	quad.size = Vector2(4.2, 3.0)
+	var map_node := mesh_at(quad, map_m, Vector3(0, 3.4, -r + 0.75), root_node)
+	map_node.name = "Town Map"
+	mesh_at(box(Vector3(4.5, 3.3, 0.08)), gold, Vector3(0, 3.4, -r + 0.68), root_node)
+	label(root_node, "THE VOID", Vector3(0, 5.2, -r + 0.8), 40, Color(1, 0.92, 0.6))
+	# The great clock on the right wall, its pendulum swinging (the clock tower's works)
+	var clock := node("Hall Clock", root_node, Vector3(r - 1.3, 0, -3.2), -PI / 2 + 0.35)
+	solid_box(Vector3(1.4, 3.6, 0.7), mat("Clock Case", Color(0.42, 0.28, 0.55), 0.6), Vector3(0, 1.8, 0), clock)
+	mesh_at(cylinder(0.55, 0.55, 0.06, 32), mat("Clock Face", Color(1.0, 0.97, 0.85), 0.4, 0.0, 0.4), Vector3(0, 3.0, 0.37), clock).rotation.x = PI / 2
+	mesh_at(cylinder(0.6, 0.6, 0.04, 32), gold, Vector3(0, 3.0, 0.35), clock).rotation.x = PI / 2
+	mesh_at(box(Vector3(0.05, 0.42, 0.03)), mat("Clock Hand", Color(0.1, 0.1, 0.15)), Vector3(0, 3.15, 0.42), clock)
+	mesh_at(box(Vector3(0.3, 0.05, 0.03)), mat("Clock Hand", Color(0.1, 0.1, 0.15)), Vector3(0.12, 3.0, 0.42), clock)
+	var pend := node("Pendulum", clock, Vector3(0, 2.4, 0.36))
+	pend.set_script(load("res://scripts/pendulum_swing.gd"))
+	mesh_at(box(Vector3(0.04, 1.2, 0.03)), gold, Vector3(0, -0.6, 0), pend)
+	mesh_at(cylinder(0.2, 0.2, 0.05, 24), gold, Vector3(0, -1.25, 0), pend).rotation.x = PI / 2
+	mesh_at(box(Vector3(0.9, 1.7, 0.03)), mat("Clock Glass", Color(0.8, 0.9, 1.0), 0.05, 0.0, 0.0, 0.25), Vector3(0, 1.45, 0.37), clock)
+	# Council benches in an arc facing the dais
+	var bench_m := mat("Council Bench", Color(0.55, 0.36, 0.68), 0.6)
+	for row in 2:
+		for k in 5:
+			if k == 2:
+				continue                                  # the aisle
+			var a := PI / 2 + (k - 2) * 0.32
+			var rad := 3.4 + row * 2.0
+			var p := Vector3(cos(a) * rad, 0, sin(a) * rad - 1.6)
+			var b := node("Council Bench", root_node, p, -a + PI / 2)
+			solid_box(Vector3(2.0, 0.45, 0.55), bench_m, Vector3(0, 0.23, 0), b)
+			mesh_at(box(Vector3(2.0, 0.6, 0.08)), bench_m, Vector3(0, 0.75, 0.25), b)
+			mesh_at(box(Vector3(2.04, 0.05, 0.6)), gold, Vector3(0, 0.47, 0), b)
+	# Banners with the town's crescent, flags beside the dais
+	for sx in [-1.0, 1.0]:
+		var bp := Vector3(sx * 3.6, 3.6, -r + 1.2)
+		mesh_at(box(Vector3(1.0, 2.4, 0.04)), mat("Hall Banner", Color(0.4, 0.25, 0.7), 0.8), bp, root_node)
+		mesh_at(box(Vector3(1.06, 0.08, 0.06)), gold, bp + Vector3(0, 1.22, 0), root_node)
+		label(root_node, "☾", bp + Vector3(0, 0.3, 0.04), 110, Color(1, 0.85, 0.4))
+		mesh_at(cylinder(0.04, 0.04, 3.0, 8), gold, Vector3(sx * 4.2, 1.9, -5.0), root_node)
+		mesh_at(box(Vector3(0.9, 0.6, 0.02)), mat("Hall Flag", Color(0.95, 0.4, 0.6), 0.7), Vector3(sx * 4.2 + sx * 0.45, 3.0, -5.0), root_node)
+	# The window seat by his window (the window he talks to people from, outside) and plants
+	var seat := node("Window Seat", root_node, Vector3(-r + 1.4, 0, 2.6), PI / 2 - 0.5)
+	solid_box(Vector3(2.4, 0.5, 0.8), lilac, Vector3(0, 0.25, 0), seat)
+	mesh_at(box(Vector3(2.3, 0.14, 0.7)), carpet, Vector3(0, 0.57, 0), seat)
+	for k in 2:
+		mesh_at(sphere(0.22, 12), mat("Cushion %d" % k, [Color(1.0, 0.85, 0.35), Color(0.45, 0.85, 0.85)][k], 0.9),
+			Vector3(-0.7 + k * 1.4, 0.78, -0.2), seat).scale = Vector3(1, 0.7, 0.6)
+	for p in [Vector2(-5.5, -6.0), Vector2(5.5, -6.0), Vector2(-7.0, 5.5), Vector2(7.0, 5.5)]:
+		solid_cyl(0.4, 0.7, mat("Hall Pot", Color(0.98, 0.78, 0.3), 0.4, 0.5), Vector3(p.x, 0.35, p.y), root_node)
+		mesh_at(sphere(0.75, 14), mat("Hall Plant", Color(0.3, 0.75, 0.55), 0.9), Vector3(p.x, 1.35, p.y), root_node)
+	# A gold chandelier
+	var ch := node("Chandelier", root_node, Vector3(0, 6.6, -1.0))
+	mesh_at(cylinder(0.02, 0.02, 1.4, 6), gold, Vector3(0, 0.7, 0), ch)
+	var ring := TorusMesh.new()
+	ring.inner_radius = 1.0
+	ring.outer_radius = 1.1
+	mesh_at(ring, gold, Vector3.ZERO, ch)
+	for k in 8:
+		var a := k * TAU / 8
+		mesh_at(sphere(0.12, 10), mat("Chandelier Glow", Color(1.0, 0.9, 0.6), 0.3, 0.0, 2.5), Vector3(cos(a), 0.15, sin(a)) * 1.05, ch)
+	light(root_node, Vector3(0, 6.0, -1.0), Color(1.0, 0.9, 0.7), 1.5, 16)
+	light(root_node, Vector3(0, 3.0, -6.0), Color(1.0, 0.85, 0.6), 0.9, 8)
+	label(root_node, "Town Hall", Vector3(0, 6.2, 3.0), 80, Color(1, 0.95, 0.8))
+	own(root_node)
+	return root_node
+
+
+# -----------------------------------------------------------------------------
+# The rest of the Void's rooms (16 Nov 2026; Hayden: "add insides to all the buildings"). Every dome door in town
+# that used to say "isn't open yet" leads somewhere now. Bookcases and armchairs are the baked props
+# (tools/build_prop_furniture.py), the rest is made from shapes in the alien palette.
+# -----------------------------------------------------------------------------
+const SHELF := "res://models/props/furniture/bookshelf.glb"
+const ARMCHAIR := "res://models/props/furniture/armchair.glb"
+
+
+func prop(file: String, parent: Node3D, pos: Vector3, yaw: float, size: Vector3, name := "") -> void:
+	# A baked prop, and a box to bump into (size: its width, height and depth)
+	if ResourceLoader.exists(file):
+		var p := (load(file) as PackedScene).instantiate() as Node3D
+		if name != "":
+			p.name = name
+		p.position = pos
+		p.rotation.y = yaw
+		parent.add_child(p)
+	var shape := BoxShape3D.new()
+	shape.size = size
+	solid(shape, null, null, pos + Vector3(0, size.y / 2, 0), parent, yaw)
+
+
+func facing_in(a: float, rr: float) -> Array:
+	# A spot round the wall at angle a (0 east, PI/2 the door), and the turn that faces it into the middle
+	return [Vector3(cos(a), 0, sin(a)) * rr, atan2(-cos(a), -sin(a))]
+
+
+func spinner(name: String, parent: Node3D, pos: Vector3, speed: float) -> Node3D:
+	var n := node(name, parent, pos)
+	n.set_script(load("res://scripts/spin.gd"))
+	n.set("speed", speed)
+	return n
+
+
+func plant(parent: Node3D, pos: Vector3, c := Color(0.3, 0.65, 0.3)) -> void:
+	solid_cyl(0.45, 0.7, mat("Pot", Color(0.85, 0.5, 0.35), 0.8), pos + Vector3(0, 0.35, 0), parent)
+	mesh_at(sphere(0.8, 12), mat("Plant", c, 0.9), pos + Vector3(0, 1.4, 0), parent)
+
+
+func shelves_round(parent: Node3D, r: float, from_a: float, to_a: float, n: int) -> void:
+	# Bookcases round the wall between two angles (the door's at PI/2)
+	for k in n:
+		var a := lerpf(from_a, to_a, (k + 0.5) / n)
+		var at: Array = facing_in(a, r - 0.6)
+		prop(SHELF, parent, at[0], at[1], Vector3(1.2, 2.0, 0.36), "Bookcase %d" % (k + 1))
+
+
+func _museum() -> Node3D:
+	# The Void's Museum: the skeleton of a long-necked star beast in the middle, cases of treasures round the wall
+	# (a meteorite, a singing crystal, the first Shift Watch, a fossil fern), paintings and a rope to keep back from it
+	var r := 13.0
+	var root_node := dome_room("Museum", r, Color(0.92, 0.9, 0.86), Color(0.55, 0.45, 0.4), Color(1.0, 0.95, 0.88))
+	var bone := mat("Bone", Color(0.95, 0.92, 0.82), 0.7)
+	var stone := mat("Museum Stone", Color(0.85, 0.83, 0.8), 0.7)
+	var gold := mat("Museum Gold", Color(0.98, 0.78, 0.3), 0.3, 0.9)
+	# The star beast's skeleton on its plinth
+	solid_box(Vector3(9.0, 0.5, 3.0), stone, Vector3(0, 0.25, -1.0), root_node)
+	var beast := node("Star Beast", root_node, Vector3(0, 0.5, -1.0))
+	for k in 9:                                        # the spine, rising into the neck
+		var x := -3.6 + k * 0.7
+		var y := 2.2 + maxf(0.0, x - 1.0) * 0.9
+		mesh_at(sphere(0.22, 10), bone, Vector3(x, y, 0), beast)
+		if k < 6:
+			for sz in [-1.0, 1.0]:                          # ribs
+				var rib := mesh_at(cylinder(0.05, 0.05, 1.4, 6), bone, Vector3(x, y - 0.6, sz * 0.45), beast)
+				rib.rotation.x = sz * 0.5
+	mesh_at(sphere(0.45, 12), bone, Vector3(3.0, 5.2, 0), beast)                   # the head
+	for sx in [-0.15, 0.15]:
+		mesh_at(sphere(0.08, 8), mat("Bone Eye", Color(0.2, 0.2, 0.25), 0.5), Vector3(3.3, 5.3, sx), beast)
+	for leg in [Vector2(-2.6, -0.5), Vector2(-2.6, 0.5), Vector2(0.4, -0.5), Vector2(0.4, 0.5)]:
+		mesh_at(cylinder(0.12, 0.1, 2.0, 8), bone, Vector3(leg.x, 1.0, leg.y), beast)
+	var tail := mesh_at(cylinder(0.04, 0.16, 2.4, 8), bone, Vector3(-4.6, 1.8, 0), beast)
+	tail.rotation.z = 1.1
+	label(root_node, "The Star Beast\n(a very long time ago)", Vector3(0, 0.9, 0.7), 28, Color(0.95, 0.9, 0.8))
+	# A rope round it on brass posts
+	for k in 6:
+		var x := -4.5 + k * 1.8
+		mesh_at(cylinder(0.05, 0.08, 1.0, 8), gold, Vector3(x, 0.5, 1.2), root_node)
+	mesh_at(box(Vector3(9.0, 0.06, 0.06)), mat("Museum Rope", Color(0.75, 0.15, 0.3), 0.8), Vector3(0, 0.9, 1.2), root_node)
+	# Glass cases round the wall, each with a treasure inside
+	var glass := mat("Case Glass", Color(0.8, 0.95, 1.0), 0.05, 0.0, 0.0, 0.3)
+	var treasures := [["Meteorite", Color(0.35, 0.3, 0.32)], ["Singing Crystal", Color(0.6, 0.9, 1.0)],
+		["The First Shift Watch", Color(0.95, 0.8, 0.35)], ["Fossil Fern", Color(0.6, 0.55, 0.45)],
+		["Moon Pebble", Color(0.85, 0.85, 0.95)], ["Gloop in a Jar", Color(0.4, 0.9, 0.4)]]
+	for k in treasures.size():
+		var a := PI / 2 + 0.9 + k * ((TAU - 1.8) / (treasures.size() - 1))
+		var at: Array = facing_in(a, r - 2.0)
+		var case := node(String(treasures[k][0]), root_node, at[0], at[1])
+		solid_box(Vector3(1.2, 1.0, 1.2), stone, Vector3(0, 0.5, 0), case)
+		mesh_at(box(Vector3(1.0, 0.9, 1.0)), glass, Vector3(0, 1.45, 0), case)
+		mesh_at(sphere(0.25, 12), mat("Treasure %d" % k, treasures[k][1], 0.3, 0.3, 0.6 if k == 1 else 0.0), Vector3(0, 1.3, 0), case)
+		label(case, String(treasures[k][0]), Vector3(0, 2.2, 0.0), 24, Color(0.95, 0.92, 0.85))
+	# Paintings high up
+	for k in 5:
+		var a := PI / 2 + 1.2 + k * 0.95
+		var p := Vector3(cos(a), 0, sin(a)) * (r - 0.45) + Vector3(0, 4.0, 0)
+		var frame := mesh_at(box(Vector3(0.08, 1.3, 1.8)), gold, p, root_node, -a)
+		frame.name = "Painting %d" % (k + 1)
+		mesh_at(box(Vector3(0.05, 1.1, 1.6)), mat("Painting %d" % k, Color.from_hsv(k / 5.0, 0.45, 0.8), 0.8),
+			p - Vector3(cos(a), 0, sin(a)) * 0.05, root_node, -a)
+	light(root_node, Vector3(0, 8, 0), Color(1.0, 0.95, 0.85), 1.6, 22)
+	light(root_node, Vector3(0, 4, -1), Color(1.0, 0.9, 0.75), 1.0, 9)
+	label(root_node, "Museum", Vector3(0, 8.0, -4), 96, Color(1, 0.95, 0.85))
+	own(root_node)
+	return root_node
+
+
+func _library() -> Node3D:
+	# The Void's Library: bookcases all round, reading tables with lamps, the librarian's desk, and a swirl of books
+	# flying round and round over the middle
+	var r := 12.0
+	var root_node := dome_room("Library", r, Color(0.75, 0.6, 0.85), Color(0.45, 0.32, 0.25), Color(0.95, 0.88, 1.0))
+	var wood := mat("Library Wood", Color(0.5, 0.32, 0.2), 0.6)
+	shelves_round(root_node, r, PI / 2 + 0.55, PI / 2 + TAU - 0.55, 22)
+	# Reading tables with green lamps
+	for t in [Vector2(-4, -1), Vector2(4, -1), Vector2(-4, 3.5), Vector2(4, 3.5)]:
+		solid_box(Vector3(2.4, 0.08, 1.2), wood, Vector3(t.x, 0.8, t.y), root_node)
+		for sx in [-1.0, 1.0]:
+			mesh_at(box(Vector3(0.1, 0.8, 1.0)), wood, Vector3(t.x + sx * 1.0, 0.4, t.y), root_node)
+		mesh_at(cylinder(0.2, 0.25, 0.15, 12), mat("Reading Lamp", Color(0.3, 0.75, 0.45), 0.4, 0.0, 1.2), Vector3(t.x, 1.25, t.y), root_node)
+		mesh_at(cylinder(0.02, 0.02, 0.4, 6), mat("Lamp Brass", Color(0.9, 0.72, 0.35), 0.3, 0.8), Vector3(t.x, 1.0, t.y), root_node)
+		for sz in [-1.0, 1.0]:
+			solid_box(Vector3(2.0, 0.45, 0.45), mat("Library Bench", Color(0.55, 0.25, 0.35), 0.8), Vector3(t.x, 0.23, t.y + sz * 1.0), root_node)
+	# The librarian's desk
+	solid_box(Vector3(3.0, 1.0, 1.0), wood, Vector3(0, 0.5, -6.0), root_node)
+	mesh_at(box(Vector3(0.4, 0.06, 0.3)), mat("Stamp Pad", Color(0.75, 0.2, 0.3), 0.6), Vector3(0.6, 1.03, -5.9), root_node)
+	label(root_node, "Shhh... (mostly)", Vector3(0, 1.6, -5.5), 28, Color(0.95, 0.9, 1.0))
+	# The flying books
+	var swirl := spinner("Flying Books", root_node, Vector3(0, 5.0, 1.0), 0.5)
+	var covers := [Color(0.85, 0.3, 0.3), Color(0.3, 0.5, 0.85), Color(0.95, 0.8, 0.3), Color(0.4, 0.75, 0.45), Color(0.7, 0.4, 0.8)]
+	for k in 12:
+		var a := TAU * k / 12
+		var b := mesh_at(box(Vector3(0.4, 0.08, 0.55)), mat("Flying Book %d" % (k % 5), covers[k % 5], 0.6),
+			Vector3(cos(a) * 2.6, sin(a * 3) * 0.5, sin(a) * 2.6), swirl, -a)
+		b.rotation.z = 0.4
+	light(swirl, Vector3.ZERO, Color(1.0, 0.9, 0.7), 1.0, 7)
+	light(root_node, Vector3(0, 7, 0), Color(1.0, 0.92, 0.8), 1.4, 20)
+	label(root_node, "Library", Vector3(0, 7.5, -3), 96, Color(0.98, 0.92, 1.0))
+	own(root_node)
+	return root_node
+
+
+func _potion_shop() -> Node3D:
+	# The Potion Shop: a big bubbling cauldron, shelves of glowing bottles, herbs hanging from the ceiling, a crystal
+	# ball and spell books on the counter
+	var r := 10.0
+	var root_node := dome_room("Potion Shop", r, Color(0.45, 0.3, 0.6), Color(0.3, 0.22, 0.3), Color(0.8, 0.7, 1.0))
+	var wood := mat("Potion Wood", Color(0.35, 0.22, 0.15), 0.6)
+	# The cauldron
+	solid_cyl(1.2, 1.1, mat("Cauldron", Color(0.12, 0.12, 0.14), 0.5, 0.6), Vector3(0, 0.55, -1.0), root_node)
+	mesh_at(cylinder(1.05, 1.05, 0.05, 24), mat("Brew", Color(0.4, 1.0, 0.5), 0.2, 0.0, 2.0), Vector3(0, 1.12, -1.0), root_node)
+	for k in 5:
+		var bub := mesh_at(sphere(0.12 + 0.04 * (k % 2), 8), mat("Brew Bubble", Color(0.6, 1.0, 0.7), 0.2, 0.0, 1.5),
+			Vector3(cos(k * 1.3) * 0.6, 1.2, -1.0 + sin(k * 1.3) * 0.6), root_node)
+		bub.name = "Bubble %d" % (k + 1)
+	light(root_node, Vector3(0, 1.8, -1.0), Color(0.5, 1.0, 0.6), 1.5, 6)
+	# Shelves of glowing bottles round the back
+	var bottles := [Color(1.0, 0.4, 0.6), Color(0.4, 0.8, 1.0), Color(0.9, 0.85, 0.3), Color(0.7, 0.45, 1.0), Color(0.4, 1.0, 0.6)]
+	for k in 5:
+		var a := PI + 0.4 + k * 0.6 + PI / 2 - 0.2
+		var at: Array = facing_in(a, r - 0.6)
+		var shelf := node("Potion Shelf %d" % (k + 1), root_node, at[0], at[1])
+		solid_box(Vector3(2.0, 2.6, 0.5), wood, Vector3(0, 1.3, -0.1), shelf)
+		for row in 3:
+			for j in 5:
+				mesh_at(cylinder(0.08, 0.1, 0.3, 8), mat("Potion %d" % ((j + row + k) % 5), bottles[(j + row + k) % 5], 0.2, 0.0, 1.4),
+					Vector3(-0.8 + j * 0.4, 0.6 + row * 0.75, 0.2), shelf)
+	# Herbs hanging from the ceiling
+	for k in 8:
+		var a := TAU * k / 8
+		mesh_at(cylinder(0.12, 0.02, 0.6, 6), mat("Herbs", Color(0.4, 0.6, 0.3), 0.9), Vector3(cos(a) * 4.0, 4.6, sin(a) * 4.0), root_node)
+	# The counter with the crystal ball and spell books
+	solid_box(Vector3(3.0, 1.0, 0.9), wood, Vector3(4.0, 0.5, 2.0), root_node, -0.6)
+	mesh_at(sphere(0.3, 14), mat("Crystal Ball", Color(0.7, 0.6, 1.0), 0.05, 0.0, 1.2), Vector3(4.2, 1.3, 1.9), root_node)
+	for k in 3:
+		mesh_at(box(Vector3(0.35, 0.08, 0.45)), mat("Spell Book %d" % k, bottles[k + 1].darkened(0.3), 0.6),
+			Vector3(3.4, 1.05 + k * 0.08, 2.3), root_node, 0.3 * k)
+	plant(root_node, Vector3(-6, 0, 3), Color(0.55, 0.35, 0.7))
+	light(root_node, Vector3(0, 5.5, 0), Color(0.85, 0.7, 1.0), 1.0, 16)
+	label(root_node, "Potion Shop", Vector3(0, 6.0, -3), 80, Color(0.9, 0.85, 1.0))
+	own(root_node)
+	return root_node
+
+
+func _book_store() -> Node3D:
+	# The Book Store: bookcases round the wall, tables of new books, armchairs round a rug, and the shop cat
+	var r := 10.0
+	var root_node := dome_room("Book Store", r, Color(0.95, 0.85, 0.65), Color(0.5, 0.35, 0.22), Color(1.0, 0.92, 0.8))
+	var wood := mat("Store Wood", Color(0.5, 0.32, 0.2), 0.6)
+	shelves_round(root_node, r, PI / 2 + 0.6, PI / 2 + TAU - 0.6, 16)
+	var covers := [Color(0.85, 0.3, 0.3), Color(0.3, 0.5, 0.85), Color(0.95, 0.8, 0.3), Color(0.4, 0.75, 0.45), Color(0.7, 0.4, 0.8)]
+	for t in [Vector2(-3, -2), Vector2(3, -2)]:
+		solid_box(Vector3(2.0, 0.8, 1.0), wood, Vector3(t.x, 0.4, t.y), root_node)
+		for k in 6:
+			mesh_at(box(Vector3(0.3, 0.06 + 0.04 * (k % 3), 0.4)), mat("New Book %d" % (k % 5), covers[k % 5], 0.6),
+				Vector3(t.x - 0.75 + k * 0.3, 0.83 + 0.02 * (k % 3), t.y), root_node, 0.1 * (k % 2))
+	label(root_node, "NEW!", Vector3(-3, 1.4, -2), 36, Color(1.0, 0.9, 0.5))
+	mesh_at(cylinder(2.0, 2.0, 0.03, 24), mat("Store Rug", Color(0.7, 0.3, 0.4), 0.95), Vector3(0, 0.02, 2.5), root_node)
+	for k in 3:
+		var a := PI + 0.3 + k * 1.2
+		prop(ARMCHAIR, root_node, Vector3(cos(a) * 1.6, 0, 2.5 + sin(a) * 1.6), atan2(-cos(a), -sin(a)), Vector3(0.9, 0.5, 0.85),
+			"Armchair %d" % (k + 1))
+	solid_box(Vector3(2.4, 1.0, 0.9), wood, Vector3(-4.0, 0.5, 3.5), root_node, 0.8)
+	var cat := node("Store Cat", root_node, Vector3(-4.1, 1.0, 3.4))
+	var fur := mat("Cat Fur Grey", Color(0.55, 0.55, 0.6), 0.9)
+	mesh_at(sphere(0.2, 10), fur, Vector3(0, 0.1, 0), cat).scale = Vector3(1.3, 0.65, 1)
+	mesh_at(sphere(0.1, 8), fur, Vector3(0.2, 0.13, 0.05), cat)
+	light(root_node, Vector3(0, 5.5, 0), Color(1.0, 0.88, 0.7), 1.4, 16)
+	label(root_node, "Book Store", Vector3(0, 6.0, -3), 80, Color(1, 0.95, 0.85))
+	own(root_node)
+	return root_node
+
+
+func _pet_shop() -> Node3D:
+	# The Pet Shop: pens of bouncy little critters, fish tanks, bird cages with birds that turn, bags of pet food and
+	# a counter with a bowl of treats
+	var r := 10.0
+	var root_node := dome_room("Pet Shop", r, Color(0.7, 0.9, 0.75), Color(0.6, 0.55, 0.45), Color(0.95, 1.0, 0.92))
+	var wood := mat("Pet Wood", Color(0.62, 0.45, 0.3), 0.7)
+	var critter := [Color(0.95, 0.75, 0.5), Color(0.9, 0.9, 0.95), Color(0.6, 0.45, 0.35), Color(0.95, 0.6, 0.75)]
+	# Two pens of critters
+	for p in [Vector2(-3.5, -2.5), Vector2(3.5, -2.5)]:
+		var pen := node("Pen", root_node, Vector3(p.x, 0, p.y))
+		for k in 4:
+			var a := k * PI / 2
+			solid_box(Vector3(3.0, 0.7, 0.1), wood, Vector3(cos(a) * 1.5, 0.35, sin(a) * 1.5), pen, a + PI / 2)
+		mesh_at(box(Vector3(2.9, 0.04, 2.9)), mat("Pen Straw", Color(0.95, 0.85, 0.5), 0.95), Vector3(0, 0.03, 0), pen)
+		for k in 3:
+			var c := node("Critter", pen, Vector3(-0.7 + k * 0.7, 0, 0.3 * (k % 2)))
+			c.set_script(load("res://scripts/spin.gd"))
+			c.set("speed", 0.6 + 0.3 * k)
+			var col: Color = critter[(k + int(p.x > 0)) % 4]
+			mesh_at(sphere(0.25, 10), mat("Critter %s" % col.to_html(false), col, 0.9), Vector3(0.2, 0.22, 0), c).scale = Vector3(1.2, 0.85, 1)
+			for ex in [-0.08, 0.08]:
+				mesh_at(sphere(0.04, 6), mat("Critter Eye", Color(0.1, 0.1, 0.12), 0.3), Vector3(0.45, 0.3, ex), c)
+	# Fish tanks along the back
+	var water := mat("Pet Tank Water", Color(0.3, 0.7, 1.0), 0.05, 0.0, 0.6, 0.45)
+	for k in 3:
+		var a := PI + 0.9 + k * 0.6 + PI / 2 - 0.9
+		var at: Array = facing_in(a, r - 1.0)
+		var tank := node("Fish Tank %d" % (k + 1), root_node, at[0], at[1])
+		solid_box(Vector3(1.6, 0.8, 0.8), wood, Vector3(0, 0.4, 0), tank)
+		solid_box(Vector3(1.5, 1.0, 0.7), water, Vector3(0, 1.3, 0), tank)
+		var school := node("Fish", tank, Vector3(0, 1.3, 0))
+		school.set_script(load("res://scripts/fish_school.gd"))
+		school.set("half_size", Vector3(0.6, 0.35, 0.25))
+		for f in 3:
+			fish(school, critter[(f + k) % 4].lightened(0.2), 0.1)
+	# Bird cages on stands
+	for k in 2:
+		var cp := Vector3(-5.5 + k * 11.0, 0, 2.5)
+		mesh_at(cylinder(0.03, 0.03, 1.6, 6), mat("Cage Gold", Color(0.95, 0.78, 0.35), 0.3, 0.8), cp + Vector3(0, 0.8, 0), root_node)
+		mesh_at(cylinder(0.05, 0.45, 0.9, 12), mat("Cage Bars", Color(0.95, 0.78, 0.35), 0.3, 0.8, 0.0, 0.5), cp + Vector3(0, 2.05, 0), root_node)
+		var bird := spinner("Bird", root_node, cp + Vector3(0, 1.85, 0), 0.4)
+		mesh_at(sphere(0.12, 8), mat("Bird %d" % k, [Color(0.4, 0.8, 1.0), Color(1.0, 0.85, 0.3)][k], 0.6), Vector3(0.15, 0, 0), bird)
+	# Pet food and the counter
+	for k in 4:
+		mesh_at(box(Vector3(0.5, 0.7, 0.25)), mat("Pet Food %d" % k, critter[k].darkened(0.2), 0.8), Vector3(-6.0 + k * 0.55, 0.35, -5.6), root_node)
+	solid_box(Vector3(2.6, 1.0, 0.9), wood, Vector3(5.5, 0.5, -3.5), root_node, -0.8)
+	mesh_at(cylinder(0.2, 0.15, 0.12, 12), mat("Treat Bowl", Color(0.95, 0.5, 0.5), 0.5), Vector3(5.4, 1.06, -3.4), root_node)
+	plant(root_node, Vector3(-7, 0, -1))
+	light(root_node, Vector3(0, 5.5, 0), Color(1.0, 0.95, 0.85), 1.4, 16)
+	label(root_node, "Pet Shop", Vector3(0, 6.0, -3), 80, Color(0.95, 1.0, 0.92))
+	own(root_node)
+	return root_node
+
+
+func _gaming_station() -> Node3D:
+	# The Gaming Station: rows of glowing arcade cabinets, a big racing screen with beanbags, a claw machine full of
+	# plushies and the token counter, under neon
+	var r := 11.0
+	var root_node := dome_room("Gaming Station", r, Color(0.2, 0.18, 0.3), Color(0.15, 0.13, 0.2), Color(0.6, 0.5, 0.9))
+	var cab := mat("Cabinet", Color(0.25, 0.2, 0.4), 0.5)
+	var screens := [Color(0.3, 1.0, 0.8), Color(1.0, 0.4, 0.7), Color(1.0, 0.9, 0.3), Color(0.5, 0.6, 1.0)]
+	for k in 7:
+		var a := PI + 0.2 + k * 0.42 + PI / 2 - 1.0
+		var at: Array = facing_in(a, r - 1.0)
+		var c := node("Arcade %d" % (k + 1), root_node, at[0], at[1])
+		solid_box(Vector3(0.9, 1.9, 0.8), cab, Vector3(0, 0.95, 0), c)
+		mesh_at(box(Vector3(0.7, 0.55, 0.05)), mat("Screen %d" % (k % 4), screens[k % 4], 0.2, 0.0, 2.2), Vector3(0, 1.4, 0.42), c)
+		mesh_at(box(Vector3(0.8, 0.08, 0.35)), mat("Controls", Color(0.12, 0.12, 0.15), 0.4), Vector3(0, 1.0, 0.5), c)
+		mesh_at(sphere(0.05, 6), mat("Joystick Red", Color(1.0, 0.2, 0.25), 0.3), Vector3(-0.2, 1.1, 0.55), c)
+		mesh_at(box(Vector3(0.9, 0.2, 0.05)), mat("Marquee %d" % (k % 4), screens[(k + 1) % 4], 0.2, 0.0, 1.8), Vector3(0, 1.82, 0.41), c)
+	# The big racing screen with beanbags
+	var big := node("Big Screen", root_node, Vector3(0, 0, -r + 1.0))
+	mesh_at(box(Vector3(5.0, 2.8, 0.1)), mat("Big Screen Glow", Color(0.4, 0.8, 1.0), 0.2, 0.0, 1.6), Vector3(0, 2.6, 0), big)
+	label(big, "LAP 3/3", Vector3(0, 3.4, 0.1), 60, Color(1.0, 1.0, 0.7))
+	for k in 4:
+		var bb := mesh_at(sphere(0.45, 10), mat("Beanbag %d" % k, screens[k], 0.9), Vector3(-2.4 + k * 1.6, 0.3, 3.0), big)
+		bb.scale = Vector3(1.1, 0.65, 1.1)
+	# The claw machine
+	var claw := node("Claw Machine", root_node, Vector3(6.0, 0, 2.0), -0.9)
+	solid_box(Vector3(1.4, 1.0, 1.4), mat("Claw Base", Color(1.0, 0.4, 0.6), 0.5), Vector3(0, 0.5, 0), claw)
+	mesh_at(box(Vector3(1.3, 1.3, 1.3)), mat("Claw Glass", Color(0.85, 0.95, 1.0), 0.05, 0.0, 0.0, 0.25), Vector3(0, 1.65, 0), claw)
+	for k in 6:
+		mesh_at(sphere(0.18, 8), mat("Claw Plush %d" % (k % 4), screens[k % 4].lightened(0.2), 0.9),
+			Vector3(-0.35 + (k % 3) * 0.35, 1.2, -0.25 + (k / 3) * 0.5), claw)
+	mesh_at(cylinder(0.02, 0.02, 0.6, 6), mat("Claw Metal", Color(0.8, 0.8, 0.85), 0.3, 0.9), Vector3(0, 2.0, 0), claw)
+	# The token counter
+	solid_box(Vector3(2.6, 1.0, 0.9), cab, Vector3(-6.0, 0.5, 2.0), root_node, 0.9)
+	label(root_node, "TOKENS", Vector3(-6.0, 1.6, 2.0), 30, Color(1.0, 0.9, 0.3))
+	light(root_node, Vector3(0, 5.5, 0), Color(0.7, 0.5, 1.0), 1.2, 18)
+	light(root_node, Vector3(0, 2.5, -r + 2.5), Color(0.4, 0.8, 1.0), 1.2, 8)
+	label(root_node, "Gaming Station", Vector3(0, 6.5, -4), 80, Color(1.0, 0.5, 0.85))
+	own(root_node)
+	return root_node
+
+
+func _dashs_house() -> Node3D:
+	# Dash's house: a tinkerer's mess. His workbench with tools and a half-built robot, blueprints pinned up, bike
+	# parts, jars of bolts, his bed, and a dog bed beside it (for his twin, for now)
+	var r := 9.0
+	var root_node := dome_room("Dash's House", r, Color(0.55, 0.75, 0.9), Color(0.5, 0.42, 0.35), Color(0.9, 0.95, 1.0))
+	var wood := mat("Dash Wood", Color(0.55, 0.38, 0.24), 0.6)
+	var metal := mat("Dash Metal", Color(0.7, 0.72, 0.78), 0.3, 0.9)
+	# The workbench and the robot on it
+	solid_box(Vector3(3.2, 0.9, 1.0), wood, Vector3(-3.0, 0.45, -5.5), root_node, 0.3)
+	var bot := node("Robot", root_node, Vector3(-3.0, 0.9, -5.5))
+	mesh_at(box(Vector3(0.5, 0.6, 0.4)), metal, Vector3(0, 0.3, 0), bot)
+	mesh_at(sphere(0.22, 10), metal, Vector3(0, 0.8, 0), bot)
+	mesh_at(sphere(0.06, 6), mat("Robot Eye", Color(0.3, 0.9, 1.0), 0.2, 0.0, 2.0), Vector3(0.08, 0.84, 0.2), bot)
+	mesh_at(cylinder(0.02, 0.02, 0.3, 6), metal, Vector3(0, 1.1, 0), bot)
+	for k in 4:
+		mesh_at(box(Vector3(0.05, 0.3, 0.05)), mat("Tool Red", Color(0.9, 0.3, 0.2), 0.5), Vector3(-4.2 + k * 0.25, 1.05, -5.9), root_node)
+	for k in 3:
+		mesh_at(cylinder(0.1, 0.1, 0.22, 10), mat("Bolt Jar", Color(0.85, 0.95, 1.0), 0.1, 0.0, 0.0, 0.5), Vector3(-1.9 + k * 0.25, 1.01, -5.2), root_node)
+	# Blueprints pinned up round the wall
+	for k in 4:
+		var a := PI + 0.6 + k * 0.45 + PI / 2 - 1.2
+		var p := Vector3(cos(a), 0, sin(a)) * (r - 0.35) + Vector3(0, 2.2, 0)
+		mesh_at(box(Vector3(0.04, 0.9, 1.2)), mat("Blueprint", Color(0.25, 0.45, 0.85), 0.8, 0.0, 0.3), p, root_node, -a)
+	# His bed, and the dog bed beside it
+	solid_box(Vector3(1.4, 0.5, 2.2), mat("Dash Bed", Color(0.3, 0.55, 0.9), 0.8), Vector3(4.5, 0.25, -3.5), root_node, -0.4)
+	mesh_at(box(Vector3(0.6, 0.15, 0.4)), mat("Pillow", Color(0.95, 0.95, 0.97), 0.8), Vector3(4.9, 0.55, -4.4), root_node, -0.4)
+	mesh_at(cylinder(0.7, 0.6, 0.25, 16), mat("Dog Bed", Color(0.8, 0.45, 0.3), 0.9), Vector3(5.0, 0.13, -0.8), root_node)
+	mesh_at(cylinder(0.55, 0.55, 0.05, 16), mat("Dog Bed Cushion", Color(0.95, 0.85, 0.7), 0.9), Vector3(5.0, 0.25, -0.8), root_node)
+	label(root_node, "REX", Vector3(5.0, 0.6, -0.1), 24, Color(1.0, 0.9, 0.6))
+	# Bike parts: two wheels against the wall
+	for k in 2:
+		var w := mesh_at(cylinder(0.45, 0.45, 0.06, 20), mat("Wheel", Color(0.12, 0.12, 0.14), 0.7), Vector3(-6.2, 0.45, 1.5 + k * 0.3), root_node)
+		w.rotation.x = PI / 2
+	plant(root_node, Vector3(6, 0, 3))
+	light(root_node, Vector3(0, 5.0, 0), Color(0.95, 0.95, 1.0), 1.3, 14)
+	light(root_node, Vector3(-3.0, 2.5, -5.0), Color(1.0, 0.9, 0.7), 1.0, 5)
+	label(root_node, "Dash's House", Vector3(0, 5.5, -3), 70, Color(0.9, 0.95, 1.0))
+	own(root_node)
+	return root_node
+
+
+func _melanies_house() -> Node3D:
+	# Melanie's house: all about slides. Slide drawings on every wall, a toy slide, a pool float, her bed and a desk
+	# covered in plans
+	var r := 9.0
+	var root_node := dome_room("Melanie's House", r, Color(0.95, 0.8, 0.9), Color(0.55, 0.45, 0.4), Color(1.0, 0.92, 0.96))
+	var wood := mat("Melanie Wood", Color(0.75, 0.55, 0.4), 0.6)
+	solid_box(Vector3(1.4, 0.5, 2.2), mat("Melanie Bed", Color(0.95, 0.5, 0.7), 0.8), Vector3(-4.5, 0.25, -3.5), root_node, 0.4)
+	mesh_at(box(Vector3(0.6, 0.15, 0.4)), mat("Pillow", Color(0.95, 0.95, 0.97), 0.8), Vector3(-4.9, 0.55, -4.4), root_node, 0.4)
+	# The toy slide in the middle
+	var slide := node("Toy Slide", root_node, Vector3(1.0, 0, -1.0), 0.4)
+	for k in 5:
+		solid_box(Vector3(0.9, 0.3 * (k + 1), 0.3), mat("Slide Steps", Color(0.4, 0.75, 0.95), 0.5), Vector3(-1.4, 0.15 * (k + 1), -0.6 + k * 0.3), slide)
+	var chute := mesh_at(box(Vector3(0.9, 0.08, 2.6)), mat("Slide Chute", Color(1.0, 0.85, 0.3), 0.3), Vector3(-1.4, 0.8, 1.9), slide)
+	chute.rotation.x = 0.55
+	# Her desk of plans and the drawings round the wall
+	solid_box(Vector3(1.6, 0.75, 0.8), wood, Vector3(4.5, 0.38, -3.5), root_node, -0.6)
+	for k in 3:
+		mesh_at(box(Vector3(0.4, 0.01, 0.3)), mat("Plan Paper", Color(0.97, 0.97, 1.0), 0.9), Vector3(4.3 + k * 0.2, 0.77 + k * 0.005, -3.5), root_node, 0.2 * k)
+	for k in 6:
+		var a := PI + 0.4 + k * 0.42 + PI / 2 - 1.2
+		var p := Vector3(cos(a), 0, sin(a)) * (r - 0.35) + Vector3(0, 2.0 + 0.3 * (k % 2), 0)
+		mesh_at(box(Vector3(0.04, 0.6, 0.8)), mat("Slide Drawing %d" % k, Color.from_hsv(k / 6.0, 0.4, 0.95), 0.9), p, root_node, -a)
+	label(root_node, "WE NEED A SLIDE!", Vector3(0, 3.6, -r + 0.6), 40, Color(0.95, 0.4, 0.6))
+	var ring := mesh_at(cylinder(0.6, 0.6, 0.25, 20), mat("Pool Float", Color(1.0, 0.5, 0.4), 0.4), Vector3(-2.5, 0.12, 2.5), root_node)
+	ring.scale = Vector3(1, 1, 1)
+	mesh_at(cylinder(0.3, 0.3, 0.27, 16), mat("Pool Float Hole", Color(0.55, 0.45, 0.4), 0.9), Vector3(-2.5, 0.13, 2.5), root_node)
+	plant(root_node, Vector3(6, 0, 2), Color(0.9, 0.5, 0.7))
+	light(root_node, Vector3(0, 5.0, 0), Color(1.0, 0.92, 0.95), 1.3, 14)
+	label(root_node, "Melanie's House", Vector3(0, 5.5, -3), 70, Color(1.0, 0.9, 0.95))
+	own(root_node)
+	return root_node
+
+
+func _empty_home_2() -> Node3D:
+	# A home nobody lives in yet: moving boxes, a broom, a rolled-up rug and a window seat waiting for someone
+	var r := 9.0
+	var root_node := dome_room("Empty Home 2", r, Color(0.9, 0.88, 0.82), Color(0.6, 0.5, 0.4), Color(1.0, 0.97, 0.9))
+	var cardboard := mat("Cardboard", Color(0.78, 0.6, 0.4), 0.9)
+	for k in 7:
+		var p := Vector3(-3.0 + (k % 4) * 1.1, 0, -3.5 + (k / 4) * 1.2)
+		var h := 0.5 + 0.15 * (k % 3)
+		solid_box(Vector3(0.8, h, 0.8), cardboard, p + Vector3(0, h / 2, 0), root_node, 0.2 * (k % 3))
+		mesh_at(box(Vector3(0.82, 0.04, 0.15)), mat("Tape", Color(0.85, 0.8, 0.6), 0.4), p + Vector3(0, h + 0.01, 0), root_node, 0.2 * (k % 3))
+	var rug := mesh_at(cylinder(0.3, 0.3, 2.4, 12), mat("Rolled Rug", Color(0.6, 0.3, 0.45), 0.9), Vector3(3.0, 0.3, -2.0), root_node)
+	rug.rotation.z = PI / 2
+	var broom := mesh_at(cylinder(0.03, 0.03, 1.5, 6), mat("Broom Handle", Color(0.7, 0.55, 0.35), 0.7), Vector3(-6.5, 0.75, 1.5), root_node)
+	broom.rotation.z = 0.25
+	mesh_at(box(Vector3(0.35, 0.3, 0.12)), mat("Broom Straw", Color(0.95, 0.85, 0.5), 0.9), Vector3(-6.7, 0.15, 1.5), root_node)
+	solid_box(Vector3(2.4, 0.5, 0.8), mat("Window Seat", Color(0.7, 0.85, 0.95), 0.8), Vector3(0, 0.25, -r + 1.0), root_node)
+	label(root_node, "Waiting for someone", Vector3(0, 2.8, -r + 0.8), 36, Color(0.95, 0.92, 0.85))
+	light(root_node, Vector3(0, 5.0, 0), Color(1.0, 0.95, 0.85), 1.2, 14)
+	label(root_node, "Empty Home", Vector3(0, 5.5, -3), 70, Color(1.0, 0.97, 0.9))
+	own(root_node)
+	return root_node
+
+
+func _haunted_house() -> Node3D:
+	# The Haunted House, now its giggly spirit has gone (episodes.gd: the door only opens once it's let out). Dusty
+	# sheets over the furniture, cobwebs, a cracked portrait, candles, an old piano, and a trail of glowing green goo
+	# where the spirit went
+	var r := 11.0
+	var root_node := dome_room("Haunted House", r, Color(0.35, 0.3, 0.4), Color(0.28, 0.22, 0.2), Color(0.55, 0.5, 0.7))
+	var sheet := mat("Dust Sheet", Color(0.9, 0.9, 0.92), 0.95)
+	for p in [Vector3(-4, 0, -3), Vector3(4, 0, -3), Vector3(-5, 0, 2)]:
+		solid_box(Vector3(1.6, 0.9, 0.9), sheet, p + Vector3(0, 0.45, 0), root_node)
+		mesh_at(sphere(0.5, 10), sheet, p + Vector3(0.3, 0.95, 0), root_node).scale = Vector3(1.4, 0.4, 0.9)
+	# The old piano
+	var piano := node("Old Piano", root_node, Vector3(0, 0, -r + 1.6))
+	solid_box(Vector3(2.4, 1.3, 0.8), mat("Piano Black", Color(0.08, 0.07, 0.08), 0.4), Vector3(0, 0.65, 0), piano)
+	mesh_at(box(Vector3(2.2, 0.06, 0.25)), mat("Piano Keys", Color(0.95, 0.94, 0.88), 0.4), Vector3(0, 0.85, 0.5), piano)
+	# A crooked portrait and candles
+	var frame := mesh_at(box(Vector3(1.0, 1.3, 0.06)), mat("Haunted Frame", Color(0.6, 0.45, 0.25), 0.5, 0.6), Vector3(3.5, 2.6, -r + 1.2), root_node, -0.3)
+	frame.rotation.z = 0.15
+	mesh_at(box(Vector3(0.8, 1.1, 0.02)), mat("Portrait Grey", Color(0.45, 0.45, 0.5), 0.8), Vector3(3.49, 2.6, -r + 1.24), root_node, -0.3).rotation.z = 0.15
+	for k in 3:
+		mesh_at(cylinder(0.04, 0.04, 0.3, 8), mat("Candle", Color(0.97, 0.95, 0.85), 0.6), Vector3(-0.6 + k * 0.6, 1.45, -r + 1.6), root_node)
+		mesh_at(sphere(0.04, 6), mat("Candle Flame", Color(1.0, 0.7, 0.3), 0.3, 0.0, 3.0), Vector3(-0.6 + k * 0.6, 1.65, -r + 1.6), root_node)
+	light(root_node, Vector3(0, 2.0, -r + 2.0), Color(1.0, 0.7, 0.4), 1.0, 6)
+	# The goo trail, giggling off to the door
+	var goo := mat("Spirit Goo", Color(0.5, 1.0, 0.5), 0.2, 0.0, 1.6)
+	for k in 9:
+		var p := Vector3(sin(k * 0.8) * 1.2, 0.02, -6.0 + k * 1.3)
+		mesh_at(cylinder(0.3 - 0.015 * k, 0.3 - 0.015 * k, 0.02, 12), goo, p, root_node)
+	# Cobwebs in the dome
+	var web := mat("Haunted Cobweb", Color(0.95, 0.95, 0.98), 0.5, 0.0, 0.3)
+	for k in 6:
+		var a := TAU * k / 6 + 0.3
+		var w := mesh_at(box(Vector3(0.02, 2.0, 0.02)), web, Vector3(cos(a) * (r - 1.5), 4.0, sin(a) * (r - 1.5)), root_node)
+		w.rotation.z = 0.6
+	light(root_node, Vector3(0, 5.0, 0), Color(0.6, 0.55, 0.85), 0.8, 18)
+	label(root_node, "Haunted House", Vector3(0, 6.0, -3), 80, Color(0.75, 1.0, 0.75))
+	own(root_node)
+	return root_node
+
+
+func _toy_store() -> Node3D:
+	# The Toy Store: shelves of blocks, balls and plushies, a toy train going round and round on its track, a giant
+	# teddy, kites hanging from the dome, a rocking horse and the counter
+	var r := 11.0
+	var root_node := dome_room("Toy Store", r, Color(1.0, 0.85, 0.5), Color(0.55, 0.42, 0.3), Color(1.0, 0.95, 0.85))
+	var wood := mat("Toy Wood", Color(0.75, 0.55, 0.35), 0.6)
+	var bright := [Color(0.95, 0.3, 0.3), Color(0.3, 0.6, 0.95), Color(0.95, 0.8, 0.25), Color(0.4, 0.8, 0.45), Color(0.8, 0.45, 0.9)]
+	for k in 5:
+		var a := PI + 0.3 + k * 0.55 + PI / 2 - 1.2
+		var at: Array = facing_in(a, r - 0.7)
+		var shelf := node("Toy Shelf %d" % (k + 1), root_node, at[0], at[1])
+		solid_box(Vector3(2.2, 2.4, 0.5), wood, Vector3(0, 1.2, -0.1), shelf)
+		for row in 3:
+			for j in 4:
+				var c: Color = bright[(j + row + k) % 5]
+				var y := 0.55 + row * 0.75
+				match (j + row) % 3:
+					0:
+						mesh_at(box(Vector3(0.3, 0.3, 0.3)), mat("Toy Block %d" % ((j + row + k) % 5), c, 0.6), Vector3(-0.75 + j * 0.5, y, 0.2), shelf)
+					1:
+						mesh_at(sphere(0.17, 10), mat("Toy Ball %d" % ((j + row + k) % 5), c, 0.4), Vector3(-0.75 + j * 0.5, y, 0.2), shelf)
+					_:
+						mesh_at(sphere(0.15, 8), mat("Plushie %d" % ((j + row + k) % 5), c.lightened(0.3), 0.95), Vector3(-0.75 + j * 0.5, y, 0.2), shelf)
+	# The train going round
+	mesh_at(cylinder(3.0, 3.0, 0.04, 40), mat("Train Track", Color(0.45, 0.35, 0.3), 0.8), Vector3(0, 0.02, -1.0), root_node)
+	mesh_at(cylinder(2.7, 2.7, 0.05, 40), mat("Track Middle", Color(0.4, 0.7, 0.4), 0.9), Vector3(0, 0.03, -1.0), root_node)
+	var train := spinner("Toy Train", root_node, Vector3(0, 0, -1.0), 0.6)
+	for k in 4:
+		var a := k * 0.35
+		var car := mesh_at(box(Vector3(0.4, 0.35, 0.6)), mat("Train %d" % k, bright[k], 0.4), Vector3(cos(a) * 2.85, 0.22, sin(a) * 2.85), train, -a)
+		car.name = "Car %d" % (k + 1)
+	# The giant teddy
+	var fur := mat("Teddy Fur", Color(0.75, 0.5, 0.3), 0.95)
+	var teddy := node("Giant Teddy", root_node, Vector3(5.5, 0, 2.5), -1.0)
+	mesh_at(sphere(0.9, 14), fur, Vector3(0, 0.9, 0), teddy)
+	mesh_at(sphere(0.6, 14), fur, Vector3(0, 2.1, 0), teddy)
+	for sx in [-0.45, 0.45]:
+		mesh_at(sphere(0.2, 10), fur, Vector3(sx, 2.6, 0), teddy)
+		mesh_at(sphere(0.07, 6), mat("Teddy Eye", Color(0.1, 0.08, 0.08), 0.3), Vector3(sx * 0.45, 2.2, 0.53), teddy)
+	var shape := SphereShape3D.new()
+	shape.radius = 0.9
+	solid(shape, null, null, Vector3(5.5, 0.9, 2.5), root_node)
+	# Kites up in the dome
+	for k in 4:
+		var a := TAU * k / 4 + 0.4
+		var kite := mesh_at(box(Vector3(0.8, 0.8, 0.03)), mat("Kite %d" % k, bright[k], 0.6), Vector3(cos(a) * 5.0, 5.0, sin(a) * 5.0 - 1.0), root_node, -a)
+		kite.rotation.z = PI / 4
+	# The counter
+	solid_box(Vector3(2.6, 1.0, 0.9), wood, Vector3(-5.5, 0.5, 2.5), root_node, 1.0)
+	light(root_node, Vector3(0, 6.0, 0), Color(1.0, 0.92, 0.75), 1.5, 18)
+	label(root_node, "Toy Store", Vector3(0, 6.5, -4), 90, Color(1.0, 0.92, 0.6))
+	own(root_node)
+	return root_node
