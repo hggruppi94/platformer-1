@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **More baked props: pumpkins, jack-o'-lanterns, scarecrows and mailboxes in Stars Hollow, and the
+  Void's sign posts** (Hayden: "give everything the baked in details"; insides of buildings are another thread's).
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake scripts** (same bake kit): `tools/build_prop_autumn.py <out.glb> pumpkin|jack|scarecrow|mailbox`
+    (ribbed, lumpy pumpkins 22k high -> 716 low; jacks with a real carved face and a glowing inside 45k -> 716; a
+    plaid scarecrow with a sack head and straw 11k -> 508; an arched tin mailbox with rivets and a flag) and
+    `tools/build_prop_sign.py` (the Void's sign: a carved six-sided post with rings and a glowing crystal on top, and
+    boards of three planks in a lilac frame with brass corners and nails, in five widths, `Board24`...`Board90`, all
+    on one texture).
+  - **Swapped at run time** (`detail_props.gd _pumpkins()`, `_scarecrows()`, `_mailboxes()`, `_signs()`): a pumpkin or
+    jack goes in as a child of its old ball (so seasons hiding the ball hides it too), a jack's old glowing face is
+    hidden; the mailbox keeps its family name; a sign keeps the board width nearest its own and stretches the last
+    bit, and its words are untouched. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_props` (50 pumpkins, 34 jacks, 6 scarecrows, 8 mailboxes, sizes and places, names kept, no old
+    glow left) and `test_detail_all` (signs, one board each, words kept); seasons, winter, summer, spring, layout, map,
+    world_detail and plant_clearance pass. Pictures: `tools/capture_detail_more.gd -- <folder> [--old-props]` and
+    `tools/capture_prop_studio.gd -- <folder> <model>...` (project files, world/previews/detail_more).
+  - My choices Hayden may change: every look, the jack's face, navy signs with a crystal on top.
+
 - 2026-11-16: **The whole game gets the detail treatment: every place merges its still pieces, big meshes get
   distance LODs, ferns and grass stop casting shadows, and the Void's Market has six detailed stalls** (Hayden: "Can
   you give the whole game this treatment?", after the Stars Hollow pipeline below). Built and tested in the cloud (own
