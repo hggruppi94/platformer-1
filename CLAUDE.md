@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Baked playground and flower planters in Stars Hollow** (Hayden: "Merge and keep going", batch five).
+  Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_play.py <out.glb> slide_tower|swing_set|sandbox|mum_planter`
+    (a slide tower with fluted posts, a planked deck, porthole panels, a ship's wheel, a shingled roof and a rolled
+    yellow chute, 11k triangles onto 1.8k; an A-frame swing set with real chain links and curved rubber seats, 30k onto
+    640; a sandbox with corner seats, rippled sand, a sandcastle, a bucket and a spade, 5k onto 610; a panelled stone
+    planter with four mounds of mums, 110 flower heads each, 54k onto 368). In `models/props/`.
+  - **Swapped at run time** (`detail_props.gd _playground()`, `_planters()`): the playground's slide, swings and
+    sandbox each get the detailed one in their own node (built to the builder's frame, so the deck and the sandbox's
+    boards keep their collision; the sign and the bark stay), and each of Main Street's six planters and its mums
+    become one detailed planter in the same colours. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_props` (3 playground pieces, 6 planters, nothing old drawn, the deck still solid at 2 m, the
+    planters on the pavement); detail_all, seasons, plant_clearance, insides, layout, world_detail and earth (both
+    runs) pass. Pictures: `tools/capture_detail_play.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_play).
+  - My choices Hayden may change: every look (the green and blue panels, the red roof, the mums' colours).
+
 - 2026-11-16: **The Main Street benches no longer stand inside lamp posts** (Hayden: "the lamp post is inside the
   bench"). On the west side a lamp stood 3 m north of each planter, right where its bench went (four benches). Those
   benches now sit 1.6 m further on, past the lamp (`build_earth.gd`, only their four lines changed in `earth.tscn`).
