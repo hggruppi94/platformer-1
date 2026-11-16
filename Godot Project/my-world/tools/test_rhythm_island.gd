@@ -59,14 +59,14 @@ func _run() -> void:
 
 	# The island's parts
 	for n in ["Island Ground", "Sea", "WorldBounds Fence", "Springs Gate", "Pavilion", "Stilt Huts", "Crystal Cave",
-			"Bamboo Grove", "Pier"]:
+			"Bamboo Grove", "Pier", "Flower Glade", "Legend Hut", "Tide Pools", "Islet"]:
 		check(world.find_child(n, true, false) != null, "the island has its " + n)
 	var falls := world.find_children("Waterfall", "", true, false)
 	var ridge := false
 	for f in falls:
 		ridge = ridge or str(f.get_meta("fall_id", "")) == "ridge_falls"
 	check(ridge, "the ridge's waterfall is marked for its secret cove")
-	for n in ["Shade Pavilion", "Shade Hut 1", "Shade Hut 2", "Shade Hut 3", "Shade Cave"]:
+	for n in ["Shade Pavilion", "Shade Hut 1", "Shade Hut 2", "Shade Hut 3", "Shade Cave", "Shade Legend Hut"]:
 		check(world.find_child(n, true, false) != null, n + " cools you down")
 	check(B.HUTS.size() == 3, "three stilt treehouses")
 
@@ -104,7 +104,44 @@ func _run() -> void:
 	var face := Vector3(-B.CAVE.x, 0, -B.CAVE.z).normalized()
 	await _route("in through the crystal cave's doorway to its pool", B.CAVE + face * 13.0,
 		[B.CAVE + face * 9.0, B.CAVE + face * 3.6], 0.0)
+	# Into the flower glade, between two of its giant flowers
+	var ga := 0.2 + TAU / 18.0
+	var gd := Vector3(cos(ga), 0, sin(ga))
+	await _route("in between the giant flowers to the middle of the glade", B.GLADE + gd * 11.0,
+		[B.GLADE + gd * 4.0, B.GLADE], 0.0)
+	# Into the legend hut by its open side, up to the drum
+	var hd := Vector3(-B.LEGEND_HUT.x, 0, -B.LEGEND_HUT.z).normalized()
+	await _route("in through the legend hut's open side to its drum", B.LEGEND_HUT + hd * 9.0,
+		[B.LEGEND_HUT + hd * 4.5, B.LEGEND_HUT + hd * 1.3], 0.0)
+	# Out along the sandbar to the islet, and you can't step off it into the deep sea
+	var from: Vector3 = B.bar_from()
+	var islet: Vector3 = B.islet_at()
+	var bar := (islet - from).normalized()
+	await _route("out along the sandbar to the islet", from - bar * 6.0, [from, islet - bar * 3.0, islet + Vector3(0, 0, 2.5)], 0.0)
+	var mid := from.lerp(islet, 0.55)
+	await _route_blocked("off the side of the sandbar into the deep sea", mid, mid + bar.cross(Vector3.UP) * 6.0)
+	await _route_blocked("off the islet's far side into the deep sea", islet, islet + bar * 12.0)
+	var fence_at := bar * (B.shore_r(atan2(bar.z, bar.x)) - 3.0)
+	await _route_blocked("through the fence beside the sandbar out onto the sea", fence_at + bar.cross(Vector3.UP) * 3.0 - bar * 3.0,
+		fence_at + bar.cross(Vector3.UP) * 3.0 + bar * 8.0)
 	_finish()
+
+
+func _route_blocked(what: String, start: Vector3, goal: Vector3) -> void:
+	# Walk hard at somewhere you shouldn't get to for 6 s: you mustn't get within 2 m of it, nor fall
+	p.global_position = start + Vector3(0, 1.0, 0)
+	p.velocity = Vector3.ZERO
+	await _settle()
+	for i in 60 * 6:
+		await physics_frame
+		world.set("heat", 0.0)
+		var want := goal - p.global_position
+		want.y = 0
+		_steer(want.normalized())
+	_release()
+	await _physics(10)
+	var d := Vector2(goal.x - p.global_position.x, goal.z - p.global_position.z).length()
+	check(d > 2.0 and _feet() > -0.3, "you can't walk %s (%.1f m short, feet at %.2f)" % [what, d, _feet()])
 
 
 func _round_deck(at: Vector3, from_v: Vector3, to_v: Vector3) -> Array:

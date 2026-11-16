@@ -15,6 +15,7 @@ const SETTINGS_BACKUP := "user://settings.rhythm_island_capture_backup.cfg"
 
 var out_dir := "user://rhythm_island_shots"
 var cam: Camera3D
+const B := preload("res://tools/build_rhythm_springs.gd")
 var _had_save := false
 
 
@@ -60,6 +61,12 @@ func _run() -> void:
 	s.add_child(cam)
 	cam.make_current()
 	var g := s.get_node("Ridge/Falls Rock") as Node3D
+	var hut: Vector3 = B.LEGEND_HUT
+	var hd := Vector3(-hut.x, 0, -hut.z).normalized()
+	var ta := deg_to_rad(72.0)
+	var tide := Vector3(cos(ta), 0, sin(ta)) * (B.shore_r(ta) - 3.6)
+	var bar: Vector3 = B.bar_from()
+	var islet: Vector3 = B.islet_at()
 	var shots := [
 		["01_island_from_above", Vector3(0, 120, 150), Vector3(0, 0, 0)],
 		["02_from_the_sea", Vector3(40, 14, 140), Vector3(0, 4, 20)],
@@ -77,6 +84,12 @@ func _run() -> void:
 		["14_rope_bridge", Vector3(-52, 6.5, 12), Vector3(-64, 4, 5)],
 		["15_crystal_cave", Vector3(53, 2.2, -27), Vector3(53, 1.2, -33)],
 		["16_crystal_cave_outside", Vector3(40, 5, -20), Vector3(53, 2, -31)],
+		["17_flower_glade", Vector3(48, 3.5, 8), Vector3(60, 1.5, 16)],
+		["18_legend_hut", hut + hd * 6.0 + Vector3(0, 2.0, 0), hut - hd * 2.0 + Vector3(0, 1.3, 0)],
+		["19_legend_paintings", hut + hd * 1.2 + Vector3(0, 1.6, 0), hut - hd * 3.0 + Vector3(0, 1.45, 0)],
+		["20_tide_pools", tide + tide.normalized() * -6.0 + Vector3(4, 2.5, 0), tide],
+		["21_sandbar_to_the_islet", bar - (islet - bar).normalized() * 6.0 + Vector3(2, 4, 0), islet],
+		["22_on_the_islet", islet + Vector3(-4, 2.0, 4), islet + Vector3(0, 0.8, 0)],
 	]
 	for sh in shots:
 		p.global_position = sh[2] + Vector3(0, 1, 0)

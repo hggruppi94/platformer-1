@@ -69,6 +69,13 @@ const HUTS := [Vector3(-57, 0, 17), Vector3(-66, 0, 9), Vector3(-63, 0, -1)]   #
 const HUT_DECK := 3.6                        # how high their decks are
 const CAVE := Vector3(53, 0, -31)            # the crystal cave (north-east)
 const CAVE_R := 7.5
+const GLADE := Vector3(60, 0, 16)            # the flower glade (east), a ring of giant flowers round a clearing
+const GLADE_R := 6.5
+const LEGEND_HUT := Vector3(-49, 0, -31)     # the legend hut (west-north-west), its story painted round the walls
+const TIDE_A := [64.0, 68.0, 72.0, 76.0, 80.0]  # angles round the island of the tide pools, out on the beach
+const ISLET_A := 115.0                       # the angle round the island of the islet, out past the beach
+const ISLET_R := 7.5                         # how big it is
+const BAR_W := 2.4                           # the sandbar out to it
 
 var all_pools: Array = []                    # the valley's pools, the lagoons and the falls pool
 var ridge_rocks: Array = []                  # Vector4(x, z, radius, height) of every ridge rock
@@ -110,6 +117,10 @@ func _initialize() -> void:
 	_pier()
 	_bamboo_grove()
 	_overlook()
+	_flower_glade()
+	_legend_hut()
+	_tide_pools()
+	_islet()
 	_jungle()
 	_flowers()
 	_marker("Melody", Vector3(10.5, 0, 25.0)).rotation.y = atan2(DANCE.x - 10.5, DANCE.z - 25.0)
@@ -306,6 +317,18 @@ static func shore_r(theta: float) -> float:
 	return 78.0 + 9.0 * sin(2.0 * theta + 0.6) + 5.0 * sin(3.0 * theta + 1.9) + 2.5 * sin(7.0 * theta + 0.3)
 
 
+static func islet_at() -> Vector3:
+	# The islet stands out in the sea, 18 m past the beach, at ISLET_A degrees round
+	var a := deg_to_rad(ISLET_A)
+	return Vector3(cos(a), 0, sin(a)) * (shore_r(a) + 18.0)
+
+
+static func bar_from() -> Vector3:
+	# The sandbar starts on dry ground, 7 m in from where the beach meets the sea, so it's flush with the ground
+	var a := deg_to_rad(ISLET_A)
+	return Vector3(cos(a), 0, sin(a)) * (shore_r(a) - 7.0)
+
+
 static func ground_y(r: float, rs: float) -> float:
 	# The island's ground at a distance r from the middle where the shore is at rs: flat inland, a beach sloping into
 	# the sea and a seabed falling away
@@ -419,6 +442,9 @@ func _island() -> void:
 		var mid := (p0 + p1) / 2.0
 		if mid.z > 0.0 and absf(mid.x - PIER_X) < PIER_W / 2.0 + 0.2:
 			continue
+		var bar_dir := Vector3(cos(deg_to_rad(ISLET_A)), 0, sin(deg_to_rad(ISLET_A)))
+		if mid.dot(bar_dir) > 0.0 and (mid - bar_dir * mid.dot(bar_dir)).length() < p0.distance_to(p1) / 2.0 + BAR_W / 2.0:
+			continue            # (the gap where the sandbar goes out to the islet: _islet() closes it up to the bar)
 		var b := BoxShape3D.new()
 		b.size = Vector3(p0.distance_to(p1) + 0.4, 8.0, 0.6)
 		var d := p1 - p0
@@ -1343,6 +1369,268 @@ func _overlook() -> void:
 			mesh_at(cyl(0.02, 0.02, 0.35, 4), gold, at + Vector3(0.03, 3.6, 0.12 * face), g)
 
 
+func _flower_glade() -> void:
+	# A clearing in the jungle ringed by giant flowers taller than you, with butterflies resting on them and a ring of
+	# flat stones in the middle to sit on
+	var g := Node3D.new()
+	g.name = "Flower Glade"
+	g.position = GLADE
+	world.add_child(g)
+	var stem := mat("Flower Stem", Color(0.3, 0.6, 0.3), 0.9)
+	var leafy := mat("Jungle Leaf Light", Color(0.45, 0.75, 0.35), 0.8)
+	var petals := [mat("Hibiscus Red", Color(1.0, 0.35, 0.4), 0.6, 0.15), mat("Petal Pink", Color(1.0, 0.5, 0.7), 0.6, 0.2),
+		mat("Petal Orange", Color(1.0, 0.6, 0.25), 0.6, 0.2), mat("Petal Yellow", Color(1.0, 0.9, 0.3), 0.6, 0.2)]
+	var heart := mat("Flower Heart", Color(1.0, 0.95, 0.6), 0.5, 0.6)
+	var stone := mat("Sandstone Pale", Color(0.9, 0.68, 0.48), 0.9)
+	var wings := [mat("Wing Blue", Color(0.35, 0.65, 1.0), 0.5, 0.4), mat("Wing Lilac", Color(0.8, 0.6, 1.0), 0.5, 0.4)]
+	for k in 9:
+		var a := k * TAU / 9.0 + 0.2
+		var at := Vector3(cos(a), 0, sin(a)) * GLADE_R
+		var h := rng.randf_range(1.8, 3.0)
+		mesh_at(cyl(0.12, 0.16, h, 8), stem, at + Vector3(0, h / 2.0, 0), g)
+		cyl_solid(0.16, h, at + Vector3(0, h / 2.0, 0), g)
+		for side in [-1.0, 1.0]:
+			var lf := mesh_at(ball(0.6, 8), leafy, at + Vector3(0, h * 0.4, 0) + Vector3(cos(a + side * 1.2), 0, sin(a + side * 1.2)) * 0.5, g)
+			lf.scale = Vector3(0.35, 0.06, 1.0)
+			lf.rotation.y = -(a + side * 1.2) + PI / 2.0
+		# The bloom faces in and up, five round petals and a glowing heart
+		var bloom := Node3D.new()
+		bloom.position = at + Vector3(0, h, 0)
+		bloom.rotation = Vector3(-0.9, -a - PI / 2.0, 0)
+		g.add_child(bloom)
+		for pk in 5:
+			var pa := pk * TAU / 5.0
+			var pt := mesh_at(ball(0.55, 10), petals[k % 4], Vector3(cos(pa), sin(pa), 0) * 0.5, bloom)
+			pt.scale = Vector3(1.0, 1.0, 0.18)
+		mesh_at(ball(0.18, 8), heart, Vector3(0, 0, 0.12), bloom)
+		mesh_at(cyl(0.03, 0.03, 0.7, 4), heart, Vector3(0, 0.15, 0.4), bloom, Vector3(PI / 2.0 - 0.3, 0, 0))
+		if k % 3 == 0:
+			var bf := Node3D.new()
+			bf.position = at + Vector3(0, h + 0.6, 0)
+			bf.rotation.y = rng.randf() * TAU
+			g.add_child(bf)
+			for side in [-1.0, 1.0]:
+				var wg := mesh_at(ball(0.16, 6), wings[k % 2], Vector3(side * 0.14, 0, 0), bf, Vector3(0, 0, side * 0.5))
+				wg.scale = Vector3(1.0, 0.12, 0.8)
+	for k in 6:
+		var a := k * TAU / 6.0
+		var st := mesh_at(cyl(0.45, 0.5, 0.25, 8), stone, Vector3(cos(a), 0, sin(a)) * 2.4 + Vector3(0, 0.1, 0), g)
+		st.rotation.y = a
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.85, 0.7)
+	l.light_energy = 0.6
+	l.omni_range = 9.0
+	l.position = Vector3(0, 3.0, 0)
+	g.add_child(l)
+
+
+func _legend_hut() -> void:
+	# The legend hut: a round hut, open on the valley side, with the island's story painted round its wall in four
+	# pictures (no words): the springs and their great drum, the beat breaking and the sun stuck hot, a girl dancing it
+	# back, and the whole island singing. A drum stands in the middle
+	var g := Node3D.new()
+	g.name = "Legend Hut"
+	g.position = LEGEND_HUT
+	g.rotation.y = atan2(-LEGEND_HUT.x, -LEGEND_HUT.z)     # its open side (+z) faces the middle of the valley
+	world.add_child(g)
+	var wall := mat("Hut Wall", Color(0.85, 0.7, 0.48), 0.9)
+	var post := mat("Pier Post", Color(0.42, 0.3, 0.2), 0.9)
+	var r := 3.6
+	for k in 16:
+		var a := k * TAU / 16.0
+		if absf(wrapf(a - PI / 2.0, -PI, PI)) < 0.75:
+			continue                                      # (the open side)
+		var at := Vector3(cos(a), 0, sin(a)) * r
+		var w := mesh_at(box(Vector3(1.45, 2.6, 0.18)), wall, at + Vector3(0, 1.3, 0), g)
+		w.rotation.y = -a + PI / 2.0
+		var wb := BoxShape3D.new()
+		wb.size = Vector3(1.45, 2.6, 0.18)
+		solid(wb, at + Vector3(0, 1.3, 0), g, Vector3(0, -a + PI / 2.0, 0))
+	for sx in [-1.0, 1.0]:
+		var a: float = PI / 2.0 + sx * 0.78
+		mesh_at(cyl(0.14, 0.16, 2.8, 8), post, Vector3(cos(a), 0, sin(a)) * r + Vector3(0, 1.4, 0), g)
+	_thatch(g, Vector3(0, 2.6, 0), r + 1.2, 2.6)
+	# The four pictures, on the back wall, left to right
+	var paint := {
+		"sky": mat("Paint Sky", Color(0.55, 0.8, 0.95), 0.9), "sand": mat("Paint Sand", Color(0.95, 0.78, 0.5), 0.9),
+		"sea": mat("Paint Sea", Color(0.2, 0.6, 0.75), 0.9), "sun": mat("Paint Sun", Color(1.0, 0.85, 0.3), 0.6, 0.3),
+		"hot": mat("Paint Hot", Color(1.0, 0.4, 0.2), 0.6, 0.3), "drum": mat("Paint Drum", Color(0.7, 0.35, 0.3), 0.9),
+		"girl": mat("Paint Purple", Color(0.6, 0.35, 0.85), 0.8), "note": mat("Paint Note", Color(1.0, 1.0, 1.0), 0.6, 0.3),
+		"frame": mat("Paint Frame", Color(0.42, 0.3, 0.2), 0.9)}
+	for i in 4:
+		var a := PI / 2.0 + PI + (i - 1.5) * 0.62
+		var at := Vector3(cos(a), 0, sin(a)) * (r - 0.12)
+		var panel := Node3D.new()
+		panel.name = "Legend %d" % (i + 1)
+		panel.position = at + Vector3(0, 1.45, 0)
+		panel.rotation.y = -a - PI / 2.0
+		g.add_child(panel)
+		mesh_at(box(Vector3(1.2, 1.2, 0.04)), paint.frame, Vector3(0, 0, 0), panel)
+		mesh_at(box(Vector3(1.05, 0.62, 0.02)), paint.hot if i == 1 else paint.sky, Vector3(0, 0.2, 0.03), panel)
+		mesh_at(box(Vector3(1.05, 0.25, 0.02)), paint.sea, Vector3(0, -0.4, 0.03), panel)
+		mesh_at(box(Vector3(0.7, 0.18, 0.02)), paint.sand, Vector3(0, -0.22, 0.04), panel)
+		mesh_at(cyl(0.12, 0.12, 0.02, 12), paint.sun if i != 1 else paint.hot, Vector3(0.32, 0.36, 0.05), panel,
+			Vector3(PI / 2.0, 0, 0))
+		match i:
+			0:      # the springs and their great drum
+				mesh_at(cyl(0.13, 0.13, 0.02, 10), paint.drum, Vector3(-0.05, -0.04, 0.05), panel, Vector3(PI / 2.0, 0, 0))
+			1:      # the beat breaking: the drum cracked in two, the sun huge and red
+				mesh_at(box(Vector3(0.1, 0.24, 0.02)), paint.drum, Vector3(-0.14, -0.04, 0.05), panel, Vector3(0, 0, 0.4))
+				mesh_at(box(Vector3(0.1, 0.24, 0.02)), paint.drum, Vector3(0.04, -0.04, 0.05), panel, Vector3(0, 0, -0.4))
+			2:      # a girl dancing it back, notes all round her
+				mesh_at(box(Vector3(0.12, 0.3, 0.02)), paint.girl, Vector3(-0.05, -0.02, 0.05), panel, Vector3(0, 0, 0.25))
+				for nk in 3:
+					mesh_at(cyl(0.035, 0.035, 0.02, 8), paint.note, Vector3(-0.3 + nk * 0.25, 0.2 + (nk % 2) * 0.08, 0.05), panel,
+						Vector3(PI / 2.0, 0, 0))
+			3:      # the whole island singing: a ring of notes over it
+				for nk in 6:
+					var na := nk * TAU / 6.0
+					mesh_at(cyl(0.035, 0.035, 0.02, 8), paint.note, Vector3(cos(na) * 0.3, 0.15 + sin(na) * 0.12, 0.05), panel,
+						Vector3(PI / 2.0, 0, 0))
+	# The drum in the middle
+	mesh_at(cyl(0.6, 0.5, 0.9, 16), paint.drum, Vector3(0, 0.45, 0), g)
+	mesh_at(cyl(0.62, 0.62, 0.06, 16), mat("Drum Skin", Color(0.95, 0.88, 0.7), 0.8), Vector3(0, 0.92, 0), g)
+	cyl_solid(0.6, 0.95, Vector3(0, 0.47, 0), g)
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.8, 0.55)
+	l.light_energy = 0.8
+	l.omni_range = 6.0
+	l.position = Vector3(0, 2.0, 0)
+	g.add_child(l)
+	var shade := _marker("Shade Legend Hut", LEGEND_HUT)
+	shade.set_meta("radius", r - 0.3)
+	shade.set_meta("height", 3.0)
+
+
+func _tide_pools() -> void:
+	# Little rock pools out on the beach where the waves don't reach: shallow water, a starfish or a shell in each, and
+	# a crab here and there (only to look at)
+	var g := Node3D.new()
+	g.name = "Tide Pools"
+	world.add_child(g)
+	var rock := [mat("Sandstone", Color(0.9, 0.62, 0.42), 0.9), mat("Cave Rock", Color(0.66, 0.5, 0.42), 0.95)]
+	var water := mat("Lagoon Water", Color(0.35, 0.85, 0.85), 0.1, 0.0, 0.75)
+	var star := [mat("Starfish Orange", Color(1.0, 0.5, 0.25), 0.7), mat("Starfish Pink", Color(1.0, 0.45, 0.6), 0.7)]
+	var shell := mat("Shell", Color(1.0, 0.92, 0.85), 0.5)
+	var crab := mat("Crab Red", Color(0.95, 0.3, 0.25), 0.6)
+	for i in TIDE_A.size():
+		var a: float = deg_to_rad(TIDE_A[i])
+		var rs := shore_r(a)
+		var r := rs - 3.0 - (i % 2) * 1.2
+		var at := Vector3(cos(a), 0, sin(a)) * r
+		at.y = ground_y(r, rs)
+		var pool := Node3D.new()
+		pool.name = "Tide Pool %d" % (i + 1)
+		pool.position = at
+		g.add_child(pool)
+		var pr := rng.randf_range(0.9, 1.3)
+		mesh_at(cyl(pr, pr, 0.04, 14), water, Vector3(0, 0.03, 0), pool)
+		for k in 7:
+			var ka := k * TAU / 7.0 + rng.randf() * 0.4
+			var bs := rng.randf_range(0.28, 0.45)
+			var b := mesh_at(ball(bs, 7), rock[k % 2], Vector3(cos(ka), 0, sin(ka)) * (pr + 0.15) + Vector3(0, bs * 0.3, 0), pool)
+			b.scale = Vector3(1.2, 0.6, 1.0)
+		if i % 2 == 0:
+			var sf := Node3D.new()
+			sf.position = Vector3(rng.randf_range(-0.3, 0.3), 0.06, rng.randf_range(-0.3, 0.3))
+			sf.rotation.y = rng.randf() * TAU
+			pool.add_child(sf)
+			for k in 5:
+				var arm := mesh_at(ball(0.12, 6), star[i % 2], Vector3(cos(k * TAU / 5.0), 0, sin(k * TAU / 5.0)) * 0.11, sf)
+				arm.scale = Vector3(1.4, 0.3, 0.6)
+				arm.rotation.y = -k * TAU / 5.0
+		else:
+			var sh := mesh_at(ball(0.13, 8), shell, Vector3(0.2, 0.07, -0.1), pool)
+			sh.scale = Vector3(1.0, 0.5, 1.3)
+		if i == 2:
+			var c := Node3D.new()
+			c.name = "Crab"
+			c.position = Vector3(pr + 0.7, 0.12, 0.2)
+			pool.add_child(c)
+			var bd := mesh_at(ball(0.16, 8), crab, Vector3.ZERO, c)
+			bd.scale = Vector3(1.3, 0.6, 1.0)
+			for side in [-1.0, 1.0]:
+				mesh_at(ball(0.07, 6), crab, Vector3(side * 0.24, 0.04, 0.1), c)
+				mesh_at(ball(0.04, 6), mat("Eye White", Color(1, 1, 1), 0.4), Vector3(side * 0.06, 0.12, 0.1), c)
+
+
+func _islet() -> void:
+	# A little islet out in the sea, reached along a sandbar with stepping stones (railed with rope, and unseen walls
+	# so nobody slips into the deep water): a sandy mound with a palm, a ring of shells and a glowing conch on a rock
+	var g := Node3D.new()
+	g.name = "Islet"
+	world.add_child(g)
+	var centre := islet_at()
+	var from := bar_from()
+	var dir := (centre - from).normalized()
+	var to := centre - dir * (ISLET_R - 0.5)
+	var length := from.distance_to(to)
+	var sand := mat("Beach Sand", Color(0.94, 0.8, 0.6), 0.95)
+	var stone := [mat("Sandstone Pale", Color(0.9, 0.68, 0.48), 0.9), mat("Sandstone", Color(0.9, 0.62, 0.42), 0.9)]
+	var basis := Basis.looking_at(dir, Vector3.UP)
+	# The sandbar: a strip of wet sand just above the sea, flush with the beach where it starts
+	var bar := mesh_at(box(Vector3(BAR_W + 0.8, 0.6, length)), sand, (from + to) / 2.0 + Vector3(0, -0.32, 0), g)
+	bar.basis = basis
+	bar.name = "Sandbar"
+	var walk := BoxShape3D.new()
+	walk.size = Vector3(BAR_W, 0.4, length + 1.0)
+	solid(walk, (from + to) / 2.0 + Vector3(0, -0.22, 0), g).basis = basis
+	var n := int(length / 1.5)
+	for k in n:
+		var p := from.lerp(to, (k + 0.5) / n) + basis.x * rng.randf_range(-0.35, 0.35)
+		var st := mesh_at(cyl(0.55, 0.6, 0.12, 9), stone[k % 2], p + Vector3(0, 0.0, 0), g)
+		st.rotation.y = rng.randf() * TAU
+	var side := basis.x
+	var start := from + dir * 2.0          # (the unseen walls begin just inside the fence line)
+	# The fence leaves a gap of a whole piece or two here: close it from each side up to the bar's walls
+	var fence_at := dir * (shore_r(deg_to_rad(ISLET_A)) - 3.0)
+	for sx in [-1.0, 1.0]:
+		var fill := BoxShape3D.new()
+		fill.size = Vector3(3.6, 8.0, 0.6)
+		var fb := solid(fill, fence_at + side * sx * (BAR_W / 2.0 + 0.15 + 1.8) + Vector3(0, 3.5, 0), g)
+		fb.basis = basis
+		fb.name = "WorldBounds Bar Fence"
+	for sx in [-1.0, 1.0]:
+		var wall := BoxShape3D.new()
+		wall.size = Vector3(0.3, 3.0, to.distance_to(start) + 1.0)
+		var wb := solid(wall, (start + to) / 2.0 + side * sx * (BAR_W / 2.0 + 0.15) + Vector3(0, 1.2, 0), g)
+		wb.basis = basis
+		wb.name = "WorldBounds Bar Wall"
+	# The islet: a low sandy mound (flat on top to walk on), a ring of unseen walls round its edge but where the bar
+	# comes in
+	var mound := mesh_at(cyl(ISLET_R - 0.4, ISLET_R + 1.5, 1.2, 28), sand, centre + Vector3(0, -0.62, 0), g)
+	mound.name = "Islet Sand"
+	cyl_solid(ISLET_R, 0.6, centre + Vector3(0, -0.32, 0), g)
+	var in_a := atan2(-dir.z, -dir.x)
+	for k in 24:
+		var a := k * TAU / 24.0
+		if absf(wrapf(a - in_a, -PI, PI)) < 0.2:
+			continue
+		var p := centre + Vector3(cos(a), 0, sin(a)) * (ISLET_R + 0.1)
+		var b := BoxShape3D.new()
+		b.size = Vector3(TAU * (ISLET_R + 0.1) / 24.0 + 0.3, 3.0, 0.4)
+		solid(b, p + Vector3(0, 1.2, 0), g, Vector3(0, -a + PI / 2.0, 0)).name = "WorldBounds Islet %d" % k
+	_palm(centre + Vector3(2.4, 0, -1.6), 99)
+	var shell := [mat("Shell", Color(1.0, 0.92, 0.85), 0.5), mat("Starfish Pink", Color(1.0, 0.45, 0.6), 0.7)]
+	for k in 10:
+		var a := k * TAU / 10.0
+		var sh := mesh_at(ball(0.12, 6), shell[k % 2], centre + Vector3(cos(a), 0, sin(a)) * 2.0 + Vector3(0, 0.03, 0), g)
+		sh.scale = Vector3(1.0, 0.5, 1.3)
+	var rk := mesh_at(ball(0.7, 8), stone[1], centre + Vector3(0, 0.2, 0), g)
+	rk.scale = Vector3(1.0, 0.6, 0.9)
+	cyl_solid(0.65, 0.6, centre + Vector3(0, 0.28, 0), g)
+	var conch := mesh_at(cyl(0.02, 0.22, 0.5, 10), mat("Conch Glow", Color(1.0, 0.7, 0.8), 0.4, 0.8), centre + Vector3(0, 0.82, 0), g,
+		Vector3(0, 0, PI / 2.0 - 0.4))
+	conch.name = "Glowing Conch"
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.75, 0.85)
+	l.light_energy = 0.8
+	l.omni_range = 5.0
+	l.position = centre + Vector3(0, 1.5, 0)
+	g.add_child(l)
+	_marker("IsletTop", centre + Vector3(0, 0.1, 2.5))
+
+
 func _jungle() -> void:
 	# Out on the island: parasol palms for shade, leafy bushes and big tropical leaves, and bright flowers
 	var leafy := [mat("Jungle Leaf", Color(0.3, 0.62, 0.32), 0.8), mat("Jungle Leaf Light", Color(0.45, 0.75, 0.35), 0.8),
@@ -1354,7 +1642,7 @@ func _jungle() -> void:
 	world.add_child(g)
 	var palms := 0
 	var tries := 0
-	while palms < 42 and tries < 1500:
+	while palms < 42 and tries < 4000:
 		tries += 1
 		var a := rng.randf() * TAU
 		var p := Vector3(cos(a), 0, sin(a)) * rng.randf_range(57.0, shore_r(a) - 9.0)
@@ -1417,7 +1705,8 @@ func _blocked(p: Vector3, room: float) -> bool:
 			return true
 	for c in [[GROVE, GROVE_R + 1.0], [OVERLOOK, 8.0], [ARRIVE, 7.0], [WAY_HOME, 6.0], [TIME_STONE, 3.0], [GATE, 5.0],
 			[PAVILION, 7.5], [CAVE, CAVE_R + 2.0], [HUTS[0], 4.0], [HUTS[1], 4.0], [HUTS[2], 4.0], [_hut_ramp_mid(), 6.0],
-			[(HUTS[0] + HUTS[1]) / 2.0, 3.0], [(HUTS[1] + HUTS[2]) / 2.0, 3.0]]:
+			[(HUTS[0] + HUTS[1]) / 2.0, 3.0], [(HUTS[1] + HUTS[2]) / 2.0, 3.0],
+			[GLADE, GLADE_R + 1.5], [LEGEND_HUT, 5.5], [bar_from(), 4.0]]:
 		if flat.distance_to(Vector2(c[0].x, c[0].z)) < float(c[1]) + room:
 			return true
 	if p.z > 40.0 and absf(p.x - PIER_X) < PIER_W / 2.0 + 1.5 + room:
