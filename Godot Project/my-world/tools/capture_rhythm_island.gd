@@ -60,36 +60,43 @@ func _run() -> void:
 	cam.far = 900
 	s.add_child(cam)
 	cam.make_current()
-	var g := s.get_node("Ridge/Falls Rock") as Node3D
+	var L := preload("res://scripts/rhythm_land.gd")
 	var hut: Vector3 = B.LEGEND_HUT
-	var hd := Vector3(-hut.x, 0, -hut.z).normalized()
-	var ta := deg_to_rad(72.0)
-	var tide := Vector3(cos(ta), 0, sin(ta)) * (B.shore_r(ta) - 3.6)
+	var ta := deg_to_rad(74.0)
+	var tide := Vector3(cos(ta), 0, sin(ta)) * (L.shore_r(ta) - 5.0)
+	tide.y = L.height(tide.x, tide.z)
 	var bar: Vector3 = B.bar_from()
 	var islet: Vector3 = B.islet_at()
+	var falls := L.at(B.FALLS_AT, 64.0, 0.0)
+	var sea_falls := L.at(B.SEA_FALLS_AT, L.shore_r(deg_to_rad(B.SEA_FALLS_AT)), 6.0)
+	var grove_a := L.at(B.GROVE_A, B.GROVE_FROM, B.TERRACE_Y + 1.6)
+	var grove_b := L.at(B.GROVE_A, B.GROVE_TO, B.TERRACE_Y + 1.6)
+	var hut0: Vector3 = B.HUTS[0]
+	var hut1: Vector3 = B.HUTS[1]
+	var ov: Vector3 = B.OVERLOOK
 	var shots := [
-		["01_island_from_above", Vector3(0, 120, 150), Vector3(0, 0, 0)],
-		["02_from_the_sea", Vector3(40, 14, 140), Vector3(0, 4, 20)],
-		["03_landing_on_the_beach", Vector3(-6, 3.2, 72), Vector3(0, 1.5, 40)],
-		["04_torch_path_up", Vector3(3, 2.4, 50), Vector3(0, 1.5, 20)],
-		["05_ridge_and_waterfall", g.global_position + Vector3(-12, 6, 34), g.global_position + Vector3(0, 7, 0)],
-		["06_lagoon_cove", Vector3(-30, 5, 66), Vector3(-42, 0, 50)],
-		["07_bamboo_grove", Vector3(-46, 3.0, -10), Vector3(-60, 3, -22)],
-		["08_overlook", Vector3(58, 4.5, -4), Vector3(78, 1, -14)],
-		["09_pier_and_boat", Vector3(24, 6, 82), Vector3(8, 0, 96)],
-		["10_ridge_from_the_valley", Vector3(0, 3, 10), Vector3(0, 8, -60)],
-		["11_springs_gate", Vector3(2, 2.6, 60), Vector3(0, 3, 40)],
-		["12_pavilion", Vector3(20, 4, 44), Vector3(30, 1.5, 52)],
-		["13_stilt_huts", Vector3(-42, 7, 10), Vector3(-62, 3.5, 8)],
-		["14_rope_bridge", Vector3(-52, 6.5, 12), Vector3(-64, 4, 5)],
-		["15_crystal_cave", Vector3(53, 2.2, -27), Vector3(53, 1.2, -33)],
-		["16_crystal_cave_outside", Vector3(40, 5, -20), Vector3(53, 2, -31)],
-		["17_flower_glade", Vector3(48, 3.5, 8), Vector3(60, 1.5, 16)],
-		["18_legend_hut", hut + hd * 6.0 + Vector3(0, 2.0, 0), hut - hd * 2.0 + Vector3(0, 1.3, 0)],
-		["19_legend_paintings", hut + hd * 1.2 + Vector3(0, 1.6, 0), hut - hd * 3.0 + Vector3(0, 1.45, 0)],
-		["20_tide_pools", tide + tide.normalized() * -6.0 + Vector3(4, 2.5, 0), tide],
+		["01_island_from_above", Vector3(0, 150, 185), Vector3(0, 0, 0)],
+		["02_from_the_sea", Vector3(30, 22, 210), Vector3(0, 6, 60)],
+		["03_landing_on_the_beach", Vector3(-5, 3.0, 112), Vector3(0, 4.5, 72)],
+		["04_torch_path_up", Vector3(1.5, 3.2, 96), Vector3(0, 7.5, 70)],
+		["05_big_waterfall", L.at(B.FALLS_AT + 14.0, 36.0, 3.5), falls + Vector3(0, 7, 0)],
+		["06_sea_cliffs_and_falls", sea_falls + L.at(B.SEA_FALLS_AT + 55.0, 40.0, 6.0), sea_falls + Vector3(0, 3, 0)],
+		["07_bamboo_grove", grove_a + (grove_a - grove_b).normalized() * 2.0, grove_b],
+		["08_overlook", ov + Vector3(-14, 4, 10), ov + Vector3(20, -2, -2)],
+		["09_pier_and_boat", Vector3(26, 8, 130), Vector3(8, 0, 150)],
+		["10_highlands_from_the_valley", Vector3(0, 2.5, 20), Vector3(0, 14, -90)],
+		["11_springs_gate", Vector3(0, 8.5, 88), Vector3(0, 9, 70)],
+		["12_pavilion", B.PAVILION + Vector3(-14, 5, -10), B.PAVILION + Vector3(0, 2.5, 0)],
+		["13_stilt_huts", hut0 + Vector3(18, 9, 14), hut1 + Vector3(0, 5, 0)],
+		["14_rope_bridge", hut0 + Vector3(0, 6.6, 0) + (hut1 - hut0).normalized() * -3.0, hut1 + Vector3(0, 5.5, 0)],
+		["15_crystal_cave", B.CAVE + B.CAVE.normalized() * -6.0 + Vector3(0, 2.2, 0), B.CAVE + Vector3(0, 1.5, 0)],
+		["16_crystal_cave_outside", B.CAVE * 0.55 + Vector3(0, 6, 0), B.CAVE + Vector3(0, 4, 0)],
+		["17_flower_glade", B.GLADE + Vector3(-12, 4, -8), B.GLADE + Vector3(0, 1.5, 0)],
+		["18_legend_hut", hut + Vector3(8, 3, 8), hut + Vector3(0, 1.5, 0)],
+		["19_waterfall_grotto", B.GROTTO * 0.7 + Vector3(0, 3, 0), B.GROTTO + Vector3(0, 3, 0)],
+		["20_tide_pools", tide + tide.normalized() * -7.0 + Vector3(4, 3, 0), tide],
 		["21_sandbar_to_the_islet", bar - (islet - bar).normalized() * 6.0 + Vector3(2, 4, 0), islet],
-		["22_on_the_islet", islet + Vector3(-4, 2.0, 4), islet + Vector3(0, 0.8, 0)],
+		["22_lighthouse_and_headland", ov + Vector3(-60, 20, 70), ov + Vector3(0, 6, 0)],
 	]
 	for sh in shots:
 		p.global_position = sh[2] + Vector3(0, 1, 0)

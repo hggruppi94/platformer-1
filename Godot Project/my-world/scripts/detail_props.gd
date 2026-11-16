@@ -182,7 +182,11 @@ static func dress_rhythm(scene: Node) -> Dictionary:
 		elif lantern and g.get_parent().name == "Bamboo Grove" and _has_mat(g, "Lantern Glow"):
 			out.lanterns += _dress_in(g, lantern, "Detailed Lantern", [])
 	var gate := _scene(SPRINGS_GATE)
+	# (Since the island grew, the gate's own pieces sit in "Gate Core", scaled up; the baked gate goes in there too, so
+	# it's scaled the same. Its walls and towers stay as built.)
 	var sg := scene.find_child("Springs Gate", true, false) as Node3D
+	if sg and sg.has_node("Gate Core"):
+		sg = sg.get_node("Gate Core") as Node3D
 	if gate and sg:
 		out.gate = _dress_in(sg, gate, "Detailed Gate", [])
 	return out
