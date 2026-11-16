@@ -135,6 +135,28 @@ func _run() -> void:
 	var props: Dictionary = detail.last_props
 	check(props.get("stalls", 0) == 6, "the six market stalls are detailed (%d)" % props.get("stalls", 0))
 	check(props.get("signs", 0) >= 30, "the Void's sign posts are detailed (%d)" % props.get("signs", 0))
+	check(props.get("fountains", 0) == 2, "both fountains are detailed (%d)" % props.get("fountains", 0))
+	check(props.get("lamps", 0) >= 30, "and the lamp posts (%d)" % props.get("lamps", 0))
+	var market := s.get_node("Market Square")
+	var ball_ok := false
+	for c in market.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh is SphereMesh and (c as MeshInstance3D).layers != 0 \
+				and (c as MeshInstance3D).material_override.resource_name == "Fountain Water":
+			ball_ok = true
+	check(market.get_node_or_null("Detailed Fountain") != null and ball_ok, "the Market fountain keeps its glowing water ball")
+	var lamps_ok := true
+	for d in s.find_children("Detailed Lamp *", "Node3D", true, false):
+		if d.scale.x < 0.6 or d.scale.x > 1.0:
+			lamps_ok = false
+	# A bulb is either drawn itself or merged into a "Batched" mesh with the same "Lamp" material, which is what the
+	# Void's night lights up, so both count; only one the lamp swap hid would be wrong.
+	var bulbs_lit := 0
+	for n in s.find_children("*", "MeshInstance3D", true, false):
+		var m := n as MeshInstance3D
+		if m.mesh is SphereMesh and m.material_override and m.material_override.resource_name == "Lamp" \
+				and (m.layers != 0 or m.has_meta("static_batch")) and not m.has_meta("detail_prop_old"):
+			bulbs_lit += 1
+	check(lamps_ok and bulbs_lit >= 30, "every lamp post fits its bulb, and the bulbs are still drawn (%d)" % bulbs_lit)
 	var signs_ok := true
 	for d in s.find_children("Detailed Sign", "", true, false):
 		var boards := (d as Node).get_children().filter(func(c: Node) -> bool: return String(c.name).begins_with("Board"))
@@ -142,7 +164,6 @@ func _run() -> void:
 		if boards.size() != 1 or old.size() != 1:
 			signs_ok = false
 	check(signs_ok, "each sign keeps one board (its width) and its words")
-	var market := s.get_node("Market Square")
 	var stalls_ok := true
 	for kind in ["Fruit", "Sweets", "Crystals", "Flowers", "Records", "Toys"]:
 		var st := market.get_node_or_null(kind + " Stall")

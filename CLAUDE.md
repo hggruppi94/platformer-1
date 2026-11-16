@@ -99,6 +99,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-16: **Baked picket fences and porches on Maple Lane, a detailed fountain and lamp posts in the Void, and a
+  crash fix** (Hayden: "Merge and then keep going"). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **New bake scripts** (same bake kit): `tools/build_prop_house.py <out.glb> picket|fence_post|porch|porch_roof`
+    (a pointed picket with its two rails; a capped post; a porch deck with boards, a lattice skirt, a step, two turned
+    columns with brackets, spindles and a wall lantern; a shingled porch roof with a pale ceiling under it) and
+    `tools/build_prop_fountain.py <out.glb> fountain|void_lamp` (the Void's fountain: a fluted lilac basin with a gold
+    band, medallions and glowing crystal clusters, a scalloped bowl and six petals cradling the water ball; a lamp post
+    with an eight-sided foot, a fluted post, brass collars and curls, a cage round the bulb and a crystal on top).
+    In `models/props/` as picket, fence_post, porch, porch_roof, void_fountain and void_lamp.
+  - **Swapped at run time** (`detail_props.gd _fences()`, `_porches()`, `_fountains()`, `_void_lamps()`): each fence
+    line's pickets become one MultiMesh (transforms also in meta "transforms", since headless keeps none); a porch
+    roof keeps its house's roof colour (material "Porch Roof <house>") and `Seasons.take_in()` gives it snow in winter;
+    the Void's fountains keep their glowing water ball; a lamp post is scaled to its own bulb's height (`LAMP_BULB`)
+    and the bulb stays, so the Void's night still lights it. Old pieces stay (layers 0, meta `detail_prop_old`), so
+    collisions and the porch floors are unchanged.
+  - **Crash fix** (`batch_watch.gd set_layers()`, used by `static_batch.gd` and `detail_props.gd`): hiding a piece by
+    changing its render layers while it was in the world left it paired with its lights, so freeing the place printed
+    "BUG, indexing did not unpair geometries from light" and reloading Stars Hollow (the Season Dial does) crashed. The
+    piece is now taken out of the world and put back with its new layers. The error and the crash are both gone.
+  - Tests: `test_detail_props` (16 fences, 7 porches, pickets spaced, porch roof tinted, floors solid) and
+    `test_detail_all` (both fountains, 31 lamps fitted, bulbs still lit); seasons, winter, summer, spring, layout, map,
+    world_detail and plant_clearance pass. Pictures: `tools/capture_detail_house.gd -- <folder> [--old-props]` (project
+    files, world/previews/detail_house).
+  - My choices Hayden may change: every look (white pickets, the lattice, the lilac fountain's crystals, the lamps'
+    brass cage and crystal).
+
 - 2026-11-16: **More baked props: pumpkins, jack-o'-lanterns, scarecrows and mailboxes in Stars Hollow, and the
   Void's sign posts** (Hayden: "give everything the baked in details"; insides of buildings are another thread's).
   Built and tested in the cloud (own Godot user folders, no save touched).

@@ -80,7 +80,7 @@ func undo(gr: Dictionary) -> void:
 	undone += 1
 	for mi in gr.pieces:
 		if is_instance_valid(mi):
-			(mi as MeshInstance3D).layers = 1
+			set_layers(mi as MeshInstance3D, 1)
 			(mi as MeshInstance3D).remove_meta("static_batch")
 	for out in gr.made:
 		if is_instance_valid(out):
@@ -98,3 +98,17 @@ func check_all() -> int:
 				undo(gr)
 				break
 	return undone - before
+
+
+static func set_layers(mi: GeometryInstance3D, layers: int) -> void:
+	# Changing an instance's render layers while it's in the world leaves it paired with the lights it was lit by
+	# (Godot only unpairs when things stop overlapping), and when the place is freed those lights still point at it:
+	# "BUG, indexing did not unpair geometries from light", then a crash on the next scene change (reloading Stars
+	# Hollow, from the Season Dial). Taking it out of the world (hidden) and back in with the new layers pairs it again
+	# properly. Children are hidden and shown with it, but only for this one line, so nothing sees the difference.
+	if mi.layers == layers:
+		return
+	var was := mi.visible
+	mi.visible = false
+	mi.layers = layers
+	mi.visible = was
