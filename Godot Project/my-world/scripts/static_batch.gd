@@ -167,7 +167,7 @@ static func _merge(p: Node3D, list: Array) -> Array:
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
 				tools[key] = st
 			(tools[key] as SurfaceTool).append_from(mi.mesh, s, xf)
-		mi.layers = 0                    # still there for rays, paint and tests, just not drawn
+		WATCH.set_layers(mi, 0)          # still there for rays, paint and tests, just not drawn
 		mi.set_meta(MERGED_META, true)
 	var made: Array = []
 	for key in tools:
@@ -192,3 +192,4 @@ static func _merge(p: Node3D, list: Array) -> Array:
 		p.add_child(out)
 		made.append(out)
 	return made
+

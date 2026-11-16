@@ -151,6 +151,38 @@ func _run() -> void:
 			jack_glow_drawn += 1
 	check(jack_glow_drawn == 0, "the old glowing faces are taken away from the swapped jacks (%d left)" % jack_glow_drawn)
 
+	# Fences and porches (16 Nov 2026, batch three)
+	check(props.get("fences", 0) >= 16, "every picket fence is detailed (%d)" % props.get("fences", 0))
+	check(props.get("porches", 0) == 7, "and the seven front porches on Maple Lane (%d)" % props.get("porches", 0))
+	var fence_ok := true
+	var picket_drawn := 0
+	for n in s.find_children("*", "MeshInstance3D", true, false):
+		var m := n as MeshInstance3D
+		if m.mesh is BoxMesh and (m.mesh as BoxMesh).size.is_equal_approx(Vector3(0.1, 1.0, 0.06)) and m.layers != 0 \
+				and m.material_override and m.material_override.resource_name == "Gazebo White":
+			picket_drawn += 1
+	check(picket_drawn == 0, "no old picket is drawn (%d)" % picket_drawn)
+	for mmi in s.find_children("Detailed Fence Pickets", "MultiMeshInstance3D", true, false):
+		var xfs: Array = mmi.get_meta("transforms", [])
+		if xfs.size() < 4:
+			fence_ok = false
+		for xf: Transform3D in xfs:
+			if absf(xf.origin.y) > 0.01 or absf(xf.basis.get_scale().z - 1.0) > 0.25:
+				fence_ok = false
+	check(fence_ok, "the detailed pickets stand on the ground, spaced like the old ones")
+	var house := s.get_node("Maple House 1") as Node3D
+	var porch := house.get_node_or_null("Detailed Porch") as Node3D
+	var roof := house.get_node_or_null("Detailed Porch Roof") as Node3D
+	check(porch != null and roof != null and absf(porch.position.z - 3.5) < 0.01, "Maple House 1's porch stands on its front")
+	if roof:
+		var rm := roof.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+		var mat := rm.material_override as StandardMaterial3D
+		check(mat and String(mat.resource_name) == "Porch Roof Maple House 1" and not mat.albedo_color.is_equal_approx(Color.WHITE),
+			"its roof is the house's roof colour, and the seasons know it")
+	var hp := PhysicsRayQueryParameters3D.create(house.to_global(Vector3(0, 3, 4.5)), house.to_global(Vector3(0, -1, 4.5)))
+	var ph := (s as Node3D).get_world_3d().direct_space_state.intersect_ray(hp)
+	check(ph and absf(ph.position.y - house.global_position.y - 0.3) < 0.05, "the porch floor is still solid at 0.3 m")
+
 	# Batching
 	check(batch.get("pieces", 0) > 1500 and batch.get("meshes", 0) < batch.get("pieces", 0) / 3,
 		"still pieces are merged (%d pieces into %d meshes)" % [batch.get("pieces", 0), batch.get("meshes", 0)])

@@ -12,6 +12,7 @@ extends RefCounted
 # work as before. WorldDetail calls dress_earth() before it batches the scene (scripts/static_batch.gd), which skips
 # anything with a meta.
 
+const WATCH := preload("res://scripts/batch_watch.gd")
 const LAMP := "res://models/props/street_lamp.glb"
 const BENCH := "res://models/props/park_bench.glb"
 const GAZEBO := "res://models/props/gazebo.glb"
@@ -22,6 +23,18 @@ const JACK := "res://models/props/jack_o_lantern.glb"
 const SCARECROW := "res://models/props/scarecrow.glb"
 const MAILBOX := "res://models/props/mailbox.glb"
 const SIGN := "res://models/props/sign_post.glb"
+const PICKET := "res://models/props/picket.glb"
+const FENCE_POST := "res://models/props/fence_post.glb"
+const PORCH := "res://models/props/porch.glb"
+const PORCH_ROOF := "res://models/props/porch_roof.glb"
+const FOUNTAIN := "res://models/props/void_fountain.glb"
+const VOID_LAMP := "res://models/props/void_lamp.glb"
+const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
+const FOUNTAINS := ["Market Square", "TownSquare"]
+const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/build_prop_fountain.py void_lamp)
+# The Void's lamp posts: the post's material, its height and where its parent's name starts (tools/build_town.gd)
+const VOID_LAMPS := [["Lamp Post", 3.4, "Market Square"], ["Castle Lamp Post", 3.2, "Castle Grounds"],
+	["Boardwalk Post", 2.2, "Boardwalk"], ["Boardwalk Post", 2.2, "Dock"]]
 const OLD_META := "detail_prop_old"
 const GAZEBO_MATS := ["Gazebo White", "Gazebo Roof"]
 const POLE_H := 3.6                    # the builder's lamp pole (_lamp_post): a 3.6 m cylinder, centre 1.8 m up
@@ -29,7 +42,8 @@ const BENCH_SEAT := Vector3(1.8, 0.1, 0.5)
 
 
 static func dress_earth(scene: Node) -> Dictionary:
-	var out := {"lamps": 0, "benches": 0, "gazebo": 0, "pumpkins": 0, "jacks": 0, "scarecrows": 0, "mailboxes": 0}
+	var out := {"lamps": 0, "benches": 0, "gazebo": 0, "pumpkins": 0, "jacks": 0, "scarecrows": 0, "mailboxes": 0,
+		"fences": 0, "porches": 0}
 	var lamp := _scene(LAMP)
 	var bench := _scene(BENCH)
 	var gazebo := _scene(GAZEBO)
@@ -54,16 +68,32 @@ static func dress_earth(scene: Node) -> Dictionary:
 	var mailbox := _scene(MAILBOX)
 	if mailbox:
 		out.mailboxes = _mailboxes(scene, mailbox)
+	# (16 Nov 2026, batch three: tools/build_prop_house.py)
+	var picket := _scene(PICKET)
+	var post := _scene(FENCE_POST)
+	if picket and post:
+		out.fences = _fences(scene, _mesh_of(picket), _mesh_of(post))
+	var porch := _scene(PORCH)
+	var roof := _scene(PORCH_ROOF)
+	if porch and roof:
+		out.porches = _porches(scene, porch, roof)
 	return out
 
 
 static func dress_void(scene: Node) -> Dictionary:
 	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
-	var out := {"stalls": 0, "signs": 0}
+	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
+	# (16 Nov 2026, batch three: tools/build_prop_fountain.py)
+	var fountain := _scene(FOUNTAIN)
+	if fountain:
+		out.fountains = _fountains(scene, fountain)
+	var lamp := _scene(VOID_LAMP)
+	if lamp:
+		out.lamps = _void_lamps(scene, lamp)
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -90,7 +120,7 @@ static func _scene(path: String) -> PackedScene:
 
 
 static func _hide(mi: MeshInstance3D) -> void:
-	mi.layers = 0
+	WATCH.set_layers(mi, 0)
 	mi.set_meta(OLD_META, true)
 
 
@@ -284,5 +314,207 @@ static func _signs(scene: Node, sign: PackedScene) -> int:
 			var w := float(String(best.name).trim_prefix("Board")) / 10.0
 			best.scale.x *= width / w
 		s.add_child(m)
+		n += 1
+	return n
+
+
+static func _mesh_of(model: PackedScene) -> Mesh:
+	var m := model.instantiate()
+	var found := m.find_children("*", "MeshInstance3D", true, false)
+	var mesh: Mesh = (found[0] as MeshInstance3D).mesh if found.size() > 0 else null
+	m.free()
+	return mesh
+
+
+static func _on_line(p: Vector3, a: Vector3, b: Vector3) -> bool:
+	# Whether p (on the ground plane) lies on the fence line from a to b
+	var d := Vector2(b.x - a.x, b.z - a.z)
+	var q := Vector2(p.x - a.x, p.z - a.z)
+	var t := q.dot(d) / maxf(d.length_squared(), 0.0001)
+	return t > -0.01 and t < 1.01 and (q - d * t).length() < 0.02
+
+
+static func _fences(scene: Node, picket: Mesh, post: Mesh) -> int:
+	# The builder's picket fences (tools/build_earth.gd _picket_fence): a picket and a pointed top every 0.35 m or
+	# so and two rails, all white boxes. Each is found by its low rail (0.35 m up, 0.06 x 0.08 across, as long as the
+	# fence) and drawn again as one MultiMesh of detailed pickets per place, with a post at each end. The old fence's
+	# collision is one box of its own and stays. A MultiMesh keeps nothing in a headless run, so the pickets' places
+	# are in its meta "transforms" too (for tests).
+	if picket == null or post == null:
+		return 0
+	var n := 0
+	var by_parent := {}
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is BoxMesh) or _mat_name(mi) != "Gazebo White" or mi.has_meta(OLD_META):
+			continue
+		var size := (mi.mesh as BoxMesh).size
+		if not (is_equal_approx(size.x, 0.06) and is_equal_approx(size.y, 0.08) and is_equal_approx(mi.position.y, 0.35)):
+			continue
+		var parent := mi.get_parent() as Node3D
+		if parent == null or parent.get_script() != null:
+			continue
+		var along := Vector3(sin(mi.rotation.y), 0, cos(mi.rotation.y))
+		var mid := Vector3(mi.position.x, 0, mi.position.z)
+		var a := mid - along * size.z / 2.0
+		var b := mid + along * size.z / 2.0
+		# the fence's old pieces: both rails, every picket and its pointed top
+		for c in parent.get_children():
+			var p := c as MeshInstance3D
+			if p == null or _mat_name(p) != "Gazebo White" or p.has_meta(OLD_META):
+				continue
+			var y := p.position.y
+			var hit := false
+			if p.mesh is BoxMesh:
+				var s := (p.mesh as BoxMesh).size
+				hit = (s.is_equal_approx(Vector3(0.1, 1.0, 0.06)) and is_equal_approx(y, 0.5)) \
+					or (s.is_equal_approx(size) and (is_equal_approx(y, 0.35) or is_equal_approx(y, 0.8)))
+			elif p.mesh is CylinderMesh:
+				var cm := p.mesh as CylinderMesh
+				hit = is_zero_approx(cm.top_radius) and is_equal_approx(cm.height, 0.14) and is_equal_approx(y, 1.07)
+			if hit and _on_line(p.position, a, b):
+				_hide(p)
+		var count := int(size.z / PICKET_GAP)
+		var gap := size.z / maxf(count, 1)
+		var yaw := Basis(Vector3.UP, mi.rotation.y)
+		if not by_parent.has(parent):
+			by_parent[parent] = [[], []]
+		for k in count:
+			by_parent[parent][0].append(Transform3D(yaw.scaled(Vector3(1, 1, gap / PICKET_GAP)), a + along * gap * k))
+		for end in [a, b]:
+			by_parent[parent][1].append(Transform3D(yaw, end))
+		n += 1
+	for parent: Node3D in by_parent:
+		for which in 2:
+			var xfs: Array = by_parent[parent][which]
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = picket if which == 0 else post
+			mm.instance_count = xfs.size()
+			for i in xfs.size():
+				mm.set_instance_transform(i, xfs[i])
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = "Detailed Fence Pickets" if which == 0 else "Detailed Fence Posts"
+			mmi.multimesh = mm
+			mmi.set_meta("transforms", xfs)
+			mmi.visibility_range_end = 160.0
+			parent.add_child(mmi)
+	return n
+
+
+static func _porches(scene: Node, porch: PackedScene, roof: PackedScene) -> int:
+	# The front porches on Maple Lane (tools/build_earth.gd _house): a slab, a flat roof in the house's roof colour
+	# and two white posts. The slab's collision is a body of its own and stays. The detailed roof is tinted with the
+	# house's roof colour, keeping the old material's name so the seasons still put snow on it in winter.
+	var n := 0
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is BoxMesh) or _mat_name(mi) != "Porch Wood" or mi.has_meta(OLD_META):
+			continue
+		if not (mi.mesh as BoxMesh).size.is_equal_approx(Vector3(5.0, 0.3, 2.0)):
+			continue
+		var g := mi.get_parent() as Node3D
+		if g == null or g.get_script() != null or g.has_node("Detailed Porch"):
+			continue
+		var front := mi.position.z - 1.0
+		var roof_mat: StandardMaterial3D = null
+		for c in g.get_children():
+			var p := c as MeshInstance3D
+			if p == null or not (p.mesh is BoxMesh):
+				continue
+			var s := (p.mesh as BoxMesh).size
+			if _mat_name(p).begins_with("Porch Roof ") and s.is_equal_approx(Vector3(5.4, 0.15, 2.3)):
+				roof_mat = p.material_override as StandardMaterial3D
+				_hide(p)
+			elif _mat_name(p) == "Gazebo White" and s.is_equal_approx(Vector3(0.15, 2.8, 0.15)) \
+					and absf(p.position.z - (front + 2.0)) < 0.01:
+				_hide(p)
+		_hide(mi)
+		var m := porch.instantiate() as Node3D
+		m.name = "Detailed Porch"
+		m.position = Vector3(mi.position.x, 0, front)
+		g.add_child(m)
+		var r := roof.instantiate() as Node3D
+		r.name = "Detailed Porch Roof"
+		r.position = m.position
+		if roof_mat:
+			# (the seasons may already have their own copy of it: start from the colour it was built with)
+			var built: StandardMaterial3D = roof_mat.get_meta("from", roof_mat)
+			for rm in r.find_children("*", "MeshInstance3D", true, false):
+				var own := (rm as MeshInstance3D).get_active_material(0).duplicate() as StandardMaterial3D
+				own.resource_name = built.resource_name
+				own.albedo_color = built.albedo_color
+				(rm as MeshInstance3D).material_override = own
+		g.add_child(r)
+		var seasons := scene.get_node_or_null("Seasons")
+		if seasons and seasons.has_method("take_in"):
+			seasons.call("take_in", r)
+		n += 1
+	return n
+
+
+static func _fountains(scene: Node, fountain: PackedScene) -> int:
+	# The Void's two fountains (tools/build_town.gd: the Market Square's and Island Park's): the stone basin and the
+	# column are swapped; the water, the glowing water ball (with the lost watch on it), the collision stay.
+	var n := 0
+	for place in FOUNTAINS:
+		var g := scene.get_node_or_null(place) as Node3D
+		if g == null or g.has_node("Detailed Fountain"):
+			continue
+		var hid := 0
+		for c in g.get_children():
+			var p := c as MeshInstance3D
+			if p and p.mesh is CylinderMesh and _mat_name(p) == "Fountain Stone" and absf(p.position.x) < 0.01 \
+					and absf(p.position.z) < 0.01:
+				_hide(p)
+				hid += 1
+		if hid == 0:
+			continue
+		var m := fountain.instantiate() as Node3D
+		m.name = "Detailed Fountain"
+		g.add_child(m)
+		n += 1
+	return n
+
+
+static func _void_lamps(scene: Node, lamp: PackedScene) -> int:
+	# The Void's lamp posts: a plain pole with a glowing ball on top. The pole is swapped for a detailed one, made
+	# as tall as this lamp's ball, whose cage goes round the ball. The ball stays: the Void's night lights it up
+	# (scripts/day_night.gd, by its material "Lamp").
+	var n := 0
+	var bulbs := {}
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.mesh is SphereMesh and _mat_name(mi) == "Lamp":
+			if not bulbs.has(mi.get_parent()):
+				bulbs[mi.get_parent()] = []
+			bulbs[mi.get_parent()].append(mi)
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is CylinderMesh) or mi.has_meta(OLD_META):
+			continue
+		var parent := mi.get_parent() as Node3D
+		var h := (mi.mesh as CylinderMesh).height
+		var kind_ok := false
+		for k in VOID_LAMPS:
+			if _mat_name(mi) == k[0] and is_equal_approx(h, k[1]) and String(parent.name).begins_with(k[2]):
+				kind_ok = true
+		if not kind_ok:
+			continue
+		var base := mi.position - Vector3(0, h / 2.0, 0)
+		var bulb: MeshInstance3D = null
+		for b: MeshInstance3D in bulbs.get(parent, []):
+			var off := b.position - base
+			if Vector2(off.x, off.z).length() < 0.05 and off.y > h * 0.9 and off.y < h + 0.6:
+				bulb = b
+		if bulb == null:
+			continue
+		_hide(mi)
+		var m := lamp.instantiate() as Node3D
+		m.name = "Detailed Lamp %d" % n
+		m.position = base
+		m.rotation.y = fposmod(base.x * 0.37 + base.z * 0.61, PI / 2)
+		m.scale = Vector3.ONE * ((bulb.position.y - base.y) / LAMP_BULB)
+		parent.add_child(m)
 		n += 1
 	return n

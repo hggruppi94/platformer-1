@@ -116,6 +116,13 @@ func _collect_materials(scene: Node) -> void:
 					m.set_surface_override_material(k, _own(sm as StandardMaterial3D))
 
 
+func take_in(node: Node) -> void:
+	# Something put in after the town was looked over (a detailed porch roof, scripts/detail_props.gd): its roofs
+	# change with the seasons too
+	_collect_materials(node)
+	_paint_materials()
+
+
 func _wanted(n: String) -> bool:
 	return n.begins_with("Roof ") or n.begins_with("Porch Roof ") or n in ["Gazebo Roof", "Barn Roof", "Play Roof",
 		"Steeple Roof", "Town Green", "Pond Water", "Lily Pad", "Lily Flower"] or n.begins_with("Far Hill ") \
