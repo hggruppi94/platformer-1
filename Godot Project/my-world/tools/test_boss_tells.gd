@@ -17,7 +17,7 @@ const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.tells_backup.cfg"
 var TELL: GDScript    # loaded once the autoloads are up (it reads Settings)
 const BOSSES := ["gloop_king", "riptide_gloop", "time_goblin_boss", "crocodillo_boss", "the_hush", "the_gloam",
-	"off_beat", "captain_glitch", "big_buzz", "chaos_fight", "starhorn"]
+	"off_beat", "captain_glitch", "big_buzz", "chaos_fight", "starhorn", "old_ember"]
 
 var failures := 0
 
