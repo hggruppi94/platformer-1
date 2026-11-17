@@ -575,6 +575,10 @@ func _sheet_bag() -> Control:
 	if Hidden.found_count() > 0:
 		_gap(box)
 		_hidden_page(box)
+	var spots: GDScript = load("res://scripts/friend_spots.gd")
+	if int(spots.call("found_count")) > 0:
+		_gap(box)
+		_friend_spots_page(box, spots)
 	return null
 
 
@@ -589,6 +593,18 @@ func _hidden_page(box: VBoxContainer) -> void:
 			names.append(str(p.name) if Hidden.is_found(p.id) else "???")
 		var line := _line("%s: %s" % [world[1], ", ".join(names)], true, box)
 		line.name = "Hidden " + str(world[0])
+
+
+func _friend_spots_page(box: VBoxContainer, spots: GDScript) -> void:
+	# The friend spots (scripts/friend_spots.gd), like the hidden places: found ones by name, ??? for the rest, only
+	# once one's been found
+	var head := _heading("Friend spots: %d of %d found" % [int(spots.call("found_count")), spots.SPOTS.size()], box, 26)
+	head.name = "Friend Spots"
+	var names := []
+	for s in spots.SPOTS:
+		names.append(str(s.name) if spots.call("is_found", str(s.id)) else "???")
+	var line := _line(", ".join(names), true, box)
+	line.name = "Friend Spot Names"
 
 
 func _gadgets_page(box: VBoxContainer) -> Control:

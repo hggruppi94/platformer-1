@@ -234,6 +234,14 @@ static func hat(id: String) -> Node3D:
 					_mesh(h, _cyl(0.0, 0.035, 0.22 - k * 0.03, 6), fire, Vector3(side * 0.24, up, -0.02 - k * 0.02),
 						Vector3(0, 0, -side * (1.1 - k * 0.25)))
 					_mesh(h, _sphere(0.025), tip, Vector3(side * (0.34 - k * 0.02), up + 0.05 + k * 0.03, -0.02 - k * 0.02))
+		"friendship_circlet":
+			# For opening every friend spot: a thin silver circlet with a little gem in each friend's colour
+			_mesh(h, _torus(0.215, 0.24), _mat(Color(0.86, 0.86, 0.95), 0.2, 0.8), Vector3(0, 0.0, 0))
+			var gems := [Color(1.0, 0.45, 0.75), Color(0.45, 0.85, 0.4), Color(0.6, 0.85, 1.0), Color(1.0, 0.75, 0.35),
+				Color(0.75, 0.5, 1.0)]
+			for k in gems.size():
+				var a := PI * 0.5 + (k - 2) * 0.42
+				_mesh(h, _sphere(0.035), _mat(gems[k], 1.4), Vector3(cos(a) * 0.235, 0.02 + (0.03 if k == 2 else 0.0), sin(a) * 0.235))
 		"starfinder_hat":
 			# For finding all six hidden places in the Void: a deep blue explorer's hat with a gold star compass on it
 			var blue := _mat(Color(0.22, 0.25, 0.6))

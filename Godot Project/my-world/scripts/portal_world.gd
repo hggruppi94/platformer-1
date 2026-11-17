@@ -14,6 +14,7 @@ extends Node3D
 
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const PEEPER := preload("res://scripts/peeper.gd")
+const FRIEND_SPOTS := preload("res://scripts/friend_spots.gd")
 const VEIN_GIVES := 2
 
 @export var world_id := ""
@@ -82,6 +83,8 @@ func _place_shared() -> void:
 			_show_vein(m)
 			# A shy Peeper hides beside it (scripts/peeper.gd): a little secret in every world
 			PEEPER.place(self, m, world_id, info().get("colour", Color(1, 0.8, 1)))
+	# Once it's mended: a secret only a friend's move opens, and maybe the Seam (scripts/friend_spots.gd)
+	FRIEND_SPOTS.place(self, world_id)
 
 
 func _jump_home() -> void:
