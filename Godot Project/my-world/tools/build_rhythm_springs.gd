@@ -92,6 +92,18 @@ const TIDE_A := [68.0, 71.0, 74.0, 77.0, 80.0]  # angles round the island of the
 const ISLET_A := 115.0                       # the angle round the island of the islet, out past the beach
 const ISLET_R := 9.0                         # how big it is
 const BAR_W := 2.6                           # the sandbar out to it
+# Hayden (16 Nov 2026): "does it make sense geographically?" Water has to come from somewhere and go somewhere, so a
+# spring at the foot of the old volcano's peak (scripts/rhythm_land.gd PEAKS) feeds the big waterfall, and the creek
+# runs on from the Falls Pool round the valley's edge and out to the sea in the south-west, past the stilt huts,
+# which stand in a mangrove marsh where it meets the sea (stilts are for wet ground). [angle, radius] along it.
+const CREEK := [[259.0, 57.0], [252.0, 56.5], [244.0, 56.0], [236.0, 55.6], [228.0, 56.0], [220.0, 57.5],
+	[211.0, 58.5], [202.0, 58.5], [194.0, 57.5], [186.0, 56.0], [179.0, 56.5], [172.0, 58.5], [166.0, 63.0],
+	[163.0, 70.0], [161.5, 78.0], [161.0, 86.0], [161.5, 94.0], [162.0, 102.0], [162.5, 110.0], [163.0, 118.0]]
+const CREEK_W := 2.4                         # how wide it is (it opens out to twice that at its mouth)
+const CREEK_Y := 0.12                        # its water's height over the ground: shallow, you wade it
+# The mangrove marsh round the stilt huts: centre x, centre z, radius x, radius z (scripts/water.gd ellipses)
+const MARSH := [Vector4(-74.5, 43.0, 5.5, 5.5), Vector4(-86.2, 34.8, 6.0, 6.0), Vector4(-83.4, 20.8, 5.5, 5.5),
+	Vector4(-88.5, 28.5, 5.5, 6.5), Vector4(-93.0, 38.0, 4.5, 4.0), Vector4(-91.0, 16.0, 4.5, 4.0)]
 
 
 var all_pools: Array = []                    # the valley's pools, the lagoons and the falls pool
@@ -99,6 +111,9 @@ var ridge_rocks: Array = []                  # Vector4(x, z, radius, height) of 
 var paths: Array = []                        # [points, half width, torches?] of every path on the island
 var pool_names: Array = []                   # what each of all_pools is called
 var falls_r := 60.0                          # how far out the big waterfall comes down
+var creek_pts: Array = []                    # the creek's middle line on the ground, from the Falls Pool to the sea
+var spring_at := Vector3.ZERO                # the spring at the foot of the volcano's peak
+var spring_to := Vector3.ZERO                # ...and where its stream goes over the upper tier's edge
 
 var world: Node3D
 var rng := RandomNumberGenerator.new()
@@ -132,6 +147,8 @@ func _initialize() -> void:
 	_gate()
 	_pavilion()
 	_stilt_huts()
+	_creek()
+	_marsh()
 	_crystal_cave()
 	_grotto()
 	_pier()
@@ -411,6 +428,14 @@ func _plan_island() -> void:
 	var fp := LAND.at(FALLS_AT, falls_r - 6.5)
 	all_pools.append(Vector4(fp.x, fp.z, 4.5, 3.5))
 	pool_names.append("Falls Pool")
+	creek_pts = []
+	for q in CREEK:
+		creek_pts.append(ground(LAND.at(q[0], q[1])))
+	var pk: Array = LAND.PEAKS[0]
+	var peak := LAND.at(pk[0], pk[1])
+	spring_to = LAND.at(FALLS_AT, cliff_edge(FALLS_AT, 70.0, 100.0, 21.0) + 1.0, 22.0)
+	spring_at = peak + Vector3(spring_to.x - peak.x, 0, spring_to.z - peak.z).normalized() * (float(pk[2]) * 1.17 + 1.5)
+	spring_at.y = LAND.height(spring_at.x, spring_at.z)
 	# The paths (each a line of points on the ground, its half width, and whether torches line it)
 	var pv_in := Vector3(-PAVILION.x, 0, -PAVILION.z).normalized()
 	paths = [
@@ -552,6 +577,37 @@ func _ridge() -> void:
 	var s1 := LAND.at(FALLS_AT, falls_r + 0.5, 10.08)
 	var st := mesh_at(box(Vector3(3.2, 0.06, s0.distance_to(s1))), stream, (s0 + s1) / 2.0, g, Vector3(0, atan2(out.x, out.z), 0))
 	st.name = "Highland Stream"
+	# Where that water comes from: a spring bubbling up out of the rocks at the foot of the old volcano's peak, and its
+	# stream across the upper tier to the falls' lip
+	var sp := Node3D.new()
+	sp.name = "Volcano Spring"
+	sp.position = spring_at
+	g.add_child(sp)
+	var lava := [mat("Lava Rock", Color(0.42, 0.34, 0.36), 0.95), mat("Lava Rock Rust", Color(0.6, 0.42, 0.34), 0.95)]
+	mesh_at(cyl(1.7, 1.7, 0.04, 20), stream, Vector3(0, 0.1, 0), sp).name = "Spring Water"
+	for k in 10:
+		var a := k * TAU / 10.0
+		if absf(wrapf(a - atan2(spring_to.z - spring_at.z, spring_to.x - spring_at.x), -PI, PI)) < 0.5:
+			continue                          # (the gap it spills out of)
+		var rk := mesh_at(ball(rng.randf_range(0.45, 0.75), 7), lava[k % 2], Vector3(cos(a), 0, sin(a)) * 2.0 + Vector3(0, 0.2, 0), sp)
+		rk.scale = Vector3(1.2, rng.randf_range(0.6, 1.0), 1.1)
+	_foam(sp, Vector3(0, 0.05, 0), 0.6, 4)
+	var sp0 := spring_at + Vector3(0, 0.08, 0)
+	var sp1 := spring_to + Vector3(0, 0.08, 0)
+	var sflat := Vector3(sp1.x - sp0.x, 0, sp1.z - sp0.z)
+	var ss := mesh_at(box(Vector3(2.4, 0.06, sflat.length())), stream, (sp0 + sp1) / 2.0, g, Vector3(0, atan2(sflat.x, sflat.z), 0))
+	ss.name = "Spring Stream"
+	# The peak's crater: a little warm lake with steam drifting off it, so you can see from anywhere that the island
+	# was a volcano (and why the valley has hot springs)
+	var crater := LAND.peak_top()
+	var cl := mesh_at(cyl(LAND.CRATER_R - 0.6, LAND.CRATER_R - 0.6, 0.04, 20), mat("Crater Lake", Color(0.3, 0.75, 0.7), 0.1, 0.3, 0.85),
+		crater + Vector3(0, 0.6, 0), g)
+	cl.name = "Crater Lake"
+	var steam := mat("Steam", Color(1, 1, 1), 0.3, 0.25, 0.4)
+	for k in 6:
+		var m := mesh_at(ball(rng.randf_range(1.2, 2.2), 8), steam, crater + Vector3(rng.randf_range(-1.2, 1.2), 2.5 + k * 1.6,
+			rng.randf_range(-1.2, 1.2)) + Vector3(0.5, 0, 0.3) * k, g)
+		m.name = "Crater Steam"
 	# The big one (scripts/big_falls.gd builds it big, with its own secret cove: "ridge_falls")
 	var sheet := _sheet(g, "Waterfall", LAND.at(FALLS_AT, falls_r + 0.2, 10.0), 0.0, out, 3.4)
 	sheet.set_meta("fall_id", "ridge_falls")
@@ -616,8 +672,8 @@ func _ridge() -> void:
 			continue
 		var sl := LAND.slope(p.x, p.z)
 		var h := LAND.height(p.x, p.z)
-		if sl < 2.5 or h < 1.0:
-			continue
+		if sl < 2.5 or h < 1.0 or LAND.peak_rise(p.x, p.z) > 0.0:
+			continue                          # (not on the volcano's peak: its rock isn't layered sandstone)
 		var down := Vector3(LAND.height(p.x + 0.5, p.z) - LAND.height(p.x - 0.5, p.z), 0,
 			LAND.height(p.x, p.z + 0.5) - LAND.height(p.x, p.z - 0.5)).normalized() * -1.0
 		var y := snappedf(h, 1.6) - 0.3
@@ -1432,6 +1488,204 @@ func _stilt_huts() -> void:
 	_marker("HutTop", Vector3(HUTS[2].x, HUT_DECK + 0.1, HUTS[2].z) + Vector3(-HUTS[2].x, 0, -HUTS[2].z).normalized() * 3.3)
 
 
+func _creek() -> void:
+	# The creek: the big waterfall's water runs on out of the Falls Pool round the valley's edge, under the stilt huts'
+	# rope bridge and out across the beach into the sea. Shallow: you wade it (scripts/water.gd), and stepping stones
+	# carry the paths over it.
+	var g := Node3D.new()
+	g.name = "Creek"
+	world.add_child(g)
+	var water := mat("Creek Water", Color(0.4, 0.82, 0.92), 0.1, 0.25, 0.8)
+	var bed := mat("Creek Bed", Color(0.62, 0.74, 0.62), 0.9)
+	var pebble := mat("Pebble", Color(0.92, 0.88, 0.8), 0.8)
+	# A smooth line through its points, a point every metre
+	var line: Array = []
+	for i in creek_pts.size() - 1:
+		var a: Vector3 = creek_pts[i]
+		var b: Vector3 = creek_pts[i + 1]
+		var n := maxi(1, int(a.distance_to(b)))
+		for k in n:
+			var p := a.lerp(b, float(k) / n)
+			line.append(ground(p))
+	line.append(ground(creek_pts[-1]))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var bst := SurfaceTool.new()
+	bst.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var outline: Array[Vector4] = []
+	var prev_l := Vector3.ZERO
+	var prev_r := Vector3.ZERO
+	var prev_bl := Vector3.ZERO
+	var prev_br := Vector3.ZERO
+	for i in line.size():
+		var p: Vector3 = line[i]
+		var nxt: Vector3 = line[mini(i + 1, line.size() - 1)]
+		var prv: Vector3 = line[maxi(i - 1, 0)]
+		var dir := Vector3(nxt.x - prv.x, 0, nxt.z - prv.z).normalized()
+		var side := dir.cross(Vector3.UP)
+		var mouth := clampf((_r_of(p) - 96.0) / 20.0, 0.0, 1.0)
+		var half := CREEK_W / 2.0 * (1.0 + mouth) + 0.25 * sin(i * 0.7)
+		var l := ground(p + side * half)
+		var r := ground(p - side * half)
+		l.y += CREEK_Y
+		r.y += CREEK_Y
+		var bl := ground(p + side * (half + 0.5))
+		var br := ground(p - side * (half + 0.5))
+		bl.y += 0.04
+		br.y += 0.04
+		if i > 0:
+			_tri(st, prev_l, prev_r, l)
+			_tri(st, prev_r, r, l)
+			_tri(bst, prev_bl, prev_br, bl)
+			_tri(bst, prev_br, br, bl)
+		prev_l = l
+		prev_r = r
+		prev_bl = bl
+		prev_br = br
+		if i % 2 == 0 and gy(p) > -0.4:
+			outline.append(Vector4(p.x, p.z, half + 0.2, half + 0.2))
+		# Pebbles along its banks
+		if i % 3 == 1:
+			for sx in [-1.0, 1.0]:
+				var pb := mesh_at(ball(rng.randf_range(0.18, 0.3), 7), pebble, ground(p + side * sx * (half + 0.35)) + Vector3(0, 0.06, 0), g)
+				pb.scale = Vector3(1.2, 0.6, 1.0)
+	st.generate_normals()
+	bst.generate_normals()
+	var bm := MeshInstance3D.new()
+	bm.name = "Creek Bed"
+	bm.mesh = bst.commit()
+	bm.material_override = bed
+	g.add_child(bm)
+	var wm := MeshInstance3D.new()
+	wm.name = "Creek Water"
+	wm.mesh = st.commit()
+	wm.material_override = water
+	g.add_child(wm)
+	var wet := Node3D.new()
+	wet.name = "Creek Wading"
+	wet.set_script(load("res://scripts/water.gd"))
+	wet.set("ellipses", outline)
+	wet.set("water_y", CREEK_Y)
+	g.add_child(wet)
+	# Stepping stones where a path crosses it
+	var stone := mat("Stepping Stone", Color(0.86, 0.78, 0.66), 0.9)
+	var crossings := 0
+	for path in paths:
+		var pts: Array = path[0]
+		for j in pts.size() - 1:
+			for i in line.size() - 1:
+				var hit = Geometry2D.segment_intersects_segment(Vector2(pts[j].x, pts[j].z), Vector2(pts[j + 1].x, pts[j + 1].z),
+					Vector2(line[i].x, line[i].z), Vector2(line[i + 1].x, line[i + 1].z))
+				if hit == null:
+					continue
+				var at := Vector3(hit.x, 0, hit.y)
+				var across: Vector3 = (pts[j + 1] - pts[j])
+				across = Vector3(across.x, 0, across.z).normalized()
+				for k in 4:
+					var sp := ground(at + across * (k - 1.5) * 1.0)
+					var sm := mesh_at(cyl(0.45, 0.5, 0.2, 9), stone, sp + Vector3(0, 0.08, 0), g)
+					sm.name = "Stepping Stone"
+				crossings += 1
+	g.set_meta("crossings", crossings)
+	_marker("CreekMouth", creek_pts[-1])
+
+
+func _marsh() -> void:
+	# The mangrove marsh round the stilt huts, where the creek meets the sea: shallow brown-green water, mangrove trees
+	# up on their arching roots, and reeds
+	var g := Node3D.new()
+	g.name = "Mangrove Marsh"
+	g.set_script(load("res://scripts/water.gd"))
+	var outline: Array[Vector4] = []
+	for e in MARSH:
+		outline.append(e)
+	g.set("ellipses", outline)
+	g.set("water_y", CREEK_Y)
+	world.add_child(g)
+	var water := mat("Marsh Water", Color(0.36, 0.62, 0.55), 0.1, 0.15, 0.82)
+	var mud := mat("Marsh Mud", Color(0.45, 0.42, 0.3), 0.95)
+	for i in MARSH.size():
+		var e: Vector4 = MARSH[i]
+		var at := Vector3(e.x, 0, e.y)
+		var bm := mesh_at(cyl(1.0, 1.0, 0.04, 28), mud, ground(at) + Vector3(0, 0.02, 0), g)
+		bm.scale = Vector3(e.z + 0.6, 1, e.w + 0.6)
+		var wm := mesh_at(cyl(1.0, 1.0, 0.04, 28), water, ground(at) + Vector3(0, CREEK_Y, 0), g)
+		wm.scale = Vector3(e.z, 1, e.w)
+		wm.name = "Marsh Water %d" % (i + 1)
+	var bark := mat("Mangrove Bark", Color(0.5, 0.4, 0.32), 0.9)
+	var leaf := [mat("Mangrove Leaf", Color(0.24, 0.5, 0.3), 0.85), mat("Mangrove Leaf Light", Color(0.34, 0.6, 0.34), 0.85)]
+	var reed := mat("Reed", Color(0.5, 0.66, 0.32), 0.9)
+	var trees := 0
+	var tries := 0
+	while trees < 16 and tries < 3000:
+		tries += 1
+		var e: Vector4 = MARSH[rng.randi() % MARSH.size()]
+		var a := rng.randf() * TAU
+		var k := rng.randf_range(0.35, 1.05)
+		var p := Vector3(e.x + cos(a) * e.z * k, 0, e.y + sin(a) * e.w * k)
+		if not _marsh_spot_clear(p):
+			continue
+		trees += 1
+		var t := Node3D.new()
+		t.position = ground(p)
+		g.add_child(t)
+		t.name = "Mangrove"                  # (after it's in, so the second one is "Mangrove2", not a made-up name)
+		var lift := rng.randf_range(1.1, 1.6)
+		var th := rng.randf_range(2.2, 3.4)
+		mesh_at(cyl(0.16, 0.22, th, 7), bark, Vector3(0, lift + th / 2.0, 0), t)
+		cyl_solid(0.25, lift + th, Vector3(0, (lift + th) / 2.0, 0), t)
+		# Its roots arch out from the trunk and down into the water, like legs
+		for r in 6:
+			var ra := r * TAU / 6.0 + rng.randf() * 0.4
+			var out := Vector3(cos(ra), 0, sin(ra))
+			var top := Vector3(0, lift + 0.3, 0)
+			var knee := out * 0.8 + Vector3(0, lift * 0.75, 0)
+			var foot := out * 1.5
+			for seg in [[top, knee], [knee, foot]]:
+				var a0: Vector3 = seg[0]
+				var a1: Vector3 = seg[1]
+				var rm := mesh_at(cyl(0.05, 0.07, a0.distance_to(a1), 5), bark, (a0 + a1) / 2.0, t)
+				rm.basis = Basis.looking_at(a1 - a0, Vector3.UP if absf((a1 - a0).normalized().y) < 0.95 else Vector3.RIGHT) * Basis(Vector3.RIGHT, PI / 2.0)
+		for c in rng.randi_range(4, 6):
+			var lf := mesh_at(ball(rng.randf_range(1.0, 1.6), 8), leaf[c % 2], Vector3(rng.randf_range(-1.1, 1.1),
+				lift + th + rng.randf_range(-0.2, 0.8), rng.randf_range(-1.1, 1.1)), t)
+			lf.scale = Vector3(1.25, 0.75, 1.25)
+	var reeds := 0
+	tries = 0
+	while reeds < 40 and tries < 3000:
+		tries += 1
+		var e: Vector4 = MARSH[rng.randi() % MARSH.size()]
+		var a := rng.randf() * TAU
+		var p := Vector3(e.x + cos(a) * (e.z + 0.3), 0, e.y + sin(a) * (e.w + 0.3))
+		if not _marsh_spot_clear(p):
+			continue
+		reeds += 1
+		var rd := Node3D.new()
+		rd.position = ground(p)
+		g.add_child(rd)
+		rd.name = "Reeds"
+		for k in 5:
+			var h := rng.randf_range(0.8, 1.5)
+			var rs := mesh_at(cyl(0.025, 0.04, h, 4), reed, Vector3(rng.randf_range(-0.3, 0.3), h / 2.0, rng.randf_range(-0.3, 0.3)), rd)
+			rs.rotation = Vector3(rng.randf_range(-0.15, 0.15), 0, rng.randf_range(-0.15, 0.15))
+	print("MARSH mangroves=", trees, " reeds=", reeds)
+
+
+func _marsh_spot_clear(p: Vector3) -> bool:
+	# Not in a hut's stilts, under its ramp or bridges, in the creek, or out of the island
+	var flat := Vector2(p.x, p.z)
+	for h in HUTS:
+		if flat.distance_to(Vector2(h.x, h.z)) < HUT_R + 1.6:
+			return false
+	if _near_line(flat, [HUTS[0], HUTS[1], HUTS[2]], 2.4):
+		return false
+	if flat.distance_to(Vector2(_hut_ramp_mid().x, _hut_ramp_mid().z)) < 9.5:
+		return false
+	if _near_line(flat, creek_pts, CREEK_W + 1.0):
+		return false
+	return _inland(p, 1.0) and _flat(p, 1.0)
+
+
 func _crystal_cave() -> void:
 	# The crystal cave in its notch at the foot of the North Highlands, like the picture: a great mouth framed by
 	# boulders, a hollow roof of rock, a turquoise pool (one of the cool pools) and huge glowing crystals all round.
@@ -2003,6 +2257,32 @@ func _tide_pools() -> void:
 	var star := [mat("Starfish Orange", Color(1.0, 0.5, 0.25), 0.7), mat("Starfish Pink", Color(1.0, 0.45, 0.6), 0.7)]
 	var shell := mat("Shell", Color(1.0, 0.92, 0.85), 0.5)
 	var crab := mat("Crab Red", Color(0.95, 0.3, 0.25), 0.6)
+	# Real tide pools sit in hollows in flat rock, not in sand, so they're on a shelf of wet, dark sandstone at the foot
+	# of the Pavilion Bluff's cliff, with boulders along its sea edge
+	var shelf := [mat("Wet Rock", Color(0.6, 0.46, 0.38), 0.5), mat("Wet Rock Dark", Color(0.5, 0.38, 0.33), 0.5)]
+	var weed := mat("Seaweed", Color(0.3, 0.5, 0.3), 0.8)
+	var shelf_g := Node3D.new()
+	shelf_g.name = "Rock Shelf"
+	g.add_child(shelf_g)
+	var deg: float = TIDE_A[0] - 3.0
+	while deg <= TIDE_A[-1] + 3.0:
+		var a := deg_to_rad(deg)
+		for rr in [-9.0, -6.5, -4.0, -1.8]:
+			var p: Vector3 = Vector3(cos(a), 0, sin(a)) * (shore_r(a) + rr + rng.randf_range(-0.6, 0.6))
+			p.y = LAND.height(p.x, p.z)
+			var sr := rng.randf_range(1.6, 2.4)
+			var sl := mesh_at(cyl(sr, sr * 1.08, 0.18, 9), shelf[int(deg) % 2], p + Vector3(0, 0.0, 0), shelf_g)
+			sl.scale = Vector3(1.0, 1.0, rng.randf_range(0.7, 1.0))
+			sl.rotation.y = rng.randf() * TAU
+			sl.name = "Shelf Slab"
+		var edge := Vector3(cos(a), 0, sin(a)) * (shore_r(a) + 0.4)
+		edge.y = LAND.height(edge.x, edge.z)
+		var bo := mesh_at(ball(rng.randf_range(0.5, 0.9), 7), shelf[1], edge + Vector3(0, 0.15, 0), shelf_g)
+		bo.scale = Vector3(1.3, 0.7, 1.1)
+		if int(deg) % 3 == 0:
+			var wd := mesh_at(ball(0.35, 6), weed, edge + Vector3(0.3, 0.12, 0.2), shelf_g)
+			wd.scale = Vector3(1.6, 0.25, 1.0)
+		deg += 2.2
 	for i in TIDE_A.size():
 		var a: float = deg_to_rad(TIDE_A[i])
 		var rs := shore_r(a)
@@ -2014,7 +2294,7 @@ func _tide_pools() -> void:
 		pool.position = at
 		g.add_child(pool)
 		var pr := rng.randf_range(0.9, 1.3)
-		mesh_at(cyl(pr, pr, 0.04, 14), water, Vector3(0, 0.03, 0), pool)
+		mesh_at(cyl(pr, pr, 0.04, 14), water, Vector3(0, 0.1, 0), pool).name = "Tide Water"
 		for k in 7:
 			var ka := k * TAU / 7.0 + rng.randf() * 0.4
 			var bs := rng.randf_range(0.28, 0.45)
@@ -2210,6 +2490,20 @@ func _blocked(p: Vector3, room: float) -> bool:
 			[GLADE, GLADE_R + 1.5], [LEGEND_HUT, 6.5], [bar_from(), 4.0], [islet_at(), ISLET_R]]:
 		if flat.distance_to(Vector2(c[0].x, c[0].z)) < float(c[1]) + room:
 			return true
+	# Nothing in the creek or the marsh, on the volcano's peak or in the spring's stream
+	if _near_line(flat, creek_pts, CREEK_W + 1.0 + room):
+		return true
+	for e: Vector4 in MARSH:
+		var mx := (p.x - e.x) / (e.z + 1.0 + room)
+		var mz := (p.z - e.y) / (e.w + 1.0 + room)
+		if mx * mx + mz * mz < 1.0:
+			return true
+	for pk in LAND.PEAKS:
+		var pc := LAND.at(pk[0], pk[1])
+		if flat.distance_to(Vector2(pc.x, pc.z)) < float(pk[2]) * 1.17 + 1.0 + room:
+			return true
+	if spring_at != Vector3.ZERO and _near_line(flat, [spring_at, spring_to], 3.0 + room):
+		return true
 	# Nothing on the ramps up the cliffs
 	if LAND.on_ramp(p.x, p.z, 2.5 + room):
 		return true

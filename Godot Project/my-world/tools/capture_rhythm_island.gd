@@ -25,7 +25,7 @@ func _initialize() -> void:
 		out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(300.0, true, false, true).timeout.connect(_finish)
+	create_timer(480.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
@@ -97,6 +97,12 @@ func _run() -> void:
 		["20_tide_pools", tide + tide.normalized() * -7.0 + Vector3(4, 3, 0), tide],
 		["21_sandbar_to_the_islet", bar - (islet - bar).normalized() * 6.0 + Vector3(2, 4, 0), islet],
 		["22_lighthouse_and_headland", ov + Vector3(-60, 20, 70), ov + Vector3(0, 6, 0)],
+		["23_volcano_peak", Vector3(-8, 4, 10), L.peak_top() + Vector3(0, -6, 0)],
+		["24_spring_and_upper_falls", L.at(268.0, 80.0, 30.0), L.at(250.0, 92.0, 23.0)],
+		["25_creek_round_the_valley", L.at(225.0, 45.0, 6.0), L.at(195.0, 60.0, 0.0)],
+		["26_creek_mouth_and_marsh", L.at(150.0, 120.0, 16.0), L.at(162.0, 88.0, 1.0)],
+		["27_marsh_under_the_huts", hut1 + Vector3(-4, 2.4, -12), hut1 + Vector3(0, 1.5, 0)],
+		["28_straight_down", Vector3(0, 330, 1), Vector3(0, 0, 0)],
 	]
 	for sh in shots:
 		p.global_position = sh[2] + Vector3(0, 1, 0)

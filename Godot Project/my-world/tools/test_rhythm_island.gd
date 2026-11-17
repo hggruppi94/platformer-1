@@ -82,6 +82,9 @@ func _run() -> void:
 	check(L.slope(L.at(276, 66.2).x, L.at(276, 66.2).z) > 2.0, "the highlands' cliff is steep (%.1f m a metre)" % L.slope(L.at(276, 66.2).x, L.at(276, 66.2).z))
 	check(B.shore_r(PI / 2.0) > 100.0, "the island is big (%.0f m to the southern beach)" % B.shore_r(PI / 2.0))
 
+	# It makes sense as a place (Hayden: "does it make sense geographically?")
+	_check_geography()
+
 	# Where you arrive is on the ground
 	await _settle()
 	check(absf(_feet() - L.height(B.ARRIVE.x, B.ARRIVE.z)) < 0.6 and p.is_on_floor(), "you arrive standing on the beach (feet at %.2f)" % _feet())
@@ -150,6 +153,83 @@ func _run() -> void:
 	await _route_blocked("through the fence beside the sandbar out onto the sea", fence_at + bar.cross(Vector3.UP) * 3.0 - bar * 3.0,
 		fence_at + bar.cross(Vector3.UP) * 3.0 + bar * 8.0)
 	_finish()
+
+
+func _check_geography() -> void:
+	# The old volcano's peak is the island's highest point, too steep to climb, with a crater lake on top
+	var top := L.peak_top()
+	var pk: Array = L.PEAKS[0]
+	var c := L.at(pk[0], pk[1])
+	var highest := 0.0
+	for x in range(-140, 141, 4):
+		for z in range(-140, 141, 4):
+			highest = maxf(highest, L.height(x, z))
+	var rim := 0.0
+	for k in 16:
+		var a := k * TAU / 16.0
+		rim = maxf(rim, L.height(c.x + cos(a) * (L.CRATER_R + 1.0), c.z + sin(a) * (L.CRATER_R + 1.0)))
+	check(rim > 35.0 and highest <= rim + 0.5, "the volcano's peak is the highest point (rim %.1f m, highest %.1f m)" % [rim, highest])
+	check(top.y < rim - 3.0, "its crater dips in (%.1f m below the rim)" % (rim - top.y))
+	var side := c + Vector3(1, 0, 0) * (float(pk[2]) * 0.5)
+	check(L.slope(side.x, side.z) > 1.0, "its sides are too steep to walk up (%.1f m a metre)" % L.slope(side.x, side.z))
+	check(world.find_child("Crater Lake", true, false) != null and world.find_child("Crater Steam", true, false) != null,
+		"a crater lake with steam on top")
+	# A spring at its foot feeds the stream over the upper tier to the big waterfall
+	var spring := world.find_child("Volcano Spring", true, false) as Node3D
+	check(spring != null and absf(spring.position.y - 22.0) < 0.5, "a spring at the peak's foot, on the upper tier")
+	check(world.find_child("Spring Stream", true, false) != null and world.find_child("Upper Falls", true, false) != null,
+		"its stream runs to the upper falls")
+	if spring != null:
+		var lip := L.at(B.FALLS_AT, B.cliff_edge(B.FALLS_AT, 70.0, 100.0, 21.0))
+		check(Vector2(spring.position.x - lip.x, spring.position.z - lip.z).length() < 20.0, "...the spring is just above the falls")
+	# The creek takes the water from the Falls Pool round the valley and out to the sea
+	var creek := world.find_child("Creek", true, false)
+	check(creek != null and creek.find_child("Creek Water", true, false) != null, "the creek is there")
+	var pool := world.find_child("Falls Pool", true, false) as Node3D
+	var first: Vector3 = L.at(B.CREEK[0][0], B.CREEK[0][1])
+	var last: Vector3 = L.at(B.CREEK[-1][0], B.CREEK[-1][1])
+	check(pool != null and Vector2(pool.position.x - first.x, pool.position.z - first.z).length() < 6.0,
+		"it starts at the Falls Pool")
+	check(L.height(last.x, last.z) < B.SEA_Y, "it ends in the sea (%.1f m)" % L.height(last.x, last.z))
+	var dry := true
+	var uphill := 0.0
+	var prev_h := 0.0
+	for i in B.CREEK.size():
+		var q := L.at(B.CREEK[i][0], B.CREEK[i][1])
+		var h := L.height(q.x, q.z)
+		if i > 0:
+			uphill = maxf(uphill, h - prev_h)
+		prev_h = h
+		dry = dry and h < 0.6
+	check(dry and uphill < 0.3, "it runs on the low ground all the way and never uphill")
+	var wade := creek.find_child("Creek Wading", true, false) if creek != null else null
+	check(wade != null and wade.call("covers", first.x, first.z), "you wade in it")
+	var crossings := int(creek.get_meta("crossings", 0)) if creek != null else 0
+	check(crossings >= 2, "stepping stones take the paths over it (%d)" % crossings)
+	# The stilt huts stand in a mangrove marsh at its mouth
+	var marsh := world.find_child("Mangrove Marsh", true, false)
+	check(marsh != null and marsh.find_children("Mangrove*", "", true, false).size() >= 10, "a mangrove marsh round the stilt huts")
+	for i in B.HUTS.size():
+		var h: Vector3 = B.HUTS[i]
+		check(marsh != null and marsh.call("covers", h.x, h.z), "stilt hut %d stands in the marsh's water" % (i + 1))
+	var near_creek := false
+	for h: Vector3 in B.HUTS:
+		for q in B.CREEK:
+			near_creek = near_creek or Vector2(h.x, h.z).distance_to(Vector2(L.at(q[0], q[1]).x, L.at(q[0], q[1]).z)) < 10.0
+	check(near_creek, "...where the creek runs out to the sea")
+	# Tide pools sit on a rock shelf, not the sand
+	var shelf := world.find_child("Rock Shelf", true, false)
+	check(shelf != null and shelf.get_child_count() > 20, "the tide pools sit on a shelf of rock")
+	if shelf != null:
+		var on_rock := 0
+		for pool_node in world.find_child("Tide Pools", true, false).get_children():
+			if not str(pool_node.name).begins_with("Tide Pool"):
+				continue
+			for sl in shelf.get_children():
+				if str(sl.name).begins_with("Shelf Slab") and Vector2(sl.position.x - pool_node.position.x, sl.position.z - pool_node.position.z).length() < 2.6:
+					on_rock += 1
+					break
+		check(on_rock == B.TIDE_A.size(), "every tide pool is on the rock (%d of %d)" % [on_rock, B.TIDE_A.size()])
 
 
 func _check_detail() -> void:

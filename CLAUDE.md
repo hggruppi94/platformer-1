@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-17: **Rhythm Springs' island makes sense as a place** (Hayden: "what about the actual physical orientation
+  of everything? Does it make sense geographically?", then "yes" to the fixes). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **It's an old volcano** (`scripts/rhythm_land.gd PEAKS`, `peak_rise()`, `peak_top()`): the terraces round the valley
+    are its rim and the valley its crater (hence the hot springs). Its last peak stands 40 m up on the North Highlands'
+    upper tier, dark lava rock, too steep to climb, broken lower on the sea side, with a crater lake and steam.
+  - **Water comes from somewhere and goes somewhere** (`tools/build_rhythm_springs.gd`): a spring at the peak's foot
+    feeds a stream to the upper falls ("Volcano Spring", "Spring Stream"); the **creek** (`CREEK`, `_creek()`) runs
+    from the Falls Pool round the valley's edge and out across the beach into the sea in the south-west, shallow
+    (wade it: scripts/water.gd), with stepping stones where paths cross.
+  - **The stilt huts stand in a mangrove marsh** where the creek meets the sea (`MARSH`, `_marsh()`: water round every
+    hut, 16 mangroves on arching roots, reeds). **The tide pools sit on a shelf of wet rock**, not sand.
+  - Tests: `test_rhythm_island` checks all of it (peak highest and unclimbable, spring above the falls, creek from the
+    Falls Pool to the sea and never uphill, each hut in the marsh, every tide pool on rock); rhythm_springs, hum_heads,
+    world_detail, sunken_secrets, rare_fish, groove and practice_trips pass. Pictures: `capture_rhythm_island.gd` shots
+    23 to 28 (project files, world/previews/rhythm_island/geography).
+  - My choices Hayden may change: the peak's height and spot, the creek's route, the marsh's size.
+
 - 2026-11-16: **Rhythm Springs' island is bigger and has cliffs and terraces, like the concept pictures** (Hayden:
   "you shrunk the size of the map compared to the reference photos ... keep iterating until it looks exactly like the
   pictures", "the current world is extremely flat ... the reference has cliffs and multiple elevation changes"). Built
