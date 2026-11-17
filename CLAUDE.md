@@ -99,6 +99,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-17: **A secret volcano tunnel and Old Ember, an optional boss inside the volcano** (Hayden: "Id love to
+  have a secret volcano tunnel with an optional boss", "Volcanic themed boss that you fight inside the volcano with lava
+  obstacles"). Built and tested in the cloud (own Godot user folders, no save touched). All put in at play time by
+  `scripts/volcano_depths.gd` (no class_name; `rhythm_springs.gd setup()` calls `VOLCANO.place(self)`), so the scene
+  wasn't rebuilt.
+  - **The way in:** a crack in a heap of lava rock on the North Highlands' upper tier at the peak's foot ("Ember Crack",
+    `ENTRANCE`), facing out over flat tier (`_crack_facing()`). Its sign only shows within 10 m and it's not on the map.
+    It only opens (and glows) once Rhythm Springs is mended, so the heat never gets in the way. Squeeze in (Interact) to
+    the **Ember Hall**, then the **Ember Tunnel** winds down round a bend (`ROUTE`, cave_kit, at least 3.6 m of rock
+    over it everywhere) with three **steam vents** that puff on the island's beat and bounce you, and a **lava stream**
+    along its inner wall.
+  - **The Magma Chamber** under the peak: a round floor in a **lava ring** (crossed on a rock causeway), basalt
+    columns, obsidian. Lava never does more than a bump: it hurts 1 and puts you back on the floor ("Hot hot hot!").
+  - **Old Ember** (`scripts/old_ember.gd`, the Starhorn's pattern: telegraph, attack, recover; phases with a one-way
+    latch; a burst never skips a phase): a giant lava salamander with magma cracks and flame frills, asleep until you
+    come within 8 m, back to sleep (all puff back) if you go up the tunnel. 15 pops in three phases, every move warned
+    (`boss_tell.gd`): tail-slam ring (jump), belly slide (step aside), lava blobs from the roof (move off the shadow),
+    and in phase 3 its breath pulling you in. Phase 2 starts with its crust red hot: bubbles bounce until you set off
+    the three **Geyser Stones** (bubble or touch them) and the spring water knocks it over. **Lava cracks** across the
+    floor flare in turn on the beat while it's awake (one glows a beat first: jump it or step off). Calmed the first
+    time: 40 sparkles, 5 Remnants and the **Ember Frills** hat (`cosmetics.gd`, `shop/items.json`), flag
+    `old_ember_calmed`. It's back next visit (no second reward). Then the **Ember Chest** (25 sparkles once a visit,
+    `volcano_treasure_<visit day>`) and a **steam lift** up to the **Crater Lookout** on the rim, with a slide back down.
+  - Tests: new `tools/test_volcano.gd` (shut before it's mended, under the ground, really walks to the crack and down
+    the whole tunnel, vents, lava ring, a flaring crack, waking and sleeping, the phases and stones, the reward once,
+    chest, lift, way down); `test_boss_tells` lists it; rhythm_island, rhythm_springs, hum_heads, world_detail,
+    practice_trips, clothing_fit, clothes and shop (both runs) pass. Pictures: `tools/capture_volcano.gd -- <folder>`
+    (project files, world/previews/rhythm_island/volcano).
+  - My choices Hayden may change: the names (Ember Tunnel, Old Ember, Geyser Stones, Ember Frills), opening only once
+    the world's mended, 15 pops, the rewards, where the crack is.
+
 - 2026-11-17: **Rhythm Springs' island makes sense as a place** (Hayden: "what about the actual physical orientation
   of everything? Does it make sense geographically?", then "yes" to the fixes). Built and tested in the cloud (own
   Godot user folders, no save touched).

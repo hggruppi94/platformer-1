@@ -222,6 +222,18 @@ static func hat(id: String) -> Node3D:
 				_mesh(h, _cyl(0.01, 0.025, 0.14, 6), ice, Vector3(side * 0.24, 0.16, 0.02), Vector3(0, 0, -side * 1.0))
 				_mesh(h, _cyl(0.01, 0.025, 0.12, 6), ice, Vector3(side * 0.2, 0.24, -0.02), Vector3(0.3, 0, -side * 0.1))
 				_mesh(h, _sphere(0.035), star, Vector3(side * 0.22, 0.27, 0))
+		"ember_frills":
+			# For calming Old Ember deep in Rhythm Springs' volcano: a headband with three glowing flame frills each
+			# side, like a salamander's gills
+			_mesh(h, _torus(0.22, 0.245), _mat(Color(0.3, 0.22, 0.24)), Vector3(0, -0.02, 0))
+			var fire := _mat(Color(1.0, 0.5, 0.2), 1.4)
+			var tip := _mat(Color(1.0, 0.85, 0.35), 1.8)
+			for side in [-1.0, 1.0]:
+				for k in 3:
+					var up := 0.04 + k * 0.07
+					_mesh(h, _cyl(0.0, 0.035, 0.22 - k * 0.03, 6), fire, Vector3(side * 0.24, up, -0.02 - k * 0.02),
+						Vector3(0, 0, -side * (1.1 - k * 0.25)))
+					_mesh(h, _sphere(0.025), tip, Vector3(side * (0.34 - k * 0.02), up + 0.05 + k * 0.03, -0.02 - k * 0.02))
 		"starfinder_hat":
 			# For finding all six hidden places in the Void: a deep blue explorer's hat with a gold star compass on it
 			var blue := _mat(Color(0.22, 0.25, 0.6))
