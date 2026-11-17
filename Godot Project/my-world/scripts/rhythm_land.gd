@@ -14,6 +14,11 @@ extends Node3D
 #     rock walls, and the Springs Gate stands on top looking down into the valley;
 #   - the West Terrace (7 m): the bamboo grove's long path and the legend hut.
 # You can't step up a ledge on foot, so every level is reached by a ramp (RAMPS), cut into the cliff or built up on it.
+#
+# Hayden then asked (16 Nov 2026) whether it all makes sense geographically. So the island is an old volcano: the
+# terraces round the valley are what's left of its rim (the valley is its crater, which is why it has hot springs),
+# and its last peak (PEAKS) still stands on the North Highlands, with a little crater lake on top. A spring at its
+# foot feeds the big waterfall, and the water runs on out of the valley to the sea (the builder's creek).
 
 const SHORE_BASE := 118.0
 const CLIFF_W := 1.4                  # how far a cliff takes to go from its foot to its top: steep, never walkable
@@ -30,6 +35,13 @@ const PLATEAUS := [
 	[90.0, 26.0, 60.0, 86.0, 6.0],        # Gate Terrace
 	[195.0, 22.0, 64.0, -7.0, 7.0],       # West Terrace
 ]
+# The old volcano's last peak, standing up off the North Highlands' upper tier: [angle, radius out, how far its foot
+# reaches, the height it stands on, its rim's height]. Too steep to climb; it's to look at from all over the island.
+const PEAKS := [
+	[248.0, 101.0, 12.0, 22.0, 40.0],
+]
+const CRATER_R := 3.6                 # the crater in its top
+const CRATER_DEEP := 5.0              # how far down the crater lake is from the rim
 # Notches cut back to the lowland at the foot of a cliff: [angle, radius out, size, floor height]
 const NOTCHES := [
 	[315.0, 64.0, 12.5, 0.0],             # the crystal cave
@@ -74,6 +86,36 @@ static func at(deg: float, r: float, h := 0.0) -> Vector3:
 static func _ss(a: float, b: float, x: float) -> float:
 	var t := clampf((x - a) / (b - a), 0.0, 1.0)
 	return t * t * (3.0 - 2.0 * t)
+
+
+static func peak_rise(x: float, z: float) -> float:
+	# How far the volcano's peak rises above the upper tier here (0 off it). Its sides steepen towards a ragged rim,
+	# lowest where it broke away on the sea side, and a crater dips in the middle.
+	for pk in PEAKS:
+		var c := at(pk[0], pk[1])
+		var off := Vector2(x - c.x, z - c.z)
+		var d := off.length()
+		var phi := atan2(off.y, off.x)
+		var foot: float = float(pk[2]) * (1.0 + 0.1 * sin(5.0 * phi + 1.0) + 0.05 * sin(11.0 * phi))
+		if d >= foot:
+			continue
+		var rim := CRATER_R + 1.0
+		var t := clampf((foot - d) / (foot - rim), 0.0, 1.0)
+		var rise: float = (float(pk[4]) - float(pk[3])) * pow(t, 1.5)
+		# The broken side faces out to sea
+		var sea := deg_to_rad(float(pk[0]))
+		rise *= 1.0 - 0.3 * pow(maxf(0.0, cos(phi - sea)), 3.0) * t
+		if d < rim:
+			rise -= CRATER_DEEP * _ss(rim, CRATER_R - 1.6, d)
+		return rise
+	return 0.0
+
+
+static func peak_top() -> Vector3:
+	# The middle of the crater, at its floor
+	var pk: Array = PEAKS[0]
+	var c := at(pk[0], pk[1])
+	return Vector3(c.x, land(c.x, c.z), c.z)
 
 
 static func plateau_in(p: Array, theta: float, r: float, rs: float) -> float:
@@ -127,6 +169,8 @@ static func land(x: float, z: float) -> float:
 		var d := plateau_in(p, theta, r, rs)
 		if d > 0.0:
 			h = maxf(h, float(p[4]) * _ss(0.0, CLIFF_W, d))
+	if h > 20.0:
+		h += peak_rise(x, z)
 	for n in NOTCHES:
 		var c := at(n[0], n[1])
 		var dist := Vector2(x - c.x, z - c.z).length()
@@ -160,6 +204,11 @@ static func color_at(x: float, z: float, h: float, steep: float) -> Color:
 	var r := Vector2(x, z).length()
 	var rs := shore_r(atan2(z, x))
 	var grain := 0.5 + 0.5 * sin(x * 0.37 + z * 0.21) * cos(z * 0.43 - x * 0.17)
+	if h > 22.3 and steep > 0.3:
+		# The volcano's peak: dark old lava rock in layers, rusty near the top
+		var vband := int(floor(h / 2.2 + 0.4 * sin(x * 0.13 + z * 0.11)))
+		var vcols := [Color(0.3, 0.24, 0.27), Color(0.4, 0.3, 0.29), Color(0.25, 0.21, 0.25), Color(0.5, 0.33, 0.27)]
+		return (vcols[posmod(vband, 4)] as Color).darkened(0.1 * grain)
 	if steep > 1.1:
 		# Banded sandstone, like the cliffs in the pictures: warm orange, red and pale layers, each band about 1.6 m
 		var band := int(floor(h / 1.6 + 0.3 * sin(x * 0.09 + z * 0.07)))
