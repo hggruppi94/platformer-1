@@ -99,6 +99,38 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-17: **Friend spots: a secret in five mended portal worlds that only a friend's move opens, and the Seam, a
+  hidden crack between two worlds** (slice 3 of the "feels bigger" plan; Hayden's rule: when a section's done, start the
+  next one from the plan). Built and tested in the cloud (own Godot user folders, no save touched). First we read
+  open-source metroidvania work (Hayden's rule): KoBeWi/Metroidvania-System (MIT: lasting ids for things that stay
+  changed, collectibles you can count) and gdquest-demos/godot-platformer-2d (MIT: a gate just asks for an ability).
+  - **`scripts/friend_spots.gd`** (no class_name, preload it; `portal_world.gd _place_shared()` calls
+    `FRIEND_SPOTS.place(self, world_id)`, so no scene was rebuilt). Only in a mended world, never on a practice trip.
+    Each spot needs a friend from ANOTHER world: **the Lonely Shard** (Shard Isle, Nina and Bruno: Make at the stone on
+    the rim and a pink and blue plank bridge builds itself up to a crystal islet 4.5 m up and 13 m out), **the Sleepy
+    Bud** (the Rootmind, Melody: Groove by it 3 times and it blooms), **the Frozen Chest** (Frozen Moment, Heather: April
+    Showers melts its ice block), **the Buried Lantern** (Lanternmoor, Bramble: Burrow into its soft soil, group
+    `soil`, and a lantern chest comes up), **the Hot Spring** (Glenmoor, Flurry: Frost breath freezes the geyser in a
+    rocky nook's mouth). A low stone with a ring in the friend's colour marks each; the friend's name shows over it
+    within 12 m. Nothing in the move scripts changed: a spot watches the moves' own counters (`made_count`, `grooves`,
+    `showers`, `huffs`, `burrow.active`).
+  - **The Friend button calls the spot's friend in** (`party.gd _who_for()`, `FriendSpots.needed_here()`, 7 m) once
+    they've joined, whoever's along, like Flurry by water; the HUD's face bubble shows who.
+  - **Rewards:** opening it is flag `friend_spot_<id>_open` (stays open); its chest, flag `friend_spot_<id>`: 10
+    sparkles and 2 Remnants once. All five: 20 sparkles and the **Friendship Circlet** hat (`cosmetics.gd`,
+    `shop/items.json`). The Bag lists them once one's found ("Friend spots: N of 5", ??? for the rest).
+  - **The Seam** (once Glenmoor and Lanternmoor are both mended): a small violet crack at the back of the Hot Spring's
+    nook goes straight to Lanternmoor, out beside the Buried Lantern (`go_through()`, `Game.go_to_point()`); the first
+    time 10 sparkles (flag `seam_found`), and from then a twin crack there leads back.
+  - Tests: new `tools/test_friend_spots.gd` (none before mending or on practice trips, one per world on the ground,
+    the chest out of reach till it opens, the Friend button calls the right friend and their real move opens it, then
+    really walks to the chest (up the bridge too), pays once, stays open next visit, the hat, the Seam both ways);
+    party, player_menu, shop (both runs), clothes, clothing_fit, peepers, portals, rootmind, frozen_moment,
+    lanternmoor, glenmoor, practice_trips, hidden_places, groove, burrow, powers and glimmer_caves pass. Pictures:
+    `tools/capture_friend_spots.gd -- <folder>` (project files, world/previews/friend_spots).
+  - My choices Hayden may change: every name and look, which friend goes where, the spots' places, the rewards and the
+    hat, which two worlds the Seam joins.
+
 - 2026-11-17: **A secret volcano tunnel and Old Ember, an optional boss inside the volcano** (Hayden: "Id love to
   have a secret volcano tunnel with an optional boss", "Volcanic themed boss that you fight inside the volcano with lava
   obstacles"). Built and tested in the cloud (own Godot user folders, no save touched). All put in at play time by

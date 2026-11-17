@@ -24,6 +24,7 @@ extends Node
 # on Earth, so their Make still works there.
 #
 # Helping out: press Friend next to water with Flurry joined and she swaps in and freezes it, whoever was with you.
+# The same by a friend spot (scripts/friend_spots.gd): the friend it needs swaps in, once they've joined.
 # In the Agent of Chaos's final fight each friend's section brings that friend along for it (bring_for(), from
 # scripts/chaos_trials.gd), whether or not they've joined.
 
@@ -46,6 +47,7 @@ const ORDER := ["nina_bruno", "bramble", "flurry", "heather", "melody"]       # 
 # The final fight's sections (scripts/chaos_trials.gd SECTIONS) that need a friend's move
 const SECTION_FRIEND := {"burrow": "bramble", "frost": "flurry", "spring": "heather", "groove": "melody"}
 const RECORD := "party_join"
+const FRIEND_SPOTS_PATH := "res://scripts/friend_spots.gd"   # (load()ed when needed: it names autoloads)
 const WATER_AHEAD := [2.0, 4.0, 6.0]           # metres in front of you Flurry looks for water to freeze
 const HINT_AFTER := 4.0                         # seconds in town before "Bramble wants a word" (once)
 const CARD_TIME := 3.5
@@ -215,6 +217,9 @@ func _who_for(player: Node) -> String:
 		return "nina_bruno" if has_joined("nina_bruno") else ""   # (only Nina and Bruno live on Earth)
 	if visiting != "":
 		return visiting
+	var spot_needs := str((load(FRIEND_SPOTS_PATH) as GDScript).call("needed_here", player as Node3D))   # a friend spot here
+	if spot_needs != "" and has_joined(spot_needs) and learned(spot_needs):
+		return spot_needs
 	if has_joined("flurry") and with_you != "flurry" and _water_ahead(player):
 		return "flurry"
 	return with_you if learned(with_you) else ""
@@ -361,7 +366,8 @@ func badge_who() -> String:
 
 
 func helper() -> String:
-	# Someone who isn't along but would answer the Friend button right here (Flurry by water), for the face bubble
+	# Someone who isn't along but would answer the Friend button right here (Flurry by water, a friend spot), for the
+	# face bubble
 	var who := _who_for(get_tree().get_first_node_in_group("player"))
 	return who if who != "" and who != badge_who() else ""
 
