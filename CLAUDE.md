@@ -99,6 +99,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Baked crystals, sailboats, dome doors, the antique car and picnic baskets in the Void** (Hayden: "what
+  about going back to baking details", then "More scenery" over the cast). Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_void.py <out.glb> crystal|sailboat|dome_door|antique_car|picnic_basket`
+    (a five-sided crystal shard with growth ledges, cloudy inclusions and a few glowing cracks, baked nearly white,
+    2k triangles onto 20; a sailboat with a planked hull, gunwales, thwarts, mast, boom, stays, rudder and tiller,
+    18k onto 690, and a mainsail and jib with seams in a second part, `sailboat_sail`, baked white; a dome door of
+    planks with iron straps and studs, a brass porthole and ring, in an arch of teal stone blocks with a keystone and
+    a step, 6.8k onto 184; the antique car with a louvred hood, a brass radiator and lamps, buttoned seats, a canvas
+    roof, a horn, spoked wheels and the spare, 17k onto 2.8k; a wicker basket with two lids, a handle and a checked
+    cloth). In `models/props/`. No "wear" on these: on smooth low-poly curves Blender's pointiness is high
+    everywhere and it washed the colours out; the sails bake without AO (their two sides shadowed each other grey).
+  - **Swapped at run time** (`detail_props.gd dress_void()`: `_crystals()`, `_sailboats()`, `_dome_doors()`,
+    `_antique_car()`, `_baskets()`): every crystal shard (201, two see-through cylinders each, so none could be merged)
+    is one MultiMesh per colour, tinted and glowing in its old colour (four draws for them all, places in meta
+    "transforms"); each boat's sail keeps its colour; the doors are found by their 1.8 x 2.6 x 0.6 "Door" box (17);
+    the car keeps its glass windscreen. Old pieces stay (layers 0, meta `detail_prop_old`), so every collision (the
+    big shards', the car's) and every dome's Door area are unchanged. The Void draws 4,228 meshes (was 6,576 with
+    the pipeline off).
+  - Tests: `test_detail_all` (201 shards in four tinted glowing MultiMeshes, no old shard drawn, 46 still solid; five
+    boats, three sail colours; 17 doors and every dome's way in; the car and its windscreen; three baskets);
+    world_detail, plant_clearance and layout pass. Pictures: `tools/capture_detail_void.gd -- <folder> [--old-props]`
+    and `tools/capture_prop_studio.gd` (project files, world/previews/detail_void).
+  - My choices Hayden may change: every look (the crystals' growth lines, opaque now where they were a little
+    see-through; the door's porthole and stone arch; the jib), which props are next.
+
 - 2026-11-17: **Friend spots: a secret in five mended portal worlds that only a friend's move opens, and the Seam, a
   hidden crack between two worlds** (slice 3 of the "feels bigger" plan; Hayden's rule: when a section's done, start the
   next one from the plan). Built and tested in the cloud (own Godot user folders, no save touched). First we read

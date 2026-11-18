@@ -179,6 +179,51 @@ func _run() -> void:
 		stalls_ok = stalls_ok and label
 	check(stalls_ok, "each stall keeps its shop spot and name, and its old pieces aren't drawn")
 
+	# The Void's batch (18 Nov 2026, tools/build_prop_void.py): crystals, sailboats, dome doors, the car, baskets
+	check(props.get("crystals", 0) >= 120, "the crystal shards are detailed (%d)" % props.get("crystals", 0))
+	var crystals := s.get_node("Crystals")
+	var tints := 0
+	var shards := 0
+	var shard_ok := true
+	for c in crystals.get_children():
+		if c is MultiMeshInstance3D:
+			tints += 1
+			var xfs: Array = c.get_meta("transforms", [])
+			shards += xfs.size()
+			var m := (c as MultiMeshInstance3D).material_override as StandardMaterial3D
+			if m == null or not m.emission_enabled or m.albedo_color.is_equal_approx(Color.WHITE):
+				shard_ok = false
+	var old_drawn := false
+	var solid := 0
+	for n in crystals.find_children("*", "", true, false):
+		if n is MeshInstance3D and (n as MeshInstance3D).layers != 0:
+			old_drawn = true
+		if n is CollisionShape3D:
+			solid += 1
+	check(tints == 4 and shards == props.get("crystals", 0) and shard_ok and not old_drawn and solid >= 40,
+		"four tinted, glowing MultiMeshes hold every shard, no old shard drawn, the big ones still solid (%d, %d)" % [tints, solid])
+	check(props.get("sailboats", 0) == 5, "the five sailboats are detailed (%d)" % props.get("sailboats", 0))
+	var sails := {}
+	for d in s.get_node("Sailboats").find_children("*", "MeshInstance3D", true, false):
+		if d.has_meta("sail_colour"):
+			sails[(d.get_meta("sail_colour") as Color).to_html()] = true
+	check(sails.size() == 3, "their sails keep their three colours (%d)" % sails.size())
+	check(props.get("doors", 0) >= 10, "every dome building's door is detailed (%d)" % props.get("doors", 0))
+	var doors_ok := true
+	for d in s.find_children("Detailed Door *", "Node3D", true, false):
+		var g := d.get_parent()
+		if g.get_node_or_null("Door") == null:
+			doors_ok = false
+	check(doors_ok, "and each dome keeps its way in")
+	var car := s.get_node("Antique Car")
+	var glass := false
+	for c in car.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).layers != 0:
+			glass = glass or (c as MeshInstance3D).material_override.resource_name == "Car Glass"
+	check(props.get("car", 0) == 1 and car.get_node_or_null("Detailed Car") != null and glass,
+		"the antique car is detailed and keeps its windscreen")
+	check(props.get("baskets", 0) == 3, "the three picnic baskets are detailed (%d)" % props.get("baskets", 0))
+
 	# The watcher: move one merged piece and its group goes back to being drawn piece by piece
 	var watch := s.get_node_or_null("Batch Watch")
 	check(watch != null and not watch.groups.is_empty(), "the Void has a Batch Watch (%d groups)" % (watch.groups.size() if watch else 0))
