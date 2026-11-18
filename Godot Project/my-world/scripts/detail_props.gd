@@ -45,6 +45,13 @@ const PALM := "res://models/props/palm.glb"
 const TIKI_TORCH := "res://models/props/tiki_torch.glb"
 const GROVE_LANTERN := "res://models/props/grove_lantern.glb"
 const SPRINGS_GATE := "res://models/props/springs_gate.glb"
+const CRYSTAL := "res://models/props/crystal.glb"
+const SAILBOAT := "res://models/props/sailboat.glb"
+const DOME_DOOR := "res://models/props/dome_door.glb"
+const ANTIQUE_CAR := "res://models/props/antique_car.glb"
+const PICNIC_BASKET := "res://models/props/picnic_basket.glb"
+const CRYSTAL_R := 0.18                # the model shard's shoulder radius; it's 1 tall (tools/build_prop_void.py CR)
+const DOME_DOOR_SIZE := Vector3(1.8, 2.6, 0.6)
 const PALM_H := 5.0                    # the model palm's height (tools/build_prop_island.py PALM_H)
 const PICKET_GAP := 0.35               # the model's picket spacing, and the builder's (_picket_fence)
 const FOUNTAINS := ["Market Square", "TownSquare"]
@@ -133,7 +140,8 @@ static func dress_earth(scene: Node) -> Dictionary:
 static func dress_void(scene: Node) -> Dictionary:
 	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
-	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0}
+	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0, "crystals": 0, "sailboats": 0, "doors": 0,
+		"car": 0, "baskets": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
@@ -144,6 +152,22 @@ static func dress_void(scene: Node) -> Dictionary:
 	var lamp := _scene(VOID_LAMP)
 	if lamp:
 		out.lamps = _void_lamps(scene, lamp)
+	# (18 Nov 2026, the Void's batch: tools/build_prop_void.py)
+	var crystal := _scene(CRYSTAL)
+	if crystal:
+		out.crystals = _crystals(scene, crystal)
+	var sailboat := _scene(SAILBOAT)
+	if sailboat:
+		out.sailboats = _sailboats(scene, sailboat)
+	var door := _scene(DOME_DOOR)
+	if door:
+		out.doors = _dome_doors(scene, door)
+	var car := _scene(ANTIQUE_CAR)
+	if car:
+		out.car = _antique_car(scene, car)
+	var basket := _scene(PICNIC_BASKET)
+	if basket:
+		out.baskets = _baskets(scene, basket)
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -848,3 +872,172 @@ static func _telescope(scene: Node, model: PackedScene) -> int:
 		holder.add_child(d)
 		return 1
 	return 0
+
+
+# ---------------------------------------------------------------- the Void's batch (18 Nov 2026)
+static func _crystals(scene: Node, model: PackedScene) -> int:
+	# The glowing crystal clusters across the Void (tools/build_town.gd _crystals): each shard is two see-through
+	# cylinders (a body r across at its shoulder, 0.65 of its height, and a point), so none of them could be merged
+	# and every one was its own draw. Each shard becomes the detailed one, scaled to its size, and every shard of one
+	# colour is one MultiMesh (four draws for the lot). The detailed shard is baked nearly white and tinted here with
+	# the old colour, glow and all. The big shards' collisions stay. Places also in meta "transforms" (for tests).
+	var g := scene.get_node_or_null("Crystals") as Node3D
+	if g == null or g.get_script() != null or g.has_node("Detailed Crystals 0"):
+		return 0
+	var mesh := _mesh_of(model)
+	if mesh == null:
+		return 0
+	var by_tint := {}          # material name -> [old material, transforms]
+	var n := 0
+	for cluster in g.get_children():
+		if not (cluster is Node3D):
+			continue
+		for shard in cluster.get_children():
+			if not (shard is Node3D) or shard is MeshInstance3D:
+				continue
+			var body: MeshInstance3D = null
+			var tip: MeshInstance3D = null
+			for c in shard.get_children():
+				var mi := c as MeshInstance3D
+				if mi == null or not (mi.mesh is CylinderMesh) or mi.has_meta(OLD_META):
+					continue
+				if is_zero_approx((mi.mesh as CylinderMesh).top_radius):
+					tip = mi
+				else:
+					body = mi
+			if body == null or tip == null:
+				continue
+			var cm := body.mesh as CylinderMesh
+			var r := cm.top_radius
+			var h := cm.height / 0.65
+			var key := _mat_name(body)
+			if not by_tint.has(key):
+				by_tint[key] = [body.material_override, []]
+			var s := r / CRYSTAL_R
+			var local: Transform3D = (cluster as Node3D).transform * (shard as Node3D).transform
+			by_tint[key][1].append(local * Transform3D(Basis.from_scale(Vector3(s, h, s)), Vector3.ZERO))
+			_hide(body)
+			_hide(tip)
+			n += 1
+	var k := 0
+	for key: String in by_tint:
+		var old := by_tint[key][0] as StandardMaterial3D
+		var xfs: Array = by_tint[key][1]
+		var mat := (mesh.surface_get_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+		mat.resource_name = "Detailed " + key
+		if old:
+			var tint := Color(old.albedo_color, 1.0)
+			mat.albedo_color = tint
+			mat.emission_enabled = true
+			mat.emission = tint
+			mat.emission_energy_multiplier = old.emission_energy_multiplier
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = mesh
+		mm.instance_count = xfs.size()
+		for i in xfs.size():
+			mm.set_instance_transform(i, xfs[i])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "Detailed Crystals %d" % k
+		mmi.multimesh = mm
+		mmi.material_override = mat
+		mmi.set_meta("transforms", xfs)
+		mmi.set_meta("tint", key)
+		g.add_child(mmi)
+		k += 1
+	return n
+
+
+static func _sailboats(scene: Node, model: PackedScene) -> int:
+	# The lake's sailboats (tools/build_town.gd _boats): a box hull and a wedge sail in one of three colours. The
+	# detailed one goes in each boat's node; its sail (material "sailboat_sail", baked white) takes the old sail's
+	# colour.
+	var g := scene.get_node_or_null("Sailboats") as Node3D
+	if g == null or g.get_script() != null:
+		return 0
+	var n := 0
+	for boat in g.get_children():
+		if not (boat is Node3D) or boat is MeshInstance3D or boat.has_node("Detailed Sailboat"):
+			continue
+		var sail_col := Color.WHITE
+		var found := false
+		for c in boat.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null:
+				continue
+			if _mat_name(mi).begins_with("Sail"):
+				sail_col = (mi.material_override as StandardMaterial3D).albedo_color
+			found = true
+			_hide(mi)
+		if not found:
+			continue
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Sailboat"
+		boat.add_child(m)
+		for mi: MeshInstance3D in m.find_children("*", "MeshInstance3D", true, false):
+			var sm := mi.mesh.surface_get_material(0) as StandardMaterial3D
+			if sm and sm.resource_name == "sailboat_sail":
+				var t := sm.duplicate() as StandardMaterial3D
+				t.albedo_color = sail_col
+				mi.set_surface_override_material(0, t)
+				mi.set_meta("sail_colour", sail_col)
+		n += 1
+	return n
+
+
+static func _dome_doors(scene: Node, model: PackedScene) -> int:
+	# The door of every dome building (tools/build_town.gd dome_building): a dark box 1.8 x 2.6 x 0.6 set into the
+	# dome. The detailed door has its front where the box's was and its foot 0.2 m under the ground, like the box's.
+	# The Door area (the way in) is a node of its own and stays.
+	var n := 0
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if not (mi.mesh is BoxMesh) or _mat_name(mi) != "Door" or mi.has_meta(OLD_META):
+			continue
+		if not (mi.mesh as BoxMesh).size.is_equal_approx(DOME_DOOR_SIZE):
+			continue
+		var parent := mi.get_parent() as Node3D
+		if parent == null or parent.get_script() != null:
+			continue
+		_hide(mi)
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Door %d" % n
+		m.transform = Transform3D(mi.basis, mi.position - mi.basis.y * (DOME_DOOR_SIZE.y / 2.0 - 0.2))
+		parent.add_child(m)
+		n += 1
+	return n
+
+
+static func _antique_car(scene: Node, model: PackedScene) -> int:
+	# The old car in the South Meadow picnic park: every piece but the see-through windscreen (kept, the model only
+	# has its frame) stops being drawn and the detailed car goes in its node. Its collision stays.
+	var g := scene.get_node_or_null("Antique Car") as Node3D
+	if g == null or g.get_script() != null or g.has_node("Detailed Car"):
+		return 0
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) != "Car Glass":
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = "Detailed Car"
+	g.add_child(m)
+	return 1
+
+
+static func _baskets(scene: Node, model: PackedScene) -> int:
+	# The picnic baskets on the South Meadow's blankets: a box 0.6 x 0.4 x 0.4, swapped for a wicker one standing
+	# where it stood, turned the same way.
+	var g := scene.get_node_or_null("South Meadow") as Node3D
+	if g == null or g.get_script() != null:
+		return 0
+	var n := 0
+	for c in g.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or not (mi.mesh is BoxMesh) or _mat_name(mi) != "Picnic Basket" or mi.has_meta(OLD_META):
+			continue
+		_hide(mi)
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Basket %d" % n
+		m.transform = Transform3D(mi.basis, mi.position - mi.basis.y * 0.2)
+		g.add_child(m)
+		n += 1
+	return n
