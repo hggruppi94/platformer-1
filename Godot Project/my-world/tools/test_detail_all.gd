@@ -317,6 +317,85 @@ func _run() -> void:
 		and run_clock.has_node("Hand") and (run_clock.get_node("Hand").get_child(0) as MeshInstance3D).layers != 0
 		and run_clock.has_node("Run Talk"), "the Skate Park's Run Clock is detailed, and its own hand still turns over the new face")
 
+	# Batch ten (18 Nov 2026, tools/build_prop_void_4.py): the Tree House, Rex and Dash's lab, the Wishing Well and
+	# the Remnant veins
+	var th := s.get_node("Tree House")
+	var th_old := 0
+	var th_hidden := 0
+	var th_leaves := 0
+	for c in th.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or mi.material_override == null:
+			continue
+		var mn := String(mi.material_override.resource_name)
+		if mn in ["Big Bark", "Tree House Wood", "Tree House Wall", "Tree House Roof"]:
+			if mi.layers != 0:
+				th_old += 1
+			elif mi.has_meta("detail_prop_old"):
+				th_hidden += 1
+		elif mn == "Big Leaves":
+			th_leaves += 1
+	var th_bodies := 0
+	for c in th.get_children():
+		if c is StaticBody3D:
+			th_bodies += 1
+	check(props.get("tree_house", 0) == 1 and th.has_node("Detailed Tree House") and th_old == 0 and th_hidden > 30
+		and th_leaves >= 20 and th_bodies >= 14 and th.has_node("Zipline") and th.has_node("Sign"),
+		"the Tree House is detailed (%d old pieces put away), and keeps its leaves, zipline, sign and all %d solid parts" % [th_hidden, th_bodies])
+	var lab := s.get_node_or_null("Rex and Dash's Lab")
+	var lab_bad := 0
+	var lab_hidden := 0
+	if lab:
+		var pieces: Array = []
+		for c in lab.get_children():
+			if c is MeshInstance3D:
+				pieces.append(c)
+			elif c is StaticBody3D:
+				for b in c.get_children():
+					if b is MeshInstance3D:
+						pieces.append(b)
+		for mi: MeshInstance3D in pieces:
+			var mat := mi.material_override as StandardMaterial3D
+			var keep := mi.has_meta("lab_keep") or (mat != null and (mat.emission_enabled
+				or mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED))
+			if keep == mi.has_meta("detail_prop_old"):
+				lab_bad += 1
+			if mi.has_meta("detail_prop_old"):
+				lab_hidden += 1
+	check(lab != null and lab.has_node("Detailed Lab") and lab.has_node("Detailed Lab Kit") and lab_bad == 0
+		and lab_hidden >= 20 and lab.find_children("*", "CollisionShape3D", true, false).size() >= 6
+		and lab.find_children("*", "Label3D", true, false).size() >= 4,
+		"Rex and Dash's lab is detailed (%d pieces put away), and keeps its glowing pods, buttons, beakers, Hound Hero, words and walls" % lab_hidden)
+	var well := s.find_child("The Wishing Well", true, false)
+	var well_ok := false
+	if well:
+		var boxes_left := 0
+		for c in well.get_children():
+			var mi := c as MeshInstance3D
+			if mi and mi.mesh is BoxMesh and mi.layers != 0 and ((mi.mesh as BoxMesh).size.y > 4.0
+					or is_equal_approx((mi.mesh as BoxMesh).size.y, 0.08)):
+				boxes_left += 1
+		var wall_mi := (well.get_node_or_null("Detailed Wall") as Node).find_children("*", "MeshInstance3D", true, false)
+		var tint: Color = (wall_mi[0] as MeshInstance3D).get_surface_override_material(0).albedo_color if wall_mi.size() > 0 else Color.BLACK
+		well_ok = boxes_left == 0 and well.has_node("Detailed Lip") and tint.is_equal_approx(Color(0.62, 0.55, 0.78)) \
+			and well.get_node("Walls").get_child_count() > 24 and well.has_node("Water")
+	check(well_ok, "the Wishing Well's wall and lip are stone blocks in its own colours, and its water, ledge and walls stay")
+	var veins := 0
+	var veins_ok := true
+	for v in s.get_node("Remnants").get_children():
+		if not String(v.name).begins_with("Vein "):
+			continue
+		veins += 1
+		var drawn := 0
+		for holder in [v, v.get_node("Crystals"), v.get_node("Stubs")]:
+			for c in holder.get_children():
+				if c is MeshInstance3D and (c as MeshInstance3D).layers != 0:
+					drawn += 1
+		if drawn != 0 or not v.has_node("Detailed Rock") or not v.has_node("Crystals/Detailed Crystals") \
+				or not v.has_node("Stubs/Detailed Stubs") or not v.has_node("Glow"):
+			veins_ok = false
+	check(veins >= 5 and veins_ok, "every Remnant vein (%d) has detailed rock, crystals and stubs, and still glows" % veins)
+
 	# The watcher: move one merged piece and its group goes back to being drawn piece by piece
 	var watch := s.get_node_or_null("Batch Watch")
 	check(watch != null and not watch.groups.is_empty(), "the Void has a Batch Watch (%d groups)" % (watch.groups.size() if watch else 0))

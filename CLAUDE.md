@@ -99,6 +99,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Baked the Tree House, Rex and Dash's lab, the deep pools' stone (the Wishing Well and the portal
+  worlds' pools) and the Remnant crystal veins** (Hayden: "Keep going", batch ten). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_void_4.py <out.glb> tree_house|lab_shed|lab_kit|pool_wall|pool_lip|vein_rock|vein_crystals|vein_stubs`
+    (the Tree House's trunk with bark ridges, roots and branches, the spiral steps on their posts, the planked deck on
+    joists and braces, the railing and the little house with siding, a planked door, shuttered windows and a shingled
+    roof, 48k triangles onto 1.5k; the lab's tiled floor, riveted panel walls with portholes, striped front posts,
+    ribbed roof, the sign's gold frame and a radar dish; the Swap-o-Tron's pod bases and caps, cables, console,
+    Dash's workbench, the chalkboard's frame and Hound Hero's gold frame; a pool's wall in courses of stone blocks and
+    its coping, baked pale and tinted by the game; a vein's glassy obsidian lumps with green flecks, its glowing
+    crystals and the snapped stubs). In `models/props/`. The low workbench keeps an open frame (a solid block baked
+    black where the high one is open), and the crystals bake without a bright core (it washed them out pale).
+  - **Swapped where they're built** (`detail_props.gd dress_tree_house()`, called by `dress_void()`; `dress_lab()` from
+    `lab.gd _place_in()`; `dress_pool()` from `sunken_secrets.gd build_pool()`, every deep pool in every world, tinted
+    in its own stone and trim colours; `dress_vein()` from `remnants.gd vein_model()`, so the portal worlds' small veins
+    too). The Tree House keeps its leaves, zipline, sign and every collision; the lab keeps its glowing pods, buttons,
+    beakers, Hound Hero (meta `lab_keep`), words and walls; the pools keep their water and ledge; the veins keep their
+    glow and swap crystals for stubs when harvested. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_all` (the Tree House, the lab, the Wishing Well and all five veins); lost_watches, time_watch,
+    sunken_secrets, farming, portals, world_detail, plant_clearance and layout pass. The Void draws 4,046 meshes
+    (6,577 with the pipeline off). Pictures: `tools/capture_detail_void_4.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_void_4).
+  - My choices Hayden may change: every look (the Tree House's shutters and shingles, the lab's radar dish, the pools'
+    stone blocks, the obsidian lumps).
+
 - 2026-11-18: **Baked Tally's request board, the race gates' start arches, the race boards, Zippy's Tune-Up and the
   Skate Run clocks** (Hayden: "Keep going", batch nine). Built and tested in the cloud (own Godot user folders, no save
   touched).

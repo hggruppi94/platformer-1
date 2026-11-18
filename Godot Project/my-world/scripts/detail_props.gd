@@ -62,6 +62,16 @@ const TUNE_UP := "res://models/props/tune_up.glb"
 const RUN_CLOCK := "res://models/props/run_clock.glb"
 const ARCH_TOWER := "res://models/props/arch_tower.glb"
 const ARCH_BANNER := "res://models/props/arch_banner.glb"
+const TREE_HOUSE := "res://models/props/tree_house.glb"
+const LAB_SHED := "res://models/props/lab_shed.glb"
+const LAB_KIT := "res://models/props/lab_kit.glb"
+const POOL_WALL := "res://models/props/pool_wall.glb"
+const POOL_LIP := "res://models/props/pool_lip.glb"
+const VEIN_ROCK := "res://models/props/vein_rock.glb"
+const VEIN_CRYSTALS := "res://models/props/vein_crystals.glb"
+const VEIN_STUBS := "res://models/props/vein_stubs.glb"
+const TREE_HOUSE_MATS := ["Big Bark", "Tree House Wood", "Tree House Wall", "Tree House Roof"]
+const LAB_KEEP := "lab_keep"           # pieces of the lab that stay as they are (scripts/lab.gd: Hound Hero's picture)
 const ARCH_BANNER_HALF := 6.2          # half the model banner's width (tools/build_prop_void_gate.py arch_banner HW)
 const CLOCK_CASE_H := 1.9              # the model clock trunk's height (tools/build_prop_void_more.py CASE_H)
 const CLOCK_HOOD_H := 0.8              # how much of each clock is its hood (scripts/bosses.gd _clock_ring)
@@ -156,7 +166,7 @@ static func dress_void(scene: Node) -> Dictionary:
 	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
 	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0, "crystals": 0, "sailboats": 0, "doors": 0,
-		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0}
+		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0, "tree_house": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
@@ -191,6 +201,9 @@ static func dress_void(scene: Node) -> Dictionary:
 	out.cogs = yard.y
 	out.boulders = dress_hollow(scene.get_node_or_null("Boulder Hollow"))
 	out.gadget_stall = dress_gadget_stall(scene.get_node_or_null("Gadget Stall"))
+	# (18 Nov 2026, batch ten: tools/build_prop_void_4.py). The lab, the Wishing Well and the Remnant veins are put in
+	# at play time and dress themselves (dress_lab, dress_pool, dress_vein).
+	out.tree_house = dress_tree_house(scene.get_node_or_null("Tree House"))
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -1267,3 +1280,139 @@ static func dress_race_gate(track: Node) -> int:
 	n += _swap_meshes(track.get_node_or_null("Race Board"), RACE_BOARD, "Detailed Board")
 	n += _swap_meshes(track.get_node_or_null("Tune-Up"), TUNE_UP, "Detailed Tune-Up")
 	return n
+
+
+# ----------------------------------------------------------------------------- batch ten (18 Nov 2026)
+static func dress_tree_house(g: Node) -> int:
+	# The Tree House (tools/build_town.gd _tree_house): the trunk, the spiral steps and their posts, the deck, the
+	# railing and the little house with its roof become one detailed model. The leaves, the zipline, the sign, and
+	# every collision (the trunk, each step, the deck, the house) stay.
+	if g == null or not on():
+		return 0
+	if g.has_node("Detailed Tree House"):
+		return 1
+	var model := _scene(TREE_HOUSE)
+	if model == null:
+		return 0
+	for c in g.get_children():
+		var mi := c as MeshInstance3D
+		if mi and _mat_name(mi) in TREE_HOUSE_MATS:
+			_hide(mi)
+	var m := model.instantiate() as Node3D
+	m.name = "Detailed Tree House"
+	g.add_child(m)
+	return 1
+
+
+static func dress_lab(lab: Node) -> int:
+	# Rex and Dash's lab (scripts/lab.gd _build): the shed (floor, walls, posts, roof, sign board, radar dish) and
+	# its kit (the Swap-o-Tron's pod bases and caps, the cables, the console, Dash's bench, the chalkboard and the
+	# picture frame). Anything that glows or is see-through (the pods' glass and coils, the buttons, the beakers),
+	# the lever (a node of its own), Hound Hero's picture, the words, lights and every collision stay.
+	if lab == null or not on():
+		return 0
+	if lab.has_node("Detailed Lab"):
+		return 1
+	var shed := _scene(LAB_SHED)
+	var kit := _scene(LAB_KIT)
+	if shed == null or kit == null:
+		return 0
+	var pieces: Array = []
+	for c in lab.get_children():
+		if c is MeshInstance3D:
+			pieces.append(c)
+		elif c is StaticBody3D:
+			for b in c.get_children():
+				if b is MeshInstance3D:
+					pieces.append(b)
+	for mi: MeshInstance3D in pieces:
+		var mat := mi.material_override as StandardMaterial3D
+		if mi.has_meta(LAB_KEEP) or (mat and (mat.emission_enabled or mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED)):
+			continue
+		_hide(mi)
+	var m := shed.instantiate() as Node3D
+	m.name = "Detailed Lab"
+	lab.add_child(m)
+	var k := kit.instantiate() as Node3D
+	k.name = "Detailed Lab Kit"
+	lab.add_child(k)
+	return 1
+
+
+static func dress_pool(pool: Node, wall_h: float, stone: Color, trim: Color) -> int:
+	# A deep pool (scripts/sunken_secrets.gd build_pool: the Wishing Well in the Void and one in five portal worlds):
+	# the ring of wall boxes and the lip on top become the detailed wall and coping, baked pale and tinted to the
+	# pool's own colours. The paving round it, the ledge, the floor, the water and every collision stay.
+	if pool == null or not on():
+		return 0
+	if pool.has_node("Detailed Wall"):
+		return 1
+	var wall_m := _scene(POOL_WALL)
+	var lip_m := _scene(POOL_LIP)
+	if wall_m == null or lip_m == null:
+		return 0
+	for c in pool.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or not mi.mesh is BoxMesh:
+			continue
+		var sz := (mi.mesh as BoxMesh).size
+		if is_equal_approx(sz.y, wall_h) or is_equal_approx(sz.y, 0.08):
+			_hide(mi)
+	var w := wall_m.instantiate() as Node3D
+	w.name = "Detailed Wall"
+	w.scale.y = wall_h / POOL_WALL_H
+	_tint(w, stone)
+	pool.add_child(w)
+	var l := lip_m.instantiate() as Node3D
+	l.name = "Detailed Lip"
+	_tint(l, trim)
+	pool.add_child(l)
+	return 1
+
+
+const POOL_WALL_H := 4.25              # the model wall's height (tools/build_prop_void_4.py WALL_H)
+
+
+static func _tint(model: Node, c: Color) -> void:
+	# The model's colours are baked pale; its own material, copied, multiplies them by c.
+	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for i in mi.get_surface_override_material_count():
+			var mat := mi.get_active_material(i) as StandardMaterial3D
+			if mat:
+				var copy := mat.duplicate() as StandardMaterial3D
+				copy.albedo_color = c
+				mi.set_surface_override_material(i, copy)
+
+
+static func dress_vein(vein: Node) -> int:
+	# A Remnant vein (scripts/remnants.gd vein_model, in the Void and the portal worlds): its obsidian lumps, its nine
+	# crystals and the stubs left once harvested. The crystals and stubs go in the vein's own "Crystals" and "Stubs"
+	# nodes, so harvesting still shows one or the other. The glow light and the collision stay.
+	if vein == null or not on():
+		return 0
+	if vein.has_node("Detailed Rock"):
+		return 1
+	var rock_m := _scene(VEIN_ROCK)
+	var crystals_m := _scene(VEIN_CRYSTALS)
+	var stubs_m := _scene(VEIN_STUBS)
+	var crystals := vein.get_node_or_null("Crystals")
+	var stubs := vein.get_node_or_null("Stubs")
+	if rock_m == null or crystals_m == null or stubs_m == null or crystals == null or stubs == null:
+		return 0
+	for c in vein.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh is SphereMesh:
+			_hide(c)
+	for holder in [crystals, stubs]:
+		for c in holder.get_children():
+			if c is MeshInstance3D:
+				_hide(c)
+	var r := rock_m.instantiate() as Node3D
+	r.name = "Detailed Rock"
+	vein.add_child(r)
+	var cr := crystals_m.instantiate() as Node3D
+	cr.name = "Detailed Crystals"
+	crystals.add_child(cr)
+	var st := stubs_m.instantiate() as Node3D
+	st.name = "Detailed Stubs"
+	stubs.add_child(st)
+	return 1

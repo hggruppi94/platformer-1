@@ -285,6 +285,7 @@ func _place_in(s: Node) -> void:
 	_scene = s
 	_lab = _build()
 	s.add_child(_lab)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_lab(_lab)     # its detailed look, if that's on
 	_lab.global_position = _ground(AT)
 	_lab.rotation.y = TURN
 	_clear_plot(s)
@@ -446,15 +447,16 @@ func _build() -> Node3D:
 
 	# A framed picture on the wall: Hound Hero, a dog who's also a hero. Has someone tried this before?
 	_box(lab, Vector3(1.3, 1.6, 0.08), Vector3(-4.6, 2.5, -4.15), _mat(Color(0.95, 0.75, 0.3), 0.4, 0.6))
-	_box(lab, Vector3(1.1, 1.4, 0.04), Vector3(-4.6, 2.5, -4.1), _mat(Color(0.55, 0.75, 1.0), 0.8))
+	_box(lab, Vector3(1.1, 1.4, 0.04), Vector3(-4.6, 2.5, -4.1), _mat(Color(0.55, 0.75, 1.0), 0.8)).set_meta("lab_keep", true)
 	var cape := MeshInstance3D.new()
 	var pm := PrismMesh.new()
 	pm.size = Vector3(0.6, 0.7, 0.02)
 	cape.mesh = pm
 	cape.material_override = _mat(Color(0.95, 0.3, 0.35), 0.7)
 	cape.position = Vector3(-4.6, 2.35, -4.07)
+	cape.set_meta("lab_keep", true)        # (the picture stays as it is when the lab gets its detailed look)
 	lab.add_child(cape)
-	_box(lab, Vector3(0.3, 0.45, 0.03), Vector3(-4.6, 2.35, -4.05), _mat(Color(0.25, 0.35, 0.8), 0.7))
+	_box(lab, Vector3(0.3, 0.45, 0.03), Vector3(-4.6, 2.35, -4.05), _mat(Color(0.25, 0.35, 0.8), 0.7)).set_meta("lab_keep", true)
 	var head := MeshInstance3D.new()
 	var hm := SphereMesh.new()
 	hm.radius = 0.17
@@ -464,6 +466,7 @@ func _build() -> Node3D:
 	head.material_override = fur
 	head.position = Vector3(-4.6, 2.78, -4.04)
 	head.scale.z = 0.3
+	head.set_meta("lab_keep", true)
 	lab.add_child(head)
 	for sx in [-1, 1]:
 		var ear := MeshInstance3D.new()
@@ -472,6 +475,7 @@ func _build() -> Node3D:
 		ear.mesh = em
 		ear.material_override = fur
 		ear.position = Vector3(-4.6 + sx * 0.13, 2.95, -4.04)
+		ear.set_meta("lab_keep", true)
 		lab.add_child(ear)
 	_label(lab, "HOUND HERO", Vector3(-4.6, 1.92, -4.05), 22, Color(0.2, 0.15, 0.3), false)
 
