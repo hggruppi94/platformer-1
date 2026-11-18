@@ -312,6 +312,23 @@ func _clear_plot(s: Node) -> void:
 				n.queue_free()
 			elif n is Light3D and _on_plot((n as Node3D).global_position, half):
 				n.queue_free()
+	# The glowing crystal clusters are scattered by the builder too (tools/build_town.gd _crystals), and one stands
+	# where the lab's floor is: its shards poked up beside the pods. A cluster on the plot is taken out whole (its
+	# collisions too), and if the detailed shards are already in (detail_props.gd _crystals, one MultiMesh per
+	# colour) its copies there are shrunk away like the trees.
+	var crystals := s.get_node_or_null("Crystals")
+	if crystals:
+		var crystal_half := half + Vector2(1.5, 1.5)          # a cluster spreads a metre or two round its middle
+		for c in crystals.get_children():
+			if c is MultiMeshInstance3D and (c as MultiMeshInstance3D).multimesh:
+				var mm := (c as MultiMeshInstance3D).multimesh
+				for i in mm.instance_count:
+					var t := mm.get_instance_transform(i)
+					if _on_plot((c as Node3D).global_transform * t.origin, crystal_half):
+						mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * 0.0001), t.origin))
+			elif c is Node3D and _on_plot((c as Node3D).global_position, crystal_half):
+				crystals.remove_child(c)
+				c.queue_free()
 
 
 func _on_plot(p: Vector3, half: Vector2) -> bool:

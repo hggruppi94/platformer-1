@@ -41,6 +41,7 @@ const POOLS := {
 }
 const POOL_R := 3.4                 # inside the wall
 const POOL_WALL := 0.5
+const LIP_TOP := 0.08                # the coping's top, over the ground's height at the pool's middle
 const POOL_DEEP := 3.6              # the water's depth (out of her depth: she swims)
 const LEDGE := 1.0                  # an inside ledge this far under the surface, to stand on and jump out from
 const SURFACE_DROP := 0.15         # the water's surface, this far under the ground
@@ -299,8 +300,10 @@ func build_pool(p: Dictionary, world: World3D, scene: Node = null) -> Node3D:
 	root.set_meta("ground", g)
 	var bed := -(POOL_DEEP + SURFACE_DROP)          # the bottom, under the ground
 	root.set_meta("bed", g + bed)
-	# The paving's heights, read before the ground's cut
-	var rim_in := POOL_R + POOL_WALL * 0.5
+	# The paving's heights, read before the ground's cut. The paving starts just outside the coping (the lip on the
+	# wall's top, POOL_WALL + 0.12 wide) and the ground's cut there too: where the ground was higher than the pool's
+	# middle, paving that started at the wall's middle covered the coping (the Wishing Well's yellow rim, 18 Nov 2026).
+	var rim_in := POOL_R + POOL_WALL + 0.06
 	var heights: Array = []
 	for i in RIM_SEGS:
 		var a := i * TAU / RIM_SEGS
@@ -328,7 +331,7 @@ func build_pool(p: Dictionary, world: World3D, scene: Node = null) -> Node3D:
 		var t := Transform3D(Basis(Vector3.UP, -a + PI * 0.5), Vector3(cos(a) * mid, -wall_h * 0.5, sin(a) * mid))
 		_box(root, body, Vector3(seg, wall_h, POOL_WALL), t, stone)
 		var lip := Transform3D(t.basis, Vector3(cos(a) * mid, 0.04, sin(a) * mid))
-		_box(root, null, Vector3(seg, 0.08, POOL_WALL + 0.12), lip, trim)
+		_box(root, null, Vector3(seg, LIP_TOP, POOL_WALL + 0.12), lip, trim)
 	_box(root, body, Vector3(POOL_R * 2.0 + 0.4, 0.5, POOL_R * 2.0 + 0.4), Transform3D(Basis(), Vector3(0, bed - 0.25, 0)), stone)
 	# The paving round it, following the ground, out over wherever the ground's edge was cut ragged
 	_rim(root, body, heights, rim_in, rim_out, (p.stone as Color).darkened(0.12))
@@ -399,7 +402,7 @@ func build_pool(p: Dictionary, world: World3D, scene: Node = null) -> Node3D:
 
 
 func _rim(root: Node3D, body: StaticBody3D, heights: Array, r_in: float, r_out: float, c: Color) -> void:
-	# A ring of paving from the wall's top out to r_out, a few centimetres over the ground it covers, with a little
+	# A ring of paving from the coping's outside edge out to r_out, a few centimetres over the ground it covers, with a little
 	# skirt down at its outside edge so it never floats. Its collision is the same triangles.
 	var rows := maxi(int(ceil((r_out - r_in) / 0.6)), 1)
 	var pts: Array = []
@@ -410,6 +413,8 @@ func _rim(root: Node3D, body: StaticBody3D, heights: Array, r_in: float, r_out: 
 			var d := lerpf(r_in, r_out, float(k) / rows)
 			var f := clampf((d - r_in) / 0.6, 0.0, RIM_ROWS - 0.001)
 			var y := lerpf(float(heights[i][int(f)]), float(heights[i][int(f) + 1]), f - int(f)) + 0.04
+			if k == 0:
+				y = minf(y, LIP_TOP - 0.01)          # its inside edge tucks in under the coping, never over it
 			row.append(Vector3(cos(a) * d, y, sin(a) * d))
 		pts.append(row)
 	var st := SurfaceTool.new()

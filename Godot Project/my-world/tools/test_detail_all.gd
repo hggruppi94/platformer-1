@@ -380,6 +380,64 @@ func _run() -> void:
 		well_ok = boxes_left == 0 and well.has_node("Detailed Lip") and tint.is_equal_approx(Color(0.62, 0.55, 0.78)) \
 			and well.get_node("Walls").get_child_count() > 24 and well.has_node("Water")
 	check(well_ok, "the Wishing Well's wall and lip are stone blocks in its own colours, and its water, ledge and walls stay")
+	# Two fixes (18 Nov 2026): the paving round every deep pool stops at the coping, under its top, and no crystal
+	# shard stands inside the lab.
+	var rims_ok := true
+	var pools := 0
+	for pool in s.find_children("*", "Node3D", true, false):
+		var pv := pool.get_node_or_null("Paving") as MeshInstance3D
+		if pv == null or not pool.has_meta("bed"):
+			continue
+		pools += 1
+		var arrays := pv.mesh.surface_get_arrays(0)
+		for v: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
+			if Vector2(v.x, v.z).length() < 3.4 + 0.5 + 0.06 - 0.01:
+				rims_ok = false
+			elif Vector2(v.x, v.z).length() < 3.4 + 0.5 + 0.07 and v.y > 0.08:
+				rims_ok = false
+	check(pools >= 1 and rims_ok, "the paving round every deep pool (%d) starts at the coping and tucks under it" % pools)
+	var crystal_in_lab := false
+	if lab:
+		var crystals_g := s.get_node("Crystals")
+		for c in crystals_g.get_children():
+			var spots: Array = []
+			if c is MultiMeshInstance3D:
+				var mm := (c as MultiMeshInstance3D).multimesh
+				for i in mm.instance_count:
+					var t := mm.get_instance_transform(i)
+					if t.basis.get_scale().y > 0.01:
+						spots.append((c as Node3D).global_transform * t.origin)
+			elif c is Node3D:
+				spots.append((c as Node3D).global_position)
+			for p: Vector3 in spots:
+				var l := (lab as Node3D).to_local(p)
+				if absf(l.x) < 7.6 and absf(l.z) < 6.1:
+					crystal_in_lab = true
+	check(lab != null and not crystal_in_lab, "no crystal shard stands inside Rex and Dash's lab")
+	# Batch eleven (18 Nov 2026, tools/build_prop_void_sports.py): the park and sports corner
+	check(props.get("hoops", 0) == 2 and props.get("tennis_net", 0) == 1 and props.get("goals", 0) == 2
+		and props.get("rock_wall", 0) == 1 and props.get("old_slide", 0) == 1,
+		"the hoops, the tennis net, the goals, the Rock Wall and the old slide are detailed (%s)" % [[props.get("hoops"),
+		props.get("tennis_net"), props.get("goals"), props.get("rock_wall"), props.get("old_slide")]])
+	var sports_drawn := 0
+	for gname in ["Basketball Court", "Tennis Court", "Soccer Field", "Rock Wall", "Old Slide"]:
+		var g := s.get_node(gname)
+		for c in g.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null or mi.layers == 0:
+				continue
+			var mn := String(mi.material_override.resource_name) if mi.material_override else ""
+			if mi.mesh is TorusMesh or mn in ["Backboard", "Net", "Goal Net", "Climbing Wall", "Crash Mat", "Old Slide Wood"]:
+				sports_drawn += 1
+	var hoops_turned := s.get_node("Basketball Court/Detailed Hoop 0") as Node3D
+	var hoops_ok := hoops_turned != null and s.has_node("Basketball Court/Detailed Hoop 1")
+	if hoops_ok:
+		var h1 := s.get_node("Basketball Court/Detailed Hoop 1") as Node3D
+		hoops_ok = signf(hoops_turned.position.x) != signf(h1.position.x) and absf(absf(h1.position.x) - 13.0) < 0.01
+	var wall_solid := s.get_node("Rock Wall").find_children("*", "CollisionShape3D", true, false).size()
+	check(sports_drawn == 0 and hoops_ok and wall_solid >= 9 and s.has_node("Old Slide/Chute")
+		and s.get_node("Soccer Field").find_children("*", "Label3D", true, false).size() >= 1,
+		"no old hoop, net, wall or slide piece is drawn, a hoop at each end, and the wall's ledges, the slide's chute and the signs stay (%d solid)" % wall_solid)
 	var veins := 0
 	var veins_ok := true
 	for v in s.get_node("Remnants").get_children():

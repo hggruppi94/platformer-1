@@ -46,6 +46,11 @@ const TIKI_TORCH := "res://models/props/tiki_torch.glb"
 const GROVE_LANTERN := "res://models/props/grove_lantern.glb"
 const SPRINGS_GATE := "res://models/props/springs_gate.glb"
 const CRYSTAL := "res://models/props/crystal.glb"
+const BASKETBALL_HOOP := "res://models/props/basketball_hoop.glb"
+const TENNIS_NET := "res://models/props/tennis_net.glb"
+const SOCCER_GOAL := "res://models/props/soccer_goal.glb"
+const ROCK_WALL := "res://models/props/rock_wall.glb"
+const OLD_SLIDE := "res://models/props/old_slide.glb"
 const SAILBOAT := "res://models/props/sailboat.glb"
 const DOME_DOOR := "res://models/props/dome_door.glb"
 const ANTIQUE_CAR := "res://models/props/antique_car.glb"
@@ -166,7 +171,8 @@ static func dress_void(scene: Node) -> Dictionary:
 	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
 	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0, "crystals": 0, "sailboats": 0, "doors": 0,
-		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0, "tree_house": 0}
+		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0, "tree_house": 0,
+		"hoops": 0, "tennis_net": 0, "goals": 0, "rock_wall": 0, "old_slide": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
@@ -204,6 +210,22 @@ static func dress_void(scene: Node) -> Dictionary:
 	# (18 Nov 2026, batch ten: tools/build_prop_void_4.py). The lab, the Wishing Well and the Remnant veins are put in
 	# at play time and dress themselves (dress_lab, dress_pool, dress_vein).
 	out.tree_house = dress_tree_house(scene.get_node_or_null("Tree House"))
+	# (18 Nov 2026, batch eleven: tools/build_prop_void_sports.py): the park and sports corner
+	var hoop := _scene(BASKETBALL_HOOP)
+	if hoop:
+		out.hoops = _hoops(scene.get_node_or_null("Basketball Court"), hoop)
+	var tnet := _scene(TENNIS_NET)
+	if tnet:
+		out.tennis_net = _tennis_net(scene.get_node_or_null("Tennis Court"), tnet)
+	var goal := _scene(SOCCER_GOAL)
+	if goal:
+		out.goals = _goals(scene.get_node_or_null("Soccer Field"), goal)
+	var wall := _scene(ROCK_WALL)
+	if wall:
+		out.rock_wall = _whole(scene.get_node_or_null("Rock Wall"), wall, "Detailed Rock Wall")
+	var slide := _scene(OLD_SLIDE)
+	if slide:
+		out.old_slide = _whole(scene.get_node_or_null("Old Slide"), slide, "Detailed Old Slide")
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -1077,6 +1099,96 @@ static func _baskets(scene: Node, model: PackedScene) -> int:
 		g.add_child(m)
 		n += 1
 	return n
+
+
+static func _hoops(court: Node3D, model: PackedScene) -> int:
+	# The basketball court's two hoops (tools/build_town.gd court()): each a post (a cylinder 3.4 tall), a backboard
+	# and a ring, at x = s * (half the court - 1). The detailed hoop faces -X from its post, so the one at -x turns
+	# round. The court, its lines and its sign stay.
+	if court == null or court.get_script() != null or court.has_node("Detailed Hoop 0"):
+		return 0
+	var n := 0
+	for c in court.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or mi.has_meta(OLD_META):
+			continue
+		if mi.mesh is CylinderMesh and is_equal_approx((mi.mesh as CylinderMesh).height, 3.4):
+			var m := model.instantiate() as Node3D
+			m.name = "Detailed Hoop %d" % n
+			m.position = Vector3(mi.position.x, 0, mi.position.z)
+			m.rotation.y = 0.0 if mi.position.x > 0.0 else PI
+			court.add_child(m)
+			n += 1
+			_hide(mi)
+		elif mi.mesh is TorusMesh or _mat_name(mi) == "Backboard":
+			_hide(mi)
+	return n
+
+
+static func _tennis_net(court: Node3D, model: PackedScene) -> int:
+	# The tennis court's net (a see-through box 0.08 thick, as long as the court is wide) and its two posts
+	# (cylinders 1.2 tall): the detailed net, 11 m long, stretched to fit.
+	if court == null or court.get_script() != null or court.has_node("Detailed Net"):
+		return 0
+	var length := 0.0
+	for c in court.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null:
+			continue
+		if mi.mesh is BoxMesh and _mat_name(mi) == "Net":
+			length = (mi.mesh as BoxMesh).size.z
+			_hide(mi)
+		elif mi.mesh is CylinderMesh and is_equal_approx((mi.mesh as CylinderMesh).height, 1.2):
+			_hide(mi)
+	if length <= 0.0:
+		return 0
+	var m := model.instantiate() as Node3D
+	m.name = "Detailed Net"
+	m.scale = Vector3(1, 1, length / 11.0)
+	court.add_child(m)
+	return 1
+
+
+static func _goals(field: Node3D, model: PackedScene) -> int:
+	# The soccer court's two goals (tools/build_town.gd _soccer_field): posts (cylinders 2.2 tall), a crossbar (6 m)
+	# and a see-through net box behind, on the goal line at x = +-15.6. The detailed goal's net reaches out to +X,
+	# so the one at -x turns round. The turf, the ball and the sign stay.
+	if field == null or field.get_script() != null or field.has_node("Detailed Goal 0"):
+		return 0
+	var lines := {}
+	for c in field.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or mi.has_meta(OLD_META):
+			continue
+		var goal_part := _mat_name(mi) == "Goal Net" or (_mat_name(mi) == "Goal Post" and mi.mesh is CylinderMesh)
+		if goal_part:
+			if _mat_name(mi) == "Goal Post":
+				lines[signf(mi.position.x)] = mi.position.x
+			_hide(mi)
+	var n := 0
+	for s: float in lines:
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Goal %d" % n
+		m.position = Vector3(lines[s], 0, 0)
+		m.rotation.y = 0.0 if s > 0.0 else PI
+		field.add_child(m)
+		n += 1
+	return n
+
+
+static func _whole(g: Node3D, model: PackedScene, name: String) -> int:
+	# A landmark built from shapes straight in its group (the Rock Wall, the old slide): every one of its own pieces
+	# stops being drawn and the detailed one goes in their place. Its sign (a node of its own) and every collision
+	# stay.
+	if g == null or g.get_script() != null or g.has_node(name):
+		return 0
+	for c in g.get_children():
+		if c is MeshInstance3D:
+			_hide(c)
+	var m := model.instantiate() as Node3D
+	m.name = name
+	g.add_child(m)
+	return 1
 
 
 # ----------------------------------------------------------------------------- more of the Void (18 Nov 2026)
