@@ -82,6 +82,7 @@ func _ready() -> void:
 	add_to_group("map_landmarks")
 	jobs.changed.connect(_refresh)
 	_refresh()
+	(load("res://scripts/detail_props.gd") as GDScript).dress_request_board(self)   # (a detailed model, when they're on)
 
 
 func _lantern() -> void:

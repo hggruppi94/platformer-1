@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Baked Tally's request board, the race gates' start arches, the race boards, Zippy's Tune-Up and the
+  Skate Run clocks** (Hayden: "Keep going", batch nine). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **New bake script** (same bake kit): `tools/build_prop_void_gate.py <out.glb> request_board|race_board|tune_up|run_clock|arch_tower|arch_banner`
+    (Tally's board in carved lilac wood with gold trim, corner scrolls and a star on each post; a race board with a
+    chequered crest; Zippy's bench with drawers, tools on a pegboard, a tyre and a crate; the Run Clock as a brass
+    pocket-watch case on a post; each start arch's towers with stone courses, gold bands, battlements, glowing slit
+    windows and a gold spire with a star, and its banner quilted, with star medallions and tassels). In `models/props/`.
+  - **Swapped where they're built** (`detail_props.gd dress_request_board()`, `dress_race_gate()`,
+    `dress_run_clock()`, called from `request_board.gd`, `race_track.gd` and `skate_runs.gd`): the arch's towers go
+    where its own towers were and the banner stretches to fit (`ARCH_BANNER_HALF`); the boards' words, the clock's
+    moving hand, Zippy's shop spot, every collision and the ground tiles are unchanged. Earth's notice board isn't
+    touched. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_all` (the board, every race gate's arch, board and Tune-Up, both Run Clocks with their hands);
+    races, race_tracks, earth_race, skate_runs, request_board, layout, world_detail, plant_clearance and dash_shop
+    pass. The Void draws 4,055 meshes (6,575 with the pipeline off). Pictures:
+    `tools/capture_detail_void_gate.gd -- <folder> [--old-props]` (project files, world/previews/detail_void_gate).
+  - My choices Hayden may change: every look (the gold trim, the arch's spires and star windows, the brass clock).
+
 - 2026-11-18: **Baked grandfather clocks and cogs in the Goblin Clockyard, Boulder Hollow's boulders, the ammo crates
   and Dash's gadget stall and workbench** (Hayden: "More scenery", batch eight). Built and tested in the cloud (own
   Godot user folders, no save touched).

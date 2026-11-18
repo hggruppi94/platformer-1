@@ -165,6 +165,7 @@ func _make_clock(id: String, park: Node3D) -> Node3D:
 	var spot := (load("res://scripts/run_spot.gd") as GDScript).new() as Area3D
 	spot.name = "Run Talk"
 	c.add_child(spot)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_run_clock(c)   # (a detailed model, when they're on)
 	return c
 
 

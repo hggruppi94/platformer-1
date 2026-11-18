@@ -80,6 +80,7 @@ func _ready() -> void:
 		_board()
 	if track.get("tune_up", false):
 		_tune_up()
+	(load("res://scripts/detail_props.gd") as GDScript).dress_race_gate(self)   # (detailed models, when they're on)
 	if hub:
 		ready_to_race = true
 		if board_text:
