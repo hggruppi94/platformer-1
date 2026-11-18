@@ -469,6 +469,7 @@ static func vein_model() -> Node3D:
 	light.omni_range = 5.0
 	light.position.y = 1.4
 	g.add_child(light)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_vein(g)       # its detailed look, if that's on
 	return g
 
 

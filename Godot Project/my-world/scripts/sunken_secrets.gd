@@ -394,6 +394,7 @@ func build_pool(p: Dictionary, world: World3D, scene: Node = null) -> Node3D:
 	var a0 := 1.6
 	sign.position = Vector3(cos(a0) * (rim_out + 0.5), 1.5, sin(a0) * (rim_out + 0.5))
 	root.add_child(sign)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_pool(root, wall_h, p.stone, p.trim)   # stone blocks
 	return root
 
 
