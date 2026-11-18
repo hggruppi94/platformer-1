@@ -104,6 +104,7 @@ func _place_clockyard(scene: Node) -> void:
 	scene.add_child(yard)
 	yard.global_position = ground(scene, CLOCKYARD.x, CLOCKYARD.y)
 	_clock_ring(yard)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_clockyard(yard)      # detailed clocks and cogs
 	var enemies := scene.find_child("Enemies", true, false)
 	var parent: Node = enemies if enemies else scene
 	var goblin := load(GOBLIN) as PackedScene
@@ -164,6 +165,7 @@ func _place_hollow(scene: Node) -> void:
 		cs.shape = ss
 		b.add_child(cs)
 		hollow.add_child(b)
+	(load("res://scripts/detail_props.gd") as GDScript).dress_hollow(hollow)       # detailed boulders
 	# The Boulderdillo itself lives in Boulder Canyon: the Canyon Mouth is in the middle of the hollow
 	_canyon_mouth(hollow)
 

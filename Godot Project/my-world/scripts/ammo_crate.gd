@@ -6,6 +6,7 @@ extends StaticBody3D
 # (and whenever the town loads again).
 
 const SIZE := 1.0
+const DETAILED := "res://models/props/ammo_crate.glb"
 
 var opened := false
 var regrow := 0.0             # over 0: back this many seconds after it's popped (boss fights' crates: Arsenal.supply_boss)
@@ -82,15 +83,23 @@ func refill() -> void:
 static func build_crate() -> Node3D:
 	# A lilac crate with gold corners, wrapped in see-through bubble wrap (rows of little domes), a gold star on top
 	var root := Node3D.new()
-	var lilac := StarPopper._mat(Color(0.62, 0.5, 0.95), 0.6)
 	var gold := StarPopper._mat(Color(1.0, 0.82, 0.3), 0.3, 0.5)
-	var box := StarPopper._part(root, BoxMesh.new(), lilac, Vector3(0, SIZE / 2.0, 0), Vector3.ZERO)
-	(box.mesh as BoxMesh).size = Vector3.ONE * SIZE * 0.96
-	for x in [-1, 1]:
-		for z in [-1, 1]:
-			var post := StarPopper._part(root, BoxMesh.new(), gold, Vector3(x, 0, z) * SIZE * 0.47 + Vector3(0, SIZE / 2.0, 0),
-				Vector3.ZERO)
-			(post.mesh as BoxMesh).size = Vector3(0.07, SIZE, 0.07)
+	# With detailed props on (WorldDetail) the crate under the wrap is the baked one (planks, brackets, rope handles:
+	# tools/build_prop_void_more.py); the wrap and the star are the same either way.
+	var detail := load("res://scripts/detail_props.gd") as GDScript
+	if detail.on() and ResourceLoader.exists(DETAILED):
+		var m := (load(DETAILED) as PackedScene).instantiate() as Node3D
+		m.name = "Detailed Crate"
+		root.add_child(m)
+	else:
+		var lilac := StarPopper._mat(Color(0.62, 0.5, 0.95), 0.6)
+		var box := StarPopper._part(root, BoxMesh.new(), lilac, Vector3(0, SIZE / 2.0, 0), Vector3.ZERO)
+		(box.mesh as BoxMesh).size = Vector3.ONE * SIZE * 0.96
+		for x in [-1, 1]:
+			for z in [-1, 1]:
+				var post := StarPopper._part(root, BoxMesh.new(), gold,
+					Vector3(x, 0, z) * SIZE * 0.47 + Vector3(0, SIZE / 2.0, 0), Vector3.ZERO)
+				(post.mesh as BoxMesh).size = Vector3(0.07, SIZE, 0.07)
 	var wrap := StarPopper._glass()
 	wrap.albedo_color = Color(0.9, 0.97, 1.0, 0.35)
 	var bump := SphereMesh.new()

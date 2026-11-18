@@ -91,6 +91,8 @@ func _ready() -> void:
 	spot.position = Vector3(0, 0, 1.4)
 	add_child(spot)
 	_workbench(wood, top, gold)
+	# With detailed props on (WorldDetail), the plain shapes give way to the baked stall and bench
+	(load("res://scripts/detail_props.gd") as GDScript).dress_gadget_stall(self)
 
 
 func _workbench(wood: Material, top: Material, gold: Material) -> void:
