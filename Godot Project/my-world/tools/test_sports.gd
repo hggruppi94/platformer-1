@@ -1,13 +1,14 @@
 extends SceneTree
 
 # Checks the sports corner's games (scripts/sports.gd): a host stands by each court on the ground, clear of anything
-# solid, and talks in short lines; each game starts with a countdown that holds you still; Hoop Shoot scores 2 and 3,
-# x2 in the air on your ride and x3 mid-trick, a miss scores nothing, off the court or too far shoots nothing, and the
-# ball always comes back; Goal Kicks: a kick at Bonk is saved, one by the post goes in, Interact kicks (and starts no
-# talk), five kicks and it's over; Tennis Rally: standing in the ring hits it back by itself, standing away misses, three
+# solid, and talks in short lines; each game starts with a countdown that holds you still; Hoop Shoot scores 2 and 3, x2
+# in the air on your ride and x3 mid-trick, a miss scores nothing, off the court or too far shoots nothing, and the ball
+# always comes back; Goal Kicks: a kick at Bonk is saved, one by the post goes in, Interact kicks (and starts no talk),
+# five kicks and it's over; Tennis Rally: standing in the ring hits it back by itself, standing away misses, three
 # misses and it's over; Rock Wall Race: the ledges are where the way stars are and you can stand on them, ringing the
-# bell gives a time; medals pay once, gold in all four wins the Champion Sweatband, best scores save and load, and
-# going somewhere else ends a game with no harm done.
+# bell gives a time; Sky Sweep (the broom sport): flying, grabbing, carrying and throwing the Sparkball through a hoop,
+# Zip and Zap swiping it and scoring, the Glimmer Moth, landing; medals pay once, gold in all four wins the Champion
+# Sweatband, best scores save and load, and going somewhere else ends a game with no harm done.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_sports.gd
 #
@@ -64,7 +65,7 @@ func _run() -> void:
 	var space := (current_scene as Node3D).get_world_3d().direct_space_state
 
 	# The hosts
-	check(sports.hosts.size() == 4, "four hosts in the Void (%d)" % sports.hosts.size())
+	check(sports.hosts.size() == 5, "five hosts in the Void (%d)" % sports.hosts.size())
 	for id in sports.GAMES:
 		var h := sports.hosts.get(id) as Node3D
 		check(h != null and h.get_node_or_null("Sports Talk") != null, "%s: %s stands by the %s with a spot to talk to" % [id,
@@ -266,6 +267,101 @@ func _run() -> void:
 	await _until(func() -> bool: return sports.state == sports.State.RESULTS, 2.0)
 	check(float(sports.best.climb) < 2.0 and int(sports.medals.climb) == 3, "a slower climb keeps your best and your medals")
 	await _until(func() -> bool: return sports.state == sports.State.IDLE, sports.RESULTS_TIME + 1.0)
+
+	# ----------------------------------------------------------------------------- Sky Sweep (the broom sport)
+	check(sports.start("broom"), "Sky Sweep starts")
+	var sw: Node3D = sports.game
+	var field: Node3D = sports.place_of("broom")
+	check(p.get("carried") == true and p.global_position.y - field.global_position.y > 4.0,
+		"...up in the air on a broom (%.1f m up)" % (p.global_position.y - field.global_position.y))
+	check(p.get_node_or_null("Visual/Broom") != null and p.find_children("Broom Seat", "", true, false).size() == 1,
+		"...with the broom under her and her legs astride it")
+	check(sw._hoop_nodes.size() == 6 and sw._hoop_nodes.all(func(h) -> bool: return h.get_parent() == sw) and sw.rivals.size() == 2, "...six gold hoops, Zip and Zap")
+	check(sw.ball_node.position.is_equal_approx(sw.CENTRE) and sw.holder == null, "...and the Sparkball waiting in the middle")
+	await _physics(int(sports.COUNTDOWN * 60) + 4)
+	check(sports.state == sports.State.PLAYING, "...GO")
+	sw.rivals_on = false
+	var y0: float = p.global_position.y
+	for i in 30:
+		sw.steer(Vector3(0, sw.CLIMB, 0), 1.0 / 60.0)
+	check(p.global_position.y > y0 + 1.0, "holding Jump flies you up (%.1f m)" % (p.global_position.y - y0))
+	for i in 240:
+		sw.steer(field.global_basis.z * sw.SPEED, 1.0 / 60.0)
+	check(absf(sw.to_local(p.global_position).z - sw.BOX_MAX.z) < 0.2, "...and you can't fly off the pitch")
+	sw.put_hero(sw.ball_node.position)
+	await _physics(2)
+	check(sw.holder == p, "flying into the Sparkball grabs it")
+	var h1: Vector3 = sw.HOOPS[1]
+	sw.put_hero(Vector3(sw.END_X - 0.6, h1.y, h1.z))
+	await _physics(1)
+	p.global_position = sw.to_global(Vector3(sw.END_X + 0.6, h1.y, h1.z)) - Vector3.UP * 0.7
+	await _physics(2)
+	check(sw.you == 1 and sw.last == "you", "carrying it through a gold hoop is a GOAL (%d)" % sw.you)
+	check(sw.holder == null and sw.ball_node.position.is_equal_approx(sw.CENTRE), "...and the Sparkball's back in the middle")
+	await _physics(80)
+	# Throwing at a hoop near enough goes in; throwing away from them doesn't
+	sw.put_hero(sw.ball_node.position)
+	await _physics(2)
+	var to_far: Vector3 = field.global_basis.x
+	sw.put_hero(Vector3(sw.END_X - 9.0, h1.y, h1.z))
+	(p.get_node("Visual") as Node3D).rotation.y = atan2(to_far.x, to_far.z)
+	await _physics(1)
+	sw.action()
+	await _physics(60)
+	check(sw.you == 2, "a throw at a hoop in front of you goes in (%d)" % sw.you)
+	await _physics(80)
+	sw.put_hero(sw.ball_node.position)
+	await _physics(2)
+	(p.get_node("Visual") as Node3D).rotation.y = atan2(-to_far.x, -to_far.z)
+	await _physics(1)
+	sw.action()
+	await _physics(60)
+	check(sw.you == 2 and sw.holder == null, "...a throw away from the hoops just floats loose")
+	# Zip swipes it, and you can take it back; and they score at your end
+	sw.put_hero(sw.ball_node.position)
+	await _physics(2)
+	sw._grace = 0.0
+	sw.rivals[0].position = sw.to_local(p.global_position + Vector3.UP * 0.7)
+	await _physics(2)
+	check(sw.holder == sw.rivals[0] and sw.last == "swiped", "Zip flying into you swipes it")
+	sw._grace = 0.0
+	sw.put_hero(sw.rivals[0].position + Vector3.UP * 0.5)
+	await _physics(2)
+	check(sw.holder == p and sw.last == "took", "...and flying into Zip takes it back")
+	sw.put_hero(Vector3(0, 12, -12))
+	sw.holder = sw.rivals[1]
+	sw.rivals[1].position = Vector3(-sw.END_X + 0.5, h1.y - 0.9, h1.z)
+	sw._ball_prev = sw.rivals[1].position + Vector3(0, 0.9, 0)
+	sw.rivals[1].position.x = -sw.END_X - 0.5
+	await _physics(2)
+	check(sw.them == 1 and sw.last == "them", "Zap flying it through a hoop at your end scores for them (%d)" % sw.them)
+	await _physics(80)
+	sw.rivals_on = true
+	await _physics(120)
+	check(sw.rivals.all(func(r) -> bool: return r.position.distance_to(sw.CENTRE) < 9.0 or sw.holder == r),
+		"Zip and Zap go after a loose Sparkball")
+	# The Glimmer Moth
+	check(sw.moth == null, "no Glimmer Moth yet")
+	sw.time = sw.TIME - sw.MOTH_AT + 0.05
+	await _physics(2)
+	check(sw.moth != null and is_instance_valid(sw.moth), "with half a minute left the Glimmer Moth comes out")
+	var at_moth: Vector3 = sw.moth.position
+	sw.put_hero(at_moth)
+	await _until(func() -> bool: return sports.state == sports.State.RESULTS, 2.0)
+	check(sw.moth_caught and sw.you == 5, "catching it is 3 goals and the match is over (%d)" % sw.you)
+	check(p.get("carried") == false and p.get_node_or_null("Visual/Broom") == null and not p.input_locked,
+		"...and you land back on the ground, off the broom")
+	var hit_g := space.intersect_ray(PhysicsRayQueryParameters3D.create(p.global_position + Vector3.UP, p.global_position + Vector3.DOWN * 2.0))
+	check(not hit_g.is_empty() and absf(hit_g.position.y - p.global_position.y) < 0.8, "...by the field, on the ground")
+	check(int(sports.medals.get("broom", 0)) == 2 and float(sports.best.broom) == 5.0, "5 goals is silver (%d)" % int(sports.medals.get("broom", 0)))
+	await _until(func() -> bool: return sports.state == sports.State.IDLE, sports.RESULTS_TIME + 1.0)
+	# Stopping halfway lands you too
+	sports.start("broom")
+	await _physics(int(sports.COUNTDOWN * 60) + 20)
+	sports._end()
+	await _physics(2)
+	check(p.get("carried") == false and p.get_node_or_null("Visual/Broom") == null and p.find_children("Broom Seat", "", true, false).is_empty(),
+		"ending it halfway puts you back on your feet")
 
 	# Saved and loaded
 	var data: Dictionary = sports.save_data()

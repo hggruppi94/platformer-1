@@ -4,7 +4,10 @@ extends SceneTree
 # shot on its way, Goal Kicks with the target and Bonk diving, Tennis Rally with the ring and Volley over the net, the
 # Rock Wall Race's way stars and bell, and a results card.
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_sports.gd -- <folder>
+#   godot --path "Godot Project/my-world" --script res://tools/capture_sports.gd -- <folder> [broom]
+#
+# With "broom" only Sky Sweep's shots are taken (the broom sport: Swoosh, flying with the Sparkball, the gold hoops,
+# Zip and Zap, the Glimmer Moth).
 #
 # Opens a window (not --headless). Your own save and settings are put aside and put back afterwards.
 
@@ -18,12 +21,14 @@ var out_dir := "user://sports_shots"
 var cam: Camera3D
 var sports: Node
 var p: CharacterBody3D
+var only_broom := false
 
 
 func _initialize() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0 and not args[0].begins_with("--"):
 		out_dir = args[0]
+	only_broom = args.has("broom")
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
 	create_timer(900.0, true, false, true).timeout.connect(_finish)
@@ -62,6 +67,11 @@ func _run() -> void:
 	cam.far = 3000
 	current_scene.add_child(cam)
 	cam.make_current()
+
+	if only_broom:
+		await _broom(game)
+		_finish()
+		return
 
 	# The hosts, from the path
 	var bb := sports.place_of("hoops") as Node3D
@@ -146,7 +156,54 @@ func _run() -> void:
 	await _physics(10)
 	await _view(climb.to_global(Vector3(4.0, 11.5, 6.0)), climb.to_global(Vector3(1.5, 10.0, 0.0)), "13_bell_on_top")
 	sports._end()
+	await _frames(4)
+	await _broom(game)
 	_finish()
+
+
+func _broom(game: Node) -> void:
+	# Sky Sweep: Swoosh by the field, then up on the broom
+	var sf := sports.place_of("broom") as Node3D
+	p.global_position = sf.to_global(Vector3(2.5, 0.6, 15.5))
+	await _view(sf.to_global(Vector3(3.5, 2.0, 16.5)), sf.to_global(Vector3(5.5, 1.2, 11.9)), "14_swoosh")
+	sports.start("broom")
+	var sw: Node3D = sports.game
+	await _skip_countdown()
+	sw.rivals_on = false
+	await _view(sw.to_global(Vector3(-20.0, 12.0, 14.0)), sw.to_global(Vector3(2.0, 8.0, 0.0)), "15_sky_sweep_pitch")
+	# Grab the Sparkball and fly at the hoops: the camera close behind her, turned the way she's going
+	sw.put_hero(sw.ball_node.position)
+	await _physics(3)
+	var to_far: Vector3 = sw.global_basis.x
+	for i in 50:
+		sw.steer(to_far * sw.SPEED + Vector3(0, 1.0, 0), 1.0 / 60.0)
+		await physics_frame
+	var me: Vector3 = p.global_position
+	await _view(me - to_far * 4.5 + sw.global_basis.z * 2.0 + Vector3(0, 1.4, 0), me + Vector3(0, 0.7, 0), "16_on_the_broom")
+	await _view(me + to_far * 3.0 + sw.global_basis.z * 2.5 + Vector3(0, 0.6, 0), me + Vector3(0, 0.7, 0), "17_broom_side")
+	# Zip and Zap chasing
+	sw.rivals[0].position = sw.to_local(me) + Vector3(-3.0, 0.2, 1.5)
+	sw.rivals[1].position = sw.to_local(me) + Vector3(-4.5, -0.5, -2.0)
+	for r in sw.rivals:
+		SportGame.face(r, me)
+	await _physics(2)
+	await _view(me + to_far * 4.0 + sw.global_basis.z * 4.0 + Vector3(0, 1.5, 0), me - to_far * 2.0, "18_zip_and_zap")
+	# Through a hoop
+	var h: Vector3 = sw.HOOPS[1]
+	sw.put_hero(Vector3(sw.END_X - 3.0, h.y, h.z + 0.3))
+	await _physics(2)
+	await _view(sw.to_global(Vector3(sw.END_X + 6.0, h.y + 1.5, h.z + 5.0)), sw.to_global(Vector3(sw.END_X - 1.5, h.y, h.z)), "19_through_the_hoop")
+	# The Glimmer Moth
+	sw.time = sw.TIME - sw.MOTH_AT + 0.05
+	await _physics(3)
+	sw.moth.position = sw.to_local(p.global_position) + Vector3(-2.5, 1.2, 1.5)
+	sw.set("_moth_to", sw.moth.position)
+	await _physics(2)
+	await _view(sw.moth.global_position + sw.global_basis.z * 3.5 + Vector3(0, 0.4, 0), sw.moth.global_position, "20_glimmer_moth")
+	sw.catch_moth()
+	await _physics(30)
+	await _view(sf.to_global(Vector3(-1.0, 3.0, 19.0)), p.global_position + Vector3(0, 1.0, 0), "21_sky_sweep_results")
+	sports._end()
 
 
 func _skip_countdown() -> void:
