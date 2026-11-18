@@ -373,6 +373,7 @@ func save_game() -> void:
 		"arsenal": Arsenal.save_data(),
 		"races": Races.save_data(),
 		"skate_runs": SkateRuns.save_data(),
+		"sports": Sports.save_data(),
 		"remnants": Remnants.save_data(),
 		"farm": Farm.save_data(),
 		"portals": Portals.save_data(),
@@ -472,6 +473,8 @@ func load_game() -> void:
 	Races.load_data(races if races is Dictionary else {})
 	var runs = data.get("skate_runs", {})                    # saves from before the skate runs have none
 	SkateRuns.load_data(runs if runs is Dictionary else {})
+	var sp = data.get("sports", {})                          # saves from before the sports corner's games have none
+	Sports.load_data(sp if sp is Dictionary else {})
 	var rem = data.get("remnants", {})                       # saves from before Remnants have none
 	Remnants.load_data(rem if rem is Dictionary else {})
 	var farm = data.get("farm", {})                          # ...and no garden yet
@@ -729,6 +732,7 @@ func _reset_state() -> void:
 	Arsenal.reset()
 	Races.reset()
 	SkateRuns.reset()
+	Sports.reset()
 	Remnants.reset()
 	Farm.reset()
 	Portals.reset()

@@ -99,6 +99,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **The Void's sports corner is four little games you can play** (Hayden: "i want to make the sports fields
+  playable minigames"; plan item 25's skateboard basketball is the first). Built and tested in the cloud (own Godot user
+  folders, no save touched). First we read open-source sports games (Hayden's rule), all MIT: nicolasbize/soccer-course
+  (ball states; a goalie steering along its line, clamped between the posts; reset, kickoff, play, scored, game over),
+  DotcYuanJia/Godot_BasketballGame (a ball moved by code along a shot worked out from a flight time and arc height) and
+  AKM-8byte/FreeKick (real drag and spin: too much for kids, not used). So every ball flies on a worked-out arc
+  (`sport_game.gd arc()`): it always lands where it's meant to and never sticks in a net.
+  - **Autoload `Sports`** (`scripts/sports.gd`): as the town loads it puts a host (a little alien with a sweatband and
+    a whistle, their best score over them, talk spot `scripts/sport_spot.gd`) by each court; nothing's in the built
+    scene. Talk, "Let's play!", a 3-2-1 that holds you still, the game, then the results card (a `RaceHud` like the
+    skate runs) and bronze/silver/gold that pay sparkles the first time. Gold in all four wins the **Champion
+    Sweatband** (`cosmetics.gd`, `shop/items.json`). Saved as `"sports"` (best, medals). While a game's on, Interact is
+    the game's and never starts a talk; a race, leaving the town or going to Earth ends it with no harm done.
+  - **Hoop Shoot** (`sport_hoops.gd`, Coach Swish, Basketball Court): one minute. Carry the ball, walk or ride anywhere
+    on the court, press Interact when the meter's needle is in the green (narrower further out). 2 points, 3 from 7 m
+    out; on your ride in the air x2, mid-flip or grab x3. The ball always comes back by itself. Medals 8/18/30.
+  - **Goal Kicks** (`sport_goals.gd`, Bonk, Soccer Field): five kicks from the spot. A target slides across the goal,
+    a bit quicker each kick; Interact kicks at it. Bonk waits 0.22 s then dives along the line (2.6 m/s, catches within
+    0.95 m), and a quarter of the time guesses the wrong way, so the corners go in. Medals 2/3/5 goals.
+  - **Tennis Rally** (`sport_tennis.gd`, Volley, Tennis Court): a ring shows where Volley's ball will bounce. Stand
+    by it and you swing and hit it back by yourself (no button, for the littlest players); Volley always returns it, a
+    little quicker. Three misses and it's over; 30 hits wins outright. Medals 5/12/20 hits.
+  - **Rock Wall Race** (`sport_climb.gd`, Peak, Rock Wall): from the crash mat, up the ledges (a glowing star over each
+    shows the way) to ring a golden bell on top. Fastest time; 90 s or wandering off and the race is off. Medals 45/25/15 s.
+  - Tests: new `tools/test_sports.gd` (hosts on the ground and clear, short lines, every game played through, the x2
+    and x3, saved and missed kicks, Interact starts no talk, rally hits and misses, the ledges solid, the bell, medals
+    once, the hat, save and load, leaving ends it); skate_runs, layout, clothes, clothing_fit and shop (both runs) pass.
+    Pictures: `tools/capture_sports.gd -- <folder>` (project files, world/previews/sports).
+  - My choices Hayden may change: the hosts' names and colours, every medal score, the rewards and the hat, auto-swing in
+    tennis, 60 s for Hoop Shoot. Still to come from plan item 25: the broom sport and a roller derby track.
+
 - 2026-11-18: **Baked the Void's sports courts, the Rock Wall and the old slide, and fixed a crystal in the lab and
   the paving over the deep pools' coping** (Hayden: "Yes fix those issues then keep going", batch eleven). Built and
   tested in the cloud (own Godot user folders, no save touched).
