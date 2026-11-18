@@ -50,6 +50,14 @@ const SAILBOAT := "res://models/props/sailboat.glb"
 const DOME_DOOR := "res://models/props/dome_door.glb"
 const ANTIQUE_CAR := "res://models/props/antique_car.glb"
 const PICNIC_BASKET := "res://models/props/picnic_basket.glb"
+const CLOCK_CASE := "res://models/props/clock_case.glb"
+const CLOCK_HOOD := "res://models/props/clock_hood.glb"
+const COG := "res://models/props/cog.glb"
+const BOULDER := "res://models/props/boulder.glb"
+const GADGET_STALL := "res://models/props/gadget_stall.glb"
+const WORKBENCH := "res://models/props/workbench.glb"
+const CLOCK_CASE_H := 1.9              # the model clock trunk's height (tools/build_prop_void_more.py CASE_H)
+const CLOCK_HOOD_H := 0.8              # how much of each clock is its hood (scripts/bosses.gd _clock_ring)
 const CRYSTAL_R := 0.18                # the model shard's shoulder radius; it's 1 tall (tools/build_prop_void.py CR)
 const DOME_DOOR_SIZE := Vector3(1.8, 2.6, 0.6)
 const PALM_H := 5.0                    # the model palm's height (tools/build_prop_island.py PALM_H)
@@ -141,7 +149,7 @@ static func dress_void(scene: Node) -> Dictionary:
 	# The Void's Market Square (16 Nov 2026, the whole game gets the treatment): its six stalls, each with its own
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
 	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0, "crystals": 0, "sailboats": 0, "doors": 0,
-		"car": 0, "baskets": 0}
+		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
@@ -168,6 +176,14 @@ static func dress_void(scene: Node) -> Dictionary:
 	var basket := _scene(PICNIC_BASKET)
 	if basket:
 		out.baskets = _baskets(scene, basket)
+	# (18 Nov 2026, more of the Void: tools/build_prop_void_more.py). The clockyard, the hollow and Dash's stall are
+	# put in by Bosses and Arsenal as the town loads, and they dress themselves too (each calls the same function),
+	# so whichever comes first, they're swapped once.
+	var yard := dress_clockyard(scene.get_node_or_null("Goblin Clockyard"))
+	out.clocks = yard.x
+	out.cogs = yard.y
+	out.boulders = dress_hollow(scene.get_node_or_null("Boulder Hollow"))
+	out.gadget_stall = dress_gadget_stall(scene.get_node_or_null("Gadget Stall"))
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -1041,3 +1057,131 @@ static func _baskets(scene: Node, model: PackedScene) -> int:
 		g.add_child(m)
 		n += 1
 	return n
+
+
+# ----------------------------------------------------------------------------- more of the Void (18 Nov 2026)
+static func on() -> bool:
+	# Whether detailed props are wanted (WorldDetail's switches). Things that build themselves at play time (the
+	# clockyard, the stall, ammo crates in any place) ask this before dressing themselves.
+	var tree := Engine.get_main_loop() as SceneTree
+	var wd: Node = tree.root.get_node_or_null("WorldDetail") if tree else null
+	return wd != null and bool(wd.get("enabled")) and bool(wd.get("detail_props"))
+
+
+static func dress_clockyard(yard: Node) -> Vector2i:
+	# The Goblin Clockyard (scripts/bosses.gd _clock_ring): each grandfather clock's trunk (a box 0.8 x h x 0.55)
+	# becomes the detailed trunk stretched to h - 0.8, with the hood on top. Its own hand stays, turning over the
+	# new face. Every cog in the grass (a cylinder 0.12 thick) becomes a detailed cog of its radius, tipped the same.
+	var n := Vector2i.ZERO
+	if yard == null or not on():
+		return n
+	var case_m := _scene(CLOCK_CASE)
+	var hood_m := _scene(CLOCK_HOOD)
+	var cog_m := _scene(COG)
+	for c in yard.get_children():
+		var clock := c as Node3D
+		if clock == null or not String(clock.name).begins_with("Clock ") or case_m == null or hood_m == null:
+			continue
+		if clock.has_node("Detailed Clock Case"):
+			n.x += 1
+			continue
+		var h := 0.0
+		for p in clock.get_children():
+			var mi := p as MeshInstance3D
+			if mi and mi.mesh is BoxMesh and is_equal_approx((mi.mesh as BoxMesh).size.x, 0.8):
+				h = (mi.mesh as BoxMesh).size.y
+		if h <= CLOCK_HOOD_H:
+			continue
+		for p in clock.get_children():
+			var mi := p as MeshInstance3D
+			if mi and not (mi.mesh is BoxMesh and (mi.mesh as BoxMesh).size.is_equal_approx(Vector3(0.04, 0.22, 0.02))):
+				_hide(mi)
+		var body := case_m.instantiate() as Node3D
+		body.name = "Detailed Clock Case"
+		body.scale = Vector3(1, (h - CLOCK_HOOD_H) / CLOCK_CASE_H, 1)
+		clock.add_child(body)
+		var hood := hood_m.instantiate() as Node3D
+		hood.name = "Detailed Clock Hood"
+		hood.position.y = h - CLOCK_HOOD_H
+		clock.add_child(hood)
+		n.x += 1
+	if cog_m == null:
+		return n
+	for c in yard.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or not (mi.mesh is CylinderMesh) or absf((mi.mesh as CylinderMesh).height - 0.12) > 0.001:
+			continue
+		if not mi.has_meta(OLD_META):
+			_hide(mi)
+			var r := (mi.mesh as CylinderMesh).top_radius
+			var m := cog_m.instantiate() as Node3D
+			m.name = "Detailed Cog %d" % n.y
+			m.transform = Transform3D(mi.basis * Basis.from_scale(Vector3(r, 1, r)), mi.position)
+			yard.add_child(m)
+		n.y += 1
+	return n
+
+
+static func dress_hollow(hollow: Node) -> int:
+	# Boulder Hollow (scripts/bosses.gd _place_hollow): each boulder (a squashed ball of radius r, tipped every which
+	# way, and its moss cap) becomes a detailed boulder of that size turned the same way round, mossy on top. Its
+	# collision ball stays.
+	var n := 0
+	var model := _scene(BOULDER)
+	if hollow == null or model == null or not on():
+		return n
+	for c in hollow.get_children():
+		var b := c as Node3D
+		if b == null or not String(b.name).begins_with("Boulder "):
+			continue
+		if b.has_node("Detailed Boulder"):
+			n += 1
+			continue
+		var r := 0.0
+		var yaw := 0.0
+		for p in b.get_children():
+			var mi := p as MeshInstance3D
+			if mi == null or not (mi.mesh is SphereMesh):
+				continue
+			var sm := mi.mesh as SphereMesh
+			if is_equal_approx(sm.height, sm.radius * 1.6):
+				r = sm.radius
+				yaw = mi.rotation.y
+			_hide(mi)
+		if r <= 0.0:
+			continue
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Boulder"
+		m.rotation.y = yaw
+		m.scale = Vector3.ONE * r
+		b.add_child(m)
+		n += 1
+	return n
+
+
+static func dress_gadget_stall(stall: Node) -> int:
+	# Dash's gadget stall and his workbench (scripts/gadget_stall.gd): the counter, posts, awning, scallops and sign
+	# board, and the bench, pegboard, awning, vice and tools, all made of plain shapes, become one detailed model
+	# each. His gadgets on the counter, the bits on the bench, the light, both labels, the collisions and the shop
+	# spots are kept.
+	if stall == null or not on() or stall.has_node("Detailed Stall"):
+		return 1 if stall != null and stall.has_node("Detailed Stall") else 0
+	var stall_m := _scene(GADGET_STALL)
+	var bench_m := _scene(WORKBENCH)
+	if stall_m == null:
+		return 0
+	for c in stall.get_children():
+		if c is MeshInstance3D:
+			_hide(c)
+	var m := stall_m.instantiate() as Node3D
+	m.name = "Detailed Stall"
+	stall.add_child(m)
+	var bench := stall.get_node_or_null("Workbench")
+	if bench and bench_m:
+		for c in bench.get_children():
+			if c is MeshInstance3D:
+				_hide(c)
+		var b := bench_m.instantiate() as Node3D
+		b.name = "Detailed Workbench"
+		bench.add_child(b)
+	return 1

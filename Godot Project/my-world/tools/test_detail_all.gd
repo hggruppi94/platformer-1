@@ -224,6 +224,65 @@ func _run() -> void:
 		"the antique car is detailed and keeps its windscreen")
 	check(props.get("baskets", 0) == 3, "the three picnic baskets are detailed (%d)" % props.get("baskets", 0))
 
+	# More of the Void (18 Nov 2026, tools/build_prop_void_more.py): the clockyard, Boulder Hollow, the ammo crates
+	# and Dash's stall
+	check(props.get("clocks", 0) == 7 and props.get("cogs", 0) == 9,
+		"the clockyard's 7 clocks and 9 cogs are detailed (%d, %d)" % [props.get("clocks", 0), props.get("cogs", 0)])
+	var yard := s.get_node("Goblin Clockyard")
+	var clocks_ok := true
+	for k in 7:
+		var gclock := yard.get_node("Clock %d" % k)
+		var case := gclock.get_node_or_null("Detailed Clock Case") as Node3D
+		var hood := gclock.get_node_or_null("Detailed Clock Hood") as Node3D
+		var hand_drawn := false
+		var clock_old := false
+		var h := 0.0
+		for c in gclock.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null:
+				continue
+			var size := (mi.mesh as BoxMesh).size if mi.mesh is BoxMesh else Vector3.ZERO
+			if size.is_equal_approx(Vector3(0.04, 0.22, 0.02)):
+				hand_drawn = mi.layers != 0
+			elif mi.layers != 0:
+				clock_old = true
+			if is_equal_approx(size.x, 0.8):
+				h = size.y
+		var body := gclock.find_children("*", "CollisionShape3D", true, false)
+		clocks_ok = clocks_ok and case != null and hood != null and hand_drawn and not clock_old and body.size() == 1 \
+			and is_equal_approx(hood.position.y, h - 0.8) and is_equal_approx(case.scale.y, (h - 0.8) / 1.9)
+	check(clocks_ok, "each clock's trunk is stretched to fit under its hood, the old pieces aren't drawn, its own hand"
+		+ " still turns over the new face, and it's still solid")
+	check(props.get("boulders", 0) == 12, "Boulder Hollow's 12 boulders are detailed (%d)" % props.get("boulders", 0))
+	var rocks_ok := true
+	for b in s.get_node("Boulder Hollow").get_children():
+		if not String(b.name).begins_with("Boulder "):
+			continue
+		var m := b.get_node_or_null("Detailed Boulder") as Node3D
+		var shape := (b.get_node("CollisionShape3D") if b.has_node("CollisionShape3D") else
+			b.find_children("*", "CollisionShape3D", false, false)[0]) as CollisionShape3D
+		var r := (shape.shape as SphereShape3D).radius / 0.85
+		rocks_ok = rocks_ok and m != null and is_equal_approx(m.scale.x, r)
+	check(rocks_ok, "each boulder is its own size and still solid")
+	var crates := 0
+	var crates_old := 0
+	for c in s.get_tree().get_nodes_in_group("ammo_crates"):
+		if c.find_child("Detailed Crate", true, false) != null:
+			crates += 1
+		for mi in c.find_children("*", "MeshInstance3D", true, false):
+			if (mi as MeshInstance3D).mesh is BoxMesh:
+				crates_old += 1
+	check(crates >= 10 and crates_old == 0, "every ammo crate is the detailed one under its bubble wrap (%d)" % crates)
+	var gadget := s.get_node("Gadget Stall")
+	var stall_old := false
+	for c in gadget.get_children() + gadget.get_node("Workbench").get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).layers != 0:
+			stall_old = true
+	check(props.get("gadget_stall", 0) == 1 and gadget.has_node("Detailed Stall")
+		and gadget.has_node("Workbench/Detailed Workbench") and not stall_old
+		and gadget.has_node("Gadget Shop Spot") and gadget.has_node("Sign"),
+		"Dash's stall and workbench are detailed, and keep their sign, his gadgets and the way to shop")
+
 	# The watcher: move one merged piece and its group goes back to being drawn piece by piece
 	var watch := s.get_node_or_null("Batch Watch")
 	check(watch != null and not watch.groups.is_empty(), "the Void has a Batch Watch (%d groups)" % (watch.groups.size() if watch else 0))

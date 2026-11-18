@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Baked grandfather clocks and cogs in the Goblin Clockyard, Boulder Hollow's boulders, the ammo crates
+  and Dash's gadget stall and workbench** (Hayden: "More scenery", batch eight). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_void_more.py <out.glb> clock_case|clock_hood|cog|boulder|ammo_crate|gadget_stall|workbench`
+    (a grandfather clock's trunk in grained wood with panels, mouldings and a brass pendulum window, and its hood: a
+    cream face with Roman ticks and gold stars in a brass bezel, a bonnet with finials, glowing a little; a toothed
+    brass cog; a lumpy lilac boulder with banding, specks and moss on top; a bubble-wrapped crate with planks, straps
+    and brass corners; Dash's stall with star panels, gold trim and a striped awning; his workbench with drawers,
+    tools and a vice). In `models/props/`. The bezel is a closed wire, not a lathe (a lathe's cap covered the face).
+  - **Swapped where they're built** (`detail_props.gd dress_clockyard()`, `dress_hollow()`, `dress_gadget_stall()`,
+    called from `bosses.gd` and `gadget_stall.gd` as each is put in, and again from `dress_void()`; `ammo_crate.gd`
+    uses the model when `WorldDetail` is on): each clock's case is stretched to its own height and its hood sits on
+    top, its moving hand still drawn; the cogs keep their size and tilt; each boulder keeps its size and turn. Old
+    pieces stay (layers 0, meta `detail_prop_old`), so every collision, the stall's shop spot and sign are unchanged.
+  - Tests: `test_detail_all` (7 clocks with hands, 9 cogs, 12 boulders sized, 10 crates with no old box, the stall
+    and bench); world_detail, plant_clearance, layout, arsenal, time_goblins, boss_versions, boss_lairs and dash_shop
+    pass. The Void draws 4,114 meshes (6,505 with the pipeline off). Pictures:
+    `tools/capture_detail_void_more.gd -- <folder> [--old-props]` (project files, world/previews/detail_void_more).
+  - My choices Hayden may change: every look (the clock's stars, the boulders' moss, the stall's star panels).
+
 - 2026-11-18: **Baked crystals, sailboats, dome doors, the antique car and picnic baskets in the Void** (Hayden: "what
   about going back to baking details", then "More scenery" over the cast). Built and tested in the cloud (own Godot
   user folders, no save touched).
