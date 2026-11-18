@@ -234,6 +234,14 @@ static func hat(id: String) -> Node3D:
 					_mesh(h, _cyl(0.0, 0.035, 0.22 - k * 0.03, 6), fire, Vector3(side * 0.24, up, -0.02 - k * 0.02),
 						Vector3(0, 0, -side * (1.1 - k * 0.25)))
 					_mesh(h, _sphere(0.025), tip, Vector3(side * (0.34 - k * 0.02), up + 0.05 + k * 0.03, -0.02 - k * 0.02))
+		"champion_sweatband":
+			# For gold in all four of the sports corner's games (scripts/sports.gd): a stripy sweatband with a gold star
+			# on the front
+			_mesh(h, _torus(0.215, 0.26), _mat(Color(0.98, 0.98, 1.0)), Vector3(0, 0.0, 0), Vector3.ZERO, Vector3(1, 1.6, 1))
+			for k in 2:
+				_mesh(h, _torus(0.25, 0.262), _mat(Color(1.0, 0.45, 0.25) if k == 0 else Color(0.35, 0.6, 1.0)),
+					Vector3(0, -0.025 + k * 0.05, 0))
+			_mesh(h, _sphere(0.05), _mat(Color(1.0, 0.82, 0.3), 1.2, 0.6), Vector3(0, 0.0, 0.26), Vector3.ZERO, Vector3(1, 1, 0.4))
 		"friendship_circlet":
 			# For opening every friend spot: a thin silver circlet with a little gem in each friend's colour
 			_mesh(h, _torus(0.215, 0.24), _mat(Color(0.86, 0.86, 0.95), 0.2, 0.8), Vector3(0, 0.0, 0))

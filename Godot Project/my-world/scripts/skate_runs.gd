@@ -234,7 +234,7 @@ func _player() -> Node3D:
 
 func start(id: String) -> bool:
 	var p := _player()
-	if running() or Races.racing() or not clocks.has(id) or p == null or not Game.has_item("skateboard"):
+	if running() or Races.racing() or Sports.running() or not clocks.has(id) or p == null or not Game.has_item("skateboard"):
 		return false
 	if not Game.riding:
 		Game.riding = true

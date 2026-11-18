@@ -79,6 +79,7 @@
     {"id": "starhorn_antlers", "name": "Starhorn Antlers", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming the Starhorn at the top of the Skyreach Trail"},
     {"id": "friendship_circlet", "name": "Friendship Circlet", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For opening every friend spot with your friends' help"},
     {"id": "ember_frills", "name": "Ember Frills", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming Old Ember deep in Rhythm Springs' volcano"},
+    {"id": "champion_sweatband", "name": "Champion Sweatband", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For gold in all four games in the sports corner"},
     {"id": "starfinder_hat", "name": "Starfinder Hat", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For finding every hidden place in the Void"},
     {"id": "wanderer_hat", "name": "Wanderer's Hat", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For finding every hidden place in Stars Hollow"},
     {"id": "lantern_hat", "name": "Lantern Hat", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "First prize for winning the Hollow Run. Its little lantern never goes out"},

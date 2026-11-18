@@ -60,6 +60,7 @@ Party="*res://scripts/party.gd"
 Paint="*res://scripts/paint.gd"
 WorldDetail="*res://scripts/world_detail.gd"
 Hidden="*res://scripts/hidden_places.gd"
+Sports="*res://scripts/sports.gd"
 
 [display]
 
