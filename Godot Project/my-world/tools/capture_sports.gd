@@ -6,7 +6,7 @@ extends SceneTree
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_sports.gd -- <folder> [broom]
 #
-# With "broom" only Sky Sweep's shots are taken (the broom sport: Swoosh, flying with the Sparkball, the gold hoops,
+# With "broom" only Sky Sweep's shots are taken (the flying sport: Swoosh, flying a rocket board with the Sparkball, the gold hoops,
 # Zip and Zap, the Glimmer Moth).
 #
 # Opens a window (not --headless). Your own save and settings are put aside and put back afterwards.
@@ -162,7 +162,7 @@ func _run() -> void:
 
 
 func _broom(game: Node) -> void:
-	# Sky Sweep: Swoosh by the field, then up on the broom
+	# Sky Sweep: Swoosh by the field, then up on a rocket board
 	var sf := sports.place_of("broom") as Node3D
 	p.global_position = sf.to_global(Vector3(2.5, 0.6, 15.5))
 	await _view(sf.to_global(Vector3(3.5, 2.0, 16.5)), sf.to_global(Vector3(5.5, 1.2, 11.9)), "14_swoosh")
@@ -179,8 +179,8 @@ func _broom(game: Node) -> void:
 		sw.steer(to_far * sw.SPEED + Vector3(0, 1.0, 0), 1.0 / 60.0)
 		await physics_frame
 	var me: Vector3 = p.global_position
-	await _view(me - to_far * 4.5 + sw.global_basis.z * 2.0 + Vector3(0, 1.4, 0), me + Vector3(0, 0.7, 0), "16_on_the_broom")
-	await _view(me + to_far * 3.0 + sw.global_basis.z * 2.5 + Vector3(0, 0.6, 0), me + Vector3(0, 0.7, 0), "17_broom_side")
+	await _view(me - to_far * 4.5 + sw.global_basis.z * 2.0 + Vector3(0, 1.4, 0), me + Vector3(0, 0.7, 0), "16_on_the_board")
+	await _view(me + to_far * 3.0 + sw.global_basis.z * 2.5 + Vector3(0, 0.6, 0), me + Vector3(0, 0.7, 0), "17_board_side")
 	# Zip and Zap chasing
 	sw.rivals[0].position = sw.to_local(me) + Vector3(-3.0, 0.2, 1.5)
 	sw.rivals[1].position = sw.to_local(me) + Vector3(-4.5, -0.5, -2.0)

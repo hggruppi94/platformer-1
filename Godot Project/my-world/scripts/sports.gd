@@ -11,8 +11,8 @@ extends Node
 #   tennis  Tennis Rally, the Tennis Court, with Volley: a ring shows where Volley's ball will land. Stand in it and
 #           you hit it back by yourself. Three balls; how long a rally can you keep up?
 #   climb   Rock Wall Race, the Rock Wall, with Peak: climb to the top and ring the bell, as fast as you can.
-#   broom   Sky Sweep, in the sky over the Soccer Field, with Swoosh: the broom sport (Hayden, 18 Nov 2026: "reminiscent
-#           of quidditch", our own game). Fly a broom, carry the Sparkball through a gold hoop, keep it from Zip and
+#   broom   Sky Sweep, in the sky over the Soccer Field, with Swoosh: the flying sport (Hayden, 18 Nov 2026: "reminiscent
+#           of quidditch", our own game, on the Rocket Board, not a broom). Fly, carry the Sparkball through a gold hoop, keep it from Zip and
 #           Zap, and catch the Glimmer Moth at the end for 3. (Plan item 25's roller derby was dropped: "more like the
 #           races we already have".)
 #
@@ -63,7 +63,7 @@ const GAMES := {
 	"broom": {"name": "Sky Sweep", "place": "Soccer Field", "script": "res://scripts/sport_broom.gd",
 		"host": "Swoosh", "alien": "pink", "at": Vector3(5.5, 0, 11.9), "face": 0.0,
 		"medals": [["Bronze", 2, 3], ["Silver", 4, 5], ["Gold", 7, 8]], "unit": "goals",
-		"lines": ["SKY SWEEP! Hop on a broom!", "Fly the Sparkball through a gold hoop.", "Catch the Glimmer Moth for 3!"]},
+		"lines": ["SKY SWEEP! Hop on a rocket board!", "Fly the Sparkball through a gold hoop.", "Catch the Glimmer Moth for 3!"]},
 }
 const SWEATBAND_GAMES := ["hoops", "goals", "tennis", "climb"]   # gold in these four wins the Champion Sweatband
 const MEDAL_COLOURS := [Color(0.85, 0.55, 0.3), Color(0.85, 0.9, 1.0), Color(1.0, 0.82, 0.3)]

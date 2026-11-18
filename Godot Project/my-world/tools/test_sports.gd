@@ -6,7 +6,7 @@ extends SceneTree
 # always comes back; Goal Kicks: a kick at Bonk is saved, one by the post goes in, Interact kicks (and starts no talk),
 # five kicks and it's over; Tennis Rally: standing in the ring hits it back by itself, standing away misses, three
 # misses and it's over; Rock Wall Race: the ledges are where the way stars are and you can stand on them, ringing the
-# bell gives a time; Sky Sweep (the broom sport): flying, grabbing, carrying and throwing the Sparkball through a hoop,
+# bell gives a time; Sky Sweep (the flying sport, on a rocket board): flying, grabbing, carrying and throwing the Sparkball through a hoop,
 # Zip and Zap swiping it and scoring, the Glimmer Moth, landing; medals pay once, gold in all four wins the Champion
 # Sweatband, best scores save and load, and going somewhere else ends a game with no harm done.
 #
@@ -268,14 +268,15 @@ func _run() -> void:
 	check(float(sports.best.climb) < 2.0 and int(sports.medals.climb) == 3, "a slower climb keeps your best and your medals")
 	await _until(func() -> bool: return sports.state == sports.State.IDLE, sports.RESULTS_TIME + 1.0)
 
-	# ----------------------------------------------------------------------------- Sky Sweep (the broom sport)
+	# ----------------------------------------------------------------------------- Sky Sweep (the flying sport, on a rocket board)
 	check(sports.start("broom"), "Sky Sweep starts")
 	var sw: Node3D = sports.game
 	var field: Node3D = sports.place_of("broom")
 	check(p.get("carried") == true and p.global_position.y - field.global_position.y > 4.0,
-		"...up in the air on a broom (%.1f m up)" % (p.global_position.y - field.global_position.y))
-	check(p.get_node_or_null("Visual/Broom") != null and p.find_children("Broom Seat", "", true, false).size() == 1,
-		"...with the broom under her and her legs astride it")
+		"...up in the air on a rocket board (%.1f m up)" % (p.global_position.y - field.global_position.y))
+	var rb := p.get_node_or_null("Visual/Rocket Board") as Node3D
+	check(rb != null and rb.find_child("Flames", true, false) != null and not (p.get("board") as Node3D).visible,
+		"...standing on a Rocket Board with its rockets lit (her own ride put away)")
 	check(sw._hoop_nodes.size() == 6 and sw._hoop_nodes.all(func(h) -> bool: return h.get_parent() == sw) and sw.rivals.size() == 2, "...six gold hoops, Zip and Zap")
 	check(sw.ball_node.position.is_equal_approx(sw.CENTRE) and sw.holder == null, "...and the Sparkball waiting in the middle")
 	await _physics(int(sports.COUNTDOWN * 60) + 4)
@@ -349,8 +350,8 @@ func _run() -> void:
 	sw.put_hero(at_moth)
 	await _until(func() -> bool: return sports.state == sports.State.RESULTS, 2.0)
 	check(sw.moth_caught and sw.you == 5, "catching it is 3 goals and the match is over (%d)" % sw.you)
-	check(p.get("carried") == false and p.get_node_or_null("Visual/Broom") == null and not p.input_locked,
-		"...and you land back on the ground, off the broom")
+	check(p.get("carried") == false and p.get_node_or_null("Visual/Rocket Board") == null and not p.input_locked,
+		"...and you land back on the ground, off the board")
 	var hit_g := space.intersect_ray(PhysicsRayQueryParameters3D.create(p.global_position + Vector3.UP, p.global_position + Vector3.DOWN * 2.0))
 	check(not hit_g.is_empty() and absf(hit_g.position.y - p.global_position.y) < 0.8, "...by the field, on the ground")
 	check(int(sports.medals.get("broom", 0)) == 2 and float(sports.best.broom) == 5.0, "5 goals is silver (%d)" % int(sports.medals.get("broom", 0)))
@@ -360,7 +361,7 @@ func _run() -> void:
 	await _physics(int(sports.COUNTDOWN * 60) + 20)
 	sports._end()
 	await _physics(2)
-	check(p.get("carried") == false and p.get_node_or_null("Visual/Broom") == null and p.find_children("Broom Seat", "", true, false).is_empty(),
+	check(p.get("carried") == false and p.get_node_or_null("Visual/Rocket Board") == null and is_equal_approx((p.get("model") as Node3D).rotation.y, 0.0),
 		"ending it halfway puts you back on your feet")
 
 	# Saved and loaded
