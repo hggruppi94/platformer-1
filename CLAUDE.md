@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Sky Sweep, the broom sport** (Hayden: "the broom sport is reminiscent of quidditxh from Harry potter,
+  and we can scrap the roller derby since thats more like the races we already have"). Our own game, names and look
+  (nothing from the books). Built and tested in the cloud (own Godot user folders, no save touched). First we read
+  open-source broom and flying games (Hayden's rule): jacobbabula/retro-quidditch (no licence, so ideas only: a ball you
+  carry, three hoops a side, rivals that chase whoever has it, a golden flier near the end that finishes the match) and
+  mlavik1/GodotSimpleAirplaneController (MIT: easing to a speed, a bank into turns that eases back level).
+  - **`scripts/sport_broom.gd`** (the fifth game in `Sports.GAMES`, id `broom`, host **Swoosh**, a pink little alien by
+    the Soccer Field): played in the sky over the field. You're up on a broom (`carried`, so player.gd leaves her be; a
+    `Seat` SkeletonModifier3D sits her legs astride it). Fly where the camera looks, hold Jump to go up, Roll to go
+    down; it stops when you let go and you can't leave the pitch (`BOX_MIN`/`BOX_MAX`). Grab the glowing **Sparkball**
+    and carry it through one of the three gold hoops at the far end, or press Interact to throw it (within 15 m of a
+    hoop in front it always goes in). **Zip and Zap** (little aliens on brooms, a bit slower than you, quicker on Pro)
+    chase it, swipe it from you and fly it through the hoops at your end; fly into them to take it back. With 30 s of
+    the 90 left the **Glimmer Moth** flutters out: catch it for 3 goals and the match ends. Medals 2/4/7 goals. The
+    Champion Sweatband still needs gold in the four games on the ground (`Sports.SWEATBAND_GAMES`).
+  - Tests: `tools/test_sports.gd` (100 checks: flying, the pitch's edge, grabbing, carrying and throwing through a hoop,
+    a throw away floating loose, swiping and taking back, the rivals scoring, the moth, landing on the ground after and
+    when stopped halfway). Pictures: `tools/capture_sports.gd -- <folder> [broom]` (project files,
+    world/previews/sports/broom).
+  - My choices Hayden may change: the names (Sky Sweep, Swoosh, Sparkball, Zip and Zap, Glimmer Moth), 90 s, 3 goals
+    for the moth and that it ends the match, the medal scores, the pitch over the Soccer Field.
+
 - 2026-11-18: **The Void's sports corner is four little games you can play** (Hayden: "i want to make the sports fields
   playable minigames"; plan item 25's skateboard basketball is the first). Built and tested in the cloud (own Godot user
   folders, no save touched). First we read open-source sports games (Hayden's rule), all MIT: nicolasbize/soccer-course
@@ -128,7 +150,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     once, the hat, save and load, leaving ends it); skate_runs, layout, clothes, clothing_fit and shop (both runs) pass.
     Pictures: `tools/capture_sports.gd -- <folder>` (project files, world/previews/sports).
   - My choices Hayden may change: the hosts' names and colours, every medal score, the rewards and the hat, auto-swing in
-    tennis, 60 s for Hoop Shoot. Still to come from plan item 25: the broom sport and a roller derby track.
+    tennis, 60 s for Hoop Shoot. The broom sport came next (above); the roller derby was dropped.
 
 - 2026-11-18: **Baked the Void's sports courts, the Rock Wall and the old slide, and fixed a crystal in the lab and
   the paving over the deep pools' coping** (Hayden: "Yes fix those issues then keep going", batch eleven). Built and

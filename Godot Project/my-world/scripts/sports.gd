@@ -1,6 +1,6 @@
 extends Node
 
-# Autoload "Sports": the Void's sports corner (Sports & Play, south-east of town) as four little games you can play.
+# Autoload "Sports": the Void's sports corner (Sports & Play, south-east of town) as five little games you can play.
 # Hayden (18 Nov 2026): "i want to make the sports fields playable minigames". Plan item 25 asked for skateboard
 # basketball where tricks make shots worth more; that's Hoop Shoot.
 #
@@ -11,6 +11,10 @@ extends Node
 #   tennis  Tennis Rally, the Tennis Court, with Volley: a ring shows where Volley's ball will land. Stand in it and
 #           you hit it back by yourself. Three balls; how long a rally can you keep up?
 #   climb   Rock Wall Race, the Rock Wall, with Peak: climb to the top and ring the bell, as fast as you can.
+#   broom   Sky Sweep, in the sky over the Soccer Field, with Swoosh: the broom sport (Hayden, 18 Nov 2026: "reminiscent
+#           of quidditch", our own game). Fly a broom, carry the Sparkball through a gold hoop, keep it from Zip and
+#           Zap, and catch the Glimmer Moth at the end for 3. (Plan item 25's roller derby was dropped: "more like the
+#           races we already have".)
 #
 # Before writing this we read open-source sports games (Hayden's rule), all MIT: nicolasbize/soccer-course (the ball's
 # states, carried, loose and shot; the goalie steering along its goal line towards the ball, clamped between the
@@ -21,10 +25,11 @@ extends Node
 # the same every time, never stuck in a net, and easy to test.
 #
 # Each game is a node of its own put on its court while it's played (sport_hoops.gd, sport_goals.gd, sport_tennis.gd,
-# sport_climb.gd, all built on sport_game.gd). This autoload puts each host and their talk spot up as the town loads
-# (nothing's in the built scene), runs the countdown, the results and the medals, and saves the best scores. Each game
-# has a bronze, silver and gold; the first time you reach each one it pays sparkles, and gold in all four wins the
-# Champion Sweatband. The words are short (Hayden's less-reading rule) and nothing waits on the clock.
+# sport_climb.gd, sport_broom.gd, all built on sport_game.gd). This autoload puts each host and their talk spot up as
+# the town loads (nothing's in the built scene), runs the countdown, the results and the medals, and saves the best
+# scores. Each game has a bronze, silver and gold; the first time you reach each one it pays sparkles, and gold in the
+# four on the ground wins the Champion Sweatband. The words are short (Hayden's less-reading rule) and nothing waits on
+# the clock.
 
 signal finished(game_id: String, score: float)
 
@@ -55,7 +60,12 @@ const GAMES := {
 		"host": "Peak", "alien": "purple", "at": Vector3(-6.4, 0, 3.6), "face": 0.0, "low": true,
 		"medals": [["Bronze", 45, 3], ["Silver", 25, 5], ["Gold", 15, 8]], "unit": "seconds",
 		"lines": ["ROCK WALL RACE!", "Jump up the ledges.", "Ring the bell on top!"]},
+	"broom": {"name": "Sky Sweep", "place": "Soccer Field", "script": "res://scripts/sport_broom.gd",
+		"host": "Swoosh", "alien": "pink", "at": Vector3(5.5, 0, 11.9), "face": 0.0,
+		"medals": [["Bronze", 2, 3], ["Silver", 4, 5], ["Gold", 7, 8]], "unit": "goals",
+		"lines": ["SKY SWEEP! Hop on a broom!", "Fly the Sparkball through a gold hoop.", "Catch the Glimmer Moth for 3!"]},
 }
+const SWEATBAND_GAMES := ["hoops", "goals", "tennis", "climb"]   # gold in these four wins the Champion Sweatband
 const MEDAL_COLOURS := [Color(0.85, 0.55, 0.3), Color(0.85, 0.9, 1.0), Color(1.0, 0.82, 0.3)]
 
 var best := {}                                    # game id -> best score
@@ -188,7 +198,7 @@ func _make_host(id: String, place: Node3D) -> Node3D:
 
 func _colour(id: String) -> Color:
 	return {"hoops": Color(1.0, 0.5, 0.2), "goals": Color(0.45, 0.9, 0.45), "tennis": Color(1.0, 0.9, 0.3),
-		"climb": Color(0.7, 0.5, 1.0)}.get(id, Color.WHITE)
+		"climb": Color(0.7, 0.5, 1.0), "broom": Color(1.0, 0.5, 0.85)}.get(id, Color.WHITE)
 
 
 func _refresh_hosts() -> void:
@@ -392,7 +402,7 @@ func over(score: float, headline: String) -> void:
 
 
 func _all_gold() -> bool:
-	for id in GAMES:
+	for id in SWEATBAND_GAMES:
 		if int(medals.get(id, 0)) < 3:
 			return false
 	return true
