@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Baked the Void's sports courts, the Rock Wall and the old slide, and fixed a crystal in the lab and
+  the paving over the deep pools' coping** (Hayden: "Yes fix those issues then keep going", batch eleven). Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **Fixes:** a town crystal cluster stood inside Rex and Dash's lab: `lab.gd _clear_plot()` now clears the
+    "Crystals" on its plot too (MultiMesh instances shrunk away, single clusters freed). Round every deep pool (the
+    Wishing Well and the portal worlds' pools) the paving started on top of the yellow coping and hid it:
+    `sunken_secrets.gd build_pool()` starts it at the coping's outside edge, and its first row tucks just under the
+    coping's top (`LIP_TOP`).
+  - **New bake script** (same bake kit): `tools/build_prop_void_sports.py <out.glb> basketball_hoop|tennis_net|soccer_goal|rock_wall|old_slide`
+    (a hoop on a padded post with a glass backboard, an orange rim and a knotted net; a tennis net with a white band,
+    posts and a winder; a soccer goal with a netted back; the Rock Wall as real lumpy rock with coloured holds; the old
+    slide rusty and peeling with its ladder boarded up). In `models/props/`.
+  - **Swapped at run time** (`detail_props.gd dress_void()`: `_hoops()`, `_tennis_net()`, `_goals()`, `_whole()` for
+    the Rock Wall and the Old Slide). Every collision, the Rock Wall's climbing, the soccer sign and the old slide's
+    chute and CLOSED sign stay. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_all` (the pools' paving, no crystal in the lab, both hoops, the net, both goals, the wall still
+    solid, the slide); sunken_secrets, lost_watches, time_watch, farming, layout, world_detail, plant_clearance and
+    walk_through pass. Pictures: `tools/capture_detail_void_sports.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_void_sports and world/previews/void_fixes).
+  - My choices Hayden may change: every look (the hoop's orange rim, the holds' colours, how rusty the slide is).
+
 - 2026-11-18: **Baked the Tree House, Rex and Dash's lab, the deep pools' stone (the Wishing Well and the portal
   worlds' pools) and the Remnant crystal veins** (Hayden: "Keep going", batch ten). Built and tested in the cloud (own
   Godot user folders, no save touched).
