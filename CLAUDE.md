@@ -99,6 +99,15 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-18: **Sky Sweep is flown on the Rocket Board, not a broom** (Hayden: "I didnt want to use an actual broom,
+  I wanted the rocket board to be the thing you use"). `scripts/sport_broom.gd` (id still `broom` for saves) puts her
+  side-on on a Rocket Board (`RideKit.build("rocket_board")`, a "Rocket Board" node under Visual; Swoosh lends one if
+  she hasn't got her own; her own ride is hidden and put back after), its rockets roaring bigger the faster she goes.
+  It flies at the Rocket Board's own flying speed and climb (13.8 and 7.5 m/s, from skate.gd's FLY_SPEED and
+  FLY_CLIMB), but in the match there's no fuel and it stops when you let go (out in town it flies on like a little
+  plane). Zip and Zap ride rocket boards too, a bit quicker than before (8.6 m/s). The broom and the leg `Seat` are
+  gone. test_sports passes; pictures in world/previews/sports/rocket_board.
+
 - 2026-11-18: **Sky Sweep, the broom sport** (Hayden: "the broom sport is reminiscent of quidditxh from Harry potter,
   and we can scrap the roller derby since thats more like the races we already have"). Our own game, names and look
   (nothing from the books). Built and tested in the cloud (own Godot user folders, no save touched). First we read

@@ -1,10 +1,16 @@
 extends SportGame
 
-# Sky Sweep (scripts/sports.gd), the broom sport, played in the sky over the Void's Soccer Field with Swoosh. Hayden
-# (18 Nov 2026): "the broom sport is reminiscent of quidditch". Our own game, names and look: you fly a broom, grab
-# the glowing Sparkball and carry it (or throw it) through one of the three gold hoops at the far end. Zip and Zap,
-# two little aliens on brooms, try to swipe it and fly it through the hoops at your end. With half a minute to go
-# the Glimmer Moth flutters out: catch it for 3 goals and the match is over.
+# Sky Sweep (scripts/sports.gd), the flying sport, played in the sky over the Void's Soccer Field with Swoosh. Hayden
+# (18 Nov 2026): "the broom sport is reminiscent of quidditch", then "I didnt want to use an actual broom, I wanted the
+# rocket board to be the thing you use". Our own game, names and look: you fly a Rocket Board (Swoosh lends you one if
+# you haven't got your own yet: rides.gd "rocket_board", built by ride_kit.gd), grab the glowing Sparkball and carry it
+# (or throw it) through one of the three gold hoops at the far end. Zip and Zap, two little aliens on rocket boards,
+# try to swipe it and fly it through the hoops at your end. With half a minute to go the Glimmer Moth flutters out:
+# catch it for 3 goals and the match is over.
+#
+# It flies at the Rocket Board's own flying speed and climb (skate.gd FLY_SPEED, FLY_CLIMB) with its rockets burning,
+# but for the match there's no fuel to run out, and it stops when you let go instead of flying on like a little plane
+# (so you can hover by a hoop or wait for the ball).
 #
 #   Fly:   move as on foot (where the camera looks), hold Jump to go up, hold Roll to go down
 #   Throw: Interact while you've got the Sparkball (close to a hoop it always goes in)
@@ -14,7 +20,7 @@ extends SportGame
 # chase whoever has the ball and tackle, a golden flier let out near the end that finishes the match) and
 # mlavik1/GodotSimpleAirplaneController (MIT: speed easing towards a target, and a bank that leans into turns and eases
 # back to level when you let go). We kept it much simpler for small hands: no stamina, no throttle, no stalls, the
-# broom goes where you push and stops when you let go, and the rivals are a little slower than you.
+# board goes where you push and stops when you let go, and the rivals are a little slower than you.
 
 const TIME := 90.0
 const MOTH_AT := 30.0                          # seconds left when the Glimmer Moth comes out
@@ -24,14 +30,14 @@ const HOOPS := [Vector3(0, 7.0, -6.0), Vector3(0, 10.0, 0.0), Vector3(0, 7.0, 6.
 const HOOP_R := 1.7
 const BOX_MIN := Vector3(-26.0, 2.6, -16.0)    # where you can fly, in the field's space
 const BOX_MAX := Vector3(26.0, 17.0, 16.0)
-const SPEED := 10.0
-const CLIMB := 6.5
+const SPEED := 11.5 * 1.2                      # the Rocket Board's flying speed (its push_speed * skate.gd FLY_SPEED)
+const CLIMB := 7.5                             # and its climb (skate.gd FLY_CLIMB)
 const ACCEL := 22.0
-const BANK := 0.5                              # how far the broom leans into a turn
+const BANK := 0.5                              # how far the board leans into a turn
 const GRAB := 1.7                              # this close to the Sparkball (or whoever has it) and it's yours
 const GRACE := 1.6                             # just after a grab nobody can take it straight back
 const THROW_REACH := 15.0                      # a throw at a hoop this close always goes in
-const RIVAL_SPEED := 6.2
+const RIVAL_SPEED := 8.6                       # a little slower than you
 const CENTRE := Vector3(0, 8.5, 0)
 
 var you := 0                                   # your goals
@@ -53,8 +59,9 @@ var _throw_t := -1.0
 var _throw_from := Vector3.ZERO
 var _throw_to := Vector3.ZERO
 var _throw_in := false
-var _broom: Node3D
-var _seat: Node3D
+var _board: Node3D
+var _flames: Node3D
+var _model_was := Transform3D.IDENTITY
 var _bank := 0.0
 var _moth_to := Vector3.ZERO
 var _moth_turn := 0.0
@@ -67,7 +74,7 @@ func setup() -> void:
 	hold = true                                # (we read the controls ourselves: nothing else moves her)
 	rng.randomize()
 	if Game.riding:
-		Game.riding = false                    # (off the board and onto the broom)
+		Game.riding = false                    # (off her own ride and onto the match's Rocket Board)
 		Game.equipment_changed.emit()
 	for side in [-1.0, 1.0]:
 		for h in HOOPS:
@@ -90,43 +97,46 @@ func go() -> void:
 # Flying
 # -----------------------------------------------------------------------------
 func _take_off() -> void:
-	# Onto the broom: nothing else moves her while we fly her (carried, like the zipline), her legs sit astride it
+	# Onto the Rocket Board: nothing else moves her while we fly her (carried, like the zipline). She stands side-on on
+	# it like when she skates (rides.gd BOARD "stance" and "deck"), with its rockets out the back.
 	_flying = true
 	p.set("carried", true)
 	p.velocity = Vector3.ZERO
 	vel = Vector3.ZERO
 	var model := p.get("model") as Node3D
 	var anim := p.get("anim") as AnimationPlayer
-	if anim and anim.has_animation("idle"):
-		anim.play("idle")
+	if anim:
+		anim.play("skate" if anim.has_animation("skate") else "idle")
 	var visual := p.get_node_or_null("Visual") as Node3D
 	if visual == null:
 		return
-	var hips_y := -0.3
-	var skel := Clothes._skeleton(model) if model else null
-	if skel:
-		var hb := skel.find_bone("hips")
-		if hb >= 0:
-			hips_y = clampf(visual.to_local(skel.global_transform * skel.get_bone_global_pose(hb).origin).y, -1.5, 1.5)
-		_seat = Seat.new()
-		_seat.name = "Broom Seat"
-		skel.add_child(_seat)
-	_broom = Node3D.new()
-	_broom.name = "Broom"
-	visual.add_child(_broom)
-	_broom.position = Vector3(0, hips_y - 0.06, 0.0)
-	_build_broom(_broom, Color(0.55, 0.35, 0.2), Color(1.0, 0.8, 0.35), Color(0.45, 0.95, 1.0))
+	var own := p.get("board") as Node3D
+	if own:
+		own.visible = false
+	_board = Node3D.new()
+	_board.name = "Rocket Board"
+	visual.add_child(_board)
+	_board.position = Vector3(0, -0.8, 0)              # (player.gd MODEL_Y: her feet)
+	_flames = RideKit.build("rocket_board", _board, model).get("flames") as Node3D
+	if model:
+		_model_was = model.transform
+		model.position.y = -0.8 + float(Rides.BOARD.deck)
+		model.rotation.y = float(Rides.BOARD.stance)
 
 
 func _land(local: Vector3) -> void:
-	# Off the broom, onto the ground beside the field, facing it
+	# Off the board, onto the ground beside the field, facing it
 	if not _flying:
 		return
 	_flying = false
-	if is_instance_valid(_broom):
-		_broom.queue_free()
-	if is_instance_valid(_seat):
-		_seat.queue_free()
+	if is_instance_valid(_board):
+		_board.queue_free()
+	var model := p.get("model") as Node3D
+	if is_instance_valid(model):
+		model.transform = _model_was
+	var own := p.get("board") as Node3D
+	if own:
+		own.visible = Game.riding
 	var visual := p.get_node_or_null("Visual") as Node3D
 	if visual:
 		visual.rotation.x = 0.0
@@ -165,7 +175,7 @@ func _fly(delta: float) -> void:
 
 
 func steer(want: Vector3, delta: float) -> void:
-	# Ease towards the wanted speed and move; the broom stays inside the pitch. (Tests call this with a direction.)
+	# Ease towards the wanted speed and move; the board stays inside the pitch. (Tests call this with a direction.)
 	vel = vel.move_toward(want, ACCEL * delta)
 	var to := p.global_position + vel * delta
 	var local := to_local(to)
@@ -186,6 +196,8 @@ func steer(want: Vector3, delta: float) -> void:
 	_bank = lerpf(_bank, lean, minf(1.0, delta * 5.0))
 	visual.rotation.z = _bank
 	visual.rotation.x = lerpf(visual.rotation.x, clampf(-vel.y / CLIMB, -1.0, 1.0) * 0.25, minf(1.0, delta * 5.0))
+	if is_instance_valid(_flames):                     # the rockets roar bigger the faster she goes
+		_flames.scale = Vector3.ONE * (0.6 + 0.9 * clampf(vel.length() / SPEED, 0.0, 1.0))
 
 
 # -----------------------------------------------------------------------------
@@ -376,7 +388,7 @@ func _rival(k: int, delta: float) -> void:
 	r.position.z = clampf(r.position.z, BOX_MIN.z, BOX_MAX.z)
 	var seat := r.get_node_or_null("Seat") as Node3D
 	if seat:
-		seat.position.y = 0.4 + sin(time * 2.4 + k) * 0.08
+		seat.position.y = sin(time * 2.4 + k) * 0.08
 
 
 func _moth_tick(delta: float) -> void:
@@ -498,33 +510,31 @@ func _make_ball() -> Node3D:
 
 
 func _make_rival(k: int) -> Node3D:
-	# Zip (red) and Zap (blue): little aliens sitting on brooms
+	# Zip (red) and Zap (blue): little aliens standing side-on on rocket boards
 	var r := Node3D.new()
 	r.name = "Zip" if k == 0 else "Zap"
 	add_child(r)
 	var model := (load("res://models/characters/little_alien_%s.glb" % ("red" if k == 0 else "blue")) as PackedScene).instantiate() as Node3D
 	model.name = "Model"
 	model.scale = Vector3.ONE * 1.7
-	# A holder lifts it so it sits on the stick (its "sit" animation moves the model's own root, so that can't)
+	# A holder bobs them up and down a little as they fly (their animations move the model's own root, so not that)
 	var lift := Node3D.new()
 	lift.name = "Seat"
-	lift.position.y = 0.4
 	r.add_child(lift)
+	var board := Node3D.new()
+	board.name = "Rocket Board"
+	lift.add_child(board)
+	board.scale = Vector3.ONE * 1.15
+	RideKit.build("rocket_board", board, model)
 	lift.add_child(model)
+	model.position.y = float(Rides.BOARD.deck) * 1.15
+	model.rotation.y = float(Rides.BOARD.stance)
 	LittleAliens.vary_snout(model)
 	var anim := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
-	if anim:
-		var a := "sit" if anim.has_animation("sit") else "idle"
-		anim.get_animation(a).loop_mode = Animation.LOOP_LINEAR
-		anim.play(a)
-	var broom := Node3D.new()
-	broom.name = "Broom"
-	r.add_child(broom)
-	broom.position = Vector3(0, 0.38, 0)
-	broom.scale = Vector3.ONE * 0.85
-	_build_broom(broom, Color(0.4, 0.25, 0.18), Color(0.85, 0.85, 0.95),
-		Color(1.0, 0.4, 0.4) if k == 0 else Color(0.45, 0.6, 1.0))
-	var l := label_on(r, r.name, 22, Vector3(0, 1.6, 0))
+	if anim and anim.has_animation("idle"):
+		anim.get_animation("idle").loop_mode = Animation.LOOP_LINEAR
+		anim.play("idle")
+	var l := label_on(r, r.name, 22, Vector3(0, 1.9, 0))
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	return r
 
@@ -553,54 +563,9 @@ func _make_moth() -> Node3D:
 	return m
 
 
-static func _build_broom(at: Node3D, wood: Color, band: Color, bristles: Color) -> void:
-	# A broom along +Z (the way a model faces): a handle, a band, and a bushy bundle of bristles at the back
-	var handle := CylinderMesh.new()
-	handle.top_radius = 0.035
-	handle.bottom_radius = 0.045
-	handle.height = 1.9
-	mesh_on(at, handle, Vector3(0, 0, 0.25), mat(wood)).rotation.x = PI / 2.0
-	var tip := SphereMesh.new()
-	tip.radius = 0.06
-	tip.height = 0.12
-	mesh_on(at, tip, Vector3(0, 0, 1.2), mat(band, 0.6, 0.7))
-	var ring_m := CylinderMesh.new()
-	ring_m.top_radius = 0.07
-	ring_m.bottom_radius = 0.07
-	ring_m.height = 0.1
-	mesh_on(at, ring_m, Vector3(0, 0, -0.62), mat(band, 0.3, 0.7)).rotation.x = PI / 2.0
-	var bush := CylinderMesh.new()
-	bush.top_radius = 0.07
-	bush.bottom_radius = 0.26
-	bush.height = 0.65
-	mesh_on(at, bush, Vector3(0, 0, -0.98), mat(bristles, 0.25)).rotation.x = -PI / 2.0
-	# (the bush's wide end at the back)
-
-
 func _spin_bits(delta: float) -> void:
 	if is_instance_valid(ball_node):
 		var s := ball_node.get_node_or_null("Spin") as Node3D
 		if s:
 			s.rotate_y(delta * 3.0)
 			s.rotation.x = 0.6
-
-
-# Her legs astride the broom: after the animation, each thigh swings forward and a little out, and the shin hangs back
-# down from the knee (a SkeletonModifier3D, like star_popper.gd's PopperArm, so it never fights the animation).
-class Seat extends SkeletonModifier3D:
-	func _process_modification() -> void:
-		var skel := get_skeleton()
-		if skel == null:
-			return
-		for side in ["L", "R"]:
-			var thigh := skel.find_bone("thigh." + side)
-			var shin := skel.find_bone("shin." + side)
-			if thigh < 0 or shin < 0:
-				continue
-			var out := 0.22 if side == "L" else -0.22
-			var tp := skel.get_bone_global_pose(thigh)
-			tp.basis = Basis(Vector3.FORWARD, out) * Basis(Vector3.RIGHT, -1.25) * tp.basis
-			skel.set_bone_global_pose(thigh, tp)
-			var sp := skel.get_bone_global_pose(shin)
-			sp.basis = Basis(Vector3.RIGHT, 1.05) * sp.basis
-			skel.set_bone_global_pose(shin, sp)
