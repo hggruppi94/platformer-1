@@ -56,6 +56,13 @@ const COG := "res://models/props/cog.glb"
 const BOULDER := "res://models/props/boulder.glb"
 const GADGET_STALL := "res://models/props/gadget_stall.glb"
 const WORKBENCH := "res://models/props/workbench.glb"
+const REQUEST_BOARD := "res://models/props/request_board.glb"
+const RACE_BOARD := "res://models/props/race_board.glb"
+const TUNE_UP := "res://models/props/tune_up.glb"
+const RUN_CLOCK := "res://models/props/run_clock.glb"
+const ARCH_TOWER := "res://models/props/arch_tower.glb"
+const ARCH_BANNER := "res://models/props/arch_banner.glb"
+const ARCH_BANNER_HALF := 6.2          # half the model banner's width (tools/build_prop_void_gate.py arch_banner HW)
 const CLOCK_CASE_H := 1.9              # the model clock trunk's height (tools/build_prop_void_more.py CASE_H)
 const CLOCK_HOOD_H := 0.8              # how much of each clock is its hood (scripts/bosses.gd _clock_ring)
 const CRYSTAL_R := 0.18                # the model shard's shoulder radius; it's 1 tall (tools/build_prop_void.py CR)
@@ -1185,3 +1192,78 @@ static func dress_gadget_stall(stall: Node) -> int:
 		b.name = "Detailed Workbench"
 		bench.add_child(b)
 	return 1
+
+
+# ----------------------------------------------------------------------------- race and skate landmarks (18 Nov 2026)
+static func _swap_meshes(holder: Node, model_path: String, new_name: String,
+		keep := func(_mi: MeshInstance3D) -> bool: return false) -> int:
+	# Hides every plain-shape piece directly under holder (but the ones keep says to leave) and puts the detailed
+	# model in their place. Its labels, lights, moving bits (in nodes of their own), collisions and talk spots stay.
+	if holder == null or not on():
+		return 0
+	if holder.has_node(new_name):
+		return 1
+	var model := _scene(model_path)
+	if model == null:
+		return 0
+	for c in holder.get_children():
+		var mi := c as MeshInstance3D
+		if mi and not mi.has_meta(OLD_META) and not keep.call(mi):
+			_hide(mi)
+	var m := model.instantiate() as Node3D
+	m.name = new_name
+	holder.add_child(m)
+	return 1
+
+
+static func dress_request_board(board: Node) -> int:
+	# Tally's request board in the Void's Market Square (scripts/request_board.gd): its posts, board, gold trims and
+	# roof. Its spinning star (a node of its own), glow, words and talk spot stay. Stars Hollow's notice board (old
+	# wood and pinned cards) is left as it is.
+	if board == null or bool(board.get("earthy")):
+		return 0
+	return _swap_meshes(board, REQUEST_BOARD, "Detailed Board")
+
+
+static func dress_run_clock(clock: Node) -> int:
+	# A Run Clock at a skate park (scripts/skate_runs.gd _make_clock): the post, the face and its marks, the rim and
+	# the sign board. Its hand (a node of its own, turning over the face), both labels and talk spot stay.
+	return _swap_meshes(clock, RUN_CLOCK, "Detailed Clock")
+
+
+static func dress_race_gate(track: Node) -> int:
+	# A race's start (scripts/race_track.gd): the start arch's towers and banner, the race board and Zippy's Tune-Up.
+	# The arch's towers stand where the old ones stood, however wide the road is, and the banner stretches between
+	# them; the chequered line on the ground, the race's name on the banner, the board's words, the collisions and
+	# the talk spots stay.
+	var n := 0
+	if track == null or not on():
+		return n
+	var arch := track.get_node_or_null("Start Arch") as Node3D
+	var tower_m := _scene(ARCH_TOWER)
+	var banner_m := _scene(ARCH_BANNER)
+	if arch and tower_m and banner_m and not arch.has_node("Detailed Banner"):
+		var half := 0.0
+		for c in arch.get_children():
+			var mi := c as MeshInstance3D
+			if mi and mi.mesh is CylinderMesh and is_equal_approx((mi.mesh as CylinderMesh).height, 6.0):
+				half = absf(mi.position.x)
+		if half > 0.0:
+			for c in arch.get_children():
+				var mi := c as MeshInstance3D
+				if mi and not (mi.mesh is BoxMesh and is_equal_approx((mi.mesh as BoxMesh).size.y, 0.03)):
+					_hide(mi)
+			for side in [-1.0, 1.0]:
+				var t := tower_m.instantiate() as Node3D
+				t.name = "Detailed Tower %s" % ("L" if side < 0 else "R")
+				t.position.x = side * half
+				arch.add_child(t)
+			var b := banner_m.instantiate() as Node3D
+			b.name = "Detailed Banner"
+			b.scale.x = half / ARCH_BANNER_HALF
+			arch.add_child(b)
+	if arch and arch.has_node("Detailed Banner"):
+		n += 1
+	n += _swap_meshes(track.get_node_or_null("Race Board"), RACE_BOARD, "Detailed Board")
+	n += _swap_meshes(track.get_node_or_null("Tune-Up"), TUNE_UP, "Detailed Tune-Up")
+	return n

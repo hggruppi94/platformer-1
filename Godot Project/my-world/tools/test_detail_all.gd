@@ -283,6 +283,40 @@ func _run() -> void:
 		and gadget.has_node("Gadget Shop Spot") and gadget.has_node("Sign"),
 		"Dash's stall and workbench are detailed, and keep their sign, his gadgets and the way to shop")
 
+	# Race and skate landmarks (18 Nov 2026, tools/build_prop_void_gate.py): Tally's board, the race race_gate, the Run Clock
+	var rboard := s.get_node("Request Board")
+	check(rboard.has_node("Detailed Board") and _old_drawn(rboard) == 0 and rboard.has_node("Request Talk")
+		and (rboard.get("text") as Label3D).text != "", "Tally's request board is detailed, and keeps its words, star and talk spot")
+	var race_gate := s.get_node("Race Gate void")
+	var sarch := race_gate.get_node("Start Arch")
+	var towers := 0
+	var half := 0.0
+	var line_tiles := 0
+	for c in sarch.get_children():
+		if String(c.name).begins_with("Detailed Tower"):
+			towers += 1
+			half = absf((c as Node3D).position.x)
+		var mi := c as MeshInstance3D
+		if mi and mi.layers != 0 and mi.mesh is BoxMesh and is_equal_approx((mi.mesh as BoxMesh).size.y, 0.03):
+			line_tiles += 1
+	var banner := sarch.get_node_or_null("Detailed Banner") as Node3D
+	var arch_old := 0
+	for c in sarch.get_children():
+		var mi := c as MeshInstance3D
+		if mi and mi.layers != 0 and not (mi.mesh is BoxMesh and is_equal_approx((mi.mesh as BoxMesh).size.y, 0.03)):
+			arch_old += 1
+	check(towers == 2 and banner != null and is_equal_approx(banner.scale.x, half / 6.2) and arch_old == 0
+		and line_tiles == 24 and sarch.find_children("*", "CollisionShape3D", true, false).size() == 2
+		and sarch.find_children("*", "Label3D", false, false).size() == 2,
+		"the race gate's arch has detailed towers where the old ones stood and its banner stretched between them, and keeps the line on the ground, its name and its solid towers")
+	check(race_gate.has_node("Race Board/Detailed Board") and _old_drawn(race_gate.get_node("Race Board")) == 0
+		and race_gate.has_node("Tune-Up/Detailed Tune-Up") and _old_drawn(race_gate.get_node("Tune-Up")) == 0
+		and race_gate.get_node("Tune-Up").has_node("Tune-Up Spot"), "the race board and Zippy's Tune-Up are detailed, and keep their words and the way to shop")
+	var run_clock := s.find_child("Run Clock", true, false)
+	check(run_clock != null and run_clock.has_node("Detailed Clock") and _old_drawn(run_clock) == 0
+		and run_clock.has_node("Hand") and (run_clock.get_node("Hand").get_child(0) as MeshInstance3D).layers != 0
+		and run_clock.has_node("Run Talk"), "the Skate Park's Run Clock is detailed, and its own hand still turns over the new face")
+
 	# The watcher: move one merged piece and its group goes back to being drawn piece by piece
 	var watch := s.get_node_or_null("Batch Watch")
 	check(watch != null and not watch.groups.is_empty(), "the Void has a Batch Watch (%d groups)" % (watch.groups.size() if watch else 0))
@@ -332,6 +366,15 @@ func _run() -> void:
 
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
+
+
+func _old_drawn(holder: Node) -> int:
+	# How many plain-shape pieces directly under it are still drawn
+	var n := 0
+	for c in holder.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).layers != 0:
+			n += 1
+	return n
 
 
 func _switch(on: bool) -> void:
