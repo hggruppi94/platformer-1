@@ -4,11 +4,11 @@ extends Node3D
 # Positions/sizes/colors and the look (bark, glow, canopy shape) are written by tools/build_town.gd.
 #
 # The Void's trees are sparkly alien trees, in three kinds picked from each tree's spot so a rebuild keeps them:
-# orb trees (a leaning stalk with a glowing ball on top and two little ones on side branches), spire trees (three
-# twisted, faceted cones stacked up like a crystal fir) and parasol trees (a tall stalk under a wide flat cap with
-# glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with specks of light,
-# and twinkles from a pixelfx sprite sheet (scenes/town/tree_twinkle.png, effect pickups/tree-twinkle) wink on and
-# off round each one. Nothing here is solid, as before.
+# orb trees (a straight stalk with a glowing ball centred on top and two matching little ones on side branches),
+# spire trees (three twisted, faceted cones stacked up like a crystal fir) and parasol trees (a tall stalk under a
+# wide flat cap with glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with
+# specks of light, and twinkles from a pixelfx sprite sheet (scenes/town/tree_twinkle.png, effect pickups/tree-twinkle)
+# wink on and off round each one. Nothing here is solid, as before.
 #
 # A tree whose stalk or canopy would stand in something solid (a building, a fence, a rail...) is left out when the
 # world loads (scripts/plant_clearance.gd; Hayden's day 1 playtest, 11 Nov 2026: trees clipping through things).
@@ -148,21 +148,23 @@ func _ready() -> void:
 		var had := [orbs.size(), cones.size(), stalks.size()]
 		match kind:
 			Kind.ORB:
-				# A stalk leaning a little, a big ball on top, and two short branches with little balls
-				var lean := Basis(Vector3(cos(spin), 0, sin(spin)), rng.randf_range(0.08, 0.2))
+				# A straight stalk with a big ball centred on top, and two matching branches straight out either side
+				# with matching little balls (Hayden, 19 Nov 2026: the balls looked off centre and lopsided when the
+				# stalk leant and the two branches came off at odd angles, heights and sizes).
 				var h := 2.0 + s * 1.5
-				var top := p + lean * Vector3(0, h, 0)
+				var top := p + Vector3(0, h, 0)
 				stalks.append(_stalk(p + Vector3(0, -0.3, 0), top, 1.0))
 				var r := s * 0.85
-				orbs.append(Transform3D(Basis().scaled(Vector3(r, r * 1.05, r)), top + Vector3(0, r * 0.6, 0)))
+				var ball := top + Vector3(0, r * 0.6, 0)
+				orbs.append(Transform3D(Basis().scaled(Vector3(r, r * 1.05, r)), ball))
 				orb_colors.append(c)
-				surface.append_array(_on_ball(top + Vector3(0, r * 0.6, 0), Vector3(r, r * 1.05, r), 4, rng))
+				surface.append_array(_on_ball(ball, Vector3(r, r * 1.05, r), 4, rng))
+				var from := p + Vector3(0, h * 0.56, 0)
+				var br := s * 0.37
 				for side in [-1.0, 1.0]:
-					var out := Vector3(cos(spin + side * 1.9), 0, sin(spin + side * 1.9))
-					var from := p + lean * Vector3(0, h * rng.randf_range(0.5, 0.62), 0)
+					var out: Vector3 = Vector3(cos(spin), 0, sin(spin)) * float(side)
 					var to := from + out * s * 0.8 + Vector3(0, s * 0.55, 0)
 					stalks.append(_stalk(from, to, 0.45))
-					var br := s * rng.randf_range(0.32, 0.42)
 					orbs.append(Transform3D(Basis().scaled(Vector3.ONE * br), to + Vector3(0, br * 0.5, 0)))
 					orb_colors.append(_shifted(c, 0.12 * side))
 					surface.append_array(_on_ball(to + Vector3(0, br * 0.5, 0), Vector3.ONE * br, 2, rng))
