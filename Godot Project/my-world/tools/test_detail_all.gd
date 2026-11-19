@@ -18,6 +18,7 @@ const BACKUP := "user://save.detail_all_test_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.detail_all_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
+const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 # A place of each kind: the school, a portal world, a boss level, a race circuit, a room
 const OTHERS := ["res://scenes/school/school.tscn", "res://scenes/portal_worlds/far_future.tscn",
 	"res://scenes/portal_worlds/tide_reef.tscn", "res://scenes/bosses/gloop_kingdom.tscn",
@@ -70,6 +71,8 @@ func _run() -> void:
 	check(hidden == 0, "the Void with the switches off: nothing taken out of drawing (%d)" % hidden)
 	check(s.get_node_or_null("Batch Watch") == null and s.get_node_or_null("Mesh LODs") == null
 		and s.find_child("Detailed Stall", true, false) == null, "...and nothing added")
+	check(not (s.get_node("Trees/Canopies") as Node).has_meta("detail_nature")
+		and not (s.get_node("Foliage/Caps") as Node).has_meta("detail_nature"), "...and the trees and plants keep their old shapes")
 	var bodies_before := s.find_children("*", "CollisionShape3D", true, false).size()
 	var shapes_before := _shapes(s)
 	var areas_before := s.find_children("*", "Area3D", true, false).size()
@@ -551,6 +554,38 @@ func _run() -> void:
 		var before: int = watch.undone
 		await _frames(120)
 		check(watch.undone == before, "nothing else in the Void moved by itself in 2 s (%d groups put back in all)" % watch.undone)
+
+	# --- Trees and plants (19 Nov 2026): the baked shapes on every copy, each copy's place and colour kept
+	_switch(true)
+	await _load(TOWN)
+	s = current_scene
+	var nature: Dictionary = detail.last_nature
+	var want := {"Trees/Canopies": "void_orb", "Trees/Spires": "void_spire", "Trees/Trunks": "void_stalk",
+		"Foliage/Caps": "mushroom_cap", "Foliage/Stems": "mushroom_stem", "Foliage/Leaves": "giant_leaf"}
+	for path: String in want:
+		var mmi := s.get_node(path) as MultiMeshInstance3D
+		var kind: String = want[path]
+		var mat := mmi.material_override
+		var maps := false
+		if mat is ShaderMaterial:
+			maps = (mat as ShaderMaterial).get_shader_parameter("detailed") == true \
+				and (mat as ShaderMaterial).get_shader_parameter("detail_tint") != null \
+				and (mat as ShaderMaterial).get_shader_parameter("detail_normal") != null
+		elif mat is StandardMaterial3D:
+			maps = (mat as StandardMaterial3D).albedo_texture != null and (mat as StandardMaterial3D).normal_texture != null
+		var shaped := kind == "giant_leaf" or mmi.multimesh.mesh is ArrayMesh
+		check(nature.get(kind, 0) == 1 and mmi.get_meta("detail_nature", "") == kind and maps and shaped,
+			"%s get the baked %s and its maps" % [path, kind])
+	var trees := s.get_node("Trees")
+	check((s.get_node("Trees/Canopies") as MultiMeshInstance3D).multimesh.instance_count == trees._orbs.size()
+		and (s.get_node("Trees/Trunks") as MultiMeshInstance3D).multimesh.instance_count == trees._stalks.size(),
+		"every tree's copies are all still there (%d balls, %d stalks)" % [trees._orbs.size(), trees._stalks.size()])
+	var bark := (s.get_node("Trees/Trunks") as MultiMeshInstance3D).material_override as StandardMaterial3D
+	check(bark.albedo_color.h > 0.0 and absf(bark.albedo_color.h - trees.bark_color.h) < 0.02,
+		"the Void's bark keeps its colour")
+	var leaf_mesh := (s.get_node("Foliage/Leaves") as MultiMeshInstance3D).multimesh.mesh as ArrayMesh
+	check(leaf_mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_TANGENT != 0, "the giant leaf has tangents for its normal map")
+	check(DETAIL_PROPS.dress_nature(s).is_empty(), "dressing the trees again changes nothing")
 
 	# --- Every other kind of place: merged, fewer meshes, nothing errors
 	for path in OTHERS:

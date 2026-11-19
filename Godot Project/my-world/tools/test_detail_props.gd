@@ -85,6 +85,18 @@ func _run() -> void:
 	var props: Dictionary = detail.last_props
 	var batch: Dictionary = detail.last_batch
 	print("props ", props, "  batch ", batch)
+	# The autumn trees (19 Nov 2026): baked bark, branches and leaf balls on every copy; each copy's colour stays
+	# (the leaves' colours are what the seasons change)
+	var nature: Dictionary = detail.last_nature
+	var trees_ok := true
+	for part in [["Tree Trunk", "bark_trunk"], ["Tree Branch", "bark_limb"], ["Tree Leaves", "leaf_ball"]]:
+		var mmi := s.get_node("Autumn Trees/" + part[0]) as MultiMeshInstance3D
+		var mat := mmi.material_override as StandardMaterial3D
+		if nature.get(part[1], 0) != 1 or mmi.get_meta("detail_nature", "") != part[1] or mat == null \
+				or mat.albedo_texture == null or mat.normal_texture == null or not mat.vertex_color_use_as_albedo \
+				or not (mmi.multimesh.mesh is ArrayMesh) or mmi.multimesh.instance_count * 12 != mmi.transforms.size():
+			trees_ok = false
+	check(trees_ok, "every autumn tree has baked bark, branches and leaves, each in its own colour (%s)" % nature)
 	check(ResourceLoader.exists("res://models/props/street_lamp.glb"), "the street lamp model is imported")
 	check(props.get("lamps", 0) == poles and poles >= 30, "every street lamp has its detailed model (%d of %d)" % [props.get("lamps", 0), poles])
 	check(props.get("benches", 0) >= 5, "the park benches have theirs (%d)" % props.get("benches", 0))

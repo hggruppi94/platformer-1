@@ -33,6 +33,11 @@ const LEAVES_SHADER := """shader_type spatial;
 render_mode cull_back;
 uniform float glow = 0.0;
 uniform float specks = 1.0;
+uniform bool detailed = false;   // baked detail (scripts/detail_props.gd dress_nature): tint, normal map, AO
+uniform sampler2D detail_tint : source_color, hint_default_white;
+uniform sampler2D detail_normal : hint_normal;
+uniform sampler2D detail_orm : hint_default_white;
+uniform float detail_gain = 1.0;  // the tint baked pale; this brings its middle back to 1, so colours stay as they were
 varying vec3 local_pos;
 varying float seed;
 
@@ -63,6 +68,12 @@ void fragment() {
 	float speck = step(0.72, h) * smoothstep(0.32, 0.04, d) * flash * specks;
 	EMISSION = base * glow * shimmer * (1.0 + swirl * 0.5) + mix(base, vec3(1.0), 0.4) * rim * 1.1
 		+ vec3(1.0, 0.97, 1.0) * speck * 5.0;
+	if (detailed) {
+		ALBEDO *= texture(detail_tint, UV).rgb * detail_gain;
+		NORMAL_MAP = texture(detail_normal, UV).rgb;
+		AO = texture(detail_orm, UV).r;
+		AO_LIGHT_AFFECT = 0.7;
+	}
 }"""
 
 # A twinkle: a camera-facing quad playing the sprite sheet's 16 frames once, then nothing until its next turn.

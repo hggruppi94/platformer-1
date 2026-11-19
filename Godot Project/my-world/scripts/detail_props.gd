@@ -1809,3 +1809,87 @@ static func dress_vein(vein: Node) -> int:
 	st.name = "Detailed Stubs"
 	stubs.add_child(st)
 	return 1
+
+
+# ----------------------------------------------------------------------------- nature (19 Nov 2026)
+# Trees and plants are MultiMeshes (thousands of copies, each with its own place and colour), so nothing is hidden or
+# added here: each MultiMesh just gets the baked shape (tools/build_prop_nature.py, sized to the shape it replaces) and
+# its maps. The maps are baked pale and each copy keeps its own colour on top, so seasons, glows and the builders'
+# colours carry on. `NATURE_GAIN` brings each baked tint's middle back to 1 (its mean in linear light, measured).
+const NATURE := "res://models/props/nature/%s.glb"
+const NATURE_GAIN := {"bark_trunk": 1.83, "bark_limb": 1.7, "leaf_ball": 2.0, "void_orb": 2.0, "void_spire": 1.2,
+	"void_stalk": 1.36, "mushroom_cap": 1.19, "mushroom_stem": 1.29, "giant_leaf": 1.4}     # (leaves held to 2)
+const NATURE_META := "detail_nature"   # on each MultiMeshInstance3D given a baked shape: which model
+
+
+static func dress_nature(scene: Node) -> Dictionary:
+	# The Void's trees (scenes/town/trees.gd), its giant leaves and mushrooms (scenes/town/foliage.gd) and Stars
+	# Hollow's autumn trees (tools/build_earth.gd _flush_trees). Returns how many MultiMeshes got each model.
+	var out := {}
+	if scene == null:
+		return out
+	for mmi: MultiMeshInstance3D in scene.find_children("*", "MultiMeshInstance3D", true, false):
+		if mmi.has_meta(NATURE_META) or mmi.multimesh == null:
+			continue
+		var owner_script: Script = mmi.get_parent().get_script() if mmi.get_parent() else null
+		var from := owner_script.resource_path.get_file() if owner_script else ""
+		var kind := ""
+		var swap_mesh := true
+		match [from, String(mmi.name)]:
+			["trees.gd", "Canopies"]:
+				kind = "void_orb"
+			["trees.gd", "Spires"]:
+				kind = "void_spire"
+			["trees.gd", "Trunks"]:
+				kind = "void_stalk"
+			["foliage.gd", "Caps"]:
+				kind = "mushroom_cap"
+			["foliage.gd", "Stems"]:
+				kind = "mushroom_stem"
+			["foliage.gd", "Leaves"]:
+				kind = "giant_leaf"
+				swap_mesh = false          # the leaf's own curved blade stays; the bake is laid on its UVs
+			[_, "Tree Trunk"]:
+				kind = "bark_trunk"
+			[_, "Tree Branch"]:
+				kind = "bark_limb"
+			[_, "Tree Leaves"]:
+				kind = "leaf_ball"
+		if kind == "" or (kind.begins_with("bark") or kind == "leaf_ball") and mmi.get_parent().name != "Autumn Trees":
+			continue
+		var model := _scene(NATURE % kind)
+		if model == null:
+			continue
+		var mesh := _mesh_of(model)
+		var baked := mesh.surface_get_material(0) as StandardMaterial3D if mesh else null
+		if baked == null:
+			continue
+		var gain: float = NATURE_GAIN.get(kind, 1.0)
+		var old := mmi.material_override
+		if old is ShaderMaterial:
+			var mat := (old as ShaderMaterial).duplicate() as ShaderMaterial
+			mat.set_shader_parameter("detailed", true)
+			mat.set_shader_parameter("detail_tint", baked.albedo_texture)
+			mat.set_shader_parameter("detail_normal", baked.normal_texture)
+			mat.set_shader_parameter("detail_orm", baked.ao_texture)
+			mat.set_shader_parameter("detail_gain", gain)
+			mmi.material_override = mat
+		elif old is StandardMaterial3D:
+			# The bark: the baked material, in the old one's colour (the Void's) or each copy's (Stars Hollow's)
+			var was := old as StandardMaterial3D
+			var mat := baked.duplicate() as StandardMaterial3D
+			mat.resource_name = "Detailed " + kind
+			mat.vertex_color_use_as_albedo = was.vertex_color_use_as_albedo
+			var c := was.albedo_color * gain
+			mat.albedo_color = Color(c.r, c.g, c.b, 1.0)
+			mat.emission_enabled = was.emission_enabled
+			mat.emission = was.emission
+			mat.emission_energy_multiplier = was.emission_energy_multiplier
+			mmi.material_override = mat
+		else:
+			continue
+		if swap_mesh:
+			mmi.multimesh.mesh = mesh
+		mmi.set_meta(NATURE_META, kind)
+		out[kind] = int(out.get(kind, 0)) + 1
+	return out

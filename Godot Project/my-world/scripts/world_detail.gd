@@ -40,6 +40,7 @@ const SMALL_PLANTS := ["Ferns", "Grass"]   # the plant patches (scenes/town/foli
 const LATER_BATCH := [1.0, 2.0]          # waits in turn (1 s, then 3 s after it loads) to merge what was put in since
 var last_batch := {}            # what the last merge did (tests read it)
 var last_props := {}            # and what detailed props went in
+var last_nature := {}           # and which trees and plants got their baked shapes (detail_props.gd dress_nature)
 var _last: Node
 var _cache := {}                # source material -> its detailed ShaderMaterial
 
@@ -75,6 +76,8 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_void(scene)
 	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_rhythm(scene)
+	if detail_props:
+		last_nature = DETAIL_PROPS.dress_nature(scene)
 	if batching:
 		last_batch = STATIC_BATCH.batch(scene)
 	if lods:

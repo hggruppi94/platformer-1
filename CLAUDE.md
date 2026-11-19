@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked the trees and plants: the Void's orb, spire and parasol trees, its giant leaves and mushrooms,
+  and Stars Hollow's autumn trees** (Hayden: "start baking nature, buildings, then portal worlds in that order"; this
+  is nature, part one). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_nature.py <out.glb> bark_trunk|bark_limb|leaf_ball|void_orb|void_spire|void_stalk|mushroom_cap|mushroom_stem|giant_leaf [--preview]`
+    (furrowed bark with roots, knots and stubs; a thin branch; a ball of 2,200 leaves; the Void's orb canopy of
+    scales and beads, its spire's crystal terraces and ridges, its ringed stalk with pores; a warty mushroom cap with
+    110 gills under it; a ringed stem with a bulb and a skirt; a giant leaf's quilted blade, midrib and veins). Each low
+    shape is exported at the size of the shape it replaces (unit sphere, cone, cylinder or hemisphere), and every map
+    is baked pale. In `models/props/nature/`. `--preview` writes the maps to `$BAKE_PREVIEWS` (outside the project).
+  - **Swapped at run time** (`detail_props.gd dress_nature()`, called by `WorldDetail` in every place): trees and
+    plants are MultiMeshes, so nothing is hidden or added. Each MultiMesh ("Canopies", "Spires", "Trunks" under the
+    Void's Trees; "Caps", "Stems", "Leaves" under its Foliage; "Tree Trunk", "Tree Branch", "Tree Leaves" under
+    Stars Hollow's Autumn Trees) gets the baked shape and its maps, and every copy keeps its place and its own colour,
+    so the seasons, glows and builders' colours work as before (`NATURE_GAIN` lifts each pale tint back to 1). The
+    Void's canopy, leaf and cap shaders gained `detailed` / `detail_tint` / `detail_normal` / `detail_orm` (off unless
+    dressed); the giant leaf keeps its own curved blade and has tangents now. Ferns and grass are left as they are.
+  - Tests: `test_detail_all` (each MultiMesh's model and maps, every copy still there, the bark's colour, the leaf's
+    tangents, nothing changed when dressed again or with the switches off) and `test_detail_props` (the autumn trees);
+    trees, seasons, world_detail and plant_clearance pass. Pictures: `tools/capture_detail_nature.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_nature).
+  - My choices Hayden may change: every look (the bark's furrows, the leaf balls, the orb trees' scales).
+
 - 2026-11-19: **Hot Springs' cave doorways no longer clip into the scenery** (Hayden: "The hot springs doorways are
   clipping into the scenery"). The builder faced all three caves straight south, but the plateau's cliff curves, so the
   baked mouths stuck out of it on one side and sank in on the other; the west cave (x -80) sat where the cliff turns

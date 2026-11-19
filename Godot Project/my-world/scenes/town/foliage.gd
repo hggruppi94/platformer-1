@@ -56,6 +56,11 @@ uniform float reach = 1.4;
 uniform float body_r = 0.38;      // her outline: how wide (metres from her middle)...
 uniform float body_h = 1.5;       // ...and how tall
 global uniform vec3 nina_pos;
+uniform bool detailed = false;   // baked detail (scripts/detail_props.gd dress_nature): tint, normal map, AO
+uniform sampler2D detail_tint : source_color, hint_default_white;
+uniform sampler2D detail_normal : hint_normal;
+uniform sampler2D detail_orm : hint_default_white;
+uniform float detail_gain = 1.0;  // the tint baked pale; this brings its middle back to 1, so colours stay as they were
 void vertex() {
 	// Gentle wind: tips move more than the base, each plant on its own beat
 	vec3 o = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -86,6 +91,13 @@ void fragment() {
 	ALBEDO = c;
 	ROUGHNESS = 0.55;
 	EMISSION = COLOR.rgb * glow * (0.6 + rib);
+	if (detailed) {
+		// The baked blade has its own midrib and veins, so the drawn ones step aside
+		ALBEDO = COLOR.rgb * (0.75 + 0.35 * (1.0 - across)) * texture(detail_tint, UV).rgb * detail_gain;
+		NORMAL_MAP = texture(detail_normal, UV).rgb;
+		AO = texture(detail_orm, UV).r;
+		AO_LIGHT_AFFECT = 0.7;
+	}
 	if (!FRONT_FACING) {
 		NORMAL = -NORMAL;
 	}
@@ -93,6 +105,11 @@ void fragment() {
 
 const CAP_SHADER := """shader_type spatial;
 uniform float glow = 1.5;
+uniform bool detailed = false;   // baked detail (scripts/detail_props.gd dress_nature): tint, normal map, AO
+uniform sampler2D detail_tint : source_color, hint_default_white;
+uniform sampler2D detail_normal : hint_normal;
+uniform sampler2D detail_orm : hint_default_white;
+uniform float detail_gain = 1.0;  // the tint baked pale; this brings its middle back to 1, so colours stay as they were
 varying vec3 lp;
 void vertex() {
 	lp = VERTEX;
@@ -107,6 +124,12 @@ void fragment() {
 	ALBEDO = mix(c, vec3(0.85, 1.0, 1.0), dot_);
 	ROUGHNESS = 0.25;
 	EMISSION = (COLOR.rgb * (0.5 + 0.8 * rim) + vec3(0.7, 1.0, 1.0) * dot_ * 1.5) * glow;
+	if (detailed) {
+		ALBEDO *= texture(detail_tint, UV).rgb * detail_gain;
+		NORMAL_MAP = texture(detail_normal, UV).rgb;
+		AO = texture(detail_orm, UV).r;
+		AO_LIGHT_AFFECT = 0.7;
+	}
 }"""
 
 
@@ -412,6 +435,7 @@ func _leaf_mesh() -> ArrayMesh:
 				st.set_uv(Vector2(float(q.y) / (COLS - 1), float(q.x) / ROWS))
 				st.add_vertex(grid[q.x][q.y])
 	st.generate_normals()
+	st.generate_tangents()          # for the baked normal map (scripts/detail_props.gd dress_nature)
 	return st.commit()
 
 
