@@ -285,7 +285,9 @@ def void_orb():
     def build(col, high):
         obs = []
         if not high:
-            obs.append(blob("Orb", R, 2, 0.025, 2.0, scale_m, col, freq=1.5))
+            # A smooth, perfectly round ball centred on the origin, like the SphereMesh it replaces (an 80-triangle
+            # lumpy one looked faceted, lopsided and off centre in the game). The scales' bumps come from the bake.
+            obs.append(blob("Orb", R, 4, 0.0, 2.0, scale_m, col))
             return obs
         obs.append(blob("Core", R * 0.95, 4, 0.0, 2.0, deep, col))
         bm = bmesh.new()
