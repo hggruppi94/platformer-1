@@ -51,6 +51,16 @@ const TENNIS_NET := "res://models/props/tennis_net.glb"
 const SOCCER_GOAL := "res://models/props/soccer_goal.glb"
 const ROCK_WALL := "res://models/props/rock_wall.glb"
 const OLD_SLIDE := "res://models/props/old_slide.glb"
+const BOARDWALK := "res://models/props/boardwalk.glb"
+const BOARDWALK_PILE := "res://models/props/boardwalk_pile.glb"
+const LANTERN_POST := "res://models/props/lantern_post.glb"
+const MOTHERSHIP_PAD := "res://models/props/mothership_pad.glb"
+const NOTICEBOARD := "res://models/props/noticeboard.glb"
+const SPRING_CAVE := "res://models/props/spring_cave.glb"
+const SPRING_RIM := "res://models/props/spring_rim.glb"
+const BOARDWALK_LEN := 4.0             # the model's length of deck, and its width 3 (tools/build_prop_void_5.py)
+const BOARDWALK_W := 3.0
+const BOARDWALKS := ["Boardwalk South", "Boardwalk North", "Boardwalk East", "Dock"]
 const SAILBOAT := "res://models/props/sailboat.glb"
 const DOME_DOOR := "res://models/props/dome_door.glb"
 const ANTIQUE_CAR := "res://models/props/antique_car.glb"
@@ -172,7 +182,8 @@ static func dress_void(scene: Node) -> Dictionary:
 	# goods (tools/build_prop_stall.py). The stall's collision, shop spot and name over it are the builder's.
 	var out := {"stalls": 0, "signs": 0, "fountains": 0, "lamps": 0, "crystals": 0, "sailboats": 0, "doors": 0,
 		"car": 0, "baskets": 0, "clocks": 0, "cogs": 0, "boulders": 0, "gadget_stall": 0, "tree_house": 0,
-		"hoops": 0, "tennis_net": 0, "goals": 0, "rock_wall": 0, "old_slide": 0}
+		"hoops": 0, "tennis_net": 0, "goals": 0, "rock_wall": 0, "old_slide": 0, "boardwalks": 0, "piles": 0,
+		"lantern_posts": 0, "pad": 0, "noticeboard": 0, "spring_caves": 0, "spring_rims": 0}
 	var sign := _scene(SIGN)
 	if sign:
 		out.signs = _signs(scene, sign)
@@ -226,6 +237,31 @@ static func dress_void(scene: Node) -> Dictionary:
 	var slide := _scene(OLD_SLIDE)
 	if slide:
 		out.old_slide = _whole(scene.get_node_or_null("Old Slide"), slide, "Detailed Old Slide")
+	# (19 Nov 2026, batch twelve: tools/build_prop_void_5.py): the boardwalks round the lake and the dock, Pip's
+	# lantern posts, the Mothership Pad, the noticeboard by the fountain and the Hot Springs' caves
+	var deck := _scene(BOARDWALK)
+	var pile := _scene(BOARDWALK_PILE)
+	if deck and pile:
+		var bw := _boardwalks(scene, deck, _mesh_of(pile))
+		out.boardwalks = bw.x
+		out.piles = bw.y
+	var lpost := _scene(LANTERN_POST)
+	if lpost:
+		out.lantern_posts = _lantern_posts(scene.get_node_or_null("Pip's Lanterns"), lpost)
+	var pad := _scene(MOTHERSHIP_PAD)
+	if pad:
+		out.pad = _by_shape(scene.get_node_or_null("Mothership Pad"), pad, "Detailed Pad",
+			func(mi: MeshInstance3D) -> bool: return _mat_name(mi) == "Pad Metal" and mi.mesh is CylinderMesh)
+	var board := _scene(NOTICEBOARD)
+	if board:
+		out.noticeboard = _by_shape(scene.get_node_or_null("Noticeboard"), board, "Detailed Noticeboard",
+			func(mi: MeshInstance3D) -> bool: return _mat_name(mi) in ["Stall Wood", "Cork"])
+	var cave := _scene(SPRING_CAVE)
+	var rim := _scene(SPRING_RIM)
+	if cave and rim:
+		var hs := _springs(scene.get_node_or_null("Hot Springs"), cave, rim)
+		out.spring_caves = hs.x
+		out.spring_rims = hs.y
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -1189,6 +1225,158 @@ static func _whole(g: Node3D, model: PackedScene, name: String) -> int:
 	m.name = name
 	g.add_child(m)
 	return 1
+
+
+# ----------------------------------------------------------------------------- batch twelve (19 Nov 2026)
+static func _multi(parent: Node3D, mesh: Mesh, xfs: Array, name: String) -> void:
+	# Many copies of one baked mesh in one draw. A MultiMesh keeps nothing in a headless run, so the places are in
+	# its meta "transforms" too (for tests).
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = mesh
+	mm.instance_count = xfs.size()
+	for i in xfs.size():
+		mm.set_instance_transform(i, xfs[i])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = name
+	mmi.multimesh = mm
+	mmi.set_meta("transforms", xfs)
+	mmi.visibility_range_end = 160.0
+	parent.add_child(mmi)
+
+
+static func _boardwalks(scene: Node, deck: PackedScene, pile: Mesh) -> Vector2i:
+	# Each boardwalk (tools/build_town.gd boardwalk()): one plank box 0.3 deep from a to b, and a pile each side every
+	# 4 m or so (cylinders 2 m tall, 0.7 down). The deck becomes whole 4 m lengths of the detailed one, stretched a
+	# little to fit (and squeezed for the narrower dock); the piles are one MultiMesh. The deck's collision, its lamp
+	# posts (already detailed: _void_lamps) and their glowing bulbs stay.
+	var out := Vector2i.ZERO
+	if pile == null:
+		return out
+	for gname: String in BOARDWALKS:
+		var g := scene.get_node_or_null(gname) as Node3D
+		if g == null or g.get_script() != null or g.has_node("Detailed Boardwalk"):
+			continue
+		var piles := []
+		var holder: Node3D = null
+		for c in g.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null or mi.has_meta(OLD_META):
+				continue
+			# (the long east one is wide enough, turned, to have been given the ground's look: WorldDetail)
+			if mi.mesh is BoxMesh and _mat_name(mi) in ["Boardwalk", "Ground Detail"] \
+					and is_equal_approx((mi.mesh as BoxMesh).size.y, 0.3):
+				var size := (mi.mesh as BoxMesh).size
+				holder = Node3D.new()
+				holder.name = "Detailed Boardwalk"
+				holder.position = mi.position - Vector3(0, size.y / 2.0, 0)
+				holder.rotation = mi.rotation
+				var n := maxi(1, roundi(size.z / BOARDWALK_LEN))
+				var stretch := size.z / (n * BOARDWALK_LEN)
+				for k in n:
+					var m := deck.instantiate() as Node3D
+					m.name = "Length %d" % k
+					m.position = Vector3(0, 0, -size.z / 2.0 + (k + 0.5) * size.z / n)
+					m.scale = Vector3(size.x / BOARDWALK_W, 1, stretch)
+					holder.add_child(m)
+				_hide(mi)
+				out.x += 1
+			elif mi.mesh is CylinderMesh and _mat_name(mi) == "Boardwalk Post" \
+					and is_equal_approx((mi.mesh as CylinderMesh).height, 2.0):
+				var base := mi.position + Vector3(0, 0.7, 0)
+				piles.append(Transform3D(Basis(Vector3.UP, fposmod(base.x * 1.3 + base.z * 0.7, TAU)), base))
+				_hide(mi)
+		if holder:
+			g.add_child(holder)
+		if piles.size() > 0:
+			_multi(g, pile, piles, "Detailed Piles")
+			out.y += piles.size()
+	return out
+
+
+static func _lantern_posts(g: Node3D, model: PackedScene) -> int:
+	# Pip's lanterns (tools/build_town.gd, "Pip's Lanterns"): a post (a cylinder 2.4 tall, 1.4 up from the deck) and
+	# a little arm on top, the lantern hanging a quarter of a metre off it. The detailed post's arm reaches along its
+	# +X to a hook over the lantern, so each turns towards its own. The lanterns (lit or not, the quest's) stay.
+	if g == null or g.get_script() != null or g.has_node("Detailed Lantern Post 0"):
+		return 0
+	var hangs := []
+	for node in g.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.mesh is SphereMesh and String(mi.get_parent().name).begins_with("Unlit Lantern"):
+			hangs.append(mi.position)
+	var n := 0
+	for c in g.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or mi.has_meta(OLD_META) or _mat_name(mi) != "Boardwalk Post":
+			continue
+		if mi.mesh is BoxMesh:
+			_hide(mi)
+			continue
+		if not (mi.mesh is CylinderMesh and is_equal_approx((mi.mesh as CylinderMesh).height, 2.4)):
+			continue
+		var base := mi.position - Vector3(0, 1.4, 0)
+		var to := Vector3.ZERO
+		for h: Vector3 in hangs:
+			var d := Vector3(h.x - base.x, 0, h.z - base.z)
+			if d.length() < 0.6 and (to == Vector3.ZERO or d.length() < to.length()):
+				to = d
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed Lantern Post %d" % n
+		m.position = base
+		m.rotation.y = atan2(-to.z, to.x) if to != Vector3.ZERO else 0.0
+		g.add_child(m)
+		_hide(mi)
+		n += 1
+	return n
+
+
+static func _by_shape(g: Node3D, model: PackedScene, name: String, old: Callable) -> int:
+	# A landmark whose detailed model is built in its own group's frame (the Mothership Pad, the noticeboard): the
+	# pieces old() picks stop being drawn and the model goes in. Everything else (the pad's glowing rings, the
+	# notes, every collision, area, sign and quest spot) stays.
+	if g == null or g.get_script() != null or g.has_node(name):
+		return 0
+	for c in g.get_children():
+		var mi := c as MeshInstance3D
+		if mi and not mi.has_meta(OLD_META) and old.call(mi):
+			_hide(mi)
+	var m := model.instantiate() as Node3D
+	m.name = name
+	g.add_child(m)
+	return 1
+
+
+static func _springs(g: Node3D, cave: PackedScene, rim: PackedScene) -> Vector2i:
+	# The Hot Springs (tools/build_town.gd): three caves in the plateau's south cliff, each a rock disc (3.2 across,
+	# 1 m up from its spot) with a dark disc on it, and a steaming pool 4 m out in front (a disc 2.2 across). Each
+	# cave becomes the detailed mouth, open now so the glow inside shows, and each pool gets a ring of stones. The
+	# glow, its light, the water and the warm zone stay.
+	var out := Vector2i.ZERO
+	if g == null or g.get_script() != null or g.has_node("Detailed Spring Cave 0"):
+		return out
+	for c in g.get_children():
+		var mi := c as MeshInstance3D
+		if mi == null or mi.has_meta(OLD_META) or not (mi.mesh is CylinderMesh):
+			continue
+		var cm := mi.mesh as CylinderMesh
+		if _mat_name(mi) == "Cave Rock" and is_equal_approx(cm.top_radius, 3.2):
+			var m := cave.instantiate() as Node3D
+			m.name = "Detailed Spring Cave %d" % out.x
+			m.position = mi.position - Vector3(0, 1.0, 0)
+			g.add_child(m)
+			_hide(mi)
+			out.x += 1
+		elif _mat_name(mi) == "Cave" and is_equal_approx(cm.top_radius, 2.4):
+			_hide(mi)
+		elif _mat_name(mi) == "Spring Water" and is_equal_approx(cm.top_radius, 2.2):
+			var m := rim.instantiate() as Node3D
+			m.name = "Detailed Spring Rim %d" % out.y
+			m.position = mi.position - Vector3(0, 0.05, 0)
+			m.rotation.y = out.y * 1.3
+			g.add_child(m)
+			out.y += 1
+	return out
 
 
 # ----------------------------------------------------------------------------- more of the Void (18 Nov 2026)

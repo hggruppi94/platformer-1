@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked the Void's boardwalks and dock, Pip's lantern posts, the Mothership Pad, Rex's noticeboard and the
+  Hot Springs' caves and pools** (Hayden: "Work on baking more scenery", batch twelve; "keep the forever floating": whatever
+  floats is left as it is). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_void_5.py <out.glb> boardwalk|boardwalk_pile|lantern_post|mothership_pad|noticeboard|spring_cave|spring_rim`
+    (a 4 m length of planked boardwalk with bearers and nail heads; a pile with iron bands; Pip's lantern post with a
+    curled hook arm; the pad's riveted metal rings and runway marks; the noticeboard in carved wood with a little roof
+    and cork; a cave mouth of lumpy rock with moss, warm crystals, drips and boulders, open now with a dark hollow and
+    a back wall; a ring of mossy stones round each pool). In `models/props/`.
+  - **Swapped at run time** (`detail_props.gd dress_void()`: `_boardwalks()`, `_lantern_posts()`, `_by_shape()` for the
+    pad and the board, `_springs()`): the four decks ("Boardwalk South/North/East", "Dock") become whole 4 m lengths
+    stretched to fit, their piles one MultiMesh; each lantern post turns its hook to its own lantern; the pad keeps its
+    glowing rings and call spot, the board its notes and poster spot, the springs their glow, light, water and warm zone.
+    Every deck keeps its collision. Old pieces stay (layers 0, meta `detail_prop_old`).
+  - Tests: `test_detail_all` (4 decks adding up to the old lengths, 20+ piles, 7 lantern posts on their lanterns, the
+    pad, the board, 3 caves and 3 rims, nothing old drawn); layout, world_detail, plant_clearance, walk_through,
+    mothership, sports and town_quests (both runs) pass. Pictures: `tools/capture_detail_void_5.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_void_5).
+  - My choices Hayden may change: every look (the planks' colour, the lantern hooks, the caves' warm inside).
+
 - 2026-11-18: **Sky Sweep is flown on the Rocket Board, not a broom** (Hayden: "I didnt want to use an actual broom,
   I wanted the rocket board to be the thing you use"). `scripts/sport_broom.gd` (id still `broom` for saves) puts her
   side-on on a Rocket Board (`RideKit.build("rocket_board")`, a "Rocket Board" node under Visual; Swoosh lends one if
