@@ -99,6 +99,66 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked the portal worlds' natural surfaces: rock, bark, ice, snow, coral, metal panels and dry stone**
+  (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is portal worlds). Built and tested
+  in the cloud (own Godot user folders, no save touched).
+  - **Seven more tiling patches** (`tools/build_prop_surfaces.py ... bark|rock|ice|snow|coral|metal_panel|drystone`):
+    ridged bark plates over dark furrows, lumpy rock knobs with cracks, clear ice with cracks, bubbles and frost, soft
+    snow mounds with glints, coral with pores, riveted metal plates with vents, and dry stone walls in courses. In
+    `models/props/surfaces/`.
+  - **Swapped at run time** by the same `dress_buildings()`, only in `scenes/portal_worlds/`: `surface_of(name, true)`
+    reads `PORTAL_SURFACES` (bark: "Crooked Bark", "Pine Bark", "Root"...; rock: "Old Stone", "Spire Rock", "Reef
+    Rock"...; ice: "Crag Ice", "Lake Ice"...; snow: "Snow", "Drift Snow"...; metal_panel: "Lab Wall", "Skyway Deck"...;
+    drystone: Glenmoor's "Stone"; any "Coral ..." is coral). The natural ones are laid in world space
+    (`WORLD_SPACE_SURFACES`) so neighbouring rocks and trunks join up; each keeps its own colour. CSG shapes are dressed
+    too. The Void and Stars Hollow are unchanged by this.
+  - Tests: `test_detail_all` (each world has its kinds with maps, dressed again changes nothing). Pictures:
+    `tools/capture_detail_portals.gd -- <folder> [--old-props]` (project files, world/previews/detail_portals).
+  - My choices Hayden may change: every look, which materials get which patch (ice and snow are subtle on purpose).
+
+- 2026-11-19: **Baked the building outsides: siding, shingles, brick, stone, barn boards and the Void's dome scales**
+  (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is buildings). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **Tiling patches, not whole buildings** (walls and roofs come in too many sizes to bake one by one): new
+    `tools/build_prop_surfaces.py <out.glb> clapboard|shingles|brick|stone|barn_boards|dome_scales [--preview]` models a
+    patch in full (lapped boards with nail heads, staggered shingle courses, bricks in mortar, dressed stone blocks,
+    battened barn boards, overlapping dome scales with a bead on each) over 3x3 copies so it repeats seamlessly, and bakes
+    it pale onto one square (2 m, 1.2 m for brick, 2.4 m for stone, 1.6 m for scales). In `models/props/surfaces/`.
+  - **Swapped at run time** (`detail_props.gd dress_buildings()`, called by `WorldDetail` in every place before
+    batching): each wall and roof material (`surface_of()`: "Wall ..." siding, "Roof ..." shingles, the Fire Station and
+    school brick, the Library's stone, the barn's boards, the Void's "Dome (...)" scales and their stone trims) is
+    swapped for a copy with the patch's maps in its own colour (`SURFACE_GAIN`), keeping its name, so the seasons still
+    snow on the roofs. Box walls and prism roofs take the patch in their own space (triplanar); domes use their sphere's
+    UVs so the scales go round. Nothing is added or hidden. A combiner CSG node (no material) is skipped.
+  - Tests: `test_detail_props` (every Stars Hollow wall and roof has its patch: 26 siding, 30 shingles, 11 stone, 2 brick,
+    5 barn boards) and `test_detail_all` (the Void's domes and trims, dressed again changes nothing); seasons and
+    world_detail pass. Pictures: `tools/capture_detail_buildings.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_buildings).
+  - My choices Hayden may change: every look (the siding's lap, the shingles' grey, the scales on the domes), the patch
+    sizes.
+
+- 2026-11-19: **Baked the trees and plants: the Void's orb, spire and parasol trees, its giant leaves and mushrooms,
+  and Stars Hollow's autumn trees** (Hayden: "start baking nature, buildings, then portal worlds in that order"; this
+  is nature, part one). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_nature.py <out.glb> bark_trunk|bark_limb|leaf_ball|void_orb|void_spire|void_stalk|mushroom_cap|mushroom_stem|giant_leaf [--preview]`
+    (furrowed bark with roots, knots and stubs; a thin branch; a ball of 2,200 leaves; the Void's orb canopy of
+    scales and beads, its spire's crystal terraces and ridges, its ringed stalk with pores; a warty mushroom cap with
+    110 gills under it; a ringed stem with a bulb and a skirt; a giant leaf's quilted blade, midrib and veins). Each low
+    shape is exported at the size of the shape it replaces (unit sphere, cone, cylinder or hemisphere), and every map
+    is baked pale. In `models/props/nature/`. `--preview` writes the maps to `$BAKE_PREVIEWS` (outside the project).
+  - **Swapped at run time** (`detail_props.gd dress_nature()`, called by `WorldDetail` in every place): trees and
+    plants are MultiMeshes, so nothing is hidden or added. Each MultiMesh ("Canopies", "Spires", "Trunks" under the
+    Void's Trees; "Caps", "Stems", "Leaves" under its Foliage; "Tree Trunk", "Tree Branch", "Tree Leaves" under
+    Stars Hollow's Autumn Trees) gets the baked shape and its maps, and every copy keeps its place and its own colour,
+    so the seasons, glows and builders' colours work as before (`NATURE_GAIN` lifts each pale tint back to 1). The
+    Void's canopy, leaf and cap shaders gained `detailed` / `detail_tint` / `detail_normal` / `detail_orm` (off unless
+    dressed); the giant leaf keeps its own curved blade and has tangents now. Ferns and grass are left as they are.
+  - Tests: `test_detail_all` (each MultiMesh's model and maps, every copy still there, the bark's colour, the leaf's
+    tangents, nothing changed when dressed again or with the switches off) and `test_detail_props` (the autumn trees);
+    trees, seasons, world_detail and plant_clearance pass. Pictures: `tools/capture_detail_nature.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_nature).
+  - My choices Hayden may change: every look (the bark's furrows, the leaf balls, the orb trees' scales).
+
 - 2026-11-19: **Hot Springs' cave doorways no longer clip into the scenery** (Hayden: "The hot springs doorways are
   clipping into the scenery"). The builder faced all three caves straight south, but the plateau's cliff curves, so the
   baked mouths stuck out of it on one side and sank in on the other; the west cave (x -80) sat where the cliff turns

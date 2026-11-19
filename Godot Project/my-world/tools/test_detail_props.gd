@@ -1,5 +1,7 @@
 extends SceneTree
 
+const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
+
 # Checks the detailed props pipeline in Stars Hollow (15 Nov 2026):
 # - scripts/detail_props.gd: every builder street lamp, park bench and the gazebo has its detailed model, the old
 #   pieces are still there (collision, names) but no longer drawn, and the gazebo keeps its bulbs, lights and label,
@@ -85,6 +87,38 @@ func _run() -> void:
 	var props: Dictionary = detail.last_props
 	var batch: Dictionary = detail.last_batch
 	print("props ", props, "  batch ", batch)
+	# The autumn trees (19 Nov 2026): baked bark, branches and leaf balls on every copy; each copy's colour stays
+	# (the leaves' colours are what the seasons change)
+	var nature: Dictionary = detail.last_nature
+	var trees_ok := true
+	for part in [["Tree Trunk", "bark_trunk"], ["Tree Branch", "bark_limb"], ["Tree Leaves", "leaf_ball"]]:
+		var mmi := s.get_node("Autumn Trees/" + part[0]) as MultiMeshInstance3D
+		var mat := mmi.material_override as StandardMaterial3D
+		if nature.get(part[1], 0) != 1 or mmi.get_meta("detail_nature", "") != part[1] or mat == null \
+				or mat.albedo_texture == null or mat.normal_texture == null or not mat.vertex_color_use_as_albedo \
+				or not (mmi.multimesh.mesh is ArrayMesh) or mmi.multimesh.instance_count * 12 != mmi.transforms.size():
+			trees_ok = false
+	check(trees_ok, "every autumn tree has baked bark, branches and leaves, each in its own colour (%s)" % nature)
+	# The buildings' outsides (19 Nov 2026): baked siding, shingles, brick, stone and barn boards laid over every wall
+	# and roof in its own colour; roofs keep their names so the seasons still find them
+	var surf: Dictionary = detail.last_surfaces
+	check(int(surf.get("clapboard", 0)) >= 15 and int(surf.get("shingles", 0)) >= 15 and int(surf.get("brick", 0)) >= 2
+		and int(surf.get("stone", 0)) >= 1 and int(surf.get("barn_boards", 0)) >= 1,
+		"walls and roofs get baked siding, shingles, brick, stone and barn boards (%s)" % str(surf))
+	var walls_ok := 0
+	var walls_bad := []
+	for mi: MeshInstance3D in s.find_children("*", "MeshInstance3D", true, false):
+		var wm := mi.material_override as StandardMaterial3D
+		if wm == null:
+			continue
+		var want := DETAIL_PROPS.surface_of(wm.resource_name)
+		if want == "" or wm.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+			continue
+		if wm.get_meta("detail_surface", "") == want and wm.albedo_texture and wm.normal_texture and wm.uv1_triplanar:
+			walls_ok += 1
+		else:
+			walls_bad.append(wm.resource_name)
+	check(walls_ok >= 30 and walls_bad.is_empty(), "every wall and roof has its patch (%d; not: %s)" % [walls_ok, walls_bad])
 	check(ResourceLoader.exists("res://models/props/street_lamp.glb"), "the street lamp model is imported")
 	check(props.get("lamps", 0) == poles and poles >= 30, "every street lamp has its detailed model (%d of %d)" % [props.get("lamps", 0), poles])
 	check(props.get("benches", 0) >= 5, "the park benches have theirs (%d)" % props.get("benches", 0))

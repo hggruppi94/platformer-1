@@ -18,6 +18,7 @@ const BACKUP := "user://save.detail_all_test_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.detail_all_test_backup.cfg"
 const TOWN := "res://scenes/town/town.tscn"
+const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 # A place of each kind: the school, a portal world, a boss level, a race circuit, a room
 const OTHERS := ["res://scenes/school/school.tscn", "res://scenes/portal_worlds/far_future.tscn",
 	"res://scenes/portal_worlds/tide_reef.tscn", "res://scenes/bosses/gloop_kingdom.tscn",
@@ -70,6 +71,8 @@ func _run() -> void:
 	check(hidden == 0, "the Void with the switches off: nothing taken out of drawing (%d)" % hidden)
 	check(s.get_node_or_null("Batch Watch") == null and s.get_node_or_null("Mesh LODs") == null
 		and s.find_child("Detailed Stall", true, false) == null, "...and nothing added")
+	check(not (s.get_node("Trees/Canopies") as Node).has_meta("detail_nature")
+		and not (s.get_node("Foliage/Caps") as Node).has_meta("detail_nature"), "...and the trees and plants keep their old shapes")
 	var bodies_before := s.find_children("*", "CollisionShape3D", true, false).size()
 	var shapes_before := _shapes(s)
 	var areas_before := s.find_children("*", "Area3D", true, false).size()
@@ -552,6 +555,58 @@ func _run() -> void:
 		await _frames(120)
 		check(watch.undone == before, "nothing else in the Void moved by itself in 2 s (%d groups put back in all)" % watch.undone)
 
+	# --- Trees and plants (19 Nov 2026): the baked shapes on every copy, each copy's place and colour kept
+	_switch(true)
+	await _load(TOWN)
+	s = current_scene
+	var nature: Dictionary = detail.last_nature
+	var want := {"Trees/Canopies": "void_orb", "Trees/Spires": "void_spire", "Trees/Trunks": "void_stalk",
+		"Foliage/Caps": "mushroom_cap", "Foliage/Stems": "mushroom_stem", "Foliage/Leaves": "giant_leaf"}
+	for path: String in want:
+		var mmi := s.get_node(path) as MultiMeshInstance3D
+		var kind: String = want[path]
+		var mat := mmi.material_override
+		var maps := false
+		if mat is ShaderMaterial:
+			maps = (mat as ShaderMaterial).get_shader_parameter("detailed") == true \
+				and (mat as ShaderMaterial).get_shader_parameter("detail_tint") != null \
+				and (mat as ShaderMaterial).get_shader_parameter("detail_normal") != null
+		elif mat is StandardMaterial3D:
+			maps = (mat as StandardMaterial3D).albedo_texture != null and (mat as StandardMaterial3D).normal_texture != null
+		var shaped := kind == "giant_leaf" or mmi.multimesh.mesh is ArrayMesh
+		check(nature.get(kind, 0) == 1 and mmi.get_meta("detail_nature", "") == kind and maps and shaped,
+			"%s get the baked %s and its maps" % [path, kind])
+	var trees := s.get_node("Trees")
+	check((s.get_node("Trees/Canopies") as MultiMeshInstance3D).multimesh.instance_count == trees._orbs.size()
+		and (s.get_node("Trees/Trunks") as MultiMeshInstance3D).multimesh.instance_count == trees._stalks.size(),
+		"every tree's copies are all still there (%d balls, %d stalks)" % [trees._orbs.size(), trees._stalks.size()])
+	var bark := (s.get_node("Trees/Trunks") as MultiMeshInstance3D).material_override as StandardMaterial3D
+	check(bark.albedo_color.h > 0.0 and absf(bark.albedo_color.h - trees.bark_color.h) < 0.02,
+		"the Void's bark keeps its colour")
+	var leaf_mesh := (s.get_node("Foliage/Leaves") as MultiMeshInstance3D).multimesh.mesh as ArrayMesh
+	check(leaf_mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_TANGENT != 0, "the giant leaf has tangents for its normal map")
+	check(DETAIL_PROPS.dress_nature(s).is_empty(), "dressing the trees again changes nothing")
+
+	# --- Building outsides (19 Nov 2026): the domes' scales along their UVs, the trims' stone, colours kept
+	var surf: Dictionary = detail.last_surfaces
+	check(int(surf.get("dome_scales", 0)) >= 10 and int(surf.get("stone", 0)) >= 10,
+		"the domes get baked scales and their trims stone (%s)" % str(surf))
+	var dome_ok := 0
+	var dome_bad := 0
+	for mi: MeshInstance3D in s.find_children("*", "MeshInstance3D", true, false):
+		if not mi.mesh is SphereMesh:
+			continue
+		var dm := mi.material_override as StandardMaterial3D
+		if dm == null or not dm.resource_name.begins_with("Dome ("):
+			continue
+		if dm.get_meta("detail_surface", "") == "dome_scales" and dm.albedo_texture and dm.normal_texture \
+				and not dm.uv1_triplanar and dm.uv1_scale.x >= 10.0 and dm.albedo_color.a == 1.0:
+			dome_ok += 1
+		else:
+			dome_bad += 1
+	check(dome_ok >= 10 and dome_bad == 0, "every dome has its scales round it (%d, %d not)" % [dome_ok, dome_bad])
+	check(DETAIL_PROPS.dress_buildings(s).is_empty(), "dressing the buildings again changes nothing")
+
 	# --- Every other kind of place: merged, fewer meshes, nothing errors
 	for path in OTHERS:
 		_switch(false)
@@ -563,6 +618,31 @@ func _run() -> void:
 		var b := _drawn(current_scene)
 		var w := current_scene.get_node_or_null("Batch Watch")
 		check(b < a, "%s draws fewer meshes (%d, was %d; %d groups put back)" % [path.get_file(), b, a, w.undone if w else 0])
+
+	# --- The portal worlds' rock, bark, ice, snow, coral, metal and dry stone (19 Nov 2026, batch fifteen)
+	_switch(true)
+	var portal_want := {"dark_hollow": ["bark", "rock"], "frozen_moment": ["ice", "snow", "bark"], "glenmoor": ["drystone"],
+		"lanternmoor": ["bark", "rock"], "tide_reef": ["coral", "rock"], "far_future": ["metal_panel"],
+		"shard_isle": ["rock"], "rhythm_springs": ["rock"], "rootmind": ["bark"]}
+	for world in portal_want:
+		await _load("res://scenes/portal_worlds/%s.tscn" % world)
+		var got: Dictionary = detail.last_surfaces
+		var missing := []
+		for kind in portal_want[world]:
+			if int(got.get(kind, 0)) < 1:
+				missing.append(kind)
+		check(missing.is_empty(), "%s gets its baked %s (%s)" % [world, ", ".join(portal_want[world]), str(got)])
+		var bad := []
+		for mi: MeshInstance3D in current_scene.find_children("*", "MeshInstance3D", true, false):
+			var pm := mi.material_override as StandardMaterial3D
+			if pm == null or not pm.has_meta("detail_surface"):
+				continue
+			var kind: String = pm.get_meta("detail_surface")
+			if pm.albedo_texture == null or pm.normal_texture == null or not pm.uv1_triplanar \
+					or pm.uv1_world_triplanar != (kind in DETAIL_PROPS.WORLD_SPACE_SURFACES):
+				bad.append(pm.resource_name)
+		check(bad.is_empty(), "%s: every patched piece has its maps laid on the right way (%s)" % [world, str(bad)])
+		check(DETAIL_PROPS.dress_buildings(current_scene).is_empty(), "%s: dressing again changes nothing" % world)
 
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()

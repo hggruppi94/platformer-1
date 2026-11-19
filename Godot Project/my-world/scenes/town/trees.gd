@@ -4,11 +4,11 @@ extends Node3D
 # Positions/sizes/colors and the look (bark, glow, canopy shape) are written by tools/build_town.gd.
 #
 # The Void's trees are sparkly alien trees, in three kinds picked from each tree's spot so a rebuild keeps them:
-# orb trees (a leaning stalk with a glowing ball on top and two little ones on side branches), spire trees (three
-# twisted, faceted cones stacked up like a crystal fir) and parasol trees (a tall stalk under a wide flat cap with
-# glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with specks of light,
-# and twinkles from a pixelfx sprite sheet (scenes/town/tree_twinkle.png, effect pickups/tree-twinkle) wink on and
-# off round each one. Nothing here is solid, as before.
+# orb trees (a straight stalk with a glowing ball centred on top and two matching little ones on side branches),
+# spire trees (three twisted, faceted cones stacked up like a crystal fir) and parasol trees (a tall stalk under a
+# wide flat cap with glowing bulbs hanging round its edge). Their canopies shimmer, glow at the rim and glitter with
+# specks of light, and twinkles from a pixelfx sprite sheet (scenes/town/tree_twinkle.png, effect pickups/tree-twinkle)
+# wink on and off round each one. Nothing here is solid, as before.
 #
 # A tree whose stalk or canopy would stand in something solid (a building, a fence, a rail...) is left out when the
 # world loads (scripts/plant_clearance.gd; Hayden's day 1 playtest, 11 Nov 2026: trees clipping through things).
@@ -33,6 +33,11 @@ const LEAVES_SHADER := """shader_type spatial;
 render_mode cull_back;
 uniform float glow = 0.0;
 uniform float specks = 1.0;
+uniform bool detailed = false;   // baked detail (scripts/detail_props.gd dress_nature): tint, normal map, AO
+uniform sampler2D detail_tint : source_color, hint_default_white;
+uniform sampler2D detail_normal : hint_normal;
+uniform sampler2D detail_orm : hint_default_white;
+uniform float detail_gain = 1.0;  // the tint baked pale; this brings its middle back to 1, so colours stay as they were
 varying vec3 local_pos;
 varying float seed;
 
@@ -63,6 +68,12 @@ void fragment() {
 	float speck = step(0.72, h) * smoothstep(0.32, 0.04, d) * flash * specks;
 	EMISSION = base * glow * shimmer * (1.0 + swirl * 0.5) + mix(base, vec3(1.0), 0.4) * rim * 1.1
 		+ vec3(1.0, 0.97, 1.0) * speck * 5.0;
+	if (detailed) {
+		ALBEDO *= texture(detail_tint, UV).rgb * detail_gain;
+		NORMAL_MAP = texture(detail_normal, UV).rgb;
+		AO = texture(detail_orm, UV).r;
+		AO_LIGHT_AFFECT = 0.7;
+	}
 }"""
 
 # A twinkle: a camera-facing quad playing the sprite sheet's 16 frames once, then nothing until its next turn.
@@ -137,41 +148,42 @@ func _ready() -> void:
 		var had := [orbs.size(), cones.size(), stalks.size()]
 		match kind:
 			Kind.ORB:
-				# A stalk leaning a little, a big ball on top, and two short branches with little balls
-				var lean := Basis(Vector3(cos(spin), 0, sin(spin)), rng.randf_range(0.08, 0.2))
+				# A straight stalk with a big ball centred on top, and two matching branches straight out either side
+				# with matching little balls (Hayden, 19 Nov 2026: the balls looked off centre and lopsided when the
+				# stalk leant and the two branches came off at odd angles, heights and sizes).
 				var h := 2.0 + s * 1.5
-				var top := p + lean * Vector3(0, h, 0)
+				var top := p + Vector3(0, h, 0)
 				stalks.append(_stalk(p + Vector3(0, -0.3, 0), top, 1.0))
 				var r := s * 0.85
-				orbs.append(Transform3D(Basis().scaled(Vector3(r, r * 1.05, r)), top + Vector3(0, r * 0.6, 0)))
+				var ball := top + Vector3(0, r * 0.6, 0)
+				orbs.append(Transform3D(Basis().scaled(Vector3(r, r * 1.05, r)), ball))
 				orb_colors.append(c)
-				surface.append_array(_on_ball(top + Vector3(0, r * 0.6, 0), Vector3(r, r * 1.05, r), 4, rng))
+				surface.append_array(_on_ball(ball, Vector3(r, r * 1.05, r), 4, rng))
+				var from := p + Vector3(0, h * 0.56, 0)
+				var br := s * 0.37
 				for side in [-1.0, 1.0]:
-					var out := Vector3(cos(spin + side * 1.9), 0, sin(spin + side * 1.9))
-					var from := p + lean * Vector3(0, h * rng.randf_range(0.5, 0.62), 0)
+					var out: Vector3 = Vector3(cos(spin), 0, sin(spin)) * float(side)
 					var to := from + out * s * 0.8 + Vector3(0, s * 0.55, 0)
 					stalks.append(_stalk(from, to, 0.45))
-					var br := s * rng.randf_range(0.32, 0.42)
 					orbs.append(Transform3D(Basis().scaled(Vector3.ONE * br), to + Vector3(0, br * 0.5, 0)))
 					orb_colors.append(_shifted(c, 0.12 * side))
 					surface.append_array(_on_ball(to + Vector3(0, br * 0.5, 0), Vector3.ONE * br, 2, rng))
 			Kind.SPIRE:
-				# Three faceted cones stacked, each turned against the last and nudged a little off the middle so
-				# the spire twists, on a short trunk, with a glowing star ball on its tip
+				# Three faceted cones stacked straight up the middle, each turned against the last so the spire
+				# twists, on a short trunk, with a glowing star ball centred on its tip (Hayden, 19 Nov 2026: the
+				# cones used to be nudged off the middle too, which left the stack and its ball off centre)
 				var base_y := 0.9 + s * 0.2
 				stalks.append(_stalk(p + Vector3(0, -0.3, 0), p + Vector3(0, base_y + 0.4, 0), 1.0))
 				var y := base_y
-				var off := Vector3.ZERO
 				for tier in 3:
 					var w := s * (1.05 - tier * 0.27)
 					var th := s * canopy_stretch * (0.75 - tier * 0.1)
 					var basis := Basis(Vector3.UP, spin + tier * 1.1).scaled(Vector3(w, th, w))
-					cones.append(Transform3D(basis, p + off + Vector3(0, y + th * 0.5, 0)))
+					cones.append(Transform3D(basis, p + Vector3(0, y + th * 0.5, 0)))
 					cone_colors.append(_shifted(c, tier * 0.06))
-					surface.append_array(_on_cone(p + off + Vector3(0, y, 0), w, th, 3 - int(tier == 2), rng))
+					surface.append_array(_on_cone(p + Vector3(0, y, 0), w, th, 3 - int(tier == 2), rng))
 					y += th * 0.6
-					off += Vector3(cos(spin + tier * 2.1), 0, sin(spin + tier * 2.1)) * s * 0.12
-				var tip := p + off + Vector3(0, y + s * canopy_stretch * 0.2, 0)
+				var tip := p + Vector3(0, y + s * canopy_stretch * 0.2, 0)
 				orbs.append(Transform3D(Basis().scaled(Vector3.ONE * s * 0.16), tip))
 				orb_colors.append(_shifted(c, 0.5).lightened(0.45))
 			Kind.PARASOL:
@@ -188,7 +200,9 @@ func _ready() -> void:
 				var bulbs := 6 + int(s * 2.0)
 				for b in bulbs:
 					var a := spin + TAU * b / bulbs
-					var hang := top + Vector3(cos(a) * w * 0.82, -s * 0.25 - rng.randf_range(0.1, 0.5), sin(a) * w * 0.82)
+					# Every bulb hangs the same depth, evenly round the rim (Hayden, 19 Nov 2026: random depths
+					# looked lopsided)
+					var hang := top + Vector3(cos(a) * w * 0.82, -s * 0.25 - 0.3, sin(a) * w * 0.82)
 					orbs.append(Transform3D(Basis().scaled(Vector3.ONE * s * 0.13), hang))
 					orb_colors.append(bulb_color)
 					if b % 2 == 0:

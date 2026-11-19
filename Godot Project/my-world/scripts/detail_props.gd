@@ -1809,3 +1809,246 @@ static func dress_vein(vein: Node) -> int:
 	st.name = "Detailed Stubs"
 	stubs.add_child(st)
 	return 1
+
+
+# ----------------------------------------------------------------------------- nature (19 Nov 2026)
+# Trees and plants are MultiMeshes (thousands of copies, each with its own place and colour), so nothing is hidden or
+# added here: each MultiMesh just gets the baked shape (tools/build_prop_nature.py, sized to the shape it replaces) and
+# its maps. The maps are baked pale and each copy keeps its own colour on top, so seasons, glows and the builders'
+# colours carry on. `NATURE_GAIN` brings each baked tint's middle back to 1 (its mean in linear light, measured).
+const NATURE := "res://models/props/nature/%s.glb"
+const NATURE_GAIN := {"bark_trunk": 1.83, "bark_limb": 1.7, "leaf_ball": 2.0, "void_orb": 2.0, "void_spire": 1.2,
+	"void_stalk": 1.36, "mushroom_cap": 1.19, "mushroom_stem": 1.29, "giant_leaf": 1.4}     # (leaves held to 2)
+const NATURE_META := "detail_nature"   # on each MultiMeshInstance3D given a baked shape: which model
+
+
+static func dress_nature(scene: Node) -> Dictionary:
+	# The Void's trees (scenes/town/trees.gd), its giant leaves and mushrooms (scenes/town/foliage.gd) and Stars
+	# Hollow's autumn trees (tools/build_earth.gd _flush_trees). Returns how many MultiMeshes got each model.
+	var out := {}
+	if scene == null:
+		return out
+	for mmi: MultiMeshInstance3D in scene.find_children("*", "MultiMeshInstance3D", true, false):
+		if mmi.has_meta(NATURE_META) or mmi.multimesh == null:
+			continue
+		var owner_script: Script = mmi.get_parent().get_script() if mmi.get_parent() else null
+		var from := owner_script.resource_path.get_file() if owner_script else ""
+		var kind := ""
+		var swap_mesh := true
+		match [from, String(mmi.name)]:
+			["trees.gd", "Canopies"]:
+				kind = "void_orb"
+			["trees.gd", "Spires"]:
+				kind = "void_spire"
+			["trees.gd", "Trunks"]:
+				kind = "void_stalk"
+			["foliage.gd", "Caps"]:
+				kind = "mushroom_cap"
+			["foliage.gd", "Stems"]:
+				kind = "mushroom_stem"
+			["foliage.gd", "Leaves"]:
+				kind = "giant_leaf"
+				swap_mesh = false          # the leaf's own curved blade stays; the bake is laid on its UVs
+			[_, "Tree Trunk"]:
+				kind = "bark_trunk"
+			[_, "Tree Branch"]:
+				kind = "bark_limb"
+			[_, "Tree Leaves"]:
+				kind = "leaf_ball"
+		if kind == "" or (kind.begins_with("bark") or kind == "leaf_ball") and mmi.get_parent().name != "Autumn Trees":
+			continue
+		var model := _scene(NATURE % kind)
+		if model == null:
+			continue
+		var mesh := _mesh_of(model)
+		var baked := mesh.surface_get_material(0) as StandardMaterial3D if mesh else null
+		if baked == null:
+			continue
+		var gain: float = NATURE_GAIN.get(kind, 1.0)
+		var old := mmi.material_override
+		if old is ShaderMaterial:
+			var mat := (old as ShaderMaterial).duplicate() as ShaderMaterial
+			mat.set_shader_parameter("detailed", true)
+			mat.set_shader_parameter("detail_tint", baked.albedo_texture)
+			mat.set_shader_parameter("detail_normal", baked.normal_texture)
+			mat.set_shader_parameter("detail_orm", baked.ao_texture)
+			mat.set_shader_parameter("detail_gain", gain)
+			mmi.material_override = mat
+		elif old is StandardMaterial3D:
+			# The bark: the baked material, in the old one's colour (the Void's) or each copy's (Stars Hollow's)
+			var was := old as StandardMaterial3D
+			var mat := baked.duplicate() as StandardMaterial3D
+			mat.resource_name = "Detailed " + kind
+			mat.vertex_color_use_as_albedo = was.vertex_color_use_as_albedo
+			var c := was.albedo_color * gain
+			mat.albedo_color = Color(c.r, c.g, c.b, 1.0)
+			mat.emission_enabled = was.emission_enabled
+			mat.emission = was.emission
+			mat.emission_energy_multiplier = was.emission_energy_multiplier
+			mmi.material_override = mat
+		else:
+			continue
+		if swap_mesh:
+			mmi.multimesh.mesh = mesh
+		mmi.set_meta(NATURE_META, kind)
+		out[kind] = int(out.get(kind, 0)) + 1
+	return out
+
+
+# ----------------------------------------------------------------------------- building outsides (19 Nov 2026)
+# Walls and roofs are far too big, and come in far too many sizes, to bake whole, so they get TILING detail instead
+# (tools/build_prop_surfaces.py): a patch of siding, shingles, brick, stone, barn boards or dome scales, modelled in
+# full and baked onto a square that repeats. Nothing is added or hidden: each wall and roof material is swapped for a
+# copy with the patch's maps, in its own colour (the patch is baked pale; `SURFACE_GAIN` lifts its middle back to 1),
+# keeping its name so the seasons still snow on the roofs. Box walls and prism roofs have no UVs worth using, so the
+# patch is laid on in the mesh's own space (triplanar, `SURFACE_TILE` metres a patch); the Void's round domes use their
+# sphere's UVs, so the scales follow the dome round and up.
+const SURFACE := "res://models/props/surfaces/%s.glb"
+const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
+	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
+	"drystone": 2.0}
+const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
+	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
+	"drystone": 2.0}
+# The portal worlds' natural stuff (batch fifteen) is only patched in a portal world, so a "Stone" or a "Snow" in the
+# towns is left alone. Their rocks, trunks and crags are scaled and turned every which way by the builders, so these
+# lay the patch on in the world's space, which keeps every piece's patch the same size.
+const PORTAL_SURFACES := {
+	"bark": ["Crooked Bark", "Pine Bark", "Bark", "Mangrove Bark", "Root", "Root Wall"],
+	"rock": ["Old Stone", "Spire Rock", "Shard Rock", "Reef Rock", "Reef Rock Pale", "Reef Rock Dark", "Wet Rock",
+		"Wet Rock Dark", "Standing Stone", "Moon Stone", "Path Stone"],
+	"ice": ["Crag Ice", "Icicle", "Slide Ice", "Cave Ice", "Throne Ice", "Lake Ice"],
+	"snow": ["Snow", "Crag Snow", "Drift Snow", "Snow Cap"],
+	"metal_panel": ["Lab Wall", "Skyway Deck", "Pillar", "Lab Floor"],
+	"drystone": ["Stone", "Stone Dark"],
+}
+const WORLD_SPACE_SURFACES := ["bark", "rock", "ice", "snow", "coral", "drystone"]
+const SURFACE_META := "detail_surface"   # on each swapped material: which patch
+
+
+static func surface_of(mat_name: String, portal := false) -> String:
+	# Which patch a builder material gets ("" for none); `portal` for a portal world's own
+	if portal:
+		if mat_name.begins_with("Coral "):
+			return "coral"
+		for kind in PORTAL_SURFACES:
+			if mat_name in PORTAL_SURFACES[kind]:
+				return kind
+		return ""
+	if mat_name in ["Wall Fire Station", "Wall School"]:
+		return "brick"
+	if mat_name in ["Wall Library", "Library Stone", "Dome Trim"]:
+		return "stone"
+	if mat_name == "Barn Red":
+		return "barn_boards"
+	if mat_name.begins_with("Dome ("):
+		return "dome_scales"
+	if mat_name.begins_with("Roof ") or mat_name in ["Steeple Roof", "Barn Roof"]:
+		return "shingles"
+	if mat_name.begins_with("Wall ") and mat_name != "Wall Inside" or mat_name == "Steeple":
+		return "clapboard"
+	return ""
+
+
+static func dress_buildings(scene: Node) -> Dictionary:
+	# Every builder wall and roof in the place (Stars Hollow's houses, shops, steeples and barn; the Void's domes and
+	# their trims). Returns how many meshes got each patch.
+	var out := {}
+	if scene == null:
+		return out
+	var made := {}                         # [old material, key] -> the detailed copy, so copies are shared
+	made["portal"] = scene.scene_file_path.begins_with("res://scenes/portal_worlds/")
+	for node in scene.find_children("*", "GeometryInstance3D", true, false):
+		if node is CSGShape3D:
+			# A combiner has no material of its own (its children are found by themselves)
+			var cm = node.get("material")
+			if cm is StandardMaterial3D:
+				var m := _surface_mat(cm, null, made)
+				if m:
+					node.set("material", m)
+					_count(out, m)
+			continue
+		if not node is MeshInstance3D:
+			continue
+		var mi := node as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		var changed := false
+		if mi.material_override is StandardMaterial3D:
+			var m := _surface_mat(mi.material_override, mi.mesh, made)
+			if m:
+				mi.material_override = m
+				_count(out, m)
+				changed = true
+		else:
+			for k in mi.mesh.get_surface_count():
+				var sm := mi.get_surface_override_material(k)
+				if sm == null:
+					sm = mi.mesh.surface_get_material(k)
+				if sm is StandardMaterial3D:
+					var m := _surface_mat(sm, mi.mesh, made)
+					if m:
+						mi.set_surface_override_material(k, m)
+						_count(out, m)
+						changed = true
+		# A roof turned within its building (the barn's) would have its courses running the wrong way once merged into
+		# the building's space, so it keeps its own (a name keeps scripts/static_batch.gd off it)
+		if changed and String(mi.name).begins_with("@") and absf(mi.basis.z.normalized().z) < 0.9:
+			mi.name = "Detailed Surface"
+	var seasons := scene.get_node_or_null("Seasons")
+	if seasons and seasons.has_method("take_in") and not out.is_empty():
+		seasons.call("take_in", scene)
+	return out
+
+
+static func _count(out: Dictionary, m: Material) -> void:
+	var kind: String = m.get_meta(SURFACE_META)
+	out[kind] = int(out.get(kind, 0)) + 1
+
+
+static func _surface_mat(old: StandardMaterial3D, mesh: Mesh, made: Dictionary) -> StandardMaterial3D:
+	if old.has_meta(SURFACE_META):
+		return null
+	var kind := surface_of(old.resource_name, made.get("portal", false))
+	if kind == "" or old.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
+		return null
+	var tile: float = SURFACE_TILE[kind]
+	var uv := Vector3.ONE
+	if kind == "dome_scales":
+		if not mesh is SphereMesh:
+			return null
+		# Round the dome and from pole to pole, a whole number of patches so the seam closes
+		var r := (mesh as SphereMesh).radius
+		uv = Vector3(maxf(1.0, roundf(TAU * r / tile)), maxf(1.0, roundf(PI * r / tile)), 1.0)
+	var key := [old, uv]
+	if made.has(key):
+		return made[key]
+	var model := _scene(SURFACE % kind)
+	var baked_mesh := _mesh_of(model) if model else null
+	var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
+	if baked == null:
+		return null
+	var m := old.duplicate() as StandardMaterial3D
+	m.albedo_texture = baked.albedo_texture
+	var c := old.albedo_color * float(SURFACE_GAIN[kind])
+	m.albedo_color = Color(c.r, c.g, c.b, 1.0)
+	m.normal_enabled = true
+	m.normal_texture = baked.normal_texture
+	m.ao_enabled = true
+	m.ao_texture = baked.ao_texture
+	m.ao_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	m.ao_light_affect = 0.6
+	m.roughness_texture = baked.ao_texture
+	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+	m.roughness = 1.0
+	m.texture_repeat = true
+	if kind == "dome_scales":
+		m.uv1_scale = uv
+	else:
+		m.uv1_triplanar = true
+		m.uv1_world_triplanar = kind in WORLD_SPACE_SURFACES
+		m.uv1_triplanar_sharpness = 6.0
+		m.uv1_scale = Vector3.ONE / tile
+	m.set_meta(SURFACE_META, kind)
+	made[key] = m
+	return m
