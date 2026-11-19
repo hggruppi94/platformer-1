@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked the portal worlds' natural surfaces: rock, bark, ice, snow, coral, metal panels and dry stone**
+  (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is portal worlds). Built and tested
+  in the cloud (own Godot user folders, no save touched).
+  - **Seven more tiling patches** (`tools/build_prop_surfaces.py ... bark|rock|ice|snow|coral|metal_panel|drystone`):
+    ridged bark plates over dark furrows, lumpy rock knobs with cracks, clear ice with cracks, bubbles and frost, soft
+    snow mounds with glints, coral with pores, riveted metal plates with vents, and dry stone walls in courses. In
+    `models/props/surfaces/`.
+  - **Swapped at run time** by the same `dress_buildings()`, only in `scenes/portal_worlds/`: `surface_of(name, true)`
+    reads `PORTAL_SURFACES` (bark: "Crooked Bark", "Pine Bark", "Root"...; rock: "Old Stone", "Spire Rock", "Reef
+    Rock"...; ice: "Crag Ice", "Lake Ice"...; snow: "Snow", "Drift Snow"...; metal_panel: "Lab Wall", "Skyway Deck"...;
+    drystone: Glenmoor's "Stone"; any "Coral ..." is coral). The natural ones are laid in world space
+    (`WORLD_SPACE_SURFACES`) so neighbouring rocks and trunks join up; each keeps its own colour. CSG shapes are dressed
+    too. The Void and Stars Hollow are unchanged by this.
+  - Tests: `test_detail_all` (each world has its kinds with maps, dressed again changes nothing). Pictures:
+    `tools/capture_detail_portals.gd -- <folder> [--old-props]` (project files, world/previews/detail_portals).
+  - My choices Hayden may change: every look, which materials get which patch (ice and snow are subtle on purpose).
+
 - 2026-11-19: **Baked the building outsides: siding, shingles, brick, stone, barn boards and the Void's dome scales**
   (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is buildings). Built and tested in
   the cloud (own Godot user folders, no save touched).

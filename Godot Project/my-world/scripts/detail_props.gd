@@ -1905,14 +1905,36 @@ static func dress_nature(scene: Node) -> Dictionary:
 # sphere's UVs, so the scales follow the dome round and up.
 const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
-	"dome_scales": 1.6}
+	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
+	"drystone": 2.0}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
-	"dome_scales": 1.31}
+	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
+	"drystone": 2.0}
+# The portal worlds' natural stuff (batch fifteen) is only patched in a portal world, so a "Stone" or a "Snow" in the
+# towns is left alone. Their rocks, trunks and crags are scaled and turned every which way by the builders, so these
+# lay the patch on in the world's space, which keeps every piece's patch the same size.
+const PORTAL_SURFACES := {
+	"bark": ["Crooked Bark", "Pine Bark", "Bark", "Mangrove Bark", "Root", "Root Wall"],
+	"rock": ["Old Stone", "Spire Rock", "Shard Rock", "Reef Rock", "Reef Rock Pale", "Reef Rock Dark", "Wet Rock",
+		"Wet Rock Dark", "Standing Stone", "Moon Stone", "Path Stone"],
+	"ice": ["Crag Ice", "Icicle", "Slide Ice", "Cave Ice", "Throne Ice", "Lake Ice"],
+	"snow": ["Snow", "Crag Snow", "Drift Snow", "Snow Cap"],
+	"metal_panel": ["Lab Wall", "Skyway Deck", "Pillar", "Lab Floor"],
+	"drystone": ["Stone", "Stone Dark"],
+}
+const WORLD_SPACE_SURFACES := ["bark", "rock", "ice", "snow", "coral", "drystone"]
 const SURFACE_META := "detail_surface"   # on each swapped material: which patch
 
 
-static func surface_of(mat_name: String) -> String:
-	# Which patch a builder material gets ("" for none)
+static func surface_of(mat_name: String, portal := false) -> String:
+	# Which patch a builder material gets ("" for none); `portal` for a portal world's own
+	if portal:
+		if mat_name.begins_with("Coral "):
+			return "coral"
+		for kind in PORTAL_SURFACES:
+			if mat_name in PORTAL_SURFACES[kind]:
+				return kind
+		return ""
 	if mat_name in ["Wall Fire Station", "Wall School"]:
 		return "brick"
 	if mat_name in ["Wall Library", "Library Stone", "Dome Trim"]:
@@ -1935,6 +1957,7 @@ static func dress_buildings(scene: Node) -> Dictionary:
 	if scene == null:
 		return out
 	var made := {}                         # [old material, key] -> the detailed copy, so copies are shared
+	made["portal"] = scene.scene_file_path.begins_with("res://scenes/portal_worlds/")
 	for node in scene.find_children("*", "GeometryInstance3D", true, false):
 		if node is CSGShape3D:
 			# A combiner has no material of its own (its children are found by themselves)
@@ -1986,7 +2009,7 @@ static func _count(out: Dictionary, m: Material) -> void:
 static func _surface_mat(old: StandardMaterial3D, mesh: Mesh, made: Dictionary) -> StandardMaterial3D:
 	if old.has_meta(SURFACE_META):
 		return null
-	var kind := surface_of(old.resource_name)
+	var kind := surface_of(old.resource_name, made.get("portal", false))
 	if kind == "" or old.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 		return null
 	var tile: float = SURFACE_TILE[kind]
@@ -2023,7 +2046,7 @@ static func _surface_mat(old: StandardMaterial3D, mesh: Mesh, made: Dictionary) 
 		m.uv1_scale = uv
 	else:
 		m.uv1_triplanar = true
-		m.uv1_world_triplanar = false
+		m.uv1_world_triplanar = kind in WORLD_SPACE_SURFACES
 		m.uv1_triplanar_sharpness = 6.0
 		m.uv1_scale = Vector3.ONE / tile
 	m.set_meta(SURFACE_META, kind)

@@ -619,6 +619,31 @@ func _run() -> void:
 		var w := current_scene.get_node_or_null("Batch Watch")
 		check(b < a, "%s draws fewer meshes (%d, was %d; %d groups put back)" % [path.get_file(), b, a, w.undone if w else 0])
 
+	# --- The portal worlds' rock, bark, ice, snow, coral, metal and dry stone (19 Nov 2026, batch fifteen)
+	_switch(true)
+	var portal_want := {"dark_hollow": ["bark", "rock"], "frozen_moment": ["ice", "snow", "bark"], "glenmoor": ["drystone"],
+		"lanternmoor": ["bark", "rock"], "tide_reef": ["coral", "rock"], "far_future": ["metal_panel"],
+		"shard_isle": ["rock"], "rhythm_springs": ["rock"], "rootmind": ["bark"]}
+	for world in portal_want:
+		await _load("res://scenes/portal_worlds/%s.tscn" % world)
+		var got: Dictionary = detail.last_surfaces
+		var missing := []
+		for kind in portal_want[world]:
+			if int(got.get(kind, 0)) < 1:
+				missing.append(kind)
+		check(missing.is_empty(), "%s gets its baked %s (%s)" % [world, ", ".join(portal_want[world]), str(got)])
+		var bad := []
+		for mi: MeshInstance3D in current_scene.find_children("*", "MeshInstance3D", true, false):
+			var pm := mi.material_override as StandardMaterial3D
+			if pm == null or not pm.has_meta("detail_surface"):
+				continue
+			var kind: String = pm.get_meta("detail_surface")
+			if pm.albedo_texture == null or pm.normal_texture == null or not pm.uv1_triplanar \
+					or pm.uv1_world_triplanar != (kind in DETAIL_PROPS.WORLD_SPACE_SURFACES):
+				bad.append(pm.resource_name)
+		check(bad.is_empty(), "%s: every patched piece has its maps laid on the right way (%s)" % [world, str(bad)])
+		check(DETAIL_PROPS.dress_buildings(current_scene).is_empty(), "%s: dressing again changes nothing" % world)
+
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
