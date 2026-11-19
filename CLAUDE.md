@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked the building outsides: siding, shingles, brick, stone, barn boards and the Void's dome scales**
+  (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is buildings). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **Tiling patches, not whole buildings** (walls and roofs come in too many sizes to bake one by one): new
+    `tools/build_prop_surfaces.py <out.glb> clapboard|shingles|brick|stone|barn_boards|dome_scales [--preview]` models a
+    patch in full (lapped boards with nail heads, staggered shingle courses, bricks in mortar, dressed stone blocks,
+    battened barn boards, overlapping dome scales with a bead on each) over 3x3 copies so it repeats seamlessly, and bakes
+    it pale onto one square (2 m, 1.2 m for brick, 2.4 m for stone, 1.6 m for scales). In `models/props/surfaces/`.
+  - **Swapped at run time** (`detail_props.gd dress_buildings()`, called by `WorldDetail` in every place before
+    batching): each wall and roof material (`surface_of()`: "Wall ..." siding, "Roof ..." shingles, the Fire Station and
+    school brick, the Library's stone, the barn's boards, the Void's "Dome (...)" scales and their stone trims) is
+    swapped for a copy with the patch's maps in its own colour (`SURFACE_GAIN`), keeping its name, so the seasons still
+    snow on the roofs. Box walls and prism roofs take the patch in their own space (triplanar); domes use their sphere's
+    UVs so the scales go round. Nothing is added or hidden. A combiner CSG node (no material) is skipped.
+  - Tests: `test_detail_props` (every Stars Hollow wall and roof has its patch: 26 siding, 30 shingles, 11 stone, 2 brick,
+    5 barn boards) and `test_detail_all` (the Void's domes and trims, dressed again changes nothing); seasons and
+    world_detail pass. Pictures: `tools/capture_detail_buildings.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_buildings).
+  - My choices Hayden may change: every look (the siding's lap, the shingles' grey, the scales on the domes), the patch
+    sizes.
+
 - 2026-11-19: **Baked the trees and plants: the Void's orb, spire and parasol trees, its giant leaves and mushrooms,
   and Stars Hollow's autumn trees** (Hayden: "start baking nature, buildings, then portal worlds in that order"; this
   is nature, part one). Built and tested in the cloud (own Godot user folders, no save touched).

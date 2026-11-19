@@ -587,6 +587,26 @@ func _run() -> void:
 	check(leaf_mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_TANGENT != 0, "the giant leaf has tangents for its normal map")
 	check(DETAIL_PROPS.dress_nature(s).is_empty(), "dressing the trees again changes nothing")
 
+	# --- Building outsides (19 Nov 2026): the domes' scales along their UVs, the trims' stone, colours kept
+	var surf: Dictionary = detail.last_surfaces
+	check(int(surf.get("dome_scales", 0)) >= 10 and int(surf.get("stone", 0)) >= 10,
+		"the domes get baked scales and their trims stone (%s)" % str(surf))
+	var dome_ok := 0
+	var dome_bad := 0
+	for mi: MeshInstance3D in s.find_children("*", "MeshInstance3D", true, false):
+		if not mi.mesh is SphereMesh:
+			continue
+		var dm := mi.material_override as StandardMaterial3D
+		if dm == null or not dm.resource_name.begins_with("Dome ("):
+			continue
+		if dm.get_meta("detail_surface", "") == "dome_scales" and dm.albedo_texture and dm.normal_texture \
+				and not dm.uv1_triplanar and dm.uv1_scale.x >= 10.0 and dm.albedo_color.a == 1.0:
+			dome_ok += 1
+		else:
+			dome_bad += 1
+	check(dome_ok >= 10 and dome_bad == 0, "every dome has its scales round it (%d, %d not)" % [dome_ok, dome_bad])
+	check(DETAIL_PROPS.dress_buildings(s).is_empty(), "dressing the buildings again changes nothing")
+
 	# --- Every other kind of place: merged, fewer meshes, nothing errors
 	for path in OTHERS:
 		_switch(false)
