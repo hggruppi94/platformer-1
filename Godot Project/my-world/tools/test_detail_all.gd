@@ -92,9 +92,11 @@ func _run() -> void:
 	for k in shapes_after:
 		if not shapes_before.has(k):
 			print("  shape new: ", k)
-	check(s.find_children("*", "CollisionShape3D", true, false).size() == bodies_before,
-		"every collision shape is still there (%d, was %d)" % [s.find_children("*", "CollisionShape3D", true, false).size(),
-		bodies_before])
+	# (the crystal cluster that stood in a Hot Springs cave's mouth goes with its collision: _place_springs)
+	var cleared := int(s.get_node("Hot Springs").get_meta("springs_cleared_shapes", 0))
+	check(s.find_children("*", "CollisionShape3D", true, false).size() + cleared == bodies_before,
+		"every collision shape is still there (%d + %d cleared by the Hot Springs, was %d)" % [
+		s.find_children("*", "CollisionShape3D", true, false).size(), cleared, bodies_before])
 	check(s.find_children("*", "Area3D", true, false).size() == areas_before, "every area is still there (%d)" % areas_before)
 	# The Gloop Gate's view (under a map landmark) is merged too
 	var gate := s.get_node_or_null("Gloop Gate")

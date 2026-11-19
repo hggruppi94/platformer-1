@@ -100,6 +100,17 @@ const LAMP_BULB := 3.5                 # how high the model's bulb is (tools/bui
 const VOID_LAMPS := [["Lamp Post", 3.4, "Market Square"], ["Castle Lamp Post", 3.2, "Castle Grounds"],
 	["Boardwalk Post", 2.2, "Boardwalk"], ["Boardwalk Post", 2.2, "Dock"]]
 const OLD_META := "detail_prop_old"
+# The Hot Springs' caves (tools/build_town.gd): they sit on a circle round the plateau (PLATEAU, PLATEAU_CLIFF + 1.5).
+# The westmost one (x -80) was where the cliff starts to turn into the ramp, so it hung 4 m up a gentle slope with its
+# floor and the back of its rock sticking out: it moves along the cliff to x SPRING_WEST_X, a little smaller.
+const SPRING_CENTRE := Vector2(-78.0, -42.0)
+const SPRING_CIRCLE := 34.5
+const SPRING_WEST := -80.0
+const SPRING_WEST_X := -77.0
+const SPRING_WEST_SCALE := 0.75
+const SPRING_POOL := 4.0                # the pool's middle, out in front of the mouth
+const SPRING_CLEAR := 4.2               # no crystal cluster this close to a mouth or a pool
+const SPRING_SINK := 0.12               # the cave sits this far into the ground, so its floor's edges don't show
 const GAZEBO_MATS := ["Gazebo White", "Gazebo Roof"]
 const POLE_H := 3.6                    # the builder's lamp pole (_lamp_post): a 3.6 m cylinder, centre 1.8 m up
 const BENCH_SEAT := Vector3(1.8, 0.1, 0.5)
@@ -194,6 +205,9 @@ static func dress_void(scene: Node) -> Dictionary:
 	var lamp := _scene(VOID_LAMP)
 	if lamp:
 		out.lamps = _void_lamps(scene, lamp)
+	# (19 Nov 2026) the Hot Springs' caves sit square in the cliff before anything round them is dressed, and any
+	# crystal cluster standing in a cave's mouth or its pool goes
+	_place_springs(scene)
 	# (18 Nov 2026, the Void's batch: tools/build_prop_void.py)
 	var crystal := _scene(CRYSTAL)
 	if crystal:
@@ -1347,11 +1361,88 @@ static func _by_shape(g: Node3D, model: PackedScene, name: String, old: Callable
 	return 1
 
 
+static func _place_springs(scene: Node) -> int:
+	# The Hot Springs (tools/build_town.gd) are three caves in the plateau's south cliff, each a rock disc (3.2
+	# across, 1 m up from its spot) with a dark disc on it, a glow inside, its light, and a steaming pool 4 m out in
+	# front (a disc 2.2 across with its warm zone). The builder faced them all straight south, but the cliff curves
+	# round, so the eastern ones stuck out of it on one side and sank into it on the other; and the western one hung
+	# up a gentle slope. Each cave turns to face straight out from the cliff, sits down on the ground its pool is on,
+	# and takes its glow, light and pool with it (the westmost moves along the cliff, see SPRING_WEST). Crystal
+	# clusters standing in a mouth or a pool go. Done once; the rock disc keeps its new turn and size in metas for
+	# _springs. Returns how many caves were placed.
+	var g := scene.get_node_or_null("Hot Springs") as Node3D
+	if g == null or g.get_script() != null or g.has_meta("springs_placed"):
+		return 0
+	g.set_meta("springs_placed", true)
+	var sets := {}                       # the cave's old x (rounded) -> its pieces
+	for c in g.get_children():
+		var n3 := c as Node3D
+		if n3 == null or n3.name == "Sign":
+			continue
+		var key := roundi(n3.position.x)
+		if not sets.has(key):
+			sets[key] = {"rock": null, "pieces": [], "pool": []}
+		var mi := c as MeshInstance3D
+		if mi and mi.mesh is CylinderMesh and _mat_name(mi) == "Cave Rock" and is_equal_approx((mi.mesh as CylinderMesh).top_radius, 3.2):
+			sets[key].rock = mi
+			sets[key].pieces.append(mi)
+		elif (mi and _mat_name(mi) == "Spring Water") or c is Area3D:
+			sets[key].pool.append(n3)
+		elif mi or c is Light3D:
+			sets[key].pieces.append(n3)
+	var spots := []
+	for key in sets:
+		var st: Dictionary = sets[key]
+		var rock := st.rock as MeshInstance3D
+		if rock == null:
+			continue
+		var p := rock.position - Vector3(0, 1.0, 0)
+		var ground := p.y
+		for q in st.pool:
+			if q is MeshInstance3D:
+				ground = (q as Node3D).position.y - 0.05
+		var to := p
+		var size := 1.0
+		if is_equal_approx(p.x, SPRING_WEST):
+			to.x = SPRING_WEST_X
+			size = SPRING_WEST_SCALE
+		var dx := to.x - SPRING_CENTRE.x
+		to.z = SPRING_CENTRE.y + sqrt(maxf(SPRING_CIRCLE * SPRING_CIRCLE - dx * dx, 0.0))
+		to.y = ground - SPRING_SINK
+		var yaw := atan2(dx, to.z - SPRING_CENTRE.y)
+		var face := Vector3(sin(yaw), 0, cos(yaw))
+		# old spot -> new spot, turned to face out from the cliff
+		var t := Transform3D(Basis(Vector3.UP, yaw), to) * Transform3D(Basis.IDENTITY, -p)
+		for n3: Node3D in st.pieces:
+			n3.transform = t * n3.transform
+		var pool := to + face * SPRING_POOL
+		for q: Node3D in st.pool:
+			q.position = Vector3(pool.x, q.position.y, pool.z)
+		rock.set_meta("spring_yaw", yaw)
+		rock.set_meta("spring_scale", size)
+		spots.append(to + face * 1.2)
+		spots.append(pool)
+	var crystals := scene.get_node_or_null("Crystals")
+	var cleared := 0                     # the crystals' collisions that went with them (tests read the meta)
+	if crystals:
+		for cl in crystals.get_children():
+			var c3 := cl as Node3D
+			if c3 == null:
+				continue
+			for at: Vector3 in spots:
+				if Vector2(c3.position.x - at.x, c3.position.z - at.z).length() < SPRING_CLEAR:
+					cleared += c3.find_children("*", "CollisionShape3D", true, false).size()
+					crystals.remove_child(c3)
+					c3.free()
+					break
+	g.set_meta("springs_cleared_shapes", cleared)
+	return spots.size() / 2
+
+
 static func _springs(g: Node3D, cave: PackedScene, rim: PackedScene) -> Vector2i:
-	# The Hot Springs (tools/build_town.gd): three caves in the plateau's south cliff, each a rock disc (3.2 across,
-	# 1 m up from its spot) with a dark disc on it, and a steaming pool 4 m out in front (a disc 2.2 across). Each
-	# cave becomes the detailed mouth, open now so the glow inside shows, and each pool gets a ring of stones. The
-	# glow, its light, the water and the warm zone stay.
+	# The Hot Springs (placed by _place_springs first): each cave becomes the detailed mouth, open now so the glow
+	# inside shows, turned and sized as placed, and each pool gets a ring of stones. The glow, its light, the water
+	# and the warm zone stay.
 	var out := Vector2i.ZERO
 	if g == null or g.get_script() != null or g.has_node("Detailed Spring Cave 0"):
 		return out
@@ -1363,7 +1454,9 @@ static func _springs(g: Node3D, cave: PackedScene, rim: PackedScene) -> Vector2i
 		if _mat_name(mi) == "Cave Rock" and is_equal_approx(cm.top_radius, 3.2):
 			var m := cave.instantiate() as Node3D
 			m.name = "Detailed Spring Cave %d" % out.x
-			m.position = mi.position - Vector3(0, 1.0, 0)
+			var s := float(mi.get_meta("spring_scale", 1.0))
+			m.transform = Transform3D(Basis(Vector3.UP, float(mi.get_meta("spring_yaw", 0.0))).scaled_local(Vector3.ONE * s),
+				mi.position - Vector3(0, 1.0, 0))
 			g.add_child(m)
 			_hide(mi)
 			out.x += 1

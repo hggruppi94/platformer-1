@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Hot Springs' cave doorways no longer clip into the scenery** (Hayden: "The hot springs doorways are
+  clipping into the scenery"). The builder faced all three caves straight south, but the plateau's cliff curves, so the
+  baked mouths stuck out of it on one side and sank in on the other; the west cave (x -80) sat where the cliff turns
+  into the ramp, so it hung 4.9 m up a gentle slope with its floor and the back of its rock showing; and a crystal
+  cluster stood in the east cave's mouth. `detail_props.gd _place_springs()` (called at the top of `dress_void()`,
+  before the crystals are dressed) now turns each cave to face straight out from the cliff, sits it on its pool's
+  ground (0.12 m in, so the floor's edges don't show), moves the west one along the cliff to x -77 at 0.75 size, takes
+  each glow, light, pool and warm zone with its cave, and takes out any crystal cluster within 4.2 m of a mouth or a
+  pool (meta `springs_cleared_shapes`, read by `test_detail_all`). No `.tscn` or `.glb` changed. New picture tool
+  `tools/capture_hot_springs.gd <folder>` (each cave front, both sides, inside). Tests: detail_all, detail_props,
+  world_detail, walk_through, layout, map. Pictures in the project's world/previews/hot_springs_fix (before/after).
 - 2026-11-19: **Baked the Void's boardwalks and dock, Pip's lantern posts, the Mothership Pad, Rex's noticeboard and the
   Hot Springs' caves and pools** (Hayden: "Work on baking more scenery", batch twelve; "keep the forever floating": whatever
   floats is left as it is). Built and tested in the cloud (own Godot user folders, no save touched).
