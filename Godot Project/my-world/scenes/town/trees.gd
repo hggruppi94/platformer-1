@@ -169,22 +169,21 @@ func _ready() -> void:
 					orb_colors.append(_shifted(c, 0.12 * side))
 					surface.append_array(_on_ball(to + Vector3(0, br * 0.5, 0), Vector3.ONE * br, 2, rng))
 			Kind.SPIRE:
-				# Three faceted cones stacked, each turned against the last and nudged a little off the middle so
-				# the spire twists, on a short trunk, with a glowing star ball on its tip
+				# Three faceted cones stacked straight up the middle, each turned against the last so the spire
+				# twists, on a short trunk, with a glowing star ball centred on its tip (Hayden, 19 Nov 2026: the
+				# cones used to be nudged off the middle too, which left the stack and its ball off centre)
 				var base_y := 0.9 + s * 0.2
 				stalks.append(_stalk(p + Vector3(0, -0.3, 0), p + Vector3(0, base_y + 0.4, 0), 1.0))
 				var y := base_y
-				var off := Vector3.ZERO
 				for tier in 3:
 					var w := s * (1.05 - tier * 0.27)
 					var th := s * canopy_stretch * (0.75 - tier * 0.1)
 					var basis := Basis(Vector3.UP, spin + tier * 1.1).scaled(Vector3(w, th, w))
-					cones.append(Transform3D(basis, p + off + Vector3(0, y + th * 0.5, 0)))
+					cones.append(Transform3D(basis, p + Vector3(0, y + th * 0.5, 0)))
 					cone_colors.append(_shifted(c, tier * 0.06))
-					surface.append_array(_on_cone(p + off + Vector3(0, y, 0), w, th, 3 - int(tier == 2), rng))
+					surface.append_array(_on_cone(p + Vector3(0, y, 0), w, th, 3 - int(tier == 2), rng))
 					y += th * 0.6
-					off += Vector3(cos(spin + tier * 2.1), 0, sin(spin + tier * 2.1)) * s * 0.12
-				var tip := p + off + Vector3(0, y + s * canopy_stretch * 0.2, 0)
+				var tip := p + Vector3(0, y + s * canopy_stretch * 0.2, 0)
 				orbs.append(Transform3D(Basis().scaled(Vector3.ONE * s * 0.16), tip))
 				orb_colors.append(_shifted(c, 0.5).lightened(0.45))
 			Kind.PARASOL:
@@ -201,7 +200,9 @@ func _ready() -> void:
 				var bulbs := 6 + int(s * 2.0)
 				for b in bulbs:
 					var a := spin + TAU * b / bulbs
-					var hang := top + Vector3(cos(a) * w * 0.82, -s * 0.25 - rng.randf_range(0.1, 0.5), sin(a) * w * 0.82)
+					# Every bulb hangs the same depth, evenly round the rim (Hayden, 19 Nov 2026: random depths
+					# looked lopsided)
+					var hang := top + Vector3(cos(a) * w * 0.82, -s * 0.25 - 0.3, sin(a) * w * 0.82)
 					orbs.append(Transform3D(Basis().scaled(Vector3.ONE * s * 0.13), hang))
 					orb_colors.append(bulb_color)
 					if b % 2 == 0:
