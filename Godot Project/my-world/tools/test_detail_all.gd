@@ -453,6 +453,67 @@ func _run() -> void:
 				or not v.has_node("Stubs/Detailed Stubs") or not v.has_node("Glow"):
 			veins_ok = false
 	check(veins >= 5 and veins_ok, "every Remnant vein (%d) has detailed rock, crystals and stubs, and still glows" % veins)
+	# Batch twelve (19 Nov 2026, tools/build_prop_void_5.py): boardwalks, Pip's lantern posts, the Mothership Pad, the
+	# noticeboard and the Hot Springs' caves
+	check(props.get("boardwalks", 0) == 4 and props.get("piles", 0) >= 20 and props.get("lantern_posts", 0) == 7
+		and props.get("pad", 0) == 1 and props.get("noticeboard", 0) == 1 and props.get("spring_caves", 0) == 3
+		and props.get("spring_rims", 0) == 3,
+		"the boardwalks, piles, lantern posts, pad, noticeboard, caves and spring rims are detailed (%s)" % [[
+		props.get("boardwalks"), props.get("piles"), props.get("lantern_posts"), props.get("pad"),
+		props.get("noticeboard"), props.get("spring_caves"), props.get("spring_rims")]])
+	var old_twelve := 0
+	var deck_ok := true
+	for gname in ["Boardwalk South", "Boardwalk North", "Boardwalk East", "Dock", "Pip's Lanterns", "Mothership Pad",
+			"Noticeboard", "Hot Springs"]:
+		var g := s.get_node(gname)
+		for c in g.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null or mi.has_meta("detail_prop_old"):
+				continue
+			var mn := String(mi.material_override.resource_name) if mi.material_override else ""
+			if mn in ["Boardwalk", "Pad Metal", "Cork", "Stall Wood", "Cave Rock", "Cave"] \
+					or (mn == "Boardwalk Post" and not (mi.mesh is CylinderMesh and is_equal_approx((mi.mesh as CylinderMesh).height, 2.2))):
+				old_twelve += 1
+		if gname.begins_with("Boardwalk") or gname == "Dock":
+			var holder := g.get_node_or_null("Detailed Boardwalk") as Node3D
+			var length := 0.0
+			for c in holder.get_children() if holder else []:
+				length += 4.0 * (c as Node3D).scale.z
+			var old_len := 0.0
+			for c in g.get_children():
+				if c is MeshInstance3D and (c as MeshInstance3D).mesh is BoxMesh and is_equal_approx(((c as MeshInstance3D).mesh as BoxMesh).size.y, 0.3):
+					old_len = ((c as MeshInstance3D).mesh as BoxMesh).size.z
+			deck_ok = deck_ok and holder != null and absf(length - old_len) < 0.01 \
+				and g.find_children("*", "CollisionShape3D", true, false).size() >= 1
+	check(old_twelve == 0 and deck_ok, "nothing old of them is drawn (%d), each deck is whole lengths end to end and still solid" % old_twelve)
+	var lanterns := s.get_node("Pip's Lanterns")
+	var aimed := 0
+	for c in lanterns.get_children():
+		if not String(c.name).begins_with("Detailed Lantern Post"):
+			continue
+		var post := c as Node3D
+		var hook := post.position + post.basis.x * 0.25
+		for u in lanterns.get_children():
+			if String(u.name).begins_with("Unlit Lantern") and u.get_child_count() > 0:
+				var h := (u.get_child(0) as Node3D).position
+				if Vector2(h.x - hook.x, h.z - hook.z).length() < 0.05:
+					aimed += 1
+	var rings := 0
+	for c in s.get_node("Mothership Pad").get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh is TorusMesh and _shown(c):
+			rings += 1
+	var notes := 0
+	for c in s.get_node("Noticeboard").get_children():
+		if c is MeshInstance3D and _shown(c) and (c as MeshInstance3D).mesh is BoxMesh:
+			notes += 1
+	var springs_left := 0
+	for c in s.get_node("Hot Springs").get_children():
+		var mi := c as MeshInstance3D
+		if mi and _shown(mi) and not String(mi.name).begins_with("Batched") and mi.material_override and mi.material_override.resource_name in ["Cave Glow", "Spring Water"]:
+			springs_left += 1
+	check(aimed == 7 and rings == 3 and s.has_node("Mothership Pad/PadCall") and notes == 3
+		and s.has_node("Noticeboard/Poster Spot 4") and springs_left == 6,
+		"each lantern post's hook is over its lantern (%d), the pad keeps its rings (%d) and call spot, the board its notes (%d) and poster spot, the springs their glow and water (%d)" % [aimed, rings, notes, springs_left])
 
 	# The watcher: move one merged piece and its group goes back to being drawn piece by piece
 	var watch := s.get_node_or_null("Batch Watch")
@@ -503,6 +564,11 @@ func _run() -> void:
 
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
+
+
+func _shown(mi: MeshInstance3D) -> bool:
+	# Drawn, or merged into its group's batch (which draws it)
+	return not mi.has_meta("detail_prop_old") and (mi.layers != 0 or mi.has_meta("static_batch"))
 
 
 func _old_drawn(holder: Node) -> int:
