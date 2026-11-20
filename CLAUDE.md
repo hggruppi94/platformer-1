@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **Baked the Tide Reef's coral houses, bubble lamps and stranded boat, and its corals bloom with the tide
+  again** (Hayden: "Then keep baking details"; the portal worlds' props, after Glenmoor). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **The tide fix:** since the portal worlds' surface patches (#176) gave every "Coral ..." material a detailed copy,
+    those copies stayed as they were dressed and never faded or bloomed. `dress_buildings()` now tells the scene
+    (`surface_swapped(old, new, gain)` in `tide_reef.gd`), which fades and blooms the copy instead.
+  - **New bake script** (same bake kit): `tools/build_prop_tide_reef.py <out.glb> coral_dome|coral_trim|lamp_post|boat`
+    (a house's dome grown in meandering brain-coral ridges with barnacles and tube worms, baked pale; its round door of
+    scallop ribs with a pearl knob and a rim of seed pearls, glowing portholes in riveted frames with glazing bars and
+    a scallop shell doorstep; a bubble lamp's twisted driftwood post with knots, barnacles, kelp and a shell cup with
+    three prongs round the bubble; the boat as a clinker hull in peeling blue paint with barnacles and weed, a gunwale,
+    a planked deck, thwarts, mast rings, a boom, a torn sail, a coil of rope and an oar). In `models/props/tide_reef/`.
+  - **Swapped at run time** (`detail_props.gd dress_tide_reef()`, called by `WorldDetail` for `tide_reef.tscn`): each
+    house's dome and trim go in its own node at its own size, and keep its little coral bumps and chimney; the dome
+    wears the house's coral colour, which fades and blooms with the tide (`tide_reef.gd follow_coral()`). The lamps
+    keep their glowing bubbles and lights, and every collision stays (old pieces on layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (10 houses, 12 lamps, the boat, nothing plain drawn, the coral bits
+    kept, the bubbles glowing, a dome and a coral blooming with the tide, dressed again changes nothing); tide_reef and
+    detail_all pass. Pictures: `tools/capture_detail_tide_reef.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_tide_reef).
+  - My choices Hayden may change: every look (the brain-coral ridges, the scallop door, the driftwood posts, the
+    boat's peeling paint).
+
 - 2026-11-19: **Baked Glenmoor's props: the Standing Stones, the cairns up Ben Bonnie, Heather's croft and her barn**
   (Hayden: "Then keep baking details"; the portal worlds' props, starting with Glenmoor). Built and tested in the cloud
   (own Godot user folders, no save touched).

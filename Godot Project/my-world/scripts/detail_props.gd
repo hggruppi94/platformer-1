@@ -50,6 +50,11 @@ const CAIRN := "res://models/props/glenmoor/cairn.glb"
 const SUMMIT_CAIRN := "res://models/props/glenmoor/summit_cairn.glb"
 const CROFT := "res://models/props/glenmoor/croft.glb"
 const GLEN_BARN := "res://models/props/glenmoor/barn.glb"
+const CORAL_DOME := "res://models/props/tide_reef/coral_dome.glb"
+const CORAL_TRIM := "res://models/props/tide_reef/coral_trim.glb"
+const REEF_LAMP := "res://models/props/tide_reef/lamp_post.glb"
+const REEF_BOAT := "res://models/props/tide_reef/boat.glb"
+const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
 const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
 const STONE_DARK_TINT := Color(0.8, 0.8, 0.84)    # "Stone Dark" over "Stone" (tools/build_glenmoor.gd)
@@ -409,6 +414,72 @@ static func _has_mat(g: Node, mat_name: String) -> bool:
 		if c is MeshInstance3D and _mat_name(c) == mat_name:
 			return true
 	return false
+
+
+static func dress_tide_reef(scene: Node) -> Dictionary:
+	# Otto's reef (20 Nov 2026, tools/build_prop_tide_reef.py): every coral house's dome, door, portholes and doorstep,
+	# the bubble lamps' driftwood posts and the stranded boat. A house keeps its little coral bumps and chimney, a
+	# lamp its glowing bubble and light; every collision stays. The detailed dome is baked pale and wears its house's
+	# coral colour, which still fades while the tide's out and blooms when it's in (scene.follow_coral).
+	var out := {"houses": 0, "lamps": 0, "boat": 0}
+	var dome_m := _scene(CORAL_DOME)
+	var trim_m := _scene(CORAL_TRIM)
+	var tinted := {}
+	if dome_m and trim_m:
+		for g in scene.get_children():
+			if not (g is Node3D) or not String(g.name).begins_with("Coral House") or g.has_node("Detailed Dome"):
+				continue
+			var dome: MeshInstance3D
+			for c in g.get_children():
+				if c is MeshInstance3D and c.mesh is SphereMesh and absf((c.mesh as SphereMesh).radius - 2.6) < 0.01:
+					dome = c
+			if dome == null:
+				continue
+			var body := dome.material_override
+			for c in g.get_children():
+				if c is MeshInstance3D and (c == dome or not _mat_name(c).begins_with("Coral")):
+					_hide(c)
+			var s := dome.scale.x
+			var d := dome_m.instantiate() as Node3D
+			d.name = "Detailed Dome"
+			d.scale = Vector3.ONE * s
+			g.add_child(d)
+			if not tinted.has(body):
+				var mat: StandardMaterial3D
+				for mi: MeshInstance3D in d.find_children("*", "MeshInstance3D", true, false):
+					mat = (mi.get_active_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+				mat.resource_name = "Detailed " + String(body.resource_name)
+				tinted[body] = mat
+				if scene.has_method("follow_coral"):
+					scene.call("follow_coral", body, mat, CORAL_DOME_GAIN)
+				else:
+					mat.albedo_color = (body as StandardMaterial3D).albedo_color * CORAL_DOME_GAIN
+			for mi: MeshInstance3D in d.find_children("*", "MeshInstance3D", true, false):
+				mi.set_surface_override_material(0, tinted[body])
+			var t := trim_m.instantiate() as Node3D
+			t.name = "Detailed Trim"
+			t.scale = Vector3.ONE * s
+			g.add_child(t)
+			out.houses += 1
+	var lamp_m := _scene(REEF_LAMP)
+	var lamps := scene.get_node_or_null("Bubble Lamps")
+	if lamp_m and lamps and not lamps.has_node("Detailed Lamp Post 1"):
+		for c in lamps.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null or not (mi.mesh is CylinderMesh) or absf((mi.mesh as CylinderMesh).height - 2.6) > 0.01:
+				continue
+			_hide(mi)
+			var m := lamp_m.instantiate() as Node3D
+			out.lamps += 1
+			m.name = "Detailed Lamp Post %d" % out.lamps
+			m.position = mi.position - Vector3(0, 1.3, 0)
+			m.rotation.y = out.lamps * 2.1                   # (each one twisted its own way)
+			lamps.add_child(m)
+	var boat_m := _scene(REEF_BOAT)
+	var boat := scene.get_node_or_null("Stranded Boat") as Node3D
+	if boat_m and boat:
+		out.boat = _dress_in(boat, boat_m, "Detailed Boat", [])
+	return out
 
 
 static func _dress_in(g: Node3D, model: PackedScene, new_name: String, keep: Array) -> int:
@@ -2075,6 +2146,13 @@ static func dress_buildings(scene: Node) -> Dictionary:
 		# the building's space, so it keeps its own (a name keeps scripts/static_batch.gd off it)
 		if changed and String(mi.name).begins_with("@") and absf(mi.basis.z.normalized().z) < 0.9:
 			mi.name = "Detailed Surface"
+	# A place that keeps its own copies of colours to change later (the Tide Reef's corals fade and bloom with the tide)
+	# is told which copy each one became, or it would go on changing a material nothing wears any more
+	if scene.has_method("surface_swapped"):
+		for key in made:
+			if key is Array:
+				var nm: StandardMaterial3D = made[key]
+				scene.call("surface_swapped", key[0], nm, float(SURFACE_GAIN[nm.get_meta(SURFACE_META)]))
 	var seasons := scene.get_node_or_null("Seasons")
 	if seasons and seasons.has_method("take_in") and not out.is_empty():
 		seasons.call("take_in", scene)
