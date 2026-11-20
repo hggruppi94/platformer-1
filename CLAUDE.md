@@ -106,6 +106,45 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   height. `test_far_future` checks the crack is on the ground; portals, cracks, home_calls, practice_trips,
   friend_spots and every portal world's test pass.
 
+- 2026-11-20: **Baked Lanternmoor's lantern trees, the Night Path's lantern posts, the beacons and the standing stones**
+  (Hayden: "Then keep baking details"; the portal worlds' props, after Dark Hollow). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_lanternmoor.py <out.glb> lantern_tree|lantern_post|beacon`
+    (a twisty barked trunk with two bent branches, crowns of small purple leaves and two paper lantern pods with ribs,
+    baked pale so each tree keeps its own pod colours; a knotted wooden post with an iron arm, a brass lid and foot
+    and a tassel; a beacon's carved stone pillar with moons, bands and moss, a curled iron cage and a gold star). In
+    `models/props/lanternmoor/`.
+  - **Swapped at run time** (`detail_props.gd dress_lanternmoor()`, called by `WorldDetail` for `lanternmoor.tscn`):
+    all 31 lantern trees (found by their bark and "Lantern Leaves", since only the first in each group keeps its
+    name), each sized to its own trunk with its pods glowing in their old colours; the six standing stones round the
+    first beacon (the Glenmoor stone, tinted). The path's lanterns and the beacons wear their baked models where
+    they're built (`lanternmoor.gd lantern_model()`, `beacon_model()`), keeping their paper shades and flames. The
+    Tall Lantern Tree and its steps are unchanged, and every collision stays (old pieces on layers 0, meta
+    `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (31 trees sized to their trunks, 6 stones, 5 posts with their shades, 3
+    beacons with their flames, glowing pods, nothing plain drawn, every still shape where it was, dressed again
+    changes nothing); lanternmoor, glimmer_caves and detail_all pass. Pictures:
+    `tools/capture_detail_lanternmoor.gd -- <folder> [--old-props]` (project files, world/previews/detail_lanternmoor).
+  - My choices Hayden may change: every look (the leaf crowns, the paper pods, the beacon's carvings and star).
+
+- 2026-11-20: **Baked Dark Hollow's crooked trees, the hollow log, its glowing mushrooms, the moon lamps and the old
+  stones** (Hayden: "Then keep baking details"; the portal worlds' props, after the Tide Reef). Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_dark_hollow.py <out.glb> crooked_tree|hollow_log|moon_lamp|glow_mushrooms`
+    (a twisted trunk with lichen, knots, roots and bare crooked branches; the mossy hollow log with bark plates, a dark
+    inside, fungus shelves and ferns; a moon lamp's iron post with a curled cage and a crescent finial; a cluster of
+    glowing mushrooms with gills and speckled caps, its stalks baked with no AO). In `models/props/dark_hollow/`.
+  - **Swapped at run time** (`detail_props.gd dress_dark_hollow()`, called by `WorldDetail` for `dark_hollow.tscn`):
+    every crooked tree (found by its "Crooked Bark" trunk and branches), the hollow log, each mushroom cluster (its own
+    cap colour, glowing), the race's lamp posts (scaled to each flame, which stays), and the "Old Stone" standing stones
+    (the Glenmoor stone, tinted). The Hush's moon lamps get the baked post in `dark_hollow.gd moon_lamp_model()`; their
+    globes and lights stay. Every collision stays (old pieces on layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (60 trees, the log, 30 mushroom clusters, 14 lamps with their flames, 4
+    moon lamps, 22 stones, nothing plain drawn, every solid shape where it was, dressed again changes nothing);
+    dark_hollow and detail_all pass. Pictures: `tools/capture_detail_dark_hollow.gd -- <folder> [--old-props]` (project
+    files, world/previews/detail_dark_hollow).
+  - My choices Hayden may change: every look (the lichen, the log's fungus shelves, the lamps' cages, the stones' tint).
+
 - 2026-11-20: **Baked the Tide Reef's coral houses, bubble lamps and stranded boat, and its corals bloom with the tide
   again** (Hayden: "Then keep baking details"; the portal worlds' props, after Glenmoor). Built and tested in the cloud
   (own Godot user folders, no save touched).

@@ -771,6 +771,14 @@ static func lantern_model(lit: bool) -> Node3D:
 	var cap := _mat(Color(0.3, 0.22, 0.35), 0.0, 0.7)
 	_put(g, _cyl(0.08, 0.14, 0.08), cap, Vector3(0, 2.25, 0.42))
 	_put(g, _cyl(0.12, 0.06, 0.06), cap, Vector3(0, 1.56, 0.42))
+	# With detailed props on, the baked post (tools/build_prop_lanternmoor.py lantern_post: a knotted post on a cairn,
+	# an iron bracket, a brass lid and foot) stands in for the plain one round the same paper shade.
+	var baked: Node3D = (load("res://scripts/detail_props.gd") as GDScript).lanternmoor_part(
+		"res://models/props/lanternmoor/lantern_post.glb")
+	if baked:
+		_hide_plain(g, "Shade")
+		baked.name = "Detailed Post"
+		g.add_child(baked)
 	if lit:
 		var light := OmniLight3D.new()
 		light.name = "Glow"
@@ -791,6 +799,13 @@ static func lantern_model(lit: bool) -> Node3D:
 	return g
 
 
+static func _hide_plain(g: Node3D, keep: String) -> void:
+	# Every plain piece made so far stops showing except the one named keep (the shade or the flame, which light up)
+	for c in g.get_children():
+		if c is MeshInstance3D and String(c.name) != keep:
+			c.visible = false
+
+
 static func beacon_model(lit: bool) -> Node3D:
 	# A beacon: a tall stone pillar with a big iron cage on top holding a lantern-flower that blazes when it's lit
 	var g := Node3D.new()
@@ -805,6 +820,14 @@ static func beacon_model(lit: bool) -> Node3D:
 	var flame := _mat(WARM if lit else UNLIT, 2.2 if lit else 0.0, 0.5)
 	var heart := _put(g, _ball(0.4), flame, Vector3(0, 3.35, 0), Vector3(1.0, 1.3, 1.0))
 	heart.name = "Flame"
+	# With detailed props on, the baked beacon (tools/build_prop_lanternmoor.py beacon: a carved pillar with moons, an
+	# iron cage and a roof with a star) stands round the same flame.
+	var baked: Node3D = (load("res://scripts/detail_props.gd") as GDScript).lanternmoor_part(
+		"res://models/props/lanternmoor/beacon.glb")
+	if baked:
+		_hide_plain(g, "Flame")
+		baked.name = "Detailed Beacon"
+		g.add_child(baked)
 	if lit:
 		var light := OmniLight3D.new()
 		light.name = "Glow"

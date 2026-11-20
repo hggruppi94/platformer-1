@@ -594,6 +594,14 @@ static func moon_lamp_model(lit: bool) -> Node3D:
 	cap.material_override = post.material_override
 	cap.position.y = 3.0
 	g.add_child(cap)
+	# With detailed props on, the baked iron post (tools/build_prop_dark_hollow.py moon_lamp) stands in for the plain
+	# post and cap, its cage round the same globe.
+	var baked: Node3D = (load("res://scripts/detail_props.gd") as GDScript).moon_lamp_post()
+	if baked:
+		baked.name = "Detailed Post"
+		post.visible = false
+		cap.visible = false
+		g.add_child(baked)
 	if lit:
 		var light := OmniLight3D.new()
 		light.light_color = LAMP_GLOW

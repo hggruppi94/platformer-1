@@ -81,6 +81,10 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_glenmoor(scene)
 	elif path == "res://scenes/portal_worlds/tide_reef.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_tide_reef(scene)
+	elif path == "res://scenes/portal_worlds/dark_hollow.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_dark_hollow(scene)
+	elif path == "res://scenes/portal_worlds/lanternmoor.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_lanternmoor(scene)
 	if detail_props:
 		last_nature = DETAIL_PROPS.dress_nature(scene)
 		last_surfaces = DETAIL_PROPS.dress_buildings(scene)
