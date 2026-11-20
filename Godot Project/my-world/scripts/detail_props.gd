@@ -68,6 +68,10 @@ const LM_STONE_TINT := Color(0.42, 0.38, 0.55)    # Lanternmoor's standing stone
 const FM_PINE := "res://models/props/frozen_moment/snow_pine.glb"
 const FM_CRAG := "res://models/props/frozen_moment/ice_crag.glb"
 const FM_THRONE := "res://models/props/frozen_moment/frost_throne.glb"
+const FF_CLOCK := "res://models/props/far_future/clock_spire.glb"
+const FF_POST := "res://models/props/far_future/street_post.glb"
+const FF_FOUNTAIN := "res://models/props/far_future/holo_fountain.glb"
+const FF_BENCH := "res://models/props/far_future/hover_bench.glb"
 const FM_CRAG_H := 5.0                             # the baked crag's height at scale 1 (its base radius is 1)
 const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
@@ -693,6 +697,64 @@ static func dress_frozen_moment(scene: Node) -> Dictionary:
 	var th := scene.find_child("Frost Throne", true, false) as Node3D
 	if throne and th:
 		out.throne = _dress_in(th, throne, "Detailed Throne", [])
+	return out
+
+
+static func dress_far_future(scene: Node) -> Dictionary:
+	# Lumen City (20 Nov 2026, the portal worlds' props, tools/build_prop_far_future.py): the Tomorrow Clock's dais,
+	# spire and sockets, the Fading Plaza's fountain basin and benches, and the lanes' streetlight posts. The city's neon
+	# (the clock's seams, tip and rim, its faces and hands, the bulbs, the hologram globe) is left as built, since
+	# scripts/far_future.gd dims it while the city fades; every collision stays. The towers' glass is a surface patch
+	# (glass_facade, dress_buildings).
+	var out := {"clock": 0, "posts": 0, "fountain": 0, "benches": 0}
+	var clock := _scene(FF_CLOCK)
+	var tc := scene.find_child("Tomorrow Clock", true, false) as Node3D
+	if clock and tc and not tc.has_node("Detailed Clock"):
+		for c in tc.get_children():
+			if c is MeshInstance3D and _mat_name(c) in ["Dais", "Spire"]:
+				_hide(c)
+		var m := clock.instantiate() as Node3D
+		m.name = "Detailed Clock"
+		tc.add_child(m)
+		out.clock = 1
+	var post := _scene(FF_POST)
+	var lights := scene.find_child("Streetlights", true, false) as Node3D
+	if post and lights and not lights.has_node("Detailed Post 1"):
+		var olds := []
+		for c in lights.get_children():
+			if c is MeshInstance3D and _mat_name(c) == "Post":
+				olds.append(c)
+		for c: MeshInstance3D in olds:
+			_hide(c)
+			var m := post.instantiate() as Node3D
+			out.posts += 1
+			m.name = "Detailed Post %d" % out.posts
+			m.position = Vector3(c.position.x, 0, c.position.z)
+			lights.add_child(m)
+	var plaza := scene.find_child("Fading Plaza", true, false) as Node3D
+	var fountain := _scene(FF_FOUNTAIN)
+	var bench := _scene(FF_BENCH)
+	if plaza and not plaza.has_node("Detailed Fountain"):
+		var olds := []
+		for c in plaza.get_children():
+			if c is MeshInstance3D and _mat_name(c) in ["Fountain", "Bench"]:
+				olds.append(c)
+		for c: MeshInstance3D in olds:
+			var is_bench := _mat_name(c) == "Bench"
+			var src := bench if is_bench else fountain
+			if src == null:
+				continue
+			_hide(c)
+			var m := src.instantiate() as Node3D
+			if is_bench:
+				out.benches += 1
+				m.name = "Detailed Bench %d" % out.benches
+				m.rotation.y = c.rotation.y
+			else:
+				out.fountain += 1
+				m.name = "Detailed Fountain"
+			m.position = Vector3(c.position.x, 0, c.position.z)
+			plaza.add_child(m)
 	return out
 
 
@@ -2354,10 +2416,10 @@ static func dress_nature(scene: Node) -> Dictionary:
 const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
 	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
-	"drystone": 2.0}
+	"drystone": 2.0, "glass_facade": 3.0}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
 	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
-	"drystone": 2.0}
+	"drystone": 2.0, "glass_facade": 2.0}
 # The portal worlds' natural stuff (batch fifteen) is only patched in a portal world, so a "Stone" or a "Snow" in the
 # towns is left alone. Their rocks, trunks and crags are scaled and turned every which way by the builders, so these
 # lay the patch on in the world's space, which keeps every piece's patch the same size.
@@ -2369,6 +2431,7 @@ const PORTAL_SURFACES := {
 	"snow": ["Snow", "Crag Snow", "Drift Snow", "Snow Cap"],
 	"metal_panel": ["Lab Wall", "Skyway Deck", "Pillar", "Lab Floor"],
 	"drystone": ["Stone", "Stone Dark"],
+	"glass_facade": ["Tower Glass 0", "Tower Glass 1", "Tower Glass 2", "Tower Glass 3", "Tower Glass 4"],
 }
 const WORLD_SPACE_SURFACES := ["bark", "rock", "ice", "snow", "coral", "drystone"]
 const SURFACE_META := "detail_surface"   # on each swapped material: which patch

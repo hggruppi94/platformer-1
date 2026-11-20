@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **Baked Lumen City's Tomorrow Clock, its streetlight posts, the Fading Plaza's fountain and benches, and
+  glass on its towers** (Hayden: "Then keep baking details"; the portal worlds' props, after the Frozen Moment). Built
+  and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_far_future.py <out.glb> clock_spire|street_post|holo_fountain|hover_bench`
+    (the clock's fluted dais with inlaid rings, its six-sided spire with gold collars, panels and slits, the housing
+    with gold cornices and pilasters, and the three Time Core sockets; a lamp post with a fluted stem, a cup and three
+    prongs round the bulb; the fountain's basin with emitter rings and the projector; a slatted hover bench on two
+    feet). In `models/props/far_future/`. No glow is baked in: the city's neon is left as built, since
+    `far_future.gd` dims it while the city fades. A new surface patch, `glass_facade` (`build_prop_surfaces.py`):
+    tinted panes in bright mullions with floor bands, laid on every "Tower Glass" material.
+  - **Swapped at run time** (`detail_props.gd dress_far_future()`, called by `WorldDetail` for `far_future.tscn`): the
+    clock's dais and spire (its faces, hands, seams and sockets' rings stay), the six posts under their bulbs, the
+    fountain under its hologram globe and the four benches, each turned the same way. Every collision stays (old
+    pieces on layers 0, meta `detail_prop_old`). The fading still works as before.
+  - Tests: `tools/test_detail_portal_props.gd` (the clock, 6 posts where theirs were, the fountain, 4 benches, nothing
+    plain drawn, the neon all still drawn, every tower's glass patched, every still shape where it was, dressed again
+    changes nothing); far_future and detail_all pass. Pictures: `tools/capture_detail_far_future.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_far_future).
+  - My choices Hayden may change: every look (the gold on the clock, the glass towers' panes, the benches).
+
 - 2026-11-20: **The Far Future's fading folk fade gently instead of blinking** (Hayden: "instead of the fading
   characters blinking maybe, they just become slightly less opaque and fade in and out"). `far_future.gd _fade_folk()`
   used to switch each of the six on and off; now they're always there, half see-through, and slowly swell between

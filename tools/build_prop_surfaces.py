@@ -31,6 +31,8 @@
 #   coral        knobbly coral full of little pores, 1.2 m (the Tide Reef's houses and coral)
 #   metal_panel  riveted metal panels with seams and vents, 2 m (Lumen City's lab walls, the skyway deck, pillars)
 #   drystone     a dry stone wall of flat stones, no mortar, 2 m (Glenmoor's walls and croft)
+#   glass_facade a glass curtain wall, 3 m (20 Nov 2026, the Far Future's props): tall panes in a grid of metal
+#                mullions, a solid band at each floor, a few panes a different tint (Lumen City's towers)
 #
 #   python tools/build_prop_surfaces.py "<out>.glb" <kind> [--preview]
 import math
@@ -45,11 +47,12 @@ import bmesh  # noqa: E402
 import bpy  # noqa: E402
 
 KINDS = ["clapboard", "shingles", "brick", "stone", "barn_boards", "dome_scales", "bark", "rock", "ice", "snow",
-         "coral", "metal_panel", "drystone"]
+         "coral", "metal_panel", "drystone", "glass_facade"]
 KIND = next((a for a in sys.argv if a in KINDS), "clapboard")
 OUT = K.out_path(KIND + ".glb")
 TILE = {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0, "dome_scales": 1.6,
-        "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0, "drystone": 2.0}[KIND]
+        "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0, "drystone": 2.0,
+        "glass_facade": 3.0}[KIND]
 
 K.reset()
 HIGH = K.new_collection("High")
@@ -438,6 +441,36 @@ def drystone():
     return objs
 
 
+def glass_facade():
+    # The panes are the darkest and smoothest, the mullions bright metal, the floor band matt: tinted with a tower's own
+    # dark glass colour, the grid reads as light lines over dark glass, as a curtain wall does from the street
+    panes = [K.mat("Pane %d" % i, (v, v, v * 1.04), rough=0.08, metal=0.7) for i, v in enumerate([0.55, 0.5, 0.62])]
+    frame = K.mat("Mullion", (0.95, 0.95, 1.0), rough=0.3, metal=0.9, pits=0.05)
+    band = K.mat("Floor Band", (0.78, 0.78, 0.84), rough=0.5, metal=0.5, pits=0.1)
+    pieces = {m.name: [] for m in panes}
+    bars = []
+    cols, floors = 4, 2
+    cw, fh = TILE / cols, TILE / floors
+    for f in range(floors):
+        y0 = f * fh
+        bars.append(K.box("Band", (TILE, 0.32, 0.06), at=(TILE / 2, y0 + 0.16, 0.0), m=band, bevel=0.01, col=HIGH))
+        bars.append(K.box("Sill", (TILE, 0.05, 0.1), at=(TILE / 2, y0 + 0.345, 0.02), m=frame, bevel=0.01, col=HIGH))
+        for c in range(cols):
+            x0 = c * cw
+            for r, (a, b) in enumerate(((0.37, 1.12), (1.15, 1.5))):
+                m = random.choice(panes)
+                pieces[m.name].append(K.box("Pane", (cw - 0.06, b - a - 0.02, 0.02),
+                                            at=(x0 + cw / 2, y0 + (a + b) / 2, -0.01), m=m, col=HIGH))
+            bars.append(K.box("Transom", (cw, 0.035, 0.07), at=(x0 + cw / 2, y0 + 1.135, 0.01), m=frame, bevel=0.008,
+                              col=HIGH))
+    for c in range(cols):
+        bars.append(K.box("Mullion", (0.06, TILE, 0.1), at=(c * cw, TILE / 2, 0.02), m=frame, bevel=0.012, col=HIGH))
+    objs = [tile_obj(n_, ob) for n_, ob in pieces.items() if ob]
+    objs.append(tile_obj("Frames", bars))
+    objs.append(K.box("Back", (TILE, TILE, 0.01), at=(TILE / 2, TILE / 2, -0.04), m=band, col=HIGH))
+    return objs
+
+
 # ---------------------------------------------------------------- the bake
 def low_square():
     bm = bmesh.new()
@@ -504,7 +537,7 @@ def bake(low, highs, size, ext, ray):
 
 BUILD = {"clapboard": clapboard, "shingles": shingles, "brick": brick, "stone": stone, "barn_boards": barn_boards,
          "dome_scales": dome_scales, "bark": bark, "rock": rock, "ice": ice, "snow": snow, "coral": coral,
-         "metal_panel": metal_panel, "drystone": drystone}
+         "metal_panel": metal_panel, "drystone": drystone, "glass_facade": glass_facade}
 
 
 def main():
