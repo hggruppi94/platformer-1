@@ -1005,15 +1005,19 @@ func shelves_round(parent: Node3D, r: float, from_a: float, to_a: float, n: int)
 
 func _museum() -> Node3D:
 	# The Void's Museum: the skeleton of a long-necked star beast in the middle, cases of treasures round the wall
-	# (a meteorite, a singing crystal, the first Shift Watch, a fossil fern), paintings and a rope to keep back from it
-	var r := 13.0
+	# (a meteorite, a singing crystal, the first Shift Watch, a fossil fern), paintings and a rope to keep back from it.
+	# (20 Nov 2026) It's bigger, and the plateau's waterfall outside runs right through it (Hayden: "unless it merges
+	# with the outside waterfall and has some sort of water feature on the inside"): the stream comes in under the water
+	# gate on the left of the door (scripts/falls_museum.gd puts the gate on that side outside) and runs round to the
+	# Falls Room's pool at the back, where a waterfall of its own pours down a rock wall.
+	var r := 15.0
 	var root_node := dome_room("Museum", r, Color(0.92, 0.9, 0.86), Color(0.55, 0.45, 0.4), Color(1.0, 0.95, 0.88))
 	var bone := mat("Bone", Color(0.95, 0.92, 0.82), 0.7)
 	var stone := mat("Museum Stone", Color(0.85, 0.83, 0.8), 0.7)
 	var gold := mat("Museum Gold", Color(0.98, 0.78, 0.3), 0.3, 0.9)
 	# The star beast's skeleton on its plinth
-	solid_box(Vector3(9.0, 0.5, 3.0), stone, Vector3(0, 0.25, -1.0), root_node)
-	var beast := node("Star Beast", root_node, Vector3(0, 0.5, -1.0))
+	solid_box(Vector3(9.0, 0.5, 3.0), stone, Vector3(1.5, 0.25, -1.0), root_node)
+	var beast := node("Star Beast", root_node, Vector3(1.5, 0.5, -1.0))
 	for k in 9:                                        # the spine, rising into the neck
 		var x := -3.6 + k * 0.7
 		var y := 2.2 + maxf(0.0, x - 1.0) * 0.9
@@ -1029,19 +1033,20 @@ func _museum() -> Node3D:
 		mesh_at(cylinder(0.12, 0.1, 2.0, 8), bone, Vector3(leg.x, 1.0, leg.y), beast)
 	var tail := mesh_at(cylinder(0.04, 0.16, 2.4, 8), bone, Vector3(-4.6, 1.8, 0), beast)
 	tail.rotation.z = 1.1
-	label(root_node, "The Star Beast\n(a very long time ago)", Vector3(0, 0.9, 0.7), 28, Color(0.95, 0.9, 0.8))
+	label(root_node, "The Star Beast\n(a very long time ago)", Vector3(1.5, 0.9, 0.7), 28, Color(0.95, 0.9, 0.8))
 	# A rope round it on brass posts
 	for k in 6:
-		var x := -4.5 + k * 1.8
+		var x := -3.0 + k * 1.8
 		mesh_at(cylinder(0.05, 0.08, 1.0, 8), gold, Vector3(x, 0.5, 1.2), root_node)
-	mesh_at(box(Vector3(9.0, 0.06, 0.06)), mat("Museum Rope", Color(0.75, 0.15, 0.3), 0.8), Vector3(0, 0.9, 1.2), root_node)
-	# Glass cases round the wall, each with a treasure inside
+	mesh_at(box(Vector3(9.0, 0.06, 0.06)), mat("Museum Rope", Color(0.75, 0.15, 0.3), 0.8), Vector3(1.5, 0.9, 1.2), root_node)
+	_falls_room(root_node, r, stone)
+	# Glass cases round the east and back wall (the Falls Room has the west), each with a treasure inside
 	var glass := mat("Case Glass", Color(0.8, 0.95, 1.0), 0.05, 0.0, 0.0, 0.3)
 	var treasures := [["Meteorite", Color(0.35, 0.3, 0.32)], ["Singing Crystal", Color(0.6, 0.9, 1.0)],
 		["The First Shift Watch", Color(0.95, 0.8, 0.35)], ["Fossil Fern", Color(0.6, 0.55, 0.45)],
 		["Moon Pebble", Color(0.85, 0.85, 0.95)], ["Gloop in a Jar", Color(0.4, 0.9, 0.4)]]
 	for k in treasures.size():
-		var a := PI / 2 + 0.9 + k * ((TAU - 1.8) / (treasures.size() - 1))
+		var a := 1.15 - k * 0.6                          # from beside the door round to the back wall
 		var at: Array = facing_in(a, r - 2.0)
 		var case := node(String(treasures[k][0]), root_node, at[0], at[1])
 		solid_box(Vector3(1.2, 1.0, 1.2), stone, Vector3(0, 0.5, 0), case)
@@ -1050,17 +1055,164 @@ func _museum() -> Node3D:
 		label(case, String(treasures[k][0]), Vector3(0, 2.2, 0.0), 24, Color(0.95, 0.92, 0.85))
 	# Paintings high up
 	for k in 5:
-		var a := PI / 2 + 1.2 + k * 0.95
+		var a := 0.95 - k * 0.6
 		var p := Vector3(cos(a), 0, sin(a)) * (r - 0.45) + Vector3(0, 4.0, 0)
 		var frame := mesh_at(box(Vector3(0.08, 1.3, 1.8)), gold, p, root_node, -a)
 		frame.name = "Painting %d" % (k + 1)
 		mesh_at(box(Vector3(0.05, 1.1, 1.6)), mat("Painting %d" % k, Color.from_hsv(k / 5.0, 0.45, 0.8), 0.8),
 			p - Vector3(cos(a), 0, sin(a)) * 0.05, root_node, -a)
-	light(root_node, Vector3(0, 8, 0), Color(1.0, 0.95, 0.85), 1.6, 22)
-	light(root_node, Vector3(0, 4, -1), Color(1.0, 0.9, 0.75), 1.0, 9)
-	label(root_node, "Museum", Vector3(0, 8.0, -4), 96, Color(1, 0.95, 0.85))
+	light(root_node, Vector3(0, 9, 0), Color(1.0, 0.95, 0.85), 1.6, 26)
+	light(root_node, Vector3(1.5, 4, -1), Color(1.0, 0.9, 0.75), 1.0, 9)
+	label(root_node, "Museum", Vector3(3, 8.0, -5), 96, Color(1, 0.95, 0.85))
 	own(root_node)
 	return root_node
+
+
+const MUSEUM_FALL := 3.75            # where round the wall the Falls Room's waterfall pours (0 east, PI/2 the door)
+const MUSEUM_GATE := 2.42            # where the stream comes in (left of the door, like the gate outside)
+
+
+func _falls_room(root_node: Node3D, r: float, stone: Material) -> void:
+	# The waterfall outside runs right through: in under the wall on the left of the door, round in a stone channel past
+	# stepping stones to a round pool at the back, where a waterfall of its own pours down a rock wall. Fish swim in the
+	# pool, lily pads float on it, and a little sign says where the water comes from. The water and its banks aren't
+	# solid (it's a few centimetres deep: step over or through it); the rock wall is.
+	var room := node("Falls Room", root_node)
+	var water := ShaderMaterial.new()
+	water.shader = load("res://scenes/town/waterfall.gdshader")
+	water.set_shader_parameter("color", WT.tint(Color(0.55, 0.88, 1.0, 0.8)))
+	var still := mat("Pool Water", Color(0.35, 0.75, 1.0), 0.05, 0.0, 0.35, 0.75)
+	var rock := mat("Falls Rock", Color(0.55, 0.52, 0.7), 0.9)
+	var moss := mat("Falls Moss", Color(0.45, 0.75, 0.4), 0.9)
+	# The pool, with a ring of stones round it
+	var fall_dir := Vector3(cos(MUSEUM_FALL), 0, sin(MUSEUM_FALL))
+	var pool_at := fall_dir * 9.0
+	var pool_r := 3.2
+	var pool := mesh_at(cylinder(pool_r, pool_r, 0.08, 40), still, pool_at + Vector3(0, 0.06, 0), room)
+	pool.name = "Falls Pool"
+	mesh_at(cylinder(pool_r - 0.4, pool_r - 0.4, 0.04, 32), mat("Pool Deep", Color(0.12, 0.35, 0.65), 0.2, 0.0, 0.3), pool_at + Vector3(0, 0.03, 0), room)
+	for k in 22:
+		var a := TAU * k / 22.0
+		var st := mesh_at(sphere(0.32 + 0.08 * sin(k * 1.7), 8), stone, pool_at + Vector3(cos(a), 0, sin(a)) * (pool_r + 0.2) + Vector3(0, 0.1, 0), room)
+		st.scale = Vector3(1.2, 0.5, 1.0)
+	# The waterfall outside spills in through a rocky gap in the dome over the back of the pool (the Museum stands
+	# right at the foot of the falls), so the water comes from somewhere: you can see daylight up through the gap.
+	var wall_at := Vector3.ZERO
+	var dome_h := r * 0.8                                         # the dome is a squashed half sphere (dome_room)
+	var hole_d := 11.0                                            # how far out from the middle the gap is
+	var hole_at := fall_dir * hole_d
+	hole_at.y = dome_h * sqrt(1.0 - (hole_d / r) * (hole_d / r)) - 0.1
+	var up_n := Vector3(hole_at.x / (r * r), hole_at.y / (dome_h * dome_h), hole_at.z / (r * r)).normalized()
+	var opening := node("Falls Opening", room, hole_at)
+	opening.basis = Basis.looking_at(-up_n, fall_dir if absf(up_n.dot(fall_dir)) < 0.95 else Vector3.UP)
+	var sky := mesh_at(cylinder(1.6, 1.6, 0.05, 24), mat("Opening Daylight", Color(0.75, 0.97, 0.85), 0.3, 0.0, 2.2), Vector3(0, 0, -0.15), opening)
+	sky.rotation.x = PI / 2
+	sky.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for k in 14:                                                  # a ragged ring of rock round the gap
+		var a := TAU * k / 14.0
+		var st := mesh_at(sphere(0.55 + 0.15 * sin(k * 2.3), 8), rock, Vector3(cos(a), sin(a), 0) * 1.75, opening)
+		st.scale = Vector3(1.3, 1.0, 0.8)
+		if k % 3 == 0:
+			var m := mesh_at(sphere(0.35, 6), moss, Vector3(cos(a), sin(a), 0) * 1.6 + Vector3(0, 0, 0.35), opening)
+			m.scale = Vector3(1.4, 1.0, 0.5)
+	light(room, hole_at - up_n * 1.5, Color(0.85, 1.0, 0.9), 1.6, 10)
+	# Rocks heaped behind the pool, up towards the gap, so the water runs down past them
+	var face_yaw := atan2(-fall_dir.x, -fall_dir.z)               # their faces look into the room
+	var side := Vector3(-fall_dir.z, 0, fall_dir.x)
+	for k in 10:
+		var col := (k % 5) - 2
+		var row := k / 5
+		var d := hole_d + 0.9 + row * 1.0 + absf(col) * 0.2
+		var s := 2.3 - row * 0.5 - absf(col) * 0.2
+		var at := fall_dir * d + side * col * 1.7 + Vector3(0, s * 0.45 + row * 1.6, 0)
+		var b := solid_box(Vector3(s * 1.3, s, s), rock, at, room, face_yaw + (k % 4) * 0.25)
+		b.name = "Falls Rock"
+	# The water: a ribbon from the gap straight down into the back of the pool
+	var drop := hole_at.y - 0.05
+	var curtain := QuadMesh.new()
+	curtain.size = Vector2(2.2, drop)
+	var c := mesh_at(curtain, water, fall_dir * (hole_d - 0.1) + Vector3(0, drop / 2.0 + 0.05, 0), room, face_yaw)
+	c.name = "Falls Curtain"
+	c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var back := mesh_at(curtain, water, fall_dir * (hole_d + 0.15) + Vector3(0, drop / 2.0 + 0.05, 0), room, face_yaw + PI)
+	back.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wall_at = fall_dir * (hole_d + 1.5)
+	var foam := mesh_at(cylinder(1.3, 1.5, 0.14, 20), mat("Falls Foam", Color(0.95, 0.98, 1.0), 0.3, 0.0, 0.4, 0.85),
+		fall_dir * (hole_d - 0.1) + Vector3(0, 0.12, 0), room)
+	foam.name = "Falls Foam"
+	var mist := CPUParticles3D.new()
+	mist.name = "Falls Mist"
+	mist.position = fall_dir * (hole_d - 0.1) + Vector3(0, 0.3, 0)
+	mist.amount = 24
+	mist.lifetime = 2.0
+	mist.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	mist.emission_sphere_radius = 0.9
+	mist.direction = Vector3(0, 1, 0)
+	mist.spread = 40.0
+	mist.initial_velocity_min = 0.4
+	mist.initial_velocity_max = 1.0
+	mist.gravity = Vector3(0, 0.2, 0)
+	var ball := sphere(0.25, 6)
+	ball.material = mat("Falls Mist Ball", Color(0.9, 0.97, 1.0), 0.5, 0.0, 0.3, 0.3)
+	mist.mesh = ball
+	room.add_child(mist)
+	var rush := AudioStreamPlayer3D.new()
+	rush.name = "Falls Rush"
+	rush.set_script(load("res://scripts/ambient_loop.gd"))
+	rush.set("sound", "waterfall")
+	rush.unit_size = 5.0
+	rush.max_distance = 30.0
+	rush.volume_db = -8.0
+	rush.position = wall_at + Vector3(0, 2.0, 0)
+	room.add_child(rush)
+	light(room, pool_at + Vector3(0, 2.5, 0), Color(0.5, 0.85, 1.0), 1.4, 8)
+	# The stream: in under the wall by the door, round to the pool
+	var gate_dir := Vector3(cos(MUSEUM_GATE), 0, sin(MUSEUM_GATE))
+	var path := [gate_dir * (r - 0.2), gate_dir * (r - 3.2) + Vector3(0.6, 0, -1.0), Vector3(-10.6, 0, 1.8),
+		pool_at + (Vector3(-10.6, 0, 1.8) - pool_at).normalized() * (pool_r - 0.4)]
+	for k in path.size() - 1:
+		var a: Vector3 = path[k]
+		var b: Vector3 = path[k + 1]
+		var flat := b - a
+		var yaw := atan2(flat.x, flat.z)
+		var plane := PlaneMesh.new()
+		plane.size = Vector2(1.3, flat.length() + 0.4)
+		var w := mesh_at(plane, water, (a + b) / 2.0 + Vector3(0, 0.07, 0), room, yaw)
+		w.name = "Stream"
+		for s in [-1.0, 1.0]:
+			var bank := mesh_at(box(Vector3(0.22, 0.14, flat.length() + 0.3)), stone,
+				(a + b) / 2.0 + Vector3(cos(yaw), 0, -sin(yaw)) * s * 0.78 + Vector3(0, 0.07, 0), room, yaw)
+			bank.name = "Stream Bank"
+	# Where it comes in: an arch of stone with bars, and the light from outside on the water
+	var gate := node("Stream Gate", room, gate_dir * (r - 0.3), atan2(-gate_dir.x, -gate_dir.z))
+	mesh_at(box(Vector3(1.6, 1.3, 0.1)), mat("Gate Daylight", Color(0.6, 0.9, 1.0), 0.3, 0.0, 1.4), Vector3(0, 0.65, 0.1), gate)
+	for s in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.4, 1.8, 0.5)), stone, Vector3(s * 1.0, 0.9, 0.0), gate)
+	mesh_at(box(Vector3(2.4, 0.4, 0.55)), stone, Vector3(0, 1.95, 0.0), gate)
+	for k in 5:
+		mesh_at(box(Vector3(0.05, 1.3, 0.05)), mat("Gate Iron", Color(0.2, 0.18, 0.25), 0.4, 0.7), Vector3(-0.5 + k * 0.25, 0.65, -0.1), gate)
+	# Stepping stones over the stream, on the way from the door to the pool
+	var mid_a: Vector3 = (path[1] + path[2]) / 2.0
+	var across_dir := Vector3(path[2].z - path[1].z, 0, -(path[2].x - path[1].x)).normalized()
+	for k in 3:
+		var st := mesh_at(cylinder(0.32, 0.36, 0.14, 12), stone, mid_a + across_dir * (k - 1) * 0.7 + Vector3(0, 0.1, 0), room)
+		st.name = "Stepping Stone"
+	# Lily pads and fish in the pool (the fish go round on a spinner)
+	for k in 5:
+		var a := TAU * k / 5.0 + 0.4
+		var pad := mesh_at(cylinder(0.32, 0.32, 0.02, 14), moss, pool_at + Vector3(cos(a), 0, sin(a)) * (1.2 + (k % 2) * 0.9) + Vector3(0, 0.12, 0), room)
+		pad.name = "Lily Pad"
+	var school := spinner("Pool Fish", room, pool_at + Vector3(0, 0.1, 0), 0.6)
+	var fish_cols := [Color(1.0, 0.6, 0.3), Color(0.9, 0.4, 0.8), Color(1.0, 0.9, 0.35)]
+	for k in 3:
+		var a := TAU * k / 3.0
+		var f := mesh_at(sphere(0.16, 10), mat("Fish %d" % k, fish_cols[k], 0.4, 0.0, 0.5), Vector3(cos(a), 0, sin(a)) * (1.0 + k * 0.5), school, a)
+		f.scale = Vector3(0.6, 0.6, 1.4)
+		f.name = "Fish"
+	# What it is
+	var plaque := pool_at.lerp(Vector3.ZERO, 0.5) + Vector3(0, 0, 1.2)
+	solid_box(Vector3(0.9, 1.0, 0.25), stone, plaque + Vector3(0, 0.5, 0), room, atan2(-plaque.x, -plaque.z) + PI)
+	label(room, "The Falls Room\nThe waterfall outside\npours right in!", plaque + Vector3(0, 1.75, 0), 26, Color(0.85, 0.95, 1.0))
 
 
 func _library() -> Node3D:

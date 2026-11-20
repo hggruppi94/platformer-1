@@ -74,7 +74,8 @@ func _run() -> void:
 	for c in s.get_node("Hot Springs").get_children():
 		var mi := c as MeshInstance3D
 		if mi and mi.material_override and mi.material_override.resource_name == "Cave Rock":
-			caves.append([mi.global_position - Vector3(0, 1, 0), float(mi.get_meta("spring_yaw", 0.0))])
+			caves.append([mi.global_position - Vector3(0, 1, 0), float(mi.get_meta("spring_yaw", 0.0)),
+				float(mi.get_meta("spring_scale", 1.0))])
 	var mid: Vector3 = caves[1][0]
 	views.append(["00_all_caves", mid + Vector3(4, 7, 22), mid + Vector3(0, 2, 0), 11.0])
 	for i in caves.size():
@@ -85,6 +86,15 @@ func _run() -> void:
 		views.append(["%d_left" % (i + 1), p + f * 3.5 - sd * 5 + Vector3(0, 1.8, 0), p + Vector3(0, 1.2, 0), 11.0])
 		views.append(["%d_right" % (i + 1), p + f * 3.5 + sd * 5 + Vector3(0, 1.8, 0), p + Vector3(0, 1.2, 0), 11.0])
 		views.append(["%d_inside" % (i + 1), p + f * 2.2 + Vector3(0, 1.3, 0), p - f + Vector3(0, 0.9, 0), 11.0])
+		# Down the tunnel into its grotto (scripts/spring_grottos.gd), if it has one
+		var k := caves[i][2] as float
+		views.append(["%d_tunnel" % (i + 1), p + f * 1.0 * k + Vector3(0, 1.4 * k, 0), p - f * 9.0 * k + Vector3(0, 0.6, 0), 11.0])
+		views.append(["%d_grotto" % (i + 1), p - f * 5.0 * k + Vector3(0, 1.6 * k, 0), p - f * 10.5 * k + Vector3(0, 0.3, 0), 11.0])
+	# The Museum's front door, from the path (the waterfall's arch wall stood on its doorstep: big_falls.gd)
+	if s.has_node("Museum/Door"):
+		var door := (s.get_node("Museum/Door") as Node3D).global_position
+		views.append(["museum_door", door + Vector3(3, 2.2, 11), door + Vector3(0, 0.6, 0), 11.0])
+		views.append(["museum_door_side", door + Vector3(-9, 3, 6), door + Vector3(0, 0.8, 0), 11.0])
 	for v in views:
 		clock.set_time(3, v[3] * 60.0, true)
 		cam.global_position = v[1]

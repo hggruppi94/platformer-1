@@ -99,6 +99,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **The Hot Springs' caves go somewhere, and the Museum joins the waterfall** (Hayden: "The hot springs
+  doorways dont actually go anywhere, and the museum door is blocked off"). Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **The caves** (`scripts/spring_grottos.gd`, no class_name, called at the end of `detail_props.gd _springs()`, so
+    only with the detail pipeline on): behind each of the three baked mouths the cliff's ground is cut away
+    (`ground_hole.gd`, two cuts, from 0.22 m over the floor up to the roof) and a tunnel runs back into a small warm
+    grotto (one piece of `cave_kit.gd` rock with its own floor, `"clip"` at the mouth's front so it's open there; the
+    tunnel's front dips 0.22 m so its floor meets the ground outside without a lip). In each: a steaming pool copying
+    the outside pool's water and warm zone, warm crystals, the cave's glow and light moved to the back, and a warm lamp.
+    `ground_hole.gd` never hides anything under a node with meta `hole_keep` (Hot Springs has it, so the cuts leave the
+    mouths, rims and pools alone).
+    The baked mouth (`build_prop_void_5.py spring_cave`) no longer has its painted back wall and floor. `cave_kit.gd`
+    gained `"clip"` (planes: no rock in front of them). Hot Springs gets metas `grotto_shapes` / `grotto_areas`.
+  - **The Museum's door** (`big_falls.gd _arch()`): the plateau's first waterfall stood its rock arch's side wall right on
+    the Museum's doorstep. A side of an arch with a door within `DOOR_ROOM` (3 m) is left out (meta `open_side`).
+  - **The Museum joins the falls** (Hayden: "the museum building should be larger and in a better spot unless it merges
+    with the outside waterfall and has some sort of water feature on the inside"). `scripts/falls_museum.gd` (no
+    class_name; `WorldDetail` calls `place()` before `big_falls.gd`, so the falls see it where it ends up): the dome is
+    `GROW` 1.2 times bigger and turned (`YAW`) so its door looks out over the lake shore (the way out and anyone just
+    out of it move too), crystals and rails inside its new size are taken out, and a stream ("Falls Stream") runs from
+    the fall's pool in under an arched **water gate** in its side ("The Falls Room"). The gate's marker is in group
+    `fall_opening`, which `big_falls.gd _doors()` counts like a door, so the arch leaves that side open. The fall itself
+    doesn't move. Inside (`build_interiors.gd _falls_room()`, room now r 15): the stream comes in through a barred gate
+    in the wall and runs to a pool with lily pads, fish and stepping stones, and the falls outside pour in through a
+    rocky gap in the dome (daylight showing through) down into the pool, with mist and its rush; the Star Beast and the cases moved round to make room.
+  - Tests: new `tools/test_spring_grottos.gd` (each grotto's floor, really walks from the pool in to each grotto's
+    middle and back out, the Museum's size, facing, stream and gate, the fall unmoved, and from the lawn in front into
+    the Museum's door); test_insides (the Falls Room); detail_all (counts the grottos' shapes and areas), doors,
+    walk_through, layout, world_detail, plant_clearance and garden_caves pass. Pictures: `tools/capture_museum.gd --
+    <folder> [--outside]` (project files, world/previews/museum_falls).
+
 - 2026-11-20: **Baked the Rootmind's giant stems and their leaves, the Leaf Climb, the giant flowers and the Root
   Tunnel's arches** (Hayden: "Then keep baking details"; the portal worlds' props, after the Far Future). Built and
   tested in the cloud (own Godot user folders, no save touched).

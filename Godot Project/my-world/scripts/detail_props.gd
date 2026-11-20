@@ -99,6 +99,7 @@ const MOTHERSHIP_PAD := "res://models/props/mothership_pad.glb"
 const NOTICEBOARD := "res://models/props/noticeboard.glb"
 const SPRING_CAVE := "res://models/props/spring_cave.glb"
 const SPRING_RIM := "res://models/props/spring_rim.glb"
+const SPRING_GROTTOS := preload("res://scripts/spring_grottos.gd")
 const BOARDWALK_LEN := 4.0             # the model's length of deck, and its width 3 (tools/build_prop_void_5.py)
 const BOARDWALK_W := 3.0
 const BOARDWALKS := ["Boardwalk South", "Boardwalk North", "Boardwalk East", "Dock"]
@@ -2072,9 +2073,9 @@ static func _place_springs(scene: Node) -> int:
 
 
 static func _springs(g: Node3D, cave: PackedScene, rim: PackedScene) -> Vector2i:
-	# The Hot Springs (placed by _place_springs first): each cave becomes the detailed mouth, open now so the glow
-	# inside shows, turned and sized as placed, and each pool gets a ring of stones. The glow, its light, the water
-	# and the warm zone stay.
+	# The Hot Springs (placed by _place_springs first): each cave becomes the detailed mouth, open right through,
+	# turned and sized as placed, and each pool gets a ring of stones. The glow, its light, the water and the warm zone
+	# stay, and spring_grottos.gd digs the cave behind each mouth.
 	var out := Vector2i.ZERO
 	if g == null or g.get_script() != null or g.has_node("Detailed Spring Cave 0"):
 		return out
@@ -2101,6 +2102,9 @@ static func _springs(g: Node3D, cave: PackedScene, rim: PackedScene) -> Vector2i
 			m.rotation.y = out.y * 1.3
 			g.add_child(m)
 			out.y += 1
+	# (20 Nov 2026) and a tunnel behind each mouth into a warm grotto in the cliff (scripts/spring_grottos.gd)
+	if out.x > 0:
+		SPRING_GROTTOS.dig(g.get_parent(), g)
 	return out
 
 
