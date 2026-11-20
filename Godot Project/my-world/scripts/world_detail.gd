@@ -16,6 +16,7 @@ extends Node
 const GROUND_SHADER := preload("res://scripts/ground_detail.gdshader")
 const MOUNTAINS := preload("res://scripts/alien_mountains.gd")
 const FALLS := preload("res://scripts/big_falls.gd")
+const FALLS_MUSEUM := preload("res://scripts/falls_museum.gd")
 const DUSK_GATE := preload("res://scripts/dusk_gate.gd")
 const STATIC_BATCH := preload("res://scripts/static_batch.gd")
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
@@ -61,6 +62,7 @@ func _dress(scene: Node) -> void:
 	if path == "res://scenes/town/town.tscn":
 		MOUNTAINS.dress(scene)
 		DUSK_GATE.move(scene)
+		FALLS_MUSEUM.place(scene)          # before the falls, so they see it where it ends up
 		FALLS.dress_void(scene)
 	elif path == "res://scenes/school/school.tscn":
 		MOUNTAINS.dress(scene)

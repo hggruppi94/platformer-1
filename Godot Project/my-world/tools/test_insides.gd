@@ -250,6 +250,12 @@ func _run() -> void:
 		var meshes := r.find_children("*", "MeshInstance3D", true, false).size() + r.find_children("*", "MultiMeshInstance3D", true, false).size()
 		check(meshes > 20 and r.find_children("*", "OmniLight3D", true, false).size() > 0, "%s is furnished and lit (%d meshes)" % [id, meshes])
 		r.free()
+	# The Museum's Falls Room: the waterfall outside runs in through the wall to a pool with a fall of its own
+	var mus := (load("res://scenes/interiors/museum.tscn") as PackedScene).instantiate()
+	var fr := mus.find_child("Falls Room", true, false)
+	check(fr != null and fr.find_child("Falls Curtain", true, false) != null and fr.find_child("Falls Pool", true, false) != null
+		and fr.find_child("Stream Gate", true, false) != null, "the Museum has its Falls Room (a fall, a pool, the stream's gate)")
+	mus.free()
 	var hall := (load("res://scenes/interiors/town_hall.tscn") as PackedScene).instantiate()
 	check(hall.find_child("Mayor Desk", true, false) != null, "Mr. Palmer's desk is in the Town Hall")
 	check(hall.find_child("Town Map", true, false) != null, "and the town map on the wall")

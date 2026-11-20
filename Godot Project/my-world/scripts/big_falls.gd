@@ -390,6 +390,9 @@ static func _doors(root: Node) -> Array:
 		var sc := (a as Node).get_script() as Script
 		if sc and sc.resource_path.ends_with("/door.gd"):
 			out.append((a as Node3D).global_position)
+	# and anything else meant to open onto a fall (the Museum's water gate: scripts/falls_museum.gd)
+	for n in scene.get_tree().get_nodes_in_group("fall_opening") if scene.is_inside_tree() else []:
+		out.append((n as Node3D).global_position)
 	return out
 
 

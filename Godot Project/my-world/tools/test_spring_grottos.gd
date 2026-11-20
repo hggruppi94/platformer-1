@@ -115,7 +115,24 @@ func _run() -> void:
 		if _flat((n as Node3D).global_position, door.global_position) < 6.0:
 			walls += 1
 	check(walls == 0, "no arch wall stands by the Museum's door")
-	var front := door.global_position + Vector3(0, 0, 7.0)
+	# It's bigger and turned to look out over the lake shore, joined to the falls by a stream (scripts/falls_museum.gd)
+	var mus := s.get_node("Museum") as Node3D
+	check(absf(mus.global_transform.basis.get_scale().x - 1.2) < 0.01, "the Museum is 1.2 times bigger")
+	check(falls != null and _flat((falls.get_meta("info") as Dictionary).edge, Vector3(-44.88, 0, -36.99)) < 0.5,
+		"the fall stays where it was (it didn't slide away from the bigger Museum)")
+	var stream := s.get_node_or_null("Falls Stream")
+	check(stream != null and stream.find_child("Water Gate", true, false) != null
+		and stream.find_children("*Stream Water*", "", true, false).size() >= 3,
+		"a stream runs from the fall's pool to a water gate in the Museum's side")
+	var out := mus.get_node("FromMuseum") as Node3D
+	var face := out.global_position - door.global_position
+	face.y = 0
+	face = face.normalized()
+	check(face.dot(Vector3(1, 0, 1).normalized()) > 0.8, "the Museum's door looks out over the lake shore")
+	check(_flat(out.global_position, door.global_position) < 6.0 and out.global_position.y < 2.5,
+		"the way out is on the ground in front of the door")
+	var front := door.global_position + (out.global_position - door.global_position).normalized() * 7.0
+	front.y = out.global_position.y
 	_put(front + Vector3(0, 0.6, 0))
 	await _physics(10)
 	var went := [false]
