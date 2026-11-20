@@ -65,6 +65,10 @@ const LM_POST := "res://models/props/lanternmoor/lantern_post.glb"
 const LM_BEACON := "res://models/props/lanternmoor/beacon.glb"
 const LM_TREE_TRUNK := 3.2                        # the baked lantern tree's trunk height at scale 1
 const LM_STONE_TINT := Color(0.42, 0.38, 0.55)    # Lanternmoor's standing stones, over the Glenmoor stone
+const FM_PINE := "res://models/props/frozen_moment/snow_pine.glb"
+const FM_CRAG := "res://models/props/frozen_moment/ice_crag.glb"
+const FM_THRONE := "res://models/props/frozen_moment/frost_throne.glb"
+const FM_CRAG_H := 5.0                             # the baked crag's height at scale 1 (its base radius is 1)
 const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
 const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
@@ -635,6 +639,60 @@ static func dress_lanternmoor(scene: Node) -> Dictionary:
 			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
 			_tint(m, LM_STONE_TINT)
 			mi.get_parent().add_child(m)
+	return out
+
+
+static func dress_frozen_moment(scene: Node) -> Dictionary:
+	# Flurry's stopped moment (20 Nov 2026, the portal worlds' props, tools/build_prop_frozen_moment.py): the snowy
+	# pines, the ice crags round the edge and the Frost Throne. Only how they look changes: every trunk's and crag's
+	# collision, the edge's fence and the throne's slippery ice stay as built.
+	var out := {"pines": 0, "crags": 0, "throne": 0}
+	var pine := _scene(FM_PINE)
+	var pines := scene.find_child("Pines", true, false) as Node3D
+	if pine and pines and not pines.has_node("Detailed Pine 1"):
+		# Each pine is a trunk and three needle and snow cones, all loose under "Pines". Its trunk sits half its
+		# height up (0.8 m at size 1), which gives its size; the cones above it go with it.
+		var trunks := []
+		for c in pines.get_children():
+			if c is MeshInstance3D:
+				if _mat_name(c) == "Pine Bark":
+					trunks.append(c)
+				_hide(c)
+		for t: MeshInstance3D in trunks:
+			var sz := t.position.y / 0.8
+			var m := pine.instantiate() as Node3D
+			out.pines += 1
+			m.name = "Detailed Pine %d" % out.pines
+			m.position = Vector3(t.position.x, 0, t.position.z)
+			m.scale = Vector3.ONE * sz
+			m.rotation.y = fposmod(t.position.x * 1.9 + t.position.z * 0.7, TAU)
+			pines.add_child(m)
+	var crag := _scene(FM_CRAG)
+	var edge := scene.find_child("Ice Crags", true, false) as Node3D
+	if crag and edge and not edge.has_node("Detailed Crag 1"):
+		var cones := []
+		for c in edge.get_children():
+			if not (c is MeshInstance3D):
+				continue
+			var mn := _mat_name(c)
+			if mn == "Crag Snow":
+				_hide(c)
+			elif mn == "Crag Ice" and (c as MeshInstance3D).mesh is CylinderMesh:
+				cones.append(c)
+				_hide(c)
+		for c: MeshInstance3D in cones:
+			var cm := c.mesh as CylinderMesh
+			var m := crag.instantiate() as Node3D
+			out.crags += 1
+			m.name = "Detailed Crag %d" % out.crags
+			m.position = c.position - Vector3(0, cm.height / 2.0, 0)
+			m.rotation.y = c.rotation.y
+			m.scale = Vector3(cm.bottom_radius, cm.height / FM_CRAG_H, cm.bottom_radius)
+			edge.add_child(m)
+	var throne := _scene(FM_THRONE)
+	var th := scene.find_child("Frost Throne", true, false) as Node3D
+	if throne and th:
+		out.throne = _dress_in(th, throne, "Detailed Throne", [])
 	return out
 
 

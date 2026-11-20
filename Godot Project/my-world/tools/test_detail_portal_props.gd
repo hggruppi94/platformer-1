@@ -16,6 +16,7 @@ const GLENMOOR := "res://scenes/portal_worlds/glenmoor.tscn"
 const TIDE_REEF := "res://scenes/portal_worlds/tide_reef.tscn"
 const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
 const LANTERNMOOR := "res://scenes/portal_worlds/lanternmoor.tscn"
+const FROZEN_MOMENT := "res://scenes/portal_worlds/frozen_moment.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -135,6 +136,7 @@ func _run() -> void:
 	await _tide_reef()
 	await _dark_hollow()
 	await _lanternmoor()
+	await _frozen_moment()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -336,6 +338,58 @@ func _lanternmoor() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the moor again changes nothing")
+
+
+func _frozen_moment() -> void:
+	detail.detail_props = false
+	await _load(FROZEN_MOMENT)
+	var shapes_before := _shapes(current_scene, true)
+	var plain_pines := current_scene.find_children("Detailed Pine*", "Node3D", true, false).size()
+	detail.detail_props = true
+	await _load(FROZEN_MOMENT)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Frozen Moment props: ", got)
+	check(plain_pines == 0, "no baked pines with detailed props off")
+	check(got.get("pines", 0) == 26, "every snowy pine swapped (%d)" % got.get("pines", 0))
+	check(got.get("crags", 0) == 30, "every ice crag swapped (%d)" % got.get("crags", 0))
+	check(got.get("throne", 0) == 1, "the Frost Throne swapped")
+	# Nothing plain left drawn under the pines, the crags or the throne
+	var plain := 0
+	for g in ["Pines", "Ice Crags", "Frost Throne"]:
+		var n := s.find_child(g, true, false)
+		for c in n.get_children():
+			if c is MeshInstance3D and not c.has_meta("detail_prop_old") and (c as MeshInstance3D).is_visible_in_tree() \
+					and not String(c.name).begins_with("Batched"):
+				plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# Each pine stands on the ground at its own size (from its trunk), each crag as tall and wide as its old cone
+	var sized := true
+	for d: Node3D in s.find_child("Pines", true, false).find_children("Detailed Pine*", "Node3D", false, false):
+		if absf(d.position.y) > 0.01 or d.scale.x < 0.75 or d.scale.x > 1.35:
+			sized = false
+	check(sized, "every pine stands on the ground at its own size")
+	var crags_ok := true
+	var cones := []
+	for c in s.find_child("Ice Crags", true, false).get_children():
+		if c is MeshInstance3D and c.has_meta("detail_prop_old") and (c as MeshInstance3D).mesh is CylinderMesh \
+				and _mat_of(c) == "Crag Ice":
+			cones.append(c)
+	var crags := s.find_child("Ice Crags", true, false).find_children("Detailed Crag*", "Node3D", false, false)
+	for i in crags.size():
+		var c: MeshInstance3D = cones[i]
+		var b := _aabb(crags[i])
+		var h := (c.mesh as CylinderMesh).height
+		if absf(b.size.y * crags[i].scale.y - h) > h * 0.06 or absf(crags[i].position.y) > 0.1:
+			crags_ok = false
+	check(crags.size() == cones.size() and crags_ok, "every crag stands where its cone did, just as tall")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_frozen_moment(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the Frozen Moment again changes nothing")
 
 
 func _mat_of(mi: MeshInstance3D) -> String:
