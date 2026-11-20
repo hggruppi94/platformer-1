@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-19: **Baked Glenmoor's props: the Standing Stones, the cairns up Ben Bonnie, Heather's croft and her barn**
+  (Hayden: "Then keep baking details"; the portal worlds' props, starting with Glenmoor). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_glenmoor.py <out.glb> standing_stone|cairn|summit_cairn|croft|barn`
+    (a lichened standing stone with a carved spiral and cup-and-ring marks and a moss collar; a cairn of stacked stones
+    and the bigger summit one, each with its pole and a waving tartan flag; the croft in whitewashed stone with slates,
+    chimneys, sash windows that glow, a panelled red door, window boxes and the porch with its rocking chair; the barn
+    in red boards with a slate gambrel roof, braced white doors, the loft door with hay and a weathervane). In
+    `models/props/glenmoor/`. No "wear" on the croft and barn (it baked their red pink).
+  - **Swapped at run time** (`detail_props.gd dress_glenmoor()`, called by `WorldDetail` for `glenmoor.tscn`): each
+    standing stone keeps its own lean, turn and height (dark ones tinted), the cairns are found by their tartan "Flag"
+    (the one with the most stones gets the summit model), the croft and barn go in their own nodes, and the barn's five
+    hay bales become Stars Hollow's baked bale, sized to each. Every solid box, marker and name stays (old pieces on
+    layers 0, meta `detail_prop_old`).
+  - Tests: new `tools/test_detail_portal_props.gd` (9 stones where their boxes were, 6 cairns with one summit, croft,
+    barn, 5 bales, nothing plain drawn, every collision where it was, dressed again changes nothing); glenmoor and
+    detail_all pass. Pictures: `tools/capture_detail_glenmoor.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_glenmoor).
+  - My choices Hayden may change: every look (the lichen, the tartan, the croft's red door and porch, the barn's roof).
+
 - 2026-11-19: **Baked the portal worlds' natural surfaces: rock, bark, ice, snow, coral, metal panels and dry stone**
   (Hayden: "start baking nature, buildings, then portal worlds in that order"; this is portal worlds). Built and tested
   in the cloud (own Godot user folders, no save touched).

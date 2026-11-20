@@ -45,6 +45,14 @@ const PALM := "res://models/props/palm.glb"
 const TIKI_TORCH := "res://models/props/tiki_torch.glb"
 const GROVE_LANTERN := "res://models/props/grove_lantern.glb"
 const SPRINGS_GATE := "res://models/props/springs_gate.glb"
+const STANDING_STONE := "res://models/props/glenmoor/standing_stone.glb"
+const CAIRN := "res://models/props/glenmoor/cairn.glb"
+const SUMMIT_CAIRN := "res://models/props/glenmoor/summit_cairn.glb"
+const CROFT := "res://models/props/glenmoor/croft.glb"
+const GLEN_BARN := "res://models/props/glenmoor/barn.glb"
+# The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
+const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
+const STONE_DARK_TINT := Color(0.8, 0.8, 0.84)    # "Stone Dark" over "Stone" (tools/build_glenmoor.gd)
 const CRYSTAL := "res://models/props/crystal.glb"
 const BASKETBALL_HOOP := "res://models/props/basketball_hoop.glb"
 const TENNIS_NET := "res://models/props/tennis_net.glb"
@@ -321,6 +329,78 @@ static func dress_rhythm(scene: Node) -> Dictionary:
 		sg = sg.get_node("Gate Core") as Node3D
 	if gate and sg:
 		out.gate = _dress_in(sg, gate, "Detailed Gate", [])
+	return out
+
+
+static func dress_glenmoor(scene: Node) -> Dictionary:
+	# Heather's glen (19 Nov 2026, the portal worlds' props, tools/build_prop_glenmoor.py): the Standing Stones, the
+	# cairns up Ben Bonnie with their tartan flags, her croft and her barn with its hay bales. Only how they look
+	# changes: every solid box, the markers the race and the Stormram use, and the names stay as built.
+	var out := {"stones": 0, "cairns": 0, "croft": 0, "barn": 0, "hay": 0}
+	var ss := _scene(STANDING_STONE)
+	var ring := scene.find_child("Standing Stones", true, false) as Node3D
+	if ss and ring and not ring.has_node("Detailed Stone 1"):
+		for c in ring.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null or not (mi.mesh is BoxMesh):
+				continue
+			var mn := _mat_name(mi)
+			if mn == "Moss":
+				_hide(mi)                                  # (the model has its own collar of moss)
+				continue
+			if not String(mi.name).begins_with("Stone"):
+				continue
+			var size := (mi.mesh as BoxMesh).size
+			_hide(mi)
+			var m := ss.instantiate() as Node3D
+			out.stones += 1
+			m.name = "Detailed Stone %d" % out.stones
+			# Its own lean and turn, stretched to its own height
+			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
+			if mn == "Stone Dark":
+				_tint(m, STONE_DARK_TINT)
+			ring.add_child(m)
+	# The cairns: a node holding a few stone balls, a pole and the "Flag" (the builder names only some of them)
+	var small := _scene(CAIRN)
+	var big := _scene(SUMMIT_CAIRN)
+	for flag in scene.find_children("Flag", "MeshInstance3D", true, false):
+		var g := flag.get_parent() as Node3D
+		if g == null or g.get_script() != null or g.has_node("Detailed Cairn") or _mat_name(flag) != "Tartan":
+			continue
+		var balls := 0
+		for c in g.get_children():
+			if c is MeshInstance3D and (c as MeshInstance3D).mesh is SphereMesh:
+				balls += 1
+		var model := big if balls > 4 else small
+		if model == null:
+			continue
+		out.cairns += _dress_in(g, model, "Detailed Cairn", [])
+	var croft := _scene(CROFT)
+	var house := scene.find_child("Heather's Croft", true, false) as Node3D
+	if croft and house:
+		out.croft = _dress_in(house, croft, "Detailed Croft", [])
+	var barn_m := _scene(GLEN_BARN)
+	var barn := scene.find_child("Barn", true, false) as Node3D
+	if barn_m and barn and scene.scene_file_path.ends_with("glenmoor.tscn"):
+		var bales := []
+		for c in barn.get_children():
+			if c is MeshInstance3D and String(c.name).begins_with("Hay Bale"):
+				bales.append(c)
+		out.barn = _dress_in(barn, barn_m, "Detailed Barn", bales.map(func(b): return String(b.name)))
+		# Its round bales are a little fatter and shorter than Stars Hollow's (tools/build_prop_farm.py hay_bale: 1.2
+		# across and 1.2 long, its axis the cylinder's)
+		var hay := _scene(HAY)
+		for b: MeshInstance3D in bales:
+			if hay == null or b.has_node("Detailed Hay"):
+				continue
+			var cm := b.mesh as CylinderMesh
+			_hide(b)
+			var h := hay.instantiate() as Node3D
+			h.name = "Detailed Hay"
+			h.scale = Vector3(cm.top_radius / 0.6, cm.height / 1.2, cm.top_radius / 0.6)
+			h.rotation.y = fposmod(b.position.z * 2.3, TAU)
+			b.add_child(h)
+			out.hay += 1
 	return out
 
 
