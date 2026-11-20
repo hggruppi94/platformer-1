@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the portal worlds' baked props (19 Nov 2026, Hayden: "Then keep baking details"): scripts/detail_props.gd
-# (and dress_tide_reef, dress_dark_hollow) swaps the plain builder pieces for the models from tools/build_prop_glenmoor.py (and the worlds after it), keeping
+# (and dress_tide_reef, dress_dark_hollow and the other worlds' dress_*) swaps the plain builder pieces for the models from tools/build_prop_glenmoor.py (and the worlds after it), keeping
 # every solid box and name, and dressing a place twice changes nothing.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_detail_portal_props.gd
@@ -17,6 +17,7 @@ const TIDE_REEF := "res://scenes/portal_worlds/tide_reef.tscn"
 const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
 const LANTERNMOOR := "res://scenes/portal_worlds/lanternmoor.tscn"
 const FROZEN_MOMENT := "res://scenes/portal_worlds/frozen_moment.tscn"
+const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -137,6 +138,7 @@ func _run() -> void:
 	await _dark_hollow()
 	await _lanternmoor()
 	await _frozen_moment()
+	await _far_future()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -390,6 +392,69 @@ func _frozen_moment() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the Frozen Moment again changes nothing")
+
+
+func _far_future() -> void:
+	detail.detail_props = false
+	await _load(FAR_FUTURE)
+	var shapes_before := _shapes(current_scene, true)
+	var plain_clock := current_scene.find_children("Detailed Clock", "Node3D", true, false).size()
+	detail.detail_props = true
+	await _load(FAR_FUTURE)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Far Future props: ", got)
+	check(plain_clock == 0, "no baked clock with detailed props off")
+	check(got.get("clock", 0) == 1, "the Tomorrow Clock's dais and spire swapped")
+	check(got.get("posts", 0) == 6, "every streetlight post swapped (%d)" % got.get("posts", 0))
+	check(got.get("fountain", 0) == 1, "the plaza's fountain swapped")
+	check(got.get("benches", 0) == 4, "every plaza bench swapped (%d)" % got.get("benches", 0))
+	# Nothing plain left drawn, and the city's neon (which fades with it) is all still there
+	var plain := 0
+	var neon := 0
+	var neon_hidden := 0
+	for g in ["Tomorrow Clock", "Streetlights", "Fading Plaza"]:
+		for c in s.find_child(g, true, false).get_children():
+			if not (c is MeshInstance3D):
+				continue
+			var mn := _mat_of(c)
+			if mn in ["Dais", "Spire", "Post", "Fountain", "Bench"] and (c as MeshInstance3D).is_visible_in_tree() \
+					and (c as MeshInstance3D).layers != 0:
+				plain += 1
+			if mn.begins_with("Neon"):
+				neon += 1
+				if c.has_meta("detail_prop_old") or not (c as MeshInstance3D).is_visible_in_tree():
+					neon_hidden += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	check(neon > 0 and neon_hidden == 0, "the clock's and lights' neon is all still drawn (%d)" % neon)
+	# Each post stands on the ground right under its bulb
+	var posts_ok := true
+	var lights := s.find_child("Streetlights", true, false)
+	for d: Node3D in lights.find_children("Detailed Post*", "Node3D", false, false):
+		var near := false
+		for c in lights.get_children():
+			if c is MeshInstance3D and _mat_of(c) == "Post" and Vector2(c.position.x - d.position.x, c.position.z - d.position.z).length() < 0.01:
+				near = true
+		if not near or absf(d.position.y) > 0.01:
+			posts_ok = false
+	check(posts_ok, "every post stands where its old post did")
+	# The towers' glass wears the glass patch
+	var glass := 0
+	var patched := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var m := (c as MeshInstance3D).get_active_material(0)
+		if m and String(m.resource_name).begins_with("Tower Glass"):
+			glass += 1
+			if m.get_meta("detail_surface", "") == "glass_facade":
+				patched += 1
+	check(glass > 0 and patched == glass, "every tower's glass has the glass patch (%d of %d)" % [patched, glass])
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_far_future(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the Far Future again changes nothing")
 
 
 func _mat_of(mi: MeshInstance3D) -> String:
