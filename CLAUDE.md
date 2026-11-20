@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **Baked the Rootmind's giant stems and their leaves, the Leaf Climb, the giant flowers and the Root
+  Tunnel's arches** (Hayden: "Then keep baking details"; the portal worlds' props, after the Far Future). Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_rootmind.py <out.glb> giant_stem|giant_leaf|step_leaf|giant_bud|giant_bloom|root_arch`
+    (a 20 m stem with swollen nodes and leafy sheaths round each; a huge leaf with a midrib and veins; a round step
+    leaf with a notch for its stalk; a shut bud of five wrapped petals and an open bloom of two rings of petals, both
+    baked pale; an arch of three twisted roots with knots and moss). In `models/props/rootmind/`.
+  - **Swapped at run time** (`detail_props.gd dress_rootmind()`, called by `WorldDetail` for `rootmind.tscn`): all 26
+    edge stems (each stretched to its own height and width) and their leaves (found by shape: two had been given the
+    ground's look), the Leaf Climb's stem and its 9 step leaves (inside each leaf's body, at its size), the 10 giant
+    flowers' stems, buds and blooms in each flower's own petal colour (inside its "Bud" and "Open", so mending still
+    opens them; the glowing heart stays, lifted a little over the inner petals), and the tunnel's 6 arches. The
+    eyeplants, the Thornknot and the seedling are unchanged, and every collision stays (old pieces on layers 0, meta
+    `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (37 stems standing at their height, 26 leaves, 9 step leaves, 10 buds
+    and blooms that follow the flower opening, tinted, the hearts kept, 6 arches, nothing plain drawn, every still
+    shape where it was, dressed again changes nothing); rootmind, portals and detail_all pass. Pictures:
+    `tools/capture_detail_rootmind.gd -- <folder> [--old-props]` (project files, world/previews/detail_rootmind).
+  - My choices Hayden may change: every look (the stems' sheaths, the leaves' veins, the blooms' two rings).
+
 - 2026-11-20: **Baked Lumen City's Tomorrow Clock, its streetlight posts, the Fading Plaza's fountain and benches, and
   glass on its towers** (Hayden: "Then keep baking details"; the portal worlds' props, after the Frozen Moment). Built
   and tested in the cloud (own Godot user folders, no save touched).

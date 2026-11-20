@@ -18,6 +18,7 @@ const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
 const LANTERNMOOR := "res://scenes/portal_worlds/lanternmoor.tscn"
 const FROZEN_MOMENT := "res://scenes/portal_worlds/frozen_moment.tscn"
 const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
+const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -139,6 +140,7 @@ func _run() -> void:
 	await _lanternmoor()
 	await _frozen_moment()
 	await _far_future()
+	await _rootmind()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -455,6 +457,81 @@ func _far_future() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the Far Future again changes nothing")
+
+
+func _rootmind() -> void:
+	detail.detail_props = false
+	await _load(ROOTMIND)
+	var shapes_before := _shapes(current_scene, true)
+	var plain_stem := current_scene.find_children("Detailed Stem*", "Node3D", true, false).size()
+	detail.detail_props = true
+	await _load(ROOTMIND)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Rootmind props: ", got)
+	check(plain_stem == 0, "no baked stem with detailed props off")
+	check(got.get("stems", 0) == 37, "every giant stem swapped: 26 round the edge, the Leaf Climb's, 10 flowers' (%d)" % got.get("stems", 0))
+	check(got.get("leaves", 0) == 26, "every edge leaf swapped (%d)" % got.get("leaves", 0))
+	check(got.get("step_leaves", 0) == 9, "every step leaf on the Leaf Climb swapped (%d)" % got.get("step_leaves", 0))
+	check(got.get("buds", 0) == 10 and got.get("blooms", 0) == 10, "every giant flower's bud and bloom swapped")
+	check(got.get("arches", 0) == 6, "every root arch in the tunnel swapped (%d)" % got.get("arches", 0))
+	# Nothing plain left drawn (a stalk to a step leaf is a thin stem and stays)
+	var plain := 0
+	for g in ["Giant Stems", "Leaf Climb", "Giant Buds", "Root Tunnel"]:
+		for c in s.find_child(g, true, false).find_children("*", "MeshInstance3D", true, false):
+			var mi := c as MeshInstance3D
+			if mi.has_meta("detail_prop_old") or _in_model(mi):
+				continue
+			var mn := _mat_of(mi)
+			var thick := mi.mesh is CylinderMesh and (mi.mesh as CylinderMesh).bottom_radius > 0.3
+			if (mn in ["Giant Leaf", "Step Leaf"] or (mi.mesh is SphereMesh and mi.get_parent().name == "Giant Stems") or mn.begins_with("Petal") or mi.mesh is TorusMesh or (mn == "Giant Stem" and thick)) \
+					and mi.mesh is PrimitiveMesh:
+				plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# Each stem stands on its old cylinder's foot, as tall as it was
+	var stems_ok := true
+	for d: Node3D in s.find_children("Detailed Stem*", "Node3D", true, false):
+		var box := _aabb(d)
+		if absf(d.position.y) > 0.05 or box.size.y < 19.0 or box.size.y > 22.5:
+			stems_ok = false
+	check(stems_ok, "every stem stands on the ground at its old height")
+	# The buds and blooms go with the flower's own Bud and Open, so mending still opens them
+	var f := s.find_child("Giant Buds", true, false).get_child(0) as Node3D
+	var bud_m := f.get_node("Bud/Detailed Bud") as Node3D
+	var bloom_m := f.get_node("Open/Detailed Bloom") as Node3D
+	check(bud_m.is_visible_in_tree() and not bloom_m.is_visible_in_tree(), "a shut flower shows its baked bud")
+	(f.get_node("Bud") as Node3D).visible = false
+	(f.get_node("Open") as Node3D).visible = true
+	check(not bud_m.is_visible_in_tree() and bloom_m.is_visible_in_tree(), "an open flower shows its baked bloom")
+	(f.get_node("Bud") as Node3D).visible = true
+	(f.get_node("Open") as Node3D).visible = false
+	var heart_ok := false
+	for c in f.get_node("Open").get_children():
+		if c is MeshInstance3D and _mat_of(c) == "Flower Heart" and not c.has_meta("detail_prop_old"):
+			heart_ok = true
+	check(heart_ok, "the flower's glowing heart is kept")
+	var tinted := false
+	for mi: MeshInstance3D in bud_m.find_children("*", "MeshInstance3D", true, false):
+		var m := mi.get_active_material(0) as StandardMaterial3D
+		if m and m.albedo_color != Color.WHITE:
+			tinted = true
+	check(tinted, "a bud wears its own petal colour")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_rootmind(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the Rootmind again changes nothing")
+
+
+func _in_model(n: Node) -> bool:
+	var p := n.get_parent()
+	while p:
+		if String(p.name).begins_with("Detailed"):
+			return true
+		p = p.get_parent()
+	return false
 
 
 func _mat_of(mi: MeshInstance3D) -> String:
