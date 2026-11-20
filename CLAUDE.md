@@ -99,6 +99,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **The Far Future's way home sits on the ground again, not up on the race track** (Hayden: "the crack
+  to the void is stuck on the race track"). `portal_world.gd _ground_under()` cast a ray down from 20 m above the
+  "WayHome" marker and took the first thing it hit; in the Far Future the Skyway (the Skyway Run's road, 10 m up) runs
+  right over the marker, so the gold crack home was put on the road. It now takes the ground nearest the marker's own
+  height. `test_far_future` checks the crack is on the ground; portals, cracks, home_calls, practice_trips,
+  friend_spots and every portal world's test pass.
+
 - 2026-11-20: **Baked the Tide Reef's coral houses, bubble lamps and stranded boat, and its corals bloom with the tide
   again** (Hayden: "Then keep baking details"; the portal worlds' props, after Glenmoor). Built and tested in the cloud
   (own Godot user folders, no save touched).

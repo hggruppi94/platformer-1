@@ -198,6 +198,13 @@ func _check_inside() -> void:
 		names.append("Folk%d/Spot" % (i + 1))
 	for n in names:
 		check(s.get_node_or_null(n) != null, "the Far Future has %s" % n)
+	# The Skyway runs right over the way home: its crack belongs on the ground under it, not up on the race's road
+	# (Hayden, 20 Nov 2026: "the crack to the void is stuck on the race track")
+	var home_crack := s.get_node_or_null("WayHome/Way Home") as Node3D
+	if home_crack:
+		var marker := s.get_node("WayHome") as Node3D
+		check(absf(home_crack.global_position.y - marker.global_position.y) < 1.5,
+			"the way home's crack is on the ground, not up on the Skyway (%.1f m up)" % (home_crack.global_position.y - marker.global_position.y))
 	var player := _player()
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
 	var space := (s as Node3D).get_world_3d().direct_space_state
