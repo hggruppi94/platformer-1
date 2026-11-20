@@ -15,6 +15,7 @@ const SETTINGS_BACKUP := "user://settings.portal_props_test_backup.cfg"
 const GLENMOOR := "res://scenes/portal_worlds/glenmoor.tscn"
 const TIDE_REEF := "res://scenes/portal_worlds/tide_reef.tscn"
 const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
+const LANTERNMOOR := "res://scenes/portal_worlds/lanternmoor.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -133,6 +134,7 @@ func _run() -> void:
 
 	await _tide_reef()
 	await _dark_hollow()
+	await _lanternmoor()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -254,6 +256,91 @@ func _dark_hollow() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the hollow again changes nothing")
+
+
+func _lanternmoor() -> void:
+	detail.detail_props = false
+	await _load(LANTERNMOOR)
+	var shapes_before := _shapes(current_scene, true)
+	var plain_posts := current_scene.find_children("Detailed Post", "Node3D", true, false).size()
+	detail.detail_props = true
+	await _load(LANTERNMOOR)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Lanternmoor props: ", got)
+	check(plain_posts == 0, "no baked posts with detailed props off")
+	check(got.get("trees", 0) >= 28, "every lantern tree swapped (%d)" % got.get("trees", 0))
+	check(got.get("stones", 0) == 6, "the beacon's ring of standing stones swapped (%d)" % got.get("stones", 0))
+	# Nothing plain left drawn: no small tree's bark, leaves or pods, no standing stone
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or not mi.is_visible_in_tree() or String(mi.name).begins_with("Batched"):
+			continue
+		var grove := String(mi.get_parent().get_parent().name) if mi.get_parent().get_parent() else ""
+		if not grove in ["Lantern Grove", "Lantern Trees"] and _mat_of(mi) != "Standing Stone":
+			continue
+		if _mat_of(mi) in ["Bark", "Lantern Leaves", "Pod Glow", "Pod Pink", "Pod Blue", "Standing Stone"]:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# Each tree is sized to its old trunk and its pods glow in the old colours
+	var t := s.find_children("Detailed Tree", "Node3D", true, false)
+	var sized := true
+	for d: Node3D in t:
+		var trunk: MeshInstance3D = null
+		for c in d.get_parent().get_children():
+			if trunk == null and c is MeshInstance3D and _mat_of(c) == "Bark":
+				trunk = c  # the first bark piece is the trunk; the branches come after it
+		if trunk == null or absf(d.scale.y - (trunk.mesh as CylinderMesh).height / 3.2) > 0.01:
+			sized = false
+	check(sized and t.size() == got.get("trees", -1), "every tree is sized to its own trunk")
+	var pod: MeshInstance3D
+	for c in t[0].find_children("PodA*", "MeshInstance3D", true, false):
+		pod = c
+	var pm := pod.get_surface_override_material(0) as StandardMaterial3D if pod else null
+	check(pm != null and pm.emission_enabled and pm.emission.r > 0.4, "a tree's lantern pod glows in its colour")
+	# The Night Path's lanterns and the beacons wear their baked posts and keep their shades and flames
+	var posts := s.find_children("Detailed Post", "Node3D", true, false)
+	check(posts.size() >= 5, "the Night Path's lanterns wear the baked post (%d)" % posts.size())
+	var shades := true
+	for p: Node in posts:
+		var shade := p.get_parent().get_node_or_null("Shade") as MeshInstance3D
+		if shade == null or not shade.visible:
+			shades = false
+	check(shades, "every lantern keeps its paper shade")
+	var beacons := s.find_children("Detailed Beacon", "Node3D", true, false)
+	check(beacons.size() >= 3, "the three beacons are baked (%d)" % beacons.size())
+	var flames := true
+	for b: Node in beacons:
+		var f := b.get_parent().get_node_or_null("Flame") as MeshInstance3D
+		if f == null or not f.visible:
+			flames = false
+	check(flames, "every beacon keeps its flame")
+	var shapes_after := _shapes(s, true)
+	# (the runaway lights' "Hit" targets flit about the grove, so only the still shapes count)
+	for d: Dictionary in [shapes_before, shapes_after]:
+		for k in d.keys():
+			if String(k).begins_with("Hit "):
+				d.erase(k)
+	if shapes_after != shapes_before:
+		for k in shapes_before:
+			if shapes_after.get(k, 0) != shapes_before[k]:
+				print("  before only: ", k)
+		for k in shapes_after:
+			if shapes_before.get(k, 0) != shapes_after[k]:
+				print("  after only: ", k)
+	check(shapes_after == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_lanternmoor(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the moor again changes nothing")
+
+
+func _mat_of(mi: MeshInstance3D) -> String:
+	var m := mi.get_active_material(0)
+	return String(m.resource_name) if m else ""
 
 
 func _aabb(n: Node3D) -> AABB:
