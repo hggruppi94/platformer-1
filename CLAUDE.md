@@ -122,8 +122,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     the fall's pool in under an arched **water gate** in its side ("The Falls Room"). The gate's marker is in group
     `fall_opening`, which `big_falls.gd _doors()` counts like a door, so the arch leaves that side open. The fall itself
     doesn't move. Inside (`build_interiors.gd _falls_room()`, room now r 15): the stream comes in through a barred gate
-    in the wall and runs to a pool with lily pads, fish and stepping stones under a waterfall of its own off a mossy
-    rock ledge, with mist and its rush; the Star Beast and the cases moved round to make room.
+    in the wall and runs to a pool with lily pads, fish and stepping stones, and the falls outside pour in through a
+    rocky gap in the dome (daylight showing through) down into the pool, with mist and its rush; the Star Beast and the cases moved round to make room.
   - Tests: new `tools/test_spring_grottos.gd` (each grotto's floor, really walks from the pool in to each grotto's
     middle and back out, the Museum's size, facing, stream and gate, the fall unmoved, and from the lawn in front into
     the Museum's door); test_insides (the Falls Room); detail_all (counts the grottos' shapes and areas), doors,

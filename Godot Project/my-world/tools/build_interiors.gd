@@ -1095,28 +1095,54 @@ func _falls_room(root_node: Node3D, r: float, stone: Material) -> void:
 		var a := TAU * k / 22.0
 		var st := mesh_at(sphere(0.32 + 0.08 * sin(k * 1.7), 8), stone, pool_at + Vector3(cos(a), 0, sin(a)) * (pool_r + 0.2) + Vector3(0, 0.1, 0), room)
 		st.scale = Vector3(1.2, 0.5, 1.0)
-	# The rock wall at the back of it, and the waterfall down its face
-	var wall_at := fall_dir * (r - 1.2)
-	var face_yaw := atan2(-fall_dir.x, -fall_dir.z)                # the wall's face looks into the room
-	for k in 9:
-		var across := Vector3(-fall_dir.z, 0, fall_dir.x) * ((k % 3) - 1) * 2.0
-		var up := 0.9 + (k / 3) * 1.9
-		var s := 2.2 - (k / 3) * 0.35
-		var b := solid_box(Vector3(s * 1.4, s, s), rock, wall_at + across + Vector3(0, up, 0), room, face_yaw + (k % 4) * 0.2)
+	# The waterfall outside spills in through a rocky gap in the dome over the back of the pool (the Museum stands
+	# right at the foot of the falls), so the water comes from somewhere: you can see daylight up through the gap.
+	var wall_at := Vector3.ZERO
+	var dome_h := r * 0.8                                         # the dome is a squashed half sphere (dome_room)
+	var hole_d := 11.0                                            # how far out from the middle the gap is
+	var hole_at := fall_dir * hole_d
+	hole_at.y = dome_h * sqrt(1.0 - (hole_d / r) * (hole_d / r)) - 0.1
+	var up_n := Vector3(hole_at.x / (r * r), hole_at.y / (dome_h * dome_h), hole_at.z / (r * r)).normalized()
+	var opening := node("Falls Opening", room, hole_at)
+	opening.basis = Basis.looking_at(-up_n, fall_dir if absf(up_n.dot(fall_dir)) < 0.95 else Vector3.UP)
+	var sky := mesh_at(cylinder(1.6, 1.6, 0.05, 24), mat("Opening Daylight", Color(0.75, 0.97, 0.85), 0.3, 0.0, 2.2), Vector3(0, 0, -0.15), opening)
+	sky.rotation.x = PI / 2
+	sky.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	for k in 14:                                                  # a ragged ring of rock round the gap
+		var a := TAU * k / 14.0
+		var st := mesh_at(sphere(0.55 + 0.15 * sin(k * 2.3), 8), rock, Vector3(cos(a), sin(a), 0) * 1.75, opening)
+		st.scale = Vector3(1.3, 1.0, 0.8)
+		if k % 3 == 0:
+			var m := mesh_at(sphere(0.35, 6), moss, Vector3(cos(a), sin(a), 0) * 1.6 + Vector3(0, 0, 0.35), opening)
+			m.scale = Vector3(1.4, 1.0, 0.5)
+	light(room, hole_at - up_n * 1.5, Color(0.85, 1.0, 0.9), 1.6, 10)
+	# Rocks heaped behind the pool, up towards the gap, so the water runs down past them
+	var face_yaw := atan2(-fall_dir.x, -fall_dir.z)               # their faces look into the room
+	var side := Vector3(-fall_dir.z, 0, fall_dir.x)
+	for k in 10:
+		var col := (k % 5) - 2
+		var row := k / 5
+		var d := hole_d + 0.9 + row * 1.0 + absf(col) * 0.2
+		var s := 2.3 - row * 0.5 - absf(col) * 0.2
+		var at := fall_dir * d + side * col * 1.7 + Vector3(0, s * 0.45 + row * 1.6, 0)
+		var b := solid_box(Vector3(s * 1.3, s, s), rock, at, room, face_yaw + (k % 4) * 0.25)
 		b.name = "Falls Rock"
-	mesh_at(box(Vector3(5.6, 0.25, 1.4)), moss, wall_at - fall_dir * 0.6 + Vector3(0, 5.2, 0), room, face_yaw)
-	var drop := 5.2
+	# The water: a ribbon from the gap straight down into the back of the pool
+	var drop := hole_at.y - 0.05
 	var curtain := QuadMesh.new()
-	curtain.size = Vector2(2.4, drop)
-	var c := mesh_at(curtain, water, wall_at - fall_dir * 1.35 + Vector3(0, drop / 2.0, 0), room, face_yaw)
+	curtain.size = Vector2(2.2, drop)
+	var c := mesh_at(curtain, water, fall_dir * (hole_d - 0.1) + Vector3(0, drop / 2.0 + 0.05, 0), room, face_yaw)
 	c.name = "Falls Curtain"
 	c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var back := mesh_at(curtain, water, fall_dir * (hole_d + 0.15) + Vector3(0, drop / 2.0 + 0.05, 0), room, face_yaw + PI)
+	back.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wall_at = fall_dir * (hole_d + 1.5)
 	var foam := mesh_at(cylinder(1.3, 1.5, 0.14, 20), mat("Falls Foam", Color(0.95, 0.98, 1.0), 0.3, 0.0, 0.4, 0.85),
-		wall_at - fall_dir * 1.6 + Vector3(0, 0.12, 0), room)
+		fall_dir * (hole_d - 0.1) + Vector3(0, 0.12, 0), room)
 	foam.name = "Falls Foam"
 	var mist := CPUParticles3D.new()
 	mist.name = "Falls Mist"
-	mist.position = wall_at - fall_dir * 1.6 + Vector3(0, 0.3, 0)
+	mist.position = fall_dir * (hole_d - 0.1) + Vector3(0, 0.3, 0)
 	mist.amount = 24
 	mist.lifetime = 2.0
 	mist.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
@@ -1186,7 +1212,7 @@ func _falls_room(root_node: Node3D, r: float, stone: Material) -> void:
 	# What it is
 	var plaque := pool_at.lerp(Vector3.ZERO, 0.5) + Vector3(0, 0, 1.2)
 	solid_box(Vector3(0.9, 1.0, 0.25), stone, plaque + Vector3(0, 0.5, 0), room, atan2(-plaque.x, -plaque.z) + PI)
-	label(room, "The Falls Room\nThe waterfall outside\nruns right through!", plaque + Vector3(0, 1.75, 0), 26, Color(0.85, 0.95, 1.0))
+	label(room, "The Falls Room\nThe waterfall outside\npours right in!", plaque + Vector3(0, 1.75, 0), 26, Color(0.85, 0.95, 1.0))
 
 
 func _library() -> Node3D:
