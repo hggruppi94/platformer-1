@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **Baked Dark Hollow's crooked trees, the hollow log, its glowing mushrooms, the moon lamps and the old
+  stones** (Hayden: "Then keep baking details"; the portal worlds' props, after the Tide Reef). Built and tested in the
+  cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_dark_hollow.py <out.glb> crooked_tree|hollow_log|moon_lamp|glow_mushrooms`
+    (a twisted trunk with lichen, knots, roots and bare crooked branches; the mossy hollow log with bark plates, a dark
+    inside, fungus shelves and ferns; a moon lamp's iron post with a curled cage and a crescent finial; a cluster of
+    glowing mushrooms with gills and speckled caps, its stalks baked with no AO). In `models/props/dark_hollow/`.
+  - **Swapped at run time** (`detail_props.gd dress_dark_hollow()`, called by `WorldDetail` for `dark_hollow.tscn`):
+    every crooked tree (found by its "Crooked Bark" trunk and branches), the hollow log, each mushroom cluster (its own
+    cap colour, glowing), the race's lamp posts (scaled to each flame, which stays), and the "Old Stone" standing stones
+    (the Glenmoor stone, tinted). The Hush's moon lamps get the baked post in `dark_hollow.gd moon_lamp_model()`; their
+    globes and lights stay. Every collision stays (old pieces on layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (60 trees, the log, 30 mushroom clusters, 14 lamps with their flames, 4
+    moon lamps, 22 stones, nothing plain drawn, every solid shape where it was, dressed again changes nothing);
+    dark_hollow and detail_all pass. Pictures: `tools/capture_detail_dark_hollow.gd -- <folder> [--old-props]` (project
+    files, world/previews/detail_dark_hollow).
+  - My choices Hayden may change: every look (the lichen, the log's fungus shelves, the lamps' cages, the stones' tint).
+
 - 2026-11-20: **Baked the Tide Reef's coral houses, bubble lamps and stranded boat, and its corals bloom with the tide
   again** (Hayden: "Then keep baking details"; the portal worlds' props, after Glenmoor). Built and tested in the cloud
   (own Godot user folders, no save touched).
