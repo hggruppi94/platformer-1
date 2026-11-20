@@ -11,7 +11,11 @@ extends RefCounted
 #     and the secret cove behind it run straight into the Museum
 #   - inside, the stream comes in through the wall and runs to a pool with a waterfall of its own (the Falls Room,
 #     tools/build_interiors.gd _museum)
+#   - (later the same day) it's an indoor/outdoor museum: a Garden Door in its side leads out to the Museum Garden
+#     and its big outdoor exhibits (scripts/museum_garden.gd)
 # Everything that looks for it ("Museum", its Door, "FromMuseum") finds it by name, so they all follow it.
+
+const GARDEN := preload("res://scripts/museum_garden.gd")
 
 const GROW := 1.2                     # how much bigger than the builder made it
 const YAW := 0.75                     # which way its door faces (it faced straight into the falls' pool)
@@ -60,6 +64,7 @@ static func place(scene: Node) -> bool:
 				(arm as Node3D).rotation.y = yaw
 	_clear_round(scene, m)
 	_stream(scene, m)
+	GARDEN.place(scene, m)
 	return true
 
 

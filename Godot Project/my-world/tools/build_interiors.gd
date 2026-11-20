@@ -163,9 +163,10 @@ func light(parent: Node, pos: Vector3, color: Color, energy := 1.0, rng := 12.0)
 	parent.add_child(l)
 
 
-func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, ambient: Color) -> Node3D:
+func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, ambient: Color, gaps: Array = []) -> Node3D:
 	# A round room under a dome: floor, ring wall with a doorway on the south, dome ceiling seen from inside,
-	# windows, exit door back to town, and the entrance spawn marker.
+	# windows, exit door back to town, and the entrance spawn marker. Each angle in gaps leaves another opening in the
+	# wall there (the Museum's Garden Door), with no window over it.
 	scene_root = Node3D.new()
 	scene_root.name = name.replace(" ", "")
 	var env := Environment.new()
@@ -197,6 +198,8 @@ func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, a
 		var mid := (a0 + a1) / 2
 		if absf(wrapf(mid - PI / 2, -PI, PI)) < 0.12:
 			continue                                     # doorway at the south (+Z)
+		if gaps.any(func(g: float) -> bool: return absf(wrapf(mid - g, -PI, PI)) < 0.1):
+			continue
 		var p := Vector3(cos(mid), 0, sin(mid)) * r
 		var seg_len := 2 * r * sin(PI / segments) + 0.05
 		solid_box(Vector3(0.4, 3.2, seg_len), wall_m, p + Vector3(0, 1.6, 0), scene_root, -mid)
@@ -204,6 +207,8 @@ func dome_room(name: String, r: float, shell_color: Color, floor_color: Color, a
 	var glass := mat("Window Glow", Color(0.55, 0.8, 1.0), 0.1, 0.0, 1.2)
 	for k in 10:
 		var a := PI / 2 + PI * 0.18 + k * (PI * 1.64 / 9)
+		if gaps.any(func(g: float) -> bool: return absf(wrapf(a - g, -PI, PI)) < 0.25):
+			continue
 		mesh_at(box(Vector3(0.1, 1.2, 1.8)), glass, Vector3(cos(a), 0, sin(a)) * (r - 0.25) + Vector3(0, 2.6, 0), scene_root, -a)
 	# Exit back to town and the spawn point just inside the door
 	solid_box(Vector3(2.6, 3.2, 0.2), mat("Door Glow", Color(1.0, 0.9, 0.6), 0.5, 0.0, 1.5), Vector3(0, 1.6, r + 0.6), scene_root)
@@ -1011,7 +1016,8 @@ func _museum() -> Node3D:
 	# gate on the left of the door (scripts/falls_museum.gd puts the gate on that side outside) and runs round to the
 	# Falls Room's pool at the back, where a waterfall of its own pours down a rock wall.
 	var r := 15.0
-	var root_node := dome_room("Museum", r, Color(0.92, 0.9, 0.86), Color(0.55, 0.45, 0.4), Color(1.0, 0.95, 0.88))
+	var root_node := dome_room("Museum", r, Color(0.92, 0.9, 0.86), Color(0.55, 0.45, 0.4), Color(1.0, 0.95, 0.88),
+		[MUSEUM_GARDEN])
 	var bone := mat("Bone", Color(0.95, 0.92, 0.82), 0.7)
 	var stone := mat("Museum Stone", Color(0.85, 0.83, 0.8), 0.7)
 	var gold := mat("Museum Gold", Color(0.98, 0.78, 0.3), 0.3, 0.9)
@@ -1040,6 +1046,7 @@ func _museum() -> Node3D:
 		mesh_at(cylinder(0.05, 0.08, 1.0, 8), gold, Vector3(x, 0.5, 1.2), root_node)
 	mesh_at(box(Vector3(9.0, 0.06, 0.06)), mat("Museum Rope", Color(0.75, 0.15, 0.3), 0.8), Vector3(1.5, 0.9, 1.2), root_node)
 	_falls_room(root_node, r, stone)
+	_garden_door(root_node, r, gold)
 	# Glass cases round the east and back wall (the Falls Room has the west), each with a treasure inside
 	var glass := mat("Case Glass", Color(0.8, 0.95, 1.0), 0.05, 0.0, 0.0, 0.3)
 	var treasures := [["Meteorite", Color(0.35, 0.3, 0.32)], ["Singing Crystal", Color(0.6, 0.9, 1.0)],
@@ -1070,6 +1077,41 @@ func _museum() -> Node3D:
 
 const MUSEUM_FALL := 3.75            # where round the wall the Falls Room's waterfall pours (0 east, PI/2 the door)
 const MUSEUM_GATE := 2.42            # where the stream comes in (left of the door, like the gate outside)
+const MUSEUM_GARDEN := 0.884         # the Garden Door, right of the front door (scripts/museum_garden.gd LOCAL_DOOR outside)
+
+
+func _garden_door(root_node: Node3D, r: float, gold: Material) -> void:
+	# The Museum is an indoor/outdoor museum (Hayden, 20 Nov 2026): glass doors in the wall, right of the front door,
+	# out to the Museum Garden and its big exhibits. Like the front door's exit, a glowing panel past the gap with a
+	# door on it, but scripts/garden_door.gd tells the town to put her in the garden. It stands 1.2 m in from the wall,
+	# because the dome's ceiling comes down to the floor at the wall's line and would hide a door any further out.
+	var a := MUSEUM_GARDEN
+	var out := Vector3(cos(a), 0, sin(a))
+	var door := node("Garden Door", root_node, out * (r - 1.2), -a + PI / 2)
+	solid_box(Vector3(2.6, 3.2, 0.2), mat("Garden Door Glass", Color(0.65, 0.9, 1.0), 0.1, 0.0, 1.2), Vector3(0, 1.6, 0), door)
+	for s in [-1.0, 1.0]:
+		mesh_at(box(Vector3(0.08, 2.8, 0.12)), gold, Vector3(s * 0.04, 1.4, -0.12), door)
+		mesh_at(box(Vector3(0.12, 3.2, 0.3)), gold, Vector3(s * 1.35, 1.6, -0.2), door)
+		mesh_at(box(Vector3(0.9, 1.3, 0.03)), mat("Garden Door Leaves", Color(0.4, 0.75, 0.4), 0.8), Vector3(s * 0.62, 0.9, -0.13), door)
+	label(door, "Garden", Vector3(0, 3.6, -0.3), 40)
+	var exit := Area3D.new()
+	exit.name = "ExitToGarden"
+	exit.position = out * (r - 1.6) + Vector3(0, 1.5, 0)
+	exit.rotation.y = -a + PI / 2
+	exit.set_script(load("res://scripts/garden_door.gd"))
+	exit.set("destination", TOWN)
+	exit.set("spawn", "FromMuseum")
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.4, 3.0, 1.0)
+	cs.shape = shape
+	exit.add_child(cs)
+	root_node.add_child(exit)
+	var entrance := Marker3D.new()
+	entrance.name = "GardenEntrance"
+	entrance.position = out * (r - 4.2) + Vector3(0, 1.0, 0)
+	entrance.rotation.y = PI / 2 - a                 # player.gd: she faces the marker's -Z, into the room
+	root_node.add_child(entrance)
 
 
 func _falls_room(root_node: Node3D, r: float, stone: Material) -> void:
