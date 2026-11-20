@@ -13,6 +13,7 @@ const BACKUP := "user://save.portal_props_test_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.portal_props_test_backup.cfg"
 const GLENMOOR := "res://scenes/portal_worlds/glenmoor.tscn"
+const TIDE_REEF := "res://scenes/portal_worlds/tide_reef.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -129,8 +130,29 @@ func _run() -> void:
 			none = false
 	check(none, "dressing it again changes nothing")
 
+	await _tide_reef()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
+
+
+func _tide_reef() -> void:
+	await _load(TIDE_REEF)
+	var s := current_scene
+	# The corals' detailed copies still fade and bloom with the tide (they used to stay as they were dressed)
+	var coral: MeshInstance3D
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var m := (c as MeshInstance3D).material_override as StandardMaterial3D
+		if m and m.resource_name.begins_with("Coral ") and m.has_meta("detail_surface") and c.is_visible_in_tree():
+			coral = c
+			break
+	check(coral != null, "the reef's corals wear their detailed copies")
+	if coral:
+		s.set_tide(0.0)
+		var dry := (coral.material_override as StandardMaterial3D).albedo_color
+		s.set_tide(1.0)
+		var wet := (coral.material_override as StandardMaterial3D).albedo_color
+		check(not dry.is_equal_approx(wet), "a detailed coral blooms when the tide comes in (%s -> %s)" % [dry, wet])
+		s.set_tide(0.0)
 
 
 func _aabb(n: Node3D) -> AABB:

@@ -2075,6 +2075,13 @@ static func dress_buildings(scene: Node) -> Dictionary:
 		# the building's space, so it keeps its own (a name keeps scripts/static_batch.gd off it)
 		if changed and String(mi.name).begins_with("@") and absf(mi.basis.z.normalized().z) < 0.9:
 			mi.name = "Detailed Surface"
+	# A place that keeps its own copies of colours to change later (the Tide Reef's corals fade and bloom with the tide)
+	# is told which copy each one became, or it would go on changing a material nothing wears any more
+	if scene.has_method("surface_swapped"):
+		for key in made:
+			if key is Array:
+				var nm: StandardMaterial3D = made[key]
+				scene.call("surface_swapped", key[0], nm, float(SURFACE_GAIN[nm.get_meta(SURFACE_META)]))
 	var seasons := scene.get_node_or_null("Seasons")
 	if seasons and seasons.has_method("take_in") and not out.is_empty():
 		seasons.call("take_in", scene)

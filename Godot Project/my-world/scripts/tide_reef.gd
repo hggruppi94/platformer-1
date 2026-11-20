@@ -176,6 +176,16 @@ func _own_corals() -> void:
 		mi.material_override = copies[m]
 
 
+func surface_swapped(old: Material, now: Material, gain: float) -> void:
+	# scripts/detail_props.gd dress_buildings() gave a coral a detailed copy of its material: fade and bloom that one
+	for c in _corals:
+		if c[0] == old:
+			c[0] = now
+			c.resize(3)
+			c[2] = gain
+	set_tide(tide)
+
+
 func is_mended() -> bool:
 	return Portals.is_cleared(world_id)
 
@@ -199,7 +209,10 @@ func set_tide(k: float) -> void:
 		_sun.light_energy = lerpf(DRY.energy, WET.energy, tide)
 	for c in _corals:
 		var full: Color = c[1]
-		(c[0] as StandardMaterial3D).albedo_color = pale(full).lerp(full, tide)
+		var col := pale(full).lerp(full, tide)
+		if c.size() > 2:                                  # (a detailed copy's pale baked pattern is lifted back up)
+			col = Color(col.r * c[2], col.g * c[2], col.b * c[2], 1.0)
+		(c[0] as StandardMaterial3D).albedo_color = col
 	var pools := get_node_or_null("Tide Pools")
 	if pools:
 		var level := float(pools.get("water_y"))
