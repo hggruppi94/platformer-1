@@ -72,6 +72,15 @@ const FF_CLOCK := "res://models/props/far_future/clock_spire.glb"
 const FF_POST := "res://models/props/far_future/street_post.glb"
 const FF_FOUNTAIN := "res://models/props/far_future/holo_fountain.glb"
 const FF_BENCH := "res://models/props/far_future/hover_bench.glb"
+const RM_STEM := "res://models/props/rootmind/giant_stem.glb"
+const RM_LEAF := "res://models/props/rootmind/giant_leaf.glb"
+const RM_STEP := "res://models/props/rootmind/step_leaf.glb"
+const RM_BUD := "res://models/props/rootmind/giant_bud.glb"
+const RM_BLOOM := "res://models/props/rootmind/giant_bloom.glb"
+const RM_ARCH := "res://models/props/rootmind/root_arch.glb"
+const RM_STEM_H := 20.0                            # the baked stem's height at scale 1 (tools/build_prop_rootmind.py STEM_H)
+const RM_HEART_Y := 0.85                          # the open flower's heart, lifted over the bloom's inner ring
+const RM_STEM_R := 1.6                             # and its bottom radius (STEM_R)
 const FM_CRAG_H := 5.0                             # the baked crag's height at scale 1 (its base radius is 1)
 const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
@@ -756,6 +765,119 @@ static func dress_far_future(scene: Node) -> Dictionary:
 			m.position = Vector3(c.position.x, 0, c.position.z)
 			plaza.add_child(m)
 	return out
+
+
+static func dress_rootmind(scene: Node) -> Dictionary:
+	# Bramble's Rootmind (20 Nov 2026, the portal worlds' props, tools/build_prop_rootmind.py): the giant stems round
+	# the edge and their leaves, the Leaf Climb's stem and step leaves, the giant flowers (shut buds and open blooms, in
+	# each flower's own petal colour) and the Root Tunnel's arches. The eyeplants, the Thornknot and the seedling are
+	# left as built (they move). Every collision stays, and the buds still open when it's mended (scripts/rootmind.gd
+	# shows "Bud" or "Open", and the models go with them).
+	var out := {"stems": 0, "leaves": 0, "step_leaves": 0, "buds": 0, "blooms": 0, "arches": 0}
+	var stem := _scene(RM_STEM)
+	var leaf := _scene(RM_LEAF)
+	var step := _scene(RM_STEP)
+	var bud := _scene(RM_BUD)
+	var bloom := _scene(RM_BLOOM)
+	var arch := _scene(RM_ARCH)
+	var edge := scene.find_child("Giant Stems", true, false) as Node3D
+	if edge and not edge.has_node("Detailed Stem 1"):
+		var olds := []
+		for c in edge.get_children():
+			if c is MeshInstance3D:
+				olds.append(c)
+		for c: MeshInstance3D in olds:
+			if c.mesh is CylinderMesh and stem:
+				out.stems += 1
+				_stem_model(c, stem, "Detailed Stem %d" % out.stems, edge)
+			elif c.mesh is SphereMesh and leaf:
+				# Every ball here is a leaf (found by its shape: two are big and flat enough that the ground's detail
+				# took them for ground). Its ball is stretched to the baked leaf's own size, so the model goes in at
+				# size 1.
+				_hide(c)
+				var m := leaf.instantiate() as Node3D
+				out.leaves += 1
+				m.name = "Detailed Leaf %d" % out.leaves
+				m.position = c.position
+				m.rotation = c.rotation
+				edge.add_child(m)
+	var climb := scene.find_child("Leaf Climb", true, false) as Node3D
+	if climb and not climb.has_node("Detailed Stem"):
+		for c in climb.get_children():
+			if c is MeshInstance3D and c.mesh is CylinderMesh and (c.mesh as CylinderMesh).bottom_radius > 1.0 and stem:
+				out.stems += 1
+				_stem_model(c, stem, "Detailed Stem", climb)
+			elif c is StaticBody3D and String(c.name).begins_with("Leaf") and step:
+				var shape := (c.get_child(0) as CollisionShape3D).shape as CylinderShape3D
+				for mi in c.get_children():
+					if mi is MeshInstance3D and shape:
+						_hide(mi)
+						var m := step.instantiate() as Node3D
+						out.step_leaves += 1
+						m.name = "Detailed Leaf"
+						m.rotation.y = mi.rotation.y
+						m.scale = Vector3(shape.radius, 1.0, shape.radius)
+						c.add_child(m)
+	var buds := scene.find_child("Giant Buds", true, false) as Node3D
+	if buds:
+		for f in buds.get_children():
+			if not (f is Node3D) or f.has_node("Detailed Stem"):
+				continue
+			var shut := f.get_node_or_null("Bud") as MeshInstance3D
+			var open := f.get_node_or_null("Open") as Node3D
+			var col := Color.WHITE
+			if shut and shut.material_override is StandardMaterial3D:
+				col = (shut.material_override as StandardMaterial3D).albedo_color
+			for c in f.get_children():
+				if c is MeshInstance3D and c.mesh is CylinderMesh and stem:
+					out.stems += 1
+					_stem_model(c, stem, "Detailed Stem", f)
+			if shut and bud:
+				_hide(shut)
+				var m := bud.instantiate() as Node3D
+				m.name = "Detailed Bud"
+				_tint(m, col)
+				shut.add_child(m)
+				out.buds += 1
+			if open and bloom:
+				for c in open.get_children():
+					if c is MeshInstance3D and _mat_name(c) != "Flower Heart":
+						_hide(c)
+					elif c is MeshInstance3D:
+						c.position.y = RM_HEART_Y                # up over the baked bloom's inner petals
+				var m := bloom.instantiate() as Node3D
+				m.name = "Detailed Bloom"
+				_tint(m, col)
+				open.add_child(m)
+				out.blooms += 1
+	var tunnel := scene.find_child("Root Tunnel", true, false) as Node3D
+	if arch and tunnel and not tunnel.has_node("Detailed Arch 1"):
+		var olds := []
+		for c in tunnel.get_children():
+			if c is MeshInstance3D and c.mesh is TorusMesh:
+				olds.append(c)
+		for c: MeshInstance3D in olds:
+			_hide(c)
+			var m := arch.instantiate() as Node3D
+			out.arches += 1
+			m.name = "Detailed Arch %d" % out.arches
+			m.position = c.position
+			tunnel.add_child(m)
+	return out
+
+
+static func _stem_model(c: MeshInstance3D, stem: PackedScene, n: String, parent: Node3D) -> void:
+	# A plain stem cylinder (centred half its height up) becomes the baked stem, its foot on the cylinder's foot and
+	# stretched to its height and width
+	var cm := c.mesh as CylinderMesh
+	_hide(c)
+	var m := stem.instantiate() as Node3D
+	m.name = n
+	m.position = c.position - Vector3(0, cm.height / 2.0, 0)
+	var w := cm.bottom_radius / RM_STEM_R
+	m.scale = Vector3(w, cm.height / RM_STEM_H, w)
+	m.rotation.y = fposmod(c.position.x * 1.3 + c.position.z * 0.9, TAU)
+	parent.add_child(m)
 
 
 static func _lantern_tree_size(g: Node3D) -> float:
