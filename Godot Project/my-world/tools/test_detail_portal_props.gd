@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the portal worlds' baked props (19 Nov 2026, Hayden: "Then keep baking details"): scripts/detail_props.gd
-# swaps the plain builder pieces for the models from tools/build_prop_glenmoor.py (and the worlds after it), keeping
+# (and dress_tide_reef, dress_dark_hollow) swaps the plain builder pieces for the models from tools/build_prop_glenmoor.py (and the worlds after it), keeping
 # every solid box and name, and dressing a place twice changes nothing.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_detail_portal_props.gd
@@ -14,6 +14,7 @@ const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.portal_props_test_backup.cfg"
 const GLENMOOR := "res://scenes/portal_worlds/glenmoor.tscn"
 const TIDE_REEF := "res://scenes/portal_worlds/tide_reef.tscn"
+const DARK_HOLLOW := "res://scenes/portal_worlds/dark_hollow.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -131,6 +132,7 @@ func _run() -> void:
 	check(none, "dressing it again changes nothing")
 
 	await _tide_reef()
+	await _dark_hollow()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -198,6 +200,62 @@ func _tide_reef() -> void:
 		s.set_tide(0.0)
 
 
+func _dark_hollow() -> void:
+	detail.detail_props = false
+	await _load(DARK_HOLLOW)
+	var shapes_before := _shapes(current_scene, true)
+	detail.detail_props = true
+	await _load(DARK_HOLLOW)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Dark Hollow props: ", got)
+	check(got.get("trees", 0) >= 60, "every crooked tree swapped (%d)" % got.get("trees", 0))
+	check(got.get("log", 0) == 1, "the Hollow Log swapped")
+	check(got.get("mushrooms", 0) >= 25, "the glowing mushroom clusters swapped (%d)" % got.get("mushrooms", 0))
+	check(got.get("lamps", 0) >= 8, "the Hollow Run's lamp posts swapped (%d)" % got.get("lamps", 0))
+	check(got.get("stones", 0) >= 20, "the old leaning stones swapped (%d)" % got.get("stones", 0))
+	# Nothing plain left drawn: no bark, stalk or cap, lamp post or tall old stone that isn't put away
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or not mi.is_visible_in_tree() or mi.get_parent().name.begins_with("Detailed"):
+			continue
+		var m := mi.get_active_material(0)
+		var mn := String(m.resource_name) if m else ""
+		if mn in ["Crooked Bark", "Mushroom Stalk", "Lamp Post", "Log Bark", "Log Inside"]:
+			plain += 1
+		elif mn == "Old Stone" and mi.mesh is BoxMesh:
+			var b := (mi.mesh as BoxMesh).size
+			if b.y > maxf(b.x, b.z):
+				plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# The flames on the run's posts still glow, at the top of their baked posts
+	var flames := 0
+	for c in s.get_node("Run Lamps").get_children():
+		if c is MeshInstance3D and String((c as MeshInstance3D).get_active_material(0).resource_name) == "Lamp Flame" \
+				and not c.has_meta("detail_prop_old") and not String(c.name).begins_with("Batched"):
+			flames += 1
+	check(flames == got.get("lamps", -1), "every lamp keeps its flame (%d)" % flames)
+	# A mushroom cluster glows in its old colour
+	var cl := s.get_node("Glow Mushrooms/Detailed Mushrooms 1") as Node3D
+	var caps: MeshInstance3D
+	for c in cl.find_children("Caps*", "MeshInstance3D", true, false):
+		caps = c
+	var cm := caps.get_surface_override_material(0) as StandardMaterial3D if caps else null
+	check(cm != null and cm.emission_enabled and cm.emission.g > 0.4, "a mushroom cluster glows in its colour")
+	# The moon lamps round Hush Hill wear the baked post, lit and unlit, and keep their globes
+	var lamps := s.find_children("Detailed Post", "Node3D", true, false)
+	check(lamps.size() >= 4, "the moon lamps wear the baked post (%d)" % lamps.size())
+	# (only the still ones: the ghosts bob and the centipede's talk spot follows her)
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_dark_hollow(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the hollow again changes nothing")
+
+
 func _aabb(n: Node3D) -> AABB:
 	var box := AABB()
 	var first := true
@@ -212,10 +270,12 @@ func _aabb(n: Node3D) -> AABB:
 	return box
 
 
-func _shapes(s: Node) -> Dictionary:
+func _shapes(s: Node, still_only := false) -> Dictionary:
 	var out := {}
 	for c in s.find_children("*", "CollisionShape3D", true, false):
 		var cs := c as CollisionShape3D
+		if still_only and not (cs.get_parent() is StaticBody3D):
+			continue
 		var k := "%s %s" % [cs.get_parent().name if not String(cs.get_parent().name).begins_with("@") else "@",
 			cs.global_position.snapped(Vector3(0.1, 0.1, 0.1))]
 		out[k] = out.get(k, 0) + 1

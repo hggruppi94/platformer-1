@@ -54,6 +54,12 @@ const CORAL_DOME := "res://models/props/tide_reef/coral_dome.glb"
 const CORAL_TRIM := "res://models/props/tide_reef/coral_trim.glb"
 const REEF_LAMP := "res://models/props/tide_reef/lamp_post.glb"
 const REEF_BOAT := "res://models/props/tide_reef/boat.glb"
+const DH_TREE := "res://models/props/dark_hollow/crooked_tree.glb"
+const DH_LOG := "res://models/props/dark_hollow/hollow_log.glb"
+const DH_LAMP := "res://models/props/dark_hollow/moon_lamp.glb"
+const DH_MUSHROOMS := "res://models/props/dark_hollow/glow_mushrooms.glb"
+const DH_LAMP_GLOBE := 2.6                         # the baked lamp's globe height (a moon lamp's globe)
+const DH_STONE_TINT := Color(0.5, 0.48, 0.65)     # "Old Stone" over Glenmoor's "Stone" (tools/build_dark_hollow.gd)
 const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
 const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
@@ -480,6 +486,144 @@ static func dress_tide_reef(scene: Node) -> Dictionary:
 	if boat_m and boat:
 		out.boat = _dress_in(boat, boat_m, "Detailed Boat", [])
 	return out
+
+
+static func dress_dark_hollow(scene: Node) -> Dictionary:
+	# The centipede's hollow (20 Nov 2026, the portal worlds' props, tools/build_prop_dark_hollow.py): its crooked
+	# trees, the Hollow Log, the glowing mushroom clusters, the Hollow Run's lamp posts and the old leaning stones.
+	# (The moon lamps round Hush Hill dress themselves: dark_hollow.gd moon_lamp_model.) Only how they look changes:
+	# every solid trunk, the log's box, the lights and the lamps' flames stay as built.
+	var out := {"trees": 0, "log": 0, "mushrooms": 0, "lamps": 0, "stones": 0}
+	var tree := _scene(DH_TREE)
+	if tree:
+		for g in scene.find_children("*", "Node3D", true, false):
+			if _is_crooked_tree(g as Node3D):
+				for mi: MeshInstance3D in g.find_children("*", "MeshInstance3D", true, false):
+					_hide(mi)
+				var m := tree.instantiate() as Node3D
+				m.name = "Detailed Tree"
+				g.add_child(m)
+				out.trees += 1
+	var log_m := _scene(DH_LOG)
+	var lg := scene.find_child("Hollow Log", true, false) as Node3D
+	if log_m and lg:
+		out.log = _dress_in(lg, log_m, "Detailed Log", [])
+	# The mushrooms are loose stalks and caps, a cluster at a time, each cluster's caps in the next colour round
+	var mush := _scene(DH_MUSHROOMS)
+	var field := scene.find_child("Glow Mushrooms", true, false) as Node3D
+	if mush and field and not field.has_node("Detailed Mushrooms 1"):
+		var clusters := []
+		var cur := []
+		var cur_mat := ""
+		for c in field.get_children():
+			var mi := c as MeshInstance3D
+			if mi == null:
+				continue
+			var mn := _mat_name(mi)
+			if mn == "Mushroom Stalk":
+				_hide(mi)
+				continue
+			if not mn.begins_with("Mushroom "):
+				continue
+			if mn != cur_mat and not cur.is_empty():
+				clusters.append(cur)
+				cur = []
+			cur_mat = mn
+			cur.append(mi)
+		if not cur.is_empty():
+			clusters.append(cur)
+		for caps: Array in clusters:
+			var mid := Vector3.ZERO
+			for cap: MeshInstance3D in caps:
+				mid += cap.position
+				_hide(cap)
+			mid /= caps.size()
+			var col := ((caps[0] as MeshInstance3D).get_active_material(0) as StandardMaterial3D).albedo_color
+			var m := mush.instantiate() as Node3D
+			out.mushrooms += 1
+			m.name = "Detailed Mushrooms %d" % out.mushrooms
+			m.position = Vector3(mid.x, 0, mid.z)
+			m.rotation.y = fposmod(mid.x * 1.7 + mid.z * 0.9, TAU)
+			_glow_caps(m, col)
+			field.add_child(m)
+	# The Hollow Run's lamps: a leaning post and a glowing flame ball; the baked post goes under each flame
+	var lamp := _scene(DH_LAMP)
+	var run := scene.find_child("Run Lamps", true, false) as Node3D
+	if lamp and run and not run.has_node("Detailed Lamp 1"):
+		var flames := []
+		for c in run.get_children():
+			if c is MeshInstance3D:
+				if _mat_name(c) == "Lamp Post":
+					_hide(c)
+				elif _mat_name(c) == "Lamp Flame":
+					flames.append(c)
+		for f: MeshInstance3D in flames:
+			var m := lamp.instantiate() as Node3D
+			out.lamps += 1
+			m.name = "Detailed Lamp %d" % out.lamps
+			var k := f.position.y / DH_LAMP_GLOBE
+			m.position = Vector3(f.position.x, 0, f.position.z)
+			m.scale = Vector3.ONE * k
+			m.rotation.y = fposmod(f.position.x * 2.3, TAU)
+			run.add_child(m)
+	# The old leaning stones (taller than they're wide: Hush Hill's crown, the glade's, the spire's ring) become
+	# Glenmoor's lichened standing stone stretched to each box, in the hollow's colour; the Big Hole's squat rim stays
+	var ss := _scene(STANDING_STONE)
+	if ss:
+		for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
+			if not (mi.mesh is BoxMesh) or _mat_name(mi) != "Old Stone" or mi.has_meta(OLD_META):
+				continue
+			var size := (mi.mesh as BoxMesh).size
+			if size.y <= maxf(size.x, size.z):
+				continue
+			_hide(mi)
+			var m := ss.instantiate() as Node3D
+			out.stones += 1
+			m.name = "Detailed Stone %d" % out.stones
+			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
+			_tint(m, DH_STONE_TINT)
+			mi.get_parent().add_child(m)
+	return out
+
+
+static func _is_crooked_tree(g: Node3D) -> bool:
+	# A crooked tree (tools/build_dark_hollow.gd _dead_tree) holds its bark trunk and some branch nodes with bark in
+	# them; a branch holds only bark.
+	if g == null or g.has_node("Detailed Tree") or g.get_script() != null:
+		return false
+	var bark := false
+	var branches := false
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) == "Crooked Bark":
+			bark = true
+		elif c is Node3D and not (c is MeshInstance3D) and c.get_child_count() > 0 \
+				and c.get_child(0) is MeshInstance3D and _mat_name(c.get_child(0)) == "Crooked Bark":
+			branches = true
+	return bark and branches
+
+
+static func _glow_caps(model: Node, c: Color) -> void:
+	# The cluster's caps are baked pale with a glow map; they take the old caps' colour and glow in it. Stalks stay.
+	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		if not String(mi.name).begins_with("Caps"):
+			continue
+		for i in mi.get_surface_override_material_count():
+			var mat := mi.get_active_material(i) as StandardMaterial3D
+			if mat:
+				var copy := mat.duplicate() as StandardMaterial3D
+				copy.albedo_color = c
+				copy.emission_enabled = true
+				copy.emission = c
+				copy.emission_energy_multiplier = 1.3
+				mi.set_surface_override_material(i, copy)
+
+
+static func moon_lamp_post() -> Node3D:
+	# The baked iron post for a moon lamp round Hush Hill (dark_hollow.gd moon_lamp_model), or null if it's off
+	if not on():
+		return null
+	var lamp := _scene(DH_LAMP)
+	return lamp.instantiate() as Node3D if lamp else null
 
 
 static func _dress_in(g: Node3D, model: PackedScene, new_name: String, keep: Array) -> int:
