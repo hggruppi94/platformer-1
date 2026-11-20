@@ -4,7 +4,8 @@ extends SceneTree
 # (scripts/big_falls.gd _arch): each of the three caves has a tunnel and a grotto with a floor, a pool, its glow and a
 # light, nothing solid in its mouth, and you really walk from the pool outside, in through the mouth, to the grotto's
 # middle and back out; the plateau's first waterfall leaves out the arch wall that stood on the Museum's doorstep, and
-# you really walk from the path up to the Museum's door and in.
+# you really walk from the path up to the Museum's door and in; and the Museum Garden outside (scripts/museum_garden.gd):
+# its exhibits on flat lawn, nothing in anything else, in and out through the Garden Door, and round its walk.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_spring_grottos.gd
 #
@@ -145,7 +146,98 @@ func _run() -> void:
 	door.set("destination", dest)
 	check(went[0], "you walk from the path up to the Museum's door and in (%.1f m off)" % _flat(p.global_position,
 		door.global_position))
+	await _garden(s, mus)
 	_finish()
+
+
+func _garden(s: Node3D, mus: Node3D) -> void:
+	# The Museum is an indoor/outdoor museum (scripts/museum_garden.gd): a Garden Door in its side, joined to one
+	# inside, a walk round the garden and five big exhibits on the lawn
+	var GARDEN := load("res://scripts/museum_garden.gd")      # (not preloaded: it uses autoloads, which --script tools only have once running)
+	var g := s.get_node_or_null("Museum Grounds") as Node3D
+	check(g != null, "the Museum Garden is there")
+	if g == null:
+		return
+	var exhibits := g.get_children().filter(func(n: Node) -> bool: return n.has_meta("exhibit"))
+	check(exhibits.size() == 5, "five big exhibits in the garden (%d)" % exhibits.size())
+	var space := s.get_world_3d().direct_space_state
+	var mine := {}
+	for b in g.find_children("*", "CollisionObject3D", true, false):
+		mine[(b as CollisionObject3D).get_rid()] = true
+	var bumped := []
+	for b in g.find_children("*", "StaticBody3D", true, false):
+		for cs in b.get_children():
+			if not cs is CollisionShape3D:
+				continue
+			var q := PhysicsShapeQueryParameters3D.new()
+			q.shape = (cs as CollisionShape3D).shape
+			q.transform = (cs as CollisionShape3D).global_transform
+			q.collide_with_areas = true
+			for h in space.intersect_shape(q, 16):
+				var path := String(s.get_path_to(h.collider))
+				if not mine.has(h.rid) and not path.contains("Terrain") and not path.contains("Ground"):
+					bumped.append("%s in %s" % [b.name, path])
+	check(bumped.is_empty(), "nothing in the garden stands in anything else %s" % [bumped])
+	var tilted := []
+	for e: Node3D in exhibits:
+		var ys := []
+		for o: Vector2 in [Vector2(-1.8, 0), Vector2(1.8, 0), Vector2(0, -1.8), Vector2(0, 1.8)]:
+			var at := e.global_position + Vector3(o.x, 0, o.y)
+			var rq := PhysicsRayQueryParameters3D.create(at + Vector3(0, 20, 0), at - Vector3(0, 20, 0))
+			var skip: Array[RID] = []
+			skip.assign(mine.keys())
+			rq.exclude = skip                            # the lawn under it, not its own plinth
+			var h := space.intersect_ray(rq)
+			ys.append(float(h.position.y) if not h.is_empty() else -99.0)
+		if ys.max() - ys.min() > 0.5 or absf(e.global_position.y - ys.min()) > 0.5:
+			tilted.append(e.name)
+	check(tilted.is_empty(), "every exhibit sits on flat lawn %s" % [tilted])
+	# Through the Garden Door from inside: you come out in the arbor
+	var out := g.get_node("FromMuseumGarden") as Node3D
+	game.set_meta(GARDEN.EXIT_META, Time.get_ticks_msec())
+	GARDEN._exit_here(s, g)
+	check(_flat(p.global_position, out.global_position) < 0.5, "out of the Garden Door you come out in the arbor")
+	await _physics(20)
+	check(p.is_on_floor() and p.global_position.y < out.global_position.y + 0.5, "and stand on the ground there")
+	# Walk back in through it
+	var gdoor := g.get_node("Garden Door/Door") as Area3D
+	check(str(gdoor.get("destination")).ends_with("museum.tscn") and str(gdoor.get("spawn")) == "GardenEntrance",
+		"the Garden Door goes in to the Museum's Garden Door")
+	var went := [false]
+	gdoor.body_entered.connect(func(b: Node3D) -> void:
+		if b == p:
+			went[0] = true, CONNECT_ONE_SHOT)
+	var dest := str(gdoor.get("destination"))
+	gdoor.set("destination", "")
+	await _walk(gdoor.global_position, 6.0)
+	gdoor.set("destination", dest)
+	check(went[0], "you walk from the arbor in through the Garden Door")
+	# And round the walk from the arbor to the Museum's front door, past the exhibits
+	_put(out.global_position + Vector3(0, 0.3, 0))
+	await _physics(10)
+	var stuck := -1.0
+	for k in 7:
+		var theta: float = GARDEN.WALK_TO - (GARDEN.WALK_TO - GARDEN.WALK_FROM) * (k + 1) / 7.0
+		var to: Vector3 = GARDEN.spot(s, mus, theta, GARDEN.WALK_R)
+		await _walk(to, 6.0)
+		if _flat(p.global_position, to) > 1.2:
+			stuck = theta
+			break
+	check(stuck < 0.0, "you walk the whole garden walk round to the front (stuck at %.2f)" % stuck)
+	# Inside, the Garden Door's gap in the wall and its way out
+	var room := (load("res://scenes/interiors/museum.tscn") as PackedScene).instantiate() as Node3D
+	var ex := room.get_node_or_null("ExitToGarden")
+	check(ex != null and str(ex.get("destination")) == TOWN and str(ex.get("spawn")) == "FromMuseum"
+		and room.get_node_or_null("GardenEntrance") != null, "inside, the Garden Door leads out to the town")
+	var a := 0.884
+	var blocked := 0
+	for b in room.find_children("*", "StaticBody3D", true, false):
+		var bp := (b as Node3D).position
+		if b.get_parent() == room and Vector2(bp.x, bp.z).length() > 13.0 and Vector2(bp.x, bp.z).length() < 15.3 \
+				and Vector2(bp.x, bp.z).distance_to(Vector2(cos(a), sin(a)) * 15.0) < 1.6:
+			blocked += 1
+	check(blocked == 0, "no wall stands in the Garden Door's gap inside (%d)" % blocked)
+	room.free()
 
 
 func _put(at: Vector3) -> void:

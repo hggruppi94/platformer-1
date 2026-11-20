@@ -99,6 +99,22 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **The Museum is an indoor/outdoor museum** (Hayden: "Maybe we can make the museum an indoor/outdoor
+  museum?"). Built and tested in the cloud (own Godot user folders, no save touched). `scripts/museum_garden.gd` (no
+  class_name; `falls_museum.gd place()` calls `GARDEN.place(scene, m)` once the dome's grown and turned) lays out the
+  **Museum Garden** ("Museum Grounds") on the lawn between the front door, the lake shore and the path: a **Garden
+  Door** in the dome's side (a portico with glass doors, `LOCAL_DOOR` round from the front door), a vine arbor out of
+  it, a paved walk (`WALK_R`) round to the front door with four lamps, and five big exhibits (`EXHIBITS`, titles
+  only): the Sky Stone (a meteorite with glowing cracks), a Star Beast Footprint sunk in the lawn (walk in it), a
+  Giant Geode split open, a Fossil Shell carved in a standing stone and the First Saucer, crashed and half buried.
+  Inside, `dome_room()` takes `gaps` (more openings in the wall, no window over them) and `_museum()` has its own
+  Garden Door (`MUSEUM_GARDEN`, "ExitToGarden", `scripts/garden_door.gd`, "GardenEntrance"). The garden is only made
+  after the player appears, so the inside door leaves a note on Game (meta `museum_garden_exit`) and the garden moves
+  her to its arbor ("FromMuseumGarden"). `test_spring_grottos` checks it (exhibits on flat lawn, nothing in anything
+  else, out and in through the Garden Door, round the walk, the gap inside). Pictures: `tools/capture_museum.gd --
+  <folder> --garden` (project files, world/previews/museum_garden).
+  - My choices Hayden may change: the five exhibits and their names, where the Garden Door is, the arbor and walk.
+
 - 2026-11-20: **The Hot Springs' caves go somewhere, and the Museum joins the waterfall** (Hayden: "The hot springs
   doorways dont actually go anywhere, and the museum door is blocked off"). Built and tested in the cloud (own Godot
   user folders, no save touched).

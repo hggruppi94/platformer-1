@@ -3,7 +3,8 @@ extends SceneTree
 # Pictures of the Void's Museum and the plateau's waterfall beside it (outside from above, the way up, the falls' side,
 # then inside), to check how the two fit together (20 Nov 2026, scripts/falls_museum.gd).
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_museum.gd -- <folder> [--old-props]
+#   godot --path "Godot Project/my-world" --script res://tools/capture_museum.gd -- <folder> [--old-props] [--outside]
+#       [--garden]   (the Museum Garden outside and the Garden Door inside, scripts/museum_garden.gd)
 #
 # Opens a window (not --headless). Your own save and settings are put aside and put back afterwards.
 
@@ -74,6 +75,22 @@ func _run() -> void:
 	views.append(["02_approach", m + Vector3(17, 5, 17), m + Vector3(3, 3, 3), 11.0])
 	views.append(["03_falls_side", m + Vector3(8, 6, 22), m + Vector3(-2, 2, 9), 11.0])
 	views.append(["04_high_east", m + Vector3(30, 14, 0), m + Vector3(-4, 3, 0), 11.0])
+	if "--garden" in args:
+		var GARDEN := load("res://scripts/museum_garden.gd")
+		var mus := s.get_node("Museum") as Node3D
+		var door := GARDEN.spot(s, mus, GARDEN.LOCAL_DOOR, 8.5) as Vector3
+		var arbor := GARDEN.spot(s, mus, GARDEN.LOCAL_DOOR, 15.5) as Vector3
+		views = [["20_garden_above", m + GARDEN.direction(mus, 0.2) * 30.0 + Vector3(0, 26, 0), m + GARDEN.direction(mus, 0.2) * 11.0, 11.0],
+			["21_garden_door", arbor + Vector3(0, 2.2, 0), door + Vector3(0, 1.6, 0), 11.0],
+			["22_garden_walk", GARDEN.spot(s, mus, -0.35, 17.0) + Vector3(0, 3, 0), GARDEN.spot(s, mus, 0.4, 12.0), 11.0]]
+		for id: String in GARDEN.EXHIBITS:
+			var e: Dictionary = GARDEN.EXHIBITS[id]
+			var at := GARDEN.spot(s, mus, float(e["theta"]), float(e["r"])) as Vector3
+			var toward := (m - at)
+			toward.y = 0
+			var eye := at + toward.normalized() * 5.0 + toward.normalized().cross(Vector3.UP) * 1.5 + Vector3(0, 2.4, 0)
+			views.append(["23_" + id, eye, at + Vector3(0, 0.9, 0), 11.0])
+		views.append(["29_garden_dusk", m + GARDEN.direction(mus, 0.3) * 24.0 + Vector3(0, 6, 0), m + GARDEN.direction(mus, 0.3) * 11.0, 19.5])
 	for v in views:
 		clock.set_time(3, v[3] * 60.0, true)
 		cam.global_position = v[1]
@@ -93,8 +110,12 @@ func _run() -> void:
 		cam.fov = 60
 		current_scene.add_child(cam)
 		cam.make_current()
-		for v in [["10_inside_door", Vector3(0, 2.2, 13.5), Vector3(-4, 2, -3)], ["11_inside_falls", Vector3(3, 3, 2), Vector3(-8, 2.5, -5.5)],
-				["12_inside_stream", Vector3(-3, 3, 7), Vector3(-10, 1, 3)]]:
+		var inside := [["10_inside_door", Vector3(0, 2.2, 13.5), Vector3(-4, 2, -3)], ["11_inside_falls", Vector3(3, 3, 2), Vector3(-8, 2.5, -5.5)],
+				["12_inside_stream", Vector3(-3, 3, 7), Vector3(-10, 1, 3)]]
+		if "--garden" in args:
+			var a := 0.884
+			inside = [["30_inside_garden_door", Vector3(cos(a), 0, sin(a)) * 6.0 + Vector3(-2, 2.3, 1), Vector3(cos(a), 0, sin(a)) * 15.0 + Vector3(0, 1.6, 0)]]
+		for v in inside:
 			cam.global_position = v[1]
 			cam.look_at(v[2])
 			await _shot(v[0])
