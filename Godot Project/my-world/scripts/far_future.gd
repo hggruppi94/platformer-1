@@ -50,6 +50,8 @@ const WAKE_NEAR := 16.0                   # coming this close to the captain wit
 const MEND_TIME := 4.0                    # seconds the city takes to brighten
 const THANKS_AFTER := MEND_TIME + 1.0
 const LIFT_TIME := 1.1                    # seconds a hover lift takes to carry you up
+const FOLK_FADE_MIN := 0.3                # the fading folk are always at least this see-through...
+const FOLK_FADE_MAX := 0.7                # ...and at most this, so they never vanish
 const FADED := 0.85                       # how faded the city is with no cores home (1 = all grey)
 const CORE_COLOURS := [Color(0.55, 1.0, 0.4), Color(1.0, 0.82, 0.35), Color(0.4, 1.0, 1.0)]
 const TRAFFIC := 16
@@ -427,6 +429,7 @@ func pin(i: int) -> bool:
 	var m := get_node_or_null("Folk%d" % (i + 1)) as Node3D
 	if m:
 		(m.get_node("Model") as Node3D).visible = true
+		set_see_through(m.get_node("Model") as Node3D, 0.0)
 		var ghost := m.get_node_or_null("Fading") as Node3D
 		if ghost:
 			ghost.visible = false
@@ -1365,17 +1368,33 @@ func _process(delta: float) -> void:
 
 
 func _fade_folk(player: Node3D) -> void:
-	# The fading folk flicker in and out of sight, and your watch pins any you get right up to
+	# The fading folk are see-through and slowly fade in and out, never quite gone (Hayden, 20 Nov 2026: "instead of
+	# the fading characters blinking ... they just become slightly less opaque and fade in and out"), and your watch
+	# pins any you get right up to
 	for i in FOLK.size():
 		var m := get_node_or_null("Folk%d" % (i + 1)) as Node3D
 		if m == null or is_pinned(i):
 			continue
 		var model := m.get_node("Model") as Node3D
-		model.visible = fmod(_t * (1.3 + i * 0.17) + i * 0.37, 1.0) > 0.35
+		model.visible = true
+		set_see_through(model, folk_fade(i))
 		if player:
 			var to := player.global_position - m.global_position
 			if Vector2(to.x, to.z).length() < PIN_NEAR and absf(to.y - 0.9) < 1.6:
 				pin(i)
+
+
+func folk_fade(i: int) -> float:
+	# How see-through a fading person is now: a slow, smooth swell between FOLK_FADE_MIN and FOLK_FADE_MAX, each on
+	# their own beat so they don't all fade together
+	var k := 0.5 + 0.5 * sin(_t * TAU / (2.4 + i * 0.35) + i * 1.3)
+	return lerpf(FOLK_FADE_MIN, FOLK_FADE_MAX, k)
+
+
+static func set_see_through(model: Node3D, amount: float) -> void:
+	# Every mesh in the model (the townsfolk body and its extras) gets the same see-through amount
+	for g in model.find_children("*", "GeometryInstance3D", true, false):
+		(g as GeometryInstance3D).transparency = amount
 
 
 func _face_friends(player: Node3D, delta: float) -> void:

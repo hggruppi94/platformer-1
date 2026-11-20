@@ -198,6 +198,13 @@ func _check_inside() -> void:
 		names.append("Folk%d/Spot" % (i + 1))
 	for n in names:
 		check(s.get_node_or_null(n) != null, "the Far Future has %s" % n)
+	# The Skyway runs right over the way home: its crack belongs on the ground under it, not up on the race's road
+	# (Hayden, 20 Nov 2026: "the crack to the void is stuck on the race track")
+	var home_crack := s.get_node_or_null("WayHome/Way Home") as Node3D
+	if home_crack:
+		var marker := s.get_node("WayHome") as Node3D
+		check(absf(home_crack.global_position.y - marker.global_position.y) < 1.5,
+			"the way home's crack is on the ground, not up on the Skyway (%.1f m up)" % (home_crack.global_position.y - marker.global_position.y))
 	var player := _player()
 	check(player.global_position.distance_to((s.get_node("Entrance") as Node3D).global_position) < 2.0, "you arrive at the way in")
 	var space := (s as Node3D).get_world_3d().direct_space_state
@@ -311,10 +318,29 @@ func _check_folk() -> void:
 	player.global_position = f1 + Vector3(4.0, 0.9, 0)
 	await _physics(4)
 	check(not s.is_pinned(0), "a few steps off, they're still fading")
+	var fades: Array = []
+	var keep_t: float = s._t
+	for k in 40:
+		s._t = keep_t + k * 0.1
+		fades.append(s.folk_fade(0))
+	s._t = keep_t
+	await _physics(2)
+	var model := s.get_node("Folk1/Model") as Node3D
+	var mesh := model.find_children("*", "GeometryInstance3D", true, false)
+	var now_fade: float = (mesh[0] as GeometryInstance3D).transparency if not mesh.is_empty() else -1.0
+	var lo: float = fades.min()
+	var hi: float = fades.max()
+	check(model.visible and not mesh.is_empty() and now_fade >= s.FOLK_FADE_MIN - 0.01 and now_fade <= s.FOLK_FADE_MAX + 0.01
+		and lo >= s.FOLK_FADE_MIN - 0.01 and hi <= s.FOLK_FADE_MAX + 0.01 and hi - lo > 0.3,
+		"a fading one never blinks out: always there, half see-through (%.2f now), fading in and out over 4 s (%.2f to %.2f)" % [now_fade, lo, hi])
 	player.global_position = f1 + Vector3(1.4, 0.9, 0)
 	await _frames(3)
 	check(s.is_pinned(0) and (s.get_node("Folk1/Model") as Node3D).visible, "walk right up and your watch pins them back into time")
 	check(not (s.get_node("Folk1/Fading") as Node3D).visible, "...and they stop fading")
+	var solid := true
+	for g in (s.get_node("Folk1/Model") as Node3D).find_children("*", "GeometryInstance3D", true, false):
+		solid = solid and (g as GeometryInstance3D).transparency == 0.0
+	check(solid, "...and they're solid again")
 	check((s.get_node("Folk5/Hit") as Node).shot(1, Vector3.ZERO, Vector3.FORWARD) == "hit" and s.is_pinned(4), "a bubble pins one up on the balcony")
 	check(s.get_node("Folk1/Spot").what() == "talk to Juno", "a pinned one's happy to talk")
 	for i in 6:

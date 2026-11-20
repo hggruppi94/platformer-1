@@ -92,10 +92,25 @@ func _jump_home() -> void:
 
 
 func _ground_under(p: Vector3) -> Vector3:
+	# The ground nearest the marker's own height, not the first thing the ray hits: in the Far Future the Skyway (the
+	# race's sky road, ten metres up) runs right over the way home, and the crack used to land up on the road (Hayden,
+	# 20 Nov 2026: "the crack to the void is stuck on the race track")
 	var space := get_world_3d().direct_space_state
 	var q := PhysicsRayQueryParameters3D.create(p + Vector3(0, 20, 0), p + Vector3(0, -30, 0))
-	var hit := space.intersect_ray(q)
-	return hit.position if hit else p
+	var skip: Array[RID] = []
+	var best := p
+	var gap := INF
+	for i in 8:
+		q.exclude = skip
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			break
+		var at: Vector3 = hit.position
+		if absf(at.y - p.y) < gap:
+			gap = absf(at.y - p.y)
+			best = at
+		skip.append(hit.rid)
+	return best
 
 
 func _physics_process(delta: float) -> void:
