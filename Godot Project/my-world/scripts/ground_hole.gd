@@ -196,10 +196,11 @@ static func _clear_instances(mmi: MultiMeshInstance3D, centre: Vector2, r: float
 
 
 static func _skip(n: Node) -> bool:
-	# Never anyone's body, or what they carry
+	# Never anyone's body, or what they carry, or anything under a node with meta "hole_keep" (the Hot Springs' caves,
+	# pools and lights: scripts/spring_grottos.gd cuts right beside them on purpose)
 	var p := n
 	while p:
-		if p is CharacterBody3D or p.is_in_group("player"):
+		if p is CharacterBody3D or p.is_in_group("player") or p.has_meta("hole_keep"):
 			return true
 		p = p.get_parent()
 	return false

@@ -96,11 +96,15 @@ func _run() -> void:
 		if not shapes_before.has(k):
 			print("  shape new: ", k)
 	# (the crystal cluster that stood in a Hot Springs cave's mouth goes with its collision: _place_springs)
-	var cleared := int(s.get_node("Hot Springs").get_meta("springs_cleared_shapes", 0))
-	check(s.find_children("*", "CollisionShape3D", true, false).size() + cleared == bodies_before,
-		"every collision shape is still there (%d + %d cleared by the Hot Springs, was %d)" % [
-		s.find_children("*", "CollisionShape3D", true, false).size(), cleared, bodies_before])
-	check(s.find_children("*", "Area3D", true, false).size() == areas_before, "every area is still there (%d)" % areas_before)
+	# (and its caves' grottos add their rock and warm pools: scripts/spring_grottos.gd)
+	var hs := s.get_node("Hot Springs")
+	var cleared := int(hs.get_meta("springs_cleared_shapes", 0))
+	var dug := int(hs.get_meta("grotto_shapes", 0))
+	check(s.find_children("*", "CollisionShape3D", true, false).size() + cleared - dug == bodies_before,
+		"every collision shape is still there (%d + %d cleared by the Hot Springs - %d dug for its grottos, was %d)" % [
+		s.find_children("*", "CollisionShape3D", true, false).size(), cleared, dug, bodies_before])
+	check(s.find_children("*", "Area3D", true, false).size() - int(hs.get_meta("grotto_areas", 0)) == areas_before,
+		"every area is still there (%d, and the grottos' warm pools)" % areas_before)
 	# The Gloop Gate's view (under a map landmark) is merged too
 	var gate := s.get_node_or_null("Gloop Gate")
 	var gate_merged := 0

@@ -15,7 +15,7 @@
 #                  bevelled rim with stripes and little lights.
 #   noticeboard    Rex's noticeboard: carved posts, a framed cork board with pin holes and pins, a little shingled roof.
 #   spring_cave    a cave mouth in the cliff: a ring of lumpy rock with moss, glints of crystal and drips hanging in
-#                  the mouth, and a dark hollow behind.
+#                  the mouth, open right through (the game digs the cave behind it).
 #   spring_rim     the stones round a spring's pool.
 # Colours are the game's own (sRGB).
 #
@@ -405,8 +405,8 @@ def noticeboard():
 
 # ================================================================ spring cave
 # A Hot Springs cave mouth set in the plateau's cliff, its mouth towards +z: the game's rock was a 3.2 m disc 2.5 deep
-# round (0, 1, 0) and a dark 2.4 m disc over it. This is a lumpy ring of rock round an open dark hollow, so the glow
-# inside (the game's, at (0, 0.6, -0.6)) shows.
+# round (0, 1, 0) and a dark 2.4 m disc over it. This is a lumpy ring of rock, open right through, so you can walk
+# into the tunnel and grotto the game digs behind it.
 def _rock_ring(name, m, col, seg, rows, high):
     """A lumpy ring of rock round Godot's z axis through (0, 1, 0): the inside of the mouth to the outer face."""
     prof = [(2.3, 0.3), (2.36, 0.7), (2.42, 1.05), (2.62, 1.38), (2.95, 1.45), (3.22, 1.2), (3.32, 0.4),
@@ -467,15 +467,15 @@ def _hollow(name, m, col, seg, r=2.32, back=0.35, front=1.25):
 
 def spring_cave():
     rock = mottled("Cave Stone", CAVE_ROCK, (0.3, 0.27, 0.36), scale=2.5, rough=0.95, bump=0.4)
-    dark = K.mat("Cave Hollow", CAVE_DARK, rough=0.95, bump=0.2)
     moss = K.mat("Cave Moss", (0.3, 0.62, 0.4), rough=0.95, bump=0.5)
     crystal = K.mat("Cave Crystal", (1.0, 0.6, 0.35), rough=0.2, metal=0.1)
     wet = K.mat("Cave Drip", (0.22, 0.18, 0.26), rough=0.3)
 
     def build(col, high):
         obs = [_rock_ring("Rock", rock, col, 48 if high else 20, 14 if high else 6, high)]
-        # the hollow: a dark tunnel just inside the rock, a back wall and a floor
-        obs.extend(_hollow("Hollow", dark, col, 32 if high else 14))
+        # (20 Nov 2026) no hollow any more: the mouth is open right through, and the game digs a tunnel and a warm
+        # grotto into the cliff behind it (scripts/spring_grottos.gd). Hayden: "The hot springs doorways dont
+        # actually go anywhere".
         if high:
             for k in range(9):                                  # icicles of rock hanging in the mouth's top
                 a = math.pi / 2 + (k - 4) * 0.17

@@ -34,7 +34,9 @@ const LAYER := 1 << 10                 # render layer 11: cave rock, which the s
 
 # The cave itself -------------------------------------------------------------------------------------------------
 # opts: "cell" (grid size, 1.0), "blend" (how softly shapes join, 1.2), "noise" (how rocky, 0.35), "seed",
-# "top" (no cave above this height: shapes crossing it open there), "name", "rock" / "floor_colour" (Colors).
+# "top" (no cave above this height: shapes crossing it open there), "name", "rock" / "floor_colour" (Colors),
+# "clip" (Planes: no rock in front of any of them, so a tunnel run out past a cliff's face is open there: the Hot
+# Springs' grottos, scripts/spring_grottos.gd).
 # Returns {"body": StaticBody3D (already added to parent), "field": the grid, for floor_below() / ceiling_above()}.
 static func build(parent: Node3D, shapes: Array, opts := {}) -> Dictionary:
 	var s: float = opts.get("cell", 1.0)
@@ -317,6 +319,7 @@ static func _surface(f: Dictionary, opts: Dictionary) -> ArrayMesh:
 					colours.append(rock * shade)
 	var index := PackedInt32Array()
 	var faces := PackedVector3Array()
+	var clips: Array = opts.get("clip", [])
 	# Edges along x, y and z, each with the four cells round it
 	var sizes := [nx, ny, nz]
 	for axis in 3:
@@ -344,6 +347,13 @@ static func _surface(f: Dictionary, opts: Dictionary) -> ArrayMesh:
 						q.append(cell_vert[(cc.z * cy + cc.y) * cx + cc.x])
 					if q.has(-1):
 						continue
+					if not clips.is_empty():
+						var mid := (verts[q[0]] + verts[q[1]] + verts[q[2]] + verts[q[3]]) / 4.0
+						var cut := false
+						for pl: Plane in clips:
+							cut = cut or pl.is_point_over(mid)
+						if cut:
+							continue
 					var want := (normals[q[0]] + normals[q[1]] + normals[q[2]] + normals[q[3]])
 					_tri(index, faces, verts, q[0], q[1], q[2], want)
 					_tri(index, faces, verts, q[0], q[2], q[3], want)

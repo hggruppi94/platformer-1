@@ -17,7 +17,8 @@ const USE_SPOT := preload("res://scripts/use_spot.gd")
 const COVE_SPARKLES := 6
 const COVE_REMNANTS := 1
 const COVE_DEPTH := 4.5          # metres of dry floor behind the curtain
-const ARCH_HIGH := 5.0           # the arch's lip, at most this high over the splash
+const ARCH_HIGH := 5.0
+const DOOR_ROOM := 3.0           # no arch side wall within this of a doorway           # the arch's lip, at most this high over the splash
 
 const FALLS_SHADER := """shader_type spatial;
 render_mode cull_disabled, depth_draw_opaque, specular_schlick_ggx;
@@ -358,9 +359,16 @@ static func _arch(root: Node3D, info: Dictionary, mats: Dictionary) -> void:
 	var base: float = minf(info.floor_y, info.splash_y) - 1.2
 	var roof_y: float = info.lip_y + 1.2
 	var yaw := atan2(info.out.x, info.out.z)
+	var doors := _doors(root)
 	for s in [-1.0, 1.0]:
 		var wall_h: float = roof_y - base + 0.4
 		var size := Vector3(2.2, wall_h, depth + 1.0)
+		# (20 Nov 2026) No side wall (or its boulders) where a doorway is beside the fall: the plateau's first fall
+		# stood that wall right across the Museum's front door (Hayden: "the museum door is blocked off"). That
+		# side of the cove is open instead, a second way in behind the water.
+		if _door_near(doors, info, mid_out + 0.4, s * (w / 2.0 + 1.0), size, base, roof_y):
+			root.set_meta("open_side", s)
+			continue
 		_rock(root, "Arch Wall", _at(info, mid_out + 0.4, s * (w / 2.0 + 1.0), base + wall_h / 2.0), size, yaw, mats,
 			hash(info.id) + int(s * 3), true)
 		# a few boulders heaped against its outer side, so it grows out of the cliff
@@ -370,6 +378,32 @@ static func _arch(root: Node3D, info: Dictionary, mats: Dictionary) -> void:
 				base + bs * 0.5 + k * 1.2), Vector3(bs * 1.3, bs, bs * 1.2), randf() * TAU, mats, k + hash(info.id), false)
 	var roof := Vector3(w + 4.4, 1.6, depth + 1.0)
 	_rock(root, "Arch Roof", _at(info, mid_out + 0.4, 0.0, roof_y - 0.8), roof, yaw, mats, hash(info.id) + 7, true)
+
+
+static func _doors(root: Node) -> Array:
+	# Where every doorway in the place is (a door.gd Area3D: a building's way in)
+	var out := []
+	var scene := root.get_parent() if root else null
+	if scene == null:
+		return out
+	for a in scene.find_children("*", "Area3D", true, false):
+		var sc := (a as Node).get_script() as Script
+		if sc and sc.resource_path.ends_with("/door.gd"):
+			out.append((a as Node3D).global_position)
+	return out
+
+
+static func _door_near(doors: Array, info: Dictionary, out_m: float, across: float, size: Vector3, lo: float,
+		hi: float) -> bool:
+	# Whether a doorway is within DOOR_ROOM of a side wall's footprint (and between its foot and top)
+	var mid := _at(info, out_m, across, 0.0)
+	for d: Vector3 in doors:
+		if d.y < lo - 1.0 or d.y > hi + 1.0:
+			continue
+		var rel := Vector3(d.x - mid.x, 0, d.z - mid.z)
+		if absf(rel.dot(info.side)) < size.x / 2.0 + DOOR_ROOM and absf(rel.dot(info.out)) < size.z / 2.0 + DOOR_ROOM:
+			return true
+	return false
 
 
 static func _curtains(root: Node3D, info: Dictionary, mats: Dictionary) -> void:
