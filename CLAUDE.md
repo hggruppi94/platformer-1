@@ -99,6 +99,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-20: **The Far Future's fading folk fade gently instead of blinking** (Hayden: "instead of the fading
+  characters blinking maybe, they just become slightly less opaque and fade in and out"). `far_future.gd _fade_folk()`
+  used to switch each of the six on and off; now they're always there, half see-through, and slowly swell between
+  `FOLK_FADE_MIN` 0.3 and `FOLK_FADE_MAX` 0.7 see-through, each on their own beat (`folk_fade()`, `set_see_through()`:
+  every mesh's `transparency`). Pinning them makes them solid. The skyline's towers still wink out as before.
+  `test_far_future` and portals pass.
+
 - 2026-11-20: **The Far Future's way home sits on the ground again, not up on the race track** (Hayden: "the crack
   to the void is stuck on the race track"). `portal_world.gd _ground_under()` cast a ray down from 20 m above the
   "WayHome" marker and took the first thing it hit; in the Far Future the Skyway (the Skyway Run's road, 10 m up) runs
