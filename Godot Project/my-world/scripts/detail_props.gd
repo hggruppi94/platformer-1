@@ -60,6 +60,11 @@ const DH_LAMP := "res://models/props/dark_hollow/moon_lamp.glb"
 const DH_MUSHROOMS := "res://models/props/dark_hollow/glow_mushrooms.glb"
 const DH_LAMP_GLOBE := 2.6                         # the baked lamp's globe height (a moon lamp's globe)
 const DH_STONE_TINT := Color(0.5, 0.48, 0.65)     # "Old Stone" over Glenmoor's "Stone" (tools/build_dark_hollow.gd)
+const LM_TREE := "res://models/props/lanternmoor/lantern_tree.glb"
+const LM_POST := "res://models/props/lanternmoor/lantern_post.glb"
+const LM_BEACON := "res://models/props/lanternmoor/beacon.glb"
+const LM_TREE_TRUNK := 3.2                        # the baked lantern tree's trunk height at scale 1
+const LM_STONE_TINT := Color(0.42, 0.38, 0.55)    # Lanternmoor's standing stones, over the Glenmoor stone
 const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake back up to its coral colour
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
 const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
@@ -584,6 +589,96 @@ static func dress_dark_hollow(scene: Node) -> Dictionary:
 			_tint(m, DH_STONE_TINT)
 			mi.get_parent().add_child(m)
 	return out
+
+
+static func dress_lanternmoor(scene: Node) -> Dictionary:
+	# Pip's moor (20 Nov 2026, the portal worlds' props, tools/build_prop_lanternmoor.py): its lantern trees (out on
+	# the moor and round the Lantern Grove) and the standing stones round the Night Path's beacon. (The path's lantern
+	# posts and the beacons dress themselves: lanternmoor.gd lantern_model and beacon_model.) Every trunk's collision
+	# and the lights over the trees stay as built; each tree's two lantern pods keep their colours.
+	var out := {"trees": 0, "stones": 0}
+	var tree := _scene(LM_TREE)
+	if tree:
+		# Only the first tree in each group keeps its builder's name ("Lantern Tree"); the others are "@Node3D@n", so
+		# they're found by what they're made of (a bark trunk and "Lantern Leaves" puffs). The Tall Lantern Tree has
+		# no such leaves, so its steps stay as they are.
+		for g in scene.find_children("*", "Node3D", true, false):
+			var size := _lantern_tree_size(g as Node3D)
+			if size <= 0.0:
+				continue
+			var pods := []
+			for c in g.get_children():
+				if c is MeshInstance3D:
+					if _mat_name(c).begins_with("Pod "):
+						pods.append(((c as MeshInstance3D).get_active_material(0) as StandardMaterial3D).albedo_color)
+					_hide(c)
+			var m := tree.instantiate() as Node3D
+			m.name = "Detailed Tree"
+			m.scale = Vector3.ONE * size
+			var at := (g as Node3D).global_position
+			m.rotation.y = fposmod(at.x * 1.3 + at.z * 2.1, TAU)
+			if pods.size() >= 2:
+				_glow_part(m, "PodA", pods[0], 2.4)
+				_glow_part(m, "PodB", pods[1], 2.4)
+			g.add_child(m)
+			out.trees += 1
+	var ss := _scene(STANDING_STONE)
+	if ss:
+		for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
+			if not (mi.mesh is BoxMesh) or _mat_name(mi) != "Standing Stone" or mi.has_meta(OLD_META):
+				continue
+			var size := (mi.mesh as BoxMesh).size
+			_hide(mi)
+			var m := ss.instantiate() as Node3D
+			out.stones += 1
+			m.name = "Detailed Stone %d" % out.stones
+			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
+			_tint(m, LM_STONE_TINT)
+			mi.get_parent().add_child(m)
+	return out
+
+
+static func _lantern_tree_size(g: Node3D) -> float:
+	# A lantern tree (tools/build_lanternmoor.gd _tree) is a node of plain meshes with a bark trunk 3.2 m tall at size
+	# 1; its size from that trunk, or 0 if it isn't one (or it's already dressed)
+	if g == null or g is MeshInstance3D or g.has_node("Detailed Tree") or g.get_script() != null:
+		return 0.0
+	var leafy := false
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) == "Lantern Leaves":
+			leafy = true
+	if not leafy:
+		return 0.0
+	for c in g.get_children():
+		if c is MeshInstance3D and _mat_name(c) == "Bark" and (c as MeshInstance3D).mesh is CylinderMesh:
+			var h := ((c as MeshInstance3D).mesh as CylinderMesh).height
+			if h < 6.0:
+				return h / LM_TREE_TRUNK
+	return 0.0
+
+
+static func _glow_part(model: Node, prefix: String, c: Color, energy := 1.3) -> void:
+	# A part baked pale with a glow map takes colour c and glows in it
+	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		if not String(mi.name).begins_with(prefix):
+			continue
+		for i in mi.get_surface_override_material_count():
+			var mat := mi.get_active_material(i) as StandardMaterial3D
+			if mat:
+				var copy := mat.duplicate() as StandardMaterial3D
+				copy.albedo_color = c
+				copy.emission_enabled = true
+				copy.emission = c
+				copy.emission_energy_multiplier = energy
+				mi.set_surface_override_material(i, copy)
+
+
+static func lanternmoor_part(path: String) -> Node3D:
+	# A baked Night Path lantern post or beacon for lanternmoor.gd, or null if detailed props are off
+	if not on():
+		return null
+	var m := _scene(path)
+	return m.instantiate() as Node3D if m else null
 
 
 static func _is_crooked_tree(g: Node3D) -> bool:
