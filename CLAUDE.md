@@ -113,6 +113,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   height. `test_far_future` checks the crack is on the ground; portals, cracks, home_calls, practice_trips,
   friend_spots and every portal world's test pass.
 
+- 2026-11-20: **Baked the Frozen Moment's snowy pines, ice crags and the Frost Throne** (Hayden: "Then keep baking
+  details"; the portal worlds' props, after Lanternmoor). Built and tested in the cloud (own Godot user folders, no save
+  touched).
+  - **New bake script** (same bake kit): `tools/build_prop_frozen_moment.py <out.glb> snow_pine|ice_crag|frost_throne`
+    (a fluted trunk with roots and three tiers of pleated drooping fronds, each with snow heaped on top and clumps on
+    the tips; a crag chipped into flat ice facets with cracks, shards at its foot and snow lying on its tip; the throne's
+    fluted dais with a snowflake carved in frost on top and nine crystal clusters round its edge). In
+    `models/props/frozen_moment/`. All three bake with no AO (their overlapping cones shadowed each other black), and
+    the low pine copies the high one's pleats exactly (a coarser one left black stripes).
+  - **Swapped at run time** (`detail_props.gd dress_frozen_moment()`, called by `WorldDetail` for `frozen_moment.tscn`):
+    all 26 pines (each sized from its trunk), all 30 crags (each stretched to its old cone's height and width, turned the
+    same way, their snow caps hidden) and the throne. Every collision, the edge's fence and the throne's slippery ice
+    stay (old pieces on layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (26 pines on the ground at their size, 30 crags as tall as their cones,
+    the throne, nothing plain drawn, every still shape where it was, dressed again changes nothing); frozen_moment and
+    detail_all pass. Pictures: `tools/capture_detail_frozen_moment.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_frozen_moment).
+  - My choices Hayden may change: every look (the pines' snow, the crags' facets and snowline, the throne's crystals).
+
 - 2026-11-20: **Baked Lanternmoor's lantern trees, the Night Path's lantern posts, the beacons and the standing stones**
   (Hayden: "Then keep baking details"; the portal worlds' props, after Dark Hollow). Built and tested in the cloud (own
   Godot user folders, no save touched).
