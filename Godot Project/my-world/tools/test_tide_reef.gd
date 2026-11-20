@@ -193,7 +193,7 @@ func _check_inside() -> void:
 	var faded: bool = s._corals.size() > 0
 	for c in s._corals:
 		var full: Color = c[1]
-		faded = faded and (c[0] as StandardMaterial3D).albedo_color.is_equal_approx(s.pale(full))
+		faded = faded and (c[0] as StandardMaterial3D).albedo_color.is_equal_approx(_lifted(s.pale(full), c))
 	check(faded, "...and the corals have gone pale (%d colours)" % s._corals.size())
 	check((s.riptide as Node).process_mode == Node.PROCESS_MODE_DISABLED and not s.riptide_awake, "the Riptide Gloop's fast asleep in the Deep Basin")
 
@@ -451,7 +451,7 @@ func _check_mended() -> void:
 	check((s.get_node("Sea Life") as Node3D).visible, "bubbles and leaping fish are back")
 	var bloom: bool = s._corals.size() > 0
 	for c in s._corals:
-		bloom = bloom and (c[0] as StandardMaterial3D).albedo_color.is_equal_approx(c[1])
+		bloom = bloom and (c[0] as StandardMaterial3D).albedo_color.is_equal_approx(_lifted(c[1], c))
 	check(bloom, "the corals are in full colour again")
 	check((s.get_node("WorldEnvironment") as WorldEnvironment).environment.fog_density < 0.003, "and the dusty haze has cleared")
 	var t := 0
@@ -628,3 +628,10 @@ func _finish() -> void:
 		DirAccess.remove_absolute(SETTINGS_BACKUP)
 	print("RESULT %s (%d failed)" % ["PASSED" if failures == 0 else "FAILED", failures])
 	quit(1 if failures else 0)
+
+
+func _lifted(col: Color, c: Array) -> Color:
+	# A detailed copy (its pale baked pattern lifted back up by its gain: scripts/tide_reef.gd set_tide)
+	if c.size() > 2:
+		return Color(col.r * c[2], col.g * c[2], col.b * c[2], 1.0)
+	return col

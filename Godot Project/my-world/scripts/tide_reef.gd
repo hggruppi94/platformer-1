@@ -186,6 +186,15 @@ func surface_swapped(old: Material, now: Material, gain: float) -> void:
 	set_tide(tide)
 
 
+func follow_coral(old: Material, now: Material, gain: float) -> void:
+	# scripts/detail_props.gd dress_tide_reef() made a detailed piece (a house's dome) that wears old's coral colour
+	for c in _corals:
+		if c[0] == old:
+			_corals.append([now, c[1], gain])
+			set_tide(tide)
+			return
+
+
 func is_mended() -> bool:
 	return Portals.is_cleared(world_id)
 

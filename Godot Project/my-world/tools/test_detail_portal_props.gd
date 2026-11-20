@@ -146,6 +146,49 @@ func _tide_reef() -> void:
 			coral = c
 			break
 	check(coral != null, "the reef's corals wear their detailed copies")
+	var got: Dictionary = detail.last_props
+	print("Tide Reef props: ", got)
+	check(got.get("houses", 0) == 10, "all ten coral houses swapped")
+	check(got.get("lamps", 0) >= 10, "the bubble lamps' posts swapped (%d)" % got.get("lamps", 0))
+	check(got.get("boat", 0) == 1, "the stranded boat swapped")
+	var plain := 0
+	var kept_bits := true
+	for i in 10:
+		var h := s.get_node("Coral House %d" % (i + 1))
+		var bits := 0
+		for c in h.get_children():
+			if not (c is MeshInstance3D):
+				continue
+			# (the coral bits may be merged into one batch, but they're never put away as old props)
+			if String((c as MeshInstance3D).material_override.resource_name).begins_with("Coral"):
+				if not c.has_meta("detail_prop_old"):
+					bits += 1
+			elif not c.has_meta("detail_prop_old"):
+				plain += 1
+		if bits < 10:
+			kept_bits = false
+	check(plain == 0, "nothing plain left drawn on a coral house")
+	check(kept_bits, "every house keeps its coral bumps and chimney")
+	for b in s.get_node("Bubble Lamps").get_children():
+		if b is MeshInstance3D and (b as MeshInstance3D).mesh is CylinderMesh and (b as MeshInstance3D).layers != 0:
+			plain += 1
+	check(plain == 0, "no plain lamp post drawn")
+	var lit := 0
+	for b in s.get_node("Bubble Lamps").get_children():
+		if b is MeshInstance3D and (b as MeshInstance3D).mesh is SphereMesh and (b as MeshInstance3D).layers != 0:
+			lit += 1
+	check(lit >= 10, "every bubble still glows on its post")
+	# A detailed dome is tinted its own house's coral, and blooms with the tide
+	var dome := (s.get_node("Coral House 1/Detailed Dome") as Node3D).find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	var dm := dome.get_surface_override_material(0) as StandardMaterial3D
+	s.set_tide(0.0)
+	var d_dry := dm.albedo_color
+	s.set_tide(1.0)
+	var d_wet := dm.albedo_color
+	check(not d_dry.is_equal_approx(d_wet) and d_wet.r > d_wet.b, "a detailed dome blooms in its coral pink (%s -> %s)" % [d_dry, d_wet])
+	s.set_tide(0.0)
+	var again := DETAIL_PROPS.dress_tide_reef(s)
+	check(again.houses == 0 and again.lamps == 0 and again.boat == 0, "dressing the reef again changes nothing")
 	if coral:
 		s.set_tide(0.0)
 		var dry := (coral.material_override as StandardMaterial3D).albedo_color
