@@ -1,53 +1,53 @@
 class_name ChaosBurst
 extends Node3D
 
-# One of the Agent of Chaos's chaos bursts (scripts/chaos_fight.gd): a glowing mark on the ground that pulses for a
-# moment as a warning, then pops in a shower of glitchy purple and gold cubes. Standing on the mark when it pops gets
-# you bumped (jumping doesn't help, moving off does). Kid-safe: sparkles and cubes, no fire, no smoke.
+# One of the Agent of Chaos's chaos bursts (scripts/chaos_fight.gd): glitch cubes gather in the air over a spot,
+# spinning tighter as a warning, then it pops in a shower of glitchy purple and gold cubes. Standing under them when it
+# pops gets you bumped (jumping doesn't help, moving off does). Kid-safe: sparkles and cubes, no fire, no smoke.
 
 const RADIUS := 2.2
 
 var warn := 1.3
 var damage := 2
 var _t := 0.0
-var _mark: MeshInstance3D
-var _mat: StandardMaterial3D
+const CUBES := 8
+
+var _mark: Node3D
+var _crackle := 0.0
 var _done := false
 
 
 func _ready() -> void:
-	_mark = MeshInstance3D.new()
-	_mark.name = "Mark"
-	var c := CylinderMesh.new()
-	c.top_radius = RADIUS
-	c.bottom_radius = RADIUS
-	c.height = 0.04
-	c.radial_segments = 32
-	_mark.mesh = c
-	_mat = StandardMaterial3D.new()
-	_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_mat.albedo_color = Color(1.0, 0.25, 0.75, 0.45)
-	_mark.material_override = _mat
-	_mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_mark.position.y = 0.06
+	# No mark on the ground: a knot of glitch cubes gathers in the air over the spot, spinning in tighter and faster,
+	# crackling, then pops. Where they gather is where it'll pop.
+	_mark = Node3D.new()
+	_mark.name = "Gathering"
 	add_child(_mark)
-	var edge := MeshInstance3D.new()                # a bright rim so the mark reads from far off
-	edge.name = "Rim"
-	var t := TorusMesh.new()
-	t.inner_radius = RADIUS - 0.12
-	t.outer_radius = RADIUS
-	t.rings = 40
-	t.ring_segments = 6
-	edge.mesh = t
-	var em := StandardMaterial3D.new()
-	em.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	em.albedo_color = Color(1.0, 0.85, 0.3)
-	edge.material_override = em
-	edge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	edge.scale = Vector3(1.0, 0.4, 1.0)
-	_mark.add_child(edge)
+	for i in CUBES:
+		var cube := MeshInstance3D.new()
+		var b := BoxMesh.new()
+		b.size = Vector3.ONE * 0.32
+		cube.mesh = b
+		var m := StandardMaterial3D.new()
+		m.albedo_color = [Color(0.75, 0.3, 1.0), Color(1.0, 0.8, 0.3), Color(0.3, 0.9, 1.0)][i % 3]
+		m.emission_enabled = true
+		m.emission = m.albedo_color
+		m.emission_energy_multiplier = 1.5
+		cube.material_override = m
+		cube.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_mark.add_child(cube)
+	_place_cubes(0.0)
 	Juice.blip("tick", 0.8, -10.0)
+
+
+func _place_cubes(k: float) -> void:
+	var spin := _t * lerpf(2.0, 9.0, k)
+	var r := lerpf(RADIUS, 0.5, k)
+	for i in _mark.get_child_count():
+		var c := _mark.get_child(i) as Node3D
+		var a := spin + TAU * float(i) / CUBES
+		c.position = Vector3(sin(a) * r, lerpf(2.6, 1.0, k) + 0.25 * sin(_t * 7.0 + i), cos(a) * r)
+		c.rotation = Vector3(_t * 3.0 + i, _t * 4.0, 0)
 
 
 func _physics_process(delta: float) -> void:
@@ -55,8 +55,11 @@ func _physics_process(delta: float) -> void:
 	if _done:
 		return
 	var k := clampf(_t / warn, 0.0, 1.0)
-	_mat.albedo_color.a = 0.35 + 0.45 * k * (0.5 + 0.5 * sin(_t * (10.0 + 20.0 * k)))
-	_mark.scale = Vector3(0.6 + 0.4 * k, 1.0, 0.6 + 0.4 * k)
+	_place_cubes(k)
+	_crackle -= delta
+	if _crackle <= 0.0:
+		_crackle = lerpf(0.35, 0.1, k)
+		Juice.blip("buzz", lerpf(0.9, 1.6, k), -16.0)
 	if _t >= warn:
 		_pop()
 

@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-21: **No more warning marks: bosses wind up with their bodies instead** (Hayden: "we need to rework the
+  attacks of everything. We dont need visual cues like arrows or circles"). Built and tested in the cloud (own Godot
+  user folders, no save touched).
+  - **`scripts/boss_tell.gd`** draws nothing now: no ring, arrows, shadow or gold "!", and no glow painted over the boss.
+    The boss's "Visual" winds up instead, on top of whatever its own script does with it each frame (it takes the
+    Visual's scale, pitch and place as the boss left them, adds its own, and puts them back after): **jump** squashes
+    down low and shivers, **dash** rears back and scrapes up dust behind it, **drop** stretches up tall while the thing
+    it's dropping ("Falling") is already 16 m up over its spot and falls to land as the attack does, **pull** puffs up,
+    breathing in. Each has its own pitch of the wind-up sound. The calls (`TELL.warn`, `showing`, `lead`) and every
+    attack's timing are unchanged, so all 16 bosses and guardians got it at once. First-time hints say what the body
+    does ("Squashing down? Jump!"). Early boss warnings makes the wind-ups longer.
+  - **The centipede's burrow:** no lilac rim; a hump of soil bulges up where she's coming, clods hopping on it.
+  - **The Agent of Chaos's bursts** (`chaos_burst.gd`): no mark; glitch cubes gather in the air over the spot, spinning
+    tighter, then pop.
+  - **Boulder Canyon's falling rocks:** no shadow; the rock wobbles loose up on the rim right over where it'll land,
+    dribbling gravel ("Rock Coming").
+  - The shockwaves themselves (the rings you jump) are the attacks, so they stay (asked Hayden).
+  - Tests: `test_boss_tells` rewritten (nothing drawn, each wind-up, a boss's own squash left alone, the King still
+    flops on time); boss_lairs, scary_world, chaos_fight, guardians, volcano, skyreach_trail, time_goblins,
+    boss_versions, gloop_king, tide_reef, far_future, new_characters, arena, dark_hollow and rhythm_springs.
+    Pictures: `tools/capture_boss_tells.gd -- <folder>` (project files, world/previews/boss_windups).
+
 - 2026-11-21: **Three new characters: Granny Purl teaches Knitting Class, Sir Squiggle lives in the Rootmind, and
   cyber gorillas shoot at you in the Far Future** (Hayden: "Witch lady is a teacher, gorilla is going to be an enemy
   that shoots his blaster at you in the far future", "Worm guy will be an upcoming in brambles world"). Models from
