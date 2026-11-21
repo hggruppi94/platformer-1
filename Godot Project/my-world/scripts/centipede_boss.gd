@@ -19,6 +19,7 @@ extends Node3D
 
 signal won
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const WALKER := preload("res://scripts/centipede_walker.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 
@@ -62,7 +63,14 @@ var _warn_fill: MeshInstance3D
 var _dust_t := 0.0
 
 
+func _add_moves() -> void:
+	# While she scuttles round you she flicks clods of earth up over you (it's only her game: a bump at most)
+	MOVES.add(self, {"moves": ["lob"], "every": 5.5, "look": "rock", "colour": Color(0.5, 0.36, 0.26), "size": 0.55,
+		"from": 0.8, "from_node": body, "can": func() -> bool: return not defeated and state == "scuttle"})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	middle = global_position

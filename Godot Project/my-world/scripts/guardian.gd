@@ -21,14 +21,15 @@ extends CharacterBody3D
 #   GUARDIAN.place(scene, holder)       every found guardian's place in this scene (Hidden._place_all)
 #   GUARDIAN.wake_for(id)               a place was just found: its guardian curls up there (Hidden.find)
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const TELL := preload("res://scripts/boss_tell.gd")
 
 const KINDS := {
-	"star_well": {"name": "Glimmerwing", "hat": "glimmer_antennae", "colour": Color(0.55, 0.62, 1.0),
+	"star_well": {"name": "Glimmerwing", "hat": "glimmer_antennae", "colour": Color(0.55, 0.62, 1.0), "ring": "moth",
 		"moves": ["drop", "dash"], "height": 3.4, "floats": 1.6, "spot": Vector2(-116, -230)},
-	"bubble_spring": {"name": "Old Bubblebeard", "hat": "lily_pad_hat", "colour": Color(0.45, 0.85, 0.7),
+	"bubble_spring": {"name": "Old Bubblebeard", "hat": "lily_pad_hat", "colour": Color(0.45, 0.85, 0.7), "ring": "bubble",
 		"moves": ["jump", "pull"], "height": 3.0, "floats": 0.0, "spot": Vector2(-132, -86)},
-	"kite_hill": {"name": "Ribbontail", "hat": "kite_hat", "colour": Color(1.0, 0.45, 0.4),
+	"kite_hill": {"name": "Ribbontail", "hat": "kite_hat", "colour": Color(1.0, 0.45, 0.4), "ring": "ribbon",
 		"moves": ["dash", "jump"], "height": 3.2, "floats": 2.2, "spot": Vector2(130, 81)},
 }
 const OUT := 11.0                     # metres from the place's middle, towards the town, where it sleeps
@@ -131,7 +132,17 @@ static func _make(scene: Node3D, holder: Node3D, p: Dictionary) -> CharacterBody
 	return g
 
 
+func _add_moves() -> void:
+	# Each guardian's own ranged move: Glimmerwing flits about, Bubblebeard spits bubbles, Ribbontail throws darts
+	var how: Dictionary = {"star_well": {"moves": ["blink", "blink", "shot"], "look": "moth"},
+		"bubble_spring": {"moves": ["fan", "shot"], "look": "bubble"},
+		"kite_hill": {"moves": ["shot", "fan"], "look": "ribbon"}}.get(id, {"moves": ["shot"], "look": "spark"})
+	MOVES.add(self, {"moves": how.moves, "every": 6.0, "look": how.look, "colour": colour, "size": 0.6,
+		"from": 1.6, "radius": 10.0, "can": func() -> bool: return not defeated and state == State.IDLE})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	add_to_group("bosses")
 	add_to_group("guardians")
@@ -302,7 +313,7 @@ func _do_move() -> void:
 	match _move:
 		"jump":
 			_state_t = 0.35
-			ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), RING_REACH, colour, 2, 0.9)
+			ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), RING_REACH, colour, 2, 0.9, str(KINDS.get(id, {}).get("ring", "plain")))
 			Juice.shake(0.35)
 			Juice.blip("thud", 0.7, -2.0)
 			_squash(0.6)

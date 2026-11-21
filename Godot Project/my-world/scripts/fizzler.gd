@@ -283,7 +283,7 @@ func _zap() -> void:
 	if not is_inside_tree():
 		return
 	var at := Vector3(global_position.x, _ground_y, global_position.z)
-	ShockRing.spawn(get_parent(), at, zap_range * size * 1.4, STATIC, damage, 0.55)
+	ShockRing.spawn(get_parent(), at, zap_range * size * 1.4, STATIC, damage, 0.55, "static")
 	Fx.burst(get_parent(), global_position + Vector3(0, hover * size, 0), STATIC, 8, 0.05, 3.0, 0.0, 0.3)
 	Juice.blip("buzz", 2.4, -8.0)
 

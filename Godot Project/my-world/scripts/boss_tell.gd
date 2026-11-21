@@ -9,6 +9,8 @@ extends Node3D
 #   "drop"  it stretches up tall, and whatever it's dropping is already up there, glinting and falling where it'll
 #           land: move away from under it.
 #   "pull"  it puffs up, breathing in: it's about to suck you in, jump to break free.
+#   "throw" it rears back and swells: something's about to fly at you, step aside (scripts/boss_moves.gd).
+#   "blink" it shrinks and flickers: it's about to vanish and pop up somewhere else (scripts/boss_moves.gd).
 #
 # The tell only ever starts EARLIER than the attack; it never changes when the attack comes, so a fight's timing and
 # its tests are just as before. Settings > Assist > Early boss warnings makes the wind-ups longer (lead()).
@@ -29,6 +31,8 @@ const HINTS := {
 	"dash": "Leaning back? Step aside!",
 	"drop": "Something falling? Move away!",
 	"pull": "Puffing up? Jump free!",
+	"throw": "Rearing back? Dodge what it throws!",
+	"blink": "Flickering? It's about to vanish!",
 }
 # What each wind-up does to the body at its fullest: squash (scale y), widen (scale x and z), lean back (radians)
 const POSES := {
@@ -36,8 +40,10 @@ const POSES := {
 	"dash": {"squash": 0.92, "widen": 1.04, "lean": 0.28, "shiver": 0.02},
 	"drop": {"squash": 1.14, "widen": 0.94, "lean": 0.12, "shiver": 0.0},
 	"pull": {"squash": 1.18, "widen": 1.2, "lean": 0.0, "shiver": 0.015},
+	"throw": {"squash": 1.08, "widen": 1.1, "lean": 0.22, "shiver": 0.03},
+	"blink": {"squash": 0.8, "widen": 0.8, "lean": 0.0, "shiver": 0.08},
 }
-const SOUNDS := {"jump": 0.7, "dash": 1.0, "drop": 1.3, "pull": 0.85}   # the wind-up sound's pitch for each
+const SOUNDS := {"jump": 0.7, "dash": 1.0, "drop": 1.3, "pull": 0.85, "throw": 1.15, "blink": 1.6}   # the wind-up sound's pitch for each
 
 var kind := "jump"
 var reach := 6.0

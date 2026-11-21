@@ -18,6 +18,7 @@ const MAX_COURT := 4                          # never more than this many called
 @export var flop_reach := 4.5                 # how far the goo ring spreads (metres, at size 1; it grows with size)
 
 const TELL := preload("res://scripts/boss_tell.gd")
+const MOVES := preload("res://scripts/boss_moves.gd")   # his throws (and blinks): every boss has a ranged move
 
 var _flop_timer := 3.0
 var _flopping := false
@@ -29,6 +30,9 @@ var _cross := false                           # under half his goo: quicker, flo
 var _base := []
 var title := NAME                             # the name over the meter (the Frost Gloop, scripts/frost_gloop.gd, has its own)
 var ring_colour := Color(0.6, 0.85, 0.15)     # the goo ring's colour: green goo for the King
+var throw_moves := ["lob", "lob", "shot"]      # lobbed goo blobs, now and then one flicked straight at you
+var throw_look := "blob"                      # what he throws (scripts/boss_bits.gd); his cousins set their own
+var ring_style := "goo"                        # how his wave looks (scripts/shock_ring.gd STYLES): his cousins set their own
 var court_stats := {}                         # set on every Gloop he calls in (his kingdom's fiercer subjects)
 var court_call := 2                           # how many he calls in each time
 
@@ -40,6 +44,9 @@ func _ready() -> void:
 		Arsenal.supply_boss(self)                             # ammo crates round the fight (scripts/arsenal.gd)
 	_make_bar()
 	_base = [chase_speed, flop_every]
+	MOVES.add(self, {"moves": throw_moves, "every": 6.0, "look": throw_look, "colour": ring_colour,
+		"size": 0.55, "from": 1.4 * size,
+		"can": func() -> bool: return not defeated and _was_chasing and not _flopping and is_on_floor()})
 
 
 func _physics_process(delta: float) -> void:
@@ -91,7 +98,7 @@ func _land() -> void:
 	if _cross:                                    # cross: a second, wider wave of goo rolls out after the first
 		get_tree().create_timer(0.45).timeout.connect(func() -> void:
 			if not defeated and is_inside_tree():
-				ShockRing.spawn(get_parent(), global_position, reach * 1.6, ring_colour, damage, 0.9))
+				ShockRing.spawn(get_parent(), global_position, reach * 1.6, ring_colour, damage, 0.9, ring_style))
 	if player and not player.is_invulnerable() and player.is_on_floor():
 		var d := _flat(player.global_position - global_position)
 		if d < reach and d > 0.6 * size:
@@ -99,33 +106,10 @@ func _land() -> void:
 
 
 func _goo_ring(reach: float) -> void:
-	var ring := MeshInstance3D.new()
+	# The wave of goo you see roll out (scripts/shock_ring.gd, in his own style). It doesn't bump you itself:
+	# _land() already has, if you were standing inside it.
+	var ring := ShockRing.spawn(get_parent(), global_position + Vector3(0, 0.05, 0), reach, ring_colour, 0, 0.55, ring_style)
 	ring.name = "GooRing"
-	var tm := TorusMesh.new()
-	tm.inner_radius = 0.8
-	tm.outer_radius = 1.0
-	tm.rings = 48
-	tm.ring_segments = 8
-	ring.mesh = tm
-	var m := StandardMaterial3D.new()
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = Color(ring_colour, 0.9)
-	m.metallic = 0.3
-	m.roughness = 0.05
-	m.emission_enabled = true
-	m.emission = ring_colour.darkened(0.15)
-	m.emission_energy_multiplier = 1.2
-	ring.material_override = m
-	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	get_parent().add_child(ring)
-	# A tall wave, so the bumps in the ground don't hide it
-	ring.global_position = global_position + Vector3(0, 0.2, 0)
-	ring.scale = Vector3(0.6 * size, 3.0, 0.6 * size)
-	var tw := ring.create_tween().set_parallel()
-	tw.tween_property(ring, "scale", Vector3(reach, 2.5, reach), 0.55).set_ease(Tween.EASE_OUT) \
-		.set_trans(Tween.TRANS_QUAD)
-	tw.tween_property(m, "albedo_color:a", 0.0, 0.3).set_delay(0.35)
-	tw.chain().tween_callback(ring.queue_free)
 
 
 func _hurt_message(_stomped: bool) -> void:

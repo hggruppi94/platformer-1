@@ -15,6 +15,7 @@ extends CharacterBody3D
 #
 # Made by scripts/dark_hollow.gd at the "Hush" marker, asleep (process off) until woken.
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
 const TELL := preload("res://scripts/boss_tell.gd")
@@ -53,7 +54,15 @@ var _hitbox: Area3D
 var _homed := false
 
 
+func _add_moves() -> void:
+	# In the dark it can vanish and drift up somewhere else on the hill, and it breathes out little ghost wisps
+	MOVES.add(self, {"moves": ["blink", "shot"], "every": 7.0, "look": "wisp", "colour": Color(0.7, 0.65, 1.0),
+		"size": 0.6, "from": 1.6, "radius": ARENA * 0.8, "keep_height": true,
+		"can": func() -> bool: return not defeated and not lit and _retreat <= 0.0})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
@@ -243,7 +252,7 @@ func shush() -> void:
 	if world == null:
 		return
 	var ground: Vector3 = world.call("ground_below", global_position)
-	ShockRing.spawn(get_parent(), ground, RING_REACH, Color(0.55, 0.45, 0.95), 1, 1.1)
+	ShockRing.spawn(get_parent(), ground, RING_REACH, Color(0.55, 0.45, 0.95), 1, 1.1, "hush")
 	var label := Label3D.new()
 	label.text = "Shhhhh..."
 	label.font_size = 64

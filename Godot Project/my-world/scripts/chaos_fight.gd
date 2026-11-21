@@ -260,7 +260,7 @@ func _volley() -> void:
 			spot = at + Vector3(cos(a), 0, sin(a)) * randf_range(2.0, spread)
 		_burst_at(spot, 1.3 if phase < 3 else 1.0)
 	if _volleys % 2 == 0:
-		ShockRing.spawn(giant.get_parent(), giant.global_position, 26.0, Color(0.9, 0.3, 0.55), 2, 2.2)
+		ShockRing.spawn(giant.get_parent(), giant.global_position, 26.0, Color(0.9, 0.3, 0.55), 2, 2.2, "chaos")
 		Audio.play_at("stomp", giant.global_position, 6.0, -0.5)
 		Juice.shake(0.4)
 	var per := 2 if phase == 1 else 1

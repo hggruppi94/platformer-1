@@ -478,7 +478,7 @@ func _update_groove(_delta: float) -> bool:
 	if _tick <= 0.0:
 		_tick = STOMP_EVERY
 		var giant := fight.get("giant") as Node3D
-		ShockRing.spawn(giant.get_parent(), giant.global_position, 22.0, Color(1.0, 0.55, 0.85), 1, 2.6)
+		ShockRing.spawn(giant.get_parent(), giant.global_position, 22.0, Color(1.0, 0.55, 0.85), 1, 2.6, "chaos")
 		Audio.play_at("stomp", giant.global_position, 4.0, -0.5)
 		Juice.shake(0.25)
 	if heard >= GROOVES:

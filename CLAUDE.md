@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-21: **Every boss's shockwave looks like its own, and every boss can reach you from afar** (Hayden: "If there
+  is a Shockwave, it needs to be unique and have more intricate visuals", "every boss needs to have some sort of range
+  attack", "Teleport"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/shock_ring.gd`** (`ShockRing.spawn(parent, at, reach, colour, damage, time, style)`, now a Node3D): 21
+    styles (`STYLES`), each a glowing band, an echo behind it, sometimes a see-through curtain, little shapes riding the
+    edge and things left in its wake: goo blobs and drips (Gloop King), ice spikes (Tuskwinter), foam (Grumblefin),
+    gears, ticks and notes (Tock), night feathers (Dawn Snatcher), rubble (Boulderdillo), lightning bolts (Stormram),
+    notes on a beat (Off-Beat), glitch cubes (Captain Glitch, the Agent of Chaos), sparks (Fizzlers, Big Buzz), gloom
+    wisps (the Gloam), the Hush's wisps, stars (Starhorn), flames (Old Ember), energy (cyber gorillas), thorns (the
+    Thornknot), moths, bubbles and ribbons (the three guardians). Where the edge is and when it bumps you is unchanged.
+    The shapes are `scripts/boss_bits.gd` (Godot's own shapes merged into one mesh each, made once and kept).
+  - **`scripts/boss_moves.gd`** (`MOVES.add(boss, opts)`, a "Boss Moves" node): a ranged move each boss does in
+    between its own attacks: a **shot** (flies straight at you, slowly: step aside), a **fan** of three, a **lob** (an
+    arc that lands where you stood: move off it) or a **blink** (it vanishes in a puff of its shapes and pops back
+    somewhere else in its arena, never within 6 m of you). Its body winds up first (`boss_tell.gd` kinds "throw" and
+    "blink": "Rearing back? Dodge what it throws!", "Flickering? It's about to vanish!"). Each throws its own thing:
+    the Gloop King and his cousins goo (lobs, snowballs, bubbles), Tock gears and blinks, the Dawn Snatcher feathers,
+    the Boulderdillo rocks, the Stormram bolts, the Off-Beat notes, the Hush and the Gloam wisps and blinks, the
+    centipede rocks, Big Buzz sparks, Captain Glitch blinks, the Thornknot thorns, each guardian its own. A hit is a
+    bump of 1. Starhorn, Old Ember and the Agent of Chaos already reach you from afar, so they're unchanged.
+    `MOVES.enabled` switches them off for tests that time a fight to the second.
+  - Tests: new `tools/test_boss_moves.gd` (every shape, every style rolls out and tidies away, every boss has a move, a
+    real shot, a miss, a lob, a dodge, a blink, the wind-up); boss_tells, boss_lairs, scary_world, chaos_fight,
+    guardians, volcano, skyreach_trail, time_goblins, boss_versions, gloop_king, gloop_kingdom, tide_reef, far_future,
+    new_characters, arena, dark_hollow, rhythm_springs, rootmind, frozen_moment, lanternmoor, glenmoor, wilds,
+    chaos_trials and chaos_ending pass. Pictures: `tools/capture_boss_moves.gd -- <folder>` (project files,
+    world/previews/boss_shockwaves).
+  - My choices Hayden may change: which boss throws what and how often, the shot's speed, every ring's look.
+
 - 2026-11-21: **No more warning marks: bosses wind up with their bodies instead** (Hayden: "we need to rework the
   attacks of everything. We dont need visual cues like arrows or circles"). Built and tested in the cloud (own Godot
   user folders, no save touched).
