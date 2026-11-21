@@ -1,0 +1,29 @@
+{
+  "name": "Granny Purl",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Oh! A new face in Knitting Class. Sit, sit!",
+        "I'm Granny Purl. This little rascal on my shoulder is Snag.",
+        "(Snag blows a raspberry at you.)"
+      ]
+    },
+    {
+      "when": {"talks": 1},
+      "lines": [
+        "Every stitch holds the next one up, dearie.",
+        "Drop one and the whole row wobbles. A bit like time, really.",
+        "Snag! Stop eating the blue wool!"
+      ]
+    },
+    {
+      "rotate": [
+        ["Knit one, purl one, and never rush the yarn.", "Snag's knitting a scarf. It's mostly knots."],
+        ["(Granny Purl's needles click-click-click.)", "Mind the yarn on the floor, dear. Snag sets traps."],
+        ["A mistake's just a stitch you haven't fixed yet.", "Now, where did I put my other needle? Oh, it's in my hair."],
+        ["Snag! Give that back! That's a student's shoelace!", "(Snag hides behind her bun and giggles.)"]
+      ]
+    }
+  ]
+}

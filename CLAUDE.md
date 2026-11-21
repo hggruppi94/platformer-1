@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-21: **Three new characters: Granny Purl teaches Knitting Class, Sir Squiggle lives in the Rootmind, and
+  cyber gorillas shoot at you in the Far Future** (Hayden: "Witch lady is a teacher, gorilla is going to be an enemy
+  that shoots his blaster at you in the far future", "Worm guy will be an upcoming in brambles world"). Models from
+  Hayden's pictures (inspiration only, our own looks): `tools/build_yarn_granny.py`, `build_top_hat_worm.py`,
+  `build_cyber_gorilla.py` (Blender 4.5 or pip bpy) -> `models/characters/*.glb`. Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **Granny Purl** (`scripts/knitting_class.gd`, a "KnittingClass" node under Watches like the Council): turns the
+    2nd floor's empty Classroom C into her **Knitting Class** at play time (no school rebuild): a yarn board, six
+    little desks with yarn and needles in two columns (a clear aisle from both doors), baskets, a rocking chair, a
+    sign. She knits at the front with Snag, her goblin pet, on her shoulder (`dialogue/yarn_granny.json`).
+  - **Sir Squiggle** (`rootmind.gd _add_worm()`, `worm_dance()`): a gentleman worm in a top hat beside the path in,
+    fretting while time runs backwards; once it's mended he dances (`dialogue/top_hat_worm.json`).
+  - **Cyber gorillas** (`scripts/cyber_gorilla.gd`, bolts `scripts/gorilla_bolt.gd`; `far_future.gd GORILLAS`, three,
+    only while Lumen City is fading, fizzling out with Captain Glitch when it's mended): they plod about, and when they
+    see you they lift their blaster arm, show arrows on the ground (`boss_tell.gd` "dash") and fire one slow glowing
+    bolt along them (bumps 1; step aside and it misses). Too close, a chest beat rolls a ring to jump. Never shoot
+    while you're talking. 3 bubbles, a big bubble, stomps or a roll pop them; back 45 s later. The skull on their belly
+    screen is never named (no spoilers).
+  - Tests: new `tools/test_new_characters.gd`; far_future, rootmind, council, school_floors, boss_tells, dialogue
+    (both runs), layout, walk_through, practice_trips and portals pass. Pictures: `tools/capture_new_characters.gd --
+    <folder>` (project files, characters/new-two/in-game).
+  - My choices Hayden may change: every name (Granny Purl, Snag, Sir Squiggle), the classroom, the gorillas' numbers.
+
 - 2026-11-20: **The Museum is an indoor/outdoor museum** (Hayden: "Maybe we can make the museum an indoor/outdoor
   museum?"). Built and tested in the cloud (own Godot user folders, no save touched). `scripts/museum_garden.gd` (no
   class_name; `falls_museum.gd place()` calls `GARDEN.place(scene, m)` once the dome's grown and turned) lays out the

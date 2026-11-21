@@ -1,0 +1,36 @@
+{
+  "name": "Sir Squiggle",
+  "conversations": [
+    {
+      "when": {"talks": 0, "mended": "rootmind"},
+      "lines": [
+        "(The worm tips his top hat.) Good day! Sir Squiggle, at your service.",
+        "The flowers blink in time again. Splendid!",
+        "Do excuse me. I simply MUST dance about it."
+      ]
+    },
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "(The worm tips his top hat.) Good day! Sir Squiggle, at your service.",
+        "Everything here's growing backwards. My hat keeps getting newer!",
+        "Bramble says you can help. Jolly good!"
+      ]
+    },
+    {
+      "when": {"mended": "rootmind"},
+      "rotate": [
+        ["Wiggle to the left, wiggle to the right!", "Ah, I do love a forward-going day."],
+        ["A gentleman always tips his hat.", "And a worm always wiggles. I'm both!"],
+        ["The moss is soft again. Perfect for a twirl!"]
+      ]
+    },
+    {
+      "rotate": [
+        ["Petals falling UP. Most improper!", "Wake the Sun Blooms, there's a good chap."],
+        ["I tried to dance, but my steps went backwards.", "Rather fun, actually. Don't tell Bramble."],
+        ["(Sir Squiggle polishes his hat buckle.)", "One must look smart, even when time's gone silly."]
+      ]
+    }
+  ]
+}

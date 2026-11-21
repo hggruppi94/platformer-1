@@ -29,6 +29,9 @@ const KNOT_GLOW := Color(0.6, 1.0, 0.45)
 const KNOT_IDLE := Color(0.55, 0.22, 0.4)
 
 const THORN_KNOT := preload("res://scripts/thorn_knot.gd")
+const WORM_NAME := "Sir Squiggle"
+const WORM_AT := Vector3(-5.5, 0, 19.0)     # beside the path in, across from Bramble (tools/build_rootmind.gd)
+const WORM_LOOK := Vector3(0, 0, 24.0)      # he looks back up the path at whoever's arriving
 
 var calming := false               # the Thornknot is up and listening for the hive
 var _t := 0.0
@@ -71,6 +74,7 @@ func setup() -> void:
 		spot.name = "Spot"
 		slide.add_child(spot)
 	_add_bramble()
+	_add_worm()
 	_add_seedling()
 	_add_thornknot()
 	_gather()
@@ -280,6 +284,7 @@ func mend() -> void:
 	Juice.shake(0.15)
 	Juice.rumble(0.3, 0.3)
 	_refresh()
+	worm_dance()
 	get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_burrow)
 
 
@@ -449,6 +454,47 @@ func _add_bramble() -> void:
 	var spot := USE_SPOT.make(Vector3.ZERO, func() -> String: return "talk to Bramble", _talk_bramble, 2.4, 2.4)
 	spot.name = "Spot"
 	m.add_child(spot)
+
+
+# Sir Squiggle (a working name until Hayden picks one), a gentleman worm in a top hat who lives here (Hayden, 21 Nov
+# 2026: "Worm guy will be an upcoming in brambles world"; from Hayden's drawing, models/characters/top_hat_worm.glb,
+# built by tools/build_top_hat_worm.py). He waits by the path in from the way in, on the other side from Bramble. While
+# time's going backwards he stands about fretting (his idle); once the Rootmind's mended he dances. He talks from
+# dialogue/top_hat_worm.json. His long tail lies out behind him, away from the path (WORM_LOOK).
+func _add_worm() -> void:
+	var w := Node3D.new()
+	w.name = WORM_NAME
+	w.set_script(load("res://scripts/npc.gd"))
+	w.set("animation", "dance" if Portals.is_cleared(world_id) else "idle")
+	var packed := load("res://models/characters/top_hat_worm.glb") as PackedScene
+	if packed:
+		var m := packed.instantiate() as Node3D
+		m.name = "Model"
+		w.add_child(m)
+	var talk := Area3D.new()
+	talk.name = "Talk"
+	talk.set_script(load("res://scripts/talker.gd"))
+	talk.set("character_id", "top_hat_worm")
+	talk.set("display_name", WORM_NAME)
+	talk.set("name_height", 1.7)
+	w.add_child(talk)
+	w.position = WORM_AT
+	w.rotation.y = atan2(WORM_LOOK.x - WORM_AT.x, WORM_LOOK.z - WORM_AT.z)
+	add_child(w)
+
+
+func worm_dance() -> void:
+	# Time's going forwards again: Sir Squiggle dances about it
+	var anim := get_node_or_null(WORM_NAME + "/Model/AnimationPlayer") as AnimationPlayer
+	if anim == null:
+		var w := get_node_or_null(WORM_NAME)
+		anim = w.find_child("AnimationPlayer", true, false) as AnimationPlayer if w else null
+	if anim and anim.has_animation("dance"):
+		anim.get_animation("dance").loop_mode = Animation.LOOP_LINEAR
+		anim.play("dance")
+	var w2 := get_node_or_null(WORM_NAME)
+	if w2:
+		w2.set("animation", "dance")
 
 
 func bramble_lines() -> Array:
