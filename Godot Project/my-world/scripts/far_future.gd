@@ -34,6 +34,10 @@ extends "res://scripts/portal_world.gd"
 # Skyway just lands you on the city floor (in the race it pops you back up onto the road).
 
 const CAPTAIN := preload("res://scripts/captain_glitch.gd")
+const GORILLA := preload("res://scripts/cyber_gorilla.gd")
+# Cyber gorillas patrol these bits of open city floor while it's fading (scripts/cyber_gorilla.gd): clear of the way in,
+# the lamps up the lane, the towers, the lab, the plaza, the clock's dais and the Old Oak (tools/test_far_future.gd)
+const GORILLAS := [Vector3(-14, 0, 13), Vector3(15, 0, 10), Vector3(7, 0, -24)]
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 const RACE := "skyway_run"
 const FUSES := 3
@@ -124,6 +128,7 @@ func setup() -> void:
 	_add_old_oak()
 	if not Portals.is_cleared(world_id):
 		_add_captain()
+		_add_gorillas()
 	else:
 		_to_the_lab()
 		Dialogue.set_flag(START_FLAG)
@@ -1250,6 +1255,33 @@ func _add_captain() -> void:
 	m.add_child(spot)
 
 
+func _add_gorillas() -> void:
+	var g := Node3D.new()
+	g.name = "Cyber Gorillas"
+	add_child(g)
+	for i in GORILLAS.size():
+		var c := CharacterBody3D.new()
+		c.set_script(GORILLA)
+		c.name = "Cyber Gorilla %d" % (i + 1)
+		c.position = GORILLAS[i]
+		c.rotation.y = 0.0
+		g.add_child(c)
+
+
+func gorillas() -> Array:
+	# Only the gorillas: their bolts, rings and sparkle bursts are put in the same node
+	var g := get_node_or_null("Cyber Gorillas")
+	if g == null:
+		return []
+	return g.get_children().filter(func(c: Node) -> bool: return c.is_in_group("cyber_gorillas"))
+
+
+func _gorillas_go() -> void:
+	# The city's mended: Captain Glitch's gorillas fizzle out of time with him
+	for c in gorillas():
+		c.call("fizzle_away")
+
+
 func _look_at_captain() -> void:
 	if captain_awake:
 		return
@@ -1293,6 +1325,7 @@ func mend() -> void:
 	# The future stops fading: the colour floods back, every light comes on, and the sky fills with fireworks
 	captain_awake = false
 	Portals.clear(world_id)
+	_gorillas_go()
 	for i in 3:
 		_show_core(i)
 	for t in _towers:
