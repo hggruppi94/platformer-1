@@ -72,6 +72,7 @@ const LEVER_AT := Vector3(2.9, 0, 1.2)
 const LAB_MIDDLE := Vector3(-30, 0, -4)   # (tools/build_far_future.gd LAB)
 const AFTER := preload("res://scripts/after_the_ending.gd")
 const GOODBYE := preload("res://scripts/dash_goodbye.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const CLOCK_AT := Vector3(0, 0, -4)       # the Tomorrow Clock (tools/build_far_future.gd CLOCK)
 const DASH_AT_CLOCK := Vector3(0, 0, 5.0) # where Dash waits on the clock's dais, from the clock (facing the way in)
 const REX_AT_CLOCK := Vector3(-3.2, 0, 7.5)
@@ -108,6 +109,7 @@ func picture() -> void:
 		_show_core(i)
 	_add_traffic()
 	set_fade(0.0 if Portals.is_cleared(world_id) else _goal_fade())
+	WORLD_SKY.place(self, "far_future", true)
 
 
 func setup() -> void:
@@ -137,6 +139,7 @@ func setup() -> void:
 	Races.finished.connect(_on_race_finished)
 	if not Portals.is_cleared(world_id) and cores() == 0 and not Portals.has_found(world_id, "met_rex"):
 		Game.message.call_deferred("Lumen City, in the far future... and it's fading!")
+	WORLD_SKY.place(self, "far_future")
 
 
 func _own_look() -> void:

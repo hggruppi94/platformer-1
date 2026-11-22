@@ -18,6 +18,7 @@ extends "res://scripts/portal_world.gd"
 
 const FROST_GLOOP_SCRIPT := preload("res://scripts/frost_gloop.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const MOMENTS := ["Moment1", "Moment2", "Moment3"]
 const MOMENT_NAMES := ["the leaping fish", "the snowball fight", "the snowbird"]
 const THAW_HITS := 3                       # chips to thaw a moment's ice
@@ -67,6 +68,7 @@ func picture() -> void:
 		g.add_child(ice_block_model())
 	_add_clock()
 	_add_flakes()
+	WORLD_SKY.place(self, "frozen_moment", true)
 
 
 func setup() -> void:
@@ -103,6 +105,7 @@ func setup() -> void:
 	_refresh()
 	if not Portals.is_cleared(world_id) and moments_thawed() == 0:
 		Game.message.call_deferred("The Frozen Moment: everything's stopped!")
+	WORLD_SKY.place(self, "frozen_moment")
 
 
 # The frozen moments -------------------------------------------------------------------------------------------------

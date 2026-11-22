@@ -30,6 +30,7 @@ const KNOT_GLOW := Color(0.6, 1.0, 0.45)
 const KNOT_IDLE := Color(0.55, 0.22, 0.4)
 
 const THORN_KNOT := preload("res://scripts/thorn_knot.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const WORM_NAME := "Sir Squiggle"
 const WORM_AT := Vector3(-5.5, 0, 19.0)     # beside the path in, across from Bramble (tools/build_rootmind.gd)
 const WORM_LOOK := Vector3(0, 0, 24.0)      # he looks back up the path at whoever's arriving
@@ -55,6 +56,7 @@ func picture() -> void:
 	_add_seedling()
 	_add_thornknot()
 	_gather()
+	WORLD_SKY.place(self, "rootmind", true)
 
 
 func setup() -> void:
@@ -86,6 +88,7 @@ func setup() -> void:
 			b.add_to_group("soil")                      # the moss is soft: once she can burrow, she can here (burrow.gd)
 	if not Portals.is_cleared(world_id) and blooms_awake() == 0:
 		Game.message.call_deferred("The Rootmind: every plant is watching you!")
+	WORLD_SKY.place(self, "rootmind")
 
 
 func _gather() -> void:
