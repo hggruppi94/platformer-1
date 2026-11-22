@@ -7,6 +7,7 @@ extends "res://scripts/portal_world.gd"
 # on each islet, and set them in the **Heart Stone** in the middle. Then the island hums in tune again, the shards
 # float calmly, and Portals.clear() gives the reward (Remnants, and the Portal Plaza back in the Void).
 
+const WARPS := preload("res://scripts/shard_warps.gd")
 const ECHOES := ["Echo1", "Echo2", "Echo3"]
 const ECHO_COLOURS := [Color(0.55, 1.0, 0.75), Color(0.7, 0.8, 1.0), Color(1.0, 0.75, 0.95)]
 
@@ -40,6 +41,8 @@ func setup() -> void:
 		var spot := USE_SPOT.make(Vector3(0, 0, 0), _echo_offer.bind(i), _take_echo.bind(i), 2.0, 2.2)
 		spot.name = "Spot"
 		m.add_child(spot)
+	# The Warp Rings: a trial-and-error trip round more floating islands, to see Shard Isle from all over the sky
+	WARPS.place(self)
 	_refresh()
 	if not Portals.is_cleared(world_id) and echoes_found() == 0:
 		Game.message.call_deferred("Find three Echo Crystals!")
