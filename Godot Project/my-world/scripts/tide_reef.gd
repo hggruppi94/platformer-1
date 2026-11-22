@@ -31,6 +31,7 @@ extends "res://scripts/portal_world.gd"
 
 const RIPTIDE := preload("res://scripts/riptide_gloop.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const PEARL_NAMES := ["the Clam Vault's pearl", "the Kelp Grotto's pearl", "the Coral Spire's pearl"]
 const OTTO_NEAR := 9.0                   # how close Otto has to be to help with something
 const OTTO_GAP := 2.6                    # how close he floats to you
@@ -127,6 +128,7 @@ func picture() -> void:
 		var g := get_node_or_null("RiptideGloop") as Node3D
 		if g:
 			g.add_child(sleeping_gloop_model())
+	WORLD_SKY.place(self, "tide_reef", true)
 
 
 func setup() -> void:
@@ -148,6 +150,7 @@ func setup() -> void:
 		get_tree().create_timer(TEACH_AFTER).timeout.connect(_teach_swim)    # mended before Otto could teach you
 	if not is_mended() and pearls() == 0 and not Portals.has_found(world_id, "met_otto"):
 		Game.message.call_deferred("The Tide Reef: a sea town... with no sea!")
+	WORLD_SKY.place(self, "tide_reef")
 
 
 func _own_sky() -> void:

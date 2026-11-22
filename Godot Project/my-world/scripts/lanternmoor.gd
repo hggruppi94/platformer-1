@@ -22,6 +22,7 @@ const SNATCHER_SCENE := preload("res://scenes/enemies/time_goblin_boss.tscn")
 const SNATCHER_SCRIPT := preload("res://scripts/dawn_snatcher.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 const GLIMMER_CAVES := preload("res://scripts/glimmer_caves.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const TEACH_AFTER := DAWN_TIME + 1.5      # seconds after the Snatcher's popped: Pip teaches the glow, the hollow opens
 const LANTERNS := 5
 const BEACON_NAMES := ["the Night Path's beacon", "the beacon on Moon Rock", "the Lantern Grove's beacon"]
@@ -75,6 +76,7 @@ func picture() -> void:
 		s.add_child(clock)
 	_add_sky_things()
 	_add_moths()
+	WORLD_SKY.place(self, "lanternmoor", true)
 
 
 func setup() -> void:
@@ -133,6 +135,7 @@ func setup() -> void:
 		open_caves()
 	if not Portals.is_cleared(world_id) and beacons_lit() == 0 and not Portals.has_found(world_id, "met_pip"):
 		Game.message.call_deferred("Lanternmoor: the sun won't come up!")
+	WORLD_SKY.place(self, "lanternmoor")
 
 
 func _own_sky() -> void:

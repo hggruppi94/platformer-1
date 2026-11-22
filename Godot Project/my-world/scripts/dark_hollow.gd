@@ -27,6 +27,7 @@ const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 const THE_HUSH := preload("res://scripts/the_hush.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 const CENTIPEDE_WALKER := preload("res://scripts/centipede_walker.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const GHOSTS := 8
 const PIECE_NAMES := ["the Ghost Glade's Moon Piece", "the Moon Piece on the Crooked Spire", "the Hollow Run's Moon Piece"]
 const HOLE_R := 4.5
@@ -74,6 +75,7 @@ func picture() -> void:
 	_add_clock()
 	_add_stars()
 	set_mended(1.0 if Portals.is_cleared(world_id) else 0.0)
+	WORLD_SKY.place(self, "dark_hollow", true)
 
 
 func setup() -> void:
@@ -96,6 +98,7 @@ func setup() -> void:
 		_race_piece.call_deferred()                  # (back from the Hollow Run's circuit, finished)
 	if not Portals.is_cleared(world_id) and pieces_found() == 0 and not Portals.has_found(world_id, "met_centipede"):
 		Game.message.call_deferred("Dark Hollow. Misty and quiet... The centipede's coming too!")
+	WORLD_SKY.place(self, "dark_hollow")
 
 
 func _own_sky() -> void:

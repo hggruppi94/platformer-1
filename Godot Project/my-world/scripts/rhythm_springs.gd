@@ -27,6 +27,7 @@ extends "res://scripts/portal_world.gd"
 const OFF_BEAT := preload("res://scripts/off_beat.gd")
 const STONE_HEADS := preload("res://scripts/stone_heads.gd")   # the Hum Heads round the north-west edge (15 Nov 2026)
 const VOLCANO := preload("res://scripts/volcano_depths.gd")   # the secret tunnel and Old Ember (17 Nov 2026)
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const STONES := 9
 const SHELL_NAMES := ["the Sizzle Steps' shell", "the shell on top of Waterfall Mesa", "the Dance Floor's shell"]
 const HEAT_MAX := 100.0
@@ -103,6 +104,7 @@ func picture() -> void:
 		ob.add_child(OFF_BEAT.model())
 	_add_notes()
 	STONE_HEADS.place(self)
+	WORLD_SKY.place(self, "rhythm_springs", true)
 
 
 func setup() -> void:
@@ -121,6 +123,7 @@ func setup() -> void:
 	set_cool(1.0 if Portals.is_cleared(world_id) else 0.0)
 	if not Portals.is_cleared(world_id) and shells() == 0 and not Portals.has_found(world_id, "met_melody"):
 		Game.message.call_deferred("Rhythm Springs: phew, it's HOT!")
+	WORLD_SKY.place(self, "rhythm_springs")
 
 
 func _own_sky() -> void:

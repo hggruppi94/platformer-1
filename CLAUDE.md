@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-22: **Every portal world gets a dream sky of its own** (Hayden, after Shard Isle's: "Much better", then "Yes"
+  to the other worlds). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/world_sky.gd`** (no class_name; each world's `setup()` and `picture()` end with
+    `WORLD_SKY.place(self, "<world id>")`, so no scene was rebuilt; Shard Isle keeps `shard_sky.gd`): the sky is
+    `scripts/world_dream_sky.gdshader`, which copies the world's own ProceduralSkyMaterial colours in every frame, so
+    Lanternmoor's dawn, Glenmoor's day and night, the Tide Reef's tide, the Far Future's fading and the rest still
+    change it. Over that, per world (`THEMES`): a nebula and stars that come out as it gets dark, aurora ribbons, and a
+    planet or a moon where the world hasn't one. The light from the sky is the world's own gradient, unchanged.
+  - **Far scenery**, never solid, out past where you walk, drawn through the fog: the Rootmind's drifting dandelion
+    seeds and giant flowers, the Frozen Moment's ice shards (hanging still till it's mended), Lanternmoor's rising sky
+    lanterns and big moths, Glenmoor's clouds (coloured by the time of day) and floating sun-and-moon stones, the Tide
+    Reef's rising bubbles and jellyfish, Rhythm Springs' giant music notes under a ringed sunset planet, Dark Hollow's
+    weaving wisps, and the Far Future's holo rings and sky ships. A gentler dream haze than Shard Isle's.
+  - Tests: new `tools/test_world_skies.gd` (each world and its preview, nothing solid, far out, follows the world's
+    sky, Lanternmoor's dawn, the frozen shards); portals, practice_trips, detail_portal_props, lanternmoor and glenmoor
+    pass. Pictures: `tools/capture_world_skies.gd -- <folder> [<world>] [--no-haze]` (project files,
+    world/previews/portal_skies).
+  - My choices Hayden may change: everything about each world's look and far scenery, how strong the haze is.
+
 - 2026-11-22: **Shard Isle's dream sky: a sky all round, far Dream Islands, sky jellies and a dreamy haze** (Hayden:
   "Can we add more cool background scenery like a sky box? Maybe some tripping visual effects"). Built and tested in
   the cloud (own Godot user folders, no save touched).

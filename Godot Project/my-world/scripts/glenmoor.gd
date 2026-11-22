@@ -25,6 +25,7 @@ extends "res://scripts/portal_world.gd"
 # make peace, and Heather teaches her spring moves (scripts/showers.gd, scripts/spring_step.gd).
 
 const STORMRAM := preload("res://scripts/stormram.gd")
+const WORLD_SKY := preload("res://scripts/world_sky.gd")
 const CROC := "res://scenes/enemies/crocodillo.tscn"
 const CYCLE := [10.0, 14.0, 20.0, 28.0]      # seconds for a day and a night, by how many charms you have (each slows it)
 const NORMAL_DAY := 240.0                    # once it's mended: a steady day and night in four minutes
@@ -114,6 +115,7 @@ func picture() -> void:
 	_add_fluffkins()
 	_add_garden()
 	set_process(true)
+	WORLD_SKY.place(self, "glenmoor", true)
 
 
 func setup() -> void:
@@ -134,6 +136,7 @@ func setup() -> void:
 	_show_sky()
 	if not is_mended() and bells() == 0 and not Portals.has_found(world_id, "met_heather"):
 		Game.message.call_deferred("Glenmoor: day, night, day, night!")
+	WORLD_SKY.place(self, "glenmoor")
 
 
 func _soft_ground() -> void:
