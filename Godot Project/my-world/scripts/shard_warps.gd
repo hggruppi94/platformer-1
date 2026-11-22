@@ -159,6 +159,9 @@ func warp(circle: String, colour: String) -> void:
 		arm.rotation.y = yaw
 	warps += 1
 	_flash(c)
+	var sky := world.get_node_or_null("Dream Sky")
+	if sky:
+		sky.trip()
 	Fx.burst(world, land + Vector3(0, 0.5, 0), c, 26, 0.08, 4.0, -1.0, 0.8)
 	Juice.blip("whoosh", 1.1, -4.0)
 	Juice.rumble(0.25, 0.2)

@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-22: **Shard Isle's dream sky: a sky all round, far Dream Islands, sky jellies and a dreamy haze** (Hayden:
+  "Can we add more cool background scenery like a sky box? Maybe some tripping visual effects"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **`scripts/shard_sky.gd`** (no class_name; `shard_isle.gd` calls `SKY.place(self)` in `setup()` and
+    `SKY.place(self, true)` in `picture()`, so the portal's preview has it too; no scene rebuilt): the island's own
+    environment is copied and its sky swapped for **`scripts/dream_sky.gdshader`**: a deep starry blue overhead, a
+    slowly swirling rainbow nebula, twinkling stars, two aurora ribbons, a banded ringed planet and a little moon. The
+    island's light from the sky (the cubemap passes) still uses the builder's old brighter gradient, so the island
+    isn't any darker. Round the edge, 250 to 360 m out, nine **Dream Islands** (Shard Isle's baked island rock, a mossy
+    top, glowing crystal spires and a **lightfall** fading as it falls), four giant crystal **monoliths** turning
+    slowly, and seven **sky jellies** drifting in slow loops 72 to 115 m out, pulsing, with waving ribbons. **Dream
+    motes** float round the camera. None of it is solid, and nothing that floats was moved.
+  - **The dream haze** (`scripts/dream_haze.gdshader`, a layer under the HUD): the screen's edges shimmer through the
+    rainbow and ripple a little, and stepping through a Warp Ring (`shard_warps.gd warp()` calls `trip()`) swirls the
+    picture and splits its colours for 1.6 s. Reduce motion stops it moving the picture and slows the sky; Reduce
+    flashing makes the colours softer.
+  - Tests: `test_shard_warps` checks the sky (its shader, 9 islands far off, the jellies clear of every island, nothing
+    solid, the motes, a warp's swirl); portals, practice_trips, detail_portal_props, friend_spots and sunken_secrets
+    pass. Pictures: `tools/capture_shard_sky.gd -- <folder> [--no-haze]` (project files, world/previews/shard_sky).
+  - My choices Hayden may change: everything about the look, how strong the haze is, whether other worlds get one.
+
 - 2026-11-22: **Shard Isle's Warp Rings: a trial-and-error teleport game round six new floating islands** (Hayden:
   "you dont really get to see [the islands] from the players perspective. Maybe we can add a portal ing minigame that
   gives you options to choose from and only brings you to the correct spot after trial and error", "we may have to add
