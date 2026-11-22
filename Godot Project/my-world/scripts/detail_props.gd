@@ -68,6 +68,17 @@ const LM_STONE_TINT := Color(0.42, 0.38, 0.55)    # Lanternmoor's standing stone
 const FM_PINE := "res://models/props/frozen_moment/snow_pine.glb"
 const FM_CRAG := "res://models/props/frozen_moment/ice_crag.glb"
 const FM_THRONE := "res://models/props/frozen_moment/frost_throne.glb"
+const SI_ROCK := "res://models/props/shard_isle/island_rock.glb"
+const SI_STONE := "res://models/props/shard_isle/stepping_stone.glb"
+const SI_MOUND := "res://models/props/shard_isle/cluster_base.glb"
+const SI_PLINTH := "res://models/props/shard_isle/heart_plinth.glb"
+const SI_STAND := "res://models/props/shard_isle/echo_stand.glb"
+# The baked island rock's outline (tools/build_prop_shard_isle.py ISLAND, its low version 1.04 wider): radius and
+# height at size 1, from its open top down to its point
+const SI_ROCK_PROFILE := [Vector2(0.988, 0.0), Vector2(1.014, -0.03), Vector2(0.998, -0.1), Vector2(0.978, -0.25),
+	Vector2(0.946, -0.45), Vector2(0.915, -0.62), Vector2(0.832, -0.76), Vector2(0.666, -0.88), Vector2(0.478, -0.98),
+	Vector2(0.312, -1.08), Vector2(0.177, -1.22), Vector2(0.073, -1.36), Vector2(0.021, -1.44), Vector2(0.0, -1.46)]
+const SI_CRYSTALS := ["Shard Glow", "Pale Crystal"]   # the materials of Shard Isle's crystals (not the Jitter's)
 const FF_CLOCK := "res://models/props/far_future/clock_spire.glb"
 const FF_POST := "res://models/props/far_future/street_post.glb"
 const FF_FOUNTAIN := "res://models/props/far_future/holo_fountain.glb"
@@ -708,6 +719,170 @@ static func dress_frozen_moment(scene: Node) -> Dictionary:
 	if throne and th:
 		out.throne = _dress_in(th, throne, "Detailed Throne", [])
 	return out
+
+
+static func dress_shard_isle(scene: Node) -> Dictionary:
+	# Shard Isle, the first portal world (22 Nov 2026, tools/build_prop_shard_isle.py): the floating islands' rock
+	# (and the far-off rocks in the sky), the crystal stepping stones, a mossy mound under each crystal cluster on the
+	# rim, and every crystal (the Void's baked shard, one MultiMesh for each of its two colours). The Heart Stone's
+	# plinth and the Echo Crystals' stands are baked in scripts/shard_isle.gd as they're made (shard_isle_part()).
+	# Only how they look changes: every collision stays as built.
+	var out := {"islands": 0, "far": 0, "stones": 0, "mounds": 0, "crystals": 0}
+	if scene.has_node("Detailed Crystals"):
+		return out
+	var rock := _scene(SI_ROCK)
+	var stone := _scene(SI_STONE)
+	var mound := _scene(SI_MOUND)
+	var crystal := _scene(CRYSTAL)
+	for c in scene.get_children():
+		var g := c as Node3D
+		if g == null or g.get_script() != null:
+			continue
+		var n := String(g.name)
+		if rock and (n == "Main Island" or n.begins_with("Islet")):
+			# Its rock is a tapering cone and a tip under the moss disc (tools/build_shard_isle.gd _island). The tip
+			# (0.25 r across, half the depth tall) is never cut by a pool, so it gives the island's size.
+			var tip: MeshInstance3D = null
+			var rocks := []
+			for k in g.get_children():
+				if k is MeshInstance3D and _mat_name(k) == "Shard Rock":
+					rocks.append(k)
+					var cm := (k as MeshInstance3D).mesh as CylinderMesh
+					if cm and is_equal_approx(cm.bottom_radius, 0.05):
+						tip = k
+			if tip == null:
+				continue
+			var tm := tip.mesh as CylinderMesh
+			for k: MeshInstance3D in rocks:
+				_hide(k)
+			var r := tm.top_radius / 0.25
+			# The baked rock is rounder underneath than the old cone, so the glowing crystals that hung off the
+			# cone would be inside it: each moves down to hang from the new rock, its foot just in it
+			for k in g.get_children():
+				var mi := k as MeshInstance3D
+				if mi and _mat_name(mi) in SI_CRYSTALS and mi.mesh is CylinderMesh:
+					var h := (mi.mesh as CylinderMesh).height
+					var d := Vector2(mi.position.x, mi.position.z).length() / r
+					var foot := -0.6 + _rock_under(d) * tm.height * 2.0 + 0.12
+					mi.set_meta("detail_drop", foot - (mi.position.y + h * 0.5))
+			var m := rock.instantiate() as Node3D
+			m.name = "Detailed Island Rock"
+			m.position = Vector3(0, -0.6, 0)
+			m.scale = Vector3(r, tm.height * 2.0, r)
+			m.rotation.y = fposmod(r * 1.7, TAU)
+			g.add_child(m)
+			out.islands += 1
+		elif rock and n == "Far Shards":
+			# Rocks far off in the sky: an upside-down cone r across at the top and 1.6 r tall, its middle at p
+			for k in g.get_children():
+				var mi := k as MeshInstance3D
+				if mi == null or _mat_name(mi) != "Shard Rock" or not (mi.mesh is CylinderMesh):
+					continue
+				var cm := mi.mesh as CylinderMesh
+				var r := cm.top_radius
+				_hide(mi)
+				var m := rock.instantiate() as Node3D
+				m.name = "Detailed Far Rock"
+				m.position = mi.position + Vector3(0, cm.height * 0.5, 0)
+				m.scale = Vector3(r / 0.95, cm.height / 1.3, r / 0.95)
+				m.rotation.y = fposmod(mi.position.x * 0.37, TAU)
+				g.add_child(m)
+				out.far += 1
+		elif stone and g is StaticBody3D and n.begins_with("Stone"):
+			for k in g.get_children():
+				var mi := k as MeshInstance3D
+				if mi and mi.mesh is BoxMesh and _mat_name(mi) == "Stepping Crystal":
+					_hide(mi)
+					var m := stone.instantiate() as Node3D
+					m.name = "Detailed Stone"
+					g.add_child(m)
+					out.stones += 1
+		elif mound and g.get_child_count() > 0 and _is_crystal_cluster(g):
+			var m := mound.instantiate() as Node3D
+			m.name = "Detailed Mound"
+			m.position.y = -0.08
+			m.rotation.y = fposmod(g.position.x * 1.3 + g.position.z, TAU)
+			g.add_child(m)
+			out.mounds += 1
+	var mesh := _mesh_of(crystal) if crystal else null
+	if mesh == null:
+		return out
+	# Every crystal (tools/build_shard_isle.gd crystal(): a six-sided cylinder r across at its foot, narrowing to
+	# 0.15 r at its tip, h tall) under the islands, the stones, the clusters and the far rocks. The Jitter's shards
+	# move, so they stay.
+	var by_tint := {}
+	for k in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := k as MeshInstance3D
+		var key := _mat_name(mi)
+		if not (key in SI_CRYSTALS) or mi.has_meta(OLD_META) or not (mi.mesh is CylinderMesh):
+			continue
+		if scene.get_node_or_null("Jitter") and scene.get_node("Jitter").is_ancestor_of(mi):
+			continue
+		var cm := mi.mesh as CylinderMesh
+		if cm.radial_segments != 6 or cm.bottom_radius <= 0.0 or cm.top_radius > cm.bottom_radius * 0.2:
+			continue
+		var t := mi.transform
+		t.origin.y += float(mi.get_meta("detail_drop", 0.0))
+		var p := mi.get_parent() as Node3D
+		while p and p != scene:
+			t = p.transform * t
+			p = p.get_parent() as Node3D
+		var s := cm.bottom_radius / CRYSTAL_R
+		if not by_tint.has(key):
+			by_tint[key] = [mi.material_override, []]
+		by_tint[key][1].append(t * Transform3D(Basis.from_scale(Vector3(s, cm.height, s)), Vector3(0, -cm.height * 0.5, 0)))
+		_hide(mi)
+		out.crystals += 1
+	var holder := Node3D.new()
+	holder.name = "Detailed Crystals"
+	scene.add_child(holder)
+	for key: String in by_tint:
+		var old := by_tint[key][0] as StandardMaterial3D
+		var mat := (mesh.surface_get_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+		mat.resource_name = "Detailed " + key
+		if old:
+			mat.albedo_color = Color(old.albedo_color, 1.0)
+			mat.emission_enabled = true
+			mat.emission = Color(old.albedo_color, 1.0)
+			mat.emission_energy_multiplier = old.emission_energy_multiplier
+		_multi(holder, mesh, by_tint[key][1], "Crystals " + key)
+		var mmi := holder.get_node("Crystals " + key) as MultiMeshInstance3D
+		mmi.material_override = mat
+		mmi.visibility_range_end = 0.0             # the far rocks' crystals are 120 m off
+		mmi.set_meta("tint", key)
+	return out
+
+
+static func _rock_under(d: float) -> float:
+	# How far down (at size 1) the baked island rock's underside is, d out from its middle (1 is its radius)
+	for i in range(2, SI_ROCK_PROFILE.size()):
+		var a: Vector2 = SI_ROCK_PROFILE[i - 1]
+		var b: Vector2 = SI_ROCK_PROFILE[i]
+		if d <= a.x and d >= b.x:
+			return lerpf(a.y, b.y, (a.x - d) / maxf(a.x - b.x, 0.0001))
+	return 0.0
+
+
+static func _is_crystal_cluster(g: Node3D) -> bool:
+	# A crystal cluster on the main island's rim (tools/build_shard_isle.gd _crystals): only the first keeps its name,
+	# so it's the node with crystals in it and a solid cylinder 0.9 across
+	if g.has_node("Detailed Mound"):
+		return false
+	var crystals := 0
+	var solid := false
+	for k in g.get_children():
+		if k is MeshInstance3D and _mat_name(k) in SI_CRYSTALS:
+			crystals += 1
+		elif k is StaticBody3D:
+			for cs in k.get_children():
+				if cs is CollisionShape3D and (cs as CollisionShape3D).shape is CylinderShape3D:
+					solid = is_equal_approx(((cs as CollisionShape3D).shape as CylinderShape3D).radius, 0.9)
+	return crystals >= 3 and solid
+
+
+static func shard_isle_part(path: String) -> Node3D:
+	# A baked Heart Stone plinth or Echo Crystal stand for scripts/shard_isle.gd, or null if detailed props are off
+	return lanternmoor_part(path)
 
 
 static func dress_far_future(scene: Node) -> Dictionary:

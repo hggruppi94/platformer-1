@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-22: **Baked Shard Isle's floating rock, its stepping stones, the crystal clusters' mounds, the Heart Stone, the
+  Echo Crystals' stands and every crystal** (Hayden: "Can we continue with baking details"; Shard Isle was my pick, the
+  last portal world not baked). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_shard_isle.py <out.glb> island_rock|stepping_stone|cluster_base|heart_plinth|echo_stand`
+    (the islands' underside as banded lilac rock with lumps, moss near the top, chunks and moss strands hanging off, round
+    bellied and open on top so the Crystal Basin's pool sits inside it; a crystal slab with glowing seams; a mossy mound
+    with pebbles; the Heart Stone's six-sided plinth with gold bands, sockets and glowing runes; an Echo stand with a gold
+    collar and runes). In `models/props/shard_isle/`.
+  - **Swapped at run time** (`detail_props.gd dress_shard_isle()`, called by `WorldDetail` for `shard_isle.tscn`): the
+    main island and three islets ("Detailed Island Rock", sized from each old cone's tip, which the pool never cuts), the
+    16 far shards, the 9 stepping stones, each crystal cluster's mound, and every crystal (two glowing MultiMeshes, 86
+    shards; the ones hanging under the islands moved down onto the rounder rock, meta `detail_drop`). The Heart Stone and
+    Echo stands wear theirs where they're built (`shard_isle.gd heart_model()`, `echo_model()`). The out-of-tune shards
+    ("Jitter") still jump about as before, nothing that floats was moved, and every collision stays (old pieces on
+    layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (4 island rocks under their moss at their width, 16 far rocks, 9 stones,
+    the mounds, 86 crystals, hanging crystals on the rock, the plinth and 3 stands, nothing plain drawn, every still shape
+    where it was, dressed again changes nothing); portals, practice_trips, friend_spots, sunken_secrets and detail_all
+    pass. Pictures: `tools/capture_detail_shard_isle.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_shard_isle).
+  - My choices Hayden may change: every look (the rock's bands, the runes, the gold on the Heart Stone).
+
 - 2026-11-21: **Every boss's shockwave looks like its own, and every boss can reach you from afar** (Hayden: "If there
   is a Shockwave, it needs to be unique and have more intricate visuals", "every boss needs to have some sort of range
   attack", "Teleport"). Built and tested in the cloud (own Godot user folders, no save touched).

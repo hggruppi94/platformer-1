@@ -184,6 +184,14 @@ static func echo_model(colour: Color) -> Node3D:
 	stand.material_override = Remnants.obsidian_mat()
 	stand.position.y = 0.35
 	g.add_child(stand)
+	# With detailed props on, the baked stand (tools/build_prop_shard_isle.py echo_stand: a gold collar and a glowing
+	# rune) stands in for the plain one
+	var baked: Node3D = (load("res://scripts/detail_props.gd") as GDScript).shard_isle_part(
+		"res://models/props/shard_isle/echo_stand.glb")
+	if baked:
+		stand.visible = false
+		baked.name = "Detailed Stand"
+		g.add_child(baked)
 	var light := OmniLight3D.new()
 	light.light_color = colour
 	light.light_energy = 1.6
@@ -206,6 +214,14 @@ static func heart_model() -> Node3D:
 	base.material_override = Remnants.obsidian_mat()
 	base.position.y = 0.6
 	g.add_child(base)
+	# With detailed props on, the baked plinth (tools/build_prop_shard_isle.py heart_plinth: gold bands, a gold rim
+	# round each socket and green runes on its sides) stands in for the plain one; its collision is the same
+	var baked: Node3D = (load("res://scripts/detail_props.gd") as GDScript).shard_isle_part(
+		"res://models/props/shard_isle/heart_plinth.glb")
+	if baked:
+		base.visible = false
+		baked.name = "Detailed Plinth"
+		g.add_child(baked)
 	var body := StaticBody3D.new()
 	var cs := CollisionShape3D.new()
 	var cy := CylinderShape3D.new()
