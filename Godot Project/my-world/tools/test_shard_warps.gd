@@ -143,11 +143,35 @@ func _run() -> void:
 			dressed += 1
 	check(dressed == 6, "the new islands have the baked rock (%d)" % dressed)
 
+	# --- The dream sky: its sky, far islands, monoliths and jellies, nothing solid, clear of everything ---
+	var sky := world.get_node_or_null("Dream Sky")
+	check(sky != null, "Shard Isle has its dream sky")
+	var we := world.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	var smat := we.environment.sky.sky_material as ShaderMaterial if we and we.environment and we.environment.sky else null
+	check(smat != null and smat.shader != null and smat.shader.resource_path.ends_with("dream_sky.gdshader"), "the sky is the dream sky")
+	check(sky.islands.size() == 9 and sky.monoliths.size() == 4 and sky.jellies.size() == 7, "9 Dream Islands, 4 monoliths, 7 jellies")
+	var near_far := INF
+	for g: Node3D in sky.islands:
+		near_far = minf(near_far, Vector2(g.global_position.x, g.global_position.z).length())
+	check(near_far > 240.0, "the Dream Islands are far off (nearest %.0f m)" % near_far)
+	var jelly_gap := INF
+	for g: Node3D in sky.jellies:
+		for t in [0.0, 120.0, 400.0, 900.0]:
+			var at: Vector3 = sky.jelly_at(g, t)
+			for id: String in warps.ISLANDS:
+				jelly_gap = minf(jelly_gap, at.distance_to(warps.top(id)))
+			jelly_gap = minf(jelly_gap, at.length())
+	check(jelly_gap > 25.0, "the sky jellies keep clear of every island (closest %.1f m)" % jelly_gap)
+	check(sky.find_children("*", "CollisionObject3D", true, false).is_empty(), "nothing in the dream sky is solid")
+	check(sky.motes != null and sky.motes.multimesh.instance_count == sky.MOTES, "the dream motes float about")
+	var trips0: int = sky.trips
+
 	# --- Wrong ring: a lookout, dimmed, and back ---
 	var sparkles0: int = game.sparkles
 	warps.warp("main", "green")
 	await _physics(3)
 	check(p.global_position.distance_to(warps.landing("overlook")) < 1.5, "the green ring takes you to Echo Overlook")
+	check(sky.trips == trips0 + 1, "stepping through a ring sets off the dream swirl")
 	check(warps.is_dim("main", "green"), "the green ring goes dim")
 	warps.warp("overlook", "back")
 	await _physics(3)

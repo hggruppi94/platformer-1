@@ -8,6 +8,8 @@ extends "res://scripts/portal_world.gd"
 # float calmly, and Portals.clear() gives the reward (Remnants, and the Portal Plaza back in the Void).
 
 const WARPS := preload("res://scripts/shard_warps.gd")
+const SKY := preload("res://scripts/shard_sky.gd")
+
 const ECHOES := ["Echo1", "Echo2", "Echo3"]
 const ECHO_COLOURS := [Color(0.55, 1.0, 0.75), Color(0.7, 0.8, 1.0), Color(1.0, 0.75, 0.95)]
 
@@ -15,6 +17,7 @@ var _t := 0.0
 
 
 func picture() -> void:
+	SKY.place(self, true)
 	# In the portal's preview: show the Echo Crystals waiting on their islets
 	for i in ECHOES.size():
 		var m := get_node_or_null(ECHOES[i]) as Node3D
@@ -23,6 +26,7 @@ func picture() -> void:
 
 
 func setup() -> void:
+	SKY.place(self)
 	var heart := get_node_or_null("HeartStone") as Node3D
 	if heart:
 		var g := heart_model()
