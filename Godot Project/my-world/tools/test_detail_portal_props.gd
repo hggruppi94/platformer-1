@@ -19,6 +19,7 @@ const LANTERNMOOR := "res://scenes/portal_worlds/lanternmoor.tscn"
 const FROZEN_MOMENT := "res://scenes/portal_worlds/frozen_moment.tscn"
 const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
+const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -141,6 +142,7 @@ func _run() -> void:
 	await _frozen_moment()
 	await _far_future()
 	await _rootmind()
+	await _shard_isle()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -523,6 +525,82 @@ func _rootmind() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the Rootmind again changes nothing")
+
+
+func _shard_isle() -> void:
+	detail.detail_props = false
+	await _load(SHARD_ISLE)
+	var shapes_before := _shapes(current_scene, true)
+	var plain_rock := current_scene.find_children("Detailed Island Rock", "Node3D", true, false).size()
+	var plain_plinth := current_scene.find_children("Detailed Plinth", "Node3D", true, false).size()
+	detail.detail_props = true
+	await _load(SHARD_ISLE)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Shard Isle props: ", got)
+	check(plain_rock == 0 and plain_plinth == 0, "no baked rock or plinth with detailed props off")
+	check(got.get("islands", 0) == 4, "the main island's and the three islets' rock swapped (%d)" % got.get("islands", 0))
+	check(got.get("far", 0) == 16, "every far-off rock in the sky swapped (%d)" % got.get("far", 0))
+	check(got.get("stones", 0) == 9, "every stepping stone swapped (%d)" % got.get("stones", 0))
+	check(got.get("mounds", 0) >= 6, "a mound under every crystal cluster (%d)" % got.get("mounds", 0))
+	check(got.get("crystals", 0) >= 80, "every crystal swapped (%d)" % got.get("crystals", 0))
+	# The crystals are two MultiMeshes (glowing green and pale), one place for each crystal
+	var places := 0
+	var glows := true
+	for mmi: MultiMeshInstance3D in s.get_node("Detailed Crystals").get_children():
+		places += (mmi.get_meta("transforms") as Array).size()
+		var m := mmi.material_override as StandardMaterial3D
+		if m == null or not m.emission_enabled:
+			glows = false
+	check(places == got.get("crystals", 0) and s.get_node("Detailed Crystals").get_child_count() == 2,
+		"the crystals are two MultiMeshes with a place each (%d)" % places)
+	check(glows, "the baked crystals glow")
+	# Nothing plain left drawn: rock, stones and crystals (the Jitter's moving shards stay)
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree() or not (mi.mesh is PrimitiveMesh):
+			continue
+		var mn := _mat_of(mi)
+		if (mn in ["Shard Rock", "Stepping Crystal"] or mn in ["Shard Glow", "Pale Crystal"]) \
+				and not s.get_node("Jitter").is_ancestor_of(mi):
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	var jitter := 0
+	for c in s.get_node("Jitter").get_children():
+		if c is MeshInstance3D and not c.has_meta("detail_prop_old"):
+			jitter += 1
+	check(jitter == 10, "the out-of-tune shards still move about as they were (%d)" % jitter)
+	# Each island's rock hangs under its moss, as wide as the island
+	var rocks_ok := true
+	for d: Node3D in s.find_children("Detailed Island Rock", "Node3D", true, false):
+		var box := _aabb(d)
+		var r := 14.0 if d.get_parent().name == "Main Island" else 5.0
+		if absf(d.position.y + 0.6) > 0.01 or box.end.y > 0.05 or absf(box.size.x * d.scale.x - 2.0 * r) > 0.25 * r:
+			rocks_ok = false
+	check(rocks_ok, "every island's rock hangs under its moss, as wide as the island")
+	# The hanging crystals moved down onto the rounder rock: each one's foot is in the rock, not under or over it
+	var hang_ok := true
+	var island := s.get_node("Main Island") as Node3D
+	for c in island.get_children():
+		if c is MeshInstance3D and c.has_meta("detail_drop"):
+			var h := ((c as MeshInstance3D).mesh as CylinderMesh).height
+			var foot: float = c.position.y + h * 0.5 + float(c.get_meta("detail_drop"))
+			var d := Vector2(c.position.x, c.position.z).length() / 14.0
+			var under := -0.6 + DETAIL_PROPS._rock_under(d) * 7.0
+			if foot < under or foot > under + 0.2:
+				hang_ok = false
+	check(hang_ok, "the crystals under the main island hang from its new rock")
+	# The Heart Stone and the Echo Crystals' stands are baked where they're made
+	check(s.find_children("Detailed Plinth", "Node3D", true, false).size() == 1, "the Heart Stone's plinth is baked")
+	check(s.find_children("Detailed Stand", "Node3D", true, false).size() == 3, "the three Echo Crystals' stands are baked")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_shard_isle(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing Shard Isle again changes nothing")
 
 
 func _in_model(n: Node) -> bool:

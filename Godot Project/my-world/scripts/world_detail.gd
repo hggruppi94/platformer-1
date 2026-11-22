@@ -91,6 +91,8 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_frozen_moment(scene)
 	elif path == "res://scenes/portal_worlds/far_future.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_far_future(scene)
+	elif path == "res://scenes/portal_worlds/shard_isle.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_shard_isle(scene)
 	elif path == "res://scenes/portal_worlds/rootmind.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_rootmind(scene)
 	if detail_props:
