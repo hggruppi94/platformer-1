@@ -78,7 +78,7 @@ func _run() -> void:
 			g._move_i = (g.moves as Array).find(mv)
 			await _physics(2)
 			g._start_move()
-			await _wait(0.25)
+			await _wait(0.6)                            # (deep into the wind-up)
 			g.set_physics_process(false)
 			player.set_physics_process(false)
 			n += 1
@@ -86,7 +86,7 @@ func _run() -> void:
 				t.set_process(false)                    # (hold the warning still: frames are slow here)
 			var mid: Vector3 = (g.global_position + player.global_position) * 0.5
 			var eye: Vector3 = player.global_position + out * 9.0 + side * 4.0 + Vector3(0, 7.0, 0)
-			await _view("%02d_%s_%s_warning" % [n, id, mv], eye, mid)
+			await _view("%02d_%s_%s_windup" % [n, id, mv], eye, mid)
 			for t in get_nodes_in_group("boss_tells"):
 				t.queue_free()
 			player.set_physics_process(true)
@@ -95,7 +95,7 @@ func _run() -> void:
 		if is_instance_valid(g):
 			g.queue_free()
 		await _frames(2)
-	# The Gloop King's ring, before the flop
+	# The Gloop King squashing down, before the flop
 	root.get_node("Bosses").enter_kingdom()
 	await _frames(14)
 	await _physics(4)
@@ -115,7 +115,7 @@ func _run() -> void:
 		king.set_physics_process(false)
 		player.set_physics_process(false)
 		n += 1
-		await _view("%02d_gloop_king_ring" % n, king.global_position + Vector3(14, 10, 12), king.global_position)
+		await _view("%02d_gloop_king_windup" % n, king.global_position + Vector3(14, 10, 12), king.global_position)
 	_finish()
 
 

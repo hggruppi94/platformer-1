@@ -8,7 +8,7 @@ extends "res://scripts/boss_lair.gd"
 #   - The Rock Arch: boulders piled up either side, a slab across the top.
 #   - The Pinball Pit: its arena, ringed with big boulders and four rock pillars in the middle to pinball off. It sits
 #     on its Rock Throne until you come in, then the usual fight is on (scripts/crocodillo_boss.gd).
-#     Its own trick: once it's up, rocks fall from the canyon rim. A shadow shows where; get off it. A fallen rock
+#     Its own trick: once it's up, rocks fall from the canyon rim. Look up: the rock wobbles loose right over where it'll land, dribbling gravel; get out from under it. A fallen rock
 #     stays a while, and it bounces the Boulderdillo's rolls too.
 #   - Pop it and the rocks stop, and the Big Geode by its throne cracks open.
 # All the names and the look are first drafts for Hayden.
@@ -24,13 +24,14 @@ const ROLL_SPEED := 7.0
 const ROLL_EVERY := 2.6
 const ROLL_R := 0.85
 const FALL_EVERY := 4.5                        # rocks fall this often (3.2 s when it's cross)
-const FALL_WARN := 1.3                         # the shadow shows this long first
+const FALL_WARN := 1.3                         # the rock wobbles on the rim this long first
+const FALL_FROM := 22.0                        # ...this high over where it'll land
 const FALL_R := 1.6
 const FALLEN_STAYS := 7.0
 const FALLEN_MAX := 6
 
 var rolling: Array[Node3D] = []                # boulders on their way down the run
-var falls: Array = []                          # {node, t, at} shadows waiting for their rock
+var falls: Array = []                          # {node, t, up, gravel} rocks wobbling loose up on the rim
 var fallen: Array = []                         # {node, t} rocks lying in the pit
 var rocks_on := false
 var _roll_t := 1.0
@@ -257,17 +258,34 @@ func fall_every() -> float:
 
 
 func drop_rock(at: Vector3) -> void:
-	# A shadow on the floor where a rock's about to land
+	# No shadow on the floor: the rock itself shows up on the canyon's rim right over where it'll land, wobbling loose
+	# and dribbling gravel down, then drops (_land)
 	var s := Node3D.new()
-	s.name = "Rock Shadow"
+	s.name = "Rock Coming"
 	add_child(s)
 	s.position = Vector3(at.x, 0.05, at.z)
-	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.1, 0.05, 0.05, 0.0)
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_cyl(s, "Shadow", FALL_R, FALL_R, 0.02, Vector3.ZERO, m, false)
-	falls.append({"node": s, "t": 0.0, "mat": m})
+	var up := Node3D.new()
+	up.name = "Up High"
+	s.add_child(up)
+	up.position.y = FALL_FROM
+	_ball(up, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false)
+	falls.append({"node": s, "t": 0.0, "up": up, "gravel": 0.0})
+
+
+func _gravel(f: Dictionary) -> void:
+	# A pebble falling from the loose rock: you can see where it's coming down
+	var s := f.node as Node3D
+	var peb := MeshInstance3D.new()
+	var sm := SphereMesh.new()
+	sm.radius = 0.12
+	sm.height = 0.2
+	peb.mesh = sm
+	peb.material_override = _boulder_mat()
+	s.add_child(peb)
+	peb.position = Vector3(_rng.randf_range(-0.5, 0.5), FALL_FROM - 0.8, _rng.randf_range(-0.5, 0.5))
+	var tw := peb.create_tween()
+	tw.tween_property(peb, "position:y", 0.1, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(peb.queue_free)
 
 
 func _land(f: Dictionary) -> void:
@@ -277,7 +295,7 @@ func _land(f: Dictionary) -> void:
 	var rock := Node3D.new()
 	rock.name = "Fallen Rock"
 	add_child(rock)
-	rock.global_position = Vector3(at.x, 22.0, at.z)
+	rock.global_position = Vector3(at.x, FALL_FROM, at.z)
 	_ball(rock, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false)
 	var tw := rock.create_tween()
 	tw.tween_property(rock, "global_position:y", 0.9, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -333,7 +351,12 @@ func _lair_step(delta: float) -> void:
 				drop_rock(ARENA + Vector3(sin(ang), 0, cos(ang)) * _rng.randf_range(3.0, ARENA_R - 3.0))
 	for f in falls.duplicate():
 		f.t += delta
-		(f.mat as StandardMaterial3D).albedo_color.a = 0.7 * clampf(f.t / FALL_WARN, 0.0, 1.0)
+		var k := clampf(f.t / FALL_WARN, 0.0, 1.0)
+		(f.up as Node3D).position = Vector3(sin(f.t * 40.0), FALL_FROM, cos(f.t * 37.0)) * Vector3(0.12 * k, 1, 0.12 * k)
+		f.gravel -= delta
+		if f.gravel <= 0.0:
+			f.gravel = lerpf(0.4, 0.12, k)
+			_gravel(f)
 		if f.t >= FALL_WARN:
 			falls.erase(f)
 			_land(f)

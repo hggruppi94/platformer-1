@@ -293,7 +293,7 @@ func _start_beat() -> void:
 func _beat() -> void:
 	if not is_inside_tree():
 		return
-	ShockRing.spawn(get_parent(), global_position, beat_range * 1.6, RED, damage, 0.6)
+	ShockRing.spawn(get_parent(), global_position, beat_range * 1.6, RED, damage, 0.6, "energy")
 	Juice.shake(0.12)
 	Juice.blip("thud", 0.7, -4.0)
 	_shoot_cd = maxf(_shoot_cd, 1.2)

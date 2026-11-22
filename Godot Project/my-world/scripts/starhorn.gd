@@ -293,7 +293,7 @@ func _do_move() -> void:
 	match _move:
 		"jump":
 			_state_t = 0.4
-			ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), RING_REACH, COLOUR, 2, 0.9)
+			ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), RING_REACH, COLOUR, 2, 0.9, "star")
 			Juice.shake(0.4)
 			Juice.blip("thud", 0.55, -1.0)
 			_squash(0.6)
@@ -391,7 +391,7 @@ func _turn() -> void:
 
 
 func _turn_done() -> void:
-	ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), ROAR_REACH, COLOUR, 2, 1.1)
+	ShockRing.spawn(get_parent(), Vector3(global_position.x, home.y, global_position.z), ROAR_REACH, COLOUR, 2, 1.1, "star")
 	Juice.shake(0.45)
 	Juice.blip("thud", 0.45, 0.0)
 	_set_shield(bool(PHASES[phase].get("shards", false)))

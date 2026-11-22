@@ -19,6 +19,7 @@ extends Node3D
 
 signal won
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const WALKER := preload("res://scripts/centipede_walker.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 
@@ -62,7 +63,14 @@ var _warn_fill: MeshInstance3D
 var _dust_t := 0.0
 
 
+func _add_moves() -> void:
+	# While she scuttles round you she flicks clods of earth up over you (it's only her game: a bump at most)
+	MOVES.add(self, {"moves": ["lob"], "every": 5.5, "look": "rock", "colour": Color(0.5, 0.36, 0.26), "size": 0.55,
+		"from": 0.8, "from_node": body, "can": func() -> bool: return not defeated and state == "scuttle"})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	middle = global_position
@@ -245,56 +253,40 @@ func _dive() -> void:
 
 
 func _show_warn(at: Vector3) -> void:
+	# No mark drawn on the ground: the ground itself gives her away. A low hump of soil bulges up where she's coming,
+	# with clods of dirt hopping on it, and it grows as she gets nearer (_rumble).
 	if _warn == null:
 		_warn = Node3D.new()
 		_warn.name = "Burrow Warning"
 		get_parent().add_child(_warn)
-		var rim := MeshInstance3D.new()
-		rim.name = "Rim"
-		var tm := TorusMesh.new()
-		tm.inner_radius = POP_R - 0.18
-		tm.outer_radius = POP_R
-		tm.rings = 48
-		tm.ring_segments = 6
-		rim.mesh = tm
-		rim.scale = Vector3(1, 0.4, 1)
-		rim.material_override = _warn_mat(Color(GLOW.r, GLOW.g, GLOW.b, 0.95))
-		rim.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_warn.add_child(rim)
+		var soil := Color(0.36, 0.26, 0.24)
 		_warn_fill = MeshInstance3D.new()
-		_warn_fill.name = "Fill"
-		var disc := CylinderMesh.new()
-		disc.top_radius = POP_R - 0.15
-		disc.bottom_radius = POP_R - 0.15
-		disc.height = 0.04
-		disc.radial_segments = 40
-		_warn_fill.mesh = disc
-		_warn_fill.material_override = _warn_mat(Color(0.35, 0.15, 0.45, 0.55))
-		_warn_fill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_warn_fill.name = "Soil Hump"
+		var hump := SphereMesh.new()
+		hump.radius = POP_R * 0.75
+		hump.height = POP_R * 0.75
+		hump.is_hemisphere = true
+		_warn_fill.mesh = hump
+		var hm := StandardMaterial3D.new()
+		hm.albedo_color = soil
+		hm.roughness = 1.0
+		_warn_fill.material_override = hm
 		_warn.add_child(_warn_fill)
-		# A few dark cracks across the spot, so it reads as ground about to break
-		var crack_mat := _warn_mat(Color(0.12, 0.05, 0.15, 0.9))
-		for k in 5:
+		for k in 7:
 			var c := MeshInstance3D.new()
-			var b := BoxMesh.new()
-			b.size = Vector3(0.12, 0.03, POP_R * randf_range(0.9, 1.6))
+			c.name = "Clod %d" % k
+			var b := SphereMesh.new()
+			b.radius = randf_range(0.09, 0.17)
+			b.height = b.radius * 1.6
 			c.mesh = b
-			c.material_override = crack_mat
-			c.rotation.y = k * TAU / 5.0 + randf_range(-0.3, 0.3)
-			c.position = Vector3(0, 0.03, 0)
-			c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			c.material_override = hm
+			var a := k * TAU / 7.0 + randf_range(-0.3, 0.3)
+			c.position = Vector3(sin(a), 0, cos(a)) * POP_R * randf_range(0.3, 0.8)
+			c.set_meta("home", c.position)
 			_warn.add_child(c)
-	_warn.global_position = at + Vector3(0, 0.06, 0)
+	_warn.global_position = at + Vector3(0, 0.02, 0)
 	_warn.visible = true
-	_warn_fill.scale = Vector3(0.05, 1, 0.05)
-
-
-func _warn_mat(col: Color) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = col
-	return m
+	_warn_fill.scale = Vector3(0.2, 0.05, 0.2)
 
 
 func warn_left() -> float:
@@ -303,11 +295,16 @@ func warn_left() -> float:
 
 
 func _rumble(delta: float) -> void:
-	# The mark fills in as she gets closer, the ground shakes a little and dust puffs up from the spot
+	# The soil bulges up as she gets closer, its clods hop, the ground shakes a little and dust puffs up from the spot
 	if _warn == null:
 		return
 	var k := clampf(1.0 - _left / POP_WARN, 0.0, 1.0)
-	_warn_fill.scale = Vector3(lerpf(0.05, 1.0, k), 1, lerpf(0.05, 1.0, k))
+	_warn_fill.scale = Vector3(lerpf(0.2, 1.0, k), lerpf(0.05, 0.6, k), lerpf(0.2, 1.0, k))
+	var now := Time.get_ticks_msec() / 1000.0
+	for c in _warn.get_children():
+		if c.has_meta("home"):
+			var hop := absf(sin(now * lerpf(6.0, 16.0, k) + float(c.get_index()) * 1.7))
+			(c as Node3D).position = (c.get_meta("home") as Vector3) + Vector3(0, 0.05 + hop * lerpf(0.05, 0.35, k), 0)
 	_dust_t -= delta
 	if _dust_t <= 0.0:
 		_dust_t = lerpf(0.45, 0.15, k)

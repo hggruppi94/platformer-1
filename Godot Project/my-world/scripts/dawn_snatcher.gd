@@ -25,6 +25,9 @@ func _ready() -> void:
 	short_title = "The Snatcher"
 	bar_colour = Color(1.0, 0.7, 0.35)
 	ring_colour = Color(1.0, 0.75, 0.4)
+	ring_style = "dawn"
+	throw_look = "feather"                                   # a spread of night feathers, and he flits away
+	throw_moves = ["fan", "blink", "fan"]
 	cross_line = "%s is cross now! He flaps faster."
 	super()
 	PARTS.strip(visual)

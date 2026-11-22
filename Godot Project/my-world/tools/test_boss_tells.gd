@@ -1,11 +1,11 @@
 extends SceneTree
 
-# Checks the bosses' warnings (scripts/boss_tell.gd): every shape builds what it should (a ring that fills for "jump",
-# arrows for "dash", a growing shadow for "drop", arrows pointing in for "pull"), with a gold "!" and a glow on the
-# boss that comes off again; it goes away by itself; the first time each shape's seen a hint says what to do, and only
-# the first time; Settings > Assist > Early boss warnings starts them sooner. Then a real fight: the Gloop King's
-# ring shows on the ground before he hops, as wide as his flop reaches, and the flop still comes on time. And every
-# boss script with a big attack uses it.
+# Checks the bosses' warnings (scripts/boss_tell.gd): nothing is drawn on the ground or over the boss; the boss's
+# body winds up instead (squashes down for "jump", rears back for "dash", stretches up for "drop" while the dropped
+# thing falls from high over its spot, puffs up for "pull") and is left as it was after, even when the boss changes its
+# own Visual every frame; it goes away by itself; the first time each one's seen a hint says what to do, and only the
+# first time; Settings > Assist > Early boss warnings makes them longer. Then a real fight: the Gloop King winds up
+# before he hops, and the flop still comes on time. And every boss script with a big attack uses it.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_boss_tells.gd
 #
@@ -79,20 +79,15 @@ func _run() -> void:
 	await _frames(2)
 	check(t != null and t.is_inside_tree() and t.is_in_group("boss_tells"), "a warning goes up")
 	check(TELL.showing(boss), "...and the boss knows it's showing")
-	var edge := t.get_node_or_null("Mark/Edge") as Node3D
-	check(edge != null and absf(float(edge.get_meta("reach")) - 7.0) < 0.01 and _wide(edge) > 13.5, "\"jump\": a ring on the ground as far as it reaches")
-	var fill := t.get_node_or_null("Mark/Fill") as Node3D
-	check(fill != null, "...with a disc filling out to it")
-	var bang := t.get_node_or_null("Bang") as Label3D
-	check(bang != null and bang.text == "!" and bang.position.y > 1.5, "a gold \"!\" over the boss")
-	check(body.material_overlay != null, "the boss glows")
-	check(dialogue.flags.has("tell_seen_jump"), "the first ring says what to do")
-	var f0 := _wide(fill)
-	await _wait(0.3)
-	check(is_instance_valid(fill) and _wide(fill) > f0, "...and it fills as the attack gets nearer")
-	await _wait(0.4)
+	check(_drawn(t) == 0, "nothing's drawn for it: no rings, arrows, shadows or \"!\"")
+	check(body.material_overlay == null, "...and no glow painted over the boss")
+	check(dialogue.flags.has("tell_seen_jump"), "the first wind-up says what to do")
+	await _wait(0.35)
+	check(visual.scale.y < 0.85 and visual.scale.x > 1.08, "\"jump\": the boss squashes down low (%.2f tall)" % visual.scale.y)
+	await _wait(0.35)
 	check(not is_instance_valid(t), "it goes away by itself when the attack comes")
-	check(body.material_overlay == null, "...and the glow comes off")
+	check(visual.scale.is_equal_approx(Vector3.ONE) and visual.position.is_equal_approx(Vector3.ZERO),
+		"...and the boss is back to its own shape")
 	check(not TELL.showing(boss), "...so the next one can show")
 
 	game.pending_message = ""
@@ -102,83 +97,40 @@ func _run() -> void:
 	check(dialogue.flags.size() == hinted, "the hint's only said the first time")
 	await _wait(0.3)
 
-	var d: Node3D = TELL.warn(boss, "dash", 12.0, Color.ORANGE, 0.4, {"dir": Vector3.RIGHT, "follow": null, "at": Vector3(0, 0.06, 0)})
-	await _frames(3)
-	var arrows: int = d.get_node("Mark").get_child_count()
-	check(arrows >= 3, "\"dash\": a stripe of arrows (%d)" % arrows)
-	var fwd := -(d.get_node("Mark") as Node3D).global_basis.z
-	check(fwd.dot(Vector3.RIGHT) > 0.95, "...pointing the way it'll charge")
-	check(d.get_node("Mark").get_child(0).position.z <= 0.0 and d.get_node("Mark").get_child(0).position.z >= -12.0,
-		"...no further than it'll go")
-	await _wait(0.5)
+	# A boss that squashes its own Visual every frame: the wind-up goes on top, and it's left as the boss had it
+	var bob := func() -> void:
+		visual.scale = Vector3(1.0, 1.1, 1.0)
+	process_frame.connect(bob)
+	var d: Node3D = TELL.warn(boss, "dash", 12.0, Color.ORANGE, 0.5, {"dir": Vector3.RIGHT, "follow": null, "at": Vector3(0, 0.06, 0)})
+	await _wait(0.4)
+	check(visual.rotation.x > 0.15, "\"dash\": the boss rears back (%.2f)" % visual.rotation.x)
+	check(_drawn(d) == 0, "...no arrows")
+	await _wait(0.3)
+	check(absf(visual.rotation.x) < 0.001, "...and stands up straight after")
+	process_frame.disconnect(bob)
+	await _frames(1)
+	check(visual.scale.is_equal_approx(Vector3(1.0, 1.1, 1.0)), "a boss's own squash is left as it was")
+	visual.scale = Vector3.ONE
 
-	var dr: Node3D = TELL.warn(boss, "drop", 3.0, Color.GRAY, 0.4)
+	var dr: Node3D = TELL.warn(boss, "drop", 3.0, Color.GRAY, 0.5, {"follow": null, "at": Vector3(4, 0.06, 0)})
 	await _frames(2)
-	var shadow := dr.get_node_or_null("Mark/Shadow") as Node3D
-	var s0 := _wide(shadow) if shadow else 0.0
-	await _wait(0.25)
-	check(shadow != null and is_instance_valid(shadow) and _wide(shadow) > s0, "\"drop\": a shadow that grows")
+	var fall := dr.get_node_or_null("Falling") as Node3D
+	var y0 := fall.global_position.y if fall else 0.0
+	check(fall != null and y0 > 10.0 and Vector2(fall.global_position.x - 4.0, fall.global_position.z).length() < 0.1,
+		"\"drop\": what's dropping is up over where it'll land (%.1f m up)" % y0)
+	await _wait(0.4)
+	check(fall != null and is_instance_valid(fall) and fall.global_position.y < y0 - 4.0, "...and falls as the attack comes")
+	check(visual.scale.y > 1.05, "...while the boss stretches up tall")
 	await _wait(0.3)
 
 	var pl: Node3D = TELL.warn(boss, "pull", 8.0, Color.CYAN, 0.6)
-	await _frames(2)
-	var a := pl.get_node("Mark").get_child(0) as Node3D
-	var r0 := Vector2(a.position.x, a.position.z).length()
-	check(pl.get_node("Mark").get_child_count() == 10, "\"pull\": a ring of arrows")
-	await _wait(0.2)
-	var r1 := Vector2(a.position.x, a.position.z).length()
-	check(r1 < r0 or r1 > 7.0, "...sliding in towards the boss")
-	await _wait(0.6)
+	await _wait(0.45)
+	check(visual.scale.x > 1.12 and visual.scale.y > 1.1, "\"pull\": the boss puffs up")
+	check(_drawn(pl) == 0, "...no arrows")
+	await _wait(0.4)
 
 	for kind in ["jump", "dash", "drop", "pull"]:
-		check(TELL.HINTS.has(kind) and String(TELL.HINTS[kind]).split(" ").size() <= 6, "the %s hint is short" % kind)
-
-	# On bumpy ground the ring hugs the bumps (a slope under one side: nothing sinks into it)
-	var hill := StaticBody3D.new()
-	var hs := CollisionShape3D.new()
-	var hb := BoxShape3D.new()
-	hb.size = Vector3(20, 2, 20)
-	hs.shape = hb
-	hill.add_child(hs)
-	stage.add_child(hill)
-	hill.global_position = Vector3(6, -0.6, 0)
-	hill.rotation.z = 0.12
-	var flat := StaticBody3D.new()
-	var fs := CollisionShape3D.new()
-	var fb := BoxShape3D.new()
-	fb.size = Vector3(40, 1, 40)
-	fs.shape = fb
-	flat.add_child(fs)
-	stage.add_child(flat)
-	flat.global_position = Vector3(0, -0.5, 0)
-	await _physics(3)
-	var tb: Node3D = TELL.warn(boss, "jump", 8.0, Color.WHITE, 0.5, {"ground_y": 0.0})
-	await _frames(3)
-	var em := (tb.get_node("Mark/Edge") as MeshInstance3D).mesh
-	var lo := INF
-	var hi := -INF
-	var space := (stage.get_world_3d()).direct_space_state
-	var under := 0
-	for v in em.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
-		var w: Vector3 = tb.global_transform * v
-		lo = minf(lo, w.y)
-		hi = maxf(hi, w.y)
-		var q := PhysicsRayQueryParameters3D.create(Vector3(w.x, 5, w.z), Vector3(w.x, -5, w.z))
-		var hit := space.intersect_ray(q)
-		if hit and float(hit.position.y) > w.y + 0.01:
-			under += 1
-	check(hi - lo > 0.5, "on a slope the ring follows the ground up and down (%.1f m)" % (hi - lo))
-	check(under == 0, "...and none of it's under the ground (%d bits)" % under)
-	await _wait(0.6)
-	hill.queue_free()
-	flat.queue_free()
-
-	# A boss that already had an overlay keeps it
-	var keep := StandardMaterial3D.new()
-	body.material_overlay = keep
-	var t3: Node3D = TELL.warn(boss, "jump", 3.0, Color.WHITE, 0.2)
-	await _wait(0.4)
-	check(body.material_overlay == keep and not is_instance_valid(t3), "a mesh with its own overlay keeps it")
+		check(TELL.HINTS.has(kind) and String(TELL.HINTS[kind]).split(" ").size() <= 5, "the %s hint is short" % kind)
 	stage.queue_free()
 	await _frames(2)
 
@@ -211,25 +163,22 @@ func _run() -> void:
 		p.global_position = king.global_position + Vector3(6.0, 0.0, 0.0)
 		if seen_at < 0.0 and TELL.showing(king):
 			seen_at = clock
-			var tt := king.get_meta("boss_tell") as Node3D
-			var e := tt.get_node_or_null("Mark/Edge") as Node3D
-			reach = float(e.get_meta("reach")) if e else 0.0
+			reach = float((king.get_meta("boss_tell") as Node3D).get("reach"))
 		if bool(king.get("_flopping")):
 			flop_at = clock
-	check(seen_at >= 0.0, "the King's ring shows on the ground before he flops")
+	check(seen_at >= 0.0, "the King winds up before he flops")
 	check(flop_at > 0.0, "...and he still flops")
 	check(flop_at - seen_at >= TELL.NORMAL - 0.1, "...%.2f s after it shows" % (flop_at - seen_at))
 	var want: float = float(king.get("flop_reach")) * float(king.get("size"))
-	check(reach >= want * 0.99, "...and the ring's as wide as his goo goes (%.1f m)" % reach)
+	check(reach >= want * 0.99, "...for a flop as wide as his goo goes (%.1f m)" % reach)
 	_end()
 
 
-func _wide(mi: Node3D) -> float:
-	# How wide a draped mark is, from its mesh
-	var m := mi as MeshInstance3D
-	if m == null or m.mesh == null:
-		return 0.0
-	return m.mesh.get_aabb().size.x
+func _drawn(t: Node) -> int:
+	# How many things a warning draws of its own (only "drop" draws anything: the thing that's falling)
+	if t == null or not is_instance_valid(t):
+		return 0
+	return t.find_children("*", "MeshInstance3D", true, false).size() + t.find_children("*", "Label3D", true, false).size()
 
 
 func _wait(secs: float) -> void:

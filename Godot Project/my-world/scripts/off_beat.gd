@@ -13,6 +13,7 @@ extends Node3D
 #   - He swaps tempo every few seconds, and under half he gets cross: his quick tempo's quicker.
 #   - HITS hits put him back in time: he shrinks to a little metronome ticking steadily, and the world mends.
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 const TELL := preload("res://scripts/boss_tell.gd")
 const HITS := 12
@@ -52,7 +53,14 @@ var _zzz: Label3D
 var _player: CharacterBody3D
 
 
+func _add_moves() -> void:
+	# Sour notes flung at you, three at a time, while he's awake
+	MOVES.add(self, {"moves": ["fan", "shot"], "every": 5.0, "look": "note", "colour": WEIGHT_HOT, "size": 0.7,
+		"from": 3.2, "can": func() -> bool: return awake and not defeated})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	Arsenal.supply_boss(self, 9.0)                  # ammo crates round the stage (scripts/arsenal.gd)
 	var m := model()
 	m.name = "Model"
@@ -158,7 +166,7 @@ func tick() -> void:
 	ticks += 1
 	Juice.blip("tick", 0.6 if quick else 0.45, -2.0)
 	if not quick or ticks % 2 == 0:
-		ShockRing.spawn(get_parent(), global_position + Vector3(0, 0.05, 2.5), RING_REACH, WEIGHT_HOT, RING_DAMAGE, 1.1 if quick else 1.4)
+		ShockRing.spawn(get_parent(), global_position + Vector3(0, 0.05, 2.5), RING_REACH, WEIGHT_HOT, RING_DAMAGE, 1.1 if quick else 1.4, "beat")
 		Fx.burst(get_parent(), _weight.global_position, WEIGHT_HOT, 8, 0.08, 2.0, 1.0, 0.5)
 	_lit_for -= 1
 	if _lit_for <= 0 or lit_drum < 0:

@@ -189,7 +189,7 @@ func _lair(town: Node3D, id: String, gate_path: String, boss_name: String, flag:
 		p.velocity = Vector3.ZERO
 		lair.set("_fall_t", 99.0)
 		lair.call("drop_rock", spot_at)
-		check(lair.find_child("Rock Shadow", true, false) != null, "...a shadow shows where each one will land")
+		check(lair.find_child("Rock Coming", true, false) != null, "...each one wobbles on the rim over where it will land")
 		var hit := false
 		for i in 150:
 			p.global_position = spot_at + Vector3(0, 0.95, 0)

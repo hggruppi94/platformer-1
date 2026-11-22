@@ -32,11 +32,18 @@ func _ready() -> void:
 	title = "Stormram"
 	minion_name = "Squalldillos"
 	bar_colour = STORM
+	throw_moves = ["shot", "shot", "fan"]                    # balls of storm lightning
+	throw_look = "bolt"
+	throw_colour = Color(1.0, 0.95, 0.5)
 	super()
 	respawns = false
 	if asleep:
 		process_mode = Node.PROCESS_MODE_DISABLED
 		_bar_shown(false)
+
+
+func _moves_ok() -> bool:
+	return not asleep and super()
 
 
 func wake() -> void:
@@ -202,7 +209,7 @@ func _slam(reach: float) -> void:
 	if player and global_position.distance_to(player.global_position) < 30.0:
 		Juice.shake(0.25)
 		Juice.rumble(0.3, 0.2, 0.4)
-	ShockRing.spawn(get_parent(), global_position, reach, STORM.lightened(0.3), damage, 0.8)
+	ShockRing.spawn(get_parent(), global_position, reach, STORM.lightened(0.3), damage, 0.8, "gust")
 	Juice.burst(get_parent(), global_position + Vector3(0, 0.6, 0), Color(1.0, 0.75, 0.85), 14, 0.08, 5.0, 1.0)
 
 

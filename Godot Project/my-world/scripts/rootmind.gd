@@ -12,6 +12,7 @@ extends "res://scripts/portal_world.gd"
 #
 # Bramble is here, by the arrival, quieter than in the Void: talk to her for what to do next.
 
+const MOVES := preload("res://scripts/boss_moves.gd")
 const BLOOMS := ["Bloom1", "Bloom2", "Bloom3"]
 const BLOOM_NAMES := ["the High Bloom", "the Whisper Bloom", "the Root Bloom"]
 const BLOOM_COLOURS := [Color(1.0, 0.8, 0.35), Color(1.0, 0.55, 0.8), Color(0.7, 0.6, 1.0)]
@@ -311,6 +312,11 @@ func _teach_burrow(tries := 0) -> void:
 
 func _start_calming() -> void:
 	calming = true
+	var knot := get_node_or_null("Thornknot") as Node3D
+	if knot and MOVES.of(knot) == null:
+		# Out of step, it flings thorny burrs at you too, three at a time
+		MOVES.add(knot, {"moves": ["fan", "shot"], "every": 5.5, "look": "thorn", "colour": THORN_PURPLE, "size": 0.7,
+			"from": 1.8, "can": func() -> bool: return calming and not Portals.is_cleared(world_id)})
 	_beat = int(_t / HIVE_BEAT)
 	_lashed = _beat
 	Game.message("The Thornknot! Jump its thorns. Hum along when a knot glows!")
@@ -344,7 +350,7 @@ func _process(delta: float) -> void:
 		_knots_glow()
 		if phase >= LASH_AT and _lashed != beat:
 			_lashed = beat
-			ShockRing.spawn(self, Vector3(0, 0.3, 0), 15.0, THORN_PURPLE, 1, 1.6)
+			ShockRing.spawn(self, Vector3(0, 0.3, 0), 15.0, THORN_PURPLE, 1, 1.6, "thorn")
 			Juice.blip("whoosh", 0.6, -8.0)
 
 

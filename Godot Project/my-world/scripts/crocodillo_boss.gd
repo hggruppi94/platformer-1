@@ -31,6 +31,10 @@ var _base := []
 var title := NAME                                     # its cousins (the Stormram, scripts/stormram.gd) set their own
 var minion_name := "Pebbledillos"
 var bar_colour := Color(0.75, 0.6, 0.45)
+var throw_moves := ["lob"]                            # it flicks boulders up over you with its tail
+var throw_look := "rock"
+var throw_colour := Color(0.62, 0.5, 0.38)
+const MOVES := preload("res://scripts/boss_moves.gd")
 
 
 func _ready() -> void:
@@ -39,6 +43,8 @@ func _ready() -> void:
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	_bar = BossBar.make(self, title, bar_colour, 2.3 * size + 0.4, 2.0)
 	_base = [roll_speed, rolls_in_a_row]
+	MOVES.add(self, {"moves": throw_moves, "every": 5.5, "look": throw_look, "colour": throw_colour, "size": 0.8,
+		"from": 1.6 * size, "can": func() -> bool: return _moves_ok()})
 	_boulders()
 
 
@@ -54,6 +60,11 @@ func _physics_process(delta: float) -> void:
 		# once it's going, so stepping off the arrows is the dodge.
 		_state_t = maxf(_state_t, TELL.lead())
 		_roll_tell(_state_t)
+
+
+func _moves_ok() -> bool:
+	# Only while it's stalking you: never mid-curl, mid-roll or while it's dizzy
+	return not defeated and state == State.STALK
 
 
 func _roll_ended() -> void:
@@ -83,7 +94,7 @@ func _slam(reach: float) -> void:
 	if player and global_position.distance_to(player.global_position) < 30.0:
 		Juice.shake(0.35)
 		Juice.rumble(0.4, 0.2, 0.5)
-	ShockRing.spawn(get_parent(), global_position, reach, Color(0.85, 0.7, 0.45), damage, 0.8)
+	ShockRing.spawn(get_parent(), global_position, reach, Color(0.85, 0.7, 0.45), damage, 0.8, "rubble")
 
 
 func shot(power: int, point: Vector3, dir: Vector3) -> String:

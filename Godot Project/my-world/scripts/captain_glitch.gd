@@ -18,6 +18,7 @@ extends CharacterBody3D
 
 enum State { STATUE, HOVER, SLAM, OPEN }
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const GOBLIN := preload("res://scenes/enemies/time_goblin.tscn")
 
 const TELL := preload("res://scripts/boss_tell.gd")
@@ -55,7 +56,14 @@ var _clock_mat: StandardMaterial3D
 var _cubes: Node3D
 
 
+func _add_moves() -> void:
+	# He glitches out and pops back somewhere else over the city floor
+	MOVES.add(self, {"moves": ["blink"], "every": 8.0, "look": "cube", "colour": MAGENTA, "size": 0.5,
+		"from": 1.5, "radius": 12.0, "keep_height": true, "can": func() -> bool: return not defeated and state == State.HOVER})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
 	motion_mode = CharacterBody3D.MOTION_MODE_FLOATING
@@ -204,7 +212,7 @@ func _burst_at(at: Vector3, warn: float) -> void:
 
 func _landed() -> void:
 	# CRASH: a ring rolls out (jump it), and he's dazed with his chest clock glowing
-	ShockRing.spawn(get_parent(), global_position, RING_REACH, MAGENTA, 1, 1.0)
+	ShockRing.spawn(get_parent(), global_position, RING_REACH, MAGENTA, 1, 1.0, "glitch")
 	Juice.shake(0.35)
 	Juice.rumble(0.5, 0.5, 0.3)
 	Juice.blip("thud", 0.7, -3.0)

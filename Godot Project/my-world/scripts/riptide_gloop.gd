@@ -41,6 +41,9 @@ var _puff := 0.0                              # 0 its normal round self, 1 puffe
 func _ready() -> void:
 	title = BOSS_NAME
 	ring_colour = SEA
+	ring_style = "tide"
+	throw_look = "bubble"                                    # it spits water bubbles
+	throw_moves = ["fan", "shot"]
 	super()
 	_sea_puddle()
 	var body := visual.get_node("Body") as Node3D

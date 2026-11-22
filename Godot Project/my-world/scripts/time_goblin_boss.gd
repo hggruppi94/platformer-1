@@ -31,6 +31,7 @@ var _pendulum: Node3D
 var _clock_hand: Node3D
 var _cross := false
 const TELL := preload("res://scripts/boss_tell.gd")
+const MOVES := preload("res://scripts/boss_moves.gd")   # his throws (and blinks): every boss has a ranged move
 
 var _warned := false
 var _base := []                                # chase speed, chime gap, blink cooldown, before he got cross
@@ -38,6 +39,9 @@ var _base := []                                # chase speed, chime gap, blink c
 var title := NAME
 var short_title := "Tock"
 var bar_colour := Color(0.3, 0.95, 0.85)
+var throw_moves := ["blink", "shot", "shot"]   # he pops up somewhere else on his clock and flings gears
+var throw_look := "gear"
+var ring_style := "chime"                     # how his rings look (scripts/shock_ring.gd STYLES)
 var ring_colour := Color(0.45, 1.0, 0.9)
 var cross_line := "%s is cross now! His clock ticks faster."
 
@@ -50,6 +54,9 @@ func _ready() -> void:
 	_clock_hand = get_node_or_null("Visual/Head/Clock/Hand") as Node3D
 	_bar = BossBar.make(self, title, bar_colour, 2.0 * size + 0.5)
 	_base = [chase_speed, chime_every, blink_cooldown]
+	MOVES.add(self, {"moves": throw_moves, "every": 5.5, "look": throw_look, "colour": bar_colour, "size": 0.6,
+		"from": 1.4 * size, "radius": 10.0,
+		"can": func() -> bool: return not defeated and state == State.CHASE and _chimes_left == 0})
 
 
 func _physics_process(delta: float) -> void:
@@ -97,7 +104,7 @@ func _strike() -> void:
 	if player and global_position.distance_to(player.global_position) < 25.0:
 		Juice.shake(0.25)
 		Juice.rumble(0.3, 0.15, 0.3)
-	ShockRing.spawn(get_parent(), global_position, chime_reach, ring_colour, damage, 1.0)
+	ShockRing.spawn(get_parent(), global_position, chime_reach, ring_colour, damage, 1.0, ring_style)
 
 
 func _blinked() -> void:

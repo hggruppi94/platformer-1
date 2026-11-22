@@ -14,6 +14,7 @@ extends CharacterBody3D
 #
 # Built in code: BIG_BUZZ.new(), with `centre` and `reach` set to the arena floor he keeps over.
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const FIZZLER := preload("res://scripts/fizzler.gd")
 
 const TELL := preload("res://scripts/boss_tell.gd")
@@ -56,7 +57,14 @@ var _crown: Node3D
 var _told_fizzle := 0.0
 
 
+func _add_moves() -> void:
+	# Up high he spits balls of static down at you
+	MOVES.add(self, {"moves": ["shot", "fan"], "every": 4.5, "look": "spark", "colour": FIZZLER.STATIC, "size": 0.9,
+		"from": 0.0, "can": func() -> bool: return not defeated and state == State.UP})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	add_to_group("bosses")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
@@ -219,11 +227,11 @@ func _slam() -> void:
 	_daze_hits = 0
 	velocity = Vector3.ZERO
 	var at := Vector3(global_position.x, _ground_y, global_position.z)
-	ShockRing.spawn(get_parent(), at, RING_REACH, FIZZLER.STATIC, 2, 0.9)
+	ShockRing.spawn(get_parent(), at, RING_REACH, FIZZLER.STATIC, 2, 0.9, "static")
 	if cross:
 		get_tree().create_timer(0.5).timeout.connect(func() -> void:
 			if not defeated and is_inside_tree():
-				ShockRing.spawn(get_parent(), at, RING_REACH * 1.5, FIZZLER.GLITCH, 2, 1.0))
+				ShockRing.spawn(get_parent(), at, RING_REACH * 1.5, FIZZLER.GLITCH, 2, 1.0, "glitch"))
 	Fx.burst(get_parent(), at + Vector3(0, 0.5, 0), FIZZLER.STATIC, 18, 0.07, 4.0, 0.5, 0.6)
 	Juice.shake(0.4)
 	Juice.rumble(0.4, 0.25, 0.5)

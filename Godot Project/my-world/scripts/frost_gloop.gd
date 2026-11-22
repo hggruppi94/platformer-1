@@ -22,6 +22,9 @@ var _watch_hand: Node3D
 func _ready() -> void:
 	title = BOSS_NAME
 	ring_colour = FROST
+	ring_style = "frost"
+	throw_look = "blob"                                      # snowballs
+	throw_moves = ["lob", "fan"]
 	super()
 	_frost_puddle()
 	var body := visual.get_node("Body") as Node3D

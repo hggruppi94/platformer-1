@@ -14,6 +14,7 @@ extends CharacterBody3D
 #
 # Built in code: GLOAM.new(), with `world`, `centre` and `reach` set.
 
+const MOVES := preload("res://scripts/boss_moves.gd")   # every boss has a ranged move (or a blink)
 const SHADOW_GHOST := preload("res://scripts/shadow_ghost.gd")
 
 const TELL := preload("res://scripts/boss_tell.gd")
@@ -54,7 +55,15 @@ var _hitbox: Area3D
 var _halo: Node3D
 
 
+func _add_moves() -> void:
+	# Out of the light it melts into the dark and slides up somewhere else, and throws gloom at you
+	MOVES.add(self, {"moves": ["blink", "fan"], "every": 6.5, "look": "wisp", "colour": DUSK.lightened(0.35),
+		"size": 0.65, "from": 1.6, "radius": maxf(reach * 0.7, 8.0), "keep_height": true,
+		"can": func() -> bool: return not defeated and not lit and _retreat <= 0.0})
+
+
 func _ready() -> void:
+	_add_moves.call_deferred()
 	add_to_group("enemies")
 	add_to_group("bosses")
 	Arsenal.supply_boss(self)                       # ammo crates round the fight (scripts/arsenal.gd)
@@ -189,7 +198,7 @@ func _look(delta: float) -> void:
 
 
 func gloom_wave() -> void:
-	ShockRing.spawn(get_parent(), Vector3(global_position.x, _ground_y, global_position.z), WAVE_REACH, DUSK.lightened(0.3), 2, 1.0)
+	ShockRing.spawn(get_parent(), Vector3(global_position.x, _ground_y, global_position.z), WAVE_REACH, DUSK.lightened(0.3), 2, 1.0, "gloom")
 	Juice.blip("whoosh", 0.5, -6.0)
 
 
