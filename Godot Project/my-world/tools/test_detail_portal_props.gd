@@ -539,7 +539,8 @@ func _shard_isle() -> void:
 	var got: Dictionary = detail.last_props
 	print("Shard Isle props: ", got)
 	check(plain_rock == 0 and plain_plinth == 0, "no baked rock or plinth with detailed props off")
-	check(got.get("islands", 0) == 4, "the main island's and the three islets' rock swapped (%d)" % got.get("islands", 0))
+	check(got.get("islands", 0) == 10, "the main island's, the three islets' and the six warp islands' rock swapped (%d)"
+		% got.get("islands", 0))
 	check(got.get("far", 0) == 16, "every far-off rock in the sky swapped (%d)" % got.get("far", 0))
 	check(got.get("stones", 0) == 9, "every stepping stone swapped (%d)" % got.get("stones", 0))
 	check(got.get("mounds", 0) >= 6, "a mound under every crystal cluster (%d)" % got.get("mounds", 0))
@@ -573,9 +574,14 @@ func _shard_isle() -> void:
 	check(jitter == 10, "the out-of-tune shards still move about as they were (%d)" % jitter)
 	# Each island's rock hangs under its moss, as wide as the island
 	var rocks_ok := true
+	var warp_r := {}
+	for id: String in s.get_node("Warps").ISLANDS:
+		warp_r[s.get_node("Warps").ISLANDS[id].get("at")] = float(s.get_node("Warps").ISLANDS[id].get("r", 14.0))
 	for d: Node3D in s.find_children("Detailed Island Rock", "Node3D", true, false):
 		var box := _aabb(d)
 		var r := 14.0 if d.get_parent().name == "Main Island" else 5.0
+		if str(d.get_parent().name).begins_with("Islet Warp"):
+			r = float(warp_r.get((d.get_parent() as Node3D).position, 5.0))   # (the Warp Rings' islands, scripts/shard_warps.gd)
 		if absf(d.position.y + 0.6) > 0.01 or box.end.y > 0.05 or absf(box.size.x * d.scale.x - 2.0 * r) > 0.25 * r:
 			rocks_ok = false
 	check(rocks_ok, "every island's rock hangs under its moss, as wide as the island")

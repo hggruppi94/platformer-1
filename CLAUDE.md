@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-22: **Shard Isle's Warp Rings: a trial-and-error teleport game round six new floating islands** (Hayden:
+  "you dont really get to see [the islands] from the players perspective. Maybe we can add a portal ing minigame that
+  gives you options to choose from and only brings you to the correct spot after trial and error", "we may have to add
+  more islands with teleporting spots"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **`scripts/shard_warps.gd`** (no class_name; `shard_isle.gd setup()` calls `WARPS.place(self)`, so no scene was
+    rebuilt): a **Warp Circle** of four coloured rings (green, blue, pink, gold) on the Main Island's open ground. Each
+    ring takes you (Interact) to another island (`ISLANDS`, `CIRCLES`): the right one on to the next island with its own
+    circle, the others to a little **lookout** (Echo Overlook, Drift Rock, Low Perch) whose white ring takes you back
+    where you came from. A ring you've tried that went the wrong way goes dim for the visit. The right path (`RIGHT`):
+    pink to **Skyhook Isle** (high up), blue to **Underside Isle** (under the Main Island, looking up at it), gold to
+    **Prism Isle** (rainbow crystals and the **Prism Chest**: 12 sparkles and 2 Remnants once, never on a practice
+    trip). Every warp island has a white ring straight home. You land at the edge of each island facing out over the
+    others, so you see the floating islands from up, down and far off. Once Prism Isle's found (`warp_prism`) the right
+    rings wear a star. Each new island is an "Islet Warp ..." so the detail pipeline gives it the baked rock, with an
+    unseen fence round its edge; the world's fall catch is at -36 now (Underside Isle is 24 m down).
+  - Tests: new `tools/test_shard_warps.gd` (islands clear of each other and the old ones, ground under every landing and
+    ring, the circle on open ground, the baked rock, wrong ring, dim, back, the whole right path really standing on each
+    island, stars, the chest once, home, next visit, practice trips); detail_portal_props (10 island rocks), portals and
+    practice_trips pass. Pictures: `tools/capture_shard_warps.gd -- <folder>` (project files,
+    world/previews/shard_warps).
+  - My choices Hayden may change: the islands' names and spots, the ring colours and which is right, the chest's reward.
+
 - 2026-11-22: **Baked Shard Isle's floating rock, its stepping stones, the crystal clusters' mounds, the Heart Stone, the
   Echo Crystals' stands and every crystal** (Hayden: "Can we continue with baking details"; Shard Isle was my pick, the
   last portal world not baked). Built and tested in the cloud (own Godot user folders, no save touched).
