@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://tih7fclc5w13"
-path="res://.godot/imported/summerhouse.glb-d1af88b4fb7765d0ee6f82e04507b3ed.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/summerhouse.glb"
-dest_files=["res://.godot/imported/summerhouse.glb-d1af88b4fb7765d0ee6f82e04507b3ed.scn"]
 
 [params]
 

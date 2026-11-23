@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d0suagbpodhof"
-path="res://.godot/imported/flower_stem.glb-626264ab1a6fb37a7de806604924771e.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/flower_stem.glb"
-dest_files=["res://.godot/imported/flower_stem.glb-626264ab1a6fb37a7de806604924771e.scn"]
 
 [params]
 

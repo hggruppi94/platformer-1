@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d0o4txsdlgj3t"
-path="res://.godot/imported/ivy_wall.glb-983166a7a718b275ec30d128c89b81ea.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/ivy_wall.glb"
-dest_files=["res://.godot/imported/ivy_wall.glb-983166a7a718b275ec30d128c89b81ea.scn"]
 
 [params]
 

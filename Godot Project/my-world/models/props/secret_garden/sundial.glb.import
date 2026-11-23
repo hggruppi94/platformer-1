@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cgm2vprwngk5e"
-path="res://.godot/imported/sundial.glb-4b49eb7cbd94fa186d8674cdc7e8b9d9.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/sundial.glb"
-dest_files=["res://.godot/imported/sundial.glb-4b49eb7cbd94fa186d8674cdc7e8b9d9.scn"]
 
 [params]
 

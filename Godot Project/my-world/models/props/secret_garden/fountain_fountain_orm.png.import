@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cuygkhocqdflb"
-path="res://.godot/imported/fountain_fountain_orm.png-1cbbb004205c2fa932c1c7d592c27059.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "71d94e42416db49ecf6f3ca8a8ed2d9c"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/fountain_fountain_orm.png"
-dest_files=["res://.godot/imported/fountain_fountain_orm.png-1cbbb004205c2fa932c1c7d592c27059.ctex"]
 
 [params]
 

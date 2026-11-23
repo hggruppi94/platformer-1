@@ -99,6 +99,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **Grandfather Tock's Clockwork Tower is a climb now: the Clock Floor is 30 m up, and the way there spirals up
+  the inside of the tower past things that knock you all the way back down** (Hayden: "I want the clock tower to have
+  multiple levels that knock you down to the bottom ... with sniper enemies, rolling boulder obstacles etc"; our own
+  design, nothing copied). All built at load by `scripts/clock_tower.gd`, so no scene was rebuilt. Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **The Gearworks:** through the Cog Gate you're on the tower's ground floor (`CENTRE`), a round room of turning floor
+    gears round a brass column, with the Clock Floor (`ARENA`, `TOP` 30 m) as its ceiling. Tock doesn't wake from down
+    there (`boss_lair.gd wake_height()`).
+  - **The climb** (`_spiral()`, `_shaft()`): a planked walkway with a brass rim winds up the tower's wall nearly two
+    whole turns (`SWEEP`), no rail on the inside, to a landing and a brass bridge onto the Clock Floor. Five
+    **alcoves** cut into the wall (`ALCOVE_S`, the first the **Halfway Ledge**) are safe spots. `path_point(s)`,
+    `s_at()`, `radius_of()` for tests.
+  - **What knocks you off** (`_knock_off()`: thrown in towards the middle and stunned a moment, never a hurt): four
+    **Swinging Hands** (giant clock hands on pivots swinging across the lower walkway), **Cog Spools** (big wooden
+    spools with brass cogs that roll down from a hatch near the top every 11 s and tip off over the Halfway Ledge; duck
+    into an alcove) and four **goblin snipers** on perches round the brass column, who wind up (`boss_tell.gd` "throw")
+    and throw slow glowing bolts (`gorilla_bolt.gd`, now with `colour`, `speed`, `life`). A long fall says "Bonk!".
+  - **The Gear Lift** by the way in: once you've climbed to the Halfway Ledge it takes you there, and once you've been to
+    the top, straight up (`best`, `_lift_offer()`, `_ride_lift()`). `hazards` switches the climb's dangers off for tests.
+  - Tests: new `tools/test_tower_climb.gd` (spool knock and fall, alcove safe, hand knock, a sniper's wind-up and bolt,
+    the lift); `test_boss_lairs` really walks up the whole spiral to the Clock Floor; time_goblins and
+    detail_portal_props (`-- tower`) pass. Pictures: `tools/capture_tower_climb.gd -- <folder>` (project files,
+    world/previews/tower_climb).
+  - My choices Hayden may change: the names (the Gearworks, Cog Spools, Swinging Hands, the Gear Lift, the Halfway
+    Ledge), how high, how often spools roll, how many snipers.
+
 - 2026-11-23: **The townsfolk think for half the time** (Hayden: "work through the whole game ... Then work on other
   things"; the Market profile put the townsfolk at ~2 ms). New `tools/profile_townsfolk.gd [-- earth]` times each
   person's routine and their animation; with a window it also switches the routines, the animation, the townsfolk and

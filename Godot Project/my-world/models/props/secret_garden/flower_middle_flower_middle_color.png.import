@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bavjmfcv6xcgy"
-path="res://.godot/imported/flower_middle_flower_middle_color.png-df16e424362243df890937709ee9a635.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "924d5925f49b5405f1710add2e4a43cc"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/flower_middle_flower_middle_color.png"
-dest_files=["res://.godot/imported/flower_middle_flower_middle_color.png-df16e424362243df890937709ee9a635.ctex"]
 
 [params]
 

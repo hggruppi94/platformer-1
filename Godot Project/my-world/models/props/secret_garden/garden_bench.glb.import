@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dvi53jbtx1ol5"
-path="res://.godot/imported/garden_bench.glb-4080937c8006b9c16a67a78cff130eca.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/garden_bench.glb"
-dest_files=["res://.godot/imported/garden_bench.glb-4080937c8006b9c16a67a78cff130eca.scn"]
 
 [params]
 

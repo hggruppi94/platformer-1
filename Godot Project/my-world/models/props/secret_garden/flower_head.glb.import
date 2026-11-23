@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bxufooi6sicot"
-path="res://.godot/imported/flower_head.glb-f814fed597d9743ea040562936f45c39.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/flower_head.glb"
-dest_files=["res://.godot/imported/flower_head.glb-f814fed597d9743ea040562936f45c39.scn"]
 
 [params]
 

@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c76w0g8tya41"
-path="res://.godot/imported/rose_arch_rose_arch_normal.png-51d8b9d98bfd4dc2cb4e51b11743d70a.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "d82c7c973b6d9348c3e15a0c4d6bf36a"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/rose_arch_rose_arch_normal.png"
-dest_files=["res://.godot/imported/rose_arch_rose_arch_normal.png-51d8b9d98bfd4dc2cb4e51b11743d70a.ctex"]
 
 [params]
 

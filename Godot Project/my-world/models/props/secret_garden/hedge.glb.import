@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cm4gfm1fjsxmb"
-path="res://.godot/imported/hedge.glb-1924a037f5c7195ca293941c121ebfa0.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/hedge.glb"
-dest_files=["res://.godot/imported/hedge.glb-1924a037f5c7195ca293941c121ebfa0.scn"]
 
 [params]
 

@@ -140,10 +140,11 @@ func _run() -> void:
 	check(tock != null and tock.is_in_group("bosses"), "Grandfather Tock keeps his tower")
 	town.call("wake")
 	town.set("hand_on", false)                              # (the floor hand is tools/test_boss_lairs.gd's)
+	town.set("hazards", false)                              # (the climb's snipers and spools: test_tower_climb.gd's)
 	await _physics(10)
 	for i in 240:                                           # (he hops down off his dais)
 		await physics_frame
-		if (tock as CharacterBody3D).is_on_floor() and (tock as Node3D).global_position.y < 1.0:
+		if (tock as CharacterBody3D).is_on_floor() and (tock as Node3D).global_position.y < float((town.call("arena") as Vector3).y) + 1.0:
 			break
 	p.global_position = tock.global_position + Vector3(0, 1, 12)
 	tock.player = p

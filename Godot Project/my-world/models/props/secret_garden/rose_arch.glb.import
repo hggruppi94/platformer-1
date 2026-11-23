@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ddsxblx0t5fxv"
-path="res://.godot/imported/rose_arch.glb-ddd27275357d6cb63ffc9e1c457796f1.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/rose_arch.glb"
-dest_files=["res://.godot/imported/rose_arch.glb-ddd27275357d6cb63ffc9e1c457796f1.scn"]
 
 [params]
 
