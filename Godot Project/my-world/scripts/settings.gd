@@ -75,6 +75,8 @@ var tips := true                      # first-time how-to pop-ups (scripts/tips.
 # --- Display
 var fullscreen := false
 var fov := 75.0
+var lighting := "nice"                 # "simple" (the old look), "nice" (soft shadows where things meet, a haze the sun
+                                      # and lamps light up) or "best" (plus bounced light and softer sun shadows): scripts/world_light.gd
 var minimap := true                   # the round map in the bottom-right corner (scripts/map_screen.gd); on by default since Nov 2026
 var map_hide := []                   # what's switched off on the maps (the big map's "Show on the map" list): kinds
                                       # ("people", "races"...) and followed quests' stars ("quest:<id or job key>")
@@ -127,7 +129,7 @@ func _ready() -> void:
 
 func _props() -> Array[String]:
 	return ["master_volume", "music_volume", "sfx_volume", "voice_volume", "mouse_sensitivity", "stick_sensitivity",
-		"invert_y", "invert_x", "fullscreen", "fov", "minimap", "map_hide", "clock_style", "text_scale", "hud_size", "talk_speed", "talk_caps", "objectives", "high_contrast", "reduce_flashing",
+		"invert_y", "invert_x", "fullscreen", "fov", "lighting", "minimap", "map_hide", "clock_style", "text_scale", "hud_size", "talk_speed", "talk_caps", "objectives", "high_contrast", "reduce_flashing",
 		"reduce_motion", "captions", "game_speed", "no_damage", "infinite_mp", "infinite_sp", "control_style", "tips",
 		"skate_assist", "screen_shake", "rumble", "rumble_strength", "bumps", "boss_warn_early", "camera_follow", "playtest", "race_intros", "practice_trips"]
 

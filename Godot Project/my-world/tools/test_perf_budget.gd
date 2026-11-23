@@ -13,6 +13,8 @@ extends SceneTree
 # Run it with a window (not --headless): a headless run draws nothing, so every count reads 0 and the checks are
 # skipped. --old-props turns the detailed props off (WorldDetail.detail_props = false) and --no-batch the merging of
 # still pieces (WorldDetail.batching), for a before/after; --earth only measures Stars Hollow.
+# --lighting <simple|nice|best> picks the Lighting level (scripts/world_light.gd; Nice if not given), and
+# --compare-lighting also measures every spot at all three levels and prints their frame times side by side.
 # Your own save and settings are put aside (under their own names) and put back at the end.
 
 const SAVE := "user://save.json"
@@ -78,6 +80,9 @@ func _run() -> void:
 	clock.set("pulls_home", false)
 	var detail := root.get_node_or_null("WorldDetail")
 	var args := OS.get_cmdline_user_args()
+	var li := args.find("--lighting")
+	root.get_node("Settings").lighting = args[li + 1] if li >= 0 and li + 1 < args.size() else "nice"
+	report["lighting"] = root.get_node("Settings").lighting
 	if detail and "--old-props" in args:
 		detail.detail_props = false
 	if detail and "--no-batch" in args:
@@ -147,6 +152,19 @@ func _run() -> void:
 		if detail:
 			r["batch"] = detail.last_batch.duplicate()
 		report[s[0]] = r
+		if "--compare-lighting" in args:
+			var light := current_scene.get_node_or_null("World Light")
+			var line := "%-20s lighting:" % s[0]
+			for level in ["simple", "nice", "best"]:
+				if light:
+					light.set_level(level)
+				await _frames(SETTLE)
+				var rl := await _sample()
+				r["lighting_" + level] = rl
+				line += "  %s gpu %6.2f ms cpu %6.2f ms (%.0f fps)" % [level, rl.gpu_ms, rl.cpu_ms, rl.fps]
+			if light:
+				light.set_level(str(report["lighting"]))
+			print(line)
 		print("%-20s draws %5d  objects %5d  triangles %9d  cpu %6.2f ms  gpu %6.2f ms  (%.0f fps)" % [
 			s[0], r.draws, r.objects, r.triangles, r.cpu_ms, r.gpu_ms, r.fps])
 		if headless:
