@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The townsfolk think for half the time** (Hayden: "work through the whole game ... Then work on other
+  things"; the Market profile put the townsfolk at ~2 ms). New `tools/profile_townsfolk.gd [-- earth]` times each
+  person's routine and their animation; with a window it also switches the routines, the animation, the townsfolk and
+  the little aliens off in turn. Most of a routine's time was two questions it asked every physics frame,
+  `Quests.override_for()` and `Quests.needs()`, each going through every quest. `Quests._who_now()` now answers both for
+  everyone once a physics frame (and again at once when a quest changes, loads or resets). Cloud, headless: the Void's
+  11 people 283 to about 120 us a frame, Stars Hollow's 18 people 586 to about 180 to 300 us. Animation is only about
+  30 us for all of them, so the rest of their ~2 ms on the PC is drawing them. Tried and left out: thinking less often
+  and pausing animation past 100 m (tests that jump the clock need them where they should be at once, and it saved
+  little). routines, townsfolk, work, quests, dialogue and earth (both runs), party, meetings, first_night, home_calls,
+  episodes, little_aliens, following and festival pass.
 - 2026-11-23: **The minimap under half a millisecond in every place, measured as whole frames** (Hayden: "work through
   the whole game and verify the minimap isn't interfering with framerate anywhere"). Measured on Hayden's PC (RTX 4070
   SUPER) on top of the entry below, with the new `tools/profile_minimap_frame.gd [-- <scene>] [--draws] [--parts]
