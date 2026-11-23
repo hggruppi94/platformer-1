@@ -80,6 +80,14 @@ var _mini: Control
 var _mini_tex: TextureRect
 var _mini_overlay: Control
 var _mini_frame: Control                             # the compass ring, drawn over the round minimap
+var _mini_under: ColorRect                           # behind the corner map: dusk round a place's picture, grass on Earth
+# Earth's streets and buildings on the corner map. They never move, so they're drawn once onto a layer of their own
+# that slides under the minimap as she walks, instead of all being drawn again every frame (about 0.8 ms).
+var _mini_earth: Control
+var _mini_earth_sig := ""
+var _portal_node: Node3D                             # a portal world's way home, found once a place (_home_portal)
+var _portal_scene := 0
+var _portal_looked := -10.0
 var _font: Font
 var _time := 0.0
 var _placed: Array[Rect2] = []                       # labels already drawn on the big map (so they don't overlap)
@@ -104,6 +112,16 @@ var _quest_spots: Array[Node] = []
 var _index_scene := 0
 var _index_time := -INDEX_EVERY
 const INDEX_EVERY := 5.0                             # and searched again from scratch this often, just in case
+# The corner map's quest stars and people, worked out a few times a second instead of every frame (with a dozen quests
+# followed that was about a fifth of a millisecond, and the Void's townsfolk as much again). Where a star or a person
+# stands is still read every frame, from the node it belongs to, so nothing on it lags behind.
+const MINI_REFRESH := 0.25
+var _mini_marks := []
+var _mini_people := []
+var _mini_tracks := []                               # (the open race tracks and the boosters, kept the same way)
+var _mini_boosters := []
+var _mini_at := -MINI_REFRESH
+var _mini_scene := 0
 
 
 func _ready() -> void:
@@ -123,7 +141,9 @@ func _ready() -> void:
 	_build()
 	get_tree().node_added.connect(_on_node_added)
 	Settings.changed.connect(_apply_settings)
-	Quests.follow_changed.connect(func() -> void: _legend_sig = "")
+	Quests.follow_changed.connect(func() -> void:
+		_legend_sig = ""
+		_mini_at = -MINI_REFRESH)                       # (a newly followed quest's stars show straight away)
 	_apply_settings()
 
 
@@ -224,7 +244,7 @@ func people() -> Array:
 			talk = _talker(get_tree().current_scene, id)     # Mr. Palmer talks from his window, not his body
 		var name := Quests.display_name(id, str(talk.get("display_name")) if talk else id.capitalize())
 		out.append({"id": id, "name": name, "pos": body.global_position, "home": not r.call("is_present"),
-			"met": Dialogue.talk_count(id) > 0})
+			"met": Dialogue.talk_count(id) > 0, "node": body})
 	return out
 
 
@@ -240,6 +260,7 @@ func quest_markers() -> Array:
 	if s == null:
 		return out
 	var follow := Quests.live_followed()
+	var spots := _spots(s)                               # (once, not once a quest)
 	for key in follow:
 		var job := Quests.job_of(key)
 		if not job.is_empty():
@@ -254,14 +275,15 @@ func quest_markers() -> Array:
 		if step.is_empty() or Quests.is_waiting(id):
 			continue
 		var name := str(Quests.quest(id).get("name", id))
-		for spot in _spots(s):
+		for spot in spots:
 			if spot.get("quest") == id and spot.has_method("is_open") and spot.call("is_open"):
-				out.append({"pos": (spot as Node3D).global_position, "label": name, "key": id})
+				out.append({"pos": (spot as Node3D).global_position, "label": name, "key": id, "node": spot})
 		for w in step.get("where", []):
 			var entry: Dictionary = w if w is Dictionary else ({"who": w} if _talker(s, str(w)) else {"place": w})
 			if entry.has("unless") and Dialogue.flags.has(str(entry.unless)):
 				continue
 			var pos = null
+			var node: Node3D = null
 			if entry.has("at"):
 				# A spot of its own ([x, z]: the Gloop King's court out in the west fields), in the Void unless it says
 				# "world": "earth" (the First Night's glowing acorns)
@@ -270,12 +292,13 @@ func quest_markers() -> Array:
 			elif entry.has("who"):
 				var t := _talker(s, str(entry.who))
 				if t:
-					pos = (t.get_parent() as Node3D).global_position
+					node = t.get_parent() as Node3D
+					pos = node.global_position
 			elif entry.has("place") and (in_town() or on_earth()) and _paths().has(str(entry.place)):
 				var p2: Vector2 = _paths().points[str(entry.place)]
 				pos = Vector3(p2.x, 0, p2.y)
 			if pos != null:
-				out.append({"pos": pos, "label": name, "key": id})
+				out.append({"pos": pos, "label": name, "key": id, "node": node})
 	return out
 
 
@@ -405,8 +428,22 @@ func hidden_found() -> Array:
 
 
 func _home_portal() -> Node3D:
+	# Searching the whole place for it every frame cost the corner map up to a millisecond in the bigger worlds, so it's
+	# kept once found, and looked for again at most every couple of seconds while it isn't there yet
 	var s := get_tree().current_scene
-	return s.find_child("Portal Home", true, false) as Node3D if s else null
+	if s == null:
+		return null
+	if s.get_instance_id() != _portal_scene:
+		_portal_scene = s.get_instance_id()
+		_portal_node = null
+		_portal_looked = -10.0
+	if _portal_node != null and is_instance_valid(_portal_node) and _portal_node.is_inside_tree():
+		return _portal_node
+	if _time - _portal_looked < 2.0:
+		return null
+	_portal_looked = _time
+	_portal_node = s.find_child("Portal Home", true, false) as Node3D
+	return _portal_node
 
 
 # -----------------------------------------------------------------------------
@@ -469,8 +506,16 @@ func _process(delta: float) -> void:
 		_mini_tex.size = Vector2.ONE * _mini_scale_px()
 		var at := to_map(nina().global_position) * _mini_scale_px()
 		_mini_tex.position = Vector2(MINI_SIZE, MINI_SIZE) / 2.0 - at
+		var earth := on_earth()
+		_mini_earth.visible = earth
+		_mini_under.color = Color(0.32, 0.36, 0.2) if earth else Color(0.1, 0.08, 0.16)
+		if earth:
+			_mini_earth.position = _mini_tex.position
+			var sig := "%s %s %s" % [_mini_scale_px(), shows("places"), _earth.size()]
+			if sig != _mini_earth_sig:
+				_mini_earth_sig = sig
+				_mini_earth.queue_redraw()
 		_mini_overlay.queue_redraw()
-		_mini_frame.queue_redraw()
 
 
 func _map_metres() -> float:
@@ -927,17 +972,23 @@ func _build() -> void:
 	_mini.offset_right = -16 - MINI_RING
 	_mini.offset_bottom = -16 - MINI_RING
 	_mini_layer.add_child(_mini)
-	var under := ColorRect.new()                                  # round a place's picture: dusk
-	under.color = Color(0.1, 0.08, 0.16)
-	under.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	under.size = Vector2(MINI_SIZE, MINI_SIZE)
-	_mini.add_child(under)
+	_mini_under = ColorRect.new()                                 # round a place's picture: dusk
+	_mini_under.color = Color(0.1, 0.08, 0.16)
+	_mini_under.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mini_under.size = Vector2(MINI_SIZE, MINI_SIZE)
+	_mini.add_child(_mini_under)
 	_mini_tex = TextureRect.new()
 	_mini_tex.texture = _texture
 	_mini_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mini_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_mini_tex.size = Vector2.ONE * _mini_scale_px()
 	_mini.add_child(_mini_tex)
+	_mini_earth = Control.new()
+	_mini_earth.name = "Earth Streets"
+	_mini_earth.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mini_earth.visible = false
+	_mini_earth.draw.connect(func() -> void: _draw_earth(_mini_earth, Vector2.ZERO, _mini_scale_px(), false, false))
+	_mini.add_child(_mini_earth)
 	_mini_overlay = Control.new()
 	_mini_overlay.size = Vector2(MINI_SIZE, MINI_SIZE)
 	_mini_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1211,27 +1262,45 @@ func _draw_mini() -> void:
 	var c := _mini_overlay
 	var scale := _mini_scale_px()
 	var offset := _mini_tex.position
+	var s := get_tree().current_scene
+	var sid := s.get_instance_id() if s else 0
+	if _time - _mini_at >= MINI_REFRESH or sid != _mini_scene:
+		_mini_at = _time
+		_mini_scene = sid
+		_mini_marks = []
+		for q in quest_markers():
+			if shows_star(str(q.key)):
+				q["colour"] = star_colour(str(q.key))     # (each one asks for every followed quest: not every frame)
+				_mini_marks.append(q)
+		_mini_people = people() if shows("people") else []
+		_mini_tracks = open_tracks() if shows("races") else []
+		_mini_boosters = Boosters.marks() if shows("boosters") and (in_town() or on_earth()) else []
 	if on_earth():
-		c.draw_rect(Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)), Color(0.32, 0.36, 0.2))
-		_draw_earth(c, offset, scale, false)
-	_draw_races(c, offset, scale, false)
+		_draw_earth_portal(c, offset, scale, false)      # (the streets are on their own layer, _mini_earth)
+	_draw_races(c, offset, scale, false, _mini_tracks)
 	_draw_mini_places(c, offset, scale)
-	_draw_boosters(c, offset, scale, false)
+	_draw_boosters(c, offset, scale, false, _mini_boosters)
 	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
-	for q in quest_markers():
-		if not shows_star(str(q.key)):
-			continue
-		var at: Vector2 = offset + to_map(q.pos) * scale
+	for q in _mini_marks:
+		var at: Vector2 = offset + to_map(_live(q)) * scale
 		if at.distance_to(mid) > MINI_SIZE / 2.0 - 12.0:
 			at = mid + (at - mid).normalized() * (MINI_SIZE / 2.0 - 12.0)   # off the edge: pinned to the rim
-		_star(c, at, 8.0, star_colour(str(q.key)))
+		_star(c, at, 8.0, q.colour)
 	if shows("people"):
-		for p in people():
+		for p in _mini_people:
 			if not p.home and p.met:
-				var at: Vector2 = offset + to_map(p.pos) * scale
+				var at: Vector2 = offset + to_map(_live(p)) * scale
 				if Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).has_point(at):
 					c.draw_circle(at, 4.0, Color(0.55, 0.9, 1.0))
-	_arrow(c, Vector2(MINI_SIZE, MINI_SIZE) / 2.0, nina_facing(), 10.0)
+	_arrow(c, mid, nina_facing(), 10.0)
+
+
+func _live(entry: Dictionary) -> Vector3:
+	# Where a cached star or person is now: their node's place if they have one still about, else where they were
+	var n = entry.get("node")
+	if n != null and is_instance_valid(n) and (n as Node3D).is_inside_tree():
+		return (n as Node3D).global_position
+	return entry.pos
 
 
 func _draw_mini_places(c: Control, origin: Vector2, size: float) -> void:
@@ -1296,11 +1365,11 @@ func _draw_compass(c: Control = null) -> void:
 		c.draw_string(_font, pos, letter, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(1, 1, 1) if k == 0 else Color(1.0, 0.92, 0.7))
 
 
-func _draw_races(c: Control, origin: Vector2, size: float, full: bool) -> void:
+func _draw_races(c: Control, origin: Vector2, size: float, full: bool, tracks = null) -> void:
 	# The race tracks that are open (scripts/races.gd): each one's route with a flag at its start, the one being raced
 	# in gold with the next ring and the friends racing. The minimap only shows the race being run.
 	if shows("races"):
-		for tr in open_tracks():
+		for tr in (open_tracks() if tracks == null else tracks):
 			if not full and not tr.racing:
 				continue
 			var line: PackedVector3Array = tr.line
@@ -1324,13 +1393,13 @@ func _draw_races(c: Control, origin: Vector2, size: float, full: bool) -> void:
 			c.draw_arc(origin + to_map(pos) * size, 5.0 if full else 4.0, 0, TAU, 12, Color(0.25, 0.05, 0.15), 1.5)
 
 
-func _draw_boosters(c: Control, origin: Vector2, size: float, full: bool) -> void:
+func _draw_boosters(c: Control, origin: Vector2, size: float, full: bool, marks = null) -> void:
 	# The boosters (scripts/boosters.gd): a small arrow each, the way it pushes; teal for strips and ramps, gold at
 	# the start of a line of coins. The minimap only draws the ones in its window.
 	if not shows("boosters") or not (in_town() or on_earth()):
 		return
 	var r := 6.0 if full else 4.5
-	for m in Boosters.marks():
+	for m in (Boosters.marks() if marks == null else marks):
 		var at: Vector2 = origin + to_map(m.pos) * size
 		if not full and not Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).grow(-4.0).has_point(at):
 			continue
@@ -1339,7 +1408,9 @@ func _draw_boosters(c: Control, origin: Vector2, size: float, full: bool) -> voi
 
 func _apply_settings() -> void:
 	_legend_sig = ""
+	_mini_earth_sig = ""
 	_overlay.queue_redraw()
+	_mini_frame.queue_redraw()                           # (the compass is only drawn again when the text size changes)
 
 
 func _exit_tree() -> void:
@@ -1359,11 +1430,24 @@ const EARTH_COLORS := {
 }
 
 
+func _draw_earth_portal(c: Control, origin: Vector2, size: float, full: bool) -> void:
+	# The old oak only shows as a portal once it has opened for the first time (before that it's just a tree). It
+	# glows on and off, so the corner map draws it every frame over the streets' own layer.
+	if _earth.is_empty() or not HummingOak.awake() or not shows("portals"):
+		return
+	var portal: Array = _earth.portal
+	var pp := _ep(origin, size, portal[0], portal[1])
+	if portal_open():
+		var glow := 0.6 + 0.4 * sin(_time * 4.0)
+		c.draw_circle(pp, 14.0 if full else 9.0, Color(0.6, 0.3, 1.0, 0.35 * glow))
+	c.draw_arc(pp, 8.0 if full else 5.0, 0, TAU, 24, Color(0.75, 0.5, 1.0), 3.0)
+
+
 func _ep(origin: Vector2, size: float, x: float, z: float) -> Vector2:
 	return origin + to_map(Vector3(x, 0, z)) * size
 
 
-func _draw_earth(c: Control, origin: Vector2, size: float, full: bool) -> void:
+func _draw_earth(c: Control, origin: Vector2, size: float, full: bool, with_portal := true) -> void:
 	# The town from above: grass, the hill, water, streets and paths, then the buildings (walk-in ones warm orange,
 	# home pink, skate spots purple), the green and the portal
 	var px := size / _earth_size                          # pixels a metre
@@ -1415,17 +1499,13 @@ func _draw_earth(c: Control, origin: Vector2, size: float, full: bool) -> void:
 			c.draw_colored_polygon(corners, col)
 			corners.append(corners[0])
 			c.draw_polyline(corners, Color(0.15, 0.1, 0.12, 0.8), 1.0)
-	# The old oak only shows as a portal once it has opened for the first time (before that it's just a tree)
+	if with_portal:
+		_draw_earth_portal(c, origin, size, full)
+	if not full:
+		return
 	var portal: Array = _earth.portal
 	var pp := _ep(origin, size, portal[0], portal[1])
 	var oak_open := HummingOak.awake()
-	if oak_open and shows("portals"):
-		if portal_open():
-			var glow := 0.6 + 0.4 * sin(_time * 4.0)
-			c.draw_circle(pp, 14.0 if full else 9.0, Color(0.6, 0.3, 1.0, 0.35 * glow))
-		c.draw_arc(pp, 8.0 if full else 5.0, 0, TAU, 24, Color(0.75, 0.5, 1.0), 3.0)
-	if not full:
-		return
 	# Labels: the places you can go into and the big ones first, then the park's spots
 	if oak_open and shows("portals"):
 		_text(c, pp + Vector2(0, -_fs(20)), "The portal is open!" if portal_open() else "Old oak portal", _fs(15), Color(0.85, 0.7, 1.0), true, true)
