@@ -15,6 +15,12 @@ const SHOW_DISTANCE := 70.0              # walkers further than this are hidden 
 const MOVE_DISTANCE := 85.0              # ...and further than this get moved somewhere near the player
 const WALL_CHANCE := 0.3                 # how many are put on a wall when they're placed...
 const ROOF_CHANCE := 0.35                # ...and how many on a roof or the top of something
+# Their animation costs frames too (measured on Hayden's PC, 23 Nov 2026: about 0.8 ms in the Market, 41 skeletons
+# every frame). Ones further than SMOOTH_DISTANCE move their bones only every SLOW_EVERY frames (too small to tell
+# from there), and a saucer or jetpack further than FLYER_SHOW is hidden with its pilot's animation stopped.
+const SMOOTH_DISTANCE := 15.0
+const SLOW_EVERY := 3
+const FLYER_SHOW := 140.0
 
 @export var walkers := 30
 @export var saucers := 7
@@ -28,6 +34,9 @@ var _player: Node3D
 var _exclude: Array[RID] = []
 var _started := false
 var _check := 0.0
+var _slow: Array[AnimationPlayer] = []   # far-ish ones, moved on by hand every SLOW_EVERY frames (_process)
+var _slow_time := 0.0
+var _frame := 0
 
 
 # Whether a ray hit is something real an alien may stand on or land on: not the town's invisible edge walls, not
@@ -84,13 +93,43 @@ func _physics_process(delta: float) -> void:
 		return
 	_check = 0.5
 	var moved := 0
+	_slow.clear()
 	for w in _walkers:
 		var d := w.global_position.distance_to(_player.global_position)
 		w.visible = d < SHOW_DISTANCE
 		w.process_mode = Node.PROCESS_MODE_INHERIT if w.visible else Node.PROCESS_MODE_DISABLED   # animations too
+		_pace(w.get("_anim") as AnimationPlayer, w.visible, d)
 		if d > MOVE_DISTANCE and moved < 2:              # a couple at a time, so nothing pops in a crowd
 			moved += 1
 			_drop(w, _near_player())
+	for f in _flyers:
+		var d := f.global_position.distance_to(_player.global_position)
+		f.visible = d < FLYER_SHOW                       # (it still flies about, so it's somewhere else when she looks)
+		_pace(f.get("pilot_anim") as AnimationPlayer, f.visible, d)
+
+
+func _pace(anim: AnimationPlayer, shown: bool, d: float) -> void:
+	# Smooth up close, every few frames further off, and not at all when it isn't shown
+	if anim == null:
+		return
+	if not shown:
+		anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL     # (never moved on)
+	elif d > SMOOTH_DISTANCE:
+		anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+		_slow.append(anim)
+	else:
+		anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_IDLE
+
+
+func _process(delta: float) -> void:
+	_frame += 1
+	_slow_time += delta
+	if _frame % SLOW_EVERY != 0:
+		return
+	for a in _slow:
+		if is_instance_valid(a):
+			a.advance(_slow_time)
+	_slow_time = 0.0
 
 
 func _spawn_all() -> void:

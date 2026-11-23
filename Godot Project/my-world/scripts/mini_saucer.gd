@@ -19,6 +19,7 @@ const LIGHTS := 12
 
 enum State { FLY, HOVER, LANDED, TRICK }
 
+var pilot_anim: AnimationPlayer
 var pilot: Node3D
 var state := State.HOVER
 var velocity := Vector3.ZERO
@@ -52,6 +53,7 @@ func _ready() -> void:
 		LittleAliens.vary_snout(pilot)
 		pilot.position = Vector3(0, 0.08, 0) if not jetpack else Vector3(0, -0.3, 0)
 		var anim := pilot.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		pilot_anim = anim                                       # (scripts/little_aliens.gd paces it by distance)
 		var pose := "float" if jetpack else "sit"
 		if anim and anim.has_animation(pose):
 			anim.get_animation(pose).loop_mode = Animation.LOOP_LINEAR
