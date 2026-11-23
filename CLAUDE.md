@@ -99,6 +99,20 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The minimap costs next to nothing everywhere** (Hayden: "work through the whole game and verify the
+  minimap isn't interfering with framerate anywhere"). New `tools/profile_minimap.gd [-- <place>...]` (needs a window)
+  loads 21 places (the Void, Stars Hollow, the school, all nine portal worlds, two circuits, the Secret Garden, the
+  lairs, the arena, Dusk's Embrace) with a dozen quests followed and times the corner map's own work. Before, in the
+  cloud: 0.3 to 2 ms a frame everywhere. What it was, all in `scripts/map_screen.gd`: the quest stars and people were
+  worked out from scratch every frame (and each star asked again which quests are followed), Stars Hollow's streets and
+  buildings were all drawn again every frame, and in a portal world the way home was looked for by searching the whole
+  place every frame. Now the stars, people, race lines and boosters are worked out every `MINI_REFRESH` (0.25 s) while
+  where each star and person stands is still read every frame from its node (`_live()`); following a quest refreshes
+  them at once. Earth's streets are drawn once on their own layer ("Earth Streets") that slides under the minimap
+  (the oak's glow is drawn over it, `_draw_earth_portal()`); the compass ring is only drawn again when settings change;
+  `_home_portal()` keeps what it found. After: about 0.06 ms in the portal worlds, circuits and lairs, 0.3 to 0.4 ms in
+  the Void and Stars Hollow (cloud numbers; Hayden's PC is about 3 times quicker). map, following, kid_ui, quests and
+  earth (both runs), meetings, first_night, races and ui_style pass.
 - 2026-11-23: **Baked Grandfather Tock's Clockwork Tower: every gear, the Pendulum Walk's gear walls, pendulums and
   frames, the Cog Gate, the tower's round wall, the Big Clock, Tock's dais, the Cuckoo Chest and the rail posts**
   (Hayden: "keep baking details"; the next place not baked yet). Built and tested in the cloud (own Godot user folders,
