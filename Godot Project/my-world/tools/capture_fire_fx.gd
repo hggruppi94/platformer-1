@@ -6,7 +6,7 @@ extends SceneTree
 # times a moment apart so you can see it move. With --no-fire it shoots the same spots with the old flame shapes, for
 # a before and after.
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_fire_fx.gd -- <folder> [--no-fire]
+#   godot --path "Godot Project/my-world" --script res://tools/capture_fire_fx.gd -- <folder> [<place>] [--no-fire]
 #
 # Opens a window (not --headless). Your own save and settings are put aside and put back afterwards.
 
@@ -52,6 +52,8 @@ func _run() -> void:
 	root.get_node("Portals").home_calls.enabled = false
 	root.get_node("WorldDetail").fire = not ("--no-fire" in args)
 	for place: Array in PLACES:
+		if args.size() > 1 and not args[1].begins_with("--") and args[1] != place[0]:
+			continue
 		change_scene_to_file(place[1])
 		for i in 16:
 			await process_frame
@@ -100,7 +102,7 @@ func _run() -> void:
 func _flames(s: Node) -> Array:
 	var out := []
 	for n in s.find_children("*", "Node3D", true, false):
-		if n.get_node_or_null(FIRE.NAME) != null:
+		if n.get_node_or_null(FIRE.NAME) != null or n.get_node_or_null(FIRE.FLICKER_NAME) != null:
 			out.append(n)
 		elif n is MeshInstance3D and n.material_override and String(n.material_override.resource_name) in FIRE.FLAME_MATS:
 			out.append(n)

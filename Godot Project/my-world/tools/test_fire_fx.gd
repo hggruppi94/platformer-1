@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the moving pixel flames (scripts/fire_fx.gd, put in by WorldDetail): Rhythm Springs' torches and flaring
-# stones, Dark Hollow's green lamps, Lanternmoor's beacons (none while unlit, one once lit), the castle school's and
+# stones, Dark Hollow's green lamps, Lanternmoor's beacons (caged, so they flicker instead once lit), the castle school's and
 # the Haunted House's candles. Each old flame shape is see-through and never merged, each pixel flame stands on its old
 # flame's foot at a size that fits it, a hidden flame hides its pixel flame too, a green flame burns green, dressing a
 # place again adds nothing, and with the switch off there are none.
@@ -130,7 +130,24 @@ func _run() -> void:
 	lm.light_beacon(1)
 	await _frames(4)
 	b2 = lm.get_node_or_null("Beacon2/Beacon")
-	check(b2 != null and FIRE.flames_in(b2).size() == 1, "lanternmoor: lit, the beacon burns")
+	# Its flame sits inside the iron cage, so a pixel flame would poke out through the roof: it flickers instead.
+	check(b2 != null and FIRE.flames_in(b2).is_empty(), "lanternmoor: the lit beacon's caged flame gets no pixel flame")
+	var fl := FIRE.flickers_in(b2) if b2 else []
+	check(fl.size() == 1, "lanternmoor: the lit beacon's flame flickers (%d)" % fl.size())
+	if fl.size() == 1:
+		var flame: Node3D = fl[0].flame
+		var glow := b2.get_node_or_null("Glow") as Light3D
+		check(flame != null and flame.transparency < 1.0 and flame.is_visible_in_tree(), "lanternmoor: the caged flame still shows")
+		check(glow != null and glow in fl[0].lights, "lanternmoor: its light flickers with it")
+		if glow:
+			fl[0].far = 1.0e6      # the player's by the way in, far off
+			var seen := {}
+			for i in 20:
+				await process_frame
+				seen["%.2f" % glow.light_energy] = true
+			check(seen.size() > 3 and absf(glow.light_energy - 3.0) < 3.0 * 0.25,
+				"lanternmoor: the light brightens and dims a little round its own (%d steps, now %.2f)" % [seen.size(), glow.light_energy])
+		check(FIRE.dress(b2) == 0, "lanternmoor: dressing it again adds nothing")
 
 	# With the switch off there are none.
 	detail.fire = false
