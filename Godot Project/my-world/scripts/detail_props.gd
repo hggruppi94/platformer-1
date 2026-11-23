@@ -73,6 +73,8 @@ const SI_STONE := "res://models/props/shard_isle/stepping_stone.glb"
 const SI_MOUND := "res://models/props/shard_isle/cluster_base.glb"
 const SI_PLINTH := "res://models/props/shard_isle/heart_plinth.glb"
 const SI_STAND := "res://models/props/shard_isle/echo_stand.glb"
+const GK := "res://models/props/gloop_kingdom/"          # the Gloop Kingdom's (tools/build_prop_gloop_kingdom.py)
+const GK_SPIRE := Vector3(3.5, 13.0, 0.75)               # the baked goo spire's foot radius, height and top radius
 # The baked island rock's outline (tools/build_prop_shard_isle.py ISLAND, its low version 1.04 wider): radius and
 # height at size 1, from its open top down to its point
 const SI_ROCK_PROFILE := [Vector2(0.988, 0.0), Vector2(1.014, -0.03), Vector2(0.998, -0.1), Vector2(0.978, -0.25),
@@ -850,6 +852,99 @@ static func dress_shard_isle(scene: Node) -> Dictionary:
 		mmi.material_override = mat
 		mmi.visibility_range_end = 0.0             # the far rocks' crystals are 120 m off
 		mmi.set_meta("tint", key)
+	return out
+
+
+static func dress_gloop_kingdom(scene: Node) -> Dictionary:
+	# The Gloop Kingdom (22 Nov 2026, tools/build_prop_gloop_kingdom.py; scripts/gloop_kingdom.gd builds it all from
+	# shapes as it loads): the Palace Gate's towers and arch, the Royal Court's wall and stands, the throne and its
+	# dais, the Bog Road's lantern posts, the rock spires round the edge and the Royal Treasure. Each baked piece is
+	# made in the space of the plain mesh it stands in for, so it goes where that one was. The builder names only
+	# the first of each the way it means (the rest get made-up names), so they're found by their shape and material.
+	# The goo, crowns, banners, bulbs, signs and courtiers stay, and so does every collision.
+	var out := {"towers": 0, "arches": 0, "walls": 0, "stands": 0, "dais": 0, "throne": 0, "posts": 0, "spires": 0,
+		"chest": 0}
+	if scene.has_node("Detailed Kingdom"):
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Kingdom"
+	var many := {"court_wall": [], "court_stand": [], "goo_lantern": [], "goo_spire": []}
+	var counts := {"court_wall": "walls", "court_stand": "stands", "goo_lantern": "posts", "goo_spire": "spires"}
+	var throne_parts := []
+	for k in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := k as MeshInstance3D
+		if mi.has_meta(OLD_META) or mi.get_parent() == null:
+			continue
+		var parent := String(mi.get_parent().name)
+		var mat := _mat_name(mi)
+		var bm := mi.mesh as BoxMesh
+		var cm := mi.mesh as CylinderMesh
+		var kind := ""
+		if parent == "Palace Gate" and cm and mat == "Palace Stone" and is_equal_approx(cm.bottom_radius, 2.6):
+			kind = "gate_tower"
+		elif parent == "Palace Gate" and bm and bm.size.is_equal_approx(Vector3(10.8, 1.8, 2.2)):
+			kind = "gate_arch"
+		elif parent == "Royal Court" and bm and mat == "Palace Stone" and is_equal_approx(bm.size.x, 1.0) \
+				and is_equal_approx(bm.size.y, 6.0):
+			kind = "court_wall"
+		elif parent == "Royal Court" and bm and bm.size.is_equal_approx(Vector3(3.2, 6.6, 3.2)):
+			kind = "court_stand"
+		elif parent == "Throne" and cm and is_equal_approx(cm.height, 0.5):
+			kind = "throne_dais"
+		elif parent == "Throne" and bm and mat == "Royal Gold" and (bm.size.is_equal_approx(Vector3(4.6, 1.2, 3.2))
+				or bm.size.is_equal_approx(Vector3(5.0, 7.0, 0.8)) or bm.size.is_equal_approx(Vector3(0.7, 1.4, 3.0))):
+			kind = "throne"
+		elif parent == "Bog Road" and bm and bm.size.is_equal_approx(Vector3(0.25, 3.0, 0.25)):
+			kind = "goo_lantern"
+		elif parent == "WorldBounds Kingdom" and cm and mat == "Goo Rock":
+			kind = "goo_spire"
+		elif parent == "Royal Treasure" and bm and bm.size.is_equal_approx(Vector3(1.4, 0.8, 0.9)):
+			kind = "chest_box"
+		elif parent == "Lid" and bm and bm.size.is_equal_approx(Vector3(1.5, 0.3, 0.95)):
+			kind = "chest_lid"
+		if kind == "":
+			continue
+		var model := _scene(GK + kind + ".glb")
+		if model == null:
+			continue
+		_hide(mi)
+		if many.has(kind):
+			var t := mi.transform
+			if kind == "goo_spire":
+				t = t * Transform3D(Basis.from_scale(Vector3(cm.bottom_radius / GK_SPIRE.x, cm.height / GK_SPIRE.y,
+					cm.bottom_radius / GK_SPIRE.x)), Vector3.ZERO)
+				t = t.rotated_local(Vector3.UP, fposmod(t.origin.x * 0.7 + t.origin.z * 1.3, TAU))
+			var p := mi.get_parent() as Node3D
+			while p and p != scene:
+				t = p.transform * t
+				p = p.get_parent() as Node3D
+			many[kind].append(t)
+			out[counts[kind]] += 1
+		elif kind == "throne_dais" or kind == "throne":
+			# One model for the three steps, one for the chair: in the Throne's own space
+			throne_parts.append(kind)
+			var g := mi.get_parent() as Node3D
+			var name := "Detailed Dais" if kind == "throne_dais" else "Detailed Throne"
+			if not g.has_node(name):
+				var m := model.instantiate() as Node3D
+				m.name = name
+				g.add_child(m)
+				out["dais" if kind == "throne_dais" else "throne"] += 1
+		else:
+			# Its own model as a sibling with the same place (the chest's go in its node and lid, so the lid opens)
+			var m := model.instantiate() as Node3D
+			m.name = "Detailed " + kind.capitalize()
+			m.transform = mi.transform
+			mi.get_parent().add_child(m)
+			out[{"gate_tower": "towers", "gate_arch": "arches", "chest_box": "chest", "chest_lid": "chest"}[kind]] += 1
+	for kind: String in many:
+		if many[kind].is_empty():
+			continue
+		var mesh := _mesh_of(_scene(GK + kind + ".glb"))
+		_multi(holder, mesh, many[kind], "Detailed " + kind.capitalize())
+		if kind == "court_wall" or kind == "goo_spire":
+			(holder.get_node("Detailed " + kind.capitalize()) as MultiMeshInstance3D).visibility_range_end = 0.0
+	scene.add_child(holder)
 	return out
 
 
