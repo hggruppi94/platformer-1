@@ -21,6 +21,7 @@ const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
 const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
 const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
+const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -53,6 +54,12 @@ func _run() -> void:
 	root.get_node("Settings").tips = false
 	root.get_node("Clock").set("pulls_home", false)
 	detail = root.get_node("WorldDetail")
+	if "secret" in OS.get_cmdline_user_args():
+		# (only the Secret Garden: -- secret)
+		await _secret_garden()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
 	if "gloop" in OS.get_cmdline_user_args():
 		# (only the Gloop Kingdom: -- gloop)
 		await _gloop_kingdom()
@@ -151,6 +158,7 @@ func _run() -> void:
 	await _rootmind()
 	await _shard_isle()
 	await _gloop_kingdom()
+	await _secret_garden()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -679,6 +687,76 @@ func _gloop_kingdom() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the kingdom again changes nothing")
+
+
+func _secret_garden() -> void:
+	detail.detail_props = false
+	await _load(SECRET_GARDEN)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Garden") == null, "nothing baked in the garden with detailed props off")
+	detail.detail_props = true
+	await _load(SECRET_GARDEN)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Secret Garden props: ", got)
+	check(got.get("walls", 0) == 5, "all five of the garden's walls are baked lengths of ivy-covered brick (%d)" % got.get("walls", 0))
+	check(got.get("arches", 0) == 9, "the Rose Walk's arches swapped (%d)" % got.get("arches", 0))
+	check(got.get("fountain", 0) == 1 and got.get("sundial", 0) == 1 and got.get("summerhouse", 0) == 1,
+		"the fountain, sundial and summerhouse swapped")
+	check(got.get("hedges", 0) >= 40, "the maze's hedges swapped (%d)" % got.get("hedges", 0))
+	check(got.get("flowers", 0) == 9, "all nine Giant Flowers swapped (%d)" % got.get("flowers", 0))
+	check(got.get("tree", 0) == 1, "the Great Tree swapped")
+	check(got.get("benches", 0) >= 3, "the benches swapped (%d)" % got.get("benches", 0))
+	check(got.get("leaf_balls", 0) > 50, "the leafy balls are baked leaf balls (%d)" % got.get("leaf_balls", 0))
+	# Nothing plain left drawn of what was swapped
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+			continue
+		var mn := _mat_of(mi)
+		var nm := DETAIL_PROPS._base_name(mi)
+		var par := String(mi.get_parent().name)
+		var was_swapped := false
+		if mi.mesh is SphereMesh and mn in ["Hedge", "Old Leaves", "Great Leaves", "Garden Leaf", "Ivy", "Ivy Light"]:
+			was_swapped = true                   # (leafy balls, ivy)
+		elif nm in ["South Wall", "North Wall", "Side Wall", "Coping", "Outer Tree", "Arch Post", "Hedge", "Bench",
+				"Alcove Bench", "Sundial", "Sundial Face", "Summerhouse Post", "Stem", "Flower Face", "Flower Middle",
+				"Fountain Basin", "Fountain Column", "Fountain Bowl"]:
+			was_swapped = true
+		elif par == "Great Tree" and mn == "Old Bark":
+			was_swapped = true
+		if was_swapped:
+			plain += 1
+			if plain < 12:
+				print("  still plain: ", mi.get_path(), " ", mn)
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# Each MultiMesh copy stands on a piece it replaced
+	var dg := s.get_node("Detailed Garden")
+	var places := 0
+	for mmi: MultiMeshInstance3D in dg.get_children():
+		places += (mmi.get_meta("transforms") as Array).size()
+	check(places > 100, "the walls, arches, hedges, benches and leaves are MultiMeshes with a place each (%d)" % places)
+	# The flowers keep glowing brighter when the garden wakes: their baked heads' materials are in its list
+	var glows: Array = s.get("_glows")
+	var heads := 0
+	for f in s.find_children("Giant Flower *", "Node3D", true, false):
+		var h := f.get_node_or_null("Detailed Head") as Node3D
+		if h == null:
+			continue
+		for m in h.find_children("*", "MeshInstance3D", true, false):
+			var mat := (m as MeshInstance3D).get_active_material(0)
+			if mat != null and mat in glows:
+				heads += 1
+				break
+	check(heads == 9, "each flower's baked head glows with the garden (%d)" % heads)
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_secret_garden(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the garden again changes nothing")
 
 
 func _in_model(n: Node) -> bool:
