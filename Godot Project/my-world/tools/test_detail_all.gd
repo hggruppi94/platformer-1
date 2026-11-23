@@ -536,7 +536,12 @@ func _run() -> void:
 		var piece: MeshInstance3D = gr.pieces[1]
 		var made: Array = gr.made.duplicate()
 		piece.position += Vector3(0, 0.5, 0)
-		await _frames(30)
+		# (the look-over only gets a slice of each frame, so give it time to come round)
+		var waited := 0
+		while gr.live and waited < 1200:
+			await process_frame
+			waited += 1
+		await _frames(2)
 		var back := true
 		for p in gr.pieces:
 			if is_instance_valid(p) and (p as MeshInstance3D).layers == 0:
@@ -553,8 +558,8 @@ func _run() -> void:
 				gr2 = g
 				break
 		(gr2.pieces[0] as MeshInstance3D).visible = false
-		await _frames(30)
-		check(not gr2.live, "...and so does one that's hidden")
+		await _frames(1)
+		check(not gr2.live, "...and so does one that's hidden (straight away)")
 		var before: int = watch.undone
 		await _frames(120)
 		check(watch.undone == before, "nothing else in the Void moved by itself in 2 s (%d groups put back in all)" % watch.undone)
