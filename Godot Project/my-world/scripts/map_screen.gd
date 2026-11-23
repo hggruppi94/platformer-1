@@ -96,6 +96,14 @@ var _scene_age := 0.0                                # seconds since the scene s
 var zoom := 2.0                                      # opens a little zoomed in on you; kept as the player leaves it
 var _focus := Vector2(0.5, 0.5)                      # the map point (0..1) in the middle of the view
 var _dragging := false
+# Who talks where and the quests' spots in the scene she's in, kept up to date as nodes come in (_index). The minimap
+# asks for them every frame, and finding them by searching the whole scene (about 14,000 nodes in the Void) took
+# 1.2 ms a search: with a few quests followed that was 4 to 5 ms of every frame in the Void's Market.
+var _talks: Array[Node] = []
+var _quest_spots: Array[Node] = []
+var _index_scene := 0
+var _index_time := -INDEX_EVERY
+const INDEX_EVERY := 5.0                             # and searched again from scratch this often, just in case
 
 
 func _ready() -> void:
@@ -113,6 +121,7 @@ func _ready() -> void:
 		_earth_center = Vector2((float(b[0]) + float(b[2])) / 2.0, (float(b[1]) + float(b[3])) / 2.0)
 		_earth_size = maxf(float(b[2]) - float(b[0]), float(b[3]) - float(b[1])) + 8.0
 	_build()
+	get_tree().node_added.connect(_on_node_added)
 	Settings.changed.connect(_apply_settings)
 	Quests.follow_changed.connect(func() -> void: _legend_sig = "")
 	_apply_settings()
@@ -245,7 +254,7 @@ func quest_markers() -> Array:
 		if step.is_empty() or Quests.is_waiting(id):
 			continue
 		var name := str(Quests.quest(id).get("name", id))
-		for spot in s.find_children("*", "Area3D", true, false):
+		for spot in _spots(s):
 			if spot.get("quest") == id and spot.has_method("is_open") and spot.call("is_open"):
 				out.append({"pos": (spot as Node3D).global_position, "label": name, "key": id})
 		for w in step.get("where", []):
@@ -291,10 +300,44 @@ func star_name(key: String) -> String:
 
 
 func _talker(s: Node, id: String) -> Node:
-	for t in s.find_children("Talk", "Area3D", true, false):
-		if t.get("character_id") == id:
+	_index(s)
+	for t in _talks:
+		if is_instance_valid(t) and t.is_inside_tree() and t.get("character_id") == id and s.is_ancestor_of(t):
 			return t
 	return null
+
+
+func _spots(s: Node) -> Array[Node]:
+	_index(s)
+	var out: Array[Node] = []
+	for a in _quest_spots:
+		if is_instance_valid(a) and a.is_inside_tree() and s.is_ancestor_of(a):
+			out.append(a)
+	return out
+
+
+func _index(s: Node) -> void:
+	# The scene's talk spots and quest spots, searched for once and then added to as they come in (_on_node_added)
+	if s.get_instance_id() == _index_scene and _time - _index_time < INDEX_EVERY:
+		return
+	_index_scene = s.get_instance_id()
+	_index_time = _time
+	_talks.clear()
+	_quest_spots.clear()
+	for a in s.find_children("*", "Area3D", true, false):
+		_note(a)
+
+
+func _on_node_added(n: Node) -> void:
+	if n is Area3D and _index_scene != 0:
+		_note(n)
+
+
+func _note(a: Node) -> void:
+	if a.name == "Talk" and not a in _talks:
+		_talks.append(a)
+	if "quest" in a and not a in _quest_spots:
+		_quest_spots.append(a)
 
 
 func portal_open() -> bool:

@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The minimap stops searching the whole Void every frame: the Market runs at about 63 fps, not 54**
+  (Hayden: "look at what we can do to reduce frame drop in the market"). Measured on Hayden's PC (RTX 4070 SUPER).
+  - **What it was:** to draw quest stars and people, the minimap (`scripts/map_screen.gd`) searched the whole scene
+    (about 14,000 nodes in the Void) every frame: once for each followed quest (`quest_markers()`) and once more for
+    Mr. Palmer's window (`people()`, `_talker()`), about 1.2 ms a search. Switched off, the minimap alone saved 4.6 ms
+    of the Market's 19.5 ms frame.
+  - **Now** it keeps an index of the scene's talk spots and quest spots (`_index()`, `_spots()`), searched once per
+    place, added to as nodes come in (`node_added`, `_note()`) and searched again from scratch every `INDEX_EVERY` 5 s.
+    `people()` went from 1.34 ms to 0.13 ms a call. `test_perf_budget -- --void`: the Market 54 to 63 fps, over town
+    53 to 63 fps. map, following, kid_ui, quests (both runs), first_night, meetings and home_calls pass.
+  - New diagnosis tool `tools/profile_market.gd [-- <x> <z>] [--calls-only]` (needs a window): stands the player in
+    the Market, splits the frame into scripts, physics and rendering, times the minimap's calls, then switches off
+    each autoload and each part of the town in turn and says what the frame saves (paired on/off, so drift cancels).
+    Its other findings, not changed yet: the townsfolk ~2 ms, the Batch Watch ~1.8 ms, the enemies ~1.8 ms, the Market
+    Square's own drawing ~2.2 ms, the Best lighting level ~2.5 ms.
 - 2026-11-23: **Flames inside cages flicker instead of getting a pixel flame** (Hayden: "remove the lanternmoor changes
   since it looks like its clipping through. If anything clips like that, probably better to reduce the size or just add
   a light flicker effect"). `fire_fx.gd _enclosure()` finds a flame with a piece of its own group drawn round it (its box
