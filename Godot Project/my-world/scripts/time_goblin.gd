@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const SLEEP := preload("res://scripts/enemy_sleep.gd")
+
 # A Time Goblin, one of the Agent of Chaos's cheeky helpers (Hayden, Nov 1, 2026). A round teal goblin with a gold
 # pocket watch in its belly whose hands run backwards. Its trick: it remembers where it was, and when a bubble is about
 # to catch it (or it's been stomped on but not popped) it BLINKS BACK IN TIME to where it stood a couple of seconds ago,
@@ -74,6 +76,7 @@ var _loot: Node3D
 
 
 func _ready() -> void:
+	SLEEP.hide_when_far.call_deferred(get_instance_id())  # (once its look is built)
 	add_to_group("enemies")
 	add_to_group("time_goblins")
 	home = global_position
@@ -101,6 +104,8 @@ func _physics_process(delta: float) -> void:
 	if defeated:
 		return
 	_find_player()
+	if SLEEP.asleep(self, player):
+		return                                       # far from her: resting (scripts/enemy_sleep.gd)
 	_t += delta
 	_state_t -= delta
 	_blink_cd -= delta

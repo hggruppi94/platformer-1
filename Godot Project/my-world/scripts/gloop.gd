@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const SLEEP := preload("res://scripts/enemy_sleep.gd")
+
 # A Gloop: a grumpy blob of glossy green-gold goo that's always dripping (the look comes from Hayden's Gloop King
 # picture; scripts/gloop_king.gd is the King himself). It wanders near its home spot, chases Nina when she comes close, and hurts her on
 # touch. Jump on its head to pop it for XP (big ones take two stomps); rolling into it, or ramming it on the skateboard
@@ -71,6 +73,7 @@ var _alert := 0.0                             # >0 while a packmate's called it 
 
 
 func _ready() -> void:
+	SLEEP.hide_when_far.call_deferred(get_instance_id())  # (once its look is built)
 	add_to_group("enemies")
 	home = global_position
 	target = home
@@ -106,6 +109,8 @@ func _physics_process(delta: float) -> void:
 	if defeated:
 		return
 	_find_player()
+	if SLEEP.asleep(self, player):
+		return                                       # far from her: resting (scripts/enemy_sleep.gd)
 	_t += delta
 
 	# Decide where to go: chase Nina if she's close (and not still blinking from a hit), otherwise amble about home

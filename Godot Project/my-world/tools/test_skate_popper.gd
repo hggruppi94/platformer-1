@@ -52,6 +52,8 @@ func _run() -> void:
 	settings.last_device = "keyboard"
 	settings.tips = false
 	settings.skate_assist = 1
+	game._reset_state()                                    # (a new game's state, not Hayden's progress from his save)
+	game.needs_creator = false
 	game._resume = {}
 	game.pending_message = ""
 	game.riding = false

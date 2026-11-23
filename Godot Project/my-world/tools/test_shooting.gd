@@ -49,6 +49,8 @@ func _run() -> void:
 	settings.use_layout("classic")
 	settings.last_device = "keyboard"
 	settings.tips = false
+	game._reset_state()                                    # (a new game's state, not Hayden's progress from his save)
+	game.needs_creator = false
 	game._resume = {}
 	game.pending_message = ""
 	game.riding = false

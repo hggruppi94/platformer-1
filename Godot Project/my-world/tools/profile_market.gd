@@ -51,7 +51,7 @@ func _run() -> void:
 		await process_frame
 	var args := OS.get_cmdline_user_args()
 	var spot := Vector3(-72, 0, 63)
-	if args.size() >= 2:
+	if args.size() >= 2 and args[0].is_valid_float():
 		spot = Vector3(float(args[0]), 0, float(args[1]))
 	var player := current_scene.find_child("Player", true, false) as Node3D
 	var space := (player as Node3D).get_world_3d().direct_space_state
@@ -75,6 +75,10 @@ func _run() -> void:
 	_count_scripts()
 	_time_calls()
 	if "--calls-only" in OS.get_cmdline_user_args():
+		_finish()
+		return
+	if "--split" in OS.get_cmdline_user_args():
+		await _split()
 		_finish()
 		return
 	# One thing off at a time: what the frame saves without it.
@@ -105,6 +109,80 @@ func _run() -> void:
 		_line("off: %s" % row[1], row[2], row[3])
 	print("player ended at ", player.global_position)
 	_finish()
+
+
+func _split() -> void:
+	# --split: the townsfolk and enemies taken apart, one part off at a time (their scripts, their animation, their
+	# physics, drawing them), so the cost of each part shows.
+	# (the parts of the town to take apart: the names after --split, or the enemies)
+	var names := []
+	var args := OS.get_cmdline_user_args()
+	for k in range(args.find("--split") + 1, args.size()):
+		names.append(args[k])
+	if names.is_empty():
+		names = ["Enemies"]
+	var parts := []
+	for nm in names:
+		var top := current_scene.get_node_or_null(str(nm))
+		if top == null:
+			print("no %s in the town" % nm)
+			continue
+		var scripted := {}
+		var anims: Array[Node] = []
+		var bodies: Array[Node] = []
+		var meshes: Array[Node] = []
+		var stack: Array[Node] = [top]
+		while stack:
+			var n: Node = stack.pop_back()
+			stack.append_array(n.get_children())
+			if n is AnimationPlayer or n is AnimationTree:
+				anims.append(n)
+			if n is CharacterBody3D or n is RigidBody3D:
+				bodies.append(n)
+			if n is GeometryInstance3D and n.visible:
+				meshes.append(n)
+			var sc: Script = n.get_script()
+			if sc and (n.is_processing() or n.is_physics_processing()):
+				var key := sc.resource_path.get_file()
+				if not scripted.has(key):
+					scripted[key] = []
+				scripted[key].append(n)
+		print("%s: %d animation players, %d bodies, %d meshes shown" % [top.name, anims.size(), bodies.size(), meshes.size()])
+		for key in scripted:
+			var list: Array = scripted[key]
+			print("  %-28s %d" % [key, list.size()])
+			parts.append(["%s %s scripts (%d)" % [top.name, key, list.size()], func(off: bool) -> void:
+				for n in list:
+					n.set_process(not off and n.has_method("_process"))
+					n.set_physics_process(not off and n.has_method("_physics_process"))])
+		parts.append(["%s animation" % top.name, func(off: bool) -> void:
+			for n in anims:
+				n.set("active", not off)])
+		parts.append(["%s drawn" % top.name, func(off: bool) -> void:
+			for n in meshes:
+				n.visible = not off])
+		parts.append(["%s processing off" % top.name, func(off: bool) -> void:
+			top.process_mode = Node.PROCESS_MODE_DISABLED if off else Node.PROCESS_MODE_INHERIT])
+	var rows := []
+	for part in parts:
+		var on := await _sample()
+		part[1].call(true)
+		await _frames(SETTLE)
+		var r := await _sample()
+		part[1].call(false)
+		await _frames(SETTLE)
+		var on2 := await _sample()
+		part[1].call(true)
+		await _frames(SETTLE)
+		var r2 := await _sample()
+		part[1].call(false)
+		await _frames(SETTLE)
+		rows.append([(on.frame_ms + on2.frame_ms - r.frame_ms - r2.frame_ms) / 2.0, part[0], r, on])
+	print("--- parts switched off one at a time (frame ms saved) ---")
+	for row in rows:
+		print("%-48s saves %+.2f ms   (process %+.2f physics %+.2f render cpu %+.2f gpu %+.2f)" % [row[1], row[0],
+			row[3].process_ms - row[2].process_ms, row[3].physics_ms - row[2].physics_ms,
+			row[3].cpu_ms - row[2].cpu_ms, row[3].gpu_ms - row[2].gpu_ms])
 
 
 func _time_calls() -> void:

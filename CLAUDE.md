@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **Enemies a long way off rest and aren't drawn: the Market's enemies cost ~0.2 ms, not 1.8** (Hayden:
+  "work on other things" after the minimap; the cloud took the townsfolk). Measured on Hayden's PC (RTX 4070 SUPER).
+  - **What it was** (`tools/profile_market.gd -- --split [<town node>...]`, new: takes a part of the town apart, its
+    scripts, animation and drawing, one at a time, paired on/off): the town's 26 enemies thought every physics frame
+    wherever they were (time goblins ~1.1 ms, Gloops ~1.0, Crocodillos ~0.5) and their 1,180 little meshes were drawn
+    from across the town (~1.3 ms).
+  - **Now** (`scripts/enemy_sleep.gd`, no class_name): a Gloop, Time Goblin, Crocodillo or Fizzler (and every boss built
+    on them) further than `FAR` 90 m from her (times its size) rests where it is, and its meshes stop being drawn at the
+    same distance (`visibility_range_end`, set once its look is built), so anything she can see is awake. Respawns are
+    Timers, so they carry on.
+  - Tests: gloop_king, boss_versions, time_goblins (its watch check now stands near the goblin), arena, wilds, shooting,
+    arsenal, skate_popper, boss_lairs, gloop_kingdom, chaos_fight, jelly_crowd, boss_moves, playtest_nov14b,
+    request_board, boss_tells, guardians, far_future. test_shooting, test_arsenal, test_skate_popper and test_boss_moves
+    failed on main on the PC because they started from Hayden's progress (his blueprints, gadgets): they now start from
+    a new game's state (`game._reset_state()`).
+  - **Never run two tests at once on the PC**: they share the save's backup name, and one can put its test save back as
+    the real one (it nearly happened here; the save was saved from another backup).
+
 - 2026-11-23: **Grandfather Tock's Clockwork Tower is a climb now: the Clock Floor is 30 m up, and the way there spirals up
   the inside of the tower past things that knock you all the way back down** (Hayden: "I want the clock tower to have
   multiple levels that knock you down to the bottom ... with sniper enemies, rolling boulder obstacles etc"; our own
