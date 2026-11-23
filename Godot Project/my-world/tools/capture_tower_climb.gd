@@ -89,11 +89,30 @@ func _run() -> void:
 	views.append(["08_gear_lift", Vector3(5, 3, 46), Vector3(0, 1, 54)])
 	views.append(["09_clock_floor_from_bridge", pp.call(bs, 22.0) + up * 1.4, Vector3(0, 31, 80)])
 	views.append(["10_outside_climb_wide", Vector3(0, 16, 50), Vector3(0, 14, 84)])
+	# The Clockwork Passage (its pistons and shutters posed, since the tower's frozen for the pictures)
+	var pis: Array = s.get("_pistons")
+	for k in pis.size():
+		pis[k].e = [0.9, 0.0, 0.5][k % 3]
+		s.call("_place_ram", pis[k])
+	var shs: Array = s.get("_shutters")
+	(shs[0].plate as Node3D).position.y = 0.4
+	var ps := func(u: float, r := -1.0) -> Vector3: return s.call("passage_point", u, r)
+	var mid: float = s.call("pass_mid")
+	views.append(["11_walkway_shut", pp.call(ledge - 0.035) + up, pp.call(ledge + 0.01) + up * 0.8])
+	views.append(["12_into_the_passage", pp.call(ledge, 26.0) + up, pp.call(ledge, 31.5) + up * 0.7])
+	views.append(["13_pistons", ps.call(0.04) + up, ps.call(0.24) + up * 0.6])
+	views.append(["14_tick_tock_shutters", ps.call(0.34) + up, ps.call(0.52) + up * 0.6])
+	views.append(["15_key_room", ps.call(0.66, PASS_IN_R) + up, ps.call(0.66, 37.0) + up * 0.5])
+	views.append(["16_cog_door", ps.call(0.8) + up, ps.call(0.93) + up * 0.9])
+	views.append(["17_passage_way_out", pp.call(float(s.call("exit_s")), mid) + up, pp.call(float(s.call("exit_s")), 22.0) + up * 0.6])
 	for v in views:
 		cam.global_position = v[1]
 		cam.look_at(v[2])
 		await _shot(v[0])
 	_finish()
+
+
+const PASS_IN_R := 29.0
 
 
 func _shot(file: String) -> void:

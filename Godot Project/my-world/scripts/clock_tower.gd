@@ -50,7 +50,7 @@ const SHAFT_R := 26.3                           # the middle of the tower's wall
 const SHAFT_H := TOP + 18.0                     # how high the wall stops you (it's drawn up to TOP; the bays above)
 const DOOR_HALF := 0.14                         # the way in from the Cog Gate (radians each side of south)
 const DOOR_H := 9.0
-const ALCOVE_S := [0.47, 0.58, 0.67, 0.76, 0.85]   # the first is the Halfway Ledge
+const ALCOVE_S := [0.47, 0.67, 0.76, 0.85]       # the first is the Halfway Ledge, the second where the Passage comes out
 const ALCOVE_DEEP := 28.4
 const ALCOVE_H := 3.8
 const HAND_S := [0.1, 0.18, 0.26, 0.34]         # the Swinging Hands
@@ -59,7 +59,7 @@ const SWING_HIGH := 6.6                         # the pivot over the walkway
 const SWING_AMP := 0.42
 const SWING_PERIOD := 2.8
 const SPOOL_START := 0.99                       # Cog Spools come out of a hatch here and roll down...
-const SPOOL_END := 0.52                         # ...and tip off the edge here, just above the Halfway Ledge
+const SPOOL_END := 0.69                         # ...and tip off where the walkway's shut, just above the Passage's way out
 const SPOOL_R := 0.85
 const SPOOL_LEN := 3.4
 const SPOOL_SPEED := 6.5
@@ -74,6 +74,24 @@ const SNIPER_TURN := 2.0                        # radians a second
 const SNIPER_EVERY := 3.6
 const SNIPER_COLOUR := Color(1.0, 0.68, 0.28)
 const LIFT_AT := Vector3(0, 0, 54)
+# The Clockwork Passage: past the Halfway Ledge the walkway's shut, and the way on is a hallway inside the tower's wall
+# that winds round to the next alcove up. Its floor rises just as the walkway would (so s_at() still says how far up).
+const PASS_IN := 28.6                           # its inner wall (the alcoves' backs were here)
+const PASS_OUT := 32.3                          # its outer wall
+const PASS_H := 4.2
+const PASS_STEP := 0.02                         # one slice of it (radians)
+const PASS_CAP := 0.1                           # how far it runs on past each alcove's doorway
+const PISTONS := [0.12, 0.2, 0.28]              # how far along (0 at the Halfway Ledge's end, 1 at the far end)
+const PISTON_EVERY := 2.6
+const SHUTTERS := [0.42, 0.5]                   # the Tick-Tock Shutters
+const SHUTTER_EVERY := 4.0
+const SHUTTER_SHUT := 1.5                       # seconds each one stays down
+const KEY_ROOM := 0.66                          # the Key Room off the outer wall
+const KEY_ROOM_HALF := 0.09                     # (radians each side)
+const KEY_DOOR_HALF := 0.04
+const KEY_ROOM_OUT := 38.3
+const COG_DOOR := 0.93
+const PUSH_BACK := 7.0
 const PENDULUMS := [14.0, 22.0, 30.0]           # z of each pendulum across the walk
 const PIVOT_Y := 12.0
 const ARM := 10.8                               # pivot to bob
@@ -99,6 +117,17 @@ var _alcoves: Array = []                        # [{j, a, s, y}]
 var _knocked := false
 var _knock_y := 0.0
 var _bonk_said := false
+var has_key := false                            # the Cog Key, this visit
+var door_open := false                          # the Cog Door at the Passage's far end
+var pushes := 0                                 # how many times a piston or shutter's pushed you back (for tests)
+var _pistons: Array = []                        # [{ram, lamp, ua, k, e}]
+var _shutters: Array = []                       # [{node, shape, ua, k, shut}]
+var _key: Node3D
+var _cog_door: Node3D
+var _door_shape: CollisionShape3D
+var _door_told := false
+var _push_told := false
+var _pass_goblins: Array[Node3D] = []
 
 
 func lair_id() -> String:
@@ -135,6 +164,7 @@ func _build() -> void:
 	_shaft()
 	_spiral()
 	_climb_bits()
+	_passage()
 	_clock_floor()
 	_sky_cogs()
 	_goblins()
@@ -565,7 +595,11 @@ func _spiral() -> void:
 	var plank_b := Color(0.55, 0.36, 0.22)
 	var rim := Color(0.9, 0.66, 0.28)
 	var stone := Color(0.3, 0.17, 0.13)
+	var shut_lo := int(_alcoves[0].j) + 2                    # the walkway's shut between the Halfway Ledge...
+	var shut_hi := int(_alcoves[1].j) - 3                    # ...and where the Passage comes out
 	for j in n:
+		if j >= shut_lo and j <= shut_hi:
+			continue
 		var a0 := A0 - j * STEP_A
 		var a1 := A0 - (j + 1) * STEP_A
 		var y0 := _y_of(j * STEP_A / SWEEP)
@@ -587,6 +621,12 @@ func _spiral() -> void:
 		if y0 >= 3.0:
 			_quad(st, faces, [_local(a0, R_IN, y0 - DEPTH), _local(a0, ro, y0 - DEPTH), _local(a1, ro, y1 - DEPTH), _local(a1, R_IN, y1 - DEPTH)],
 				Vector3.DOWN, stone, true)
+	for j: int in [shut_lo, shut_hi + 1]:                          # (the walkway's ends either side of the gap)
+		var ea := A0 - j * STEP_A
+		var ey := _y_of(j * STEP_A / SWEEP)
+		var tangent := Vector3(cos(ea), 0, -sin(ea)) * (1.0 if j == shut_lo else -1.0)
+		_quad(st, faces, [_local(ea, R_IN, ey), _local(ea, R_OUT, ey), _local(ea, R_OUT, ey - DEPTH), _local(ea, R_IN, ey - DEPTH)],
+			tangent, stone, true)
 	var mi := MeshInstance3D.new()
 	mi.name = "Tower Climb"
 	mi.mesh = st.commit()
@@ -685,11 +725,11 @@ func _climb_bits() -> void:
 			var bs := BoxShape3D.new()
 			bs.size = Vector3(0.25, ALCOVE_H + 0.3, 1.9)
 			_solid(bits, "Alcove Side Body", bs, w.position, Vector3(0, sa, 0))
-		var back := _box(bits, "Alcove Back", Vector3(3.6, ALCOVE_H + 0.3, 0.3), _local(a, 28.55, y + ALCOVE_H / 2.0), stone, false)
-		back.basis = Basis(Vector3.UP, a)
-		var bb := BoxShape3D.new()
-		bb.size = Vector3(3.6, ALCOVE_H + 0.3, 0.3)
-		_solid(bits, "Alcove Back Body", bb, back.position, Vector3(0, a, 0))
+		if i <= 1:
+			# The Halfway Ledge and the next alcove up open into the Clockwork Passage (no back wall)
+			pass
+		else:
+			_alcove_back(bits, stone, a, y)
 		var roof := _box(bits, "Alcove Top", Vector3(3.6, 0.3, 2.6), _local(a, 27.5, y + ALCOVE_H + 0.15), stone, false)
 		roof.basis = Basis(Vector3.UP, a)
 		_ball(bits, "Alcove Lamp", 0.22, _local(a, 28.2, y + ALCOVE_H - 0.6), _teal(), false)
@@ -700,7 +740,7 @@ func _climb_bits() -> void:
 		l.position = _local(a, 27.6, y + ALCOVE_H - 0.8)
 		bits.add_child(l)
 		if i == 0:
-			_sign(bits, "HALFWAY LEDGE\nthe Gear Lift brings you back here", _local(a + 0.035, 27.7, y), a + PI, Color(0.32, 0.18, 0.12))
+			_sign(bits, "HALFWAY LEDGE\nthe way up's through the wall", _local(a + 0.035, 27.7, y), a + PI, Color(0.32, 0.18, 0.12))
 	# The bridge from the top landing onto the Clock Floor
 	_box(bits, "Bridge", Vector3(4.6, 0.5, 4.0), _local(PI, 20.35, TOP - 0.25), _brass())
 	# The brass column up the middle, with gears turning on it
@@ -777,6 +817,8 @@ func _climb_bits() -> void:
 func _lift_offer() -> String:
 	if best >= 1.0:
 		return "ride the Gear Lift to the top"
+	if door_open and best >= exit_s() - 0.004:
+		return "ride the Gear Lift past the Clockwork Passage"
 	if not _alcoves.is_empty() and best >= ledge_s() - 0.01:
 		return "ride the Gear Lift to the Halfway Ledge"
 	return ""
@@ -786,7 +828,11 @@ func _ride_lift() -> void:
 	var p := _player as CharacterBody3D
 	if p == null:
 		return
-	var to := path_point(bridge_s()) if best >= 1.0 else path_point(ledge_s(), 27.0)
+	var to := path_point(ledge_s(), 27.0)
+	if best >= 1.0:
+		to = path_point(bridge_s())
+	elif door_open and best >= exit_s() - 0.004:
+		to = path_point(exit_s(), 27.0)
 	Fx.burst(self, p.global_position, Color(0.9, 0.7, 0.3), 14, 0.1, 3.0, 2.0)
 	p.global_position = to + Vector3(0, 1.0, 0)
 	p.velocity = Vector3.ZERO
@@ -815,6 +861,472 @@ func _place_snipers() -> void:
 		_snipers.append({"goblin": g, "cd": 2.0 + k * 0.9, "wind": -1.0})
 
 
+func _alcove_back(bits: Node3D, stone: Material, a: float, y: float) -> void:
+	var back := _box(bits, "Alcove Back", Vector3(3.6, ALCOVE_H + 0.3, 0.3), _local(a, 28.55, y + ALCOVE_H / 2.0), stone, false)
+	back.basis = Basis(Vector3.UP, a)
+	var bb := BoxShape3D.new()
+	bb.size = Vector3(3.6, ALCOVE_H + 0.3, 0.3)
+	_solid(bits, "Alcove Back Body", bb, back.position, Vector3(0, a, 0))
+
+
+# -----------------------------------------------------------------------------
+# The Clockwork Passage: a hallway inside the tower's wall from the Halfway Ledge round to the next alcove up
+# -----------------------------------------------------------------------------
+# A spot along it is "u": 0 just past the Halfway Ledge's doorway, 1 at its far end. Its angles are the spiral's own
+# (they keep going down past -TAU), so its floor is exactly as high as the walkway would be there.
+func _pass_from() -> float:
+	return float(_alcoves[0].a) + PASS_CAP
+
+
+func _pass_to() -> float:
+	return float(_alcoves[1].a) - PASS_CAP
+
+
+func pass_ua(u: float) -> float:
+	return lerpf(_pass_from(), _pass_to(), u)
+
+
+func _pass_y(ua: float) -> float:
+	return _y_of((A0 - ua) / SWEEP)
+
+
+func pass_mid() -> float:
+	return (PASS_IN + PASS_OUT) / 2.0
+
+
+func passage_point(u: float, r := -1.0) -> Vector3:
+	# The floor of the Passage at u (in the world)
+	var ua := pass_ua(u)
+	return global_transform * _local(ua, pass_mid() if r < 0.0 else r, _pass_y(ua))
+
+
+func exit_s() -> float:
+	return float(_alcoves[1].s)
+
+
+func _tangent(ua: float) -> Vector3:
+	# Back along the Passage (towards the Halfway Ledge), in the lair's space
+	return Vector3(cos(ua), 0, -sin(ua))
+
+
+func _passage() -> void:
+	var from := _pass_from()
+	var to := _pass_to()
+	var room := pass_ua(KEY_ROOM)
+	var doors := [float(_alcoves[0].a), float(_alcoves[1].a)]
+	# The slices' edges: an even step, plus the doorways' and the Key Room's edges so the walls line up with them
+	var edges: Array = []
+	var n := ceili((from - to) / PASS_STEP)
+	for i in n + 1:
+		edges.append(maxf(from - i * PASS_STEP, to))
+	for d in doors:
+		for side in [-0.06, 0.06]:
+			if d + side < from and d + side > to:
+				edges.append(d + side)
+	for e in [room - KEY_ROOM_HALF, room - KEY_DOOR_HALF, room + KEY_DOOR_HALF, room + KEY_ROOM_HALF]:
+		edges.append(e)
+	edges.sort()
+	edges.reverse()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var faces := PackedVector3Array()
+	var stone := Color(0.34, 0.19, 0.15)
+	var dark := Color(0.2, 0.12, 0.1)
+	var grate_a := Color(0.5, 0.36, 0.22)
+	var grate_b := Color(0.42, 0.3, 0.2)
+	var brass := Color(0.85, 0.62, 0.26)
+	for i in edges.size() - 1:
+		var a0: float = edges[i]
+		var a1: float = edges[i + 1]
+		if a0 - a1 < 0.0005:
+			continue
+		var m := (a0 + a1) / 2.0
+		var y0 := _pass_y(a0)
+		var y1 := _pass_y(a1)
+		var radial := Vector3(sin(m), 0, cos(m))
+		var in_room := absf(m - room) < KEY_ROOM_HALF
+		var ro := KEY_ROOM_OUT if in_room else PASS_OUT
+		var ri := PASS_IN - 0.3
+		# The floor (with a brass strip down the middle) and the ceiling
+		_quad(st, faces, [_local(a0, ri, y0), _local(a1, ri, y1), _local(a1, ro, y1), _local(a0, ro, y0)], Vector3.UP,
+			grate_a if i % 2 == 0 else grate_b, true)
+		var mid := pass_mid()
+		_quad(st, PackedVector3Array(), [_local(a0, mid - 0.2, y0 + 0.01), _local(a1, mid - 0.2, y1 + 0.01), _local(a1, mid + 0.2, y1 + 0.01),
+			_local(a0, mid + 0.2, y0 + 0.01)], Vector3.UP, brass, false)
+		_quad(st, faces, [_local(a0, ri, y0 + PASS_H), _local(a0, ro, y0 + PASS_H), _local(a1, ro, y1 + PASS_H), _local(a1, ri, y1 + PASS_H)],
+			Vector3.DOWN, dark, true)
+		# The inner wall (with the two doorways through to the alcoves)
+		var doorway := false
+		for d in doors:
+			if absf(m - float(d)) < 0.06:
+				doorway = true
+		if not doorway:
+			_quad(st, faces, [_local(a0, PASS_IN, y0), _local(a0, PASS_IN, y0 + PASS_H), _local(a1, PASS_IN, y1 + PASS_H), _local(a1, PASS_IN, y1)],
+				radial, stone, true)
+		# The outer wall (the Key Room's doorway in it), and the room's own back
+		if not (in_room and absf(m - room) < KEY_DOOR_HALF):
+			_quad(st, faces, [_local(a0, PASS_OUT, y0), _local(a1, PASS_OUT, y1), _local(a1, PASS_OUT, y1 + PASS_H), _local(a0, PASS_OUT, y0 + PASS_H)],
+				-radial, stone, true)
+		if in_room:
+			_quad(st, faces, [_local(a0, ro, y0), _local(a1, ro, y1), _local(a1, ro, y1 + PASS_H), _local(a0, ro, y0 + PASS_H)], -radial, stone, true)
+		# The outside, seen from the walk below: its underside and its outer face
+		_quad(st, PackedVector3Array(), [_local(a0, ri, y0 - 0.4), _local(a0, ro + 0.4, y0 - 0.4), _local(a1, ro + 0.4, y1 - 0.4),
+			_local(a1, ri, y1 - 0.4)], Vector3.DOWN, stone, false)
+		_quad(st, PackedVector3Array(), [_local(a0, ro + 0.4, y0 - 0.4), _local(a0, ro + 0.4, y0 + PASS_H + 0.4),
+			_local(a1, ro + 0.4, y1 + PASS_H + 0.4), _local(a1, ro + 0.4, y1 - 0.4)], radial, stone, false)
+		_quad(st, PackedVector3Array(), [_local(a0, ri, y0 + PASS_H + 0.4), _local(a1, ri, y1 + PASS_H + 0.4), _local(a1, ro + 0.4, y1 + PASS_H + 0.4),
+			_local(a0, ro + 0.4, y0 + PASS_H + 0.4)], Vector3.UP, stone, false)
+	# The Key Room's side walls, and the Passage's two ends
+	for e in [room - KEY_ROOM_HALF, room + KEY_ROOM_HALF]:
+		var ey := _pass_y(e)
+		_quad(st, faces, [_local(e, PASS_OUT, ey), _local(e, KEY_ROOM_OUT, ey), _local(e, KEY_ROOM_OUT, ey + PASS_H), _local(e, PASS_OUT, ey + PASS_H)],
+			_tangent(e), stone, true)
+	for e in [from, to]:
+		var ey := _pass_y(e)
+		_quad(st, faces, [_local(e, PASS_IN - 0.3, ey), _local(e, PASS_OUT + 0.4, ey), _local(e, PASS_OUT + 0.4, ey + PASS_H),
+			_local(e, PASS_IN - 0.3, ey + PASS_H)], _tangent(e), stone, true)
+	var mi := MeshInstance3D.new()
+	mi.name = "Clockwork Passage"
+	mi.mesh = st.commit()
+	var mat := _mat("Passage Stone", Color(1, 1, 1), 0.85)
+	mat.vertex_color_use_as_albedo = true
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mi.material_override = mat
+	add_child(mi)
+	var shape := ConcavePolygonShape3D.new()
+	shape.backface_collision = true
+	shape.set_faces(faces)
+	_solid(self, "Clockwork Passage Body", shape, Vector3.ZERO)
+	var bits := Node3D.new()
+	bits.name = "Passage Bits"
+	add_child(bits)
+	_passage_dressing(bits, from, to, room)
+	_passage_pistons(bits)
+	_passage_shutters(bits)
+	_key_room(bits, room)
+	_cog_door_build(bits)
+	_shut_gate(bits)
+
+
+func _passage_dressing(bits: Node3D, from: float, to: float, room: float) -> void:
+	# Teal lamps and little turning gears along the inner wall, and the Passage's name over its way in
+	var k := 0
+	var ua := from - 0.12
+	while ua > to + 0.05:
+		var y := _pass_y(ua)
+		var radial := Vector3(sin(ua), 0, cos(ua))
+		if k % 2 == 0:
+			var at := _local(ua, PASS_IN + 0.18, y + 3.1)
+			_ball(bits, "Passage Lamp", 0.2, at, _teal(), false)
+			var l := OmniLight3D.new()
+			l.light_color = Color(0.5, 1.0, 0.9)
+			l.light_energy = 1.3
+			l.omni_range = 7.0
+			l.position = at + radial * 0.8
+			bits.add_child(l)
+		elif absf(ua - room) > KEY_ROOM_HALF + 0.03:
+			_gear(bits, _rng.randf_range(0.7, 1.1), _local(ua, PASS_IN + 0.1, y + 2.1), radial,
+				_rng.randf_range(0.6, 1.2) * (1.0 if k % 4 == 1 else -1.0))
+		k += 1
+		ua -= 0.13
+	var al: Dictionary = _alcoves[0]
+	var sign := Label3D.new()
+	sign.name = "Passage Name"
+	sign.text = "THE CLOCKWORK PASSAGE"
+	sign.font_size = 40
+	sign.pixel_size = 0.006
+	sign.modulate = Color(1.0, 0.85, 0.45)
+	sign.outline_size = 8
+	sign.outline_modulate = Color(0.12, 0.08, 0.15)
+	sign.position = _local(float(al.a), 27.0, float(al.y) + ALCOVE_H - 0.35)
+	sign.rotation.y = float(al.a) + PI                        # (its words face in, towards the walkway)
+	bits.add_child(sign)
+
+
+func _passage_pistons(bits: Node3D) -> void:
+	# Pistons that punch out of the outer wall across the Passage: wait for one to pull back, then run past
+	var red := _mat("Piston Lamp", Color(1.0, 0.3, 0.2), 0.4, 0.0)
+	for k in PISTONS.size():
+		var ua := pass_ua(float(PISTONS[k]))
+		var y := _pass_y(ua)
+		var mount := Node3D.new()
+		mount.name = "Piston"
+		mount.transform = Transform3D(Basis(Vector3.UP, ua), _local(ua, 0.0, y))   # (its +Z points out along the radius)
+		bits.add_child(mount)
+		_box(mount, "Piston Housing", Vector3(2.4, 2.8, 4.0), Vector3(0, 1.4, PASS_OUT + 2.4), _wood(), false)
+		var ram := Node3D.new()
+		ram.name = "Ram"
+		mount.add_child(ram)
+		_box(ram, "Ram Rod", Vector3(1.0, 1.0, 3.6), Vector3(0, 1.2, 1.8), _brass(), false)
+		_box(ram, "Ram Plate", Vector3(1.7, 2.2, 0.3), Vector3(0, 1.2, 0.15), _brass(), false)
+		var lamp := _ball(mount, "Piston Light", 0.22, Vector3(0, 3.2, PASS_OUT - 0.2), red, false)
+		_pistons.append({"ram": ram, "lamp": lamp, "ua": ua, "k": k, "e": 0.0})
+		_place_ram(_pistons[k])
+
+
+func _place_ram(pi: Dictionary) -> void:
+	var face := lerpf(PASS_OUT - 0.05, PASS_IN + 0.35, float(pi.e))
+	(pi.ram as Node3D).position = Vector3(0, 0, face)
+
+
+func _passage_shutters(bits: Node3D) -> void:
+	# The Tick-Tock Shutters: heavy brass shutters that drop from the ceiling and lift again with the tick
+	for k in SHUTTERS.size():
+		var ua := pass_ua(float(SHUTTERS[k]))
+		var y := _pass_y(ua)
+		var mount := Node3D.new()
+		mount.name = "Tick-Tock Shutter"
+		mount.transform = Transform3D(Basis(Vector3.UP, ua), _local(ua, pass_mid(), y))
+		bits.add_child(mount)
+		var w := PASS_OUT - PASS_IN
+		_box(mount, "Shutter Housing", Vector3(1.2, 1.0, w + 0.6), Vector3(0, PASS_H + 0.9, 0), _wood(), false)
+		var plate := Node3D.new()
+		plate.name = "Shutter Plate"
+		mount.add_child(plate)
+		_box(plate, "Shutter Face", Vector3(0.45, PASS_H, w - 0.04), Vector3(0, PASS_H / 2.0, 0), _brass(), false)
+		for b in 3:
+			_box(plate, "Shutter Bar", Vector3(0.55, 0.25, w - 0.1), Vector3(0, 0.6 + b * 1.3, 0), _wood(), false)
+		var body := StaticBody3D.new()
+		body.name = "Shutter Body"
+		mount.add_child(body)
+		var cs := CollisionShape3D.new()
+		var bs := BoxShape3D.new()
+		bs.size = Vector3(0.45, PASS_H, w)
+		cs.shape = bs
+		cs.position = Vector3(0, PASS_H / 2.0, 0)
+		cs.disabled = true
+		body.add_child(cs)
+		_shutters.append({"plate": plate, "shape": cs, "ua": ua, "k": k, "shut": false, "ph": 0.0})
+
+
+func _key_room(bits: Node3D, room: float) -> void:
+	# A room off the outer wall: the Cog Key on a pedestal, two Time Goblins minding it and a little chest
+	var y := _pass_y(room)
+	var kr := (PASS_OUT + KEY_ROOM_OUT) / 2.0 + 0.6
+	_cyl(bits, "Key Pedestal", 0.55, 0.7, 1.0, _local(room, kr, y + 0.5), _brass())
+	var l := OmniLight3D.new()
+	l.light_color = Color(1.0, 0.8, 0.45)
+	l.light_energy = 1.8
+	l.omni_range = 7.0
+	l.position = _local(room, kr - 1.0, y + 3.2)
+	bits.add_child(l)
+	_key = Node3D.new()
+	_key.name = "Cog Key"
+	_key.position = _local(room, kr, y + 1.75)
+	bits.add_child(_key)
+	var glow := _mat("Key Glow", Color(0.6, 1.0, 0.9), 0.3, 1.6)
+	_cyl(_key, "Key Bow", 0.32, 0.32, 0.12, Vector3(0, 0.3, 0), _brass(), false).rotation.x = PI / 2.0
+	_cyl(_key, "Key Gem", 0.14, 0.14, 0.16, Vector3(0, 0.3, 0), glow, false).rotation.x = PI / 2.0
+	_box(_key, "Key Shaft", Vector3(0.1, 0.7, 0.1), Vector3(0, -0.2, 0), _brass(), false)
+	for t in 2:
+		_box(_key, "Key Tooth", Vector3(0.22, 0.1, 0.1), Vector3(0.12, -0.42 + t * 0.18, 0), _brass(), false)
+	for side in [-1.0, 1.0]:
+		var g := (load(GOBLIN) as PackedScene).instantiate() as Node3D
+		g.name = "Passage Goblin %d" % (1 if side < 0.0 else 2)
+		g.position = _local(room + side * 0.05, kr - 1.2, y + 0.3)
+		g.set("wander_radius", 1.6)
+		add_child(g)
+		_pass_goblins.append(g)
+	var chest_at := _local(room - 0.065, KEY_ROOM_OUT - 1.0, y)
+	var chest := _box(bits, "Passage Chest", Vector3(1.2, 0.8, 0.8), chest_at + Vector3(0, 0.4, 0), _wood())
+	chest.basis = Basis(Vector3.UP, room)
+	_box(bits, "Passage Chest Band", Vector3(1.25, 0.12, 0.85), chest_at + Vector3(0, 0.55, 0), _brass(), false).basis = Basis(Vector3.UP, room)
+	var spot := USE_SPOT.make(chest_at, _chest_offer, _open_passage_chest, 2.0, 2.4)
+	spot.name = "Passage Chest Spot"
+	add_child(spot)
+
+
+func _chest_flag() -> String:
+	return "clock_passage_chest_%d" % Requests.visit_day()
+
+
+func _chest_offer() -> String:
+	return "" if Dialogue.flags.has(_chest_flag()) else "open the little chest"
+
+
+func _open_passage_chest() -> void:
+	if Dialogue.flags.has(_chest_flag()):
+		return
+	Dialogue.set_flag(_chest_flag())
+	Game.add_sparkles(5)
+	Game.message("A little chest! ✦ 5 sparkles.")
+	Juice.blip("chime", 1.2, -4.0)
+
+
+func _cog_door_build(bits: Node3D) -> void:
+	# The Cog Door at the far end: shut until you bring the Cog Key
+	var ua := pass_ua(COG_DOOR)
+	var y := _pass_y(ua)
+	var w := PASS_OUT - PASS_IN
+	_cog_door = Node3D.new()
+	_cog_door.name = "Cog Door"
+	_cog_door.transform = Transform3D(Basis(Vector3.UP, ua), _local(ua, pass_mid(), y))
+	bits.add_child(_cog_door)
+	_box(_cog_door, "Cog Door Face", Vector3(0.5, PASS_H - 0.05, w - 0.04), Vector3(0, PASS_H / 2.0, 0), _wood(), false)
+	_gear(_cog_door, 1.2, Vector3(0.3, PASS_H / 2.0, 0), Vector3.RIGHT, 0.0)
+	_box(_cog_door, "Keyhole", Vector3(0.1, 0.5, 0.25), Vector3(0.45, PASS_H / 2.0, 0), _mat("Key Glow", Color(0.6, 1.0, 0.9), 0.3, 1.6), false)
+	var body := StaticBody3D.new()
+	body.name = "Cog Door Body"
+	_cog_door.add_child(body)
+	_door_shape = CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(0.5, PASS_H, w)
+	_door_shape.shape = bs
+	_door_shape.position = Vector3(0, PASS_H / 2.0, 0)
+	body.add_child(_door_shape)
+	var at := _local(ua + 0.05, pass_mid(), y)
+	var spot := USE_SPOT.make(at, _door_offer, _try_door, 2.4, 2.8)
+	spot.name = "Cog Door Spot"
+	add_child(spot)
+
+
+func _door_offer() -> String:
+	if door_open:
+		return ""
+	return "unlock the Cog Door" if has_key else "try the Cog Door"
+
+
+func _try_door() -> void:
+	if door_open:
+		return
+	if not has_key:
+		Game.message("Locked! The keyhole's shaped like a cog.")
+		Juice.blip("thud", 1.2, -6.0)
+		return
+	open_cog_door()
+
+
+func open_cog_door() -> void:
+	if door_open:
+		return
+	door_open = true
+	_door_shape.set_deferred("disabled", true)
+	var tw := create_tween()
+	tw.tween_property(_cog_door, "position:y", _cog_door.position.y + PASS_H - 0.3, 1.2).set_trans(Tween.TRANS_QUAD)
+	Fx.burst(self, _cog_door.global_position + Vector3(0, 2.0, 0), Color(0.9, 0.7, 0.3), 18, 0.1, 3.0, 2.0)
+	Juice.blip("chime", 0.9, -4.0)
+	Juice.shake(0.2)
+	Game.message("The Cog Door clanks open!")
+
+
+func _shut_gate(bits: Node3D) -> void:
+	# Where the walkway stops past the Halfway Ledge: a brass grille, so the way on is plainly the Passage
+	var j := int(_alcoves[0].j) + 2
+	var a := A0 - j * STEP_A
+	var y := _y_of(j * STEP_A / SWEEP)
+	var gate := Node3D.new()
+	gate.name = "Shut Gate"
+	gate.transform = Transform3D(Basis(Vector3.UP, a), _local(a, R_MID, y))
+	bits.add_child(gate)
+	var w := R_OUT - R_IN
+	for b in 5:
+		_box(gate, "Grille Bar", Vector3(0.18, 3.6, 0.18), Vector3(0, 1.8, -w / 2.0 + 0.4 + b * (w - 0.8) / 4.0), _brass(), false)
+	for h in [0.4, 1.9, 3.5]:
+		_box(gate, "Grille Rail", Vector3(0.22, 0.2, w), Vector3(0, h, 0), _brass(), false)
+	_gear(gate, 0.8, Vector3(0.15, 2.7, 0), Vector3.RIGHT, 0.0)
+	var bs := BoxShape3D.new()
+	bs.size = Vector3(0.4, 4.0, w + 0.4)
+	_solid(bits, "Shut Gate Body", bs, _local(a, R_MID, y + 2.0), Vector3(0, a, 0))
+
+
+func in_passage(pos: Vector3) -> bool:
+	var rel := global_transform.affine_inverse() * pos - CENTRE
+	var r := Vector2(rel.x, rel.z).length()
+	var lo := _pass_y(_pass_to()) + 6.0
+	return r > PASS_IN - 0.2 and r < KEY_ROOM_OUT and rel.y > _y_of(float(_alcoves[0].s)) - 2.0 and rel.y < lo
+
+
+func _passage_step(delta: float, p: CharacterBody3D) -> void:
+	var on := hazards and not popped
+	for pi in _pistons:
+		var ph := fposmod(_t / PISTON_EVERY + int(pi.k) * 0.33, 1.0)
+		var e := 0.0
+		if on:
+			if ph < 0.18:
+				e = 0.03 * sin(_t * 60.0)                     # (it shivers: about to punch)
+			elif ph < 0.26:
+				e = (ph - 0.18) / 0.08
+			elif ph < 0.45:
+				e = 1.0
+			elif ph < 0.75:
+				e = 1.0 - (ph - 0.45) / 0.3
+		pi.e = maxf(e, 0.0)
+		_place_ram(pi)
+		(pi.lamp as Node3D).scale = Vector3.ONE * (1.4 if on and ph < 0.45 else 0.8)
+	for sh in _shutters:
+		var ph := fposmod(_t / SHUTTER_EVERY + int(sh.k) * 0.5, 1.0)
+		var down := 0.0
+		if on:
+			if ph >= 0.38 and ph < 0.46:
+				down = 0.06 + 0.03 * sin(_t * 50.0)           # (it judders, ticking: about to drop)
+			elif ph < 0.5 and ph >= 0.46:
+				down = 0.06 + (ph - 0.46) / 0.04 * 0.94
+			elif ph < 0.5 + SHUTTER_SHUT / SHUTTER_EVERY:
+				down = 1.0
+			elif ph < 0.95:
+				down = 1.0 - (ph - (0.5 + SHUTTER_SHUT / SHUTTER_EVERY)) / (0.95 - 0.5 - SHUTTER_SHUT / SHUTTER_EVERY)
+		var was := float(sh.ph)
+		sh.ph = ph
+		if on and was < 0.46 and ph >= 0.46:
+			Juice.blip("tick", 0.7, -8.0)
+		(sh.plate as Node3D).position.y = (1.0 - down) * (PASS_H - 0.5)
+		var shut := down > 0.8
+		if shut != bool(sh.shut):
+			sh.shut = shut
+			(sh.shape as CollisionShape3D).set_deferred("disabled", not shut)
+	if is_instance_valid(_key) and not has_key:
+		_key.rotation.y += delta * 1.6
+		_key.position.y = _pass_y(pass_ua(KEY_ROOM)) + 1.75 + sin(_t * 2.0) * 0.08
+	for g in _pass_goblins:
+		if is_instance_valid(g):
+			g.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	if p == null or not in_passage(p.global_position):
+		return
+	if not has_key and is_instance_valid(_key) and p.global_position.distance_to(_key.global_position) < 1.5:
+		take_key()
+	if not on or p.call("is_invulnerable"):
+		return
+	var rel := global_transform.affine_inverse() * p.global_position - CENTRE
+	var pa := atan2(rel.x, rel.z)
+	var r := Vector2(rel.x, rel.z).length()
+	for pi in _pistons:
+		var face := lerpf(PASS_OUT - 0.05, PASS_IN + 0.35, float(pi.e))
+		var side := angle_difference(float(pi.ua), pa) * r
+		if float(pi.e) > 0.25 and absf(side) < 1.2 and r > face - 0.45 and r < PASS_OUT + 0.3:
+			_push_back(p, float(pi.ua), "Boing! Wait for the piston to pull back.")
+			return
+	for sh in _shutters:
+		var ph := float(sh.ph)
+		var side := angle_difference(float(sh.ua), pa) * r
+		if ph >= 0.46 and ph < 0.52 and absf(side) < 0.75:
+			_push_back(p, float(sh.ua), "Boing! Run under while the shutter's up.")
+			return
+
+
+func take_key() -> void:
+	has_key = true
+	if is_instance_valid(_key):
+		Fx.burst(self, _key.global_position, Color(0.6, 1.0, 0.9), 16, 0.1, 3.0, 2.0)
+		_key.visible = false
+	Juice.blip("chime", 1.3, -4.0)
+	Game.message("The Cog Key! It opens the Cog Door at the end.")
+
+
+func _push_back(p: CharacterBody3D, ua: float, line: String) -> void:
+	# Kid-safe: a shove back along the Passage, towards the Halfway Ledge, and a moment to get your feet back
+	var back := global_transform.basis * _tangent(ua)
+	p.velocity = back * PUSH_BACK + Vector3.UP * 3.0
+	p.set("_stun_timer", 0.5)
+	p.set("_invulnerable_timer", 0.9)
+	pushes += 1
+	Juice.blip("thud", 1.1, -4.0)
+	Juice.shake(0.2)
+	if not _push_told:
+		_push_told = true
+		Game.message(line)
+
+
+
 # -----------------------------------------------------------------------------
 # The climb's dangers
 # -----------------------------------------------------------------------------
@@ -822,6 +1334,7 @@ func _climb_step(delta: float, p: CharacterBody3D) -> void:
 	for sw in _swings:
 		(sw.pivot as Node3D).rotation.x = sin(_t * TAU / SWING_PERIOD + int(sw.k) * 1.7) * SWING_AMP
 	_spool_step(delta)
+	_passage_step(delta, p)
 	if p == null:
 		return
 	var r := radius_of(p.global_position)
