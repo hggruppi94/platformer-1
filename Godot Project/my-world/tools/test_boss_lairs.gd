@@ -110,7 +110,7 @@ func _lair(town: Node3D, id: String, gate_path: String, boss_name: String, flag:
 	var steps := 0
 	while p.global_position.z < arena.z - lair.call("wake_range") - 2.0 and steps < 1200:
 		# (in the tower: along the edge, past where the pendulums reach, then in through the Cog Gate's middle)
-		var lane_x := lane if id == "boulder_canyon" else (-7.8 if p.global_position.z < 36.0 else 0.0)
+		var lane_x := lane if id == "boulder_canyon" else (-7.8 if p.global_position.z < 33.0 else 0.0)
 		_steer(p, Vector3(clampf((lane_x - p.global_position.x) * 0.5, -0.6, 0.6), 0, 1).normalized())
 		await physics_frame
 		steps += 1
@@ -122,6 +122,9 @@ func _lair(town: Node3D, id: String, gate_path: String, boss_name: String, flag:
 	check(p.global_position.z >= arena.z - float(lair.call("wake_range")) - 2.0 and stuck < 2,
 		"you can really walk from the way in to the arena (got to z %.1f)" % p.global_position.z)
 	check(game.hp == game.max_hp or not p.is_recovering(), "...along the safe side without a bump")
+	if id == "clock_tower":
+		check(not lair.get("awake"), "Tock doesn't wake from the Gearworks under his floor")
+		await _climb(lair, p, arena)
 
 	# --- Its hazards ---
 	if id == "clock_tower":
@@ -244,6 +247,47 @@ func _lair(town: Node3D, id: String, gate_path: String, boss_name: String, flag:
 		and absf(p.global_position.y - g2.y - 0.9) < 0.6,
 		"...standing on the ground in front of its way in (%.1f m up)" % (p.global_position.y - g2.y))
 	check(town.find_child(boss_name, true, false) == null, "...and the boss isn't out in town")
+
+
+func _climb(lair: Node3D, p: CharacterBody3D, arena: Vector3) -> void:
+	# Really walking up the spiral to the Clock Floor (its dangers off: tools/test_tower_climb.gd checks those)
+	lair.set("hazards", false)
+	var bs: float = lair.call("bridge_s")
+	var steps := 0
+	var stuck := 0
+	var last := p.global_position
+	var high := 0.0
+	var fell := false
+	while steps < 5000:
+		var s: float = lair.call("s_at", p.global_position)
+		var r: float = lair.call("radius_of", p.global_position)
+		var target: Vector3
+		if p.global_position.y > arena.y and r < 19.0:
+			break
+		if s >= bs - 0.012 and p.global_position.y > arena.y - 1.0:
+			target = arena if r < 20.6 else lair.call("path_point", bs, 20.0)
+		elif r < 21.0 and p.global_position.y < 2.5:
+			target = lair.call("path_point", 0.0)
+		else:
+			target = lair.call("path_point", minf(s + 0.02, bs))
+		var to := target - p.global_position
+		_steer(p, Vector3(to.x, 0, to.z).normalized())
+		await physics_frame
+		steps += 1
+		high = maxf(high, p.global_position.y)
+		if high - p.global_position.y > 4.0:
+			fell = true
+		if steps % 120 == 0 and OS.has_environment("CLIMB_DEBUG"):
+			print("  climb %d: s %.3f r %.1f y %.1f" % [steps, s, r, p.global_position.y])
+		if steps % 60 == 0:
+			if p.global_position.distance_to(last) < 0.5:
+				stuck += 1
+			last = p.global_position
+	_release()
+	check(p.global_position.y > arena.y and not fell and stuck < 2,
+		"you can really climb the spiral to the Clock Floor (%.1f m up, %d s, stuck %d)" % [p.global_position.y, steps / 60, stuck])
+	check(float(lair.get("best")) >= 1.0, "...and the tower remembers you got to the top")
+	lair.set("hazards", true)
 
 
 func _steer(p: CharacterBody3D, want: Vector3) -> void:

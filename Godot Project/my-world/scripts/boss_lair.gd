@@ -42,6 +42,10 @@ func wake_range() -> float:                    # come this close to the arena's 
 	return 16.0
 
 
+func wake_height() -> float:                   # and within this height of it (so a boss up high doesn't wake from below)
+	return INF
+
+
 func treasure() -> int:                        # sparkles in the treasure
 	return 12
 
@@ -110,7 +114,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if is_instance_valid(boss):
 		var to := _player.global_position - (global_position + arena())
-		if not awake and Vector2(to.x, to.z).length() < wake_range():
+		if not awake and Vector2(to.x, to.z).length() < wake_range() and absf(to.y) < wake_height():
 			wake()
 		if awake and bool(boss.get("defeated")) and not popped:
 			_popped()

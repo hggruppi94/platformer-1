@@ -1078,7 +1078,7 @@ static func dress_star_arena(scene: Node) -> Dictionary:
 const CT := "res://models/props/clock_tower/"           # the Clockwork Tower's (tools/build_prop_clock_tower.py)
 const CT_BAY := 4.6                                      # one baked length of the walk's gear walls
 const CT_ARENA := Vector3(0, 0, 68)                      # clock_tower.gd's ARENA (the Clock Floor's middle)
-const CT_DAIS := Vector3(0, 0, 80)                       # clock_tower.gd's DAIS
+const CT_DAIS := Vector3(0, 30, 80)                      # clock_tower.gd's DAIS (up at the top of the tower since 23 Nov 2026)
 
 
 static func dress_clock_tower(scene: Node) -> Dictionary:

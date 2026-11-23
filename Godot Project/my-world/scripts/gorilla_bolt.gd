@@ -15,6 +15,9 @@ const PLAYER_RADIUS := 0.35
 var dir := Vector3.FORWARD
 var damage := 1
 var shooter: Node3D
+var colour := COLOUR                # (the clock tower's goblin snipers throw amber ones, a bit quicker)
+var speed := SPEED
+var life := LIFE
 var _t := 0.0
 var _done := false
 var _core: MeshInstance3D
@@ -36,7 +39,7 @@ func _ready() -> void:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(0.8, 0.96, 1.0)
 	mat.emission_enabled = true
-	mat.emission = COLOUR
+	mat.emission = colour
 	mat.emission_energy_multiplier = 4.0
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_core.material_override = mat
@@ -47,15 +50,15 @@ func _ready() -> void:
 	hm.height = RADIUS * 3.4
 	halo.mesh = hm
 	var hmat := StandardMaterial3D.new()
-	hmat.albedo_color = Color(COLOUR, 0.3)
+	hmat.albedo_color = Color(colour, 0.3)
 	hmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	hmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	hmat.emission_enabled = true
-	hmat.emission = COLOUR
+	hmat.emission = colour
 	halo.material_override = hmat
 	add_child(halo)
 	var light := OmniLight3D.new()
-	light.light_color = COLOUR
+	light.light_color = colour
 	light.light_energy = 1.5
 	light.omni_range = 3.0
 	add_child(light)
@@ -66,11 +69,11 @@ func _physics_process(delta: float) -> void:
 	if _done:
 		return
 	_t += delta
-	global_position += dir * SPEED * delta
+	global_position += dir * speed * delta
 	var w := 1.0 + sin(_t * 30.0) * (0.0 if Settings.reduce_motion else 0.12)
 	_core.scale = Vector3(w, w, 2.0 - w)
 	_touch_player()
-	if _t >= LIFE:
+	if _t >= life:
 		fizzle()
 
 
@@ -107,5 +110,5 @@ func fizzle() -> void:
 	_done = true
 	set_deferred("monitoring", false)
 	if is_inside_tree():
-		Fx.burst(get_parent(), global_position, COLOUR, 10, 0.05, 3.0, 0.0, 0.35)
+		Fx.burst(get_parent(), global_position, colour, 10, 0.05, 3.0, 0.0, 0.35)
 	queue_free()
