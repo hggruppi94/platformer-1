@@ -99,6 +99,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The Clockwork Tower's climb is shut halfway: the way on is the Clockwork Passage inside the wall**
+  (Hayden: "close it off midway and add a little dungeon crawl clockwork hallway ... part of the overall tower").
+  `scripts/clock_tower.gd` (`_passage()` and friends, still built at load). Past the Halfway Ledge the open walkway stops
+  at a brass grille ("Shut Gate") and comes back at the next alcove (`exit_s()`; the old 0.58 alcove is gone, spools
+  tip off at 0.69). The Halfway Ledge's back opens into an enclosed, lamp-lit hallway in the tower wall (`PASS_IN` to
+  `PASS_OUT`, its floor rising like the spiral, so `s_at()` and `best` still work): three **pistons** that shiver, then
+  punch out of the outer wall, two **Tick-Tock Shutters** that judder and drop, the **Key Room** off the outer wall
+  (the **Cog Key** on a pedestal, two Time Goblins, a chest: 5 sparkles once a visit) and the locked **Cog Door** at
+  the far end. Pistons and shutters push you back along the hall, never hurt (`_push_back()`). Once you've been past it,
+  the Gear Lift offers a stop past the Passage. Tests: test_tower_climb (the gap, the floor, a push, a shutter, the
+  key, the door, the lift), test_boss_lairs really walks through it; time_goblins and detail_portal_props `-- tower`
+  pass. Pictures: `capture_tower_climb.gd` 11 to 17 (project files, world/previews/tower_passage). Names are first drafts.
+
 - 2026-11-23: **The little aliens animate less when they're further off** (after the enemies; the cloud asked the PC to
   take them). In the Market the little aliens and saucers cost about 1.1 ms a frame, 0.8 of it their 41 skeletons
   animating. `scripts/little_aliens.gd` (every half second, `_pace()`): walkers and pilots within `SMOOTH_DISTANCE` 15 m

@@ -4,6 +4,9 @@ extends SceneTree
 # down the walkway knocks you off it and all the way down (the "Bonk!" line), an alcove keeps you out of its way, a
 # Swinging Hand knocks you off, the goblin snipers on the brass column wind up and throw glowing bolts at you, and the
 # Gear Lift by the way in takes you up to the Halfway Ledge once you've reached it, and to the top once you've been there.
+# Past the Halfway Ledge the walkway is shut, and the way on is the Clockwork Passage inside the tower's wall: its
+# pistons and Tick-Tock Shutters push you back, the Cog Key in the Key Room opens the Cog Door at its far end, and then
+# the Gear Lift can take you straight past it.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_tower_climb.gd
 #
@@ -14,6 +17,7 @@ const BACKUP := "user://save.climb_backup.json"
 const SETTINGS := "user://settings.cfg"
 const SETTINGS_BACKUP := "user://settings.climb_backup.cfg"
 const TOWER := "res://scenes/bosses/clock_tower.tscn"
+const PISTONS_U := [0.12, 0.2, 0.28]
 
 var failures := 0
 var lair: Node3D
@@ -59,6 +63,7 @@ func _run() -> void:
 	await _hand_knock()
 	await _sniper()
 	await _lift()
+	await _passage()
 	_finish()
 
 
@@ -180,6 +185,83 @@ func _lift() -> void:
 	lair.call("_ride_lift")
 	await _physics(20)
 	check(p.global_position.y > float((lair.call("arena") as Vector3).y) - 1.0, "...and takes you there (%.1f m up)" % p.global_position.y)
+
+
+func _floor_under(at: Vector3) -> bool:
+	var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 1.5, 0), at + Vector3(0, -3.0, 0))
+	q.exclude = [p.get_rid()]
+	return not lair.get_world_3d().direct_space_state.intersect_ray(q).is_empty()
+
+
+func _passage() -> void:
+	_fresh()
+	await _physics(2)
+	var ledge := float(lair.call("ledge_s"))
+	var out := float(lair.call("exit_s"))
+	check(lair.find_child("Clockwork Passage Body", true, false) != null, "there's a Clockwork Passage inside the tower's wall")
+	check(_floor_under(lair.call("path_point", ledge - 0.01)), "the walkway still runs up to the Halfway Ledge")
+	var gap := true
+	for k in 5:
+		if _floor_under(lair.call("path_point", lerpf(ledge + 0.06, out - 0.06, k / 4.0))):
+			gap = false
+	check(gap, "...but past it the open walkway is shut (no planks till the passage comes out)")
+	check(lair.find_child("Shut Gate Body", true, false) != null, "...with a grille where it stops")
+	check(_floor_under(lair.call("passage_point", 0.5)) and _floor_under(lair.call("passage_point", 0.05))
+		and _floor_under(lair.call("passage_point", 0.95)), "the passage has a floor all the way along")
+	check(bool(lair.call("in_passage", lair.call("passage_point", 0.5))), "...and the tower knows when you're in it")
+	# A piston shoves you back
+	lair.set("pushes", 0)
+	var pis: Dictionary = (lair.get("_pistons") as Array)[0]
+	var at: Vector3 = lair.call("passage_point", float(PISTONS_U[0]))
+	var pushed := false
+	for i in 400:
+		await physics_frame
+		if int(lair.get("pushes")) > 0:
+			pushed = true
+			break
+		if not p.call("is_invulnerable"):
+			p.global_position = at + Vector3(0, 0.95, 0)
+			p.velocity = Vector3.ZERO
+	check(pushed, "a piston punching out of the wall pushes you back along the passage")
+	check(float(p.get("_stun_timer")) > 0.0 and p.call("is_invulnerable"), "...it's a push, not a hurt")
+	check(float(pis.e) >= 0.0, "...and the piston pulls back again after")
+	# A shutter drops and shuts the way for a moment
+	_fresh()
+	var sh: Dictionary = (lair.get("_shutters") as Array)[0]
+	var was_shut := false
+	var was_open := false
+	for i in 400:
+		await physics_frame
+		if bool(sh.shut):
+			was_shut = not (sh.shape as CollisionShape3D).disabled or was_shut
+		elif was_shut:
+			was_open = true
+			break
+	check(was_shut, "a Tick-Tock Shutter drops and shuts the passage")
+	check(was_open, "...then lifts again so you can run under")
+	# The key and the door
+	lair.set("has_key", false)
+	lair.call("_try_door")
+	await _physics(2)
+	check(not bool(lair.get("door_open")), "the Cog Door at the end is locked without the key")
+	var door := lair.find_child("Cog Door Body", true, false)
+	check(door != null, "...and it's solid")
+	var key := lair.find_child("Cog Key", true, false) as Node3D
+	check(key != null and key.visible, "the Cog Key waits in the Key Room")
+	p.global_position = key.global_position
+	await _physics(4)
+	check(bool(lair.get("has_key")), "walking up to it picks it up")
+	lair.call("_try_door")
+	await _physics(4)
+	check(bool(lair.get("door_open")), "...and it opens the Cog Door")
+	check(_floor_under(lair.call("path_point", out + 0.01)), "past the door the walkway carries on up")
+	# The lift's middle stop
+	lair.set("best", out)
+	check(String(lair.call("_lift_offer")).contains("Passage"), "once you're through, the Gear Lift goes past the Passage")
+	lair.call("_ride_lift")
+	await _physics(20)
+	var stop: Vector3 = lair.call("path_point", out, 27.0)
+	check(p.global_position.distance_to(stop) < 2.5, "...and takes you there (%.1f m off)" % p.global_position.distance_to(stop))
 
 
 func _frames(n: int) -> void:

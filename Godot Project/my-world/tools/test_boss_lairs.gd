@@ -252,7 +252,13 @@ func _lair(town: Node3D, id: String, gate_path: String, boss_name: String, flag:
 func _climb(lair: Node3D, p: CharacterBody3D, arena: Vector3) -> void:
 	# Really walking up the spiral to the Clock Floor (its dangers off: tools/test_tower_climb.gd checks those)
 	lair.set("hazards", false)
+	lair.call("take_key")                                    # (test_tower_climb.gd checks the key and the door)
+	lair.call("open_cog_door")
 	var bs: float = lair.call("bridge_s")
+	var ledge: float = lair.call("ledge_s")
+	var out: float = lair.call("exit_s")
+	var mid: float = lair.call("pass_mid")
+	var leg := 0                                             # 0 up to the Halfway Ledge, 1 into the Passage, 2 along it, 3 out
 	var steps := 0
 	var stuck := 0
 	var last := p.global_position
@@ -264,7 +270,23 @@ func _climb(lair: Node3D, p: CharacterBody3D, arena: Vector3) -> void:
 		var target: Vector3
 		if p.global_position.y > arena.y and r < 19.0:
 			break
-		if s >= bs - 0.012 and p.global_position.y > arena.y - 1.0:
+		if leg == 0 and s >= ledge - 0.004 and r > 21.0:
+			leg = 1
+		if leg == 1 and r > mid - 0.4:
+			leg = 2
+		if leg == 2 and s >= out - 0.004:
+			leg = 3
+		if leg == 3 and r < 25.0:
+			leg = 4
+		if leg == 0 and r > 21.0:
+			target = lair.call("path_point", minf(s + 0.02, ledge))
+		elif leg == 1:
+			target = lair.call("path_point", ledge, mid)
+		elif leg == 2:
+			target = lair.call("path_point", minf(s + 0.02, out), mid)
+		elif leg == 3:
+			target = lair.call("path_point", out, 23.0)
+		elif s >= bs - 0.012 and p.global_position.y > arena.y - 1.0:
 			target = arena if r < 20.6 else lair.call("path_point", bs, 20.0)
 		elif r < 21.0 and p.global_position.y < 2.5:
 			target = lair.call("path_point", 0.0)
@@ -278,7 +300,7 @@ func _climb(lair: Node3D, p: CharacterBody3D, arena: Vector3) -> void:
 		if high - p.global_position.y > 4.0:
 			fell = true
 		if steps % 120 == 0 and OS.has_environment("CLIMB_DEBUG"):
-			print("  climb %d: s %.3f r %.1f y %.1f" % [steps, s, r, p.global_position.y])
+			print("  climb %d: leg %d s %.3f r %.1f y %.1f" % [steps, leg, s, r, p.global_position.y])
 		if steps % 60 == 0:
 			if p.global_position.distance_to(last) < 0.5:
 				stuck += 1
