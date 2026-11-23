@@ -44,6 +44,10 @@ var tracked := ""                    # the quest the HUD's to-do list follows: t
 var followed: Array[String] = []     # what the player follows (see the top): quest ids and job keys, in the order chosen
 
 signal follow_changed
+
+var _who_frame := -1                 # the physics frame _who_now() last worked out who quests need (-1: again now)
+var _who_override := {}              # character id -> the override a quest step puts on them right now
+var _who_needed := {}                # character ids a quest step is pointing at right now
 const TODO_MAX := 3                  # how many followed things the HUD's to-do list shows at once
 
 # Words a quest step's "do this" sentence starts with, to pick it out of a longer step for the to-do list
@@ -57,6 +61,7 @@ func _ready() -> void:
 	if _order.is_empty():
 		_load_all()
 	_build_ui()
+	changed.connect(func(_id: String) -> void: _who_frame = -1)     # a step moved on: who's needed is worked out again
 	# Steps move on when a conversation ends (not halfway through one), or when a quest spot sets a flag
 	Dialogue.finished.connect(func(_id: String) -> void: check())
 	Dialogue.flag_set.connect(func(_f: String) -> void:
@@ -166,36 +171,49 @@ func condition_ok(when: Dictionary) -> bool:
 
 func override_for(character_id: String) -> Dictionary:
 	# A quest step that moves someone for an event right now (e.g. Rex's rally at the fountain in the evening)
-	for id in _order:
-		var step := current_step(id)
-		if step.is_empty() or is_waiting(id):
-			continue
-		var o: Dictionary = step.get("override", {}).get(character_id, {})
-		if o.is_empty():
-			continue
-		var times = o.get("time", [])
-		var list: Array = times if times is Array else [times]
-		var now := Clock.period()
-		if list.is_empty() or now in list or (now == "shift" and "night" in list):
-			return o
-	return {}
+	_who_now()
+	return _who_override.get(character_id, {})
 
 
 func needs(character_id: String) -> bool:
 	# Is someone a quest step is pointing at right now (its "where": "rex", or {"who": "rex"})? Then they don't go away
 	# for the night or off to school (scripts/routine.gd): nobody ever has to wait for the clock to find them.
+	_who_now()
+	return _who_needed.has(character_id)
+
+
+func _who_now() -> void:
+	# Every townsperson's routine asks both of the questions above every physics frame, and each answer means going
+	# through every quest. So the answers for everyone are worked out once a physics frame, and again straight away
+	# when a quest changes. The first quest (in _order) with an override for someone wins, as before.
+	var frame := Engine.get_physics_frames()
+	if frame == _who_frame:
+		return
+	_who_frame = frame
+	_who_override = {}
+	_who_needed = {}
+	var now := Clock.period()
 	for id in _order:
 		var step := current_step(id)
 		if step.is_empty() or is_waiting(id):
 			continue
+		var overrides: Dictionary = step.get("override", {})
+		for who in overrides:
+			if _who_override.has(who):
+				continue
+			var o: Dictionary = overrides[who]
+			if o.is_empty():
+				continue
+			var times = o.get("time", [])
+			var list: Array = times if times is Array else [times]
+			if list.is_empty() or now in list or (now == "shift" and "night" in list):
+				_who_override[who] = o
 		for w in step.get("where", []):
 			if w is Dictionary:
-				if str(w.get("who", "")) == character_id and \
-						not (w.has("unless") and Dialogue.flags.has(str(w.unless))):
-					return true
-			elif str(w) == character_id:
-				return true
-	return false
+				if not (w.has("unless") and Dialogue.flags.has(str(w.unless))):
+					_who_needed[str(w.get("who", ""))] = true
+			else:
+				_who_needed[str(w)] = true
 
 
 func display_name(character_id: String, default: String) -> String:
@@ -530,6 +548,7 @@ func save_data() -> Dictionary:
 
 func load_data(data: Dictionary) -> void:
 	state.clear()
+	_who_frame = -1
 	for id in data:
 		var s: Dictionary = data[id]
 		state[str(id)] = {"step": int(s.get("step", 0)), "since_day": int(s.get("since_day", 1)), "done": bool(s.get("done", false))}
@@ -539,6 +558,7 @@ func load_data(data: Dictionary) -> void:
 
 func reset() -> void:
 	state.clear()
+	_who_frame = -1
 	tracked = ""
 	followed.clear()
 	chose_none = false
