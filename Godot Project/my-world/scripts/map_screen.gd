@@ -78,6 +78,11 @@ var _legend_sig := ""                               # what the list was last bui
 var _mini_layer: CanvasLayer
 var _mini: Control
 var _mini_tex: TextureRect
+# Where the whole map's top-left corner is on the minimap (most of the map is off its edge). Only the part of the picture
+# that shows is drawn (_mini_window, an AtlasTexture): drawing the whole of it, about 1,400 pixels across, into the round
+# mask every frame cost the graphics card about a quarter of a millisecond in the Void (measured on Hayden's PC).
+var _mini_origin := Vector2.ZERO
+var _mini_window := AtlasTexture.new()
 var _mini_overlay: Control
 var _mini_frame: Control                             # the compass ring, drawn over the round minimap
 var _mini_under: ColorRect                           # behind the corner map: dusk round a place's picture, grass on Earth
@@ -85,6 +90,20 @@ var _mini_under: ColorRect                           # behind the corner map: du
 # that slides under the minimap as she walks, instead of all being drawn again every frame (about 0.8 ms).
 var _mini_earth: Control
 var _mini_earth_sig := ""
+# And once Stars Hollow's layer has been drawn into a picture (_bake_earth), that picture is shown through the same window,
+# so only the part inside the minimap is drawn each frame (its streets and buildings drawn as shapes cost about half a
+# millisecond a frame, even unchanged). The drawn layer stays for until the picture's ready, and for headless runs.
+var _earth_tex: Texture2D
+var _earth_tex_sig := ""
+var _earth_baking := false
+var _earth_bake_failed := false
+# The minimap's marks that sit still on the map (race routes, shops, the hidden places, boosters, people) go on a layer of
+# their own, drawn again every WORLD_EVERY and slid along with the picture in between (in a race, every frame: the racers
+# move fast). Drawing them all afresh every frame cost about half a millisecond in the towns (measured on Hayden's PC).
+const WORLD_EVERY := 0.1
+var _mini_world: Control
+var _mini_world_at := -WORLD_EVERY
+var _world_origin := Vector2.ZERO
 var _portal_node: Node3D                             # a portal world's way home, found once a place (_home_portal)
 var _portal_scene := 0
 var _portal_looked := -10.0
@@ -501,20 +520,33 @@ func _process(delta: float) -> void:
 		var hs := Settings.hud_size
 		_mini_layer.scale = Vector2(hs, hs)
 		_mini_layer.offset = _mini_layer.get_viewport().get_visible_rect().size * (1.0 - hs)
-		_mini_tex.visible = not on_earth()
-		_mini_tex.texture = _snap.tex if has_snap() else _texture
-		_mini_tex.size = Vector2.ONE * _mini_scale_px()
-		var at := to_map(nina().global_position) * _mini_scale_px()
-		_mini_tex.position = Vector2(MINI_SIZE, MINI_SIZE) / 2.0 - at
+		var full := _mini_scale_px()
+		var at := to_map(nina().global_position) * full
+		_mini_origin = Vector2(MINI_SIZE, MINI_SIZE) / 2.0 - at
 		var earth := on_earth()
-		_mini_earth.visible = earth
 		_mini_under.color = Color(0.32, 0.36, 0.2) if earth else Color(0.1, 0.08, 0.16)
+		var earth_pic := false
 		if earth:
-			_mini_earth.position = _mini_tex.position
-			var sig := "%s %s %s" % [_mini_scale_px(), shows("places"), _earth.size()]
-			if sig != _mini_earth_sig:
-				_mini_earth_sig = sig
-				_mini_earth.queue_redraw()
+			var sig := "%s %s %s" % [full, shows("places"), _earth.size()]
+			earth_pic = _earth_tex != null and _earth_tex_sig == sig
+			if not earth_pic and not _earth_baking and not _earth_bake_failed:
+				_bake_earth(full, sig)
+			_mini_earth.visible = not earth_pic
+			if _mini_earth.visible:
+				_mini_earth.position = _mini_origin
+				if sig != _mini_earth_sig:
+					_mini_earth_sig = sig
+					_mini_earth.queue_redraw()
+		else:
+			_mini_earth.visible = false
+		_mini_tex.visible = earth_pic or not earth
+		if Races.racing() or _time - _mini_world_at >= WORLD_EVERY or _time < _mini_world_at:
+			_mini_world_at = _time
+			_world_origin = _mini_origin
+			_mini_world.queue_redraw()
+		_mini_world.position = _mini_origin - _world_origin
+		if _mini_tex.visible:
+			_show_window(_earth_tex if earth_pic else (_snap.tex if has_snap() else _texture), full)
 		_mini_overlay.queue_redraw()
 
 
@@ -524,6 +556,49 @@ func _map_metres() -> float:
 	if has_snap():
 		return float(_snap.size)
 	return _size_m
+
+
+func _bake_earth(full: float, sig: String) -> void:
+	# Draws Stars Hollow's town for the minimap into a picture, once (and again only if its size or what's on it changes)
+	_earth_baking = true
+	var vp := SubViewport.new()
+	vp.size = Vector2i(ceili(full), ceili(full))
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var c := Control.new()
+	c.size = Vector2(vp.size)
+	c.draw.connect(func() -> void:
+		c.draw_rect(Rect2(Vector2.ZERO, c.size), Color(0.32, 0.36, 0.2))
+		_draw_earth(c, Vector2.ZERO, full, false, false))
+	vp.add_child(c)
+	add_child(vp)
+	await RenderingServer.frame_post_draw
+	await RenderingServer.frame_post_draw
+	var img := vp.get_texture().get_image() if is_instance_valid(vp) else null
+	if is_instance_valid(vp):
+		vp.queue_free()
+	_earth_baking = false
+	if img == null or img.is_empty():
+		_earth_bake_failed = true                # (no rendering: a headless run) so the drawn layer stays
+		return
+	_earth_tex = ImageTexture.create_from_image(img)
+	_earth_tex_sig = sig
+
+
+func _show_window(tex: Texture2D, full: float) -> void:
+	# Show just the part of the place's picture that's inside the minimap: the window, in the whole map's minimap
+	# pixels, cut down to the map's edges, then the same part of the picture
+	if tex == null or full <= 0.0:
+		_mini_tex.visible = false
+		return
+	var view := Rect2(-_mini_origin, Vector2(MINI_SIZE, MINI_SIZE)).intersection(Rect2(Vector2.ZERO, Vector2.ONE * full))
+	if view.size.x <= 0.0 or view.size.y <= 0.0:
+		_mini_tex.visible = false
+		return
+	var k := Vector2(tex.get_width(), tex.get_height()) / full
+	_mini_window.atlas = tex
+	_mini_window.region = Rect2(view.position * k, view.size * k)
+	_mini_tex.position = _mini_origin + view.position
+	_mini_tex.size = view.size
 
 
 func _mini_scale_px() -> float:
@@ -978,7 +1053,8 @@ func _build() -> void:
 	_mini_under.size = Vector2(MINI_SIZE, MINI_SIZE)
 	_mini.add_child(_mini_under)
 	_mini_tex = TextureRect.new()
-	_mini_tex.texture = _texture
+	_mini_window.atlas = _texture
+	_mini_tex.texture = _mini_window
 	_mini_tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mini_tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_mini_tex.size = Vector2.ONE * _mini_scale_px()
@@ -989,6 +1065,11 @@ func _build() -> void:
 	_mini_earth.visible = false
 	_mini_earth.draw.connect(func() -> void: _draw_earth(_mini_earth, Vector2.ZERO, _mini_scale_px(), false, false))
 	_mini.add_child(_mini_earth)
+	_mini_world = Control.new()
+	_mini_world.name = "Map Marks"
+	_mini_world.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mini_world.draw.connect(_draw_mini_world)
+	_mini.add_child(_mini_world)
 	_mini_overlay = Control.new()
 	_mini_overlay.size = Vector2(MINI_SIZE, MINI_SIZE)
 	_mini_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1261,7 +1342,7 @@ func _draw_indoors(c: Control, s: Node) -> void:
 func _draw_mini() -> void:
 	var c := _mini_overlay
 	var scale := _mini_scale_px()
-	var offset := _mini_tex.position
+	var offset := _mini_origin
 	var s := get_tree().current_scene
 	var sid := s.get_instance_id() if s else 0
 	if _time - _mini_at >= MINI_REFRESH or sid != _mini_scene:
@@ -1277,22 +1358,31 @@ func _draw_mini() -> void:
 		_mini_boosters = Boosters.marks() if shows("boosters") and (in_town() or on_earth()) else []
 	if on_earth():
 		_draw_earth_portal(c, offset, scale, false)      # (the streets are on their own layer, _mini_earth)
-	_draw_races(c, offset, scale, false, _mini_tracks)
-	_draw_mini_places(c, offset, scale)
-	_draw_boosters(c, offset, scale, false, _mini_boosters)
+	_draw_mini_portal(c, offset, scale)                # (the marks that sit still are on _mini_world)
 	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
 	for q in _mini_marks:
 		var at: Vector2 = offset + to_map(_live(q)) * scale
 		if at.distance_to(mid) > MINI_SIZE / 2.0 - 12.0:
 			at = mid + (at - mid).normalized() * (MINI_SIZE / 2.0 - 12.0)   # off the edge: pinned to the rim
 		_star(c, at, 8.0, q.colour)
+	_arrow(c, mid, nina_facing(), 10.0)
+
+
+func _draw_mini_world() -> void:
+	# The Map Marks layer: drawn where the map was when it was last drawn (_world_origin), and moved with it since
+	var c := _mini_world
+	var origin := _world_origin
+	var scale := _mini_scale_px()
+	_draw_races(c, origin, scale, false, _mini_tracks)
+	_draw_mini_places(c, origin, scale, false)
+	_draw_boosters(c, origin, scale, false, _mini_boosters)
 	if shows("people"):
+		var view := Rect2(Vector2.ONE * -12.0, Vector2.ONE * (MINI_SIZE + 24.0))   # (a little past the edge: it slides)
 		for p in _mini_people:
 			if not p.home and p.met:
-				var at: Vector2 = offset + to_map(_live(p)) * scale
-				if Rect2(Vector2.ZERO, Vector2(MINI_SIZE, MINI_SIZE)).has_point(at):
+				var at: Vector2 = origin + to_map(_live(p)) * scale
+				if view.has_point(at):
 					c.draw_circle(at, 4.0, Color(0.55, 0.9, 1.0))
-	_arrow(c, mid, nina_facing(), 10.0)
 
 
 func _live(entry: Dictionary) -> Vector3:
@@ -1303,7 +1393,7 @@ func _live(entry: Dictionary) -> Vector3:
 	return entry.pos
 
 
-func _draw_mini_places(c: Control, origin: Vector2, size: float) -> void:
+func _draw_mini_places(c: Control, origin: Vector2, size: float, portal := true) -> void:
 	# Shops (a little bag) and portals (a purple swirl, bright when it's open) near enough to be on the minimap
 	var s := get_tree().current_scene
 	if s == null:
@@ -1322,8 +1412,16 @@ func _draw_mini_places(c: Control, origin: Vector2, size: float) -> void:
 			var at: Vector2 = origin + to_map(h.pos) * size
 			if at.distance_to(mid) < MINI_SIZE / 2.0 - 6.0:
 				_hidden_mark(c, at, 6.0)
-	if not shows("portals") or (on_earth() and not HummingOak.awake()):
+	if portal:
+		_draw_mini_portal(c, origin, size)
+
+
+func _draw_mini_portal(c: Control, origin: Vector2, size: float) -> void:
+	# The way home (or to Earth) as a purple swirl, bright when it's open. Drawn every frame: it spins.
+	var s := get_tree().current_scene
+	if s == null or not shows("portals") or (on_earth() and not HummingOak.awake()):
 		return
+	var mid := Vector2(MINI_SIZE, MINI_SIZE) / 2.0
 	var portal := s.get_node_or_null("Portal to Earth" if in_town() else "Portal Home") as Node3D
 	if portal == null and has_snap():
 		portal = _home_portal()
@@ -1409,6 +1507,7 @@ func _draw_boosters(c: Control, origin: Vector2, size: float, full: bool, marks 
 func _apply_settings() -> void:
 	_legend_sig = ""
 	_mini_earth_sig = ""
+	_mini_world_at = -WORLD_EVERY
 	_overlay.queue_redraw()
 	_mini_frame.queue_redraw()                           # (the compass is only drawn again when the text size changes)
 

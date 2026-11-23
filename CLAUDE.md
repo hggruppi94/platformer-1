@@ -99,6 +99,22 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The minimap under half a millisecond in every place, measured as whole frames** (Hayden: "work through
+  the whole game and verify the minimap isn't interfering with framerate anywhere"). Measured on Hayden's PC (RTX 4070
+  SUPER) on top of the entry below, with the new `tools/profile_minimap_frame.gd [-- <scene>] [--draws] [--parts]
+  [--shot <folder>]` (needs a window): it loads all 43 places with Hayden's progress (save put aside and back, never
+  written) and times whole frames with Settings > minimap on and off, in pairs. Before this, the Void cost 0.54 ms and
+  Stars Hollow 0.99 ms; now 0.40 and 0.32, and every other place 0.04 to 0.30 (rooms, the school and race circuits
+  with no race on hide it).
+  - `map_screen.gd`: only the part of the map picture inside the minimap is drawn (`_show_window()`, an AtlasTexture
+    window, `_mini_origin`); Stars Hollow's streets are drawn once into a picture (`_bake_earth()`, a SubViewport,
+    remade when `_earth_tex_sig` changes) and shown the same way; the marks that sit still (race routes, shops, hidden
+    places, boosters, people) are on a "Map Marks" layer drawn every `WORLD_EVERY` 0.1 s (every frame in a race) and
+    slid with the map in between. The portal swirl, stars and arrow are still drawn every frame.
+  - Tests: map, following, kid_ui, ui_style, boosters, hidden_places, races, player_menu, home_calls, earth (both runs).
+    Fixed two tests that failed on main too: `test_boosters` rode out of the place during its wait (the board was freed:
+    it now holds her still), and `test_ui_style` counted a Bag label hidden by its scroll list as off screen.
+
 - 2026-11-23: **The minimap costs next to nothing everywhere** (Hayden: "work through the whole game and verify the
   minimap isn't interfering with framerate anywhere"). New `tools/profile_minimap.gd [-- <place>...]` (needs a window)
   loads 21 places (the Void, Stars Hollow, the school, all nine portal worlds, two circuits, the Secret Garden, the

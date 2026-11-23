@@ -248,7 +248,14 @@ func _check_boosts() -> void:
 	check(sk.boosting(), "riding over a boost strip boosts the board")
 	spd = Vector2(p.velocity.x, p.velocity.z).length()
 	check(spd > 10.0, "...past pushing speed (%.1f m/s)" % spd)
-	await _physics(300)
+	# Held still while the boost wears off: at 20 m/s for five seconds she'd ride a hundred metres, out of the place
+	# through whatever door was in the way (the player freed, and the last checks never ran)
+	for i in 300:
+		p.velocity = Vector3.ZERO
+		await physics_frame
+	if not is_instance_valid(sk):
+		check(false, "...the board is still there after the boost")
+		return
 	check(not sk.boosting(), "...and it wears off")
 	check(not sk.is_bailing(), "going fast never makes you crash")
 	game.riding = false
