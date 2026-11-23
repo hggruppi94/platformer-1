@@ -22,6 +22,7 @@ const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
 const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
 const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
 const STAR_ARENA := "res://scenes/bosses/arena.tscn"
+const CLOCK_TOWER := "res://scenes/bosses/clock_tower.tscn"
 const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
@@ -64,6 +65,12 @@ func _run() -> void:
 	if "arena" in OS.get_cmdline_user_args():
 		# (only the Star Arena: -- arena)
 		await _star_arena()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
+	if "tower" in OS.get_cmdline_user_args():
+		# (only the Clockwork Tower: -- tower)
+		await _clock_tower()
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
@@ -167,6 +174,7 @@ func _run() -> void:
 	await _gloop_kingdom()
 	await _secret_garden()
 	await _star_arena()
+	await _clock_tower()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -819,6 +827,58 @@ func _star_arena() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the arena again changes nothing")
+
+
+func _clock_tower() -> void:
+	detail.detail_props = false
+	await _load(CLOCK_TOWER)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Tower") == null, "nothing baked in the tower with detailed props off")
+	detail.detail_props = true
+	await _load(CLOCK_TOWER)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Clockwork Tower props: ", got)
+	var gears := 0
+	for g in s.find_children("*", "Node3D", true, false):
+		if g.has_node("Disc") and g.has_node("Hub"):
+			gears += 1
+	check(gears > 20 and got.get("gears", 0) == gears, "every gear swapped (%d of %d)" % [got.get("gears", 0), gears])
+	check(got.get("walls", 0) == 20, "both gear walls in baked lengths (%d)" % got.get("walls", 0))
+	check(got.get("frames", 0) == 3 and got.get("pendulums", 0) == 3, "all three pendulums and their frames swapped")
+	check(got.get("gate", 0) == 1 and got.get("clock", 0) == 1 and got.get("dais", 0) == 1 and got.get("cuckoo", 0) == 1,
+		"the Cog Gate, the Big Clock, Tock's dais and the Cuckoo Chest swapped")
+	check(got.get("bays", 0) == 10, "the round wall in ten bays (%d)" % got.get("bays", 0))
+	check(got.get("posts", 0) == 35, "every rail post swapped (%d)" % got.get("posts", 0))
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree() or "/Visual/" in str(mi.get_path()):
+			continue                                     # (the goblins and Tock have arms and cogs of their own)
+		if String(mi.name) in ["Disc", "Tooth", "Hub", "Gear Wall", "Pendulum Post", "Pendulum Beam", "Arm", "Bob",
+				"Gate Tower", "Gate Beam", "Tower Wall", "Rail Post", "Big Face", "Big Rim", "Big Mark", "Dais", "Dais Top",
+				"House", "Roof", "Little Face"]:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# What the game moves stays the game's: the hands, the bobs' glow, the chest's door and bird
+	var hands := 0
+	for h in s.get_node("Clock Floor/Big Clock").get_children():
+		var hand := h.get_node_or_null("Hand") as MeshInstance3D
+		if hand and hand.is_visible_in_tree() and not hand.has_meta("detail_prop_old"):
+			hands += 1
+	check(hands == 2, "the Big Clock's two hands are still drawn (%d)" % hands)
+	var glow := s.find_child("Bob Glow", true, false) as MeshInstance3D
+	check(glow != null and glow.is_visible_in_tree(), "the bobs still glow")
+	check(s.get_node("Cuckoo Chest/Lid/Door").is_visible_in_tree(), "the Cuckoo Chest's door is still there")
+	var pend := s.find_child("Detailed Pendulum", true, false) as Node3D
+	check(pend != null and pend.get_parent().has_node("Bob Glow"), "each baked pendulum swings with its pivot")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_clock_tower(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the tower again changes nothing")
 
 
 func _in_model(n: Node) -> bool:

@@ -348,7 +348,9 @@ func _lair_step(delta: float) -> void:
 		_bobs[k].rotation.z = _swing(k)
 	var forwards := 1.0 if popped else -1.0                    # backwards until he's popped
 	for k in _face_hands.size():
-		_face_hands[k].rotation.z -= forwards * delta * (0.15 if k == 0 else 1.6)
+		# Seen from the floor (looking along +z) turning about +z swings the hands to the viewer's right, so this
+		# is clockwise once he's popped and backwards before (it was the other way round till 23 Nov 2026).
+		_face_hands[k].rotation.z += forwards * delta * (0.15 if k == 0 else 1.6)
 	if hand_on:
 		hand.rotation.y += delta * TAU / hand_turn_time()      # (seen from above that's backwards round the dial)
 		_tick -= delta

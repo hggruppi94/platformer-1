@@ -1075,6 +1075,123 @@ static func dress_star_arena(scene: Node) -> Dictionary:
 	return out
 
 
+const CT := "res://models/props/clock_tower/"           # the Clockwork Tower's (tools/build_prop_clock_tower.py)
+const CT_BAY := 4.6                                      # one baked length of the walk's gear walls
+const CT_ARENA := Vector3(0, 0, 68)                      # clock_tower.gd's ARENA (the Clock Floor's middle)
+const CT_DAIS := Vector3(0, 0, 80)                       # clock_tower.gd's DAIS
+
+
+static func dress_clock_tower(scene: Node) -> Dictionary:
+	# Grandfather Tock's Clockwork Tower (23 Nov 2026, tools/build_prop_clock_tower.py; scripts/clock_tower.gd builds
+	# it all from shapes as it loads): every gear, the Pendulum Walk's gear walls, the pendulums and their frames, the
+	# Cog Gate, the tower's round wall (ten bays, one with a real way in over the walk), the Big Clock's face, Tock's
+	# dais, the Cuckoo Chest's house and the floor's rail posts. Each is made in its old node's own space, so the
+	# gears still turn, the pendulums still swing, the clock's hands, the floor hand, the chest's door and bird stay
+	# the game's, and every collision is unchanged.
+	var out := {"gears": 0, "walls": 0, "frames": 0, "pendulums": 0, "gate": 0, "bays": 0, "clock": 0, "dais": 0,
+		"cuckoo": 0, "posts": 0}
+	if scene.has_node("Detailed Tower") or _scene(CT + "tower_gear.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Tower"
+	# Gears: each a "Gear" node with a disc, teeth and a hub; the baked gear is radius 1, stretched to each
+	for g in scene.find_children("*", "Node3D", true, false):
+		var disc := g.get_node_or_null("Disc") as MeshInstance3D
+		if disc == null or not g.has_node("Hub") or g.has_node("Detailed Gear") or disc.has_meta(OLD_META):
+			continue
+		var r := (disc.mesh as CylinderMesh).top_radius
+		for k in g.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["Disc", "Tooth", "Hub"]:
+				_hide(k)
+		if _add(g, CT + "tower_gear.glb", "Detailed Gear", Transform3D(Basis.from_scale(Vector3(r, 1, r)), Vector3.ZERO)):
+			out["gears"] += 1
+	# The Pendulum Walk
+	var walk := scene.get_node_or_null("Pendulum Walk") as Node3D
+	if walk:
+		var walls := []
+		var frames := {}
+		for k in walk.get_children():
+			var mi := k as MeshInstance3D
+			if mi == null or mi.has_meta(OLD_META) or not mi.mesh is BoxMesh:
+				continue
+			var n := _base_name(mi)
+			if n == "Gear Wall":
+				var size := (mi.mesh as BoxMesh).size
+				var bays := int(round(size.z / CT_BAY))
+				for b in bays:
+					var z := mi.position.z - size.z * 0.5 + CT_BAY * (b + 0.5)
+					walls.append(_to_scene(walk, scene) * Transform3D(Basis.IDENTITY, Vector3(mi.position.x, 0, z)))
+				_hide(mi)
+			elif n == "Pendulum Post" or n == "Pendulum Beam":
+				frames[snappedf(mi.position.z, 0.01)] = true
+				_hide(mi)
+		if not walls.is_empty():
+			_multi(holder, _mesh_of(_scene(CT + "gear_wall.glb")), walls, "Detailed Gear Walls")
+			(holder.get_node("Detailed Gear Walls") as MultiMeshInstance3D).visibility_range_end = 0.0
+			out["walls"] = walls.size()
+		for z in frames:
+			if _add(walk, CT + "pendulum_frame.glb", "Detailed Pendulum Frame", Transform3D(Basis.IDENTITY, Vector3(0, 0, z))):
+				out["frames"] += 1
+		for pivot in walk.get_children():
+			# (the pivots are made with add_child, so only the first is called "Pendulum": find them by their bob)
+			if pivot is Node3D and pivot.has_node("Bob") and pivot.has_node("Arm") and not pivot.has_node("Detailed Pendulum"):
+				for k in pivot.get_children():
+					if k is MeshInstance3D and _base_name(k) in ["Arm", "Bob"]:
+						_hide(k)
+				if _add(pivot, CT + "pendulum.glb", "Detailed Pendulum", Transform3D.IDENTITY):
+					out["pendulums"] += 1
+	var gate := scene.get_node_or_null("Cog Gate") as Node3D
+	if gate and not gate.has_node("Detailed Gate"):
+		for k in gate.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["Gate Tower", "Gate Beam"]:
+				_hide(k)
+		if _add(gate, CT + "cog_gate.glb", "Detailed Gate", Transform3D.IDENTITY):
+			out["gate"] = 1
+	# The Clock Floor: the round wall in ten bays (the one over the walk, at the back, with its way in), the rail
+	# posts and the Big Clock's face
+	var cfloor := scene.get_node_or_null("Clock Floor") as Node3D
+	if cfloor:
+		var wall := cfloor.get_node_or_null("Tower Wall") as MeshInstance3D
+		if wall and not wall.has_meta(OLD_META):
+			_hide(wall)
+			for k in 10:
+				var kind := "tower_door" if k == 5 else "tower_bay"
+				if _add(cfloor, CT + kind + ".glb", "Detailed Wall %d" % k, Transform3D(Basis(Vector3.UP, TAU * k / 10.0), Vector3.ZERO)):
+					out["bays"] += 1
+		var posts := []
+		for k in cfloor.get_children():
+			if k is MeshInstance3D and _base_name(k) == "Rail Post" and not k.has_meta(OLD_META):
+				posts.append(_to_scene(k, scene))
+				_hide(k)
+		if not posts.is_empty():
+			_multi(holder, _mesh_of(_scene(CT + "rail_post.glb")), posts, "Detailed Rail Posts")
+			out["posts"] = posts.size()
+		var big := cfloor.get_node_or_null("Big Clock") as Node3D
+		if big and not big.has_node("Detailed Clock"):
+			for k in big.get_children():
+				if k is MeshInstance3D and _base_name(k) in ["Big Face", "Big Rim", "Big Mark"]:
+					_hide(k)
+			if _add(big, CT + "big_clock.glb", "Detailed Clock", Transform3D.IDENTITY):
+				out["clock"] = 1
+	# Tock's dais and the Cuckoo Chest's house
+	var hid := 0
+	for k in scene.get_children():
+		if k is MeshInstance3D and _base_name(k) in ["Dais", "Dais Top"] and not k.has_meta(OLD_META):
+			_hide(k)
+			hid += 1
+	if hid > 0 and _add(holder, CT + "tock_dais.glb", "Detailed Dais", Transform3D(Basis.IDENTITY, CT_DAIS)):
+		out["dais"] = 1
+	var chest := scene.get_node_or_null("Cuckoo Chest") as Node3D
+	if chest and not chest.has_node("Detailed House"):
+		for k in chest.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["House", "Roof", "Little Face"]:
+				_hide(k)
+		if _add(chest, CT + "cuckoo_house.glb", "Detailed House", Transform3D.IDENTITY):
+			out["cuckoo"] = 1
+	scene.add_child(holder)
+	return out
+
+
 const SG := "res://models/props/secret_garden/"
 const FOUNTAIN_SG := SG + "fountain.glb"
 const SG_PETAL_GAIN := 1.2               # the head's petals are baked pale; this lifts each flower's tint back

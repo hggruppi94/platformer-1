@@ -127,6 +127,8 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_secret_garden(scene)
 	elif path == "res://scenes/bosses/arena.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_star_arena(scene)
+	elif path == "res://scenes/bosses/clock_tower.tscn" and detail_props:
+		last_props = DETAIL_PROPS.dress_clock_tower(scene)
 	if detail_props:
 		last_nature = DETAIL_PROPS.dress_nature(scene)
 		last_surfaces = DETAIL_PROPS.dress_buildings(scene)
