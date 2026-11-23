@@ -179,6 +179,9 @@ func _fits(top: Node, what: String) -> void:
 		var clip := _scroll_of(c)
 		if clip and not clip.get_global_rect().intersects(r):
 			continue
+		if clip:
+			r = r.intersection(clip.get_global_rect())   # (in a scroll list only the part that shows counts: a long
+			                                             # line scrolls into view, like tools/ui_watch.gd counts it)
 		if not vr.encloses(r) and off.size() < 6:
 			off.append("%s %s" % [c.name, str(r)])
 	for ctl in top.find_children("*", "Button", true, false):

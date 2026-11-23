@@ -124,6 +124,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     world/previews/tower_climb).
   - My choices Hayden may change: the names (the Gearworks, Cog Spools, Swinging Hands, the Gear Lift, the Halfway
     Ledge), how high, how often spools roll, how many snipers.
+- 2026-11-23: **The townsfolk think for half the time** (Hayden: "work through the whole game ... Then work on other
+  things"; the Market profile put the townsfolk at ~2 ms). New `tools/profile_townsfolk.gd [-- earth]` times each
+  person's routine and their animation; with a window it also switches the routines, the animation, the townsfolk and
+  the little aliens off in turn. Most of a routine's time was two questions it asked every physics frame,
+  `Quests.override_for()` and `Quests.needs()`, each going through every quest. `Quests._who_now()` now answers both for
+  everyone once a physics frame (and again at once when a quest changes, loads or resets). Cloud, headless: the Void's
+  11 people 283 to about 120 us a frame, Stars Hollow's 18 people 586 to about 180 to 300 us. Animation is only about
+  30 us for all of them, so the rest of their ~2 ms on the PC is drawing them. Tried and left out: thinking less often
+  and pausing animation past 100 m (tests that jump the clock need them where they should be at once, and it saved
+  little). routines, townsfolk, work, quests, dialogue and earth (both runs), party, meetings, first_night, home_calls,
+  episodes, little_aliens, following and festival pass.
+- 2026-11-23: **The minimap under half a millisecond in every place, measured as whole frames** (Hayden: "work through
+  the whole game and verify the minimap isn't interfering with framerate anywhere"). Measured on Hayden's PC (RTX 4070
+  SUPER) on top of the entry below, with the new `tools/profile_minimap_frame.gd [-- <scene>] [--draws] [--parts]
+  [--shot <folder>]` (needs a window): it loads all 43 places with Hayden's progress (save put aside and back, never
+  written) and times whole frames with Settings > minimap on and off, in pairs. Before this, the Void cost 0.54 ms and
+  Stars Hollow 0.99 ms; now 0.40 and 0.32, and every other place 0.04 to 0.30 (rooms, the school and race circuits
+  with no race on hide it).
+  - `map_screen.gd`: only the part of the map picture inside the minimap is drawn (`_show_window()`, an AtlasTexture
+    window, `_mini_origin`); Stars Hollow's streets are drawn once into a picture (`_bake_earth()`, a SubViewport,
+    remade when `_earth_tex_sig` changes) and shown the same way; the marks that sit still (race routes, shops, hidden
+    places, boosters, people) are on a "Map Marks" layer drawn every `WORLD_EVERY` 0.1 s (every frame in a race) and
+    slid with the map in between. The portal swirl, stars and arrow are still drawn every frame.
+  - Tests: map, following, kid_ui, ui_style, boosters, hidden_places, races, player_menu, home_calls, earth (both runs).
+    Fixed two tests that failed on main too: `test_boosters` rode out of the place during its wait (the board was freed:
+    it now holds her still), and `test_ui_style` counted a Bag label hidden by its scroll list as off screen.
 
 - 2026-11-23: **The minimap costs next to nothing everywhere** (Hayden: "work through the whole game and verify the
   minimap isn't interfering with framerate anywhere"). New `tools/profile_minimap.gd [-- <place>...]` (needs a window)
