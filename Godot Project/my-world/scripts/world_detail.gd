@@ -24,6 +24,8 @@ const TOWN_OCCLUDERS := preload("res://scripts/town_occluders.gd")
 const MESH_LODS := preload("res://scripts/mesh_lods.gd")
 const INSIDES := preload("res://scripts/insides.gd")
 const WORLD_LIGHT := preload("res://scripts/world_light.gd")
+const FIRE := preload("res://scripts/fire_fx.gd")
+const COSMIC := preload("res://scripts/cosmic_dust.gd")
 
 const MIN_SPAN := 10.0          # a ground mesh is at least this wide both ways...
 const FLAT := 0.4               # ...and no taller than this much of its narrower side
@@ -38,6 +40,9 @@ var lods := true                # distance LODs for big meshes made in code (scr
 var plant_shadows := false      # ferns and grass cast no shadows (their shadows were 60% of the Void's triangles)
 var lighting := true           # the lighting levels' SSAO, haze and bounced light (scripts/world_light.gd, Settings.lighting)
 var insides := true            # Stars Hollow's plain buildings become rooms you walk into (scripts/insides.gd)
+var fire := true                # moving pixel flames on every torch, lamp, candle and bonfire (scripts/fire_fx.gd)
+var last_fire := 0              # how many flames the last place got
+var cosmic := true              # cosmic dust floating in the air (scripts/cosmic_dust.gd)
 var occluders := true           # invisible boxes in Stars Hollow's buildings for occlusion culling (town_occluders.gd)
 const SMALL_PLANTS := ["Ferns", "Grass"]   # the plant patches (scenes/town/foliage.gd) whose shadows are left out
 const LATER_BATCH := [1.0, 2.0]          # waits in turn (1 s, then 3 s after it loads) to merge what was put in since
@@ -47,6 +52,23 @@ var last_nature := {}           # and which trees and plants got their baked sha
 var last_surfaces := {}         # and which walls and roofs got baked siding, shingles... (dress_buildings)
 var _last: Node
 var _cache := {}                # source material -> its detailed ShaderMaterial
+
+
+func _ready() -> void:
+	# Flames put in after a place is dressed (a beacon lit, a stone flaring) get theirs as they arrive.
+	get_tree().node_added.connect(_on_added)
+
+
+func _on_added(node: Node) -> void:
+	if fire and enabled and node is Node3D and (node.name == "Flame" or node is MeshInstance3D):
+		_fire_later.call_deferred(node.get_instance_id())
+
+
+func _fire_later(id: int) -> void:
+	# By id, since a piece can be freed again before the frame's out.
+	var node := instance_from_id(id) as Node
+	if node:
+		FIRE.check(node)
 
 
 func _process(_delta: float) -> void:
@@ -106,6 +128,10 @@ func _dress(scene: Node) -> void:
 	if detail_props:
 		last_nature = DETAIL_PROPS.dress_nature(scene)
 		last_surfaces = DETAIL_PROPS.dress_buildings(scene)
+	if fire:
+		last_fire = FIRE.dress(scene)
+	if cosmic:
+		COSMIC.place(scene, 0.0 if Settings.reduce_motion else 1.0)
 	if batching:
 		last_batch = STATIC_BATCH.batch(scene)
 	if lods:

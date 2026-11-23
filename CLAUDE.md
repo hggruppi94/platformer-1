@@ -124,6 +124,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - My choices Hayden may change: Nice as the default, how thick the haze is, how much lamps glow, rim light and
     toon shading on characters (next, if wanted).
 
+- 2026-11-23: **Moving pixel flames on every torch, lamp, candle and bonfire, and cosmic dust floating in the Void**
+  (Hayden: "the texture pack that we used to make the trees sparkly ... also has interesting cosmic and fire vfx. Can
+  you look at places we could apply that in the game, such as campfires, torches, or cosmic dust floating around?").
+  Made with the pixelfx pack (MIT), like the trees' twinkles. Built and tested in the cloud (own Godot user folders, no
+  save touched).
+  - **Flames** (`scripts/fire_fx.gd`, no class_name; `WorldDetail` dresses each place before merging, and every flame
+    added later through `node_added`: a beacon lit, a stone flaring): every glowing flame (material "Torch Flame",
+    "Lamp Flame", "Candle Flame", or a mesh named "Flame") gets a "Pixel Flame" beside it, a quad that turns to the
+    camera round its upright and plays `scenes/fx/game_flame.png` (`source_art/fx/game-flame.js`: licking tongues,
+    puffs and embers, 40 frames). Its colour turns to the flame's own (Dark Hollow's lamps burn green), the old shape
+    goes see-through (transparency 1, meta `fire_fx`) so hiding it still hides the fire, and its light is unchanged. A
+    "Flame" that's a group of shapes (Rhythm Springs' Sizzle Steps stones) gets three side by side (meta `no_batch`).
+    Not drawn past 60 m. Switch `WorldDetail.fire`.
+  - **Cosmic dust** (`scripts/cosmic_dust.gd`, "Cosmic Dust", switch `WorldDetail.cosmic`): 420 glowing motes
+    (`scenes/fx/cosmic_mote.png`, `source_art/fx/cosmic-mote.js`) drift up and about in a 30 m box round the camera,
+    twinkling and glinting; one MultiMesh, all the moving in the shader. Each place has its own colours (`THEMES`: the
+    Void, the Secret Garden and every portal world but Shard Isle, which has its dream motes); none on Earth. Reduce
+    motion stops the drift.
+  - Tests: new `tools/test_fire_fx.gd` and `tools/test_cosmic_dust.gd`. Pictures: `tools/capture_fire_fx.gd -- <folder>
+    [--no-fire]` and `tools/capture_cosmic_dust.gd -- <folder> [--no-dust]` (project files, world/previews/fire_fx and
+    world/previews/cosmic_dust).
+  - My choices Hayden may change: the flames' size and brightness, the dust's colours and how much there is.
+
 - 2026-11-23: **Baked the Secret Garden: its ivy-covered walls, rose arches, fountain, hedges, the maze's sundial,
   the summerhouse, the giant flowers, the Great Tree and the benches** (Hayden: "Great, lets keep going"; the next
   place not baked yet). Built and tested in the cloud (own Godot user folders, no save touched).
