@@ -545,6 +545,8 @@ func _tab_display(tabs: TabContainer) -> void:
 	var g := _grid(tabs, "Display")
 	_check(g, "Fullscreen", "fullscreen")
 	_slider(g, "Field of view", "fov", 60, 100, 1, func(x): return "%d°" % x)
+	_choice(g, "Lighting", "lighting", [["Simple", "simple"], ["Nice", "nice"], ["Best", "best"]],
+		"Nice: soft shadows where things meet and a haze the sun and lamps shine through. Best: light bounces too. Simple is quickest")
 	_choice(g, "Screen stuff size", "hud_size", [["Small", 0.8], ["Medium", 1.0], ["Big", 1.2]],
 		"How big the stats, clock, to-do list and minimap are while you play")
 	_check(g, "To-do list", "objectives", "A short list of what to do next for your quest, under your stats")

@@ -23,6 +23,7 @@ const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 const TOWN_OCCLUDERS := preload("res://scripts/town_occluders.gd")
 const MESH_LODS := preload("res://scripts/mesh_lods.gd")
 const INSIDES := preload("res://scripts/insides.gd")
+const WORLD_LIGHT := preload("res://scripts/world_light.gd")
 const FIRE := preload("res://scripts/fire_fx.gd")
 const COSMIC := preload("res://scripts/cosmic_dust.gd")
 
@@ -37,6 +38,7 @@ var batching := true            # merge still builder pieces in every place (scr
 var detail_props := true        # the baked detailed props on the town green (scripts/detail_props.gd)
 var lods := true                # distance LODs for big meshes made in code (scripts/mesh_lods.gd)
 var plant_shadows := false      # ferns and grass cast no shadows (their shadows were 60% of the Void's triangles)
+var lighting := true           # the lighting levels' SSAO, haze and bounced light (scripts/world_light.gd, Settings.lighting)
 var insides := true            # Stars Hollow's plain buildings become rooms you walk into (scripts/insides.gd)
 var fire := true                # moving pixel flames on every torch, lamp, candle and bonfire (scripts/fire_fx.gd)
 var last_fire := 0              # how many flames the last place got
@@ -93,6 +95,8 @@ func _dress(scene: Node) -> void:
 	elif path == "res://scenes/portal_worlds/rhythm_springs.tscn":
 		FALLS.dress_rhythm(scene)
 	detail_ground(scene)
+	if lighting:
+		WORLD_LIGHT.place(scene)
 	if path == "res://scenes/earth/earth.tscn" and insides:
 		INSIDES.dress_earth(scene)
 	if path == "res://scenes/earth/earth.tscn" and detail_props:

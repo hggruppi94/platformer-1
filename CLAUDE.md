@@ -108,6 +108,31 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   Only Lanternmoor's three beacons are caged today. `test_fire_fx` and `test_lanternmoor` pass; `capture_fire_fx.gd --
   <folder> [<place>]` (project files, world/previews/fire_fx/cmp_lanternmoor_*_flicker.png).
 
+- 2026-11-23: **Nicer lighting: soft shadows where things meet, a haze the sun shines through and lamps glow in, and
+  a Lighting setting** (Hayden: "it may be time to start looking into more advanced shading and lighting vfx"). Built
+  and tested in the cloud and on Hayden's PC (own Godot user folders / backed-up save, untouched).
+  - First we read open-source Godot work (Hayden's rule): godotengine/tps-demo (MIT: presets switching SSAO, SSIL,
+    glow, volumetric fog and GI at run time), RPicster/godot4-demo-desert-light (code MIT: volumetric fog light shafts)
+    and lucasbecker-dev/godot-smart-graphics-settings (MIT: cheapest effects kept on longest). Left out on purpose:
+    SDFGI (re-lights every place, so the builders' tuned ambient light would change, and costs the most), VoxelGI (a
+    box round places hundreds of metres across) and LightmapGI (needs baking; our places are built as they load).
+  - **`scripts/world_light.gd`** (no class_name; `WorldDetail` calls `place()` for every place, switch
+    `WorldDetail.lighting`): a "World Light" node dresses whichever Environment is live (it looks every 0.2 s, so the
+    portal worlds' and dream skies' copies get it too) at **`Settings.lighting`** (Settings > Display > Lighting):
+    **Simple** is the old look exactly; **Nice** (default) adds SSAO and a thin volumetric haze (`HAZE`, rooms
+    `HAZE_INSIDE`) lit by the sun (`SUN_HAZE`, shafts towards a low sun) and every other light x`LAMP_HAZE` (halos at
+    night), its colour the place's fog colour made pale (`haze_colour()`), kept off the sky; **Best** adds SSIL, soft
+    sun shadows (`SUN_SOFTNESS` angular size) and finer haze and SSAO (`quality_for()`). It only turns on things that
+    were off: each Environment and light keeps meta `world_light_base` and gets it back for Simple and when the place
+    unloads (the Environment is a shared resource). The minimap's copy turns SSAO and SSIL off.
+  - **Cost on Hayden's PC** (RTX 4070 SUPER, 75 Hz cap): Nice adds 0.4 to 2.4 ms GPU and changes no frame rate; Best
+    adds 1.5 to 3.8 ms and takes the Void's Market from ~50 to ~38 fps.
+  - Tests: new `tools/test_world_light.gd`; `test_perf_budget.gd -- --compare-lighting` (and `--lighting <level>`);
+    world_detail, map, title, ui_style, detail_all pass. Pictures: `tools/capture_world_light.gd -- <folder>
+    [earth|void|rooms]` (each view at all three levels; previews/lighting).
+  - My choices Hayden may change: Nice as the default, how thick the haze is, how much lamps glow, rim light and
+    toon shading on characters (next, if wanted).
+
 - 2026-11-23: **Moving pixel flames on every torch, lamp, candle and bonfire, and cosmic dust floating in the Void**
   (Hayden: "the texture pack that we used to make the trees sparkly ... also has interesting cosmic and fire vfx. Can
   you look at places we could apply that in the game, such as campfires, torches, or cosmic dust floating around?").

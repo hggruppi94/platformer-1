@@ -778,6 +778,8 @@ func _take_snap() -> void:
 		var env := we.environment.duplicate() as Environment
 		env.fog_enabled = false
 		env.volumetric_fog_enabled = false
+		env.ssao_enabled = false               # the lighting levels' extras (scripts/world_light.gd) cost frames for nothing here
+		env.ssil_enabled = false
 		if env.ambient_light_energy < 0.6 or env.ambient_light_color.get_luminance() < 0.35:
 			env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 			env.ambient_light_color = env.ambient_light_color.lerp(Color(1, 1, 1), 0.5)
