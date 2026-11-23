@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const SLEEP := preload("res://scripts/enemy_sleep.gd")
+
 # A Fizzler: a little crackling ball of static with one big eye, like a TV that's lost its channel and grown legs (no
 # legs, it floats). Hayden, 12 Nov 2026: "I want to make more enemies"; the story's "static wisps", the little bits of
 # static that come out of the cracks. (The game never says whose they are: no spoilers.)
@@ -59,6 +61,7 @@ var _respawn_left := -1.0
 
 
 func _ready() -> void:
+	SLEEP.hide_when_far.call_deferred(get_instance_id())  # (once its look is built)
 	add_to_group("enemies")
 	add_to_group("fizzlers")
 	home = global_position
@@ -207,6 +210,8 @@ func _physics_process(delta: float) -> void:
 				_try_respawn()
 		return
 	_find_player()
+	if SLEEP.asleep(self, player):
+		return                                       # far from her: resting (scripts/enemy_sleep.gd)
 	_t += delta
 	_blink_wait = maxf(_blink_wait - delta, 0.0)
 	_zap_cd = maxf(_zap_cd - delta, 0.0)

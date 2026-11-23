@@ -50,6 +50,8 @@ func _run() -> void:
 	RING = load("res://scripts/shock_ring.gd")
 	var game := root.get_node("Game")
 	game.riding = false
+	game._reset_state()                                    # (a new game's state, not Hayden's progress from his save)
+	game.needs_creator = false
 	game._resume = {}
 	game.pending_message = ""
 

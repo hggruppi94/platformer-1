@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const SLEEP := preload("res://scripts/enemy_sleep.gd")
+
 # The Crocodillo: a hunched crocodile-armadillo (scene built by tools/build_crocodillo.gd).
 #
 # It lurks near its home spot. When it spots Nina it snaps its jaws, curls up into an armoured ball and rolls at her.
@@ -61,6 +63,7 @@ var _told_shell := false                       # the "bubbles bounce off its she
 
 
 func _ready() -> void:
+	SLEEP.hide_when_far.call_deferred(get_instance_id())  # (once its look is built)
 	add_to_group("enemies")
 	if size != 1.0:
 		_resize()
@@ -91,6 +94,8 @@ func _physics_process(delta: float) -> void:
 	if defeated:
 		return
 	_find_player()
+	if SLEEP.asleep(self, player):
+		return                                       # far from her: resting (scripts/enemy_sleep.gd)
 	_t += delta
 	_cooldown -= delta
 	_flinch = maxf(_flinch - delta, 0.0)

@@ -68,7 +68,10 @@ func _run() -> void:
 	var g0 := goblins[0] as CharacterBody3D
 	var minute := g0.get_node("Visual/Watch/Minute") as Node3D
 	var r0 := minute.rotation.z
+	var was_at := p.global_position
+	p.global_position = g0.global_position + Vector3(0, 0.3, 30.0)   # (near enough to be awake: scripts/enemy_sleep.gd)
 	await _physics(20)
+	p.global_position = was_at
 	check(minute.rotation.z > r0, "a goblin's pocket watch runs backwards")
 
 	# --- Blinking back in time ---
