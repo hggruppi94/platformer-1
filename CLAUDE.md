@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **Baked the Secret Garden: its ivy-covered walls, rose arches, fountain, hedges, the maze's sundial,
+  the summerhouse, the giant flowers, the Great Tree and the benches** (Hayden: "Great, lets keep going"; the next
+  place not baked yet). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_secret_garden.py <out.glb> ivy_wall|rose_arch|fountain|hedge|sundial|summerhouse|flower_head|flower_middle|flower_stem|great_tree|garden_bench`
+    (a 4 m length of old brick wall in courses with a coping and ivy climbing thick over its inside face and spilling
+    over the top; an arch of twisted posts with climbing roses; the fountain's carved basin, column and bowl; a clipped
+    hedge of little leaves; the sundial with its gnomon and numbers; the summerhouse's posts, ribbed dome and gold
+    trim; a giant flower's two rings of veined petals baked pale, its middle of florets and a ridged stem; the Great
+    Tree's furrowed trunk, branches and roots; a slatted bench). In `models/props/secret_garden/`. The ivy and hedges
+    bake with no AO (their leaves shadowed each other black).
+  - **Swapped at run time** (`detail_props.gd dress_secret_garden()`, called by `WorldDetail` for
+    `scenes/secret_garden/secret_garden.tscn`): the garden's walls become 145 ivy lengths, the maze's and Rose Walk's
+    hedges, the rose arches, benches and the outer trees' trunks and leaf balls (the nature bake's) are MultiMeshes;
+    each giant flower keeps its own petal colour and glow (its head's material is copied and added to the garden's
+    glows, so waking it still brightens them). Godot renames a second "Hedge" under one parent "Hedge2", so pieces are
+    matched by `_base_name()`. Every collision, the door, the seeds and the water stay (old pieces on layers 0, meta
+    `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (run only this part with `-- secret`: counts, nothing plain drawn, the
+    flowers' glows, every solid shape unchanged, dressed again changes nothing). Pictures:
+    `tools/capture_detail_secret_garden.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_secret_garden).
+  - My choices Hayden may change: every look (the ivy, the rose colours, the summerhouse's gold ribs).
+
 - 2026-11-23: **Baked the Gloop Kingdom: the Palace Gate's towers and arch, the Royal Court's walls and stands, the
   throne and its dais, the Bog Road's lantern posts, the goo spires round the edge and the Royal Treasure** (Hayden:
   "Okay time to bake more details"; the next place not baked yet). Built and tested in the cloud (own Godot user
