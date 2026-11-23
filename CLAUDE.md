@@ -113,6 +113,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   `_home_portal()` keeps what it found. After: about 0.06 ms in the portal worlds, circuits and lairs, 0.3 to 0.4 ms in
   the Void and Stars Hollow (cloud numbers; Hayden's PC is about 3 times quicker). map, following, kid_ui, quests and
   earth (both runs), meetings, first_night, races and ui_style pass.
+- 2026-11-23: **Baked Grandfather Tock's Clockwork Tower: every gear, the Pendulum Walk's gear walls, pendulums and
+  frames, the Cog Gate, the tower's round wall, the Big Clock, Tock's dais, the Cuckoo Chest and the rail posts**
+  (Hayden: "keep baking details"; the next place not baked yet). Built and tested in the cloud (own Godot user folders,
+  no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_clock_tower.py <out.glb> tower_gear|gear_wall|pendulum_frame|pendulum|cog_gate|tower_bay|tower_door|big_clock|tock_dais|cuckoo_house|rail_post`
+    (a brass gear with a sunken web and a bolted hub; a 4.6 m length of panelled gear wall with brass bands; a
+    pendulum's posts, beam, braces and bearing; a fluted rod and brass bob; the Cog Gate's timber towers and beam; a
+    tenth of the round wall, panelled inside and out with pilasters, a blind arched window and battlements, and the
+    same with an arched way in over the walk; the Big Clock's face with numerals, ticks, a sunburst, a beaded bezel
+    and a wooden case; Tock's stepped brass dais; the Cuckoo Chest's carved house). In `models/props/clock_tower/`.
+    The gear and the clock bake with no AO (their flat faces baked black).
+  - **Swapped at run time** (`detail_props.gd dress_clock_tower()`, called by `WorldDetail` for
+    `scenes/bosses/clock_tower.tscn`, which `clock_tower.gd` builds at load): each piece goes in its old node's own
+    space, so the gears still turn, the pendulums still swing, the clock's hands, the floor hand, the bobs' glow and
+    the chest's door and bird stay the game's, and every collision is unchanged. The round wall no longer has a lid
+    (you see the sky and the floating cogs over the battlements) and the walk goes in through a real archway.
+  - **The Big Clock really runs backwards now** (`clock_tower.gd _lair_step()`): its hands had been going clockwise
+    until Tock was popped; now they go backwards until then and forwards after.
+  - Tests: `tools/test_detail_portal_props.gd` (run only this part with `-- tower`: counts, nothing plain drawn, the
+    hands, glow and door kept, the pendulums in their pivots, every solid shape unchanged, dressed again changes
+    nothing); boss_lairs, time_goblins and detail_all pass. Pictures: `tools/capture_detail_clock_tower.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_clock_tower).
+  - My choices Hayden may change: every look (the gear walls' boards, the bays' windows, the clock's sunburst).
 
 - 2026-11-23: **Baked the Star Arena: its wall, the stands' seats, the spotlight towers, the six hatches, the tunnel,
   Blip's podium and the Round Board** (Hayden: "Lets keep baking details"; the next place not baked yet). Built and
