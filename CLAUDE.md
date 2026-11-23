@@ -99,6 +99,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **The little aliens animate less when they're further off** (after the enemies; the cloud asked the PC to
+  take them). In the Market the little aliens and saucers cost about 1.1 ms a frame, 0.8 of it their 41 skeletons
+  animating. `scripts/little_aliens.gd` (every half second, `_pace()`): walkers and pilots within `SMOOTH_DISTANCE` 15 m
+  animate every frame; further off their AnimationPlayer is on manual and moved on every `SLOW_EVERY` 3 frames
+  (`_process`); a saucer or jetpack further than `FLYER_SHOW` 140 m is hidden (it keeps flying) with its pilot stopped
+  (`mini_saucer.gd pilot_anim`). Walkers past 70 m were already hidden and paused. Measured with `profile_market.gd --
+  --split Characters/LittleAliens`: about 0.4 ms saved (the PC's numbers move about ±0.3 ms). test_little_aliens passes.
+
 - 2026-11-23: **Enemies a long way off rest and aren't drawn: the Market's enemies cost ~0.2 ms, not 1.8** (Hayden:
   "work on other things" after the minimap; the cloud took the townsfolk). Measured on Hayden's PC (RTX 4070 SUPER).
   - **What it was** (`tools/profile_market.gd -- --split [<town node>...]`, new: takes a part of the town apart, its
