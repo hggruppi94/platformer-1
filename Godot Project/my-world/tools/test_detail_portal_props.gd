@@ -20,6 +20,7 @@ const FROZEN_MOMENT := "res://scenes/portal_worlds/frozen_moment.tscn"
 const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
 const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
+const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
 var failures := 0
@@ -52,6 +53,12 @@ func _run() -> void:
 	root.get_node("Settings").tips = false
 	root.get_node("Clock").set("pulls_home", false)
 	detail = root.get_node("WorldDetail")
+	if "gloop" in OS.get_cmdline_user_args():
+		# (only the Gloop Kingdom: -- gloop)
+		await _gloop_kingdom()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
 
 	# As built: the solid boxes to compare with
 	detail.detail_props = false
@@ -143,6 +150,7 @@ func _run() -> void:
 	await _far_future()
 	await _rootmind()
 	await _shard_isle()
+	await _gloop_kingdom()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -607,6 +615,70 @@ func _shard_isle() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing Shard Isle again changes nothing")
+
+
+func _gloop_kingdom() -> void:
+	detail.detail_props = false
+	await _load(GLOOP_KINGDOM)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Kingdom") == null, "nothing baked in the kingdom with detailed props off")
+	detail.detail_props = true
+	await _load(GLOOP_KINGDOM)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Gloop Kingdom props: ", got)
+	check(got.get("towers", 0) == 2 and got.get("arches", 0) == 1, "the Palace Gate's two towers and its arch swapped")
+	check(got.get("walls", 0) == 25, "every piece of the court's wall swapped (%d)" % got.get("walls", 0))
+	check(got.get("stands", 0) == 10, "all ten courtiers' stands swapped (%d)" % got.get("stands", 0))
+	check(got.get("dais", 0) == 1 and got.get("throne", 0) == 1, "the throne and its dais swapped")
+	check(got.get("posts", 0) == 12, "every lantern post on the Bog Road swapped (%d)" % got.get("posts", 0))
+	check(got.get("spires", 0) == 40, "every rock spire round the edge swapped (%d)" % got.get("spires", 0))
+	check(got.get("chest", 0) == 2, "the Royal Treasure's chest and lid swapped")
+	# Nothing plain left drawn of what was swapped (the goo, crowns, bulbs and banners stay)
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+			continue
+		var mn := _mat_of(mi)
+		var par := String(mi.get_parent().name)
+		if mn == "Palace Stone" and par in ["Palace Gate", "Royal Court"]:
+			plain += 1
+		elif mn == "Goo Rock" or (par == "Bog Road" and mi.mesh is BoxMesh and (mi.mesh as BoxMesh).size.y == 3.0):
+			plain += 1
+		elif par == "Throne" and mi.mesh is BoxMesh and mn == "Royal Gold" and String(mi.name).begins_with("Throne"):
+			plain += 1
+		elif par in ["Royal Treasure", "Lid"]:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# The MultiMeshes have a place each, each where its old piece was
+	var dk := s.get_node("Detailed Kingdom")
+	var places := 0
+	for mmi: MultiMeshInstance3D in dk.get_children():
+		places += (mmi.get_meta("transforms") as Array).size()
+	check(places == 25 + 10 + 12 + 40, "the walls, stands, posts and spires are MultiMeshes with a place each (%d)" % places)
+	var near := true
+	for mmi: MultiMeshInstance3D in dk.get_children():
+		for t: Transform3D in mmi.get_meta("transforms"):
+			var found := false
+			for c in s.find_children("*", "MeshInstance3D", true, false):
+				if c.has_meta("detail_prop_old") and (c as MeshInstance3D).global_position.distance_to(t.origin) < 0.01:
+					found = true
+					break
+			if not found:
+				near = false
+	check(near, "each copy stands where its old piece stood")
+	# The lid's model is in the Lid, so it still swings open
+	var lid := s.find_child("Lid", true, false) as Node3D
+	check(lid != null and lid.get_node_or_null("Detailed Chest Lid") != null, "the baked lid is in the lid that opens")
+	check(s.find_child("Detailed Gate Arch", true, false) != null, "the gate's arch is baked")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_gloop_kingdom(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the kingdom again changes nothing")
 
 
 func _in_model(n: Node) -> bool:

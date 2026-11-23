@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **Baked the Gloop Kingdom: the Palace Gate's towers and arch, the Royal Court's walls and stands, the
+  throne and its dais, the Bog Road's lantern posts, the goo spires round the edge and the Royal Treasure** (Hayden:
+  "Okay time to bake more details"; the next place not baked yet). Built and tested in the cloud (own Godot user
+  folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_gloop_kingdom.py <out.glb> gate_tower|gate_arch|court_wall|court_stand|throne_dais|throne|goo_lantern|goo_spire|chest_box|chest_lid`
+    (lilac palace stone in courses with gold bands, a corbelled cornice and glowing arched windows; the arch's blocks
+    with a gold curve, voussoirs, a keystone and a ruby; the court's wall in blocks with battlements and its stands
+    with glowing niches; the throne's stepped dais with gold bands and the throne with sunken panels, fluted pilasters,
+    an arched back with rubies, goo dripping off it and scrolled arms; a gold lantern post with a curled cage round
+    the bulb; a rock spire with goo oozing down it; a planked chest and lid with gold straps). In
+    `models/props/gloop_kingdom/`.
+  - **Swapped at run time** (`detail_props.gd dress_gloop_kingdom()`, called by `WorldDetail` for
+    `scenes/bosses/gloop_kingdom.tscn`): everything there is built in `gloop_kingdom.gd _ready()` with repeated names,
+    so pieces are found by their parent, shape, size and material. The 25 wall pieces, 10 stands, 12 lantern posts and
+    40 spires are MultiMeshes ("Detailed Kingdom"); the throne and dais sit in the Throne node; the chest's lid model
+    is inside its "Lid", so it still opens. The goo, crowns, bulbs, banners and every collision stay (old pieces on
+    layers 0, meta `detail_prop_old`).
+  - Tests: `tools/test_detail_portal_props.gd` (run only this part with `-- gloop`: counts, nothing plain drawn, each
+    copy where its old piece was, the lid in the Lid, every solid shape unchanged, dressed again changes nothing);
+    gloop_kingdom, gloop_king and detail_all pass. Pictures: `tools/capture_detail_gloop_kingdom.gd -- <folder>
+    [--old-props]` (project files, world/previews/detail_gloop_kingdom).
+  - My choices Hayden may change: every look (the gold bands, the glowing windows, the goo on the spires).
+
 - 2026-11-22: **Every portal world gets a dream sky of its own** (Hayden, after Shard Isle's: "Much better", then "Yes"
   to the other worlds). Built and tested in the cloud (own Godot user folders, no save touched).
   - **`scripts/world_sky.gd`** (no class_name; each world's `setup()` and `picture()` end with
