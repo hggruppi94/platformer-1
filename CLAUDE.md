@@ -114,6 +114,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     each autoload and each part of the town in turn and says what the frame saves (paired on/off, so drift cancels).
     Its other findings, not changed yet: the townsfolk ~2 ms, the Batch Watch ~1.8 ms, the enemies ~1.8 ms, the Market
     Square's own drawing ~2.2 ms, the Best lighting level ~2.5 ms.
+- 2026-11-23: **Flames inside cages flicker instead of getting a pixel flame** (Hayden: "remove the lanternmoor changes
+  since it looks like its clipping through. If anything clips like that, probably better to reduce the size or just add
+  a light flicker effect"). `fire_fx.gd _enclosure()` finds a flame with a piece of its own group drawn round it (its box
+  holds the flame's middle and reaches over its top, under 5 m across); those keep their own shape and get a "Flame
+  Flicker" node (`scripts/flame_flicker.gd`: the flame breathes a tenth bigger and smaller and its lights within 1.5 m
+  brighten and dim with it, nudging by the change since last frame so the game can still dim them; nothing past 45 m).
+  Only Lanternmoor's three beacons are caged today. `test_fire_fx` and `test_lanternmoor` pass; `capture_fire_fx.gd --
+  <folder> [<place>]` (project files, world/previews/fire_fx/cmp_lanternmoor_*_flicker.png).
 
 - 2026-11-23: **Nicer lighting: soft shadows where things meet, a haze the sun shines through and lamps glow in, and
   a Lighting setting** (Hayden: "it may be time to start looking into more advanced shading and lighting vfx"). Built
