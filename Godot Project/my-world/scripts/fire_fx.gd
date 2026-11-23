@@ -15,10 +15,16 @@ extends RefCounted
 # lamps burn green. A "Flame" that's a group of shapes (Rhythm Springs' little bonfires) gets three flames side by side.
 # WorldDetail dresses each place as it loads, before still pieces are merged, and every flame added later
 # (scripts/world_detail.gd _on_added: a beacon lit, a stone flaring). Every dressed flame has meta "fire_fx".
+#
+# A flame inside something (a lantern's glass, a beacon's iron cage, a lamp's shade) would poke its tall pixel flame
+# out through the top (Hayden, 23 Nov 2026: "If anything clips like that, probably better to reduce the size or just
+# add a light flicker effect"). Those keep their own shape and flicker instead (scripts/flame_flicker.gd: the flame
+# and its light breathe a little), with meta "fire_flicker". _enclosure() says what it's in.
 
 const SHEET := preload("res://scenes/fx/game_flame.png")
 const META := "fire_fx"
 const NAME := "Pixel Flame"
+const FLICKER_NAME := "Flame Flicker"
 const FLAME_MATS := ["Torch Flame", "Lamp Flame", "Candle Flame"]
 const SOURCE_HUE := 0.07        # the pack's fire is orange; a flame of another colour turns it this far round
 const TALL := 1.6               # the pixel flame's licking body is this many times the old flame's height...
@@ -26,6 +32,8 @@ const BODY := 32.0 / 80.0       # ...and its body is this much of the sheet's he
 const WIDE := 48.0 / 80.0       # the sheet's width over its height
 const FAR := 60.0               # fades out by here, and isn't drawn past it
 const BIGGEST := 3.0            # a "Flame" bigger than this across isn't a flame (a lantern, a whole beacon)
+const FLICKER := preload("res://scripts/flame_flicker.gd")
+const SHELL_MAX := 5.0          # a piece bigger than this across round a flame is a room or a building, not its lantern
 
 const SHADER := """shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, shadows_disabled;
@@ -107,6 +115,9 @@ static func check(node: Node) -> bool:
 			return false
 		if not _glows(mat) or _too_big(mi):
 			return false
+		if _enclosure(mi, [mi]):
+			_flicker(mi, mi)
+			return true
 		_dress_mesh(mi, mat)
 		return true
 	if node.name == "Flame" and node.get_class() == "Node3D":
@@ -121,6 +132,9 @@ static func check(node: Node) -> bool:
 					col = _colour(m)
 		if parts.is_empty():
 			return false
+		if _enclosure(node as Node3D, parts):
+			_flicker(node as Node3D, parts[0])
+			return true
 		_dress_fire(node as Node3D, parts, col)
 		return true
 	return false
@@ -128,6 +142,11 @@ static func check(node: Node) -> bool:
 
 static func is_dressed(node: Node) -> bool:
 	return node.has_meta(META)
+
+
+static func flickers_in(root: Node) -> Array:
+	# Every flame under root that flickers instead (it's inside something).
+	return root.find_children(FLICKER_NAME, "Node", true, false)
 
 
 static func flames_in(root: Node) -> Array:
@@ -239,3 +258,51 @@ static func _too_big(mi: MeshInstance3D) -> bool:
 	var box := mi.get_aabb()
 	var s := mi.global_transform.basis.get_scale()
 	return maxf(box.size.x * s.x, maxf(box.size.y * s.y, box.size.z * s.z)) > BIGGEST
+
+
+static func _enclosure(flame: Node3D, parts: Array) -> GeometryInstance3D:
+	# Something drawn round the flame: a piece near it (in its group, or its group's group) whose box holds the
+	# flame's middle and reaches over its top, so a tall pixel flame would come out through it. Null if it's open.
+	var box := _world_box(parts)
+	var mid := box.get_center()
+	var top := box.end.y
+	var group := flame.get_parent()
+	if group == null:
+		return null
+	if group.get_parent() and not (group.get_parent() is Window) and group.get_parent() != flame.get_tree().current_scene:
+		group = group.get_parent()
+	for g: Node in group.find_children("*", "GeometryInstance3D", true, false):
+		var gi := g as GeometryInstance3D
+		if gi in parts or gi == flame or gi.has_meta(META) or not gi.is_visible_in_tree() or gi.transparency >= 1.0:
+			continue
+		if gi is MultiMeshInstance3D or gi is Label3D or gi is Sprite3D:
+			continue
+		var b := gi.global_transform * gi.get_aabb()
+		if maxf(b.size.x, maxf(b.size.y, b.size.z)) > SHELL_MAX:
+			continue
+		if b.end.y <= top + 0.02 or b.position.y > mid.y:
+			continue
+		if mid.x < b.position.x or mid.x > b.end.x or mid.z < b.position.z or mid.z > b.end.z:
+			continue
+		return gi
+	return null
+
+
+static func _world_box(parts: Array) -> AABB:
+	var box := AABB()
+	var first := true
+	for p: MeshInstance3D in parts:
+		var b := p.global_transform * p.get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	return box
+
+
+static func _flicker(flame: Node3D, mesh: Node3D) -> void:
+	var f := FLICKER.new()
+	f.name = FLICKER_NAME
+	f.flame = mesh
+	flame.add_child(f)
+	flame.set_meta(META, true)
+	flame.set_meta("fire_flicker", true)
+	flame.set_meta("no_batch", true)
