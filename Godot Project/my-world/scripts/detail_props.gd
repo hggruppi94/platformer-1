@@ -948,6 +948,133 @@ static func dress_gloop_kingdom(scene: Node) -> Dictionary:
 	return out
 
 
+const SA := "res://models/props/star_arena/"            # the Star Arena's (tools/build_prop_star_arena.py)
+const SA_STEP := Vector2(2.8, 1.45)                      # the baked stand step's width and height (origin: top middle)
+const SA_SEAT := Vector2(0.48, 0.41)                     # a seat's middle: in from the step's middle, up from its top
+
+
+static func dress_star_arena(scene: Node) -> Dictionary:
+	# The Star Arena (23 Nov 2026, tools/build_prop_star_arena.py; scripts/arena_level.gd builds it all from shapes
+	# as it loads): the low wall and its gold trim, the four tiers of stands, the spotlight towers, the six hatches,
+	# the way-in tunnel, Blip's podium and the Round Board. The stands were one merged mesh of boxes, so they're made
+	# again: a plain base under every block and a baked step (riser, paving, nosing and a row of seats) on top of it.
+	# Each other baked piece is made in its old node's own space. The hatches' glow, the beams, the banners, the
+	# board's words and every collision stay.
+	var out := {"walls": 0, "steps": 0, "towers": 0, "hatches": 0, "tunnel": 0, "podium": 0, "board": 0, "fans": 0}
+	if scene.has_node("Detailed Arena") or _scene(SA + "arena_wall.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Arena"
+	# The wall: one baked length (wall and trim) where each wall box was
+	var walls := []
+	var wall := scene.get_node_or_null("Wall")
+	if wall:
+		for k in wall.get_children():
+			var mi := k as MeshInstance3D
+			if mi == null or mi.has_meta(OLD_META):
+				continue
+			var n := _base_name(mi)
+			if n.begins_with("Wall ") and mi.mesh is BoxMesh:
+				walls.append(_to_scene(mi, scene))
+				_hide(mi)
+			elif n.begins_with("Trim ") and mi.mesh is BoxMesh:
+				_hide(mi)
+	if not walls.is_empty():
+		_multi(holder, _mesh_of(_scene(SA + "arena_wall.glb")), walls, "Detailed Wall")
+		(holder.get_node("Detailed Wall") as MultiMeshInstance3D).visibility_range_end = 0.0
+		out["walls"] = walls.size()
+	# The stands: the same tiers and blocks as arena_level.gd's, a base box and a baked step on each
+	var stands := scene.get_node_or_null("Stands") as MeshInstance3D
+	if stands and not stands.has_meta(OLD_META):
+		var wall_r := 25.5
+		var gap := 3.0
+		var steps := []
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var bases := 0
+		for tier in 4:
+			var r := wall_r + 2.2 + tier * 2.0
+			var h := 1.4 + tier * 1.3
+			var tn := 72
+			for k in tn:
+				var a := TAU * (k + 0.5) / tn
+				var at := Vector3(cos(a), 0, sin(a)) * r
+				var over := at.z > 0.0 and absf(at.x) < gap + 1.0
+				if over and tier < 3:
+					continue
+				var y0 := 4.0 if over else 0.0
+				var wide := TAU * r / tn + 0.1
+				var step_h := minf(SA_STEP.y, h - y0)
+				var b := Basis(Vector3.UP, -a + PI / 2.0)
+				steps.append(Transform3D(b * Basis.from_scale(Vector3(wide / SA_STEP.x, step_h / SA_STEP.y, 1.0)),
+					stands.transform * (at + Vector3(0, h, 0))))
+				var base_h := h - step_h - y0
+				if base_h > 0.02:
+					var box := BoxMesh.new()
+					box.size = Vector3(wide, base_h, 2.05)
+					st.append_from(box, 0, Transform3D(b, at + Vector3(0, y0 + base_h * 0.5, 0)))
+					bases += 1
+		st.generate_normals()
+		if bases > 0:
+			var base := MeshInstance3D.new()
+			base.name = "Detailed Stands Base"
+			base.mesh = st.commit()
+			base.material_override = stands.material_override
+			base.transform = stands.transform
+			holder.add_child(base)
+		_multi(holder, _mesh_of(_scene(SA + "stand_step.glb")), steps, "Detailed Stand Steps")
+		(holder.get_node("Detailed Stand Steps") as MultiMeshInstance3D).visibility_range_end = 0.0
+		_hide(stands)
+		out["steps"] = steps.size()
+		# The crowd stood in the middle of each block, which is behind the seats now: they stand up on the seats
+		var crowd := scene.get_node_or_null("Crowd")
+		if crowd:
+			for fan in crowd.get_children():
+				if fan is Node3D and String(fan.name).begins_with("Fan "):
+					var f := fan as Node3D
+					var flat := Vector3(f.position.x, 0, f.position.z)
+					f.position += -flat.normalized() * SA_SEAT.x + Vector3(0, SA_SEAT.y, 0)
+					f.set_meta("y", f.position.y)
+					out["fans"] += 1
+	# The rest: each its own model in its old node's space
+	for tower in scene.find_children("Spotlight Tower *", "Node3D", true, false):
+		if tower.has_node("Detailed Tower"):
+			continue
+		for k in tower.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["Tower", "Lamp"]:
+				_hide(k)
+		if _add(tower, SA + "spotlight_tower.glb", "Detailed Tower", Transform3D.IDENTITY):
+			out["towers"] += 1
+	for hatch in scene.find_children("Hatch *", "Node3D", true, false):
+		var rim := hatch.get_node_or_null("Hatch Rim") as MeshInstance3D
+		if rim == null or hatch.has_node("Detailed Hatch"):
+			continue
+		_hide(rim)
+		if _add(hatch, SA + "arena_hatch.glb", "Detailed Hatch", Transform3D.IDENTITY):
+			out["hatches"] += 1
+	var tunnel := scene.get_node_or_null("Tunnel") as Node3D
+	if tunnel and not tunnel.has_node("Detailed Tunnel"):
+		for k in tunnel.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["Tunnel Wall", "Tunnel Roof"]:
+				_hide(k)
+		if _add(tunnel, SA + "arena_tunnel.glb", "Detailed Tunnel", Transform3D.IDENTITY):
+			out["tunnel"] = 1
+	var blip := scene.get_node_or_null("Blip") as Node3D
+	if blip and blip.has_node("Podium") and not blip.has_node("Detailed Podium"):
+		_hide(blip.get_node("Podium"))
+		if _add(blip, SA + "blip_podium.glb", "Detailed Podium", Transform3D.IDENTITY):
+			out["podium"] = 1
+	var board := scene.get_node_or_null("Round Board") as Node3D
+	if board and not board.has_node("Detailed Board"):
+		for k in board.get_children():
+			if k is MeshInstance3D and _base_name(k) in ["Board Leg", "Board"]:
+				_hide(k)
+		if _add(board, SA + "round_board.glb", "Detailed Board", Transform3D.IDENTITY):
+			out["board"] = 1
+	scene.add_child(holder)
+	return out
+
+
 const SG := "res://models/props/secret_garden/"
 const FOUNTAIN_SG := SG + "fountain.glb"
 const SG_PETAL_GAIN := 1.2               # the head's petals are baked pale; this lifts each flower's tint back

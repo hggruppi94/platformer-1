@@ -21,6 +21,7 @@ const FAR_FUTURE := "res://scenes/portal_worlds/far_future.tscn"
 const ROOTMIND := "res://scenes/portal_worlds/rootmind.tscn"
 const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
 const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
+const STAR_ARENA := "res://scenes/bosses/arena.tscn"
 const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
@@ -57,6 +58,12 @@ func _run() -> void:
 	if "secret" in OS.get_cmdline_user_args():
 		# (only the Secret Garden: -- secret)
 		await _secret_garden()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
+	if "arena" in OS.get_cmdline_user_args():
+		# (only the Star Arena: -- arena)
+		await _star_arena()
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
@@ -159,6 +166,7 @@ func _run() -> void:
 	await _shard_isle()
 	await _gloop_kingdom()
 	await _secret_garden()
+	await _star_arena()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -757,6 +765,60 @@ func _secret_garden() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the garden again changes nothing")
+
+
+func _star_arena() -> void:
+	detail.detail_props = false
+	await _load(STAR_ARENA)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Arena") == null, "nothing baked in the arena with detailed props off")
+	detail.detail_props = true
+	await _load(STAR_ARENA)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Star Arena props: ", got)
+	check(got.get("walls", 0) == 61, "every length of the low wall swapped (%d)" % got.get("walls", 0))
+	check(got.get("steps", 0) == 278, "a baked step on every block of the stands (%d)" % got.get("steps", 0))
+	check(got.get("fans", 0) == (s.get_node("Crowd").get_child_count()), "the whole crowd up on the seats (%d)" % got.get("fans", 0))
+	check(got.get("towers", 0) == 4, "all four spotlight towers swapped")
+	check(got.get("hatches", 0) == 6, "all six hatches swapped")
+	check(got.get("tunnel", 0) == 1 and got.get("podium", 0) == 1 and got.get("board", 0) == 1,
+		"the tunnel, Blip's podium and the Round Board swapped")
+	# Nothing plain left drawn of what was swapped (the hatches' glow, beams, banners and words stay)
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+			continue
+		var n := String(mi.name)
+		if n == "Stands" or n.begins_with("Wall ") or n.begins_with("Trim ") or n in ["Tower", "Lamp", "Hatch Rim",
+				"Tunnel Wall", "Tunnel Roof", "Podium", "Board Leg", "Board"]:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	var steps := s.get_node("Detailed Arena/Detailed Stand Steps") as MultiMeshInstance3D
+	var tops := {}
+	for t: Transform3D in steps.get_meta("transforms"):
+		tops[snappedf(t.origin.y, 0.01)] = true
+	check(tops.size() == 4, "the steps sit at the stands' four tier heights (%s)" % str(tops.keys()))
+	var near := true
+	for t: Transform3D in (s.get_node("Detailed Arena/Detailed Wall") as MultiMeshInstance3D).get_meta("transforms"):
+		var found := false
+		for c in s.get_node("Wall").get_children():
+			if c.has_meta("detail_prop_old") and (c as Node3D).global_position.distance_to(t.origin) < 0.01:
+				found = true
+				break
+		near = near and found
+	check(near, "each wall length stands where its old box stood")
+	check(s.get_node("Round Board").find_child("Board Text", true, false) != null, "the board's words are still there")
+	var glow := s.find_child("Hatch Glow", true, false) as MeshInstance3D
+	check(glow != null and glow.is_visible_in_tree() and not glow.has_meta("detail_prop_old"), "the hatches still glow")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_star_arena(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the arena again changes nothing")
 
 
 func _in_model(n: Node) -> bool:

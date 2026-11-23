@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-23: **Baked the Star Arena: its wall, the stands' seats, the spotlight towers, the six hatches, the tunnel,
+  Blip's podium and the Round Board** (Hayden: "Lets keep baking details"; the next place not baked yet). Built and
+  tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_star_arena.py <out.glb> arena_wall|stand_step|spotlight_tower|arena_hatch|arena_tunnel|blip_podium|round_board`
+    (a length of lilac stone wall in courses with a gold rail and star medallions; one step of the stands with a row
+    of pink, teal and yellow seats; a riveted spotlight tower with gold bands, a ladder and a lamp housing; a hatch's
+    riveted gold ring with bolts and a star; the tunnel's arched stone mouth and vaulted inside; Blip's podium with
+    gold trim and a star; the Round Board's carved frame on its post). In `models/props/star_arena/`.
+  - **Swapped at run time** (`detail_props.gd dress_star_arena()`, called by `WorldDetail` for
+    `scenes/bosses/arena.tscn`, which `arena_level.gd` builds at load): the 61 wall pieces and 278 stand steps are
+    MultiMeshes ("Detailed Arena"; each step stretched to its tier's width and height, `SA_STEP`), the stands' block
+    under them is rebuilt without its steps, and the cheering crowd moved onto the seats (`SA_SEAT`, their bob reads
+    meta `y`). The towers, hatches (their glow stays), tunnel, podium and board (its words stay) get their models.
+    Every collision stays (old pieces hidden). The spotlight beams are unchanged; the lamps' bright white glow is now
+    the baked lens.
+  - Tests: `tools/test_detail_portal_props.gd` (run only this part with `-- arena`: counts, nothing plain drawn, the
+    four tier heights, each wall where its old box was, the board's words and hatch glows kept, every solid shape
+    unchanged, dressed again changes nothing); arena and detail_all pass. Pictures:
+    `tools/capture_detail_star_arena.gd -- <folder> [--old-props]` (project files, world/previews/detail_star_arena).
+  - My choices Hayden may change: every look (the seat colours, the gold trim, the towers' lamps).
+
 - 2026-11-23: **The minimap stops searching the whole Void every frame: the Market runs at about 63 fps, not 54**
   (Hayden: "look at what we can do to reduce frame drop in the market"). Measured on Hayden's PC (RTX 4070 SUPER).
   - **What it was:** to draw quest stars and people, the minimap (`scripts/map_screen.gd`) searched the whole scene
