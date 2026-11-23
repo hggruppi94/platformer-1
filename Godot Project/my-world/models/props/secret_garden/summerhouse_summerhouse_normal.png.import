@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxw4ko4txbhr3"
-path="res://.godot/imported/summerhouse_summerhouse_normal.png-86dae54ca02fbff59e5ab6285e0c0649.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "059f2f6a431aefc6fb0a7c987f4ced80"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/summerhouse_summerhouse_normal.png"
-dest_files=["res://.godot/imported/summerhouse_summerhouse_normal.png-86dae54ca02fbff59e5ab6285e0c0649.ctex"]
 
 [params]
 

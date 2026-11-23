@@ -124,6 +124,7 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     world/previews/tower_climb).
   - My choices Hayden may change: the names (the Gearworks, Cog Spools, Swinging Hands, the Gear Lift, the Halfway
     Ledge), how high, how often spools roll, how many snipers.
+
 - 2026-11-23: **The townsfolk think for half the time** (Hayden: "work through the whole game ... Then work on other
   things"; the Market profile put the townsfolk at ~2 ms). New `tools/profile_townsfolk.gd [-- earth]` times each
   person's routine and their animation; with a window it also switches the routines, the animation, the townsfolk and

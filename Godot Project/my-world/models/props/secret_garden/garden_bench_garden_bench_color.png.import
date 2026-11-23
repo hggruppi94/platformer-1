@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7nlshnd5fsvx"
-path="res://.godot/imported/garden_bench_garden_bench_color.png-0954e153286601f36658f5f12d70f022.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "69f091205d699181c288039d60a6723d"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/garden_bench_garden_bench_color.png"
-dest_files=["res://.godot/imported/garden_bench_garden_bench_color.png-0954e153286601f36658f5f12d70f022.ctex"]
 
 [params]
 

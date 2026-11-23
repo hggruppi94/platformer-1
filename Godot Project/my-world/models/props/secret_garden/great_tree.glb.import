@@ -4,12 +4,11 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cfys40ylj437g"
-path="res://.godot/imported/great_tree.glb-94521a76ef1c8751df001c496121cf2e.scn"
+valid=false
 
 [deps]
 
 source_file="res://models/props/secret_garden/great_tree.glb"
-dest_files=["res://.godot/imported/great_tree.glb-94521a76ef1c8751df001c496121cf2e.scn"]
 
 [params]
 

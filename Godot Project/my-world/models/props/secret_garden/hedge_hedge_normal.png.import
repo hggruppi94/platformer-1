@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://f32lg8kabb17"
-path="res://.godot/imported/hedge_hedge_normal.png-6aaabc7598e38a2bbf2ee697d989a102.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "96ded0d54b015c5941b5e58ee0be5f7a"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/hedge_hedge_normal.png"
-dest_files=["res://.godot/imported/hedge_hedge_normal.png-6aaabc7598e38a2bbf2ee697d989a102.ctex"]
 
 [params]
 

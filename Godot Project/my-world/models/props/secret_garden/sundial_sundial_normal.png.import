@@ -3,10 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://tci4m4pg6h1s"
-path="res://.godot/imported/sundial_sundial_normal.png-7bc00d7aebc66e8ad00ecfb4dc7af8e0.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 generator_parameters={
 "md5": "ba413144a75e2216f0255f64ec658de3"
 }
@@ -14,7 +11,6 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/secret_garden/sundial_sundial_normal.png"
-dest_files=["res://.godot/imported/sundial_sundial_normal.png-7bc00d7aebc66e8ad00ecfb4dc7af8e0.ctex"]
 
 [params]
 
