@@ -21,7 +21,8 @@ const MUCKLING := preload("res://scenes/enemies/gloop.tscn")
 const HEAD_Y := 2.15                     # the middle of its head, from its feet
 const STOMP_ABOVE := 2.0                 # a landing with her feet above this (from its feet) is a stomp on the head
 const STOMP_BOUNCE := 10.0
-const MAX_MUCKLINGS := 5
+const MAX_MUCKLINGS := 10                # a horde, but never more than this out at once
+const NEAR_YOU := 4.5                    # the ones that come up round you, this far off (and up to 2 m more)
 const WIND_UP := 1.3                     # seconds its head swells before the wail
 const WAIL_TIME := 1.1
 
@@ -32,7 +33,7 @@ const WAIL_TIME := 1.1
 @export var wander_radius := 8.0
 @export var walk_speed := 0.8            # slow: she walks at 5
 @export var call_every := 10.0
-@export var call_count := 3              # Mucklings per call (fewer if it's near MAX_MUCKLINGS)
+@export var call_count := 5              # Mucklings per call (fewer if it's near MAX_MUCKLINGS)
 @export var respawn_time := 60.0
 @export var respawn_clear := 20.0
 @export var skin := Color(0.2, 0.24, 0.2)        # its bog-wood body
@@ -40,6 +41,7 @@ const WAIL_TIME := 1.1
 @export var eye_colour := Color(1.0, 0.9, 0.45)
 @export var muck := {"green": Color(0.2, 0.32, 0.16), "deep": Color(0.05, 0.1, 0.06), "pop": Color(0.5, 0.8, 0.4)}
 @export var bed_y := -0.8                # the swamp's bed, where Mucklings come up
+@export var murk_top := -0.12            # the swamp's top: Mucklings wade with their bodies up out of it
 
 var home := Vector3.ZERO
 var defeated := false
@@ -62,6 +64,7 @@ var _hitbox: Area3D
 var _shape: CollisionShape3D
 var _respawn_left := -1.0
 var _arms: Array[Node3D] = []
+static var _made := 0                    # Mucklings made, for their names
 
 
 func _ready() -> void:
@@ -347,33 +350,77 @@ func _wail() -> void:
 
 
 func _raise_muckling(i: int, of: int) -> void:
+	# Most come up out of the mud round it; from the third on, every other one comes up round YOU, so a call really
+	# brings a horde in from all sides (Hayden, after playing: "I want them to spawn in")
+	var at := Vector3.ZERO
+	var round_you := i >= 2 and i % 2 == 0 and player != null and is_instance_valid(player)
+	if round_you:
+		var a := randf() * TAU
+		at = player.global_position + Vector3(sin(a), 0, cos(a)) * randf_range(NEAR_YOU, NEAR_YOU + 2.0)
+		var y := _ground_at(at)
+		if y < bed_y - 0.2 or y > player.global_position.y + 1.0:
+			round_you = false                          # (no ground there, or up on something: come up by the wailer)
+		else:
+			at.y = y
+	if not round_you:
+		var a := TAU * (float(i) + randf_range(-0.2, 0.2)) / float(maxi(of, 1)) + visual.rotation.y
+		at = global_position + Vector3(sin(a), 0, cos(a)) * randf_range(2.5, 4.5)
+		at.y = _ground_at(at)
+	at.y = maxf(at.y, bed_y) + 0.3
+	var g := make_muckling(get_parent(), at, muck, bed_y, murk_top)
+	g.set_meta("wailer", self)
+	mucklings.append(g)
+
+
+static func make_muckling(parent: Node, at: Vector3, muck_cols: Dictionary, bed: float, top: float) -> CharacterBody3D:
+	# One Muckling (a little bog Gloop), shared with the swamp's mimics and lurkers (scripts/swamp_dangers.gd). It's
+	# happy down on the swamp's bed (a Gloop heads home below the lake basin's height, so it used to sink back to
+	# where it came up and sit there hidden under the murk) and it wades with its body up out of the water.
+	_made += 1
 	var g := MUCKLING.instantiate() as CharacterBody3D
-	g.name = "Muckling %d" % randi_range(100, 999)
+	g.name = "Muckling %d" % _made                       # (numbered, so no two clash and get renamed)
 	g.set("respawns", false)
 	g.set("size", 0.6)
 	g.set("damage", 1)
 	g.set("xp_reward", 2)
 	g.set("chase_speed", 3.1)
-	g.set("sight_range", 16.0)
-	g.set("leash_range", 30.0)
+	g.set("sight_range", 18.0)
+	g.set("leash_range", 40.0)
 	g.set("wander_radius", 3.0)
 	g.set("goldness", 0.0)
-	g.set("color", muck.get("pop", Color(0.5, 0.8, 0.4)))
+	g.set("pounce", true)                              # it hops at you, up out of the water onto islands too
+	g.set("pounce_range", 4.5)
+	g.set("pounce_every", 2.4)
+	g.set("pounce_speed", 6.0)
+	g.set("low_ground", bed - 2.0)
+	g.set("hound", true)
+	g.set("wade_top", top)
+	g.set("color", muck_cols.get("pop", Color(0.5, 0.8, 0.4)))
 	g.add_to_group("mucklings")
-	g.set_meta("wailer", self)
-	var a := TAU * (float(i) + randf_range(-0.2, 0.2)) / float(maxi(of, 1)) + visual.rotation.y
-	var at := global_position + Vector3(sin(a), 0, cos(a)) * randf_range(2.5, 4.0)
-	at.y = maxf(_ground_at(at), bed_y) + 0.3
-	g.position = (get_parent() as Node3D).to_local(at)     # (before it's added: a Gloop takes its home from there)
-	get_parent().add_child(g)
+	g.position = (parent as Node3D).to_local(at)       # (before it's added: a Gloop takes its home from there)
+	parent.add_child(g)
 	for m in (g.get("_goo") as Array):
-		(m as ShaderMaterial).set_shader_parameter("green", muck.get("green"))
-		(m as ShaderMaterial).set_shader_parameter("deep", muck.get("deep"))
-	Fx.burst(get_parent(), at, muck.get("pop", Color(0.5, 0.8, 0.4)), 10, 0.1, 3.0, -8.0, 0.6)
+		(m as ShaderMaterial).set_shader_parameter("green", muck_cols.get("green"))
+		(m as ShaderMaterial).set_shader_parameter("deep", muck_cols.get("deep"))
+	var pop: Color = muck_cols.get("pop", Color(0.5, 0.8, 0.4))
+	Fx.burst(parent, at, pop, 14, 0.12, 3.5, -8.0, 0.7)              # a splash of mud as it bursts up
+	Fx.burst(parent, at + Vector3(0, 0.4, 0), pop.lightened(0.3), 8, 0.08, 5.0, -10.0, 0.5)
 	Audio.play_at("gloop_giggle", at, -4.0, 0.3)
+	_rise(g)
 	if g.has_method("alert"):
 		g.call("alert")
-	mucklings.append(g)
+	return g
+
+
+static func _rise(g: Node3D) -> void:
+	# It squeezes up out of the mud: its look starts flat and under, then springs up
+	var v := g.get_node_or_null("Visual") as Node3D
+	if v == null:
+		return
+	var sc := v.scale
+	v.scale = Vector3(sc.x * 1.4, sc.y * 0.1, sc.z * 1.4)
+	var t := g.create_tween()
+	t.tween_property(v, "scale", sc, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _ground_at(p: Vector3) -> float:

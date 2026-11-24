@@ -99,6 +99,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **A Bog Wailer's call really brings a horde now** (Hayden, after playing: "The siren didnt seem to bring
+  in any hordes, I want them to spawn in"). The Mucklings did come up, but a Gloop heads home whenever it's lower than
+  the lake basin (`gloop.gd LOW_GROUND` -0.25), and the swamp's bed is at -0.8, so every one sank back to where it came
+  up and sat there hidden under the murk. Now (`bog_wailer.gd make_muckling()`, shared with the mimics and lurkers in
+  `swamp_dangers.gd`): Gloops have `low_ground` (Mucklings: under the bed), `wade_top` (their look rides up so only
+  their feet are under the murk or goo) and `hound` (keep after her while she blinks from a hit, and hop up a bank
+  they bump into, `CLIMB_HOP`), and Mucklings pounce at you (hopping onto islands and stones). A call brings 5 (was
+  3), up to 10 out at once (was 5), and from the third on every other one bursts up round YOU (`NEAR_YOU` 4.5 to
+  6.5 m) with a splash of mud as they squeeze up out of it (`_rise()`). Names are numbered so none clash.
+  `test_swamps` checks some come up round you, the horde reaches you within 3 s and they're up out of the water; it
+  holds the lurkers still during its path checks. scary_world (both runs), lanternmoor, gloop_kingdom, gloop_king,
+  arena, wilds, arsenal and boss_versions pass.
+
 - 2026-11-24: **Two swamps: the Mothmire past Lanternmoor's moor and the Poison Mire past Dusk's Embrace, with Bog
   Wailers, traps, a giant that chases you and a lookout tree at the end** (Hayden: "add a swamp to lanternmoor and a
   super poison swamp to ducks embrace", siren enemies "with giant malformed heads ... their loud call summons hordes",

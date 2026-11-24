@@ -1196,6 +1196,7 @@ func _wailers() -> void:
 		c.set("eye_colour", w.eye)
 		c.set("muck", w.muck)
 		c.set("bed_y", BED)
+		c.set("murk_top", SURFACE)
 		c.position = Vector3(float(d[0]), BED + 0.1, float(d[1]))
 		g.add_child(c)
 		wailers.append(c)

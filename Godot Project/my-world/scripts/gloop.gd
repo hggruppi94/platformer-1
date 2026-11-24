@@ -23,6 +23,9 @@ const SLEEP := preload("res://scripts/enemy_sleep.gd")
 @export var wander_radius := 6.0              # how far from home it ambles
 @export var sight_range := 11.0               # notices Nina within this distance
 @export var leash_range := 22.0               # gives up the chase if Nina gets this far from its home
+@export var low_ground := LOW_GROUND          # below this it heads home (the lake basin); swamp Mucklings live lower
+var hound := false                            # keeps after her even while she's blinking from a hit (a swamp horde)
+var wade_top := NAN                           # in water this deep (a swamp's top), it rides up out of it to be seen
 @export var wander_speed := 1.4
 @export var chase_speed := 3.4                # Nina walks at 5, so she can always outrun one
 @export var turn_speed := 8.0
@@ -40,6 +43,8 @@ const SLEEP := preload("res://scripts/enemy_sleep.gd")
 @export var pack := ""                        # Gloops with the same pack name call each other in when one spots you
 
 const STOMP_BOUNCE := 8.0                     # Nina's upward speed after a stomp (more if jump is held)
+const CLIMB_HOP := 5.5                        # a hound's hop up a bank it's bumped into (see hound)
+const WADE_DEEP := 0.3                        # how far a wading Gloop's feet go under (see wade_top)
 const LOW_GROUND := -0.25                     # below this height is the lake basin: Gloops don't like water
 const POUNCE_WINDUP := 0.45                   # the crouch before a leap
 const PACK_CALL := 20.0                       # a pack Gloop that spots you calls in the others this close to it
@@ -116,7 +121,7 @@ func _physics_process(delta: float) -> void:
 	# Decide where to go: chase Nina if she's close (and not still blinking from a hit), otherwise amble about home
 	var speed := wander_speed
 	var chasing := false
-	if player and not player.is_recovering():
+	if player and (hound or not player.is_recovering()):
 		var to_p := player.global_position - global_position
 		if (Vector2(to_p.x, to_p.z).length() < sight_range or _alert > 0.0) and absf(to_p.y) < 4.0 \
 				and _flat(player.global_position - home) < leash_range:
@@ -129,7 +134,7 @@ func _physics_process(delta: float) -> void:
 			var a := randf() * TAU
 			target = home + Vector3(cos(a), 0, sin(a)) * randf() * wander_radius
 			_retarget = randf_range(2.0, 4.5)
-	if global_position.y < LOW_GROUND:
+	if global_position.y < low_ground:
 		target = home                                         # wandered into the lake basin: head home
 	# Giggle when it spots her
 	_giggle_cooldown -= delta
@@ -154,7 +159,11 @@ func _physics_process(delta: float) -> void:
 	velocity.z = h.z
 	if not is_on_floor():
 		velocity += get_gravity() * delta
+	elif hound and chasing and is_on_wall() and want.length() > 0.1:
+		velocity.y = CLIMB_HOP                                # up a bank (onto an island, a stone) after her
 	move_and_slide()
+	if not is_nan(wade_top):
+		visual.position.y = maxf(0.0, wade_top - WADE_DEEP - global_position.y)   # wading: only its feet are under
 
 	if h.length() > 0.2:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(h.x, h.z), 1.0 - exp(-turn_speed * delta))
