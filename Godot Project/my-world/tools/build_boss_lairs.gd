@@ -13,6 +13,7 @@ const LAIRS := [
 	["TheClockworkTower", "res://scripts/clock_tower.gd", "res://scenes/bosses/clock_tower.tscn"],
 	["BoulderCanyon", "res://scripts/boulder_canyon.gd", "res://scenes/bosses/boulder_canyon.tscn"],
 	["TheSkyreachTrail", "res://scripts/skyreach_trail.gd", "res://scenes/bosses/skyreach_trail.tscn"],
+	["TheVirtueTrial", "res://scripts/virtue_trial.gd", "res://scenes/bosses/virtue_trial.tscn"],
 ]
 
 

@@ -76,6 +76,7 @@
     {"id": "glimmer_antennae", "name": "Glimmer Antennae", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming Glimmerwing at the Star Well"},
     {"id": "lily_pad_hat", "name": "Lily Pad Hat", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming Old Bubblebeard at Bubble Spring"},
     {"id": "kite_hat", "name": "Kite Hat", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming Ribbontail on Kite Hill"},
+    {"id": "virtue_laurel", "name": "Laurel of Virtues", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For passing all seven virtue trials on the Skyreach Trail"},
     {"id": "starhorn_antlers", "name": "Seraph Halo", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming the Seraph at the top of the Skyreach Trail"},
     {"id": "friendship_circlet", "name": "Friendship Circlet", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For opening every friend spot with your friends' help"},
     {"id": "ember_frills", "name": "Ember Frills", "stall": "Dash", "reward": true, "kind": "hat", "price": 0, "text": "For calming Old Ember deep in Rhythm Springs' volcano"},

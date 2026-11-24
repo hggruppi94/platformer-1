@@ -221,6 +221,20 @@ static func hat(id: String) -> Node3D:
 				for k in 3:
 					_mesh(h, _sphere(0.05), feather, Vector3(side * (0.25 + k * 0.035), 0.05 + k * 0.045, -0.03 - k * 0.02),
 						Vector3(0, 0, -side * (0.5 + k * 0.3)), Vector3(0.6, 1.9 - k * 0.3, 0.35))
+		"virtue_laurel":
+			# For passing all seven virtue trials on the Skyreach Trail (scripts/virtue_trial.gd): a gold laurel wreath of
+			# little leaves with a gem in each virtue's colour set round the front
+			_mesh(h, _torus(0.22, 0.24), _mat(Color(1.0, 0.78, 0.32), 0.3, 0.8), Vector3(0, -0.01, 0))
+			var leaf := _mat(Color(1.0, 0.82, 0.36), 0.4, 0.8)
+			for k in 18:
+				var a := -PI * 0.9 + k * (PI * 1.8 / 17.0)
+				var at := Vector3(sin(a) * 0.235, 0.03 + absf(sin(k * 1.7)) * 0.02, cos(a) * 0.235)
+				_mesh(h, _sphere(0.035), leaf, at, Vector3(0.0, a, 0.5 if k % 2 == 0 else -0.5), Vector3(0.5, 0.6, 1.4))
+			var gems := [Color(0.75, 0.7, 1.0), Color(0.55, 0.8, 1.0), Color(1.0, 0.6, 0.75), Color(1.0, 0.82, 0.4),
+				Color(1.0, 0.45, 0.45), Color(0.55, 0.9, 0.55), Color(0.92, 0.95, 1.0)]
+			for k in gems.size():
+				var a := -0.75 + k * 0.25
+				_mesh(h, _sphere(0.026), _mat(gems[k], 1.2), Vector3(sin(a) * 0.248, 0.02, cos(a) * 0.248))
 		"ember_frills":
 			# For calming Old Ember deep in Rhythm Springs' volcano: a headband with three glowing flame frills each
 			# side, like a salamander's gills

@@ -978,7 +978,7 @@ func _skyreach() -> void:
 	check(got.get("kerbs", 0) > 100, "the kerb stones are baked blocks (%d)" % got.get("kerbs", 0))
 	# (since 24 Nov 2026 the summit's ring is marble columns and the pines are columns in the clouds: nothing to bake)
 	check(got.get("ring_rocks", 0) == 0 and got.get("pines", 0) == 0, "no mossy rocks or pines in heaven")
-	check(got.get("waystones", 0) == 5, "all five Waystones baked (%d)" % got.get("waystones", 0))
+	check(got.get("waystones", 0) == 8, "all eight Waystones baked (%d)" % got.get("waystones", 0))
 	check(got.get("crystals", 0) == 30, "all 30 cliff crystals baked (%d)" % got.get("crystals", 0))
 	check(got.get("flags", 0) == 63, "all 63 prayer flags baked (%d)" % got.get("flags", 0))
 	check(got.get("chest", 0) == 1 and got.get("blooms", 0) == 14, "the Star Chest and the 14 Star Blooms baked")

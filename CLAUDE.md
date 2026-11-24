@@ -99,6 +99,35 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Skyreach Trail's Waystones lead into seven virtue trials, and you must pass every one to reach
+  the Seraph** (Hayden: "the way points can literally be invisible portals that transport you to instances that have
+  the same heavenly theme with different challenges", "based on the heavenly virtues", Charity "you have to give all of
+  your sparkles, but you receive them back after you complete the challenge 2x", "not optional"). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **The trail** (`skyreach_trail.gd`): seven Waystones now (`STONES`), each with a ring of its virtue's light round
+    its foot; a **gate of light** stands across the path just past each (`GATE_AFTER`, solid, `gate_closed(k)`) until
+    its trial's done. Hug a Waystone (`PORTAL_R` 1.35 m for `PORTAL_HOLD` 0.45 s) and you're taken into its trial
+    (`enter_trial(k)`); finishing (or the Way Out) puts you back beside it, facing up the trail.
+  - **The trials** (`scripts/virtue_trial.gd`, extends `boss_lair.gd`, one scene `scenes/bosses/virtue_trial.tscn` built
+    by `build_boss_lairs.gd`, which trial from Bosses meta `virtue_trial`): marble isles over the same cloud sea, each
+    ending at a gold altar that only takes you once it's done. **Humility** (a low path under eight arches; a grand
+    stair beside it goes nowhere, and jumping up high gets you blown back), **Patience** (seven stones hidden in the
+    clouds: stand still by where the next should be and it comes out), **Kindness** (lead a lost lamb home to its
+    mother), **Temperance** (an orchard of 30 golden pears: take exactly five; a sixth and they all go back),
+    **Charity** (a wall of light holds you until you give ALL your sparkles at the bowl; carry six feathers to six sad
+    cherubs and a golden bridge to the altar appears; finishing gives the sparkles back twice over, leaving early gives
+    them back as they were; saving in there counts them, `VIRTUE.held()` in `game.gd`), **Diligence** (thirty steps
+    round a pillar of light; lamps on steps 10 and 20 catch you if you slip) and **Purity** (a mirror walkway with
+    drifting dark mists; touch one and you go back to the last golden lily). Nothing hurts: falling floats you back.
+  - **Rewards:** 8 sparkles and a Remnant each the first time (`REWARD`); all seven, 30 more and the **Laurel of
+    Virtues** hat (`cosmetics.gd`, `shop/items.json`). Flags `virtue_<id>`, `virtue_all`. Saving inside a trial saves
+    you back by its Waystone (`save_place()`).
+  - Tests: new `tools/test_virtue_trials.gd` (gates, portals, every trial really played, Charity both ways, saving, the
+    laurel, no double pay); `test_skyreach_trail` sets the seven flags first; `test_detail_portal_props -- skyreach` (8
+    Waystones now), boss_lairs, clothing_fit and shop (both runs) pass. Pictures: `tools/capture_virtue_trials.gd --
+    <folder>` (project files, world/previews/virtue_trials).
+  - My choices Hayden may change: each trial's challenge, their order up the trail, the rewards and the laurel.
+
 - 2026-11-24: **The Skyreach Trail is heaven now, and the Starhorn is a biblical angel, the Seraph** (Hayden:
   "skyreach trail needs to be a more heavenly/cloudy place ... something that is more like an actual biblical angel").
   Built and tested in the cloud (own Godot user folders, no save touched). Fight logic, flags and ids are unchanged
