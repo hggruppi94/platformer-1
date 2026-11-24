@@ -223,6 +223,56 @@ func _run() -> void:
 	check(boss.shot(1, boss.global_position, Vector3.FORWARD) == "hit", "...and then it can be popped")
 	check(int(boss.get("phase")) == 1, "it never goes back a phase")
 
+	# --- Beams of light from the sky ---
+	var lead: float = (load("res://scripts/boss_tell.gd") as GDScript).lead()
+	var here := top + Vector3(0, 1.0, 9.0)
+	for ph in 3:
+		boss.set("phase", ph)
+		boss.set("state", HORN.State.IDLE)
+		boss.set("_move_i", 1)                 # (every phase's second move is "beams")
+		boss.global_position = top
+		p.global_position = here
+		p.velocity = Vector3.ZERO
+		p.set("_invulnerable_timer", 0.0)
+		game.hp = game.max_hp
+		boss.call("_start_move")
+		check(str(boss.get("_move")) == "beams", "phase %d: the Seraph calls light down from the sky" % (ph + 1))
+		var beams := root.get_tree().get_nodes_in_group("sky_beams")
+		check(beams.size() == (5 if ph == 1 else 1), "...its threads of light come down first (%d)" % beams.size())
+		if ph == 1:
+			var near := 99.0
+			for b in beams:
+				near = minf(near, Vector2((b as Node3D).global_position.x - here.x, (b as Node3D).global_position.z - here.z).length())
+			check(near < HORN.ROW_GAP, "...in a row through where you stand (%.1f m)" % near)
+		await create_timer(lead + (HORN.ROW_STEP * 5.0 if ph == 1 else 0.3)).timeout
+		check(game.hp < game.max_hp, "...and staying under it gets you bumped")
+		if ph == 0:
+			var shown := 0
+			for b in root.get_tree().get_nodes_in_group("sky_beams"):
+				var px := (b as Node).get_node_or_null("Pixel Beam") as MeshInstance3D
+				if px and px.visible and px.material_override is ShaderMaterial:
+					shown += 1
+			check(shown == 1, "...drawn as pixel-art light")
+			check(not root.get_tree().get_nodes_in_group("light_splashes").is_empty(), "...with a pixel-art splash where it lands")
+		await create_timer(2.5).timeout
+		if ph == 0:
+			check(root.get_tree().get_nodes_in_group("light_splashes").is_empty(), "...and the splash goes when it's played")
+	# Stepping out from under it: no bump
+	boss.set("phase", 0)
+	boss.set("state", HORN.State.IDLE)
+	boss.set("_move_i", 1)
+	p.global_position = here
+	p.set("_invulnerable_timer", 0.0)
+	game.hp = game.max_hp
+	boss.call("_start_move")
+	await create_timer(lead * 0.4).timeout
+	p.global_position = here + Vector3(4.0, 0, 0)
+	await create_timer(lead + 0.4).timeout
+	check(game.hp == game.max_hp, "step out from under the light and it misses")
+	await create_timer(1.5).timeout
+	check(root.get_tree().get_nodes_in_group("sky_beams").is_empty(), "...and the beams tidy themselves away")
+	boss.set("phase", 1)
+
 	# --- Walking away ---
 	p.global_position = TRAIL.trail_point(TRAIL.TURNS * 0.5) + Vector3(0, 1.0, 0)
 	p.velocity = Vector3.ZERO

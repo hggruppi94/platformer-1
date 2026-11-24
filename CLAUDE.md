@@ -114,6 +114,33 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     `tools/capture_friend_detail.gd -- <folder> <model>` (project files, characters/friend-detail, before and after).
   - My choices Hayden may change: how strong every texture is (the fur most of all).
 
+- 2026-11-24: **The Seraph calls beams of light down from the sky, drawn as pixel art with a splash where they land**
+  (Hayden: "I want its attacks to include beams of light from the sky", then "add pixel [fx] to the light? With a
+  splash after it hits"). A new move, "beams", in every phase (`starhorn.gd PHASES`, `_beam()`): phase 1 one beam on
+  you, phase 2 a row of five marching out from it past you (`ROW_COUNT`, `ROW_STEP`), phase 3 three in a row each
+  aimed where you've just moved to (`CHASE_COUNT`, `CHASE_STEP`). The only warning is a hair-thin thread of light down
+  from the sky that brightens, plus its body wind-up (`boss_tell.gd` kind "beam": it looks up and spreads its wings);
+  no marks on the ground. Still in it when it strikes: a bump of 1. The beam and splash are sheets made with the
+  pixelfx pack (MIT), like the flames: `scenes/fx/sky_beam.png` (a looping column) and `scenes/fx/light_splash.png`
+  (flash, shockwave, sparks, cracks; played once), sources in `source_art/fx/sky-beam.js` and `light-splash.js`.
+  `scripts/sky_light_fx.gd` (no class_name) draws them as quads that turn to the camera round their upright
+  (`beam()`, `set_beam_width()`, `splash()`, group `light_splashes`). Reduce flashing makes them softer. Tests:
+  skyreach_trail (the beams, the pixel beam and splash, the splash tidying away), boss_tells, boss_moves. Pictures:
+  `tools/capture_seraph_beams.gd -- <folder>` (records with the game slowed down; project files,
+  world/previews/seraph_beams, with a GIF).
+  - My choices Hayden may change: how many beams and how fast, the beam's width, the splash's size.
+
+- 2026-11-24: **The Sinker Stones crumble into real pieces of the baked stone** (Hayden: "Looks good, but can you make
+  the crumble detailed as well?"). `swamp.gd _cut_stone()` takes every mesh drawn for the stone (the baked one, its X
+  crack and chips, or the plain stone) into the body's space and cuts it along the X's arms (`_slice()`, `_clip()`:
+  each triangle clipped against the two upright planes, keeping its material, UVs, normals and tangents), once a stone
+  (meta `crumble_cut`). Each cut gets a lumpy broken face (`_break_face()`: a jagged grid over the cut's outline,
+  darker rock inside with the poison's glow seeping up the middle, material "Sinker Break"), each piece spins about its
+  own middle (`home`), and the crumbs are jagged chunks (`_chunk()`) with a few glowing chips. Headless runs keep no
+  mesh data, so they still get the plain slices (`_wedge()`). Tests: test_swamps, `test_detail_portal_props -- dusk`
+  and `-- swamp`, scary_world (both runs). Pictures: `capture_detail_swamp.gd` 06c to 06e and a new 06c_crumble_close
+  (project files, world/previews/detail_swamp/crumble_detail).
+
 - 2026-11-24: **The Sinker Stones' cracks are an X, and the stones crumble apart instead of sinking** (Hayden: "You
   can make the split x-shaped and have it crumble apart instead of sink"). `stone_crack.gd` draws two crossing splits
   ("Arm 1", "Arm 2", 1.25 to 1.9 rad apart; their lips ease down where they meet, `meet_fade()`; metas `length` and
