@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Baked the Skyreach Trail: its kerb stones, the summit's ring of stones, the five Waystones, the pines,
+  the cliff crystals, the prayer flags, the Star Chest and the star blooms, and paving on the path** (Hayden: "Okay
+  continue baking details"; the next place not baked yet). Built and tested in the cloud (own Godot user folders, no
+  save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_skyreach.py <out.glb> kerb_stone|ring_rock|waystone|trail_pine|prayer_flag|chest_box|star_bloom`
+    (a chipped stone block with lichen; a lumpy summit stone; a Waystone's carved six-sided pillar with runes, a roof
+    and a lantern cage round its lamp; a snowy pine in tiers on a trunk; a cloth flag with a star, baked pale; the
+    chest's planked box with brass corners and a lock; a little star-shaped bloom). In `models/props/skyreach/`.
+  - **Swapped at run time** (`detail_props.gd dress_skyreach()`, called by `WorldDetail` for
+    `scenes/bosses/skyreach_trail.tscn`, which `skyreach_trail.gd` builds at load): the trail's pieces are named
+    after they're added, so they're found by material. The kerbs' MultiMesh gets the baked block; the ring stones,
+    pines, 30 cliff crystals (tinted and glowing like the Void's), 63 flags (one MultiMesh per colour) and 14 blooms
+    are MultiMeshes ("Detailed Skyreach"); each Waystone and the Star Chest wear their models (the lamps still light,
+    the chest's lid stays the game's). The path gets the stone patch; the mountain keeps its ground look. Every
+    collision is unchanged.
+  - Tests: `tools/test_detail_portal_props.gd` (only this part with `-- skyreach`); skyreach_trail passes. Pictures:
+    `tools/capture_detail_skyreach.gd -- <folder> [--old-props]` (project files, world/previews/detail_skyreach).
+  - My choices Hayden may change: every look (the Waystones' runes, the flags' stars, the pines' snow).
+
 - 2026-11-24: **A Bog Wailer's call really brings a horde now** (Hayden, after playing: "The siren didnt seem to bring
   in any hordes, I want them to spawn in"). The Mucklings did come up, but a Gloop heads home whenever it's lower than
   the lake basin (`gloop.gd LOW_GROUND` -0.25), and the swamp's bed is at -0.8, so every one sank back to where it came

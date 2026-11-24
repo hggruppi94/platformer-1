@@ -1281,6 +1281,116 @@ static func dress_boulder_canyon(scene: Node) -> Dictionary:
 	return out
 
 
+const SKY := "res://models/props/skyreach/"               # the Skyreach Trail's (tools/build_prop_skyreach.py)
+const SKY_PINE_H := 6.0                                    # the baked pine's height, trunk and all, from the ground
+const SKY_FLAG_GAIN := 1.15                                # the prayer flags are baked pale; this lifts each tint back
+
+static func dress_skyreach(scene: Node) -> Dictionary:
+	# The Skyreach Trail up to the Starhorn (24 Nov 2026, tools/build_prop_skyreach.py; scripts/skyreach_trail.gd
+	# builds it all from shapes as it loads): the kerb stones along its edge become chiselled blocks (the same
+	# MultiMesh with the baked block in it), the summit's ring of rocks lumpy mossy boulders, every Waystone a carved
+	# rune pillar with an iron cage round its lamp (the lamp still lights), the pines round the foot tiered pines with
+	# bark, the cliffs' crystals the Void's baked shard in their own glow, the prayer flags printed cloth in their own
+	# colours, the Star Chest a carved chest with gold brackets (its crystal lid and starlight stay) and the Star Blooms
+	# glowing flowers. The mountain's rock and the path get the rock and stone patches. Every collision stays.
+	var out := {"kerbs": 0, "ring_rocks": 0, "waystones": 0, "pines": 0, "crystals": 0, "flags": 0, "chest": 0, "blooms": 0}
+	if scene.has_node("Detailed Skyreach") or _scene(SKY + "kerb_stone.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Skyreach"
+	var kerbs := scene.get_node_or_null("Kerb Stones") as MultiMeshInstance3D
+	var kerb := _mesh_of(_scene(SKY + "kerb_stone.glb"))
+	if kerbs and kerbs.multimesh and kerb:
+		kerbs.multimesh.mesh = kerb
+		kerbs.material_override = null
+		out["kerbs"] = kerbs.multimesh.instance_count
+	var rocks := []
+	var pines := []
+	var crystals := []
+	var blooms := []
+	var flags := {}                       # flag material name -> [old material, transforms]
+	var crystal_mat: StandardMaterial3D = null
+	for n in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.has_meta(OLD_META) or _in_detailed(mi):
+			continue
+		var m := _mat_name(mi)
+		if m == "Ring Stone" and mi.mesh is SphereMesh:
+			var r := (mi.mesh as SphereMesh).radius
+			var t := _to_scene(mi, scene)
+			rocks.append(Transform3D(Basis(Vector3.UP, rocks.size() * 2.39).scaled(Vector3(r, r, r)), t.origin))
+			_hide(mi)
+		elif m == "Pine" and mi.mesh is CylinderMesh and mi.get_parent() == scene:
+			var h := (mi.mesh as CylinderMesh).height
+			var base := mi.position - Vector3(0, 1.2 + h * 0.5, 0)
+			var s := (1.2 + h) / SKY_PINE_H
+			pines.append(Transform3D(Basis(Vector3.UP, pines.size() * 1.7).scaled(Vector3(s, s, s)), base))
+			_hide(mi)
+		elif m == "Pine Trunk" and mi.get_parent() == scene:
+			_hide(mi)
+		elif m == "Cliff Crystal" and mi.mesh is PrismMesh:
+			var h := (mi.mesh as PrismMesh).size.y
+			var w := (mi.mesh as PrismMesh).size.x * 0.5 / CRYSTAL_R
+			crystals.append(_to_scene(mi, scene) * Transform3D(Basis.from_scale(Vector3(w, h, w)), Vector3(0, -h * 0.5, 0)))
+			crystal_mat = mi.material_override as StandardMaterial3D
+			_hide(mi)
+		elif m.begins_with("Flag ") and mi.mesh is BoxMesh:
+			if not flags.has(m):
+				flags[m] = [mi.material_override, []]
+			flags[m][1].append(_to_scene(mi, scene))
+			_hide(mi)
+		elif m == "Star Bloom" and mi.mesh is SphereMesh:
+			blooms.append(_to_scene(mi, scene))
+			_hide(mi)
+		elif m == "Waystone" and mi.name == "Stone":
+			_hide(mi)
+			if _add(mi.get_parent() as Node3D, SKY + "waystone.glb", "Detailed Waystone", Transform3D.IDENTITY):
+				out["waystones"] += 1
+		elif mi.name in ["Chest", "Band"] and mi.get_parent().name == "Star Chest":
+			_hide(mi)
+			if out["chest"] == 0 and _add(mi.get_parent() as Node3D, SKY + "chest_box.glb", "Detailed Chest", Transform3D.IDENTITY):
+				out["chest"] = 1
+	if not rocks.is_empty():
+		_multi(holder, _mesh_of(_scene(SKY + "ring_rock.glb")), rocks, "Detailed Ring Rocks")
+		out["ring_rocks"] = rocks.size()
+	if not pines.is_empty():
+		_multi(holder, _mesh_of(_scene(SKY + "trail_pine.glb")), pines, "Detailed Pines")
+		(holder.get_node("Detailed Pines") as MultiMeshInstance3D).visibility_range_end = 0.0
+		out["pines"] = pines.size()
+	if not blooms.is_empty():
+		_multi(holder, _mesh_of(_scene(SKY + "star_bloom.glb")), blooms, "Detailed Blooms")
+		out["blooms"] = blooms.size()
+	var shard := _mesh_of(_scene(CRYSTAL))
+	if not crystals.is_empty() and shard:
+		_multi(holder, shard, crystals, "Detailed Crystals")
+		var mat := (shard.surface_get_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+		mat.resource_name = "Detailed Cliff Crystal"
+		if crystal_mat:
+			var tint := Color(crystal_mat.albedo_color, 1.0)
+			mat.albedo_color = tint
+			mat.emission_enabled = true
+			mat.emission = tint
+			mat.emission_energy_multiplier = crystal_mat.emission_energy_multiplier
+		(holder.get_node("Detailed Crystals") as MultiMeshInstance3D).material_override = mat
+		out["crystals"] = crystals.size()
+	var cloth := _mesh_of(_scene(SKY + "prayer_flag.glb"))
+	if cloth:
+		for key: String in flags:
+			var old := flags[key][0] as StandardMaterial3D
+			var name := "Detailed " + key + "s"
+			_multi(holder, cloth, flags[key][1], name)
+			var mat := (cloth.surface_get_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+			mat.resource_name = "Detailed " + key
+			if old:
+				var c := old.albedo_color * SKY_FLAG_GAIN
+				mat.albedo_color = Color(minf(c.r, 1.0), minf(c.g, 1.0), minf(c.b, 1.0), 1.0)
+			mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			(holder.get_node(name) as MultiMeshInstance3D).material_override = mat
+			out["flags"] += (flags[key][1] as Array).size()
+	scene.add_child(holder)
+	return out
+
+
 static func canyon_rock(mi: MeshInstance3D) -> bool:
 	# A boulder Boulder Canyon makes as you play (rolling down the run, falling into the pit): the baked boulder in
 	# its place, at its radius, moving with it. The plain ball stays, hidden.
@@ -3394,6 +3504,7 @@ const PORTAL_SURFACES := {
 	"bark": ["Crooked Bark", "Pine Bark", "Bark", "Mangrove Bark", "Root", "Root Wall"],
 	"rock": ["Old Stone", "Spire Rock", "Shard Rock", "Reef Rock", "Reef Rock Pale", "Reef Rock Dark", "Wet Rock",
 		"Wet Rock Dark", "Standing Stone", "Moon Stone", "Path Stone"],
+	"stone": ["Trail Path"],
 	"ice": ["Crag Ice", "Icicle", "Slide Ice", "Cave Ice", "Throne Ice", "Lake Ice"],
 	"snow": ["Snow", "Crag Snow", "Drift Snow", "Snow Cap"],
 	"metal_panel": ["Lab Wall", "Skyway Deck", "Pillar", "Lab Floor"],
@@ -3435,7 +3546,10 @@ static func dress_buildings(scene: Node) -> Dictionary:
 	if scene == null:
 		return out
 	var made := {}                         # [old material, key] -> the detailed copy, so copies are shared
-	made["portal"] = scene.scene_file_path.begins_with("res://scenes/portal_worlds/")
+	# (the Skyreach Trail is a mountain like a portal world's, so its path is patched the same way; its rock already has
+	# the ground look, scripts/ground_detail.gdshader)
+	made["portal"] = scene.scene_file_path.begins_with("res://scenes/portal_worlds/") \
+		or scene.scene_file_path == "res://scenes/bosses/skyreach_trail.tscn"
 	for node in scene.find_children("*", "GeometryInstance3D", true, false):
 		if node is CSGShape3D:
 			# A combiner has no material of its own (its children are found by themselves)
