@@ -1,9 +1,11 @@
-# The crack across a Sinker Stone in the Poison Mire, made to look like a little copy of the cracks you jump into to
+# The X-shaped crack across a Sinker Stone in the Poison Mire, made to look like a little copy of the cracks you jump into to
 # go between worlds (scripts/crack.gd): a jagged split right across the stone and on down over its rounded edge to the
 # goo, its two broken lips standing a touch proud with chips of rock along them, its walls going from the stone's own
 # colour to black, a thin glow of the poison deep down in the middle, and hairline cracks running off it. Hayden, 24 Nov
 # 2026: "Those cracked stepping stones dont look cracked lol can you make them look more like the holes in the ground
-# that you teleport to worlds?" (The old cracks were three glowing sticks laid on top.)
+# that you teleport to worlds?" (The old cracks were three glowing sticks laid on top.) Then: "make the split x-shaped
+# and have it crumble apart instead of sink", so it's two splits crossing, and the stone breaks along them
+# (scripts/swamp.gd _crumble()).
 #
 # It's drawn over whatever the stone looks like (the plain stone, or the baked one once scripts/detail_props.gd has
 # dressed it): the stone's meshes are laid onto a little height map first, and everything follows that. It's all a
@@ -21,8 +23,9 @@ static var _grids := {}              # mesh ids -> height map, so every baked st
 
 
 static func build(body: Node3D, rock: Color, glow: Color, seed: int, above_y: float) -> Node3D:
-	# A crack across `body`'s stone, in `rock`'s colour with `glow` deep down, running over its edge until the stone
-	# drops under `above_y` (the goo's top, in the body's space). Any crack it had before is replaced.
+	# An X of two cracks across `body`'s stone, in `rock`'s colour with `glow` deep down, running over its edge until
+	# the stone drops under `above_y` (the goo's top, in the body's space). Any crack it had before is replaced. Meta
+	# "dirs" on it: the four ways the X's arms point (angles round Y in the body's space), which the stone crumbles along.
 	var old := body.get_node_or_null(NAME)
 	if old:
 		body.remove_child(old)
@@ -34,18 +37,44 @@ static func build(body: Node3D, rock: Color, glow: Color, seed: int, above_y: fl
 	g.name = NAME
 	g.rotation.y = rng.randf() * TAU
 	body.add_child(g)
-	var turn := Basis(Vector3.UP, g.rotation.y)
-	var h := func(x: float, z: float) -> float:
-		var p := turn * Vector3(x, 0, z)                  # (the crack's own frame to the body's)
-		return _height(grid, p.x, p.z)
-	var line := _outline(h, rng, above_y)
-	if (line.x as PackedFloat32Array).size() < 4:
-		return g
-	_split(g, line, h, rock, glow)
-	_chips(g, line, h, rock, rng)
-	_fissures(g, line, h, rock, rng)
-	g.set_meta("length", float(line.x[line.x.size() - 1]) - float(line.x[0]))
+	var cross := rng.randf_range(1.25, 1.9)              # (the second arm crosses the first a bit off square)
+	var dirs: Array = []
+	var length := 0.0
+	for arm in 2:
+		var turn_y := 0.0 if arm == 0 else cross
+		var a := Node3D.new()
+		a.name = "Arm %d" % (arm + 1)
+		a.rotation.y = turn_y
+		g.add_child(a)
+		var turn := Basis(Vector3.UP, g.rotation.y + turn_y)
+		var h := func(x: float, z: float) -> float:
+			var p := turn * Vector3(x, 0, z)              # (the arm's own frame to the body's)
+			return _height(grid, p.x, p.z)
+		# where the other arm runs, in this arm's frame: the lips flatten out where they meet, so the X is open
+		var d := cross if arm == 0 else -cross
+		var other := Vector2(cos(d), -sin(d))
+		var line := _outline(h, rng, above_y, 1.0 if arm == 0 else 0.85)
+		dirs.append(g.rotation.y + turn_y)
+		dirs.append(g.rotation.y + turn_y + PI)
+		if (line.x as PackedFloat32Array).size() < 4:
+			continue
+		line["other"] = other
+		_split(a, line, h, rock, glow)
+		_chips(a, line, h, rock, rng)
+		_fissures(a, line, h, rock, rng)
+		if arm == 0:
+			length = float(line.x[line.x.size() - 1]) - float(line.x[0])
+	g.set_meta("length", length)
+	g.set_meta("dirs", dirs)
 	return g
+
+
+static func meet_fade(line: Dictionary, x: float, z: float) -> float:
+	# 0 right where the other arm of the X runs, 1 clear of it
+	if not line.has("other"):
+		return 1.0
+	var o: Vector2 = line.other
+	return clampf((absf(x * o.y - z * o.x) - 0.17) / 0.12, 0.0, 1.0)
 
 
 # ---------------------------------------------------------------- the stone's shape
@@ -160,7 +189,7 @@ static func _height(grid: Dictionary, x: float, z: float) -> float:
 
 
 # ---------------------------------------------------------------- the split
-static func _outline(h: Callable, rng: RandomNumberGenerator, above_y: float) -> Dictionary:
+static func _outline(h: Callable, rng: RandomNumberGenerator, above_y: float, wide := 1.0) -> Dictionary:
 	# Like crack.gd's, smaller: a wandering middle line with ragged edges and the odd bite, widest in the middle and
 	# coming to hairline points, running out each way until the stone goes under the goo
 	var ends := [0.0, 0.0]
@@ -189,7 +218,7 @@ static func _outline(h: Callable, rng: RandomNumberGenerator, above_y: float) ->
 		var x := x0 + i * ((x1 - x0) / (n - 1))
 		var t := absf(x - mid_x) / half
 		var c := 0.045 * sin(x * 6.0 + ph) + 0.025 * sin(x * 15.0 + ph2) + 0.03 * t * sin(x * 9.0 + ph2)
-		var w := WIDTH * pow(maxf(1.0 - t * t, 0.0), 0.6) * (0.85 + 0.15 * sin(x * 11.0 + ph)) + 0.006
+		var w := wide * WIDTH * pow(maxf(1.0 - t * t, 0.0), 0.6) * (0.85 + 0.15 * sin(x * 11.0 + ph)) + 0.006
 		jt = jt * 0.5 + rng.randf_range(-0.012, 0.012)
 		jb = jb * 0.5 + rng.randf_range(-0.012, 0.012)
 		var bt := rng.randf_range(0.012, 0.03) if rng.randf() < 0.14 else 0.0
@@ -222,7 +251,7 @@ static func _split(g: Node3D, line: Dictionary, h: Callable, rock: Color, glow: 
 		var x := xs[i]
 		var w := (top[i] - bot[i]) * 0.5
 		var t := absf(x - mid_x) / half
-		var lip := LIP * clampf(w / WIDTH * 1.6, 0.25, 1.0)
+		var lip := LIP * clampf(w / WIDTH * 1.6, 0.25, 1.0) * meet_fade(line, x, mid[i]) + 0.002
 		var out := 0.035 * clampf(w / WIDTH * 2.0, 0.3, 1.0)
 		# z across, height over the stone, colour
 		var pts := [
@@ -312,6 +341,8 @@ static func _chips(g: Node3D, line: Dictionary, h: Callable, rock: Color, rng: R
 			var edge := top[i] if side == 0 else bot[i]
 			var s := rng.randf_range(0.025, 0.055) * clampf(w / WIDTH * 1.8, 0.5, 1.0)
 			var z := edge + sgn * (s * 0.5 - rng.randf_range(-0.005, 0.02))
+			if meet_fade(line, xs[i], z) < 0.9:
+				continue
 			var chip := MeshInstance3D.new()
 			var sm := SphereMesh.new()
 			sm.radius = 0.5

@@ -15,7 +15,7 @@ extends Node3D
 #   "dusk"         the Poison Mire, west of Dusk's Embrace's clearing (through the trees behind the eyes). SUPER
 #                  poison: glowing acid-green goo you mustn't touch. Step in and it bumps you (1) and puts you back
 #                  where you last stood safe ("Yuck! Super poison!"); a bump, never more, like the volcano's lava. The
-#                  way across is the challenge: stepping stones, some of them Sinker Stones that wobble and sink a
+#                  way across is the challenge: stepping stones, some of them Sinker Stones that wobble and crumble a
 #                  moment after you land (they're darker, cracked, with bubbles round them, for those who look), a
 #                  mossy log bridge, poison vents that swell and burp a ring of goo across the stones (jump it), and
 #                  drifting poison clouds to dodge. Three Bog Wailers call Mucklings. At the far side, the Bog Heart
@@ -44,7 +44,8 @@ const STONE_TOP := 0.06
 const SINK_AFTER := 0.75                 # a Sinker Stone wobbles this long after she lands on it...
 const SINK_WOBBLE := 0.6                 # ...for this long, then sinks...
 const SINK_DOWN := 2.2                   # ...stays down this long, then comes back up
-const SINK_DEPTH := 1.3
+const SINK_DEPTH := 1.3                  # how far down the crumbled pieces sink
+const CRUMBLE_OUT := 1.4                 # how fast the pieces fall apart (m/s), and the crumbs fly
 const VENT_EVERY := 5.0
 const VENT_SWELL := 1.1
 const CLOUD_R := 1.8
@@ -1276,19 +1277,208 @@ func _sinkers_step(delta: float) -> void:
 					st = "sinking"
 					t = 0.0
 			"sinking":
+				# It crumbles apart along its X: the pieces tumble off into the goo and she drops in after them
 				look.position = Vector3.ZERO
-				s.position.y = lerpf(rest, rest - SINK_DEPTH, clampf(t / 0.45, 0.0, 1.0))
+				if t <= delta:
+					_crumble(s)
+				_rubble_fall(s, delta)
 				if t >= SINK_DOWN:
 					st = "rising"
 					t = 0.0
+					_rubble_gather(s)
 			"rising":
-				s.position.y = lerpf(rest - SINK_DEPTH, rest, clampf(t / 0.8, 0.0, 1.0))
+				# ...then the pieces drift back up out of the goo and knit together
+				_rubble_rise(s, clampf(t / 0.8, 0.0, 1.0))
 				if t >= 0.8:
 					st = "up"
 					t = 0.0
 					s.set_meta("stood", 0.0)
+					_mend(s)
 		s.set_meta("state", st)
 		s.set_meta("t", t)
+
+
+# ---------------------------------------------------------------- Sinker Stones crumbling (Hayden, 24 Nov 2026:
+# "make the split x-shaped and have it crumble apart instead of sink"). The stone and its collision go, four pieces cut
+# along its X (stone_crack.gd meta "dirs") and a spray of crumbs tumble apart and sink into the goo; when it's time they
+# rise back up and knit together, and the real stone's back. The body never moves, so tests and saves see it at rest.
+func _crumble(s: Node3D) -> void:
+	for c in s.get_children():
+		if c is CollisionShape3D:
+			(c as CollisionShape3D).set_deferred("disabled", true)
+		elif c is Node3D:
+			if (c as Node3D).visible:
+				c.set_meta("crumble_hid", true)
+				(c as Node3D).visible = false
+	var old := s.get_node_or_null("Rubble")
+	if old:
+		old.free()
+	var rubble := Node3D.new()
+	rubble.name = "Rubble"
+	s.add_child(rubble)
+	var rock: Color = s.get_meta("crack_rock", lay.stone.darkened(0.35))
+	var crack := s.get_node_or_null(STONE_CRACK.NAME)
+	var dirs: Array = crack.get_meta("dirs", []) if crack else []
+	if dirs.size() < 4:
+		dirs = [0.0, PI * 0.5, PI, PI * 1.5]
+	var a: Array = []
+	for d in dirs:
+		a.append(fposmod(float(d), TAU))
+	a.sort()
+	var m := StandardMaterial3D.new()
+	m.resource_name = "Sinker Rubble"
+	m.vertex_color_use_as_albedo = true
+	m.roughness = 0.95
+	var pieces: Array = []
+	for i in a.size():
+		var a0: float = a[i]
+		var a1: float = a[(i + 1) % a.size()] + (TAU if i == a.size() - 1 else 0.0)
+		var mid := (a0 + a1) * 0.5
+		var out := Vector3(cos(mid), 0, -sin(mid))
+		var mi := MeshInstance3D.new()
+		mi.name = "Piece %d" % (i + 1)
+		mi.mesh = _wedge(a0 + 0.03, a1 - 0.03, rock)
+		mi.material_override = m
+		rubble.add_child(mi)
+		pieces.append({"node": mi, "vel": out * CRUMBLE_OUT * randf_range(0.8, 1.2) + Vector3(0, randf_range(1.2, 2.0), 0),
+			"spin": Vector3(randf_range(-3, 3), randf_range(-1.5, 1.5), randf_range(-3, 3)), "big": true})
+	for i in 14:
+		var pm := MeshInstance3D.new()
+		var sm := SphereMesh.new()
+		sm.radius = 0.5
+		sm.height = 1.0
+		sm.radial_segments = 5
+		sm.rings = 2
+		pm.mesh = sm
+		var sz := randf_range(0.06, 0.16)
+		pm.scale = Vector3(sz * 1.3, sz * 0.8, sz)
+		pm.material_override = _mat("Sinker Crumb", rock.darkened(randf_range(0.0, 0.3)))
+		var ang := randf() * TAU
+		pm.position = Vector3(cos(ang), 0, sin(ang)) * randf_range(0.0, 0.5) + Vector3(0, 0.3, 0)
+		rubble.add_child(pm)
+		var dir := Vector3(cos(ang), 0, sin(ang))
+		pieces.append({"node": pm, "vel": dir * CRUMBLE_OUT * randf_range(1.2, 2.4) + Vector3(0, randf_range(2.0, 3.5), 0),
+			"spin": Vector3(randf_range(-8, 8), randf_range(-8, 8), randf_range(-8, 8)), "big": false})
+	rubble.set_meta("pieces", pieces)
+	Juice.blip("thud", 0.55, -6.0)
+	Juice.blip("squish", 0.7, -9.0)
+	Fx.burst(self, s.global_position + Vector3(0, 0.4, 0), rock.lightened(0.15), 14, 0.08, 3.0, -6.0, 0.6)
+	Fx.burst(self, s.global_position + Vector3(0, 0.2, 0), (lay.water.glow_colour as Color), 10, 0.07, 2.0, -3.0, 0.5)
+
+
+func _wedge(a0: float, a1: float, rock: Color) -> ArrayMesh:
+	# A slice of the stone between two of the X's arms: the cone-ish stone (as `_stones()` makes it), its top a little
+	# lighter and its broken faces dark
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var segs := maxi(int((a1 - a0) / 0.25), 2)
+	var top_c := rock.lightened(0.05)
+	var side_c := rock
+	var cut_c := rock.darkened(0.45)
+	var y0 := -0.35
+	var y1 := 0.35
+	var r0 := 0.95
+	var r1 := 0.8
+	var at := func(ang: float, r: float, y: float) -> Vector3:
+		return Vector3(cos(ang) * r, y, -sin(ang) * r)
+	var tri := func(p: Vector3, q: Vector3, w: Vector3, c: Color) -> void:
+		var n := (q - p).cross(w - p)
+		var v := [p, q, w]
+		var mid := (p + q + w) / 3.0
+		# Godot draws a face whose corners go clockwise as seen from outside, so a face whose right-hand normal
+		# points out (away from a point inside the slice) is turned round.
+		if n.dot(mid - Vector3(cos((a0 + a1) * 0.5) * 0.3, 0, -sin((a0 + a1) * 0.5) * 0.3)) > 0.0:
+			v = [p, w, q]
+		for x in v:
+			st.set_color(c)
+			st.add_vertex(x)
+	var c_top := Vector3(0, y1, 0)
+	var c_bot := Vector3(0, y0, 0)
+	for k in segs:
+		var u0 := lerpf(a0, a1, float(k) / segs)
+		var u1 := lerpf(a0, a1, float(k + 1) / segs)
+		var t0: Vector3 = at.call(u0, r1, y1)
+		var t1: Vector3 = at.call(u1, r1, y1)
+		var b0: Vector3 = at.call(u0, r0, y0)
+		var b1: Vector3 = at.call(u1, r0, y0)
+		tri.call(c_top, t0, t1, top_c)
+		tri.call(c_bot, b1, b0, cut_c)
+		tri.call(t0, b0, b1, side_c)
+		tri.call(t0, b1, t1, side_c)
+	for u in [a0, a1]:
+		var t0: Vector3 = at.call(u, r1, y1)
+		var b0: Vector3 = at.call(u, r0, y0)
+		tri.call(c_top, c_bot, b0, cut_c)
+		tri.call(c_top, b0, t0, cut_c)
+	st.generate_normals()
+	return st.commit()
+
+
+func _rubble_fall(s: Node3D, delta: float) -> void:
+	var rubble := s.get_node_or_null("Rubble") as Node3D
+	if rubble == null:
+		return
+	var goo := SURFACE - s.position.y
+	for pc in (rubble.get_meta("pieces") as Array):
+		var n := pc.node as Node3D
+		if not n.visible:
+			continue
+		var v: Vector3 = pc.vel
+		if n.position.y < goo:                      # in the goo: thick, so it slows right down and sinks
+			v = v.lerp(Vector3(0, -0.5, 0), clampf(delta * 5.0, 0.0, 1.0))
+			pc.spin = (pc.spin as Vector3) * (1.0 - clampf(delta * 3.0, 0.0, 1.0))
+			if not pc.has("splashed"):
+				pc["splashed"] = true
+				if pc.big:
+					Fx.burst(self, s.global_position + Vector3(n.position.x, goo, n.position.z),
+						(lay.water.glow_colour as Color), 6, 0.06, 1.6, -4.0, 0.4)
+		else:
+			v.y -= 9.0 * delta
+		pc.vel = v
+		n.position += v * delta
+		n.rotation += (pc.spin as Vector3) * delta
+		if n.position.y < goo - SINK_DEPTH:
+			n.position.y = goo - SINK_DEPTH
+			pc.vel = Vector3.ZERO
+			if not pc.big:
+				n.visible = false
+
+
+func _rubble_gather(s: Node3D) -> void:
+	var rubble := s.get_node_or_null("Rubble") as Node3D
+	if rubble == null:
+		return
+	for pc in (rubble.get_meta("pieces") as Array):
+		var n := pc.node as Node3D
+		if pc.big:
+			pc["from_p"] = n.position
+			pc["from_r"] = n.rotation
+		else:
+			n.visible = false
+
+
+func _rubble_rise(s: Node3D, k: float) -> void:
+	var rubble := s.get_node_or_null("Rubble") as Node3D
+	if rubble == null:
+		return
+	var e := 1.0 - pow(1.0 - k, 3.0)
+	for pc in (rubble.get_meta("pieces") as Array):
+		if pc.big and pc.has("from_p"):
+			var n := pc.node as Node3D
+			n.position = (pc.from_p as Vector3).lerp(Vector3.ZERO, e)
+			n.rotation = (pc.from_r as Vector3).lerp(Vector3.ZERO, e)
+
+
+func _mend(s: Node3D) -> void:
+	var rubble := s.get_node_or_null("Rubble")
+	if rubble:
+		rubble.free()
+	for c in s.get_children():
+		if c is CollisionShape3D:
+			(c as CollisionShape3D).set_deferred("disabled", false)
+		elif c.has_meta("crumble_hid"):
+			c.remove_meta("crumble_hid")
+			(c as Node3D).visible = true
 
 
 func no_ride_here(p: Vector3) -> String:
