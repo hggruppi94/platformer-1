@@ -227,6 +227,11 @@ static func ground_meshes(scene: Node) -> Array:
 		var m := _source_material(mi)
 		if m == null:
 			continue
+		# A room's floor gets baked boards or tiles (detail_props.gd inside_surface_of), not the grassy ground look
+		var path := scene.scene_file_path
+		if (path.begins_with("res://scenes/interiors/") or path == "res://scenes/school/school.tscn") \
+				and DETAIL_PROPS.inside_surface_of(m.resource_name, path.ends_with("school.tscn")) != "":
+			continue
 		out.append(mi)
 	return out
 

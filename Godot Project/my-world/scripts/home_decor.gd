@@ -33,6 +33,8 @@ const SPOT_NAMES := {"spot1": "By the bed", "spot2": "Back wall", "spot3": "Righ
 	"spot5": "By the door, left", "spot6": "By the door, right"}
 const STARTING := {"spot1": "lamp", "spot2": "bookshelf", "spot4": "toy_chest", "spot6": "plant"}
 
+const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
+
 var _mats := {}
 
 
@@ -61,6 +63,18 @@ func decorate() -> void:
 	for part in _mats:
 		var cols: Array = COLORS[part]
 		(_mats[part] as StandardMaterial3D).albedo_color = cols[choice(part) % cols.size()]
+	# The walls and floor wear baked plaster and boards once the place is dressed (detail_props.gd dress_buildings),
+	# a copy of the material above: it's coloured too, lifted by the patch's gain so the colour picked is the one seen
+	for mi in find_children("*", "MeshInstance3D", true, false):
+		var m := (mi as MeshInstance3D).material_override as StandardMaterial3D
+		if m == null or not m.has_meta(DETAIL_PROPS.SURFACE_META):
+			continue
+		for part in ["walls", "floor"]:
+			if m.resource_name.begins_with("Decor " + part):
+				var cols: Array = COLORS[part]
+				var c: Color = cols[choice(part) % cols.size()]
+				c *= float(DETAIL_PROPS.SURFACE_GAIN[m.get_meta(DETAIL_PROPS.SURFACE_META)])
+				m.albedo_color = Color(c.r, c.g, c.b, 1.0)
 	for spot in SPOTS:
 		var holder := get_node_or_null("Decor/" + spot) as Node3D
 		if holder == null:
