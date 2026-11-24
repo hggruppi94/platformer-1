@@ -2302,6 +2302,16 @@ static func lanternmoor_part(path: String) -> Node3D:
 	return m.instantiate() as Node3D if m else null
 
 
+static func seraph_mesh(kind: String) -> Mesh:
+	# A baked part of the Seraph (tools/build_prop_seraph.py: seraph_eye, seraph_feather, seraph_wheel, seraph_glory or
+	# seraph_crown) for starhorn.gd, or null if detailed props are off or it hasn't been imported yet, so the old
+	# shapes are used instead.
+	if not on():
+		return null
+	var m := _scene("res://models/props/seraph/%s.glb" % kind)
+	return _mesh_of(m) if m else null
+
+
 static func _is_crooked_tree(g: Node3D) -> bool:
 	# A crooked tree (tools/build_dark_hollow.gd _dead_tree) holds its bark trunk and some branch nodes with bark in
 	# them; a branch holds only bark.

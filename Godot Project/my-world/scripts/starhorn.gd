@@ -691,8 +691,12 @@ func _animate(delta: float) -> void:
 	if fire:
 		fire.rotation.y = _t * 0.6 * calm
 		for f in fire.get_children():
-			if f is MeshInstance3D:
+			# Only the flames flicker: the crown they stand in stays still
+			if f is MeshInstance3D and f.name.begins_with("Flame"):
 				(f as Node3D).scale.y = 1.0 + 0.3 * sin(_t * 7.0 + (f as Node3D).position.x * 3.0) * calm
+	var burst := _parts.get("burst") as Node3D
+	if burst:
+		burst.rotation.z = _t * 0.15 * calm
 	if _shield and _shield.visible:
 		_shield.rotation.y = _t * 0.5
 		var pulse := 1.0 + 0.03 * sin(_t * 4.0) * calm
@@ -750,6 +754,7 @@ func _ring(r: float, thick: float) -> TorusMesh:
 
 
 var _eye_mats := {}
+var _baked := {}
 
 
 func _eye(parent: Node3D, pos: Vector3, r: float, looks: Vector3) -> Node3D:
@@ -763,9 +768,15 @@ func _eye(parent: Node3D, pos: Vector3, r: float, looks: Vector3) -> Node3D:
 	var up := Vector3.UP if absf(looks.normalized().y) < 0.95 else Vector3.FORWARD
 	e.basis = Basis.looking_at(looks.normalized(), up, true)
 	parent.add_child(e)
-	_put(e, _ball(r), _eye_mats["white"], Vector3.ZERO)
-	_put(e, _ball(r * 0.6), _eye_mats["iris"], Vector3(0, 0, r * 0.62), Vector3.ZERO, Vector3(1, 1, 0.5))
-	_put(e, _ball(r * 0.3), _eye_mats["pupil"], Vector3(0, 0, r * 0.88), Vector3.ZERO, Vector3(1, 1, 0.4))
+	var baked: Mesh = _baked.get("seraph_eye")
+	if baked:
+		# The baked eye (radius 1) has its veined white, its iris of fibres and gold and its pupil all in one mesh
+		# (its glb lays the sphere's poles front and back with a quarter turn on its node, which the mesh alone loses)
+		_put(e, baked, null, Vector3.ZERO, Vector3(PI / 2, 0, 0), Vector3(r, r, r)).name = "Eyeball"
+	else:
+		_put(e, _ball(r), _eye_mats["white"], Vector3.ZERO)
+		_put(e, _ball(r * 0.6), _eye_mats["iris"], Vector3(0, 0, r * 0.62), Vector3.ZERO, Vector3(1, 1, 0.5))
+		_put(e, _ball(r * 0.3), _eye_mats["pupil"], Vector3(0, 0, r * 0.88), Vector3.ZERO, Vector3(1, 1, 0.4))
 	_put(e, _ball(r * 0.1), _eye_mats["shine"], Vector3(r * 0.16, r * 0.18, r * 0.97))
 	e.set_meta("blink", randf() * 4.5)
 	(_parts["eyes"] as Array).append(e)
@@ -788,6 +799,11 @@ func _wing(body: Node3D, side: float, at: Vector3, from_deg: float, to_deg: floa
 		var l := length * (0.7 + 0.3 * sin(PI * (k + 0.5) / n))
 		var dir := Vector3(cos(a) * side, sin(a), 0)
 		var rot := Vector3(0, 0, a * side if side > 0 else PI - a)
+		var baked: Mesh = _baked.get("seraph_feather")
+		if baked:
+			# The baked feather fills the same unit space as the old ball and has its own barbs and gold tip
+			_put(p, baked, null, dir * (l * 0.5 + 0.25), rot, Vector3(l, 0.42, 0.14)).name = "Feather"
+			continue
 		var f := _put(p, _ball(0.5), feather, dir * (l * 0.5 + 0.25), rot, Vector3(l, 0.42, 0.14))
 		f.name = "Feather"
 		_put(p, _ball(0.5), tip, dir * (l + 0.1), rot, Vector3(l * 0.22, 0.3, 0.12)).name = "Feather Tip"
@@ -802,6 +818,11 @@ func _wing(body: Node3D, side: float, at: Vector3, from_deg: float, to_deg: floa
 
 func _look(v: Node3D) -> void:
 	_parts = {"eyes": [], "wings": [], "wheels": []}
+	# The baked parts (null when detailed props are off), looked up once for every eye, feather and wheel
+	var detail := load("res://scripts/detail_props.gd") as GDScript
+	_baked = {}
+	for kind in ["seraph_eye", "seraph_feather", "seraph_wheel", "seraph_glory", "seraph_crown"]:
+		_baked[kind] = detail.seraph_mesh(kind)
 	var gold := _mat(Color(1.0, 0.76, 0.3), 0.35)
 	var body := Node3D.new()
 	body.name = "Body"
@@ -812,6 +833,12 @@ func _look(v: Node3D) -> void:
 	halo.name = "Glory"
 	halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_eye(body, Vector3.ZERO, 1.05, Vector3(0, 0, 1))
+	if _baked.get("seraph_glory"):
+		# A sunburst of gold rays behind the great eye, turning slowly (in _animate)
+		var burst := _put(body, _baked["seraph_glory"], null, Vector3(0, 0, -1.15), Vector3.ZERO, Vector3(1.15, 1.15, 1.15))
+		burst.name = "Sunburst"
+		burst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_parts["burst"] = burst
 	# Three gold wheels within wheels, each studded with eyes looking out
 	var tilts := [Vector3.ZERO, Vector3(PI / 2, 0, 0), Vector3(0, 0, PI / 2)]
 	var radii := [2.35, 2.7, 3.05]
@@ -824,8 +851,15 @@ func _look(v: Node3D) -> void:
 		spinner.name = "Spin"
 		hold.add_child(spinner)
 		var r: float = radii[w]
-		_put(spinner, _ring(r, 0.13), gold, Vector3.ZERO).name = "Rim"
-		_put(spinner, _ring(r - 0.32, 0.05), gold, Vector3.ZERO).name = "Inner Rim"
+		if _baked.get("seraph_wheel"):
+			# The baked wheel is 2.7 across with its bezels at every eighth of a turn, so it's sized to this wheel and
+			# turned so its bezels sit under this wheel's eyes
+			var s := r / 2.7
+			_put(spinner, _baked["seraph_wheel"], null, Vector3.ZERO, Vector3(0, -TAU * 0.5 * w / 8.0, 0),
+				Vector3(s, s, s)).name = "Rim"
+		else:
+			_put(spinner, _ring(r, 0.13), gold, Vector3.ZERO).name = "Rim"
+			_put(spinner, _ring(r - 0.32, 0.05), gold, Vector3.ZERO).name = "Inner Rim"
 		var k := 8
 		for j in k:
 			var a := TAU * (j + 0.5 * w) / k
@@ -843,7 +877,10 @@ func _look(v: Node3D) -> void:
 	fire.position = Vector3(0, 3.3, 0)
 	body.add_child(fire)
 	_parts["fire"] = fire
-	_put(fire, _ring(1.1, 0.08), gold, Vector3.ZERO).name = "Halo"
+	if _baked.get("seraph_crown"):
+		_put(fire, _baked["seraph_crown"], null, Vector3.ZERO).name = "Halo"
+	else:
+		_put(fire, _ring(1.1, 0.08), gold, Vector3.ZERO).name = "Halo"
 	var flame := _mat(Color(1.0, 0.7, 0.3), 2.6)
 	var flame_tip := _mat(Color(1.0, 0.95, 0.7), 3.2)
 	for j in 12:

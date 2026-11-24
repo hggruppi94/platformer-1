@@ -99,6 +99,22 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Seraph has baked-in detail** (Hayden: "Can you bake detail into the seraph", "Like a lot of
+  detail"). Built and tested in the cloud (own Godot user folders, no save touched). Still animated as before (wheels
+  turn, wings beat, eyes blink and look at you, fire flickers); fight, ids and flags unchanged.
+  - **New bake script** (same bake kit): `tools/build_prop_seraph.py <out.glb> seraph_eye|seraph_feather|seraph_wheel|seraph_glory|seraph_crown`
+    (an eyeball with veins, a fibrous blue iris, a gold collarette and lashes, 517k triangles onto 960; a barbed
+    feather with a gold tip; a wheel carved with twisted cord, beads and spiky bezels round its eyes; a sunburst
+    behind it; the crown's band with arched windows and cups of holy fire, baked with no AO since its cups baked
+    black). In `models/props/seraph/`.
+  - **Swapped where it's built** (`starhorn.gd _look()`, through `detail_props.gd seraph_mesh(kind)`, null when the
+    detail pipeline's off, so the old shapes come back): every eye, feather, wheel rim and the halo, plus a new
+    turning "Sunburst" behind the Seraph. The fire is unchanged.
+  - Tests: skyreach_trail, boss_tells, boss_moves, `detail_portal_props -- skyreach` and virtue_trials pass.
+    Pictures: `tools/capture_seraph_detail.gd -- <folder> [--old-props]` (project files,
+    world/previews/seraph_detail, before, after and side by side).
+  - My choices Hayden may change: the eyes' colour, how gold it is, the sunburst.
+
 - 2026-11-24: **The Skyreach Trail's Waystones lead into seven virtue trials, and you must pass every one to reach
   the Seraph** (Hayden: "the way points can literally be invisible portals that transport you to instances that have
   the same heavenly theme with different challenges", "based on the heavenly virtues", Charity "you have to give all of
