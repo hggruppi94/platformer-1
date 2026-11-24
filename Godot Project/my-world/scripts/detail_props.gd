@@ -721,6 +721,318 @@ static func dress_dusks_embrace(scene: Node) -> Dictionary:
 	return out
 
 
+const RACE := "res://models/props/race/"
+const RACE_BARN_K := Vector3(1.58, 1.37, 1.68)    # Glenmoor's baked barn stretched to the circuits' 14 x 13 x 18 m barn
+
+
+static func dress_race_circuit(scene: Node) -> Dictionary:
+	# The race circuits (24 Nov 2026, tools/build_prop_race.py; scripts/race_circuit.gd builds them from shapes at
+	# load). Each grandstand, the Pumpkin Run's windmill (its sails still turn), barn, silo and pumpkins, Observatory
+	# Hill's observatory and telescope, the Hollow Run's Moon Clock pillar (its face and hands stay the game's), and the
+	# trees, mushrooms, crystals, lamp posts and hay bales round every circuit. The scenery is all put straight in the
+	# scene and Godot renames every copy after the first, so pieces are found by their material. Nothing here is solid,
+	# the cheering fans, the lamps' glow and lights and the clock face are kept.
+	var out := {"stand": 0, "trees": 0, "orb_trees": 0, "crystals": 0, "mushrooms": 0, "glow_mushrooms": 0,
+		"crooked": 0, "lamps": 0, "hay": 0, "pumpkins": 0, "barn": 0, "silo": 0, "windmill": 0, "pillar": 0,
+		"observatory": 0}
+	if scene.has_node("Detailed Race") or _scene(RACE + "stand_earth.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Race"
+	var trunks := []
+	var leaves := {}             # material name -> [old material, transforms]
+	var stalks := []
+	var orbs := {}
+	var crystals := {}
+	var stems := []
+	var caps := {}
+	var hay := _scene(HAY)
+	var tree := _scene(DH_TREE)
+	var mush := _scene(DH_MUSHROOMS)
+	for g in scene.get_children():
+		if g is MeshInstance3D:
+			var mi := g as MeshInstance3D
+			if hay and _mat_name(mi) == "Hay" and mi.mesh is CylinderMesh and not mi.has_node("Detailed Hay"):
+				var cm := mi.mesh as CylinderMesh
+				_hide(mi)
+				var h := hay.instantiate() as Node3D
+				h.name = "Detailed Hay"
+				h.scale = Vector3(cm.top_radius / 0.6, cm.height / 1.2, cm.top_radius / 0.6)
+				h.rotation.y = fposmod(mi.position.x * 1.9 + mi.position.z * 2.7, TAU)
+				mi.add_child(h)
+				out.hay += 1
+			continue
+		if not (g is Node3D) or g.get_script() != null:
+			continue
+		var n3 := g as Node3D
+		var kids := []
+		for c in n3.get_children():
+			if c is MeshInstance3D:
+				kids.append(c)
+		if kids.is_empty():
+			continue
+		var first := _mat_name(kids[0])
+		match first:
+			"Bark":                                      # an autumn tree: a trunk and three balls of leaves
+				for mi: MeshInstance3D in kids:
+					var t: Transform3D = n3.transform * mi.transform
+					if mi.mesh is CylinderMesh:
+						var cm := mi.mesh as CylinderMesh
+						trunks.append([mi.material_override, t * Transform3D(Basis.from_scale(
+							Vector3(cm.bottom_radius, cm.height, cm.bottom_radius)), Vector3.ZERO)])
+					elif mi.mesh is SphereMesh:
+						var sm := mi.mesh as SphereMesh
+						var key := _mat_name(mi)
+						if not leaves.has(key):
+							leaves[key] = [mi.material_override, []]
+						leaves[key][1].append(t * Transform3D(Basis.from_scale(
+							Vector3(sm.radius, sm.height * 0.5, sm.radius)), Vector3.ZERO))
+					_hide(mi)
+				out.trees += 1
+			"Stalk":                                     # a Void orb tree: a leaning stalk and glowing balls
+				for mi: MeshInstance3D in kids:
+					var t: Transform3D = n3.transform * mi.transform
+					if mi.mesh is CylinderMesh:
+						var cm := mi.mesh as CylinderMesh
+						var w := cm.bottom_radius / 0.22
+						stalks.append([mi.material_override, t * Transform3D(Basis.from_scale(
+							Vector3(w, cm.height, w)), Vector3.ZERO)])
+					elif mi.mesh is SphereMesh:
+						var key := _mat_name(mi)
+						if not orbs.has(key):
+							orbs[key] = [mi.material_override, []]
+						orbs[key][1].append(t * Transform3D(Basis.from_scale(Vector3.ONE * (mi.mesh as SphereMesh).radius),
+							Vector3.ZERO))
+					_hide(mi)
+				out.orb_trees += 1
+			"Crystal":                                   # five glowing crystal points
+				for mi: MeshInstance3D in kids:
+					if not (mi.mesh is CylinderMesh):
+						continue
+					var cm := mi.mesh as CylinderMesh
+					var s := cm.bottom_radius * 0.75 / CRYSTAL_R
+					var key := _mat_name(mi)
+					if not crystals.has(key):
+						crystals[key] = [mi.material_override, []]
+					crystals[key][1].append(n3.transform * mi.transform * Transform3D(Basis.from_scale(
+						Vector3(s, cm.height, s)), Vector3(0, -cm.height * 0.5, 0)))
+					_hide(mi)
+					out.crystals += 1
+			"Mushroom Stalk":                            # a giant mushroom in the meadow
+				for mi: MeshInstance3D in kids:
+					var t: Transform3D = n3.transform * mi.transform
+					if mi.mesh is CylinderMesh:
+						var cm := mi.mesh as CylinderMesh
+						stems.append([mi.material_override, t * Transform3D(Basis.from_scale(
+							Vector3(cm.bottom_radius * 0.85, cm.height, cm.bottom_radius * 0.85)), Vector3.ZERO)])
+					elif mi.mesh is SphereMesh:
+						var r := (mi.mesh as SphereMesh).radius
+						var key := _mat_name(mi)
+						if not caps.has(key):
+							caps[key] = [mi.material_override, []]
+						caps[key][1].append(t * Transform3D(Basis.from_scale(Vector3(r, r * 0.6, r)),
+							Vector3(0, -r * 0.1, 0)))
+					_hide(mi)
+				out.mushrooms += 1
+			"Glow Stalk":                                # a clump of glowing mushrooms by a dark road
+				if mush == null:
+					continue
+				var col := Color.WHITE
+				for mi: MeshInstance3D in kids:
+					if _mat_name(mi).begins_with("Glow Cap"):
+						col = (mi.material_override as StandardMaterial3D).albedo_color
+					_hide(mi)
+				var m := mush.instantiate() as Node3D
+				m.name = "Detailed Mushrooms"
+				m.scale = Vector3.ONE * 1.4
+				m.rotation.y = fposmod(n3.position.x * 1.7 + n3.position.z * 0.9, TAU)
+				_glow_caps(m, col)
+				n3.add_child(m)
+				out.glow_mushrooms += 1
+			"Night Bark":                                # a crooked bare tree
+				if tree == null:
+					continue
+				var trunk := kids[0] as MeshInstance3D
+				for mi: MeshInstance3D in kids:
+					_hide(mi)
+				var k := (trunk.mesh as CylinderMesh).height / DH_TREE_H * 0.85
+				var m := tree.instantiate() as Node3D
+				m.name = "Detailed Tree"
+				m.rotation.z = trunk.rotation.z
+				m.scale = Vector3.ONE * k
+				n3.add_child(m)
+				out.crooked += 1
+	_nature_multi(holder, "bark_trunk", trunks, "Tree Trunks")
+	_nature_multi(holder, "void_stalk", stalks, "Orb Stalks")
+	_nature_multi(holder, "mushroom_stem", stems, "Mushroom Stems")
+	var i := 0
+	for key in leaves:
+		_nature_multi(holder, "leaf_ball", leaves[key][1].map(func(t): return [leaves[key][0], t]), "Leaves %d" % i)
+		i += 1
+	i = 0
+	for key in orbs:
+		_nature_multi(holder, "void_orb", orbs[key][1].map(func(t): return [orbs[key][0], t]), "Orbs %d" % i, 0.7)
+		i += 1
+	i = 0
+	for key in caps:
+		_nature_multi(holder, "mushroom_cap", caps[key][1].map(func(t): return [caps[key][0], t]), "Caps %d" % i, 0.3)
+		i += 1
+	var crystal := _scene(CRYSTAL)
+	if crystal:
+		i = 0
+		for key in crystals:
+			var old := crystals[key][0] as StandardMaterial3D
+			var mesh := _mesh_of(crystal)
+			_multi(holder, mesh, crystals[key][1], "Crystals %d" % i)
+			var mmi := holder.get_child(holder.get_child_count() - 1) as MultiMeshInstance3D
+			var mat := (mesh.surface_get_material(0) as StandardMaterial3D).duplicate() as StandardMaterial3D
+			mat.albedo_color = old.albedo_color
+			mat.emission_enabled = true
+			mat.emission = old.albedo_color
+			mat.emission_energy_multiplier = old.emission_energy_multiplier
+			mmi.material_override = mat
+			i += 1
+	# The Hollow Run's lamp posts: the baked iron post goes under each glowing bulb, which stays (and its light)
+	var lamp := _scene(DH_LAMP)
+	var posts := scene.get_node_or_null("Lamp Posts")
+	if lamp and posts:
+		for p in posts.get_children():
+			var bulb: MeshInstance3D = null
+			for c in p.get_children():
+				if c is MeshInstance3D:
+					if _mat_name(c) == "Lamp Pole":
+						_hide(c)
+					elif _mat_name(c) == "Lamp Glow":
+						bulb = c
+			if bulb == null:
+				continue
+			var m := lamp.instantiate() as Node3D
+			m.name = "Detailed Lamp"
+			m.scale = Vector3.ONE * (bulb.position.y / DH_LAMP_GLOBE)
+			m.rotation.y = fposmod((p as Node3D).position.x * 2.3, TAU)
+			p.add_child(m)
+			out.lamps += 1
+	# The Pumpkin Run's pumpkins: one MultiMesh of balls (their places in meta "transforms") becomes the baked pumpkin
+	var pk := scene.get_node_or_null("Pumpkins") as MultiMeshInstance3D
+	var pumpkin := _scene(PUMPKIN)
+	if pk and pumpkin and pk.has_meta("transforms"):
+		var xfs := []
+		for t: Transform3D in pk.get_meta("transforms"):
+			xfs.append(Transform3D(t.basis.scaled(Vector3.ONE * 0.55), Vector3(t.origin.x, 0.0, t.origin.z)))
+		_multi(holder, _mesh_of(pumpkin), xfs, "Pumpkins")
+		WATCH.set_layers(pk, 0)
+		pk.set_meta(OLD_META, true)
+		out.pumpkins = xfs.size()
+	var barn := scene.get_node_or_null("Barn") as Node3D
+	if barn:
+		var barn_m := _scene(GLEN_BARN)
+		var silo_m := _scene(RACE + "silo.glb")
+		for c in barn.get_children():
+			if not (c is MeshInstance3D):
+				continue
+			var mn := _mat_name(c)
+			if barn_m and mn.begins_with("Barn"):
+				_hide(c)
+			elif silo_m and mn.begins_with("Silo"):
+				_hide(c)
+		if barn_m:
+			var m := barn_m.instantiate() as Node3D
+			m.name = "Detailed Barn"
+			m.scale = RACE_BARN_K
+			barn.add_child(m)
+			out.barn = 1
+		if silo_m:
+			var m := silo_m.instantiate() as Node3D
+			m.name = "Detailed Silo"
+			m.position = Vector3(10, 0, -4)
+			barn.add_child(m)
+			out.silo = 1
+	var mill := scene.get_node_or_null("Windmill") as Node3D
+	if mill:
+		var tower := _scene(RACE + "windmill.glb")
+		var sails_m := _scene(RACE + "mill_sails.glb")
+		for c in mill.get_children():
+			if tower and c is MeshInstance3D and _mat_name(c) == "Mill":
+				_hide(c)
+		if tower:
+			mill.add_child(_named(tower, "Detailed Windmill"))
+			out.windmill = 1
+		var sails := mill.get_node_or_null("Sails")
+		if sails and sails_m:
+			for c in sails.get_children():
+				if c is MeshInstance3D and _mat_name(c) == "Sail":
+					_hide(c)
+			sails.add_child(_named(sails_m, "Detailed Sails"))
+	var clock := scene.get_node_or_null("Moon Clock") as Node3D
+	var pillar_m := _scene(RACE + "clock_pillar.glb")
+	if clock and pillar_m:
+		for c in clock.get_children():
+			if c is MeshInstance3D and _mat_name(c) == "Pillar":
+				_hide(c)
+		clock.add_child(_named(pillar_m, "Detailed Pillar"))
+		out.pillar = 1
+	var obs_m := _scene(RACE + "observatory.glb")
+	if obs_m:
+		# Found by its dome: the base is a cylinder 12 m across, so the ground look has taken its material by now
+		for g in scene.get_children():
+			if g is MeshInstance3D and _mat_name(g) == "Dome":
+				var foot := (g as Node3D).position - Vector3(0, 4.5, 0)
+				var m := _named(obs_m, "Detailed Observatory")
+				m.position = foot
+				holder.add_child(m)
+				out.observatory = 1
+				for b in scene.get_children():
+					if b is MeshInstance3D and (b as MeshInstance3D).mesh is CylinderMesh \
+							and is_equal_approx(((b as MeshInstance3D).mesh as CylinderMesh).top_radius, 6.0) \
+							and (b as Node3D).position.distance_to(foot + Vector3(0, 2.0, 0)) < 0.1:
+						_hide(b)
+		if out.observatory:
+			for g in scene.get_children():
+				if g is MeshInstance3D and _mat_name(g) in ["Observatory", "Dome", "Telescope"]:
+					_hide(g)
+	var stand := scene.get_node_or_null("Stand") as Node3D
+	if stand:
+		var earthy := false
+		for c in stand.get_children():
+			if c is MeshInstance3D and _mat_name(c) == "Stand Roof":
+				var col := ((c as MeshInstance3D).material_override as StandardMaterial3D).albedo_color
+				earthy = col.r > col.g
+		var stand_m := _scene(RACE + ("stand_earth.glb" if earthy else "stand_void.glb"))
+		if stand_m:
+			for c in stand.get_children():
+				if c is MeshInstance3D and (_mat_name(c) == "Stand" or _mat_name(c) == "Stand Roof"):
+					_hide(c)
+			stand.add_child(_named(stand_m, "Detailed Stand"))
+			out.stand = 1
+	scene.add_child(holder)
+	return out
+
+
+static func _named(model: PackedScene, n: String) -> Node3D:
+	var m := model.instantiate() as Node3D
+	m.name = n
+	return m
+
+
+static func _nature_multi(holder: Node3D, kind: String, parts: Array, n: String, glow := 0.0) -> void:
+	# parts: [old material, transform] pairs, all in one colour; one MultiMesh of the baked nature model in it
+	if parts.is_empty():
+		return
+	var model := _scene(NATURE % kind)
+	if model == null:
+		return
+	var mesh := _mesh_of(model)
+	var old := parts[0][0] as StandardMaterial3D
+	_multi(holder, mesh, parts.map(func(p): return p[1]), n)
+	var mmi := holder.get_child(holder.get_child_count() - 1) as MultiMeshInstance3D
+	var mat := _nature_mat(mesh, old.albedo_color if old else Color.WHITE, kind)
+	if mat and glow > 0.0 and old:
+		mat.emission_enabled = true
+		mat.emission = old.albedo_color
+		mat.emission_energy_multiplier = glow
+	mmi.material_override = mat
+
+
 static func dress_lanternmoor(scene: Node) -> Dictionary:
 	# Pip's moor (20 Nov 2026, the portal worlds' props, tools/build_prop_lanternmoor.py): its lantern trees (out on
 	# the moor and round the Lantern Grove) and the standing stones round the Night Path's beacon. (The path's lantern

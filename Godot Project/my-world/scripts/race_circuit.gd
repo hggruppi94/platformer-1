@@ -890,6 +890,7 @@ func _farm() -> void:
 		mm.set_instance_transform(k, spots[k])
 	var mi := MultiMeshInstance3D.new()
 	mi.name = "Pumpkins"
+	mi.set_meta("transforms", spots)                 # (headless runs keep no MultiMesh places: detail_props.gd)
 	mi.multimesh = mm
 	mi.material_override = _mat("Pumpkin", Color(0.95, 0.5, 0.12), 0.7)
 	add_child(mi)

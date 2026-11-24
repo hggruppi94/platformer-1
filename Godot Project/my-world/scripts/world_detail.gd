@@ -135,6 +135,8 @@ func _dress(scene: Node) -> void:
 		last_props = DETAIL_PROPS.dress_skyreach(scene)
 	elif path == "res://scenes/scary_world/scary_world.tscn" and detail_props:
 		last_props = DETAIL_PROPS.dress_dusks_embrace(scene)
+	elif path.begins_with("res://scenes/races/") and detail_props:
+		last_props = DETAIL_PROPS.dress_race_circuit(scene)
 	if detail_props:
 		last_nature = DETAIL_PROPS.dress_nature(scene)
 		last_surfaces = DETAIL_PROPS.dress_buildings(scene)
