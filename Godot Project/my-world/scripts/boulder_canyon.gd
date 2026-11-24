@@ -14,6 +14,7 @@ extends "res://scripts/boss_lair.gd"
 # All the names and the look are first drafts for Hayden.
 
 const CROC := "res://scenes/enemies/crocodillo.tscn"
+const DETAIL := "res://scripts/detail_props.gd"
 
 const ARENA := Vector3(0, 0, 74)
 const ARENA_R := 20.0
@@ -118,7 +119,7 @@ func _roll_one() -> void:
 	b.name = "Rolling Boulder"
 	add_child(b)
 	b.position = Vector3(LANES[_rng.randi() % LANES.size()], ROLL_R, RUN.x)
-	_ball(b, "Ball", ROLL_R, Vector3.ZERO, _boulder_mat(), false)
+	(load(DETAIL) as GDScript).canyon_rock(_ball(b, "Ball", ROLL_R, Vector3.ZERO, _boulder_mat(), false))
 	_ball(b, "Moss", ROLL_R * 0.55, Vector3(0, ROLL_R * 0.55, 0), _mat("Moss", Color(0.35, 0.6, 0.35)), false)
 	rolling.append(b)
 	Juice.dust(self, b.global_position - Vector3(0, ROLL_R, 0), 0.6)
@@ -268,7 +269,7 @@ func drop_rock(at: Vector3) -> void:
 	up.name = "Up High"
 	s.add_child(up)
 	up.position.y = FALL_FROM
-	_ball(up, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false)
+	(load(DETAIL) as GDScript).canyon_rock(_ball(up, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false))
 	falls.append({"node": s, "t": 0.0, "up": up, "gravel": 0.0})
 
 
@@ -296,7 +297,7 @@ func _land(f: Dictionary) -> void:
 	rock.name = "Fallen Rock"
 	add_child(rock)
 	rock.global_position = Vector3(at.x, FALL_FROM, at.z)
-	_ball(rock, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false)
+	(load(DETAIL) as GDScript).canyon_rock(_ball(rock, "Rock", 0.95, Vector3.ZERO, _boulder_mat(), false))
 	var tw := rock.create_tween()
 	tw.tween_property(rock, "global_position:y", 0.9, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func() -> void:

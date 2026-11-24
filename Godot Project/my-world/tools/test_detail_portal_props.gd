@@ -23,6 +23,7 @@ const SHARD_ISLE := "res://scenes/portal_worlds/shard_isle.tscn"
 const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
 const STAR_ARENA := "res://scenes/bosses/arena.tscn"
 const CLOCK_TOWER := "res://scenes/bosses/clock_tower.tscn"
+const BOULDER_CANYON := "res://scenes/bosses/boulder_canyon.tscn"
 const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
@@ -65,6 +66,12 @@ func _run() -> void:
 	if "arena" in OS.get_cmdline_user_args():
 		# (only the Star Arena: -- arena)
 		await _star_arena()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
+	if "canyon" in OS.get_cmdline_user_args():
+		# (only Boulder Canyon: -- canyon)
+		await _boulder_canyon()
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
@@ -175,6 +182,7 @@ func _run() -> void:
 	await _secret_garden()
 	await _star_arena()
 	await _clock_tower()
+	await _boulder_canyon()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -879,6 +887,59 @@ func _clock_tower() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the tower again changes nothing")
+
+
+func _boulder_canyon() -> void:
+	detail.detail_props = false
+	await _load(BOULDER_CANYON)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Canyon") == null, "nothing baked in the canyon with detailed props off")
+	detail.detail_props = true
+	await _load(BOULDER_CANYON)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Boulder Canyon props: ", got)
+	check(got.get("walls", 0) == 24, "all 24 stretches of the run's walls baked (%d)" % got.get("walls", 0))
+	check(got.get("rim", 0) == 26, "all 26 rim rocks round the pit baked (%d)" % got.get("rim", 0))
+	check(got.get("rocks", 0) >= 7 + 8 + 15, "every boulder baked (%d)" % got.get("rocks", 0))
+	check(got.get("pillars", 0) == 4, "the four pillars baked")
+	check(got.get("slab", 0) == 1 and got.get("throne", 0) == 1 and got.get("geode", 0) == 1,
+		"the arch's slab, the Rock Throne and the Big Geode baked")
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree() or "/Visual/" in str(mi.get_path()):
+			continue
+		if DETAIL_PROPS._base_name(mi) in ["Rock Band", "Rim Rock", "Rock Heap", "Arch Boulder", "Pit Boulder", "Way Rock", "Pillar",
+				"Arch Slab", "Rock Throne", "Throne Back"]:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	# The walls stand where the solid walls are, as tall
+	var mmi := s.get_node("Detailed Canyon/Detailed Canyon Walls") as MultiMeshInstance3D
+	var xfs: Array = mmi.get_meta("transforms")
+	var tall_ok := true
+	for t in xfs.slice(0, 24):
+		var tr := t as Transform3D
+		var h := tr.basis.get_scale().y * DETAIL_PROPS.BC_WALL_H
+		if h < 12.9 or h > 20.1 or absf(absf(tr.origin.x) - 10.6) > 0.7:
+			tall_ok = false
+	check(tall_ok, "each wall stretch stands where its solid wall is, as tall")
+	check(s.get_node_or_null("Big Geode/Lid/Detailed Lid") != null, "the geode's baked lid is inside its Lid, so it still opens")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	# Rocks made in play get the baked boulder too
+	var c: Node = s
+	c.call("drop_rock", Vector3(0, 0, 74))
+	var coming := s.find_child("Rock Coming", true, false) as Node3D
+	check(coming != null and coming.find_child("Detailed Rock", true, false) != null, "a falling rock is a baked boulder")
+	c.call("_roll_one")
+	var rb := s.find_child("Rolling Boulder", true, false) as Node3D
+	check(rb != null and rb.get_node_or_null("Detailed Ball") != null, "a rolling boulder is a baked boulder")
+	var again := DETAIL_PROPS.dress_boulder_canyon(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the canyon again changes nothing")
 
 
 func _in_model(n: Node) -> bool:

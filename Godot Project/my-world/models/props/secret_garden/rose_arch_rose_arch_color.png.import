@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dl54v6ftyg648"
-valid=false
-generator_parameters={
-"md5": "0f6553a5cbf15c946a8de944d381f540"
+path="res://.godot/imported/rose_arch_rose_arch_color.png-3ecfa7c0f09edf93ff6880195781963d.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/rose_arch_rose_arch_color.png"
+dest_files=["res://.godot/imported/rose_arch_rose_arch_color.png-3ecfa7c0f09edf93ff6880195781963d.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

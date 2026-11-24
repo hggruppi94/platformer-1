@@ -99,6 +99,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Baked Boulder Canyon: its layered rock walls and rim, every boulder, the pillars, the Rock Arch's slab,
+  the Rock Throne and the Big Geode** (Hayden: "Okay continue baking details"; the next place not baked yet). Built
+  and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_boulder_canyon.py <out.glb> canyon_wall|rock_pillar|arch_slab|canyon_boulder|rock_throne|geode_base|geode_lid`
+    (a 3 x 16 x 4.2 m stretch of layered red rock with ledges and cracks; a banded hoodoo pillar with a cap; the arch's
+    slab; a lumpy round boulder, radius 1, so it can roll; the throne's stepped drum and its back carved with an
+    armadillo's shell; the geode's bowl with an agate rim and glowing crystals, and its dome). In
+    `models/props/boulder_canyon/`. The throne's horn rocks use a plain rock colour (the painted rock reads vertex
+    colours, which `K.sphere` doesn't have, so they baked white).
+  - **Swapped at run time** (`detail_props.gd dress_boulder_canyon()`, called by `WorldDetail` for
+    `scenes/bosses/boulder_canyon.tscn`, which `boulder_canyon.gd` builds at load): the Rockslide Run's 24 walls (found
+    by their 3 m box: Godot renames all but the first "Canyon Wall") and the pit's 26 rim rocks are one MultiMesh, each
+    stretched to its height (`BC_WALL_H`); the heaps, arch, pit ring and way-out rocks one boulder MultiMesh; the
+    pillars another; the geode's lid model is inside its "Lid", so it still opens. The rocks made in play (rolling down
+    the run, falling in the pit) get the baked boulder too (`canyon_rock()`). Every collision is unchanged.
+  - Tests: `tools/test_detail_portal_props.gd` (only this part with `-- canyon`); boss_lairs and boss_versions pass.
+    Pictures: `tools/capture_detail_boulder_canyon.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_boulder_canyon).
+  - My choices Hayden may change: every look (the rock's bands, the throne's shell carving, the geode).
+
 - 2026-11-23: **The Clockwork Tower's climb is shut halfway: the way on is the Clockwork Passage inside the wall**
   (Hayden: "close it off midway and add a little dungeon crawl clockwork hallway ... part of the overall tower").
   `scripts/clock_tower.gd` (`_passage()` and friends, still built at load). Past the Halfway Ledge the open walkway stops

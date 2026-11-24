@@ -4,11 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://c2qq2iy0t4ffq"
-valid=false
+path="res://.godot/imported/flower_middle.glb-61d6a68dfc5a6270f1985213f1994b2e.scn"
 
 [deps]
 
 source_file="res://models/props/secret_garden/flower_middle.glb"
+dest_files=["res://.godot/imported/flower_middle.glb-61d6a68dfc5a6270f1985213f1994b2e.scn"]
 
 [params]
 

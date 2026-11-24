@@ -1192,6 +1192,108 @@ static func dress_clock_tower(scene: Node) -> Dictionary:
 	return out
 
 
+const BC := "res://models/props/boulder_canyon/"        # Boulder Canyon's (tools/build_prop_boulder_canyon.py)
+const BC_WALL_H := 16.0                                   # the baked canyon wall's height (3 x 16 x 4.2, from the ground)
+const BC_ROCKS := ["Rock Heap", "Arch Boulder", "Pit Boulder", "Way Rock"]
+
+static func dress_boulder_canyon(scene: Node) -> Dictionary:
+	# The Boulderdillo's Boulder Canyon (24 Nov 2026, tools/build_prop_boulder_canyon.py; scripts/boulder_canyon.gd
+	# builds it all from shapes as it loads): the Rockslide Run's striped walls and the pit's rim become stretches of
+	# layered red rock (one MultiMesh, each stretched to its own height), every boulder (the heaps, the arch, the
+	# pit's ring, the way out) a lumpy baked boulder of its radius, the four pillars hoodoos, the arch's slab, the
+	# Rock Throne and the Big Geode (its lid model is inside "Lid", so it still opens). Every collision stays.
+	var out := {"walls": 0, "rim": 0, "rocks": 0, "pillars": 0, "slab": 0, "throne": 0, "geode": 0}
+	if scene.has_node("Detailed Canyon") or _scene(BC + "canyon_wall.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Canyon"
+	var walls := []
+	var rocks := []
+	var pillars := []
+	for n in scene.find_children("*", "", true, false):
+		var b := _base_name(n)
+		if n is StaticBody3D and n.get_parent().name == "Rockslide Run" and n.get_child_count() > 0 \
+				and (n.get_child(0) as CollisionShape3D) and (n.get_child(0) as CollisionShape3D).shape is BoxShape3D \
+				and is_equal_approx(((n.get_child(0) as CollisionShape3D).shape as BoxShape3D).size.x, 3.0):
+			# (the walls are all "Canyon Wall", so Godot gives all but the first a made-up name)
+			var cs := n.get_child(0) as CollisionShape3D
+			var size := (cs.shape as BoxShape3D).size
+			var t := _to_scene(n, scene)
+			walls.append(Transform3D(Basis.from_scale(Vector3(1, size.y / BC_WALL_H, 1)), Vector3(t.origin.x, 0, t.origin.z)))
+			continue
+		var mi := n as MeshInstance3D
+		if mi == null or mi.has_meta(OLD_META):
+			continue
+		if b == "Rock Band":
+			_hide(mi)
+		elif b == "Rim Rock" and mi.mesh is BoxMesh:
+			var size := (mi.mesh as BoxMesh).size
+			var t := _to_scene(mi, scene)
+			# The rim rock's local z points out from the pit and x along it: the baked wall's x (its thickness)
+			# turns to face in, its z (its length) runs along the rim
+			var basis := t.basis.orthonormalized() * Basis(Vector3.UP, PI / 2.0) * Basis.from_scale(Vector3(size.z / 3.0, size.y / BC_WALL_H, size.x / 4.2))
+			walls.append(Transform3D(basis, Vector3(t.origin.x, 0, t.origin.z)))
+			out["rim"] += 1
+			_hide(mi)
+		elif b in BC_ROCKS and mi.mesh is SphereMesh:
+			var r := (mi.mesh as SphereMesh).radius
+			var t := _to_scene(mi, scene)
+			var spin := Basis(Vector3.UP, rocks.size() * 2.39) * Basis(Vector3.RIGHT, rocks.size() * 0.7)
+			rocks.append(Transform3D(spin.scaled(Vector3(r, r, r)), t.origin))
+			_hide(mi)
+		elif b == "Pillar" and mi.mesh is CylinderMesh:
+			pillars.append(_to_scene(mi, scene))
+			_hide(mi)
+		elif b == "Arch Slab":
+			if _add(holder, BC + "arch_slab.glb", "Detailed Arch Slab", _to_scene(mi, scene)):
+				out["slab"] = 1
+			_hide(mi)
+		elif b in ["Rock Throne", "Throne Back"] and mi.get_parent() == scene:
+			_hide(mi)
+			if out["throne"] == 0 and _add(holder, BC + "rock_throne.glb", "Detailed Throne",
+					Transform3D(Basis.IDENTITY, Vector3(mi.position.x, 0, mi.position.z if b == "Rock Throne" else mi.position.z - 3.0))):
+				out["throne"] = 1
+	if not walls.is_empty():
+		_multi(holder, _mesh_of(_scene(BC + "canyon_wall.glb")), walls, "Detailed Canyon Walls")
+		(holder.get_node("Detailed Canyon Walls") as MultiMeshInstance3D).visibility_range_end = 0.0
+		out["walls"] = walls.size() - out["rim"]
+	if not rocks.is_empty():
+		_multi(holder, _mesh_of(_scene(BC + "canyon_boulder.glb")), rocks, "Detailed Boulders")
+		(holder.get_node("Detailed Boulders") as MultiMeshInstance3D).visibility_range_end = 0.0
+		out["rocks"] = rocks.size()
+	if not pillars.is_empty():
+		_multi(holder, _mesh_of(_scene(BC + "rock_pillar.glb")), pillars, "Detailed Pillars")
+		out["pillars"] = pillars.size()
+	var geode := scene.get_node_or_null("Big Geode") as Node3D
+	if geode and not geode.has_node("Detailed Geode"):
+		var lid := geode.get_node_or_null("Lid") as Node3D
+		for k in geode.get_children():
+			if k is MeshInstance3D and k.mesh is SphereMesh:
+				_hide(k)
+		if lid:
+			for k in lid.get_children():
+				if k is MeshInstance3D:
+					_hide(k)
+			_add(lid, BC + "geode_lid.glb", "Detailed Lid", Transform3D.IDENTITY)
+		if _add(geode, BC + "geode_base.glb", "Detailed Geode", Transform3D.IDENTITY):
+			out["geode"] = 1
+	scene.add_child(holder)
+	return out
+
+
+static func canyon_rock(mi: MeshInstance3D) -> bool:
+	# A boulder Boulder Canyon makes as you play (rolling down the run, falling into the pit): the baked boulder in
+	# its place, at its radius, moving with it. The plain ball stays, hidden.
+	if not on() or not mi.mesh is SphereMesh or _scene(BC + "canyon_boulder.glb") == null:
+		return false
+	var r := (mi.mesh as SphereMesh).radius
+	var p := mi.get_parent() as Node3D
+	if _add(p, BC + "canyon_boulder.glb", "Detailed " + mi.name, Transform3D(Basis.from_scale(Vector3(r, r, r)), mi.position)) == null:
+		return false
+	_hide(mi)
+	return true
+
+
 const SG := "res://models/props/secret_garden/"
 const FOUNTAIN_SG := SG + "fountain.glb"
 const SG_PETAL_GAIN := 1.2               # the head's petals are baked pale; this lifts each flower's tint back

@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://g0wqkskn3osx"
-valid=false
-generator_parameters={
-"md5": "23a3be6a6a18500b5fcc0294b5375c71"
+path="res://.godot/imported/great_tree_great_tree_orm.png-f9d3ab8808a727ceb466cfb5ffaf0d64.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/great_tree_great_tree_orm.png"
+dest_files=["res://.godot/imported/great_tree_great_tree_orm.png-f9d3ab8808a727ceb466cfb5ffaf0d64.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
