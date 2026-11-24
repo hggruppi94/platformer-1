@@ -13,7 +13,7 @@ extends Node3D
 #    and spits you back out at the Mire Edge (swamp.float_home()). It gives up if you leave the swamp or get well away.
 # swamp.hazards false (tests) keeps all of it still.
 
-const MUCKLING := preload("res://scenes/enemies/gloop.tscn")
+const WAILER := preload("res://scripts/bog_wailer.gd")
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 
 const TRAP_NEAR := 1.4                   # a Snap Trap rattles when she's this close...
@@ -346,31 +346,8 @@ func _lurkers_step(delta: float, p: CharacterBody3D) -> void:
 
 func _muckling(at: Vector3) -> CharacterBody3D:
 	# A Muckling, the same as a Bog Wailer calls up (scripts/bog_wailer.gd)
-	var muck: Dictionary = (_lay().wailer as Dictionary).muck
-	var g := MUCKLING.instantiate() as CharacterBody3D
-	g.name = "Muckling %d" % _rng.randi_range(100, 999)
-	g.set("respawns", false)
-	g.set("size", 0.6)
-	g.set("damage", 1)
-	g.set("xp_reward", 2)
-	g.set("chase_speed", 3.1)
-	g.set("sight_range", 16.0)
-	g.set("leash_range", 30.0)
-	g.set("wander_radius", 3.0)
-	g.set("goldness", 0.0)
-	g.set("color", muck.get("pop", Color(0.5, 0.8, 0.4)))
-	g.add_to_group("mucklings")
 	at.y = maxf(at.y, BED + 0.3)
-	g.position = to_local(at)                 # (before it's added: a Gloop takes its home from there)
-	add_child(g)
-	for m in (g.get("_goo") as Array):
-		(m as ShaderMaterial).set_shader_parameter("green", muck.get("green"))
-		(m as ShaderMaterial).set_shader_parameter("deep", muck.get("deep"))
-	Fx.burst(self, at, muck.get("pop", Color(0.5, 0.8, 0.4)), 10, 0.1, 3.0, -8.0, 0.6)
-	Audio.play_at("gloop_giggle", at, -4.0, 0.3)
-	if g.has_method("alert"):
-		g.call("alert")
-	return g
+	return WAILER.make_muckling(self, at, (_lay().wailer as Dictionary).muck, BED, SURFACE)
 
 
 # The giant -------------------------------------------------------------------------------------------------------------

@@ -52,6 +52,13 @@ func _load(path: String) -> void:
 	p = get_first_node_in_group("player") as CharacterBody3D
 	swamp = world.get_node_or_null(S.NODE) as Node3D if world else null
 	_wailers_on(false)                                   # (they get their own checks at the end)
+	_dangers_on(false)                                   # (and the lurkers' Mucklings would chase her off the paths)
+
+
+func _dangers_on(on: bool) -> void:
+	var dz := swamp.get_node_or_null("Dangers") if swamp else null
+	if dz:
+		dz.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
 
 
 func _wailers_on(on: bool) -> void:
@@ -334,6 +341,7 @@ func _dusk() -> void:
 func _dangers(lay: Dictionary) -> void:
 	var dz := swamp.get_node_or_null("Dangers")
 	check(dz != null, "the swamp has its dangers")
+	_dangers_on(true)
 	if dz == null:
 		return
 	var isl: Array = swamp.get("islands")
@@ -481,6 +489,12 @@ func _dangers(lay: Dictionary) -> void:
 	game.hp = game.max_hp
 
 
+func _hold_mucklings(w: Node, hold: bool) -> void:
+	for m in (w.get("mucklings") as Array):
+		if is_instance_valid(m):
+			(m as Node).process_mode = Node.PROCESS_MODE_DISABLED if hold else Node.PROCESS_MODE_INHERIT
+
+
 func _mucklings() -> int:
 	return world.find_children("Muckling*", "CharacterBody3D", true, false).filter(func(m: Node) -> bool:
 		return not bool(m.get("defeated"))).size()
@@ -579,6 +593,27 @@ func _wailers(n: int) -> void:
 	for m in mk:
 		ok = ok and is_instance_valid(m) and int(m.get("damage")) == 1 and not bool(m.get("respawns"))
 	check(ok, "...little ones: a bump of 1 and they don't come back")
+	# They really come for you (they used to sink back where they came up and sit hidden under the murk)
+	game.hp = game.max_hp
+	var near_you := 0
+	var risen := 0
+	var round_you := 0
+	for m in mk:
+		if is_instance_valid(m) and (m as Node3D).global_position.distance_to(p.global_position) < W.NEAR_YOU + 2.6:
+			round_you += 1
+	await _physics(180)
+	for m in mk:
+		if not is_instance_valid(m) or bool(m.get("defeated")):
+			continue
+		var mm := m as Node3D
+		if mm.global_position.distance_to(p.global_position) < 6.0:
+			near_you += 1
+		var lift := (mm.get_node("Visual") as Node3D).position.y
+		if mm.global_position.y + lift > S.SURFACE - 0.35:
+			risen += 1
+	check(round_you >= 1, "...some come up right round you (%d)" % round_you)
+	check(near_you >= 3, "...and the horde comes for you (%d of %d within 6 m after 3 s)" % [near_you, mk.size()])
+	check(risen == mk.size(), "...wading with their bodies up out of the water, not hidden under it (%d)" % risen)
 	for k in 3:
 		w.set("_call_cd", 0.0)
 		w.call("start_call")
@@ -590,6 +625,7 @@ func _wailers(n: int) -> void:
 	w.call("shot", 1, w.global_position, Vector3.FORWARD)
 	check(int(w.get("hp")) == hp0 - 1, "a bubble knocks a bit off it")
 	await _physics(30)
+	_hold_mucklings(w, true)                             # (a horde of them leaping at her would knock her off the stomp)
 	p.global_position = w.global_position + Vector3(0, 4.5, 0)
 	p.velocity = Vector3.ZERO
 	var stomped := false
@@ -599,6 +635,7 @@ func _wailers(n: int) -> void:
 			stomped = true
 			break
 	check(stomped, "landing on its big head is a stomp")
+	_hold_mucklings(w, false)
 	await _physics(30)
 	if not bool(w.get("defeated")):
 		w.call("shot", 3, w.global_position, Vector3.FORWARD)
