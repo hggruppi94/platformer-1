@@ -1696,6 +1696,19 @@ const SKY := "res://models/props/skyreach/"               # the Skyreach Trail's
 const SKY_PINE_H := 6.0                                    # the baked pine's height, trunk and all, from the ground
 const SKY_FLAG_GAIN := 1.15                                # the prayer flags are baked pale; this lifts each tint back
 
+static func _sky_marble(m: Material) -> Material:
+	# Heaven (24 Nov 2026): the trail's baked blocks and Waystones were carved in grey mossy stone; up there they keep
+	# their carved shape and bumps (the normal and ORM maps) but are white marble, so the moss and grey are left out
+	var base := m as StandardMaterial3D
+	if base == null:
+		return m
+	var mm := base.duplicate() as StandardMaterial3D
+	mm.resource_name = "Heaven Marble Baked"
+	mm.albedo_texture = null
+	mm.albedo_color = Color(0.88, 0.86, 0.82)
+	return mm
+
+
 static func dress_skyreach(scene: Node) -> Dictionary:
 	# The Skyreach Trail up to the Starhorn (24 Nov 2026, tools/build_prop_skyreach.py; scripts/skyreach_trail.gd
 	# builds it all from shapes as it loads): the kerb stones along its edge become chiselled blocks (the same
@@ -1713,7 +1726,7 @@ static func dress_skyreach(scene: Node) -> Dictionary:
 	var kerb := _mesh_of(_scene(SKY + "kerb_stone.glb"))
 	if kerbs and kerbs.multimesh and kerb:
 		kerbs.multimesh.mesh = kerb
-		kerbs.material_override = null
+		kerbs.material_override = _sky_marble(kerb.surface_get_material(0))
 		out["kerbs"] = kerbs.multimesh.instance_count
 	var rocks := []
 	var pines := []
@@ -1757,6 +1770,9 @@ static func dress_skyreach(scene: Node) -> Dictionary:
 			_hide(mi)
 			if _add(mi.get_parent() as Node3D, SKY + "waystone.glb", "Detailed Waystone", Transform3D.IDENTITY):
 				out["waystones"] += 1
+				for w in (mi.get_parent() as Node3D).get_node("Detailed Waystone").find_children("*", "MeshInstance3D", true, false):
+					var wm := w as MeshInstance3D
+					wm.material_override = _sky_marble(wm.get_active_material(0))
 		elif mi.name in ["Chest", "Band"] and mi.get_parent().name == "Star Chest":
 			_hide(mi)
 			if out["chest"] == 0 and _add(mi.get_parent() as Node3D, SKY + "chest_box.glb", "Detailed Chest", Transform3D.IDENTITY):

@@ -2,8 +2,10 @@ extends CharacterBody3D
 
 # The Starhorn: the one big optional boss, asleep on the summit at the very end of the Skyreach Trail, the longest
 # trail in the game (scripts/skyreach_trail.gd; the "feels bigger" plan's slice 4, Hayden: "Go ahead", 15 Nov 2026).
-# A giant stag of mountain stone with antlers of glowing crystal full of stars. Nothing in the game mentions it until
-# you're on the summit.
+# It was a giant stone stag until 24 Nov 2026; now the player sees the Seraph, a "biblically accurate" angel (Hayden:
+# "something that is more like an actual biblical angel"): one great eye, gold wheels full of eyes, six wings and a
+# crown of holy fire (its look is at the bottom). The fight is unchanged. Nothing in the game mentions it until you're
+# on the summit.
 #
 # Before this was written we read how open-source boss fights are put together (Hayden's rule: look first, then
 # build), and took the two ideas that fit a kids' game:
@@ -17,7 +19,7 @@ extends CharacterBody3D
 #
 # The fight, in three phases (HITS bubbles, stomps or rolls to calm it, at most MAX_PER_DAZE in a row):
 #   1. Stomp (a ring: jump it) and charge (arrows: step aside). After each it's puffed out for a moment: pop it then.
-#   2. It rears up and roars (a big ring), and its antlers shine a shield round it. Three Star Shards glow on pillars
+#   2. It rears up and roars (a big ring), and its wings shine a shield round it. Three Star Shards glow on pillars
 #      round the summit: break them (a bubble, or jump into one) and it's knocked over for a long time. Falling stars
 #      (a shadow: move off it) join in.
 #   3. It roars again and gets quicker, and adds its big breath (arrows pointing in: jump free).
@@ -26,8 +28,8 @@ extends CharacterBody3D
 const TELL := preload("res://scripts/boss_tell.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
 
-const TITLE := "The Starhorn"
-const COLOUR := Color(0.55, 0.85, 1.0)
+const TITLE := "The Seraph"           # (its node, flag and hat id still say starhorn: saves and tests use them)
+const COLOUR := Color(1.0, 0.85, 0.45)
 const HEIGHT := 7.0
 const HITS := 18
 const MAX_PER_DAZE := 3
@@ -316,13 +318,13 @@ func _star_fall(at: Vector3) -> void:
 	sm.radius = 0.8
 	sm.height = 1.6
 	star.mesh = sm
-	star.material_override = _mat(Color(0.75, 0.95, 1.0), 2.2)
+	star.material_override = _mat(Color(1.0, 0.92, 0.6), 2.2)
 	get_parent().add_child(star)
 	star.global_position = at + Vector3(0, 14, 0)
 	var tw := star.create_tween()
 	tw.tween_property(star, "global_position", at + Vector3(0, 0.5, 0), 0.4).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func() -> void:
-		Fx.burst(get_parent(), at + Vector3(0, 0.4, 0), Color(0.75, 0.95, 1.0), 18, 0.08, 4.0, 0.0, 0.6)
+		Fx.burst(get_parent(), at + Vector3(0, 0.4, 0), Color(1.0, 0.92, 0.6), 18, 0.08, 4.0, 0.0, 0.6)
 		Juice.blip("thud", 1.1, -4.0)
 		if is_instance_valid(player) and _flat(player.global_position - at) < DROP_R \
 				and player.global_position.y < at.y + 2.0 and not player.call("is_invulnerable"):
@@ -350,7 +352,7 @@ func _daze() -> void:
 	_squash(0.4)
 	if shield_on:
 		if _told <= 0.0:
-			Game.message("Its antlers shield it! Break the Star Shards!")
+			Game.message("Its wings shield it! Break the Star Shards!")
 			_told = 12.0
 	elif hits == 0 and _told <= 0.0:
 		Game.message("%s's puffed out! Pop it now!" % TITLE)
@@ -542,7 +544,7 @@ func _calmed() -> void:
 		var gifts := ["+40 sparkles", "+5 Remnants"]
 		if not Game.has_item("shop:starhorn_antlers"):
 			Game.items.append("shop:starhorn_antlers")
-			gifts.append("the Starhorn Antlers")
+			gifts.append("the Seraph Halo")
 		Game.message("%s is calm and happy!\n%s" % [TITLE, ", ".join(gifts)])
 	else:
 		Game.message("%s is calm and happy!" % TITLE)
@@ -588,7 +590,7 @@ func make_shards(parent: Node3D, centre: Vector3) -> void:
 		sm.bottom_radius = 0.8
 		sm.height = 1.6
 		stone.mesh = sm
-		stone.material_override = _mat(Color(0.45, 0.42, 0.55))
+		stone.material_override = _mat(Color(0.86, 0.84, 0.8))
 		stone.position.y = 0.8
 		s.add_child(stone)
 		var gem := Node3D.new()
@@ -619,25 +621,33 @@ func make_shards(parent: Node3D, centre: Vector3) -> void:
 
 
 # -----------------------------------------------------------------------------
-# Its look, made from shapes: a giant stag of lilac-grey mountain stone, mossy on its back, with glowing eyes, a
-# starry mane and huge antlers of glowing crystal with little stars on the tips
+# Its look, made from shapes (24 Nov 2026, Hayden: "something that is more like an actual biblical angel"): one big
+# friendly eye in a glow, three gold wheels turning round it on their own ways with eyes all round them (the ophanim),
+# six white wings (a pair over it, a pair to fly with, a pair under it, the seraphim) with eyes on the flying pair,
+# and a ring of holy fire over it. Every eye blinks on its own. Asleep, it sinks down, wraps itself in its wings,
+# shuts its eyes and its wheels nearly stop.
 # -----------------------------------------------------------------------------
+const AWAKE_Y := 3.6
+const ASLEEP_Y := 2.3
+var _fold := 1.0                       # 0 wings spread, 1 wrapped round it (asleep)
+
+
 func _sleep_pose(on: bool) -> void:
 	if visual == null:
 		return
 	var body := visual.get_node_or_null("Body") as Node3D
 	if body:
-		body.position.y = 1.6 if on else 3.4
-	for leg in _parts.get("legs", []):
-		(leg as Node3D).scale.y = 0.45 if on else 1.0
-	var neck := _parts.get("neck") as Node3D
-	if neck:
-		neck.rotation.x = 0.9 if on else 0.0
-	for e in _parts.get("eyes", []):
-		(e as Node3D).scale.y = 0.12 if on else 1.0
+		body.position.y = ASLEEP_Y if on else AWAKE_Y
+	_fold = 1.0 if on else _fold
+	_eyes_open(not on)
 	var zz := visual.get_node_or_null("Zzz") as Label3D
 	if zz:
 		zz.visible = on
+
+
+func _eyes_open(open: bool) -> void:
+	for e in _parts.get("eyes", []):
+		(e as Node3D).scale.y = 1.0 if open else 0.12
 
 
 func _squash(k: float) -> void:
@@ -648,28 +658,48 @@ func _squash(k: float) -> void:
 	tw.tween_property(visual, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
-func _animate(_delta: float) -> void:
+func _animate(delta: float) -> void:
 	var calm := 0.3 if Settings.reduce_motion else 1.0
 	var sleeping := state == State.SLEEP
+	var dazed := state == State.DAZED or state == State.STAGGER
 	var body := visual.get_node_or_null("Body") as Node3D
 	if body and not sleeping:
-		body.position.y = 3.4 + sin(_t * 2.0) * 0.08 * calm
-	var stride := (8.0 if state == State.ACT else 3.0) * calm
+		body.position.y = AWAKE_Y + sin(_t * 1.6) * 0.18 * calm
+	# Its wheels: each turns its own way, slowly in its sleep, wobbling when it's puffed out
+	var spin := 0.08 if sleeping else (0.35 if dazed else 1.0)
 	var i := 0
-	for leg in _parts.get("legs", []):
-		var moving := state == State.IDLE or (state == State.ACT and _move == "dash")
-		(leg as Node3D).rotation.x = sin(_t * stride + i * PI) * (0.35 if moving else 0.0)
+	for w in _parts.get("wheels", []):
+		var spinner := w as Node3D
+		spinner.rotate_object_local(Vector3.UP, (0.5 + 0.25 * i) * (1 if i % 2 == 0 else -1) * spin * calm * delta)
 		i += 1
-	var mane := _parts.get("mane") as Node3D
-	if mane:
-		mane.rotation.y = _t * 0.3 * calm
+	# Its wings: wrapped round it asleep, spread and beating awake (quicker in a charge), drooping when it's puffed out
+	_fold = move_toward(_fold, 1.0 if sleeping else 0.0, delta * 1.5)
+	var beat := (9.0 if state == State.ACT else 3.2) * calm
+	for wing in _parts.get("wings", []):
+		var p := wing["pivot"] as Node3D
+		var side := float(wing["side"])
+		var flap := sin(_t * beat + float(wing["phase"])) * float(wing["amp"]) * (1.0 - _fold) * calm
+		var droop := -0.35 if dazed else 0.0
+		p.rotation = Vector3(float(wing["tilt"]), -side * (float(wing["yaw"]) + _fold * 1.25),
+			side * (float(wing["lift"]) + flap + droop))
+	# Every eye blinks on its own now and then, and they're shut while it sleeps
+	for e in _parts.get("eyes", []):
+		var eye := e as Node3D
+		var shut := sleeping or fmod(_t + float(eye.get_meta("blink", 0.0)), 4.5) < 0.14
+		eye.scale.y = move_toward(eye.scale.y, 0.12 if shut else 1.0, delta * 12.0)
+	var fire := _parts.get("fire") as Node3D
+	if fire:
+		fire.rotation.y = _t * 0.6 * calm
+		for f in fire.get_children():
+			if f is MeshInstance3D:
+				(f as Node3D).scale.y = 1.0 + 0.3 * sin(_t * 7.0 + (f as Node3D).position.x * 3.0) * calm
 	if _shield and _shield.visible:
 		_shield.rotation.y = _t * 0.5
 		var pulse := 1.0 + 0.03 * sin(_t * 4.0) * calm
 		_shield.scale = Vector3(pulse, pulse, pulse)
 	var zz := visual.get_node_or_null("Zzz") as Label3D
 	if zz and zz.visible:
-		zz.position.y = 5.2 + fmod(_t * 0.4, 1.0) * 0.8
+		zz.position.y = 5.0 + fmod(_t * 0.4, 1.0) * 0.8
 
 
 func _mat(c: Color, glow := 0.0) -> StandardMaterial3D:
@@ -710,82 +740,125 @@ func _cone(top: float, bottom: float, h: float) -> CylinderMesh:
 	return c
 
 
+func _ring(r: float, thick: float) -> TorusMesh:
+	var t := TorusMesh.new()
+	t.inner_radius = r - thick
+	t.outer_radius = r + thick
+	t.rings = 48
+	t.ring_segments = 10
+	return t
+
+
+var _eye_mats := {}
+
+
+func _eye(parent: Node3D, pos: Vector3, r: float, looks: Vector3) -> Node3D:
+	# A friendly round eye looking out along `looks`: white, a sky-blue iris that glows, a pupil and a shine
+	if _eye_mats.is_empty():
+		_eye_mats = {"white": _mat(Color(0.96, 0.95, 0.92)), "iris": _mat(Color(0.45, 0.75, 1.0), 1.6),
+			"pupil": _mat(Color(0.08, 0.08, 0.16)), "shine": _mat(Color(1, 1, 1), 3.0)}
+	var e := Node3D.new()
+	e.name = "Eye"
+	e.position = pos
+	var up := Vector3.UP if absf(looks.normalized().y) < 0.95 else Vector3.FORWARD
+	e.basis = Basis.looking_at(looks.normalized(), up, true)
+	parent.add_child(e)
+	_put(e, _ball(r), _eye_mats["white"], Vector3.ZERO)
+	_put(e, _ball(r * 0.6), _eye_mats["iris"], Vector3(0, 0, r * 0.62), Vector3.ZERO, Vector3(1, 1, 0.5))
+	_put(e, _ball(r * 0.3), _eye_mats["pupil"], Vector3(0, 0, r * 0.88), Vector3.ZERO, Vector3(1, 1, 0.4))
+	_put(e, _ball(r * 0.1), _eye_mats["shine"], Vector3(r * 0.16, r * 0.18, r * 0.97))
+	e.set_meta("blink", randf() * 4.5)
+	(_parts["eyes"] as Array).append(e)
+	return e
+
+
+func _wing(body: Node3D, side: float, at: Vector3, from_deg: float, to_deg: float, length: float, tilt: float,
+		lift: float, yaw: float, amp: float, eyed: bool) -> void:
+	# A wing of seven long white feathers fanned out from one root, gold at the tips, in its own pivot so it can beat
+	# and fold. The feathers lie along +X on the right (side 1) and -X on the left.
+	var p := Node3D.new()
+	p.name = "Wing"
+	p.position = Vector3(at.x * side, at.y, at.z)
+	body.add_child(p)
+	var feather := _mat(Color(0.93, 0.91, 0.86))
+	var tip := _mat(Color(1.0, 0.8, 0.35), 0.4)
+	var n := 7
+	for k in n:
+		var a := deg_to_rad(lerpf(from_deg, to_deg, float(k) / (n - 1)))
+		var l := length * (0.7 + 0.3 * sin(PI * (k + 0.5) / n))
+		var dir := Vector3(cos(a) * side, sin(a), 0)
+		var rot := Vector3(0, 0, a * side if side > 0 else PI - a)
+		var f := _put(p, _ball(0.5), feather, dir * (l * 0.5 + 0.25), rot, Vector3(l, 0.42, 0.14))
+		f.name = "Feather"
+		_put(p, _ball(0.5), tip, dir * (l + 0.1), rot, Vector3(l * 0.22, 0.3, 0.12)).name = "Feather Tip"
+	if eyed:
+		for k in 2:
+			var a := deg_to_rad(lerpf(from_deg, to_deg, 0.3 + 0.4 * k))
+			var dir := Vector3(cos(a) * side, sin(a), 0)
+			_eye(p, dir * length * 0.55 + Vector3(0, 0, 0.12), 0.2, Vector3(0, 0, 1))
+	(_parts["wings"] as Array).append({"pivot": p, "side": side, "tilt": tilt, "lift": lift, "yaw": yaw, "amp": amp,
+		"phase": deg_to_rad(from_deg)})
+
+
 func _look(v: Node3D) -> void:
-	var stone := _mat(Color(0.56, 0.52, 0.66))
-	var dark := _mat(Color(0.4, 0.37, 0.5))
-	var moss := _mat(Color(0.42, 0.62, 0.48))
-	var glow := _mat(COLOUR, 2.0)
+	_parts = {"eyes": [], "wings": [], "wheels": []}
+	var gold := _mat(Color(1.0, 0.76, 0.3), 0.35)
 	var body := Node3D.new()
 	body.name = "Body"
-	body.position.y = 3.4
+	body.position.y = AWAKE_Y
 	v.add_child(body)
-	# A big round barrel of a body, a mossy back with little crystals growing out of it
-	_put(body, _ball(1.9), stone, Vector3.ZERO, Vector3.ZERO, Vector3(1.0, 0.95, 1.55))
-	_put(body, _ball(1.75), moss, Vector3(0, 0.55, -0.1), Vector3.ZERO, Vector3(0.95, 0.5, 1.45))
-	for k in 5:
-		_put(body, _cone(0.0, 0.22, 0.7), glow, Vector3(sin(k * 2.3) * 0.7, 1.35, -1.6 + k * 0.7), Vector3(0.2 * sin(k), 0, 0.3 * cos(k)))
-	_put(body, _ball(0.9), stone, Vector3(0, 0.1, -2.6), Vector3.ZERO, Vector3(0.7, 0.7, 0.6))     # its tail end
-	_put(body, _ball(0.35), _mat(Color(0.95, 0.95, 1.0)), Vector3(0, 0.5, -3.05))                 # a fluffy white tail
-	# Four sturdy legs with dark hooves (pivots at the hips, so they swing)
-	var legs: Array = []
-	for at in [Vector3(-1.0, -0.6, 1.6), Vector3(1.0, -0.6, 1.6), Vector3(-1.0, -0.6, -1.6), Vector3(1.0, -0.6, -1.6)]:
-		var hip := Node3D.new()
-		hip.position = at
-		body.add_child(hip)
-		_put(hip, _cone(0.42, 0.32, 2.4), stone, Vector3(0, -1.2, 0))
-		_put(hip, _cone(0.4, 0.45, 0.4), dark, Vector3(0, -2.5, 0.05))
-		legs.append(hip)
-	_parts["legs"] = legs
-	# The neck, head and antlers on a pivot at the shoulders, so it can bow its head when it sleeps
-	var neck := Node3D.new()
-	neck.position = Vector3(0, 0.8, 2.2)
-	body.add_child(neck)
-	_parts["neck"] = neck
-	_put(neck, _cone(0.6, 0.85, 2.2), stone, Vector3(0, 0.9, 0.4), Vector3(0.45, 0, 0))
-	var mane := Node3D.new()
-	mane.position = Vector3(0, 1.0, 0.1)
-	neck.add_child(mane)
-	_parts["mane"] = mane
-	for k in 10:
-		var a := TAU * k / 10.0
-		_put(mane, _ball(0.09), _mat(Color(1.0, 0.95, 0.7), 2.5), Vector3(cos(a) * 0.95, sin(k * 1.7) * 0.4, sin(a) * 0.95))
-	var head := Node3D.new()
-	head.position = Vector3(0, 2.1, 1.1)
-	neck.add_child(head)
-	_put(head, _ball(0.8), stone, Vector3.ZERO, Vector3.ZERO, Vector3(0.9, 0.85, 1.1))
-	_put(head, _ball(0.5), _mat(Color(0.75, 0.72, 0.85)), Vector3(0, -0.25, 0.75), Vector3.ZERO, Vector3(0.9, 0.75, 1.0))   # muzzle
-	_put(head, _ball(0.16), _mat(Color(0.2, 0.15, 0.25)), Vector3(0, -0.12, 1.22))                                        # nose
-	var eyes: Array = []
+	# A soft glow behind it, then its one great eye in the middle, looking out the front
+	var halo := _put(body, _ball(1.75), _mat(Color(1.0, 0.9, 0.6, 0.12), 0.5), Vector3.ZERO)
+	halo.name = "Glory"
+	halo.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_eye(body, Vector3.ZERO, 1.05, Vector3(0, 0, 1))
+	# Three gold wheels within wheels, each studded with eyes looking out
+	var tilts := [Vector3.ZERO, Vector3(PI / 2, 0, 0), Vector3(0, 0, PI / 2)]
+	var radii := [2.35, 2.7, 3.05]
+	for w in 3:
+		var hold := Node3D.new()
+		hold.name = "Wheel %d" % (w + 1)
+		hold.rotation = tilts[w]
+		body.add_child(hold)
+		var spinner := Node3D.new()
+		spinner.name = "Spin"
+		hold.add_child(spinner)
+		var r: float = radii[w]
+		_put(spinner, _ring(r, 0.13), gold, Vector3.ZERO).name = "Rim"
+		_put(spinner, _ring(r - 0.32, 0.05), gold, Vector3.ZERO).name = "Inner Rim"
+		var k := 8
+		for j in k:
+			var a := TAU * (j + 0.5 * w) / k
+			var out := Vector3(cos(a), 0, sin(a))
+			_eye(spinner, out * r, 0.27, out)
+		(_parts["wheels"] as Array).append(spinner)
+	# Six wings: a pair arching up over it, a big pair to fly with and a pair folded down under it
 	for side in [-1.0, 1.0]:
-		eyes.append(_put(head, _ball(0.17), _mat(COLOUR, 3.0), Vector3(side * 0.45, 0.18, 0.55)))
-		_put(head, _cone(0.05, 0.25, 0.6), stone, Vector3(side * 0.75, 0.35, -0.1), Vector3(0, 0, -side * 1.1))          # ears
-	_parts["eyes"] = eyes
-	# Its antlers: branches of glowing crystal, a little star on every tip
-	for side in [-1.0, 1.0]:
-		var root := Node3D.new()
-		root.position = Vector3(side * 0.35, 0.65, -0.1)
-		root.rotation = Vector3(-0.25, 0, -side * 0.45)
-		head.add_child(root)
-		_put(root, _cone(0.1, 0.18, 2.2), glow, Vector3(0, 1.1, 0))
-		var tips := [Vector3(0, 2.3, 0)]
-		for k in 3:
-			var y := 0.6 + k * 0.55
-			var br := Node3D.new()
-			br.position = Vector3(0, y, 0)
-			br.rotation = Vector3(0.5 * (1 if k % 2 == 0 else -1), 0, side * (0.9 - k * 0.2))
-			root.add_child(br)
-			_put(br, _cone(0.05, 0.1, 1.1 - k * 0.15), glow, Vector3(0, 0.5, 0))
-			_put(br, _ball(0.14), _mat(Color(1.0, 0.95, 0.65), 3.0), Vector3(0, 1.08 - k * 0.15, 0))
-		for t in tips:
-			_put(root, _ball(0.16), _mat(Color(1.0, 0.95, 0.65), 3.0), t)
+		_wing(body, side, Vector3(0.5, 0.9, -0.6), 35.0, 105.0, 3.3, -0.35, 0.0, 0.25, 0.12, false)
+		_wing(body, side, Vector3(0.7, 0.1, -0.9), -20.0, 40.0, 4.4, 0.0, 0.0, 0.1, 0.35, true)
+		_wing(body, side, Vector3(0.5, -0.8, -0.6), -105.0, -40.0, 3.0, 0.3, 0.0, 0.25, 0.1, false)
+	# A crown of holy fire over it: a gold ring with little flames dancing on it
+	var fire := Node3D.new()
+	fire.name = "Holy Fire"
+	fire.position = Vector3(0, 3.3, 0)
+	body.add_child(fire)
+	_parts["fire"] = fire
+	_put(fire, _ring(1.1, 0.08), gold, Vector3.ZERO).name = "Halo"
+	var flame := _mat(Color(1.0, 0.7, 0.3), 2.6)
+	var flame_tip := _mat(Color(1.0, 0.95, 0.7), 3.2)
+	for j in 12:
+		var a := TAU * j / 12.0
+		var at := Vector3(cos(a) * 1.1, 0.0, sin(a) * 1.1)
+		var f := _put(fire, _cone(0.0, 0.16, 0.6), flame, at + Vector3(0, 0.3, 0))
+		f.name = "Flame"
+		_put(f, _cone(0.0, 0.07, 0.3), flame_tip, Vector3(0, 0.05, 0)).name = "Flame Core"
 	var l := OmniLight3D.new()
-	l.light_color = COLOUR
-	l.light_energy = 1.2
-	l.omni_range = 9.0
-	l.position = Vector3(0, 3.0, 0)
-	head.add_child(l)
-	# The shield its antlers throw round it in phase 2: a big see-through bubble with stars in it
-	_shield = _put(v, _ball(4.6), _mat(Color(COLOUR.r, COLOUR.g, COLOUR.b, 0.18), 0.6), Vector3(0, 3.6, 0))
+	l.light_color = Color(1.0, 0.9, 0.7)
+	l.light_energy = 1.6
+	l.omni_range = 12.0
+	body.add_child(l)
+	# The shield its wings throw round it in phase 2: a big see-through bubble of light with stars in it
+	_shield = _put(v, _ball(5.4), _mat(Color(1.0, 0.92, 0.6, 0.16), 0.6), Vector3(0, AWAKE_Y, 0))
 	_shield.name = "Shield"
 	_shield.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for k in 14:
@@ -799,5 +872,5 @@ func _look(v: Node3D) -> void:
 	z.outline_size = 18
 	z.modulate = Color(0.95, 0.9, 1.0)
 	z.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	z.position = Vector3(1.5, 5.2, 2.0)
+	z.position = Vector3(1.5, 5.0, 2.0)
 	v.add_child(z)
