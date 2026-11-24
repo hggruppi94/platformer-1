@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The main friends have baked-in detail like Nina: Rex, Dash, Pip, Bruno, Melody, Heather and Bramble**
+  (Hayden: "I want you to keep baking details on assets in the game already as well"; every outdoor place was baked
+  already, so the friends came next). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** on Nina's kit (`tools/char_detail.py`): `tools/build_friend_detail.py <who>|all [<out.glb>]
+    [--size=2048]` (who: rex = wolf, dash = bike_boy, pip = moth_kid, bruno, melody, heather = cattle_girl,
+    bramble = plant_girl). Each model is exported from its `.blend` as before (shape, rig, weights, animations and
+    material names unchanged) with a "Detail" UV map and three baked textures (`<model>_detail_tint/normal/ao.png`):
+    fur strands and tufts, Pip's mane and wing scales, knit, ribbing, denim twill, canvas, leather grain, Heather's
+    horn rings, Bramble's leaf veins and bark, skin pores. Eyes, mouths, teeth, Dash's lens shine, Bruno's patch words,
+    Heather's glows and Bramble's lashes, trap teeth and dew stay crisp. Bruno's old empty UV map is dropped.
+  - Tests: new `tools/test_friend_detail.gd` (every part detailed but the crisp ones, rig and animations kept);
+    clothing_fit, clothes, quick_outfits, party, creator and routines (both runs) pass. Pictures:
+    `tools/capture_friend_detail.gd -- <folder> <model>` (project files, characters/friend-detail, before and after).
+  - My choices Hayden may change: how strong every texture is (the fur most of all).
+
 - 2026-11-24: **The Seraph calls beams of light down from the sky, drawn as pixel art with a splash where they land**
   (Hayden: "I want its attacks to include beams of light from the sky", then "add pixel [fx] to the light? With a
   splash after it hits"). A new move, "beams", in every phase (`starhorn.gd PHASES`, `_beam()`): phase 1 one beam on
