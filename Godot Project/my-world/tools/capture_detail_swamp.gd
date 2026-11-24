@@ -119,6 +119,20 @@ func _run() -> void:
 		cam.global_position = v[1]
 		cam.look_at(v[2])
 		await _shot(v[0])
+	# A Sinker Stone crumbling apart along its X (swamp.gd _crumble), stepped by hand so it's the same every time
+	if sw.has_node("Stepping Stones"):
+		for b in sw.get_node("Stepping Stones").get_children():
+			if str(b.name).begins_with("Sinker"):
+				var sk := b as Node3D
+				cam.global_position = sk.global_position + Vector3(2.2, 2.2, 2.2)
+				cam.look_at(sk.global_position + Vector3(0, 0.1, 0))
+				sk.set_meta("state", "sinking")
+				sk.set_meta("t", 0.0)
+				for k in [["06c_crumble", 14], ["06d_crumbled", 30], ["06e_sunk", 60]]:
+					for i in int(k[1]):
+						sw.call("_sinkers_step", 1.0 / 60.0)
+					await _shot(k[0])
+				break
 	_finish()
 
 

@@ -99,6 +99,16 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Sinker Stones' cracks are an X, and the stones crumble apart instead of sinking** (Hayden: "You
+  can make the split x-shaped and have it crumble apart instead of sink"). `stone_crack.gd` draws two crossing splits
+  ("Arm 1", "Arm 2", 1.25 to 1.9 rad apart; their lips ease down where they meet, `meet_fade()`; metas `length` and
+  `dirs`). When a Sinker Stone gives way (`swamp.gd _crumble()`), the stone and its collision go and four wedges cut
+  along the X's arms (`_wedge()`) plus 14 crumbs fall apart into the goo and sink (`SINK_DEPTH`, `CRUMBLE_OUT`). Then
+  the wedges float back up and knit together (`_rubble_rise()`, `_mend()`). The states and timings are as before.
+  Tests: test_swamps (crumbles, nothing to stand on, pieces sink, back solid), `test_detail_portal_props -- dusk` and
+  `-- swamp` (an X on every sinker), scary_world (both runs). Pictures: `capture_detail_swamp.gd` 06b to 06e
+  (project files, world/previews/detail_swamp/x_crumble).
+
 - 2026-11-24: **The Sinker Stones' cracks look like the cracks between worlds** (Hayden: "Those cracked stepping stones
   dont look cracked lol can you make them look more like the holes in the ground that you teleport to worlds?"). The
   three glowing sticks on top are gone. `scripts/stone_crack.gd` (preload, no class_name) draws a little copy of

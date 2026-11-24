@@ -283,10 +283,30 @@ func _dusk() -> void:
 		await physics_frame
 		wobbled = wobbled or str(s0.get_meta("state")) == "wobble"
 	check(wobbled, "a Sinker Stone wobbles a moment after you land on it")
-	await _physics(int((S.SINK_WOBBLE + 0.8) * 60.0))
-	check(int(swamp.get("bumps")) > bumps, "...then sinks, and the poison bumps you back")
+	var crumbled := false
+	for i in int((S.SINK_WOBBLE + 0.8) * 60.0):
+		await physics_frame
+		if str(s0.get_meta("state")) == "sinking" and not crumbled:
+			await physics_frame
+			var rub := s0.get_node_or_null("Rubble")
+			var cs := s0.find_children("*", "CollisionShape3D", false, false)
+			crumbled = rub != null and rub.get_child_count() >= 4 and cs.size() > 0 \
+				and (cs[0] as CollisionShape3D).disabled and not (s0.get_node("Look") as Node3D).visible
+	check(crumbled, "...then crumbles apart along its X (pieces, no stone, nothing to stand on)")
+	check(int(swamp.get("bumps")) > bumps, "...and the poison bumps you back")
+	var pieces_sank := false
+	var rub2 := s0.get_node_or_null("Rubble")
+	if rub2:
+		var lowest := 0.0
+		for c in rub2.get_children():
+			lowest = minf(lowest, (c as Node3D).position.y)
+		pieces_sank = lowest < (S.SURFACE - s0.position.y) - 0.5
+	check(pieces_sank, "...its pieces sink into the goo")
 	await _physics(int((S.SINK_DOWN + 1.2) * 60.0))
-	check(str(s0.get_meta("state")) == "up" and absf(s0.position.y - float(s0.get_meta("rest_y"))) < 0.01, "...and comes back up")
+	var cs2 := s0.find_children("*", "CollisionShape3D", false, false)
+	check(str(s0.get_meta("state")) == "up" and absf(s0.position.y - float(s0.get_meta("rest_y"))) < 0.01
+		and s0.get_node_or_null("Rubble") == null and not (cs2[0] as CollisionShape3D).disabled
+		and (s0.get_node("Look") as Node3D).visible, "...and comes back together, solid again")
 	# A vent's burp and a cloud
 	var vents: Array = swamp.get("vents")
 	check(vents.size() == (lay.vents as Array).size(), "%d poison vents" % vents.size())
