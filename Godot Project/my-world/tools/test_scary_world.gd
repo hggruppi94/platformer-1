@@ -93,10 +93,12 @@ func _run() -> void:
 	check(messages.any(func(m: String) -> bool: return m.contains("Somebody's expecting you")), "a calm hello: somebody's expecting her")
 	check(dialogue.flags.has("scary_world_visited"), "visit remembered")
 
-	# --- Safe: no enemies, the centipede doesn't block or chase
+	# --- Safe: no enemies (outside the Poison Mire, which has its own: test_swamps), the centipede doesn't block or chase
+	var mire := current_scene.get_node_or_null("Swamp")
 	check(current_scene.find_children("*", "Node", true, false).filter(func(n: Node) -> bool:
-		return n.is_in_group("enemies") or (n.get_script() != null and str(n.get_script().resource_path).contains("gloop"))).is_empty(),
-		"no enemies in the Scary World (until her game)")
+		return (mire == null or not mire.is_ancestor_of(n)) and (n.is_in_group("enemies") \
+			or (n.get_script() != null and str(n.get_script().resource_path).contains("gloop")))).is_empty(),
+		"no enemies in the Scary World (until her game, and out of the Poison Mire)")
 	var centipede := current_scene.find_child("Centipede", true, false) as Node3D
 	check(centipede.visible, "she's home, curled round her hollow log")
 	var solid_bits := centipede.find_children("*", "CollisionShape3D", true, false).filter(func(c: Node) -> bool: return not c.get_parent() is Area3D)

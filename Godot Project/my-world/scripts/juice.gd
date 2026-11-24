@@ -244,7 +244,8 @@ func blip(kind: String, pitch := 1.0, volume_db := -8.0) -> void:
 	# "chime" (pickups), "pop" (bubbles), "tick" (countdowns, menus), "whoosh" (boosts, portals), "thud" (landings),
 	# "sparkle" (rewards), "buzz" (grinds), "rewind" (a Time Goblin blinking back in time), and the bumps' (scripts/bumps.gd):
 	# "boink" (something soft and springy), "bonk" (wood), "clunk" (stone), "clink" (ice, crystal, metal), "squish"
-	# (water, goo), and "windup" (a boss about to attack: scripts/boss_tell.gd). Each made once, then played at any pitch.
+	# (water, goo), "windup" (a boss about to attack: scripts/boss_tell.gd), and the swamps' (scripts/swamp.gd): "wail" (a
+	# Bog Wailer's call, scripts/bog_wailer.gd) and "croak" (a frog). Each made once, then played at any pitch.
 	calls += 1
 	if not _blips.has(kind):
 		_blips[kind] = _make(kind)
@@ -276,7 +277,8 @@ func chime_step() -> int:
 
 func _make(kind: String) -> AudioStreamWAV:
 	var length := {"chime": 0.28, "pop": 0.12, "tick": 0.05, "whoosh": 0.4, "thud": 0.14, "sparkle": 0.6, "buzz": 0.3, "rewind": 0.45,
-		"boink": 0.3, "bonk": 0.12, "clunk": 0.16, "clink": 0.35, "squish": 0.22, "windup": 0.55}
+		"boink": 0.3, "bonk": 0.12, "clunk": 0.16, "clink": 0.35, "squish": 0.22, "windup": 0.55,
+		"wail": 1.7, "croak": 0.26}
 	if not length.has(kind):
 		return null
 	var n := int(RATE * float(length[kind]))
@@ -332,6 +334,16 @@ func _make(kind: String) -> AudioStreamWAV:
 			"clink":
 				# a little bell: two bright notes ringing out
 				v = (sin(TAU * 2100.0 * t) * 0.6 + sin(TAU * 3170.0 * t) * 0.4) * pow(env, 3.0) * minf(f * 60.0, 1.0)
+			"wail":
+				# a Bog Wailer's call: two voices a little out of tune swooping up and sagging down with a slow wobble,
+				# eerie but not a scream (soft start, no harsh edge)
+				var wf := lerpf(220.0, 470.0, sin(PI * minf(f * 1.3, 1.0))) * (1.0 + 0.035 * sin(TAU * 5.5 * t))
+				phase += TAU * wf / RATE
+				v = (sin(phase) * 0.6 + sin(phase * 1.502) * 0.25 + sin(phase * 0.497) * 0.2) * sin(PI * f) * minf(f * 8.0, 1.0) * 0.75
+			"croak":
+				# a frog: a low rasp in three quick pulses
+				phase += TAU * lerpf(150.0, 110.0, f) / RATE
+				v = (fmod(phase / TAU, 1.0) * 2.0 - 1.0) * 0.6 * (0.5 + 0.5 * sin(TAU * 34.0 * t)) * sin(PI * f)
 			"squish":
 				# a wet squelch: rough noise sliding down
 				phase += TAU * lerpf(500.0, 120.0, f) / RATE

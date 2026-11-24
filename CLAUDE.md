@@ -99,6 +99,42 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Two swamps: the Mothmire past Lanternmoor's moor and the Poison Mire past Dusk's Embrace, with Bog
+  Wailers, traps, a giant that chases you and a lookout tree at the end** (Hayden: "add a swamp to lanternmoor and a
+  super poison swamp to ducks embrace", siren enemies "with giant malformed heads ... their loud call summons hordes",
+  "make the world bigger", "very confusing and have traps, hidden enemies, giant things that chase you", "No rides work
+  in the swamp", "a view high up at the end that overlooks everything"). Built and tested in the cloud (own Godot user
+  folders, no save touched). All put in at play time by `scripts/swamp.gd` (`place(world, kind)` from
+  `lanternmoor.gd setup()` and `scary_world.gd _ready()`), so no scene was rebuilt.
+  - **Each lies past its world's edge** (`LAYOUTS`): a gap in the fence or wood, a causeway out to a basin 46 m across
+    with ten islands, hills or trees round it and its own fence ("WorldBounds Swamp Fence"). **The Mothmire** (east of
+    the moor): dark teal murk you wade (`water.gd`), boardwalks (some broken), lily pads, dead mangroves, fireflies,
+    wisps, frogs, mist (`swamp_water.gdshader`, `swamp_mist.gdshader`), the Old Mire Hut, the Mire Chest on Glow Isle
+    (10 sparkles, 1 Remnant). **The Poison Mire** (west of the clearing): glowing goo that bumps you (1) and puts you
+    back where you last stood safe; stepping stones (darker cracked **Sinker Stones** wobble and sink), log bridges,
+    **poison vents** that burp a ring to jump, drifting poison clouds; two ways round to the Bog Heart chest (25 and 3),
+    then a bog bubble home.
+  - **Bog Wailers** (`scripts/bog_wailer.gd`, working name): tall stooped bog things with huge lopsided heads that
+    wander slowly; near you they swell up (the wind-up), then WAIL and Mucklings (little bog Gloops) pop out of the mud,
+    at most 5 out. Three bubbles, a stomp on the head, a roll or a ram pops one, and its Mucklings melt away.
+  - **What makes it hard** (`scripts/swamp_dangers.gd`, the swamp's "Dangers" child): two dead-end islands each with a
+    **Muck Mimic** (a chest that snaps and giggles out Mucklings), a sign that fibs about the way, **Snap Traps** in
+    the reeds (rattle, then snap: a bump and a shove), **Lurkers** (only eyes in the water up close, then a Muckling
+    bursts out) and **the giant** (Old Mossback, the Gulper): a mossy hump that heaves up when you come near and wades
+    after you slower than a run; it gulps you and spits you out at the Mire Edge. Nothing worse than a bump.
+  - **No rides** (`game.gd ride_blocked()`, group `no_ride`): getting on says no in the swamp, and riding in puts it away.
+  - **The Lookout Tree** on the far island (`_lookout()`): a stair winds round a dead tree up to a platform 14 m up over
+    the whole swamp (one smooth ramp collision under the drawn planks, so nothing catches), +3 sparkles the first time
+    (flag `swamp_lookout_<kind>`).
+  - Tests: new `tools/test_swamps.gd` (both swamps: inside the world's walls, the way in, every island reached by
+    really walking, sinkers, vents, clouds, poison bump and put-back, wailers call and pop, mimics, traps, lurkers, the
+    giant chases and gulps, no rides, the chest once, walking up the lookout); `test_scary_world` (both runs) skips the
+    Mire's enemies in its "no enemies" check; lanternmoor, world_skies, portals, map, practice_trips, sunken_secrets,
+    glimmer_caves and friend_spots pass. `test_detail_portal_props -- secret` fails 2 Giant Flower checks, the same on
+    main. Pictures: `tools/capture_swamps.gd -- <folder>` (project files, world/previews/swamps).
+  - My choices Hayden may change: every name (Bog Wailers, Mucklings, Muck Mimics, Old Mossback, the Gulper, the
+    islands), the swamps' size and where they are, the rewards, how fast the giant is, 14 m for the lookout.
+
 - 2026-11-24: **Baked Boulder Canyon: its layered rock walls and rim, every boulder, the pillars, the Rock Arch's slab,
   the Rock Throne and the Big Geode** (Hayden: "Okay continue baking details"; the next place not baked yet). Built
   and tested in the cloud (own Godot user folders, no save touched).

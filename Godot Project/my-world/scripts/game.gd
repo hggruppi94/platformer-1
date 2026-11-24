@@ -155,8 +155,25 @@ func toggle_skateboard() -> void:
 	if not has_item("skateboard"):
 		message("No skateboard yet!")
 		return
+	if not riding and ride_blocked() != "":
+		message(ride_blocked())
+		return
 	riding = not riding
 	equipment_changed.emit()
+
+
+func ride_blocked() -> String:
+	# Somewhere rides don't work (the swamps, scripts/swamp.gd: group "no_ride", answering no_ride_here(pos) with what
+	# to say, or ""). Empty when she can ride here.
+	var p := get_tree().get_first_node_in_group("player") as Node3D
+	if p == null:
+		return ""
+	for z in get_tree().get_nodes_in_group("no_ride"):
+		if z.has_method("no_ride_here"):
+			var why := str(z.call("no_ride_here", p.global_position))
+			if why != "":
+				return why
+	return ""
 
 
 func xp_to_next() -> int:
