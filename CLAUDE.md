@@ -99,6 +99,28 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Baked the race circuits: every grandstand, the Pumpkin Run's windmill, barn, silo, pumpkins and hay,
+  Observatory Hill's observatory, the Hollow Run's Moon Clock pillar and lamp posts, and the trees, mushrooms and
+  crystals round every road** (Hayden: "Okay continue baking details"; the last places not baked). Built and tested in
+  the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_race.py <out.glb> stand_earth|stand_void|windmill|mill_sails|silo|clock_pillar|observatory`
+    (three tiers of planked seats with stepped sides under a corrugated roof on struts, Earth's in brown wood with a
+    red roof and the Void's in lilac with a teal roof and gold; a whitewashed stone windmill tower with a shingled cap,
+    and its four lattice sails with sailcloth; a ribbed steel silo with a ladder and a domed cap; the Moon Clock's
+    seven-sided mossy stone pillar; the observatory's drum with pilasters and glowing windows, a lilac dome with gold
+    ribs and the brass telescope). In `models/props/race/`.
+  - **Swapped at run time** (`detail_props.gd dress_race_circuit()`, called by `WorldDetail` for every scene in
+    `scenes/races/`, which `race_circuit.gd` builds at load): the scenery is put straight in the scene with renamed
+    copies, so it's found by material. The autumn trees, orb trees, giant mushrooms and crystals are MultiMeshes of the
+    nature bake's shapes ("Detailed Race"); the Hollow Run's crooked trees, glow mushrooms and lamp posts wear Dark
+    Hollow's; hay bales and pumpkins Stars Hollow's; the barn Glenmoor's (`RACE_BARN_K`). The windmill's sails still
+    turn, the Moon Clock's face and hands, the lamps' glow and the cheering crowd stay the game's. The observatory is
+    found by its dome (its base has the ground look by then). Nothing there is solid, so no collision changed.
+  - Tests: `tools/test_detail_portal_props.gd` (only this part with `-- race`: all five circuits); races, race_life,
+    earth_race and race_tracks pass. Pictures: `tools/capture_detail_race_circuits.gd -- <folder> [--old-props]`
+    (project files, world/previews/detail_race_circuits).
+  - My choices Hayden may change: every look (the stands' roofs, the windmill, the observatory's gold ribs).
+
 - 2026-11-24: **Baked Dusk's Embrace: its twisted trees, glowing mushrooms and hollow log, the stepping stones and
   the ivy-covered gate home** (Hayden: "Okay continue baking details"; the next place not baked yet). Built and tested
   in the cloud (own Godot user folders, no save touched).

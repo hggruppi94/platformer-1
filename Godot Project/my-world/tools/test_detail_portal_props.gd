@@ -71,6 +71,12 @@ func _run() -> void:
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
+	if "race" in OS.get_cmdline_user_args():
+		# (only the race circuits: -- race)
+		await _race_circuits()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
 	if "dusk" in OS.get_cmdline_user_args():
 		# (only Dusk's Embrace: -- dusk)
 		await _dusks_embrace()
@@ -199,6 +205,7 @@ func _run() -> void:
 	await _boulder_canyon()
 	await _skyreach()
 	await _dusks_embrace()
+	await _race_circuits()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -1074,6 +1081,71 @@ func _dusks_embrace() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing it again changes nothing")
+
+
+func _race_circuits() -> void:
+	# Every circuit's grandstand and scenery (detail_props.gd dress_race_circuit)
+	var plain_mats := ["Bark", "Stalk", "Crystal", "Mushroom Stalk", "Mushroom Cap", "Glow Stalk", "Night Bark",
+		"Lamp Pole", "Hay", "Barn", "Barn Roof", "Barn Door", "Silo", "Silo Cap", "Mill", "Sail", "Pillar",
+		"Observatory", "Dome", "Telescope", "Stand", "Stand Roof"]
+	var want := {"lake_loop": ["orb_trees", "crystals"], "meadow_wiggle": ["orb_trees", "crystals", "mushrooms"],
+		"observatory_hill": ["orb_trees", "crystals", "observatory"], "hollow_run": ["crooked", "glow_mushrooms",
+		"lamps", "pillar"], "pumpkin_run": ["trees", "hay", "pumpkins", "barn", "silo", "windmill"]}
+	for id in want:
+		var path := "res://scenes/races/%s.tscn" % id
+		detail.detail_props = false
+		await _load(path)
+		var shapes_before := _shapes(current_scene)
+		check(current_scene.get_node_or_null("Detailed Race") == null, "%s: nothing baked with detailed props off" % id)
+		detail.detail_props = true
+		await _load(path)
+		var s := current_scene
+		var got: Dictionary = detail.last_props
+		print(id, " props: ", got)
+		check(got.get("stand", 0) == 1, "%s: the grandstand baked" % id)
+		for k: String in want[id]:
+			check(got.get(k, 0) > 0, "%s: %s baked (%d)" % [id, k, got.get(k, 0)])
+		var plain := 0
+		for c in s.find_children("*", "MeshInstance3D", true, false):
+			var mi := c as MeshInstance3D
+			if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+				continue
+			if "/Life/" in str(mi.get_path()):
+				continue
+			var m := DETAIL_PROPS._mat_name(mi)
+			if m in plain_mats or m.begins_with("Leaves ") or m.begins_with("Orb #") or m.begins_with("Orb ") \
+					or m.begins_with("Glow Cap"):
+				plain += 1
+		check(plain == 0, "%s: nothing plain left drawn (%d)" % [id, plain])
+		var fans := 0
+		for c in s.get_node("Stand").get_children():
+			if not (c is MeshInstance3D) and not String(c.name).begins_with("Detailed"):
+				fans += 1
+		check(fans >= 12, "%s: the cheering crowd is still in the stand (%d)" % [id, fans])
+		if id == "pumpkin_run":
+			var sails := s.get_meta("sails") as Node3D
+			var before := sails.rotation.z
+			for i in 10:
+				await process_frame
+			check(sails.has_node("Detailed Sails") and not is_equal_approx(sails.rotation.z, before),
+				"the windmill's baked sails turn")
+		if id == "hollow_run":
+			var face := s.get_meta("moon_clock") as Node3D
+			check(face.is_visible_in_tree() and face.has_node("Minute Hand") and face.has_node("Hour Hand"),
+				"the Moon Clock's face and hands are the game's")
+			var glow := 0
+			for p in s.get_node("Lamp Posts").get_children():
+				for c in p.get_children():
+					if c is MeshInstance3D and DETAIL_PROPS._mat_name(c) == "Lamp Glow" and (c as MeshInstance3D).layers != 0:
+						glow += 1
+			check(glow == got.get("lamps", -1), "every lamp's bulb still glows (%d)" % glow)
+		check(_shapes(s) == shapes_before, "%s: every collision shape is where it was" % id)
+		var again := DETAIL_PROPS.dress_race_circuit(s)
+		var none := true
+		for k in again:
+			if again[k] != 0:
+				none = false
+		check(none, "%s: dressing it again changes nothing" % id)
 
 
 func _in_model(n: Node) -> bool:
