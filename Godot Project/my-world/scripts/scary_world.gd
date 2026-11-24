@@ -13,11 +13,14 @@ extends Node3D
 #      your friend for keeps, gets a name, and shares her tricks: wall crawl (scripts/wall_crawl.gd) and her holes
 #      round the Void (centipede_holes.gd). Knock on her hollow log and she'll gulp you to Dark Hollow or any hole.
 # She's only ever in one place: until Dark Hollow is mended, nobody's home here.
+# Through a gap in the trees to the west lies the Poison Mire (scripts/swamp.gd, Hayden, 24 Nov 2026): the clearing
+# stays safe, but out there the goo is super poison and Bog Wailers call up their Mucklings.
 
 const HOME_SPAWN := "FromScaryWorld"
 const HOLES := preload("res://scripts/centipede_holes.gd")
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const BOSS := preload("res://scripts/centipede_boss.gd")
+const SWAMP := preload("res://scripts/swamp.gd")
 const GAME_RECORD := "centipede_scary_game"
 const ARENA_MIDDLE := Vector3(0.0, 0.0, -2.0)
 const LOG_KNOCK := Vector3(1.6, 0.0, -15.0)              # by the open end of her hollow log (a step from her talk spot)
@@ -49,7 +52,8 @@ func _ready() -> void:
 		Dialogue.started.connect(func(id: String) -> void:
 			if id == "centipede":
 				_talk_before = Dialogue.choice_log.size())
-	var hello := "Dusk's Embrace. Nothing here can hurt you."
+	SWAMP.place(self, "dusk")                              # the Poison Mire, through the trees to the west (scripts/swamp.gd)
+	var hello := "Dusk's Embrace. Nothing in the clearing can hurt you."
 	if home and not HOLES.gifts_given():
 		hello = "Dusk's Embrace. Somebody's expecting you!"
 	Game.message.call_deferred(hello)
