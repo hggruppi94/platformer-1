@@ -10,6 +10,8 @@ extends Node3D
 #           land: move away from under it.
 #   "pull"  it puffs up, breathing in: it's about to suck you in, jump to break free.
 #   "throw" it rears back and swells: something's about to fly at you, step aside (scripts/boss_moves.gd).
+#   "beam"  it rears up looking at the sky, wings spread: light's about to come down, step out from under the threads
+#           of light (the Seraph, scripts/starhorn.gd: the threads are its own, coming down from the clouds).
 #   "blink" it shrinks and flickers: it's about to vanish and pop up somewhere else (scripts/boss_moves.gd).
 #
 # The tell only ever starts EARLIER than the attack; it never changes when the attack comes, so a fight's timing and
@@ -33,6 +35,7 @@ const HINTS := {
 	"pull": "Puffing up? Jump free!",
 	"throw": "Rearing back? Dodge what it throws!",
 	"blink": "Flickering? It's about to vanish!",
+	"beam": "Light coming down? Step out from under it!",
 }
 # What each wind-up does to the body at its fullest: squash (scale y), widen (scale x and z), lean back (radians)
 const POSES := {
@@ -42,8 +45,9 @@ const POSES := {
 	"pull": {"squash": 1.18, "widen": 1.2, "lean": 0.0, "shiver": 0.015},
 	"throw": {"squash": 1.08, "widen": 1.1, "lean": 0.22, "shiver": 0.03},
 	"blink": {"squash": 0.8, "widen": 0.8, "lean": 0.0, "shiver": 0.08},
+	"beam": {"squash": 1.1, "widen": 1.06, "lean": 0.3, "shiver": 0.02},
 }
-const SOUNDS := {"jump": 0.7, "dash": 1.0, "drop": 1.3, "pull": 0.85, "throw": 1.15, "blink": 1.6}   # the wind-up sound's pitch for each
+const SOUNDS := {"jump": 0.7, "dash": 1.0, "drop": 1.3, "pull": 0.85, "throw": 1.15, "blink": 1.6, "beam": 1.45}   # the wind-up sound's pitch for each
 
 var kind := "jump"
 var reach := 6.0
