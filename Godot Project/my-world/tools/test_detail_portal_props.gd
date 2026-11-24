@@ -976,9 +976,9 @@ func _skyreach() -> void:
 	var got: Dictionary = detail.last_props
 	print("Skyreach props: ", got)
 	check(got.get("kerbs", 0) > 100, "the kerb stones are baked blocks (%d)" % got.get("kerbs", 0))
-	check(got.get("ring_rocks", 0) >= 15, "the summit's ring of rocks baked (%d)" % got.get("ring_rocks", 0))
+	# (since 24 Nov 2026 the summit's ring is marble columns and the pines are columns in the clouds: nothing to bake)
+	check(got.get("ring_rocks", 0) == 0 and got.get("pines", 0) == 0, "no mossy rocks or pines in heaven")
 	check(got.get("waystones", 0) == 5, "all five Waystones baked (%d)" % got.get("waystones", 0))
-	check(got.get("pines", 0) >= 25, "the pines round the foot baked (%d)" % got.get("pines", 0))
 	check(got.get("crystals", 0) == 30, "all 30 cliff crystals baked (%d)" % got.get("crystals", 0))
 	check(got.get("flags", 0) == 63, "all 63 prayer flags baked (%d)" % got.get("flags", 0))
 	check(got.get("chest", 0) == 1 and got.get("blooms", 0) == 14, "the Star Chest and the 14 Star Blooms baked")
@@ -1003,15 +1003,6 @@ func _skyreach() -> void:
 	check((w.get_node("Lamp") as MeshInstance3D).material_override.resource_name == "Waystone Lit", "the lamp still lights")
 	check(s.get_node_or_null("Star Chest/Lid/Crystal Lid") != null and s.get_node("Star Chest/Lid/Crystal Lid").is_visible_in_tree(),
 		"the chest keeps its crystal lid")
-	# Each pine stands where its old trunk was
-	var pm := s.get_node("Detailed Skyreach/Detailed Pines") as MultiMeshInstance3D
-	var ground_ok := true
-	for t in pm.get_meta("transforms"):
-		var tr := t as Transform3D
-		var h := tr.basis.get_scale().y * DETAIL_PROPS.SKY_PINE_H
-		if h < 6.0 or h > 10.5:
-			ground_ok = false
-	check(ground_ok, "each pine as tall as its old one")
 	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
 	var patched := 0
 	for c in s.find_children("*", "MeshInstance3D", true, false):

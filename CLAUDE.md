@@ -99,6 +99,24 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Skyreach Trail is heaven now, and the Starhorn is a biblical angel, the Seraph** (Hayden:
+  "skyreach trail needs to be a more heavenly/cloudy place ... something that is more like an actual biblical angel").
+  Built and tested in the cloud (own Godot user folders, no save touched). Fight logic, flags and ids are unchanged
+  (node "The Starhorn", flag `starhorn_calmed`, item `starhorn_antlers`).
+  - **The trail** (`skyreach_trail.gd _heaven()`): a white marble mountain over a sea of clouds ("Cloud Sea", one
+    MultiMesh of 290 puffs round its foot and far out), soft beams of light from above ("Heaven Light"), gold paving,
+    marble kerbs, Waystones and summit, white and gold banners, a pale sky with softer ambient light and haze. No
+    mossy ring rocks or pines up there. The baked kerbs and Waystones get a marble look (`detail_props.gd
+    _sky_marble()`).
+  - **The Seraph** (`starhorn.gd`, `TITLE`): gold wheels within wheels covered in eyes, six white wings with gold
+    tips (two over its face, two over its feet, two to fly), holy fire on top and a faint glow round it. Same
+    phases, moves, Star Shards (now on marble pillars) and reward.
+  - **The reward hat** is the **Seraph Halo** (`cosmetics.gd`, `shop/items.json`): a gold halo with little wings.
+  - Tests: skyreach_trail, `detail_portal_props -- skyreach` (no ring rocks or pines), boss_tells, boss_moves and
+    clothing_fit pass. Pictures: `tools/capture_skyreach.gd -- <folder>` (now with `08_seraph_face`; project files,
+    world/previews/heavenly_skyreach).
+  - My choices Hayden may change: the angel's look, the name "the Seraph", the halo, how cloudy and bright it is.
+
 - 2026-11-24: **Baked the race circuits: every grandstand, the Pumpkin Run's windmill, barn, silo, pumpkins and hay,
   Observatory Hill's observatory, the Hollow Run's Moon Clock pillar and lamp posts, and the trees, mushrooms and
   crystals round every road** (Hayden: "Okay continue baking details"; the last places not baked). Built and tested in

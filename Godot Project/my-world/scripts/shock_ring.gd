@@ -98,7 +98,7 @@ const STYLES := {
 			{"k": "skull", "n": 6, "s": 0.7, "c": GOLD, "move": "bob", "y": 0.3},
 			{"k": "spark", "n": 16, "s": 0.16, "c": GOLD, "move": "rise"}],
 		"trail": {"k": "cube", "every": 0.035, "s": 0.35, "c": Color(0.55, 0.2, 0.8), "move": "blink"}},
-	# The Starhorn: starlight: crystal shards bursting up, stars spinning round the edge
+	# The Seraph (the Starhorn, scripts/starhorn.gd): holy light: crystal shards bursting up, stars spinning round the edge
 	"star": {"band": [0.08, 2.5, 2.0], "echo": true, "wall": 0.9,
 		"bits": [{"k": "star", "n": 12, "s": 0.6, "c": "light", "move": "spin", "y": 0.3},
 			{"k": "shard", "n": 14, "s": 0.9, "move": "pop"}],

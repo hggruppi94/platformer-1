@@ -24,7 +24,7 @@ func _initialize() -> void:
 		out_dir = args[0]
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	DisplayServer.window_set_size(Vector2i(1280, 800))
-	create_timer(300.0, true, false, true).timeout.connect(_finish)
+	create_timer(900.0, true, false, true).timeout.connect(_finish)
 	_run.call_deferred()
 
 
@@ -106,12 +106,20 @@ func _run() -> void:
 	await _shot("07_starhorn_close")
 	# Awake, the fight, its warnings
 	p.global_position = top + Vector3(3.0, 1.0, 11.0)
+	p.set("_invulnerable_timer", 999.0)          # (no fainting mid-pictures)
 	await create_timer(3.0).timeout
 	cam.global_position = top + Vector3(18.0, 14.0, 20.0)
 	cam.look_at(top + Vector3(0, 1.0, 2.0), Vector3.UP)
 	for t in 4:
 		await create_timer(1.0).timeout
 		await _shot("08_fight_%d" % (t + 1))
+	# The Seraph face on, close up (its Visual looks along +Z)
+	var vis := boss.get_node("Visual") as Node3D
+	var front := vis.global_transform.basis.z.normalized()
+	cam.global_position = boss.global_position + front * 11.0 + Vector3(0, 4.5, 0)
+	cam.look_at(boss.global_position + Vector3(0, 3.6, 0), Vector3.UP)
+	await create_timer(0.3).timeout
+	await _shot("08_seraph_face")
 	# Phase 2: the shield and the Star Shards
 	boss.set("hits", 5)
 	boss.set("_daze_hits", 0)

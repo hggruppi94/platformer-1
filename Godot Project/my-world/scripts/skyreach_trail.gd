@@ -3,13 +3,14 @@ extends "res://scripts/boss_lair.gd"
 # The Skyreach Trail: the longest trail in the game, and the one big optional boss at the end of it (the "feels
 # bigger" plan's slice 4; Hayden: "Go ahead", 15 Nov 2026). Its way in is a narrow cleft in the rocks at the very foot
 # of the mountains, far north of the castle (Bosses.LAIRS "skyreach"), with a small sign you can only read up close and
-# nothing on the map, so you find it by exploring. Nothing in the game mentions the Starhorn until you're on the
-# summit.
+# nothing on the map, so you find it by exploring. Nothing in the game mentions the Seraph until you're on the summit.
+# Since 24 Nov 2026 it's heaven (Hayden): white marble and gold over a sea of clouds, and the boss is a biblical angel,
+# the Seraph (scripts/starhorn.gd: its file, node and flag still say Starhorn, for saves and tests).
 #
 # Inside, a path winds one and a half times round a mountain on its way up (about 400 m and 36 m high): a flat meadow at
 # the foot, then the trail with a cliff on the inside and a long drop on the outside (an unseen rail keeps you on it),
 # four Waystones that light as you pass and are where you start again if you fall or faint, and at the top a round
-# summit with the Starhorn asleep in the middle (scripts/starhorn.gd), its three Star Shards and the treasure.
+# summit with the Seraph asleep in the middle (scripts/starhorn.gd), its three Star Shards and the treasure.
 #
 # The shape (all in this script, nothing in the .tscn): the trail's middle at angle a round the mountain's middle MID is
 #   MID + (sin a * r, h, -cos a * r), a from 0 to TURNS, r from R0 to R1, h from 0 to TOP
@@ -105,16 +106,29 @@ func _enter_tree() -> void:
 # Building it
 # -----------------------------------------------------------------------------
 func _build() -> void:
-	_environment(Color(0.2, 0.13, 0.4), Color(0.95, 0.6, 0.72), Color(0.25, 0.2, 0.35), Color(0.78, 0.6, 0.82), 0.0035,
-		Color(1.0, 0.82, 0.7))
-	_floor(Vector2(170, 200), Vector3(0, 0, 80), Color(0.42, 0.55, 0.42), Color(0.55, 0.62, 0.45), "Mountain Meadow")
+	# Heaven (24 Nov 2026, Hayden: "skyreach trail needs to be a more heavenly/cloudy place"): a clear blue sky
+	# going gold at the horizon, a soft white haze, a warm sun, white marble and gold, and clouds everywhere: the
+	# meadow at the foot is a floor of cloud and a sea of clouds lies all round (_heaven()).
+	_environment(Color(0.36, 0.6, 0.95), Color(1.0, 0.93, 0.78), Color(0.97, 0.96, 1.0), Color(1.0, 0.97, 0.92), 0.004,
+		Color(1.0, 0.95, 0.82))
+	# (the sky's white below would light everything from all sides and wash it out, so the light from round about is
+	# a soft blue and a touch dimmer, and the picture a little darker)
+	var env := (get_node("Lair Sky") as WorldEnvironment).environment
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.7, 0.76, 0.9)
+	env.ambient_light_energy = 0.55
+	env.tonemap_exposure = 0.85
+	env.fog_light_color = Color(0.86, 0.88, 0.95)
+	env.fog_density = 0.0025
+	_floor(Vector2(170, 200), Vector3(0, 0, 80), Color(0.84, 0.86, 0.92), Color(0.9, 0.89, 0.86), "Cloud Floor")
 	_bounds(84.0, -6.0, 178.0)
 	_trail()
 	_mountain()
 	_summit()
 	_waystones()
 	_scenery()
-	_sign(self, "The Skyreach Trail", Vector3(4.5, 0, 9), PI + 0.4, Color(0.28, 0.22, 0.42))
+	_heaven()
+	_sign(self, "The Skyreach Trail", Vector3(4.5, 0, 9), PI + 0.4, Color(0.92, 0.88, 0.78))
 	_star_chest(summit() + Vector3(0, 0, -11))
 
 
@@ -196,7 +210,7 @@ func _trail() -> void:
 	var land := [end + Vector3(-HALF, 0, HALF), end + Vector3(HALF, 0, HALF),
 		Vector3(HALF, TOP, MID.z + SUMMIT_R - 1.0), Vector3(-HALF, TOP, MID.z + SUMMIT_R - 1.0)]
 	_quad(st, faces, land[0], land[1], land[2], land[3], Vector3.UP)
-	_surface("Trail Path", st, Color(0.72, 0.6, 0.5))
+	_surface("Trail Path", st, Color(0.9, 0.74, 0.45))
 	_body("Trail Body", faces)
 	# The unseen rail all along the outside, and across the trail's end (the path turns in onto the summit there)
 	var rail := PackedVector3Array()
@@ -214,7 +228,7 @@ func _trail() -> void:
 	_quad(rst, rail, e0, e1, e1 + Vector3(0, RAIL_H + 1.0, 0), e0 + Vector3(0, RAIL_H + 1.0, 0), Vector3.RIGHT)
 	_body("Edge Trail Rail", rail)
 	# Kerb stones along the outside edge, so you can see where the edge is
-	var kerb := _mat("Kerb Stone", Color(0.5, 0.46, 0.58))
+	var kerb := _mat("Kerb Stone", Color(0.86, 0.84, 0.8))
 	var km := BoxMesh.new()
 	km.size = Vector3(0.7, 0.45, 0.9)
 	var mm := MultiMesh.new()
@@ -285,19 +299,20 @@ func _mountain() -> void:
 		var g0 := Vector3(o0.x, 0, o0.z) + out_dir(a0) * (o0.y * 0.55 + 0.6)
 		var g1 := Vector3(o1.x, 0, o1.z) + out_dir(a1) * (o1.y * 0.55 + 0.6)
 		_quad(st, faces, o0, o1, g1 + Vector3(0, -0.3, 0), g0 + Vector3(0, -0.3, 0), out_dir(a0) + Vector3.UP * 0.3)
-	_surface("Mountain Rock", st, Color(0.5, 0.44, 0.6))
+	_surface("Mountain Rock", st, Color(0.78, 0.76, 0.78))
 	_body("Edge Mountain", faces)
 
 
 func _summit() -> void:
 	var top := summit()
-	var grass := _mat("Summit Grass", Color(0.6, 0.72, 0.55))
+	var grass := _mat("Summit Marble", Color(0.86, 0.84, 0.8))
 	_cyl(self, "Summit", SUMMIT_R, SUMMIT_R + 2.0, 6.0, top + Vector3(0, -3.0, 0), grass)
 	# A low ring of stones round the edge with an unseen wall over it, open where the trail comes in (+Z)
 	var wall := Node3D.new()
 	wall.name = "Summit Ring"
 	add_child(wall)
-	var stone := _mat("Ring Stone", Color(0.62, 0.58, 0.72))
+	var marble := _mat("Heaven Marble", Color(0.88, 0.86, 0.82), 0.35)
+	var gold := _mat("Heaven Gold", Color(1.0, 0.76, 0.32), 0.3, 0.2, 0.8)
 	var gap := atan2(HALF + 0.8, SUMMIT_R)
 	var k := 40
 	for i in k:
@@ -311,16 +326,20 @@ func _summit() -> void:
 		var body := _solid(wall, "Edge Summit", bs, at + Vector3(0, -0.5, 0), Vector3(0, a, 0))
 		body.name = "Edge Summit %d" % i
 		if i % 2 == 0:
-			_mesh(wall, _rock_mesh(0.7 + (i % 3) * 0.2), at + Vector3(0, 0.3, 0), stone).name = "Ring Rock"
-	# The Starhorn's bed: a soft ring of moss and glowing flowers in the middle
-	_cyl(self, "Star Bed", 6.5, 7.0, 0.1, top + Vector3(0, 0.03, 0), _mat("Star Moss", Color(0.36, 0.5, 0.62)), false)
-	var bloom := _mat("Star Bloom", Color(0.7, 0.9, 1.0), 0.5, 1.6)
+			# A ring of short white columns with gold caps round the edge, like an open temple in the clouds
+			var h := 2.2 + (i % 3) * 0.5
+			_cyl(wall, "Ring Column", 0.38, 0.45, h, at + Vector3(0, h * 0.5, 0), marble, false)
+			_cyl(wall, "Ring Column Cap", 0.62, 0.5, 0.3, at + Vector3(0, h + 0.15, 0), gold, false)
+			_cyl(wall, "Ring Column Foot", 0.6, 0.65, 0.3, at + Vector3(0, 0.15, 0), marble, false)
+	# The Seraph's bed: a soft ring of gold moss and glowing flowers in the middle
+	_cyl(self, "Star Bed", 6.5, 7.0, 0.1, top + Vector3(0, 0.03, 0), _mat("Star Moss", Color(1.0, 0.86, 0.5), 0.4, 0.5), false)
+	var bloom := _mat("Star Bloom", Color(1.0, 0.92, 0.65), 0.5, 1.6)
 	for i in 14:
 		var a := TAU * i / 14.0
 		_ball(self, "Star Bloom", 0.25, top + Vector3(sin(a) * 6.8, 0.25, cos(a) * 6.8), bloom, false)
 	var light := OmniLight3D.new()
 	light.name = "Summit Glow"
-	light.light_color = Color(0.6, 0.85, 1.0)
+	light.light_color = Color(1.0, 0.9, 0.65)
 	light.light_energy = 1.5
 	light.omni_range = 26.0
 	light.position = top + Vector3(0, 8, 0)
@@ -333,7 +352,7 @@ func _star_chest(at: Vector3) -> void:
 	_chest.name = "Star Chest"
 	_chest.position = at
 	add_child(_chest)
-	_box(_chest, "Chest", Vector3(1.8, 1.0, 1.2), Vector3(0, 0.5, 0), _mat("Chest Stone", Color(0.5, 0.48, 0.62)))
+	_box(_chest, "Chest", Vector3(1.8, 1.0, 1.2), Vector3(0, 0.5, 0), _mat("Chest Stone", Color(0.86, 0.84, 0.8)))
 	_box(_chest, "Band", Vector3(1.9, 0.14, 1.3), Vector3(0, 0.75, 0), _mat("Chest Gold", Color(0.95, 0.78, 0.35), 0.3, 0.3, 0.8), false)
 	var lid := Node3D.new()
 	lid.name = "Lid"
@@ -348,15 +367,6 @@ func _open_look() -> void:
 	var lid := _chest.get_node("Lid") as Node3D
 	lid.create_tween().tween_property(lid, "rotation:x", 1.2, 0.5).set_trans(Tween.TRANS_BACK)
 	Juice.blip("chime", 1.4, -3.0)
-
-
-func _rock_mesh(r: float) -> SphereMesh:
-	var sm := SphereMesh.new()
-	sm.radius = r
-	sm.height = r * 1.4
-	sm.radial_segments = 7
-	sm.rings = 4
-	return sm
 
 
 func _stone_spot(k: int) -> Vector3:
@@ -375,7 +385,7 @@ func _waystones() -> void:
 		g.name = "Waystone %d" % (k + 1)
 		g.position = at
 		add_child(g)
-		_cyl(g, "Stone", 0.3, 0.42, 1.6, Vector3(0, 0.8, 0), _mat("Waystone", Color(0.55, 0.52, 0.66)))
+		_cyl(g, "Stone", 0.3, 0.42, 1.6, Vector3(0, 0.8, 0), _mat("Waystone", Color(0.86, 0.84, 0.8)))
 		var lamp := _ball(g, "Lamp", 0.28, Vector3(0, 1.85, 0), _mat("Waystone Dark", Color(0.3, 0.3, 0.4)), false)
 		lamp.set_meta("lit_mat", _mat("Waystone Lit", Color(1.0, 0.85, 0.5), 0.4, 2.5))
 		var l := OmniLight3D.new()
@@ -410,19 +420,30 @@ func _light(k: int, say := true) -> void:
 
 
 func _scenery() -> void:
-	# Pines round the foot, crystals on the cliffs, flags along the trail, and clouds drifting round the top
-	var pine := _mat("Pine", Color(0.25, 0.42, 0.45))
-	var trunk := _mat("Pine Trunk", Color(0.4, 0.3, 0.28))
-	for i in 34:
-		var a := TAU * i / 34.0 + _rng.randf_range(-0.05, 0.05)
-		var r := _rng.randf_range(74.0, 82.0)
+	# White marble columns standing in the clouds round the foot (some broken, some leaning), gold crystals on the
+	# cliffs, white and gold banners along the trail, and clouds drifting round the top
+	var marble := _mat("Heaven Marble", Color(0.88, 0.86, 0.82), 0.35)
+	var gold := _mat("Heaven Gold", Color(1.0, 0.76, 0.32), 0.3, 0.2, 0.8)
+	var trunk := _mat("Gold Pole", Color(1.0, 0.76, 0.32), 0.3, 0.1, 0.8)
+	for i in 22:
+		var a := TAU * i / 22.0 + _rng.randf_range(-0.05, 0.05)
+		var r := _rng.randf_range(72.0, 80.0)
 		var at := MID + Vector3(sin(a) * r, 0, -cos(a) * r)
 		if at.z < 20.0 and absf(at.x) < 14.0:
-			continue                                      # (keep the meadow by the way in open)
-		var h := _rng.randf_range(5.0, 9.0)
-		_cyl(self, "Pine Trunk", 0.25, 0.35, 1.4, at + Vector3(0, 0.7, 0), trunk, false)
-		_cyl(self, "Pine", 0.05, h * 0.3, h, at + Vector3(0, 1.2 + h * 0.5, 0), pine, false)
-	var crystal := _mat("Cliff Crystal", Color(0.6, 0.85, 1.0), 0.3, 1.4)
+			continue                                      # (keep the clouds by the way in open)
+		var g := Node3D.new()
+		g.name = "Heaven Column"
+		g.position = at
+		add_child(g)
+		var broken := i % 4 == 1
+		var h := _rng.randf_range(2.5, 4.5) if broken else _rng.randf_range(7.0, 11.0)
+		_cyl(g, "Column", 0.7, 0.8, h, Vector3(0, h * 0.5, 0), marble, false)
+		_cyl(g, "Column Foot", 1.1, 1.2, 0.6, Vector3(0, 0.3, 0), marble, false)
+		if not broken:
+			_cyl(g, "Column Cap", 1.15, 0.85, 0.5, Vector3(0, h + 0.25, 0), gold, false)
+		if i % 5 == 3:
+			g.rotation.z = _rng.randf_range(-0.12, 0.12)
+	var crystal := _mat("Cliff Crystal", Color(1.0, 0.88, 0.55), 0.3, 1.4)
 	for i in 30:
 		var a := _rng.randf_range(0.3, TURNS - 0.3)
 		var bottom := trail_point(a) - out_dir(a) * HALF
@@ -433,7 +454,7 @@ func _scenery() -> void:
 		var mi := _mesh(self, pm, at, crystal, false)
 		mi.name = "Cliff Crystal"
 		mi.rotation = Vector3(_rng.randf_range(-0.4, 0.4), _rng.randf_range(0, TAU), _rng.randf_range(-0.4, 0.4))
-	var cols := [Color(1.0, 0.5, 0.6), Color(1.0, 0.85, 0.4), Color(0.5, 0.9, 0.7), Color(0.55, 0.7, 1.0), Color(0.85, 0.6, 1.0)]
+	var cols := [Color(1.0, 1.0, 1.0), Color(1.0, 0.85, 0.45), Color(0.75, 0.88, 1.0), Color(1.0, 0.92, 0.85), Color(1.0, 0.95, 0.7)]
 	for f in 9:
 		var a := TURNS * (f + 0.5) / 9.0
 		var g := Node3D.new()
@@ -449,18 +470,82 @@ func _scenery() -> void:
 			flag.size = Vector3(0.45, 0.5, 0.03)
 			var mi := _mesh(g, flag, q, _mat("Flag %d" % (j % cols.size()), cols[j % cols.size()], 0.8), false)
 			mi.rotation.y = -a + PI / 2
-	var cloud := _mat("Cloud", Color(1.0, 0.92, 0.96, 0.85), 1.0, 0.2)
-	for i in 10:
+	var cloud := _mat("Cloud", Color(1.0, 1.0, 1.0, 0.92), 1.0)
+	for i in 18:
 		var c := Node3D.new()
 		c.name = "Cloud %d" % i
-		var a := TAU * i / 10.0
-		c.position = MID + Vector3(sin(a) * 48.0, _rng.randf_range(26.0, 44.0), -cos(a) * 48.0)
+		var a := TAU * i / 18.0
+		c.position = MID + Vector3(sin(a) * 52.0, _rng.randf_range(14.0, 50.0), -cos(a) * 52.0)
 		c.set_meta("a", a)
-		c.set_meta("r", _rng.randf_range(42.0, 58.0))
+		c.set_meta("r", _rng.randf_range(44.0, 66.0))
 		add_child(c)
-		for j in 4:
-			_ball(c, "Puff", _rng.randf_range(2.0, 3.4), Vector3(j * 2.6 - 4.0, _rng.randf_range(-0.6, 0.6), 0), cloud, false)
+		for j in 6:
+			var mi := _ball(c, "Puff", _rng.randf_range(2.4, 4.2), Vector3(j * 2.8 - 7.0, _rng.randf_range(-0.6, 0.8),
+				_rng.randf_range(-1.5, 1.5)), cloud, false)
+			mi.scale = Vector3(1.0, 0.7, 1.0)
 		c.add_to_group("skyreach_clouds")
+
+
+func _heaven() -> void:
+	# A sea of clouds all round the mountain (big flat white puffs, one MultiMesh, nothing solid): a ring hugging its
+	# foot and a wide sea out past the walls to the horizon, so the meadow seems to float. Then soft beams of light
+	# falling from the sky onto the summit and down the trail.
+	var puff := SphereMesh.new()
+	puff.radius = 1.0
+	puff.height = 2.0
+	puff.radial_segments = 16
+	puff.rings = 8
+	var cloud := _mat("Cloud Sea", Color(0.97, 0.97, 1.0), 1.0)
+	var spots: Array[Transform3D] = []
+	for i in 70:                                          # round the mountain's foot
+		var a := TAU * i / 70.0 + _rng.randf_range(-0.04, 0.04)
+		var r := _rng.randf_range(R0 + 7.0, R0 + 15.0)
+		var at := MID + Vector3(sin(a) * r, _rng.randf_range(-0.6, 0.4), -cos(a) * r)
+		if at.z < 24.0 and absf(at.x) < 16.0:
+			continue                                      # (the way in stays clear)
+		var s := _rng.randf_range(3.5, 6.0)
+		spots.append(Transform3D(Basis.from_scale(Vector3(s * 1.4, s * 0.45, s)).rotated(Vector3.UP, _rng.randf() * TAU), at))
+	for i in 220:                                         # the sea out past the walls
+		var a := _rng.randf() * TAU
+		var r := _rng.randf_range(100.0, 330.0)
+		var at := MID + Vector3(sin(a) * r, _rng.randf_range(-6.0, 2.0) - r * 0.02, -cos(a) * r)
+		var s := _rng.randf_range(8.0, 18.0) * (0.7 + r / 330.0)
+		spots.append(Transform3D(Basis.from_scale(Vector3(s * 1.5, s * 0.4, s)).rotated(Vector3.UP, _rng.randf() * TAU), at))
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = puff
+	mm.instance_count = spots.size()
+	for i in spots.size():
+		mm.set_instance_transform(i, spots[i])
+	var sea := MultiMeshInstance3D.new()
+	sea.name = "Cloud Sea"
+	sea.multimesh = mm
+	sea.material_override = cloud
+	sea.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(sea)
+	sea.set_meta("count", spots.size())
+	var beam := StandardMaterial3D.new()
+	beam.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	beam.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	beam.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	beam.cull_mode = BaseMaterial3D.CULL_DISABLED
+	beam.albedo_color = Color(1.0, 0.9, 0.6, 0.045)
+	var rays := Node3D.new()
+	rays.name = "Heaven Light"
+	add_child(rays)
+	var spots_down := [summit(), trail_point(TURNS * 0.35), trail_point(TURNS * 0.7), MID + Vector3(0, 0, -40)]
+	for k in spots_down.size():
+		var at: Vector3 = spots_down[k]
+		var wide := 14.0 if k == 0 else 7.0
+		var cm := CylinderMesh.new()
+		cm.top_radius = wide * 1.6
+		cm.bottom_radius = wide
+		cm.height = 90.0
+		cm.cap_top = false
+		cm.cap_bottom = false
+		var mi := _mesh(rays, cm, at + Vector3(0, 45.0, 0), beam, false)
+		mi.name = "Light Beam"
+		mi.rotation.z = 0.12 if k % 2 == 0 else -0.1
 
 
 # -----------------------------------------------------------------------------
