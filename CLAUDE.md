@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Sinker Stones crumble into real pieces of the baked stone** (Hayden: "Looks good, but can you make
+  the crumble detailed as well?"). `swamp.gd _cut_stone()` takes every mesh drawn for the stone (the baked one, its X
+  crack and chips, or the plain stone) into the body's space and cuts it along the X's arms (`_slice()`, `_clip()`:
+  each triangle clipped against the two upright planes, keeping its material, UVs, normals and tangents), once a stone
+  (meta `crumble_cut`). Each cut gets a lumpy broken face (`_break_face()`: a jagged grid over the cut's outline,
+  darker rock inside with the poison's glow seeping up the middle, material "Sinker Break"), each piece spins about its
+  own middle (`home`), and the crumbs are jagged chunks (`_chunk()`) with a few glowing chips. Headless runs keep no
+  mesh data, so they still get the plain slices (`_wedge()`). Tests: test_swamps, `test_detail_portal_props -- dusk`
+  and `-- swamp`, scary_world (both runs). Pictures: `capture_detail_swamp.gd` 06c to 06e and a new 06c_crumble_close
+  (project files, world/previews/detail_swamp/crumble_detail).
+
 - 2026-11-24: **The Sinker Stones' cracks are an X, and the stones crumble apart instead of sinking** (Hayden: "You
   can make the split x-shaped and have it crumble apart instead of sink"). `stone_crack.gd` draws two crossing splits
   ("Arm 1", "Arm 2", 1.25 to 1.9 rad apart; their lips ease down where they meet, `meet_fade()`; metas `length` and
