@@ -4122,10 +4122,21 @@ static func dress_nature(scene: Node) -> Dictionary:
 const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
 	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
-	"drystone": 2.0, "glass_facade": 3.0}
+	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
 	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
-	"drystone": 2.0, "glass_facade": 2.0}
+	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25}
+# The insides (24 Nov 2026): the Void's dome rooms (tools/build_interiors.gd dome_room(): "Floor <room>", "Wall <room>",
+# "Dome <room>") and the palace school's inside (tools/build_school.gd). Inside, a wall is plaster, never the outside
+# siding a "Wall ..." gets in town, and the dome overhead is plaster too. The builders' colours are all mapped into the
+# alien palette, so which rooms have wooden floors can't be read off the colour: the ones that don't are listed.
+const TILED_ROOMS := ["Aquarium", "Clothing Boutique", "Town Hall", "Museum", "Gaming Station"]
+const SCHOOL_SURFACES := {
+	"floor_tiles": ["Floor 1", "Floor 2", "Floor 3"],
+	"floorboards": ["Studio Floor"],
+	"stone": ["Vault Stone", "Vault Floor"],
+	"plaster": ["Wall 1", "Wall 2", "Wall 3", "Inner Wall", "Office Wall", "Atrium Wall", "Classroom Wall"],
+}
 # The portal worlds' natural stuff (batch fifteen) is only patched in a portal world, so a "Stone" or a "Snow" in the
 # towns is left alone. Their rocks, trunks and crags are scaled and turned every which way by the builders, so these
 # lay the patch on in the world's space, which keeps every piece's patch the same size.
@@ -4142,6 +4153,25 @@ const PORTAL_SURFACES := {
 }
 const WORLD_SPACE_SURFACES := ["bark", "rock", "ice", "snow", "coral", "drystone"]
 const SURFACE_META := "detail_surface"   # on each swapped material: which patch
+
+
+static func inside_surface_of(mat_name: String, school := false) -> String:
+	# Which patch an inside's material gets ("" for none); `school` for the palace school's
+	if school:
+		for kind in SCHOOL_SURFACES:
+			if mat_name in SCHOOL_SURFACES[kind]:
+				return kind
+		return ""
+	# The player's own house: its walls and floor take the colours picked at its Decorate spot (scripts/home_decor.gd)
+	if mat_name == "Decor walls":
+		return "plaster"
+	if mat_name == "Decor floor":
+		return "floorboards"
+	if mat_name.begins_with("Floor "):
+		return "floor_tiles" if mat_name.trim_prefix("Floor ") in TILED_ROOMS else "floorboards"
+	if mat_name.begins_with("Wall ") or mat_name.begins_with("Dome "):
+		return "plaster"
+	return ""
 
 
 static func surface_of(mat_name: String, portal := false) -> String:
@@ -4179,6 +4209,8 @@ static func dress_buildings(scene: Node) -> Dictionary:
 	# the ground look, scripts/ground_detail.gdshader)
 	made["portal"] = scene.scene_file_path.begins_with("res://scenes/portal_worlds/") \
 		or scene.scene_file_path == "res://scenes/bosses/skyreach_trail.tscn"
+	made["inside"] = scene.scene_file_path.begins_with("res://scenes/interiors/")
+	made["school"] = scene.scene_file_path == "res://scenes/school/school.tscn"
 	for node in scene.find_children("*", "GeometryInstance3D", true, false):
 		if node is CSGShape3D:
 			# A combiner has no material of its own (its children are found by themselves)
@@ -4223,6 +4255,9 @@ static func dress_buildings(scene: Node) -> Dictionary:
 			if key is Array:
 				var nm: StandardMaterial3D = made[key]
 				scene.call("surface_swapped", key[0], nm, float(SURFACE_GAIN[nm.get_meta(SURFACE_META)]))
+	# The player's house recolours its walls and floor from the Decorate spot: it colours the baked copies now
+	if scene.has_method("decorate") and not out.is_empty():
+		scene.call("decorate")
 	var seasons := scene.get_node_or_null("Seasons")
 	if seasons and seasons.has_method("take_in") and not out.is_empty():
 		seasons.call("take_in", scene)
@@ -4238,6 +4273,10 @@ static func _surface_mat(old: StandardMaterial3D, mesh: Mesh, made: Dictionary) 
 	if old.has_meta(SURFACE_META):
 		return null
 	var kind := surface_of(old.resource_name, made.get("portal", false))
+	if made.get("inside", false):
+		kind = inside_surface_of(old.resource_name)
+	elif made.get("school", false):
+		kind = inside_surface_of(old.resource_name, true)
 	if kind == "" or old.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED:
 		return null
 	var tile: float = SURFACE_TILE[kind]

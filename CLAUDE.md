@@ -118,6 +118,15 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     girl's badge and the boy's star stay crisp. The creator's sculpting, clothes, skins and Void look work as before
     (creator, clothing_fit, clothes, quick_outfits, void_look, party, friend_detail pass). Pictures in the project
     files under characters/hero-detail.
+  - **The insides too: the Void's 19 rooms and the palace school** (three more tiling patches,
+    `build_prop_surfaces.py floorboards|floor_tiles|plaster`): wooden floors (tiles in the Aquarium, Boutique, Town
+    Hall, Museum and Gaming Station: `detail_props.gd TILED_ROOMS`) and trowelled plaster on every room's wall and
+    dome (`inside_surface_of()`); in the school the floors are tiled, the dance studio's boards, the vault's stone and
+    the walls plaster (`SCHOOL_SURFACES`), never the outside siding. Room floors no longer get the grassy ground look
+    (`world_detail.gd ground_meshes()`). My House's walls and floor are baked too and still take the Decorate spot's
+    colours (`home_decor.gd decorate()` colours the baked copies). test_detail_all checks every room;
+    world_detail, detail_props, insides, doors, school_floors, school_garden, creator, council and walk_through pass.
+    Pictures: `tools/capture_detail_rooms.gd -- <folder> [--old-props]` (project files, world/previews/detail_rooms).
 
 - 2026-11-24: **The Seraph calls beams of light down from the sky, drawn as pixel art with a splash where they land**
   (Hayden: "I want its attacks to include beams of light from the sky", then "add pixel [fx] to the light? With a

@@ -653,6 +653,35 @@ func _run() -> void:
 		check(bad.is_empty(), "%s: every patched piece has its maps laid on the right way (%s)" % [world, str(bad)])
 		check(DETAIL_PROPS.dress_buildings(current_scene).is_empty(), "%s: dressing again changes nothing" % world)
 
+	# --- The insides (24 Nov 2026): the Void's rooms and the palace school get plaster walls and wooden or tiled
+	# floors, never the outside siding
+	var rooms := []
+	for f in DirAccess.get_files_at("res://scenes/interiors"):
+		if f.ends_with(".tscn"):
+			rooms.append("res://scenes/interiors/" + f)
+	check(rooms.size() >= 19, "found the Void's rooms (%d)" % rooms.size())
+	for path in rooms + ["res://scenes/school/school.tscn"]:
+		await _load(path)
+		var got: Dictionary = detail.last_surfaces
+		var floors := int(got.get("floorboards", 0)) + int(got.get("floor_tiles", 0))
+		check(int(got.get("plaster", 0)) >= 1 and floors >= 1 and not got.has("clapboard"),
+			"%s: plaster walls and a baked floor, no siding (%s)" % [path.get_file(), str(got)])
+		var bare := []
+		for mi: MeshInstance3D in current_scene.find_children("*", "MeshInstance3D", true, false):
+			var pm := mi.material_override as StandardMaterial3D
+			if pm == null:
+				continue
+			var nm := pm.resource_name
+			var room_want := DETAIL_PROPS.inside_surface_of(nm, path.ends_with("school.tscn"))
+			if room_want != "" and pm.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED \
+					and (pm.get_meta("detail_surface", "") != room_want or pm.albedo_texture == null or pm.normal_texture == null):
+				bare.append(nm)
+		check(bare.is_empty(), "%s: every wall, floor and dome has its patch %s" % [path.get_file(), str(bare)])
+		check(DETAIL_PROPS.dress_buildings(current_scene).is_empty(), "%s: dressing again changes nothing" % path.get_file())
+	var cafe_floor := DETAIL_PROPS.inside_surface_of("Floor Cafe")
+	check(cafe_floor == "floorboards" and DETAIL_PROPS.inside_surface_of("Floor Aquarium") == "floor_tiles"
+		and DETAIL_PROPS.inside_surface_of("Dome Cafe") == "plaster", "wooden and tiled rooms told apart")
+
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 

@@ -34,6 +34,13 @@
 #   glass_facade a glass curtain wall, 3 m (20 Nov 2026, the Far Future's props): tall panes in a grid of metal
 #                mullions, a solid band at each floor, a few panes a different tint (Lumen City's towers)
 #
+# Batch sixteen, the insides (24 Nov 2026, Hayden: "keep baking details on assets in the game already"): the Void's
+# rooms and the palace school's inside had the outside siding on their walls and plain floors.
+#   floorboards  wooden floorboards, 1.6 m: long planks with staggered ends, a gap between each, grain and nail heads
+#                (the rooms with wooden floors)
+#   floor_tiles  square tiles laid with grout, 1.2 m, each a little uneven (the rooms with painted floors, the school)
+#   plaster      soft trowelled plaster with faint hairline cracks, 2 m (every indoor wall and the domes overhead)
+#
 #   python tools/build_prop_surfaces.py "<out>.glb" <kind> [--preview]
 import math
 import os
@@ -47,12 +54,12 @@ import bmesh  # noqa: E402
 import bpy  # noqa: E402
 
 KINDS = ["clapboard", "shingles", "brick", "stone", "barn_boards", "dome_scales", "bark", "rock", "ice", "snow",
-         "coral", "metal_panel", "drystone", "glass_facade"]
+         "coral", "metal_panel", "drystone", "glass_facade", "floorboards", "floor_tiles", "plaster"]
 KIND = next((a for a in sys.argv if a in KINDS), "clapboard")
 OUT = K.out_path(KIND + ".glb")
 TILE = {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0, "dome_scales": 1.6,
         "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0, "drystone": 2.0,
-        "glass_facade": 3.0}[KIND]
+        "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0}[KIND]
 
 K.reset()
 HIGH = K.new_collection("High")
@@ -471,6 +478,89 @@ def glass_facade():
     return objs
 
 
+def floorboards():
+    wood = [K.mat("Floorboard %d" % i, (v, v * 0.97, v * 0.94), rough=0.6, pits=0.12, bump=0.3, grain=(16.0, 0.22),
+                  wear=0.05) for i, v in enumerate([0.9, 0.82, 0.86, 0.78])]
+    nail_m = K.mat("Nail", (0.4, 0.4, 0.4), rough=0.5, metal=0.6)
+    gap = K.mat("Gap", (0.18, 0.16, 0.15), rough=0.95)
+    n = 8
+    w = TILE / n
+    pieces = {m.name: [] for m in wood}
+    nails = []
+    for c in range(n):
+        y0 = c * w
+        x = random.uniform(0.0, TILE)
+        lengths = [random.uniform(0.6, 1.4) for _ in range(2)]
+        k = TILE / sum(lengths)
+        for L in lengths:
+            L *= k
+            m = random.choice(wood)
+            pieces[m.name].append(K.box("Plank", (L - 0.006, w - 0.008, 0.02), at=(x + L / 2, y0 + w / 2,
+                                        random.uniform(-0.0015, 0.0015)), m=m, bevel=0.003, seg=1, col=HIGH))
+            for e in (0.04, L - 0.04):
+                for side in (0.3, 0.7):
+                    nails.append(K.cyl("Nail", 0.004, 0.004, at=(x + e, y0 + w * side, 0.011), seg=8, m=nail_m,
+                                       col=HIGH))
+            x += L
+    objs = [tile_obj(nm, ob) for nm, ob in pieces.items() if ob]
+    objs.append(tile_obj("Nails", nails))
+    objs.append(K.box("Gaps", (TILE, TILE, 0.01), at=(TILE / 2, TILE / 2, -0.02), m=gap, col=HIGH))
+    return objs
+
+
+def floor_tiles():
+    tones = [K.mat("Tile %d" % i, (v, v, v), rough=0.35, pits=0.08, bump=0.08) for i, v in enumerate([0.92, 0.86, 0.9])]
+    grout = K.mat("Grout", (0.55, 0.54, 0.52), rough=0.95, bump=0.3)
+    n = 4
+    w = TILE / n
+    pieces = {m.name: [] for m in tones}
+    for i in range(n):
+        for j in range(n):
+            m = random.choice(tones)
+            pieces[m.name].append(K.box("Tile", (w - 0.012, w - 0.012, 0.012), at=(i * w + w / 2, j * w + w / 2,
+                                        random.uniform(-0.0012, 0.0012)), m=m, bevel=0.004, seg=2,
+                                        rot=(random.uniform(-0.004, 0.004), random.uniform(-0.004, 0.004), 0),
+                                        col=HIGH))
+    objs = [tile_obj(nm, ob) for nm, ob in pieces.items() if ob]
+    objs.append(K.box("Grout", (TILE, TILE, 0.01), at=(TILE / 2, TILE / 2, -0.008), m=grout, col=HIGH))
+    return objs
+
+
+def plaster():
+    coat = K.mat("Plaster", (0.92, 0.91, 0.89), rough=0.85, pits=0.06, bump=0.12)
+    crack = K.mat("Hairline", (0.62, 0.6, 0.58), rough=0.95)
+    wall = K.box("Plaster", (TILE, TILE, 0.04), at=(TILE / 2, TILE / 2, 0.0), m=coat, col=HIGH)
+    # trowel marks: the coat pushed about in soft broad swirls
+    sub = wall.modifiers.new("Sub", "SUBSURF")
+    sub.levels = 0
+    bpy.context.view_layer.objects.active = wall
+    rem = wall.modifiers.new("Grid", "REMESH")
+    rem.mode = "SHARP"
+    rem.octree_depth = 7
+    dis = wall.modifiers.new("Trowel", "DISPLACE")
+    tex = bpy.data.textures.new("TrowelTex", "CLOUDS")
+    tex.noise_scale = 0.35
+    dis.texture = tex
+    dis.texture_coords = "LOCAL"
+    dis.direction = "Z"
+    dis.strength = 0.006
+    objs = [wall]
+    # a few hairline cracks wandering a little way, set into the coat
+    lines = []
+    for _ in range(3):
+        x, y = random.uniform(0.2, TILE - 0.2), random.uniform(0.2, TILE - 0.2)
+        a = random.uniform(0, math.tau)
+        pts = [(x, y, 0.019)]
+        for _k in range(6):
+            a += random.uniform(-0.7, 0.7)
+            x += math.cos(a) * 0.05
+            y += math.sin(a) * 0.05
+            pts.append((x, y, 0.019))
+        lines.append(K.wire("Crack", pts, 0.0018, crack, res=2, col=HIGH))
+    objs.append(tile_obj("Cracks", lines))
+    return objs
+
+
 # ---------------------------------------------------------------- the bake
 def low_square():
     bm = bmesh.new()
@@ -537,7 +627,8 @@ def bake(low, highs, size, ext, ray):
 
 BUILD = {"clapboard": clapboard, "shingles": shingles, "brick": brick, "stone": stone, "barn_boards": barn_boards,
          "dome_scales": dome_scales, "bark": bark, "rock": rock, "ice": ice, "snow": snow, "coral": coral,
-         "metal_panel": metal_panel, "drystone": drystone, "glass_facade": glass_facade}
+         "metal_panel": metal_panel, "drystone": drystone, "glass_facade": glass_facade, "floorboards": floorboards,
+         "floor_tiles": floor_tiles, "plaster": plaster}
 
 
 def main():
