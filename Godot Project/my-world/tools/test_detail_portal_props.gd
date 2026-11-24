@@ -77,6 +77,12 @@ func _run() -> void:
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
+	if "swamp" in OS.get_cmdline_user_args():
+		# (only the two swamps: -- swamp)
+		await _swamps()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
 	if "dusk" in OS.get_cmdline_user_args():
 		# (only Dusk's Embrace: -- dusk)
 		await _dusks_embrace()
@@ -205,6 +211,7 @@ func _run() -> void:
 	await _boulder_canyon()
 	await _skyreach()
 	await _dusks_embrace()
+	await _swamps()
 	await _race_circuits()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
@@ -1072,6 +1079,97 @@ func _dusks_embrace() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing it again changes nothing")
+
+
+func _swamps() -> void:
+	# Both swamps (detail_props.gd dress_swamp): the Mothmire past Lanternmoor's moor, the Poison Mire past Dusk's
+	# Embrace (scripts/swamp.gd builds them as each world loads)
+	var plain_mats := ["Swamp Planks", "Lookout Planks", "Swamp Land", "Swamp Moss", "Wet Rock", "Sinker Rock",
+		"Stone Moss", "Log Moss", "Log End", "Hut Boards", "Hut Thatch", "Chest Wood", "Chest Trim", "Mimic Trim",
+		"Hanging Moss"]
+	for path in [LANTERNMOOR, DUSK]:
+		var world := "Lanternmoor" if path == LANTERNMOOR else "Dusk's Embrace"
+		detail.detail_props = false
+		await _load(path)
+		var shapes_before := _shapes(current_scene.get_node("Swamp"), true)      # (only the swamp's: Lanternmoor's "Hit" targets bob about)
+		check(current_scene.get_node_or_null("Swamp/Detailed Swamp") == null, "%s: nothing baked in its swamp with detailed props off" % world)
+		detail.detail_props = true
+		await _load(path)
+		var s := current_scene
+		var sw := s.get_node_or_null("Swamp")
+		var got: Dictionary = detail.last_props.get("swamp", {})
+		print(world, " swamp props: ", got)
+		check(sw != null and sw.has_node("Detailed Swamp"), "%s: its swamp is baked" % world)
+		if sw == null:
+			continue
+		check(got.get("planks", 0) >= (150 if path == LANTERNMOOR else 60), "%s: the boardwalk and lookout planks are one baked MultiMesh (%d)" % [world, got.get("planks", 0)])
+		var trees: int = sw.get_node("Swamp Trees").get_child_count()
+		check(got.get("trees", 0) == trees and trees >= 10, "%s: every dead tree baked (%d of %d)" % [world, got.get("trees", 0), trees])
+		var isl: int = sw.get_node("Islands").get_child_count()
+		check(got.get("islands", 0) == isl, "%s: every island baked (%d of %d)" % [world, got.get("islands", 0), isl])
+		check(got.get("lookout", 0) == 1, "%s: the Lookout Tree baked" % world)
+		var chests := 1 + (sw.get_node("Dangers/Muck Mimics").get_child_count() if sw.has_node("Dangers/Muck Mimics") else 0)
+		check(got.get("chests", 0) == chests, "%s: the chest and the Muck Mimics baked (%d of %d)" % [world, got.get("chests", 0), chests])
+		if path == LANTERNMOOR:
+			check(got.get("hut", 0) == 1, "Lanternmoor: the Old Mire Hut baked")
+			var win := false
+			for c in sw.get_node("Old Mire Hut/Hut").get_children():
+				if c is MeshInstance3D and DETAIL_PROPS._mat_name(c) == "Hut Window" and (c as MeshInstance3D).layers != 0:
+					win = true
+			check(win, "Lanternmoor: the hut's window still glows")
+		else:
+			var n_st: int = sw.get_node("Stepping Stones").get_child_count()
+			check(got.get("stones", 0) == n_st and n_st > 0, "Dusk's Embrace: every stepping stone baked (%d of %d)" % [got.get("stones", 0), n_st])
+			var n_logs := 0
+			for lg in sw.get_node("Log Bridges").get_children():
+				if lg.has_node("Log Body"):
+					n_logs += 1
+			check(got.get("logs", 0) == n_logs and n_logs > 0, "Dusk's Embrace: every log bridge baked (%d of %d)" % [got.get("logs", 0), n_logs])
+			var cracks := 0
+			var sink_ok := true
+			for b in sw.get_node("Stepping Stones").get_children():
+				if not str(b.name).begins_with("Sinker"):
+					continue
+				if b.get_node_or_null("Detailed Stone") == null:
+					sink_ok = false
+				for c in b.get_children():
+					if c is MeshInstance3D and DETAIL_PROPS._mat_name(c) == "Sinker Crack" and (c as MeshInstance3D).layers != 0:
+						cracks += 1
+			check(sink_ok and cracks > 0, "Dusk's Embrace: the Sinker Stones carry their models (so they sink with them) and keep their glowing cracks")
+		var plain := 0
+		for c in sw.find_children("*", "MeshInstance3D", true, false):
+			var mi := c as MeshInstance3D
+			if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+				continue
+			if DETAIL_PROPS._mat_name(mi) in plain_mats:
+				plain += 1
+		check(plain == 0, "%s: nothing plain left drawn in the swamp (%d)" % [world, plain])
+		var lid_ok := true
+		for c in [sw.get_node_or_null("Swamp Chest/Chest")] + (sw.get_node("Dangers/Muck Mimics").get_children() if sw.has_node("Dangers/Muck Mimics") else []):
+			if c == null or c.get_node_or_null("Lid/Detailed Lid") == null:
+				lid_ok = false
+		check(lid_ok, "%s: every chest's lid model is inside its Lid (so it still opens)" % world)
+		var tall := true
+		for t in sw.get_node("Swamp Trees").get_children():
+			var m := t.get_node_or_null("Detailed Tree") as Node3D
+			if m == null or m.scale.y * DETAIL_PROPS.SW_TREE_H < 4.9 or m.scale.y * DETAIL_PROPS.SW_TREE_H > 9.1:
+				tall = false
+		check(tall, "%s: each dead tree as tall as its old trunk" % world)
+		var shapes_after := _shapes(sw, true)
+		if shapes_after != shapes_before:
+			for k in shapes_before:
+				if shapes_after.get(k, 0) != shapes_before[k]:
+					print("  moved or gone: ", k)
+			for k in shapes_after:
+				if shapes_before.get(k, 0) != shapes_after[k]:
+					print("  new: ", k)
+		check(shapes_after == shapes_before, "%s: every solid shape is where it was" % world)
+		var again := DETAIL_PROPS.dress_swamp(sw)
+		var none := true
+		for k in again:
+			if again[k] != 0:
+				none = false
+		check(none, "%s: dressing it again changes nothing" % world)
 
 
 func _race_circuits() -> void:
