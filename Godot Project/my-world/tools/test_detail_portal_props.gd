@@ -24,6 +24,7 @@ const GLOOP_KINGDOM := "res://scenes/bosses/gloop_kingdom.tscn"
 const STAR_ARENA := "res://scenes/bosses/arena.tscn"
 const CLOCK_TOWER := "res://scenes/bosses/clock_tower.tscn"
 const BOULDER_CANYON := "res://scenes/bosses/boulder_canyon.tscn"
+const SKYREACH := "res://scenes/bosses/skyreach_trail.tscn"
 const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
@@ -66,6 +67,12 @@ func _run() -> void:
 	if "arena" in OS.get_cmdline_user_args():
 		# (only the Star Arena: -- arena)
 		await _star_arena()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
+	if "skyreach" in OS.get_cmdline_user_args():
+		# (only the Skyreach Trail: -- skyreach)
+		await _skyreach()
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
@@ -183,6 +190,7 @@ func _run() -> void:
 	await _star_arena()
 	await _clock_tower()
 	await _boulder_canyon()
+	await _skyreach()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -940,6 +948,71 @@ func _boulder_canyon() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the canyon again changes nothing")
+
+
+func _skyreach() -> void:
+	detail.detail_props = false
+	await _load(SKYREACH)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Skyreach") == null, "nothing baked on the trail with detailed props off")
+	detail.detail_props = true
+	await _load(SKYREACH)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Skyreach props: ", got)
+	check(got.get("kerbs", 0) > 100, "the kerb stones are baked blocks (%d)" % got.get("kerbs", 0))
+	check(got.get("ring_rocks", 0) >= 15, "the summit's ring of rocks baked (%d)" % got.get("ring_rocks", 0))
+	check(got.get("waystones", 0) == 5, "all five Waystones baked (%d)" % got.get("waystones", 0))
+	check(got.get("pines", 0) >= 25, "the pines round the foot baked (%d)" % got.get("pines", 0))
+	check(got.get("crystals", 0) == 30, "all 30 cliff crystals baked (%d)" % got.get("crystals", 0))
+	check(got.get("flags", 0) == 63, "all 63 prayer flags baked (%d)" % got.get("flags", 0))
+	check(got.get("chest", 0) == 1 and got.get("blooms", 0) == 14, "the Star Chest and the 14 Star Blooms baked")
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree() or "/Visual/" in str(mi.get_path()):
+			continue
+		var m := DETAIL_PROPS._mat_name(mi)
+		# (the prayer flags' poles are the pines' bark too, and stay)
+		if m in ["Ring Stone", "Pine", "Cliff Crystal", "Star Bloom", "Waystone", "Chest Stone"] or m.begins_with("Flag ") \
+				or m == "Pine Trunk" and mi.get_parent() == s:
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	var kerbs := s.get_node("Kerb Stones") as MultiMeshInstance3D
+	check(kerbs.multimesh.mesh is ArrayMesh, "the kerbs' MultiMesh draws the baked block")
+	# A Waystone's lamp still lights (the trail swaps its material), inside its cage
+	var w := s.get_node("Waystone 2") as Node3D
+	check(w.get_node_or_null("Detailed Waystone") != null and w.get_node("Lamp").is_visible_in_tree(),
+		"a Waystone keeps its lamp beside its baked pillar")
+	s.call("_light", 1, false)
+	check((w.get_node("Lamp") as MeshInstance3D).material_override.resource_name == "Waystone Lit", "the lamp still lights")
+	check(s.get_node_or_null("Star Chest/Lid/Crystal Lid") != null and s.get_node("Star Chest/Lid/Crystal Lid").is_visible_in_tree(),
+		"the chest keeps its crystal lid")
+	# Each pine stands where its old trunk was
+	var pm := s.get_node("Detailed Skyreach/Detailed Pines") as MultiMeshInstance3D
+	var ground_ok := true
+	for t in pm.get_meta("transforms"):
+		var tr := t as Transform3D
+		var h := tr.basis.get_scale().y * DETAIL_PROPS.SKY_PINE_H
+		if h < 6.0 or h > 10.5:
+			ground_ok = false
+	check(ground_ok, "each pine as tall as its old one")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var patched := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var am := mi.get_active_material(0)
+		if am and am.has_meta(DETAIL_PROPS.SURFACE_META) and String(am.resource_name) == "Trail Path":
+			patched += 1
+	check(patched == 1, "the path has the stone patch (%d)" % patched)
+	var rock := s.get_node("Mountain Rock") as MeshInstance3D
+	check(rock.get_active_material(0) is ShaderMaterial, "the mountain's rock has the ground look")
+	var again := DETAIL_PROPS.dress_skyreach(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing the trail again changes nothing")
 
 
 func _in_model(n: Node) -> bool:
