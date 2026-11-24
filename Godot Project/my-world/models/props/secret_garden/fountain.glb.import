@@ -4,11 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://b43fo7b282yat"
-valid=false
+path="res://.godot/imported/fountain.glb-8e0330b56ea4695c074869986189ceb9.scn"
 
 [deps]
 
 source_file="res://models/props/secret_garden/fountain.glb"
+dest_files=["res://.godot/imported/fountain.glb-8e0330b56ea4695c074869986189ceb9.scn"]
 
 [params]
 

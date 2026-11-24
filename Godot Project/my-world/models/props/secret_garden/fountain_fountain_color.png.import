@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjllay2tjdaof"
-valid=false
-generator_parameters={
-"md5": "ecc1f974b36cbe3371860c0a0b8a6f04"
+path="res://.godot/imported/fountain_fountain_color.png-8ad32fe88d0b9ca3ccd84425d5003364.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/fountain_fountain_color.png"
+dest_files=["res://.godot/imported/fountain_fountain_color.png-8ad32fe88d0b9ca3ccd84425d5003364.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

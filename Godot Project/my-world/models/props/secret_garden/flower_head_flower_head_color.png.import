@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://x6gjl7qlwa5d"
-valid=false
-generator_parameters={
-"md5": "f23b1cfe3469b93972753b6a55fede8e"
+path="res://.godot/imported/flower_head_flower_head_color.png-841d2a0dea197caab3d25dee1adc6eb0.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/flower_head_flower_head_color.png"
+dest_files=["res://.godot/imported/flower_head_flower_head_color.png-841d2a0dea197caab3d25dee1adc6eb0.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

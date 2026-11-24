@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfwlfu0hqb3ti"
-valid=false
-generator_parameters={
-"md5": "654987fc84dbf75c3026332203a2b656"
+path="res://.godot/imported/hedge_hedge_orm.png-b422a25c2c7f64072637a7efd14d83ae.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/hedge_hedge_orm.png"
+dest_files=["res://.godot/imported/hedge_hedge_orm.png-b422a25c2c7f64072637a7efd14d83ae.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dqg5olwnwv4bn"
-valid=false
-generator_parameters={
-"md5": "92c6f1fdadd23986f0aafaa30df6004f"
+path="res://.godot/imported/sundial_sundial_orm.png-19c951c1d87545e974211dbf09b74140.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/sundial_sundial_orm.png"
+dest_files=["res://.godot/imported/sundial_sundial_orm.png-19c951c1d87545e974211dbf09b74140.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

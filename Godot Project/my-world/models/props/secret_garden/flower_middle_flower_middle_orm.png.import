@@ -3,14 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cx6ygxy8xsqc2"
-valid=false
-generator_parameters={
-"md5": "ef13359549940cfa382949a4f88666e0"
+path="res://.godot/imported/flower_middle_flower_middle_orm.png-d0813cfbc53a52e48786b5768349ab8d.ctex"
+metadata={
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://models/props/secret_garden/flower_middle_flower_middle_orm.png"
+dest_files=["res://.godot/imported/flower_middle_flower_middle_orm.png-d0813cfbc53a52e48786b5768349ab8d.ctex"]
 
 [params]
 
@@ -22,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
