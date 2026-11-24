@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Baked Dusk's Embrace: its twisted trees, glowing mushrooms and hollow log, the stepping stones and
+  the ivy-covered gate home** (Hayden: "Okay continue baking details"; the next place not baked yet). Built and tested
+  in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_dusks_embrace.py <out.glb> path_stone|old_gate` (a worn,
+    cracked stepping stone with moss at its rim, baked a shade paler than the old one so it doesn't read as a hole;
+    the gate home's two old stone pillars in courses with capstones, thick with ivy on the side facing in, and a rusty
+    wrought-iron gate with spear tips, scrolls and an arch). In `models/props/dusks_embrace/`.
+  - **Swapped at run time** (`detail_props.gd dress_dusks_embrace()`, called by `WorldDetail` for
+    `scenes/scary_world/scary_world.tscn`): the twisted trees, glowing mushrooms and hollow log wear Dark Hollow's baked
+    crooked tree (stretched to each trunk's height, `DH_TREE_H`), mushrooms (in each cluster's own glow) and log
+    (`DE_LOG_K`); the 22 stepping stones are one MultiMesh ("Detailed Dusk"); the gate's pillars and bars are the baked
+    gate. The wisps, the eyes, the way home's glow and sign, the Poison Mire and every collision are unchanged.
+  - Tests: `tools/test_detail_portal_props.gd` (only this part with `-- dusk`); scary_world (both runs) passes.
+    Pictures: `tools/capture_detail_dusks_embrace.gd -- <folder> [--old-props]` (project files,
+    world/previews/detail_dusks_embrace).
+  - My choices Hayden may change: every look (the ivy, the iron gate, the stones' moss).
+
 - 2026-11-24: **Baked the Skyreach Trail: its kerb stones, the summit's ring of stones, the five Waystones, the pines,
   the cliff crystals, the prayer flags, the Star Chest and the star blooms, and paving on the path** (Hayden: "Okay
   continue baking details"; the next place not baked yet). Built and tested in the cloud (own Godot user folders, no

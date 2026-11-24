@@ -25,6 +25,7 @@ const STAR_ARENA := "res://scenes/bosses/arena.tscn"
 const CLOCK_TOWER := "res://scenes/bosses/clock_tower.tscn"
 const BOULDER_CANYON := "res://scenes/bosses/boulder_canyon.tscn"
 const SKYREACH := "res://scenes/bosses/skyreach_trail.tscn"
+const DUSK := "res://scenes/scary_world/scary_world.tscn"
 const SECRET_GARDEN := "res://scenes/secret_garden/secret_garden.tscn"
 const DETAIL_PROPS := preload("res://scripts/detail_props.gd")
 
@@ -67,6 +68,12 @@ func _run() -> void:
 	if "arena" in OS.get_cmdline_user_args():
 		# (only the Star Arena: -- arena)
 		await _star_arena()
+		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
+		_finish()
+		return
+	if "dusk" in OS.get_cmdline_user_args():
+		# (only Dusk's Embrace: -- dusk)
+		await _dusks_embrace()
 		print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 		_finish()
 		return
@@ -191,6 +198,7 @@ func _run() -> void:
 	await _clock_tower()
 	await _boulder_canyon()
 	await _skyreach()
+	await _dusks_embrace()
 	print("RESULT " + ("PASSED" if failures == 0 else "FAILED (%d)" % failures))
 	_finish()
 
@@ -1013,6 +1021,59 @@ func _skyreach() -> void:
 		if again[k] != 0:
 			none = false
 	check(none, "dressing the trail again changes nothing")
+
+
+func _dusks_embrace() -> void:
+	detail.detail_props = false
+	await _load(DUSK)
+	var shapes_before := _shapes(current_scene, true)
+	check(current_scene.get_node_or_null("Detailed Dusk") == null, "nothing baked in Dusk's Embrace with detailed props off")
+	detail.detail_props = true
+	await _load(DUSK)
+	var s := current_scene
+	var got: Dictionary = detail.last_props
+	print("Dusk's Embrace props: ", got)
+	# (the Poison Mire's way in, scripts/swamp.gd _open_gap, takes the few trees in its way out first)
+	var left := s.get_node("Twisted Trees").get_child_count()
+	check(got.get("trees", 0) == left and left >= 70, "every twisted tree baked (%d of %d)" % [got.get("trees", 0), left])
+	check(got.get("mushrooms", 0) >= 15, "the glowing mushrooms baked (%d)" % got.get("mushrooms", 0))
+	check(got.get("log", 0) == 1 and got.get("gate", 0) == 1, "the hollow log and the gate home baked")
+	check(got.get("stones", 0) >= 15, "the stepping stones baked (%d)" % got.get("stones", 0))
+	var plain := 0
+	for c in s.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		# (the Poison Mire's log bridges, scripts/swamp.gd, are its own and stay)
+		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree() or "/Swamp/" in str(mi.get_path()):
+			continue
+		var m := DETAIL_PROPS._mat_name(mi)
+		if m in ["Old Bark", "Stalk", "Path Stone", "Log Wood", "Log Inside", "Log Moss", "Old Wall Stone", "Gate Iron"] \
+				or m.begins_with("Glow Cap"):
+			plain += 1
+	check(plain == 0, "nothing plain left drawn (%d)" % plain)
+	var drawn := 0
+	for n in ["Wisp 1", "Eyes 1"]:
+		var w := s.get_node_or_null("Glow/" + n) as Node3D
+		if w and w.is_visible_in_tree() and (w.get_child(0) as MeshInstance3D).layers != 0:
+			drawn += 1
+	check(drawn == 2, "the wisps and the eyes in the dark are still drawn")
+	var home := false
+	for c in s.get_node("Gate Home").get_children():
+		if c is MeshInstance3D and DETAIL_PROPS._mat_name(c) == "Home Glow" and (c as MeshInstance3D).layers != 0:
+			home = true
+	check(home and s.get_node_or_null("Gate Home/ExitToTown") != null, "the way home still glows and still goes home")
+	var tall := true
+	for t in s.get_node("Twisted Trees").get_children():
+		var m := t.get_node_or_null("Detailed Tree") as Node3D
+		if m and (m.scale.y * DETAIL_PROPS.DH_TREE_H < 4.5 or m.scale.y * DETAIL_PROPS.DH_TREE_H > 11.5):
+			tall = false
+	check(tall, "each tree as tall as its old trunk")
+	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	var again := DETAIL_PROPS.dress_dusks_embrace(s)
+	var none := true
+	for k in again:
+		if again[k] != 0:
+			none = false
+	check(none, "dressing it again changes nothing")
 
 
 func _in_model(n: Node) -> bool:
