@@ -102,6 +102,11 @@ func _run() -> void:
 	if sw.has_node("Stepping Stones") and sw.get_node("Stepping Stones").get_child_count() > 2:
 		var st := sw.get_node("Stepping Stones").get_child(1) as Node3D
 		views.append(["06_stones", st.global_position + Vector3(2.5, 2.2, 2.5), st.global_position])
+		for b in sw.get_node("Stepping Stones").get_children():
+			if str(b.name).begins_with("Sinker"):
+				var sk := b as Node3D
+				views.append(["06b_sinker", sk.global_position + Vector3(1.3, 1.9, 1.3), sk.global_position + Vector3(0, 0.3, 0)])
+				break
 	if sw.has_node("Log Bridges") and sw.get_node("Log Bridges").get_child_count() > 0:
 		var lg := sw.get_node("Log Bridges").get_child(0) as Node3D
 		views.append(["07_log", lg.global_position + lg.global_transform.basis.x * 4.0 + Vector3(0, 2.0, 0), lg.global_position])

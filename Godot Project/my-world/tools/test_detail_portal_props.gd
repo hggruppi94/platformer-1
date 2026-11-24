@@ -1132,10 +1132,13 @@ func _swamps() -> void:
 					continue
 				if b.get_node_or_null("Detailed Stone") == null:
 					sink_ok = false
-				for c in b.get_children():
-					if c is MeshInstance3D and DETAIL_PROPS._mat_name(c) == "Sinker Crack" and (c as MeshInstance3D).layers != 0:
+				var sc := b.get_node_or_null("Stone Crack") as Node3D
+				if sc == null or float(sc.get_meta("length", 0.0)) < 1.0:
+					sink_ok = false
+				for c in b.find_children("*", "MeshInstance3D", true, false):
+					if DETAIL_PROPS._mat_name(c) == "Sinker Crack" and (c as MeshInstance3D).layers != 0:
 						cracks += 1
-			check(sink_ok and cracks > 0, "Dusk's Embrace: the Sinker Stones carry their models (so they sink with them) and keep their glowing cracks")
+			check(sink_ok and cracks > 0, "Dusk's Embrace: the Sinker Stones carry their models (so they sink with them) and a split right across, glowing deep down")
 		var plain := 0
 		for c in sw.find_children("*", "MeshInstance3D", true, false):
 			var mi := c as MeshInstance3D

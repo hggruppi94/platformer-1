@@ -118,6 +118,7 @@ const NOTICEBOARD := "res://models/props/noticeboard.glb"
 const SPRING_CAVE := "res://models/props/spring_cave.glb"
 const SPRING_RIM := "res://models/props/spring_rim.glb"
 const SPRING_GROTTOS := preload("res://scripts/spring_grottos.gd")
+const STONE_CRACK := preload("res://scripts/stone_crack.gd")
 const BOARDWALK_LEN := 4.0             # the model's length of deck, and its width 3 (tools/build_prop_void_5.py)
 const BOARDWALK_W := 3.0
 const BOARDWALKS := ["Boardwalk South", "Boardwalk North", "Boardwalk East", "Dock"]
@@ -821,6 +822,9 @@ static func dress_swamp(sw: Node) -> Dictionary:
 			m.name = "Detailed Stone"
 			b.add_child(m)
 			out.stones += 1
+			if sink and b.has_meta("crack_seed"):        # (its crack drawn again over the baked stone's shape)
+				STONE_CRACK.build(b, b.get_meta("crack_rock"), b.get_meta("crack_glow"), int(b.get_meta("crack_seed")),
+					float(b.get_meta("crack_above")))
 	# Log bridges: the log stretched to each one's length
 	var lg_m: PackedScene = P.call("log")
 	var logs := sw.get_node_or_null("Log Bridges")
