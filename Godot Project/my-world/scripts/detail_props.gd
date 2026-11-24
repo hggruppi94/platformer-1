@@ -60,6 +60,11 @@ const DH_LAMP := "res://models/props/dark_hollow/moon_lamp.glb"
 const DH_MUSHROOMS := "res://models/props/dark_hollow/glow_mushrooms.glb"
 const DH_LAMP_GLOBE := 2.6                         # the baked lamp's globe height (a moon lamp's globe)
 const DH_STONE_TINT := Color(0.5, 0.48, 0.65)     # "Old Stone" over Glenmoor's "Stone" (tools/build_dark_hollow.gd)
+const DE := "res://models/props/dusks_embrace/"   # Dusk's Embrace (tools/build_prop_dusks_embrace.py)
+const DH_TREE_H := 3.9                             # the baked crooked tree's height (TREE_H)
+const DE_TRUNK_R := 1.5                            # the most a crooked tree is widened (its trunk 0.3 across at 1)
+const DE_LOG_K := 1.55 / 1.3                       # the old log's radius over the baked one's (LOG_R)
+const DE_LOG_AT := Vector3(-3.0, 0, -14.0)         # the middle of the old log on the ground (build_scary_world.gd)
 const LM_TREE := "res://models/props/lanternmoor/lantern_tree.glb"
 const LM_POST := "res://models/props/lanternmoor/lantern_post.glb"
 const LM_BEACON := "res://models/props/lanternmoor/beacon.glb"
@@ -619,6 +624,100 @@ static func dress_dark_hollow(scene: Node) -> Dictionary:
 			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
 			_tint(m, DH_STONE_TINT)
 			mi.get_parent().add_child(m)
+	return out
+
+
+static func dress_dusks_embrace(scene: Node) -> Dictionary:
+	# Dusk's Embrace, the centipede's home behind the old gate (24 Nov 2026, tools/build_prop_dusks_embrace.py;
+	# tools/build_scary_world.gd builds it from shapes). Its twisted trees, glowing mushrooms and hollow log wear Dark
+	# Hollow's baked crooked tree, mushrooms and log (the same kind of wood, a world over); the stepping stones up to
+	# the log become worn mossy slabs, and the gate home old stone pillars thick with ivy and a rusty iron gate. Every
+	# trunk's, pillar's and the log's collision, the lights, the wisps, the eyes and the way home's glow stay as built.
+	var out := {"trees": 0, "mushrooms": 0, "log": 0, "stones": 0, "gate": 0}
+	if scene.has_node("Detailed Dusk") or _scene(DE + "path_stone.glb") == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Dusk"
+	var tree := _scene(DH_TREE)
+	var trees := scene.get_node_or_null("Twisted Trees")
+	if tree and trees:
+		for t in trees.get_children():
+			var trunk: MeshInstance3D = null
+			for c in t.get_children():
+				if c is MeshInstance3D and _mat_name(c) == "Old Bark":
+					trunk = c
+			if trunk == null or not (trunk.mesh is CylinderMesh):
+				continue
+			for mi: MeshInstance3D in t.find_children("*", "MeshInstance3D", true, false):
+				_hide(mi)
+			var k := (trunk.mesh as CylinderMesh).height / DH_TREE_H
+			var w := minf(k, DE_TRUNK_R)
+			var m := tree.instantiate() as Node3D
+			m.name = "Detailed Tree"
+			m.rotation.x = trunk.rotation.x
+			m.scale = Vector3(w, k, w)
+			t.add_child(m)
+			out.trees += 1
+	var mush := _scene(DH_MUSHROOMS)
+	var glow := scene.get_node_or_null("Glow")
+	if mush and glow:
+		for cl in glow.get_children():
+			if cl.get_script() != null or not (cl is Node3D):
+				continue
+			var col := Color.WHITE
+			var caps := 0
+			for c in cl.get_children():
+				if c is MeshInstance3D:
+					var mn := _mat_name(c)
+					if mn.begins_with("Glow Cap"):
+						col = ((c as MeshInstance3D).material_override as StandardMaterial3D).albedo_color
+						caps += 1
+					if mn.begins_with("Glow Cap") or mn == "Stalk":
+						_hide(c)
+			if caps == 0:
+				continue
+			var m := mush.instantiate() as Node3D
+			out.mushrooms += 1
+			m.name = "Detailed Mushrooms"
+			m.rotation.y = fposmod((cl as Node3D).position.x * 1.7 + (cl as Node3D).position.z * 0.9, TAU)
+			_glow_caps(m, col)
+			cl.add_child(m)
+	var lg := scene.get_node_or_null("Hollow Log") as Node3D
+	var stone_mesh := _mesh_of(_scene(DE + "path_stone.glb"))
+	if lg:
+		var log_m := _scene(DH_LOG)
+		var stones := []
+		for c in lg.get_children():
+			if not (c is MeshInstance3D):
+				continue
+			var mn := _mat_name(c)
+			if mn == "Path Stone" and stone_mesh:
+				stones.append((c as MeshInstance3D).transform)
+				_hide(c)
+			elif log_m and (mn == "Log Wood" or mn == "Log Inside" or mn == "Log Moss"):
+				_hide(c)
+		if log_m:
+			var m := log_m.instantiate() as Node3D
+			m.name = "Detailed Log"
+			m.position = DE_LOG_AT
+			m.scale = Vector3.ONE * DE_LOG_K
+			holder.add_child(m)
+			out.log = 1
+		if stones.size() > 0:
+			_multi(holder, stone_mesh, stones, "Path Stones")
+			out.stones = stones.size()
+	var gate := scene.get_node_or_null("Gate Home") as Node3D
+	var gate_m := _scene(DE + "old_gate.glb")
+	if gate and gate_m:
+		for c in gate.get_children():
+			if c is MeshInstance3D and (_mat_name(c) == "Old Wall Stone" or _mat_name(c) == "Gate Iron"):
+				_hide(c)
+		var m := gate_m.instantiate() as Node3D
+		m.name = "Detailed Gate"
+		m.rotation.y = PI                  # its ivy (the model's +Z) faces in at the clearing
+		gate.add_child(m)
+		out.gate = 1
+	scene.add_child(holder)
 	return out
 
 
