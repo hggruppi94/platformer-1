@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The main friends have baked-in detail like Nina: Rex, Dash, Pip, Bruno, Melody, Heather and Bramble**
+  (Hayden: "I want you to keep baking details on assets in the game already as well"; every outdoor place was baked
+  already, so the friends came next). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** on Nina's kit (`tools/char_detail.py`): `tools/build_friend_detail.py <who>|all [<out.glb>]
+    [--size=2048]` (who: rex = wolf, dash = bike_boy, pip = moth_kid, bruno, melody, heather = cattle_girl,
+    bramble = plant_girl). Each model is exported from its `.blend` as before (shape, rig, weights, animations and
+    material names unchanged) with a "Detail" UV map and three baked textures (`<model>_detail_tint/normal/ao.png`):
+    fur strands and tufts, Pip's mane and wing scales, knit, ribbing, denim twill, canvas, leather grain, Heather's
+    horn rings, Bramble's leaf veins and bark, skin pores. Eyes, mouths, teeth, Dash's lens shine, Bruno's patch words,
+    Heather's glows and Bramble's lashes, trap teeth and dew stay crisp. Bruno's old empty UV map is dropped.
+  - Tests: new `tools/test_friend_detail.gd` (every part detailed but the crisp ones, rig and animations kept);
+    clothing_fit, clothes, quick_outfits, party, creator and routines (both runs) pass. Pictures:
+    `tools/capture_friend_detail.gd -- <folder> <model>` (project files, characters/friend-detail, before and after).
+  - My choices Hayden may change: how strong every texture is (the fur most of all).
+
 - 2026-11-24: **The Sinker Stones' cracks are an X, and the stones crumble apart instead of sinking** (Hayden: "You
   can make the split x-shaped and have it crumble apart instead of sink"). `stone_crack.gd` draws two crossing splits
   ("Arm 1", "Arm 2", 1.25 to 1.9 rad apart; their lips ease down where they meet, `meet_fade()`; metas `length` and
