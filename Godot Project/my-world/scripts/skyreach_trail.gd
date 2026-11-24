@@ -9,8 +9,10 @@ extends "res://scripts/boss_lair.gd"
 #
 # Inside, a path winds one and a half times round a mountain on its way up (about 400 m and 36 m high): a flat meadow at
 # the foot, then the trail with a cliff on the inside and a long drop on the outside (an unseen rail keeps you on it),
-# four Waystones that light as you pass and are where you start again if you fall or faint, and at the top a round
-# summit with the Seraph asleep in the middle (scripts/starhorn.gd), its three Star Shards and the treasure.
+# seven Waystones that light as you pass and are where you start again if you fall or faint, and at the top a round
+# summit with the Seraph asleep in the middle (scripts/starhorn.gd), its three Star Shards and the treasure. Since
+# 24 Nov 2026 each of those seven Waystones is also the way into a virtue trial (scripts/virtue_trial.gd), and a gate
+# of light just past it stays shut until that trial's done, so all seven stand between you and the top.
 #
 # The shape (all in this script, nothing in the .tscn): the trail's middle at angle a round the mountain's middle MID is
 #   MID + (sin a * r, h, -cos a * r), a from 0 to TURNS, r from R0 to R1, h from 0 to TOP
@@ -30,11 +32,21 @@ const FLAT_END := 0.3                     # the last bit of the trail (in radian
 const SAMPLES := 360
 const SUMMIT_R := 27.0
 const RAIL_H := 6.0                       # the unseen rail along the outside edge (higher than a double jump)
-const STONES := [0.02, 0.8, 1.6, 2.4]     # the Waystones, as fractions of PI round the trail (the fifth is on top)
+const STONES := [0.02, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4]   # the Waystones, as fractions of PI round the trail (one more on top)
 const FALL := 8.0                         # this far under the last Waystone and you float back to it
 const STONE_REACH := 3.5
 
+const VIRTUE := preload("res://scripts/virtue_trial.gd")
+const GATE_AFTER := 0.14                  # each Waystone's gate of light stands this far on (fractions of PI)
+const PORTAL_R := 1.35                    # hug a Waystone this close...
+const PORTAL_HOLD := 0.45                 # ...for this long and it takes you to its trial
+
 var stones: Array[Node3D] = []            # the Waystones in order, the summit's last
+var gates: Array = []                     # the gates of light, one after each trail Waystone (null once open)
+var _portal_t := 0.0
+var _portal_k := -1
+var _portal_block := -1                   # just back from this one's trial: not again until you've stepped away
+var _gate_said := -1
 var stone_at := 0                         # the last one lit
 var _fell_t := 0.0
 
@@ -94,6 +106,12 @@ func _enter_tree() -> void:
 	super._enter_tree()
 	# Back after a faint (the scene starts again): start at the last Waystone you lit, not right at the bottom
 	var k := int(Bosses.get_meta("lair_resume", 0)) if Bosses.has_meta("lair_resume") else 0
+	# Back from a virtue trial (scripts/virtue_trial.gd): beside the Waystone it began at, with every stone up to it lit
+	if Bosses.has_meta("virtue_back"):
+		_portal_block = int(Bosses.get_meta("virtue_back"))
+		Bosses.remove_meta("virtue_back")
+		k = maxi(k, _portal_block)
+		Bosses.set_meta("lair_resume", k)
 	if k > 0:
 		stone_at = k
 		var p := get_node_or_null("Player") as Node3D
@@ -126,6 +144,7 @@ func _build() -> void:
 	_mountain()
 	_summit()
 	_waystones()
+	_gates()
 	_scenery()
 	_heaven()
 	_sign(self, "The Skyreach Trail", Vector3(4.5, 0, 9), PI + 0.4, Color(0.92, 0.88, 0.78))
@@ -549,6 +568,147 @@ func _heaven() -> void:
 
 
 # -----------------------------------------------------------------------------
+# The virtue trials (24 Nov 2026, Hayden: "the way points can literally be invisible portals that transport you to
+# instances that have the same heavenly theme with different challenges", "based on the heavenly virtues", "Make them
+# not optional if you want to make it to the very end"). Each trail Waystone is a way into its trial
+# (scripts/virtue_trial.gd): hug it and you're there. Just past it a gate of light stands across the trail until
+# that trial's done, so the summit and the Seraph only come after all seven.
+# -----------------------------------------------------------------------------
+func _gates() -> void:
+	var opened := str(Bosses.get_meta("virtue_opened", "")) if Bosses.has_meta("virtue_opened") else ""
+	if opened != "":
+		Bosses.remove_meta("virtue_opened")
+	var marble := _mat("Gate Marble", Color(0.93, 0.91, 0.87), 0.35)
+	var gold := _mat("Gate Gold", Color(1.0, 0.76, 0.32), 0.3, 0.4, 0.8)
+	for k in STONES.size():
+		var v: Dictionary = VIRTUE.VIRTUES[k]
+		var col: Color = v.colour
+		var done := VIRTUE.is_done(str(v.id))
+		_portal_look(stones[k], col, done)
+		if done and str(v.id) != opened:
+			gates.append(null)
+			continue
+		var a := (float(STONES[k]) + GATE_AFTER) * PI
+		var g := Node3D.new()
+		g.name = "Virtue Gate %d" % (k + 1)
+		g.position = trail_point(a)
+		g.rotation.y = PI / 2.0 - a                          # (its local x runs across the trail, along out_dir)
+		g.set_meta("virtue", str(v.id))
+		add_child(g)
+		for side in [-1.0, 1.0]:
+			_cyl(g, "Post", 0.35, 0.45, 5.0, Vector3(side * (HALF + 0.3), 2.5, 0), marble, false)
+			_ball(g, "Post Top", 0.32, Vector3(side * (HALF + 0.3), 5.25, 0), gold, false)
+		_box(g, "Lintel", Vector3(2 * HALF + 1.4, 0.4, 0.5), Vector3(0, 5.2, 0), gold, false)
+		var veil := _mat("Gate Veil %s" % v.id, Color(col.r, col.g, col.b, 0.42), 0.2, 1.6)
+		veil.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var curtain := _box(g, "Veil", Vector3(2 * HALF + 0.4, 5.0, 0.08), Vector3(0, 2.5, 0), veil, false)
+		curtain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var bs := BoxShape3D.new()
+		bs.size = Vector3(2 * HALF + 2.0, 14.0, 0.6)
+		var body := _solid(g, "Gate Body", bs, Vector3(0, 7.0, 0))
+		body.add_to_group("no_climb")
+		body.add_to_group("no_paint")
+		var label := Label3D.new()
+		label.name = "Name"
+		label.text = "Trial of %s" % str(v.name)
+		label.font_size = 48
+		label.pixel_size = 0.008
+		label.modulate = Color(1.0, 0.9, 0.55)
+		label.outline_size = 10
+		label.outline_modulate = Color(0.2, 0.15, 0.3)
+		label.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
+		label.position = Vector3(0, 6.1, 0)
+		g.add_child(label)
+		gates.append(g)
+		if str(v.id) == opened:
+			_open_gate(k)
+
+
+func _portal_look(stone: Node3D, col: Color, done: bool) -> void:
+	# A slow ring of the virtue's light round the stone's foot and a faint pillar of it: done, the ring turns gold
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.75
+	ring.outer_radius = 0.9
+	var c := Color(1.0, 0.82, 0.4) if done else col
+	var mi := _mesh(stone, ring, Vector3(0, 0.15, 0), _mat("Portal Ring %s" % c.to_html(), c, 0.3, 2.2), false)
+	mi.name = "Portal Ring"
+	if not done:
+		var pillar := CylinderMesh.new()
+		pillar.top_radius = 0.55
+		pillar.bottom_radius = 0.7
+		pillar.height = 5.0
+		var pm := _mat("Portal Light %s" % col.to_html(), Color(col.r, col.g, col.b, 0.18), 0.2, 1.4)
+		pm.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var pl := _mesh(stone, pillar, Vector3(0, 2.5, 0), pm, false)
+		pl.name = "Portal Light"
+	stone.set_meta("virtue_done", done)
+
+
+func _open_gate(k: int) -> void:
+	# Coming back from its trial: the veil melts away in a shower of light, then the gate's gone for good
+	var g: Node3D = gates[k]
+	if g == null:
+		return
+	gates[k] = null
+	var body := g.get_node_or_null("Gate Body") as StaticBody3D
+	if body:
+		body.queue_free()
+	Juice.blip("chime", 1.5, -2.0)
+	Fx.burst(self, g.global_position + Vector3(0, 2.5, 0), Color(1.0, 0.85, 0.5), 30, 0.1, 4.0, 1.0, 1.4)
+	var t := g.create_tween()
+	t.tween_property(g, "scale", Vector3(1.0, 0.01, 1.0), 1.2).set_delay(0.8).set_trans(Tween.TRANS_QUAD)
+	t.tween_callback(g.queue_free)
+
+
+func gate_closed(k: int) -> bool:
+	return k < gates.size() and gates[k] != null and is_instance_valid(gates[k]) and gates[k].has_node("Gate Body")
+
+
+func _virtue_step(delta: float) -> void:
+	var p := _player.global_position
+	# Hug a Waystone whose trial isn't done and it takes you there
+	var near := -1
+	for k in STONES.size():
+		if bool(stones[k].get_meta("virtue_done", false)):
+			continue
+		var d := stones[k].global_position - p
+		if Vector2(d.x, d.z).length() < PORTAL_R and absf(d.y + 0.8) < 2.2:
+			near = k
+	if _portal_block >= 0:
+		var d0 := stones[_portal_block].global_position - p
+		if Vector2(d0.x, d0.z).length() > 2.5:
+			_portal_block = -1
+		elif near == _portal_block:
+			near = -1
+	if near >= 0 and near == _portal_k:
+		_portal_t += delta
+		if _portal_t >= PORTAL_HOLD:
+			_portal_t = 0.0
+			_portal_k = -1
+			enter_trial(near)
+			return
+	else:
+		_portal_k = near
+		_portal_t = 0.0
+	# Walk up to a shut gate: say which Waystone opens it (once each)
+	for k in gates.size():
+		if gate_closed(k) and k != _gate_said and p.distance_to(gates[k].global_position) < 7.0:
+			_gate_said = k
+			Game.message("A gate of light. Touch the Waystone behind you for the Trial of %s." % str(VIRTUE.VIRTUES[k].name))
+
+
+func enter_trial(k: int) -> void:
+	_light(k, false)
+	stone_at = maxi(stone_at, k)
+	Bosses.set_meta("lair_resume", stone_at)
+	var a := float(STONES[k]) * PI
+	# (back beside the stone, a step down the trail from it, facing on up the trail)
+	var back := _stone_spot(k) + Vector3(0, 1.0, 0)
+	Fx.burst(self, stones[k].global_position + Vector3(0, 1.0, 0), VIRTUE.VIRTUES[k].colour, 16, 0.08, 3.0, 1.0, 0.6)
+	VIRTUE.enter(str(VIRTUE.VIRTUES[k].id), k, back, PI / 2.0 - a)
+
+
+# -----------------------------------------------------------------------------
 # Every frame: the Waystones, falling off, the clouds
 # -----------------------------------------------------------------------------
 func _lair_step(delta: float) -> void:
@@ -573,6 +733,7 @@ func _lair_step(delta: float) -> void:
 			back_to_stone()
 	else:
 		_fell_t = 0.0
+	_virtue_step(delta)
 
 
 func back_to_stone() -> void:

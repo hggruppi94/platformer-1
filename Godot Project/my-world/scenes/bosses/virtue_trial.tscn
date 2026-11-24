@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/virtue_trial.gd" id="1_6k306"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_mopac"]
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="3_5ts47"]
+
+[node name="TheVirtueTrial" type="Node3D" unique_id=1653801898]
+script = ExtResource("1_6k306")
+
+[node name="Entrance" type="Marker3D" parent="." unique_id=684895521]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3)
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=822216577 instance=ExtResource("2_mopac")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 3)
+script = ExtResource("3_5ts47")

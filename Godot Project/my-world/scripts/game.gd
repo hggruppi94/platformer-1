@@ -94,6 +94,13 @@ const START_SCENE := "res://scenes/earth/earth.tscn"   # ...and a game starts (o
 const NEW_GAME_SPAWN := "HomeSpawn"      # in the player's house on Earth (the main scene)
 const NEW_GAME_MESSAGE := "Welcome home to Stars Hollow!"                    # no spoilers: the oak keeps its secret till midnight
 const AUTOSAVE_INTERVAL := 30.0
+const VIRTUE_TRIAL_PATH := "res://scripts/virtue_trial.gd"
+
+# The virtue trials hold Charity's sparkles while it's on and save from their Waystone, so the save asks them.
+# Loaded when needed rather than preloaded: that script extends a level script that itself talks to this autoload.
+func _virtue_trial() -> Script:
+	return load(VIRTUE_TRIAL_PATH)
+
 var _autosave_timer := AUTOSAVE_INTERVAL
 var _resume := {}                # where to put Nina on startup: {scene, position, yaw}; used once
 var _last_place := {}            # her last known {scene, position, yaw}, for saves made mid scene change
@@ -378,7 +385,7 @@ func save_game() -> void:
 		"hp": hp, "max_hp": max_hp, "mp": mp, "max_mp": max_mp, "mp_level": mp_level, "max_sp": max_sp,
 		"items": items, "riding": riding, "hat": hat, "outfit": outfit, "outfits": outfits, "looks": looks, "saved_outfits": saved_outfits, "hero": hero, "needs_creator": needs_creator, "home": home,
 		"popper_colour": popper_colour, "play_time": play_time, "hero_ride": hero_ride,
-		"sparkles": sparkles, "sparkles_taken": sparkles_taken,
+		"sparkles": sparkles + _virtue_trial().held(), "sparkles_taken": sparkles_taken,
 		"day": Clock.day, "minutes": Clock.minutes, "earth_minutes": Clock.earth_minutes,
 		"calendar_offset": Clock.calendar_offset, "seasons_open": Clock.seasons_open.duplicate(),
 		"dialogue": Dialogue.save_data(),
@@ -403,6 +410,8 @@ func save_game() -> void:
 	var scene := get_tree().current_scene
 	if not _resume.is_empty():
 		data.merge(_resume)      # still on the way back to where she saved: keep that place
+	elif not _virtue_trial().save_place().is_empty():
+		data.merge(_virtue_trial().save_place())  # inside a virtue trial: saved back at its Waystone (scripts/virtue_trial.gd)
 	elif not Races.save_place().is_empty():
 		data.merge(Races.save_place())     # on a race circuit: saved back at its race gate (scripts/races.gd)
 	elif player and scene and scene.scene_file_path != "" and player.is_inside_tree():

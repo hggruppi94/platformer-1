@@ -60,6 +60,9 @@ func _run() -> void:
 	game.hold_saves = true
 	root.get_node("Clock").set("pulls_home", false)
 	root.get_node("Dialogue").flags.erase("starhorn_calmed")
+	# The trail's gates of light are tested by test_virtue_trials.gd; here every trial's done, so the way is open
+	for v in ["humility", "patience", "kindness", "temperance", "charity", "diligence", "purity"]:
+		root.get_node("Dialogue").flags["virtue_" + v] = true
 
 	# --- The cleft in town ---
 	change_scene_to_file(TOWN)
