@@ -132,6 +132,13 @@ func _run() -> void:
 					for i in int(k[1]):
 						sw.call("_sinkers_step", 1.0 / 60.0)
 					await _shot(k[0])
+					if k[0] == "06c_crumble":           # (and close up, to see the broken faces)
+						var back := cam.global_position
+						cam.global_position = sk.global_position + Vector3(1.0, 1.1, 0.9)
+						cam.look_at(sk.global_position + Vector3(0, 0.25, 0))
+						await _shot("06c_crumble_close")
+						cam.global_position = back
+						cam.look_at(sk.global_position + Vector3(0, 0.1, 0))
 				break
 	_finish()
 

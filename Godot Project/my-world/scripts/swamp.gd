@@ -1303,6 +1303,22 @@ func _sinkers_step(delta: float) -> void:
 # along its X (stone_crack.gd meta "dirs") and a spray of crumbs tumble apart and sink into the goo; when it's time they
 # rise back up and knit together, and the real stone's back. The body never moves, so tests and saves see it at rest.
 func _crumble(s: Node3D) -> void:
+	# The X's angles, from the crack (stone_crack.gd), sorted round
+	var rock: Color = s.get_meta("crack_rock", lay.stone.darkened(0.35))
+	var glow: Color = s.get_meta("crack_glow", lay.water.glow_colour)
+	var crack := s.get_node_or_null(STONE_CRACK.NAME)
+	var dirs: Array = crack.get_meta("dirs", []) if crack else []
+	if dirs.size() < 4:
+		dirs = [0.0, PI * 0.5, PI, PI * 1.5]
+	var a: Array = []
+	for d in dirs:
+		a.append(fposmod(float(d), TAU))
+	a.sort()
+	# The real pieces: the stone as it's drawn (baked or plain, its crack and moss too) cut along the X, worked out
+	# once a stone and kept (Hayden: "make the crumble detailed as well")
+	if not s.has_meta("crumble_cut"):
+		s.set_meta("crumble_cut", _cut_stone(s, a, rock, glow))
+	var cut: Array = s.get_meta("crumble_cut")
 	for c in s.get_children():
 		if c is CollisionShape3D:
 			(c as CollisionShape3D).set_deferred("disabled", true)
@@ -1316,15 +1332,6 @@ func _crumble(s: Node3D) -> void:
 	var rubble := Node3D.new()
 	rubble.name = "Rubble"
 	s.add_child(rubble)
-	var rock: Color = s.get_meta("crack_rock", lay.stone.darkened(0.35))
-	var crack := s.get_node_or_null(STONE_CRACK.NAME)
-	var dirs: Array = crack.get_meta("dirs", []) if crack else []
-	if dirs.size() < 4:
-		dirs = [0.0, PI * 0.5, PI, PI * 1.5]
-	var a: Array = []
-	for d in dirs:
-		a.append(fposmod(float(d), TAU))
-	a.sort()
 	var m := StandardMaterial3D.new()
 	m.resource_name = "Sinker Rubble"
 	m.vertex_color_use_as_albedo = true
@@ -1337,22 +1344,31 @@ func _crumble(s: Node3D) -> void:
 		var out := Vector3(cos(mid), 0, -sin(mid))
 		var mi := MeshInstance3D.new()
 		mi.name = "Piece %d" % (i + 1)
-		mi.mesh = _wedge(a0 + 0.03, a1 - 0.03, rock)
-		mi.material_override = m
+		var home := Vector3.ZERO
+		if i < cut.size() and cut[i] != null:
+			mi.mesh = cut[i].mesh
+			home = cut[i].home
+		else:                                          # (headless runs keep no mesh data to cut: a plain slice)
+			mi.mesh = _wedge(a0 + 0.03, a1 - 0.03, rock)
+			mi.material_override = m
+		mi.position = home
 		rubble.add_child(mi)
-		pieces.append({"node": mi, "vel": out * CRUMBLE_OUT * randf_range(0.8, 1.2) + Vector3(0, randf_range(1.2, 2.0), 0),
+		pieces.append({"node": mi, "home": home,
+			"vel": out * CRUMBLE_OUT * randf_range(0.8, 1.2) + Vector3(0, randf_range(1.2, 2.0), 0),
 			"spin": Vector3(randf_range(-3, 3), randf_range(-1.5, 1.5), randf_range(-3, 3)), "big": true})
-	for i in 14:
+	# Crumbs: jagged little chunks of the same rock, and a few chips still glowing from the crack's depths
+	var chip_glow := _mat("Sinker Crack Chip", glow, 0.6, 1.2)
+	for i in 16:
 		var pm := MeshInstance3D.new()
-		var sm := SphereMesh.new()
-		sm.radius = 0.5
-		sm.height = 1.0
-		sm.radial_segments = 5
-		sm.rings = 2
-		pm.mesh = sm
-		var sz := randf_range(0.06, 0.16)
-		pm.scale = Vector3(sz * 1.3, sz * 0.8, sz)
-		pm.material_override = _mat("Sinker Crumb", rock.darkened(randf_range(0.0, 0.3)))
+		pm.mesh = _chunk(i % CHUNKS)
+		var hot := i >= 13
+		var sz := randf_range(0.05, 0.09) if hot else randf_range(0.07, 0.2)
+		pm.scale = Vector3(sz * randf_range(0.9, 1.4), sz * randf_range(0.6, 1.0), sz)
+		pm.rotation = Vector3(randf() * TAU, randf() * TAU, randf() * TAU)
+		if hot:
+			pm.material_override = chip_glow
+		else:
+			pm.material_override = _mat("Sinker Crumb", rock.darkened(randf_range(0.0, 0.3)))
 		var ang := randf() * TAU
 		pm.position = Vector3(cos(ang), 0, sin(ang)) * randf_range(0.0, 0.5) + Vector3(0, 0.3, 0)
 		rubble.add_child(pm)
@@ -1363,7 +1379,293 @@ func _crumble(s: Node3D) -> void:
 	Juice.blip("thud", 0.55, -6.0)
 	Juice.blip("squish", 0.7, -9.0)
 	Fx.burst(self, s.global_position + Vector3(0, 0.4, 0), rock.lightened(0.15), 14, 0.08, 3.0, -6.0, 0.6)
-	Fx.burst(self, s.global_position + Vector3(0, 0.2, 0), (lay.water.glow_colour as Color), 10, 0.07, 2.0, -3.0, 0.5)
+	Fx.burst(self, s.global_position + Vector3(0, 0.25, 0), rock.darkened(0.2), 10, 0.04, 1.6, -2.0, 0.9)   # (dust)
+	Fx.burst(self, s.global_position + Vector3(0, 0.2, 0), glow, 10, 0.07, 2.0, -3.0, 0.5)
+
+
+const CHUNKS := 4
+static var _chunks: Array = []
+
+
+static func _chunk(k: int) -> ArrayMesh:
+	# A jagged chip of broken rock: a lumpy, flat-faced ball (made once and shared)
+	while _chunks.size() < CHUNKS:
+		var seed := _chunks.size() * 37 + 5
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var rings := 4
+		var segs := 6
+		var pts := []
+		for r in rings + 1:
+			var row := []
+			var phi := PI * float(r) / rings
+			for q in segs:
+				var th := TAU * float(q) / segs
+				var h := sin(float(seed + r * 13 + q * 7) * 12.9898) * 43758.5453
+				var wob := 0.72 + 0.5 * (h - floorf(h))
+				var p := Vector3(sin(phi) * cos(th), cos(phi), sin(phi) * sin(th)) * wob * 0.5
+				row.append(p)
+			pts.append(row)
+		for r in rings:
+			for q in segs:
+				var p00: Vector3 = pts[r][q]
+				var p01: Vector3 = pts[r][(q + 1) % segs]
+				var p10: Vector3 = pts[r + 1][q]
+				var p11: Vector3 = pts[r + 1][(q + 1) % segs]
+				for t in [[p00, p10, p11], [p00, p11, p01]]:
+					var v: Array = t
+					# (Godot's front faces go clockwise seen from outside)
+					if ((v[1] as Vector3) - v[0]).cross((v[2] as Vector3) - v[0]).dot((v[0] + v[1] + v[2]) / 3.0) > 0.0:
+						v = [v[0], v[2], v[1]]
+					for x in v:
+						st.set_uv(Vector2((x as Vector3).x + 0.5, (x as Vector3).y + 0.5) * 0.35)
+						st.add_vertex(x)
+		st.generate_normals()
+		_chunks.append(st.commit())
+	return _chunks[k % CHUNKS]
+
+
+func _cut_stone(s: Node3D, a: Array, rock: Color, glow: Color) -> Array:
+	# Every mesh drawn for the stone, in the body's own space, cut into the slices between the X's arms. Each slice
+	# keeps the stone's own materials, UVs and normals where it was the stone's outside, and gets broken faces of its
+	# own where it was cut. Its centre is its "home", so it spins about itself as it tumbles.
+	var srcs := []
+	var inv := s.global_transform.affine_inverse()
+	for mi in s.find_children("*", "MeshInstance3D", true, false):
+		var g := mi as MeshInstance3D
+		if g.mesh == null or not g.is_visible_in_tree() or g.layers == 0 or g.has_meta("detail_prop_old"):
+			continue
+		var xf: Transform3D = inv * g.global_transform
+		for si in g.mesh.get_surface_count():
+			var arr: Array = (g.mesh as PrimitiveMesh).get_mesh_arrays() if g.mesh is PrimitiveMesh else g.mesh.surface_get_arrays(si)
+			if arr.is_empty() or arr[Mesh.ARRAY_VERTEX] == null or (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).is_empty():
+				continue
+			var mat: Material = g.material_override
+			if mat == null:
+				mat = g.get_surface_override_material(si)
+			if mat == null:
+				mat = g.mesh.surface_get_material(si)
+			srcs.append({"arr": arr, "xf": xf, "mat": mat, "n": (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()})
+			if g.mesh is PrimitiveMesh:
+				break
+	if srcs.is_empty():
+		return []
+	var out := []
+	for i in a.size():
+		var a0: float = a[i]
+		var a1: float = a[(i + 1) % a.size()] + (TAU if i == a.size() - 1 else 0.0)
+		out.append(_slice(srcs, a0, a1, rock, glow, i))
+	return out
+
+
+static func _dir(ang: float) -> Vector3:
+	return Vector3(cos(ang), 0, -sin(ang))
+
+
+func _slice(srcs: Array, a0: float, a1: float, rock: Color, glow: Color, idx: int) -> Variant:
+	# The two cut planes stand up through the stone's middle along arms a0 and a1; keep what's between them
+	var n0 := _dir(a0 + PI * 0.5)
+	var n1 := _dir(a1 - PI * 0.5)
+	var planes := [n0, n1]
+	var edges := [[], []]                      # (where each plane cut through: the broken faces' outline)
+	var surfs := []
+	var sum := Vector3.ZERO
+	var cnt := 0
+	for sr in srcs:
+		var arr: Array = sr.arr
+		var xf: Transform3D = sr.xf
+		var nb := xf.basis.inverse().transposed()
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var ns = arr[Mesh.ARRAY_NORMAL]
+		var ts = arr[Mesh.ARRAY_TANGENT]
+		var cs = arr[Mesh.ARRAY_COLOR]
+		var uvs = arr[Mesh.ARRAY_TEX_UV]
+		var uv2s = arr[Mesh.ARRAY_TEX_UV2]
+		var idx_a = arr[Mesh.ARRAY_INDEX]
+		var has_n: bool = ns != null and (ns as PackedVector3Array).size() == vs.size()
+		var has_t: bool = ts != null and (ts as PackedFloat32Array).size() == vs.size() * 4
+		var has_c: bool = cs != null and (cs as PackedColorArray).size() == vs.size()
+		var has_u: bool = uvs != null and (uvs as PackedVector2Array).size() == vs.size()
+		var has_u2: bool = uv2s != null and (uv2s as PackedVector2Array).size() == vs.size()
+		var has_i: bool = idx_a != null and (idx_a as PackedInt32Array).size() > 0
+		var tri_n: int = (idx_a as PackedInt32Array).size() if has_i else vs.size()
+		var o_v := PackedVector3Array()
+		var o_n := PackedVector3Array()
+		var o_t := PackedFloat32Array()
+		var o_c := PackedColorArray()
+		var o_u := PackedVector2Array()
+		var o_u2 := PackedVector2Array()
+		var k := 0
+		while k + 2 < tri_n:
+			var poly := []
+			for j in 3:
+				var vi: int = (idx_a as PackedInt32Array)[k + j] if has_i else k + j
+				var tan := Vector4(1, 0, 0, 1)
+				if has_t:
+					var tf: PackedFloat32Array = ts
+					var tv := xf.basis * Vector3(tf[vi * 4], tf[vi * 4 + 1], tf[vi * 4 + 2])
+					tan = Vector4(tv.x, tv.y, tv.z, tf[vi * 4 + 3])
+				poly.append([xf * vs[vi], (nb * (ns as PackedVector3Array)[vi]).normalized() if has_n else Vector3.UP, tan,
+					(cs as PackedColorArray)[vi] if has_c else Color.WHITE,
+					(uvs as PackedVector2Array)[vi] if has_u else Vector2.ZERO,
+					(uv2s as PackedVector2Array)[vi] if has_u2 else Vector2.ZERO])
+			k += 3
+			for pi in 2:
+				poly = _clip(poly, planes[pi], edges[pi])
+				if poly.size() < 3:
+					break
+			if poly.size() < 3:
+				continue
+			for j in range(1, poly.size() - 1):
+				for q in [poly[0], poly[j], poly[j + 1]]:
+					o_v.append(q[0])
+					o_n.append((q[1] as Vector3).normalized())
+					var t4: Vector4 = q[2]
+					var tn := Vector3(t4.x, t4.y, t4.z).normalized()
+					o_t.append_array([tn.x, tn.y, tn.z, 1.0 if t4.w >= 0.0 else -1.0])
+					o_c.append(q[3])
+					o_u.append(q[4])
+					o_u2.append(q[5])
+					sum += q[0]
+					cnt += 1
+		if o_v.is_empty():
+			continue
+		surfs.append({"v": o_v, "n": o_n, "t": o_t if has_t else null, "c": o_c if has_c else null,
+			"u": o_u if has_u else null, "u2": o_u2 if has_u2 else null, "mat": sr.mat})
+	if cnt == 0:
+		return null
+	var home := sum / cnt
+	home.y = 0.0
+	var mesh := ArrayMesh.new()
+	for sf in surfs:
+		var arr := []
+		arr.resize(Mesh.ARRAY_MAX)
+		var v: PackedVector3Array = sf.v
+		for j in v.size():
+			v[j] -= home
+		arr[Mesh.ARRAY_VERTEX] = v
+		arr[Mesh.ARRAY_NORMAL] = sf.n
+		if sf.t != null:
+			arr[Mesh.ARRAY_TANGENT] = sf.t
+		if sf.c != null:
+			arr[Mesh.ARRAY_COLOR] = sf.c
+		if sf.u != null:
+			arr[Mesh.ARRAY_TEX_UV] = sf.u
+		if sf.u2 != null:
+			arr[Mesh.ARRAY_TEX_UV2] = sf.u2
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		if sf.mat:
+			mesh.surface_set_material(mesh.get_surface_count() - 1, sf.mat)
+	# The broken faces: rough, jagged rock where it snapped, darker inside, and the poison's glow seeping up the middle
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var made := false
+	for pi in 2:
+		var ang: float = a0 if pi == 0 else a1
+		made = _break_face(st, edges[pi], _dir(ang), planes[pi], home, rock, glow, idx * 2 + pi) or made
+	if made:
+		st.generate_normals()
+		st.commit(mesh)
+		var bm := StandardMaterial3D.new()
+		bm.resource_name = "Sinker Break"
+		bm.vertex_color_use_as_albedo = true
+		bm.roughness = 1.0
+		mesh.surface_set_material(mesh.get_surface_count() - 1, bm)
+	return {"mesh": mesh, "home": home}
+
+
+static func _clip(poly: Array, n: Vector3, edge: Array) -> Array:
+	# Sutherland-Hodgman against one plane through the middle (keep n . p >= 0), every attribute carried along
+	var out := []
+	var cnt := poly.size()
+	for j in cnt:
+		var p: Array = poly[j]
+		var q: Array = poly[(j + 1) % cnt]
+		var dp := n.dot(p[0])
+		var dq := n.dot(q[0])
+		if dp >= 0.0:
+			out.append(p)
+		if (dp >= 0.0) != (dq >= 0.0):
+			var t := dp / (dp - dq)
+			var r := [(p[0] as Vector3).lerp(q[0], t), (p[1] as Vector3).lerp(q[1], t), (p[2] as Vector4).lerp(q[2], t),
+				(p[3] as Color).lerp(q[3], t), (p[4] as Vector2).lerp(q[4], t), (p[5] as Vector2).lerp(q[5], t)]
+			out.append(r)
+			edge.append(r[0])
+	return out
+
+
+func _break_face(st: SurfaceTool, pts: Array, along: Vector3, inward: Vector3, home: Vector3, rock: Color,
+		glow: Color, seed: int) -> bool:
+	# The outline the cut left on this plane, as how far out the stone reaches at each height; then a lumpy grid over
+	# it, pushed a little into the piece so the two faces never show through each other
+	if pts.size() < 3:
+		return false
+	var ymin := INF
+	var ymax := -INF
+	for p in pts:
+		ymin = minf(ymin, (p as Vector3).y)
+		ymax = maxf(ymax, (p as Vector3).y)
+	if ymax - ymin < 0.05:
+		return false
+	var ny := 12
+	var reach := PackedFloat32Array()
+	reach.resize(ny + 1)
+	reach.fill(-1.0)
+	for p in pts:
+		var r := (p as Vector3).dot(along)
+		var j := clampi(int(round(((p as Vector3).y - ymin) / (ymax - ymin) * ny)), 0, ny)
+		reach[j] = maxf(reach[j], r)
+	for j in ny + 1:                               # (fill gaps from the neighbours)
+		if reach[j] < 0.0:
+			var lo := j - 1
+			while lo >= 0 and reach[lo] < 0.0:
+				lo -= 1
+			var hi := j + 1
+			while hi <= ny and reach[hi] < 0.0:
+				hi += 1
+			reach[j] = reach[lo] if lo >= 0 and (hi > ny or reach[hi] < 0.0) else (reach[hi] if hi <= ny and lo < 0 else
+				((reach[lo] + reach[hi]) * 0.5 if lo >= 0 and hi <= ny else 0.5))
+	var nr := 9
+	var grid := []
+	var cols := []
+	var hash := func(x: int, y: int) -> float:
+		var h := sin(float(x * 127 + y * 311 + seed * 74)) * 43758.5453
+		return h - floorf(h)
+	for j in ny + 1:
+		var row := []
+		var crow := []
+		var y := lerpf(ymin, ymax, float(j) / ny)
+		for i in nr + 1:
+			var f := float(i) / nr
+			var r: float = reach[j] * 0.985 * f
+			var edge := i == nr or j == 0 or j == ny
+			var lump: float = 0.0 if edge else (0.02 + 0.09 * hash.call(i, j)) * (1.0 - absf(f - 0.5) * 1.4)
+			var jy: float = 0.0 if edge else (hash.call(i + 9, j + 3) - 0.5) * 0.06
+			var jr: float = 0.0 if edge else (hash.call(i + 4, j + 7) - 0.5) * 0.06
+			row.append(along * (r + jr) + Vector3(0, y + jy, 0) + inward * (0.008 + lump) - home)
+			# Darker deep inside, flecked, and the poison's glow seeping up the middle near the top
+			var c := rock.darkened(0.1 + 0.3 * hash.call(i + 2, j + 5) + 0.15 * (1.0 - f)).lerp(rock.lightened(0.25), 0.35 * hash.call(i + 6, j + 1))
+			var depth := clampf(1.0 - f * 2.2, 0.0, 1.0) * clampf((y - lerpf(ymin, ymax, 0.35)) / ((ymax - ymin) * 0.65), 0.0, 1.0)
+			c = c.lerp(glow, depth * 0.55)
+			crow.append(c)
+		grid.append(row)
+		cols.append(crow)
+	var outward := -inward
+	for j in ny:
+		for i in nr:
+			var quad := [[grid[j][i], grid[j + 1][i], grid[j + 1][i + 1]], [grid[j][i], grid[j + 1][i + 1], grid[j][i + 1]]]
+			var qc := [[cols[j][i], cols[j + 1][i], cols[j + 1][i + 1]], [cols[j][i], cols[j + 1][i + 1], cols[j][i + 1]]]
+			for t in 2:
+				var v: Array = quad[t]
+				var c: Array = qc[t]
+				# (Godot's front faces go clockwise seen from outside: one whose right-hand normal points out is turned)
+				if ((v[1] as Vector3) - v[0]).cross((v[2] as Vector3) - v[0]).dot(outward) > 0.0:
+					v = [v[0], v[2], v[1]]
+					c = [c[0], c[2], c[1]]
+				for q in 3:
+					st.set_color(c[q])
+					st.add_vertex(v[q])
+	return true
 
 
 func _wedge(a0: float, a1: float, rock: Color) -> ArrayMesh:
@@ -1465,7 +1767,7 @@ func _rubble_rise(s: Node3D, k: float) -> void:
 	for pc in (rubble.get_meta("pieces") as Array):
 		if pc.big and pc.has("from_p"):
 			var n := pc.node as Node3D
-			n.position = (pc.from_p as Vector3).lerp(Vector3.ZERO, e)
+			n.position = (pc.from_p as Vector3).lerp(pc.get("home", Vector3.ZERO), e)
 			n.rotation = (pc.from_r as Vector3).lerp(Vector3.ZERO, e)
 
 
