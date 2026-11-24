@@ -10,8 +10,8 @@
 #   (or: blender -b --python tools/build_friend_detail.py -- <who> [<out.glb>])
 #
 #   <who>: rex (wolf), dash (bike_boy), pip (moth_kid), bruno, melody, heather (cattle_girl), bramble (plant_girl),
-#   or "all". The out path defaults to the model in models/characters/. Reads source_art/characters/<model>.blend
-#   and never saves over it. About 3 to 5 minutes each on 4 cloud cores.
+#   girl (human_girl) and boy (human_boy), the hero's two bodies in the creator, or "all". The out path defaults
+#   to the model in models/characters/. Reads source_art/characters/<model>.blend and never saves over it. About 3 to 5 minutes each on 4 cloud cores.
 
 import sys
 from pathlib import Path
@@ -256,6 +256,18 @@ CHARS = {
                   "Leaf Teal": "leaf", "Leaf Pink": "leaf", "Leaf Orange": "leaf", "Vein": "leaf", "Trap": "leaf",
                   "Bark": "bark", "Bark Line": "bark", "Vine": "bark", "Root": "bark", "Root Dark": "bark",
                   "Trap Inside": "skin"},
+    },
+    "girl": {
+        "model": "human_girl", "body": "Human Girl", "rig": "HumanGirlRig", "hair": ["Hair"],
+        "flat": EYES + ["Lash", "Blush", "Badge"],
+        "parts": {"Top": "knit", "Top Shade": "knit", "Skirt": "cotton", "Skirt Shade": "cotton", "Hair": "hair",
+                  "Brow": "hair", "Shoes": "canvas", "Sole": "sole"},
+    },
+    "boy": {
+        "model": "human_boy", "body": "Human Boy", "rig": "HumanBoyRig", "hair": ["Hair"],
+        "flat": EYES + ["Blush", "Star"],
+        "parts": {"Top": "knit", "Top Shade": "knit", "Shorts": "denim", "Shorts Shade": "denim", "Hair": "hair",
+                  "Brow": "hair", "Shoes": "canvas", "Sole": "sole"},
     },
 }
 

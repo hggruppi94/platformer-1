@@ -113,6 +113,11 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
     clothing_fit, clothes, quick_outfits, party, creator and routines (both runs) pass. Pictures:
     `tools/capture_friend_detail.gd -- <folder> <model>` (project files, characters/friend-detail, before and after).
   - My choices Hayden may change: how strong every texture is (the fur most of all).
+  - **The hero's girl and boy bodies too** (`build_friend_detail.py girl|boy`, `human_girl.glb` / `human_boy.glb`):
+    knit tops, cotton skirt, denim shorts, hair strands, canvas shoes and skin pores; eyes, mouth, lashes, blush, the
+    girl's badge and the boy's star stay crisp. The creator's sculpting, clothes, skins and Void look work as before
+    (creator, clothing_fit, clothes, quick_outfits, void_look, party, friend_detail pass). Pictures in the project
+    files under characters/hero-detail.
 
 - 2026-11-24: **The Seraph calls beams of light down from the sky, drawn as pixel art with a splash where they land**
   (Hayden: "I want its attacks to include beams of light from the sky", then "add pixel [fx] to the light? With a

@@ -1,8 +1,9 @@
 extends SceneTree
 
 # Checks the friends' baked-in detail (24 Nov 2026, tools/build_friend_detail.py): every part of Rex, Dash, Pip,
-# Bruno, Melody, Heather and Bramble has the baked tint, normal map and shadows, except the parts kept crisp (eyes,
-# mouths, glows), and each model still has its rig, its animations and every material name the game recolours by.
+# Bruno, Melody, Heather, Bramble and the hero's girl and boy bodies has the baked tint, normal map and shadows,
+# except the parts kept crisp (eyes, mouths, glows), and each model still has its rig, its animations and every
+# material name the game recolours by.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_friend_detail.gd
 #
@@ -18,6 +19,10 @@ const FRIENDS := {
 	"cattle_girl": {"flat": ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine", "Mouth", "Glow Teal", "Glow Violet"],
 		"parts": 32, "anims": 3},
 	"plant_girl": {"flat": ["Lash", "Mouth", "Trap Teeth", "Dew"], "parts": 23, "anims": 10},
+	"human_girl": {"flat": ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine", "Mouth", "Tongue", "Lash", "Blush",
+		"Badge"], "parts": 21, "anims": 3},
+	"human_boy": {"flat": ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine", "Mouth", "Tongue", "Blush", "Star"],
+		"parts": 20, "anims": 3},
 }
 
 var failures := 0
