@@ -18,15 +18,18 @@ extends CharacterBody3D
 #     That's PHASES, _turn() and the Star Shards below.
 #
 # The fight, in three phases (HITS bubbles, stomps or rolls to calm it, at most MAX_PER_DAZE in a row):
-#   1. Stomp (a ring: jump it) and charge (arrows: step aside). After each it's puffed out for a moment: pop it then.
+#   1. Stomp (a ring: jump it), charge (arrows: step aside) and a beam of light from the sky (a thread of light comes
+#      down first: step out from under it). After each it's puffed out for a moment: pop it then.
 #   2. It rears up and roars (a big ring), and its wings shine a shield round it. Three Star Shards glow on pillars
 #      round the summit: break them (a bubble, or jump into one) and it's knocked over for a long time. Falling stars
-#      (a shadow: move off it) join in.
-#   3. It roars again and gets quicker, and adds its big breath (arrows pointing in: jump free).
+#      (a shadow: move off it) join in, and its beams come down in a row walking out through where you stand.
+#   3. It roars again and gets quicker, and adds its big breath (arrows pointing in: jump free); three beams chase
+#      after you one by one.
 # Walk back down the trail and it settles back to sleep, all its puff back, no harm done. Kid-safe: a bump, never more.
 
 const TELL := preload("res://scripts/boss_tell.gd")
 const SHOT_TARGET := preload("res://scripts/shot_target.gd")
+const SKY_FX := preload("res://scripts/sky_light_fx.gd")
 
 const TITLE := "The Seraph"           # (its node, flag and hat id still say starhorn: saves and tests use them)
 const COLOUR := Color(1.0, 0.85, 0.45)
@@ -36,9 +39,9 @@ const MAX_PER_DAZE := 3
 const STAGGER_HITS := 4
 # health left (1 is full) at which each phase ends, its moves, and how much quicker it is
 const PHASES := [
-	{"until": 2.0 / 3.0, "moves": ["jump", "dash"], "quick": 1.0, "daze": 3.0},
-	{"until": 1.0 / 3.0, "moves": ["drop", "jump", "dash"], "quick": 1.15, "daze": 3.0, "shards": true},
-	{"until": 0.0, "moves": ["pull", "dash", "drop", "jump"], "quick": 1.3, "daze": 2.4},
+	{"until": 2.0 / 3.0, "moves": ["jump", "beams", "dash"], "quick": 1.0, "daze": 3.0},
+	{"until": 1.0 / 3.0, "moves": ["drop", "beams", "jump", "dash"], "quick": 1.15, "daze": 3.0, "shards": true},
+	{"until": 0.0, "moves": ["pull", "beams", "dash", "drop", "jump"], "quick": 1.3, "daze": 2.4},
 ]
 const WAKE := 16.0
 const LEASH := 34.0
@@ -56,6 +59,18 @@ const PULL_TIME := 1.8
 const PULL_SPEED := 3.8
 const SHARD_R := 18.0                  # how far from the middle the shard pillars stand
 const SHARD_TOUCH := 1.6
+# Light from the sky (Hayden, 24 Nov 2026: "I want its attacks to include beams of light from the sky"). A hair-thin
+# thread of light comes down out of the clouds first and brightens; then the full beam slams down there. Phase 1: one
+# on you. Phase 2: a row of them walks out from it, through where you stand (step sideways). Phase 3: three in turn,
+# each aimed at where you've just moved to (keep moving).
+const BEAM_R := 1.7                    # how wide a beam is (it bumps you inside this)
+const BEAM_HIGH := 45.0                # how far up into the sky it reaches
+const BEAM_STRIKE := 0.5               # how long a beam stays down
+const ROW_COUNT := 5
+const ROW_GAP := 3.6                   # metres between the beams in a row
+const ROW_STEP := 0.22                 # seconds between them striking, so the row walks
+const CHASE_COUNT := 3
+const CHASE_STEP := 0.65               # seconds between each chasing beam
 const ARENA_EDGE := 22.0                # a charge stops before the summit's edge (it floats, so walls don't stop it)
 
 enum State { SLEEP, IDLE, WARN, ACT, DAZED, TURN, STAGGER, CALMED }
@@ -288,6 +303,27 @@ func _start_move() -> void:
 				TELL.warn(self, "drop", DROP_R, COLOUR, lead, {"visual": visual, "follow": null, "at": t + Vector3(0, 0.06, 0)})
 		"pull":
 			TELL.warn(self, "pull", PULL_REACH, COLOUR, lead, {"visual": visual, "ground_y": ground})
+		"beams":
+			# It looks up and spreads its wings; the threads of light are already coming down where the beams will land
+			TELL.warn(self, "beam", BEAM_R, COLOUR, lead, {"visual": visual})
+			_targets.clear()
+			var at := Vector3(player.global_position.x, ground, player.global_position.z)
+			if phase == 1:
+				var way := at - global_position
+				way.y = 0
+				way = way.normalized() if way.length() > 0.1 else -visual.global_basis.z
+				# The row starts a little in front of it and runs on past you
+				var start := Vector3(global_position.x, ground, global_position.z) + way * 3.0
+				var reach := maxf(_flat(at - global_position) + 4.0, ROW_GAP * ROW_COUNT)
+				for i in ROW_COUNT:
+					_targets.append(start + way * (3.0 + (reach - 3.0) * float(i) / float(ROW_COUNT - 1)))
+			else:
+				_targets.append(at)
+			if phase == 2:
+				_beam(_targets[0], lead, 0.0)
+			else:
+				for i in _targets.size():
+					_beam(_targets[i], lead, ROW_STEP * i)
 
 
 func _do_move() -> void:
@@ -309,6 +345,17 @@ func _do_move() -> void:
 		"pull":
 			_state_t = PULL_TIME
 			Juice.blip("whoosh", 0.35, -2.0)
+		"beams":
+			if phase == 2:
+				# Each next one is aimed where you've just moved to, with a shorter thread to warn you
+				_state_t = CHASE_STEP * CHASE_COUNT + 0.3
+				for i in range(1, CHASE_COUNT):
+					get_tree().create_timer(CHASE_STEP * (i - 1) + 0.15, false).timeout.connect(func() -> void:
+						if state == State.ACT and _move == "beams" and is_instance_valid(player):
+							var p := player.global_position
+							_beam(Vector3(p.x, home.y, p.z), CHASE_STEP * 0.85, 0.0))
+			else:
+				_state_t = ROW_STEP * (_targets.size() - 1) + BEAM_STRIKE + 0.2
 
 
 func _star_fall(at: Vector3) -> void:
@@ -330,6 +377,80 @@ func _star_fall(at: Vector3) -> void:
 				and player.global_position.y < at.y + 2.0 and not player.call("is_invulnerable"):
 			player.call("hurt", 2, at)
 		star.queue_free())
+
+
+func _beam(at: Vector3, warn_secs: float, delay: float) -> void:
+	# A thread of light down from the sky, brightening, then the full beam slams down: a bump if you're still in it
+	var holder := Node3D.new()
+	holder.name = "Sky Beam"
+	holder.add_to_group("sky_beams")
+	get_parent().add_child(holder)
+	holder.global_position = at
+	var soft := bool(Settings.get("reduce_flashing"))
+	var thread := MeshInstance3D.new()
+	var tm := CylinderMesh.new()
+	tm.top_radius = 1.0
+	tm.bottom_radius = 1.0
+	tm.height = BEAM_HIGH
+	tm.radial_segments = 12
+	thread.mesh = tm
+	var glow := _sky_light_mat(0.0)
+	thread.material_override = glow
+	thread.position.y = BEAM_HIGH * 0.5
+	thread.scale = Vector3(0.05, 1.0, 0.05)
+	thread.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	holder.add_child(thread)
+	var shine := OmniLight3D.new()
+	shine.light_color = Color(1.0, 0.95, 0.75)
+	shine.light_energy = 0.0
+	shine.omni_range = BEAM_R * 3.0
+	shine.position.y = 1.0
+	holder.add_child(shine)
+	# The beam itself is pixel art from the pixelfx pack, hidden until it strikes
+	var pixel := SKY_FX.beam(BEAM_R, BEAM_HIGH)
+	pixel.visible = false
+	SKY_FX.set_beam_width(pixel, 0.0)
+	pixel.material_override.set_shader_parameter("alpha", 0.8 if soft else 1.0)
+	holder.add_child(pixel)
+	var wait := warn_secs + delay
+	var tw := holder.create_tween()
+	# The thread: hair-thin and faint at first, a bit brighter and thicker as the beam gets close
+	tw.tween_property(glow, "albedo_color:a", 0.55, wait).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(thread, "scale", Vector3(0.22, 1.0, 0.22), wait).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(shine, "light_energy", 1.2, wait)
+	tw.tween_callback(func() -> void:
+		if state == State.SLEEP or defeated:
+			holder.queue_free()
+			return
+		# The thread steps back to a faint glow inside the pixel-art beam, which is the light you see
+		glow.albedo_color.a = 0.12 if soft else 0.2
+		pixel.visible = true
+		SKY_FX.splash(get_parent(), at, BEAM_R * 2.6, soft)
+		Juice.blip("whoosh", 1.6, -4.0)
+		Juice.blip("thud", 0.9, -5.0)
+		Juice.shake(0.12 if soft else 0.25)
+		if is_instance_valid(player) and _flat(player.global_position - at) < BEAM_R + 0.3 \
+				and not player.call("is_invulnerable"):
+			player.call("hurt", 1, at))
+	tw.tween_property(thread, "scale", Vector3(BEAM_R * 0.8, 1.0, BEAM_R * 0.8), 0.08).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_method(func(k: float) -> void: SKY_FX.set_beam_width(pixel, k), 0.0, 1.0, 0.08)
+	tw.parallel().tween_property(shine, "light_energy", 2.0 if soft else 4.0, 0.08)
+	tw.tween_interval(BEAM_STRIKE)
+	tw.tween_property(thread, "scale", Vector3(0.02, 1.0, 0.02), 0.25).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(k: float) -> void: SKY_FX.set_beam_width(pixel, k), 1.0, 0.0, 0.25)
+	tw.parallel().tween_property(glow, "albedo_color:a", 0.0, 0.25)
+	tw.parallel().tween_property(shine, "light_energy", 0.0, 0.25)
+	tw.tween_callback(holder.queue_free)
+
+
+func _sky_light_mat(alpha: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.albedo_color = Color(1.0, 0.93, 0.7, alpha)
+	return m
 
 
 func _pull_step(delta: float) -> void:
