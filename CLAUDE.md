@@ -99,6 +99,18 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **The Sinker Stones' cracks look like the cracks between worlds** (Hayden: "Those cracked stepping stones
+  dont look cracked lol can you make them look more like the holes in the ground that you teleport to worlds?"). The
+  three glowing sticks on top are gone. `scripts/stone_crack.gd` (preload, no class_name) draws a little copy of
+  `crack.gd`'s split right across each Sinker Stone and on over its edge to the goo: a jagged wandering outline with
+  bites out of it, broken lips standing a touch proud with chips of rock, walls going from the stone's colour to black,
+  a thin glow of the poison deep in the middle (material still "Sinker Crack") and hairline cracks off it. It lays the
+  stone's own meshes onto a height map first (a stand-in shape headless), so it fits the plain stone in `swamp.gd` and is
+  drawn again over the baked one by `detail_props.gd dress_swamp()` (metas `crack_rock`, `crack_glow`, `crack_seed`,
+  `crack_above`). It's a child of the body, so it sinks with it. Only code changed, no bake. Tests: swamp and dusk parts
+  of test_detail_portal_props, test_swamps, scary_world (both runs). Pictures in the project files under
+  world/previews/detail_swamp/stone_cracks (`capture_detail_swamp.gd` has a `06b_sinker` close-up now).
+
 - 2026-11-24: **Baked the two swamps: the Mothmire's dead mangroves, boardwalks, islands, Old Mire Hut, Mire Chest and
   Lookout Tree, and the Poison Mire's trees, stepping stones, Sinker Stones, log bridges, islands, Bog Heart chest and
   lookout** (Hayden: "Can you work on baking details in the swamp", then "show me a birds eye view of the lanternmoor and

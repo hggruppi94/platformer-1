@@ -35,6 +35,7 @@ const WAILER := preload("res://scripts/bog_wailer.gd")
 const WISP := preload("res://scripts/wisp.gd")
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const DANGERS := preload("res://scripts/swamp_dangers.gd")
+const STONE_CRACK := preload("res://scripts/stone_crack.gd")
 
 const SURFACE := -0.12                   # the water's (or goo's) top
 const BED := -0.8                        # the basin's floor, under it
@@ -568,9 +569,16 @@ func _stones() -> void:
 			look.name = "Look"
 			_mesh(_cyl(0.6, 0.75, 0.04, 12), _mat("Stone Moss", lay.moss), Vector3(0, 0.36, 0), body)
 			if sink:
-				for c in 3:                                   # glowing cracks across its top: a hint it's not to be trusted
-					_mesh(_box(Vector3(0.05, 0.03, 0.9)), crack, Vector3(_rng.randf_range(-0.3, 0.3), 0.385, 0), body,
-						Vector3(0, _rng.randf() * PI, 0))
+				# A jagged split right across it, like the cracks between worlds, glowing deep down: a hint it's not
+				# to be trusted (scripts/stone_crack.gd; detail_props.gd draws it again over the baked stone)
+				body.set_meta("crack_rock", cracked.albedo_color)
+				body.set_meta("crack_glow", crack.albedo_color)
+				body.set_meta("crack_seed", _rng.randi())
+				for k in 5:                                   # (the old cracks drew six numbers: keep the rest of the swamp where it was)
+					_rng.randf()
+				body.set_meta("crack_above", SURFACE - body.position.y)
+				STONE_CRACK.build(body, cracked.albedo_color, crack.albedo_color, int(body.get_meta("crack_seed")),
+					float(body.get_meta("crack_above")))
 				body.set_meta("rest_y", body.position.y)
 				body.set_meta("stood", 0.0)
 				body.set_meta("state", "up")
