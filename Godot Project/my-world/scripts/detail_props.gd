@@ -718,6 +718,193 @@ static func dress_dusks_embrace(scene: Node) -> Dictionary:
 		gate.add_child(m)
 		out.gate = 1
 	scene.add_child(holder)
+	out.swamp = dress_swamp(scene.get_node_or_null("Swamp"))
+	return out
+
+
+const SWAMP_DIR := "res://models/props/swamp/"
+const SW_PLANK := Vector3(1.9, 0.08, 0.42)          # the baked plank's size (the old boardwalk plank)
+const SW_TREE_H := 7.0                              # the baked swamp tree's height (TREE_H)
+const SW_TREE_W := 1.3                              # the most a swamp tree is widened for a tall one
+const SW_ISLAND_R := 5.0                            # the island the baked mound is made for
+const SW_LOG_LEN := 6.0                             # the baked log's length (LOG_LEN)
+
+
+static func dress_swamp(sw: Node) -> Dictionary:
+	# The swamps (24 Nov 2026, tools/build_prop_swamp.py; Hayden: "Can you work on baking details in the swamp").
+	# scripts/swamp.gd builds the Mothmire (Lanternmoor) and the Poison Mire (Dusk's Embrace) from shapes as each
+	# world loads; each world's pieces are baked in its own colours (<kind>_<world>.glb). Every boardwalk plank (and
+	# the Lookout Tree's stair and platform planks) is one MultiMesh, each plank stretched to its old box; the dead
+	# trees, islands, stepping stones (the Sinker Stones still sink: their model's inside each body, and their glowing
+	# cracks stay), log bridges, the Old Mire Hut (its glowing window and light stay), the chest and the Muck Mimics
+	# (lids inside their "Lid", so they still open; the mimics' teeth and eyes stay) and the Lookout Tree's trunk get
+	# their models. Every collision, the water, the plants, the posts and rails, the wisps and the dangers are unchanged.
+	var out := {"planks": 0, "trees": 0, "islands": 0, "stones": 0, "logs": 0, "hut": 0, "chests": 0, "lookout": 0}
+	if sw == null or sw.has_node("Detailed Swamp"):
+		return out
+	var w := str(sw.get("kind"))
+	var P := func(kind: String) -> PackedScene: return _scene(SWAMP_DIR + "%s_%s.glb" % [kind, w])
+	var plank: PackedScene = P.call("plank")
+	if plank == null:
+		return out
+	var holder := Node3D.new()
+	holder.name = "Detailed Swamp"
+	sw.add_child(holder)
+	var inv := holder.global_transform.affine_inverse()
+	# Planks: everything in the boardwalks' and the Lookout's planked wood that's a box
+	var xfs := []
+	for mi: MeshInstance3D in sw.find_children("*", "MeshInstance3D", true, false):
+		var mn := _mat_name(mi)
+		if (mn == "Swamp Planks" or mn == "Lookout Planks") and mi.mesh is BoxMesh:
+			var size := (mi.mesh as BoxMesh).size
+			xfs.append(inv * mi.global_transform * Transform3D(Basis.from_scale(size / SW_PLANK), Vector3.ZERO))
+			_hide(mi)
+	if xfs.size() > 0:
+		_multi(holder, _mesh_of(plank), xfs, "Detailed Planks")
+		out.planks = xfs.size()
+	# The dead trees: the whole tree is the model (its moss too), leant like its old trunk
+	var tree: PackedScene = P.call("swamp_tree")
+	var trees := sw.get_node_or_null("Swamp Trees")
+	if tree and trees:
+		for t in trees.get_children():
+			var trunk: MeshInstance3D = null
+			for c in t.get_children():
+				if c is MeshInstance3D and (c as MeshInstance3D).mesh is CylinderMesh and _mat_name(c) == "Mangrove Bark" \
+						and (trunk == null or ((c as MeshInstance3D).mesh as CylinderMesh).height > (trunk.mesh as CylinderMesh).height):
+					trunk = c
+			if trunk == null:
+				continue
+			for mi: MeshInstance3D in (t as Node).find_children("*", "MeshInstance3D", true, false):
+				_hide(mi)
+			var k := (trunk.mesh as CylinderMesh).height / SW_TREE_H
+			var wk := clampf(k, 0.85, SW_TREE_W)
+			var m := tree.instantiate() as Node3D
+			m.name = "Detailed Tree"
+			m.rotation.x = trunk.rotation.x
+			m.scale = Vector3(wk, k, wk)
+			t.add_child(m)
+			out.trees += 1
+	# Islands: the mound, its mossy top and the lumps round its edge
+	var island: PackedScene = P.call("island")
+	var islands := sw.get_node_or_null("Islands")
+	if island and islands:
+		for n in islands.get_children():
+			var mound: MeshInstance3D = null
+			# (A big island's mound and top may already wear the ground look, world_detail.gd, so "Ground Detail"
+			# counts as theirs too; the mound is the island's thickest disc.)
+			for c in n.get_children():
+				if c is MeshInstance3D and _mat_name(c) in ["Swamp Land", "Ground Detail"] and (c as MeshInstance3D).mesh is CylinderMesh \
+						and (mound == null or ((c as MeshInstance3D).mesh as CylinderMesh).height > (mound.mesh as CylinderMesh).height):
+					mound = c
+			if mound == null:
+				continue
+			for c in n.get_children():
+				if c is MeshInstance3D and _mat_name(c) in ["Swamp Land", "Swamp Moss", "Ground Detail"]:
+					_hide(c)
+			var r := ((mound.mesh as CylinderMesh).top_radius) / SW_ISLAND_R
+			var m := island.instantiate() as Node3D
+			m.name = "Detailed Island"
+			m.scale = Vector3(r, 1.0, r)
+			n.add_child(m)
+			out.islands += 1
+	# Stepping stones (only the Poison Mire has them): inside each body, so a Sinker Stone sinks with its model
+	var stones := sw.get_node_or_null("Stepping Stones")
+	var stone: PackedScene = P.call("stone")
+	var sinker: PackedScene = P.call("sinker")
+	if stones and stone and sinker:
+		for b in stones.get_children():
+			var sink := str(b.name).begins_with("Sinker")
+			for c in b.get_children():
+				if c is MeshInstance3D and (_mat_name(c) in ["Wet Rock", "Sinker Rock", "Stone Moss"]):
+					_hide(c)
+			var m := (sinker if sink else stone).instantiate() as Node3D
+			m.name = "Detailed Stone"
+			b.add_child(m)
+			out.stones += 1
+	# Log bridges: the log stretched to each one's length
+	var lg_m: PackedScene = P.call("log")
+	var logs := sw.get_node_or_null("Log Bridges")
+	if lg_m and logs:
+		for lg in logs.get_children():
+			var log_len := 0.0
+			for c in lg.get_children():
+				if not (c is MeshInstance3D):
+					continue
+				var mn := _mat_name(c)
+				# (A long log lying flat can be given the ground look too, world_detail.gd: it's still the log.)
+				var is_log := (mn == "Mangrove Bark" or mn == "Ground Detail") and (c as MeshInstance3D).mesh is CylinderMesh \
+						and ((c as MeshInstance3D).mesh as CylinderMesh).height > 1.0
+				if is_log:
+					log_len = ((c as MeshInstance3D).mesh as CylinderMesh).height
+				if is_log or mn == "Log Moss" or mn == "Log End":
+					_hide(c)
+			if log_len <= 0.0:
+				continue
+			var m := lg_m.instantiate() as Node3D
+			m.name = "Detailed Log"
+			m.scale = Vector3(1, 1, log_len / SW_LOG_LEN)
+			lg.add_child(m)
+			out.logs += 1
+	# The Old Mire Hut (Lanternmoor's): its glowing window and light stay
+	var hut: PackedScene = P.call("hut")
+	var h := sw.get_node_or_null("Old Mire Hut/Hut")
+	if hut and h:
+		for c in h.get_children():
+			if c is MeshInstance3D and _mat_name(c) in ["Hut Boards", "Hut Thatch", "Mangrove Bark"]:
+				_hide(c)
+		var m := hut.instantiate() as Node3D
+		m.name = "Detailed Hut"
+		h.add_child(m)
+		out.hut = 1
+	# The chest and the Muck Mimics that look just like it
+	var box: PackedScene = P.call("chest_box")
+	var lid_m: PackedScene = P.call("chest_lid")
+	if box and lid_m:
+		var chests := []
+		var ch := sw.get_node_or_null("Swamp Chest/Chest")
+		if ch:
+			chests.append(ch)
+		var mims := sw.get_node_or_null("Dangers/Muck Mimics")
+		if mims:
+			chests.append_array(mims.get_children())
+		for c in chests:
+			var lid := (c as Node).get_node_or_null("Lid")
+			if lid == null:
+				continue
+			for part in [c, lid]:
+				for mi in (part as Node).get_children():
+					if mi is MeshInstance3D and _mat_name(mi) in ["Chest Wood", "Chest Trim", "Mimic Trim"]:
+						_hide(mi)
+			var m := box.instantiate() as Node3D
+			m.name = "Detailed Chest"
+			(c as Node).add_child(m)
+			var l := lid_m.instantiate() as Node3D
+			l.name = "Detailed Lid"
+			lid.add_child(l)
+			if str(c.name).begins_with("Muck Mimic"):
+				_tint(m, Color(0.85, 0.85, 0.8))              # (a shade off, like the old one's trim)
+				_tint(l, Color(0.85, 0.85, 0.8))
+			out.chests += 1
+	# The Lookout Tree's trunk, roots and top branches (the stair, rails, platform and lantern stay), and its mound
+	var look: PackedScene = P.call("lookout")
+	var lo := sw.get_node_or_null("Lookout")
+	if look and lo:
+		for c in lo.get_children():
+			if c is MeshInstance3D and _mat_name(c) == "Lookout Bark" and (c as MeshInstance3D).mesh is CylinderMesh:
+				var cm := (c as MeshInstance3D).mesh as CylinderMesh
+				if cm.bottom_radius > 0.08:                   # (not the rail posts)
+					_hide(c)
+			elif c is MeshInstance3D and island and (_mat_name(c) == "Swamp Land" or _mat_name(c) == "Swamp Moss"):
+				_hide(c)
+		var m := look.instantiate() as Node3D
+		m.name = "Detailed Lookout"
+		lo.add_child(m)
+		if island:
+			var mm := island.instantiate() as Node3D
+			mm.name = "Detailed Lookout Mound"
+			mm.scale = Vector3(0.6, 1.0, 0.6)
+			lo.add_child(mm)
+		out.lookout = 1
 	return out
 
 
@@ -1077,6 +1264,7 @@ static func dress_lanternmoor(scene: Node) -> Dictionary:
 			m.transform = mi.transform * Transform3D(Basis.from_scale(size / STANDING_STONE_SIZE), Vector3.ZERO)
 			_tint(m, LM_STONE_TINT)
 			mi.get_parent().add_child(m)
+	out.swamp = dress_swamp(scene.get_node_or_null("Swamp"))
 	return out
 
 

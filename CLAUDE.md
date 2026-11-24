@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-24: **Baked the two swamps: the Mothmire's dead mangroves, boardwalks, islands, Old Mire Hut, Mire Chest and
+  Lookout Tree, and the Poison Mire's trees, stepping stones, Sinker Stones, log bridges, islands, Bog Heart chest and
+  lookout** (Hayden: "Can you work on baking details in the swamp", then "show me a birds eye view of the lanternmoor and
+  dusk embrace maps"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_swamp.py <out.glb> swamp_tree|plank|island|stone|sinker|log|hut|chest_box|chest_lid|lookout --world=lanternmoor|dusk`
+    (a twisted dead mangrove on arching roots with hanging moss, baked with no AO; a weathered plank with nail heads; a
+    mossy mud island mound; a cracked stepping stone and a darker sinking one; a mossy log with bark plates; the hut's
+    plank walls and thatch; the chest's planks and trim; the lookout's platform and rails), each world in its own
+    colours. In `models/props/swamp/` (`<kind>_<world>.glb`).
+  - **Swapped at run time** (`detail_props.gd dress_swamp()`, called at the end of `dress_lanternmoor()` and
+    `dress_dusks_embrace()`): trees, planks, islands and stones are MultiMeshes ("Detailed Swamp"); the islands' mounds
+    and the long logs are found by shape too, since `world_detail.gd` has already given big flat ones the ground look
+    ("Ground Detail"). Sinker Stones still wobble and sink, the chests still open, the goo, murk, mist, wisps and every
+    collision are unchanged.
+  - Tests: `tools/test_detail_portal_props.gd` (only this part with `-- swamp`); test_swamps, lanternmoor, `-- dusk`
+    and scary_world (both runs) pass. Pictures: `tools/capture_detail_swamp.gd -- <folder> lanternmoor|dusk
+    [--old-props] [--birdseye]` (project files, world/previews/detail_swamp, with bird's eye views of both worlds).
+  - My choices Hayden may change: every look (the moss is darker than the old pale moss).
+
 - 2026-11-24: **The Seraph has baked-in detail** (Hayden: "Can you bake detail into the seraph", "Like a lot of
   detail"). Built and tested in the cloud (own Godot user folders, no save touched). Still animated as before (wheels
   turn, wings beat, eyes blink and look at you, fire flickers); fight, ids and flags unchanged.
