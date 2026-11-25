@@ -99,6 +99,25 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The rides have baked detail: maple decks, grip tape, brushed metal, tyre tread and leaf veins** (the
+  rides batch of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **Five more tiling patches** (`tools/build_prop_surfaces.py maple|grip_tape|brushed_metal|tread|leaf_skin`): maple
+    veneer with grain and scratches, sandy grip, brushed steel with scratches and dings, chunky zig-zag rubber tread,
+    and a leaf's midrib and veins. In `models/props/surfaces/`.
+  - **Put on as each ride's built** (`detail_props.gd dress_ride()`, called at the end of `RideKit.build()`, so every
+    rider, race rival and Sky Sweep board gets it): parts are known by name (the skateboard scene's Deck, Nose, Tail,
+    Grip and trucks) or by a `ride_part` meta set in `ride_kit.gd` (`RIDE_PATCH`: deck, grip, metal, tyre, leaf, stem,
+    boot). The SK8 Deck keeps its black, the leaf's veins run down its middle (`RIDE_OFFSET`), the skates' boots wear
+    the goblin skin. Glows, flames, see-through bits and wheels stay plain, and so does the bike (it comes with the last
+    props). Patched copies are shared (`patched()`, now also used by `dress_patches()`), so two boards still draw
+    together. With the detail pipeline off nothing changes.
+  - Tests: new `tools/test_ride_detail.gd`; skate, skate_park, ride_upgrades, races, schematics, skate_popper,
+    enemy_detail and boss_detail pass. Pictures: `tools/capture_ride_detail.gd -- <folder> [--old-props]` (project
+    files, characters/ride-detail).
+  - My choices Hayden may change: how strong each patch is (they're subtle from riding distance; brushed metal looks
+    stripy on thin rods close up).
+
 - 2026-11-25: **The everyday enemies have baked detail: Crocodillos' scales and shells, Time Goblins' pebbly skin and
   woven clothes, Bog Wailers' warts and moss, and the Peepers' fuzz** (the enemies batch of Hayden's "keep baking
   details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).
