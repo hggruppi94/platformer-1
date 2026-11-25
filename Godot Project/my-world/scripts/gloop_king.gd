@@ -47,6 +47,8 @@ func _ready() -> void:
 	MOVES.add(self, {"moves": throw_moves, "every": 6.0, "look": throw_look, "colour": ring_colour,
 		"size": 0.55, "from": 1.4 * size,
 		"can": func() -> bool: return not defeated and _was_chasing and not _flopping and is_on_floor()})
+	# (after any cousin has taken his look off: the baked crown, scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_king_crown", self)
 
 
 func _physics_process(delta: float) -> void:
