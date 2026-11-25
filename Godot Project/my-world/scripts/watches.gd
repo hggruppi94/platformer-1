@@ -162,6 +162,10 @@ func _ready() -> void:
 	var knitting := (load("res://scripts/knitting_class.gd") as GDScript).new() as Node
 	knitting.name = "KnittingClass"
 	add_child(knitting)
+	# The Lily Pond in the south meadow, with Hermez the crane (and Rolo the rhino once his model's in) (scripts/pond_friends.gd)
+	var pond := (load("res://scripts/pond_friends.gd") as GDScript).new() as Node
+	pond.name = "PondFriends"
+	add_child(pond)
 
 
 func _process(delta: float) -> void:

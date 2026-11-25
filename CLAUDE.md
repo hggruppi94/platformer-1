@@ -99,6 +99,36 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **Rolo the rhino joins Hermez at the Lily Pond, made from an AI tool's mesh** (Hayden picked the
+  Hunyuan3D-2.1 Rolo out of five free tools: `previews/meshy_trial/rolo_all_tools.png`). Built on Hayden's PC (save
+  untouched).
+  - **`tools/build_rolo.py`**: `-- --prep <raw.glb>` once cuts the AI's 285k-triangle shape to 40k, stands it at
+    1.2 m on its body's middle facing -Y and keeps it as `tools/src/rolo_hunyuan21.glb`; the build paints its faces
+    into named materials by region (`region()`: Skin, Snout, Nose, Mouth, Ear Inner, Tee, Toenail, Tuft), adds our
+    cartoon eyes, brows, blush, a horn and a tongue (raycast onto his face), rigs him with the friends' biped bones
+    plus `tail.0..3` (Blender's automatic weights) and makes idle, walk, run, jump, fall.
+  - **Baked detail:** `tools/build_friend_detail.py rolo` (the `rhino` hide, a knit tee).
+  - He appears by the pond on his own (`scripts/pond_friends.gd`, `dialogue/rolo.json`). `test_pond_friends`
+    checks him; `test_dialogue` lists him. Pictures and the full comparison: `previews/meshy_trial/COMPARISON.md`.
+  - His tail is pulled in to about 0.4 m (`shorten_tail()`, `TAIL_KEEP`; the AI made it 1 m).
+  - My choices Hayden may change: his colours (lilac-grey, orange tee), the horn, his height.
+
+- 2026-11-25: **Hermez the crane stands by a new Lily Pond in the Void's south meadow** (the "control" of an AI 3D
+  tools trial: Rolo the rhino was to be made with Meshy, then with free open-source image-to-3D tools; Meshy's free
+  plan blocks its API, and the free tools are waiting for Hayden's go-ahead). Built on Hayden's PC (save untouched).
+  - **`tools/build_hermez.py`** (char_kit, like build_melody.py) -> `source_art/characters/hermez.blend`: a
+    red-crowned crane in the friends' chunky style, white with a black neck, a red cap, a long beak, wings as arms
+    with black flight feathers, a black bustle, thin grey legs, and a teal messenger satchel. 47k triangles,
+    18 materials, the biped bones plus a neck bone; idle, walk, run, flap, jump, fall.
+  - **Baked detail:** `tools/build_friend_detail.py hermez` (new recipes `feather`, `scaly`, and `rhino` ready for
+    Rolo).
+  - **`scripts/pond_friends.gd`** ("PondFriends" under the Watches autoload, nothing rebuilt): the Lily Pond at
+    (-5, 79), a raised ring of mossy stones round still water, lily pads with pink flowers, reeds; on the map. Hermez
+    stands on its shore (talk: `dialogue/hermez.json`, no routine yet). Rolo (`dialogue/rolo.json`) appears beside
+    him once `models/characters/rolo.glb` exists.
+  - Tests: new `tools/test_pond_friends.gd`; `test_dialogue` lists Hermez. Pictures: `tools/capture_pond_friends.gd
+    -- <folder>`, and `previews/meshy_trial/` (with `COMPARISON.md` and Rolo's concept image).
+  - My choices Hayden may change: the satchel, the pond's spot and look, his lines.
 - 2026-11-25: **The rides have baked detail: maple decks, grip tape, brushed metal, tyre tread and leaf veins** (the
   rides batch of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own
   Godot user folders, no save touched).

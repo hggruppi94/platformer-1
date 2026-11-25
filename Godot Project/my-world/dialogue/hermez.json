@@ -1,0 +1,20 @@
+{
+  "name": "Hermez",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Oh, hello there! I'm Hermez.",
+        "I carry letters all over the Void.",
+        "But this pond is my favourite place to rest my wings."
+      ]
+    },
+    {
+      "rotate": [
+        ["Shh. The lily pads are napping."],
+        ["One leg or two? I can never decide."],
+        ["No letters for you today, {player}. Maybe tomorrow!"]
+      ]
+    }
+  ]
+}
