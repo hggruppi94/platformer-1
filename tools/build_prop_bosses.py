@@ -12,6 +12,10 @@
 #   boss_scales  Grumblefin's skin: rows of little overlapping scales with a ridge down each.
 #   boss_feathers the Dawn Snatcher's plumage: overlapping feathers laid down and back, each with a quill and barbs.
 #   boss_fleece  the Stormram's wool: a ball of tight curls and strands.
+#   boss_crust   Old Ember's skin: plates of cooled lava rock, pitted, with deep cracks between them.
+#   boss_warts   a toad's skin (Old Bubblebeard, Old Mossback's mud): warts big and small, blotches and creases.
+#   boss_chitin  the centipede's shell: glossy plates in rings round each segment, each with a ridge and pits.
+#   boss_fuzz    Glimmerwing's moth fluff: dense short tufts of soft hair.
 #                These four are baked pale (near white): the game multiplies them by each ball's own colour, so one
 #                bake does every ball of that kind, scaled to its size (detail_props.gd dress_surfaces()).
 # Colours are the game's own (sRGB).
@@ -26,7 +30,8 @@ import bake_kit as K  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Vector, noise  # noqa: E402
 
-KINDS = ["king_crown", "boss_hide", "boss_scales", "boss_feathers", "boss_fleece"]
+KINDS = ["king_crown", "boss_hide", "boss_scales", "boss_feathers", "boss_fleece", "boss_crust", "boss_warts",
+         "boss_chitin", "boss_fuzz"]
 KIND = next((a for a in sys.argv if a in KINDS), "king_crown")
 NAME = KIND
 OUT = K.out_path(NAME + ".glb")
@@ -434,6 +439,94 @@ def _fleece(p):
     return lift, dark
 
 
+def _crust(p):
+    """Cooled lava: rough plates with pits, deep dark cracks between them, a few finer cracks across the plates."""
+    q = Vector(p)
+    cells, _pts = noise.voronoi(q * 6.5)
+    gap = cells[1] - cells[0]
+    lift = 0.0
+    dark = 0.0
+    if gap < 0.06:
+        t = gap / 0.06
+        lift = -0.03 * (1 - t) ** 1.5
+        dark = 0.9 * (1 - t) ** 1.2
+    else:
+        lift = 0.012 * min(1.0, (gap - 0.06) * 6.0)
+    fine, _p2 = noise.voronoi(q * 22.0)
+    if fine[1] - fine[0] < 0.025:
+        lift -= 0.006
+        dark = max(dark, 0.5)
+    pit, _p3 = noise.voronoi(q * 55.0)
+    pore = max(0.0, 1.0 - pit[0] * 6.0)
+    lift -= 0.004 * pore
+    dark = max(dark, 0.3 * pore)
+    lift += 0.006 * noise.noise(q * 18.0) + 0.003 * noise.noise(q * 70.0)
+    return lift, dark
+
+
+def _warts(p):
+    """Toad skin: round warts of every size, darker blotches between them and fine creases."""
+    q = Vector(p)
+    lift = 0.0
+    dark = 0.0
+    for scale, h in ((7.0, 0.03), (16.0, 0.014), (34.0, 0.006)):
+        cells, _pts = noise.voronoi(q * scale + Vector((scale, 0.0, 0.0)))
+        r = 0.3
+        if cells[0] < r:
+            t = 1.0 - cells[0] / r
+            lift = max(lift, h * math.sqrt(t))
+    blot = noise.noise(q * 4.0 + Vector((3.0, 1.0, 2.0)))
+    dark = max(0.0, blot) * 0.55
+    crease = abs(noise.noise(Vector((q.x * 30.0, q.y * 8.0, q.z * 30.0))))
+    if crease < 0.05:
+        lift -= 0.003
+        dark += 0.25
+    if lift > 0.01:
+        dark *= 0.6
+    lift += 0.002 * noise.noise(q * 90.0)
+    return lift, dark
+
+
+def _chitin(p):
+    """A centipede's shell: rings of plates round the body (its axis is z), each lifted to a ridge in its middle, with
+    a dark seam between rings, a split down the back and little pits."""
+    q = Vector(p)
+    rings = 7
+    rv = (q.z * 0.5 + 0.5) * rings
+    fr = rv - math.floor(rv)
+    lift = 0.02 * math.sin(fr * math.pi) ** 0.6
+    dark = 0.0
+    if fr < 0.08 or fr > 0.92:
+        lift -= 0.01
+        dark = 0.8
+    lon = math.atan2(q.x, q.y)
+    if abs(lon) < 0.05:
+        lift -= 0.006
+        dark = max(dark, 0.6)
+    pit, _p = noise.voronoi(q * 48.0)
+    pore = max(0.0, 1.0 - pit[0] * 7.0)
+    lift -= 0.003 * pore
+    dark = max(dark, 0.3 * pore)
+    lift += 0.0015 * noise.noise(q * 120.0)
+    return lift, dark
+
+
+def _fuzz(p):
+    """Moth fluff: soft short tufts packed close, each a little dome of fine hairs."""
+    q = Vector(p)
+    cells, pts = noise.voronoi(q * 20.0)
+    tuft = max(0.0, min(1.0, (cells[1] - cells[0]) * 3.0))
+    lift = 0.03 * tuft ** 0.5
+    dark = 0.5 * (1 - tuft) ** 2.5
+    c = Vector(pts[0]) / 20.0
+    d = q - c
+    hair = 0.5 + 0.5 * math.sin(d.length * 900.0 + math.atan2(d.x, d.y + 1e-4) * 5.0)
+    lift += 0.006 * hair * tuft
+    dark += 0.18 * (1 - hair)
+    lift += 0.003 * noise.noise(q * 60.0)
+    return lift, dark
+
+
 def skin(pattern, rough, subdiv=9):
     m = painted("Skin", rough=rough)
     bm = bmesh.new()
@@ -461,6 +554,10 @@ fn, size, ext, ray_d, ao, emit, strength = {
     "boss_scales": (lambda: skin(_scales, 0.35), 2048, 0.05, 0.1, True, False, 1.0),
     "boss_feathers": (lambda: skin(_feathers, 0.45), 2048, 0.06, 0.12, True, False, 1.0),
     "boss_fleece": (lambda: skin(_fleece, 0.9), 2048, 0.08, 0.15, True, False, 1.0),
+    "boss_crust": (lambda: skin(_crust, 0.85), 2048, 0.06, 0.12, True, False, 1.0),
+    "boss_warts": (lambda: skin(_warts, 0.6), 2048, 0.06, 0.12, True, False, 1.0),
+    "boss_chitin": (lambda: skin(_chitin, 0.25), 2048, 0.05, 0.1, True, False, 1.0),
+    "boss_fuzz": (lambda: skin(_fuzz, 0.95), 2048, 0.06, 0.12, True, False, 1.0),
 }[KIND]
 high, low = fn()
 parts = [bake_part(NAME, high, low, size, extrusion=ext, ray_d=ray_d, ao=ao, emit=emit, emit_strength=strength)]

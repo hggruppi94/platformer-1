@@ -141,6 +141,10 @@ const BOSS_SKINS := {
 	"boss_scales": "res://models/props/bosses/boss_scales.glb",
 	"boss_feathers": "res://models/props/bosses/boss_feathers.glb",
 	"boss_fleece": "res://models/props/bosses/boss_fleece.glb",
+	"boss_crust": "res://models/props/bosses/boss_crust.glb",
+	"boss_warts": "res://models/props/bosses/boss_warts.glb",
+	"boss_chitin": "res://models/props/bosses/boss_chitin.glb",
+	"boss_fuzz": "res://models/props/bosses/boss_fuzz.glb",
 }
 const BOSS_SKIN_GAIN := 1.08
 const GADGET_STALL := "res://models/props/gadget_stall.glb"
@@ -3885,6 +3889,55 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 		mi.add_child(skin)
 		_hide(mi)
 		n += 1
+	return n
+
+
+static func dress_patches(root: Node, pairs: Array) -> int:
+	# The parts of a shape-built boss that aren't round balls (the Thornknot's vine rings and thorns, the Off-Beat's
+	# wooden body, Old Ember's legs and spine bumps) get one of the tiling surface patches instead (bark, barn boards,
+	# rock: tools/build_prop_surfaces.py). pairs is [[material, patch], ...]: every mesh wearing that material wears a
+	# patched copy instead, laid on in the mesh's own space, so the patch moves, swings and squashes with the boss.
+	# Nothing is added or hidden. Returns how many meshes it patched (0 when done again: nothing changes).
+	var n := 0
+	if root == null or not on():
+		return n
+	var made := {}
+	for p in pairs:
+		var old := p[0] as StandardMaterial3D
+		if old == null or old.has_meta(SURFACE_META) or not SURFACE_GAIN.has(p[1]):
+			continue
+		var model := _scene(SURFACE % p[1])
+		var baked_mesh := _mesh_of(model) if model else null
+		var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
+		if baked == null:
+			continue
+		var m := old.duplicate() as StandardMaterial3D
+		m.albedo_texture = baked.albedo_texture
+		var c := old.albedo_color * float(SURFACE_GAIN[p[1]])
+		m.albedo_color = Color(c.r, c.g, c.b, old.albedo_color.a)
+		m.normal_enabled = true
+		m.normal_texture = baked.normal_texture
+		m.ao_enabled = true
+		m.ao_texture = baked.ao_texture
+		m.ao_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+		m.ao_light_affect = 0.6
+		m.roughness_texture = baked.ao_texture
+		m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+		m.texture_repeat = true
+		m.uv1_triplanar = true
+		m.uv1_world_triplanar = false
+		m.uv1_triplanar_sharpness = 6.0
+		m.uv1_scale = Vector3.ONE / float(SURFACE_TILE[p[1]]) * float(p[2] if p.size() > 2 else 1.0)
+		m.set_meta(SURFACE_META, p[1])
+		# Says it's laid on in the boss's own space, so checks don't expect the world-space look rock and bark get
+		m.set_meta("detail_moves", true)
+		made[old] = m
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		# A ball that already wears a baked skin (dress_surfaces) is hidden and keeps its own material
+		if made.has(mi.material_override) and not mi.has_node("Detailed Skin"):
+			mi.material_override = made[mi.material_override]
+			n += 1
 	return n
 
 

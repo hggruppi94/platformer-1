@@ -92,6 +92,8 @@ func _build_body() -> void:
 			leg.rotation.z = side * 1.1
 			seg.add_child(leg)
 		_segs.append(seg)
+	# Her shell gets baked detail: glossy plates in rings round each segment
+	_dress_shell.call_deferred(body_m)
 
 
 func _process(delta: float) -> void:
@@ -111,3 +113,7 @@ func _process(delta: float) -> void:
 	else:
 		want = atan2(curl[0].x - curl[1].x, curl[0].z - curl[1].z)
 	_head.rotation.y = lerp_angle(_head.rotation.y, want, minf(1.0, 3.0 * delta))
+
+
+func _dress_shell(body_m: Material) -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_surfaces", self, [[body_m, "boss_chitin"]])

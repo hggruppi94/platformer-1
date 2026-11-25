@@ -556,6 +556,7 @@ func _look_star_well(v: Node3D) -> void:
 	_put(body, _ball(0.75), _mat(Color(0.82, 0.85, 1.0)), Vector3(0, -0.2, 0.25), Vector3.ZERO, Vector3(1, 1, 0.8))
 	_put(body, _ball(0.7), fluff, Vector3(0, 0.95, 0.15))
 	_eyes(body, 1.05, 0.65, 0.32, 0.22)
+	_dress_skin.call_deferred([[fluff, "boss_fuzz"]])
 	var wings: Array = []
 	for side in [-1.0, 1.0]:
 		var hinge := Node3D.new()
@@ -590,6 +591,7 @@ func _look_bubble_spring(v: Node3D) -> void:
 		var bump := _put(v, _ball(0.42), green, Vector3(side * 0.6, 2.4, 0.7))
 		bump.scale = Vector3(1, 0.9, 1)
 	_eyes(v, 2.5, 0.95, 0.6, 0.3, Color(0.25, 0.15, 0.05))
+	_dress_skin.call_deferred([[green, "boss_warts"]])
 	_put(v, _cone(0.6, 0.6, 0.05), _mat(Color(0.2, 0.35, 0.25)), Vector3(0, 1.85, 1.3), Vector3(PI / 2.0, 0, 0), Vector3(1.6, 1, 0.2))
 	var throat := _put(v, _ball(0.6), _mat(Color(0.85, 0.95, 0.75)), Vector3(0, 1.35, 1.0), Vector3.ZERO, Vector3(1, 0.8, 0.6))
 	_parts["throat"] = throat
@@ -637,3 +639,8 @@ func _look_kite_hill(v: Node3D) -> void:
 		tail.append(bow)
 	_parts["tail"] = tail
 	_zzz(v)
+
+
+func _dress_skin(parts: Array) -> void:
+	# Glimmerwing's fluff and Old Bubblebeard's toad skin get baked detail (Ribbontail is paper, so it stays plain)
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_surfaces", self, parts)

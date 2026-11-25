@@ -2,7 +2,8 @@ extends SceneTree
 
 # Close-ups of the shape-built bosses' baked parts (tools/build_prop_bosses.py, scripts/detail_props.gd): the Gloop
 # King's crown, a Time Goblin's cog, Grandfather Tock's clock hat and the Boulderdillo's boulders, and the skins of
-# Tuskwinter, Grumblefin, the Dawn Snatcher and the Stormram, in a plain studio.
+# Tuskwinter, Grumblefin, the Dawn Snatcher and the Stormram, and (part three) Old Ember, Glimmerwing, Old
+# Bubblebeard, the centipede, the Thornknot and the Off-Beat, in a plain studio.
 # With --old-props it shoots the same views with the detail pipeline off, to compare. Opens a window:
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_boss_detail.gd -- <folder> [--old-props]
@@ -22,11 +23,43 @@ func _initialize() -> void:
 
 
 func _make(path: String, script := "", size := 0.0) -> Node3D:
+	if path.begins_with("new:"):
+		return _made_in_code(path.trim_prefix("new:"))
 	var n := (load(path) as PackedScene).instantiate() as Node3D
 	if script != "":
 		n.set_script(load(script))
 		n.set("size", size)
 	return n
+
+
+func _made_in_code(what: String) -> Node3D:
+	# The bosses that are built in code rather than from a scene
+	match what:
+		"ember":
+			var e := CharacterBody3D.new()
+			e.set_script(load("res://scripts/old_ember.gd"))
+			return e
+		"star_well", "bubble_spring":
+			var gs: GDScript = load("res://scripts/guardian.gd")
+			var k: Dictionary = gs.KINDS[what]
+			var g := CharacterBody3D.new()
+			g.set_script(gs)
+			g.set("id", what)
+			g.set("title", str(k.name))
+			g.set("colour", k.colour)
+			g.set("moves", k.moves)
+			g.set("height", float(k.height))
+			g.set("floats", float(k.floats))
+			return g
+		"centipede":
+			var c := Node3D.new()
+			c.set_script(load("res://scripts/centipede_friend.gd"))
+			return c
+		"thornknot":
+			return (load("res://scripts/rootmind.gd") as GDScript).call("thornknot_model")
+		"offbeat":
+			return (load("res://scripts/off_beat.gd") as GDScript).call("model")
+	return Node3D.new()
 
 
 func _middle(n: Node3D) -> Vector3:
@@ -76,6 +109,7 @@ func _run() -> void:
 	fm.albedo_color = Color(0.32, 0.3, 0.38)
 	floor.material_override = fm
 	stage.add_child(floor)
+	var part3 := "--part3" in OS.get_cmdline_user_args()
 	var shots := [
 		# name, scene, script, size, place, the part to look at (or "" for the middle), how far, camera direction
 		["king", "res://scenes/enemies/gloop_king.tscn", "", 0.0, Vector3(0, 0, 0), "Visual/Body/Crown", 1.3, Vector3(0.5, 0.45, 1)],
@@ -94,6 +128,21 @@ func _run() -> void:
 		["stormram", "res://scenes/enemies/crocodillo.tscn", "res://scripts/stormram.gd", 2.2, Vector3(140, 0, 0), "", 8.0, Vector3(0.8, 0.35, 1)],
 		["stormram_close", "", "", 0.0, Vector3(140, 0, 0), "", 3.5, Vector3(1, 0.5, 0.2)],
 	]
+	if part3:
+		# --part3: only the bosses baked in part three
+		shots = [
+			["ember", "new:ember", "", 0.0, Vector3(0, 0, 0), "", 9.0, Vector3(0.7, 0.4, 1)],
+			["ember_close", "", "", 0.0, Vector3(0, 0, 0), "Visual", 4.0, Vector3(0.9, 0.5, 0.6)],
+			["glimmerwing", "new:star_well", "", 0.0, Vector3(30, 0, 0), "", 5.0, Vector3(0.6, 0.3, 1)],
+			["bubblebeard", "new:bubble_spring", "", 0.0, Vector3(60, 0, 0), "", 5.0, Vector3(0.6, 0.3, 1)],
+			["bubblebeard_close", "", "", 0.0, Vector3(60, 0, 0), "", 2.6, Vector3(0.8, 0.4, 0.6)],
+			["centipede", "new:centipede", "", 0.0, Vector3(90, 0, 0), "", 6.0, Vector3(0.7, 0.6, 1)],
+			["centipede_close", "", "", 0.0, Vector3(90, 0, 0), "", 2.5, Vector3(0.9, 0.5, 0.5)],
+			["thornknot", "new:thornknot", "", 0.0, Vector3(120, 0, 0), "", 7.0, Vector3(0.5, 0.45, 1)],
+			["thornknot_close", "", "", 0.0, Vector3(120, 0, 0), "", 3.0, Vector3(0.9, 0.4, 0.5)],
+			["offbeat", "new:offbeat", "", 0.0, Vector3(150, 0, 0), "", 11.0, Vector3(0.5, 0.25, 1)],
+			["offbeat_close", "", "", 0.0, Vector3(150, 0, 0), "", 4.0, Vector3(0.9, 0.2, 0.6)],
+		]
 	var made := {}
 	for s in shots:
 		if s[1] != "":

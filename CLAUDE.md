@@ -114,6 +114,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   counting frames (in a window the press arrives a drawn frame later). Tests: title (door fade, full screen between
   worlds, never uncovered undressed), doors, walk_through, world_detail, insides, home_calls, cracks, sports.
 
+- 2026-11-25: **The shape-built bosses get baked parts, part three: Old Ember's lava crust, Glimmerwing's fuzz,
+  Old Bubblebeard's and Old Mossback's warts, the centipede's shell, the Thornknot's bark and the Off-Beat's planks**
+  (the bosses batch of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **Four more skins** (`tools/build_prop_bosses.py <out.glb> boss_crust|boss_warts|boss_chitin|boss_fuzz`, balls of
+    radius 1 baked pale like part two's): cracked lava plates, bumpy toad warts, a beetle's ringed shell, soft moth fuzz.
+    Put on with `dress_surfaces()` (deferred) from `old_ember.gd`, `guardian.gd` (Glimmerwing, Old Bubblebeard),
+    `swamp_dangers.gd` (Old Mossback's body and moss) and `centipede_friend.gd`.
+  - **Patches on the parts that aren't balls** (`detail_props.gd dress_patches(root, [[material, patch, scale]])`): a
+    patched copy of the material laid on in the boss's own space (so it moves with it; meta `detail_moves`): Old
+    Ember's legs and spikes rock, the Thornknot's vines and thorns bark (`rootmind.gd thornknot_model()`), the Off-Beat's
+    body and foot barn boards (`off_beat.gd model()`). A ball wearing a skin keeps its own material.
+  - Left plain on purpose: the Hush, the Gloam, Big Buzz, Captain Glitch, Mama Glorp and Ribbontail (glows, glitch
+    cubes, goo and paper suit them as they are). With the detail pipeline off nothing changes.
+  - Tests: `test_boss_detail` (new skins and patches, done again changes nothing); volcano, guardians, swamps,
+    dark_hollow, rootmind, rhythm_springs, boss_tells, boss_moves, scary_world (both runs) and detail_all pass.
+    Pictures: `capture_boss_detail.gd -- <folder> --part3 [--old-props]` (project files,
+    characters/boss-detail/shape-bosses-3).
+  - My choices Hayden may change: the Thornknot's bark reads a bit stripy, the Off-Beat's wood a bit pale.
+
 - 2026-11-25: **The shape-built bosses get baked parts, part two: Tuskwinter's hide, Grumblefin's scales, the Dawn
   Snatcher's feathers and the Stormram's fleece** (the bosses batch of Hayden's "keep baking details on assets in the
   game already"). Built and tested in the cloud (own Godot user folders, no save touched).
