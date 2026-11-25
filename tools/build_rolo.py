@@ -112,7 +112,7 @@ def region(c, n):
             return "Mouth"
         return "Skin"
     # His orange tee: the body from the neck to the hem, and short sleeves over his upper arms (not the tail)
-    if 0.25 < z < 0.7 and y < 0.22:
+    if 0.25 < z < 0.7 and not (y > 0.25 and z < 0.47):
         if ax < 0.255 or z > 0.535:
             return "Tee"
     # Toenails on the front of his feet
@@ -133,6 +133,23 @@ def paint(ob):
         p.material_index = names.index(r)
         count[r] = count.get(r, 0) + 1
     print("PAINT", count)
+
+
+# The AI gave him a tail about a metre long; Hayden asked for a cartoon one (Nov 25: ~0.4 m). Everything behind his
+# bottom and below his waist is pulled in towards the tail's root, easing in over the first 10 cm so there's no seam.
+TAIL_ROOT = Vector((0.0, 0.27, 0.42))
+TAIL_FROM = 0.26          # y where the tail starts (his bottom and heels are in front of this)
+TAIL_KEEP = 0.45          # how much of its length it keeps
+
+
+def tail_scale(y):
+    return 1.0 + (TAIL_KEEP - 1.0) * ss(TAIL_FROM, TAIL_FROM + 0.1, y)
+
+
+def shorten_tail(ob):
+    for v in ob.data.vertices:
+        if v.co.y > TAIL_FROM and v.co.z < 0.5:
+            v.co = TAIL_ROOT + (v.co - TAIL_ROOT) * tail_scale(v.co.y)
 
 
 def surface_y(ob, x, z, start=-2.0):
@@ -161,6 +178,7 @@ def build():
     bpy.ops.import_scene.gltf(filepath=str(SRC))
     body = next(o for o in bpy.context.scene.objects if o.type == "MESH")
     body.name = body.data.name = "RoloShape"
+    shorten_tail(body)
     paint(body)
     K.PARTS.append((body, ["head"]))      # weights come from Blender's automatic weights below, not char_kit's
 
@@ -204,7 +222,8 @@ def build():
     BONES = biped_bones(hips=0.33, chest=0.56, neck=0.70, head_top=1.16, shoulder=(0.235, 0.0, 0.62),
                         elbow=(0.31, -0.03, 0.48), wrist=(0.35, -0.06, 0.37), hand_tip=(0.37, -0.08, 0.3),
                         hip_x=0.12, knee=0.16, ankle=0.06, toe=(-0.16, 0.02))
-    tail = [(0, 0.27, 0.42), (0, 0.45, 0.31), (0, 0.65, 0.19), (0, 0.88, 0.11), (0, 1.02, 0.13)]
+    tail = [tuple(TAIL_ROOT + (Vector(t) - TAIL_ROOT) * TAIL_KEEP) for t in
+            ((0, 0.27, 0.42), (0, 0.45, 0.31), (0, 0.65, 0.19), (0, 0.88, 0.11), (0, 1.02, 0.13))]
     parent = "hips"
     for i in range(len(tail) - 1):
         BONES[f"tail.{i}"] = (tail[i], tail[i + 1], parent)

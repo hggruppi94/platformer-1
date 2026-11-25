@@ -88,7 +88,7 @@ add idle and walk, paint it if it's a shape-only one, bake detail with the `rhin
 | Animations | idle, walk, run, jump, fall | idle, walk, run, flap, jump, fall |
 | Detail textures | 3 x 2048 (tint, normal, AO): rhino hide, knit tee, horn | 3 x 2048 |
 | Hand fixes | had to add what the AI left off: proper eyes (it made only bumps), brows, the horn, a tongue; centre him on his body, not the box (his long tail pulled it back); a first pass painted the nostril colour into his eye sockets (tightened); 3 loose vertices the automatic weights missed went to the nearest bone | see above |
-| Rough edges left | the colour borders follow the AI's triangles, so the tee's hem and the snout's edge are a bit jagged close up; his tail is long (about 1 m behind him); the wrinkle pattern reads a little stripy | |
+| Rough edges left | the colour borders follow the AI's triangles, so the tee's hem and the snout's edge are a bit jagged close up; the wrinkle pattern reads a little stripy. His tail was about 1 m long; it's now shortened to a cartoon 0.4 m (`TAIL_KEEP`), at Hayden's request | |
 
 The AI's shape (`tools/src/rolo_hunyuan21.glb`, 40k triangles, prepped) is kept in the repo as an input, like a
 reference picture, so `build_rolo.py` can be run again.

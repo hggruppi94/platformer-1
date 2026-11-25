@@ -110,7 +110,8 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - **Baked detail:** `tools/build_friend_detail.py rolo` (the `rhino` hide, a knit tee).
   - He appears by the pond on his own (`scripts/pond_friends.gd`, `dialogue/rolo.json`). `test_pond_friends`
     checks him; `test_dialogue` lists him. Pictures and the full comparison: `previews/meshy_trial/COMPARISON.md`.
-  - My choices Hayden may change: his colours (lilac-grey, orange tee), the horn, his height, how long his tail is.
+  - His tail is pulled in to about 0.4 m (`shorten_tail()`, `TAIL_KEEP`; the AI made it 1 m).
+  - My choices Hayden may change: his colours (lilac-grey, orange tee), the horn, his height.
 
 - 2026-11-25: **Hermez the crane stands by a new Lily Pond in the Void's south meadow** (the "control" of an AI 3D
   tools trial: Rolo the rhino was to be made with Meshy, then with free open-source image-to-3D tools; Meshy's free
