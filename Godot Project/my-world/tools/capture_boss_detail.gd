@@ -3,10 +3,11 @@ extends SceneTree
 # Close-ups of the shape-built bosses' baked parts (tools/build_prop_bosses.py, scripts/detail_props.gd): the Gloop
 # King's crown, a Time Goblin's cog, Grandfather Tock's clock hat and the Boulderdillo's boulders, and the skins of
 # Tuskwinter, Grumblefin, the Dawn Snatcher and the Stormram, and (part three) Old Ember, Glimmerwing, Old
-# Bubblebeard, the centipede, the Thornknot and the Off-Beat, in a plain studio.
+# Bubblebeard, the centipede, the Thornknot and the Off-Beat, and (--enemies) a Crocodillo, a Time Goblin, Tock, a
+# Bog Wailer and a Peeper, in a plain studio.
 # With --old-props it shoots the same views with the detail pipeline off, to compare. Opens a window:
 #
-#   godot --path "Godot Project/my-world" --script res://tools/capture_boss_detail.gd -- <folder> [--old-props]
+#   godot --path "Godot Project/my-world" --script res://tools/capture_boss_detail.gd -- <folder> [--part3|--enemies] [--old-props]
 #
 # Only makes the bosses in an empty scene: no save or setting is touched.
 
@@ -59,6 +60,14 @@ func _made_in_code(what: String) -> Node3D:
 			return (load("res://scripts/rootmind.gd") as GDScript).call("thornknot_model")
 		"offbeat":
 			return (load("res://scripts/off_beat.gd") as GDScript).call("model")
+		"wailer":
+			var w := CharacterBody3D.new()
+			w.set_script(load("res://scripts/bog_wailer.gd"))
+			return w
+		"peeper":
+			var p := Node3D.new()
+			p.set_script(load("res://scripts/peeper.gd"))
+			return p
 	return Node3D.new()
 
 
@@ -142,6 +151,20 @@ func _run() -> void:
 			["thornknot_close", "", "", 0.0, Vector3(120, 0, 0), "", 3.0, Vector3(0.9, 0.4, 0.5)],
 			["offbeat", "new:offbeat", "", 0.0, Vector3(150, 0, 0), "", 11.0, Vector3(0.5, 0.25, 1)],
 			["offbeat_close", "", "", 0.0, Vector3(150, 0, 0), "", 4.0, Vector3(0.9, 0.2, 0.6)],
+		]
+	if "--enemies" in OS.get_cmdline_user_args():
+		# --enemies: the everyday enemies (scripts/detail_props.gd dress_crocodillo, dress_goblin_skin,
+		# dress_bog_wailer, dress_peeper)
+		shots = [
+			["croc", "res://scenes/enemies/crocodillo.tscn", "", 0.0, Vector3(0, 0, 0), "", 4.5, Vector3(0.7, 0.45, 1)],
+			["croc_close", "", "", 0.0, Vector3(0, 0, 0), "", 1.8, Vector3(0.9, 0.5, 0.5)],
+			["croc_back", "", "", 0.0, Vector3(0, 0, 0), "", 3.5, Vector3(0.5, 0.8, -1)],
+			["goblin", "res://scenes/enemies/time_goblin.tscn", "", 0.0, Vector3(20, 0, 0), "", 2.6, Vector3(0.5, 0.3, 1)],
+			["goblin_close", "", "", 0.0, Vector3(20, 0, 0), "", 1.2, Vector3(0.7, 0.2, 1)],
+			["tock", "res://scenes/enemies/time_goblin_boss.tscn", "", 0.0, Vector3(40, 0, 0), "", 6.0, Vector3(0.5, 0.3, 1)],
+			["wailer", "new:wailer", "", 0.0, Vector3(60, 0, 0), "", 6.0, Vector3(0.6, 0.3, 1)],
+			["wailer_close", "", "", 0.0, Vector3(60, 0, 0), "", 2.8, Vector3(0.7, 0.6, 1)],
+			["peeper", "new:peeper", "", 0.0, Vector3(80, 0, 0), "", 1.3, Vector3(0.5, 0.35, 1)],
 		]
 	var made := {}
 	for s in shots:

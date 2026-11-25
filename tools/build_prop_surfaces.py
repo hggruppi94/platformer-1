@@ -41,6 +41,14 @@
 #   floor_tiles  square tiles laid with grout, 1.2 m, each a little uneven (the rooms with painted floors, the school)
 #   plaster      soft trowelled plaster with faint hairline cracks, 2 m (every indoor wall and the domes overhead)
 #
+# Batch seventeen, the enemies (25 Nov 2026, Hayden: "keep baking details on assets in the game already"):
+#   reptile_scales  rows of rounded overlapping scales with a ridge of bony scutes every few rows, 0.8 m (the
+#                   Crocodillos' scaly hide, hands and belly)
+#   goblin_skin     pebbly, wrinkly skin with little warts and pores, 0.6 m (the Time Goblins' and the Bog Wailers'
+#                   skin)
+#   tweed           a coarse woven cloth, threads over and under with flecks of darker yarn, 0.5 m (the goblins'
+#                   waistcoats, coats and trousers)
+#
 #   python tools/build_prop_surfaces.py "<out>.glb" <kind> [--preview]
 import math
 import os
@@ -54,12 +62,13 @@ import bmesh  # noqa: E402
 import bpy  # noqa: E402
 
 KINDS = ["clapboard", "shingles", "brick", "stone", "barn_boards", "dome_scales", "bark", "rock", "ice", "snow",
-         "coral", "metal_panel", "drystone", "glass_facade", "floorboards", "floor_tiles", "plaster"]
+         "coral", "metal_panel", "drystone", "glass_facade", "floorboards", "floor_tiles", "plaster", "reptile_scales", "goblin_skin", "tweed"]
 KIND = next((a for a in sys.argv if a in KINDS), "clapboard")
 OUT = K.out_path(KIND + ".glb")
 TILE = {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0, "dome_scales": 1.6,
         "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0, "drystone": 2.0,
-        "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0}[KIND]
+        "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0,
+        "reptile_scales": 0.8, "goblin_skin": 0.6, "tweed": 0.5}[KIND]
 
 K.reset()
 HIGH = K.new_collection("High")
@@ -561,6 +570,106 @@ def plaster():
     return objs
 
 
+def reptile_scales():
+    tones = [K.mat("Scale %d" % i, (v, v, v * 0.96), rough=0.55, pits=0.25, bump=0.3) for i, v in
+             enumerate([0.88, 0.8, 0.92])]
+    scute = K.mat("Scute", (0.74, 0.72, 0.66), rough=0.75, pits=0.5, bump=0.6)
+    seam = K.mat("Seam", (0.3, 0.3, 0.28), rough=0.95)
+    per = 8
+    rows = 10
+    pitch = TILE / per
+    h = TILE / rows
+    pieces = {m.name: [] for m in tones}
+    scutes = []
+    for r in range(rows):
+        y0 = r * h
+        off = pitch / 2 if r % 2 else 0.0
+        bony = r % 5 == 2
+        for c in range(per):
+            x = off + c * pitch
+            if bony:
+                # a row of bony scutes: taller, ridged down the middle like a croc's back
+                b = K.sphere("Scute", pitch * 0.5, at=(x, y0 + h * 0.5, 0.012), m=scute, seg=16,
+                             scale=(0.9, 1.1, 0.32), col=HIGH)
+                scutes.append(b)
+                scutes.append(K.sphere("Keel", pitch * 0.12, at=(x, y0 + h * 0.5, 0.05), m=scute, seg=10,
+                                       scale=(0.6, 3.2, 0.9), col=HIGH))
+                continue
+            m = random.choice(tones)
+            s = K.sphere("Scale", pitch * 0.58, at=(x, y0 + h * 0.4, 0.008), m=m, seg=18,
+                         scale=(1.0, 0.85 + random.uniform(-0.08, 0.08), 0.14), col=HIGH)
+            s.rotation_euler = (-0.16, 0, random.uniform(-0.05, 0.05))
+            pieces[m.name].append(s)
+    objs = [tile_obj(n, ob) for n, ob in pieces.items() if ob]
+    objs.append(tile_obj("Scutes", scutes))
+    objs.append(K.box("Seam", (TILE, TILE, 0.01), at=(TILE / 2, TILE / 2, -0.012), m=seam, col=HIGH))
+    return objs
+
+
+def goblin_skin():
+    hide = K.mat("Hide", (0.9, 0.9, 0.88), rough=0.7, pits=0.35, bump=0.3)
+    wart = K.mat("Wart", (0.8, 0.78, 0.72), rough=0.8, pits=0.4, bump=0.4)
+    crease = K.mat("Crease", (0.55, 0.54, 0.52), rough=0.9)
+    skin = K.box("Hide", (TILE, TILE, 0.03), at=(TILE / 2, TILE / 2, 0.0), m=hide, col=HIGH)
+    bpy.context.view_layer.objects.active = skin
+    rem = skin.modifiers.new("Grid", "REMESH")
+    rem.mode = "SHARP"
+    rem.octree_depth = 7
+    for nm, sc, st in [("Pebble", 0.025, 0.01), ("Bulge", 0.18, 0.008)]:
+        dis = skin.modifiers.new(nm, "DISPLACE")
+        tex = bpy.data.textures.new(nm + "Tex", "CLOUDS")
+        tex.noise_scale = sc
+        dis.texture = tex
+        dis.texture_coords = "LOCAL"
+        dis.direction = "Z"
+        dis.strength = st
+    objs = [skin]
+    warts = []
+    for _ in range(26):
+        r = random.uniform(0.006, 0.02)
+        warts.append(K.sphere("Wart", r, at=(random.uniform(0, TILE), random.uniform(0, TILE), 0.014), m=wart,
+                              seg=10, scale=(1, 1, 0.6), col=HIGH))
+    objs.append(tile_obj("Warts", warts))
+    # wrinkles: short wavy creases pressed into the skin
+    lines = []
+    for _ in range(9):
+        x, y = random.uniform(0.05, TILE - 0.05), random.uniform(0.05, TILE - 0.05)
+        a = random.uniform(-0.4, 0.4)
+        pts = []
+        for k in range(7):
+            pts.append((x + math.cos(a) * k * 0.018, y + math.sin(a) * k * 0.018 + math.sin(k) * 0.004, 0.016))
+        lines.append(K.wire("Crease", pts, 0.0022, crease, res=2, col=HIGH))
+    objs.append(tile_obj("Creases", lines))
+    return objs
+
+
+def tweed():
+    yarn = [K.mat("Yarn %d" % i, (v, v, v * 0.97), rough=0.95, pits=0.1, bump=0.2) for i, v in
+            enumerate([0.9, 0.82, 0.88])]
+    fleck = K.mat("Fleck", (0.45, 0.42, 0.4), rough=0.95)
+    n = 20
+    step = TILE / n
+    pieces = {m.name: [] for m in yarn}
+    flecks = []
+    for i in range(n):
+        c = (i + 0.5) * step
+        for along in (True, False):
+            m = fleck if random.random() < 0.12 else random.choice(yarn)
+            pts = []
+            for k in range(n * 2 + 1):
+                t = k * step / 2
+                # each thread goes over one, under the next (a twill: shifted one a row)
+                z = 0.004 * math.cos(math.pi * (k / 2.0 + i * 0.5 + (0 if along else 1)))
+                pts.append((t, c, 0.01 + z) if along else (c, t, 0.01 - z))
+            w = K.wire("Thread", pts, step * 0.36, m, res=2, col=HIGH)
+            (flecks if m is fleck else pieces[m.name]).append(w)
+    objs = [tile_obj(n2, ob) for n2, ob in pieces.items() if ob]
+    if flecks:
+        objs.append(tile_obj("Flecks", flecks))
+    objs.append(K.box("Under", (TILE, TILE, 0.004), at=(TILE / 2, TILE / 2, 0.0), m=fleck, col=HIGH))
+    return objs
+
+
 # ---------------------------------------------------------------- the bake
 def low_square():
     bm = bmesh.new()
@@ -628,7 +737,8 @@ def bake(low, highs, size, ext, ray):
 BUILD = {"clapboard": clapboard, "shingles": shingles, "brick": brick, "stone": stone, "barn_boards": barn_boards,
          "dome_scales": dome_scales, "bark": bark, "rock": rock, "ice": ice, "snow": snow, "coral": coral,
          "metal_panel": metal_panel, "drystone": drystone, "glass_facade": glass_facade, "floorboards": floorboards,
-         "floor_tiles": floor_tiles, "plaster": plaster}
+         "floor_tiles": floor_tiles, "plaster": plaster,
+         "reptile_scales": reptile_scales, "goblin_skin": goblin_skin, "tweed": tweed}
 
 
 def main():

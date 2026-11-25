@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The everyday enemies have baked detail: Crocodillos' scales and shells, Time Goblins' pebbly skin and
+  woven clothes, Bog Wailers' warts and moss, and the Peepers' fuzz** (the enemies batch of Hayden's "keep baking
+  details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Three more tiling patches** (`tools/build_prop_surfaces.py reptile_scales|goblin_skin|tweed`): rows of raised
+    reptile scales, a pebbly bumpy skin, and a woven cloth. In `models/props/surfaces/`.
+  - **Put on where they're built** (`detail_props.gd dress_crocodillo()`, `dress_goblin_skin()`, `dress_bog_wailer()`,
+    `dress_peeper()`, called from `crocodillo.gd`, `time_goblin.gd`, `bog_wailer.gd` and `peeper.gd`, so every boss
+    built on them gets it too): a Crocodillo's hide, belly and hands wear the scales (`CROC_SCALE_K`, `CROC_BELLY_K`)
+    and its shell ball the beetle shell skin (`boss_chitin`); a Time Goblin's (and Tock's) teal skin the goblin skin and
+    its waistcoat, coat and legs the cloth; a Bog Wailer's head the toad warts, its moss the fuzz and its body the
+    goblin skin (its mouth still opens); a Peeper's fluff the moth fuzz. Cousins that strip the look (the Stormram, the
+    Dawn Snatcher) are left alone. With the detail pipeline off nothing changes.
+  - **Shared copies:** every enemy of a kind shares its patched materials (cached on the old material), so they still
+    draw together. Fixed while doing it: `dress_patches()`'s cache key had a dot in it (meta names can't), so the
+    bosses' patched copies weren't being shared either.
+  - Left plain on purpose: Gloops, Glorps and Mucklings (the goo shader), Fizzlers (glow), shadow ghosts, Buzz Bots.
+  - Tests: new `tools/test_enemy_detail.gd`; boss_detail, boss_versions, boss_lairs, time_goblins, swamps, peepers,
+    arena, wilds, glenmoor, lanternmoor, detail_all and scary_world (both runs) pass. Pictures:
+    `capture_boss_detail.gd -- <folder> --enemies [--old-props]` (project files, characters/boss-detail/enemies).
+  - My choices Hayden may change: how strong each patch is (the Crocodillo's scales read a little pale from afar).
+
 - 2026-11-25: **Loading screens cover every trip again, and no more still frame leaving a building** (Hayden: "loading
   screens have gotten pretty horrendous ... sometimes when you exit buildings, there's no loading screen at all and its
   just a still frame of an older version of the game"). A scene change loaded on the main thread froze the window on

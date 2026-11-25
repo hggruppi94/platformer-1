@@ -86,6 +86,8 @@ func _ready() -> void:
 		var a := TAU * k / 5.0
 		tuft.position = Vector3(cos(a) * 0.06, 0.48, sin(a) * 0.06)
 		_body.add_child(tuft)
+	# Its baked fluff (scripts/detail_props.gd; nothing with the pipeline off)
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_peeper", self, fluff)
 	var white := _mat(Color(1, 1, 1))
 	var black := _mat(Color(0.05, 0.03, 0.1))
 	for sx in [-1.0, 1.0]:

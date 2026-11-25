@@ -470,4 +470,6 @@ func _defeated() -> void:
 
 
 func _dress_baked() -> void:
-	(load("res://scripts/detail_props.gd") as GDScript).call("dress_goblin", self)
+	var detail := load("res://scripts/detail_props.gd") as GDScript
+	detail.call("dress_goblin", self)
+	detail.call("dress_goblin_skin", self)  # (its skin and clothes)
