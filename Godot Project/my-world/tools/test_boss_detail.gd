@@ -6,6 +6,9 @@ extends SceneTree
 # (never freed: the fights still use them), Tock's hand sits on the new face, and with detail off nothing changes.
 # Part two: Tuskwinter's hide, Grumblefin's scales, the Dawn Snatcher's feathers and the Stormram's fleece are baked
 # skins on their balls (detail_props.gd dress_surfaces), each the old ball's colour, scaled with it.
+# Part three: Old Ember's lava crust, Glimmerwing's fuzz, Old Bubblebeard's warts and the centipede's chitin are baked
+# skins too, and the parts that aren't balls get a tiling patch (dress_patches): Old Ember's rock, the Thornknot's
+# bark and the Off-Beat's planks.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_boss_detail.gd
 #
@@ -28,6 +31,16 @@ func _initialize() -> void:
 
 func _drawn(mi: Node) -> bool:
 	return mi is GeometryInstance3D and (mi as GeometryInstance3D).visible and (mi as VisualInstance3D).layers != 0
+
+
+func _patch(m: Node) -> String:
+	var mat := (m as MeshInstance3D).material_override
+	return str(mat.get_meta(DP.SURFACE_META, "")) if mat else ""
+
+
+func _has_maps(m: Node) -> bool:
+	var mat := (m as MeshInstance3D).material_override as StandardMaterial3D
+	return mat != null and mat.albedo_texture != null and mat.normal_texture != null and mat.uv1_triplanar
 
 
 func _make(what: String) -> Node3D:
@@ -55,6 +68,27 @@ func _make(what: String) -> Node3D:
 			n = (load("res://scenes/enemies/crocodillo.tscn") as PackedScene).instantiate()
 			n.set_script(load("res://scripts/stormram.gd"))
 			n.set("size", 2.2)
+		"ember":
+			n = CharacterBody3D.new()
+			n.set_script(load("res://scripts/old_ember.gd"))
+		"star_well", "bubble_spring":
+			var gs: GDScript = load("res://scripts/guardian.gd")
+			var k: Dictionary = gs.KINDS[what]
+			n = CharacterBody3D.new()
+			n.set_script(gs)
+			n.set("id", what)
+			n.set("title", str(k.name))
+			n.set("colour", k.colour)
+			n.set("moves", k.moves)
+			n.set("height", float(k.height))
+			n.set("floats", float(k.floats))
+		"centipede":
+			n = Node3D.new()
+			n.set_script(load("res://scripts/centipede_friend.gd"))
+		"thornknot":
+			n = (load("res://scripts/rootmind.gd") as GDScript).call("thornknot_model")
+		"offbeat":
+			n = (load("res://scripts/off_beat.gd") as GDScript).call("model")
 	n.position = Vector3(randf_range(-50, 50), 200, randf_range(-50, 50))
 	root.add_child(n)
 	return n
@@ -67,7 +101,8 @@ func _run() -> void:
 	var goblin := _make("goblin")
 	var tock := _make("tock")
 	var boulder := _make("boulder")
-	var skinned := {"frost": 2, "riptide": 2, "snatcher": 2, "stormram": 20}
+	var skinned := {"frost": 2, "riptide": 2, "snatcher": 2, "stormram": 20, "ember": 4, "star_well": 2,
+		"bubble_spring": 2, "centipede": 10}
 	var skin_bosses := {}
 	for w in skinned:
 		skin_bosses[w] = _make(w)
@@ -143,6 +178,21 @@ func _run() -> void:
 		check(b.find_children("Detailed Skin", "MeshInstance3D", true, false).size() == before,
 			"%s: dressing it again changes nothing" % w)
 
+	# Part three: the patches on the parts that aren't balls
+	var patched := {"ember": 1, "thornknot": 30, "offbeat": 2}
+	var patch_of := {"ember": "rock", "thornknot": "bark", "offbeat": "barn_boards"}
+	for w in patched:
+		var b: Node3D = skin_bosses[w] if skin_bosses.has(w) else _make(w)
+		if not skin_bosses.has(w):
+			await process_frame
+		var meshes := b.find_children("*", "MeshInstance3D", true, false)
+		var worn := meshes.filter(func(m): return _patch(m) == patch_of[w])
+		check(worn.size() >= patched[w], "%s: %d parts wear the %s patch (at least %d)" % [w, worn.size(), patch_of[w], patched[w]])
+		var textured := worn.all(_has_maps)
+		check(textured and worn.size() > 0, "%s: each patch has its baked maps, laid on in the part's own space" % w)
+		check(DP.dress_patches(b, [[(worn[0] as MeshInstance3D).material_override, patch_of[w]]]) == 0 if worn.size() else false,
+			"%s: patching it again changes nothing" % w)
+
 	# Detail off: a new boss is left as built
 	if wd:
 		wd.set("detail_props", false)
@@ -156,6 +206,9 @@ func _run() -> void:
 		await process_frame
 		check(plain_ram.find_children("Detailed Skin", "", true, false).is_empty(),
 			"with detail off the Stormram keeps its plain fleece")
+		var plain_knot := _make("thornknot")
+		check(plain_knot.find_children("*", "MeshInstance3D", true, false).all(func(m): return _patch(m) == ""),
+			"with detail off the Thornknot keeps its plain vines")
 		wd.set("detail_props", true)
 
 	print("\nRESULT %s (%d failed)" % ["FAILED" if failures else "PASSED", failures])

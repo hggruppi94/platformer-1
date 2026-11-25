@@ -396,12 +396,19 @@ func _giant() -> void:
 		sw.call("_mesh", sw.call("_ball", 0.6, 10), body, Vector3(side * 0.4, -3.3, 0.8), arm)
 		for k in 3:
 			sw.call("_mesh", sw.call("_cyl", 0.1, 0.02, 0.6, 5), drip, Vector3(side * 0.4 + (k - 1) * 0.25, -3.9, 0.8), arm)
+	# Baked detail: warty mud on its body and hands, a thick fuzz of moss on its back
+	_dress_giant.call_deferred([[body, "boss_warts"], [moss, "boss_fuzz"]])
 	var l := OmniLight3D.new()
 	l.light_color = (_lay().wailer as Dictionary).eye as Color
 	l.light_energy = 1.2
 	l.omni_range = 7.0
 	l.position = Vector3(0, 5.0, 2.6)
 	giant.add_child(l)
+
+
+func _dress_giant(parts: Array) -> void:
+	if giant:
+		(load("res://scripts/detail_props.gd") as GDScript).call("dress_surfaces", giant, parts)
 
 
 func _giant_step(delta: float, p: CharacterBody3D) -> void:

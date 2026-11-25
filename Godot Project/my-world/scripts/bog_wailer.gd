@@ -211,6 +211,8 @@ func _build() -> void:
 	# A wide soft mouth that opens to wail (a dark hollow, no teeth)
 	mouth = _ball(0.3, dark, Vector3(0.0, -0.34, 0.66), head, Vector3(1.4, 0.18, 0.6))
 	mouth.name = "Mouth"
+	# Its baked look: warty head, fuzzy moss, pebbly skin (scripts/detail_props.gd; nothing with the pipeline off)
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_bog_wailer", self, body, lump, [moss, drape])
 
 
 # Thinking ------------------------------------------------------------------------------------------------------------

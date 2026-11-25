@@ -141,6 +141,10 @@ const BOSS_SKINS := {
 	"boss_scales": "res://models/props/bosses/boss_scales.glb",
 	"boss_feathers": "res://models/props/bosses/boss_feathers.glb",
 	"boss_fleece": "res://models/props/bosses/boss_fleece.glb",
+	"boss_crust": "res://models/props/bosses/boss_crust.glb",
+	"boss_warts": "res://models/props/bosses/boss_warts.glb",
+	"boss_chitin": "res://models/props/bosses/boss_chitin.glb",
+	"boss_fuzz": "res://models/props/bosses/boss_fuzz.glb",
 }
 const BOSS_SKIN_GAIN := 1.08
 const GADGET_STALL := "res://models/props/gadget_stall.glb"
@@ -3862,6 +3866,8 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 		var src := _skin_mesh(by_mat[old])
 		if src.is_empty():
 			continue
+		if not made.has(old) and old.has_meta("detail_skin_" + by_mat[old]):
+			made[old] = old.get_meta("detail_skin_" + by_mat[old])  # (shared, like dress_patches' copies)
 		if not made.has(old):
 			var mat := (src[1] as StandardMaterial3D).duplicate() as StandardMaterial3D
 			mat.albedo_color = Color(old.albedo_color.r * BOSS_SKIN_GAIN, old.albedo_color.g * BOSS_SKIN_GAIN,
@@ -3873,6 +3879,7 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 				mat.emission = old.emission
 				mat.emission_energy_multiplier = old.emission_energy_multiplier
 				mat.emission_texture = null
+			old.set_meta("detail_skin_" + by_mat[old], mat)
 			made[old] = mat
 		var sm := mi.mesh as SphereMesh
 		var skin := MeshInstance3D.new()
@@ -3884,6 +3891,123 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 		skin.visibility_range_end = mi.visibility_range_end
 		mi.add_child(skin)
 		_hide(mi)
+		n += 1
+	return n
+
+
+static func dress_patches(root: Node, pairs: Array) -> int:
+	# The parts of a shape-built boss that aren't round balls (the Thornknot's vine rings and thorns, the Off-Beat's
+	# wooden body, Old Ember's legs and spine bumps) get one of the tiling surface patches instead (bark, barn boards,
+	# rock: tools/build_prop_surfaces.py). pairs is [[material, patch], ...]: every mesh wearing that material wears a
+	# patched copy instead, laid on in the mesh's own space, so the patch moves, swings and squashes with the boss.
+	# Nothing is added or hidden. Returns how many meshes it patched (0 when done again: nothing changes).
+	var n := 0
+	if root == null or not on():
+		return n
+	var made := {}
+	for p in pairs:
+		var old := p[0] as StandardMaterial3D
+		if old == null or old.has_meta(SURFACE_META) or not SURFACE_GAIN.has(p[1]):
+			continue
+		var m := patched(old, p[1], float(p[2] if p.size() > 2 else 1.0))
+		if m:
+			made[old] = m
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		# A ball that already wears a baked skin (dress_surfaces) is hidden and keeps its own material
+		if made.has(mi.material_override) and not mi.has_node("Detailed Skin"):
+			mi.material_override = made[mi.material_override]
+			n += 1
+	return n
+
+
+static func patched(old: StandardMaterial3D, kind: String, scale := 1.0, offset := Vector3.ZERO) -> StandardMaterial3D:
+	# A copy of old wearing a tiling surface patch (tools/build_prop_surfaces.py), laid on in the mesh's own space
+	# (triplanar, SURFACE_TILE metres a patch, times scale), in old's own colour. One copy per material and patch, kept
+	# on the material itself: every Crocodillo (or goblin, or skateboard) sharing a scene's materials then shares the
+	# patched ones too, so they still draw together. Null if the patch isn't there.
+	if old == null or not SURFACE_GAIN.has(kind):
+		return null
+	# (a meta name can't hold a dot, so the scale is written in hundredths)
+	var key := "detail_patch_%s_%d" % [kind, roundi(scale * 100.0)]
+	if old.has_meta(key):
+		return old.get_meta(key)
+	var model := _scene(SURFACE % kind)
+	var baked_mesh := _mesh_of(model) if model else null
+	var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
+	if baked == null:
+		return null
+	var m := old.duplicate() as StandardMaterial3D
+	m.albedo_texture = baked.albedo_texture
+	var c := old.albedo_color * float(SURFACE_GAIN[kind])
+	m.albedo_color = Color(c.r, c.g, c.b, old.albedo_color.a)
+	m.normal_enabled = true
+	m.normal_texture = baked.normal_texture
+	m.ao_enabled = true
+	m.ao_texture = baked.ao_texture
+	m.ao_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	m.ao_light_affect = 0.6
+	m.roughness_texture = baked.ao_texture
+	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+	m.texture_repeat = true
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = false
+	m.uv1_triplanar_sharpness = 6.0
+	m.uv1_scale = Vector3.ONE / float(SURFACE_TILE[kind]) * scale
+	m.uv1_offset = offset
+	m.set_meta(SURFACE_META, kind)
+	# Says it's laid on in the object's own space, so checks don't expect the world-space look rock and bark get
+	m.set_meta("detail_moves", true)
+	old.set_meta(key, m)
+	return m
+
+
+# The rides (25 Nov 2026, Hayden: "keep baking details on assets in the game already"): every ride is built in code
+# from shapes (scenes/player/ride_kit.gd) or is the little skateboard scene, all plain colours. Each part says what it
+# is with meta "ride_part" (the skateboard's are known by name), and wears the patch for it: a deck's maple grain,
+# grip tape, brushed metal, a tyre's tread, a leaf's veins, or (the roller skates' boots) a pebbled leather from the
+# goblin skin made small. Glows, flames and see-through things stay as they are, and so does the bike (its own model:
+# it gets baked on its own).
+const RIDE_PATCH := {"deck": ["maple", 1.0], "grip": ["grip_tape", 1.0], "metal": ["brushed_metal", 1.0],
+	"tyre": ["tread", 1.0], "leaf": ["leaf_skin", 0.8], "stem": ["leaf_skin", 3.0], "boot": ["goblin_skin", 2.5]}
+const RIDE_BY_NAME := {"Deck": "deck", "Nose": "deck", "Tail": "deck", "Grip": "grip", "TruckFront": "metal",
+	"TruckBack": "metal"}
+# The leaf's midrib runs down the middle of the patch, so it's moved to the middle of the leaf
+const RIDE_OFFSET := {"leaf": Vector3(0.5, 0.0, 0.0)}
+
+
+static func ride_part(mi: MeshInstance3D) -> String:
+	# What part of a ride a mesh is ("" if it isn't one that's dressed)
+	if mi.has_meta("ride_part"):
+		return str(mi.get_meta("ride_part"))
+	return str(RIDE_BY_NAME.get(str(mi.name), ""))
+
+
+static func dress_ride(ride: Node) -> int:
+	# Puts the patches on a ride (RideKit.build() calls it last). Returns how many parts it dressed; 0 when done again.
+	var n := 0
+	if ride == null or not on():
+		return n
+	for c in ride.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var part := ride_part(mi)
+		if part == "" or not RIDE_PATCH.has(part):
+			continue
+		var over := mi.material_override != null
+		var old := (mi.material_override if over else mi.get_surface_override_material(0)) as StandardMaterial3D
+		if old == null and mi.mesh and mi.mesh.get_surface_count() > 0:
+			old = mi.mesh.surface_get_material(0) as StandardMaterial3D
+		if old == null or old.has_meta(SURFACE_META) or old.emission_enabled \
+				or old.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED \
+				or old.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+			continue
+		var m := patched(old, RIDE_PATCH[part][0], float(RIDE_PATCH[part][1]), RIDE_OFFSET.get(part, Vector3.ZERO))
+		if m == null:
+			continue
+		if over:
+			mi.material_override = m
+		else:
+			mi.set_surface_override_material(0, m)
 		n += 1
 	return n
 
@@ -3961,6 +4085,107 @@ static func dress_goblin(goblin: Node) -> Vector2i:
 			hand.position = Vector3(0, HAT_FACE_Y, CLOCK_HAND_Z * s)
 		n.y = 1
 	return n
+
+
+# The enemies (25 Nov 2026, Hayden: "keep baking details on assets in the game already"): the shape-built enemies
+# wear the baked patches and skins the bosses do (tools/build_prop_surfaces.py reptile_scales, goblin_skin, tweed;
+# the boss skins). How many each patch repeats over the enemy's own space, so the scales and threads come out the
+# right size on something a metre or two tall.
+const CROC_SCALE_K := 2.2      # Crocodillo hide: scales about 4.5 cm across
+const CROC_BELLY_K := 1.4      # bigger, flatter scales on the belly and jaw
+const GOBLIN_SKIN_K := 2.0     # a Time Goblin is under a metre tall
+const GOBLIN_CLOTH_K := 2.5
+const WAILER_SKIN_K := 1.2
+
+
+static func _mats_named(root: Node, names: Array) -> Dictionary:
+	# Every material (by its resource name, or by the name of the mesh wearing it) under root, once each
+	var out := {}
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var m := mi.material_override as StandardMaterial3D
+		if m == null or m.has_meta(SURFACE_META):
+			continue
+		var key := m.resource_name if m.resource_name != "" else ""
+		if key in names:
+			out[m] = key
+	return out
+
+
+static func dress_crocodillo(croc: Node) -> int:
+	# A Crocodillo (tools/build_crocodillo.gd, and every boss and little one built on it): its scaly hide, belly and
+	# hands wear the reptile scales; its shell and its rolled-up ball wear the beetle-shell skin. One that took the
+	# look off (the Stormram) has no meshes left in those materials, so nothing happens.
+	var visual := croc.get_node_or_null("Visual") if croc else null
+	if visual == null or not on():
+		return 0
+	var mats := _mats_named(visual, ["Croc Scales", "Croc Belly", "Croc Hands", "Croc Shell"])
+	var patches := []
+	var skins := []
+	for m in mats:
+		match mats[m]:
+			"Croc Scales":
+				patches.append([m, "reptile_scales", CROC_SCALE_K])
+			"Croc Belly", "Croc Hands":
+				patches.append([m, "reptile_scales", CROC_BELLY_K])
+			"Croc Shell":
+				skins.append([m, "boss_chitin"])
+				patches.append([m, "reptile_scales", CROC_SCALE_K])
+	var n := dress_surfaces(visual, skins)
+	# (the shell's own ball wears its skin; anything else in the shell's colour gets the scales)
+	return n + dress_patches(visual, patches)
+
+
+static func _goblin_parts(visual: Node) -> Dictionary:
+	# A Time Goblin's materials have no names (tools/build_time_goblin.gd), so they're found by the parts wearing them
+	var skin := ["Belly", "Skull", "Arm", "EarL", "EarR", "Hand", "Nose", "BrowL", "BrowR"]
+	var cloth := ["Waistcoat", "Leg", "Coat", "Band"]
+	var out := {}
+	for c in visual.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var m := mi.material_override as StandardMaterial3D
+		if m == null or m.has_meta(SURFACE_META) or mi.mesh == null:
+			continue
+		var nm := String(mi.name)
+		if nm.begins_with("Finger"):
+			nm = "Hand"
+		# (the hat's band is cloth, but Tock's clock hat has no band; the watch's "Crown" and the hat's are left)
+		if nm in skin:
+			out[m] = "goblin_skin"
+		elif nm in cloth:
+			out[m] = "tweed"
+	return out
+
+
+static func dress_goblin_skin(goblin: Node) -> int:
+	# A Time Goblin's (or Grandfather Tock's) teal skin wears the pebbly goblin skin and its waistcoat, trousers and
+	# coat the woven cloth. One that took the look off (the Dawn Snatcher) has no meshes left, so nothing changes.
+	var visual := goblin.get_node_or_null("Visual") if goblin else null
+	if visual == null or not on():
+		return 0
+	var parts := _goblin_parts(visual)
+	var pairs := []
+	for m in parts:
+		pairs.append([m, parts[m], GOBLIN_SKIN_K if parts[m] == "goblin_skin" else GOBLIN_CLOTH_K])
+	return dress_patches(visual, pairs)
+
+
+static func dress_bog_wailer(wailer: Node, body: Material, lump: Material, moss: Array) -> int:
+	# A Bog Wailer (scripts/bog_wailer.gd _build): its huge lumpy head wears the toad warts, the moss on its shoulders
+	# and hanging off its head the moth fuzz, and its long body the pebbly goblin skin.
+	if wailer == null or not on():
+		return 0
+	var skins := [[lump, "boss_warts"]]
+	for m in moss:
+		skins.append([m, "boss_fuzz"])
+	return dress_surfaces(wailer, skins) + dress_patches(wailer, [[body, "goblin_skin", WAILER_SKIN_K]])
+
+
+static func dress_peeper(peeper: Node, fluff: Material) -> int:
+	# A Peeper (scripts/peeper.gd): its puffball body and tuft wear the moth fuzz.
+	if peeper == null or not on():
+		return 0
+	return dress_surfaces(peeper, [[fluff, "boss_fuzz"]])
 
 
 static func dress_boulderdillo(boss: Node) -> int:
@@ -4333,10 +4558,14 @@ static func dress_nature(scene: Node) -> Dictionary:
 const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
 	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
-	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0}
+	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0,
+	"reptile_scales": 0.8, "goblin_skin": 0.6, "tweed": 0.5, "maple": 0.6, "grip_tape": 0.3, "brushed_metal": 0.4,
+	"tread": 0.4, "leaf_skin": 0.8}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
 	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
-	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25}
+	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25,
+	"reptile_scales": 1.45, "goblin_skin": 1.3, "tweed": 1.5, "maple": 1.2, "grip_tape": 1.11, "brushed_metal": 1.13,
+	"tread": 1.55, "leaf_skin": 1.11}
 # The insides (24 Nov 2026): the Void's dome rooms (tools/build_interiors.gd dome_room(): "Floor <room>", "Wall <room>",
 # "Dome <room>") and the palace school's inside (tools/build_school.gd). Inside, a wall is plaster, never the outside
 # siding a "Wall ..." gets in town, and the dome overhead is plaster too. The builders' colours are all mapped into the
