@@ -3,7 +3,11 @@
 Fresh pictures for TRELLIS to build Mr. Palmer and Nina from (the way Rolo was made). The tools are outside the
 repo (`C:\Users\hggru\Game_dev\ai3d`); copies of the two scripts are here.
 
-- **Nina** (`nina_concept.png`): from Sofi's hippo girl turnaround (`source_art/reference/Hippo Girl Turnaround.png`,
+- **Nina, the main input** (`nina_input.png`): Sofi's own picture, `source_art/reference/Nina - main reference.jpg`,
+  as it is, cropped to her with the tie-dye background cut away (`nina_cutout.py`, rembg). The only part repainted is where
+  the picture's letter tiles covered her lower overalls and legs (`nina_fix_legs.py`, SDXL-Turbo inpainting, seed 3).
+  Everything else is Sofi's art unchanged.
+- **Nina, the turnaround** (`nina_turnaround.png`, a second row on the sheet): from Sofi's hippo girl turnaround (`source_art/reference/Hippo Girl Turnaround.png`,
   front view), recoloured to her main reference (`Nina - main reference.jpg`). Her hair and bow are red, her overalls
   and straps pink and her skin warm grey-brown; her backpack stays yellow (`recolour_nina.py`). SDXL-Turbo from words
   alone made plain hippos with no hair or clothes (`nina_candidates_text_only.png`), and image-to-image kept her
