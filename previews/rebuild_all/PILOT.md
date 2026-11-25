@@ -80,3 +80,16 @@ parts meet is straightened (`straighten_borders`).
   round her real eyes. Mr. Palmer's doesn't improve: the AI put his whole face lower than the original (its glasses
   sit at his nose), so the smoothing near the real glasses misses its copy. His face would need the AI's features
   moved up to the old ones first, or his face kept from the old model.
+
+### The final pick: colour by picture, with the face check (`colour_final.png`)
+
+`ai_rebuild.py fit <model> raw_mv.glb picture <tag> [auto|yes|no]`. The face check measures how far the front of the
+old face is from the AI's surface. Over `FACE_OFF_MAX` (2% of the height), the AI's own head is cut away
+(`cut_head`) and the old head is kept whole: its skin, hair, eyes, glasses and moustache, with its own weights. The AI
+then gives only the body and clothes. Nina measures 1.2%, so she uses the AI's face (smoothed under her real eyes).
+Mr. Palmer measures 2.5%, so he keeps his old head.
+
+- **Mr. Palmer:** the face, tie, shirt and sash match the original. The suit has the AI's softer folds. The neck
+  joins like the old model's (the head sits over the collar).
+- **Nina:** the clothes are clean. Up close, a strip down the side of her hair comes out skin-coloured (none of the
+  three pictures sees it squarely), her blush doesn't show and her nostrils are faint dents.

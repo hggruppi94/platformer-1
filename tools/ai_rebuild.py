@@ -36,6 +36,7 @@ ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "Godot Project/my-world"
 AI3D = Path(os.environ.get("AI3D", r"C:\Users\hggru\Game_dev\ai3d"))
 BLENDER = os.environ.get("BLENDER", r"C:\Program Files\Blender 4.5\blender.exe")
+FACE_OFF_MAX = 0.02  # the face check's limit (a share of the height) before the old head is kept
 EYES = ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine"]
 
 # kind, the original (.blend for characters, the game's .glb for props), body and rig names, the detail recipe's key in
@@ -388,6 +389,47 @@ def _bpy_steps():
             out.append(names.get(max(w, key=w.get)) if w else None)
         return out
 
+    def face_offset(old, new, head_faces, mats, keep):
+        """The middle distance from the front of the old face (head faces pointing forward, not the kept eyes and
+        glasses) to the AI's surface."""
+        tree = BVHTree.FromObject(new, bpy.context.evaluated_depsgraph_get())
+        ds = []
+        for p in old.data.polygons:
+            mt = mats[p.material_index]
+            if p.index in head_faces and p.normal.y < -0.6 and mt is not None and mt.name not in keep:
+                hit = tree.find_nearest(p.center)
+                if hit[0] is not None:
+                    ds.append(hit[3])
+        ds.sort()
+        return ds[len(ds) // 2] if ds else 0.0
+
+    def cut_head(new, old, head_faces, h):
+        """Takes the AI's own head off: every face inside the old head, or higher than the old head's lowest point."""
+        bm = bmesh.new()
+        for p in old.data.polygons:
+            if p.index in head_faces:
+                bm.faces.new([bm.verts.new(old.data.vertices[v].co) for v in p.vertices])
+        bm.normal_update()
+        tree = BVHTree.FromBMesh(bm)
+        z0 = min(v.co.z for v in bm.verts)
+        bm.free()
+        nb = bmesh.new()
+        nb.from_mesh(new.data)
+        out = []
+        for f in nb.faces:
+            c = f.calc_center_median()
+            if c.z > z0 + 0.01 * h:
+                out.append(f)
+                continue
+            hit = tree.find_nearest(c)
+            if hit[0] is not None and (c - hit[0]).dot(hit[1]) < 0 and hit[3] < 0.08 * h:
+                out.append(f)
+        bmesh.ops.delete(nb, geom=out, context="FACES")
+        bmesh.ops.delete(nb, geom=[v for v in nb.verts if not v.link_faces], context="VERTS")
+        nb.to_mesh(new.data)
+        nb.free()
+        print("AI head taken off:", len(out), "faces")
+
     def flatten_under(new, old, mats, names, h, reach=0.035, iters=40):
         """Smooths the AI's face flat where the old eyes and glasses go back on: the AI moulds its own copy of them
         into the face (ridges round the eyes, a second pair of glasses in the skin), which would show round the real
@@ -712,7 +754,7 @@ def _bpy_steps():
         print("AI exported", name, tag, path)
 
     # ------------------------------------------------------------------------------------------------- fit: character
-    def fit_character(name, raw="raw.glb", mode="nearest", tag=""):
+    def fit_character(name, raw="raw.glb", mode="nearest", tag="", keep_head="auto"):
         m = MODELS[name]
         clean()
         bpy.ops.wm.open_mainfile(filepath=str(ROOT / m["blend"]))
@@ -740,6 +782,27 @@ def _bpy_steps():
         fit_to(new, lo, hi, per_axis=(mode == "region"))
         cut = trim(new, lo, hi)
         cut += trim_floor(new, old, lo, hi)
+        # The face check: how far the old face's front is from the AI's surface. The AI sometimes draws the whole face
+        # somewhere else (Mr. Palmer's sits lower, his glasses on his nose); then the old head is kept as it was and
+        # the AI only gives the body and clothes.
+        h = hi.z - lo.z
+        bones = dominant_bones(old)
+        head_faces = {p.index for p, b in zip(old.data.polygons, bones) if b == m.get("head_bone", "head")}
+        off = face_offset(old, new, head_faces, mats, keep)
+        use_head = keep_head == "yes" or (keep_head == "auto" and off > FACE_OFF_MAX * h)
+        print("AI face check: the old face is %.1f%% of the height from the AI's (%s)"
+              % (100 * off / h, "keeping the old head" if use_head else "the AI's face is used"))
+        if use_head:
+            bm = bmesh.new()
+            bm.from_mesh(old.data)
+            bm.faces.ensure_lookup_table()
+            gone = [f for f in bm.faces if f.index not in head_faces and
+                    (mats[f.material_index] is None or mats[f.material_index].name not in keep)]
+            bmesh.ops.delete(bm, geom=gone, context="FACES")
+            bm.to_mesh(kept.data)
+            bm.free()
+            old_tris = tris(old) - tris(kept)
+            cut_head(new, old, head_faces, h)
         # Region painting works on a finer mesh (so the borders between parts are smooth) and cuts down afterwards
         decimate(new, max(old_tris, 2000) * (4 if mode in ("region", "picture", "picture_absorb") else 1))
         new.data.materials.clear()
@@ -772,7 +835,7 @@ def _bpy_steps():
             paint_by_picture(new, old, mats, keep, lo, hi, absorb=(mode == "picture_absorb"))
             decimate(new, max(old_tris, 2000) + (tris(kept) if mode == "picture_absorb" else 0))
             straighten_borders(new)
-            if mode == "picture":
+            if mode == "picture" and not use_head:
                 flatten_under(new, old, mats, EYES + ["Glasses", "Lens Shine", "Brow", "Eye", "Lash"], hi.z - lo.z)
         elif mode == "region":
             paint_by_region(new, old, mats, keep, lo, hi)
@@ -815,7 +878,8 @@ def _bpy_steps():
             # The AI's own eyes, glasses and mouth are painted with those parts' colours instead
             D.objects.remove(kept)
         else:
-            float_kept(kept, old, new, mats, keep, hi.z - lo.z)
+            if not use_head:
+                float_kept(kept, old, new, mats, keep, hi.z - lo.z)
             # Put the kept parts in, drop the old body, and the new one takes its name and place on the rig
             bpy.ops.object.select_all(action="DESELECT")
             new.select_set(True)
@@ -958,8 +1022,8 @@ def _bpy_steps():
         print("AI exported", name)
 
     return {"render": render,
-            "fit": lambda n, raw="raw.glb", mode="nearest", tag="": (
-                fit_character(n, raw, mode, tag) if MODELS[n]["kind"] == "character" else fit_prop(n, raw)),
+            "fit": lambda n, raw="raw.glb", mode="nearest", tag="", keep_head="auto": (
+                fit_character(n, raw, mode, tag, keep_head) if MODELS[n]["kind"] == "character" else fit_prop(n, raw)),
             "export_to": export_to,
             "export": export}
 
