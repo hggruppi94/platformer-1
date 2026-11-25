@@ -79,7 +79,8 @@ def blender(step, *a):
     return round(time.time() - t, 1)
 
 
-def run(name, steps=30):
+def run(name, steps=30, views=1):
+    """views=1: Hunyuan3D-2.1 from the front picture; views=3: Hunyuan3D-2mv from front, left and back pictures."""
     m = MODELS[name]
     d = work(name)
     if not (d / "before.glb").exists():
@@ -88,14 +89,22 @@ def run(name, steps=30):
     times["render"] = blender("render", name)
     t = time.time()
     py = AI3D / "base/Scripts/python.exe"
-    r = subprocess.run([str(py), str(AI3D / "runners/run_hunyuan21.py"), str(AI3D / "hunyuan21"), str(d / "input.png"),
-                        str(d / "raw.glb"), str(steps)], capture_output=True, text=True, errors="ignore")
+    raw = "raw.glb" if views == 1 else "raw_mv.glb"
+    if views == 1:
+        cmd = [str(py), str(AI3D / "runners/run_hunyuan21.py"), str(AI3D / "hunyuan21"), str(d / "input.png"),
+               str(d / raw), str(steps)]
+    else:
+        cmd = [str(py), str(AI3D / "runners/run_hunyuan2mv.py"), str(AI3D / "hunyuan2"), str(d / "input.png"),
+               str(d / "input_left.png"), str(d / "input_back.png"), str(d / raw)]
+    if (d / raw).exists() and "--fresh" not in sys.argv:
+        cmd = [str(py), "-c", "print('TRIS (reusing the last AI shape: --fresh makes a new one)')"]
+    r = subprocess.run(cmd, capture_output=True, text=True, errors="ignore")
     print("   ", [l for l in r.stdout.splitlines() if l.startswith("TRIS")])
     if r.returncode != 0:
         print(r.stderr[-3000:])
         sys.exit("shape failed")
     times["shape"] = round(time.time() - t, 1)
-    times["fit"] = blender("fit", name)
+    times["fit"] = blender("fit", name, raw)
     if m["kind"] == "character" and m.get("detail"):
         t = time.time()
         subprocess.run([BLENDER, "-b", "--python", str(ROOT / "tools/build_friend_detail.py"), "--", m["detail"],
@@ -104,8 +113,13 @@ def run(name, steps=30):
         times["detail"] = round(time.time() - t, 1)
     elif m["kind"] == "character":
         blender("export", name)
-    (d / "times.json").write_text(json.dumps(times))
-    print("AI rebuilt", name, times)
+    tag = "game_sv" if views == 1 else "game_mv"
+    (d / tag).mkdir(exist_ok=True)
+    glb = GAME / m["glb"]
+    for f in [glb] + list(glb.parent.glob(glb.stem + "_*.png")):
+        shutil.copy(f, d / tag / f.name)
+    (d / f"times_{tag}.json").write_text(json.dumps(times))
+    print("AI rebuilt", name, tag, times)
 
 
 def restore(name):
@@ -224,6 +238,61 @@ def _bpy_steps():
         bm.to_mesh(ob.data)
         bm.free()
 
+    def clean_islands(ob, passes=2):
+        """Little patches of one material inside another (fewer than 1 face in 500) take their surroundings'."""
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.faces.ensure_lookup_table()
+        small = max(12, len(bm.faces) // 500)
+        for _ in range(passes):
+            seen = set()
+            for f in bm.faces:
+                if f.index in seen:
+                    continue
+                island, stack = [], [f]
+                seen.add(f.index)
+                while stack:
+                    g = stack.pop()
+                    island.append(g)
+                    for e in g.edges:
+                        for k in e.link_faces:
+                            if k.index not in seen and k.material_index == f.material_index:
+                                seen.add(k.index)
+                                stack.append(k)
+                if len(island) < small:
+                    ring = {}
+                    for g in island:
+                        for e in g.edges:
+                            for k in e.link_faces:
+                                if k.material_index != f.material_index:
+                                    ring[k.material_index] = ring.get(k.material_index, 0) + 1
+                    if ring:
+                        mi = max(ring, key=ring.get)
+                        for g in island:
+                            g.material_index = mi
+        bm.to_mesh(ob.data)
+        bm.free()
+
+    def trim_floor(ob, old, lo, hi):
+        """Deletes what the AI stood the model on that the old model hasn't got (a floor tile under the gorilla's
+        feet): faces in the lowest 3% that are further than 1.5% of the height from the old surface."""
+        h = hi.z - lo.z
+        tree = BVHTree.FromObject(old, bpy.context.evaluated_depsgraph_get())
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        out = []
+        for f in bm.faces:
+            c = f.calc_center_median()
+            if c.z < lo.z + 0.03 * h:
+                hit = tree.find_nearest(c)
+                if hit[3] is None or hit[3] > 0.015 * h:
+                    out.append(f)
+        bmesh.ops.delete(bm, geom=out, context="FACES")
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+        bm.to_mesh(ob.data)
+        bm.free()
+        return len(out)
+
     def fit_to(ob, lo, hi, per_axis=False):
         """Scale and move ob so its box matches lo..hi (uniformly by height, or per axis for props)."""
         a, b = core_bounds(ob)
@@ -274,17 +343,21 @@ def _bpy_steps():
         sc.collection.objects.link(cam)
         sc.camera = cam
         cam.data.type = "ORTHO"
-        size = max(hi.x - lo.x, hi.z - lo.z) * 1.15
+        size = max(hi.x - lo.x, hi.y - lo.y, hi.z - lo.z) * 1.15
         cam.data.ortho_scale = size
         mid = (lo + hi) / 2
-        cam.location = (mid.x, lo.y - 5, mid.z)
-        cam.rotation_euler = (math.radians(90), 0, 0)
-        sc.render.filepath = str(work(name) / "input.png")
-        bpy.ops.render.render(write_still=True)
-        print("AI render", sc.render.filepath)
+        # front (camera at -Y), left (the model's left side: camera at +X, its face to the picture's left) and back,
+        # all at one scale, as Hunyuan3D-2mv wants
+        for tag, loc, yaw in (("", (mid.x, lo.y - 5, mid.z), 0), ("_left", (hi.x + 5, mid.y, mid.z), 90),
+                              ("_back", (mid.x, hi.y + 5, mid.z), 180)):
+            cam.location = loc
+            cam.rotation_euler = (math.radians(90), 0, math.radians(yaw))
+            sc.render.filepath = str(work(name) / f"input{tag}.png")
+            bpy.ops.render.render(write_still=True)
+        print("AI render", work(name))
 
     # ------------------------------------------------------------------------------------------------- fit: character
-    def fit_character(name):
+    def fit_character(name, raw="raw.glb"):
         m = MODELS[name]
         clean()
         bpy.ops.wm.open_mainfile(filepath=str(ROOT / m["blend"]))
@@ -307,9 +380,10 @@ def _bpy_steps():
         bm.free()
         old_tris = tris(old) - tris(kept)
         # The AI's shape, lined up with the old body and cut down to its budget
-        new = join(import_glb(work(name) / "raw.glb"), m["body"] + " AI")
+        new = join(import_glb(work(name) / raw), m["body"] + " AI")
         fit_to(new, lo, hi)
         cut = trim(new, lo, hi)
+        cut += trim_floor(new, old, lo, hi)
         decimate(new, max(old_tris, 2000))
         new.data.materials.clear()
         for mt in mats:
@@ -328,13 +402,25 @@ def _bpy_steps():
             idx[len(idx)] = f.material_index
         sub.faces.ensure_lookup_table()
         tree = BVHTree.FromBMesh(sub)
+        h = hi.z - lo.z
         for p in new.data.polygons:
-            hit = tree.find_nearest(p.center)
-            if hit[2] is not None:
-                p.material_index = idx[hit[2]]
+            # Look for the old surface along the new face's own normal (a little in and out), taking only a face that
+            # faces the same way: the nearest face alone often belongs to another layer (the sash under the suit,
+            # metal under fur). The nearest face is the fallback.
+            best = None
+            for sign in (1, -1):
+                o = p.center + p.normal * (0.03 * h * sign)
+                hit = tree.ray_cast(o, -p.normal * sign, 0.06 * h)
+                if hit[2] is not None and hit[1].dot(p.normal) > 0.3 and (best is None or hit[3] < best[3]):
+                    best = hit
+            if best is None:
+                best = tree.find_nearest(p.center)
+            if best[2] is not None:
+                p.material_index = idx[best[2]]
         bm.free()
         sub.free()
         smooth_materials(new)
+        clean_islands(new)
         # The old weights, by nearest surface
         dt = new.modifiers.new("Weights", "DATA_TRANSFER")
         dt.object = old
@@ -367,7 +453,7 @@ def _bpy_steps():
               "materials", len(new.data.materials), "->", out)
 
     # ------------------------------------------------------------------------------------------------- fit: prop
-    def fit_prop(name):
+    def fit_prop(name, raw="raw.glb"):
         m = MODELS[name]
         clean()
         sc = bpy.context.scene
@@ -378,7 +464,7 @@ def _bpy_steps():
         old = join(olds, "Old")
         omat = old.data.materials[0]
         lo, hi = bounds([old])
-        high = join(import_glb(work(name) / "raw.glb"), "High")
+        high = join(import_glb(work(name) / raw), "High")
         fit_to(high, lo, hi, per_axis=True)
         trim(high, lo, hi)
         low = high.copy()
@@ -485,7 +571,8 @@ def _bpy_steps():
                                   export_animations=True)
         print("AI exported", name)
 
-    return {"render": render, "fit": lambda n: (fit_character if MODELS[n]["kind"] == "character" else fit_prop)(n),
+    return {"render": render,
+            "fit": lambda n, raw="raw.glb": (fit_character if MODELS[n]["kind"] == "character" else fit_prop)(n, raw),
             "export": export}
 
 
@@ -493,11 +580,12 @@ if __name__ == "__main__":
     try:
         import bpy  # noqa: F401
         a = sys.argv[sys.argv.index("--") + 1:]
-        _bpy_steps()[a[0]](a[1])
+        _bpy_steps()[a[0]](*a[1:])
     except ImportError:
         a = [x for x in sys.argv[1:] if not x.startswith("--")]
         steps = next((int(x.split("=")[1]) for x in sys.argv if x.startswith("--steps=")), 30)
+        views = next((int(x.split("=")[1]) for x in sys.argv if x.startswith("--views=")), 1)
         if a[0] == "restore":
             restore(a[1])
         else:
-            run(a[0], steps)
+            run(a[0], steps, views)
