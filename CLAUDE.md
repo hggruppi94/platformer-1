@@ -99,6 +99,16 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The Agent of Chaos and the cyber gorillas have baked-in detail** (the bosses batch of Hayden's "keep
+  baking details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save
+  touched). `tools/build_friend_detail.py chaos|gorilla` (Blender models, same kit as the friends; a character can
+  set `"ao"`, how far its baked shadows reach, since the giant's built 2.75 m tall): his armour hammered and
+  scratched, his gold engraved with scrollwork, his bones pored and cracked, his cloth a coarse stained linen; the
+  gorillas' fur, armour and sci-fi panels with seams. Glows, the clock face, eyes and screens stay crisp. Rig,
+  animations and material names unchanged. Tests: friend_detail (both added), chaos_giant, chaos_fight, chaos_ending,
+  new_characters, far_future. Pictures in the project files under characters/boss-detail (before, after, cmp_*).
+  The other bosses are built in code from shapes, so they come next a different way (like the Seraph).
+
 - 2026-11-24: **The main friends have baked-in detail like Nina: Rex, Dash, Pip, Bruno, Melody, Heather and Bramble**
   (Hayden: "I want you to keep baking details on assets in the game already as well"; every outdoor place was baked
   already, so the friends came next). Built and tested in the cloud (own Godot user folders, no save touched).
