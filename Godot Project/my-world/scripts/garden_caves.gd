@@ -184,6 +184,8 @@ func _place_in(s: Node) -> void:
 	_crack()
 	_taproot_hollow()
 	_dress()
+	# (25 Nov 2026) The roots, the Rootwell's rim and the Old Taproot wear the baked bark (the rock's done by the kit)
+	load("res://scripts/detail_props.gd").dress_place(_holder, [["Root Bark", "bark"], ["Root", "bark"]])
 	_move_gloops(s)
 	_spores.clear()
 	for sp in SPORES:
@@ -236,6 +238,12 @@ func _height(space: PhysicsDirectSpaceState3D, at: Vector2) -> float:
 
 static func _mat(c: Color, emit := 0.0, alpha := 1.0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
+	# (25 Nov 2026) Roots and bark are named, so the detail pipeline (dress_place) can give them the bark patch
+	if emit <= 0.0 and alpha >= 1.0:
+		if c == BARK or c == BARK.darkened(0.35):
+			m.resource_name = "Root Bark"
+		elif c == ROOT:
+			m.resource_name = "Root"
 	m.albedo_color = Color(c, alpha)
 	m.roughness = 0.8
 	if emit > 0.0:

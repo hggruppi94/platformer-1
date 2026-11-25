@@ -3921,6 +3921,50 @@ static func dress_patches(root: Node, pairs: Array) -> int:
 	return n
 
 
+static func world_patched(old: StandardMaterial3D, kind: String, scale := 1.0) -> StandardMaterial3D:
+	# Like patched(), but laid on in world space, for still things made at play time (cave rock, a museum's stones,
+	# the virtue trials' marble): neighbouring pieces then join up with no seams, like dress_buildings' rock and bark.
+	# Null when the detail pipeline is off or the patch isn't there, so callers keep their own look.
+	if old == null or not on():
+		return null
+	var key := "detail_world_%s_%d" % [kind, roundi(scale * 100.0)]
+	if old.has_meta(key):
+		return old.get_meta(key)
+	var p := patched(old, kind, scale)
+	if p == null:
+		return null
+	var m := p.duplicate() as StandardMaterial3D
+	m.uv1_world_triplanar = true
+	m.remove_meta("detail_moves")
+	m.set_meta(SURFACE_META, kind)
+	old.set_meta(key, m)
+	return m
+
+
+static func dress_place(root: Node, pairs: Array) -> int:
+	# A small place built in code at play time (the Undergardens, the Museum Garden, a virtue trial, the Knitting
+	# Class): every mesh in root wearing a material named in pairs ([[name, patch, scale], ...]) wears a world-space
+	# patched copy instead (world_patched). Nothing is added or hidden, glows are never named, so they stay crisp.
+	# Returns how many meshes changed (0 when done again or with the pipeline off).
+	var n := 0
+	if root == null or not on():
+		return n
+	var want := {}
+	for p in pairs:
+		want[String(p[0])] = p
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var old := mi.material_override as StandardMaterial3D
+		if old == null or old.has_meta(SURFACE_META) or not want.has(old.resource_name):
+			continue
+		var p: Array = want[old.resource_name]
+		var m := world_patched(old, p[1], float(p[2] if p.size() > 2 else 1.0))
+		if m:
+			mi.material_override = m
+			n += 1
+	return n
+
+
 static func patched(old: StandardMaterial3D, kind: String, scale := 1.0, offset := Vector3.ZERO) -> StandardMaterial3D:
 	# A copy of old wearing a tiling surface patch (tools/build_prop_surfaces.py), laid on in the mesh's own space
 	# (triplanar, SURFACE_TILE metres a patch, times scale), in old's own colour. One copy per material and patch, kept
