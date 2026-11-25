@@ -159,6 +159,10 @@ func _ready() -> void:
 	_chest = _make_chest(mark("chest"))
 	_lift = _make_lift(mark("lift"))
 	_lift.visible = false
+	# (25 Nov 2026) The tunnel's and chamber's stone wears the baked rock (the cave itself is done by the kit); the
+	# lava, cracks, vents and glows stay as they are
+	load("res://scripts/detail_props.gd").dress_place(self, [["Lava Rock", "rock"], ["Basalt", "rock"],
+		["Vent Rim", "rock"], ["Lookout Rock", "rock"], ["Chest Basalt", "rock"]])
 
 
 func _physics_process(delta: float) -> void:

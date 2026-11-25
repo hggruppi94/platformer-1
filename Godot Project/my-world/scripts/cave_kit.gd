@@ -87,6 +87,11 @@ static func build(parent: Node3D, shapes: Array, opts := {}) -> Dictionary:
 	mi.name = "Rock"
 	mi.mesh = mesh
 	mi.material_override = rock_material(opts.get("rock", ROCK))
+	# (25 Nov 2026) With the detail pipeline on the rock wears the baked rock patch in world space (knobs, cracks),
+	# still coloured by the vertex colours. Loaded, not preloaded: detail_props.gd preloads things that preload us.
+	var detailed: StandardMaterial3D = load("res://scripts/detail_props.gd").world_patched(mi.material_override, "rock", 0.8)
+	if detailed:
+		mi.material_override = detailed
 	mi.layers = LAYER
 	body.add_child(mi)
 	var cs := CollisionShape3D.new()

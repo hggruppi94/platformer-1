@@ -169,6 +169,9 @@ func _build() -> void:
 		"diligence": _build_diligence()
 		"purity": _build_purity()
 	_altar()
+	# (25 Nov 2026) The marble wears the baked dressed stone (blocks and veining under the light), the islands'
+	# undersides the rock; the gold, glows, clouds and creatures stay as they are
+	load("res://scripts/detail_props.gd").dress_place(self, [["Trial Marble", "stone", 1.3], ["Trial Underside", "rock"]])
 
 
 func _isle(name: String, centre: Vector3, size: Vector3, m: Material = null) -> MeshInstance3D:

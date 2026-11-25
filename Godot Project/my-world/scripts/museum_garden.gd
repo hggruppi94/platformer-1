@@ -61,7 +61,17 @@ static func place(scene: Node, m: Node3D) -> Node3D:
 		_sign(g, String(e["title"]), Vector3(1.9 if id != "fossil" else 1.3, 0, 1.4), mats)
 	_sign(root, "Museum Garden", Vector3.ZERO, mats, spot(scene, m, LOCAL_DOOR + 0.2, 10.6), m)
 	_exit_here(scene, root)
+	# (25 Nov 2026) The exhibits, the walk and the arbor wear the baked surface patches (rock, stone, wood, brushed
+	# metal), laid on in world space; the glows, glass, flowers and signs stay as they are
+	load("res://scripts/detail_props.gd").dress_place(root, GARDEN_SURFACES)
 	return root
+
+
+# Which of the garden's materials wear which patch (detail_props.gd dress_place), and how big it's laid on
+const GARDEN_SURFACES := [["Sky Stone Rock", "rock", 1.2], ["Geode Rock", "rock", 1.2], ["Fossil Sandstone", "rock"],
+	["Fossil Shell", "stone", 2.0], ["Garden Stone", "stone"], ["Garden Paving", "stone", 1.4],
+	["Garden Paving Dark", "stone", 1.4], ["Garden Wood", "maple"], ["Saucer Metal", "brushed_metal"],
+	["Saucer Underside", "brushed_metal"]]
 
 
 static func direction(m: Node3D, theta: float) -> Vector3:

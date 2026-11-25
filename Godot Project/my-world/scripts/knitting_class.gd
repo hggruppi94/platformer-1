@@ -63,6 +63,8 @@ func _place(s: Node) -> void:
 			(l as Label3D).text = ROOM_NAME
 	_sign(room, "KNITTING CLASS\n%s" % NAME, Vector3(ROOM_MIN.x - 0.25, 2.9, -1.6), -PI / 2)
 	_furnish(room)
+	# (25 Nov 2026) The desks and chair wear the baked maple, the rug, cushions and baskets the woven cloth
+	load("res://scripts/detail_props.gd").dress_place(room, CLASS_SURFACES)
 	room.add_child(_granny())
 
 
@@ -99,10 +101,15 @@ func _granny() -> Node3D:
 	return p
 
 
+# Which of the room's materials wear which baked patch (detail_props.gd dress_place)
+const CLASS_SURFACES := [["Class Wood", "maple", 0.6], ["Class Rug", "tweed", 0.8], ["Class Cushion", "tweed", 0.5],
+	["Class Wicker", "tweed", 0.4]]
+
+
 func _furnish(room: Node3D) -> void:
 	var c := (ROOM_MIN + ROOM_MAX) / 2
-	var wood := _mat(Color(0.5, 0.32, 0.2))
-	_box(room, Vector3(11.0, 0.03, 10.0), Vector3(c.x, 0.015, c.y), _mat(Color(0.55, 0.32, 0.5)))      # rug
+	var wood := _mat(Color(0.5, 0.32, 0.2), 0.8, 0.0, "Class Wood")
+	_box(room, Vector3(11.0, 0.03, 10.0), Vector3(c.x, 0.015, c.y), _mat(Color(0.55, 0.32, 0.5), 0.8, 0.0, "Class Rug"))      # rug
 	# The yarn board on the north wall: a cork board with a knitted heart, a star and a scarf pinned on it
 	_box(room, Vector3(5.0, 2.0, 0.08), Vector3(c.x, 2.2, ROOM_MIN.y + 0.12), _mat(Color(0.72, 0.55, 0.38)))
 	_box(room, Vector3(5.2, 2.2, 0.06), Vector3(c.x, 2.2, ROOM_MIN.y + 0.08), wood)
@@ -111,7 +118,7 @@ func _furnish(room: Node3D) -> void:
 		bit.scale = Vector3(1.2, 1.0, 0.3)
 	_label(room, "Knit one, purl one!", Vector3(c.x, 3.45, ROOM_MIN.y + 0.18), 0.0, 40)
 	# Her rocking chair and a basket of wool beside it
-	_box(room, Vector3(0.8, 0.12, 0.8), Vector3(GRANNY_AT.x + 1.6, 0.5, GRANNY_AT.y - 0.6), _mat(Color(0.45, 0.25, 0.5)))
+	_box(room, Vector3(0.8, 0.12, 0.8), Vector3(GRANNY_AT.x + 1.6, 0.5, GRANNY_AT.y - 0.6), _mat(Color(0.45, 0.25, 0.5), 0.8, 0.0, "Class Cushion"))
 	_box(room, Vector3(0.8, 1.1, 0.1), Vector3(GRANNY_AT.x + 1.6, 1.0, GRANNY_AT.y - 1.0), wood)
 	for side in [-1, 1]:
 		_box(room, Vector3(0.06, 0.1, 1.1), Vector3(GRANNY_AT.x + 1.6 + side * 0.36, 0.08, GRANNY_AT.y - 0.6), wood)
@@ -130,7 +137,7 @@ func _furnish(room: Node3D) -> void:
 			var n := _box(room, Vector3(0.02, 0.02, 0.4), Vector3(d.x - 0.2 + (k - 0.5) * 0.06, 0.98, d.y + 0.05),
 				_mat(Color(0.85, 0.75, 0.55), 0.4, 0.6))
 			n.rotation = Vector3(0.6, (k - 0.5) * 0.4, 0)
-		_box(room, Vector3(0.45, 0.45, 0.45), Vector3(d.x, 0.225, d.y + 0.75), _mat(col.darkened(0.25)))
+		_box(room, Vector3(0.45, 0.45, 0.45), Vector3(d.x, 0.225, d.y + 0.75), _mat(col.darkened(0.25), 0.8, 0.0, "Class Cushion"))
 		var desk := StaticBody3D.new()
 		desk.name = "Desk %d" % (i + 1)
 		var cs := CollisionShape3D.new()
@@ -155,7 +162,7 @@ func _basket(room: Node3D, at: Vector3) -> void:
 	cyl.bottom_radius = 0.34
 	cyl.height = 0.45
 	b.mesh = cyl
-	b.material_override = _mat(Color(0.65, 0.48, 0.28))
+	b.material_override = _mat(Color(0.65, 0.48, 0.28), 0.8, 0.0, "Class Wicker")
 	b.position = at + Vector3(0, 0.225, 0)
 	room.add_child(b)
 	for k in 4:
@@ -205,8 +212,9 @@ func _ball(parent: Node3D, r: float, at: Vector3, m: Material) -> MeshInstance3D
 	return mi
 
 
-func _mat(colour: Color, rough := 0.8, metal := 0.0) -> StandardMaterial3D:
+func _mat(colour: Color, rough := 0.8, metal := 0.0, id := "") -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
+	m.resource_name = id                     # (named ones get the detail pipeline's patches: CLASS_SURFACES)
 	m.albedo_color = colour
 	m.roughness = rough
 	m.metallic = metal

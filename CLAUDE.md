@@ -99,6 +99,27 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The small new places have baked detail: the cave kit's rock, the Undergardens' roots, Old Ember's
+  chamber, the Museum Garden's exhibits, the virtue trials' marble and the Knitting Class** (the places batch of
+  Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own Godot user
+  folders, no save touched). No new bakes: the existing tiling patches, laid on in world space.
+  - **`detail_props.gd world_patched(old, kind, scale)`** (a shared patched copy in world space, cached on the old
+    material) and **`dress_place(root, [[material name, kind, scale], ...])`** (swaps every unpatched material of that
+    name under a place; doing it again changes nothing). Loaded at run time (`load()`, not preload) from the places.
+  - **Every cave `cave_kit.gd` builds** (the Undergardens, the Glimmer Caves, the Ember Tunnel, the Hot Springs'
+    grottos, the chaos trials' bits) wears the rock patch, still coloured by its vertex colours and unlit by the sky.
+    The Undergardens' roots, steps and the Old Taproot wear bark (`garden_caves.gd` names them "Root Bark" / "Root");
+    the volcano's lava rock, basalt, vent rims and the chest's basalt wear rock (the Ember Chest's lid, which opens, is
+    left plain); the Museum Garden's Sky Stone, Geode and fossil rock, its paving and stone, the arbor's wood and the
+    First Saucer's metal (`museum_garden.gd GARDEN_SURFACES`); a virtue trial's marble wears stone and its islands'
+    undersides rock; the Knitting Class's desks, legs and chair wear maple and its rug, cushions and baskets the woven
+    cloth (`knitting_class.gd CLASS_SURFACES`). Glows, gold, lava, water and see-through things stay plain. With the
+    detail pipeline off nothing changes.
+  - Tests: new `tools/test_places_detail.gd`; garden_caves, glimmer_caves, volcano, virtue_trials, spring_grottos,
+    new_characters, council, school_floors, chaos_trials, detail_all, world_detail and boss_detail pass. Pictures:
+    `tools/capture_places_detail.gd -- <folder> [--old-props]` (project files, world/previews/places_detail).
+  - My choices Hayden may change: how strong each patch is, which pieces get which.
+
 - 2026-11-25: **Rolo the rhino joins Hermez at the Lily Pond, made from an AI tool's mesh** (Hayden picked the
   Hunyuan3D-2.1 Rolo out of five free tools: `previews/meshy_trial/rolo_all_tools.png`). Built on Hayden's PC (save
   untouched).
