@@ -59,3 +59,19 @@ generation).
 - **2 and 3: not run.** SAMPart3D needs Linux-only cuML and compiled CUDA code. P3-SAM and OmniPart need compiled
   CUDA code, and this PC has no CUDA compiler, Visual Studio or WSL. PartCrafter is installed (its own environment
   in `ai3d/parts`), but running it was refused by the PC's safety check until Hayden gives a go-ahead.
+
+### Colour by picture (rows 1 and 1b)
+
+`ai_rebuild.py fit <model> raw_mv.glb picture|picture_absorb _<tag>`. Each new face takes the part the AI was shown
+there. Looking along the same front, left or back view, the first part of the old model the line of sight meets is
+the part in the picture the AI got. This is the same as projecting a flat colour-by-number render of the old model, without making the render. Each face uses the view that
+sees it most squarely and isn't hidden behind the AI's own shape. Faces no view sees (about a third, under arms and
+between legs) take their neighbours' part. It paints on a 4x finer mesh, cuts down after, and the zigzag where two
+parts meet is straightened (`straighten_borders`).
+
+- **1 (old eyes and glasses kept on top):** the best body colours so far. Mr. Palmer's tie, shirt front and sash are
+  back, and Nina's braces, shirt and overalls are clean. Faces still show the AI's own moulded copy of the glasses and
+  moustache as skin-coloured ridges under the kept ones.
+- **1b (the AI's own eyes and glasses painted, old ones dropped):** fine from a distance, blocky close up (square
+  pupils, smeared glasses), so not good enough for faces.
+- Next idea: 1 with the AI's face smoothed flat under the kept eyes, glasses and moustache, so the moulded copies go.

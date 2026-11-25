@@ -388,6 +388,107 @@ def _bpy_steps():
             out.append(names.get(max(w, key=w.get)) if w else None)
         return out
 
+    def straighten_borders(ob, iters=10):
+        """Smooths the zigzag where two parts meet (each face is one part, so a border follows the triangles): the
+        points on a border slide along it towards their border neighbours, then back onto the surface."""
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.verts.ensure_lookup_table()
+        surface = BVHTree.FromBMesh(bm)
+        border = {}
+        for e in bm.edges:
+            if len(e.link_faces) == 2 and e.link_faces[0].material_index != e.link_faces[1].material_index:
+                for v in e.verts:
+                    border.setdefault(v.index, []).append(e.other_vert(v).index)
+        # only simple border points (on one line between two parts), not where three parts meet
+        simple = {i: ns for i, ns in border.items() if len(ns) == 2 and
+                  len({f.material_index for f in bm.verts[i].link_faces}) == 2}
+        for _ in range(iters):
+            moved = {}
+            for i, ns in simple.items():
+                v = bm.verts[i]
+                mid = (bm.verts[ns[0]].co + bm.verts[ns[1]].co) / 2
+                moved[i] = v.co * 0.5 + mid * 0.5
+            for i, c in moved.items():
+                hit = surface.find_nearest(c)
+                bm.verts[i].co = hit[0] if hit[0] is not None else c
+        bm.to_mesh(ob.data)
+        bm.free()
+        print("AI borders straightened:", len(simple), "border points")
+
+    def paint_by_picture(new, old, mats, keep, lo, hi, absorb=False):
+        """Colour by picture: the AI was shown the old model from the front, left and back, so each new face takes the
+        part the AI saw there. Looking along the same view, the first old face the line of sight meets is the part in
+        that picture (a flat colour-by-number render of the old model, without the rendering). Each face uses the view
+        that sees it most squarely and isn't blocked by the AI's own shape; faces no view sees (under the arms) take
+        their neighbours' part. absorb: the old eyes, glasses and mouth count too (they're painted onto the AI's own
+        moulded ones instead of being put back on top)."""
+        h = hi.z - lo.z
+        big = 4 * max(hi - lo)
+        use = [mi for mi, mt in enumerate(mats) if mt is not None and (absorb or mt.name not in keep)]
+        ob = bmesh.new()
+        omi = []
+        for p in old.data.polygons:
+            if p.material_index in use:
+                ob.faces.new([ob.verts.new(old.data.vertices[v].co) for v in p.vertices])
+                omi.append(p.material_index)
+        old_tree = BVHTree.FromBMesh(ob)
+        ob.free()
+        nb = bmesh.new()
+        nb.from_mesh(new.data)
+        nb.faces.ensure_lookup_table()
+        new_tree = BVHTree.FromBMesh(nb)
+        views = [Vector((0, 1, 0)), Vector((-1, 0, 0)), Vector((0, -1, 0))]   # front, left, back (render())
+        eps = 0.004 * h
+        label = [None] * len(nb.faces)
+        for f in nb.faces:
+            c = f.calc_center_median()
+            n = f.normal
+            best, score = None, 0.15
+            for d in views:
+                facing = -d.dot(n)
+                if facing <= score:
+                    continue
+                start = c - d * big
+                first = new_tree.ray_cast(start, d, 2 * big)
+                if first[0] is None or (first[0] - c).length > eps:
+                    continue
+                hit = old_tree.ray_cast(start, d, 2 * big)
+                if hit[2] is None:
+                    continue
+                best, score = omi[hit[2]], facing
+            label[f.index] = best
+        # Faces no picture shows take their neighbours' part, ring by ring
+        known = sum(x is not None for x in label)
+        for _ in range(200):
+            todo = [f for f in nb.faces if label[f.index] is None]
+            if not todo:
+                break
+            changed = []
+            for f in todo:
+                count = {}
+                for e in f.edges:
+                    for g in e.link_faces:
+                        if label[g.index] is not None:
+                            count[label[g.index]] = count.get(label[g.index], 0) + 1
+                if count:
+                    changed.append((f.index, max(count, key=count.get)))
+            if not changed:
+                break
+            for i, mi in changed:
+                label[i] = mi
+        near = BVHTree.FromBMesh(nb)
+        for f in nb.faces:
+            mi = label[f.index] if label[f.index] is not None else f.material_index
+            f.material_index = mi
+        nb.to_mesh(new.data)
+        nb.free()
+        protect = {mi for mi, mt in enumerate(mats) if mt is not None and mt.name in keep}
+        if not absorb:
+            smooth_materials(new, passes=2)
+        clean_islands_min(new, max(12, len(new.data.polygons) // 500), protect)
+        print("AI picture paint: seen by a picture", known, "of", len(label))
+
     def paint_by_region(new, old, mats, keep, lo, hi):
         """Paints the new body with the old named materials region by region (Hayden: Rolo's clean colours): a face
         may only take a material the old body uses on the same bone (so a sleeve's colour never leaks onto the chest,
@@ -606,7 +707,7 @@ def _bpy_steps():
         cut = trim(new, lo, hi)
         cut += trim_floor(new, old, lo, hi)
         # Region painting works on a finer mesh (so the borders between parts are smooth) and cuts down afterwards
-        decimate(new, max(old_tris, 2000) * (4 if mode == "region" else 1))
+        decimate(new, max(old_tris, 2000) * (4 if mode in ("region", "picture", "picture_absorb") else 1))
         new.data.materials.clear()
         for mt in mats:
             new.data.materials.append(mt)
@@ -633,7 +734,11 @@ def _bpy_steps():
             bpy.context.view_layer.objects.active = new
             bpy.ops.object.datalayout_transfer(modifier="Weights")
             bpy.ops.object.modifier_apply(modifier="Weights")
-        if mode == "region":
+        if mode in ("picture", "picture_absorb"):
+            paint_by_picture(new, old, mats, keep, lo, hi, absorb=(mode == "picture_absorb"))
+            decimate(new, max(old_tris, 2000) + (tris(kept) if mode == "picture_absorb" else 0))
+            straighten_borders(new)
+        elif mode == "region":
             paint_by_region(new, old, mats, keep, lo, hi)
             decimate(new, max(old_tris, 2000))
         else:
@@ -670,16 +775,20 @@ def _bpy_steps():
             sub.free()
             smooth_materials(new)
             clean_islands(new)
-        float_kept(kept, old, new, mats, keep, hi.z - lo.z)
-        # Put the kept parts in, drop the old body, and the new one takes its name and place on the rig
-        bpy.ops.object.select_all(action="DESELECT")
-        new.select_set(True)
-        kept.select_set(True)
-        bpy.context.view_layer.objects.active = new
-        for mod in list(kept.modifiers):
-            kept.modifiers.remove(mod)
-        kept.parent = None
-        bpy.ops.object.join()
+        if mode == "picture_absorb":
+            # The AI's own eyes, glasses and mouth are painted with those parts' colours instead
+            D.objects.remove(kept)
+        else:
+            float_kept(kept, old, new, mats, keep, hi.z - lo.z)
+            # Put the kept parts in, drop the old body, and the new one takes its name and place on the rig
+            bpy.ops.object.select_all(action="DESELECT")
+            new.select_set(True)
+            kept.select_set(True)
+            bpy.context.view_layer.objects.active = new
+            for mod in list(kept.modifiers):
+                kept.modifiers.remove(mod)
+            kept.parent = None
+            bpy.ops.object.join()
         D.objects.remove(old)
         new.name = new.data.name = m["body"]
         new.parent = rig
