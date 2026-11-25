@@ -1,7 +1,7 @@
 extends SceneTree
 
 # Checks the friends' baked-in detail (24 Nov 2026, tools/build_friend_detail.py): every part of Rex, Dash, Pip,
-# Bruno, Melody, Heather, Bramble and the hero's girl and boy bodies has the baked tint, normal map and shadows,
+# Bruno, Melody, Heather, Bramble, the hero's girl and boy bodies, the Agent of Chaos and the cyber gorilla has the baked tint, normal map and shadows,
 # except the parts kept crisp (eyes, mouths, glows), and each model still has its rig, its animations and every
 # material name the game recolours by.
 #
@@ -23,6 +23,11 @@ const FRIENDS := {
 		"Badge"], "parts": 21, "anims": 3},
 	"human_boy": {"flat": ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine", "Mouth", "Tongue", "Blush", "Star"],
 		"parts": 20, "anims": 3},
+	"chaos_giant": {"flat": ["Void", "Eye Fire", "Clock Face", "Ink", "Chaos Magenta", "Chaos Ember", "Eye Gold",
+		"Chaos Violet"], "parts": 15, "anims": 3},
+	"cyber_gorilla": {"flat": ["Eye White", "Iris", "Iris Light", "Pupil", "Eye Shine", "Mouth", "Screen", "Screen Gold",
+		"Screen Gold Dark", "Void", "Eye Fire", "Screen Bone", "Chaos Magenta", "Cyber Glow", "Red Eye", "Tooth"],
+		"parts": 24, "anims": 3},
 }
 
 var failures := 0

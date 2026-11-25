@@ -10,6 +10,7 @@
 #   (or: blender -b --python tools/build_friend_detail.py -- <who> [<out.glb>])
 #
 #   <who>: rex (wolf), dash (bike_boy), pip (moth_kid), bruno, melody, heather (cattle_girl), bramble (plant_girl),
+#   chaos (chaos_giant, the Agent of Chaos), gorilla (cyber_gorilla),
 #   girl (human_girl) and boy (human_boy), the hero's two bodies in the creator, or "all". The out path defaults
 #   to the model in models/characters/. Reads source_art/characters/<model>.blend and never saves over it. About 3 to 5 minutes each on 4 cloud cores.
 
@@ -190,11 +191,56 @@ def wing(N, c):
     return h, 0.0004, N.ramp(N.noise(0.015, detail=3.0), 0.86, 1.0)
 
 
+def armour(N, c):
+    # Dark plate armour: hammered dents, fine scratches and a little pitting, darker in the dents
+    dents = N.noise(0.045, detail=1.0, rough=0.3)
+    scratch = N.sharpen(N.wave(0.002, "DIAGONAL", distortion=12.0, detail=3.0), 0.85, 1.0)
+    pits = N.noise(0.004, detail=2.0)
+    h = N.add(N.mul(dents, 0.75), N.mul(scratch, 0.15), N.mul(pits, 0.1))
+    return h, 0.0014, N.ramp(N.add(N.mul(dents, 0.6), N.mul(N.noise(0.05), 0.4)), 0.78, 1.0)
+
+
+def gold(N, c):
+    # Engraved gold: curling scrollwork cut into it, and wear that's brighter on the raised bits
+    scroll = N.sharpen(N.wave(0.012, "X", distortion=9.0, detail=2.0, profile="SAW"), 0.6, 0.95)
+    fine = N.noise(0.0015, detail=3.0)
+    h = N.add(N.mul(scroll, 0.7), N.mul(fine, 0.3))
+    return h, 0.0010, N.ramp(N.add(N.mul(scroll, 0.6), N.mul(N.noise(0.03), 0.4)), 0.8, 1.0)
+
+
+def bone(N, c):
+    # Old bone: tiny pores, growth lines and fine cracks, a little yellowed in patches
+    pores = N.math("SUBTRACT", 1.0, N.sharpen(N.cells(0.003), 0.0, 0.25))
+    lines = N.wave(0.006, "Z", distortion=3.0)
+    cracks = N.math("SUBTRACT", 1.0, N.sharpen(N.cells(0.03, feature="DISTANCE_TO_EDGE"), 0.0, 0.04))
+    h = N.add(N.mul(pores, 0.3), N.mul(lines, 0.3), N.mul(cracks, 0.4))
+    return h, 0.0012, N.ramp(N.noise(0.04, detail=4.0), 0.78, 1.0)
+
+
+def linen(N, c):
+    # Old torn linen: a coarse weave, big heavy folds and grubby stains
+    weave = N.add(N.wave(0.005, "X"), N.wave(0.005, "Z"))
+    f = folds(N, 0.09)
+    h = N.add(N.mul(weave, 0.15), N.mul(f, 0.85))
+    stain = N.add(N.mul(N.noise(0.06, detail=5.0), 0.7), N.mul(f, 0.3))
+    return h, 0.0022, N.ramp(stain, 0.72, 1.0)
+
+
+def panel(N, c):
+    # Sci-fi plating: panel seams in a grid, little vents and a fine brushed grain
+    seams = N.math("MAXIMUM", N.sharpen(N.wave(0.05, "X", profile="SAW"), 0.93, 1.0),
+                   N.sharpen(N.wave(0.05, "Z", profile="SAW"), 0.93, 1.0))
+    brush = N.wave(0.0008, "X", distortion=1.0)
+    h = N.add(N.mul(N.math("SUBTRACT", 1.0, seams), 0.7), N.mul(brush, 0.1), N.mul(N.noise(0.02), 0.2))
+    return h, 0.0012, N.ramp(N.noise(0.03, detail=3.0), 0.85, 1.0)
+
+
 R = {
     "skin": skin, "nose": nose, "hair": hair, "fur": fur, "mane": mane, "knit": knit, "rib": rib,
     "cotton": cotton, "denim": denim, "denim_rib": lambda N, c: denim(N, c, True), "canvas": canvas,
     "leather": leather, "sole": sole, "ripstop": ripstop, "satin": satin, "cord": cord, "metal": metal,
     "plastic": plastic, "rubber": rubber, "horn": horn, "leaf": leaf, "bark": bark, "wing": wing,
+    "armour": armour, "gold": gold, "bone": bone, "linen": linen, "panel": panel,
 }
 
 # Each friend: their model's file, the body and rig in the .blend, the parts whose spread sets where hair strands
@@ -269,6 +315,21 @@ CHARS = {
         "parts": {"Top": "knit", "Top Shade": "knit", "Shorts": "denim", "Shorts Shade": "denim", "Hair": "hair",
                   "Brow": "hair", "Shoes": "canvas", "Sole": "sole"},
     },
+    "chaos": {
+        # The Agent of Chaos: built 2.75 m tall (x4 in town), so his shadows reach further
+        "model": "chaos_giant", "body": "ChaosGiant", "rig": "ChaosGiantRig", "hair": ["Cloth"], "ao": 0.07,
+        "flat": ["Void", "Eye Fire", "Clock Face", "Ink", "Chaos Magenta", "Chaos Ember", "Eye Gold",
+                 "Chaos Violet"],
+        "parts": {"Armour": "armour", "Armour Plum": "armour", "Gold": "gold", "Gold Dark": "gold",
+                  "Bone": "bone", "Cloth": "linen", "Cloth Shade": "linen"},
+    },
+    "gorilla": {
+        "model": "cyber_gorilla", "body": "CyberGorilla", "rig": "GorillaRig", "hair": ["Fur"], "ao": 0.04,
+        "flat": EYES + ["Screen", "Screen Gold", "Screen Gold Dark", "Void", "Eye Fire", "Screen Bone",
+                        "Chaos Magenta", "Cyber Glow", "Red Eye", "Tooth"],
+        "parts": {"Fur": "fur", "Fur Light": "fur", "Fur Dark": "fur", "Metal": "armour", "Metal Edge": "metal",
+                  "Cyber": "panel", "Cyber Dark": "panel", "Skin": "skin"},
+    },
 }
 
 
@@ -308,7 +369,7 @@ def build(who, out=None, size=2048):
         else:
             recipe = R[c["parts"].get(m.name, "skin")]
             K.dress(m, lambda N, r=recipe: r(N, spread))
-    maps = K.bake(body, rig, size=size, name=c["model"])
+    maps = K.bake(body, rig, size=size, name=c["model"], ao_distance=c.get("ao", 0.025))
     tmp = out.parent / f"_{c['model']}_detail"
     pngs = {k: K.save_png(img, tmp / f"{c['model']}_{k}.png") for k, img in maps.items()}
     done = K.add_textures(out, pngs, c["flat"], c["model"])
