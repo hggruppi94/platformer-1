@@ -8,6 +8,12 @@
 #                radius 1 from y 0 to 0.6, carved with scrolls between beaded edges, five flat points round it
 #                (radius 0.92, up to y 1.6), each with a raised rim, an engraved teardrop and a ball on its tip, and
 #                the red gem at the front in a ring of gold with four prongs. The game scales it by 0.1.
+#   boss_hide    Tuskwinter's walrus hide: a ball of radius 1 with deep folds round it, pores and a few old scars.
+#   boss_scales  Grumblefin's skin: rows of little overlapping scales with a ridge down each.
+#   boss_feathers the Dawn Snatcher's plumage: overlapping feathers laid down and back, each with a quill and barbs.
+#   boss_fleece  the Stormram's wool: a ball of tight curls and strands.
+#                These four are baked pale (near white): the game multiplies them by each ball's own colour, so one
+#                bake does every ball of that kind, scaled to its size (detail_props.gd dress_surfaces()).
 # Colours are the game's own (sRGB).
 #
 #   python tools/build_prop_bosses.py "<out>.glb" <kind> [--preview]
@@ -20,7 +26,7 @@ import bake_kit as K  # noqa: E402
 import bmesh  # noqa: E402
 from mathutils import Vector, noise  # noqa: E402
 
-KINDS = ["king_crown"]
+KINDS = ["king_crown", "boss_hide", "boss_scales", "boss_feathers", "boss_fleece"]
 KIND = next((a for a in sys.argv if a in KINDS), "king_crown")
 NAME = KIND
 OUT = K.out_path(NAME + ".glb")
@@ -326,8 +332,135 @@ def king_crown():
     return high, low
 
 
+# ================================================================ boss skins (pale, tinted by the game)
+PALE = (0.95, 0.95, 0.95)
+SHADE = (0.55, 0.55, 0.58)
+
+
+def _hide(p):
+    """Walrus hide: folds running round the body, pores and a couple of scars. Returns (lift, how dark)."""
+    q = Vector(p)
+    fold = noise.noise(Vector((q.x * 2.5, q.y * 11.0 + 1.3 * noise.noise(q * 2.0), q.z * 2.5)))
+    fold = 1.0 - abs(fold)
+    lift = 0.022 * fold ** 3
+    dark = 0.6 * (1.0 - fold) ** 6
+    cells, _pts = noise.voronoi(q * 38.0)
+    pore = max(0.0, 1.0 - cells[0] * 5.0)
+    lift -= 0.004 * pore
+    dark = max(dark, 0.35 * pore)
+    lift += 0.003 * noise.noise(q * 60.0)
+    for c, r in (((0.6, 0.3, 0.74), 0.32), ((-0.5, -0.2, 0.84), 0.25)):
+        cv = Vector(c).normalized()
+        d = (q - cv).length
+        if d < r:
+            along = (q - cv).dot(Vector((0.3, 1.0, 0.1)).normalized())
+            across = math.sqrt(max(0.0, d * d - along * along))
+            if across < 0.012:
+                lift -= 0.01 * (1 - across / 0.012)
+                dark = max(dark, 0.5)
+    return lift, dark
+
+
+def _scales(p):
+    """Rows of overlapping scales, each lifted at its back edge with a ridge down the middle."""
+    lat = math.asin(max(-1.0, min(1.0, p[1])))
+    lon = math.atan2(p[0], p[2])
+    rows = 34
+    rv = (lat / math.pi + 0.5) * rows
+    row = math.floor(rv)
+    fv = rv - row
+    per = max(6, int(round(rows * 2 * math.cos((row + 0.5) / rows * math.pi - math.pi / 2))))
+    ru = (lon / math.tau + 0.5) * per + 0.5 * (row % 2)
+    fu = ru - math.floor(ru)
+    x = (fu - 0.5) * 2
+    edge = (1.0 - x * x) * 0.85
+    lift = 0.0
+    dark = 0.0
+    if fv < edge:
+        t = fv / max(edge, 1e-4)
+        lift = 0.018 * t + 0.004 * (1.0 - abs(x) * 3.0 if abs(x) < 0.33 else 0.0)
+        dark = 0.15 * (1 - t)
+    else:
+        dark = 0.7
+    lift += 0.002 * noise.noise(Vector(p) * 80.0)
+    return lift, dark
+
+
+def _feathers(p):
+    """Feathers laid down and back: rows of long rounded tips, a quill in each and barbs off it."""
+    lat = math.asin(max(-1.0, min(1.0, p[1])))
+    lon = math.atan2(p[0], p[2])
+    rows = 18
+    rv = (0.5 - lat / math.pi) * rows
+    row = math.floor(rv)
+    fv = rv - row
+    per = max(5, int(round(rows * 1.6 * math.cos((row + 0.5) / rows * math.pi - math.pi / 2))))
+    ru = (lon / math.tau + 0.5) * per + 0.5 * (row % 2) + 0.15 * noise.noise(Vector((row * 3.1, 0, 0)))
+    fu = ru - math.floor(ru)
+    x = (fu - 0.5) * 2
+    tip = 1.0 - 0.35 * x * x
+    if fv > tip:
+        return -0.006, 0.75
+    t = fv / tip
+    lift = 0.028 * t ** 0.7
+    dark = 0.18 * (1 - t)
+    if abs(x) < 0.05:
+        lift += 0.005
+        dark = 0.0
+    else:
+        barb = 0.5 + 0.5 * math.sin((abs(x) * 9.0 + t * 26.0) * math.pi)
+        lift += 0.0025 * barb
+        dark += 0.12 * (1 - barb)
+    if abs(x) > 0.92:
+        dark += 0.25
+    return lift, dark
+
+
+def _fleece(p):
+    """Tight curls of wool: lumpy clumps, each with strands curling round its middle."""
+    q = Vector(p)
+    cells, pts = noise.voronoi(q * 9.0)
+    f1, f2 = cells[0], cells[1]
+    clump = max(0.0, min(1.0, (f2 - f1) * 2.2))
+    lift = 0.045 * clump ** 0.6
+    dark = 0.65 * (1 - clump) ** 3
+    c = Vector(pts[0]) / 9.0
+    d = q - c
+    ang = math.atan2(d.x + d.z * 0.3, d.y + 1e-4)
+    strand = 0.5 + 0.5 * math.sin(ang * 3.0 + d.length * 160.0)
+    lift += 0.007 * strand * clump
+    dark += 0.15 * (1 - strand) * clump
+    lift += 0.004 * noise.noise(q * 70.0)
+    return lift, dark
+
+
+def skin(pattern, rough, subdiv=9):
+    m = painted("Skin", rough=rough)
+    bm = bmesh.new()
+    bmesh.ops.create_icosphere(bm, subdivisions=subdiv, radius=1.0)
+    bm.verts.index_update()
+    shades = {}
+    for v in bm.verts:
+        g = to_godot(v.co).normalized()
+        lift, dark = pattern(tuple(g))
+        v.co = at(*(g * (1.0 + lift)))
+        shades[v.index] = max(0.0, min(1.0, dark))
+    col = bm.loops.layers.color.new("Col")
+    for f in bm.faces:
+        for lp in f.loops:
+            lp[col] = (*lin(mix(PALE, SHADE, shades[lp.vert.index])), 1.0)
+    high = [K._obj("High", bm, m, True, HIGH)]
+    low_m = K.mat("Low", PALE, rough=rough)
+    low = [K.sphere("Low", 1.0, m=low_m, seg=32, col=LOW)]
+    return high, low
+
+
 fn, size, ext, ray_d, ao, emit, strength = {
     "king_crown": (king_crown, 1024, 0.1, 0.25, True, True, 1.0),
+    "boss_hide": (lambda: skin(_hide, 0.7), 2048, 0.06, 0.12, True, False, 1.0),
+    "boss_scales": (lambda: skin(_scales, 0.35), 2048, 0.05, 0.1, True, False, 1.0),
+    "boss_feathers": (lambda: skin(_feathers, 0.45), 2048, 0.06, 0.12, True, False, 1.0),
+    "boss_fleece": (lambda: skin(_fleece, 0.9), 2048, 0.08, 0.15, True, False, 1.0),
 }[KIND]
 high, low = fn()
 parts = [bake_part(NAME, high, low, size, extrusion=ext, ray_d=ray_d, ao=ao, emit=emit, emit_strength=strength)]

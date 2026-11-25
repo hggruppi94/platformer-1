@@ -134,6 +134,15 @@ const KING_CROWN := "res://models/props/bosses/king_crown.glb"   # tools/build_p
 # The bake's gold comes out a shade of bronze (its shading pulls towards a dark gold and the AO darkens it again), so
 # its colour is lifted back to the bright gold of the old crown.
 const KING_CROWN_GAIN := Color(1.2, 1.5, 1.25)
+# The bosses' skins (tools/build_prop_bosses.py boss_*): balls of radius 1 baked pale, tinted by each ball's own
+# colour, so the gain lifts the pale bake back up to it.
+const BOSS_SKINS := {
+	"boss_hide": "res://models/props/bosses/boss_hide.glb",
+	"boss_scales": "res://models/props/bosses/boss_scales.glb",
+	"boss_feathers": "res://models/props/bosses/boss_feathers.glb",
+	"boss_fleece": "res://models/props/bosses/boss_fleece.glb",
+}
+const BOSS_SKIN_GAIN := 1.08
 const GADGET_STALL := "res://models/props/gadget_stall.glb"
 const WORKBENCH := "res://models/props/workbench.glb"
 const REQUEST_BOARD := "res://models/props/request_board.glb"
@@ -3827,6 +3836,77 @@ static func dress_king_crown(king: Node) -> bool:
 				(mi as MeshInstance3D).set_surface_override_material(i, mat)
 	_far_like(band, m)
 	return true
+
+
+static func dress_surfaces(boss: Node, pairs: Array) -> int:
+	# The shape-built portal world bosses (Tuskwinter, Grumblefin, the Dawn Snatcher, the Stormram: each made of
+	# balls in scripts/boss_parts.gd) get a detailed skin on their big balls. pairs is [[material, kind], ...]: every
+	# round ball wearing one of those materials gets that kind's baked ball as a child, scaled to its radius and
+	# tinted its colour, so whatever the fight does to the ball (puffing up, flapping, squashing) the skin does too.
+	# The plain ball stops being drawn (layers 0). Done again, nothing changes.
+	var n := 0
+	if boss == null or not on():
+		return n
+	var by_mat := {}
+	for p in pairs:
+		by_mat[p[0]] = p[1]
+	var made := {}
+	for c in boss.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if not by_mat.has(mi.material_override) or not (mi.mesh is SphereMesh):
+			continue
+		if mi.has_meta(OLD_META):
+			n += 1
+			continue
+		var old := mi.material_override as StandardMaterial3D
+		var src := _skin_mesh(by_mat[old])
+		if src.is_empty():
+			continue
+		if not made.has(old):
+			var mat := (src[1] as StandardMaterial3D).duplicate() as StandardMaterial3D
+			mat.albedo_color = Color(old.albedo_color.r * BOSS_SKIN_GAIN, old.albedo_color.g * BOSS_SKIN_GAIN,
+				old.albedo_color.b * BOSS_SKIN_GAIN, old.albedo_color.a)
+			mat.metallic = old.metallic
+			mat.transparency = old.transparency
+			if old.emission_enabled:
+				mat.emission_enabled = true
+				mat.emission = old.emission
+				mat.emission_energy_multiplier = old.emission_energy_multiplier
+				mat.emission_texture = null
+			made[old] = mat
+		var sm := mi.mesh as SphereMesh
+		var skin := MeshInstance3D.new()
+		skin.name = "Detailed Skin"
+		skin.mesh = src[0]
+		skin.material_override = made[old]
+		skin.transform = Transform3D(Basis.from_scale(Vector3(sm.radius, sm.height * 0.5, sm.radius)), Vector3.ZERO)
+		skin.cast_shadow = mi.cast_shadow
+		skin.visibility_range_end = mi.visibility_range_end
+		mi.add_child(skin)
+		_hide(mi)
+		n += 1
+	return n
+
+
+static var _skins := {}
+
+
+static func _skin_mesh(kind: String) -> Array:
+	# [mesh, material] of a boss skin's baked ball, loaded once.
+	if _skins.has(kind):
+		return _skins[kind]
+	var out := []
+	var scene := _scene(BOSS_SKINS.get(kind, ""))
+	if scene:
+		var root := scene.instantiate()
+		for c in root.find_children("*", "MeshInstance3D", true, false):
+			var mesh := (c as MeshInstance3D).mesh
+			if mesh and mesh.get_surface_count() > 0:
+				out = [mesh, mesh.surface_get_material(0)]
+				break
+		root.free()
+	_skins[kind] = out
+	return out
 
 
 static func dress_goblin(goblin: Node) -> Vector2i:
