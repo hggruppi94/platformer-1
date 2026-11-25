@@ -298,10 +298,12 @@ static func model() -> Node3D:
 	body.bottom_radius = 2.6
 	body.height = 7.0
 	body.radial_segments = 4
-	_mesh(g, body, _m(WOOD, 0.0, 0.6), Vector3(0, 3.5, 0), Vector3.ONE, Vector3(0, PI / 4.0, 0))
+	var body_mat := _m(WOOD, 0.0, 0.6)
+	_mesh(g, body, body_mat, Vector3(0, 3.5, 0), Vector3.ONE, Vector3(0, PI / 4.0, 0))
 	var base := BoxMesh.new()
 	base.size = Vector3(4.6, 0.6, 3.0)
-	_mesh(g, base, _m(Color(0.42, 0.24, 0.18), 0.0, 0.6), Vector3(0, 0.3, 0))
+	var base_mat := _m(Color(0.42, 0.24, 0.18), 0.0, 0.6)
+	_mesh(g, base, base_mat, Vector3(0, 0.3, 0))
 	var gold := _m(Color(1.0, 0.8, 0.4), 0.3, 0.3)
 	var scale_strip := BoxMesh.new()
 	scale_strip.size = Vector3(0.7, 4.6, 0.05)
@@ -358,6 +360,9 @@ static func model() -> Node3D:
 	knob.radius = 0.4
 	knob.height = 0.8
 	_mesh(g, knob, gold, Vector3(0, 7.1, 0))
+	# Its wooden body and base get the baked plank patch (grain, knots, nail heads). With the detail pipeline off,
+	# dress_patches changes nothing.
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_patches", g, [[body_mat, "barn_boards"], [base_mat, "barn_boards"]])
 	return g
 
 
