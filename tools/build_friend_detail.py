@@ -75,6 +75,27 @@ def fur(N, c):
     return h, 0.0010, N.ramp(N.add(N.mul(tufts, 0.7), N.mul(N.noise(0.04), 0.3)), 0.84, 1.0)
 
 
+def shag(N, c):
+    # A gorilla's shaggy coat (Hayden, Nov 25: "more hairy"): noise stretched long and thin down the body makes
+    # strands, a coarser stretched noise bunches them into locks, and soft tufts break the locks up. The gaps between
+    # strands go dark and the tips stay pale, deeper than the friends' short fur. Waves were tried first: they read
+    # as woven sacking.
+    def streaks(size, long, sway):
+        wrapped = N.around(c["centre"], c["radius"], height_scale=1.0 / long)
+        bend = N.new("ShaderNodeCombineXYZ", X=N.mul(N.math("SUBTRACT", N.noise(0.06, detail=2.0), 0.5), sway),
+                     Y=0.0, Z=0.0).outputs["Vector"]
+        add = N.nt.nodes.new("ShaderNodeVectorMath")
+        add.operation = "ADD"
+        N.nt.links.new(wrapped, add.inputs[0])
+        N.nt.links.new(bend, add.inputs[1])
+        return N.noise(size, detail=3.0, rough=0.55, vec=add.outputs["Vector"])
+    fine = N.sharpen(streaks(0.009, 7.0, 0.03), 0.3, 0.72)
+    locks = N.sharpen(streaks(0.03, 4.0, 0.06), 0.25, 0.78)
+    tufts = N.noise(0.04, detail=4.0, rough=0.6, distortion=1.5)
+    h = N.add(N.mul(fine, 0.45), N.mul(locks, 0.4), N.mul(tufts, 0.15))
+    return h, 0.012, N.ramp(N.add(N.mul(fine, 0.5), N.mul(locks, 0.35), N.mul(tufts, 0.15)), 0.45, 1.0)
+
+
 def mane(N, c):
     # Pip's fluffy mane: long soft locks
     fine, clumps = _strands(N, c, 160, 30, sway=0.02)
@@ -236,7 +257,7 @@ def panel(N, c):
 
 
 R = {
-    "skin": skin, "nose": nose, "hair": hair, "fur": fur, "mane": mane, "knit": knit, "rib": rib,
+    "skin": skin, "nose": nose, "hair": hair, "fur": fur, "shag": shag, "mane": mane, "knit": knit, "rib": rib,
     "cotton": cotton, "denim": denim, "denim_rib": lambda N, c: denim(N, c, True), "canvas": canvas,
     "leather": leather, "sole": sole, "ripstop": ripstop, "satin": satin, "cord": cord, "metal": metal,
     "plastic": plastic, "rubber": rubber, "horn": horn, "leaf": leaf, "bark": bark, "wing": wing,
@@ -327,7 +348,7 @@ CHARS = {
         "model": "cyber_gorilla", "body": "CyberGorilla", "rig": "GorillaRig", "hair": ["Fur"], "ao": 0.04,
         "flat": EYES + ["Screen", "Screen Gold", "Screen Gold Dark", "Void", "Eye Fire", "Screen Bone",
                         "Chaos Magenta", "Cyber Glow", "Red Eye", "Tooth"],
-        "parts": {"Fur": "fur", "Fur Light": "fur", "Fur Dark": "fur", "Metal": "armour", "Metal Edge": "metal",
+        "parts": {"Fur": "shag", "Fur Light": "shag", "Fur Dark": "shag", "Metal": "armour", "Metal Edge": "metal",
                   "Cyber": "panel", "Cyber Dark": "panel", "Skin": "skin"},
     },
 }
