@@ -44,6 +44,9 @@ MODELS = {
     "mr_palmer": {"kind": "character", "blend": "source_art/characters/mr_palmer.blend", "body": "MrPalmer",
                   "rig": "MrPalmerRig", "detail": "palmer", "glb": "models/characters/mr_palmer.glb",
                   "keep": EYES + ["Glasses", "Mouth", "Tongue", "Blush"]},
+    "nina": {"kind": "character", "blend": "source_art/characters/nina.blend", "body": "Nina", "rig": "NinaRig",
+             "detail": None, "glb": "models/characters/nina.glb",
+             "keep": EYES + ["Brow", "Blush", "Mouth", "Tongue", "Teeth", "Nostril"]},
     "cyber_gorilla": {"kind": "character", "blend": "source_art/characters/cyber_gorilla.blend", "body": "CyberGorilla",
                       "rig": "GorillaRig", "detail": "gorilla", "glb": "models/characters/cyber_gorilla.glb",
                       "keep": EYES + ["Screen", "Screen Gold", "Screen Gold Dark", "Void", "Eye Fire", "Screen Bone",
@@ -311,11 +314,22 @@ def _bpy_steps():
     def render(name):
         m = MODELS[name]
         clean()
-        # Always the ORIGINAL model (kept as before.glb the first time), never an earlier AI rebuild of it
-        objs = import_glb(work(name) / "before.glb")
-        for o in objs:
-            if o.type == "ARMATURE" and o.animation_data:
-                o.animation_data.action = None
+        if m["kind"] == "character":
+            # The original .blend in its REST pose: the pose the fit lines the AI's shape up with (a glb's own pose
+            # can differ: Nina's has her arms out where her rig's rest has them down)
+            bpy.ops.wm.open_mainfile(filepath=str(ROOT / m["blend"]))
+            D.objects[m["rig"]].data.pose_position = "REST"
+            bpy.context.view_layer.update()
+            for o in list(D.objects):
+                if o.type not in ("MESH", "ARMATURE"):
+                    D.objects.remove(o)
+            objs = list(D.objects)
+        else:
+            # Always the ORIGINAL model (kept as before.glb the first time), never an earlier AI rebuild of it
+            objs = import_glb(work(name) / "before.glb")
+            for o in objs:
+                if o.type == "ARMATURE" and o.animation_data:
+                    o.animation_data.action = None
         meshes = [o for o in objs if o.type == "MESH"]
         # Frame the body only: some exports carry a stray helper (mr_palmer.glb has a unit Icosphere at its feet)
         if m.get("body") and any(o.name == m["body"] for o in meshes):
@@ -356,8 +370,214 @@ def _bpy_steps():
             bpy.ops.render.render(write_still=True)
         print("AI render", work(name))
 
+    def dominant_bones(ob):
+        """Per face: the bone (vertex group name) carrying it most, from its corners' weights."""
+        names = {g.index: g.name for g in ob.vertex_groups}
+        best_v = []
+        for v in ob.data.vertices:
+            w = {}
+            for g in v.groups:
+                w[g.group] = w.get(g.group, 0) + g.weight
+            best_v.append(w)
+        out = []
+        for p in ob.data.polygons:
+            w = {}
+            for vi in p.vertices:
+                for k, x in best_v[vi].items():
+                    w[k] = w.get(k, 0) + x
+            out.append(names.get(max(w, key=w.get)) if w else None)
+        return out
+
+    def paint_by_region(new, old, mats, keep, lo, hi):
+        """Paints the new body with the old named materials region by region (Hayden: Rolo's clean colours): a face
+        may only take a material the old body uses on the same bone (so a sleeve's colour never leaks onto the chest,
+        the sash stays on the chest, shoes stay on feet), the nearest old face of those wins (one facing the same way
+        first), and the borders are then smoothed hard, so each part is one clean patch."""
+        h = hi.z - lo.z
+        ob_bone = dominant_bones(old)
+        nb_bone = dominant_bones(new)
+        allowed = {}
+        for p, b in zip(old.data.polygons, ob_bone):
+            mt = mats[p.material_index]
+            if mt is None or mt.name in keep:
+                continue
+            allowed.setdefault(b, {}).setdefault(p.material_index, 0)
+            allowed[b][p.material_index] += 1
+        raw_allowed = {b: set(c) for b, c in allowed.items()}
+        for b, c in allowed.items():
+            tot = sum(c.values())
+            allowed[b] = {mi for mi, n in c.items() if n >= 0.02 * tot} or set(c)
+        everything = {mi for c in allowed.values() for mi in c}
+        # For the outermost layer, any material on this bone or the bones next to it (thin things like a tie sit on
+        # the chest bone while the shirt round them is on the spine's)
+        near = {}
+        rig = old.parent
+        if rig is not None and rig.type == "ARMATURE":
+            for bone in rig.data.bones:
+                group = [bone.name] + ([bone.parent.name] if bone.parent else []) + [c.name for c in bone.children]
+                near[bone.name] = set()
+                for g in group:
+                    near[bone.name] |= raw_allowed.get(g, set())
+        # one tree per material
+        trees, normals = {}, {}
+        for mi in everything:
+            bm = bmesh.new()
+            for p in old.data.polygons:
+                if p.material_index == mi:
+                    bm.faces.new([bm.verts.new(old.data.vertices[v].co) for v in p.vertices])
+            trees[mi] = BVHTree.FromBMesh(bm)
+            bm.free()
+        # Everything the old body is made of (not the kept parts), to find the OUTERMOST layer along each face's
+        # normal: what you'd see from outside (the sash over the suit, the tie over the shirt)
+        allbm = bmesh.new()
+        all_mi = []
+        for p in old.data.polygons:
+            if p.material_index in everything:
+                allbm.faces.new([allbm.verts.new(old.data.vertices[v].co) for v in p.vertices])
+                all_mi.append(p.material_index)
+        outer = BVHTree.FromBMesh(allbm)
+        allbm.free()
+        for p, b in zip(new.data.polygons, nb_bone):
+            cands = allowed.get(b) or everything
+            o = p.center + p.normal * (0.06 * h)
+            hit = outer.ray_cast(o, -p.normal, 0.12 * h)
+            if hit[2] is not None and hit[1].dot(p.normal) > 0.2 and all_mi[hit[2]] in near.get(b, everything):
+                p.material_index = all_mi[hit[2]]
+                continue
+            best, best_d = None, 1e9
+            for mi in cands:
+                hit = trees[mi].find_nearest(p.center)
+                if hit[0] is None:
+                    continue
+                d = hit[3] + (0 if hit[1].dot(p.normal) > 0.3 else 0.05 * h)
+                if d < best_d:
+                    best, best_d = mi, d
+            if best is not None:
+                p.material_index = best
+        smooth_materials(new, passes=10)
+        bm = bmesh.new()
+        bm.from_mesh(new.data)
+        n = len(bm.faces)
+        bm.free()
+        clean_islands(new, passes=3)
+        # bigger patches too (up to 1 face in 150), but never a part the old body has only small pieces of
+        clean_islands_min(new, max(30, n // 150), {mi for mi in everything
+                                                  if sum(1 for p in old.data.polygons if p.material_index == mi)
+                                                  < 0.01 * len(old.data.polygons)})
+
+    def clean_islands_min(ob, small, protect):
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.faces.ensure_lookup_table()
+        seen = set()
+        for f in bm.faces:
+            if f.index in seen:
+                continue
+            island, stack = [], [f]
+            seen.add(f.index)
+            while stack:
+                g = stack.pop()
+                island.append(g)
+                for e in g.edges:
+                    for k in e.link_faces:
+                        if k.index not in seen and k.material_index == f.material_index:
+                            seen.add(k.index)
+                            stack.append(k)
+            if len(island) < small and f.material_index not in protect:
+                ring = {}
+                for g in island:
+                    for e in g.edges:
+                        for k in e.link_faces:
+                            if k.material_index != f.material_index:
+                                ring[k.material_index] = ring.get(k.material_index, 0) + 1
+                if ring:
+                    mi = max(ring, key=ring.get)
+                    for g in island:
+                        g.material_index = mi
+        bm.to_mesh(ob.data)
+        bm.free()
+
+    def float_kept(kept, old, new, mats, keep, h):
+        """Moves each kept piece (an eye, glasses, a mouth) out or in along its own facing so it sits on the AI's
+        surface as it sat on the old one: where the AI's face is fuller, eyes kept where they were end up buried."""
+        body = bmesh.new()
+        for p in old.data.polygons:
+            mt = mats[p.material_index]
+            if mt is not None and mt.name not in keep:
+                body.faces.new([body.verts.new(old.data.vertices[v].co) for v in p.vertices])
+        old_tree = BVHTree.FromBMesh(body)
+        body.free()
+        new_tree = BVHTree.FromObject(new, bpy.context.evaluated_depsgraph_get())
+        bm = bmesh.new()
+        bm.from_mesh(kept.data)
+        bm.verts.ensure_lookup_table()
+        seen = set()
+        moved = 0
+        # Pieces near each other move together (an eye's white, iris and shine are separate pieces)
+        pieces = []
+        for v in bm.verts:
+            if v.index in seen:
+                continue
+            stack, piece = [v], []
+            seen.add(v.index)
+            while stack:
+                a = stack.pop()
+                piece.append(a)
+                for e in a.link_edges:
+                    b = e.other_vert(a)
+                    if b.index not in seen:
+                        seen.add(b.index)
+                        stack.append(b)
+            pieces.append(piece)
+        # Union pieces whose middles are close (an eye's layers, a brow over it), so they move as one
+        cs = [sum((v.co for v in piece), Vector()) / len(piece) for piece in pieces]
+        root = list(range(len(pieces)))
+
+        def find(i):
+            while root[i] != i:
+                root[i] = root[root[i]]
+                i = root[i]
+            return i
+        for i in range(len(pieces)):
+            for j in range(i + 1, len(pieces)):
+                if (cs[i] - cs[j]).length < 0.07 * h:
+                    root[find(i)] = find(j)
+        merged = {}
+        for i, piece in enumerate(pieces):
+            merged.setdefault(find(i), []).extend(piece)
+        groups = [{"verts": vs} for vs in merged.values()]
+        for g in groups:
+            vs = g["verts"]
+            c = sum((v.co for v in vs), Vector()) / len(vs)
+            n = sum((v.normal for v in vs), Vector())
+            if n.length < 1e-6:
+                continue
+            n.normalize()
+            start = c + n * 0.15 * h
+            a = old_tree.ray_cast(start, -n, 0.4 * h)
+            b = new_tree.ray_cast(start, -n, 0.4 * h)
+            if a[0] is None or b[0] is None:
+                continue
+            d = (b[0] - a[0]).dot(n)
+            if abs(d) > 0.08 * h:
+                continue
+            for v in vs:
+                v.co += n * d
+            moved += 1
+        bm.to_mesh(kept.data)
+        bm.free()
+        print("AI kept pieces moved onto the new surface:", moved, "of", len(groups))
+
+    def export_to(name, tag, path):
+        m = MODELS[name]
+        bpy.ops.wm.open_mainfile(filepath=str(ROOT / "source_art/characters/ai" / (Path(m["blend"]).stem + tag + ".blend")))
+        bpy.ops.export_scene.gltf(filepath=str(path), export_format="GLB", use_renderable=True,
+                                  export_apply=True, export_cameras=False, export_lights=False, export_yup=True,
+                                  export_animations=True)
+        print("AI exported", name, tag, path)
+
     # ------------------------------------------------------------------------------------------------- fit: character
-    def fit_character(name, raw="raw.glb"):
+    def fit_character(name, raw="raw.glb", mode="nearest", tag=""):
         m = MODELS[name]
         clean()
         bpy.ops.wm.open_mainfile(filepath=str(ROOT / m["blend"]))
@@ -381,55 +601,76 @@ def _bpy_steps():
         old_tris = tris(old) - tris(kept)
         # The AI's shape, lined up with the old body and cut down to its budget
         new = join(import_glb(work(name) / raw), m["body"] + " AI")
-        fit_to(new, lo, hi)
+        # Region mode matches width and depth too (the AI drew Nina's arms a quarter longer than hers)
+        fit_to(new, lo, hi, per_axis=(mode == "region"))
         cut = trim(new, lo, hi)
         cut += trim_floor(new, old, lo, hi)
-        decimate(new, max(old_tris, 2000))
+        # Region painting works on a finer mesh (so the borders between parts are smooth) and cuts down afterwards
+        decimate(new, max(old_tris, 2000) * (4 if mode == "region" else 1))
         new.data.materials.clear()
         for mt in mats:
             new.data.materials.append(mt)
-        # Each new face takes the nearest old face's material, ignoring the kept parts (an eye's material mustn't
-        # spread over the face round it)
-        bm = bmesh.new()
-        bm.from_mesh(old.data)
-        bm.faces.ensure_lookup_table()
-        body_faces = [f for f in bm.faces if not (mats[f.material_index] and mats[f.material_index].name in keep)]
-        sub = bmesh.new()
-        idx = {}
-        for f in body_faces:
-            vs = [sub.verts.new(v.co) for v in f.verts]
-            nf = sub.faces.new(vs)
-            idx[len(idx)] = f.material_index
-        sub.faces.ensure_lookup_table()
-        tree = BVHTree.FromBMesh(sub)
-        h = hi.z - lo.z
-        for p in new.data.polygons:
-            # Look for the old surface along the new face's own normal (a little in and out), taking only a face that
-            # faces the same way: the nearest face alone often belongs to another layer (the sash under the suit,
-            # metal under fur). The nearest face is the fallback.
-            best = None
-            for sign in (1, -1):
-                o = p.center + p.normal * (0.03 * h * sign)
-                hit = tree.ray_cast(o, -p.normal * sign, 0.06 * h)
-                if hit[2] is not None and hit[1].dot(p.normal) > 0.3 and (best is None or hit[3] < best[3]):
-                    best = hit
-            if best is None:
-                best = tree.find_nearest(p.center)
-            if best[2] is not None:
-                p.material_index = idx[best[2]]
-        bm.free()
-        sub.free()
-        smooth_materials(new)
-        clean_islands(new)
-        # The old weights, by nearest surface
-        dt = new.modifiers.new("Weights", "DATA_TRANSFER")
-        dt.object = old
-        dt.use_vert_data = True
-        dt.data_types_verts = {"VGROUP_WEIGHTS"}
-        dt.vert_mapping = "POLYINTERP_NEAREST"
-        bpy.context.view_layer.objects.active = new
-        bpy.ops.object.datalayout_transfer(modifier="Weights")
-        bpy.ops.object.modifier_apply(modifier="Weights")
+        if mode == "region":
+            # Weights from the rig's bones themselves (Blender's bone heat, as Rolo has): the old weights by nearest
+            # surface go wrong where the AI's limbs aren't where the old ones were (Nina's hands took her hair's)
+            bpy.ops.object.select_all(action="DESELECT")
+            new.select_set(True)
+            rig.select_set(True)
+            bpy.context.view_layer.objects.active = rig
+            bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+            for mod in list(new.modifiers):
+                new.modifiers.remove(mod)
+            mw = new.matrix_world.copy()
+            new.parent = None
+            new.matrix_world = mw
+        else:
+            # The old weights, by nearest surface
+            dt = new.modifiers.new("Weights", "DATA_TRANSFER")
+            dt.object = old
+            dt.use_vert_data = True
+            dt.data_types_verts = {"VGROUP_WEIGHTS"}
+            dt.vert_mapping = "POLYINTERP_NEAREST"
+            bpy.context.view_layer.objects.active = new
+            bpy.ops.object.datalayout_transfer(modifier="Weights")
+            bpy.ops.object.modifier_apply(modifier="Weights")
+        if mode == "region":
+            paint_by_region(new, old, mats, keep, lo, hi)
+            decimate(new, max(old_tris, 2000))
+        else:
+            # Each new face takes the nearest old face's material, ignoring the kept parts (an eye's material mustn't
+            # spread over the face round it)
+            bm = bmesh.new()
+            bm.from_mesh(old.data)
+            bm.faces.ensure_lookup_table()
+            body_faces = [f for f in bm.faces if not (mats[f.material_index] and mats[f.material_index].name in keep)]
+            sub = bmesh.new()
+            idx = {}
+            for f in body_faces:
+                vs = [sub.verts.new(v.co) for v in f.verts]
+                nf = sub.faces.new(vs)
+                idx[len(idx)] = f.material_index
+            sub.faces.ensure_lookup_table()
+            tree = BVHTree.FromBMesh(sub)
+            h = hi.z - lo.z
+            for p in new.data.polygons:
+                # Look for the old surface along the new face's own normal (a little in and out), taking only a face that
+                # faces the same way: the nearest face alone often belongs to another layer (the sash under the suit,
+                # metal under fur). The nearest face is the fallback.
+                best = None
+                for sign in (1, -1):
+                    o = p.center + p.normal * (0.03 * h * sign)
+                    hit = tree.ray_cast(o, -p.normal * sign, 0.06 * h)
+                    if hit[2] is not None and hit[1].dot(p.normal) > 0.3 and (best is None or hit[3] < best[3]):
+                        best = hit
+                if best is None:
+                    best = tree.find_nearest(p.center)
+                if best[2] is not None:
+                    p.material_index = idx[best[2]]
+            bm.free()
+            sub.free()
+            smooth_materials(new)
+            clean_islands(new)
+        float_kept(kept, old, new, mats, keep, hi.z - lo.z)
         # Put the kept parts in, drop the old body, and the new one takes its name and place on the rig
         bpy.ops.object.select_all(action="DESELECT")
         new.select_set(True)
@@ -446,7 +687,7 @@ def _bpy_steps():
         mod = new.modifiers.new("Armature", "ARMATURE")
         mod.object = rig
         rig.data.pose_position = "POSE"
-        out = ROOT / "source_art/characters/ai" / (Path(m["blend"]).stem + ".blend")
+        out = ROOT / "source_art/characters/ai" / (Path(m["blend"]).stem + tag + ".blend")
         out.parent.mkdir(parents=True, exist_ok=True)
         bpy.ops.wm.save_as_mainfile(filepath=str(out))
         print("AI fit", name, "tris", tris(new), "(old", old_tris, "+ kept", tris(new) - old_tris, ")", "base faces cut", cut,
@@ -572,7 +813,9 @@ def _bpy_steps():
         print("AI exported", name)
 
     return {"render": render,
-            "fit": lambda n, raw="raw.glb": (fit_character if MODELS[n]["kind"] == "character" else fit_prop)(n, raw),
+            "fit": lambda n, raw="raw.glb", mode="nearest", tag="": (
+                fit_character(n, raw, mode, tag) if MODELS[n]["kind"] == "character" else fit_prop(n, raw)),
+            "export_to": export_to,
             "export": export}
 
 

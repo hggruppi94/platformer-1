@@ -40,3 +40,22 @@ tile) is cut away.
 
 Three views costs about 2.5 minutes of GPU time a model (5.7 GB VRAM) instead of 1. For soft characters it's the
 better choice; for layered bosses and hard props neither is good enough yet.
+
+## Round 3: the colour test (Mr. Palmer and Nina, three views)
+
+`colour_test.png` (Godot shots: full, face, back). Rows: the original, the current nearest-face colours, A (paint by
+body region: `ai_rebuild.py fit <model> raw_mv.glb region _region`), 2 (part segmentation) and 3 (part-aware
+generation).
+
+- **Two fixes for every remodel.** The AI was shown each character in its glb's pose, but the fit lines it up with
+  the .blend's rest pose. Nina's arms are out in one and down in the other, so her hands took her hair's colour and
+  bones. The pictures now come from the rest pose. Kept eyes, glasses and mouths are also moved onto the AI's fuller
+  faces (`float_kept`), so they aren't buried.
+- **Current (nearest-face):** from a distance, Nina is close to the original. Close up, the AI's own moulded face
+  shows under the kept parts: Mr. Palmer has a second, grey copy of his glasses and moustache in the skin, and he
+  loses his tie and shirt front. His glasses now sit forward and their arms stick out.
+- **A (paint by region):** shoes and hands are tidier. But Nina's braces and Mr. Palmer's sash break up, and the
+  AI's face shape gets the same treatment as above. Overall it's worse than the current method.
+- **2 and 3: not run.** SAMPart3D needs Linux-only cuML and compiled CUDA code. P3-SAM and OmniPart need compiled
+  CUDA code, and this PC has no CUDA compiler, Visual Studio or WSL. PartCrafter is installed (its own environment
+  in `ai3d/parts`), but running it was refused by the PC's safety check until Hayden gives a go-ahead.
