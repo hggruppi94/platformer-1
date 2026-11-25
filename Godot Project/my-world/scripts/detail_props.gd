@@ -360,6 +360,8 @@ static func dress_void(scene: Node) -> Dictionary:
 		var hs := _springs(scene.get_node_or_null("Hot Springs"), cave, rim)
 		out.spring_caves = hs.x
 		out.spring_rims = hs.y
+	# (25 Nov 2026, the last props) Dash's bike, parked by the lake
+	out["bike"] = dress_bike(scene.get_node_or_null("Characters/Bike"))
 	var market := scene.get_node_or_null("Market Square")
 	if market == null:
 		return out
@@ -4010,8 +4012,8 @@ static func patched(old: StandardMaterial3D, kind: String, scale := 1.0, offset 
 # from shapes (scenes/player/ride_kit.gd) or is the little skateboard scene, all plain colours. Each part says what it
 # is with meta "ride_part" (the skateboard's are known by name), and wears the patch for it: a deck's maple grain,
 # grip tape, brushed metal, a tyre's tread, a leaf's veins, or (the roller skates' boots) a pebbled leather from the
-# goblin skin made small. Glows, flames and see-through things stay as they are, and so does the bike (its own model:
-# it gets baked on its own).
+# goblin skin made small. Glows, flames and see-through things stay as they are. The bike is its own model
+# (models/props/bike.glb, skinned so its wheels and pedals turn): see dress_bike() below.
 const RIDE_PATCH := {"deck": ["maple", 1.0], "grip": ["grip_tape", 1.0], "metal": ["brushed_metal", 1.0],
 	"tyre": ["tread", 1.0], "leaf": ["leaf_skin", 0.8], "stem": ["leaf_skin", 3.0], "boot": ["goblin_skin", 2.5]}
 const RIDE_BY_NAME := {"Deck": "deck", "Nose": "deck", "Tail": "deck", "Grip": "grip", "TruckFront": "metal",
@@ -4032,6 +4034,7 @@ static func dress_ride(ride: Node) -> int:
 	var n := 0
 	if ride == null or not on():
 		return n
+	n += dress_bike(ride)
 	for c in ride.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
 		var part := ride_part(mi)
@@ -4053,6 +4056,189 @@ static func dress_ride(ride: Node) -> int:
 		else:
 			mi.set_surface_override_material(0, m)
 		n += 1
+	return n
+
+
+# The bike (25 Nov 2026, the last props): Dash's BMX, which the Bike, the Hover Bike and the Rocket Bike are built on
+# (scenes/player/ride_kit.gd), and Dash's own bike parked in the Void. Its frame, rims and black parts wear brushed
+# metal and its seat a pebbled leather (the goblin skin made small), laid on in the bike's own space like the other
+# rides. Its tyres turn with their bones, and a patch laid on in the mesh's space would stay still while the wheel
+# spun under it, so the tyres get a copy of the mesh with real UVs instead: the tread wrapped round each wheel, so it
+# rolls with it. The number plate stays as it is.
+const BIKE_GLB := "res://models/props/bike.glb"
+const BIKE_PATCH := {"Frame": ["brushed_metal", 1.0], "Rim": ["brushed_metal", 1.0], "Black": ["brushed_metal", 1.0],
+	"Seat": ["goblin_skin", 2.5], "Tire": ["tread", 2.0]}
+# The tyres' surface: its tread is wrapped round the wheel axis (the bike's x)
+const BIKE_TYRE := "Tire"
+static var _bike_meshes := {}
+
+
+static func is_bike(mi: MeshInstance3D) -> bool:
+	# (a dressed one wears its wrapped copy, which has no path of its own)
+	return mi != null and mi.mesh != null and (mi.has_meta("bike_dressed") or mi.mesh.resource_path.begins_with(BIKE_GLB))
+
+
+static func dress_bike(root: Node) -> int:
+	# Every bike under root (or root itself). Returns how many it dressed; 0 when they're dressed already.
+	var n := 0
+	if root == null or not on():
+		return n
+	var meshes := root.find_children("*", "MeshInstance3D", true, false)
+	if root is MeshInstance3D:
+		meshes.append(root)
+	for c in meshes:
+		var mi := c as MeshInstance3D
+		if not is_bike(mi) or mi.has_meta("bike_dressed"):
+			continue
+		var mesh := _bike_uv_mesh(mi.mesh)
+		var done := 0
+		for s in mesh.get_surface_count():
+			var old := mesh.surface_get_material(s) as StandardMaterial3D
+			if old == null or not BIKE_PATCH.has(old.resource_name):
+				continue
+			var p: Array = BIKE_PATCH[old.resource_name]
+			var m := patched(old, p[0], float(p[1]))
+			if m == null:
+				continue
+			if old.resource_name == BIKE_TYRE:
+				m = _unwrapped(m)
+			mi.set_surface_override_material(s, m)
+			done += 1
+		if done == 0:
+			continue
+		mi.mesh = mesh
+		mi.set_meta("bike_dressed", true)
+		n += 1
+	return n
+
+
+static func _unwrapped(m: StandardMaterial3D) -> StandardMaterial3D:
+	# The tyres' patched material read from the mesh's own UVs (which are in metres), not laid on from outside
+	if m.has_meta("detail_bike_uv"):
+		return m.get_meta("detail_bike_uv")
+	var u := m.duplicate() as StandardMaterial3D
+	u.uv1_triplanar = false
+	m.set_meta("detail_bike_uv", u)
+	return u
+
+
+static func _bike_uv_mesh(mesh: Mesh) -> Mesh:
+	# A copy of the bike's mesh whose tyres have UVs wrapped round their wheels (made once, shared by every bike). U
+	# runs across the tyre, V round it, both in metres; round each wheel V covers a whole number of patches, so the
+	# tread meets itself where it joins.
+	if _bike_meshes.has(mesh):
+		return _bike_meshes[mesh]
+	var out := ArrayMesh.new()
+	var arr := mesh as ArrayMesh
+	for s in mesh.get_surface_count():
+		var a := mesh.surface_get_arrays(s)
+		var mat := mesh.surface_get_material(s)
+		var flags := arr.surface_get_format(s) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if arr else 0
+		if mat and mat.resource_name == BIKE_TYRE:
+			a = _wrap_tyres(a, float(BIKE_PATCH[BIKE_TYRE][1]) / float(SURFACE_TILE["tread"]))
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a, [], {}, flags)
+		out.surface_set_material(s, mat)
+		if arr:
+			out.surface_set_name(s, arr.surface_get_name(s))
+	_bike_meshes[mesh] = out
+	return out
+
+
+static func _wrap_tyres(a: Array, per_metre: float) -> Array:
+	# The tyre surface's arrays with UVs (and tangents) wrapped round each wheel. A wheel is everything on one side of
+	# the bike's middle (front z > 0, back z < 0); its hub is the middle of its points.
+	var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+	if v.is_empty():
+		return a
+	var mid := 0.0
+	for p in v:
+		mid += p.z
+	mid /= v.size()
+	var hub := {}
+	var count := {}
+	for side in [0, 1]:
+		hub[side] = Vector2.ZERO
+		count[side] = 0
+	for p in v:
+		var side := 1 if p.z > mid else 0
+		hub[side] += Vector2(p.y, p.z)
+		count[side] += 1
+	var reach := {}
+	for side in [0, 1]:
+		hub[side] /= maxf(1.0, float(count[side]))
+		reach[side] = 0.0
+	for p in v:
+		var side := 1 if p.z > mid else 0
+		reach[side] = maxf(reach[side], Vector2(p.y, p.z).distance_to(hub[side]))
+	# How far round a turn is, in metres, rounded so a turn is a whole number of patches
+	var turn := {}
+	for side in [0, 1]:
+		var tiles := maxf(1.0, roundf(TAU * float(reach[side]) * per_metre))
+		turn[side] = tiles / per_metre
+	var uv := PackedVector2Array()
+	var tan := PackedFloat32Array()
+	uv.resize(v.size())
+	tan.resize(v.size() * 4)
+	var angle := PackedFloat32Array()
+	angle.resize(v.size())
+	for i in v.size():
+		var p := v[i]
+		var side := 1 if p.z > mid else 0
+		var d := Vector2(p.y, p.z) - (hub[side] as Vector2)
+		var t := atan2(d.x, d.y)                               # round the x axis, from +z
+		angle[i] = t
+		uv[i] = Vector2(p.x, t / TAU * float(turn[side]))
+		# The tangent runs across the tyre, along U
+		tan[i * 4] = 1.0
+		tan[i * 4 + 1] = 0.0
+		tan[i * 4 + 2] = 0.0
+		tan[i * 4 + 3] = 1.0
+	a[Mesh.ARRAY_TEX_UV] = uv
+	a[Mesh.ARRAY_TANGENT] = tan
+	# Where the angle jumps from just under a half turn to just over minus one, a triangle would smear the whole turn
+	# across itself, so its points on the low side get copies a turn further round
+	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+	if idx.is_empty():
+		return a
+	var copies := {}
+	for tri in range(0, idx.size(), 3):
+		var lo := false
+		var hi := false
+		for k in 3:
+			var t := angle[idx[tri + k]]
+			lo = lo or t < -PI * 0.5
+			hi = hi or t > PI * 0.5
+		if not (lo and hi):
+			continue
+		for k in 3:
+			var i := idx[tri + k]
+			if angle[i] >= -PI * 0.5:
+				continue
+			if not copies.has(i):
+				copies[i] = _copy_vertex(a, i)
+				var side := 1 if v[i].z > mid else 0
+				var w: PackedVector2Array = a[Mesh.ARRAY_TEX_UV]
+				w[copies[i]] = w[i] + Vector2(0, float(turn[side]))
+				a[Mesh.ARRAY_TEX_UV] = w
+			idx[tri + k] = copies[i]
+	a[Mesh.ARRAY_INDEX] = idx
+	return a
+
+
+static func _copy_vertex(a: Array, i: int) -> int:
+	# Adds a copy of point i to every per-point array in a (the mesh's arrays); returns the copy's number
+	var n: int = (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	for k in Mesh.ARRAY_MAX:
+		if k == Mesh.ARRAY_INDEX or a[k] == null:
+			continue
+		var x = a[k]
+		var size: int = x.size()
+		if size == 0 or size % n != 0:
+			continue
+		var stride := size / n
+		for j in stride:
+			x.append(x[i * stride + j])
+		a[k] = x
 	return n
 
 
