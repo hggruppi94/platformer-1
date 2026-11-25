@@ -1,0 +1,20 @@
+{
+  "name": "Rolo",
+  "conversations": [
+    {
+      "when": {"talks": 0},
+      "lines": [
+        "Hi! I'm Rolo! You don't look like a rhino.",
+        "That's okay!",
+        "Even if we're different, we can still be friends."
+      ]
+    },
+    {
+      "rotate": [
+        ["Why are lily pads flat? I want to know EVERYTHING."],
+        ["Hermez says rhinos can't fly. I'm still checking."],
+        ["Do you have a horn? No? Want to borrow mine? Just kidding!"]
+      ]
+    }
+  ]
+}

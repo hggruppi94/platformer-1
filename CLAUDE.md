@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **Hermez the crane stands by a new Lily Pond in the Void's south meadow** (the "control" of an AI 3D
+  tools trial: Rolo the rhino was to be made with Meshy, then with free open-source image-to-3D tools; Meshy's free
+  plan blocks its API, and the free tools are waiting for Hayden's go-ahead). Built on Hayden's PC (save untouched).
+  - **`tools/build_hermez.py`** (char_kit, like build_melody.py) -> `source_art/characters/hermez.blend`: a
+    red-crowned crane in the friends' chunky style, white with a black neck, a red cap, a long beak, wings as arms
+    with black flight feathers, a black bustle, thin grey legs, and a teal messenger satchel. 47k triangles,
+    18 materials, the biped bones plus a neck bone; idle, walk, run, flap, jump, fall.
+  - **Baked detail:** `tools/build_friend_detail.py hermez` (new recipes `feather`, `scaly`, and `rhino` ready for
+    Rolo).
+  - **`scripts/pond_friends.gd`** ("PondFriends" under the Watches autoload, nothing rebuilt): the Lily Pond at
+    (-5, 79), a raised ring of mossy stones round still water, lily pads with pink flowers, reeds; on the map. Hermez
+    stands on its shore (talk: `dialogue/hermez.json`, no routine yet). Rolo (`dialogue/rolo.json`) appears beside
+    him once `models/characters/rolo.glb` exists.
+  - Tests: new `tools/test_pond_friends.gd`; `test_dialogue` lists Hermez. Pictures: `tools/capture_pond_friends.gd
+    -- <folder>`, and `previews/meshy_trial/` (with `COMPARISON.md` and Rolo's concept image).
+  - My choices Hayden may change: the satchel, the pond's spot and look, his lines.
+
 - 2026-11-25: **The Agent of Chaos and the cyber gorillas have baked-in detail** (the bosses batch of Hayden's "keep
   baking details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save
   touched). `tools/build_friend_detail.py chaos|gorilla` (Blender models, same kit as the friends; a character can

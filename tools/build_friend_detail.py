@@ -256,7 +256,32 @@ def panel(N, c):
     return h, 0.0012, N.ramp(N.noise(0.03, detail=3.0), 0.85, 1.0)
 
 
+def feather(N, c):
+    # Hermez's plumage: rows of overlapping feathers (the edges of stretched cells, each one darker at its root and
+    # pale at its tip) with fine barbs running down them
+    rows = N.around(c["centre"], c["radius"], height_scale=1.6)
+    tips = N.sharpen(N.cells(0.014, vec=rows), 0.15, 0.7)          # soft rounded feather ends
+    barbs = N.wave(0.0016, "X", distortion=3.0, vec=rows)
+    h = N.add(N.mul(tips, 0.6), N.mul(barbs, 0.25), N.mul(N.noise(0.03), 0.15))
+    return h, 0.0009, N.ramp(N.add(N.mul(tips, 0.5), N.mul(N.noise(0.04), 0.5)), 0.88, 1.0)
+
+
+def scaly(N, c):
+    # A bird's legs and toes: little overlapping scales
+    s = N.math("SUBTRACT", 1.0, N.sharpen(N.cells(0.006), 0.0, 0.45))
+    return N.add(N.mul(s, 0.8), N.mul(N.noise(0.01), 0.2)), 0.0008, N.ramp(N.noise(0.01), 0.85, 1.0)
+
+
+def rhino(N, c):
+    # Rolo's thick rhino hide: big soft wrinkles and folds, a pebbly leather grain and a little mottling
+    wrinkles = N.wave(0.03, "Z", distortion=4.0, detail=3.0)
+    pebble = N.math("SUBTRACT", 1.0, N.sharpen(N.cells(0.004), 0.0, 0.4))
+    h = N.add(N.mul(wrinkles, 0.45), N.mul(pebble, 0.35), N.mul(folds(N, 0.05), 0.2))
+    return h, 0.0016, N.ramp(N.add(N.mul(N.noise(0.03, detail=4.0), 0.7), N.mul(wrinkles, 0.3)), 0.84, 1.0)
+
+
 R = {
+    "feather": feather, "scaly": scaly, "rhino": rhino,
     "skin": skin, "nose": nose, "hair": hair, "fur": fur, "shag": shag, "mane": mane, "knit": knit, "rib": rib,
     "cotton": cotton, "denim": denim, "denim_rib": lambda N, c: denim(N, c, True), "canvas": canvas,
     "leather": leather, "sole": sole, "ripstop": ripstop, "satin": satin, "cord": cord, "metal": metal,
@@ -343,6 +368,14 @@ CHARS = {
                  "Chaos Violet"],
         "parts": {"Armour": "armour", "Armour Plum": "armour", "Gold": "gold", "Gold Dark": "gold",
                   "Bone": "bone", "Cloth": "linen", "Cloth Shade": "linen"},
+    },
+    "hermez": {
+        # The crane by the lily pond (the Meshy trial's control, built by tools/build_hermez.py)
+        "model": "hermez", "body": "Hermez", "rig": "HermezRig", "hair": ["Feather", "Feather Grey"],
+        "flat": EYES + ["Brow", "Blush", "Eye Shine"],
+        "parts": {"Feather": "feather", "Feather Grey": "feather", "Feather Black": "feather", "Crown": "skin",
+                  "Beak": "horn", "Beak Tip": "horn", "Leg": "scaly", "Satchel": "canvas", "Satchel Strap": "leather",
+                  "Metal": "metal"},
     },
     "gorilla": {
         "model": "cyber_gorilla", "body": "CyberGorilla", "rig": "GorillaRig", "hair": ["Fur"], "ao": 0.04,
