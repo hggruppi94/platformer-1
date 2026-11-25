@@ -46,6 +46,8 @@ func _ready() -> void:
 	MOVES.add(self, {"moves": throw_moves, "every": 5.5, "look": throw_look, "colour": throw_colour, "size": 0.8,
 		"from": 1.6 * size, "can": func() -> bool: return _moves_ok()})
 	_boulders()
+	# (once its look is built, and after any cousin has taken it off: the baked boulders, scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_boulderdillo", self)
 
 
 func _physics_process(delta: float) -> void:

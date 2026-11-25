@@ -98,6 +98,8 @@ func _ready() -> void:
 	_respawn_timer.timeout.connect(_try_respawn)
 	add_child(_respawn_timer)
 	_make_loot()
+	# (once its look is built: baked cogs and Tock's clock hat, scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_goblin", self)
 
 
 func _physics_process(delta: float) -> void:

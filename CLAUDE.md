@@ -99,6 +99,23 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The shape-built bosses get baked parts, part one: the Gloop King's crown, every Time Goblin's cog,
+  Grandfather Tock's clock hat and the Boulderdillo's boulders** (the bosses batch of Hayden's "keep baking details on
+  assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_bosses.py <out.glb> king_crown` (the King's crown at ten
+    times its size: a gold band with scrollwork, five points with ball tips, the red gem in a four-pronged setting).
+    In `models/props/bosses/`. The cogs, clock and boulders reuse the Clockyard's and Boulder Hollow's bakes.
+  - **Put on where they're built** (`detail_props.gd dress_king_crown()`, `dress_goblin()`, `dress_boulderdillo()`,
+    called deferred from `gloop_king.gd`, `time_goblin.gd` and `crocodillo_boss.gd`): the crown sits in
+    "Visual/Body/Crown" (its gold lifted back to the old crown's, `KING_CROWN_GAIN`); every "Cog" gets a "Detailed
+    Cog"; Tock's hat is the Clockyard's clock case and hood made small, his own hand moved onto the new face
+    (`HAT_FACE_Y`) and his pendulum still swinging; each "*Boulder*" ball is the baked boulder. Old shapes are hidden,
+    never freed (the fights use them). Cousins that strip the King's look (Tuskwinter, Grumblefin, the Dawn Snatcher)
+    are left alone. With the detail pipeline off nothing changes.
+  - Tests: new `tools/test_boss_detail.gd`; time_goblins, boss_versions, boss_lairs, gloop_king, gloop_kingdom,
+    boss_tells, boss_moves, arena, lanternmoor, glenmoor, frozen_moment, tide_reef and detail_all pass. Pictures:
+    `tools/capture_boss_detail.gd -- <folder> [--old-props]` (project files, characters/boss-detail/shape-bosses-1).
+
 - 2026-11-25: **The Agent of Chaos and the cyber gorillas have baked-in detail** (the bosses batch of Hayden's "keep
   baking details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save
   touched). `tools/build_friend_detail.py chaos|gorilla` (Blender models, same kit as the friends; a character can
