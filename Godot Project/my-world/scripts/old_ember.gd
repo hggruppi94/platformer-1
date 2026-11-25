@@ -817,6 +817,8 @@ func _look(v: Node3D) -> void:
 	l.position = Vector3(0, 2.0, 0)
 	body.add_child(l)
 	# The heat haze round it while its crust is red hot (phase 2): a see-through orange shell
+	# Its rocky skin gets baked detail: cooled lava crust on its balls, rock on its legs and spine bumps
+	_dress_skin.call_deferred(skin)
 	var heat := _put(v, _ball(3.4), _mat(Color(1.0, 0.45, 0.1, 0.16), 0.8), Vector3(0, 1.6, 0), Vector3.ZERO, Vector3(1.0, 0.65, 1.5))
 	heat.name = "Heat"
 	heat.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -830,3 +832,9 @@ func _look(v: Node3D) -> void:
 	z.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	z.position = Vector3(1.2, 3.2, 2.4)
 	v.add_child(z)
+
+
+func _dress_skin(skin: Material) -> void:
+	var dp := (load("res://scripts/detail_props.gd") as GDScript)
+	dp.call("dress_surfaces", self, [[skin, "boss_crust"]])
+	dp.call("dress_patches", self, [[skin, "rock"]])

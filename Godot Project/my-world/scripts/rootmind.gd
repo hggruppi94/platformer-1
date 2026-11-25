@@ -850,6 +850,9 @@ static func thornknot_model() -> Node3D:
 	sign.position = Vector3(0, 2.8, KNOT_RING)
 	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	g.add_child(sign)
+	# Its vines and thorns get the baked bark patch, so they look like real woody stems. With the detail pipeline off,
+	# dress_patches changes nothing.
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_patches", g, [[vine, "bark"], [thorn_mat, "bark"]])
 	return g
 
 

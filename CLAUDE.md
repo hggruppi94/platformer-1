@@ -129,6 +129,46 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - Tests: new `tools/test_pond_friends.gd`; `test_dialogue` lists Hermez. Pictures: `tools/capture_pond_friends.gd
     -- <folder>`, and `previews/meshy_trial/` (with `COMPARISON.md` and Rolo's concept image).
   - My choices Hayden may change: the satchel, the pond's spot and look, his lines.
+- 2026-11-25: **The rides have baked detail: maple decks, grip tape, brushed metal, tyre tread and leaf veins** (the
+  rides batch of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own
+  Godot user folders, no save touched).
+  - **Five more tiling patches** (`tools/build_prop_surfaces.py maple|grip_tape|brushed_metal|tread|leaf_skin`): maple
+    veneer with grain and scratches, sandy grip, brushed steel with scratches and dings, chunky zig-zag rubber tread,
+    and a leaf's midrib and veins. In `models/props/surfaces/`.
+  - **Put on as each ride's built** (`detail_props.gd dress_ride()`, called at the end of `RideKit.build()`, so every
+    rider, race rival and Sky Sweep board gets it): parts are known by name (the skateboard scene's Deck, Nose, Tail,
+    Grip and trucks) or by a `ride_part` meta set in `ride_kit.gd` (`RIDE_PATCH`: deck, grip, metal, tyre, leaf, stem,
+    boot). The SK8 Deck keeps its black, the leaf's veins run down its middle (`RIDE_OFFSET`), the skates' boots wear
+    the goblin skin. Glows, flames, see-through bits and wheels stay plain, and so does the bike (it comes with the last
+    props). Patched copies are shared (`patched()`, now also used by `dress_patches()`), so two boards still draw
+    together. With the detail pipeline off nothing changes.
+  - Tests: new `tools/test_ride_detail.gd`; skate, skate_park, ride_upgrades, races, schematics, skate_popper,
+    enemy_detail and boss_detail pass. Pictures: `tools/capture_ride_detail.gd -- <folder> [--old-props]` (project
+    files, characters/ride-detail).
+  - My choices Hayden may change: how strong each patch is (they're subtle from riding distance; brushed metal looks
+    stripy on thin rods close up).
+
+- 2026-11-25: **The everyday enemies have baked detail: Crocodillos' scales and shells, Time Goblins' pebbly skin and
+  woven clothes, Bog Wailers' warts and moss, and the Peepers' fuzz** (the enemies batch of Hayden's "keep baking
+  details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Three more tiling patches** (`tools/build_prop_surfaces.py reptile_scales|goblin_skin|tweed`): rows of raised
+    reptile scales, a pebbly bumpy skin, and a woven cloth. In `models/props/surfaces/`.
+  - **Put on where they're built** (`detail_props.gd dress_crocodillo()`, `dress_goblin_skin()`, `dress_bog_wailer()`,
+    `dress_peeper()`, called from `crocodillo.gd`, `time_goblin.gd`, `bog_wailer.gd` and `peeper.gd`, so every boss
+    built on them gets it too): a Crocodillo's hide, belly and hands wear the scales (`CROC_SCALE_K`, `CROC_BELLY_K`)
+    and its shell ball the beetle shell skin (`boss_chitin`); a Time Goblin's (and Tock's) teal skin the goblin skin and
+    its waistcoat, coat and legs the cloth; a Bog Wailer's head the toad warts, its moss the fuzz and its body the
+    goblin skin (its mouth still opens); a Peeper's fluff the moth fuzz. Cousins that strip the look (the Stormram, the
+    Dawn Snatcher) are left alone. With the detail pipeline off nothing changes.
+  - **Shared copies:** every enemy of a kind shares its patched materials (cached on the old material), so they still
+    draw together. Fixed while doing it: `dress_patches()`'s cache key had a dot in it (meta names can't), so the
+    bosses' patched copies weren't being shared either.
+  - Left plain on purpose: Gloops, Glorps and Mucklings (the goo shader), Fizzlers (glow), shadow ghosts, Buzz Bots.
+  - Tests: new `tools/test_enemy_detail.gd`; boss_detail, boss_versions, boss_lairs, time_goblins, swamps, peepers,
+    arena, wilds, glenmoor, lanternmoor, detail_all and scary_world (both runs) pass. Pictures:
+    `capture_boss_detail.gd -- <folder> --enemies [--old-props]` (project files, characters/boss-detail/enemies).
+  - My choices Hayden may change: how strong each patch is (the Crocodillo's scales read a little pale from afar).
+
 - 2026-11-25: **Loading screens cover every trip again, and no more still frame leaving a building** (Hayden: "loading
   screens have gotten pretty horrendous ... sometimes when you exit buildings, there's no loading screen at all and its
   just a still frame of an older version of the game"). A scene change loaded on the main thread froze the window on
@@ -143,6 +183,26 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   in the cloud (test_sports passes headless and in a window); `test_sports` now waits for the Interact kick instead of
   counting frames (in a window the press arrives a drawn frame later). Tests: title (door fade, full screen between
   worlds, never uncovered undressed), doors, walk_through, world_detail, insides, home_calls, cracks, sports.
+
+- 2026-11-25: **The shape-built bosses get baked parts, part three: Old Ember's lava crust, Glimmerwing's fuzz,
+  Old Bubblebeard's and Old Mossback's warts, the centipede's shell, the Thornknot's bark and the Off-Beat's planks**
+  (the bosses batch of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud
+  (own Godot user folders, no save touched).
+  - **Four more skins** (`tools/build_prop_bosses.py <out.glb> boss_crust|boss_warts|boss_chitin|boss_fuzz`, balls of
+    radius 1 baked pale like part two's): cracked lava plates, bumpy toad warts, a beetle's ringed shell, soft moth fuzz.
+    Put on with `dress_surfaces()` (deferred) from `old_ember.gd`, `guardian.gd` (Glimmerwing, Old Bubblebeard),
+    `swamp_dangers.gd` (Old Mossback's body and moss) and `centipede_friend.gd`.
+  - **Patches on the parts that aren't balls** (`detail_props.gd dress_patches(root, [[material, patch, scale]])`): a
+    patched copy of the material laid on in the boss's own space (so it moves with it; meta `detail_moves`): Old
+    Ember's legs and spikes rock, the Thornknot's vines and thorns bark (`rootmind.gd thornknot_model()`), the Off-Beat's
+    body and foot barn boards (`off_beat.gd model()`). A ball wearing a skin keeps its own material.
+  - Left plain on purpose: the Hush, the Gloam, Big Buzz, Captain Glitch, Mama Glorp and Ribbontail (glows, glitch
+    cubes, goo and paper suit them as they are). With the detail pipeline off nothing changes.
+  - Tests: `test_boss_detail` (new skins and patches, done again changes nothing); volcano, guardians, swamps,
+    dark_hollow, rootmind, rhythm_springs, boss_tells, boss_moves, scary_world (both runs) and detail_all pass.
+    Pictures: `capture_boss_detail.gd -- <folder> --part3 [--old-props]` (project files,
+    characters/boss-detail/shape-bosses-3).
+  - My choices Hayden may change: the Thornknot's bark reads a bit stripy, the Off-Beat's wood a bit pale.
 
 - 2026-11-25: **The shape-built bosses get baked parts, part two: Tuskwinter's hide, Grumblefin's scales, the Dawn
   Snatcher's feathers and the Stormram's fleece** (the bosses batch of Hayden's "keep baking details on assets in the

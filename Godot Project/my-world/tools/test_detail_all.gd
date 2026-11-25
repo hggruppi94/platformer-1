@@ -648,7 +648,7 @@ func _run() -> void:
 				continue
 			var kind: String = pm.get_meta("detail_surface")
 			if pm.albedo_texture == null or pm.normal_texture == null or not pm.uv1_triplanar \
-					or pm.uv1_world_triplanar != (kind in DETAIL_PROPS.WORLD_SPACE_SURFACES):
+					or pm.uv1_world_triplanar != (kind in DETAIL_PROPS.WORLD_SPACE_SURFACES and not pm.has_meta("detail_moves")):
 				bad.append(pm.resource_name)
 		check(bad.is_empty(), "%s: every patched piece has its maps laid on the right way (%s)" % [world, str(bad)])
 		check(DETAIL_PROPS.dress_buildings(current_scene).is_empty(), "%s: dressing again changes nothing" % world)

@@ -74,6 +74,12 @@ func _ready() -> void:
 	_respawn_timer.one_shot = true
 	_respawn_timer.timeout.connect(_try_respawn)
 	add_child(_respawn_timer)
+	# (once its look is built: the baked scales and shell, scripts/detail_props.gd; a boss adds its own on top)
+	_dress_baked.call_deferred()  # (called on itself, so nothing happens if it was freed first)
+
+
+func _dress_baked() -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_crocodillo", self)
 
 
 func _resize() -> void:
