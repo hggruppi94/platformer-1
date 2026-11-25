@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **Loading screens cover every trip again, and no more still frame leaving a building** (Hayden: "loading
+  screens have gotten pretty horrendous ... sometimes when you exit buildings, there's no loading screen at all and its
+  just a still frame of an older version of the game"). A scene change loaded on the main thread froze the window on
+  its last frame, then `WorldDetail` dressed the new place a frame later, so the undressed old look showed first.
+  `Loading.travel(path)` (`scripts/loading_screen.gd`, used by `Game.go()`, `go_to_point()` and `continue_game()`)
+  now covers the screen first (the full loading screen between worlds; a quick dark fade, `DOOR_FADE`, through a door),
+  loads on a thread, changes scene, and only uncovers once `WorldDetail.dressed_for` (doors) or `settled_for` (worlds,
+  after the later merges) is the new scene, at most `DRESS_WAIT` 8 s. A second trip while one's on is ignored
+  (`Loading.busy`). Headless runs keep the old quick change unless `Loading.force_threaded`. Also: the bosses' baked
+  parts are put on by a call on the boss itself (`_dress_baked()` in gloop_king.gd, time_goblin.gd,
+  crocodillo_boss.gd), so a boss freed first no longer logs "Cannot convert argument 1". The sports crash wasn't seen
+  in the cloud (test_sports passes headless and in a window); `test_sports` now waits for the Interact kick instead of
+  counting frames (in a window the press arrives a drawn frame later). Tests: title (door fade, full screen between
+  worlds, never uncovered undressed), doors, walk_through, world_detail, insides, home_calls, cracks, sports.
+
 - 2026-11-25: **The shape-built bosses get baked parts, part one: the Gloop King's crown, every Time Goblin's cog,
   Grandfather Tock's clock hat and the Boulderdillo's boulders** (the bosses batch of Hayden's "keep baking details on
   assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).

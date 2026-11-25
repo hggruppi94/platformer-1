@@ -5,8 +5,20 @@ extends CanvasLayer
 # to another (Earth, the Void, the Scary World, the title screen), never for a door into a shop or back out of one. A deep purple screen, a tip,
 # and a little alien bobbing and waving (drawn in code), up for at least MIN_TIME so it can be read, and gone again
 # once the new place is ready. Tests: tools/test_title.gd.
+#
+# Since 25 Nov 2026 (Hayden: "loading screens have gotten pretty horrendous. sometimes when you exit buildings, there's
+# no loading screen at all and its just a still frame of an older version of the game") every trip goes through
+# travel(). The old way changed scene in one go: the screen froze on the last picture while the new place loaded, then
+# showed it plain for a moment while WorldDetail dressed it (mountains, baked props, merging: the "older version").
+# travel() puts a cover up first and lets it reach the screen, loads the new place on a loader thread
+# (ResourceLoader.load_threaded_request, as Godot's own docs and most open-source Godot loading screens do), swaps to
+# it, and only takes the cover away once WorldDetail has dressed it. Trips between worlds get the tip and the alien;
+# a door into a room or back out gets a quick fade through dark. Headless runs (tests) change scene the old quick way
+# unless force_threaded is on.
 
 const MIN_TIME := 1.4
+const DOOR_FADE := 0.15                      # a door's fade to dark, and (x2) back
+const DRESS_WAIT := 8.0                      # never wait longer than this for the new place to be dressed
 const WORLDS := ["res://scenes/earth/earth.tscn", "res://scenes/town/town.tscn",
 	"res://scenes/scary_world/scary_world.tscn", "res://scenes/title/title.tscn"]
 # Short, true tips (Hayden's 14 Nov 2026 rule: a few words, the button's name filled in by Settings.fill). Each can
@@ -47,6 +59,9 @@ const STARS := 60                            # little twinkling stars behind the
 
 var tip := ""
 var showing := false
+var busy := false                            # a trip's under way: Game.go() ignores another until it's done
+var force_threaded := false                  # tests: travel() the real way even headless
+var _fade: ColorRect                         # the quick cover for doors
 var _panel: Control
 var _tip_label: Label
 var _where_label: Label
@@ -65,7 +80,8 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 
 
-func show_for(scene_path: String) -> void:
+func is_world_trip(scene_path: String) -> bool:
+	# From one world to another (not a door into a shop or a room, or back out of one)
 	var here := get_tree().current_scene
 	var from := here.scene_file_path if here else ""
 	var worlds := WORLDS.duplicate()
@@ -79,8 +95,16 @@ func show_for(scene_path: String) -> void:
 	for id in Races.TRACKS:                      # ...and the race circuits (scripts/races.gd)
 		if Races.TRACKS[id].has("circuit"):
 			worlds.append(str(Races.TRACKS[id].scene))
-	if scene_path == from or not scene_path in worlds or not (from in worlds or from == ""):
+	return not (scene_path == from or not scene_path in worlds or not (from in worlds or from == ""))
+
+
+func show_for(scene_path: String) -> void:
+	if not is_world_trip(scene_path):
 		return                                   # a door into a shop or a room, or back out of one: no loading screen
+	_show_panel(scene_path)
+
+
+func _show_panel(scene_path: String) -> void:
 	var tips := tips_now()
 	tip = Settings.fill(tips[_rng.randi() % tips.size()])
 	_tip_label.text = tip
@@ -110,8 +134,84 @@ func tips_now() -> Array:
 	return out
 
 
+func travel(scene_path: String) -> void:
+	# Go to another scene with a cover up the whole way (see the top). Game.go() and friends call this.
+	if busy:
+		return
+	if DisplayServer.get_name() == "headless" and not force_threaded:
+		show_for(scene_path)
+		get_tree().call_deferred("change_scene_to_file", scene_path)
+		return
+	busy = true
+	var world_trip := is_world_trip(scene_path)
+	var tree := get_tree()
+	if world_trip:
+		_show_panel(scene_path)
+	else:
+		showing = true
+		_shown_at = Time.get_ticks_msec()
+		_fade.visible = true
+		_fade.color.a = 0.0
+		var tw := create_tween()
+		tw.tween_property(_fade, "color:a", 1.0, DOOR_FADE)
+		await tw.finished
+	# Let the cover reach the screen before anything heavy happens, and stop the old place meanwhile
+	await tree.process_frame
+	await tree.process_frame
+	var old := tree.current_scene
+	if old:
+		old.process_mode = Node.PROCESS_MODE_DISABLED
+	var packed: PackedScene
+	if ResourceLoader.load_threaded_request(scene_path, "PackedScene", true) == OK:
+		while true:
+			var st := ResourceLoader.load_threaded_get_status(scene_path)
+			if st == ResourceLoader.THREAD_LOAD_LOADED:
+				packed = ResourceLoader.load_threaded_get(scene_path) as PackedScene
+				break
+			if st != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				break
+			await tree.process_frame
+	if packed == null:
+		packed = load(scene_path) as PackedScene
+	if packed == null or tree.change_scene_to_packed(packed) != OK:
+		if is_instance_valid(old):
+			old.process_mode = Node.PROCESS_MODE_INHERIT
+		_uncover(world_trip)
+		return
+	await tree.scene_changed
+	# Wait for the new place to be dressed (and, between worlds, its first later merge), then two frames drawn
+	var waited := 0.0
+	while waited < DRESS_WAIT:
+		var s := tree.current_scene
+		var ready_for: Node = WorldDetail.settled_for if world_trip else WorldDetail.dressed_for
+		if s == null or ready_for == s or not WorldDetail.enabled:
+			break
+		await tree.process_frame
+		waited += get_process_delta_time()
+	await tree.process_frame
+	await tree.process_frame
+	if world_trip:
+		var left := MIN_TIME - (Time.get_ticks_msec() - _shown_at) / 1000.0
+		if left > 0.0:
+			await tree.create_timer(left, true, false, true).timeout
+	_uncover(world_trip)
+
+
+func _uncover(world_trip: bool) -> void:
+	var tw := create_tween()
+	if world_trip:
+		tw.tween_property(_panel, "modulate:a", 0.0, 0.35)
+	else:
+		tw.tween_property(_fade, "color:a", 0.0, DOOR_FADE * 2.0)
+	await tw.finished
+	_panel.visible = false
+	_fade.visible = false
+	showing = false
+	busy = false
+
+
 func _on_scene_changed() -> void:
-	if not showing:
+	if not showing or busy:
 		return
 	var left := MIN_TIME - (Time.get_ticks_msec() - _shown_at) / 1000.0
 	if left > 0.0:
@@ -130,6 +230,12 @@ func _process(_delta: float) -> void:
 
 
 func _build() -> void:
+	_fade = ColorRect.new()
+	_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fade.color = Color(0.06, 0.03, 0.1, 0.0)
+	_fade.mouse_filter = Control.MOUSE_FILTER_STOP
+	_fade.visible = false
+	add_child(_fade)
 	_panel = Control.new()
 	_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
