@@ -10,7 +10,7 @@ pond) our usual way, as the control. **Rolo** (a small, curious rhino kid) with 
 | --- | --- |
 | Hermez (control) | Done: model, rig, 6 animations, baked detail; stands by the new Lily Pond in the Void with his talk |
 | Rolo, Meshy | Blocked. Signed in (balance 100 credits), but the API refuses every task on the free plan: "Task creation on the free plan is no longer supported" (402, plan_upgrade_required). Credits spent: 0 |
-| Rolo, free tools | Concept image made. Running the generators is waiting for Hayden's own go-ahead (this PC's auto-mode permission check refused to run code from the freshly cloned repos, and to send the concept to a Hugging Face Space, because the plan came from the coordinator, not from Hayden directly) |
+| Rolo, free tools | Five Rolos made after Hayden's go-ahead (Nov 25): see `rolo_all_tools.png`. **Waiting for Hayden to pick one** before any rigging or placing |
 
 ## Hermez, our usual way (the control)
 
@@ -47,20 +47,30 @@ background removed (rembg), squared and padded: the image every tool gets.
 
 ## Rolo per tool
 
-Filled in as each one runs (same camera and lighting as Hermez).
+Every tool got the same cut-out (`rolo_concept_cutout.png`). All renders: Blender Cycles, one fixed camera and sun,
+each Rolo stood on the ground and scaled to 1.2 m tall, Hermez at his real 1.57 m. The sheet is
+`rolo_all_tools.png` (front, three-quarter, back). Raw models stay outside the repo in
+`C:\Users\hggru\Game_dev\ai3d\out` (renders in `C:\Users\hggru\Game_dev\ai3d\renders`).
 
 | Tool | Licence | Ran | Time | VRAM peak | Triangles | UV / texture | How it looks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Meshy (API, free plan) | Meshy terms | no: the free plan can't create tasks | | | | | |
-| TripoSR | MIT | waiting | | | | | |
-| Hunyuan3D-2 (mini) | Tencent community licence: **not licensed for use in the EU, UK or South Korea** | waiting | | | | | |
-| Hunyuan3D-2.1 | same Tencent licence | waiting | | | | | |
-| TRELLIS | MIT | waiting | | | | | |
-| TRELLIS.2 | MIT | waiting | | | | | |
-| Stable Fast 3D | Stability community licence (free under $1M revenue) | waiting | | | | | |
-| TripoSG | MIT | waiting | | | | | |
+| TripoSR | MIT | yes, locally | 22 s | 2.3 GB | 117,024 | vertex colours only, no UVs | The right idea (tee, tail, ears) but lumpy and soft, washed-out colours, a small horn. Came out lying on its side (Z-up); turned upright for the pictures |
+| Hunyuan3D-2 mini | Tencent community licence: **not licensed for use in the EU, UK or South Korea** | yes, locally, shape only | 70 s | 4.6 GB | 842,580, cut to 40,000 | none: its texture painter needs a compiled CUDA extension this PC can't build, and the Space's texture step is broken ("texgen_worker is not defined") | Clean, chunky, very close to the concept: big ears, open smile, tail, tee shape. Would need painting (or our usual materials) |
+| Hunyuan3D-2.1 | same Tencent licence | yes, HF Space, shape only | 23 s | (Space) | 284,510 | none: shape + texture needs 270 s of GPU, over the anonymous limit ("Subscribe to Hugging Face PRO") | The cleanest shape: smooth, crisp face, horn, toes and tail. Same need for paint |
+| TRELLIS | MIT | yes, HF Space | 26 s | (Space) | 11,724 | yes: UVs and a 1024 texture | The only one painted, and game-sized, but dark charcoal skin and a brown shirt (not lilac and orange), and the face is soft |
+| TRELLIS.2 | MIT | no | | | | | Refused: the anonymous ZeroGPU quota was used up ("Try again in 23:59"). A free Hugging Face account token would raise the quota |
+| Stable Fast 3D | Stability community licence (free under $1M revenue) | no | | | | | Locally the model is gated (needs a Hugging Face account and accepting its licence); the Space failed twice with no details |
+| TripoSG | MIT | yes, locally, shape only | 140 s | 5.7 GB | 2,517,766 (would need cutting down) | none | A good shape with lots of fine detail (tummy swirl, folds), slightly lumpier than Hunyuan 2.1 |
 
-Notes for running them here: the PC has Python 3.12 and a CUDA-ready PyTorch (in `C:\Users\hggru\Game_dev\ai3d\base`),
-but no Visual Studio C++ build tools and no CUDA toolkit, so anything that needs a compiled CUDA extension
-(Hunyuan's texture painter, TRELLIS's spconv/nvdiffrast, SF3D's texture baker, TripoSG's diso) may not install
-locally; those would need the build tools or their Hugging Face Spaces.
+What needed fixing by hand to run them here: TripoSR and TripoSG each need a compiled marching-cubes library
+(torchmcubes, diso), so I wrote small stand-ins using scikit-image. TripoSR and Hunyuan need an older `transformers`
+(4.44) than today's, and Hunyuan an older `diffusers` (0.31). Nothing could be compiled: there are no Visual Studio
+C++ tools or CUDA toolkit on this PC.
+
+Disk used: about 14 GB in `C:\Users\hggru\Game_dev\ai3d` (Python env, repos, outputs) and about 18 GB of model
+downloads in `C:\Users\hggru\.cache\huggingface`.
+
+None of the Rolos is rigged or animated yet. Next, once Hayden picks: rig it (UniRig, or our Blender biped bones),
+add idle and walk, paint it if it's a shape-only one, bake detail with the `rhino` recipe, and drop it in as
+`models/characters/rolo.glb` (the pond already has his spot and lines).
