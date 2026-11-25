@@ -77,6 +77,8 @@ func _boulders() -> void:
 	var hoof := PARTS.mat(Color(0.18, 0.18, 0.24), 0.4)
 	var eye := PARTS.mat(Color(0.85, 0.95, 1.0), 0.2, 2.5)
 	var bolt := PARTS.mat(Color(1.0, 0.95, 0.45), 0.3, 3.0)
+	# Its fleece and storm cloud get baked curls of wool once they're built (scripts/detail_props.gd)
+	_dress_skins.call_deferred([[fleece, "boss_fleece"], [cloud, "boss_fleece"]])  # (called on itself, so nothing happens if it was freed first)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 61
 	# A huge cloud of a fleece, longer than it's tall
@@ -265,3 +267,7 @@ func _defeated() -> void:
 		world.call("mend")
 	else:
 		Game.message("You popped the Stormram!")
+
+
+func _dress_skins(parts: Array) -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_surfaces", self, parts)

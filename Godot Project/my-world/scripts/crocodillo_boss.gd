@@ -46,6 +46,8 @@ func _ready() -> void:
 	MOVES.add(self, {"moves": throw_moves, "every": 5.5, "look": throw_look, "colour": throw_colour, "size": 0.8,
 		"from": 1.6 * size, "can": func() -> bool: return _moves_ok()})
 	_boulders()
+	# (once its look is built, and after any cousin has taken it off: the baked boulders, scripts/detail_props.gd)
+	_dress_baked.call_deferred()  # (called on itself, so nothing happens if it was freed first)
 
 
 func _physics_process(delta: float) -> void:
@@ -230,3 +232,7 @@ func _boulders() -> void:
 		var d := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.4, 1), rng.randf_range(-1, 1)).normalized()
 		m.position = d * 0.7
 		ball.add_child(m)
+
+
+func _dress_baked() -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_boulderdillo", self)

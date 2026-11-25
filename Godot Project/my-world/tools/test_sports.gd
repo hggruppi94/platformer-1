@@ -185,12 +185,14 @@ func _run() -> void:
 	await _until(func() -> bool: return goals.phase == "aim" or sports.state != sports.State.PLAYING, 4.0)
 	check(goals.goals == 1 and goals.last == "goal", "one by the post goes in")
 	check(moved > 0.3, "...though Bonk dives after it (%.1f m)" % moved)
-	# Interact kicks, and doesn't start a talk with anyone
+	# Interact kicks, and doesn't start a talk with anyone. (With a window the press only reaches the game on the next
+	# drawn frame, which can be several physics steps later, so wait for the kick rather than counting steps.)
+	await _until(func() -> bool: return goals.phase == "aim", 4.0)
 	var ev := InputEventAction.new()
 	ev.action = "interact"
 	ev.pressed = true
 	Input.parse_input_event(ev)
-	await _physics(2)
+	await _until(func() -> bool: return goals.kick >= 3, 2.0)
 	var ev2 := InputEventAction.new()
 	ev2.action = "interact"
 	ev2.pressed = false

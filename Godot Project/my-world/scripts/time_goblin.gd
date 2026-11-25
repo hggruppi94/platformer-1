@@ -98,6 +98,8 @@ func _ready() -> void:
 	_respawn_timer.timeout.connect(_try_respawn)
 	add_child(_respawn_timer)
 	_make_loot()
+	# (once its look is built: baked cogs and Tock's clock hat, scripts/detail_props.gd)
+	_dress_baked.call_deferred()  # (called on itself, so nothing happens if it was freed first)
 
 
 func _physics_process(delta: float) -> void:
@@ -465,3 +467,7 @@ func _blinked() -> void:
 
 func _defeated() -> void:
 	pass
+
+
+func _dress_baked() -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_goblin", self)

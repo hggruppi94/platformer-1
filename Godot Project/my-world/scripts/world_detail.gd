@@ -51,6 +51,10 @@ var last_props := {}            # and what detailed props went in
 var last_nature := {}           # and which trees and plants got their baked shapes (detail_props.gd dress_nature)
 var last_surfaces := {}         # and which walls and roofs got baked siding, shingles... (dress_buildings)
 var _last: Node
+# The place that's been dressed, and the one whose first later merge is done too. The loading screen
+# (loading_screen.gd travel()) stays up until the new place is here, so the player never sees it plain first.
+var dressed_for: Node
+var settled_for: Node
 var _cache := {}                # source material -> its detailed ShaderMaterial
 
 
@@ -77,11 +81,16 @@ func _process(_delta: float) -> void:
 		_last = s
 		if s and enabled:
 			_dress.call_deferred(s)
+		else:
+			dressed_for = s
+			settled_for = s
 
 
 func _dress(scene: Node) -> void:
 	if not is_instance_valid(scene) or scene != get_tree().current_scene:
 		return
+	dressed_for = null
+	settled_for = null
 	var path := scene.scene_file_path
 	if path == "res://scenes/town/town.tscn":
 		MOUNTAINS.dress(scene)
@@ -152,11 +161,14 @@ func _dress(scene: Node) -> void:
 		small_plants_unshadowed(scene)
 	if batching or lods:
 		_batch_later(scene)
+	else:
+		settled_for = scene
 	if path == "res://scenes/earth/earth.tscn":
 		if occluders and scene is Node3D and scene.get_node_or_null("Town Occluders") == null:
 			var occ := TOWN_OCCLUDERS.new()
 			occ.name = "Town Occluders"
 			scene.add_child(occ)
+	dressed_for = scene
 
 
 func small_plants_unshadowed(scene: Node) -> int:
@@ -186,6 +198,7 @@ func _batch_later(scene: Node) -> void:
 				last_batch[k] = int(last_batch.get(k, 0)) + int(more[k])
 		if lods:
 			MESH_LODS.on(scene).scan(scene)
+		settled_for = scene
 
 
 func detail_ground(scene: Node) -> int:

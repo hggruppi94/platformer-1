@@ -128,6 +128,52 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
   - Tests: new `tools/test_pond_friends.gd`; `test_dialogue` lists Hermez. Pictures: `tools/capture_pond_friends.gd
     -- <folder>`, and `previews/meshy_trial/` (with `COMPARISON.md` and Rolo's concept image).
   - My choices Hayden may change: the satchel, the pond's spot and look, his lines.
+- 2026-11-25: **Loading screens cover every trip again, and no more still frame leaving a building** (Hayden: "loading
+  screens have gotten pretty horrendous ... sometimes when you exit buildings, there's no loading screen at all and its
+  just a still frame of an older version of the game"). A scene change loaded on the main thread froze the window on
+  its last frame, then `WorldDetail` dressed the new place a frame later, so the undressed old look showed first.
+  `Loading.travel(path)` (`scripts/loading_screen.gd`, used by `Game.go()`, `go_to_point()` and `continue_game()`)
+  now covers the screen first (the full loading screen between worlds; a quick dark fade, `DOOR_FADE`, through a door),
+  loads on a thread, changes scene, and only uncovers once `WorldDetail.dressed_for` (doors) or `settled_for` (worlds,
+  after the later merges) is the new scene, at most `DRESS_WAIT` 8 s. A second trip while one's on is ignored
+  (`Loading.busy`). Headless runs keep the old quick change unless `Loading.force_threaded`. Also: the bosses' baked
+  parts are put on by a call on the boss itself (`_dress_baked()` / `_dress_skins()` in gloop_king.gd,
+  time_goblin.gd, crocodillo_boss.gd and the four skinned bosses), so a boss freed first no longer logs "Cannot convert argument 1". The sports crash wasn't seen
+  in the cloud (test_sports passes headless and in a window); `test_sports` now waits for the Interact kick instead of
+  counting frames (in a window the press arrives a drawn frame later). Tests: title (door fade, full screen between
+  worlds, never uncovered undressed), doors, walk_through, world_detail, insides, home_calls, cracks, sports.
+
+- 2026-11-25: **The shape-built bosses get baked parts, part two: Tuskwinter's hide, Grumblefin's scales, the Dawn
+  Snatcher's feathers and the Stormram's fleece** (the bosses batch of Hayden's "keep baking details on assets in the
+  game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Four skins** (`tools/build_prop_bosses.py <out.glb> boss_hide|boss_scales|boss_feathers|boss_fleece`): each a
+    ball of radius 1 (1.3M triangles baked onto 960), baked pale so the game tints it: wrinkled walrus hide with pores
+    and scars, overlapping fish scales in rows, feather tips with quills and barbs, curly cloud-wool clumps.
+  - **Put on where they're built** (`detail_props.gd dress_surfaces(boss, [[material, kind], ...])`, called deferred
+    from `frost_gloop.gd`, `riptide_gloop.gd`, `dawn_snatcher.gd` and `stormram.gd`): every ball (SphereMesh) in one of
+    those materials gets a "Detailed Skin" child the same size and colour (`BOSS_SKIN_GAIN`), so puffing, flapping and
+    squashing still move it; the old ball is hidden, never freed. With the detail pipeline off nothing changes.
+  - Tests: `test_boss_detail` (each skin's size and colour, nothing plain drawn, dressed again changes nothing);
+    frozen_moment, tide_reef, lanternmoor, glenmoor, boss_versions, boss_tells, boss_moves and detail_all pass.
+    Pictures: `capture_boss_detail.gd` (project files, characters/boss-detail/shape-bosses-2).
+  - My choices Hayden may change: how strong each skin is (the fleece reads a bit like paving close up).
+
+- 2026-11-25: **The shape-built bosses get baked parts, part one: the Gloop King's crown, every Time Goblin's cog,
+  Grandfather Tock's clock hat and the Boulderdillo's boulders** (the bosses batch of Hayden's "keep baking details on
+  assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **New bake script** (same bake kit): `tools/build_prop_bosses.py <out.glb> king_crown` (the King's crown at ten
+    times its size: a gold band with scrollwork, five points with ball tips, the red gem in a four-pronged setting).
+    In `models/props/bosses/`. The cogs, clock and boulders reuse the Clockyard's and Boulder Hollow's bakes.
+  - **Put on where they're built** (`detail_props.gd dress_king_crown()`, `dress_goblin()`, `dress_boulderdillo()`,
+    called deferred from `gloop_king.gd`, `time_goblin.gd` and `crocodillo_boss.gd`): the crown sits in
+    "Visual/Body/Crown" (its gold lifted back to the old crown's, `KING_CROWN_GAIN`); every "Cog" gets a "Detailed
+    Cog"; Tock's hat is the Clockyard's clock case and hood made small, his own hand moved onto the new face
+    (`HAT_FACE_Y`) and his pendulum still swinging; each "*Boulder*" ball is the baked boulder. Old shapes are hidden,
+    never freed (the fights use them). Cousins that strip the King's look (Tuskwinter, Grumblefin, the Dawn Snatcher)
+    are left alone. With the detail pipeline off nothing changes.
+  - Tests: new `tools/test_boss_detail.gd`; time_goblins, boss_versions, boss_lairs, gloop_king, gloop_kingdom,
+    boss_tells, boss_moves, arena, lanternmoor, glenmoor, frozen_moment, tide_reef and detail_all pass. Pictures:
+    `tools/capture_boss_detail.gd -- <folder> [--old-props]` (project files, characters/boss-detail/shape-bosses-1).
 
 - 2026-11-25: **The Agent of Chaos and the cyber gorillas have baked-in detail** (the bosses batch of Hayden's "keep
   baking details on assets in the game already"). Built and tested in the cloud (own Godot user folders, no save

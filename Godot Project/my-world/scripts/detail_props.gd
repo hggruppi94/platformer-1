@@ -130,6 +130,19 @@ const CLOCK_CASE := "res://models/props/clock_case.glb"
 const CLOCK_HOOD := "res://models/props/clock_hood.glb"
 const COG := "res://models/props/cog.glb"
 const BOULDER := "res://models/props/boulder.glb"
+const KING_CROWN := "res://models/props/bosses/king_crown.glb"   # tools/build_prop_bosses.py, 10x the crown
+# The bake's gold comes out a shade of bronze (its shading pulls towards a dark gold and the AO darkens it again), so
+# its colour is lifted back to the bright gold of the old crown.
+const KING_CROWN_GAIN := Color(1.2, 1.5, 1.25)
+# The bosses' skins (tools/build_prop_bosses.py boss_*): balls of radius 1 baked pale, tinted by each ball's own
+# colour, so the gain lifts the pale bake back up to it.
+const BOSS_SKINS := {
+	"boss_hide": "res://models/props/bosses/boss_hide.glb",
+	"boss_scales": "res://models/props/bosses/boss_scales.glb",
+	"boss_feathers": "res://models/props/bosses/boss_feathers.glb",
+	"boss_fleece": "res://models/props/bosses/boss_fleece.glb",
+}
+const BOSS_SKIN_GAIN := 1.08
 const GADGET_STALL := "res://models/props/gadget_stall.glb"
 const WORKBENCH := "res://models/props/workbench.glb"
 const REQUEST_BOARD := "res://models/props/request_board.glb"
@@ -150,6 +163,12 @@ const TREE_HOUSE_MATS := ["Big Bark", "Tree House Wood", "Tree House Wall", "Tre
 const LAB_KEEP := "lab_keep"           # pieces of the lab that stay as they are (scripts/lab.gd: Hound Hero's picture)
 const ARCH_BANNER_HALF := 6.2          # half the model banner's width (tools/build_prop_void_gate.py arch_banner HW)
 const CLOCK_CASE_H := 1.9              # the model clock trunk's height (tools/build_prop_void_more.py CASE_H)
+const CLOCK_HOOD_FACE_DOWN := 0.4      # the clock face's middle, down from the hood's top (build_prop_void_more.py)
+const CLOCK_HAND_Z := 0.33             # just in front of the model clock's face
+const HAT_CLOCK_SCALE := 0.3           # Tock's hat clock next to the Clockyard's (its face r 0.085 to 0.3's)
+const HAT_FACE_Y := 0.6                # where his hat's face is (tools/build_time_goblin.gd _clock_hat)
+const GOBLIN_COG_REACH := 1.3          # a goblin cog's teeth reach 1.3 times its wheel's radius
+const GOBLIN_COG_THICK := 0.25         # its thickness against the Clockyard cog's 0.12
 const CLOCK_HOOD_H := 0.8              # how much of each clock is its hood (scripts/bosses.gd _clock_ring)
 const CRYSTAL_R := 0.18                # the model shard's shoulder radius; it's 1 tall (tools/build_prop_void.py CR)
 const DOME_DOOR_SIZE := Vector3(1.8, 2.6, 0.6)
@@ -3786,6 +3805,198 @@ static func dress_hollow(hollow: Node) -> int:
 		b.add_child(m)
 		n += 1
 	return n
+
+
+static func dress_king_crown(king: Node) -> bool:
+	# The Gloop King's little crown (tools/build_gloop.gd _crown: a band, five flat points and a gem) becomes the
+	# detailed crown (tools/build_prop_bosses.py king_crown, made at ten times its size). A cousin that took the
+	# King's look off (scripts/boss_parts.gd strip) has no meshes left, so it's left alone, and one that hid the crown
+	# (Mama Glorp's bow) hides this with it.
+	var crown := king.get_node_or_null("Visual/Body/Crown") as Node3D if king else null
+	if crown == null or not on():
+		return false
+	if crown.has_node("Detailed Crown"):
+		return true
+	var band := crown.get_node_or_null("Band") as MeshInstance3D
+	if band == null or band.mesh == null:
+		return false
+	var m := _add(crown, KING_CROWN, "Detailed Crown", Transform3D(Basis.from_scale(Vector3.ONE * 0.1), Vector3.ZERO))
+	if m == null:
+		return false
+	for c in crown.get_children():
+		if c is MeshInstance3D:
+			_hide(c as MeshInstance3D)
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var mesh := (mi as MeshInstance3D).mesh
+		for i in (mesh.get_surface_count() if mesh else 0):
+			var mat := mesh.surface_get_material(i) as StandardMaterial3D
+			if mat and mat.albedo_texture:
+				mat = mat.duplicate() as StandardMaterial3D
+				mat.albedo_color = mat.albedo_color * KING_CROWN_GAIN
+				(mi as MeshInstance3D).set_surface_override_material(i, mat)
+	_far_like(band, m)
+	return true
+
+
+static func dress_surfaces(boss: Node, pairs: Array) -> int:
+	# The shape-built portal world bosses (Tuskwinter, Grumblefin, the Dawn Snatcher, the Stormram: each made of
+	# balls in scripts/boss_parts.gd) get a detailed skin on their big balls. pairs is [[material, kind], ...]: every
+	# round ball wearing one of those materials gets that kind's baked ball as a child, scaled to its radius and
+	# tinted its colour, so whatever the fight does to the ball (puffing up, flapping, squashing) the skin does too.
+	# The plain ball stops being drawn (layers 0). Done again, nothing changes.
+	var n := 0
+	if boss == null or not on():
+		return n
+	var by_mat := {}
+	for p in pairs:
+		by_mat[p[0]] = p[1]
+	var made := {}
+	for c in boss.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if not by_mat.has(mi.material_override) or not (mi.mesh is SphereMesh):
+			continue
+		if mi.has_meta(OLD_META):
+			n += 1
+			continue
+		var old := mi.material_override as StandardMaterial3D
+		var src := _skin_mesh(by_mat[old])
+		if src.is_empty():
+			continue
+		if not made.has(old):
+			var mat := (src[1] as StandardMaterial3D).duplicate() as StandardMaterial3D
+			mat.albedo_color = Color(old.albedo_color.r * BOSS_SKIN_GAIN, old.albedo_color.g * BOSS_SKIN_GAIN,
+				old.albedo_color.b * BOSS_SKIN_GAIN, old.albedo_color.a)
+			mat.metallic = old.metallic
+			mat.transparency = old.transparency
+			if old.emission_enabled:
+				mat.emission_enabled = true
+				mat.emission = old.emission
+				mat.emission_energy_multiplier = old.emission_energy_multiplier
+				mat.emission_texture = null
+			made[old] = mat
+		var sm := mi.mesh as SphereMesh
+		var skin := MeshInstance3D.new()
+		skin.name = "Detailed Skin"
+		skin.mesh = src[0]
+		skin.material_override = made[old]
+		skin.transform = Transform3D(Basis.from_scale(Vector3(sm.radius, sm.height * 0.5, sm.radius)), Vector3.ZERO)
+		skin.cast_shadow = mi.cast_shadow
+		skin.visibility_range_end = mi.visibility_range_end
+		mi.add_child(skin)
+		_hide(mi)
+		n += 1
+	return n
+
+
+static var _skins := {}
+
+
+static func _skin_mesh(kind: String) -> Array:
+	# [mesh, material] of a boss skin's baked ball, loaded once.
+	if _skins.has(kind):
+		return _skins[kind]
+	var out := []
+	var scene := _scene(BOSS_SKINS.get(kind, ""))
+	if scene:
+		var root := scene.instantiate()
+		for c in root.find_children("*", "MeshInstance3D", true, false):
+			var mesh := (c as MeshInstance3D).mesh
+			if mesh and mesh.get_surface_count() > 0:
+				out = [mesh, mesh.surface_get_material(0)]
+				break
+		root.free()
+	_skins[kind] = out
+	return out
+
+
+static func dress_goblin(goblin: Node) -> Vector2i:
+	# A Time Goblin or Grandfather Tock (tools/build_time_goblin.gd). Every brass cog (a Wheel, eight teeth and a
+	# hub, facing out along z) becomes the Clockyard's detailed cog, and Tock's grandfather-clock hat becomes the
+	# Clockyard's clock case and hood made small. His own pendulum and hand stay (time_goblin_boss.gd swings and turns
+	# them), moved onto the new face. One that took the look off (the Dawn Snatcher) is left alone.
+	var n := Vector2i.ZERO
+	var visual := goblin.get_node_or_null("Visual") as Node3D if goblin else null
+	if visual == null or not on():
+		return n
+	var cog_m := _scene(COG)
+	for c in visual.find_children("Cog", "Node3D", true, false):
+		var cog := c as Node3D
+		var wheel := cog.get_node_or_null("Wheel") as MeshInstance3D
+		if cog.has_node("Detailed Cog"):
+			n.x += 1
+			continue
+		if cog_m == null or wheel == null or wheel.mesh == null or not (wheel.mesh is CylinderMesh):
+			continue
+		var r := (wheel.mesh as CylinderMesh).top_radius * GOBLIN_COG_REACH
+		for p in cog.get_children():
+			if p is MeshInstance3D:
+				_hide(p as MeshInstance3D)
+		var m := cog_m.instantiate() as Node3D
+		m.name = "Detailed Cog"
+		m.transform = Transform3D(Basis(Vector3.RIGHT, PI / 2) * Basis.from_scale(Vector3(r, GOBLIN_COG_THICK, r)),
+			Vector3.ZERO)
+		cog.add_child(m)
+		_far_like(wheel, m)
+		n.x += 1
+	var clock := visual.get_node_or_null("Head/Clock") as Node3D
+	var case := clock.get_node_or_null("Case") as MeshInstance3D if clock else null
+	if clock and clock.has_node("Detailed Clock Case"):
+		n.y = 1
+	elif case and case.mesh and _scene(CLOCK_CASE) and _scene(CLOCK_HOOD):
+		for part in ["Base", "Case", "Window", "Hood", "Face", "Peak", "Finial"]:
+			var mi := clock.get_node_or_null(part) as MeshInstance3D
+			if mi:
+				_hide(mi)
+		var s := HAT_CLOCK_SCALE
+		var bottom := -0.02                                   # (the old base's underside)
+		var hood_y := HAT_FACE_Y - s * (CLOCK_HOOD_H - CLOCK_HOOD_FACE_DOWN)
+		var body := _add(clock, CLOCK_CASE, "Detailed Clock Case",
+			Transform3D(Basis.from_scale(Vector3(s, (hood_y - bottom) / CLOCK_CASE_H, s)), Vector3(0, bottom, 0)))
+		var hood := _add(clock, CLOCK_HOOD, "Detailed Clock Hood",
+			Transform3D(Basis.from_scale(Vector3.ONE * s), Vector3(0, hood_y, 0)))
+		_far_like(case, body)
+		_far_like(case, hood)
+		var hand := clock.get_node_or_null("Hand") as Node3D
+		if hand:
+			hand.position = Vector3(0, HAT_FACE_Y, CLOCK_HAND_Z * s)
+		n.y = 1
+	return n
+
+
+static func dress_boulderdillo(boss: Node) -> int:
+	# The Boulderdillo (scripts/crocodillo_boss.gd _boulders): the squashed balls grown into its shell and its
+	# rolled-up ball become Boulder Hollow's detailed boulder, each its own size and turned its own way. Its crown
+	# of rocks stays. One that took the look off (the Stormram) is left alone.
+	var n := 0
+	var model := _scene(BOULDER)
+	if boss == null or model == null or not on():
+		return n
+	for c in boss.find_children("*Boulder*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if mi.has_meta(OLD_META):
+			n += 1
+			continue
+		if mi.mesh == null or not (mi.mesh is SphereMesh):
+			continue
+		var sm := mi.mesh as SphereMesh
+		var m := model.instantiate() as Node3D
+		m.name = "Detailed " + String(mi.name)
+		m.transform = mi.transform * Transform3D(Basis.from_scale(Vector3(sm.radius, sm.height * 0.5, sm.radius)),
+			Vector3.ZERO)
+		mi.get_parent().add_child(m)
+		_hide(mi)
+		_far_like(mi, m)
+		n += 1
+	return n
+
+
+static func _far_like(old: GeometryInstance3D, new_root: Node) -> void:
+	# A part swapped in after an enemy's look was built stops being drawn as far off as the part it stands in for
+	# (scripts/enemy_sleep.gd hide_when_far)
+	if old == null or new_root == null or old.visibility_range_end <= 0.0:
+		return
+	for g in new_root.find_children("*", "GeometryInstance3D", true, false):
+		(g as GeometryInstance3D).visibility_range_end = old.visibility_range_end
 
 
 static func dress_gadget_stall(stall: Node) -> int:
