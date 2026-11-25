@@ -384,6 +384,14 @@ CHARS = {
         "parts": {"Skin": "rhino", "Snout": "rhino", "Ear Inner": "skin", "Tee": "knit", "Horn": "horn",
                   "Toenail": "horn", "Tuft": "hair", "Nose": "nose"},
     },
+    "palmer": {
+        # Mr. Palmer on Earth (models/characters/mr_palmer.glb), first given detail by tools/ai_rebuild.py
+        "model": "mr_palmer", "body": "MrPalmer", "rig": "MrPalmerRig", "hair": ["Grey Hair"],
+        "flat": EYES + ["Glasses", "Blush"],
+        "parts": {"Suit": "cotton", "Suit Shade": "cotton", "Shirt": "cotton", "Tie": "satin", "Sash": "satin",
+                  "Gold": "metal", "Gold Dark": "metal", "Shoes": "leather", "Sole": "sole", "Grey Hair": "hair",
+                  "Skin": "skin", "Nose": "skin"},
+    },
     "gorilla": {
         "model": "cyber_gorilla", "body": "CyberGorilla", "rig": "GorillaRig", "hair": ["Fur"], "ao": 0.04,
         "flat": EYES + ["Screen", "Screen Gold", "Screen Gold Dark", "Void", "Eye Fire", "Screen Bone",
@@ -411,10 +419,11 @@ def _spread(body, names):
     return {"centre": (cx, cy, (min(zs) + max(zs)) / 2), "radius": r}
 
 
-def build(who, out=None, size=2048):
+def build(who, out=None, size=2048, src=None):
     c = CHARS[who]
     out = Path(out or MODELS / (c["model"] + ".glb")).resolve()
-    K.open_blend(ROOT / "source_art" / "characters" / (c["model"] + ".blend"))
+    # src: another .blend with the same body and rig (tools/ai_rebuild.py's AI-shaped one)
+    K.open_blend(Path(src) if src else ROOT / "source_art" / "characters" / (c["model"] + ".blend"))
     body = K.D.objects[c["body"]]
     rig = K.D.objects[c["rig"]]
     # The detail UVs must be the only UV map, so the glb's TEXCOORD_0 is them (Bruno's old map had nothing on it)
@@ -451,7 +460,8 @@ def main():
         for w in CHARS:
             build(w, size=size)
     else:
-        build(who, a[1] if len(a) > 1 else None, size)
+        src = next((x.split("=", 1)[1] for x in sys.argv if x.startswith("--src=")), None)
+        build(who, a[1] if len(a) > 1 else None, size, src)
 
 
 main()

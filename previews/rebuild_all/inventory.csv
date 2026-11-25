@@ -1,0 +1,264 @@
+path,kind,triangles,rigged,bones,animations,materials,textures,baked_detail,loaded_by,size_kb
+models/characters/astronaut.glb,characters,36960,yes,17,idle walk,Suit; Visor; Seam; Visor Shine; Orange; Knob; Button; Light; Pack; Pack Dark; Hose; Glove; Boot; Sole; Band; Flag White; Flag Red; Flag Blue,0,no,scenes/town/characters.tscn,1074
+models/characters/bike_boy.glb,characters,58498,yes,17,idle ride run walk,Hoodie; Shorts; Skin; Hair; Cap; Cap White; Glasses; Lens Shine; Brow; Blush; Nose; Mouth; Hoodie Shade; Zipper; String; Shorts Trim; Sock; Shoes; Sole; Backpack; Backpack Dark,3,yes,scenes/town/characters.tscn scripts/after_the_ending.gd scripts/chaos_ending.gd scripts/far_future.gd scripts/hero.gd scripts/rides.gd ...,11094
+models/characters/bruno.glb,characters,76364,yes,17,fall idle jump push run skate tough walk,Tee; Jeans; Skin; Hoodie; Hoodie Rib; Zip; Drawstring; Shoes; Sole; Lace; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Ear Inner; Nostril; Freckle; Mouth; Tongue; Teeth; Hair; Hair Shade; Beanie; Beanie Rib; Patch; Patch Text,3,yes,scenes/town/characters.tscn scripts/party.gd scripts/rides.gd,12281
+models/characters/bunny.glb,characters,44384,yes,17,idle run walk,Top; Dungarees; Fur; Fur Light; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Nose; Mouth; Tongue; Teeth; Whisker; Ear; Ear Lining; Flower; Flower Middle; Top Shade; Dungarees Shade; Shoes; Sole; Button,0,no,scripts/hero.gd,1252
+models/characters/cat.glb,characters,38572,yes,17,idle run walk,Hoodie; Shorts; Fur; Fur Light; Stripe; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Nose; Mouth; Tongue; Whisker; Ear; Ear Lining; Hoodie Shade; Shorts Shade; Shoes; Sole; Collar; Bell,0,no,scripts/hero.gd,1102
+models/characters/cattle_girl.glb,characters,104424,yes,17,idle run walk,Top; Fur; Shorts; Muzzle; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Fur Light; Nose; Mouth; Horn; Horn Tip; Hair; Hair Shade; Hair Tip Teal; Hair Tip Lavender; Glow Teal; Belt; Metal; Alien Charm; Star; Shorts Trim; Pocket; Sock; Shoe; Sole; Shoe Panel; Glow Violet; Backpack,3,yes,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/dash_goodbye.gd scripts/glenmoor.gd scripts/hero.gd scripts/party.gd ...,12153
+models/characters/chaos_giant.glb,characters,77540,yes,21,chaos idle walk,Armour; Armour Plum; Gold; Gold Dark; Void; Eye Fire; Bone; Cloth; Cloth Shade; Clock Face; Ink; Chaos Magenta; Chaos Ember; Eye Gold; Chaos Violet,3,yes,scenes/town/characters.tscn scripts/chaos_giant.gd tools/test_chaos_giant.gd,12183
+models/characters/cyber_gorilla.glb,characters,65716,yes,17,blast chest_beat fall idle jump run walk,Fur; Metal; Fur Light; Screen; Cyber; Cyber Glow; Screen Gold; Screen Gold Dark; Void; Eye Fire; Screen Bone; Chaos Magenta; Fur Dark; Metal Edge; Skin; Mouth; Red Eye; Eye Shine; Eye White; Iris; Iris Light; Pupil; Tooth; Cyber Dark,3,yes,scripts/cyber_gorilla.gd,14551
+models/characters/dino.glb,characters,43704,yes,17,idle run walk,Top; Shorts; Skin; Nostril; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Horn; Mouth; Tongue; Teeth; Top Shade; Shorts Shade; Shoes; Sole; Spike; Scarf,0,no,scripts/hero.gd,1239
+models/characters/earth_kid.glb,characters,48048,yes,17,idle run walk,Top; Jeans; Skin; Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Nose; Mouth; Tongue; Ear Inner; Top Shade; Jeans Shade; Shoes; Sole; Star; Backpack; Backpack Dark,0,no,scripts/hero.gd scripts/townsfolk.gd,1372
+models/characters/green_man.glb,characters,22372,yes,17,idle run walk,Green; Eye; Eye Shine; Mouth; Green Dark,0,no,scenes/town/characters.tscn scripts/hero.gd scripts/rides.gd tools/capture_clothing_fit.gd tools/test_clothing_fit.gd,668
+models/characters/hermez.glb,characters,47296,yes,18,fall flap idle jump run walk,Feather; Crown; Beak; Beak Tip; Mouth; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Feather Black; Feather Grey; Satchel; Metal; Satchel Strap; Leg,3,yes,scripts/pond_friends.gd tools/test_pond_friends.gd,12462
+models/characters/human_boy.glb,characters,45876,yes,17,fall idle jump run skate walk,Top; Shorts; Skin; Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Nose; Mouth; Tongue; Ear Inner; Top Shade; Shorts Shade; Shoes; Sole; Star,3,yes,scripts/hero.gd,10244
+models/characters/human_girl.glb,characters,48220,yes,17,fall idle jump run skate walk,Top; Skirt; Skin; Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Lash; Nose; Mouth; Tongue; Ear Inner; Top Shade; Skirt Shade; Shoes; Sole; Badge,3,yes,scripts/hero.gd,9672
+models/characters/little_alien_blue.glb,characters,16600,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,scripts/races.gd,546
+models/characters/little_alien_green.glb,characters,15560,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,,517
+models/characters/little_alien_orange.glb,characters,16288,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,scripts/races.gd,539
+models/characters/little_alien_pink.glb,characters,15088,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,scripts/races.gd,504
+models/characters/little_alien_purple.glb,characters,15768,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,,524
+models/characters/little_alien_red.glb,characters,15448,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,,515
+models/characters/little_alien_yellow.glb,characters,15636,yes,18,float idle run sit walk wave,Suit; Face; Eye; Eye Shine; Stripe; Glow,0,no,scripts/arena_level.gd scripts/request_alien.gd,519
+models/characters/melody.glb,characters,61248,yes,18,dance fall idle jump run sass walk,Dress; Fur; Nose; Nostril; Mouth; Tongue; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Ear Inner; Hair; Hair Shine; Scrunchie; Dress Dark; Button; Fur Dark; Sock; Shoe; Sole,3,yes,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/dash_goodbye.gd scripts/party.gd scripts/rhythm_springs.gd,12343
+models/characters/moth_kid.glb,characters,98360,yes,21,fly idle run walk,Suit Navy; Suit Yellow; Suit Blue; Suit Red; Skin; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Skin Shade; Nose; Mouth; Tongue; Antenna; Antenna Tip; Mane Orange; Mane Teal; Mane Purple; Mane Pink; Wing Pink; Wing Yellow; Wing Orange; Backpack,3,yes,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/dash_goodbye.gd scripts/hero.gd scripts/lanternmoor.gd scripts/races.gd ...,11139
+models/characters/mr_palmer.glb,characters,56884,yes,17,idle walk,Suit; Skin; Grey Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Glasses; Blush; Nose; Mouth; Tongue; Suit Shade; Shirt; Tie; Sash; Gold; Gold Dark; Shoes; Sole,0,no,scenes/earth/earth.tscn tools/build_earth.gd tools/capture_character.gd,1628
+models/characters/mr_palmer_alien.glb,characters,60024,yes,25,grab idle walk,Suit; Skin; Spots; Snout; Nostril; Fin; Antenna Glow; Grey Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Glasses; Fin Light; Blush; Mouth; Tongue; Suit Shade; Shirt; Tie; Sash; Gold; Gold Dark; Shoes; Sole,0,no,scenes/town/characters.tscn scripts/palmer_trunk.gd scripts/rides.gd tools/capture_clothing_fit.gd tools/test_clothing_fit.gd tools/test_palmer.gd,1732
+models/characters/nina.glb,characters,57776,yes,17,fall idle jump run skate,Shirt; Overalls; Overalls Trim; Skin; Shoes; Sole; Clasp; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Ear Inner; Nostril; Mouth; Tongue; Teeth; Hair; Bow; Backpack; Backpack Mesh; Zipper,3,yes,scenes/player/player.tscn scenes/town/characters.tscn scripts/clothes.gd scripts/hero.gd scripts/party.gd scripts/rides.gd ...,10417
+models/characters/plant_girl.glb,characters,45062,yes,18,burrow fall idle jump run snap sprout under walk wave,Leaf Green; Skin; Lash; Blush; Blush Dot; Skin Dark; Mouth; Leaf Gold; Leaf Purple; Leaf Light; Leaf Teal; Vein; Leaf Pink; Bark; Bark Line; Vine; Leaf Orange; Root Dark; Root; Trap; Trap Inside; Trap Teeth; Dew,3,yes,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/dash_goodbye.gd scripts/party.gd scripts/remnants.gd scripts/rootmind.gd ...,11820
+models/characters/rolo.glb,characters,47279,yes,21,fall idle jump run walk,Skin; Snout; Nose; Mouth; Ear Inner; Tee; Toenail; Tuft; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Horn; Tongue,3,yes,scripts/pond_friends.gd,9662
+models/characters/rook.glb,characters,55852,yes,17,bark idle run walk,Shirt; Denim; Skin; Hair; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Blush; Nose; Mouth; Tongue; Collar; Stud; Tag; Shirt Shade; Print; Denim Light; Shoes; Sole,0,no,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/far_future.gd scripts/hero.gd scripts/rides.gd tools/capture_clothing_fit.gd ...,1644
+models/characters/top_hat_worm.glb,characters,48748,yes,24,dance fall idle jump run tip_hat walk,Worm; Stripe; Worm Belly; Eye White; Iris; Iris Light; Pupil; Eye Shine; Ink; Blush; Mouth; Tongue; Hat; Hat Band; Buckle,0,no,scripts/rootmind.gd,1527
+models/characters/wolf.glb,characters,48504,yes,19,growl idle skate,Fur; Fur Dark; Fur White; Vest; Strap; Metal; Nose; Mouth; Teeth; Eye White; Iris; Iris Light; Pupil; Eye Shine; Brow; Ear Inner; Skate; Skate Trim; Wheel,3,yes,scenes/town/characters.tscn scripts/chaos_ending.gd scripts/far_future.gd scripts/rides.gd tools/capture_clothing_fit.gd tools/capture_friend_detail.gd ...,12464
+models/characters/yarn_granny.glb,characters,76906,yes,20,chuckle fall idle jump run walk wave,Knit; Skin; Pearl; Eye White; Iris; Iris Light; Pupil; Eye Shine; Skin Shade; Brow; Blush; Nose; Mouth; Hair; Hair Dark; Needle; Needle Knob; Knit Rib; Apron; Yarn Cream; Yarn Gold; Scarf A; Scarf B; Boot; Boot Button; Goblin; Goblin Light; Goblin Ear; Goblin Iris; Tongue; Tooth,0,no,scripts/knitting_class.gd,2275
+models/props/ammo_crate.glb,props,60,no,0,,ammo_crate,3,yes,scripts/ammo_crate.gd,2114
+models/props/antique_car.glb,props,2828,no,0,,antique_car,4,yes,scripts/detail_props.gd,5915
+models/props/arch_banner.glb,props,900,no,0,,arch_banner,4,yes,scripts/detail_props.gd,6259
+models/props/arch_tower.glb,props,360,no,0,,arch_tower,4,yes,scripts/detail_props.gd,1793
+models/props/basketball_hoop.glb,props,1364,no,0,,basketball_hoop,3,yes,scripts/detail_props.gd,1855
+models/props/bike.glb,props,21200,yes,8,idle ride,Frame; Rim; Seat; Black; Plate; Plate Number; Tire,0,no,scenes/player/ride_kit.gd scenes/town/characters.tscn,713
+models/props/boardwalk.glb,props,12,no,0,,boardwalk,3,yes,scripts/detail_props.gd,1116
+models/props/boardwalk_pile.glb,props,32,no,0,,boardwalk_pile,3,yes,scripts/detail_props.gd,85
+models/props/bosses/boss_feathers.glb,props/bosses,960,no,0,,boss_feathers,3,yes,scripts/detail_props.gd,9589
+models/props/bosses/boss_fleece.glb,props/bosses,960,no,0,,boss_fleece,3,yes,scripts/detail_props.gd,9941
+models/props/bosses/boss_hide.glb,props/bosses,960,no,0,,boss_hide,3,yes,scripts/detail_props.gd,6068
+models/props/bosses/boss_scales.glb,props/bosses,960,no,0,,boss_scales,3,yes,scripts/detail_props.gd,9133
+models/props/bosses/king_crown.glb,props/bosses,1048,no,0,,king_crown,4,yes,scripts/detail_props.gd,2333
+models/props/boulder.glb,props,320,no,0,,boulder,3,yes,scripts/detail_props.gd,3189
+models/props/boulder_canyon/arch_slab.glb,props/boulder_canyon,1224,no,0,,arch_slab,3,yes,scripts/detail_props.gd,1961
+models/props/boulder_canyon/canyon_boulder.glb,props/boulder_canyon,320,no,0,,canyon_boulder,3,yes,scripts/detail_props.gd,1883
+models/props/boulder_canyon/canyon_wall.glb,props/boulder_canyon,1984,no,0,,canyon_wall,3,yes,scripts/detail_props.gd,9703
+models/props/boulder_canyon/geode_base.glb,props/boulder_canyon,642,no,0,,geode_base,4,yes,scripts/detail_props.gd,1775
+models/props/boulder_canyon/geode_lid.glb,props/boulder_canyon,642,no,0,,geode_lid,4,yes,scripts/detail_props.gd,1778
+models/props/boulder_canyon/rock_pillar.glb,props/boulder_canyon,400,no,0,,rock_pillar,3,yes,scripts/detail_props.gd,2160
+models/props/boulder_canyon/rock_throne.glb,props/boulder_canyon,776,no,0,,rock_throne,3,yes,scripts/detail_props.gd,10295
+models/props/clock_case.glb,props,72,no,0,,clock_case,3,yes,scripts/detail_props.gd,2037
+models/props/clock_hood.glb,props,208,no,0,,clock_hood,4,yes,scripts/detail_props.gd,2193
+models/props/clock_tower/big_clock.glb,props/clock_tower,768,no,0,,big_clock,3,yes,scripts/detail_props.gd,3755
+models/props/clock_tower/cog_gate.glb,props/clock_tower,132,no,0,,cog_gate,3,yes,scripts/detail_props.gd,5683
+models/props/clock_tower/cuckoo_house.glb,props/clock_tower,44,no,0,,cuckoo_house,3,yes,scripts/detail_props.gd,2134
+models/props/clock_tower/gear_wall.glb,props/clock_tower,36,no,0,,gear_wall,3,yes,scripts/detail_props.gd,1661
+models/props/clock_tower/pendulum.glb,props/clock_tower,140,no,0,,pendulum,3,yes,scripts/detail_props.gd,198
+models/props/clock_tower/pendulum_frame.glb,props/clock_tower,120,no,0,,pendulum_frame,3,yes,scripts/detail_props.gd,1019
+models/props/clock_tower/rail_post.glb,props/clock_tower,288,no,0,,rail_post,3,yes,scripts/detail_props.gd,179
+models/props/clock_tower/tock_dais.glb,props/clock_tower,720,no,0,,tock_dais,3,yes,scripts/detail_props.gd,2243
+models/props/clock_tower/tower_bay.glb,props/clock_tower,340,no,0,,tower_bay,3,yes,scripts/detail_props.gd,5699
+models/props/clock_tower/tower_door.glb,props/clock_tower,676,no,0,,tower_door,3,yes,scripts/detail_props.gd,4547
+models/props/clock_tower/tower_gear.glb,props/clock_tower,384,no,0,,tower_gear,3,yes,scripts/detail_props.gd,1965
+models/props/cog.glb,props,316,no,0,,cog,3,yes,scripts/detail_props.gd,553
+models/props/corn_sheaf.glb,props,1872,no,0,,corn_sheaf,2,yes,scripts/detail_props.gd,1415
+models/props/covered_bridge.glb,props,1248,no,0,,covered_bridge,3,yes,scripts/detail_props.gd,4594
+models/props/Crate.glb,props,44,no,0,,Material,0,no,scenes/props/crate.tscn,4
+models/props/crystal.glb,props,20,no,0,,crystal,4,yes,scripts/detail_props.gd,399
+models/props/dark_hollow/crooked_tree.glb,props/dark_hollow,1645,no,0,,crooked_tree,3,yes,scripts/detail_props.gd,2591
+models/props/dark_hollow/glow_mushrooms.glb,props/dark_hollow,390,no,0,,Caps; Stalks,7,yes,scripts/detail_props.gd,832
+models/props/dark_hollow/hollow_log.glb,props/dark_hollow,600,no,0,,hollow_log,4,yes,scripts/detail_props.gd,2522
+models/props/dark_hollow/moon_lamp.glb,props/dark_hollow,728,no,0,,moon_lamp,3,yes,scripts/detail_props.gd,707
+models/props/dock.glb,props,1388,no,0,,dock,3,yes,scripts/detail_props.gd,2228
+models/props/dome_door.glb,props,184,no,0,,dome_door,4,yes,scripts/detail_props.gd,2169
+models/props/dusks_embrace/old_gate.glb,props/dusks_embrace,944,no,0,,old_gate,3,yes,scripts/detail_props.gd,11197
+models/props/dusks_embrace/path_stone.glb,props/dusks_embrace,110,no,0,,path_stone,3,yes,scripts/detail_props.gd,514
+models/props/far_future/clock_spire.glb,props/far_future,732,no,0,,clock_spire,3,yes,scripts/detail_props.gd,5993
+models/props/far_future/holo_fountain.glb,props/far_future,832,no,0,,holo_fountain,3,yes,scripts/detail_props.gd,1146
+models/props/far_future/hover_bench.glb,props/far_future,172,no,0,,hover_bench,3,yes,scripts/detail_props.gd,462
+models/props/far_future/street_post.glb,props/far_future,392,no,0,,street_post,3,yes,scripts/detail_props.gd,395
+models/props/fence_post.glb,props,120,no,0,,fence_post,3,yes,scripts/detail_props.gd,167
+models/props/fire_truck.glb,props,2076,no,0,,fire_truck,4,yes,scripts/detail_props.gd,4378
+models/props/footbridge.glb,props,240,no,0,,footbridge,3,yes,scripts/detail_props.gd,1162
+models/props/frozen_moment/frost_throne.glb,props/frozen_moment,924,no,0,,frost_throne,3,yes,scripts/detail_props.gd,2076
+models/props/frozen_moment/ice_crag.glb,props/frozen_moment,76,no,0,,ice_crag,3,yes,scripts/detail_props.gd,1817
+models/props/frozen_moment/snow_pine.glb,props/frozen_moment,714,no,0,,snow_pine,3,yes,scripts/detail_props.gd,2238
+models/props/furniture/armchair.glb,props/furniture,220,no,0,,armchair,3,yes,scenes/interiors/book_store.tscn tools/build_interiors.gd,1703
+models/props/furniture/bookshelf.glb,props/furniture,144,no,0,,bookshelf,3,yes,scenes/interiors/book_store.tscn scenes/interiors/library.tscn tools/build_interiors.gd,1105
+models/props/furniture/diner_booth.glb,props/furniture,108,no,0,,diner_booth,3,yes,scripts/insides.gd tools/capture_insides.gd,1155
+models/props/furniture/diner_stool.glb,props/furniture,330,no,0,,diner_stool,3,yes,scripts/insides.gd tools/capture_insides.gd,1486
+models/props/furniture/mayor_desk.glb,props/furniture,80,no,0,,mayor_desk,3,yes,scenes/interiors/town_hall.tscn tools/build_interiors.gd,1163
+models/props/furniture/school_desk.glb,props/furniture,240,no,0,,school_desk,3,yes,scripts/insides.gd tools/capture_insides.gd,1285
+models/props/gadget_stall.glb,props,512,no,0,,gadget_stall,4,yes,scripts/detail_props.gd,6983
+models/props/gazebo.glb,props,7948,no,0,,gazebo,3,yes,scripts/detail_props.gd,5035
+models/props/glenmoor/barn.glb,props/glenmoor,152,no,0,,barn,3,yes,scripts/detail_props.gd,1975
+models/props/glenmoor/cairn.glb,props/glenmoor,336,no,0,,cairn,3,yes,scripts/detail_props.gd,674
+models/props/glenmoor/croft.glb,props/glenmoor,568,no,0,,croft,4,yes,scripts/detail_props.gd,2206
+models/props/glenmoor/standing_stone.glb,props/glenmoor,672,no,0,,standing_stone,3,yes,scripts/detail_props.gd,873
+models/props/glenmoor/summit_cairn.glb,props/glenmoor,336,no,0,,summit_cairn,3,yes,scripts/detail_props.gd,695
+models/props/gloop_kingdom/chest_box.glb,props/gloop_kingdom,12,no,0,,chest_box,3,yes,scripts/detail_props.gd,399
+models/props/gloop_kingdom/chest_lid.glb,props/gloop_kingdom,12,no,0,,chest_lid,4,yes,scripts/detail_props.gd,429
+models/props/gloop_kingdom/court_stand.glb,props/gloop_kingdom,24,no,0,,court_stand,4,yes,scripts/detail_props.gd,1880
+models/props/gloop_kingdom/court_wall.glb,props/gloop_kingdom,36,no,0,,court_wall,3,yes,scripts/detail_props.gd,2013
+models/props/gloop_kingdom/gate_arch.glb,props/gloop_kingdom,1544,no,0,,gate_arch,4,yes,scripts/detail_props.gd,4891
+models/props/gloop_kingdom/gate_tower.glb,props/gloop_kingdom,288,no,0,,gate_tower,4,yes,scripts/detail_props.gd,7624
+models/props/gloop_kingdom/goo_lantern.glb,props/gloop_kingdom,1200,no,0,,goo_lantern,4,yes,scripts/detail_props.gd,596
+models/props/gloop_kingdom/goo_spire.glb,props/gloop_kingdom,214,no,0,,goo_spire,4,yes,scripts/detail_props.gd,6032
+models/props/gloop_kingdom/throne.glb,props/gloop_kingdom,360,no,0,,throne,4,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,6997
+models/props/gloop_kingdom/throne_dais.glb,props/gloop_kingdom,576,no,0,,throne_dais,4,yes,scripts/detail_props.gd,7790
+models/props/grove_lantern.glb,props,212,no,0,,grove_lantern,4,yes,scripts/detail_props.gd,735
+models/props/hay_bale.glb,props,324,no,0,,hay_bale,3,yes,scripts/detail_props.gd,2638
+models/props/ice_cream_cone.glb,props,2130,no,0,,,0,no,,148
+models/props/jack_o_lantern.glb,props,716,no,0,,jack_o_lantern,4,yes,scripts/detail_props.gd,614
+models/props/lab_kit.glb,props,400,no,0,,lab_kit,4,yes,scripts/detail_props.gd,1597
+models/props/lab_shed.glb,props,196,no,0,,lab_shed,4,yes,scripts/detail_props.gd,3979
+models/props/lantern_post.glb,props,44,no,0,,lantern_post,3,yes,scripts/detail_props.gd scripts/lanternmoor.gd,51
+models/props/lanternmoor/beacon.glb,props/lanternmoor,1144,no,0,,beacon,3,yes,scripts/detail_props.gd scripts/lanternmoor.gd,2369
+models/props/lanternmoor/lantern_post.glb,props/lanternmoor,542,no,0,,lantern_post,3,yes,scripts/detail_props.gd scripts/lanternmoor.gd,506
+models/props/lanternmoor/lantern_tree.glb,props/lanternmoor,1302,no,0,,Tree; Leaves; PodA; PodB,14,yes,scripts/detail_props.gd,4737
+models/props/mailbox.glb,props,128,no,0,,mailbox,3,yes,scripts/detail_props.gd,676
+models/props/market_stall_crystals.glb,props,880,no,0,,market_stall_crystals,4,yes,,7008
+models/props/market_stall_flowers.glb,props,1704,no,0,,market_stall_flowers,4,yes,,8004
+models/props/market_stall_fruit.glb,props,1948,no,0,,market_stall_fruit,4,yes,,8092
+models/props/market_stall_records.glb,props,540,no,0,,market_stall_records,4,yes,,6911
+models/props/market_stall_sweets.glb,props,1132,no,0,,market_stall_sweets,4,yes,,7468
+models/props/market_stall_toys.glb,props,696,no,0,,market_stall_toys,4,yes,,6832
+models/props/mothership_pad.glb,props,160,no,0,,mothership_pad,3,yes,scripts/detail_props.gd,1272
+models/props/mum_planter.glb,props,368,no,0,,mum_planter,3,yes,scripts/detail_props.gd,2315
+models/props/nature/bark_limb.glb,props/nature,76,no,0,,bark_limb,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,300
+models/props/nature/bark_trunk.glb,props/nature,196,no,0,,bark_trunk,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,1431
+models/props/nature/giant_leaf.glb,props/nature,2,no,0,,giant_leaf,3,yes,scripts/detail_props.gd,3772
+models/props/nature/leaf_ball.glb,props/nature,80,no,0,,leaf_ball,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,2409
+models/props/nature/mushroom_cap.glb,props/nature,288,no,0,,mushroom_cap,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1650
+models/props/nature/mushroom_stem.glb,props/nature,116,no,0,,mushroom_stem,3,yes,scripts/detail_props.gd tools/test_detail_all.gd tools/theme.gd,520
+models/props/nature/void_orb.glb,props/nature,1280,no,0,,void_orb,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1776
+models/props/nature/void_spire.glb,props/nature,14,no,0,,void_spire,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1295
+models/props/nature/void_stalk.glb,props/nature,60,no,0,,void_stalk,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,315
+models/props/noticeboard.glb,props,100,no,0,,noticeboard,3,yes,scripts/detail_props.gd,555
+models/props/old_slide.glb,props,228,no,0,,old_slide,3,yes,scripts/detail_props.gd,1778
+models/props/palm.glb,props,1424,no,0,,palm,2,yes,scripts/detail_props.gd,1523
+models/props/park_bench.glb,props,2816,no,0,,park_bench,3,yes,scripts/detail_props.gd,2316
+models/props/picket.glb,props,48,no,0,,picket,3,yes,scripts/detail_props.gd,401
+models/props/picnic_basket.glb,props,332,no,0,,picnic_basket,3,yes,scripts/detail_props.gd,833
+models/props/pool_lip.glb,props,384,no,0,,pool_lip,3,yes,scripts/detail_props.gd,265
+models/props/pool_wall.glb,props,320,no,0,,pool_wall,3,yes,scripts/detail_props.gd,1846
+models/props/porch.glb,props,724,no,0,,porch,4,yes,scripts/detail_props.gd,9205
+models/props/porch_roof.glb,props,12,no,0,,porch_roof,3,yes,scripts/detail_props.gd,1630
+models/props/pumpkin.glb,props,716,no,0,,pumpkin,3,yes,scripts/detail_props.gd,589
+models/props/race/clock_pillar.glb,props/race,72,no,0,,clock_pillar,3,yes,scripts/detail_props.gd,9968
+models/props/race/mill_sails.glb,props/race,136,no,0,,mill_sails,3,yes,scripts/detail_props.gd,1242
+models/props/race/observatory.glb,props/race,768,no,0,,observatory,4,yes,routines/places.json scenes/town/town.tscn scripts/centipede_holes.gd scripts/detail_props.gd scripts/requests.gd tools/build_interiors.gd ...,4578
+models/props/race/silo.glb,props/race,336,no,0,,silo,3,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,1291
+models/props/race/stand_earth.glb,props/race,156,no,0,,stand_earth,3,yes,scripts/detail_props.gd,6115
+models/props/race/stand_void.glb,props/race,156,no,0,,stand_void,3,yes,scripts/detail_props.gd,6387
+models/props/race/windmill.glb,props/race,392,no,0,,windmill,4,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,2120
+models/props/race_board.glb,props,744,no,0,,race_board,3,yes,scripts/detail_props.gd,1732
+models/props/request_board.glb,props,72,no,0,,request_board,3,yes,scripts/detail_props.gd,1583
+models/props/rock_wall.glb,props,1770,no,0,,rock_wall,3,yes,scripts/detail_props.gd,7682
+models/props/rootmind/giant_bloom.glb,props/rootmind,3648,no,0,,giant_bloom,3,yes,scripts/detail_props.gd,2064
+models/props/rootmind/giant_bud.glb,props/rootmind,480,no,0,,giant_bud,3,yes,scripts/detail_props.gd,410
+models/props/rootmind/giant_leaf.glb,props/rootmind,824,no,0,,giant_leaf,3,yes,scripts/detail_props.gd,1562
+models/props/rootmind/giant_stem.glb,props/rootmind,574,no,0,,giant_stem,3,yes,scripts/detail_props.gd,1290
+models/props/rootmind/root_arch.glb,props/rootmind,420,no,0,,root_arch,3,yes,scripts/detail_props.gd,537
+models/props/rootmind/step_leaf.glb,props/rootmind,656,no,0,,step_leaf,3,yes,scripts/detail_props.gd,453
+models/props/rowing_boat.glb,props,1964,no,0,,rowing_boat,3,yes,scripts/detail_props.gd,1794
+models/props/run_clock.glb,props,528,no,0,,run_clock,4,yes,scripts/detail_props.gd,1759
+models/props/sailboat.glb,props,1406,no,0,,sailboat_hull; sailboat_sail,6,yes,scripts/detail_props.gd,2231
+models/props/sandbox.glb,props,610,no,0,,sandbox,3,yes,scripts/detail_props.gd,1240
+models/props/scarecrow.glb,props,508,no,0,,scarecrow,3,yes,scripts/detail_props.gd,2891
+models/props/secret_garden/flower_head.glb,props/secret_garden,1760,no,0,,flower_head,3,yes,scripts/detail_props.gd,2006
+models/props/secret_garden/flower_middle.glb,props/secret_garden,160,no,0,,flower_middle,4,yes,scripts/detail_props.gd,623
+models/props/secret_garden/flower_stem.glb,props/secret_garden,48,no,0,,flower_stem,3,yes,scripts/detail_props.gd,552
+models/props/secret_garden/fountain.glb,props/secret_garden,1310,no,0,,fountain,3,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,5489
+models/props/secret_garden/garden_bench.glb,props/secret_garden,12,no,0,,garden_bench,3,yes,scripts/detail_props.gd,341
+models/props/secret_garden/great_tree.glb,props/secret_garden,664,no,0,,great_tree,3,yes,scripts/detail_props.gd,8194
+models/props/secret_garden/hedge.glb,props/secret_garden,12,no,0,,hedge,3,yes,scripts/detail_props.gd,2592
+models/props/secret_garden/ivy_wall.glb,props/secret_garden,36,no,0,,ivy_wall,3,yes,scripts/detail_props.gd,8622
+models/props/secret_garden/rose_arch.glb,props/secret_garden,1020,no,0,,rose_arch,4,yes,scripts/detail_props.gd,2135
+models/props/secret_garden/summerhouse.glb,props/secret_garden,1006,no,0,,summerhouse,3,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,9322
+models/props/secret_garden/sundial.glb,props/secret_garden,460,no,0,,sundial,3,yes,scripts/detail_props.gd scripts/watches.gd tools/test_detail_portal_props.gd,725
+models/props/seraph/seraph_crown.glb,props/seraph,2328,no,0,,seraph_crown,4,yes,scripts/starhorn.gd,2450
+models/props/seraph/seraph_eye.glb,props/seraph,960,no,0,,seraph_eye,4,yes,scripts/starhorn.gd,2939
+models/props/seraph/seraph_feather.glb,props/seraph,504,no,0,,seraph_feather,4,yes,scripts/starhorn.gd,2601
+models/props/seraph/seraph_glory.glb,props/seraph,256,no,0,,seraph_glory,4,yes,scripts/starhorn.gd,1044
+models/props/seraph/seraph_wheel.glb,props/seraph,5952,no,0,,seraph_wheel,4,yes,scripts/starhorn.gd,10928
+models/props/shard_isle/cluster_base.glb,props/shard_isle,190,no,0,,cluster_base,3,yes,scripts/detail_props.gd,2473
+models/props/shard_isle/echo_stand.glb,props/shard_isle,96,no,0,,echo_stand,4,yes,scripts/detail_props.gd scripts/shard_isle.gd,376
+models/props/shard_isle/heart_plinth.glb,props/shard_isle,120,no,0,,heart_plinth,4,yes,scripts/detail_props.gd scripts/shard_isle.gd,1306
+models/props/shard_isle/island_rock.glb,props/shard_isle,518,no,0,,island_rock,3,yes,scripts/detail_props.gd scripts/shard_sky.gd,7726
+models/props/shard_isle/stepping_stone.glb,props/shard_isle,44,no,0,,stepping_stone,4,yes,scripts/detail_props.gd,1645
+models/props/sign_post.glb,props,608,no,0,,sign_post,4,yes,scripts/detail_props.gd,2368
+models/props/skyreach/chest_box.glb,props/skyreach,144,no,0,,chest_box,3,yes,scripts/detail_props.gd,2017
+models/props/skyreach/kerb_stone.glb,props/skyreach,108,no,0,,kerb_stone,3,yes,scripts/detail_props.gd,627
+models/props/skyreach/prayer_flag.glb,props/skyreach,108,no,0,,prayer_flag,3,yes,scripts/detail_props.gd,376
+models/props/skyreach/ring_rock.glb,props/skyreach,320,no,0,,ring_rock,3,yes,scripts/detail_props.gd,2328
+models/props/skyreach/star_bloom.glb,props/skyreach,780,no,0,,star_bloom,4,yes,scripts/detail_props.gd,658
+models/props/skyreach/trail_pine.glb,props/skyreach,498,no,0,,trail_pine,3,yes,scripts/detail_props.gd,2113
+models/props/skyreach/waystone.glb,props/skyreach,388,no,0,,waystone,3,yes,scripts/detail_props.gd,2092
+models/props/slide_tower.glb,props,1800,no,0,,slide_tower,3,yes,scripts/detail_props.gd,5536
+models/props/soccer_goal.glb,props,1268,no,0,,soccer_goal,3,yes,scripts/detail_props.gd,1432
+models/props/spring_cave.glb,props,240,no,0,,spring_cave,3,yes,scripts/detail_props.gd,1746
+models/props/spring_rim.glb,props,648,no,0,,spring_rim,3,yes,scripts/detail_props.gd,716
+models/props/springs_gate.glb,props,2372,no,0,,springs_gate,4,yes,scripts/detail_props.gd,7780
+models/props/star_arena/arena_hatch.glb,props/star_arena,288,no,0,,arena_hatch,3,yes,scripts/detail_props.gd,498
+models/props/star_arena/arena_tunnel.glb,props/star_arena,108,no,0,,arena_tunnel,4,yes,scripts/detail_props.gd,6945
+models/props/star_arena/arena_wall.glb,props/star_arena,24,no,0,,arena_wall,3,yes,scripts/detail_props.gd,2340
+models/props/star_arena/blip_podium.glb,props/star_arena,192,no,0,,blip_podium,3,yes,scripts/detail_props.gd,584
+models/props/star_arena/round_board.glb,props/star_arena,96,no,0,,round_board,3,yes,scripts/detail_props.gd,1451
+models/props/star_arena/spotlight_tower.glb,props/star_arena,380,no,0,,spotlight_tower,4,yes,scripts/detail_props.gd,4905
+models/props/star_arena/stand_step.glb,props/star_arena,48,no,0,,stand_step,3,yes,scripts/detail_props.gd,1557
+models/props/street_lamp.glb,props,2740,no,0,,street_lamp,4,yes,scripts/detail_props.gd tools/test_detail_props.gd,2758
+models/props/surfaces/bark.glb,props/surfaces,2,no,0,,bark,3,yes,scripts/audio.gd scripts/detail_props.gd scripts/episodes.gd scripts/rides.gd scripts/routine.gd scripts/soundscape.gd ...,3403
+models/props/surfaces/barn_boards.glb,props/surfaces,2,no,0,,barn_boards,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,3054
+models/props/surfaces/brick.glb,props/surfaces,2,no,0,,brick,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,3059
+models/props/surfaces/clapboard.glb,props/surfaces,2,no,0,,clapboard,3,yes,scripts/detail_props.gd tools/test_detail_all.gd tools/test_detail_props.gd,2446
+models/props/surfaces/coral.glb,props/surfaces,2,no,0,,coral,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,3702
+models/props/surfaces/dome_scales.glb,props/surfaces,2,no,0,,dome_scales,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,2681
+models/props/surfaces/drystone.glb,props/surfaces,2,no,0,,drystone,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,3160
+models/props/surfaces/floor_tiles.glb,props/surfaces,2,no,0,,floor_tiles,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1776
+models/props/surfaces/floorboards.glb,props/surfaces,2,no,0,,floorboards,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,2119
+models/props/surfaces/glass_facade.glb,props/surfaces,2,no,0,,glass_facade,3,yes,scripts/detail_props.gd tools/test_detail_portal_props.gd,999
+models/props/surfaces/ice.glb,props/surfaces,2,no,0,,ice,3,yes,scenes/player/player.gd scenes/portal_worlds/frozen_moment.tscn scripts/chaos_trials.gd scripts/detail_props.gd scripts/frost_breath.gd scripts/frozen_moment.gd ...,653
+models/props/surfaces/metal_panel.glb,props/surfaces,2,no,0,,metal_panel,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1136
+models/props/surfaces/plaster.glb,props/surfaces,2,no,0,,plaster,3,yes,scripts/detail_props.gd tools/test_detail_all.gd,1465
+models/props/surfaces/rock.glb,props/surfaces,2,no,0,,rock,3,yes,scripts/alien_mountains.gd scripts/big_falls.gd scripts/boss_bits.gd scripts/cave_kit.gd scripts/centipede_boss.gd scripts/crocodillo_boss.gd ...,3457
+models/props/surfaces/shingles.glb,props/surfaces,2,no,0,,shingles,3,yes,scripts/detail_props.gd tools/test_detail_props.gd,2875
+models/props/surfaces/snow.glb,props/surfaces,2,no,0,,snow,3,yes,scenes/portal_worlds/frozen_moment.tscn scripts/detail_props.gd scripts/frozen_moment.gd scripts/seasons.gd scripts/soft_zone.gd tools/build_frozen_moment.gd ...,1906
+models/props/surfaces/stone.glb,props/surfaces,2,no,0,,stone,3,yes,scenes/player/player.gd scripts/big_falls.gd scripts/bumps.gd scripts/cave_kit.gd scripts/detail_props.gd scripts/museum_garden.gd ...,3084
+models/props/swamp/chest_box_dusk.glb,props/swamp,36,no,0,,chest_box,4,yes,,2043
+models/props/swamp/chest_box_lanternmoor.glb,props/swamp,36,no,0,,chest_box,4,yes,,2055
+models/props/swamp/chest_lid_dusk.glb,props/swamp,48,no,0,,chest_lid,4,yes,,638
+models/props/swamp/chest_lid_lanternmoor.glb,props/swamp,48,no,0,,chest_lid,4,yes,,640
+models/props/swamp/hut_lanternmoor.glb,props/swamp,380,no,0,,hut,3,yes,,11747
+models/props/swamp/island_dusk.glb,props/swamp,432,no,0,,island,3,yes,,1741
+models/props/swamp/island_lanternmoor.glb,props/swamp,432,no,0,,island,3,yes,,1751
+models/props/swamp/log_dusk.glb,props/swamp,252,no,0,,log,3,yes,,2289
+models/props/swamp/lookout_dusk.glb,props/swamp,866,no,0,,lookout,3,yes,,5946
+models/props/swamp/lookout_lanternmoor.glb,props/swamp,866,no,0,,lookout,3,yes,,6029
+models/props/swamp/plank_dusk.glb,props/swamp,12,no,0,,plank,3,yes,,422
+models/props/swamp/plank_lanternmoor.glb,props/swamp,12,no,0,,plank,3,yes,,428
+models/props/swamp/sinker_dusk.glb,props/swamp,160,no,0,,sinker,3,yes,,665
+models/props/swamp/stone_dusk.glb,props/swamp,160,no,0,,stone,3,yes,,605
+models/props/swamp/swamp_tree_dusk.glb,props/swamp,2450,no,0,,swamp_tree; swamp_tree_moss,6,yes,,2493
+models/props/swamp/swamp_tree_lanternmoor.glb,props/swamp,2450,no,0,,swamp_tree; swamp_tree_moss,6,yes,,2517
+models/props/swing_set.glb,props,640,no,0,,swing_set,2,yes,scripts/detail_props.gd,1216
+models/props/telescope.glb,props,640,no,0,,telescope,3,yes,scripts/detail_props.gd,634
+models/props/tennis_net.glb,props,100,no,0,,tennis_net,3,yes,scripts/detail_props.gd,366
+models/props/tide_reef/boat.glb,props/tide_reef,1312,no,0,,boat,3,yes,scripts/detail_props.gd,1671
+models/props/tide_reef/coral_dome.glb,props/tide_reef,800,no,0,,coral_dome,3,yes,scripts/detail_props.gd,2182
+models/props/tide_reef/coral_trim.glb,props/tide_reef,2296,no,0,,coral_trim,4,yes,scripts/detail_props.gd,708
+models/props/tide_reef/lamp_post.glb,props/tide_reef,584,no,0,,lamp_post,3,yes,scripts/detail_props.gd,605
+models/props/tiki_torch.glb,props,876,no,0,,tiki_torch,4,yes,scripts/detail_props.gd,742
+models/props/tree_house.glb,props,1464,no,0,,tree_house,4,yes,scripts/detail_props.gd,7982
+models/props/tune_up.glb,props,280,no,0,,tune_up,3,yes,scripts/detail_props.gd,1909
+models/props/vein_crystals.glb,props,306,no,0,,vein_crystals,4,yes,scripts/detail_props.gd,347
+models/props/vein_rock.glb,props,400,no,0,,vein_rock,4,yes,scripts/detail_props.gd,1973
+models/props/vein_stubs.glb,props,288,no,0,,vein_stubs,4,yes,scripts/detail_props.gd,130
+models/props/void_fountain.glb,props,2808,no,0,,void_fountain,4,yes,scripts/detail_props.gd,5172
+models/props/void_lamp.glb,props,808,no,0,,void_lamp,4,yes,scripts/detail_props.gd,562
+models/props/workbench.glb,props,132,no,0,,workbench,3,yes,scripts/detail_props.gd,1578
