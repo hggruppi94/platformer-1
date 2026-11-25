@@ -10,7 +10,7 @@ pond) our usual way, as the control. **Rolo** (a small, curious rhino kid) with 
 | --- | --- |
 | Hermez (control) | Done: model, rig, 6 animations, baked detail; stands by the new Lily Pond in the Void with his talk |
 | Rolo, Meshy | Blocked. Signed in (balance 100 credits), but the API refuses every task on the free plan: "Task creation on the free plan is no longer supported" (402, plan_upgrade_required). Credits spent: 0 |
-| Rolo, free tools | Five Rolos made after Hayden's go-ahead (Nov 25): see `rolo_all_tools.png`. **Waiting for Hayden to pick one** before any rigging or placing |
+| Rolo, free tools | Five Rolos made after Hayden's go-ahead (Nov 25): see `rolo_all_tools.png`. Hayden picked the **Hunyuan3D-2.1** one; it's now in the game by the Lily Pond next to Hermez |
 
 ## Hermez, our usual way (the control)
 
@@ -74,3 +74,31 @@ downloads in `C:\Users\hggru\.cache\huggingface`.
 None of the Rolos is rigged or animated yet. Next, once Hayden picks: rig it (UniRig, or our Blender biped bones),
 add idle and walk, paint it if it's a shape-only one, bake detail with the `rhino` recipe, and drop it in as
 `models/characters/rolo.glb` (the pond already has his spot and lines).
+
+## Rolo, from the AI mesh to the game (Hunyuan3D-2.1, Hayden's pick)
+
+| | Rolo (AI shape + our steps) | Hermez (our usual way) |
+| --- | --- | --- |
+| Made with | Hunyuan3D-2.1 shape (free HF Space), then `tools/build_rolo.py` (`--prep` once, then the build) and `build_friend_detail.py rolo` | `tools/build_hermez.py`, then `build_friend_detail.py hermez` |
+| My time | about 15 minutes from the pick to a painted, rigged, animated model in Blender (most of it working out where his face, tee and feet are on the mesh); about 30 minutes to tested and in the game | about 25 minutes to the model, about 45 to tested and in the game |
+| Machine time | 23 s on the Space for the shape; 5 s to build; 40 s to bake the detail | 20 s to build; 65 s to bake |
+| Mesh | 284,510 triangles from the AI, cut to 40,000 (47,279 with the added eyes, brows, horn and tongue), one skinned mesh | 47,296 triangles |
+| Materials | 17 named: Skin, Snout, Nose, Mouth, Tongue, Ear Inner, Tee, Toenail, Tuft, Horn, Brow, Blush and the eye set; painted onto the AI's faces by where they are on him | 18 named, each part made in its own colour |
+| Rig | 21 bones: the friends' biped layout plus 4 tail bones; Blender's automatic (heat) weights | 18 bones; char_kit's distance weights |
+| Animations | idle, walk, run, jump, fall | idle, walk, run, flap, jump, fall |
+| Detail textures | 3 x 2048 (tint, normal, AO): rhino hide, knit tee, horn | 3 x 2048 |
+| Hand fixes | had to add what the AI left off: proper eyes (it made only bumps), brows, the horn, a tongue; centre him on his body, not the box (his long tail pulled it back); a first pass painted the nostril colour into his eye sockets (tightened); 3 loose vertices the automatic weights missed went to the nearest bone | see above |
+| Rough edges left | the colour borders follow the AI's triangles, so the tee's hem and the snout's edge are a bit jagged close up; his tail is long (about 1 m behind him); the wrinkle pattern reads a little stripy | |
+
+The AI's shape (`tools/src/rolo_hunyuan21.glb`, 40k triangles, prepped) is kept in the repo as an input, like a
+reference picture, so `build_rolo.py` can be run again.
+
+Pictures (Godot):
+- Before and after the baked detail: `godot/cmp_rolo_02_face_34.png`, `godot/cmp_rolo_05_middle.png`,
+  `godot/cmp_rolo_08_full.png` (full sets in `godot/rolo_before/` and `godot/rolo_after/`).
+- Both of them by the Lily Pond in the Void: `godot/world/02_friends.png`, `godot/world/04_rolo_close.png`,
+  `godot/world/03_hermez_close.png`, `godot/world/01_pond_wide.png`.
+
+Tests: `test_pond_friends` passes for both (models, idle and walk, rig, detail, crisp eyes, height, lines, standing
+on the ground facing the meadow, talkable, solid, a clear way up). `test_friend_detail` passes. `test_dialogue` now
+lists Hermez and Rolo; it and `test_routines` only fail the old checks that fail on main too.

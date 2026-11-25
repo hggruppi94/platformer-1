@@ -56,8 +56,9 @@ func _run() -> void:
 	var c := pond.global_position
 	var shots := {
 		"01_pond_wide": [c + Vector3(-3, 4.0, -14), c + Vector3(0, 0.6, 0)],
-		"02_friends": [c + Vector3(0, 1.8, -10.5), c + Vector3(0, 0.9, -4.4)],
+		"02_friends": [c + Vector3(0, 1.5, -9.5), c + Vector3(0, 0.9, -4.4)],
 		"03_hermez_close": [c + Vector3(-2.0, 1.6, -7.2), c + Vector3(-2.6, 1.2, -4.3)],
+		"04_rolo_close": [c + Vector3(2.2, 1.2, -7.0), c + Vector3(2.4, 0.75, -4.6)],
 	}
 	for name in shots:
 		cam.global_position = shots[name][0]

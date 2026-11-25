@@ -99,6 +99,19 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **Rolo the rhino joins Hermez at the Lily Pond, made from an AI tool's mesh** (Hayden picked the
+  Hunyuan3D-2.1 Rolo out of five free tools: `previews/meshy_trial/rolo_all_tools.png`). Built on Hayden's PC (save
+  untouched).
+  - **`tools/build_rolo.py`**: `-- --prep <raw.glb>` once cuts the AI's 285k-triangle shape to 40k, stands it at
+    1.2 m on its body's middle facing -Y and keeps it as `tools/src/rolo_hunyuan21.glb`; the build paints its faces
+    into named materials by region (`region()`: Skin, Snout, Nose, Mouth, Ear Inner, Tee, Toenail, Tuft), adds our
+    cartoon eyes, brows, blush, a horn and a tongue (raycast onto his face), rigs him with the friends' biped bones
+    plus `tail.0..3` (Blender's automatic weights) and makes idle, walk, run, jump, fall.
+  - **Baked detail:** `tools/build_friend_detail.py rolo` (the `rhino` hide, a knit tee).
+  - He appears by the pond on his own (`scripts/pond_friends.gd`, `dialogue/rolo.json`). `test_pond_friends`
+    checks him; `test_dialogue` lists him. Pictures and the full comparison: `previews/meshy_trial/COMPARISON.md`.
+  - My choices Hayden may change: his colours (lilac-grey, orange tee), the horn, his height, how long his tail is.
+
 - 2026-11-25: **Hermez the crane stands by a new Lily Pond in the Void's south meadow** (the "control" of an AI 3D
   tools trial: Rolo the rhino was to be made with Meshy, then with free open-source image-to-3D tools; Meshy's free
   plan blocks its API, and the free tools are waiting for Hayden's go-ahead). Built on Hayden's PC (save untouched).

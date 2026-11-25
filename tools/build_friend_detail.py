@@ -10,7 +10,7 @@
 #   (or: blender -b --python tools/build_friend_detail.py -- <who> [<out.glb>])
 #
 #   <who>: rex (wolf), dash (bike_boy), pip (moth_kid), bruno, melody, heather (cattle_girl), bramble (plant_girl),
-#   chaos (chaos_giant, the Agent of Chaos), gorilla (cyber_gorilla),
+#   chaos (chaos_giant, the Agent of Chaos), gorilla (cyber_gorilla), hermez (the crane), rolo (the rhino),
 #   girl (human_girl) and boy (human_boy), the hero's two bodies in the creator, or "all". The out path defaults
 #   to the model in models/characters/. Reads source_art/characters/<model>.blend and never saves over it. About 3 to 5 minutes each on 4 cloud cores.
 
@@ -376,6 +376,13 @@ CHARS = {
         "parts": {"Feather": "feather", "Feather Grey": "feather", "Feather Black": "feather", "Crown": "skin",
                   "Beak": "horn", "Beak Tip": "horn", "Leg": "scaly", "Satchel": "canvas", "Satchel Strap": "leather",
                   "Metal": "metal"},
+    },
+    "rolo": {
+        # The rhino kid from an AI mesh (Hunyuan3D-2.1, then tools/build_rolo.py): thick wrinkly rhino hide, a knit tee
+        "model": "rolo", "body": "Rolo", "rig": "RoloRig", "hair": ["Skin", "Snout"],
+        "flat": EYES + ["Brow", "Blush"],
+        "parts": {"Skin": "rhino", "Snout": "rhino", "Ear Inner": "skin", "Tee": "knit", "Horn": "horn",
+                  "Toenail": "horn", "Tuft": "hair", "Nose": "nose"},
     },
     "gorilla": {
         "model": "cyber_gorilla", "body": "CyberGorilla", "rig": "GorillaRig", "hair": ["Fur"], "ao": 0.04,
