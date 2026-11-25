@@ -298,11 +298,12 @@ func go(scene_path: String, spawn: String, place_name := "") -> void:
 	if not ResourceLoader.exists(scene_path):
 		message(("The %s isn't open yet." % place_name) if place_name != "" else "This door doesn't open yet.")
 		return
+	if Loading.busy:
+		return                                 # already on the way somewhere (a second door touched while the cover's up)
 	next_spawn = spawn
 	_between_worlds(scene_path)
 	Audio.play("door", -4.0)
-	Loading.show_for(scene_path)               # between Earth and the Void: a tip and a little alien (loading_screen.gd)
-	get_tree().call_deferred("change_scene_to_file", scene_path)
+	Loading.travel(scene_path)                 # a cover the whole way, a tip between worlds (loading_screen.gd)
 
 
 func _between_worlds(scene_path: String) -> void:
@@ -321,11 +322,12 @@ func go_to_point(scene_path: String, pos: Vector3, yaw: float, place_name := "")
 		message("%s isn't open yet." % (place_name.left(1).to_upper() + place_name.substr(1)) if place_name != "" \
 				else "This way doesn't open yet.")
 		return
+	if Loading.busy:
+		return
 	next_spawn = ""
 	_resume = {"scene": scene_path, "position": [pos.x, pos.y, pos.z], "yaw": yaw}
 	Audio.play("door", -4.0)
-	Loading.show_for(scene_path)
-	get_tree().call_deferred("change_scene_to_file", scene_path)
+	Loading.travel(scene_path)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -616,8 +618,7 @@ func continue_game() -> void:
 	var to := str(_resume.get("scene", START_SCENE))
 	if to == START_SCENE and _resume.is_empty() and next_spawn == "":
 		next_spawn = NEW_GAME_SPAWN
-	Loading.show_for(to)
-	get_tree().call_deferred("change_scene_to_file", to)
+	Loading.travel(to)
 
 
 func is_resuming() -> bool:

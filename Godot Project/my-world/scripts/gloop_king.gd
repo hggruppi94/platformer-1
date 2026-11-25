@@ -48,7 +48,7 @@ func _ready() -> void:
 		"size": 0.55, "from": 1.4 * size,
 		"can": func() -> bool: return not defeated and _was_chasing and not _flopping and is_on_floor()})
 	# (after any cousin has taken his look off: the baked crown, scripts/detail_props.gd)
-	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_king_crown", self)
+	_dress_baked.call_deferred()  # (called on itself, so nothing happens if it was freed first)
 
 
 func _physics_process(delta: float) -> void:
@@ -207,3 +207,7 @@ func _make_bar() -> void:
 	label.position.y = 0.28
 	_bar.add_child(label)
 	_bar.visible = false
+
+
+func _dress_baked() -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_king_crown", self)

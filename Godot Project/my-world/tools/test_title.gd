@@ -128,8 +128,43 @@ func _run() -> void:
 	if ResourceLoader.exists(CAFE):
 		game.go(CAFE, "Entrance", "cafe")
 		await _frames(1)
-		check(not loading.showing, "a door into a shop doesn't show it")
+		check(not loading._panel.visible, "a door into a shop doesn't show the full loading screen")
 		await _wait_for_scene(CAFE)
+		# The real way (headless runs skip it unless forced): a cover up first, the place loaded on a thread, the cover
+		# only gone once WorldDetail has dressed it (Hayden, 25 Nov 2026: a still frame of an old version leaving a room)
+		loading.force_threaded = true
+		var wd = root.get_node("WorldDetail")
+		var cafe_scene := current_scene
+		game.go(TOWN, "FromCafe", "Void")
+		await _frames(1)
+		check(loading.busy and loading._fade.visible and not loading._panel.visible,
+			"out of a room: a quick fade covers the screen (not the full loading screen)")
+		game.go(EARTH, "HomeSpawn", "Earth")
+		check(game.next_spawn == "FromCafe", "...and a second door touched meanwhile is ignored")
+		check(current_scene == cafe_scene, "...the old place is still there while the cover comes up")
+		var uncovered_plain := false
+		var spins := 0
+		while loading.busy and spins < 3000:
+			await process_frame
+			spins += 1
+			if current_scene and current_scene.scene_file_path == TOWN and wd.dressed_for != current_scene \
+					and loading._fade.color.a < 0.99:
+				uncovered_plain = true
+		check(current_scene.scene_file_path == TOWN, "...it gets to the Void")
+		check(not loading.busy and not loading._fade.visible and not loading.showing, "...and the cover goes again")
+		check(not uncovered_plain, "...never showing the place before it's dressed")
+		check(wd.dressed_for == current_scene, "...and the Void was dressed under the cover")
+		game.go(EARTH, "HomeSpawn", "Earth")
+		await _frames(1)
+		check(loading.busy and loading._panel.visible and loading.tip != "", "between worlds the real way: the full loading screen")
+		spins = 0
+		while loading.busy and spins < 3000:
+			await process_frame
+			spins += 1
+		check(current_scene.scene_file_path == EARTH and not loading._panel.visible and not loading.busy,
+			"...it gets to Earth and the screen goes")
+		check(wd.settled_for == current_scene, "...after Earth was dressed and settled")
+		loading.force_threaded = false
 
 	# --- New Game, the whole opening ---
 	change_scene_to_file(TITLE)
@@ -182,7 +217,7 @@ func _run() -> void:
 func _wait_for_scene(path: String, frames := 300) -> void:
 	for i in frames:
 		await process_frame
-		if current_scene and current_scene.scene_file_path == path:
+		if current_scene and current_scene.scene_file_path == path and not root.get_node("Loading").busy:
 			break
 	await _frames(4)
 
