@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The bike has baked detail: brushed metal frame, a pebbly seat and real tread round its tyres** (the
+  last props of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own Godot
+  user folders, no save touched). `detail_props.gd dress_bike()` (called by `dress_ride()`, so the BMX, Hover Bike and
+  Rocket Bike, and by `dress_void()` for Dash's parked bike): the frame, rims and black parts wear brushed metal and
+  the seat the goblin skin (`BIKE_PATCH`). The bike is skinned and its wheels spin, so a pattern laid on from outside
+  would slide over them: the tyres get their own UVs instead (`_bike_uv_mesh()`, `_wrap_tyres()`: one shared copy of
+  the mesh, U across the tyre and V round it, a whole number of tread patches a turn, its seam stitched), read by a
+  copy of the tread material with triplanar off. The ice cream cone and the crate aren't used anywhere in the game
+  (the crate only in the old `scenes/world.tscn`), so there's nothing to bake. Tests: new `tools/test_bike_detail.gd`;
+  ride_detail, skate and ride_upgrades pass. Pictures in the project files under characters/ride-detail/bike.
+
 - 2026-11-25: **The small new places have baked detail: the cave kit's rock, the Undergardens' roots, Old Ember's
   chamber, the Museum Garden's exhibits, the virtue trials' marble and the Knitting Class** (the places batch of
   Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own Godot user
