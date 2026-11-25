@@ -3866,6 +3866,8 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 		var src := _skin_mesh(by_mat[old])
 		if src.is_empty():
 			continue
+		if not made.has(old) and old.has_meta("detail_skin_" + by_mat[old]):
+			made[old] = old.get_meta("detail_skin_" + by_mat[old])  # (shared, like dress_patches' copies)
 		if not made.has(old):
 			var mat := (src[1] as StandardMaterial3D).duplicate() as StandardMaterial3D
 			mat.albedo_color = Color(old.albedo_color.r * BOSS_SKIN_GAIN, old.albedo_color.g * BOSS_SKIN_GAIN,
@@ -3877,6 +3879,7 @@ static func dress_surfaces(boss: Node, pairs: Array) -> int:
 				mat.emission = old.emission
 				mat.emission_energy_multiplier = old.emission_energy_multiplier
 				mat.emission_texture = null
+			old.set_meta("detail_skin_" + by_mat[old], mat)
 			made[old] = mat
 		var sm := mi.mesh as SphereMesh
 		var skin := MeshInstance3D.new()
@@ -3906,6 +3909,13 @@ static func dress_patches(root: Node, pairs: Array) -> int:
 		var old := p[0] as StandardMaterial3D
 		if old == null or old.has_meta(SURFACE_META) or not SURFACE_GAIN.has(p[1]):
 			continue
+		# One patched copy per material, kept on the material itself: every Crocodillo (or goblin) sharing the
+		# scene's materials then shares the patched ones too, so they still draw together
+		# (a meta name can't hold a dot, so the scale is written in hundredths)
+		var key := "detail_patch_%s_%d" % [p[1], roundi(float(p[2] if p.size() > 2 else 1.0) * 100.0)]
+		if old.has_meta(key):
+			made[old] = old.get_meta(key)
+			continue
 		var model := _scene(SURFACE % p[1])
 		var baked_mesh := _mesh_of(model) if model else null
 		var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
@@ -3931,6 +3941,7 @@ static func dress_patches(root: Node, pairs: Array) -> int:
 		m.set_meta(SURFACE_META, p[1])
 		# Says it's laid on in the boss's own space, so checks don't expect the world-space look rock and bark get
 		m.set_meta("detail_moves", true)
+		old.set_meta(key, m)
 		made[old] = m
 	for c in root.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
@@ -4014,6 +4025,107 @@ static func dress_goblin(goblin: Node) -> Vector2i:
 			hand.position = Vector3(0, HAT_FACE_Y, CLOCK_HAND_Z * s)
 		n.y = 1
 	return n
+
+
+# The enemies (25 Nov 2026, Hayden: "keep baking details on assets in the game already"): the shape-built enemies
+# wear the baked patches and skins the bosses do (tools/build_prop_surfaces.py reptile_scales, goblin_skin, tweed;
+# the boss skins). How many each patch repeats over the enemy's own space, so the scales and threads come out the
+# right size on something a metre or two tall.
+const CROC_SCALE_K := 2.2      # Crocodillo hide: scales about 4.5 cm across
+const CROC_BELLY_K := 1.4      # bigger, flatter scales on the belly and jaw
+const GOBLIN_SKIN_K := 2.0     # a Time Goblin is under a metre tall
+const GOBLIN_CLOTH_K := 2.5
+const WAILER_SKIN_K := 1.2
+
+
+static func _mats_named(root: Node, names: Array) -> Dictionary:
+	# Every material (by its resource name, or by the name of the mesh wearing it) under root, once each
+	var out := {}
+	for c in root.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var m := mi.material_override as StandardMaterial3D
+		if m == null or m.has_meta(SURFACE_META):
+			continue
+		var key := m.resource_name if m.resource_name != "" else ""
+		if key in names:
+			out[m] = key
+	return out
+
+
+static func dress_crocodillo(croc: Node) -> int:
+	# A Crocodillo (tools/build_crocodillo.gd, and every boss and little one built on it): its scaly hide, belly and
+	# hands wear the reptile scales; its shell and its rolled-up ball wear the beetle-shell skin. One that took the
+	# look off (the Stormram) has no meshes left in those materials, so nothing happens.
+	var visual := croc.get_node_or_null("Visual") if croc else null
+	if visual == null or not on():
+		return 0
+	var mats := _mats_named(visual, ["Croc Scales", "Croc Belly", "Croc Hands", "Croc Shell"])
+	var patches := []
+	var skins := []
+	for m in mats:
+		match mats[m]:
+			"Croc Scales":
+				patches.append([m, "reptile_scales", CROC_SCALE_K])
+			"Croc Belly", "Croc Hands":
+				patches.append([m, "reptile_scales", CROC_BELLY_K])
+			"Croc Shell":
+				skins.append([m, "boss_chitin"])
+				patches.append([m, "reptile_scales", CROC_SCALE_K])
+	var n := dress_surfaces(visual, skins)
+	# (the shell's own ball wears its skin; anything else in the shell's colour gets the scales)
+	return n + dress_patches(visual, patches)
+
+
+static func _goblin_parts(visual: Node) -> Dictionary:
+	# A Time Goblin's materials have no names (tools/build_time_goblin.gd), so they're found by the parts wearing them
+	var skin := ["Belly", "Skull", "Arm", "EarL", "EarR", "Hand", "Nose", "BrowL", "BrowR"]
+	var cloth := ["Waistcoat", "Leg", "Coat", "Band"]
+	var out := {}
+	for c in visual.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var m := mi.material_override as StandardMaterial3D
+		if m == null or m.has_meta(SURFACE_META) or mi.mesh == null:
+			continue
+		var nm := String(mi.name)
+		if nm.begins_with("Finger"):
+			nm = "Hand"
+		# (the hat's band is cloth, but Tock's clock hat has no band; the watch's "Crown" and the hat's are left)
+		if nm in skin:
+			out[m] = "goblin_skin"
+		elif nm in cloth:
+			out[m] = "tweed"
+	return out
+
+
+static func dress_goblin_skin(goblin: Node) -> int:
+	# A Time Goblin's (or Grandfather Tock's) teal skin wears the pebbly goblin skin and its waistcoat, trousers and
+	# coat the woven cloth. One that took the look off (the Dawn Snatcher) has no meshes left, so nothing changes.
+	var visual := goblin.get_node_or_null("Visual") if goblin else null
+	if visual == null or not on():
+		return 0
+	var parts := _goblin_parts(visual)
+	var pairs := []
+	for m in parts:
+		pairs.append([m, parts[m], GOBLIN_SKIN_K if parts[m] == "goblin_skin" else GOBLIN_CLOTH_K])
+	return dress_patches(visual, pairs)
+
+
+static func dress_bog_wailer(wailer: Node, body: Material, lump: Material, moss: Array) -> int:
+	# A Bog Wailer (scripts/bog_wailer.gd _build): its huge lumpy head wears the toad warts, the moss on its shoulders
+	# and hanging off its head the moth fuzz, and its long body the pebbly goblin skin.
+	if wailer == null or not on():
+		return 0
+	var skins := [[lump, "boss_warts"]]
+	for m in moss:
+		skins.append([m, "boss_fuzz"])
+	return dress_surfaces(wailer, skins) + dress_patches(wailer, [[body, "goblin_skin", WAILER_SKIN_K]])
+
+
+static func dress_peeper(peeper: Node, fluff: Material) -> int:
+	# A Peeper (scripts/peeper.gd): its puffball body and tuft wear the moth fuzz.
+	if peeper == null or not on():
+		return 0
+	return dress_surfaces(peeper, [[fluff, "boss_fuzz"]])
 
 
 static func dress_boulderdillo(boss: Node) -> int:
@@ -4386,10 +4498,12 @@ static func dress_nature(scene: Node) -> Dictionary:
 const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
 	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
-	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0}
+	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0,
+	"reptile_scales": 0.8, "goblin_skin": 0.6, "tweed": 0.5}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
 	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
-	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25}
+	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25,
+	"reptile_scales": 1.45, "goblin_skin": 1.3, "tweed": 1.5}
 # The insides (24 Nov 2026): the Void's dome rooms (tools/build_interiors.gd dome_room(): "Floor <room>", "Wall <room>",
 # "Dome <room>") and the palace school's inside (tools/build_school.gd). Inside, a wall is plaster, never the outside
 # siding a "Wall ..." gets in town, and the dome overhead is plaster too. The builders' colours are all mapped into the
