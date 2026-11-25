@@ -99,6 +99,21 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-25: **The shape-built bosses get baked parts, part two: Tuskwinter's hide, Grumblefin's scales, the Dawn
+  Snatcher's feathers and the Stormram's fleece** (the bosses batch of Hayden's "keep baking details on assets in the
+  game already"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Four skins** (`tools/build_prop_bosses.py <out.glb> boss_hide|boss_scales|boss_feathers|boss_fleece`): each a
+    ball of radius 1 (1.3M triangles baked onto 960), baked pale so the game tints it: wrinkled walrus hide with pores
+    and scars, overlapping fish scales in rows, feather tips with quills and barbs, curly cloud-wool clumps.
+  - **Put on where they're built** (`detail_props.gd dress_surfaces(boss, [[material, kind], ...])`, called deferred
+    from `frost_gloop.gd`, `riptide_gloop.gd`, `dawn_snatcher.gd` and `stormram.gd`): every ball (SphereMesh) in one of
+    those materials gets a "Detailed Skin" child the same size and colour (`BOSS_SKIN_GAIN`), so puffing, flapping and
+    squashing still move it; the old ball is hidden, never freed. With the detail pipeline off nothing changes.
+  - Tests: `test_boss_detail` (each skin's size and colour, nothing plain drawn, dressed again changes nothing);
+    frozen_moment, tide_reef, lanternmoor, glenmoor, boss_versions, boss_tells, boss_moves and detail_all pass.
+    Pictures: `capture_boss_detail.gd` (project files, characters/boss-detail/shape-bosses-2).
+  - My choices Hayden may change: how strong each skin is (the fleece reads a bit like paving close up).
+
 - 2026-11-25: **The shape-built bosses get baked parts, part one: the Gloop King's crown, every Time Goblin's cog,
   Grandfather Tock's clock hat and the Boulderdillo's boulders** (the bosses batch of Hayden's "keep baking details on
   assets in the game already"). Built and tested in the cloud (own Godot user folders, no save touched).

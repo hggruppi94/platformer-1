@@ -77,6 +77,8 @@ func _boulders() -> void:
 	var hoof := PARTS.mat(Color(0.18, 0.18, 0.24), 0.4)
 	var eye := PARTS.mat(Color(0.85, 0.95, 1.0), 0.2, 2.5)
 	var bolt := PARTS.mat(Color(1.0, 0.95, 0.45), 0.3, 3.0)
+	# Its fleece and storm cloud get baked curls of wool once they're built (scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_surfaces", self, [[fleece, "boss_fleece"], [cloud, "boss_fleece"]])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 61
 	# A huge cloud of a fleece, longer than it's tall

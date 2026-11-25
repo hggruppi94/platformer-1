@@ -1,7 +1,8 @@
 extends SceneTree
 
 # Close-ups of the shape-built bosses' baked parts (tools/build_prop_bosses.py, scripts/detail_props.gd): the Gloop
-# King's crown, a Time Goblin's cog, Grandfather Tock's clock hat and the Boulderdillo's boulders, in a plain studio.
+# King's crown, a Time Goblin's cog, Grandfather Tock's clock hat and the Boulderdillo's boulders, and the skins of
+# Tuskwinter, Grumblefin, the Dawn Snatcher and the Stormram, in a plain studio.
 # With --old-props it shoots the same views with the detail pipeline off, to compare. Opens a window:
 #
 #   godot --path "Godot Project/my-world" --script res://tools/capture_boss_detail.gd -- <folder> [--old-props]
@@ -84,6 +85,14 @@ func _run() -> void:
 		["tock_full", "", "", 0.0, Vector3(40, 0, 0), "", 7.0, Vector3(0.5, 0.3, 1)],
 		["boulderdillo", "res://scenes/enemies/crocodillo.tscn", "res://scripts/crocodillo_boss.gd", 2.6, Vector3(60, 0, 0), "", 11.0, Vector3(0.7, 0.45, 1)],
 		["boulderdillo_back", "", "", 0.0, Vector3(60, 0, 0), "", 10.0, Vector3(0.6, 0.6, -1)],
+		["tuskwinter", "res://scenes/enemies/gloop_king.tscn", "res://scripts/frost_gloop.gd", 2.2, Vector3(80, 0, 0), "", 5.0, Vector3(0.6, 0.35, 1)],
+		["tuskwinter_close", "", "", 0.0, Vector3(80, 0, 0), "", 2.4, Vector3(0.9, 0.5, 0.5)],
+		["grumblefin", "res://scenes/enemies/gloop_king.tscn", "res://scripts/riptide_gloop.gd", 2.4, Vector3(100, 0, 0), "", 5.0, Vector3(0.6, 0.3, 1)],
+		["grumblefin_close", "", "", 0.0, Vector3(100, 0, 0), "", 2.4, Vector3(0.9, 0.3, 0.5)],
+		["snatcher", "res://scenes/enemies/time_goblin_boss.tscn", "res://scripts/dawn_snatcher.gd", 2.4, Vector3(120, 0, 0), "", 5.0, Vector3(0.6, 0.3, 1)],
+		["snatcher_close", "", "", 0.0, Vector3(120, 0, 0), "", 2.2, Vector3(0.8, 0.4, -0.6)],
+		["stormram", "res://scenes/enemies/crocodillo.tscn", "res://scripts/stormram.gd", 2.2, Vector3(140, 0, 0), "", 8.0, Vector3(0.8, 0.35, 1)],
+		["stormram_close", "", "", 0.0, Vector3(140, 0, 0), "", 3.5, Vector3(1, 0.5, 0.2)],
 	]
 	var made := {}
 	for s in shots:

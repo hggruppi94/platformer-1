@@ -73,6 +73,8 @@ func _pufferfish(body: Node3D) -> void:
 	var shell := PARTS.mat(Color(0.93, 0.9, 0.84), 0.9)
 	var dark := PARTS.mat(Color(0.06, 0.08, 0.14), 0.25)
 	var white := PARTS.mat(Color(1, 1, 1), 0.2, 0.6)
+	# Its skin and belly get baked scales once they're built (scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_surfaces", self, [[skin, "boss_scales"], [belly, "boss_scales"]])
 	PARTS.ball(_fish, 0.52, Vector3.ZERO, skin, Vector3(1.0, 0.95, 1.05), "Skin")
 	PARTS.ball(_fish, 0.42, Vector3(0, -0.14, 0.12), belly, Vector3(1.0, 0.8, 1.0), "Belly")
 	var rng := RandomNumberGenerator.new()

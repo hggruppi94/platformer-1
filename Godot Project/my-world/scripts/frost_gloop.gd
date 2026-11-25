@@ -53,6 +53,8 @@ func _walrus(body: Node3D) -> void:
 	var dark := PARTS.mat(Color(0.08, 0.08, 0.14), 0.3)
 	var white := PARTS.mat(Color(1, 1, 1), 0.2, 0.6)
 	var gold := PARTS.mat(Color(1.0, 0.8, 0.35), 0.3, 0.2, 1.0, 0.7)
+	# Its hide and belly get a baked skin of folds and pores once they're built (scripts/detail_props.gd)
+	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_surfaces", self, [[hide, "boss_hide"], [pale, "boss_hide"]])
 	# A great round lump of a body, its belly paler
 	PARTS.ball(look, 0.5, Vector3(0, 0.45, -0.08), hide, Vector3(1.15, 0.95, 1.3), "Hide")
 	PARTS.ball(look, 0.42, Vector3(0, 0.38, 0.12), pale, Vector3(1.05, 0.85, 1.0), "Belly")
