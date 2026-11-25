@@ -3909,46 +3909,106 @@ static func dress_patches(root: Node, pairs: Array) -> int:
 		var old := p[0] as StandardMaterial3D
 		if old == null or old.has_meta(SURFACE_META) or not SURFACE_GAIN.has(p[1]):
 			continue
-		# One patched copy per material, kept on the material itself: every Crocodillo (or goblin) sharing the
-		# scene's materials then shares the patched ones too, so they still draw together
-		# (a meta name can't hold a dot, so the scale is written in hundredths)
-		var key := "detail_patch_%s_%d" % [p[1], roundi(float(p[2] if p.size() > 2 else 1.0) * 100.0)]
-		if old.has_meta(key):
-			made[old] = old.get_meta(key)
-			continue
-		var model := _scene(SURFACE % p[1])
-		var baked_mesh := _mesh_of(model) if model else null
-		var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
-		if baked == null:
-			continue
-		var m := old.duplicate() as StandardMaterial3D
-		m.albedo_texture = baked.albedo_texture
-		var c := old.albedo_color * float(SURFACE_GAIN[p[1]])
-		m.albedo_color = Color(c.r, c.g, c.b, old.albedo_color.a)
-		m.normal_enabled = true
-		m.normal_texture = baked.normal_texture
-		m.ao_enabled = true
-		m.ao_texture = baked.ao_texture
-		m.ao_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
-		m.ao_light_affect = 0.6
-		m.roughness_texture = baked.ao_texture
-		m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
-		m.texture_repeat = true
-		m.uv1_triplanar = true
-		m.uv1_world_triplanar = false
-		m.uv1_triplanar_sharpness = 6.0
-		m.uv1_scale = Vector3.ONE / float(SURFACE_TILE[p[1]]) * float(p[2] if p.size() > 2 else 1.0)
-		m.set_meta(SURFACE_META, p[1])
-		# Says it's laid on in the boss's own space, so checks don't expect the world-space look rock and bark get
-		m.set_meta("detail_moves", true)
-		old.set_meta(key, m)
-		made[old] = m
+		var m := patched(old, p[1], float(p[2] if p.size() > 2 else 1.0))
+		if m:
+			made[old] = m
 	for c in root.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
 		# A ball that already wears a baked skin (dress_surfaces) is hidden and keeps its own material
 		if made.has(mi.material_override) and not mi.has_node("Detailed Skin"):
 			mi.material_override = made[mi.material_override]
 			n += 1
+	return n
+
+
+static func patched(old: StandardMaterial3D, kind: String, scale := 1.0, offset := Vector3.ZERO) -> StandardMaterial3D:
+	# A copy of old wearing a tiling surface patch (tools/build_prop_surfaces.py), laid on in the mesh's own space
+	# (triplanar, SURFACE_TILE metres a patch, times scale), in old's own colour. One copy per material and patch, kept
+	# on the material itself: every Crocodillo (or goblin, or skateboard) sharing a scene's materials then shares the
+	# patched ones too, so they still draw together. Null if the patch isn't there.
+	if old == null or not SURFACE_GAIN.has(kind):
+		return null
+	# (a meta name can't hold a dot, so the scale is written in hundredths)
+	var key := "detail_patch_%s_%d" % [kind, roundi(scale * 100.0)]
+	if old.has_meta(key):
+		return old.get_meta(key)
+	var model := _scene(SURFACE % kind)
+	var baked_mesh := _mesh_of(model) if model else null
+	var baked := baked_mesh.surface_get_material(0) as StandardMaterial3D if baked_mesh else null
+	if baked == null:
+		return null
+	var m := old.duplicate() as StandardMaterial3D
+	m.albedo_texture = baked.albedo_texture
+	var c := old.albedo_color * float(SURFACE_GAIN[kind])
+	m.albedo_color = Color(c.r, c.g, c.b, old.albedo_color.a)
+	m.normal_enabled = true
+	m.normal_texture = baked.normal_texture
+	m.ao_enabled = true
+	m.ao_texture = baked.ao_texture
+	m.ao_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	m.ao_light_affect = 0.6
+	m.roughness_texture = baked.ao_texture
+	m.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+	m.texture_repeat = true
+	m.uv1_triplanar = true
+	m.uv1_world_triplanar = false
+	m.uv1_triplanar_sharpness = 6.0
+	m.uv1_scale = Vector3.ONE / float(SURFACE_TILE[kind]) * scale
+	m.uv1_offset = offset
+	m.set_meta(SURFACE_META, kind)
+	# Says it's laid on in the object's own space, so checks don't expect the world-space look rock and bark get
+	m.set_meta("detail_moves", true)
+	old.set_meta(key, m)
+	return m
+
+
+# The rides (25 Nov 2026, Hayden: "keep baking details on assets in the game already"): every ride is built in code
+# from shapes (scenes/player/ride_kit.gd) or is the little skateboard scene, all plain colours. Each part says what it
+# is with meta "ride_part" (the skateboard's are known by name), and wears the patch for it: a deck's maple grain,
+# grip tape, brushed metal, a tyre's tread, a leaf's veins, or (the roller skates' boots) a pebbled leather from the
+# goblin skin made small. Glows, flames and see-through things stay as they are, and so does the bike (its own model:
+# it gets baked on its own).
+const RIDE_PATCH := {"deck": ["maple", 1.0], "grip": ["grip_tape", 1.0], "metal": ["brushed_metal", 1.0],
+	"tyre": ["tread", 1.0], "leaf": ["leaf_skin", 0.8], "stem": ["leaf_skin", 3.0], "boot": ["goblin_skin", 2.5]}
+const RIDE_BY_NAME := {"Deck": "deck", "Nose": "deck", "Tail": "deck", "Grip": "grip", "TruckFront": "metal",
+	"TruckBack": "metal"}
+# The leaf's midrib runs down the middle of the patch, so it's moved to the middle of the leaf
+const RIDE_OFFSET := {"leaf": Vector3(0.5, 0.0, 0.0)}
+
+
+static func ride_part(mi: MeshInstance3D) -> String:
+	# What part of a ride a mesh is ("" if it isn't one that's dressed)
+	if mi.has_meta("ride_part"):
+		return str(mi.get_meta("ride_part"))
+	return str(RIDE_BY_NAME.get(str(mi.name), ""))
+
+
+static func dress_ride(ride: Node) -> int:
+	# Puts the patches on a ride (RideKit.build() calls it last). Returns how many parts it dressed; 0 when done again.
+	var n := 0
+	if ride == null or not on():
+		return n
+	for c in ride.find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		var part := ride_part(mi)
+		if part == "" or not RIDE_PATCH.has(part):
+			continue
+		var over := mi.material_override != null
+		var old := (mi.material_override if over else mi.get_surface_override_material(0)) as StandardMaterial3D
+		if old == null and mi.mesh and mi.mesh.get_surface_count() > 0:
+			old = mi.mesh.surface_get_material(0) as StandardMaterial3D
+		if old == null or old.has_meta(SURFACE_META) or old.emission_enabled \
+				or old.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED \
+				or old.shading_mode == BaseMaterial3D.SHADING_MODE_UNSHADED:
+			continue
+		var m := patched(old, RIDE_PATCH[part][0], float(RIDE_PATCH[part][1]), RIDE_OFFSET.get(part, Vector3.ZERO))
+		if m == null:
+			continue
+		if over:
+			mi.material_override = m
+		else:
+			mi.set_surface_override_material(0, m)
+		n += 1
 	return n
 
 
@@ -4499,11 +4559,13 @@ const SURFACE := "res://models/props/surfaces/%s.glb"
 const SURFACE_TILE := {"clapboard": 2.0, "shingles": 2.0, "brick": 1.2, "stone": 2.4, "barn_boards": 2.0,
 	"dome_scales": 1.6, "bark": 1.6, "rock": 3.0, "ice": 3.0, "snow": 3.0, "coral": 1.2, "metal_panel": 2.0,
 	"drystone": 2.0, "glass_facade": 3.0, "floorboards": 1.6, "floor_tiles": 1.2, "plaster": 2.0,
-	"reptile_scales": 0.8, "goblin_skin": 0.6, "tweed": 0.5}
+	"reptile_scales": 0.8, "goblin_skin": 0.6, "tweed": 0.5, "maple": 0.6, "grip_tape": 0.3, "brushed_metal": 0.4,
+	"tread": 0.4, "leaf_skin": 0.8}
 const SURFACE_GAIN := {"clapboard": 1.38, "shingles": 1.62, "brick": 2.07, "stone": 1.58, "barn_boards": 1.56,
 	"dome_scales": 1.31, "bark": 1.8, "rock": 1.51, "ice": 1.15, "snow": 1.11, "coral": 1.8, "metal_panel": 1.57,
 	"drystone": 2.0, "glass_facade": 2.0, "floorboards": 1.51, "floor_tiles": 1.38, "plaster": 1.25,
-	"reptile_scales": 1.45, "goblin_skin": 1.3, "tweed": 1.5}
+	"reptile_scales": 1.45, "goblin_skin": 1.3, "tweed": 1.5, "maple": 1.2, "grip_tape": 1.11, "brushed_metal": 1.13,
+	"tread": 1.55, "leaf_skin": 1.11}
 # The insides (24 Nov 2026): the Void's dome rooms (tools/build_interiors.gd dome_room(): "Floor <room>", "Wall <room>",
 # "Dome <room>") and the palace school's inside (tools/build_school.gd). Inside, a wall is plaster, never the outside
 # siding a "Wall ..." gets in town, and the dome overhead is plaster too. The builders' colours are all mapped into the

@@ -64,6 +64,9 @@ static func build(kit: String, ride: Node3D, model: Node3D) -> Dictionary:
 			out.flames = _rockets(ride, [Vector3(0, 0.62, -0.62)], 0.08)
 		"saucer":
 			_saucer(ride)
+	# The baked surface patches on each part (scripts/detail_props.gd dress_ride; nothing when the detail's off).
+	# Loaded here, not preloaded, so this class compiles before the autoloads it asks about exist
+	load("res://scripts/detail_props.gd").dress_ride(ride)
 	return out
 
 
@@ -107,7 +110,13 @@ static func _wheel(parent: Node3D, radius: float, width: float, pos: Vector3, m:
 	return mi
 
 
-static func _rod(parent: Node3D, a: Vector3, b: Vector3, r: float, m: Material) -> void:
+static func _tag(mi: MeshInstance3D, part: String) -> MeshInstance3D:
+	# Says what part of the ride it is, for the baked patches (detail_props.gd RIDE_PATCH)
+	mi.set_meta("ride_part", part)
+	return mi
+
+
+static func _rod(parent: Node3D, a: Vector3, b: Vector3, r: float, m: Material) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var c := CylinderMesh.new()
 	c.top_radius = r
@@ -120,6 +129,7 @@ static func _rod(parent: Node3D, a: Vector3, b: Vector3, r: float, m: Material) 
 	var side := up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
 	mi.transform = Transform3D(Basis(side, up, side.cross(up)), (a + b) / 2)
 	parent.add_child(mi)
+	return mi
 
 
 static func _skates(ride: Node3D, model: Node3D, bones: Array, size: float) -> Array:
@@ -132,7 +142,7 @@ static func _skates(ride: Node3D, model: Node3D, bones: Array, size: float) -> A
 		var skate := Node3D.new()
 		skate.name = "Skate " + b
 		ride.add_child(skate)
-		_box(skate, Vector3(0.12, 0.05, 0.26) * size, Vector3(0, 0.06 * size, 0), frame)
+		_tag(_box(skate, Vector3(0.12, 0.05, 0.26) * size, Vector3(0, 0.06 * size, 0), frame), "boot")
 		for z in [-0.09, 0.09]:
 			for x in [-0.045, 0.045]:
 				_wheel(skate, 0.035 * size, 0.03 * size, Vector3(x, 0.035, z) * size, wheel)
@@ -181,13 +191,13 @@ static func _scooter(ride: Node3D) -> void:
 	var metal := _mat(Color(0.8, 0.8, 0.86), 0.25, 0.8)
 	var grip := _mat(Color(0.95, 0.4, 0.6), 0.6)
 	var wheel := _mat(Color(0.98, 0.9, 0.45), 0.5)
-	_box(ride, Vector3(0.16, 0.04, 0.6), Vector3(0, 0.1, 0), deck)
+	_tag(_box(ride, Vector3(0.16, 0.04, 0.6), Vector3(0, 0.1, 0), deck), "grip")
 	_wheel(ride, 0.06, 0.04, Vector3(0, 0.06, -0.28), wheel)
 	_wheel(ride, 0.06, 0.04, Vector3(0, 0.06, 0.3), wheel)
-	_rod(ride, Vector3(0, 0.1, 0.3), Vector3(0, 1.0, 0.36), 0.025, metal)
-	_rod(ride, Vector3(-0.25, 1.0, 0.36), Vector3(0.25, 1.0, 0.36), 0.025, metal)
+	_tag(_rod(ride, Vector3(0, 0.1, 0.3), Vector3(0, 1.0, 0.36), 0.025, metal), "metal")
+	_tag(_rod(ride, Vector3(-0.25, 1.0, 0.36), Vector3(0.25, 1.0, 0.36), 0.025, metal), "metal")
 	for x in [-0.22, 0.22]:
-		_rod(ride, Vector3(x - 0.04, 1.0, 0.36), Vector3(x + 0.04, 1.0, 0.36), 0.035, grip)
+		_tag(_rod(ride, Vector3(x - 0.04, 1.0, 0.36), Vector3(x + 0.04, 1.0, 0.36), 0.035, grip), "grip")
 
 
 static func _leaf(ride: Node3D) -> void:
@@ -199,10 +209,12 @@ static func _leaf(ride: Node3D) -> void:
 	leaf.mesh = s
 	leaf.material_override = _mat(Color(0.55, 0.95, 0.35), 0.6)
 	leaf.scale = Vector3(0.32, 0.06, 0.85)
+	_tag(leaf, "leaf")
 	leaf.position = Vector3(0, 0.08, 0)
 	ride.add_child(leaf)
-	_rod(ride, Vector3(0, 0.12, -0.42), Vector3(0, 0.12, 0.5), 0.012, _mat(Color(0.3, 0.6, 0.25), 0.6))
-	_rod(ride, Vector3(0, 0.12, 0.42), Vector3(0, 0.22, 0.56), 0.012, _mat(Color(0.3, 0.6, 0.25), 0.6))
+	var stem := _mat(Color(0.3, 0.6, 0.25), 0.6)
+	_tag(_rod(ride, Vector3(0, 0.12, -0.42), Vector3(0, 0.12, 0.5), 0.012, stem), "stem")
+	_tag(_rod(ride, Vector3(0, 0.12, 0.42), Vector3(0, 0.22, 0.56), 0.012, stem), "stem")
 
 
 static func _segway(ride: Node3D) -> void:
@@ -210,13 +222,13 @@ static func _segway(ride: Node3D) -> void:
 	var body := _mat(Color(0.95, 0.85, 0.4), 0.35, 0.4)
 	var metal := _mat(Color(0.8, 0.8, 0.86), 0.25, 0.8)
 	var tyre := _mat(Color(0.2, 0.18, 0.25), 0.8)
-	_box(ride, Vector3(0.5, 0.08, 0.32), Vector3(0, 0.14, 0), body)
+	_tag(_box(ride, Vector3(0.5, 0.08, 0.32), Vector3(0, 0.14, 0), body), "metal")
 	for x in [-0.33, 0.33]:
-		_wheel(ride, 0.18, 0.1, Vector3(x, 0.18, 0), tyre)
+		_tag(_wheel(ride, 0.18, 0.1, Vector3(x, 0.18, 0), tyre), "tyre")
 	# The stem leans well forward, clear of his tummy
-	_rod(ride, Vector3(0, 0.18, 0.12), Vector3(0, 1.05, 0.5), 0.03, metal)
-	_rod(ride, Vector3(-0.3, 1.05, 0.5), Vector3(0.3, 1.05, 0.5), 0.03, metal)
-	_rod(ride, Vector3(0.3, 1.05, 0.5), Vector3(0.3, 1.45, 0.5), 0.012, metal)
+	_tag(_rod(ride, Vector3(0, 0.18, 0.12), Vector3(0, 1.05, 0.5), 0.03, metal), "metal")
+	_tag(_rod(ride, Vector3(-0.3, 1.05, 0.5), Vector3(0.3, 1.05, 0.5), 0.03, metal), "metal")
+	_tag(_rod(ride, Vector3(0.3, 1.05, 0.5), Vector3(0.3, 1.45, 0.5), 0.012, metal), "metal")
 	_box(ride, Vector3(0.02, 0.14, 0.22), Vector3(0.3, 1.38, 0.6), _mat(Color(0.95, 0.3, 0.45), 0.6))
 
 
@@ -230,6 +242,7 @@ static func _overboard(ride: Node3D) -> void:
 	deck.material_override = _mat(Color(0.78, 0.6, 1.0), 0.3, 0.3)
 	deck.rotation.x = PI / 2
 	deck.scale = Vector3(1.0, 1.0, 0.22)
+	_tag(deck, "metal")
 	deck.position = Vector3(0, 0.3, 0)                 # up at her feet (its "deck" in Rides.HERO_RIDES), floating
 	ride.add_child(deck)
 	var glow := _mat(Color(0.4, 1.0, 0.9), 0.5, 0.0, 2.5)
@@ -312,8 +325,8 @@ static func _rockets(ride: Node3D, at: Array, radius: float) -> Node3D:
 	fire.albedo_color.a = 0.85
 	for p in at:
 		var pos: Vector3 = p
-		_rod(rockets, pos + Vector3(0, 0, 0.16), pos - Vector3(0, 0, 0.02), radius, tube)
-		_box(rockets, Vector3(radius * 3.0, 0.01, 0.06), pos + Vector3(0, 0, 0.02), fin)
+		_tag(_rod(rockets, pos + Vector3(0, 0, 0.16), pos - Vector3(0, 0, 0.02), radius, tube), "metal")
+		_tag(_box(rockets, Vector3(radius * 3.0, 0.01, 0.06), pos + Vector3(0, 0, 0.02), fin), "metal")
 		var pivot := Node3D.new()                  # at the tube's mouth, so a flame grows out backwards from it
 		pivot.position = pos - Vector3(0, 0, 0.02)
 		flames.add_child(pivot)
@@ -347,6 +360,7 @@ static func _saucer(ride: Node3D) -> void:
 	hull.mesh = s
 	hull.material_override = _mat(Color(0.82, 0.84, 0.92), 0.25, 0.8)
 	hull.scale = Vector3(1.0, 0.22, 1.0)
+	_tag(hull, "metal")
 	hull.position = Vector3(0, 0.36, 0)          # her feet are on its top (deck 0.42)
 	ride.add_child(hull)
 	var rim := MeshInstance3D.new()
