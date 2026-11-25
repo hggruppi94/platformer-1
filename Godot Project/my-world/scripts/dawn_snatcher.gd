@@ -44,7 +44,7 @@ func _magpie() -> void:
 	var beak := PARTS.mat(Color(0.25, 0.25, 0.3), 0.3)
 	var leg := PARTS.mat(Color(0.35, 0.33, 0.4), 0.6)
 	# His black, white and sheeny parts get baked feathers once they're built (scripts/detail_props.gd)
-	(load("res://scripts/detail_props.gd") as GDScript).call_deferred("dress_surfaces", self, [[black, "boss_feathers"], [white, "boss_feathers"], [sheen, "boss_feathers"], [purple, "boss_feathers"]])
+	_dress_skins.call_deferred([[black, "boss_feathers"], [white, "boss_feathers"], [sheen, "boss_feathers"], [purple, "boss_feathers"]])  # (called on itself, so nothing happens if it was freed first)
 	var body := visual.get_node("Body") as Node3D
 	# A round black body with a white belly, and a scarf in purple and gold stripes
 	PARTS.ball(body, 0.3, Vector3(0, 0.03, -0.03), black, Vector3(1.0, 1.1, 1.05), "Feathers")
@@ -136,3 +136,7 @@ func _defeated() -> void:
 	Juice.rumble(0.7, 0.4, 0.7)
 	if world and world.has_method("mend"):
 		world.mend()
+
+
+func _dress_skins(parts: Array) -> void:
+	(load("res://scripts/detail_props.gd") as GDScript).call("dress_surfaces", self, parts)
