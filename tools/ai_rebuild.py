@@ -388,6 +388,40 @@ def _bpy_steps():
             out.append(names.get(max(w, key=w.get)) if w else None)
         return out
 
+    def flatten_under(new, old, mats, names, h, reach=0.035, iters=40):
+        """Smooths the AI's face flat where the old eyes and glasses go back on: the AI moulds its own copy of them
+        into the face (ridges round the eyes, a second pair of glasses in the skin), which would show round the real
+        ones. Only the points near those parts move (the mouth, snout and cheeks keep the AI's shape); the edge of the
+        patch stays put, so it blends in."""
+        bm = bmesh.new()
+        for p in old.data.polygons:
+            mt = mats[p.material_index]
+            if mt is not None and mt.name in names:
+                bm.faces.new([bm.verts.new(old.data.vertices[v].co) for v in p.vertices])
+        if not bm.faces:
+            bm.free()
+            return
+        parts = BVHTree.FromBMesh(bm)
+        bm.free()
+        nb = bmesh.new()
+        nb.from_mesh(new.data)
+        nb.verts.ensure_lookup_table()
+        r = reach * h
+        move = [v for v in nb.verts if (parts.find_nearest(v.co, r)[0] is not None)]
+        ids = {v.index for v in move}
+        for _ in range(iters):
+            pos = {}
+            for v in move:
+                ns = [e.other_vert(v).co for e in v.link_edges]
+                if ns:
+                    pos[v.index] = v.co * 0.3 + (sum(ns, Vector()) / len(ns)) * 0.7
+            for i, c in pos.items():
+                nb.verts[i].co = c
+        nb.to_mesh(new.data)
+        nb.free()
+        new.data.update()
+        print("AI face smoothed under the kept parts:", len(ids), "points")
+
     def straighten_borders(ob, iters=10):
         """Smooths the zigzag where two parts meet (each face is one part, so a border follows the triangles): the
         points on a border slide along it towards their border neighbours, then back onto the surface."""
@@ -738,6 +772,8 @@ def _bpy_steps():
             paint_by_picture(new, old, mats, keep, lo, hi, absorb=(mode == "picture_absorb"))
             decimate(new, max(old_tris, 2000) + (tris(kept) if mode == "picture_absorb" else 0))
             straighten_borders(new)
+            if mode == "picture":
+                flatten_under(new, old, mats, EYES + ["Glasses", "Lens Shine", "Brow", "Eye", "Lash"], hi.z - lo.z)
         elif mode == "region":
             paint_by_region(new, old, mats, keep, lo, hi)
             decimate(new, max(old_tris, 2000))

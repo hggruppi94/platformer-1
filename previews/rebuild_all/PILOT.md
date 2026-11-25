@@ -75,3 +75,8 @@ parts meet is straightened (`straighten_borders`).
 - **1b (the AI's own eyes and glasses painted, old ones dropped):** fine from a distance, blocky close up (square
   pupils, smeared glasses), so not good enough for faces.
 - Next idea: 1 with the AI's face smoothed flat under the kept eyes, glasses and moustache, so the moulded copies go.
+- **1c (row 1 with the AI's face smoothed flat under the kept eyes and glasses, `flatten_under`):** close-ups side by
+  side in `colour_test_faces.png` (original, row 1, 1c). Nina's moulded eye ridges are gone, and her face now looks clean
+  round her real eyes. Mr. Palmer's doesn't improve: the AI put his whole face lower than the original (its glasses
+  sit at his nose), so the smoothing near the real glasses misses its copy. His face would need the AI's features
+  moved up to the old ones first, or his face kept from the old model.
