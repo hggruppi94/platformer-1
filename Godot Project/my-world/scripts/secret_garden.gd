@@ -14,6 +14,9 @@ extends Node3D
 #   - the Lily Pond to the east: shallow enough to wade, lily pads, and a little island in the middle
 #   - the Giant Flowers to the north: a ring of huge flowers, each a bit taller than the last, to climb up to the top
 #   - the Great Tree to the north-west, with an old swing
+# Since 26 Nov 2026 it's the grounds of an old estate too, after the Doheny gardens at Greystone in Beverly Hills
+# (scripts/secret_garden_estate.gd): a grey stone house up on a balustraded terrace along the north wall, grand stairs,
+# a fountain court with a parterre, a brook with stone bridges, and great old oaks and cypresses.
 # Five **sleeping seeds** are hidden about (one in each of those places): walk up to one and it wakes into a glowing
 # flower. All five and the whole garden wakes up: everything brightens, petals drift down, and you get a reward
 # (WAKE_SPARKLES, WAKE_REMNANTS, once). Found seeds are Dialogue flags (sg_seed_<id>, sg_awake), so nothing new in the
@@ -22,6 +25,7 @@ extends Node3D
 const TOWN := "res://scenes/town/town.tscn"
 const USE_SPOT := preload("res://scripts/use_spot.gd")
 const WATER := preload("res://scripts/water.gd")
+const ESTATE := preload("res://scripts/secret_garden_estate.gd")
 
 const WALL_X := 70.0                          # the walls: x from -70 to 70...
 const WALL_Z := Vector2(0, 150)               # ...and z from 0 to 150 (the door's in the south wall, at x 0)
@@ -64,6 +68,7 @@ var _glows: Array[StandardMaterial3D] = []
 var _sky: ProceduralSkyMaterial
 var _env: Environment
 var _home_spot: Area3D
+var estate: Node3D                            # the old estate round it all (scripts/secret_garden_estate.gd)
 
 
 func _enter_tree() -> void:
@@ -85,6 +90,7 @@ func _ready() -> void:
 	_pond()
 	_giant_flowers()
 	_great_tree()
+	_estate()
 	_scatter()
 	_place_seeds()
 	_way_out()
@@ -670,6 +676,11 @@ func _great_tree() -> void:
 		rm.rotation = Vector3(0, -a, PI / 2.0 - 0.15)
 
 
+func _estate() -> void:
+	estate = ESTATE.new()
+	estate.call("build", self)
+
+
 # -----------------------------------------------------------------------------
 # Flowers and bushes all over, and petals in the air
 # -----------------------------------------------------------------------------
@@ -715,7 +726,10 @@ func _scatter() -> void:
 
 
 func _open_ground(at: Vector3) -> bool:
-	# Not on a path, the lawn, in the maze or the pond, by the flowers, the tree or the rose walk
+	# Not on a path, the lawn, in the maze or the pond, by the flowers, the tree or the rose walk, or on the estate's
+	# terrace, stairs, brook and bridges, or under its trees
+	if estate and estate.call("blocks", at):
+		return false
 	if absf(at.x) < 4.0 and at.z < 36.0:
 		return false
 	if Vector2(at.x - FOUNTAIN.x, at.z - FOUNTAIN.z).length() < LAWN_R + 2.0:
