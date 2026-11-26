@@ -99,6 +99,32 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-26: **The Secret Garden is the grounds of an old estate now, after the Doheny gardens at Greystone in Beverly
+  Hills** (Hayden: "Can you make the secret garden look like the doheny estate garden in beverley hills with
+  architecture, fountain, bridges, trees"; inspired by, not a copy). Built and tested in the cloud (own Godot user
+  folders, no save touched). First we read open-source stair and house builders (Hayden's rule), all MIT:
+  GreatOdds/Stairs3D (steps drawn, a smooth slope under them for "simple collision"), synthetic-borealis/Godot-CSGStairs
+  and Oli4k/building-generator (houses built as named surfaces: walls, roof, trim, chimney).
+  - **`scripts/secret_garden_estate.gd`** (a child "Estate" made by `secret_garden.gd _estate()`, borrowing its
+    helpers; nothing rebuilt): the **Old House**, a grey stone Tudor-style manor along the north wall (steep slate
+    roofs, stone gable ends with finials, three front gables, quoins, mullioned windows glowing amber, clustered
+    chimneys, an oak front door that stays locked); the **Upper Terrace** in front of it (`TERRACE_Y` 2.4 m, paved,
+    stone balustrade with vase balusters and urns, planters with topiary, benches, two lion-head wall spouts), reached
+    by a **grand stair** and two side stairs (`STAIRS`: steps drawn, walked on as a ramp over their nosings); the
+    **Fountain Court** (a wide 16-sided pool round the old fountain, `POOL_R`, with eight arching jets, inside a
+    parterre of four hedged beds of flowers); the **Brook** (`BROOK`) from the east spout down to the Lily Pond, wadeable,
+    with two stone footbridges; the balustraded **Pond Bridge** out to the island (between the summerhouse's posts);
+    ten great **oaks** (`OAKS`) and a **cypress allee** up the middle path. The old garden (Rose Walk, maze, pond,
+    giant flowers, Great Tree, seeds, rewards, flags) is unchanged and where it was.
+  - **Baked detail:** every new stone, slate, paving, brick, bark, rock and door material wears a baked surface patch
+    (`ESTATE_SURFACES` through `detail_props.gd dress_place`; the balusters and urns, two MultiMeshes, through
+    `world_patched`); the parterre's hedges are the maze's baked hedge squashed down (`dress_secret_garden`, parent
+    "Parterre", `SG_HEDGE`); oaks' and cypresses' leaves are baked leaf balls (`SG_LEAVES`).
+  - Tests: `test_secret_garden` (new: the estate's there, really walks up the grand stair onto the terrace, can't walk
+    into the house, along and down the east stair, over all three bridges, no wild flowers on the terrace);
+    `test_detail_portal_props -- secret`, farming, garden_caves, cosmic_dust and map pass. Pictures:
+    `tools/capture_secret_garden.gd -- <folder>` shots 13 to 21 (project files, world/previews/secret_garden_estate).
+  - My choices Hayden may change: the house's size and look, the stone colour, where the brook runs, how many oaks.
 - 2026-11-26: **Tuskwinter no longer goes giant and flat in its fight** (Hayden: "during the tuskwinter fight, he
   glitches and becomes giant and flat"). Its belly-flop's "jump" wind-up and a throw's wind-up from `boss_moves.gd`
   could be on its body at once, and each `boss_tell.gd` took the other's pose as the boss's own shape, so every frame

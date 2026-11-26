@@ -2051,7 +2051,9 @@ static func canyon_rock(mi: MeshInstance3D) -> bool:
 const SG := "res://models/props/secret_garden/"
 const FOUNTAIN_SG := SG + "fountain.glb"
 const SG_PETAL_GAIN := 1.2               # the head's petals are baked pale; this lifts each flower's tint back
-const SG_LEAVES := ["Old Leaves", "Great Leaves", "Garden Leaf", "Hedge"]
+const SG_LEAVES := ["Old Leaves", "Great Leaves", "Garden Leaf", "Hedge", "Oak Leaves", "Oak Leaves Light", "Cypress"]
+# (the estate's parterre hedges, 26 Nov 2026, are the maze's baked hedge squashed down: its size)
+const SG_HEDGE := Vector3(5.1, 2.8, 0.9)
 
 static func dress_secret_garden(scene: Node) -> Dictionary:
 	# The Secret Garden (23 Nov 2026, tools/build_prop_secret_garden.py; scripts/secret_garden.gd builds it all from
@@ -2129,6 +2131,10 @@ static func dress_secret_garden(scene: Node) -> Dictionary:
 			_hide(mi)
 			var t := xf if bm.size.x > bm.size.z else Transform3D(xf.basis * Basis(Vector3.UP, PI / 2.0), xf.origin)
 			many.hedge.append(t)
+			out.hedges += 1
+		elif parent == "Parterre" and bm and name == "Hedge":
+			_hide(mi)                    # (the estate's low box hedges: always laid along their x)
+			many.hedge.append(xf * Transform3D(Basis.from_scale(bm.size / SG_HEDGE), Vector3.ZERO))
 			out.hedges += 1
 		elif parent == "Hedge Maze" and name in ["Sundial", "Sundial Face"]:
 			_hide(mi)

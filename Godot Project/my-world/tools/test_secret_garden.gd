@@ -256,6 +256,43 @@ func _run() -> void:
 	await _physics(10)
 	check(dialogue.flags.has("sg_seed_maze"), "...where the sleeping seed wakes as you get to it")
 
+	# --- The old estate (26 Nov 2026, scripts/secret_garden_estate.gd) ---
+	var est: Node3D = sg.estate
+	check(est != null and est.get_node_or_null("Old House") != null and est.get_node_or_null("Upper Terrace") != null,
+		"the old estate's there: the Old House up on its terrace")
+	check(est.stairs.size() == 3 and est.bridges.size() == 3, "...three stairs up and three stone bridges (%d, %d)" % [est.stairs.size(), est.bridges.size()])
+	var ty: float = est.TERRACE_Y
+	var grand: Dictionary = est.stairs[0]
+	p.global_position = (grand.foot as Vector3) + Vector3(0, 1.0, 0)
+	p.velocity = Vector3.ZERO
+	await _physics(6)
+	var res := await _walk(p, [grand.top, Vector3(0, 0, 130)], 20.0)
+	check(res.ok and p.global_position.y > ty + 0.6 and p.is_on_floor(),
+		"you can walk up the grand stair onto the terrace (%.1f m up)" % (p.global_position.y - 0.9))
+	res = await _walk(p, [Vector3(0, 0, 136.0)], 3.0)
+	check(not res.ok and p.global_position.z < 133.2, "...but not into the Old House (it's locked)")
+	var east: Dictionary = est.stairs[2]
+	res = await _walk(p, [Vector3(east.x, 0, 128), east.top, east.foot], 20.0)
+	check(res.ok and p.global_position.y < 1.4 and p.is_on_floor(), "...and along it and down the east stair")
+	res = await _walk(p, [Vector3(0, 0, 135.5)], 1.0)
+	var flat := 0
+	for f in sg.get_node("Flowerbeds").get_children():
+		if f is Node3D and est.blocks((f as Node3D).position - Vector3(0, (f as Node3D).position.y, 0)) \
+				and (f as Node3D).position.y > ty:
+			flat += 1
+	check(flat == 0, "no wild flowers up on the terrace (%d)" % flat)
+	for b in est.bridges:
+		var a: Vector3 = b.from
+		var e: Vector3 = b.to
+		var dir := (e - a).normalized()
+		p.global_position = a - dir * 2.0 + Vector3(0, 1.0, 0)
+		p.velocity = Vector3.ZERO
+		await _physics(6)
+		var top := -INF
+		var w := await _walk(p, [a - dir * 1.0, (a + e) / 2.0, e + dir * 0.6], 14.0, true)
+		top = w.top
+		check(w.ok and top - 0.9 > b.rise * 0.7, "you can walk over the %s (%.1f m up at its top)" % [b.name, top - 0.9])
+
 	# The rest of the seeds, and the garden waking
 	var sparkles: int = game.sparkles
 	var remnants: int = root.get_node("Remnants").count
@@ -304,6 +341,37 @@ func _run() -> void:
 	sg = current_scene as Node3D
 	check(sg.awake and sg.seeds_woken() == 5, "next time in, it's still awake")
 	_finish()
+
+
+func _walk(p: CharacterBody3D, steps: Array, seconds: float, keep_line := false) -> Dictionary:
+	# Steers her along steps (x, z), like a player on the stick; ok if she got to the last one. top is the highest she
+	# got. keep_line steers back onto the line between steps, so she walks over a bridge, not round it.
+	var wpi := 0
+	var top := p.global_position.y
+	var from := p.global_position
+	for i in int(60 * seconds):
+		await physics_frame
+		top = maxf(top, p.global_position.y)
+		var aim: Vector3 = steps[wpi]
+		var want: Vector3 = aim - p.global_position
+		want.y = 0
+		if want.length() < 0.7:
+			if wpi == steps.size() - 1:
+				_release()
+				return {"ok": true, "top": top}
+			from = Vector3(aim.x, p.global_position.y, aim.z)
+			wpi += 1
+			continue
+		if keep_line:
+			var line := Vector3(aim.x - from.x, 0, aim.z - from.z)
+			if line.length() > 0.1:
+				var ln := line.normalized()
+				var rel := Vector3(p.global_position.x - from.x, 0, p.global_position.z - from.z)
+				var off := rel - ln * rel.dot(ln)
+				want = ln * 1.0 - off * 1.5
+		_steer(p, want.normalized())
+	_release()
+	return {"ok": false, "top": top}
 
 
 func _on_map(label: String) -> bool:
