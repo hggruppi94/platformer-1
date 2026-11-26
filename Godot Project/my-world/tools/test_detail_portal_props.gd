@@ -744,73 +744,62 @@ func _gloop_kingdom() -> void:
 
 
 func _secret_garden() -> void:
+	# The rebuilt garden (26 Nov 2026) puts its baked models on as it's built; dress_secret_garden() only does the little
+	# leafy balls
 	detail.detail_props = false
 	await _load(SECRET_GARDEN)
 	var shapes_before := _shapes(current_scene, true)
 	check(current_scene.get_node_or_null("Detailed Garden") == null, "nothing baked in the garden with detailed props off")
+	var plain_walls := current_scene.find_child("Ivy Walls", true, false) as MultiMeshInstance3D
+	check(plain_walls != null and plain_walls.multimesh.mesh is BoxMesh, "with detailed props off the walls are plain boxes")
 	detail.detail_props = true
 	await _load(SECRET_GARDEN)
 	var s := current_scene
 	var got: Dictionary = detail.last_props
 	print("Secret Garden props: ", got)
-	check(got.get("walls", 0) == 5, "all five of the garden's walls are baked lengths of ivy-covered brick (%d)" % got.get("walls", 0))
-	check(got.get("arches", 0) == 9, "the Rose Walk's arches swapped (%d)" % got.get("arches", 0))
-	check(got.get("fountain", 0) == 1 and got.get("sundial", 0) == 1 and got.get("summerhouse", 0) == 1,
-		"the fountain, sundial and summerhouse swapped")
-	check(got.get("hedges", 0) >= 40, "the maze's hedges swapped (%d)" % got.get("hedges", 0))
-	check(got.get("flowers", 0) == 9, "all nine Giant Flowers swapped (%d)" % got.get("flowers", 0))
-	check(got.get("tree", 0) == 1, "the Great Tree swapped")
-	check(got.get("benches", 0) >= 3, "the benches swapped (%d)" % got.get("benches", 0))
-	check(got.get("leaf_balls", 0) > 50, "the leafy balls are baked leaf balls (%d)" % got.get("leaf_balls", 0))
-	# Nothing plain left drawn of what was swapped
+	var walls := s.find_child("Ivy Walls", true, false) as MultiMeshInstance3D
+	check(walls != null and walls.multimesh.mesh is ArrayMesh, "the walls are the baked ivy-covered brick")
+	var hedges := 0
+	var baked_trees := 0
+	for mmi: MultiMeshInstance3D in s.find_children("*", "MultiMeshInstance3D", true, false):
+		var nm := String(mmi.name)
+		if nm == "Hedges" and mmi.multimesh.mesh is ArrayMesh:
+			hedges += mmi.multimesh.instance_count
+		if nm.begins_with("Tree ") and mmi.multimesh.mesh is ArrayMesh:
+			baked_trees += 1
+	check(hedges > 60, "the hedges (the maze's, the formal garden's, the potager's) are the baked hedge (%d)" % hedges)
+	check(baked_trees >= 10, "the trees' trunks, limbs and leaves are the baked nature shapes (%d kinds)" % baked_trees)
+	var arches := s.find_child("Rose Arch Models", true, false) as MultiMeshInstance3D
+	check(arches != null and arches.multimesh.instance_count >= 15, "the Rose Walk's arches are the baked arch")
+	for nm in ["Balusters", "Urns"]:
+		var mmi := s.find_child(nm, true, false) as MultiMeshInstance3D
+		check(mmi != null and mmi.multimesh.mesh is ArrayMesh and mmi.material_override == null,
+			"the estate's %s are the baked stonework (%d)" % [nm.to_lower(), mmi.multimesh.instance_count if mmi else 0])
+	var tiers := s.find_child("Fountain Tiers", true, false) as MeshInstance3D
+	check(tiers != null and tiers.mesh is ArrayMesh, "the Great Fountain's tiers are the baked fountain")
+	check(got.get("leaf_balls", 0) > 20, "the little leafy balls are baked leaf balls (%d)" % got.get("leaf_balls", 0))
 	var plain := 0
 	for c in s.find_children("*", "MeshInstance3D", true, false):
 		var mi := c as MeshInstance3D
-		if mi.has_meta("detail_prop_old") or _in_model(mi) or not mi.is_visible_in_tree():
+		if mi.has_meta("detail_prop_old") or not mi.is_visible_in_tree():
 			continue
-		var mn := _mat_of(mi)
-		var nm := DETAIL_PROPS._base_name(mi)
-		var par := String(mi.get_parent().name)
-		var was_swapped := false
-		if mi.mesh is SphereMesh and mn in ["Hedge", "Old Leaves", "Great Leaves", "Garden Leaf", "Ivy", "Ivy Light"]:
-			was_swapped = true                   # (leafy balls, ivy)
-		elif nm in ["South Wall", "North Wall", "Side Wall", "Coping", "Outer Tree", "Arch Post", "Hedge", "Bench",
-				"Alcove Bench", "Sundial", "Sundial Face", "Summerhouse Post", "Stem", "Flower Face", "Flower Middle",
-				"Fountain Basin", "Fountain Column", "Fountain Bowl"]:
-			was_swapped = true
-		elif par == "Great Tree" and mn == "Old Bark":
-			was_swapped = true
-		if was_swapped:
+		if mi.mesh is SphereMesh and _mat_of(mi) in DETAIL_PROPS.SG_LEAVES:
 			plain += 1
-			if plain < 12:
-				print("  still plain: ", mi.get_path(), " ", mn)
-	check(plain == 0, "nothing plain left drawn (%d)" % plain)
-	# Each MultiMesh copy stands on a piece it replaced
-	var dg := s.get_node("Detailed Garden")
-	var places := 0
-	for mmi: MultiMeshInstance3D in dg.get_children():
-		places += (mmi.get_meta("transforms") as Array).size()
-	check(places > 100, "the walls, arches, hedges, benches and leaves are MultiMeshes with a place each (%d)" % places)
-	# The flowers keep glowing brighter when the garden wakes: their baked heads' materials are in its list
-	var glows: Array = s.get("_glows")
-	var heads := 0
-	for f in s.find_children("Giant Flower *", "Node3D", true, false):
-		var h := f.get_node_or_null("Detailed Head") as Node3D
-		if h == null:
-			continue
-		for m in h.find_children("*", "MeshInstance3D", true, false):
-			var mat := (m as MeshInstance3D).get_active_material(0)
-			if mat != null and mat in glows:
-				heads += 1
-				break
-	check(heads == 9, "each flower's baked head glows with the garden (%d)" % heads)
-	check(_shapes(s, true) == shapes_before, "every solid shape is where it was")
+	check(plain == 0, "no plain leafy balls left drawn (%d)" % plain)
+	var shapes_now := _shapes(s, true)
+	if shapes_now != shapes_before:
+		var shown := 0
+		for k in shapes_now:
+			if shapes_before.get(k, 0) != shapes_now[k] and shown < 8:
+				print("  differs (now): ", k, " ", shapes_now[k], " was ", shapes_before.get(k, 0))
+				shown += 1
+		for k in shapes_before:
+			if not shapes_now.has(k) and shown < 16:
+				print("  only before: ", k)
+				shown += 1
+	check(shapes_now == shapes_before, "every solid shape is where it was")
 	var again := DETAIL_PROPS.dress_secret_garden(s)
-	var none := true
-	for k in again:
-		if again[k] != 0:
-			none = false
-	check(none, "dressing the garden again changes nothing")
+	check(again.get("leaf_balls", 0) == 0, "dressing the garden again changes nothing")
 
 
 func _star_arena() -> void:
