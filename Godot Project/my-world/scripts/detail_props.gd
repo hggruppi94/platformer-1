@@ -2049,169 +2049,34 @@ static func canyon_rock(mi: MeshInstance3D) -> bool:
 
 
 const SG := "res://models/props/secret_garden/"
-const FOUNTAIN_SG := SG + "fountain.glb"
-const SG_PETAL_GAIN := 1.2               # the head's petals are baked pale; this lifts each flower's tint back
-const SG_LEAVES := ["Old Leaves", "Great Leaves", "Garden Leaf", "Hedge", "Oak Leaves", "Oak Leaves Light", "Cypress"]
-# (the estate's parterre hedges, 26 Nov 2026, are the maze's baked hedge squashed down: its size)
-const SG_HEDGE := Vector3(5.1, 2.8, 0.9)
+const SG_LEAVES := ["Garden Leaf", "Rose Leaf", "Quarry Ivy"]
 
 static func dress_secret_garden(scene: Node) -> Dictionary:
-	# The Secret Garden (23 Nov 2026, tools/build_prop_secret_garden.py; scripts/secret_garden.gd builds it all from
-	# shapes as it loads): its ivy-covered brick walls (as 4 m lengths, ivy on the inside), the Rose Walk's arches, the
-	# fountain, the maze's hedges and sundial, the summerhouse, the Giant Flowers (petals tinted each flower's colour and
-	# glowing brighter when the garden wakes, as before), the Great Tree's trunk, roots and swing branch, and the
-	# benches. The leafy balls (tree crowns, bushes, hedge tops) become Stars Hollow's baked leaf balls in their own
-	# greens, and the outer trees' trunks its baked bark. The water, spray, wren, swing, seeds, signs and every
-	# collision stay.
-	var out := {"walls": 0, "arches": 0, "fountain": 0, "hedges": 0, "sundial": 0, "summerhouse": 0, "flowers": 0,
-		"tree": 0, "benches": 0, "leaf_balls": 0, "trunks": 0}
+	# The Secret Garden (rebuilt 26 Nov 2026: scripts/secret_garden.gd and its parts) puts on its own baked models as it's
+	# built (the ivy walls, hedges, rose arches, balusters, urns and every tree's trunk, limbs and leaves, through
+	# baked_mesh()), so all that's left here are the little leafy balls (urns' and arbours' leaves, rose bushes' tops,
+	# the quarry's ivy): they become Stars Hollow's baked leaf balls in their own greens. Every collision stays.
+	var out := {"leaf_balls": 0}
 	if scene.has_node("Detailed Garden"):
 		return out
 	var holder := Node3D.new()
 	holder.name = "Detailed Garden"
-	var many := {"ivy_wall": [], "rose_arch": [], "hedge": [], "garden_bench": [], "bark_trunk": []}
 	var leaves := {}                      # leaf material -> [transforms]
 	var leaf_mats := {}                   # ... and the old material
-	var glows: Variant = scene.get("_glows")
 	for k in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := k as MeshInstance3D
 		if mi.has_meta(OLD_META) or mi.get_parent() == null or _in_detailed(mi):
 			continue
-		var g := mi.get_parent() as Node3D
-		var parent := String(g.name)
-		var mat := _mat_name(mi)
-		var name := _base_name(mi)
-		var bm := mi.mesh as BoxMesh
 		var sm := mi.mesh as SphereMesh
-		var cm := mi.mesh as CylinderMesh
-		var xf := _to_scene(mi, scene)
-		if parent == "Garden Walls" and bm and name in ["South Wall", "North Wall", "Side Wall"]:
-			_hide(mi)
-			var along_x := bm.size.x > bm.size.z
-			var length := maxf(bm.size.x, bm.size.z)
-			var n := maxi(1, roundi(length / 4.0))
-			var yaw := 0.0
-			if along_x:
-				yaw = 0.0 if xf.origin.z < 75.0 else PI
-			else:
-				yaw = PI / 2.0 if xf.origin.x < 0.0 else -PI / 2.0
-			for i in n:
-				var off := -length / 2.0 + length * (i + 0.5) / n
-				var at := xf.origin + (Vector3(off, 0, 0) if along_x else Vector3(0, 0, off))
-				at.y -= bm.size.y / 2.0
-				many.ivy_wall.append(Transform3D(Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(length / n / 4.0, 1, 1)), at))
-			out.walls += 1
-		elif parent == "Garden Walls" and bm and name == "Coping":
-			_hide(mi)
-		elif parent == "Garden Walls" and sm and mat in ["Ivy", "Ivy Light"]:
-			_hide(mi)
-		elif parent == "Garden Walls" and cm and name == "Outer Tree":
-			_hide(mi)
-			many.bark_trunk.append(xf * Transform3D(Basis.from_scale(Vector3(1.2, cm.height, 1.2)), Vector3.ZERO))
-			out.trunks += 1
-		elif parent == "Rose Walk" and cm and name == "Arch Post":
-			_hide(mi)
-			if mi.position.x > 0.0:
-				many.rose_arch.append(Transform3D(xf.basis, xf.origin + Vector3(-1.9, -1.6, 0)))
-				out.arches += 1
-		elif parent == "Rose Walk" and mi.mesh is TorusMesh:
-			_hide(mi)
-		elif parent == "Rose Walk" and sm and mi.position.y > 2.4:
-			_hide(mi)                    # (the roses and leaves on the arches: the baked arch has its own)
-		elif parent == "Fountain Lawn" and name in ["Fountain Basin", "Fountain Column", "Fountain Bowl"]:
-			_hide(mi)
-			if not g.has_node("Detailed Fountain"):
-				_add(g, FOUNTAIN_SG, "Detailed Fountain", Transform3D())
-				out.fountain = 1
-		elif bm and name in ["Bench", "Alcove Bench"]:
-			_hide(mi)
-			many.garden_bench.append(xf * Transform3D(Basis.from_scale(Vector3(bm.size.x / 2.0, 1, 1)), Vector3.ZERO))
-			out.benches += 1
-		elif parent == "Hedge Maze" and bm and name == "Hedge":
-			_hide(mi)
-			var t := xf if bm.size.x > bm.size.z else Transform3D(xf.basis * Basis(Vector3.UP, PI / 2.0), xf.origin)
-			many.hedge.append(t)
-			out.hedges += 1
-		elif parent == "Parterre" and bm and name == "Hedge":
-			_hide(mi)                    # (the estate's low box hedges: always laid along their x)
-			many.hedge.append(xf * Transform3D(Basis.from_scale(bm.size / SG_HEDGE), Vector3.ZERO))
-			out.hedges += 1
-		elif parent == "Hedge Maze" and name in ["Sundial", "Sundial Face"]:
-			_hide(mi)
-			if not g.has_node("Detailed Sundial"):
-				_add(g, SG + "sundial.glb", "Detailed Sundial", Transform3D(Basis(), Vector3(mi.position.x, 0, mi.position.z)))
-				out.sundial = 1
-		elif parent == "Lily Pond" and (name == "Summerhouse Post" or (sm and mat == "Summerhouse Roof")):
-			_hide(mi)
-			if not g.has_node("Detailed Summerhouse"):
-				_add(g, SG + "summerhouse.glb", "Detailed Summerhouse", Transform3D())
-				out.summerhouse = 1
-		elif parent.begins_with("Giant Flower ") and (name in ["Stem", "Flower Face", "Flower Middle"]
-				or (sm and mat.begins_with("Giant Petal"))):
-			_hide(mi)
-			if g.has_node("Detailed Head"):
-				continue
-			var face := g.get_node_or_null("Flower Face") as MeshInstance3D
-			var stem := g.get_node_or_null("Stem") as MeshInstance3D
-			if face == null or stem == null:
-				continue
-			var r := (face.mesh as CylinderMesh).top_radius
-			var top := face.position.y + 0.15
-			var s := r / 2.0
-			var head := _add(g, SG + "flower_head.glb", "Detailed Head", Transform3D(Basis.from_scale(Vector3.ONE * s),
-				Vector3(0, top, 0)))
-			if head:
-				var was := face.material_override as StandardMaterial3D
-				for hm: MeshInstance3D in head.find_children("*", "MeshInstance3D", true, false):
-					var base := hm.get_active_material(0) as StandardMaterial3D
-					if base == null or was == null:
-						continue
-					var copy := base.duplicate() as StandardMaterial3D
-					copy.resource_name = String(was.resource_name)
-					var c := was.albedo_color * SG_PETAL_GAIN
-					copy.albedo_color = Color(c.r, c.g, c.b, 1.0)
-					copy.emission_enabled = true
-					copy.emission = was.emission
-					copy.emission_energy_multiplier = was.emission_energy_multiplier
-					hm.set_surface_override_material(0, copy)
-					if glows is Array:
-						glows.append(copy)
-			_add(g, SG + "flower_middle.glb", "Detailed Middle", Transform3D(Basis.from_scale(Vector3.ONE * s),
-				Vector3(0, top + 0.06, 0)))
-			_add(g, SG + "flower_stem.glb", "Detailed Stem", Transform3D(Basis.from_scale(Vector3(1, stem.position.y * 2.0
-				/ 4.0, 1)), Vector3(0, stem.position.y, 0)))
-			out.flowers += 1
-		elif parent == "Great Tree" and cm and mat == "Old Bark":
-			_hide(mi)                    # (the trunk, the swing's branch and the roots)
-			if not g.has_node("Detailed Tree"):
-				_add(g, SG + "great_tree.glb", "Detailed Tree", Transform3D())
-				out.tree = 1
-		elif sm and mat in SG_LEAVES:
+		var mat := _mat_name(mi)
+		if sm and mat in SG_LEAVES:
 			_hide(mi)
 			var r := sm.radius
 			if not leaves.has(mat):
 				leaves[mat] = []
 				leaf_mats[mat] = mi.material_override
-			leaves[mat].append(xf * Transform3D(Basis.from_scale(Vector3(r, sm.height / 2.0, r)), Vector3.ZERO))
+			leaves[mat].append(_to_scene(mi, scene) * Transform3D(Basis.from_scale(Vector3(r, sm.height / 2.0, r)), Vector3.ZERO))
 			out.leaf_balls += 1
-	for kind: String in many:
-		if many[kind].is_empty():
-			continue
-		var path: String = NATURE % kind if kind == "bark_trunk" else SG + kind + ".glb"
-		var model := _scene(path)
-		if model == null:
-			continue
-		var mesh := _mesh_of(model)
-		if kind == "ivy_wall":
-			# (the wall's model came out of the bake centred on its middle: lift each length so its foot's on the ground)
-			var lift := Vector3(0, -mesh.get_aabb().position.y, 0)
-			for i in many[kind].size():
-				many[kind][i] = (many[kind][i] as Transform3D).translated(lift)
-		_multi(holder, mesh, many[kind], "Detailed " + kind.capitalize())
-		var mmi := holder.get_node("Detailed " + kind.capitalize()) as MultiMeshInstance3D
-		mmi.visibility_range_end = 0.0
-		if kind == "bark_trunk":
-			mmi.material_override = _nature_mat(mesh, Color(0.36, 0.26, 0.3), "bark_trunk")
 	var leaf := _scene(NATURE % "leaf_ball")
 	if leaf:
 		var mesh := _mesh_of(leaf)
@@ -2219,10 +2084,9 @@ static func dress_secret_garden(scene: Node) -> Dictionary:
 			var name := "Detailed Leaves " + mat
 			_multi(holder, mesh, leaves[mat], name)
 			var mmi := holder.get_node(name) as MultiMeshInstance3D
-			mmi.visibility_range_end = 0.0
+			mmi.visibility_range_end = 160.0
 			mmi.material_override = _nature_mat(mesh, (leaf_mats[mat] as StandardMaterial3D).albedo_color, "leaf_ball")
-			if not mat in ["Old Leaves", "Great Leaves"]:
-				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	scene.add_child(holder)
 	return out
 
@@ -2532,6 +2396,15 @@ static func seraph_mesh(kind: String) -> Mesh:
 	if not on():
 		return null
 	var m := _scene("res://models/props/seraph/%s.glb" % kind)
+	return _mesh_of(m) if m else null
+
+
+static func baked_mesh(path: String) -> Mesh:
+	# Any baked model's mesh (a .glb under res://models/props/), or null if detailed props are off or it hasn't been
+	# imported yet, so the caller uses its plain shapes instead (the rebuilt Secret Garden, 26 Nov 2026).
+	if not on():
+		return null
+	var m := _scene(path)
 	return _mesh_of(m) if m else null
 
 

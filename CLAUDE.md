@@ -99,6 +99,37 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-26: **The Secret Garden is rebuilt from scratch, far bigger: a hillside estate of 16 gardens inspired by
+  the world's best gardens and arboretums** (Hayden: "you should start over from scratch and make it 10x better", "and
+  make it way bigger. utilize inspiration from the worlds best arboretums and gardens"; inspired by, never a copy). It's
+  about 276 x 322 m now, rising 24 m from the door to the Old House. Built and tested in the cloud (own Godot user
+  folders, no save touched). The door, the wren, the five sleeping seeds, the rewards, flags and saves work as before.
+  - **How it's built:** `secret_garden.gd` makes the land (`secret_garden_land.gd`: terraces, lakes, islands, streams,
+    `PATHS`) and four parts, each a child sharing `secret_garden_kit.gd` (slabs, stairs, bridges, balustrades, hedges,
+    trees, wading zones; lists `bridges`, `stairs`, `trees` for the tests): **estate** (`secret_garden_estate.gd`: the
+    Old House, Overlook Terrace, Formal Garden and Great Fountain, Water Stairs, Tulip Slope, Cypress Walk),
+    **waters** (`secret_garden_waters.gd`, water in `garden_water.gdshader`: Temple Lake with its round Lake Temple and a
+    rowboat (Stourhead), the roofed Palladian Bridge (Stowe), the Lily Pond and Green Bridge under wisteria (Giverny),
+    the Japanese Garden with koi, Koi Falls, the red Moon Bridge, lanterns, a raked dry garden and a tea house (Portland,
+    Ryoan-ji), the Rose Walk's arches), **groves** (`secret_garden_groves.gd`: the Great Tree with its Crown Deck and the
+    Treetop Walk (Kew), the arboretum's groves, the Glasshouse (Kew's Palm House), the Supertree Grove with a spiral up
+    the tallest (Gardens by the Bay)), **rooms** (`secret_garden_rooms.gd`: the Hedge Maze (Hampton Court) and its
+    Lookout, the Potager (Villandry), the Rill Court with arching jets (the Alhambra), the Sunken Quarry Garden
+    (Butchart)).
+  - **Seeds:** the walk seed on the Lake Temple's steps, the pond seed on the Lily Pond's island, the tree seed on the
+    Crown Deck, the flower seed on top of the tallest supertree, the maze seed in the maze's heart.
+  - **Baked detail:** new `tools/build_prop_estate.py <out.glb> baluster|urn|tiered_fountain` (fluted, beaded
+    weathered stone with lichen; a gadrooned urn with egg-and-dart; the fountain's two tiers with lion masks, brackets
+    and shells), in `models/props/estate/`. The walls, hedges, rose arches, benches, sundial and trees use the older
+    bakes; every stone, paving and wood material wears a baked patch (`dress_place`); `detail_props.gd
+    dress_secret_garden()` now only swaps the little leafy balls (`SG_LEAVES`).
+  - Tests: `test_secret_garden` rewritten (really walks from the door to the Overlook, up the grand stair, through the
+    maze to its heart, over every bridge, up the Treetop Walk, the supertree's spiral, down into the quarry, and wakes
+    the garden once); `test_detail_portal_props -- secret`, detail_all, map, cosmic_dust, world_detail, farming and
+    garden_caves pass. Pictures: `tools/capture_secret_garden.gd -- <folder> [<prefix>]` (project files,
+    world/previews/secret_garden_rebuild). `tools/capture_detail_secret_garden.gd` is gone (its views no longer exist).
+  - My choices Hayden may change: which gardens, their names, where each seed sits, how big it all is.
+
 - 2026-11-26: **The Secret Garden is the grounds of an old estate now, after the Doheny gardens at Greystone in Beverly
   Hills** (Hayden: "Can you make the secret garden look like the doheny estate garden in beverley hills with
   architecture, fountain, bridges, trees"; inspired by, not a copy). Built and tested in the cloud (own Godot user

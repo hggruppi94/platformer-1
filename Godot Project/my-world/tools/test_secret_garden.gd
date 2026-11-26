@@ -4,10 +4,12 @@ extends SceneTree
 # in (scripts/secret_garden_way.gd). In town: the old ivy wall at the foot of the hill's north cliff stands on flat, dry,
 # open ground, off the paths, and it's just a wall at first. The wren waits up on the hill, hops on along its trail as
 # you catch up and flies down to the wall; you dig up the key where it pecks, the ivy parts and the door opens, and from
-# then on it's on the map. In the garden: it's big (at least 130 m by 140 m inside its walls), you come in facing up
-# the Rose Walk, you can really walk to the Fountain Lawn and through the maze to its heart, the giant flowers are each
-# a hop from the last, nothing solid sits on any sleeping seed, waking all five wakes the garden and pays once, saving in
-# there comes back in, and the old door takes you home onto the ground in front of the wall.
+# then on it's on the map. In the garden (rebuilt 26 Nov 2026 as a hillside estate): it's big (at least 270 m by 300 m
+# inside its walls) with all its gardens, nothing solid sits on any sleeping seed, and you can really walk from the door
+# up to the Overlook in front of the Old House (not into it), through the maze to its heart, up the lookout, the temple's
+# steps, over every bridge, the Treetop Walk, round the tallest supertree and down into the Sunken Garden, waking every
+# seed on foot; that wakes the garden and pays once, saving in there comes back in, and the old door takes you home
+# onto the ground in front of the wall.
 #
 #   godot --headless --path "Godot Project/my-world" --script res://tools/test_secret_garden.gd
 #
@@ -32,7 +34,7 @@ func check(ok: bool, what: String) -> void:
 
 
 func _initialize() -> void:
-	create_timer(400.0, true, false, true).timeout.connect(func() -> void:
+	create_timer(900.0, true, false, true).timeout.connect(func() -> void:
 		print("RESULT FAILED (timed out)")
 		_finish())
 	_run.call_deferred()
@@ -171,138 +173,161 @@ func _run() -> void:
 	var sg := current_scene as Node3D
 	check(sg.scene_file_path == root.get_node("Farm").SECRET_GARDEN, "going in takes you to the Secret Garden")
 	p = sg.find_child("Player", true, false) as CharacterBody3D
-	check(p.global_position.distance_to(Vector3(0, 1.0, 3.0)) < 1.5, "...just inside its old door")
+	check(p.global_position.distance_to(Vector3(0, 1.0, 4.0)) < 1.5, "...just inside its old door")
 	var face := Vector3(sin(p.visual.rotation.y), 0, cos(p.visual.rotation.y))
-	check(face.z > 0.9, "...facing up the Rose Walk")
+	check(face.z > 0.9, "...facing up into the garden")
 	var wx: float = sg.WALL_X
 	var wz: Vector2 = sg.WALL_Z
-	check(wx * 2.0 >= 130.0 and wz.y - wz.x >= 140.0, "it's big: %.0f by %.0f m inside its walls" % [wx * 2.0, wz.y - wz.x])
-	for n in ["Rose Walk", "Fountain Lawn", "Hedge Maze", "Lily Pond", "Giant Flowers", "Great Tree", "Sleeping Seeds"]:
-		check(sg.get_node_or_null(n) != null, "...with the %s" % n)
+	check(wx * 2.0 >= 270.0 and wz.y - wz.x >= 300.0, "it's big: %.0f by %.0f m inside its walls" % [wx * 2.0, wz.y - wz.x])
+	var parts: Dictionary = sg.parts
+	check(parts.size() == 4, "...built in four parts: the estate, the waters, the groves and the garden rooms")
+	var est: Node3D = parts.get("estate")
+	var wat: Node3D = parts.get("waters")
+	var gro: Node3D = parts.get("groves")
+	var rms: Node3D = parts.get("rooms")
+	for pair in [[est, "Old House"], [est, "Overlook Terrace"], [est, "Formal Garden"], [est, "Water Stairs"],
+			[est, "Tulip Slope"], [est, "Cypress Walk"], [wat, "Temple Lake"], [wat, "Lake Temple"], [wat, "Palladian Bridge"],
+			[wat, "Lily Pond"], [wat, "Japanese Garden"], [wat, "Rose Arches"], [gro, "Great Tree"], [gro, "Treetop Walk"],
+			[gro, "Glasshouse"], [gro, "Supertree Grove"], [rms, "Hedge Maze"], [rms, "Maze Lookout"], [rms, "Potager"],
+			[rms, "Rill Court"], [rms, "Sunken Garden"]]:
+		check(pair[0] != null and (pair[0] as Node).get_node_or_null(pair[1]) != null, "...with the %s" % pair[1])
+	check(sg.get_node_or_null("Sleeping Seeds") != null and sg.seed_at.size() == 5, "...and each of the five seeds put in its place")
 	space = sg.get_world_3d().direct_space_state
 
-	# Nothing solid sits on any sleeping seed, and each one's on the ground (or a flower)
+	# Nothing solid sits on any sleeping seed
 	for id in sg.seeds:
 		var at: Vector3 = sg.seeds[id].at
 		sq.transform = Transform3D(Basis(), at + Vector3(0, 1.1, 0))
 		check(space.intersect_shape(sq, 4).is_empty(), "nothing solid on the %s seed" % id)
+	var sparkles: int = game.sparkles
+	var remnants: int = root.get_node("Remnants").count
 
-	# The maze can be solved: from the way in to the heart, along open sides only
-	var n: int = sg.MAZE_CELLS
-	var open: Array = sg.maze_open
-	var start := Vector2i(n - 1, n / 2)
-	var heart := Vector2i(n / 2, n / 2)
-	var dirs := {"n": Vector2i(0, 1), "s": Vector2i(0, -1), "e": Vector2i(1, 0), "w": Vector2i(-1, 0)}
+	# Really walk from the door all the way up to the Overlook in front of the house: round Temple Lake, up the Tulip
+	# Slope, beside the Water Stairs, along the Cypress Walk, across the Formal Garden and up a stair
+	var route := [Vector3(0, 0, 16), Vector3(-22, 0, 22), Vector3(-42, 0, 36), Vector3(-47, 0, 58), Vector3(-44, 0, 78),
+		Vector3(-36, 0, 94), Vector3(-14, 0, 100), Vector3(0, 0, 102), Vector3(0, 0, 138), Vector3(7.5, 0, 143),
+		Vector3(7.5, 0, 197), Vector3(0, 0, 202), Vector3(0, 0, 245), Vector3(46, 0, 246), Vector3(46, 0, 268),
+		Vector3(46, 0, 288), Vector3(30, 0, 288)]
+	var res := await _walk(p, route, 120.0)
+	check(res.ok and p.global_position.y > 23.6 and p.is_on_floor(),
+		"you can walk from the door right up to the Overlook in front of the Old House (%.1f m up)" % (p.global_position.y - 0.9))
+	res = await _walk(p, [Vector3(20, 0, 310)], 4.0)
+	check(not res.ok and p.global_position.z < 302.0, "...but not into the Old House (it's shut up)")
+	res = await _walk(p, [Vector3(12, 0, 287.4), Vector3(0, 0, 287.2), Vector3(0, 0, 269.8)], 20.0)
+	check(res.ok and absf(p.global_position.y - 0.9 - 18.0) < 0.6, "...and down the grand stair to the Formal Garden")
+
+	# The maze: it can be solved, and you can really walk it to its heart
+	var n: int = rms.MAZE_N
+	var cs: float = rms.MAZE_CELL
+	var mo: Vector2 = rms.MAZE_ORIGIN
+	var east_w: Array = rms.maze_east
+	var north_w: Array = rms.maze_north
+	var start := Vector2i(n - 1, rms.maze_entry_row)
 	var prev := {start: start}
 	var queue := [start]
 	while not queue.is_empty():
 		var c: Vector2i = queue.pop_front()
-		for d in open[c.y * n + c.x]:
-			var nc: Vector2i = c + dirs[d]
-			if nc.x < 0 or nc.y < 0 or nc.x >= n or nc.y >= n or prev.has(nc):
-				continue
-			prev[nc] = c
-			queue.append(nc)
+		var nbs := []
+		if c.x < n - 1 and not east_w[c.x][c.y]: nbs.append(c + Vector2i(1, 0))
+		if c.x > 0 and not east_w[c.x - 1][c.y]: nbs.append(c + Vector2i(-1, 0))
+		if c.y < n - 1 and not north_w[c.x][c.y]: nbs.append(c + Vector2i(0, 1))
+		if c.y > 0 and not north_w[c.x][c.y - 1]: nbs.append(c + Vector2i(0, -1))
+		for nc: Vector2i in nbs:
+			if not prev.has(nc):
+				prev[nc] = c
+				queue.append(nc)
+	var heart := Vector2i(n / 2, n / 2)
 	check(prev.has(heart), "the maze has a way through to its heart")
-	check(prev.size() == n * n, "...and every cell can be reached")
-	check("e" in open[start.y * n + start.x], "...in from the side facing the fountain")
-	var route: Array[Vector2i] = []
+	check(prev.size() == n * n, "...and every cell can be reached (%d of %d)" % [prev.size(), n * n])
+	var mroute: Array[Vector2i] = []
 	var c2 := heart
 	while c2 != start:
-		route.push_front(c2)
+		mroute.push_front(c2)
 		c2 = prev[c2]
-	route.push_front(start)
-	check(route.size() > 6, "...and it's a proper maze (%d cells to the heart)" % route.size())
+	mroute.push_front(start)
+	check(mroute.size() > 12, "...and it's a proper maze (%d cells to the heart)" % mroute.size())
+	var msteps := [Vector3(-13, 0, 266), Vector3(-13, 0, 261.5), Vector3(-58, 0, 262), Vector3(-70, 0, 262), Vector3(rms.maze_entry.x + 1.5, 0, rms.maze_entry.y)]
+	for v in mroute:
+		msteps.append(Vector3(mo.x + (v.x + 0.5) * cs, 0, mo.y + (v.y + 0.5) * cs))
+	msteps.append(Vector3(rms.maze_heart.x, 0, rms.maze_heart.y - 1.5))
+	res = await _walk(p, msteps, 90.0)
+	check(res.ok, "you can walk from the Formal Garden into the maze and through it to its heart")
+	await _physics(4)
+	check(dialogue.flags.has("sg_seed_maze"), "...where the maze seed wakes as you get to it")
 
-	# The giant flowers: each a hop up from the last, with nothing overhead
-	var tops: Array = sg.flower_tops
-	var radii: Array = sg.flower_radii
-	var hop_ok: bool = tops.size() == 9 and tops[0].y <= 1.2
-	var worst := 0.0
-	for k in range(1, tops.size()):
-		var gap: float = Vector2(tops[k].x - tops[k - 1].x, tops[k].z - tops[k - 1].z).length() - radii[k] - radii[k - 1]
-		var rise: float = tops[k].y - tops[k - 1].y
-		worst = maxf(worst, gap)
-		if gap > 1.6 or rise > 1.0 or gap < 0.3:
-			hop_ok = false
-	check(hop_ok, "the giant flowers are each a hop from the last (widest gap %.2f m)" % worst)
-	check(tops[tops.size() - 1].y > 7.0, "...up to the tallest, %.1f m up" % tops[tops.size() - 1].y)
-
-	# Really walk: up the Rose Walk to the fountain, then round to the maze and through it to the heart
-	var mz: Vector3 = sg.MAZE
-	var size: float = n * sg.MAZE_CELL
-	var cell := func(v: Vector2i) -> Vector3:
-		return mz + Vector3(-size / 2.0 + (v.x + 0.5) * sg.MAZE_CELL, 0, -size / 2.0 + (v.y + 0.5) * sg.MAZE_CELL)
-	var steps := [Vector3(0, 0, 34), Vector3(-12, 0, 40), Vector3(-17, 0, 52), mz + Vector3(size / 2.0 + 1.5, 0, cell.call(start).z - mz.z)]
-	for v in route:
-		steps.append(cell.call(v))
-	p.global_position = Vector3(0, 1.0, 3.0)
-	p.velocity = Vector3.ZERO
-	await _physics(10)
-	var wpi := 0
-	var got_there := false
-	for i in 60 * 70:
-		await physics_frame
-		var want: Vector3 = steps[wpi] - p.global_position
-		want.y = 0
-		if want.length() < 0.8:
-			if wpi == steps.size() - 1:
-				got_there = true
-				break
-			wpi += 1
-		_steer(p, want.normalized())
-	_release()
-	check(got_there, "you can walk up the Rose Walk, past the fountain and through the maze to its heart (step %d of %d)" % [wpi, steps.size()])
-	await _physics(10)
-	check(dialogue.flags.has("sg_seed_maze"), "...where the sleeping seed wakes as you get to it")
-
-	# --- The old estate (26 Nov 2026, scripts/secret_garden_estate.gd) ---
-	var est: Node3D = sg.estate
-	check(est != null and est.get_node_or_null("Old House") != null and est.get_node_or_null("Upper Terrace") != null,
-		"the old estate's there: the Old House up on its terrace")
-	check(est.stairs.size() == 3 and est.bridges.size() == 3, "...three stairs up and three stone bridges (%d, %d)" % [est.stairs.size(), est.bridges.size()])
-	var ty: float = est.TERRACE_Y
-	var grand: Dictionary = est.stairs[0]
-	p.global_position = (grand.foot as Vector3) + Vector3(0, 1.0, 0)
-	p.velocity = Vector3.ZERO
+	# The maze's lookout: up its stair
+	var ls: Dictionary = rms.stairs[0]
+	_put(p, ls.foot)
 	await _physics(6)
-	var res := await _walk(p, [grand.top, Vector3(0, 0, 130)], 20.0)
-	check(res.ok and p.global_position.y > ty + 0.6 and p.is_on_floor(),
-		"you can walk up the grand stair onto the terrace (%.1f m up)" % (p.global_position.y - 0.9))
-	res = await _walk(p, [Vector3(0, 0, 136.0)], 3.0)
-	check(not res.ok and p.global_position.z < 133.2, "...but not into the Old House (it's locked)")
-	var east: Dictionary = est.stairs[2]
-	res = await _walk(p, [Vector3(east.x, 0, 128), east.top, east.foot], 20.0)
-	check(res.ok and p.global_position.y < 1.4 and p.is_on_floor(), "...and along it and down the east stair")
-	res = await _walk(p, [Vector3(0, 0, 135.5)], 1.0)
-	var flat := 0
-	for f in sg.get_node("Flowerbeds").get_children():
-		if f is Node3D and est.blocks((f as Node3D).position - Vector3(0, (f as Node3D).position.y, 0)) \
-				and (f as Node3D).position.y > ty:
-			flat += 1
-	check(flat == 0, "no wild flowers up on the terrace (%d)" % flat)
-	for b in est.bridges:
-		var a: Vector3 = b.from
-		var e: Vector3 = b.to
-		var dir := (e - a).normalized()
-		p.global_position = a - dir * 2.0 + Vector3(0, 1.0, 0)
-		p.velocity = Vector3.ZERO
-		await _physics(6)
-		var top := -INF
-		var w := await _walk(p, [a - dir * 1.0, (a + e) / 2.0, e + dir * 0.6], 14.0, true)
-		top = w.top
-		check(w.ok and top - 0.9 > b.rise * 0.7, "you can walk over the %s (%.1f m up at its top)" % [b.name, top - 0.9])
+	res = await _walk(p, [ls.foot, ls.top, Vector3(rms.LOOKOUT.x, 0, rms.LOOKOUT.z)], 20.0)
+	check(res.ok and p.global_position.y > rms.LOOKOUT.y + 0.6, "you can walk up the lookout's stair (%.1f m up)" % (p.global_position.y - 0.9))
 
-	# The rest of the seeds, and the garden waking
-	var sparkles: int = game.sparkles
-	var remnants: int = root.get_node("Remnants").count
-	for id in ["walk", "pond", "flower", "tree"]:
-		check(not sg.awake, "the garden's still asleep before the %s seed" % id)
-		var at: Vector3 = sg.seeds[id].at
-		p.global_position = at + Vector3(0, 1.0, 0)
-		p.velocity = Vector3.ZERO
-		await _physics(3)
-		check(dialogue.flags.has("sg_seed_" + id), "the %s seed wakes when you get to it" % id)
+	# The temple's steps (the walk seed) from the lake path
+	_put(p, Vector3(-40, 0, 86))
+	await _physics(6)
+	var wseed: Vector3 = sg.seeds["walk"].at
+	res = await _walk(p, [Vector3(-30, 0, 81), wseed], 20.0)
+	await _physics(4)
+	check(res.ok and dialogue.flags.has("sg_seed_walk"), "you can walk up the lake temple's steps, where the walk seed wakes")
+
+	# Over every bridge
+	for part in [est, wat, gro, rms]:
+		for b in part.bridges:
+			var a: Vector3 = b.from
+			var e: Vector3 = b.to
+			var dir := (e - a).normalized()
+			_put(p, a - dir * 2.0)
+			await _physics(6)
+			var w := await _walk(p, [a - dir * 1.0, (a + e) / 2.0, e + dir * 0.8], 20.0, true)
+			check(w.ok and w.top - 0.9 - (a.y + e.y) / 2.0 > b.rise * 0.7, "you can walk over the %s (%.1f m up at its top)" % [b.name, w.top - 0.9])
+	# The green bridge goes to the Lily Pond's island, where the pond seed is
+	var pseed: Vector3 = sg.seeds["pond"].at
+	for b in wat.bridges:
+		if b.name == "Green Bridge":
+			_put(p, b.to)
+	await _physics(6)
+	res = await _walk(p, [pseed], 10.0)
+	await _physics(4)
+	check(dialogue.flags.has("sg_seed_pond"), "...and on the Lily Pond's island the pond seed wakes")
+
+	# The Treetop Walk, from its foot up into the Great Tree's crown
+	var wp: Array = gro.walk_pts
+	var w0: Vector3 = wp[0]
+	var w1: Vector3 = wp[1]
+	_put(p, w0 - (w1 - w0).normalized() * 2.0)
+	await _physics(6)
+	var tsteps := []
+	for q in wp:
+		tsteps.append(q)
+	tsteps.append(sg.seeds["tree"].at)
+	res = await _walk(p, tsteps, 60.0, true)
+	await _physics(4)
+	check(res.ok and p.global_position.y > gro.crown_y() + 0.5, "you can walk the Treetop Walk up into the Great Tree's crown (%.1f m up)" % (p.global_position.y - 0.9))
+	check(dialogue.flags.has("sg_seed_tree"), "...where the tree seed wakes")
+
+	# Up the ramp round the tallest supertree
+	var sp: Array = gro.spiral_pts
+	var s0: Vector3 = sp[0]
+	_put(p, s0 + Vector3(2.0, 0, -1.5))
+	await _physics(6)
+	var ssteps := []
+	for q in sp:
+		ssteps.append(q)
+	ssteps.append(sg.seeds["flower"].at)
+	res = await _walk(p, ssteps, 90.0, true)
+	await _physics(4)
+	check(res.ok and p.global_position.y > gro.SUPER_PAD + gro.TALLEST.y - 1.2, "you can walk up round the tallest supertree to its canopy (%.1f m up)" % (p.global_position.y - 0.9))
+
+	# Down the quarry's ramp to the Sunken Garden's floor
+	var rp: Array = rms.ramp_pts
+	var r0: Vector3 = rp[0]
+	var r1: Vector3 = rp[1]
+	_put(p, r0 - (r1 - r0).normalized() * 2.0)
+	await _physics(6)
+	res = await _walk(p, rp, 40.0, true)
+	check(res.ok and p.global_position.y - 0.9 < 2.6, "you can walk down the ramp into the Sunken Garden (%.1f m up)" % (p.global_position.y - 0.9))
+
+	# The garden waking
 	check(sg.awake and dialogue.flags.has("sg_awake"), "all five awake: the whole garden wakes up")
 	check(game.sparkles - sparkles == sg.WAKE_SPARKLES and root.get_node("Remnants").count - remnants == sg.WAKE_REMNANTS,
 		"...and pays %d sparkles and %d Remnants" % [game.sparkles - sparkles, root.get_node("Remnants").count - remnants])
@@ -371,7 +396,20 @@ func _walk(p: CharacterBody3D, steps: Array, seconds: float, keep_line := false)
 				want = ln * 1.0 - off * 1.5
 		_steer(p, want.normalized())
 	_release()
+	var hit := ""
+	for k in p.get_slide_collision_count():
+		var col := p.get_slide_collision(k).get_collider() as Node
+		if col:
+			hit += " " + str(col.get_path())
+	print("  (stopped at %s, on the way to step %d of %d: %s; touching%s)" % [p.global_position.snapped(Vector3.ONE * 0.1), wpi, steps.size(), steps[wpi], hit])
 	return {"ok": false, "top": top}
+
+
+func _put(p: CharacterBody3D, at: Vector3) -> void:
+	# Puts her on the ground at (x, z)
+	var land: Script = load("res://scripts/secret_garden_land.gd")
+	p.global_position = Vector3(at.x, land.height(at.x, at.z) + 1.0, at.z)
+	p.velocity = Vector3.ZERO
 
 
 func _on_map(label: String) -> bool:
