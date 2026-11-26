@@ -362,7 +362,12 @@ func _lanternmoor() -> void:
 			plain += 1
 	check(plain == 0, "nothing plain left drawn (%d)" % plain)
 	# Each tree is sized to its old trunk and its pods glow in the old colours
-	var t := s.find_children("Detailed Tree", "Node3D", true, false)
+	# (Only the lantern trees: the Mothmire's dead mangroves are "Detailed Tree"s too, and the swamp checks them.)
+	var t: Array[Node] = []
+	var swamp := s.get_node_or_null("Swamp")
+	for d in s.find_children("Detailed Tree", "Node3D", true, false):
+		if swamp == null or not swamp.is_ancestor_of(d):
+			t.append(d)
 	var sized := true
 	for d: Node3D in t:
 		var trunk: MeshInstance3D = null

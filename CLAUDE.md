@@ -99,6 +99,13 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-26: **Nightly build: test_detail_portal_props' Lanternmoor tree check counts only the lantern trees** (the
+  nightly bot, cloud, own Godot user folders). Since the swamps were baked (2ca183d, Nov 24), the Mothmire's dead
+  mangroves are "Detailed Tree"s too, so "every tree is sized to its own trunk" found 65 trees for 31 lantern trees and
+  failed. The check now leaves out anything under the "Swamp" node (the swamp part checks its own trees). Test-only
+  change. The rest of the suite passed; test_cracks failed once with three tests running at once (the pop out of the
+  crack waits 600 frames) and passes on its own.
+
 - 2026-11-25: **The bike has baked detail: brushed metal frame, a pebbly seat and real tread round its tyres** (the
   last props of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own Godot
   user folders, no save touched). `detail_props.gd dress_bike()` (called by `dress_ride()`, so the BMX, Hover Bike and
