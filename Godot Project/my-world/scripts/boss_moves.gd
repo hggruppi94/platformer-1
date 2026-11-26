@@ -129,7 +129,7 @@ func _physics_process(delta: float) -> void:
 
 func _tell(kind: String) -> void:
 	# The boss's own body winds up. It doesn't take the boss's tell slot, so the boss can still wind up for its own
-	# attack while this one's going (the two add together on its body).
+	# attack while this one's going (the two add together on its body, once: scripts/boss_tell.gd keeps one record of them on it).
 	var had: Variant = boss.get_meta("boss_tell") if boss.has_meta("boss_tell") else null
 	var opts := {}
 	var vis := boss.get_node_or_null("Visual")

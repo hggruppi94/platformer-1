@@ -61,12 +61,12 @@ var head := 3.0               # kept for callers that pass it (the old "!" heigh
 var _t := 0.0
 var _dust_t := 0.0
 var _falling: Node3D          # "drop": the thing on its way down
-var _base_scale := Vector3.ONE
-var _base_pitch := 0.0
-var _base_pos := Vector3.ZERO
-var _left_scale := Vector3(NAN, NAN, NAN)  # what we left on the Visual last frame, to see whether the boss changed it
-var _left_pitch := NAN
-var _left_pos := Vector3(NAN, NAN, NAN)
+var _sq := 1.0                # this wind-up's own pose right now: squash, widen, lean back and shiver
+var _wd := 1.0
+var _lean := 0.0
+var _shake := 0.0
+var _put := false             # put back already
+const STACK := "boss_tell_stack"   # meta on the Visual: the wind-ups on it and the boss's own shape under them
 
 
 static func lead() -> float:
@@ -149,30 +149,62 @@ func _process(delta: float) -> void:
 func _wind_up(k: float) -> void:
 	if visual == null or not is_instance_valid(visual):
 		return
-	# Take what the boss itself left on its Visual this frame as the base (it may squash, bob or turn it each frame)
-	if not visual.scale.is_equal_approx(_left_scale):
-		_base_scale = visual.scale
-	if is_nan(_left_pitch) or not is_equal_approx(visual.rotation.x, _left_pitch):
-		_base_pitch = visual.rotation.x
-	if not visual.position.is_equal_approx(_left_pos):
-		_base_pos = visual.position
 	var pose: Dictionary = POSES.get(kind, POSES["jump"])
 	# Eases in over the first two thirds and holds, so it reads as a wind-up, not a wobble
 	var e := smoothstep(0.0, 0.66, k)
-	var sq := lerpf(1.0, float(pose.squash), e)
-	var wd := lerpf(1.0, float(pose.widen), e)
+	_sq = lerpf(1.0, float(pose.squash), e)
+	_wd = lerpf(1.0, float(pose.widen), e)
 	if kind == "pull":
 		var breath := 1.0 + 0.04 * sin(_t * 9.0) * e
-		sq *= breath
-		wd *= breath
-	visual.scale = Vector3(_base_scale.x * wd, _base_scale.y * sq, _base_scale.z * wd)
-	visual.rotation.x = _base_pitch + float(pose.lean) * e
-	var shake := float(pose.shiver) * e * (0.3 if Settings.reduce_motion else 1.0)
-	var size := maxf(absf(_base_scale.y), 0.2)
-	visual.position = _base_pos + Vector3(sin(_t * 61.0), 0, cos(_t * 53.0)) * shake * size
-	_left_scale = visual.scale
-	_left_pitch = visual.rotation.x
-	_left_pos = visual.position
+		_sq *= breath
+		_wd *= breath
+	_lean = float(pose.lean) * e
+	_shake = float(pose.shiver) * e * (0.3 if Settings.reduce_motion else 1.0)
+	# Two wind-ups can be on one body at once (a boss's own flop and a throw from scripts/boss_moves.gd). They share
+	# one record on the Visual and only the first of them writes to it, with all their poses put together: if each
+	# took the other's pose as its base, they'd grow on each other every frame, and Tuskwinter (26 Nov 2026) ended up
+	# giant and flat for good.
+	var st := _stack()
+	var tells: Array = st.tells
+	if not tells.has(self):
+		tells.append(self)
+	tells.assign(tells.filter(func(t: Variant) -> bool: return is_instance_valid(t) and not (t as Node).is_queued_for_deletion()))
+	if tells.is_empty() or tells[0] != self:
+		return
+	# Take what the boss itself left on its Visual this frame as the base (it may squash, bob or turn it each frame)
+	if not visual.scale.is_equal_approx(st.left_scale):
+		st.base_scale = visual.scale
+	if is_nan(st.left_pitch) or not is_equal_approx(visual.rotation.x, st.left_pitch):
+		st.base_pitch = visual.rotation.x
+	if not visual.position.is_equal_approx(st.left_pos):
+		st.base_pos = visual.position
+	var sq := 1.0
+	var wd := 1.0
+	var lean := 0.0
+	var shake := 0.0
+	for t in tells:
+		sq *= float(t._sq)
+		wd *= float(t._wd)
+		lean += float(t._lean)
+		shake = maxf(shake, float(t._shake))
+	var base: Vector3 = st.base_scale
+	visual.scale = Vector3(base.x * wd, base.y * sq, base.z * wd)
+	visual.rotation.x = float(st.base_pitch) + lean
+	var size := maxf(absf(base.y), 0.2)
+	visual.position = (st.base_pos as Vector3) + Vector3(sin(_t * 61.0), 0, cos(_t * 53.0)) * shake * size
+	st.left_scale = visual.scale
+	st.left_pitch = visual.rotation.x
+	st.left_pos = visual.position
+
+
+func _stack() -> Dictionary:
+	# The wind-ups on this Visual right now and the shape the boss had it in before they started
+	if visual.has_meta(STACK):
+		return visual.get_meta(STACK)
+	var st := {"tells": [], "base_scale": visual.scale, "base_pitch": visual.rotation.x, "base_pos": visual.position,
+		"left_scale": Vector3(NAN, NAN, NAN), "left_pitch": NAN, "left_pos": Vector3(NAN, NAN, NAN)}
+	visual.set_meta(STACK, st)
+	return st
 
 
 func _build_falling() -> void:
@@ -197,16 +229,26 @@ func _build_falling() -> void:
 
 
 func _put_back() -> void:
-	# Leave the Visual as the boss had it (only if nothing else has changed it since we last did)
-	if visual == null or not is_instance_valid(visual):
+	# Leave the Visual as the boss had it (only if nothing else has changed it since we last did), once no other
+	# wind-up's still on it; if one is, it carries on from the same base without this one's pose.
+	if _put:
 		return
-	if visual.scale.is_equal_approx(_left_scale):
-		visual.scale = _base_scale
-	if not is_nan(_left_pitch) and is_equal_approx(visual.rotation.x, _left_pitch):
-		visual.rotation.x = _base_pitch
-	if visual.position.is_equal_approx(_left_pos):
-		visual.position = _base_pos
-	_left_scale = Vector3(NAN, NAN, NAN)
+	_put = true
+	if visual == null or not is_instance_valid(visual) or not visual.has_meta(STACK):
+		return
+	var st: Dictionary = visual.get_meta(STACK)
+	var tells: Array = st.tells
+	tells.erase(self)
+	tells.assign(tells.filter(func(t: Variant) -> bool: return is_instance_valid(t) and not (t as Node).is_queued_for_deletion()))
+	if not tells.is_empty():
+		return
+	visual.remove_meta(STACK)
+	if visual.scale.is_equal_approx(st.left_scale):
+		visual.scale = st.base_scale
+	if not is_nan(st.left_pitch) and is_equal_approx(visual.rotation.x, st.left_pitch):
+		visual.rotation.x = st.base_pitch
+	if visual.position.is_equal_approx(st.left_pos):
+		visual.position = st.base_pos
 
 
 func _end() -> void:
