@@ -99,6 +99,16 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-26: **Tuskwinter no longer goes giant and flat in its fight** (Hayden: "during the tuskwinter fight, he
+  glitches and becomes giant and flat"). Its belly-flop's "jump" wind-up and a throw's wind-up from `boss_moves.gd`
+  could be on its body at once, and each `boss_tell.gd` took the other's pose as the boss's own shape, so every frame
+  they multiplied each other (wider and flatter without end) and neither could put it back. Any boss with two
+  wind-ups at once could do it. Now the wind-ups on one Visual share one record on it (meta `boss_tell_stack`: the
+  boss's own shape and the tells on it); only the first writes, with all their poses put together, and the last one
+  done (or cleared with queue_free) puts the shape back. `test_boss_tells` checks two at once on a 2.2-size boss and two
+  cleared early (it failed before: 4,432,745,984 wide, 0 tall); boss_moves, frozen_moment, gloop_king, guardians,
+  skyreach_trail, tower_climb and boss_versions pass.
+
 - 2026-11-25: **The bike has baked detail: brushed metal frame, a pebbly seat and real tread round its tyres** (the
   last props of Hayden's "keep baking details on assets in the game already"). Built and tested in the cloud (own Godot
   user folders, no save touched). `detail_props.gd dress_bike()` (called by `dress_ride()`, so the BMX, Hover Bike and

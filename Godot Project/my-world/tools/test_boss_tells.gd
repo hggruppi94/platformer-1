@@ -129,6 +129,42 @@ func _run() -> void:
 	check(_drawn(pl) == 0, "...no arrows")
 	await _wait(0.4)
 
+	# Two wind-ups on one body at once (Tuskwinter, 26 Nov 2026: its flop's "jump" and a throw from boss_moves.gd
+	# overlapped, each took the other's pose as its base, and it grew giant and flat for good). They add together
+	# once, stay in shape however long they overlap, and the boss is left as it was when both are done.
+	visual.scale = Vector3.ONE * 2.2
+	visual.rotation.x = 0.0
+	visual.position = Vector3.ZERO
+	var big := Vector3.ONE * 2.2
+	var j: Node3D = TELL.warn(boss, "jump", 6.0, Color.WHITE, 1.2)
+	await _wait(0.3)
+	var th: Node3D = TELL.warn(boss, "throw", 2.0, Color.WHITE, 0.9)
+	var widest := 0.0
+	var flattest := 99.0
+	var until := Time.get_ticks_msec() + 800
+	while Time.get_ticks_msec() < until:
+		await process_frame
+		widest = maxf(widest, visual.scale.x)
+		flattest = minf(flattest, visual.scale.y)
+	var most_wide: float = 2.2 * float(TELL.POSES.jump.widen) * float(TELL.POSES.throw.widen) + 0.01
+	var most_flat: float = 2.2 * float(TELL.POSES.jump.squash) - 0.01
+	check(widest <= most_wide, "two wind-ups at once don't grow on each other (%.2f wide, most %.2f)" % [widest, most_wide])
+	check(flattest >= most_flat, "...or flatten it (%.2f tall, least %.2f)" % [flattest, most_flat])
+	await _wait(1.0)
+	check(not is_instance_valid(j) and not is_instance_valid(th), "...both go away")
+	check(visual.scale.is_equal_approx(big) and visual.position.is_equal_approx(Vector3.ZERO)
+		and absf(visual.rotation.x) < 0.001, "...and the boss is back to its own size and shape (%s)" % visual.scale)
+	check(not visual.has_meta(TELL.STACK), "...with nothing left on it")
+	# One that's cleared early (a boss calling queue_free on its wind-ups) still lets the boss go back to its shape
+	var q1: Node3D = TELL.warn(boss, "jump", 6.0, Color.WHITE, 2.0)
+	var q2: Node3D = TELL.warn(boss, "pull", 6.0, Color.WHITE, 2.0)
+	await _wait(0.5)
+	q1.queue_free()
+	q2.queue_free()
+	await _frames(3)
+	check(visual.scale.is_equal_approx(big), "wind-ups cleared early leave the boss its own size (%s)" % visual.scale)
+	visual.scale = Vector3.ONE
+
 	for kind in ["jump", "dash", "drop", "pull"]:
 		check(TELL.HINTS.has(kind) and String(TELL.HINTS[kind]).split(" ").size() <= 5, "the %s hint is short" % kind)
 	stage.queue_free()
