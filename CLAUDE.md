@@ -99,6 +99,17 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-27: **More baked models in the Secret Garden: leaded windows, rose bushes, cliff ivy and the supertrees**
+  (Hayden: "Bake more details"). Built and tested in the cloud (own Godot user folders, no save touched). New kinds in
+  `tools/build_prop_estate.py`: `window_light` (a leaded glass light in a stone mullion frame, glowing amber),
+  `rose_bush` (a leafy bush with roses), `ivy_clump`, `supertree_trunk` (planted lattice with glowing blooms) and
+  `supertree_canopy` (the steel funnel's ribs and rim), in `models/props/estate/`. They replace the plain shapes: the
+  Old House's window panes ("Leaded Light" per light), the Formal Garden's and the Rose Walk's bush balls (MultiMeshes
+  "Formal Rose Bushes", "Rose Bushes"), the Sunken Quarry's ivy ("Cliff Ivy") and each supertree's planting and canopy
+  ribs ("Detailed Supertree Trunk/Canopy"; "Supertree Canopy" is in `SOLID_SKIP_NAMES` so the spiral stays clear).
+  With the detail pipeline off the old shapes come back. Tests: `test_detail_portal_props -- secret` (new checks),
+  secret_garden and detail_all pass. Pictures in the project files under world/previews/secret_garden_bakes.
+
 - 2026-11-27: **The Secret Garden gets baked detail everywhere, proper collision, and more pink and white flowers
   mixed in** (Hayden: "A lot of it needs baked details and proper collision on surfaces. I would like there to be more
   pink and white flowers as well make sure the garden does not look like a garden of simply pink flowers as that is

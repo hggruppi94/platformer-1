@@ -777,6 +777,17 @@ func _secret_garden() -> void:
 		var mmi := s.find_child(nm, true, false) as MultiMeshInstance3D
 		check(mmi != null and mmi.multimesh.mesh is ArrayMesh and mmi.material_override == null,
 			"the estate's %s are the baked stonework (%d)" % [nm.to_lower(), mmi.multimesh.instance_count if mmi else 0])
+	# The second round of bakes (27 Nov 2026): rose bushes, cliff ivy, leaded windows, the supertrees
+	for nm in ["Formal Rose Bushes", "Rose Bushes", "Cliff Ivy"]:
+		var mmi := s.find_child(nm, true, false) as MultiMeshInstance3D
+		check(mmi != null and mmi.multimesh.mesh is ArrayMesh and mmi.material_override == null and mmi.multimesh.instance_count > 20,
+			"the %s are the baked model (%d)" % [nm.to_lower(), mmi.multimesh.instance_count if mmi else 0])
+	var lights := s.find_children("Leaded Light", "MeshInstance3D", true, false)
+	check(lights.size() > 20 and s.find_child("Panes", true, false) == null, "the Old House's windows are baked leaded lights (%d)" % lights.size())
+	var trunks := s.find_children("Detailed Supertree Trunk", "MeshInstance3D", true, false)
+	var tops := s.find_children("Detailed Supertree Canopy", "MeshInstance3D", true, false)
+	check(trunks.size() >= 5 and trunks.size() == tops.size() and s.find_child("Supertree Planting", true, false) == null,
+		"every supertree has its baked trunk and canopy (%d)" % trunks.size())
 	var tiers := s.find_child("Fountain Tiers", true, false) as MeshInstance3D
 	check(tiers != null and tiers.mesh is ArrayMesh, "the Great Fountain's tiers are the baked fountain")
 	check(got.get("leaf_balls", 0) > 20, "the little leafy balls are baked leaf balls (%d)" % got.get("leaf_balls", 0))

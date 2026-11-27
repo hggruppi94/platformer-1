@@ -257,9 +257,22 @@ func _window(parent: Node3D, at: Vector3, w: float, h: float, lights: int, yaw :
 	win.position = at
 	win.rotation.y = yaw
 	var glass: StandardMaterial3D = sg._mat("Leaded Window", Color(1.0, 0.8, 0.5), 0.3, 0.55)
-	var gm := BoxMesh.new()
-	gm.size = Vector3(w, h, 0.06)
-	sg._mesh(win, gm, Vector3(0, 0, 0.05), glass, false).name = "Panes"
+	var lead: Mesh = baked("res://models/props/estate/window_light.glb")
+	if lead:
+		# One baked leaded light (diamond cames, a border, saddle bars, glowing amber) stretched into each opening
+		var lw := w / lights
+		for i in lights:
+			var li := MeshInstance3D.new()
+			li.name = "Leaded Light"
+			li.mesh = lead
+			li.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			li.position = Vector3(-w / 2.0 + lw * (i + 0.5), 0, 0.05)
+			li.scale = Vector3(lw / 0.8, h / 2.4, 1.0)
+			win.add_child(li)
+	else:
+		var gm := BoxMesh.new()
+		gm.size = Vector3(w, h, 0.06)
+		sg._mesh(win, gm, Vector3(0, 0, 0.05), glass, false).name = "Panes"
 	var dark := stone_dark()
 	for side: float in [-1.0, 1.0]:
 		var jm := BoxMesh.new()
@@ -340,6 +353,8 @@ func _formal_garden() -> void:
 	# at each corner (the square round the fountain stays open, so you can walk round it to every path and stair)
 	var hedge: StandardMaterial3D = sg._hedge()
 	var roses := [glow(sg._mat("Rose White", Color(1.0, 0.97, 0.93), 0.6, 0.15)), glow(sg._mat("Rose Blush", Color(1.0, 0.82, 0.86), 0.6, 0.15))]
+	var bush_mesh: Mesh = baked("res://models/props/estate/rose_bush.glb")
+	var bushes: Array = []
 	var beds := [Rect2(-54, 248, 40, 10), Rect2(14, 248, 40, 10), Rect2(-54, 264, 40, 7), Rect2(14, 264, 40, 7)]
 	for bed: Rect2 in beds:
 		# Cut round the fountain, the side stairs' paths and the middle path
@@ -364,11 +379,23 @@ func _formal_garden() -> void:
 				var zz := z0 + 1.4
 				while zz < z1 - 1.0:
 					var at := Vector3(xx + _rng.randf_range(-0.3, 0.3), y, zz + _rng.randf_range(-0.3, 0.3))
-					sg._ball(f, 0.45, at + Vector3(0, 0.35, 0), sg._leaf(), 0.8)
-					for k in 3:
-						sg._ball(f, 0.14, at + Vector3(_rng.randf_range(-0.35, 0.35), 0.72, _rng.randf_range(-0.35, 0.35)), roses[(k + int(xx)) % 2])
+					if bush_mesh:
+						# The baked bush has its own white and blush roses; the draws below still happen so the
+						# rest of the garden comes out the same
+						var turn := fmod(xx * 1.7 + zz * 2.3, TAU)
+						bushes.append(Transform3D(Basis(Vector3.UP, turn), at + Vector3(0, 0.35, 0)))
+						for k in 3:
+							_rng.randf_range(-0.35, 0.35)
+							_rng.randf_range(-0.35, 0.35)
+					else:
+						sg._ball(f, 0.45, at + Vector3(0, 0.35, 0), sg._leaf(), 0.8)
+						for k in 3:
+							sg._ball(f, 0.14, at + Vector3(_rng.randf_range(-0.35, 0.35), 0.72, _rng.randf_range(-0.35, 0.35)), roses[(k + int(xx)) % 2])
 					zz += 2.2
 			xx += 2.4
+	if bush_mesh:
+		sg._multi(f, "Formal Rose Bushes", bush_mesh, bushes, null)
+	set_meta("formal_bushes", bushes.size() if bush_mesh else -1)
 	# Benches facing the fountain
 	for b in [[Vector3(-11.5, y, 255.0), PI / 2.0], [Vector3(11.5, y, 255.0), -PI / 2.0], [Vector3(-11.5, y, 267.0), PI / 2.0], [Vector3(11.5, y, 267.0), -PI / 2.0]]:
 		_bench(f, b[0], b[1])

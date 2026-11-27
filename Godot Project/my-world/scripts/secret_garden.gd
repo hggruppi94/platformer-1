@@ -127,7 +127,8 @@ func _dress_own() -> void:
 # bridge decks, the quarry ramp) are left as they are.
 const SOLID_SKIP_MATS := ["Lavender", "Fern Frond", "Sail Cloth", "Doorway", "Door Wood", "Oak Door", "Boat Paint",
 	"Boat Wood", "Grapes", "Garden Leaf", "Rose Leaf", "Long Grass", "Quarry Ivy", "Sleeping Seed"]
-const SOLID_SKIP_NAMES := ["Step", "Stair", "Bridge Deck", "Bridge Spandrel", "Ramp", "Floor", "Door Leaf", "Petal", "Column Base"]
+const SOLID_SKIP_NAMES := ["Step", "Stair", "Bridge Deck", "Bridge Spandrel", "Ramp", "Floor", "Door Leaf", "Petal", "Column Base",
+	"Supertree Canopy"]
 const SOLID_SKIP_UNDER := ["Sleeping Seeds", "Wildflowers", "Sails", "Rowboat", "Koi", "Player", "Petals"]
 var flower_counts: Array = []                  # how many little flowers of each FLOWER_COLOURS colour, for tests
 var solidified := -1                           # how many bodies _solidify() added (-1: not yet)
