@@ -199,6 +199,62 @@ func _run() -> void:
 		var at: Vector3 = sg.seeds[id].at
 		sq.transform = Transform3D(Basis(), at + Vector3(0, 1.1, 0))
 		check(space.intersect_shape(sq, 4).is_empty(), "nothing solid on the %s seed" % id)
+
+	# Hayden (27 Nov 2026): proper collision, baked detail, more pink and white flowers spread out (not all pink)
+	while int(sg.solidified) < 0:
+		await physics_frame
+	await _physics(2)
+	check(int(sg.solidified) > 200, "the rocks, roots, roofs and rims are solid (%d bodies added)" % int(sg.solidified))
+	for where in ["Waters/Lily Pond", "Groves/Great Tree", "Estate/Old House"]:
+		var n := sg.get_node_or_null(where)
+		check(n != null and not n.find_children("Solid *", "StaticBody3D", true, false).is_empty(), "...in the %s too" % where.get_file())
+	var counts: Array = sg.flower_counts
+	var all := 0
+	var pink_white := 0
+	var used := 0
+	for i in counts.size():
+		all += int(counts[i])
+		var c: Color = sg.FLOWER_COLOURS[i][0]
+		if (c.r > 0.9 and c.b > 0.55 and c.g < 0.9) or (c.r > 0.95 and c.g > 0.9):
+			pink_white += int(counts[i])
+		if int(counts[i]) > 0:
+			used += 1
+	var share := float(pink_white) / maxf(all, 1)
+	check(all > 3000, "wild flowers all over the garden (%d)" % all)
+	check(share > 0.4 and share < 0.6, "...about half pink and white (%.0f%%), mixed with other colours" % (share * 100.0))
+	check(used >= 8, "...in %d colours" % used)
+	var mixed := 0
+	var patches := sg.get_node("Wildflowers").get_children().filter(func(n): return String(n.name).begins_with("Patch"))
+	for patch in patches:
+		var kinds := 0
+		for c in (patch as Node).get_children():
+			if String(c.name).begins_with("Flower Heads"):
+				kinds += 1
+		if kinds >= 4:
+			mixed += 1
+	check(patches.size() > 30 and mixed > patches.size() * 0.8, "...spread out, mixed in nearly every patch (%d of %d)" % [mixed, patches.size()])
+	var white_trees := 0
+	var pink_trees := 0
+	var white_parts := 0
+	for part in [est, wat, gro, rms]:
+		var here := 0
+		for t in (part as Node).find_children("Tree Leaf blossom*", "MultiMeshInstance3D", true, false):
+			var n: int = (t.get_meta("transforms", []) as Array).size()
+			if String(t.name).ends_with("blossom_white"):
+				white_trees += n
+				here += n
+			elif String(t.name).ends_with("blossom"):
+				pink_trees += n
+		if here > 0:
+			white_parts += 1
+	check(white_trees > 0 and pink_trees > 0 and white_parts >= 3, "white and pink blossom trees all round (%d white, %d pink leaf balls, white in %d parts)" % [white_trees, pink_trees, white_parts])
+	var plain := 0
+	for mat_name in ["Estate Stone", "Door Wood"]:
+		for g in sg.find_children("*", "MeshInstance3D", true, false):
+			var m2 := (g as MeshInstance3D).get_active_material(0) as StandardMaterial3D
+			if m2 and String(m2.resource_name) == mat_name and not m2.normal_enabled:
+				plain += 1
+	check(plain == 0, "the garden's own walls and door wear baked detail (%d plain left)" % plain)
 	var sparkles: int = game.sparkles
 	var remnants: int = root.get_node("Remnants").count
 

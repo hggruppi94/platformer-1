@@ -634,16 +634,16 @@ func _water_trees() -> void:
 		tree("willow", on_ground(p.x, p.y), _rng.randf_range(0.85, 1.1))
 	# Round Temple Lake: big cedars and oaks, a copper beech, one weeping willow on the shore by the temple
 	for t in [["cedar", Vector2(-50.0, 30.0), 1.1], ["oak", Vector2(-58.0, 88.0), 1.0], ["copper", Vector2(32.0, 88.0), 1.0],
-			["cedar", Vector2(62.0, 80.0), 1.0], ["oak", Vector2(-30.0, 104.0), 0.9], ["willow", Vector2(-38.0, 70.0), 0.9],
+			["cedar", Vector2(62.0, 80.0), 1.0], ["blossom_white", Vector2(-30.0, 104.0), 1.1], ["willow", Vector2(-38.0, 70.0), 0.9],
 			["oak", Vector2(38.0, 16.0), 0.9], ["oak", Vector2(-38.0, 14.0), 0.95], ["birch", Vector2(-56.0, 66.0), 1.0],
-			["birch", Vector2(60.0, 30.0), 1.0], ["maple_gold", Vector2(22.0, 98.0), 1.0], ["cedar", Vector2(70.0, 68.0), 0.9]]:
+			["blossom", Vector2(60.0, 30.0), 1.1], ["maple_gold", Vector2(22.0, 98.0), 1.0], ["cedar", Vector2(70.0, 68.0), 0.9]]:
 		var p: Vector2 = t[1]
 		tree(t[0], on_ground(p.x, p.y), t[2])
 	# The Japanese Garden: maples in three colours, pines leaning over the water, blossom by the tea house
 	for t in [["maple_red", Vector2(-108.0, 130.0)], ["maple_red", Vector2(-84.0, 108.0)], ["maple_orange", Vector2(-120.0, 116.0)],
 			["maple_gold", Vector2(-96.0, 134.0)], ["maple_red", Vector2(-70.0, 96.0)], ["pine", Vector2(-114.0, 122.0)],
 			["pine", Vector2(-90.0, 113.0)], ["pine", Vector2(-82.0, 86.0)], ["blossom", Vector2(-86.0, 133.0)],
-			["blossom", Vector2(-98.0, 140.0)], ["blossom", Vector2(-124.0, 130.0)], ["maple_orange", Vector2(-100.0, 94.0)],
+			["blossom_white", Vector2(-98.0, 140.0)], ["blossom", Vector2(-124.0, 130.0)], ["maple_orange", Vector2(-100.0, 94.0)],
 			["pine", Vector2(-76.0, 70.0)], ["maple_red", Vector2(-110.0, 108.5)]]:
 		var p: Vector2 = t[1]
 		if LAND.path_dist(p.x, p.y) < 1.5:

@@ -748,12 +748,14 @@ func _secret_garden() -> void:
 	# leafy balls
 	detail.detail_props = false
 	await _load(SECRET_GARDEN)
-	var shapes_before := _shapes(current_scene, true)
+	await _solid_garden()
+	var shapes_before := _built_shapes(current_scene)
 	check(current_scene.get_node_or_null("Detailed Garden") == null, "nothing baked in the garden with detailed props off")
 	var plain_walls := current_scene.find_child("Ivy Walls", true, false) as MultiMeshInstance3D
 	check(plain_walls != null and plain_walls.multimesh.mesh is BoxMesh, "with detailed props off the walls are plain boxes")
 	detail.detail_props = true
 	await _load(SECRET_GARDEN)
+	await _solid_garden()
 	var s := current_scene
 	var got: Dictionary = detail.last_props
 	print("Secret Garden props: ", got)
@@ -786,7 +788,7 @@ func _secret_garden() -> void:
 		if mi.mesh is SphereMesh and _mat_of(mi) in DETAIL_PROPS.SG_LEAVES:
 			plain += 1
 	check(plain == 0, "no plain leafy balls left drawn (%d)" % plain)
-	var shapes_now := _shapes(s, true)
+	var shapes_now := _built_shapes(s)
 	if shapes_now != shapes_before:
 		var shown := 0
 		for k in shapes_now:
@@ -800,6 +802,22 @@ func _secret_garden() -> void:
 	check(shapes_now == shapes_before, "every solid shape is where it was")
 	var again := DETAIL_PROPS.dress_secret_garden(s)
 	check(again.get("leaf_balls", 0) == 0, "dressing the garden again changes nothing")
+
+
+# The garden gives solid-looking things with nothing in them a body once it's built ("Solid ..." bodies, from each
+# thing's own drawn shape, so they differ with the baked models on or off): wait for that, and leave them out here.
+func _solid_garden() -> void:
+	while int(current_scene.get("solidified")) < 0:
+		await physics_frame
+	check(int(current_scene.get("solidified")) > 100, "the garden's rocks, roofs and roots get bodies (%d)" % int(current_scene.get("solidified")))
+
+
+func _built_shapes(s: Node) -> Dictionary:
+	var out := _shapes(s, true)
+	for k: String in out.keys():
+		if k.begins_with("Solid "):
+			out.erase(k)
+	return out
 
 
 func _star_arena() -> void:

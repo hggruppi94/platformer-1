@@ -638,7 +638,10 @@ func _estate_trees() -> void:
 		tree("cypress", on_ground(side * (HOUSE_X + 5.0), 300.0), 1.35)
 		tree("cypress", on_ground(side * (HOUSE_X + 9.0), 300.0), 1.2)
 		for z: float in [156.0, 172.0, 188.0]:
-			tree("oak", on_ground(side * 30.0, z), _rng.randf_range(0.85, 1.0))
+			if z == 172.0:
+				tree("blossom" if side < 0 else "blossom_white", on_ground(side * 30.0, z), 1.2)
+			else:
+				tree("oak", on_ground(side * 30.0, z), _rng.randf_range(0.85, 1.0))
 		for z: float in [214.0, 228.0]:
 			tree("copper" if side < 0 else "oak", on_ground(side * 26.0, z), 0.9)
 

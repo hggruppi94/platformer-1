@@ -43,6 +43,14 @@ const SEED_REACH := 1.6
 const WAKE_SPARKLES := 20
 const WAKE_REMNANTS := 2
 const PETAL_BOX := 26.0                       # petals drift in a box this far round you
+# The wild flowers' colours and how often each comes up: pinks and whites about half, mixed with the rest
+const FLOWER_COLOURS := [[Color(1.0, 0.62, 0.8), 12], [Color(0.96, 0.4, 0.62), 8], [Color(1.0, 0.82, 0.9), 9],
+	[Color(1.0, 1.0, 0.97), 13], [Color(1.0, 0.95, 0.84), 8], [Color(0.75, 0.6, 1.0), 11], [Color(0.6, 0.78, 1.0), 11],
+	[Color(1.0, 0.86, 0.38), 11], [Color(1.0, 0.68, 0.52), 9], [Color(0.56, 0.36, 0.84), 8]]
+const FLOWER_GRID := 2.3                      # one bunch (or a grass tuft) about this far apart, all over
+const FLOWER_PATCH := 40.0                    # flowers in squares this big, each drawn only up to FLOWER_RANGE
+const FLOWER_RANGE := 70.0
+const FLOWER_HEAD_R := 3.05                   # the baked giant flower head is a flat disc about 6.1 m across
 
 # The sleeping seeds: id, and what the note says when you wake one. Where each is comes from the part that holds it
 # (put_seed()).
@@ -93,9 +101,106 @@ func _ready() -> void:
 	_scatter()
 	_place_seeds()
 	_way_out()
+	_dress_own()
+	_solidify.call_deferred()
 	_player = get_tree().get_first_node_in_group("player") as Node3D
 	awake = Dialogue.flags.has("sg_awake")
 	_set_awake(1.0 if awake else 0.0)
+
+
+# The garden's own walls and the old door wear the same baked stone and planks as the parts.
+func _dress_own() -> void:
+	var d: Script = load("res://scripts/detail_props.gd")
+	var own := [["Estate Stone Dark", "stone", 0.8], ["Estate Stone", "stone", 1.2], ["Door Wood", "barn_boards", 0.6]]
+	own += [["Garden Leaf", "leaf_skin", 0.3], ["Long Grass", "leaf_skin", 0.3]]
+	for nm in ["Garden Walls", "Old Door", "Wildflowers"]:
+		var n := get_node_or_null(nm)
+		if n:
+			d.call("dress_place", n, own, true)
+
+
+# Hayden (27 Nov 2026): "proper collision on surfaces". The parts give their paths, terraces, walls and bridges
+# bodies as they build them, but plenty of things were only drawn: rocks, stepping stones, roofs, roots, chimneys,
+# rims, lanterns, the Treetop Walk's legs, topiaries, giant lily pads. Once the parts' bodies are in the physics
+# world, every solid-looking thing with nothing solid in it gets a body of its own shape (a box for boxes, else its
+# convex hull). Plants, water, glass, glows, fish, the doorway, moving sails and everything walked as a ramp (stairs,
+# bridge decks, the quarry ramp) are left as they are.
+const SOLID_SKIP_MATS := ["Lavender", "Fern Frond", "Sail Cloth", "Doorway", "Door Wood", "Oak Door", "Boat Paint",
+	"Boat Wood", "Grapes", "Garden Leaf", "Rose Leaf", "Long Grass", "Quarry Ivy", "Sleeping Seed"]
+const SOLID_SKIP_NAMES := ["Step", "Stair", "Bridge Deck", "Bridge Spandrel", "Ramp", "Floor", "Door Leaf", "Petal", "Column Base"]
+const SOLID_SKIP_UNDER := ["Sleeping Seeds", "Wildflowers", "Sails", "Rowboat", "Koi", "Player", "Petals"]
+var flower_counts: Array = []                  # how many little flowers of each FLOWER_COLOURS colour, for tests
+var solidified := -1                           # how many bodies _solidify() added (-1: not yet)
+
+
+func _solidify() -> void:
+	for i in 2:
+		await get_tree().physics_frame
+	if not is_inside_tree():
+		return
+	var space := get_world_3d().direct_space_state
+	var added := 0
+	for c in find_children("*", "MeshInstance3D", true, false):
+		var mi := c as MeshInstance3D
+		if not _wants_body(mi):
+			continue
+		var bb := mi.global_transform * mi.get_aabb()
+		var box := BoxShape3D.new()
+		box.size = (bb.size * 0.6).max(Vector3(0.05, 0.05, 0.05))
+		var q := PhysicsShapeQueryParameters3D.new()
+		q.shape = box
+		q.transform = Transform3D(Basis(), bb.get_center())
+		var solid_there := false
+		for h in space.intersect_shape(q, 8):
+			var col: Object = h.collider
+			if col is StaticBody3D or col is AnimatableBody3D or col is CSGShape3D:
+				var nm := String((col as Node).name)
+				if not nm.begins_with("Garden Floor") and not nm.begins_with("Garden Ground"):
+					solid_there = true
+					break
+		if solid_there:
+			continue
+		var shape: Shape3D
+		if mi.mesh is BoxMesh:
+			var bs := BoxShape3D.new()
+			bs.size = (mi.mesh as BoxMesh).size
+			shape = bs
+		else:
+			shape = mi.mesh.create_convex_shape(true, true)
+		if shape == null:
+			continue
+		var body := StaticBody3D.new()
+		body.name = "Solid " + String(mi.name)
+		var cs := CollisionShape3D.new()
+		cs.shape = shape
+		body.add_child(cs)
+		mi.add_child(body)
+		added += 1
+	solidified = added
+
+
+func _wants_body(mi: MeshInstance3D) -> bool:
+	if not mi.is_visible_in_tree() or mi.layers == 0 or mi.mesh == null or mi.get_parent() is CollisionObject3D:
+		return false
+	var nm := String(mi.name)
+	for k in SOLID_SKIP_NAMES:
+		if nm.contains(k):
+			return false
+	var n: Node = mi.get_parent()
+	while n and n != self:
+		if String(n.name) in SOLID_SKIP_UNDER or n is CollisionObject3D:
+			return false
+		n = n.get_parent()
+	var m := mi.material_override as StandardMaterial3D
+	if m == null:
+		m = mi.get_active_material(0) as StandardMaterial3D
+	if m == null or m.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or m.emission_enabled:
+		return false
+	var mn := String(m.resource_name)
+	if mn in SOLID_SKIP_MATS or mn.begins_with("Koi") or mn.begins_with("Crop") or mn.begins_with("Rose"):
+		return false
+	var bb := mi.global_transform * mi.get_aabb()
+	return maxf(bb.size.x, maxf(bb.size.y, bb.size.z)) >= 0.35 and bb.size.y >= 0.08
 
 
 func ground(x: float, z: float) -> float:
@@ -386,47 +491,112 @@ func open_ground(at: Vector3) -> bool:
 
 
 func _scatter() -> void:
+	# Wild flowers all over the garden's open ground, laid on a jittered grid so they're spread out evenly, never in
+	# one big clump. Hayden (27 Nov 2026): more pink and white, but mixed in with other colours ("a garden of simply
+	# pink flowers ... is tacky"), so pinks and whites are about half, the rest lilac, blue, butter yellow, peach and
+	# violet. The heads are the baked giant flower's head made small (tinted copies of its baked look), in square
+	# patches that each stop drawing when you're far off.
 	var s := Node3D.new()
 	s.name = "Wildflowers"
 	add_child(s)
-	var cols := [Color(1.0, 0.6, 0.8), Color(0.75, 0.6, 1.0), Color(1.0, 0.85, 0.4), Color(0.6, 0.85, 1.0), Color(1.0, 1.0, 0.95)]
-	var heads := []
+	var cols := FLOWER_COLOURS
+	var total := 0.0
 	for c in cols:
-		heads.append([])
-	var stalks: Array = []
+		total += float(c[1])
+	var stalks := {}
+	var heads := {}                              # patch key -> [colour index] -> transforms
 	var tufts: Array = []
-	var tries := 0
-	var placed := 0
-	while placed < 2600 and tries < 16000:
-		tries += 1
-		var at := Vector3(_rng.randf_range(-WALL_X + 3, WALL_X - 3), 0, _rng.randf_range(WALL_Z.x + 4, WALL_Z.y - 3))
-		if not open_ground(at):
-			continue
-		at.y = LAND.height(at.x, at.z)
-		placed += 1
-		if placed % 3 == 0:
-			tufts.append(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(1, _rng.randf_range(0.6, 1.2), 1)), at))
-			continue
-		var h := _rng.randf_range(0.3, 0.75)
-		stalks.append(Transform3D(Basis.from_scale(Vector3(1, h, 1)), at + Vector3(0, h / 2.0, 0)))
-		var r := _rng.randf_range(0.1, 0.2)
-		heads[placed % cols.size()].append(Transform3D(Basis.from_scale(Vector3(r, r * 0.7, r)), at + Vector3(0, h, 0)))
-	var head := SphereMesh.new()
-	head.radius = 1.0
-	head.height = 2.0
-	head.radial_segments = 8
-	head.rings = 4
+	var x := -WALL_X + 3.0
+	var row := 0
+	while x < WALL_X - 3.0:
+		var z := WALL_Z.x + 4.0 + (FLOWER_GRID / 2.0 if row % 2 else 0.0)
+		while z < WALL_Z.y - 3.0:
+			var at := Vector3(x + _rng.randf_range(-0.45, 0.45) * FLOWER_GRID, 0, z + _rng.randf_range(-0.45, 0.45) * FLOWER_GRID)
+			z += FLOWER_GRID
+			if not open_ground(at):
+				continue
+			at.y = LAND.height(at.x, at.z)
+			var key := Vector2i(floori(at.x / FLOWER_PATCH), floori(at.z / FLOWER_PATCH))
+			if not heads.has(key):
+				heads[key] = []
+				for c in cols:
+					heads[key].append([])
+				stalks[key] = []
+			# Two in five spots are a tuft of long grass; the rest a little bunch of one to three flowers
+			if _rng.randf() < 0.4:
+				tufts.append(Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(1, _rng.randf_range(0.6, 1.2), 1)), at))
+				continue
+			var pick := _rng.randf() * total
+			var ci := 0
+			while ci < cols.size() - 1 and pick > float(cols[ci][1]):
+				pick -= float(cols[ci][1])
+				ci += 1
+			for n in _rng.randi_range(1, 3):
+				var off := Vector3(_rng.randf_range(-0.35, 0.35), 0, _rng.randf_range(-0.35, 0.35)) if n > 0 else Vector3.ZERO
+				var h := _rng.randf_range(0.28, 0.72)
+				var foot := at + off
+				stalks[key].append(Transform3D(Basis.from_scale(Vector3(1, h, 1)), foot + Vector3(0, h / 2.0, 0)))
+				var r := _rng.randf_range(0.11, 0.2)
+				var tilt := Basis(Vector3.UP, _rng.randf() * TAU) * Basis(Vector3.RIGHT, _rng.randf_range(-0.35, 0.35))
+				heads[key][ci].append(Transform3D(tilt.scaled(Vector3(r, r, r)), foot + Vector3(0, h, 0)))
+		x += FLOWER_GRID * 0.866
+		row += 1
+	var detail: Script = load("res://scripts/detail_props.gd")
+	var baked: Mesh = detail.call("baked_mesh", "res://models/props/secret_garden/flower_head.glb")
+	var head: Mesh = baked
+	var head_k := 1.0 / FLOWER_HEAD_R
+	if head == null:
+		var sm := SphereMesh.new()
+		sm.radius = 1.0
+		sm.height = 1.4
+		sm.radial_segments = 8
+		sm.rings = 4
+		head = sm
+		head_k = 1.0
+	var base: StandardMaterial3D = baked.surface_get_material(0) as StandardMaterial3D if baked else null
+	var mats := []
 	for i in cols.size():
-		var m := _mat("Wild Flower %d" % i, cols[i], 0.6, 0.15)
+		var c: Color = cols[i][0]
+		var m: StandardMaterial3D
+		if base:
+			m = base.duplicate() as StandardMaterial3D
+			m.resource_name = "Wild Flower %d" % i
+			m.albedo_color = c
+			m.emission_enabled = true
+			m.emission = c
+			m.emission_energy_multiplier = 0.15
+			m.set_meta("detail_surface", "flower_head")
+		else:
+			m = _mat("Wild Flower %d" % i, c, 0.6, 0.15)
 		if not m in _glows:
 			_glows.append(m)
-		_multi(s, "Flower Heads %d" % i, head, heads[i], m)
+		mats.append(m)
 	var stalk := CylinderMesh.new()
 	stalk.top_radius = 0.022
 	stalk.bottom_radius = 0.028
 	stalk.height = 1.0
 	stalk.radial_segments = 4
-	_multi(s, "Flower Stalks", stalk, stalks, _leaf())
+	flower_counts.resize(cols.size())
+	flower_counts.fill(0)
+	for key in heads.keys():
+		var patch := Node3D.new()
+		patch.name = "Patch %d %d" % [key.x, key.y]
+		s.add_child(patch)
+		for i in cols.size():
+			var xfs: Array = heads[key][i]
+			if xfs.is_empty():
+				continue
+			if head_k != 1.0:
+				for j in xfs.size():
+					var t: Transform3D = xfs[j]
+					xfs[j] = Transform3D(t.basis.scaled(Vector3.ONE * head_k), t.origin)
+			flower_counts[i] += xfs.size()
+			var mi := _multi(patch, "Flower Heads %d" % i, head, xfs, mats[i])
+			mi.visibility_range_end = FLOWER_RANGE
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var sm2 := _multi(patch, "Flower Stalks", stalk, stalks[key], _leaf())
+		sm2.visibility_range_end = FLOWER_RANGE * 0.8
+		sm2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# Tufts of long grass: three crossed blades
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)

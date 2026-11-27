@@ -3822,26 +3822,37 @@ static func world_patched(old: StandardMaterial3D, kind: String, scale := 1.0) -
 	return m
 
 
-static func dress_place(root: Node, pairs: Array) -> int:
+static func dress_place(root: Node, pairs: Array, multimeshes := false) -> int:
 	# A small place built in code at play time (the Undergardens, the Museum Garden, a virtue trial, the Knitting
 	# Class): every mesh in root wearing a material named in pairs ([[name, patch, scale], ...]) wears a world-space
 	# patched copy instead (world_patched). Nothing is added or hidden, glows are never named, so they stay crisp.
-	# Returns how many meshes changed (0 when done again or with the pipeline off).
+	# A pair can end in "moves" for things that swim or turn (koi, a windmill's sails): those get the patch in their
+	# own space (patched), so it doesn't slide over them. With multimeshes, MultiMeshInstance3Ds are dressed too
+	# (world space suits them: a whole bed of crops then joins up). Returns how many changed (0 when done again or
+	# with the pipeline off).
 	var n := 0
 	if root == null or not on():
 		return n
 	var want := {}
 	for p in pairs:
 		want[String(p[0])] = p
-	for c in root.find_children("*", "MeshInstance3D", true, false):
-		var mi := c as MeshInstance3D
-		var old := mi.material_override as StandardMaterial3D
+	var kinds := "GeometryInstance3D" if multimeshes else "MeshInstance3D"
+	for c in root.find_children("*", kinds, true, false):
+		if not (c is MeshInstance3D or c is MultiMeshInstance3D):
+			continue
+		var gi := c as GeometryInstance3D
+		var old := gi.material_override as StandardMaterial3D
 		if old == null or old.has_meta(SURFACE_META) or not want.has(old.resource_name):
 			continue
 		var p: Array = want[old.resource_name]
-		var m := world_patched(old, p[1], float(p[2] if p.size() > 2 else 1.0))
+		var scale := float(p[2] if p.size() > 2 else 1.0)
+		var m: StandardMaterial3D
+		if p.size() > 3 and String(p[3]) == "moves":
+			m = patched(old, p[1], scale)
+		else:
+			m = world_patched(old, p[1], scale)
 		if m:
-			mi.material_override = m
+			gi.material_override = m
 			n += 1
 	return n
 
