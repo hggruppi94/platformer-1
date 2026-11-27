@@ -53,6 +53,18 @@ for side, sgn in (("R", -1), ("L", 1)):
 hd = [v.co for v in me.vertices if v.co.z > 1.1]
 ft = [v.co for v in me.vertices if v.co.z < 0.12]
 print("LEAN head mid", round(sum(c.x for c in hd)/len(hd), 3), round(sum(c.y for c in hd)/len(hd), 3), "feet mid", round(sum(c.x for c in ft)/len(ft), 3), round(sum(c.y for c in ft)/len(ft), 3))
+# Parts (stage "parts"): every face sorted into the json's named parts by its texture colour and height, each part
+# its own material on the same texture (so the look doesn't change). The weights below follow the parts.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import parts_lib as PL                                      # noqa: E402
+import numpy as np                                          # noqa: E402
+PARTS = CFG.get("parts")
+part_of_face = None
+if PARTS:
+    part_of_face, _ = PL.classify(ob, PARTS, HEIGHT)
+    PL.apply_parts(ob, PARTS, part_of_face)
+    n = np.bincount(part_of_face, minlength=len(PARTS))
+    print("PARTS", {p_["name"]: int(c) for p_, c in zip(PARTS, n)})
 BOX = R["box"]
 xs = [v.co.x for v in me.vertices]
 zs = [v.co.z for v in me.vertices]
@@ -132,6 +144,119 @@ for v in unweighted:
     best = min((b for b in B if b != "root"), key=lambda b: seg_dist(v.co, Vector(B[b][0]), Vector(B[b][1])))
     (ob.vertex_groups.get(best) or ob.vertex_groups.new(name=best)).add([v.index], 1.0, "REPLACE")
 print("RIG unweighted fixed", len(unweighted))
+# Weights by rule (after the guide in Hayden's X link; only with "weight_rules": true in the json). Tested on the
+# TRELLIS.2 Nina (Nov 27): the rules made stretching WORSE (straps 1.2x -> 2.4x, hair's worst spot 3x -> 21x in the pose
+# test), because a TRELLIS model is one fused skin where the shirt IS the body's surface; Blender's automatic weights
+# alone stayed under 1.6x on every part. They're kept for characters with a separate layer over the body (a coat,
+# a cape).: a part may only follow the bones its json entry lists, so the
+# overalls never follow the arms and the shirt never follows the legs; a point on the edge of two parts may follow
+# the bones of either. Nothing is smoothed across parts. A point left with no allowed weight goes to its nearest
+# allowed bone.
+if PARTS and CFG.get("weight_rules", False):
+    bone_names = [b for b in B if b != "root"]
+    allowed = [None] * len(me.vertices)
+    for p_ in me.polygons:
+        rule = PARTS[part_of_face[p_.index]].get("bones", "all")
+        ok = set(bone_names) if rule == "all" else set(rule)
+        for vi in p_.vertices:
+            allowed[vi] = ok if allowed[vi] is None else (allowed[vi] | ok)
+    # Soften the edges: points within BLEND rings of another part may also follow that part's bones, so two
+    # neighbouring points never follow completely different bones (that's what tears the texture open)
+    nbr = [[] for _ in me.vertices]
+    for e in me.edges:
+        a_, b_ = e.vertices
+        nbr[a_].append(b_)
+        nbr[b_].append(a_)
+    for _ in range(CFG.get("blend_rings", 3)):
+        allowed = [(ok or set()).union(*[(allowed[n] or set()) for n in nbr[i]]) or None
+                   for i, ok in enumerate(allowed)]
+    gname = {g.index: g.name for g in ob.vertex_groups}
+    groups = {b: (ob.vertex_groups.get(b) or ob.vertex_groups.new(name=b)) for b in bone_names}
+    moved = 0
+    for v in me.vertices:
+        ok = allowed[v.index] or set(bone_names)
+        ws = {gname[g.group]: g.weight for g in v.groups if gname[g.group] in groups}
+        keep = {b: w for b, w in ws.items() if b in ok and w > 1e-4}
+        if len(keep) != len(ws):
+            moved += 1
+        if not keep:
+            best = min(ok, key=lambda b: seg_dist(v.co, Vector(B[b][0]), Vector(B[b][1])))
+            keep = {best: 1.0}
+        tot = sum(keep.values())
+        for b in ws:
+            if b not in keep:
+                groups[b].remove([v.index])
+        for b, w in keep.items():
+            groups[b].add([v.index], w / tot, "REPLACE")
+    print("RULES points with weights taken off a bone their part may not follow:", moved)
+
+
+# Pose test (after the same guide): strike hard poses and measure how far every edge stretches or squashes, per part.
+# A ratio of 1.0 is no change; 1.5 means an edge 50% longer than at rest (the texture smears there).
+def posetest():
+    poses = {
+        "rest": lambda p: None,
+        "arms_forward": lambda p: (p.rel("upper_arm.L", (X, -1.2)), p.rel("upper_arm.R", (X, -1.2))),
+        "arms_out": lambda p: (p.rel("upper_arm.L", (Y, 0.9)), p.rel("upper_arm.R", (Y, -0.9))),
+        "elbows_bent": lambda p: (p.rel("forearm.L", (X, -1.4)), p.rel("forearm.R", (X, -1.4))),
+        "head_turn": lambda p: p.rel("head", (Z, 0.8)),
+        "big_step": lambda p: (p.rel("thigh.L", (X, -0.8)), p.rel("thigh.R", (X, 0.5)), p.rel("shin.R", (X, 0.7))),
+        "crouch": lambda p: (p.rel("thigh.L", (X, -1.0)), p.rel("thigh.R", (X, -1.0)), p.rel("shin.L", (X, 1.6)),
+                             p.rel("shin.R", (X, 1.6))),
+    }
+    names = list(poses)
+
+    def fn(t):
+        p = Pose(B)
+        poses[names[min(len(names) - 1, int(round(t * (len(names) - 1))))]](p)
+        return p
+    make_action(rig, "posetest", len(names) - 1, fn)
+    rig.animation_data.action = bpy.data.actions["posetest"]
+    for tr in rig.animation_data.nla_tracks:
+        tr.mute = True
+    edges = [(e.vertices[0], e.vertices[1]) for e in me.edges]
+    epart = {}
+    if PARTS:
+        for p_ in me.polygons:
+            for ek in p_.edge_keys:
+                epart.setdefault(ek, part_of_face[p_.index])
+    ev = [epart.get(tuple(sorted(e)), 0) for e in edges]
+    rest_len = None
+    report = {}
+    dg = bpy.context.evaluated_depsgraph_get()
+    for i, nm in enumerate(names):
+        bpy.context.scene.frame_set(i)
+        dg.update()
+        em = ob.evaluated_get(dg).to_mesh()
+        co = np.empty(len(em.vertices) * 3)
+        em.vertices.foreach_get("co", co)
+        co = co.reshape(-1, 3)
+        ob.evaluated_get(dg).to_mesh_clear()
+        L = np.array([np.linalg.norm(co[a] - co[b]) for a, b in edges]) + 1e-6
+        if rest_len is None:
+            rest_len = L
+            continue
+        r = np.maximum(L / rest_len, rest_len / L)
+        per = {}
+        for k in range(len(PARTS) if PARTS else 1):
+            m = np.array(ev) == k
+            if m.any():
+                per[PARTS[k]["name"] if PARTS else "all"] = [round(float(np.percentile(r[m], 95)), 2), round(float(r[m].max()), 2)]
+        report[nm] = per
+        worst = max(per.items(), key=lambda kv: kv[1][0])
+        print("POSE", nm, "worst part (95th pct, max):", worst[0], worst[1])
+    json.dump(report, open(OUT + "/posetest.json", "w"), indent=1)
+    bpy.ops.wm.save_as_mainfile(filepath=OUT + "/posetest.blend", copy=True)     # for render_poses.py
+    act = bpy.data.actions["posetest"]
+    for tr in list(rig.animation_data.nla_tracks):
+        if tr.name == "posetest":
+            rig.animation_data.nla_tracks.remove(tr)
+    rig.animation_data.action = None
+    bpy.data.actions.remove(act)
+    bpy.context.scene.frame_set(0)
+
+
+posetest()
 
 
 def idle(t):

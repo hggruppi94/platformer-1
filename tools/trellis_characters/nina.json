@@ -1,24 +1,523 @@
 {
-  "name": "nina",
-  "about": "Nina's Void self, from Sofi's main picture: red bob with a fringe and a big bow, warm grey-brown hippo skin, white tee, long pink overalls with rolled cuffs, yellow backpack, pink sneakers.",
-  "reference": "previews/rebuild_all/scratch/nina_input.png",
-  "base": "previews/rebuild_all/scratch/nina_front_input_v3.png",
-  "paint": [
-    {"kind": "warm_skin", "box": [220, 60, 810, 960], "to": [0.84, 0.69, 0.65]},
-    {"kind": "poly", "colour": [238, 165, 186], "points": [[366, 755], [502, 755], [504, 868], [364, 868]]},
-    {"kind": "poly", "colour": [238, 165, 186], "points": [[526, 755], [664, 755], [666, 868], [524, 868]]},
-    {"kind": "poly", "colour": [250, 198, 212], "points": [[360, 826], [508, 826], [510, 872], [358, 872]]},
-    {"kind": "poly", "colour": [250, 198, 212], "points": [[520, 826], [668, 826], [670, 872], [518, 872]]},
-    {"kind": "line", "colour": [214, 140, 162], "width": 4, "points": [[360, 828], [508, 828]]},
-    {"kind": "line", "colour": [214, 140, 162], "width": 4, "points": [[520, 828], [668, 828]]},
-    {"kind": "poly", "colour": [238, 186, 40], "points": [[334, 548], [372, 540], [376, 712], [338, 706]]},
-    {"kind": "poly", "colour": [238, 186, 40], "points": [[660, 540], [698, 548], [694, 706], [656, 712]]},
-    {"kind": "poly", "colour": [214, 24, 18], "points": [[392, 150], [470, 124], [580, 122], [646, 146], [652, 176], [600, 168], [540, 186], [470, 178], [420, 200], [396, 186]]}
-  ],
-  "prompt": "detailed 3D cartoon render of a cute baby hippo girl standing straight and facing the camera, symmetrical front view, arms relaxed slightly away from her body, warm grey-brown skin, shoulder-length glossy red bob with a swept fringe, big shiny red bow on top of her head, big brown eyes with lashes, open happy smile showing two white buck teeth and a pink tongue, white t-shirt, long pink denim overalls down to her shins with rolled-up cuffs, yellow backpack worn on her back with its sides showing behind her arms, pink sneakers with white soles and laces, plain white background",
-  "negative": "blurry, plain, low detail, side view, turned, three quarter view, extra limbs, shorts, grey skin, multiple characters",
-  "strengths": [0.45, 0.55, 0.62],
-  "ip_scales": [0.5, 0.65],
-  "seeds": [0, 1],
-  "height": 1.2
+ "name": "nina",
+ "about": "Nina's Void self, from Sofi's main picture: red bob with a fringe and a big bow, warm grey-brown hippo skin, white tee, long pink overalls with rolled cuffs, yellow backpack, pink sneakers.",
+ "reference": "previews/rebuild_all/scratch/nina_input.png",
+ "base": "previews/rebuild_all/scratch/nina_front_input_v3.png",
+ "paint": [
+  {
+   "kind": "warm_skin",
+   "box": [
+    220,
+    60,
+    810,
+    960
+   ],
+   "to": [
+    0.84,
+    0.69,
+    0.65
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    238,
+    165,
+    186
+   ],
+   "points": [
+    [
+     366,
+     755
+    ],
+    [
+     502,
+     755
+    ],
+    [
+     504,
+     868
+    ],
+    [
+     364,
+     868
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    238,
+    165,
+    186
+   ],
+   "points": [
+    [
+     526,
+     755
+    ],
+    [
+     664,
+     755
+    ],
+    [
+     666,
+     868
+    ],
+    [
+     524,
+     868
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    250,
+    198,
+    212
+   ],
+   "points": [
+    [
+     360,
+     826
+    ],
+    [
+     508,
+     826
+    ],
+    [
+     510,
+     872
+    ],
+    [
+     358,
+     872
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    250,
+    198,
+    212
+   ],
+   "points": [
+    [
+     520,
+     826
+    ],
+    [
+     668,
+     826
+    ],
+    [
+     670,
+     872
+    ],
+    [
+     518,
+     872
+    ]
+   ]
+  },
+  {
+   "kind": "line",
+   "colour": [
+    214,
+    140,
+    162
+   ],
+   "width": 4,
+   "points": [
+    [
+     360,
+     828
+    ],
+    [
+     508,
+     828
+    ]
+   ]
+  },
+  {
+   "kind": "line",
+   "colour": [
+    214,
+    140,
+    162
+   ],
+   "width": 4,
+   "points": [
+    [
+     520,
+     828
+    ],
+    [
+     668,
+     828
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    238,
+    186,
+    40
+   ],
+   "points": [
+    [
+     334,
+     548
+    ],
+    [
+     372,
+     540
+    ],
+    [
+     376,
+     712
+    ],
+    [
+     338,
+     706
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    238,
+    186,
+    40
+   ],
+   "points": [
+    [
+     660,
+     540
+    ],
+    [
+     698,
+     548
+    ],
+    [
+     694,
+     706
+    ],
+    [
+     656,
+     712
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    214,
+    24,
+    18
+   ],
+   "points": [
+    [
+     392,
+     150
+    ],
+    [
+     470,
+     124
+    ],
+    [
+     580,
+     122
+    ],
+    [
+     646,
+     146
+    ],
+    [
+     652,
+     176
+    ],
+    [
+     600,
+     168
+    ],
+    [
+     540,
+     186
+    ],
+    [
+     470,
+     178
+    ],
+    [
+     420,
+     200
+    ],
+    [
+     396,
+     186
+    ]
+   ]
+  }
+ ],
+ "prompt": "detailed 3D cartoon render of a cute baby hippo girl standing straight and facing the camera, symmetrical front view, arms relaxed slightly away from her body, warm grey-brown skin, shoulder-length glossy red bob with a swept fringe, big shiny red bow on top of her head, big brown eyes with lashes, open happy smile showing two white buck teeth and a pink tongue, white t-shirt, long pink denim overalls down to her shins with rolled-up cuffs, yellow backpack worn on her back with its sides showing behind her arms, pink sneakers with white soles and laces, plain white background",
+ "negative": "blurry, plain, low detail, side view, turned, three quarter view, extra limbs, shorts, grey skin, multiple characters",
+ "strengths": [
+  0.45,
+  0.55,
+  0.62
+ ],
+ "ip_scales": [
+  0.5,
+  0.65
+ ],
+ "seeds": [
+  0,
+  1
+ ],
+ "height": 1.2,
+ "parts": [
+  {
+   "name": "Skin",
+   "rgb": [
+    [
+     150,
+     145,
+     148
+    ],
+    [
+     175,
+     150,
+     150
+    ],
+    [
+     125,
+     115,
+     118
+    ],
+    [
+     200,
+     175,
+     175
+    ]
+   ],
+   "bones": "all"
+  },
+  {
+   "name": "Shoes",
+   "rgb": [
+    [
+     235,
+     150,
+     165
+    ],
+    [
+     245,
+     240,
+     240
+    ],
+    [
+     225,
+     190,
+     190
+    ],
+    [
+     220,
+     120,
+     140
+    ]
+   ],
+   "z": [
+    0,
+    0.075
+   ],
+   "bones": [
+    "foot.L",
+    "foot.R",
+    "shin.L",
+    "shin.R"
+   ]
+  },
+  {
+   "name": "Overalls",
+   "rgb": [
+    [
+     240,
+     165,
+     185
+    ],
+    [
+     235,
+     182,
+     192
+    ],
+    [
+     215,
+     135,
+     160
+    ]
+   ],
+   "z": [
+    0.07,
+    0.56
+   ],
+   "bones": [
+    "hips",
+    "spine",
+    "chest",
+    "thigh.L",
+    "thigh.R",
+    "shin.L",
+    "shin.R"
+   ]
+  },
+  {
+   "name": "Straps",
+   "rgb": [
+    [
+     232,
+     192,
+     50
+    ],
+    [
+     205,
+     160,
+     40
+    ]
+   ],
+   "z": [
+    0.3,
+    0.66
+   ],
+   "bones": [
+    "hips",
+    "spine",
+    "chest"
+   ]
+  },
+  {
+   "name": "Shirt",
+   "rgb": [
+    [
+     246,
+     246,
+     246
+    ],
+    [
+     222,
+     222,
+     224
+    ]
+   ],
+   "z": [
+    0.33,
+    0.67
+   ],
+   "bones": [
+    "hips",
+    "spine",
+    "chest",
+    "upper_arm.L",
+    "upper_arm.R"
+   ]
+  },
+  {
+   "name": "Bow",
+   "rgb": [
+    [
+     175,
+     25,
+     25
+    ],
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     205,
+     45,
+     45
+    ]
+   ],
+   "z": [
+    0.93,
+    1.01
+   ],
+   "absx": [
+    0,
+    0.16
+   ],
+   "bones": [
+    "head"
+   ]
+  },
+  {
+   "name": "Hair",
+   "rgb": [
+    [
+     175,
+     25,
+     25
+    ],
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     205,
+     45,
+     45
+    ]
+   ],
+   "z": [
+    0.4,
+    1.01
+   ],
+   "bones": [
+    "head"
+   ]
+  },
+  {
+   "name": "Face",
+   "rgb": [
+    [
+     250,
+     250,
+     250
+    ],
+    [
+     25,
+     22,
+     22
+    ],
+    [
+     105,
+     70,
+     45
+    ],
+    [
+     205,
+     95,
+     110
+    ]
+   ],
+   "z": [
+    0.7,
+    0.93
+   ],
+   "absx": [
+    0,
+    0.2
+   ],
+   "bones": [
+    "head"
+   ]
+  }
+ ],
+ "weight_rules": false
 }

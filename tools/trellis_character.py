@@ -6,11 +6,12 @@
 #            front/candidates.png and front.png (the pick). STOP here until Hayden approves front.png.
 #   trellis  front.png -> trellis.glb: TRELLIS.2 on this PC (start C:/Users/hggru/Game_dev/ai3d/trellis_local/serve.bat
 #            first; about 90 s a character, under 5 GB of graphics memory), or the TRELLIS Spaces online as a fallback.
-#   rig      stand them up at game height, feet flat, check they're square, rig with the friends' bones, idle and walk
-#            (needs the json's "rig": the joints' pixels in front.png). Texture kept exactly as TRELLIS made it.
+#   rig      stand them up at game height, feet flat, check they are square, split them into named parts (the
+#            json's "parts", by texture colour and height), rig with the friends' bones, idle and walk, then the pose
+#            test (posetest.json; render_poses.py draws it). Needs the json's "rig": the joints' pixels in front.png.
+#            The texture is kept exactly as TRELLIS made it.
 #   preview  sheet.png (reference | front | model front, 3/4, side, back, face) and walk_three.gif / walk_side.gif.
-# Not built yet: splitting the model into named material parts along its texture's colour edges (so clothes.gd can
-# recolour and hide them), run and jump animations, hair bones.
+# More in tools/trellis_characters/README.md (the json, the pose test, rules for the pictures, the crowd copy to do).
 # Nothing here touches the game: models are only copied into it once Hayden has approved them.
 import json, subprocess, sys
 from pathlib import Path
