@@ -1,0 +1,24 @@
+{
+  "name": "nina",
+  "about": "Nina's Void self, from Sofi's main picture: red bob with a fringe and a big bow, warm grey-brown hippo skin, white tee, long pink overalls with rolled cuffs, yellow backpack, pink sneakers.",
+  "reference": "previews/rebuild_all/scratch/nina_input.png",
+  "base": "previews/rebuild_all/scratch/nina_front_input_v3.png",
+  "paint": [
+    {"kind": "warm_skin", "box": [220, 60, 810, 960], "to": [0.84, 0.69, 0.65]},
+    {"kind": "poly", "colour": [238, 165, 186], "points": [[366, 755], [502, 755], [504, 868], [364, 868]]},
+    {"kind": "poly", "colour": [238, 165, 186], "points": [[526, 755], [664, 755], [666, 868], [524, 868]]},
+    {"kind": "poly", "colour": [250, 198, 212], "points": [[360, 826], [508, 826], [510, 872], [358, 872]]},
+    {"kind": "poly", "colour": [250, 198, 212], "points": [[520, 826], [668, 826], [670, 872], [518, 872]]},
+    {"kind": "line", "colour": [214, 140, 162], "width": 4, "points": [[360, 828], [508, 828]]},
+    {"kind": "line", "colour": [214, 140, 162], "width": 4, "points": [[520, 828], [668, 828]]},
+    {"kind": "poly", "colour": [238, 186, 40], "points": [[334, 548], [372, 540], [376, 712], [338, 706]]},
+    {"kind": "poly", "colour": [238, 186, 40], "points": [[660, 540], [698, 548], [694, 706], [656, 712]]},
+    {"kind": "poly", "colour": [214, 24, 18], "points": [[392, 150], [470, 124], [580, 122], [646, 146], [652, 176], [600, 168], [540, 186], [470, 178], [420, 200], [396, 186]]}
+  ],
+  "prompt": "detailed 3D cartoon render of a cute baby hippo girl standing straight and facing the camera, symmetrical front view, arms relaxed slightly away from her body, warm grey-brown skin, shoulder-length glossy red bob with a swept fringe, big shiny red bow on top of her head, big brown eyes with lashes, open happy smile showing two white buck teeth and a pink tongue, white t-shirt, long pink denim overalls down to her shins with rolled-up cuffs, yellow backpack worn on her back with its sides showing behind her arms, pink sneakers with white soles and laces, plain white background",
+  "negative": "blurry, plain, low detail, side view, turned, three quarter view, extra limbs, shorts, grey skin, multiple characters",
+  "strengths": [0.45, 0.55, 0.62],
+  "ip_scales": [0.5, 0.65],
+  "seeds": [0, 1],
+  "height": 1.2
+}
