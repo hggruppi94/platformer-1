@@ -90,6 +90,7 @@ var _air_spin := 0.0                 # how far she has turned on purpose in this
 var _vert := false                   # this air started straight up off a steep ramp
 var _auto_turn := 0.0                # vert: the half turn still to do by herself before landing
 var _grind_buffer := 0.0             # a Grind press is remembered this long
+var _mount_hold := false             # Grind is still held from the press that hopped her on (same button): ignore it
 var _rail: GrindRail
 var _rail_offset := 0.0
 var _rail_dir := 1.0                 # +1 along the rail's curve, -1 against it
@@ -187,6 +188,11 @@ func start() -> void:
 	_shown_up = Vector3.UP
 	_charge = -1.0
 	balance = 0.0
+	# E / Y is both the board button and Grind (scripts/game.gd, _board_button_free), so the press that hopped her on
+	# is a Grind press too: without this she locked onto the nearest rail or edge the moment she stepped on (or went
+	# into a manual with Simple controls). That press, and holding it, doesn't count until it's let go.
+	_grind_buffer = 0.0
+	_mount_hold = Input.is_action_pressed("skate_grind")
 	_grounded = p.is_on_floor()
 	_ground_n = p.get_floor_normal() if _grounded else Vector3.UP
 	# On the board she moves as a free body and works out the ground herself (_move): Godot's walking rules would
@@ -330,7 +336,10 @@ func physics(delta: float) -> void:
 	_stick = input
 	var dir := _camera_dir(input)
 	_pushing = false
-	_grind_buffer = 0.25 if Input.is_action_just_pressed("skate_grind") and not p.input_locked else _grind_buffer - delta
+	if _mount_hold and not Input.is_action_pressed("skate_grind"):
+		_mount_hold = false
+	_grind_buffer = 0.25 if Input.is_action_just_pressed("skate_grind") and not p.input_locked and not _mount_hold \
+			else _grind_buffer - delta
 	_flip_press = 0.0 if Input.is_action_just_pressed("skate_flip") and not p.input_locked else _flip_press + delta
 	_grab_press = 0.0 if Input.is_action_just_pressed("skate_grab") and not p.input_locked else _grab_press + delta
 	_last_rail_timer -= delta
@@ -356,6 +365,11 @@ func physics(delta: float) -> void:
 	_pose(delta)
 	_sounds()
 	hud.update_skate(self)
+
+
+func _grind_held() -> bool:
+	# Holding Grind locks onto rails as she reaches them, but not while it's still the press that hopped her on
+	return Input.is_action_pressed("skate_grind") and not _mount_hold
 
 
 func _camera_dir(input: Vector2) -> Vector3:
@@ -465,7 +479,7 @@ func _roll(dir: Vector3, delta: float) -> void:
 	if _ollie_input(delta):
 		v += Vector3.UP * lerpf(float(ride.ollie_min), float(ride.ollie_max), _charge)
 		_pop()
-	elif _grind_buffer > 0.0 or Input.is_action_pressed("skate_grind"):
+	elif _grind_buffer > 0.0 or _grind_held():
 		if _try_grind():
 			return
 		# Simple controls: Grind on the flat with no rail near is a manual
@@ -741,7 +755,7 @@ func _air(input: Vector2, dir: Vector3, delta: float) -> void:
 		_charge = -1.0
 	# Simple controls: coming down near a rail, she locks on by herself
 	var auto_grind := simple() and v.y < 0.5 and _air_time > 0.15
-	if (_grind_buffer > 0.0 or Input.is_action_pressed("skate_grind") or auto_grind) and _try_grind():
+	if (_grind_buffer > 0.0 or _grind_held() or auto_grind) and _try_grind():
 		return
 	_move(v, false)
 	if _grounded and _air_time > 0.05:
