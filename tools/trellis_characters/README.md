@@ -11,6 +11,24 @@ Hayden has approved the sheet and the walk.
 | `rig` | stands the character up at game height with feet flat, checks they're square, splits them into named parts, rigs them with the friends' bones, idle and walk, and runs the pose test | |
 | `preview` | `sheet.png` (reference, front, model front, 3/4, side, back, face) and `walk_three.gif` / `walk_side.gif` | yes |
 
+## Which generator (bake-off, Nov 27 2026)
+
+All free, all on this PC, the same Nina picture (`previews/rebuild_all/trellis/generator_bakeoff.png`):
+
+| Generator (`trellis.py` backend) | Time | Extra graphics memory | Verdict |
+| --- | --- | --- | --- |
+| TRELLIS.2, one picture (`local`) | 88 to 137 s | 4.2 GB | **The default.** Closest to the picture, sharp face, clean colours, sensible back |
+| Pixal3D, front + side + back (`pixal3d-multi`) | 163 s | 5.6 GB | Close second: crispest bow and hair, but the eyes went green, and it needs side and back pictures (made from a TRELLIS.2 model first) |
+| Pixal3D, one picture (`pixal3d`) | 212 s | 5.1 GB | Good face, but she leans forward from the side |
+| TRELLIS 1, front + side + back (`local1-multi`) | 74 s | 3.6 GB | Right shape all round, but soft and dull |
+| TRELLIS 1, one picture (`local1`) | 65 s | 3.9 GB | Invented a tail at the back, blotchy face |
+| Hunyuan3D-2.1, one picture (`hunyuan21`) | 431 s | 7.0 GB | Heavy red blotches for blush, slowest; its licence excludes the EU, UK and South Korea |
+
+Each faces a different way out of its generator; `trellis.py` writes the turn (`yaw`) into `trellis.json` and `rig.py`
+uses it. Servers: TRELLIS.2 `ai3d/trellis_local/serve.bat` (port 7960), TRELLIS 1 `ai3d/trellis1_local/serve.bat`
+(7961), Hunyuan3D-2.1 `ai3d/hunyuan21_local/hunyuan2-1-spz/serve.bat` (7962); Pixal3D runs as a command
+(`ai3d/pixal3d`, its venv made from the TRELLIS.2 build's Python 3.11, with Python's headers added for Triton).
+
 ## The character's json
 
 - `reference`, `base`, `paint`, `prompt`, `negative`, `strengths`, `ip_scales`, `seeds`: the `front` stage. `base` is
