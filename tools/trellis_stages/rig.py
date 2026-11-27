@@ -130,7 +130,54 @@ bpy.ops.object.parent_set(type="ARMATURE_AUTO")
 me = ob.data
 unweighted = [v for v in me.vertices if not v.groups]
 if len(unweighted) > 0.02 * len(me.vertices):
-    # the heat method gave up: smooth weights by distance to each bone instead (the two nearest, blended)
+    # The heat method gave up (a generated mesh has holes and loose bits). After the guide Hayden found: weight a
+    # voxel-remeshed copy (one closed skin) the same way, then copy its weights onto the real mesh from the nearest
+    # point of the copy's surface.
+    proxy = ob.copy()
+    proxy.data = ob.data.copy()
+    proxy.modifiers.clear()
+    for g in list(proxy.vertex_groups):
+        proxy.vertex_groups.remove(g)
+    bpy.context.scene.collection.objects.link(proxy)
+    proxy.parent = None
+    proxy.matrix_world = ob.matrix_world.copy()
+    bpy.ops.object.select_all(action="DESELECT")
+    proxy.select_set(True)
+    bpy.context.view_layer.objects.active = proxy
+    proxy.data.remesh_voxel_size = CFG.get("weight_voxel", 0.012)
+    bpy.ops.object.voxel_remesh()
+    proxy.select_set(True)
+    rig.select_set(True)
+    bpy.context.view_layer.objects.active = rig
+    bpy.ops.object.parent_set(type="ARMATURE_AUTO")
+    proxy_bad = sum(1 for v in proxy.data.vertices if not v.groups)
+    print("RIG heat weights failed on the mesh; voxel copy", len(proxy.data.vertices), "points,", proxy_bad, "unweighted")
+    if proxy_bad < 0.02 * len(proxy.data.vertices):
+        for g in list(ob.vertex_groups):
+            ob.vertex_groups.remove(g)
+        for g in proxy.vertex_groups:
+            ob.vertex_groups.new(name=g.name)
+        dt = ob.modifiers.new("WeightsFromCopy", "DATA_TRANSFER")
+        dt.object = proxy
+        dt.use_vert_data = True
+        dt.data_types_verts = {"VGROUP_WEIGHTS"}
+        dt.vert_mapping = "POLYINTERP_NEAREST"
+        dt.layers_vgroup_select_src = "ALL"
+        dt.layers_vgroup_select_dst = "NAME"
+        bpy.ops.object.select_all(action="DESELECT")
+        ob.select_set(True)
+        bpy.context.view_layer.objects.active = ob
+        while ob.modifiers[0].name != "WeightsFromCopy":
+            bpy.ops.object.modifier_move_up(modifier="WeightsFromCopy")
+        bpy.ops.object.modifier_apply(modifier="WeightsFromCopy")
+        bpy.data.objects.remove(proxy)
+        me = ob.data
+        unweighted = [v for v in me.vertices if not v.groups]
+        print("RIG weights copied from the voxel copy; unweighted", len(unweighted))
+    else:
+        bpy.data.objects.remove(proxy)
+if len(unweighted) > 0.02 * len(me.vertices):
+    # still nothing usable: smooth weights by distance to each bone instead (the two nearest, blended)
     for g in list(ob.vertex_groups):
         ob.vertex_groups.remove(g)
     names = [b for b in B if b != "root"]
@@ -285,6 +332,49 @@ def walk(t):
 bpy.context.scene.render.fps = 30
 make_action(rig, "idle", 72, idle)
 make_action(rig, "walk", 30, walk)
+
+
+def run(t):
+    # A kid's run: the friends' run with a bigger bounce, the head bobbing and the chest twisting into each stride
+    p = K.biped_run(B, t)
+    s_ = math.sin(2 * math.pi * t)
+    p.rel("hips", (Y, 0.07 * s_))
+    p.rel("head", (Y, 0.05 * s_))
+    p.offset = Vector((0, 0, 0.06 * abs(s_)))
+    return p
+
+
+def jump(t):
+    # Crouch, spring up with her arms thrown up, tuck in the air, land and squash back to standing (one second)
+    def ease(x):
+        return x * x * (3 - 2 * x)
+    p = Pose(B)
+    if t < 0.22:                                       # crouch
+        k, air, arms = ease(t / 0.22), 0.0, 0.0
+    elif t < 0.34:                                     # push off
+        k, air, arms = 1 - ease((t - 0.22) / 0.12), 0.0, ease((t - 0.22) / 0.12)
+    elif t < 0.78:                                     # in the air
+        u = (t - 0.34) / 0.44
+        k, air, arms = 0.0, 4 * u * (1 - u), 1 - 0.6 * u
+    elif t < 0.9:                                      # land
+        k, air, arms = ease((t - 0.78) / 0.12) * 0.8, 0.0, 0.4 * (1 - (t - 0.78) / 0.12)
+    else:                                              # stand back up
+        k, air, arms = 0.8 * (1 - ease((t - 0.9) / 0.1)), 0.0, 0.0
+    tuck = air
+    for side, sg in (("L", 1), ("R", -1)):
+        p.rel(f"thigh.{side}", (X, -0.7 * k - 0.6 * tuck))
+        p.rel(f"shin.{side}", (X, 1.2 * k + 0.9 * tuck))
+        p.rel(f"foot.{side}", (X, -0.4 * k))
+        p.rel(f"upper_arm.{side}", (Y, sg * (0.25 + 1.1 * arms)), (X, -0.6 * arms))
+        p.rel(f"forearm.{side}", (X, -0.4 * arms))
+    p.rel("spine", (X, 0.25 * k - 0.1 * air))
+    p.rel("head", (X, -0.15 * k + 0.1 * air))
+    p.offset = Vector((0, 0, -0.12 * k + 0.38 * air))
+    return p
+
+
+make_action(rig, "run", 20, run)
+make_action(rig, "jump", 30, jump)
 rest_pose(rig)
 bpy.ops.wm.save_as_mainfile(filepath=OUT + "/rigged.blend")
 bpy.ops.object.select_all(action="DESELECT")
