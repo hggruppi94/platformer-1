@@ -72,6 +72,7 @@ func _run() -> void:
 
 	await _assists()
 	await _simple()
+	await _mount()
 	_controls()
 	await _tips()
 	await _lesson()
@@ -263,6 +264,38 @@ func _simple() -> void:
 	check(t.flipping() and t.flip.get("special", false), "Simple: with a full meter the trick button does the special")
 	await _until_rolling()
 	await _physics(40)
+	settings.use_layout("classic")
+
+
+# -----------------------------------------------------------------------------
+# Hopping on next to a rail: E / Y is the board button and Grind, and the press that hops her on mustn't grind
+# -----------------------------------------------------------------------------
+func _mount() -> void:
+	for layout in ["classic", "simple"]:
+		settings.use_layout(layout)
+		if game.riding:
+			game.toggle_skateboard()
+		await _physics(5)
+		p.global_position = Vector3(-9.0, 0.9, 16.7)     # standing right beside the Flat Rail, in reach of it
+		p.velocity = Vector3.ZERO
+		await _physics(5)
+		Input.action_press("skate_grind")                 # the one button: down to hop on...
+		game.toggle_skateboard()
+		await _physics(20)                                 # ...and still held
+		check(game.riding and s.rail_in_reach(), "%s: she hops on right beside a rail" % layout)
+		check(s.state == s.State.ROLL and s._manual == 0,
+			"%s: the press that hops her on doesn't grind or manual, held or not" % layout)
+		Input.action_release("skate_grind")
+		await _physics(3)
+		check(s.state == s.State.ROLL, "%s: ...nor letting it go" % layout)
+		Input.action_press("skate_grind")
+		await _physics(3)
+		Input.action_release("skate_grind")
+		check(s.state == s.State.GRIND, "%s: a fresh Grind press then grinds the rail" % layout)
+		s._leave_rail(Vector3.ZERO)
+		s.state = s.State.AIR
+		await _until_rolling()
+		await _physics(20)
 	settings.use_layout("classic")
 
 
