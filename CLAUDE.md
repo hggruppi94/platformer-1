@@ -99,6 +99,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-27: **Nightly: `test_detail_portal_props` passes again** (the nightly build bot). Since the swamps were baked
+  (Nov 24, 2ca183d) the Mothmire's dead mangroves are "Detailed Tree"s too, so its Lanternmoor check "every tree is
+  sized to its own trunk" counted 65 trees against 31 lantern trees and failed. It now leaves out the ones under
+  "Swamp" (the swamp's own part checks those). Its "dressing the moor again changes nothing" check stopped with a
+  script error on the swamp's counts (a dictionary inside the result) and never ran; it reads them now, and passes.
+  Only the test changed. The whole suite passed on main 7a405e0 (cracks, swamps and title failed once with three tests
+  running at once and passed alone; earth, first_hour, layout and races all passed).
+
 - 2026-11-27: **More baked models in the Secret Garden: leaded windows, rose bushes, cliff ivy and the supertrees**
   (Hayden: "Bake more details"). Built and tested in the cloud (own Godot user folders, no save touched). New kinds in
   `tools/build_prop_estate.py`: `window_light` (a leaded glass light in a stone mullion frame, glowing amber),

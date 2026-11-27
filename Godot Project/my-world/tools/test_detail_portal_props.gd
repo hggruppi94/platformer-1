@@ -362,7 +362,13 @@ func _lanternmoor() -> void:
 			plain += 1
 	check(plain == 0, "nothing plain left drawn (%d)" % plain)
 	# Each tree is sized to its old trunk and its pods glow in the old colours
-	var t := s.find_children("Detailed Tree", "Node3D", true, false)
+	# The Mothmire's dead mangroves are "Detailed Tree"s too, but they're the swamp's (checked by -- swamp), so only
+	# the lantern trees are counted here.
+	var swamp := s.get_node_or_null("Swamp")
+	var t: Array[Node] = []
+	for d in s.find_children("Detailed Tree", "Node3D", true, false):
+		if swamp == null or not swamp.is_ancestor_of(d):
+			t.append(d)
 	var sized := true
 	for d: Node3D in t:
 		var trunk: MeshInstance3D = null
@@ -411,9 +417,12 @@ func _lanternmoor() -> void:
 	var again := DETAIL_PROPS.dress_lanternmoor(s)
 	var none := true
 	for k in again:
-		if again[k] != 0:
-			none = false
-	check(none, "dressing the moor again changes nothing")
+		# The Mothmire's counts come back as a dictionary of their own under "swamp".
+		var counts: Array = (again[k] as Dictionary).values() if again[k] is Dictionary else [again[k]]
+		for n in counts:
+			if n != 0:
+				none = false
+	check(none, "dressing the moor again changes nothing (%s)" % again)
 
 
 func _frozen_moment() -> void:
