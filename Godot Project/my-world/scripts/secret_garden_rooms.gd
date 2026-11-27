@@ -441,6 +441,8 @@ func _quarry() -> void:
 			stone_dark(), true, 0.0)
 	# Ivy and ferns spilling down the cliffs
 	var ivy: StandardMaterial3D = sg._mat("Quarry Ivy", Color(0.15, 0.32, 0.17), 0.9)
+	var ivy_mesh: Mesh = baked("res://models/props/estate/ivy_clump.glb")
+	var ivy_xf: Array = []
 	for i in 110:
 		var a := TAU * i / 110.0 + _rng.randf() * 0.04
 		if absf(wrapf(a - (a_top + sweep * 0.5), -PI, PI)) < 1.7:
@@ -448,9 +450,16 @@ func _quarry() -> void:
 		var t := _rng.randf_range(0.35, 0.85)
 		var r := _cliff_r(t)
 		var p := Vector3(c.x + cos(a) * r, floor_y + (12.0 - floor_y) * t, c.y + sin(a) * r)
-		var mi: MeshInstance3D = sg._ball(g, _rng.randf_range(0.6, 1.1), p, ivy, 0.7)
-		mi.scale = Vector3(1.0, 1.0, 1.0) * _rng.randf_range(0.8, 1.3)
-		mi.name = "Cliff Ivy"
+		if ivy_mesh:
+			# The baked clump (a ball of 1 squashed to 0.7, of overlapping ivy leaves), at the old ball's size
+			var sz := _rng.randf_range(0.6, 1.1) * _rng.randf_range(0.8, 1.3)
+			ivy_xf.append(Transform3D(Basis(Vector3.UP, a).scaled(Vector3.ONE * sz), p))
+		else:
+			var mi: MeshInstance3D = sg._ball(g, _rng.randf_range(0.6, 1.1), p, ivy, 0.7)
+			mi.scale = Vector3(1.0, 1.0, 1.0) * _rng.randf_range(0.8, 1.3)
+			mi.name = "Cliff Ivy"
+	if ivy_mesh:
+		sg._multi(g, "Cliff Ivy", ivy_mesh, ivy_xf, null)
 	# The floor: curving beds of flowers in bands of colour, a lawn path round, trees
 	var cols := [Color(0.95, 0.25, 0.4), Color(1.0, 0.75, 0.2), Color(0.7, 0.45, 0.95), Color(1.0, 0.55, 0.75),
 		Color(0.98, 0.95, 0.85), Color(1.0, 0.45, 0.15)]

@@ -481,23 +481,37 @@ func _supertree(parent: Node3D, at: Vector3, height: float, tallest: bool) -> vo
 	var r1 := 1.0 if tallest else 0.8
 	sg._cyl(g, "Supertree Trunk", r1, r0, trunk_top, Vector3(0, trunk_top / 2.0, 0), steel, true)
 	# Planted panels up the trunk, and ribs of steel spiralling round them
-	var panel := CylinderMesh.new()
-	panel.top_radius = r1 + 0.12
-	panel.bottom_radius = r0 + 0.12
-	panel.height = trunk_top - 2.0
-	panel.radial_segments = 12
-	sg._mesh(g, panel, Vector3(0, trunk_top / 2.0 + 1.0, 0), plants).name = "Supertree Planting"
-	for i in 10:
-		var a := TAU * i / 10.0
-		var b := a + 0.9
-		_rib(at + Vector3(cos(a) * (r0 + 0.2), 0.0, sin(a) * (r0 + 0.2)),
-			at + Vector3(cos(b) * (r1 + 0.2), trunk_top, sin(b) * (r1 + 0.2)), 0.14)
-	# Bright flowers dotted up the planting
-	for i in 18:
-		var t := _rng.randf_range(0.1, 0.95)
-		var a := _rng.randf() * TAU
-		var r := lerpf(r0, r1, t) + 0.25
-		sg._ball(g, 0.16, Vector3(cos(a) * r, trunk_top * t, sin(a) * r), bloom, 0.8)
+	# (baked: ferns, bromeliads and glowing blooms in a spiralling steel lattice, made for a 13 m trunk 1.6 to 0.8 wide)
+	var trunk_mesh: Mesh = baked("res://models/props/estate/supertree_trunk.glb")
+	var canopy_mesh: Mesh = baked("res://models/props/estate/supertree_canopy.glb")
+	if trunk_mesh:
+		var ti := MeshInstance3D.new()
+		ti.name = "Detailed Supertree Trunk"
+		ti.mesh = trunk_mesh
+		ti.scale = Vector3(r0 / 1.6, trunk_top / 13.0, r0 / 1.6)
+		g.add_child(ti)
+		for i in 18:
+			# the old blooms' draws, so the rest of the grove comes out the same
+			_rng.randf_range(0.1, 0.95)
+			_rng.randf()
+	else:
+		var panel := CylinderMesh.new()
+		panel.top_radius = r1 + 0.12
+		panel.bottom_radius = r0 + 0.12
+		panel.height = trunk_top - 2.0
+		panel.radial_segments = 12
+		sg._mesh(g, panel, Vector3(0, trunk_top / 2.0 + 1.0, 0), plants).name = "Supertree Planting"
+		for i in 10:
+			var a := TAU * i / 10.0
+			var b := a + 0.9
+			_rib(at + Vector3(cos(a) * (r0 + 0.2), 0.0, sin(a) * (r0 + 0.2)),
+				at + Vector3(cos(b) * (r1 + 0.2), trunk_top, sin(b) * (r1 + 0.2)), 0.14)
+		# Bright flowers dotted up the planting
+		for i in 18:
+			var t := _rng.randf_range(0.1, 0.95)
+			var a := _rng.randf() * TAU
+			var r := lerpf(r0, r1, t) + 0.25
+			sg._ball(g, 0.16, Vector3(cos(a) * r, trunk_top * t, sin(a) * r), bloom, 0.8)
 	# The canopy: a wide funnel of steel ribs with a glowing rim
 	var funnel := CylinderMesh.new()
 	funnel.top_radius = 7.0 if tallest else 5.5
@@ -511,9 +525,18 @@ func _supertree(parent: Node3D, at: Vector3, height: float, tallest: bool) -> vo
 	var canopy := sg._mesh(g, funnel, Vector3(0, trunk_top + 3.0, 0), fm) as MeshInstance3D
 	canopy.name = "Supertree Canopy"
 	var top_r := funnel.top_radius
-	for i in 16:
-		var a := TAU * i / 16.0
-		_rib(at + Vector3(cos(a) * r1, trunk_top, sin(a) * r1), at + Vector3(cos(a) * top_r, height, sin(a) * top_r), 0.16)
+	if canopy_mesh:
+		# The baked canopy: riveted ribs, braces and hoops, made 0.8 to 5.5 wide over 6 m
+		var ci := MeshInstance3D.new()
+		ci.name = "Detailed Supertree Canopy"
+		ci.mesh = canopy_mesh
+		ci.position = Vector3(0, trunk_top, 0)
+		ci.scale = Vector3(top_r / 5.5, (height - trunk_top) / 6.0, top_r / 5.5)
+		g.add_child(ci)
+	else:
+		for i in 16:
+			var a := TAU * i / 16.0
+			_rib(at + Vector3(cos(a) * r1, trunk_top, sin(a) * r1), at + Vector3(cos(a) * top_r, height, sin(a) * top_r), 0.16)
 	var tm := TorusMesh.new()
 	tm.inner_radius = top_r - 0.14
 	tm.outer_radius = top_r + 0.14

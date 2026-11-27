@@ -614,7 +614,16 @@ func _rose_walk() -> void:
 	ball.height = 2.0
 	ball.radial_segments = 10
 	ball.rings = 5
-	sg._multi(g, "Rose Bushes", ball, bush, sg._mat("Rose Leaf", Color(0.2, 0.42, 0.22), 0.8))
+	var bush_mesh: Mesh = baked("res://models/props/estate/rose_bush.glb")
+	if bush_mesh:
+		# The baked bush (r 0.45, 0.36 tall) stretched to the old leafy ball's size
+		var fit: Array = []
+		for t: Transform3D in bush:
+			var sc := t.basis.get_scale()
+			fit.append(Transform3D(Basis(Vector3.UP, fmod(t.origin.x * 1.3 + t.origin.z, TAU)).scaled(Vector3(sc.x / 0.45, sc.y / 0.36, sc.z / 0.45)), t.origin))
+		sg._multi(g, "Rose Bushes", bush_mesh, fit, null)
+	else:
+		sg._multi(g, "Rose Bushes", ball, bush, sg._mat("Rose Leaf", Color(0.2, 0.42, 0.22), 0.8))
 	for c in 4:
 		sg._multi(g, "Roses %d" % c, ball, roses[c], glow(sg._mat("Rose %d" % c, rose_cols[c], 0.5, 0.3)))
 	set_meta("rose_arches", xfs.size() if arch_mesh else -1)
