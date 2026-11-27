@@ -4,7 +4,8 @@
 # The character's setup is tools/trellis_characters/<name>.json.
 #   front    a straight-on, neutral-pose picture from Sofi's reference (SDXL + IP-Adapter, several candidates):
 #            front/candidates.png and front.png (the pick). STOP here until Hayden approves front.png.
-#   trellis  front.png -> trellis.glb (TRELLIS.2 on this PC, or the TRELLIS Spaces online as a fallback).
+#   trellis  front.png -> trellis.glb: TRELLIS.2 on this PC (start C:/Users/hggru/Game_dev/ai3d/trellis_local/serve.bat
+#            first; about 90 s a character, under 5 GB of graphics memory), or the TRELLIS Spaces online as a fallback.
 #   rig      stand them up at game height, feet flat, check they're square, rig with the friends' bones, idle and walk
 #            (needs the json's "rig": the joints' pixels in front.png). Texture kept exactly as TRELLIS made it.
 #   preview  sheet.png (reference | front | model front, 3/4, side, back, face) and walk_three.gif / walk_side.gif.

@@ -15,16 +15,21 @@ LOCAL = "http://127.0.0.1:7960"
 
 
 def local():
-    import requests
-    requests.get(LOCAL + "/ping", timeout=3).raise_for_status()
+    # Standard library only (the system Python has no requests): a multipart form POST, then the GLB
+    import urllib.request, uuid
+    urllib.request.urlopen(LOCAL + "/ping", timeout=3).read()
     t = time.time()
-    with open(img, "rb") as f:
-        r = requests.post(LOCAL + "/generate_no_preview", files={"file": f}, timeout=1800,
-                          data={"seed": 2025, "resolution": 1024, "mesh_simplify": 60, "texture_size": 2048})
-    r.raise_for_status()
-    g = requests.get(LOCAL + "/download/model", timeout=120)
-    g.raise_for_status()
-    (out / "trellis.glb").write_bytes(g.content)
+    fields = {"seed": "2025", "resolution": "1024", "mesh_simplify": "60", "texture_size": "2048"}
+    bnd = uuid.uuid4().hex
+    nl = chr(13) + chr(10)
+    body = b"".join(f'--{bnd}{nl}Content-Disposition: form-data; name="{k}"{nl}{nl}{v}{nl}'.encode()
+                    for k, v in fields.items())
+    body += (f'--{bnd}{nl}Content-Disposition: form-data; name="file"; filename="front.png"{nl}'
+             f'Content-Type: image/png{nl}{nl}').encode() + img.read_bytes() + f"{nl}--{bnd}--{nl}".encode()
+    req = urllib.request.Request(LOCAL + "/generate_no_preview", data=body,
+                                 headers={"Content-Type": f"multipart/form-data; boundary={bnd}"})
+    urllib.request.urlopen(req, timeout=1800).read()
+    (out / "trellis.glb").write_bytes(urllib.request.urlopen(LOCAL + "/download/model", timeout=120).read())
     return {"backend": "local TRELLIS.2", "secs": round(time.time() - t, 1)}
 
 

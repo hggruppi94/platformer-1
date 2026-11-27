@@ -30,6 +30,10 @@ if len(ms) > 1:
 ob = bpy.context.view_layer.objects.active
 for o in [o for o in bpy.context.scene.objects if o.type != "MESH"]:
     bpy.data.objects.remove(o)
+# TRELLIS.2 on this PC hands its models back facing +X; the online TRELLIS faces the camera (-Y) already
+info = Path(SRC).with_name("trellis.json")
+if info.exists() and "local" in json.load(open(info)).get("backend", ""):
+    ob.matrix_world = Matrix.Rotation(math.radians(-90), 4, "Z") @ ob.matrix_world
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 ob.name = ob.data.name = "Nina"
 me = ob.data
