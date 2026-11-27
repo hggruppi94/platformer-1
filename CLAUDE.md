@@ -99,6 +99,30 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-27: **The Secret Garden gets baked detail everywhere, proper collision, and more pink and white flowers
+  mixed in** (Hayden: "A lot of it needs baked details and proper collision on surfaces. I would like there to be more
+  pink and white flowers as well make sure the garden does not look like a garden of simply pink flowers as that is
+  tacky. so spread them out"). Built and tested in the cloud (own Godot user folders, no save touched).
+  - **Detail:** every part's stone, paving, brick, slate, wood, bark and metal wears a baked patch (`secret_garden_kit.gd
+    COMMON_SURFACES`, plus each part's own `SURFACES`); the balusters and urns too. `detail_props.gd dress_place()` takes
+    `multimeshes` (MultiMeshes too) and a 4th "moves" entry (laid on in the object's own space). The garden's own walls,
+    old door, hedges and grass are dressed by `secret_garden.gd _dress_own()`. Glows, water, glass and the potager's
+    lavender and marigolds stay plain.
+  - **Collision** (`secret_garden.gd _solidify()`, deferred once the parts' bodies are in): every solid-looking mesh with
+    nothing solid in it gets a body of its own shape (a box for boxes, else its convex hull): about 480 rocks, stepping
+    stones, roofs, chimneys, roots, rims, lanterns, the Treetop Walk's legs, topiaries and giant lily pads. Plants, water,
+    glows, fish, sails, the doorway, column bases and everything walked as a ramp are left out (`SOLID_SKIP_MATS`,
+    `SOLID_SKIP_NAMES`, `SOLID_SKIP_UNDER`). `solidified` says how many.
+  - **Flowers:** the wild flowers are now the baked flower head made small, tinted, in a jittered grid all over the open
+    ground in 40 m patches (`_scatter()`, `FLOWER_COLOURS`): about half pink and white, the rest lilac, blue, butter
+    yellow, peach and violet, every patch mixed, with tufts of long grass between (`flower_counts` for tests). White
+    cherries (`blossom_white`, with a blush top) joined the pink ones in the arboretum, round the lake, the Japanese
+    Garden and the Cypress Walk.
+  - Tests: `test_secret_garden` (the collision, the flower mix, both blossom trees, the walls and door detailed, and every
+    walk still goes); `test_detail_portal_props -- secret`, detail_all, map, farming, garden_caves, cosmic_dust and
+    world_detail pass. Pictures: `tools/capture_secret_garden.gd` (project files, world/previews/secret_garden_detail).
+  - My choices Hayden may change: the flower colours and how many, which things are solid.
+
 - 2026-11-26: **The Secret Garden is rebuilt from scratch, far bigger: a hillside estate of 16 gardens inspired by
   the world's best gardens and arboretums** (Hayden: "you should start over from scratch and make it 10x better", "and
   make it way bigger. utilize inspiration from the worlds best arboretums and gardens"; inspired by, never a copy). It's

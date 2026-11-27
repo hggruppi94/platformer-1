@@ -206,10 +206,10 @@ func _arboretum() -> void:
 		["Birch Walk", Rect2(-62.0, 174.0, 36.0, 7.0), ["birch"], 10, 4.0],
 		["Birch Walk South", Rect2(-62.0, 160.0, 26.0, 8.0), ["birch"], 6, 4.0],
 		["Cedar Lawn", Rect2(-98.0, 178.0, 30.0, 10.0), ["cedar"], 4, 11.0],
-		["Copper Beeches", Rect2(-128.0, 128.0, 18.0, 10.0), ["copper", "oak"], 3, 9.0],
+		["Copper Beeches", Rect2(-128.0, 128.0, 18.0, 10.0), ["copper", "blossom_white", "oak"], 4, 8.0],
 		["Pinetum", Rect2(-60.0, 108.0, 22.0, 26.0), ["pine", "cedar", "pine"], 7, 6.0],
-		["East Glade", Rect2(28.0, 140.0, 26.0, 24.0), ["maple_gold", "birch", "oak", "maple_red"], 7, 7.0],
-		["East Woods", Rect2(100.0, 62.0, 34.0, 32.0), ["oak", "cedar", "copper", "maple_orange"], 8, 8.0],
+		["East Glade", Rect2(28.0, 140.0, 26.0, 24.0), ["maple_gold", "blossom", "birch", "blossom_white", "oak", "maple_red"], 9, 6.5],
+		["East Woods", Rect2(100.0, 62.0, 34.0, 32.0), ["oak", "blossom_white", "cedar", "copper", "blossom", "maple_orange"], 10, 7.0],
 	]
 	for gr in groves:
 		var rect: Rect2 = gr[1]

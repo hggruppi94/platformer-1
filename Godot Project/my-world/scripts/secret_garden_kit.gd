@@ -17,6 +17,23 @@ const DETAIL := "res://scripts/detail_props.gd"
 const BALUSTER_GAP := 0.34
 const RAIL_H := 1.0
 const STEP_RISE := 0.17
+# Plain surfaces any part may have, and the baked patch each wears (detail_props.gd dress_place). The flowers stay
+# plain on purpose: they glow, and the patches would dull them.
+const COMMON_SURFACES := [["Terrace Paving", "stone", 1.6], ["Slate Roof", "shingles", 0.9],
+	["Bridge Planks", "floorboards", 0.7], ["Clay Wall", "plaster", 0.8], ["Door Wood", "barn_boards", 0.6],
+	["Boat Wood", "floorboards", 0.5, "moves"], ["Boat Paint", "barn_boards", 0.5, "moves"],
+	["Sail Cloth", "tweed", 0.6, "moves"], ["Koi 0", "reptile_scales", 0.12, "moves"],
+	["Koi 1", "reptile_scales", 0.12, "moves"], ["Koi 2", "reptile_scales", 0.12, "moves"],
+	["Koi 3", "reptile_scales", 0.12, "moves"], ["Koi Spot", "reptile_scales", 0.12, "moves"],
+	["Fern Frond", "leaf_skin", 0.5], ["Fern Trunk", "bark", 0.5], ["Lily Pad", "leaf_skin", 0.4],
+	["Giant Lily Pad", "leaf_skin", 0.9], ["Supertree Plants", "leaf_skin", 0.5], ["Garden Leaf", "leaf_skin", 0.3],
+	["Rose Leaf", "leaf_skin", 0.3], ["Rose Stem", "bark", 0.3], ["Hedge", "leaf_skin", 0.5],
+	["Long Grass", "leaf_skin", 0.3], ["Glasshouse Iron", "brushed_metal", 0.5], ["Walk Steel", "brushed_metal", 0.6],
+	["Walk Rail", "brushed_metal", 0.5], ["Old Brass", "brushed_metal", 0.4], ["Arch Iron", "brushed_metal", 0.4],
+	["Moon Bridge Rail", "maple", 0.5], ["Tea House Posts", "maple", 0.6], ["Terracotta", "plaster", 0.5],
+	["Teapot", "plaster", 0.3], ["Raked Gravel Ridge", "rock", 0.35], ["Grapes", "leaf_skin", 0.2],
+	["Bench Wood", "maple", 0.6], ["Crop Cabbage", "leaf_skin", 0.3], ["Crop Carrot Tops", "leaf_skin", 0.3],
+	["Crop Lettuce", "leaf_skin", 0.3], ["Crop Red Cabbage", "leaf_skin", 0.3], ["Crop Red Lettuce", "leaf_skin", 0.3]]
 
 var sg: Node3D                                  # the garden (scripts/secret_garden.gd)
 var bridges := []                               # [{"name", "from", "to", "rise"}] for tests
@@ -374,7 +391,8 @@ const BARKS := {"oak": Color(0.4, 0.33, 0.3), "pale": Color(0.86, 0.84, 0.8), "r
 const LEAVES := {"oak": Color(0.24, 0.46, 0.24), "oak_light": Color(0.36, 0.56, 0.28), "cedar": Color(0.16, 0.34, 0.3),
 	"maple_red": Color(0.86, 0.22, 0.16), "maple_orange": Color(0.95, 0.52, 0.16), "maple_gold": Color(0.98, 0.78, 0.25),
 	"birch": Color(0.55, 0.74, 0.32), "copper": Color(0.45, 0.2, 0.28), "redwood": Color(0.18, 0.36, 0.22),
-	"cypress": Color(0.15, 0.33, 0.23), "willow": Color(0.52, 0.7, 0.32), "blossom": Color(1.0, 0.74, 0.86),
+	"cypress": Color(0.15, 0.33, 0.23), "willow": Color(0.52, 0.7, 0.32), "blossom": Color(1.0, 0.74, 0.86), "blossom_white": Color(0.98, 0.96, 0.94),
+	"blossom_blush": Color(1.0, 0.88, 0.92),
 	"pine": Color(0.17, 0.36, 0.26), "palm": Color(0.3, 0.6, 0.28), "lime": Color(0.62, 0.78, 0.3)}
 var _tree_parts := {}                          # "trunk|oak" -> [transforms] (and "limb|...", "leaf|...")
 var trees := []                                # [{"kind", "at", "height"}] for tests and the scatter
@@ -489,13 +507,15 @@ func tree(kind: String, at: Vector3, k := 1.0) -> void:
 				var a := yaw + TAU * i / 9.0
 				leaves(at + Vector3(cos(a) * 4.4 * k, h - 1.2 * k, sin(a) * 4.4 * k), 1.6 * k, "willow", 2.2)
 			h += 4.0 * k
-		"blossom":
+		"blossom", "blossom_white":
+			# A cherry in blossom, pink or white (Hayden, 27 Nov 2026: more pink and white round the garden); a white
+			# one has a faint blush on top, like a real white cherry
 			h = 3.6 * k
 			var top := trunk(at, 0.4 * k, h, "dark", true, Vector3(0.15, 0, 0.1))
 			for i in 4:
 				var a := yaw + TAU * i / 4.0
-				leaves(top + Vector3(cos(a) * 1.9 * k, 0.6 * k, sin(a) * 1.9 * k), 1.8 * k, "blossom", 0.7)
-			leaves(top + Vector3(0, 1.4 * k, 0), 2.2 * k, "blossom", 0.7)
+				leaves(top + Vector3(cos(a) * 1.9 * k, 0.6 * k, sin(a) * 1.9 * k), 1.8 * k, kind, 0.7)
+			leaves(top + Vector3(0, 1.4 * k, 0), 2.2 * k, "blossom_blush" if kind == "blossom_white" else kind, 0.7)
 			h += 3.0 * k
 		"pine":
 			# A Japanese garden pine: a leaning trunk and flat cloud pads of needles
@@ -615,7 +635,6 @@ func finish(surfaces: Array) -> void:
 			mmi.material_override = stone()
 		add_child(mmi)
 	var d: Script = load(DETAIL)
-	d.call("dress_place", self, surfaces)
 	if not b_baked:
 		for n in ["Balusters", "Urns"]:
 			var mmi := get_node_or_null(n) as MultiMeshInstance3D
@@ -623,6 +642,8 @@ func finish(surfaces: Array) -> void:
 				var m: StandardMaterial3D = d.call("world_patched", mmi.material_override as StandardMaterial3D, "stone", 0.5)
 				if m:
 					mmi.material_override = m
+	# Each part's own list, then the things every part has a few of (MultiMeshes too: crops, rose bushes, stems)
+	d.call("dress_place", self, surfaces + COMMON_SURFACES, true)
 
 
 func _process(delta: float) -> void:
