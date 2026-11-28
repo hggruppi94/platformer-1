@@ -1,0 +1,329 @@
+{
+ "name": "nina_apose",
+ "about": "Round 3 (Nov 28 2026, Hayden: 'do the A pose', after 'her anatomy doesn't look natural and her stretch is also unnatural'): the round 2 look drawn in an A-pose (arms well away from the body, feet apart) so the model has real gaps at the armpits and between the legs. sofistyle 0.85, IP-Adapter 0.7, OpenPose 1.1, seed 4, STYLE_POSE=apose.",
+ "reference": "previews/rebuild_all/scratch/nina_input.png",
+ "height": 1.2,
+ "weight_rules": false,
+ "secondary": true,
+ "front": "previews/rebuild_all/trellis/nina_apose/front.png",
+ "rig": {
+  "box": [
+   195,
+   22,
+   830,
+   1000
+  ],
+  "torso_edge": [
+   375,
+   665
+  ],
+  "shoulder_inner": [
+   405,
+   628
+  ],
+  "armpit": 555,
+  "joints": {
+   "hips": [
+    515,
+    720
+   ],
+   "spine": [
+    515,
+    640
+   ],
+   "chest": [
+    515,
+    560
+   ],
+   "neck": [
+    515,
+    445
+   ],
+   "head_top": [
+    515,
+    25
+   ],
+   "shoulder.R": [
+    335,
+    500
+   ],
+   "elbow.R": [
+    240,
+    598
+   ],
+   "wrist.R": [
+    215,
+    665
+   ],
+   "fingers.R": [
+    235,
+    712
+   ],
+   "shoulder.L": [
+    695,
+    500
+   ],
+   "elbow.L": [
+    778,
+    592
+   ],
+   "wrist.L": [
+    805,
+    650
+   ],
+   "fingers.L": [
+    800,
+    697
+   ],
+   "hip.R": [
+    455,
+    760
+   ],
+   "knee.R": [
+    440,
+    845
+   ],
+   "ankle.R": [
+    420,
+    920
+   ],
+   "hip.L": [
+    590,
+    760
+   ],
+   "knee.L": [
+    600,
+    845
+   ],
+   "ankle.L": [
+    620,
+    920
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "Skin",
+   "rgb": [
+    [
+     150,
+     70,
+     70
+    ],
+    [
+     180,
+     100,
+     100
+    ],
+    [
+     140,
+     140,
+     140
+    ],
+    [
+     120,
+     60,
+     40
+    ]
+   ]
+  },
+  {
+   "name": "Shoes",
+   "rgb": [
+    [
+     222,
+     222,
+     222
+    ],
+    [
+     220,
+     140,
+     140
+    ],
+    [
+     220,
+     180,
+     180
+    ]
+   ],
+   "z": [
+    0,
+    0.08
+   ]
+  },
+  {
+   "name": "Overalls",
+   "rgb": [
+    [
+     220,
+     140,
+     140
+    ],
+    [
+     220,
+     180,
+     180
+    ],
+    [
+     220,
+     100,
+     100
+    ],
+    [
+     230,
+     160,
+     170
+    ]
+   ],
+   "z": [
+    0.07,
+    0.6
+   ]
+  },
+  {
+   "name": "Backpack",
+   "rgb": [
+    [
+     200,
+     150,
+     30
+    ],
+    [
+     230,
+     190,
+     50
+    ],
+    [
+     180,
+     120,
+     20
+    ]
+   ],
+   "z": [
+    0.3,
+    0.68
+   ]
+  },
+  {
+   "name": "Shirt",
+   "rgb": [
+    [
+     225,
+     225,
+     225
+    ],
+    [
+     245,
+     245,
+     245
+    ]
+   ],
+   "z": [
+    0.33,
+    0.68
+   ]
+  },
+  {
+   "name": "Bow",
+   "rgb": [
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     100,
+     20,
+     20
+    ],
+    [
+     60,
+     20,
+     20
+    ],
+    [
+     220,
+     60,
+     60
+    ],
+    [
+     180,
+     60,
+     20
+    ]
+   ],
+   "z": [
+    0.92,
+    1.01
+   ],
+   "absx": [
+    0,
+    0.15
+   ]
+  },
+  {
+   "name": "Hair",
+   "rgb": [
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     100,
+     20,
+     20
+    ],
+    [
+     60,
+     20,
+     20
+    ],
+    [
+     220,
+     60,
+     60
+    ],
+    [
+     180,
+     60,
+     20
+    ]
+   ],
+   "z": [
+    0.45,
+    1.01
+   ]
+  },
+  {
+   "name": "Face",
+   "rgb": [
+    [
+     250,
+     250,
+     250
+    ],
+    [
+     20,
+     20,
+     20
+    ],
+    [
+     110,
+     70,
+     40
+    ]
+   ],
+   "z": [
+    0.68,
+    0.92
+   ],
+   "absx": [
+    0,
+    0.2
+   ]
+  }
+ ],
+ "voxel_weights": true,
+ "limb_blend": 0.06
+}

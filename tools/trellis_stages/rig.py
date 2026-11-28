@@ -344,11 +344,68 @@ if PARTS and CFG.get("weight_rules", False):
     print("RULES points with weights taken off a bone their part may not follow:", moved)
 
 
+# Limbs stay limbs (Nov 28, Hayden: "her anatomy doesn't look natural and her stretch is also unnatural"). The voxel
+# copy's weights are smooth, so on a chubby kid whose arms hang against her sides and whose chin sits on her chest, the
+# arm bones pulled the shirt, straps and backpack along, and the thighs pulled the belly. A point inside the body's
+# side edge (`torso_edge`, picture pixels for her right and left side below the armpit; above the armpit the edge
+# eases in to `shoulder_inner` at the shoulder) gives its arm weight to the nearest body bone, over a short blend
+# (`limb_blend` metres); the same for leg weight above the hip joints (`leg_fade` metres up).
+TE = R.get("torso_edge")
+if TE:
+    def px_x(px):
+        return mx0 + (px - BOX[0]) / (BOX[2] - BOX[0]) * (mx1 - mx0)
+
+    def px_z(py):
+        return mz0 + (BOX[3] - py) / (BOX[3] - BOX[1]) * (mz1 - mz0)
+    SI = R.get("shoulder_inner", [TE[0] + 45, TE[1] - 45])
+    arm_z, sh_z = px_z(R.get("armpit", 580)), B["upper_arm.R"][0][2]
+    edges_ = {"R": (abs(px_x(TE[0])), abs(px_x(SI[0]))), "L": (abs(px_x(TE[1])), abs(px_x(SI[1])))}
+    LB = CFG.get("limb_blend", 0.03)
+    LF = CFG.get("leg_fade", 0.05)
+    body_bones = [b for b in ("hips", "spine", "chest") if b in B]
+    gname = {g.index: g.name for g in ob.vertex_groups}
+    n_arm = n_leg = 0
+    for v in me.vertices:
+        co = v.co
+        side = "L" if co.x > 0 else "R"
+        e_lo, e_in = edges_[side]
+        u = min(1.0, max(0.0, (co.z - arm_z) / max(1e-3, sh_z - arm_z)))
+        edge = e_lo + (e_in - e_lo) * u
+        a = min(1.0, max(0.0, (abs(co.x) - edge + LB / 2) / LB))
+        a = a * a * (3 - 2 * a)                                     # 1 out past the edge, 0 inside the body
+        hz = B["thigh." + side][0][2]
+        g_ = min(1.0, max(0.0, (hz + LF - co.z) / LF))
+        g_ = g_ * g_ * (3 - 2 * g_)                                 # 1 below the hip joint, 0 a few cm above
+        ws = {gname[g.group]: g.weight for g in v.groups}
+        moved = 0.0
+        for b, w in list(ws.items()):
+            k_ = None
+            if b.startswith(("upper_arm.", "forearm.", "hand.")):
+                k_ = a
+            elif b.startswith(("thigh.", "shin.", "foot.")):
+                k_ = g_
+            if k_ is not None and k_ < 1.0 and w > 0:
+                moved += w * (1 - k_)
+                ws[b] = w * k_
+        if moved > 1e-4:
+            n_arm += 1
+            best = min(body_bones, key=lambda b: seg_dist(co, Vector(B[b][0]), Vector(B[b][1])))
+            ws[best] = ws.get(best, 0.0) + moved
+            for b, w in ws.items():
+                grp = ob.vertex_groups.get(b) or ob.vertex_groups.new(name=b)
+                if w > 1e-4:
+                    grp.add([v.index], w, "REPLACE")
+                else:
+                    grp.remove([v.index])
+            gname = {g.index: g.name for g in ob.vertex_groups}
+    print("LIMBS points handed back to the body:", n_arm)
+
+
 # A soft neck: points round the neck (not the arms, hair or bow) go from the chest to the head bone smoothly over a
 # band about 20 cm tall, so turning or straightening the head spreads the twist instead of smearing a thin line.
 if CFG.get("soft_neck", True):
     nz = B["head"][0][2]
-    lo_, hi_ = nz - CFG.get("neck_below", 0.12), nz + CFG.get("neck_above", 0.08)
+    lo_, hi_ = nz - CFG.get("neck_below", 0.035), nz + CFG.get("neck_above", 0.015)
     keep_ = (hair_v | bow_v) if SEC else set()
     gH, gC = ob.vertex_groups.get("head"), ob.vertex_groups.get("chest")
     if gH and gC:
@@ -356,7 +413,27 @@ if CFG.get("soft_neck", True):
         n_soft = 0
         for v in me.vertices:
             # the chin hangs forward, so the band takes anything near the middle left to right (not the arms)
-            if v.index in keep_ or not (lo_ <= v.co.z <= hi_) or abs(v.co.x) > CFG.get("neck_halfwidth", 0.15):
+            if v.index in keep_:
+                continue
+            if v.co.z > hi_:
+                # above the neck everything is head (the voxel copy fused the chin to the chest, which smeared the
+                # mouth when she moved)
+                if any(names_all[g.group] != "head" for g in v.groups):
+                    for g in list(v.groups):
+                        if names_all[g.group] != "head":
+                            ob.vertex_groups[names_all[g.group]].remove([v.index])
+                    gH.add([v.index], 1.0, "REPLACE")
+                    n_soft += 1
+                continue
+            if v.co.z < lo_:
+                # below it nothing follows the head (turning her head used to drag her shoulders and straps)
+                hw = next((g.weight for g in v.groups if names_all[g.group] == "head"), 0.0)
+                if hw > 0:
+                    gH.remove([v.index])
+                    cw = next((g.weight for g in v.groups if names_all[g.group] == "chest"), 0.0)
+                    gC.add([v.index], cw + hw, "REPLACE")
+                continue
+            if abs(v.co.x) > CFG.get("neck_halfwidth", 0.09):
                 continue
             u = (v.co.z - lo_) / (hi_ - lo_)
             w = u * u * (3 - 2 * u)
@@ -421,6 +498,13 @@ def posetest():
     ev = [epart.get(tuple(sorted(e)), 0) for e in edges]
     rest_len = None
     report = {}
+    if TE:
+        nz_ = B["head"][0][2]
+        hz_ = B["hips"][0][2]
+        skip_ = (hair_v | bow_v) if SEC else set()
+        inb = np.array([(v.index not in skip_) and abs(v.co.x) < edges_["L" if v.co.x > 0 else "R"][0] - 0.02 and hz_ + 0.05 < v.co.z < nz_ - 0.05
+                        for v in me.vertices])
+        tmask = np.array([inb[a] and inb[b] for a, b in edges])
     dg = bpy.context.evaluated_depsgraph_get()
     for i, nm in enumerate(names):
         bpy.context.scene.frame_set(i)
@@ -440,6 +524,10 @@ def posetest():
             m = np.array(ev) == k
             if m.any():
                 per[PARTS[k]["name"] if PARTS else "all"] = [round(float(np.percentile(r[m], 95)), 2), round(float(r[m].max()), 2)]
+        if TE:
+            # the body itself (inside the side edges, hips to just under the chin): should hardly move in an arm,
+            # head or leg pose; this is the stretch Hayden saw
+            per["Torso"] = [round(float(np.percentile(r[tmask], 95)), 2), round(float(r[tmask].max()), 2)]
         report[nm] = per
         worst = max(per.items(), key=lambda kv: kv[1][0])
         print("POSE", nm, "worst part (95th pct, max):", worst[0], worst[1])
@@ -467,7 +555,7 @@ def idle(t):
     p.rel("hips", (Y, 0.04 * s))
     p.rel("spine", (Y, -0.03 * s), (X, 0.02 * s2))
     p.rel("chest", (X, 0.025 * s2))
-    p.rel("head", (Z, 0.35 * look), (Y, -0.08 * look + 0.03 * s2), (X, -0.04 * abs(look)))
+    p.rel("head", (Z, 0.25 * look), (Y, -0.08 * look + 0.03 * s2), (X, -0.04 * abs(look)))
     p.rel("upper_arm.L", (Y, -0.08 - 0.04 * s2), (X, 0.05 * s))
     p.rel("upper_arm.R", (Y, 0.08 + 0.04 * s2), (X, -0.05 * s))
     p.rel("forearm.L", (X, -0.12))
@@ -544,8 +632,10 @@ def wave(t):
     up = up * up * (3 - 2 * up)
     w = math.sin(2 * math.pi * 3 * t) * up
     p = Pose(B)
-    p.rel("upper_arm.R", (Y, 2.4 * up), (X, -0.3 * up))
-    p.rel("forearm.R", (Y, 0.5 * up + 0.45 * w))
+    # a chibi's arm is short and her head is big: lifted straight up it sweeps across her cheek, so the upper arm
+    # goes a little above level, out to the side, and the forearm points up from the elbow to wave
+    p.rel("upper_arm.R", (Y, 1.85 * up), (X, -0.25 * up))
+    p.rel("forearm.R", (Y, 1.15 * up + 0.4 * w))
     p.rel("upper_arm.L", (Y, -0.15))
     p.rel("spine", (Y, -0.06 * up))
     p.rel("head", (Y, -0.12 * up), (Z, 0.08 * up))

@@ -19,6 +19,13 @@ out.mkdir(parents=True, exist_ok=True)
 K = [(515, 300), (515, 440), (345, 490), (285, 565), (268, 640), (685, 490), (745, 565), (765, 640),
      (445, 730), (440, 820), (438, 900), (590, 730), (595, 820), (598, 900), (455, 230), (585, 230), (360, 150),
      (670, 150)]
+# STYLE_POSE=apose (Nov 28, Hayden: "do the A pose"): arms held well out from her sides (about 50 degrees) and feet a
+# little apart, so the model comes back with a clear gap between arms and body and between her legs, and the rig can
+# move each limb without dragging the body
+import os                                                                    # noqa: E402
+if os.environ.get("STYLE_POSE") == "apose":
+    K[3], K[4], K[6], K[7] = (275, 562), (228, 632), (755, 562), (802, 632)
+    K[10], K[13] = (410, 905), (625, 905)
 LIMBS = [(1, 2), (1, 5), (2, 3), (3, 4), (5, 6), (6, 7), (1, 8), (8, 9), (9, 10), (1, 11), (11, 12), (12, 13),
          (1, 0), (0, 14), (14, 16), (0, 15), (15, 17)]
 COLS = [(255, 0, 0), (255, 85, 0), (255, 170, 0), (255, 255, 0), (170, 255, 0), (85, 255, 0), (0, 255, 0),
