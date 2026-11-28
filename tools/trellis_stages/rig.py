@@ -105,6 +105,55 @@ me = ob.data
 # glTF splits points along texture seams; join them back (UVs live on the corners, so the texture is unchanged)
 bpy.ops.object.mode_set(mode="EDIT"); bpy.ops.mesh.select_all(action="SELECT")
 bpy.ops.mesh.remove_doubles(threshold=0.0002); bpy.ops.object.mode_set(mode="OBJECT")
+# Pixal3D hands back a million triangles: cut to `max_faces` (default 60,000, like TRELLIS.2's) with Blender's
+# collapse, which keeps the UVs, so the texture is unchanged
+_mf = CFG.get("max_faces", 60000)
+if len(me.polygons) > _mf * 1.2:
+    _dm = ob.modifiers.new("Lighter", "DECIMATE")
+    _dm.ratio = _mf / len(me.polygons)
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.modifier_apply(modifier="Lighter")
+    me = ob.data
+    print("LIGHTER cut to", len(me.polygons), "faces")
+# Loose crumbs (a generator sometimes leaves floating flecks of hair or strap off to one side): drop any piece with
+# fewer than `min_piece` (share of all points, default 0.4%) points
+import bmesh                                                # noqa: E402
+_bm = bmesh.new()
+_bm.from_mesh(me)
+_seen, _drop, _isls = set(), [], []
+for _v in _bm.verts:
+    if _v.index in _seen:
+        continue
+    _isl, _stack = [], [_v]
+    _seen.add(_v.index)
+    while _stack:
+        _a = _stack.pop()
+        _isl.append(_a)
+        for _e in _a.link_edges:
+            _b = _e.other_vert(_a)
+            if _b.index not in _seen:
+                _seen.add(_b.index)
+                _stack.append(_b)
+    if len(_isl) < CFG.get("min_piece", 0.004) * len(_bm.verts):
+        _drop.extend(_isl)
+    else:
+        _isls.append(_isl)
+# and slabs floating off to one side (Pixal3D sometimes leaves a flat piece half a metre away): a piece whose middle
+# is outside the biggest piece's box (plus 10% of her height) goes too
+if _isls:
+    _big = max(_isls, key=len)
+    _lo = Vector((min(v.co.x for v in _big), min(v.co.y for v in _big), min(v.co.z for v in _big)))
+    _hi = Vector((max(v.co.x for v in _big), max(v.co.y for v in _big), max(v.co.z for v in _big)))
+    _pad = 0.1 * (_hi.z - _lo.z)
+    for _isl in _isls:
+        _c = sum((v.co for v in _isl), Vector()) / len(_isl)
+        if any(_c[i] < _lo[i] - _pad or _c[i] > _hi[i] + _pad for i in range(3)):
+            _drop.extend(_isl)
+if _drop:
+    bmesh.ops.delete(_bm, geom=_drop, context="VERTS")
+    _bm.to_mesh(me)
+print("CRUMBS removed", len(_drop), "points")
+_bm.free()
 vs = [v.co for v in me.vertices]
 lo = Vector((min(v.x for v in vs), min(v.y for v in vs), min(v.z for v in vs)))
 hi = Vector((max(v.x for v in vs), max(v.y for v in vs), max(v.z for v in vs)))

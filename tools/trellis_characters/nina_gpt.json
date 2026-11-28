@@ -1,0 +1,329 @@
+{
+ "name": "nina_gpt",
+ "about": "Round 4 (Nov 28 2026): Hayden's turnaround sheet from ChatGPT (front, side, back in a real A-pose: previews/rebuild_all/trellis/nina_gpt/sheet_chatgpt.png), cut into front/side/back and built with Pixal3D from all three views.",
+ "reference": "previews/rebuild_all/trellis/nina_gpt/front_chatgpt.png",
+ "height": 1.2,
+ "weight_rules": false,
+ "secondary": true,
+ "front": "previews/rebuild_all/trellis/nina_gpt/front.png",
+ "rig": {
+  "box": [
+   330,
+   150,
+   700,
+   858
+  ],
+  "torso_edge": [
+   445,
+   585
+  ],
+  "shoulder_inner": [
+   465,
+   565
+  ],
+  "armpit": 505,
+  "joints": {
+   "hips": [
+    515,
+    625
+   ],
+   "spine": [
+    515,
+    565
+   ],
+   "chest": [
+    515,
+    500
+   ],
+   "neck": [
+    515,
+    430
+   ],
+   "head_top": [
+    515,
+    150
+   ],
+   "shoulder.R": [
+    445,
+    472
+   ],
+   "elbow.R": [
+    400,
+    512
+   ],
+   "wrist.R": [
+    355,
+    546
+   ],
+   "fingers.R": [
+    334,
+    560
+   ],
+   "shoulder.L": [
+    585,
+    472
+   ],
+   "elbow.L": [
+    630,
+    512
+   ],
+   "wrist.L": [
+    675,
+    546
+   ],
+   "fingers.L": [
+    696,
+    560
+   ],
+   "hip.R": [
+    462,
+    640
+   ],
+   "knee.R": [
+    458,
+    715
+   ],
+   "ankle.R": [
+    452,
+    800
+   ],
+   "hip.L": [
+    568,
+    640
+   ],
+   "knee.L": [
+    572,
+    715
+   ],
+   "ankle.L": [
+    578,
+    800
+   ]
+  }
+ },
+ "parts": [
+  {
+   "name": "Skin",
+   "rgb": [
+    [
+     150,
+     70,
+     70
+    ],
+    [
+     180,
+     100,
+     100
+    ],
+    [
+     140,
+     140,
+     140
+    ],
+    [
+     120,
+     60,
+     40
+    ]
+   ]
+  },
+  {
+   "name": "Shoes",
+   "rgb": [
+    [
+     222,
+     222,
+     222
+    ],
+    [
+     220,
+     140,
+     140
+    ],
+    [
+     220,
+     180,
+     180
+    ]
+   ],
+   "z": [
+    0,
+    0.08
+   ]
+  },
+  {
+   "name": "Overalls",
+   "rgb": [
+    [
+     220,
+     140,
+     140
+    ],
+    [
+     220,
+     180,
+     180
+    ],
+    [
+     220,
+     100,
+     100
+    ],
+    [
+     230,
+     160,
+     170
+    ]
+   ],
+   "z": [
+    0.07,
+    0.6
+   ]
+  },
+  {
+   "name": "Backpack",
+   "rgb": [
+    [
+     200,
+     150,
+     30
+    ],
+    [
+     230,
+     190,
+     50
+    ],
+    [
+     180,
+     120,
+     20
+    ]
+   ],
+   "z": [
+    0.3,
+    0.68
+   ]
+  },
+  {
+   "name": "Shirt",
+   "rgb": [
+    [
+     225,
+     225,
+     225
+    ],
+    [
+     245,
+     245,
+     245
+    ]
+   ],
+   "z": [
+    0.33,
+    0.68
+   ]
+  },
+  {
+   "name": "Bow",
+   "rgb": [
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     100,
+     20,
+     20
+    ],
+    [
+     60,
+     20,
+     20
+    ],
+    [
+     220,
+     60,
+     60
+    ],
+    [
+     180,
+     60,
+     20
+    ]
+   ],
+   "z": [
+    0.92,
+    1.01
+   ],
+   "absx": [
+    0,
+    0.15
+   ]
+  },
+  {
+   "name": "Hair",
+   "rgb": [
+    [
+     140,
+     20,
+     20
+    ],
+    [
+     100,
+     20,
+     20
+    ],
+    [
+     60,
+     20,
+     20
+    ],
+    [
+     220,
+     60,
+     60
+    ],
+    [
+     180,
+     60,
+     20
+    ]
+   ],
+   "z": [
+    0.45,
+    1.01
+   ]
+  },
+  {
+   "name": "Face",
+   "rgb": [
+    [
+     250,
+     250,
+     250
+    ],
+    [
+     20,
+     20,
+     20
+    ],
+    [
+     110,
+     70,
+     40
+    ]
+   ],
+   "z": [
+    0.68,
+    0.92
+   ],
+   "absx": [
+    0,
+    0.2
+   ]
+  }
+ ],
+ "voxel_weights": true,
+ "limb_blend": 0.06
+}
