@@ -1,0 +1,48 @@
+{
+  "name": "Clem's Shiny Stones",
+  "giver": "folk_clem",
+  "start": {
+    "flag": "folk_clem_start"
+  },
+  "steps": [
+    {
+      "id": "stones",
+      "text": "Find 3 shiny stones in the quarry.",
+      "checklist": [
+        [
+          "folk_stone_1",
+          "Shiny stone"
+        ],
+        [
+          "folk_stone_2",
+          "Shiny stone"
+        ],
+        [
+          "folk_stone_3",
+          "Shiny stone"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "folk_stone_1",
+          "folk_stone_2",
+          "folk_stone_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring them to Clem.",
+      "done": {
+        "flag": "folk_clem_back"
+      },
+      "where": [
+        "folk_clem"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "Clem's stone collection grows! +10 sparkles."
+  }
+}

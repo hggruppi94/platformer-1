@@ -1,0 +1,57 @@
+{
+  "name": "Clem",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_clem"
+      },
+      "lines": [
+        "Ooh, a new friend! I'm Clem. I dig things up!",
+        "The old quarry has shiny stones.",
+        "Find me three? Please please please?"
+      ],
+      "set": "folk_clem_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_clem:stones"
+      },
+      "lines": [
+        "Down in the Sunken Quarry. Look for sparkles!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_clem:back"
+      },
+      "lines": [
+        "Ooooh! They sparkle like stars!",
+        "Into my collection they go!"
+      ],
+      "set": "folk_clem_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_clem",
+        "not_flag": "folk_clem_thanks"
+      },
+      "lines": [
+        "I have 212 stones now. Want to count them?"
+      ],
+      "set": "folk_clem_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "What's under this rock? Let's see!"
+        ],
+        [
+          "Every hole goes somewhere!"
+        ],
+        [
+          "I found a button once. Best day ever."
+        ]
+      ]
+    }
+  ]
+}

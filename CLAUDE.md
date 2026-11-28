@@ -99,6 +99,29 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-28: **The Tuftlings live in the Secret Garden: small furry archer folk with fangs and claws, eight with names,
+  homes and a quest each, and a crowd about the garden** (Hayden, from a picture of a little tan archer in a leaf skirt:
+  "A bunch of them that are small like the aliens ... different personalities, colors, outfits, and quests with male
+  and females", "the inhabitants of the secret garden", "add fangs", "and claws"). Built and tested in the cloud (own
+  Godot user folders, no save touched). "Tuftlings" and every name are working names.
+  - **Models:** `tools/build_garden_folk.py <id>` (Blender) -> `source_art/characters/garden_folk_<id>.blend`, about
+    0.55 to 0.9 m tall: big ears, big dark eyes, little fangs and claws ("Claw"), head wraps, feathers, leaf skirts,
+    bows and quivers in their own colours; idle, walk, run, wave, cheer, sit. Baked detail:
+    `build_friend_detail.py folk_<id>` -> `models/characters/garden_folk_<id>.glb`.
+  - **The eight** (`scripts/garden_folk.gd FOLK`): Fennick (brave lookout), Thistle (flowers), Moss (sleepy), Bluebell
+    (shy, writes notes), Bracken (grumpy, kind), Clem (digger), Tumble (the littlest), Rosehip (the wise old keeper),
+    four boys and four girls. Each has a burrow (baked `tools/build_prop_folk.py burrow`, solid) in a ring round the
+    Great Tree, **Tuftling Hollow**, and wanders near it (`scripts/garden_folk_walker.gd`). A crowd (`CROWD`) roams the
+    rest of the garden. Far ones rest and aren't drawn (`AWAKE_RANGE`).
+  - **Quests** (`quests/folk_*.json`, `dialogue/folk_*.json`, `folk_crowd.json`, three short lines a chat): Fennick's
+    Arrows, Flowers for Thistle, Tea for Moss, Bluebell's Note, Bracken's Lucky Acorn, Clem's Shiny Stones, Hide and
+    Seek (Tumble hides three times) and Fireflies for Rosehip (lights by the lanterns and the koi pond). Props baked by
+    `build_prop_folk.py arrow|posy|teacup|acorn|shiny_stone`. 78 sparkles in all.
+  - Tests: new `tools/test_garden_folk.gd`; secret_garden, `detail_portal_props -- secret`, dialogue and quests (both
+    runs), map, cosmic_dust and detail_all pass. Pictures: `tools/capture_garden_folk.gd -- <folder>` (project files,
+    characters/garden-folk).
+  - My choices Hayden may change: every name, look and quest, where the Hollow is, how many in the crowd.
+
 - 2026-11-27: **More baked models in the Secret Garden: leaded windows, rose bushes, cliff ivy and the supertrees**
   (Hayden: "Bake more details"). Built and tested in the cloud (own Godot user folders, no save touched). New kinds in
   `tools/build_prop_estate.py`: `window_light` (a leaded glass light in a stone mullion frame, glowing amber),

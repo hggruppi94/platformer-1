@@ -1,0 +1,33 @@
+{
+  "name": "Bluebell's Note",
+  "giver": "folk_bluebell",
+  "start": {
+    "flag": "folk_bluebell_start"
+  },
+  "steps": [
+    {
+      "id": "note",
+      "text": "Give Bluebell's note to Fennick.",
+      "done": {
+        "flag": "folk_note_given"
+      },
+      "where": [
+        "folk_fennick"
+      ]
+    },
+    {
+      "id": "back",
+      "text": "Tell Bluebell what he said.",
+      "done": {
+        "flag": "folk_bluebell_back"
+      },
+      "where": [
+        "folk_bluebell"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Bluebell and Fennick are friends! +8 sparkles."
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Tea for Moss",
+  "giver": "folk_moss",
+  "start": {
+    "flag": "folk_moss_start"
+  },
+  "steps": [
+    {
+      "id": "tea",
+      "text": "Get tea at the Tea House.",
+      "done": {
+        "flag": "folk_tea"
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring Moss his tea.",
+      "done": {
+        "flag": "folk_moss_back"
+      },
+      "where": [
+        "folk_moss"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 8,
+    "message": "Moss is wide awake! +8 sparkles."
+  }
+}

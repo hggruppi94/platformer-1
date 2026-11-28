@@ -1,0 +1,57 @@
+{
+  "name": "Bracken",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_bracken"
+      },
+      "lines": [
+        "Hmph. What do you want?",
+        "I lost my lucky acorn. In that silly maze.",
+        "Fine. You can help. If you want."
+      ],
+      "set": "folk_bracken_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_bracken:acorn"
+      },
+      "lines": [
+        "The acorn's in the maze. The MIDDLE of it."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_bracken:back"
+      },
+      "lines": [
+        "My acorn! ...Thank you.",
+        "Don't tell anyone I said that."
+      ],
+      "set": "folk_bracken_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_bracken",
+        "not_flag": "folk_bracken_thanks"
+      },
+      "lines": [
+        "Hmph. You're alright."
+      ],
+      "set": "folk_bracken_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "Hmph."
+        ],
+        [
+          "Too sunny. Too windy. Too everything."
+        ],
+        [
+          "...Fine. You can stay a bit."
+        ]
+      ]
+    }
+  ]
+}

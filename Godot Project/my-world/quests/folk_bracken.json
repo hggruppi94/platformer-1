@@ -1,0 +1,30 @@
+{
+  "name": "Bracken's Lucky Acorn",
+  "giver": "folk_bracken",
+  "start": {
+    "flag": "folk_bracken_start"
+  },
+  "steps": [
+    {
+      "id": "acorn",
+      "text": "Find the acorn in the maze.",
+      "done": {
+        "flag": "folk_acorn"
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring it to Bracken.",
+      "done": {
+        "flag": "folk_bracken_back"
+      },
+      "where": [
+        "folk_bracken"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "Bracken smiled! Nearly. +10 sparkles."
+  }
+}

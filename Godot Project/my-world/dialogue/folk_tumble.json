@@ -1,0 +1,40 @@
+{
+  "name": "Tumble",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_tumble"
+      },
+      "lines": [
+        "Hee hee! I'm Tumble! Wanna play hide and seek?",
+        "You count. I hide!",
+        "Ready or not! Hee hee!"
+      ],
+      "set": "folk_tumble_start"
+    },
+    {
+      "when": {
+        "quest_done": "folk_tumble",
+        "not_flag": "folk_tumble_thanks"
+      },
+      "lines": [
+        "You found me three times! You're SO good!",
+        "Again tomorrow? Hee hee!"
+      ],
+      "set": "folk_tumble_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "Hee hee! Boo!"
+        ],
+        [
+          "I'm the littlest. But the fastest!"
+        ],
+        [
+          "Can you do a somersault? I can!"
+        ]
+      ]
+    }
+  ]
+}

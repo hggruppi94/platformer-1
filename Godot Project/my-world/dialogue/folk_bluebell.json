@@ -1,0 +1,57 @@
+{
+  "name": "Bluebell",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_bluebell"
+      },
+      "lines": [
+        "Oh! Um. Hello. I'm Bluebell.",
+        "I wrote a note for Fennick. I'm too shy.",
+        "Could you give it to him? Please?"
+      ],
+      "set": "folk_bluebell_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_bluebell:note"
+      },
+      "lines": [
+        "Fennick is the lookout with the red feather."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_bluebell:back"
+      },
+      "lines": [
+        "He said WHAT? He wants to be friends?",
+        "Oh my. My ears are pink."
+      ],
+      "set": "folk_bluebell_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_bluebell",
+        "not_flag": "folk_bluebell_thanks"
+      },
+      "lines": [
+        "Fennick and I shoot arrows together now!"
+      ],
+      "set": "folk_bluebell_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "I like writing notes. Words are easier on paper."
+        ],
+        [
+          "Hello again. You're nice."
+        ],
+        [
+          "Shh. I'm writing a poem."
+        ]
+      ]
+    }
+  ]
+}

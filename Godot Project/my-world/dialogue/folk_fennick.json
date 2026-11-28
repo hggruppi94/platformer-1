@@ -1,0 +1,68 @@
+{
+  "name": "Fennick",
+  "conversations": [
+    {
+      "when": {
+        "quest_step": "folk_bluebell:note"
+      },
+      "lines": [
+        "A note? For me? From Bluebell?",
+        "\"Want to be friends?\" Yes! Tell her yes!"
+      ],
+      "set": "folk_note_given"
+    },
+    {
+      "when": {
+        "quest_not_started": "folk_fennick"
+      },
+      "lines": [
+        "Halt! Oh. A friend. I'm Fennick, the lookout.",
+        "I shot my arrows too far. Four of them!",
+        "Could you find them? Gold stars show the way."
+      ],
+      "set": "folk_fennick_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_fennick:arrows"
+      },
+      "lines": [
+        "Four arrows. Look for the red feathers!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_fennick:back"
+      },
+      "lines": [
+        "My arrows! Every one!",
+        "You'd make a fine Tuftling."
+      ],
+      "set": "folk_fennick_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_fennick",
+        "not_flag": "folk_fennick_thanks"
+      },
+      "lines": [
+        "Thanks again, friend.",
+        "I'll keep watch over the garden."
+      ],
+      "set": "folk_fennick_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "I see everything from up the Great Tree."
+        ],
+        [
+          "Shh. I'm on lookout."
+        ],
+        [
+          "One day I'll hit a butterfly's shadow. Gently!"
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "Flowers for Thistle",
+  "giver": "folk_thistle",
+  "start": {
+    "flag": "folk_thistle_start"
+  },
+  "steps": [
+    {
+      "id": "flowers",
+      "text": "Pick 3 bunches of flowers.",
+      "checklist": [
+        [
+          "folk_posy_1",
+          "The Tulip Slope"
+        ],
+        [
+          "folk_posy_2",
+          "The Rose Walk"
+        ],
+        [
+          "folk_posy_3",
+          "The Potager"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "folk_posy_1",
+          "folk_posy_2",
+          "folk_posy_3"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring them to Thistle.",
+      "done": {
+        "flag": "folk_thistle_back"
+      },
+      "where": [
+        "folk_thistle"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "Thistle made a flower crown! +10 sparkles."
+  }
+}

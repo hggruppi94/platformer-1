@@ -1,0 +1,53 @@
+{
+  "name": "Fireflies for Rosehip",
+  "giver": "folk_rosehip",
+  "start": {
+    "flag": "folk_rosehip_start"
+  },
+  "steps": [
+    {
+      "id": "fireflies",
+      "text": "Catch 4 fireflies by the lanterns.",
+      "checklist": [
+        [
+          "folk_firefly_1",
+          "Firefly"
+        ],
+        [
+          "folk_firefly_2",
+          "Firefly"
+        ],
+        [
+          "folk_firefly_3",
+          "Firefly"
+        ],
+        [
+          "folk_firefly_4",
+          "Firefly"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "folk_firefly_1",
+          "folk_firefly_2",
+          "folk_firefly_3",
+          "folk_firefly_4"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring them to Rosehip.",
+      "done": {
+        "flag": "folk_rosehip_back"
+      },
+      "where": [
+        "folk_rosehip"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 12,
+    "message": "The Hollow glows at night now! +12 sparkles."
+  }
+}

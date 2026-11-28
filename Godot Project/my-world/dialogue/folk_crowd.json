@@ -1,0 +1,27 @@
+{
+  "name": "Tuftling",
+  "conversations": [
+    {
+      "rotate": [
+        [
+          "Hello! Welcome to our garden!"
+        ],
+        [
+          "We Tuftlings live by the Great Tree."
+        ],
+        [
+          "Have you met Rosehip? She knows everything."
+        ],
+        [
+          "Fennick says you're nice."
+        ],
+        [
+          "Mind the flowers! They're sleeping."
+        ],
+        [
+          "Tuftling Hollow is that way. Past the big tree!"
+        ]
+      ]
+    }
+  ]
+}
