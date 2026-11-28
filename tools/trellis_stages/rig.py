@@ -34,6 +34,7 @@ for o in [o for o in bpy.context.scene.objects if o.type != "MESH"]:
 # local TRELLIS.2 (faces +X, -90) or the online TRELLIS (faces the camera already)
 info = Path(SRC).with_name("trellis.json")
 yaw = None
+HEAD_TWIST = 0.0
 meta = json.load(open(info)) if info.exists() else {}
 # Which way is she facing? TRELLIS.2 doesn't always hand models back the same way round, so look for the eyes: the
 # whitest bits of texture in the top quarter of the model (eye whites), and turn her so they face the camera (-Y),
@@ -69,14 +70,35 @@ try:
         _mid = _cen[_top][:, :2].mean(0)
         _d = _cen[_white][:, :2].mean(0) - _mid
         _ang = math.degrees(math.atan2(_d[1], _d[0]))            # facing direction in the ground plane
-        yaw = round((-90 - _ang) / 90) * 90                      # turn it to -90 degrees (-Y)
-        print("FACING eyes found", int(_white.sum()), "faces; turning", yaw, "(generator said", meta.get("yaw"), ")")
+        yaw = round((-90 - _ang) / 90) * 90                      # turn it to -90 degrees (-Y), to a quarter turn
+        # then square her up exactly: the line between her eyes and the line between her feet should both run
+        # left-right. Each is the main direction of those points in the ground plane (after the quarter turn).
+        _R = _np.array([[math.cos(math.radians(yaw)), -math.sin(math.radians(yaw))],
+                        [math.sin(math.radians(yaw)), math.cos(math.radians(yaw))]])
+
+        def _axis_angle(pts):
+            q = pts @ _R.T
+            q = q - q.mean(0)
+            w_, v_ = _np.linalg.eigh(q.T @ q)
+            ax = v_[:, -1]
+            if ax[0] < 0:
+                ax = -ax
+            return math.degrees(math.atan2(ax[1], ax[0]))       # 0 = exactly left-right
+        _eye = _axis_angle(_cen[_white][:, :2])
+        _low = _cen[:, 2] < _cen[:, 2].min() + 0.08 * (_cen[:, 2].max() - _cen[:, 2].min())
+        _feet = _axis_angle(_cen[_low][:, :2]) if _low.sum() > 50 else _eye
+        _fine = -(_eye + _feet) / 2 if abs(_eye - _feet) < 25 else -_feet
+        if abs(_fine) < 35:
+            yaw += _fine
+        HEAD_TWIST = _eye + (_fine if abs(_fine) < 35 else 0)      # eye line's angle once the body is square
+        print("FACING eyes found", int(_white.sum()), "faces; eye line", round(_eye, 1), "feet line",
+              round(_feet, 1), "-> turning", round(yaw, 1), "(generator said", meta.get("yaw"), ")")
 except Exception as e:                                              # noqa: BLE001
     print("FACING eye search failed:", e)
 if yaw is None and meta:
     yaw = meta.get("yaw", -90 if "local" in meta.get("backend", "") else 0)
 if yaw:
-    ob.matrix_world = Matrix.Rotation(math.radians(yaw), 4, "Z") @ ob.matrix_world
+    ob.matrix_world = Matrix.Rotation(math.radians(yaw), 4, "Z") @ ob.matrix_world   # noqa: E501
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 ob.name = ob.data.name = "Nina"
 me = ob.data
@@ -320,6 +342,51 @@ if PARTS and CFG.get("weight_rules", False):
         for b, w in keep.items():
             groups[b].add([v.index], w / tot, "REPLACE")
     print("RULES points with weights taken off a bone their part may not follow:", moved)
+
+
+# A soft neck: points round the neck (not the arms, hair or bow) go from the chest to the head bone smoothly over a
+# band about 20 cm tall, so turning or straightening the head spreads the twist instead of smearing a thin line.
+if CFG.get("soft_neck", True):
+    nz = B["head"][0][2]
+    lo_, hi_ = nz - CFG.get("neck_below", 0.12), nz + CFG.get("neck_above", 0.08)
+    keep_ = (hair_v | bow_v) if SEC else set()
+    gH, gC = ob.vertex_groups.get("head"), ob.vertex_groups.get("chest")
+    if gH and gC:
+        names_all = {g.index: g.name for g in ob.vertex_groups}
+        n_soft = 0
+        for v in me.vertices:
+            # the chin hangs forward, so the band takes anything near the middle left to right (not the arms)
+            if v.index in keep_ or not (lo_ <= v.co.z <= hi_) or abs(v.co.x) > CFG.get("neck_halfwidth", 0.15):
+                continue
+            u = (v.co.z - lo_) / (hi_ - lo_)
+            w = u * u * (3 - 2 * u)
+            for g in list(v.groups):
+                if names_all[g.group] not in ("head", "chest"):
+                    ob.vertex_groups[names_all[g.group]].remove([v.index])
+            gH.add([v.index], w, "REPLACE")
+            gC.add([v.index], 1 - w, "REPLACE")
+            n_soft += 1
+        print("NECK softened", n_soft, "points")
+
+
+# The generator sometimes builds the head turned on the body. With the body squared by its feet, turn the head
+# bone until the eye line runs left-right too, and keep that as her rest shape (the mesh is re-posed and re-bound).
+if 5 < abs(HEAD_TWIST) < 45:
+    pb = rig.pose.bones["head"]
+    M = pb.bone.matrix_local.to_3x3()
+    pb.rotation_mode = "QUATERNION"
+    pb.rotation_quaternion = (M.inverted() @ Matrix.Rotation(math.radians(-HEAD_TWIST), 3, "Z") @ M).to_quaternion()
+    bpy.context.view_layer.update()
+    arm_mod = next(m for m in ob.modifiers if m.type == "ARMATURE")
+    bpy.ops.object.select_all(action="DESELECT")
+    ob.select_set(True)
+    bpy.context.view_layer.objects.active = ob
+    bpy.ops.object.modifier_apply(modifier=arm_mod.name)
+    pb.rotation_quaternion = (1, 0, 0, 0)
+    m2 = ob.modifiers.new("Armature", "ARMATURE")
+    m2.object = rig
+    bpy.context.view_layer.update()
+    print("HEAD straightened by", round(-HEAD_TWIST, 1), "degrees")
 
 
 # Pose test (after the same guide): strike hard poses and measure how far every edge stretches or squashes, per part.

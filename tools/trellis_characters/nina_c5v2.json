@@ -1,0 +1,252 @@
+{
+ "name": "nina_c5v2",
+ "about": "Round 2 of Sofi's favourite (C5): the free-arms picture with trousers and cuffs painted in and a white background, redrawn with the sofistyle model and C5 as the look reference.",
+ "reference": "previews/rebuild_all/trellis/nina_c5/front.png",
+ "base": "previews/rebuild_all/trellis/nina_c5free/front.png",
+ "lora": "C:/Users/hggru/Game_dev/ai3d/style_test/C/lora/sofistyle.safetensors",
+ "lora_weight": 0.85,
+ "paint": [
+  {
+   "kind": "bg_white",
+   "thresh": 55
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    255,
+    255,
+    255
+   ],
+   "points": [
+    [
+     342,
+     772
+    ],
+    [
+     386,
+     772
+    ],
+    [
+     388,
+     872
+    ],
+    [
+     342,
+     872
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    255,
+    255,
+    255
+   ],
+   "points": [
+    [
+     646,
+     772
+    ],
+    [
+     694,
+     772
+    ],
+    [
+     694,
+     872
+    ],
+    [
+     642,
+     872
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    236,
+    160,
+    178
+   ],
+   "points": [
+    [
+     382,
+     772
+    ],
+    [
+     510,
+     772
+    ],
+    [
+     507,
+     882
+    ],
+    [
+     386,
+     882
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    236,
+    160,
+    178
+   ],
+   "points": [
+    [
+     520,
+     772
+    ],
+    [
+     648,
+     772
+    ],
+    [
+     644,
+     882
+    ],
+    [
+     523,
+     882
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    255,
+    255,
+    255
+   ],
+   "points": [
+    [
+     508,
+     800
+    ],
+    [
+     521,
+     800
+    ],
+    [
+     521,
+     884
+    ],
+    [
+     508,
+     884
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    250,
+    200,
+    212
+   ],
+   "points": [
+    [
+     380,
+     848
+    ],
+    [
+     512,
+     848
+    ],
+    [
+     510,
+     892
+    ],
+    [
+     382,
+     892
+    ]
+   ]
+  },
+  {
+   "kind": "poly",
+   "colour": [
+    250,
+    200,
+    212
+   ],
+   "points": [
+    [
+     518,
+     848
+    ],
+    [
+     650,
+     848
+    ],
+    [
+     648,
+     892
+    ],
+    [
+     520,
+     892
+    ]
+   ]
+  },
+  {
+   "kind": "line",
+   "colour": [
+    205,
+    128,
+    150
+   ],
+   "width": 4,
+   "points": [
+    [
+     380,
+     850
+    ],
+    [
+     512,
+     850
+    ]
+   ]
+  },
+  {
+   "kind": "line",
+   "colour": [
+    205,
+    128,
+    150
+   ],
+   "width": 4,
+   "points": [
+    [
+     518,
+     850
+    ],
+    [
+     650,
+     850
+    ]
+   ]
+  }
+ ],
+ "prompt": "sofistyle, 3d cartoon render of a cute baby hippo girl standing straight and facing the camera, full body, front view, arms hanging relaxed away from her body, empty open hands, warm brown skin, glossy red bob haircut with a fringe, big shiny red bow, big brown eyes with long lashes, two buck teeth, happy open smile, white t-shirt, long pink denim overall trousers down to her shins with rolled-up cuffs, a yellow school backpack on her back with its rounded sides peeking out behind her arms and two yellow straps over her shoulders, pink and white sneakers with bows, plain white background",
+ "negative": "skirt, dress, vest, holding anything, side view, turned, text, watermark, blurry, extra limbs, multiple characters, beige background",
+ "strengths": [
+  0.45,
+  0.55,
+  0.62
+ ],
+ "ip_scales": [
+  0.5,
+  0.65
+ ],
+ "seeds": [
+  0,
+  1
+ ],
+ "height": 1.2,
+ "weight_rules": false,
+ "secondary": true
+}

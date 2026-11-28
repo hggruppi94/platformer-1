@@ -44,6 +44,20 @@ uses it. Servers: TRELLIS.2 `ai3d/trellis_local/serve.bat` (port 7960), TRELLIS 
   21x), because the clothes are the body's own surface. Use them for a separate layer over the body (a cape, a coat).
 - `blend_rings`: how many rings of points round a part's edge may follow the next part's bones too (default 3).
 
+## How the rig squares a character up
+
+TRELLIS doesn't always hand a model back facing the camera, or even straight: Nina's round 2 came back with her body
+turned about 24 degrees and her head about 35 degrees off her body. `rig.py`:
+
+- finds her eyes (white texture next to a dark pupil, in the top quarter) to turn her the right way round;
+- squares the body by the line between her feet (and the eyes, when the two agree);
+- straightens a head that is turned on the body: turns the head bone until the eye line runs left-right and keeps that
+  as her rest shape;
+- softens the neck first (`soft_neck`, `neck_below`, `neck_above`, `neck_halfwidth`: points round the neck and chin
+  blend from the chest bone to the head bone over about 20 cm), so the twist spreads instead of smearing;
+- `voxel_weights: true` weights a sealed voxel copy of the model and copies the weights back (smoother across loose
+  bits like straps); it's also the fallback when Blender's automatic weights fail.
+
 ## The pose test
 
 `rig` strikes six poses (arms forward, arms out, elbows bent, head turned, a big step, a crouch) and writes how far
