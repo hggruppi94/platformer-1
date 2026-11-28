@@ -51,9 +51,9 @@ FOLK = {
                     shoe=(0.20, 0.28, 0.55), gear="bow", hair="braids"),
     # Grumpy but kind underneath: dark chocolate fur and an acorn cap
     "bracken": dict(fur=(0.25, 0.14, 0.07), light=(0.48, 0.32, 0.18), dark=(0.14, 0.07, 0.03), girl=False,
-                    head="acorn", head_col=(0.40, 0.25, 0.10), head_col2=(0.62, 0.42, 0.16),
-                    lower="skirt", leaf=(0.55, 0.32, 0.08), leaf2=(0.40, 0.22, 0.05), gem=(0.85, 0.15, 0.10),
-                    shoe=(0.18, 0.28, 0.08), gear="staff"),
+                    head="acorn", head_col=(0.20, 0.45, 0.15), head_col2=(0.62, 0.42, 0.16),
+                    lower="skirt", leaf=(0.18, 0.55, 0.20), leaf2=(0.10, 0.38, 0.12), gem=(0.85, 0.15, 0.10),
+                    shoe=(0.70, 0.18, 0.10), gear="staff"),
     # Curious explorer, always digging: fox-orange fur and a yellow wrap
     "clem": dict(fur=(0.85, 0.32, 0.08), light=(0.98, 0.85, 0.70), dark=(0.55, 0.16, 0.03), girl=True,
                  head="wrap", head_col=(0.95, 0.72, 0.08), feather=(0.15, 0.55, 0.45),
