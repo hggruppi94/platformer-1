@@ -39,6 +39,13 @@ Read this first in every session so each iteration builds on the last one and do
 - `source_art/`: Blender characters and Sofi's reference pictures (characters, enemies, world, floor plans). These
   are the source of truth for how things look.
 - `previews/`: screenshots of recent work, one folder per feature.
+- `assets.csv`: the asset catalog (28 Nov 2026), one row per asset with five tags: type, place, how it's made, baked
+  detail, in game. Add a row when you add an asset, and update its row when you bake it or move it. It sits outside
+  the Godot project on purpose (Godot would try to import a .csv inside it as translations).
+- `models/props/` is sorted by place: one folder per place (`stars_hollow/`, `void_town/`, `rhythm_springs/`, `race/`,
+  each portal world and boss lair...), plus `shared/` for props used in more than one place, `nature/`, `furniture/`,
+  `surfaces/` and `bosses/` (tiling skins). Put a new prop in its place's folder, never loose in `models/props/`.
+  A model's extracted textures (`<name>_<image>.png`) and `.import` files move with it.
 
 ## How to work
 

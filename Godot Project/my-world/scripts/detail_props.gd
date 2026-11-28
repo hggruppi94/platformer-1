@@ -13,38 +13,38 @@ extends RefCounted
 # anything with a meta.
 
 const WATCH := preload("res://scripts/batch_watch.gd")
-const LAMP := "res://models/props/street_lamp.glb"
-const BENCH := "res://models/props/park_bench.glb"
-const GAZEBO := "res://models/props/gazebo.glb"
-const STALL := "res://models/props/market_stall_%s.glb"
+const LAMP := "res://models/props/stars_hollow/street_lamp.glb"
+const BENCH := "res://models/props/stars_hollow/park_bench.glb"
+const GAZEBO := "res://models/props/stars_hollow/gazebo.glb"
+const STALL := "res://models/props/void_town/market_stall_%s.glb"
 const STALLS := ["Fruit", "Sweets", "Crystals", "Flowers", "Records", "Toys"]
-const PUMPKIN := "res://models/props/pumpkin.glb"
-const JACK := "res://models/props/jack_o_lantern.glb"
-const SCARECROW := "res://models/props/scarecrow.glb"
-const MAILBOX := "res://models/props/mailbox.glb"
-const SIGN := "res://models/props/sign_post.glb"
-const PICKET := "res://models/props/picket.glb"
-const FENCE_POST := "res://models/props/fence_post.glb"
-const PORCH := "res://models/props/porch.glb"
-const PORCH_ROOF := "res://models/props/porch_roof.glb"
-const FOUNTAIN := "res://models/props/void_fountain.glb"
-const VOID_LAMP := "res://models/props/void_lamp.glb"
-const HAY := "res://models/props/hay_bale.glb"
-const CORN := "res://models/props/corn_sheaf.glb"
-const FIRE_TRUCK := "res://models/props/fire_truck.glb"
-const BOAT := "res://models/props/rowing_boat.glb"
-const SLIDE := "res://models/props/slide_tower.glb"
-const SWINGS := "res://models/props/swing_set.glb"
-const SANDBOX := "res://models/props/sandbox.glb"
-const PLANTER := "res://models/props/mum_planter.glb"
-const COVERED_BRIDGE := "res://models/props/covered_bridge.glb"
-const FOOTBRIDGE := "res://models/props/footbridge.glb"
-const DOCK := "res://models/props/dock.glb"
-const TELESCOPE := "res://models/props/telescope.glb"
-const PALM := "res://models/props/palm.glb"
-const TIKI_TORCH := "res://models/props/tiki_torch.glb"
-const GROVE_LANTERN := "res://models/props/grove_lantern.glb"
-const SPRINGS_GATE := "res://models/props/springs_gate.glb"
+const PUMPKIN := "res://models/props/shared/pumpkin.glb"
+const JACK := "res://models/props/stars_hollow/jack_o_lantern.glb"
+const SCARECROW := "res://models/props/stars_hollow/scarecrow.glb"
+const MAILBOX := "res://models/props/stars_hollow/mailbox.glb"
+const SIGN := "res://models/props/void_town/sign_post.glb"
+const PICKET := "res://models/props/stars_hollow/picket.glb"
+const FENCE_POST := "res://models/props/stars_hollow/fence_post.glb"
+const PORCH := "res://models/props/stars_hollow/porch.glb"
+const PORCH_ROOF := "res://models/props/stars_hollow/porch_roof.glb"
+const FOUNTAIN := "res://models/props/void_town/void_fountain.glb"
+const VOID_LAMP := "res://models/props/void_town/void_lamp.glb"
+const HAY := "res://models/props/shared/hay_bale.glb"
+const CORN := "res://models/props/stars_hollow/corn_sheaf.glb"
+const FIRE_TRUCK := "res://models/props/stars_hollow/fire_truck.glb"
+const BOAT := "res://models/props/stars_hollow/rowing_boat.glb"
+const SLIDE := "res://models/props/stars_hollow/slide_tower.glb"
+const SWINGS := "res://models/props/stars_hollow/swing_set.glb"
+const SANDBOX := "res://models/props/stars_hollow/sandbox.glb"
+const PLANTER := "res://models/props/stars_hollow/mum_planter.glb"
+const COVERED_BRIDGE := "res://models/props/stars_hollow/covered_bridge.glb"
+const FOOTBRIDGE := "res://models/props/stars_hollow/footbridge.glb"
+const DOCK := "res://models/props/stars_hollow/dock.glb"
+const TELESCOPE := "res://models/props/stars_hollow/telescope.glb"
+const PALM := "res://models/props/rhythm_springs/palm.glb"
+const TIKI_TORCH := "res://models/props/rhythm_springs/tiki_torch.glb"
+const GROVE_LANTERN := "res://models/props/rhythm_springs/grove_lantern.glb"
+const SPRINGS_GATE := "res://models/props/rhythm_springs/springs_gate.glb"
 const STANDING_STONE := "res://models/props/glenmoor/standing_stone.glb"
 const CAIRN := "res://models/props/glenmoor/cairn.glb"
 const SUMMIT_CAIRN := "res://models/props/glenmoor/summit_cairn.glb"
@@ -104,32 +104,32 @@ const CORAL_DOME_GAIN := 1.12                     # lifts the dome's pale bake b
 # The model standing stone's size (tools/build_prop_glenmoor.py): each one's stretched to its own builder box
 const STANDING_STONE_SIZE := Vector3(1.2, 4.0, 0.8)
 const STONE_DARK_TINT := Color(0.8, 0.8, 0.84)    # "Stone Dark" over "Stone" (tools/build_glenmoor.gd)
-const CRYSTAL := "res://models/props/crystal.glb"
-const BASKETBALL_HOOP := "res://models/props/basketball_hoop.glb"
-const TENNIS_NET := "res://models/props/tennis_net.glb"
-const SOCCER_GOAL := "res://models/props/soccer_goal.glb"
-const ROCK_WALL := "res://models/props/rock_wall.glb"
-const OLD_SLIDE := "res://models/props/old_slide.glb"
-const BOARDWALK := "res://models/props/boardwalk.glb"
-const BOARDWALK_PILE := "res://models/props/boardwalk_pile.glb"
-const LANTERN_POST := "res://models/props/lantern_post.glb"
-const MOTHERSHIP_PAD := "res://models/props/mothership_pad.glb"
-const NOTICEBOARD := "res://models/props/noticeboard.glb"
-const SPRING_CAVE := "res://models/props/spring_cave.glb"
-const SPRING_RIM := "res://models/props/spring_rim.glb"
+const CRYSTAL := "res://models/props/shared/crystal.glb"
+const BASKETBALL_HOOP := "res://models/props/void_town/basketball_hoop.glb"
+const TENNIS_NET := "res://models/props/void_town/tennis_net.glb"
+const SOCCER_GOAL := "res://models/props/void_town/soccer_goal.glb"
+const ROCK_WALL := "res://models/props/void_town/rock_wall.glb"
+const OLD_SLIDE := "res://models/props/void_town/old_slide.glb"
+const BOARDWALK := "res://models/props/void_town/boardwalk.glb"
+const BOARDWALK_PILE := "res://models/props/void_town/boardwalk_pile.glb"
+const LANTERN_POST := "res://models/props/void_town/lantern_post.glb"
+const MOTHERSHIP_PAD := "res://models/props/void_town/mothership_pad.glb"
+const NOTICEBOARD := "res://models/props/void_town/noticeboard.glb"
+const SPRING_CAVE := "res://models/props/void_town/spring_cave.glb"
+const SPRING_RIM := "res://models/props/void_town/spring_rim.glb"
 const SPRING_GROTTOS := preload("res://scripts/spring_grottos.gd")
 const STONE_CRACK := preload("res://scripts/stone_crack.gd")
 const BOARDWALK_LEN := 4.0             # the model's length of deck, and its width 3 (tools/build_prop_void_5.py)
 const BOARDWALK_W := 3.0
 const BOARDWALKS := ["Boardwalk South", "Boardwalk North", "Boardwalk East", "Dock"]
-const SAILBOAT := "res://models/props/sailboat.glb"
-const DOME_DOOR := "res://models/props/dome_door.glb"
-const ANTIQUE_CAR := "res://models/props/antique_car.glb"
-const PICNIC_BASKET := "res://models/props/picnic_basket.glb"
-const CLOCK_CASE := "res://models/props/clock_case.glb"
-const CLOCK_HOOD := "res://models/props/clock_hood.glb"
-const COG := "res://models/props/cog.glb"
-const BOULDER := "res://models/props/boulder.glb"
+const SAILBOAT := "res://models/props/void_town/sailboat.glb"
+const DOME_DOOR := "res://models/props/void_town/dome_door.glb"
+const ANTIQUE_CAR := "res://models/props/void_town/antique_car.glb"
+const PICNIC_BASKET := "res://models/props/void_town/picnic_basket.glb"
+const CLOCK_CASE := "res://models/props/shared/clock_case.glb"
+const CLOCK_HOOD := "res://models/props/shared/clock_hood.glb"
+const COG := "res://models/props/shared/cog.glb"
+const BOULDER := "res://models/props/shared/boulder.glb"
 const KING_CROWN := "res://models/props/bosses/king_crown.glb"   # tools/build_prop_bosses.py, 10x the crown
 # The bake's gold comes out a shade of bronze (its shading pulls towards a dark gold and the AO darkens it again), so
 # its colour is lifted back to the bright gold of the old crown.
@@ -147,22 +147,22 @@ const BOSS_SKINS := {
 	"boss_fuzz": "res://models/props/bosses/boss_fuzz.glb",
 }
 const BOSS_SKIN_GAIN := 1.08
-const GADGET_STALL := "res://models/props/gadget_stall.glb"
-const WORKBENCH := "res://models/props/workbench.glb"
-const REQUEST_BOARD := "res://models/props/request_board.glb"
-const RACE_BOARD := "res://models/props/race_board.glb"
-const TUNE_UP := "res://models/props/tune_up.glb"
-const RUN_CLOCK := "res://models/props/run_clock.glb"
-const ARCH_TOWER := "res://models/props/arch_tower.glb"
-const ARCH_BANNER := "res://models/props/arch_banner.glb"
-const TREE_HOUSE := "res://models/props/tree_house.glb"
-const LAB_SHED := "res://models/props/lab_shed.glb"
-const LAB_KIT := "res://models/props/lab_kit.glb"
-const POOL_WALL := "res://models/props/pool_wall.glb"
-const POOL_LIP := "res://models/props/pool_lip.glb"
-const VEIN_ROCK := "res://models/props/vein_rock.glb"
-const VEIN_CRYSTALS := "res://models/props/vein_crystals.glb"
-const VEIN_STUBS := "res://models/props/vein_stubs.glb"
+const GADGET_STALL := "res://models/props/void_town/gadget_stall.glb"
+const WORKBENCH := "res://models/props/void_town/workbench.glb"
+const REQUEST_BOARD := "res://models/props/void_town/request_board.glb"
+const RACE_BOARD := "res://models/props/race/race_board.glb"
+const TUNE_UP := "res://models/props/race/tune_up.glb"
+const RUN_CLOCK := "res://models/props/race/run_clock.glb"
+const ARCH_TOWER := "res://models/props/race/arch_tower.glb"
+const ARCH_BANNER := "res://models/props/race/arch_banner.glb"
+const TREE_HOUSE := "res://models/props/void_town/tree_house.glb"
+const LAB_SHED := "res://models/props/void_town/lab_shed.glb"
+const LAB_KIT := "res://models/props/void_town/lab_kit.glb"
+const POOL_WALL := "res://models/props/void_town/pool_wall.glb"
+const POOL_LIP := "res://models/props/void_town/pool_lip.glb"
+const VEIN_ROCK := "res://models/props/shared/vein_rock.glb"
+const VEIN_CRYSTALS := "res://models/props/shared/vein_crystals.glb"
+const VEIN_STUBS := "res://models/props/shared/vein_stubs.glb"
 const TREE_HOUSE_MATS := ["Big Bark", "Tree House Wood", "Tree House Wall", "Tree House Roof"]
 const LAB_KEEP := "lab_keep"           # pieces of the lab that stay as they are (scripts/lab.gd: Hound Hero's picture)
 const ARCH_BANNER_HALF := 6.2          # half the model banner's width (tools/build_prop_void_gate.py arch_banner HW)
@@ -3903,7 +3903,7 @@ static func patched(old: StandardMaterial3D, kind: String, scale := 1.0, offset 
 # is with meta "ride_part" (the skateboard's are known by name), and wears the patch for it: a deck's maple grain,
 # grip tape, brushed metal, a tyre's tread, a leaf's veins, or (the roller skates' boots) a pebbled leather from the
 # goblin skin made small. Glows, flames and see-through things stay as they are. The bike is its own model
-# (models/props/bike.glb, skinned so its wheels and pedals turn): see dress_bike() below.
+# (models/props/shared/bike.glb, skinned so its wheels and pedals turn): see dress_bike() below.
 const RIDE_PATCH := {"deck": ["maple", 1.0], "grip": ["grip_tape", 1.0], "metal": ["brushed_metal", 1.0],
 	"tyre": ["tread", 1.0], "leaf": ["leaf_skin", 0.8], "stem": ["leaf_skin", 3.0], "boot": ["goblin_skin", 2.5]}
 const RIDE_BY_NAME := {"Deck": "deck", "Nose": "deck", "Tail": "deck", "Grip": "grip", "TruckFront": "metal",
@@ -3955,7 +3955,7 @@ static func dress_ride(ride: Node) -> int:
 # rides. Its tyres turn with their bones, and a patch laid on in the mesh's space would stay still while the wheel
 # spun under it, so the tyres get a copy of the mesh with real UVs instead: the tread wrapped round each wheel, so it
 # rolls with it. The number plate stays as it is.
-const BIKE_GLB := "res://models/props/bike.glb"
+const BIKE_GLB := "res://models/props/shared/bike.glb"
 const BIKE_PATCH := {"Frame": ["brushed_metal", 1.0], "Rim": ["brushed_metal", 1.0], "Black": ["brushed_metal", 1.0],
 	"Seat": ["goblin_skin", 2.5], "Tire": ["tread", 2.0]}
 # The tyres' surface: its tread is wrapped round the wheel axis (the bike's x)

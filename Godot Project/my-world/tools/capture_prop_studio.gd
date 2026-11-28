@@ -51,6 +51,9 @@ func _run(names: Array) -> void:
 	cam.make_current()
 	for n in names:
 		var lo_path := "res://models/props/%s.glb" % n
+		for sub in ["stars_hollow", "void_town", "rhythm_springs", "race", "shared"]:  # (the loose props were sorted into place folders, 28 Nov 2026)
+			if not ResourceLoader.exists(lo_path):
+				lo_path = "res://models/props/%s/%s.glb" % [sub, n]
 		var hi_path := "res://models/props/_preview/%s_high_preview.glb" % n
 		if not ResourceLoader.exists(lo_path):
 			print("MISSING ", lo_path)

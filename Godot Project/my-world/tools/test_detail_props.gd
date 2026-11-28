@@ -119,7 +119,7 @@ func _run() -> void:
 		else:
 			walls_bad.append(wm.resource_name)
 	check(walls_ok >= 30 and walls_bad.is_empty(), "every wall and roof has its patch (%d; not: %s)" % [walls_ok, walls_bad])
-	check(ResourceLoader.exists("res://models/props/street_lamp.glb"), "the street lamp model is imported")
+	check(ResourceLoader.exists("res://models/props/stars_hollow/street_lamp.glb"), "the street lamp model is imported")
 	check(props.get("lamps", 0) == poles and poles >= 30, "every street lamp has its detailed model (%d of %d)" % [props.get("lamps", 0), poles])
 	check(props.get("benches", 0) >= 5, "the park benches have theirs (%d)" % props.get("benches", 0))
 	check(props.get("gazebo", 0) == 1, "and the gazebo")

@@ -6,7 +6,7 @@ extends StaticBody3D
 # (and whenever the town loads again).
 
 const SIZE := 1.0
-const DETAILED := "res://models/props/ammo_crate.glb"
+const DETAILED := "res://models/props/shared/ammo_crate.glb"
 
 var opened := false
 var regrow := 0.0             # over 0: back this many seconds after it's popped (boss fights' crates: Arsenal.supply_boss)
