@@ -241,9 +241,13 @@ static func _each_surface(model: Node3D, names: Array, fn: Callable) -> void:
 
 static func _recolour(model: Node3D, names: Array, color: Color) -> void:
 	# The main part takes the colour; the others (a shade, a light) keep how much lighter or darker they were
-	var main_base := Color.WHITE
+	# Kept in an array: a lambda can't change a plain local outside it, so the shades used to work from white
+	var main_holder := [Color.WHITE]
 	_each_surface(model, [names[0]], func(mesh: MeshInstance3D, i: int, _k: int) -> void:
-		main_base = (mesh.mesh.surface_get_material(i) as StandardMaterial3D).albedo_color)
+		var mm := mesh.mesh.surface_get_material(i) as StandardMaterial3D
+		if mm:
+			main_holder[0] = mm.albedo_color)
+	var main_base: Color = main_holder[0]
 	_each_surface(model, names, func(mesh: MeshInstance3D, i: int, k: int) -> void:
 		var base := mesh.mesh.surface_get_material(i) as StandardMaterial3D
 		if base == null:

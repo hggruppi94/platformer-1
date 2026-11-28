@@ -96,6 +96,20 @@ func _run() -> void:
 		check(lines.size() <= 5 and words_ok, "...talks in a few short lines")
 		check(lines.any(func(l) -> bool: return l is Dictionary and str(l).contains("sports_go_" + id)), "...and asks if you'd like to play")
 
+	# Talking to each host the way a player does (Interact on the spot) opens the talk and gives the controls back
+	var dlg := root.get_node("Dialogue")
+	for id in sports.GAMES:
+		var h := sports.hosts.get(id) as Node3D
+		if h == null:
+			continue
+		var spot := h.get_node("Sports Talk")
+		spot.call("use")
+		await _frames(2)
+		check(dlg.is_active(), "%s: talking to %s opens their lines" % [id, sports.GAMES[id].host])
+		dlg.end()
+		await _until(func() -> bool: return not p.input_locked, 2.0)
+		check(not dlg.is_active() and not p.input_locked, "...and when it's over you can move again (%s)" % str(p.input_locks()))
+
 	# ----------------------------------------------------------------------------- Hoop Shoot
 	check(sports.start("hoops"), "Hoop Shoot starts")
 	check(p.input_locked and sports.state == sports.State.COUNTDOWN, "...held still for the countdown")
