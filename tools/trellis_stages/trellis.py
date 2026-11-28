@@ -39,7 +39,10 @@ def local(base=LOCAL, name="local TRELLIS.2", multi=False):
     urllib.request.urlopen(base + "/ping", timeout=3).read()
     t = time.time()
     if base == LOCAL:
-        fields = {"seed": "2025", "resolution": "1024", "mesh_simplify": "60", "texture_size": "2048"}
+        # TRELLIS_RES (512, 1024 or 1536) and TRELLIS_TEX (texture size) trade time and memory for detail
+        import os
+        fields = {"seed": "2025", "resolution": os.environ.get("TRELLIS_RES", "1024"), "mesh_simplify": "60",
+                  "texture_size": os.environ.get("TRELLIS_TEX", "2048")}
     else:
         fields = {"seed": "2025", "ss_sampling_steps": "25", "slat_sampling_steps": "25", "mesh_simplify_ratio": "0.9",
                   "texture_size": "2048"}

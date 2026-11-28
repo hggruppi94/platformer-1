@@ -31,6 +31,11 @@ for op in cfg.get("paint", []):
                 if 90 < r < 230 and r - b < 58 and r - g < 45 and g >= b - 6 and max(r, g, b) < 232:
                     lum = (r + g + b) / 3
                     px[x, y] = (int(lum * tr), int(lum * tg), int(lum * tb))
+    elif op["kind"] == "bg_white":
+        # the background to white, flood-filled from each corner (so a colour like the background inside the
+        # character is left alone)
+        for corner in ((0, 0), (1023, 0), (0, 1023), (1023, 1023)):
+            ImageDraw.floodfill(base, corner, (255, 255, 255), thresh=op.get("thresh", 40))
     elif op["kind"] == "poly":
         d.polygon([tuple(p) for p in op["points"]], fill=tuple(op["colour"]))
     elif op["kind"] == "line":
@@ -44,6 +49,10 @@ enc = CLIPVisionModelWithProjection.from_pretrained("h94/IP-Adapter", subfolder=
 pipe = AutoPipelineForImage2Image.from_pretrained("stabilityai/stable-diffusion-xl-base-1.0", image_encoder=enc,
                                                   torch_dtype=torch.float16, variant="fp16").to("cuda")
 pipe.load_ip_adapter("h94/IP-Adapter", subfolder="sdxl_models", weight_name="ip-adapter-plus_sdxl_vit-h.safetensors")
+if cfg.get("lora"):
+    # the style model trained on Sofi's pictures (tools/trellis_stages/train_style.sh); its trigger word goes first
+    pipe.load_lora_weights(cfg["lora"], adapter_name="style")
+    pipe.set_adapters(["style"], adapter_weights=[cfg.get("lora_weight", 0.9)])
 ref = Image.open(repo / cfg["reference"]).convert("RGB")
 made = []
 for scale in cfg["ip_scales"]:

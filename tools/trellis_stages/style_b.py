@@ -54,6 +54,11 @@ P = (tag + "3d cartoon render of a cute baby hippo girl standing straight and fa
      "sneakers, plain white background")
 N = "side view, three quarter view, turned, holding anything, holding straps, hands on straps, hands on backpack, text, letters, watermark, blurry, extra limbs, shorts, multiple characters"
 runs = SWEEP or [(ip, cs, sd) for ip in (0.5, 0.7) for cs in (0.7, 0.95) for sd in (0, 1)]
+# optional prompt file (json with "prompt" and "negative"), the 6th argument, in place of the default words
+if len(sys.argv) > 6:
+    import json as _json
+    _pf = _json.load(open(sys.argv[6]))
+    P, N = (tag if lora else "") + _pf["prompt"], _pf["negative"]
 for ip, cs, seed in runs:
     seed = int(seed)
     pipe.set_ip_adapter_scale(ip)

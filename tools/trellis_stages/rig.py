@@ -191,8 +191,8 @@ bpy.context.view_layer.objects.active = rig
 bpy.ops.object.parent_set(type="ARMATURE_AUTO")
 me = ob.data
 unweighted = [v for v in me.vertices if not v.groups]
-if len(unweighted) > 0.02 * len(me.vertices):
-    # The heat method gave up (a generated mesh has holes and loose bits). After the guide Hayden found: weight a
+if len(unweighted) > 0.02 * len(me.vertices) or CFG.get("voxel_weights", False):
+    # The heat method gave up (or the json asks for "voxel_weights": smoother across loose parts like straps) (a generated mesh has holes and loose bits). After the guide Hayden found: weight a
     # voxel-remeshed copy (one closed skin) the same way, then copy its weights onto the real mesh from the nearest
     # point of the copy's surface.
     proxy = ob.copy()
@@ -391,27 +391,40 @@ posetest()
 
 
 def idle(t):
-    s = math.sin(2 * math.pi * t)
+    # A kid standing about (4 s): breathing, shifting her weight from foot to foot, looking off one way then the
+    # other with a little head tilt, her arms drifting
+    ph = 2 * math.pi * t
+    s, s2 = math.sin(ph), math.sin(2 * ph)
+    look = math.sin(ph) ** 3                          # holds at each side, quick in between
     p = Pose(B)
-    p.rel("spine", (Y, 0.03 * s))
-    p.rel("chest", (X, 0.02 * math.sin(4 * math.pi * t)))
-    p.rel("head", (Z, 0.12 * s), (Y, -0.05 * s))
-    p.offset = Vector((0, 0, 0.006 * math.sin(4 * math.pi * t)))
+    p.rel("hips", (Y, 0.04 * s))
+    p.rel("spine", (Y, -0.03 * s), (X, 0.02 * s2))
+    p.rel("chest", (X, 0.025 * s2))
+    p.rel("head", (Z, 0.35 * look), (Y, -0.08 * look + 0.03 * s2), (X, -0.04 * abs(look)))
+    p.rel("upper_arm.L", (Y, -0.08 - 0.04 * s2), (X, 0.05 * s))
+    p.rel("upper_arm.R", (Y, 0.08 + 0.04 * s2), (X, -0.05 * s))
+    p.rel("forearm.L", (X, -0.12))
+    p.rel("forearm.R", (X, -0.12))
+    p.offset = Vector((0.012 * s, 0, 0.008 * s2))
     return p
 
 
 def walk(t):
-    # A bouncy little kid walk: short quick steps, a bob up on each step, a little waddle, arms swinging
-    p = K.biped_walk(B, t, stride=0.55, arm=0.55, bob=0.04)
+    # A bouncy little kid walk: quick steps, a big bob up on each step, a waddle from side to side, arms swinging
+    # well forward and back with the elbows bent, the head bobbing a beat behind, the chest twisting into each stride
+    p = K.biped_walk(B, t, stride=0.62, arm=0.75, bob=0.055)
     s_ = math.sin(2 * math.pi * t)
-    p.rel("hips", (Y, 0.05 * s_))
-    p.rel("head", (X, -0.03 + 0.05 * abs(s_)), (Y, 0.07 * s_))
-    p.rel("chest", (Y, -0.04 * s_))
+    c_ = math.cos(2 * math.pi * t)
+    p.rel("hips", (Y, 0.07 * s_), (Z, 0.06 * s_))
+    p.rel("chest", (Y, -0.05 * s_), (Z, -0.09 * s_))
+    p.rel("head", (X, -0.04 + 0.07 * abs(c_)), (Y, 0.08 * s_), (Z, 0.05 * s_))
+    p.rel("forearm.L", (X, -0.35 - 0.15 * max(0.0, s_)))
+    p.rel("forearm.R", (X, -0.35 - 0.15 * max(0.0, -s_)))
     return p
 
 
 bpy.context.scene.render.fps = 30
-make_action(rig, "idle", 72, idle)
+make_action(rig, "idle", 120, idle)
 make_action(rig, "walk", 30, walk)
 
 
@@ -458,6 +471,24 @@ make_action(rig, "run", 20, run)
 make_action(rig, "jump", 30, jump)
 
 
+def wave(t):
+    # Hello! Her right arm goes up and waves from the elbow three times, she leans into it and bounces on her toes
+    up = min(1.0, t / 0.15) if t < 0.85 else max(0.0, (1 - t) / 0.15)
+    up = up * up * (3 - 2 * up)
+    w = math.sin(2 * math.pi * 3 * t) * up
+    p = Pose(B)
+    p.rel("upper_arm.R", (Y, 2.4 * up), (X, -0.3 * up))
+    p.rel("forearm.R", (Y, 0.5 * up + 0.45 * w))
+    p.rel("upper_arm.L", (Y, -0.15))
+    p.rel("spine", (Y, -0.06 * up))
+    p.rel("head", (Y, -0.12 * up), (Z, 0.08 * up))
+    p.offset = Vector((0, 0, 0.012 * abs(math.sin(2 * math.pi * 3 * t)) * up))
+    return p
+
+
+make_action(rig, "wave", 60, wave)
+
+
 def bake_swing(name, frames, fn):
     """Spring swing for the hair and bow over an action: they lag behind the head's turns and flick with the body's
     bounce, run round the loop three times so the last lap starts where it ends."""
@@ -499,7 +530,7 @@ def bake_swing(name, frames, fn):
             pb.keyframe_insert("rotation_quaternion", frame=f)
 
 
-for nm_, fr_, fn_ in (("idle", 72, idle), ("walk", 30, walk), ("run", 20, run), ("jump", 30, jump)):
+for nm_, fr_, fn_ in (("idle", 120, idle), ("walk", 30, walk), ("run", 20, run), ("jump", 30, jump), ("wave", 60, wave)):
     bake_swing(nm_, fr_, fn_)
 rest_pose(rig)
 bpy.ops.wm.save_as_mainfile(filepath=OUT + "/rigged.blend")
