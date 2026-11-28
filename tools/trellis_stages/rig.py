@@ -117,6 +117,28 @@ for side in ("L", "R"):
     for k in (f"thigh.{side}", f"shin.{side}"):
         h, t, p = B[k]; B[k] = (Vector((h.x, ly, h.z)), Vector((t.x, ly, t.z)), p)
     h, t, p = B[f"foot.{side}"]; B[f"foot.{side}"] = (Vector((h.x, ly, h.z)), Vector((h.x, ly - 0.09, 0.01)), p)
+# Hair and bow bones (only with "secondary": true): one bone hanging down the back of the head for the hair below
+# eye level, one standing in the bow. They swing on their own (baked spring motion below, and in Godot a
+# SpringBoneSimulator3D on "hair" and "bow" can do it live instead).
+SEC = PARTS and CFG.get("secondary", False)
+if SEC:
+    names_ = [p_["name"] for p_ in PARTS]
+    hair_v, bow_v = set(), set()
+    for p_ in me.polygons:
+        nm = names_[part_of_face[p_.index]]
+        if nm == "Hair":
+            hair_v.update(p_.vertices)
+        elif nm == "Bow":
+            bow_v.update(p_.vertices)
+    zc = (B["head"][0].z + B["head"][1].z) / 2 if isinstance(B["head"][0], Vector) else 0
+    hz = [me.vertices[i].co for i in hair_v]
+    back = max((c.y for c in hz if abs(c.z - zc) < 0.06), default=B["head"][0].y + 0.1)
+    low = min((c.z for c in hz), default=zc - 0.25)
+    B["hair"] = (Vector((0, back - 0.04, zc)), Vector((0, back, low + 0.02)), "head")
+    if bow_v:
+        bc = sum((me.vertices[i].co for i in bow_v), Vector()) / len(bow_v)
+        B["bow"] = (Vector((bc.x, bc.y, bc.z - 0.03)), Vector((bc.x, bc.y, bc.z + 0.06)), "head")
+    print("SECONDARY hair bone", [round(x, 3) for x in B["hair"][0]], "to", round(low, 3), "bow", "bow" in B)
 B = {k: (tuple(h), tuple(t), p) for k, (h, t, p) in B.items()}
 for k, (h, t, p) in B.items():
     print("BONE", k, [round(x, 3) for x in h], [round(x, 3) for x in t])
@@ -194,6 +216,25 @@ for v in unweighted:
     best = min((b for b in B if b != "root"), key=lambda b: seg_dist(v.co, Vector(B[b][0]), Vector(B[b][1])))
     (ob.vertex_groups.get(best) or ob.vertex_groups.new(name=best)).add([v.index], 1.0, "REPLACE")
 print("RIG unweighted fixed", len(unweighted))
+if SEC:
+    # hair below eye level eases from the head onto the hair bone (all of it by 0.18 m down); the bow is all bow
+    gh = ob.vertex_groups.get("hair") or ob.vertex_groups.new(name="hair")
+    gb = ob.vertex_groups.get("bow") or ob.vertex_groups.new(name="bow")
+    zc_ = B["hair"][0][2]
+    gname = {g.index: g.name for g in ob.vertex_groups}
+    for vi in hair_v | bow_v:
+        v = me.vertices[vi]
+        w = 1.0 if vi in bow_v else min(1.0, max(0.0, (zc_ - v.co.z) / 0.18))
+        if w <= 0:
+            continue
+        tgt = gb if vi in bow_v else gh
+        for g in list(v.groups):
+            n = gname[g.group]
+            if n not in ("hair", "bow"):
+                ob.vertex_groups[n].add([vi], g.weight * (1 - w), "REPLACE")
+        tgt.add([vi], w, "REPLACE")
+
+
 # Weights by rule (after the guide in Hayden's X link; only with "weight_rules": true in the json). Tested on the
 # TRELLIS.2 Nina (Nov 27): the rules made stretching WORSE (straps 1.2x -> 2.4x, hair's worst spot 3x -> 21x in the pose
 # test), because a TRELLIS model is one fused skin where the shirt IS the body's surface; Blender's automatic weights
@@ -247,7 +288,7 @@ def posetest():
     poses = {
         "rest": lambda p: None,
         "arms_forward": lambda p: (p.rel("upper_arm.L", (X, -1.2)), p.rel("upper_arm.R", (X, -1.2))),
-        "arms_out": lambda p: (p.rel("upper_arm.L", (Y, 0.9)), p.rel("upper_arm.R", (Y, -0.9))),
+        "arms_out": lambda p: (p.rel("upper_arm.L", (Y, -1.2)), p.rel("upper_arm.R", (Y, 1.2))),
         "elbows_bent": lambda p: (p.rel("forearm.L", (X, -1.4)), p.rel("forearm.R", (X, -1.4))),
         "head_turn": lambda p: p.rel("head", (Z, 0.8)),
         "big_step": lambda p: (p.rel("thigh.L", (X, -0.8)), p.rel("thigh.R", (X, 0.5)), p.rel("shin.R", (X, 0.7))),
@@ -361,11 +402,11 @@ def jump(t):
     else:                                              # stand back up
         k, air, arms = 0.8 * (1 - ease((t - 0.9) / 0.1)), 0.0, 0.0
     tuck = air
-    for side, sg in (("L", 1), ("R", -1)):
+    for side, sg in (("L", -1), ("R", 1)):                 # world axes: the left arm (+x) lifts out with a -Y turn
         p.rel(f"thigh.{side}", (X, -0.7 * k - 0.6 * tuck))
         p.rel(f"shin.{side}", (X, 1.2 * k + 0.9 * tuck))
         p.rel(f"foot.{side}", (X, -0.4 * k))
-        p.rel(f"upper_arm.{side}", (Y, sg * (0.25 + 1.1 * arms)), (X, -0.6 * arms))
+        p.rel(f"upper_arm.{side}", (Y, sg * (0.2 + 1.9 * arms)), (X, -0.5 * arms))
         p.rel(f"forearm.{side}", (X, -0.4 * arms))
     p.rel("spine", (X, 0.25 * k - 0.1 * air))
     p.rel("head", (X, -0.15 * k + 0.1 * air))
@@ -375,6 +416,51 @@ def jump(t):
 
 make_action(rig, "run", 20, run)
 make_action(rig, "jump", 30, jump)
+
+
+def bake_swing(name, frames, fn):
+    """Spring swing for the hair and bow over an action: they lag behind the head's turns and flick with the body's
+    bounce, run round the loop three times so the last lap starts where it ends."""
+    if not SEC:
+        return
+    act = bpy.data.actions[name]
+    rig.animation_data.action = act
+    heads, bounce = [], []
+    for f in range(frames + 1):
+        p = fn(f / frames)
+        e = p.abs("head").to_euler()
+        heads.append((e.x, e.y))
+        bounce.append(p.offset.z)
+    for bone, stiff, damp, flick in (("hair", 90.0, 9.0, 18.0), ("bow", 160.0, 7.0, 10.0)):
+        if bone not in B:
+            continue
+        dt = 1 / 30
+        ang = [0.0, 0.0]
+        vel = [0.0, 0.0]
+        out = []
+        for lap in range(3):
+            for f in range(frames + 1):
+                fp, fn_ = max(0, f - 1), min(frames, f + 1)
+                acc_z = (bounce[fn_] - 2 * bounce[f] + bounce[fp]) / (dt * dt)
+                for k in (0, 1):
+                    # the spring pulls toward hanging straight in the world: minus the head's own tilt
+                    target = -heads[f][k] * 0.8
+                    force = stiff * (target - ang[k]) - damp * vel[k] + (flick * acc_z * dt if k == 0 else 0)
+                    vel[k] += force * dt
+                    ang[k] += vel[k] * dt
+                if lap == 2:
+                    out.append((ang[0], ang[1]))
+        pb = rig.pose.bones[bone]
+        M = pb.bone.matrix_local.to_3x3()
+        for f, (ax, ay) in enumerate(out):
+            R = Matrix.Rotation(ax, 3, "X") @ Matrix.Rotation(ay, 3, "Y")
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = (M.inverted() @ R @ M).to_quaternion()
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+
+
+for nm_, fr_, fn_ in (("idle", 72, idle), ("walk", 30, walk), ("run", 20, run), ("jump", 30, jump)):
+    bake_swing(nm_, fr_, fn_)
 rest_pose(rig)
 bpy.ops.wm.save_as_mainfile(filepath=OUT + "/rigged.blend")
 bpy.ops.object.select_all(action="DESELECT")
