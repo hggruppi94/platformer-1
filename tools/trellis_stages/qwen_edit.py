@@ -3,7 +3,7 @@
 # The model is unsloth's Q4_K_M GGUF (fits a 12 GB card), with the 4-step Lightning LoRA, so a picture takes seconds.
 #   python qwen_edit.py <out.png> "<instruction>" <image1> [image2] [--seed N] [--steps 4] [--size 1024]
 # Licences: Qwen-Image-Edit-2511 and the Lightning LoRA are Apache-2.0; ComfyUI is GPL-3.0 (we only call it).
-import json, shutil, sys, time, urllib.parse, urllib.request, uuid
+import json, shutil, urllib.error, sys, time, urllib.parse, urllib.request, uuid
 from pathlib import Path
 
 COMFY = Path("C:/Users/hggru/Game_dev/ai3d/comfyui/ComfyUI_windows_portable/ComfyUI")
@@ -33,7 +33,7 @@ g = {
 for i, n in enumerate(names):
     g[f"load{i}"] = {"class_type": "LoadImage", "inputs": {"image": n}}
     g[f"img{i}"] = {"class_type": "ImageScaleToTotalPixels",
-                    "inputs": {"image": [f"load{i}", 0], "upscale_method": "lanczos", "megapixels": size * size / 1e6}}
+                    "inputs": {"image": [f"load{i}", 0], "upscale_method": "lanczos", "megapixels": size * size / 1048576, "resolution_steps": 16}}
 pos = {"clip": ["clip", 0], "prompt": instr, "vae": ["vae", 0]}
 neg = {"clip": ["clip", 0], "prompt": "", "vae": ["vae", 0]}
 for i in range(len(names)):
@@ -51,7 +51,10 @@ g["save"] = {"class_type": "SaveImage", "inputs": {"images": ["decode", 0], "fil
 t = time.time()
 req = urllib.request.Request(URL + "/prompt", data=json.dumps({"prompt": g}).encode(),
                              headers={"Content-Type": "application/json"})
-pid = json.loads(urllib.request.urlopen(req).read())["prompt_id"]
+try:
+    pid = json.loads(urllib.request.urlopen(req).read())["prompt_id"]
+except urllib.error.HTTPError as e:
+    sys.exit("QWEN refused: " + e.read().decode()[:3000])
 while True:
     h = json.loads(urllib.request.urlopen(f"{URL}/history/{pid}").read())
     if pid in h:

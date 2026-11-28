@@ -460,7 +460,22 @@ if CFG.get("soft_neck", True):
     if gH and gC:
         names_all = {g.index: g.name for g in ob.vertex_groups}
         n_soft = 0
+        # clothes and bags never follow the head, even where they reach up past the neck (a backpack's top under
+        # her hair tore when she turned her head)
+        body_v = set()
+        if PARTS:
+            _bp = set(CFG.get("body_parts", ["Backpack", "Shirt", "Overalls", "Shoes"]))
+            for p_ in me.polygons:
+                if PARTS[part_of_face[p_.index]]["name"] in _bp:
+                    body_v.update(p_.vertices)
         for v in me.vertices:
+            if v.index in body_v and not v.index in keep_:
+                hw = next((g.weight for g in v.groups if names_all[g.group] == "head"), 0.0)
+                if hw > 0:
+                    gH.remove([v.index])
+                    cw = next((g.weight for g in v.groups if names_all[g.group] == "chest"), 0.0)
+                    gC.add([v.index], cw + hw, "REPLACE")
+                continue
             # the chin hangs forward, so the band takes anything near the middle left to right (not the arms)
             if v.index in keep_:
                 continue
