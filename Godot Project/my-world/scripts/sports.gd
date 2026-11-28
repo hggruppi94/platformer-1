@@ -228,7 +228,9 @@ func talk(spot: Node3D) -> void:
 		return
 	var id := str(spot.get_parent().get_meta("game_id", ""))
 	if GAMES.has(id):
-		Dialogue.say(spot.get_parent(), str(GAMES[id].host), lines(id), "sports")
+		# The spot is the talker (it has begin_talk and end_talk); the host's own body is a plain Node3D, and handing
+		# that over stopped say() half way with the player's controls locked, which froze the game.
+		Dialogue.say(spot, str(GAMES[id].host), lines(id), "sports")
 
 
 func lines(id: String) -> Array:

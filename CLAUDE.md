@@ -99,6 +99,14 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-28: **Talking to a sports host no longer freezes the game** (Hayden: "game crashed at the sports again").
+  `Sports.talk()` handed `Dialogue.say()` the host's own body (a plain Node3D) instead of its talk spot, so `say()`
+  locked the controls, then stopped at `begin_talk()` (only the spot has it): no talk box, controls locked for good,
+  and the editor's debugger stopping on the error looked like a crash. It passes the spot now. `test_sports` talks to
+  every host the way a player does (Interact on the spot) and checks the controls come back; it used to start the
+  games directly, which is why it never caught this. Also `clothes.gd _recolour()`: the main colour a lambda read was
+  never kept (a lambda can't change an outer local), so a garment's shades were worked out from white.
+
 - 2026-11-27: **More baked models in the Secret Garden: leaded windows, rose bushes, cliff ivy and the supertrees**
   (Hayden: "Bake more details"). Built and tested in the cloud (own Godot user folders, no save touched). New kinds in
   `tools/build_prop_estate.py`: `window_light` (a leaded glass light in a stone mullion frame, glowing amber),
