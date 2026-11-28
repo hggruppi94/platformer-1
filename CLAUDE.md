@@ -106,6 +106,15 @@ For the full skill list, invoke `godot-prompter:using-godot-prompter`.
 
 ## Log (newest first)
 
+- 2026-11-28: **The voice in your mind says the Tuftlings' quest goals too** (the nightly build bot: test_mind_voice
+  failed on main, 31 of its 319 lines with no recording, e.g. "Give Bluebell's note to Fennick."). The Tuftlings'
+  quests (`quests/folk_*.json`) added goals, and every quest goal is a line the voice can say, but nobody re-ran the
+  voice tools. Re-ran `tools/dump_mind_lines.gd` (`audio/mind/lines.txt`: 26 new lines, 303 in all; the test's 319
+  counts repeats) and `tools/make_mind_voice.py --style C` with the Kokoro model files, which made the 26 new
+  `audio/mind/<key>.ogg`. Made in the cloud (Kokoro on the CPU, own Godot user folders, no save touched) and pushed
+  from the PC for LFS. Tests: mind_voice, dialogue and quests (both runs) pass. Anyone changing a quest goal or a mind
+  line must re-run both tools.
+
 - 2026-11-28: **The Tuftlings live in the Secret Garden: small furry archer folk with fangs and claws, eight with names,
   homes and a quest each, and a crowd about the garden** (Hayden, from a picture of a little tan archer in a leaf skirt:
   "A bunch of them that are small like the aliens ... different personalities, colors, outfits, and quests with male
