@@ -1,0 +1,48 @@
+{
+ "name": "tuft_moss",
+ "about": "Moss the Tuftling, drawn from scratch in the style of Hayden's archer picture (SDXL, IP-Adapter on the picture, OpenPose A-pose, no style LoRA). Empty hands: bow and quiver come later as props. Rigged at 1.2 m (the rig stage's walk, jump and joint search are tuned for that); scale by game_height / 1.2 when it goes into the game.",
+ "reference": "tools/trellis_characters/tuftlings/hayden_archer_ref.png",
+ "height": 1.2,
+ "game_height": 0.7,
+ "weight_rules": false,
+ "secondary": true,
+ "front": "previews/rebuild_all/trellis/tuft_moss/front.png",
+ "front_run": {
+  "prompt": "full body front view of a cute fuzzy sage green furry critter boy, sleepy drowsy smile, like a baby bushbaby, furry animal face with a tiny muzzle, floppy dark green nightcap, skirt of green moss and ferns, acorn necklace, brown leaf foot wraps, empty paws, white background",
+  "prompt_2": "storybook cartoon illustration, bold outlines, fuzzy fur, standing straight facing the camera, arms slightly away from the body, round face with big glossy dark eyes, tiny muzzle, small smile with two little fangs, pointy elf ears on the sides of the head, claws on fingers and toes, no tail, plain white background",
+  "negative": "human face, human skin, hair, hairstyle, object in hand, tail, cat, whiskers, ears on top of head, bow, arrows, quiver, weapon, holding anything, side view, three quarter view, turned, scenery, text, watermark, blurry, extra limbs, multiple characters, human, realistic, scary, shoes",
+  "pose_scale": 1.0,
+  "sweep": [
+   [
+    0.6,
+    1.0,
+    1
+   ],
+   [
+    0.6,
+    1.0,
+    2
+   ],
+   [
+    0.6,
+    1.0,
+    3
+   ],
+   [
+    0.75,
+    1.0,
+    1
+   ],
+   [
+    0.75,
+    1.0,
+    2
+   ],
+   [
+    0.75,
+    1.0,
+    3
+   ]
+  ]
+ }
+}
