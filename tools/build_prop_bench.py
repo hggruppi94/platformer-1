@@ -4,7 +4,7 @@
 # (tools/build_earth.gd _bench: 1.8 m long, seat 0.45 m up, back 0.24 m behind), and the seat faces Godot's +Z, which
 # is Blender's -Y. The bench's collision stays the builder's.
 #
-#   python tools/build_prop_bench.py "Godot Project/my-world/models/props/park_bench.glb" [--blend] [--preview]
+#   python tools/build_prop_bench.py "Godot Project/my-world/models/props/stars_hollow/park_bench.glb" [--blend] [--preview]
 
 import math
 import sys

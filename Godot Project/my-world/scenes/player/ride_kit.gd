@@ -10,7 +10,7 @@ extends RefCounted
 # scenes/player/skate.gd moves each one under its foot every frame, so they follow the stride.
 
 const SKATEBOARD := "res://scenes/items/skateboard.tscn"
-const BIKE := "res://models/props/bike.glb"
+const BIKE := "res://models/props/shared/bike.glb"
 
 
 static func build(kit: String, ride: Node3D, model: Node3D) -> Dictionary:

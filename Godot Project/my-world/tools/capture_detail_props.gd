@@ -132,7 +132,7 @@ func _studio() -> void:
 		"gazebo": [Vector3(0, 4.0, 25.0), Vector3(0, 2.6, 0), 5.3]}
 	for p in PROPS:
 		var hi_path := "res://models/props/_preview/%s_high_preview.glb" % p
-		var lo_path := "res://models/props/%s.glb" % p
+		var lo_path := "res://models/props/stars_hollow/%s.glb" % p
 		if not ResourceLoader.exists(lo_path):
 			continue
 		var f: Array = frames[p]

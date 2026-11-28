@@ -20,7 +20,7 @@
 # input is wired to an emission shader for its pass, then wired back.
 #
 # Run with Blender 4.5 (or pip bpy 4.5 in Python 3.11), e.g.:
-#   blender -b --python tools/build_prop_lamp.py -- "Godot Project/my-world/models/props/street_lamp.glb"
+#   blender -b --python tools/build_prop_lamp.py -- "Godot Project/my-world/models/props/stars_hollow/street_lamp.glb"
 
 import math
 import sys

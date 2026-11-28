@@ -1,0 +1,380 @@
+name,file,type,kind,place,how_made,built_by,baked_detail,in_game,triangles
+Astronaut,Godot Project/my-world/models/characters/astronaut.glb,Characters,Townsfolk & NPCs,The Void town,Blender script (char_kit),build_astronaut.py,Not baked,In game,37040
+Dash,Godot Project/my-world/models/characters/bike_boy.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_bike_boy.py,Baked,In game,58578
+Bruno,Godot Project/my-world/models/characters/bruno.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_bruno.py,Baked,In game,76444
+Hero body: bunny (old),Godot Project/my-world/models/characters/bunny.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Not baked,In game,44464
+Hero body: cat (old),Godot Project/my-world/models/characters/cat.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Not baked,In game,38652
+Heather,Godot Project/my-world/models/characters/cattle_girl.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_cattle_girl.py,Baked,In game,104504
+Agent of Chaos,Godot Project/my-world/models/characters/chaos_giant.glb,Bosses,Bosses,The Void town,Blender script (char_kit),build_chaos_giant.py,Baked,In game,77620
+Cyber gorilla,Godot Project/my-world/models/characters/cyber_gorilla.glb,Enemies,Enemies,Far Future,Blender script (char_kit),build_cyber_gorilla.py,Baked,In game,65796
+Hero body: dino (old),Godot Project/my-world/models/characters/dino.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Not baked,In game,43784
+Hero body: Earth kid (old),Godot Project/my-world/models/characters/earth_kid.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Not baked,In game,48128
+Garden folk: Bluebell,Godot Project/my-world/models/characters/garden_folk_bluebell.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,39884
+Garden folk: Bracken,Godot Project/my-world/models/characters/garden_folk_bracken.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,32914
+Garden folk: Clem,Godot Project/my-world/models/characters/garden_folk_clem.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,37248
+Garden folk: Fennick,Godot Project/my-world/models/characters/garden_folk_fennick.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,36144
+Garden folk: Moss,Godot Project/my-world/models/characters/garden_folk_moss.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,33304
+Garden folk: Rosehip,Godot Project/my-world/models/characters/garden_folk_rosehip.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,36748
+Garden folk: Thistle,Godot Project/my-world/models/characters/garden_folk_thistle.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,38636
+Garden folk: Tumble,Godot Project/my-world/models/characters/garden_folk_tumble.glb,Characters,Townsfolk & NPCs,Secret Garden,Blender script (char_kit),build_garden_folk.py,Baked,In game,31430
+Green Man,Godot Project/my-world/models/characters/green_man.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_green_man.py,Not baked,In game,22452
+Hermez,Godot Project/my-world/models/characters/hermez.glb,Characters,Townsfolk & NPCs,The Void town,Blender script (char_kit),build_hermez.py,Baked,In game,47376
+Hero body: boy,Godot Project/my-world/models/characters/human_boy.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Baked,In game,45956
+Hero body: girl,Godot Project/my-world/models/characters/human_girl.glb,Characters,Hero bodies (creator),Player,Blender script (char_kit),build_hero_bodies.py,Baked,In game,48300
+Little alien blue,Godot Project/my-world/models/characters/little_alien_blue.glb,Characters,Little aliens (crowd),Race circuits; Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,16680
+Little alien green,Godot Project/my-world/models/characters/little_alien_green.glb,Characters,Little aliens (crowd),Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,15640
+Little alien orange,Godot Project/my-world/models/characters/little_alien_orange.glb,Characters,Little aliens (crowd),Race circuits; Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,16368
+Little alien pink,Godot Project/my-world/models/characters/little_alien_pink.glb,Characters,Little aliens (crowd),Race circuits; Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,15168
+Little alien purple,Godot Project/my-world/models/characters/little_alien_purple.glb,Characters,Little aliens (crowd),Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,15848
+Little alien red,Godot Project/my-world/models/characters/little_alien_red.glb,Characters,Little aliens (crowd),Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,15528
+Little alien yellow,Godot Project/my-world/models/characters/little_alien_yellow.glb,Characters,Little aliens (crowd),Star Arena; The Void town,Blender script (char_kit),build_little_aliens.py,Not baked,In game,15716
+Melody,Godot Project/my-world/models/characters/melody.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_melody.py,Baked,In game,61328
+Pip,Godot Project/my-world/models/characters/moth_kid.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_moth_kid.py,Baked,In game,98440
+Mr. Palmer (Earth),Godot Project/my-world/models/characters/mr_palmer.glb,Characters,Townsfolk & NPCs,Stars Hollow (Earth),Blender script (char_kit),build_mr_palmer.py,Not baked,In game,56964
+Mr. Palmer (Void),Godot Project/my-world/models/characters/mr_palmer_alien.glb,Characters,Townsfolk & NPCs,The Void town,Blender script (char_kit),build_mr_palmer_alien.py,Not baked,In game,60104
+Nina,Godot Project/my-world/models/characters/nina.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_nina.py,Baked,In game,57856
+Sprout,Godot Project/my-world/models/characters/plant_girl.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_plant_girl.py,Baked,In game,45142
+Rolo,Godot Project/my-world/models/characters/rolo.glb,Characters,Townsfolk & NPCs,The Void town,AI shape (Hunyuan3D-2.1) + our paint & rig,build_rolo.py,Baked,In game,47359
+Rook,Godot Project/my-world/models/characters/rook.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_rook.py,Not baked,In game,55932
+Sir Squiggle,Godot Project/my-world/models/characters/top_hat_worm.glb,Characters,Townsfolk & NPCs,Rootmind,Blender script (char_kit),build_top_hat_worm.py,Not baked,In game,48828
+Rex,Godot Project/my-world/models/characters/wolf.glb,Characters,Main cast (friends),Everywhere (friends),Blender script (char_kit),build_wolf.py,Baked,In game,48584
+Granny Purl,Godot Project/my-world/models/characters/yarn_granny.glb,Characters,Townsfolk & NPCs,School palace,Blender script (char_kit),build_yarn_granny.py,Not baked,In game,76986
+Crate,Godot Project/my-world/models/props/shared/Crate.glb,Props & scenery,Gameplay items,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,44
+Ammo crate,Godot Project/my-world/models/props/shared/ammo_crate.glb,Props & scenery,Gameplay items,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,60
+Antique car,Godot Project/my-world/models/props/void_town/antique_car.glb,Vehicles & rides,Vehicles & rides,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void.py,Baked,In game,2828
+Arch banner,Godot Project/my-world/models/props/race/arch_banner.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,900
+Arch tower,Godot Project/my-world/models/props/race/arch_tower.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,360
+Basketball hoop,Godot Project/my-world/models/props/void_town/basketball_hoop.glb,Props & scenery,Play & sports,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_sports.py,Baked,In game,1364
+Bike,Godot Project/my-world/models/props/shared/bike.glb,Vehicles & rides,Vehicles & rides,The Void town,Blender script (Dash's bike),build_bike_boy.py,Baked,In game,21280
+Boardwalk,Godot Project/my-world/models/props/void_town/boardwalk.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,12
+Boardwalk pile,Godot Project/my-world/models/props/void_town/boardwalk_pile.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,32
+Boss chitin,Godot Project/my-world/models/props/bosses/boss_chitin.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss crust,Godot Project/my-world/models/props/bosses/boss_crust.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss feathers,Godot Project/my-world/models/props/bosses/boss_feathers.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss fleece,Godot Project/my-world/models/props/bosses/boss_fleece.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss fuzz,Godot Project/my-world/models/props/bosses/boss_fuzz.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss hide,Godot Project/my-world/models/props/bosses/boss_hide.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss scales,Godot Project/my-world/models/props/bosses/boss_scales.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+Boss warts,Godot Project/my-world/models/props/bosses/boss_warts.glb,Detail surfaces,Boss skins (tiling detail),Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,960
+King crown,Godot Project/my-world/models/props/bosses/king_crown.glb,Props & scenery,Boss parts,Bosses (shared skins),"Blender script, baked high→low (bake_kit)",build_prop_bosses.py,Baked,In game,1048
+Boulder,Godot Project/my-world/models/props/shared/boulder.glb,Props & scenery,Rocks & crystals,Boulder Canyon; The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,320
+Arch slab,Godot Project/my-world/models/props/boulder_canyon/arch_slab.glb,Props & scenery,Buildings & structures,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,1224
+Canyon boulder,Godot Project/my-world/models/props/boulder_canyon/canyon_boulder.glb,Props & scenery,Rocks & crystals,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,320
+Canyon wall,Godot Project/my-world/models/props/boulder_canyon/canyon_wall.glb,Props & scenery,Rocks & crystals,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,1984
+Geode base,Godot Project/my-world/models/props/boulder_canyon/geode_base.glb,Props & scenery,Rocks & crystals,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,642
+Geode lid,Godot Project/my-world/models/props/boulder_canyon/geode_lid.glb,Props & scenery,Rocks & crystals,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,642
+Rock pillar,Godot Project/my-world/models/props/boulder_canyon/rock_pillar.glb,Props & scenery,Rocks & crystals,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,400
+Rock throne,Godot Project/my-world/models/props/boulder_canyon/rock_throne.glb,Props & scenery,Buildings & structures,Boulder Canyon,"Blender script, baked high→low (bake_kit)",build_prop_boulder_canyon.py,Baked,In game,776
+Clock case,Godot Project/my-world/models/props/shared/clock_case.glb,Props & scenery,Gameplay items,Clockwork Tower; The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,72
+Clock hood,Godot Project/my-world/models/props/shared/clock_hood.glb,Props & scenery,Gameplay items,Clockwork Tower; The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,208
+Big clock,Godot Project/my-world/models/props/clock_tower/big_clock.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,768
+Cog gate,Godot Project/my-world/models/props/clock_tower/cog_gate.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,132
+Cuckoo house,Godot Project/my-world/models/props/clock_tower/cuckoo_house.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,44
+Gear wall,Godot Project/my-world/models/props/clock_tower/gear_wall.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,36
+Pendulum,Godot Project/my-world/models/props/clock_tower/pendulum.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,140
+Pendulum frame,Godot Project/my-world/models/props/clock_tower/pendulum_frame.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,120
+Rail post,Godot Project/my-world/models/props/clock_tower/rail_post.glb,Props & scenery,Lights & lamps,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,288
+Tock dais,Godot Project/my-world/models/props/clock_tower/tock_dais.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,720
+Tower bay,Godot Project/my-world/models/props/clock_tower/tower_bay.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,340
+Tower door,Godot Project/my-world/models/props/clock_tower/tower_door.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,676
+Tower gear,Godot Project/my-world/models/props/clock_tower/tower_gear.glb,Props & scenery,Buildings & structures,Clockwork Tower,"Blender script, baked high→low (bake_kit)",build_prop_clock_tower.py,Baked,In game,384
+Cog,Godot Project/my-world/models/props/shared/cog.glb,Props & scenery,Gameplay items,Clockwork Tower; The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,316
+Corn sheaf,Godot Project/my-world/models/props/stars_hollow/corn_sheaf.glb,Props & scenery,Nature: plants & trees,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_farm.py,Baked,In game,1872
+Covered bridge,Godot Project/my-world/models/props/stars_hollow/covered_bridge.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_creek.py,Baked,In game,1248
+Crystal,Godot Project/my-world/models/props/shared/crystal.glb,Props & scenery,Rocks & crystals,Race circuits; Shard Isle; Skyreach Trail; The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void.py,Baked,In game,20
+Crooked tree,Godot Project/my-world/models/props/dark_hollow/crooked_tree.glb,Props & scenery,Nature: plants & trees,Dark Hollow,"Blender script, baked high→low (bake_kit)",build_prop_dark_hollow.py,Baked,In game,1645
+Glow mushrooms,Godot Project/my-world/models/props/dark_hollow/glow_mushrooms.glb,Props & scenery,Nature: plants & trees,Dark Hollow,"Blender script, baked high→low (bake_kit)",build_prop_dark_hollow.py,Baked,In game,390
+Hollow log,Godot Project/my-world/models/props/dark_hollow/hollow_log.glb,Props & scenery,Nature: plants & trees,Dark Hollow,"Blender script, baked high→low (bake_kit)",build_prop_dark_hollow.py,Baked,In game,600
+Moon lamp,Godot Project/my-world/models/props/dark_hollow/moon_lamp.glb,Props & scenery,Lights & lamps,Dark Hollow,"Blender script, baked high→low (bake_kit)",build_prop_dark_hollow.py,Baked,In game,728
+Dock,Godot Project/my-world/models/props/stars_hollow/dock.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_creek.py,Baked,In game,1388
+Dome door,Godot Project/my-world/models/props/void_town/dome_door.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void.py,Baked,In game,184
+Old gate,Godot Project/my-world/models/props/dusks_embrace/old_gate.glb,Props & scenery,Buildings & structures,Dusk's Embrace,"Blender script, baked high→low (bake_kit)",build_prop_dusks_embrace.py,Baked,In game,944
+Path stone,Godot Project/my-world/models/props/dusks_embrace/path_stone.glb,Props & scenery,Street & park furniture,Dusk's Embrace,"Blender script, baked high→low (bake_kit)",build_prop_dusks_embrace.py,Baked,In game,110
+Baluster,Godot Project/my-world/models/props/estate/baluster.glb,Props & scenery,Street & park furniture,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,216
+Ivy clump,Godot Project/my-world/models/props/estate/ivy_clump.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,288
+Rose bush,Godot Project/my-world/models/props/estate/rose_bush.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,224
+Supertree canopy,Godot Project/my-world/models/props/estate/supertree_canopy.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,1152
+Supertree trunk,Godot Project/my-world/models/props/estate/supertree_trunk.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,596
+Tiered fountain,Godot Project/my-world/models/props/estate/tiered_fountain.glb,Props & scenery,Buildings & structures,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,766
+Urn,Godot Project/my-world/models/props/estate/urn.glb,Props & scenery,Street & park furniture,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,308
+Window light,Godot Project/my-world/models/props/estate/window_light.glb,Props & scenery,Lights & lamps,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_estate.py,Baked,In game,2
+Clock spire,Godot Project/my-world/models/props/far_future/clock_spire.glb,Props & scenery,Buildings & structures,Far Future,"Blender script, baked high→low (bake_kit)",build_prop_far_future.py,Baked,In game,732
+Holo fountain,Godot Project/my-world/models/props/far_future/holo_fountain.glb,Props & scenery,Buildings & structures,Far Future,"Blender script, baked high→low (bake_kit)",build_prop_far_future.py,Baked,In game,832
+Hover bench,Godot Project/my-world/models/props/far_future/hover_bench.glb,Props & scenery,Street & park furniture,Far Future,"Blender script, baked high→low (bake_kit)",build_prop_far_future.py,Baked,In game,172
+Street post,Godot Project/my-world/models/props/far_future/street_post.glb,Props & scenery,Lights & lamps,Far Future,"Blender script, baked high→low (bake_kit)",build_prop_far_future.py,Baked,In game,392
+Fence post,Godot Project/my-world/models/props/stars_hollow/fence_post.glb,Props & scenery,Street & park furniture,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_house.py,Baked,In game,120
+Fire truck,Godot Project/my-world/models/props/stars_hollow/fire_truck.glb,Vehicles & rides,Vehicles & rides,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_farm.py,Baked,In game,2076
+Footbridge,Godot Project/my-world/models/props/stars_hollow/footbridge.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_creek.py,Baked,In game,240
+Frost throne,Godot Project/my-world/models/props/frozen_moment/frost_throne.glb,Props & scenery,Buildings & structures,Frozen Moment,"Blender script, baked high→low (bake_kit)",build_prop_frozen_moment.py,Baked,In game,924
+Ice crag,Godot Project/my-world/models/props/frozen_moment/ice_crag.glb,Props & scenery,Rocks & crystals,Frozen Moment,"Blender script, baked high→low (bake_kit)",build_prop_frozen_moment.py,Baked,In game,76
+Snow pine,Godot Project/my-world/models/props/frozen_moment/snow_pine.glb,Props & scenery,Nature: plants & trees,Frozen Moment,"Blender script, baked high→low (bake_kit)",build_prop_frozen_moment.py,Baked,In game,714
+Armchair,Godot Project/my-world/models/props/furniture/armchair.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,220
+Bookshelf,Godot Project/my-world/models/props/furniture/bookshelf.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,144
+Diner booth,Godot Project/my-world/models/props/furniture/diner_booth.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,108
+Diner stool,Godot Project/my-world/models/props/furniture/diner_stool.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,330
+Mayor desk,Godot Project/my-world/models/props/furniture/mayor_desk.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,80
+School desk,Godot Project/my-world/models/props/furniture/school_desk.glb,Props & scenery,Furniture (insides),Insides,"Blender script, baked high→low (bake_kit)",build_prop_furniture.py,Baked,In game,240
+Gadget stall,Godot Project/my-world/models/props/void_town/gadget_stall.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,512
+Acorn,Godot Project/my-world/models/props/garden_folk/acorn.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,164
+Arrow,Godot Project/my-world/models/props/garden_folk/arrow.glb,Props & scenery,Gameplay items,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,62
+Burrow,Godot Project/my-world/models/props/garden_folk/burrow.glb,Props & scenery,Gameplay items,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,1156
+Posy,Godot Project/my-world/models/props/garden_folk/posy.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,584
+Shiny stone,Godot Project/my-world/models/props/garden_folk/shiny_stone.glb,Props & scenery,Rocks & crystals,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,92
+Teacup,Godot Project/my-world/models/props/garden_folk/teacup.glb,Props & scenery,Gameplay items,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_folk.py,Baked,In game,356
+Gazebo,Godot Project/my-world/models/props/stars_hollow/gazebo.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_gazebo.py,Baked,In game,7948
+Barn,Godot Project/my-world/models/props/glenmoor/barn.glb,Props & scenery,Buildings & structures,Glenmoor,"Blender script, baked high→low (bake_kit)",build_prop_glenmoor.py,Baked,In game,152
+Cairn,Godot Project/my-world/models/props/glenmoor/cairn.glb,Props & scenery,Rocks & crystals,Glenmoor,"Blender script, baked high→low (bake_kit)",build_prop_glenmoor.py,Baked,In game,336
+Croft,Godot Project/my-world/models/props/glenmoor/croft.glb,Props & scenery,Buildings & structures,Glenmoor,"Blender script, baked high→low (bake_kit)",build_prop_glenmoor.py,Baked,In game,568
+Standing stone,Godot Project/my-world/models/props/glenmoor/standing_stone.glb,Props & scenery,Buildings & structures,Glenmoor,"Blender script, baked high→low (bake_kit)",build_prop_glenmoor.py,Baked,In game,672
+Summit cairn,Godot Project/my-world/models/props/glenmoor/summit_cairn.glb,Props & scenery,Rocks & crystals,Glenmoor,"Blender script, baked high→low (bake_kit)",build_prop_glenmoor.py,Baked,In game,336
+Chest box,Godot Project/my-world/models/props/gloop_kingdom/chest_box.glb,Props & scenery,Gameplay items,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_swamp.py,Baked,In game,12
+Chest lid,Godot Project/my-world/models/props/gloop_kingdom/chest_lid.glb,Props & scenery,Gameplay items,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_swamp.py,Baked,In game,12
+Court stand,Godot Project/my-world/models/props/gloop_kingdom/court_stand.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,24
+Court wall,Godot Project/my-world/models/props/gloop_kingdom/court_wall.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,36
+Gate arch,Godot Project/my-world/models/props/gloop_kingdom/gate_arch.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,1544
+Gate tower,Godot Project/my-world/models/props/gloop_kingdom/gate_tower.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,288
+Goo lantern,Godot Project/my-world/models/props/gloop_kingdom/goo_lantern.glb,Props & scenery,Lights & lamps,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,1200
+Goo spire,Godot Project/my-world/models/props/gloop_kingdom/goo_spire.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,214
+Throne,Godot Project/my-world/models/props/gloop_kingdom/throne.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,360
+Throne dais,Godot Project/my-world/models/props/gloop_kingdom/throne_dais.glb,Props & scenery,Buildings & structures,Gloop Kingdom,"Blender script, baked high→low (bake_kit)",build_prop_gloop_kingdom.py,Baked,In game,576
+Grove lantern,Godot Project/my-world/models/props/rhythm_springs/grove_lantern.glb,Props & scenery,Lights & lamps,Rhythm Springs,"Blender script, baked high→low (bake_kit)",build_prop_island.py,Baked,In game,212
+Hay bale,Godot Project/my-world/models/props/shared/hay_bale.glb,Props & scenery,Nature: plants & trees,Glenmoor; Race circuits; Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_farm.py,Baked,In game,324
+Ice cream cone,Godot Project/my-world/models/props/shared/ice_cream_cone.glb,Props & scenery,Gameplay items,Unknown,Blender file (.blend),source_art/props/ice_cream_cone.blend,Baked,Not used in game,2130
+Jack o lantern,Godot Project/my-world/models/props/stars_hollow/jack_o_lantern.glb,Props & scenery,Lights & lamps,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_autumn.py,Baked,In game,716
+Lab kit,Godot Project/my-world/models/props/void_town/lab_kit.glb,Props & scenery,Gameplay items,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,400
+Lab shed,Godot Project/my-world/models/props/void_town/lab_shed.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,196
+Lantern post,Godot Project/my-world/models/props/void_town/lantern_post.glb,Props & scenery,Lights & lamps,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_lanternmoor.py,Baked,In game,44
+Beacon,Godot Project/my-world/models/props/lanternmoor/beacon.glb,Props & scenery,Lights & lamps,Lanternmoor,"Blender script, baked high→low (bake_kit)",build_prop_lanternmoor.py,Baked,In game,1144
+Lantern post,Godot Project/my-world/models/props/lanternmoor/lantern_post.glb,Props & scenery,Lights & lamps,Lanternmoor,"Blender script, baked high→low (bake_kit)",build_prop_lanternmoor.py,Baked,In game,542
+Lantern tree,Godot Project/my-world/models/props/lanternmoor/lantern_tree.glb,Props & scenery,Nature: plants & trees,Lanternmoor,"Blender script, baked high→low (bake_kit)",build_prop_lanternmoor.py,Baked,In game,1302
+Mailbox,Godot Project/my-world/models/props/stars_hollow/mailbox.glb,Props & scenery,Street & park furniture,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_autumn.py,Baked,In game,128
+Market stall crystals,Godot Project/my-world/models/props/void_town/market_stall_crystals.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,880
+Market stall flowers,Godot Project/my-world/models/props/void_town/market_stall_flowers.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,1704
+Market stall fruit,Godot Project/my-world/models/props/void_town/market_stall_fruit.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,1948
+Market stall records,Godot Project/my-world/models/props/void_town/market_stall_records.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,540
+Market stall sweets,Godot Project/my-world/models/props/void_town/market_stall_sweets.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,1132
+Market stall toys,Godot Project/my-world/models/props/void_town/market_stall_toys.glb,Props & scenery,Market stalls,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_stall.py,Baked,In game,696
+Mothership pad,Godot Project/my-world/models/props/void_town/mothership_pad.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,160
+Mum planter,Godot Project/my-world/models/props/stars_hollow/mum_planter.glb,Props & scenery,Street & park furniture,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_play.py,Baked,In game,368
+Bark limb,Godot Project/my-world/models/props/nature/bark_limb.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,76
+Bark trunk,Godot Project/my-world/models/props/nature/bark_trunk.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,196
+Giant leaf,Godot Project/my-world/models/props/nature/giant_leaf.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,2
+Leaf ball,Godot Project/my-world/models/props/nature/leaf_ball.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,80
+Mushroom cap,Godot Project/my-world/models/props/nature/mushroom_cap.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,288
+Mushroom stem,Godot Project/my-world/models/props/nature/mushroom_stem.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,116
+Void orb,Godot Project/my-world/models/props/nature/void_orb.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,1280
+Void spire,Godot Project/my-world/models/props/nature/void_spire.glb,Props & scenery,Buildings & structures,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,14
+Void stalk,Godot Project/my-world/models/props/nature/void_stalk.glb,Props & scenery,Nature: plants & trees,Everywhere,"Blender script, baked high→low (bake_kit)",build_prop_nature.py,Baked,In game,60
+Noticeboard,Godot Project/my-world/models/props/void_town/noticeboard.glb,Props & scenery,Street & park furniture,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,100
+Old slide,Godot Project/my-world/models/props/void_town/old_slide.glb,Props & scenery,Play & sports,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_sports.py,Baked,In game,228
+Palm,Godot Project/my-world/models/props/rhythm_springs/palm.glb,Props & scenery,Nature: plants & trees,Rhythm Springs,"Blender script, baked high→low (bake_kit)",build_prop_island.py,Baked,In game,1424
+Park bench,Godot Project/my-world/models/props/stars_hollow/park_bench.glb,Props & scenery,Street & park furniture,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_bench.py,Baked,In game,2816
+Picket,Godot Project/my-world/models/props/stars_hollow/picket.glb,Props & scenery,Street & park furniture,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_house.py,Baked,In game,48
+Picnic basket,Godot Project/my-world/models/props/void_town/picnic_basket.glb,Props & scenery,Street & park furniture,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void.py,Baked,In game,332
+Pool lip,Godot Project/my-world/models/props/void_town/pool_lip.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,384
+Pool wall,Godot Project/my-world/models/props/void_town/pool_wall.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,320
+Porch,Godot Project/my-world/models/props/stars_hollow/porch.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_house.py,Baked,In game,724
+Porch roof,Godot Project/my-world/models/props/stars_hollow/porch_roof.glb,Props & scenery,Buildings & structures,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_house.py,Baked,In game,12
+Pumpkin,Godot Project/my-world/models/props/shared/pumpkin.glb,Props & scenery,Nature: plants & trees,Race circuits; Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_autumn.py,Baked,In game,716
+Clock pillar,Godot Project/my-world/models/props/race/clock_pillar.glb,Props & scenery,Rocks & crystals,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,72
+Mill sails,Godot Project/my-world/models/props/race/mill_sails.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,136
+Observatory,Godot Project/my-world/models/props/race/observatory.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,768
+Silo,Godot Project/my-world/models/props/race/silo.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,336
+Stand earth,Godot Project/my-world/models/props/race/stand_earth.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,156
+Stand void,Godot Project/my-world/models/props/race/stand_void.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,156
+Windmill,Godot Project/my-world/models/props/race/windmill.glb,Props & scenery,Buildings & structures,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_race.py,Baked,In game,392
+Race board,Godot Project/my-world/models/props/race/race_board.glb,Props & scenery,Gameplay items,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,744
+Request board,Godot Project/my-world/models/props/void_town/request_board.glb,Props & scenery,Gameplay items,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,72
+Rock wall,Godot Project/my-world/models/props/void_town/rock_wall.glb,Props & scenery,Play & sports,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_sports.py,Baked,In game,1770
+Giant bloom,Godot Project/my-world/models/props/rootmind/giant_bloom.glb,Props & scenery,Nature: plants & trees,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,3648
+Giant bud,Godot Project/my-world/models/props/rootmind/giant_bud.glb,Props & scenery,Nature: plants & trees,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,480
+Giant leaf,Godot Project/my-world/models/props/rootmind/giant_leaf.glb,Props & scenery,Nature: plants & trees,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,824
+Giant stem,Godot Project/my-world/models/props/rootmind/giant_stem.glb,Props & scenery,Nature: plants & trees,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,574
+Root arch,Godot Project/my-world/models/props/rootmind/root_arch.glb,Props & scenery,Buildings & structures,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,420
+Step leaf,Godot Project/my-world/models/props/rootmind/step_leaf.glb,Props & scenery,Nature: plants & trees,Rootmind,"Blender script, baked high→low (bake_kit)",build_prop_rootmind.py,Baked,In game,656
+Rowing boat,Godot Project/my-world/models/props/stars_hollow/rowing_boat.glb,Vehicles & rides,Vehicles & rides,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_farm.py,Baked,In game,1964
+Run clock,Godot Project/my-world/models/props/race/run_clock.glb,Props & scenery,Gameplay items,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,528
+Sailboat,Godot Project/my-world/models/props/void_town/sailboat.glb,Vehicles & rides,Vehicles & rides,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void.py,Baked,In game,1406
+Sandbox,Godot Project/my-world/models/props/stars_hollow/sandbox.glb,Props & scenery,Play & sports,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_play.py,Baked,In game,610
+Scarecrow,Godot Project/my-world/models/props/stars_hollow/scarecrow.glb,Props & scenery,Nature: plants & trees,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_autumn.py,Baked,In game,508
+Flower head,Godot Project/my-world/models/props/secret_garden/flower_head.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,1760
+Flower middle,Godot Project/my-world/models/props/secret_garden/flower_middle.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,160
+Flower stem,Godot Project/my-world/models/props/secret_garden/flower_stem.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,48
+Fountain,Godot Project/my-world/models/props/secret_garden/fountain.glb,Props & scenery,Buildings & structures,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,1310
+Garden bench,Godot Project/my-world/models/props/secret_garden/garden_bench.glb,Props & scenery,Street & park furniture,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,12
+Great tree,Godot Project/my-world/models/props/secret_garden/great_tree.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,664
+Hedge,Godot Project/my-world/models/props/secret_garden/hedge.glb,Props & scenery,Nature: plants & trees,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,12
+Ivy wall,Godot Project/my-world/models/props/secret_garden/ivy_wall.glb,Props & scenery,Buildings & structures,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,36
+Rose arch,Godot Project/my-world/models/props/secret_garden/rose_arch.glb,Props & scenery,Buildings & structures,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,1020
+Summerhouse,Godot Project/my-world/models/props/secret_garden/summerhouse.glb,Props & scenery,Buildings & structures,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,1006
+Sundial,Godot Project/my-world/models/props/secret_garden/sundial.glb,Props & scenery,Street & park furniture,Secret Garden,"Blender script, baked high→low (bake_kit)",build_prop_secret_garden.py,Baked,In game,460
+Seraph crown,Godot Project/my-world/models/props/seraph/seraph_crown.glb,Props & scenery,Boss parts,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_seraph.py,Baked,In game,2328
+Seraph eye,Godot Project/my-world/models/props/seraph/seraph_eye.glb,Props & scenery,Boss parts,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_seraph.py,Baked,In game,960
+Seraph feather,Godot Project/my-world/models/props/seraph/seraph_feather.glb,Props & scenery,Boss parts,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_seraph.py,Baked,In game,504
+Seraph glory,Godot Project/my-world/models/props/seraph/seraph_glory.glb,Props & scenery,Boss parts,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_seraph.py,Baked,In game,256
+Seraph wheel,Godot Project/my-world/models/props/seraph/seraph_wheel.glb,Props & scenery,Boss parts,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_seraph.py,Baked,In game,5952
+Cluster base,Godot Project/my-world/models/props/shard_isle/cluster_base.glb,Props & scenery,Rocks & crystals,Shard Isle,"Blender script, baked high→low (bake_kit)",build_prop_shard_isle.py,Baked,In game,190
+Echo stand,Godot Project/my-world/models/props/shard_isle/echo_stand.glb,Props & scenery,Buildings & structures,Shard Isle,"Blender script, baked high→low (bake_kit)",build_prop_shard_isle.py,Baked,In game,96
+Heart plinth,Godot Project/my-world/models/props/shard_isle/heart_plinth.glb,Props & scenery,Buildings & structures,Shard Isle,"Blender script, baked high→low (bake_kit)",build_prop_shard_isle.py,Baked,In game,120
+Island rock,Godot Project/my-world/models/props/shard_isle/island_rock.glb,Props & scenery,Rocks & crystals,Shard Isle,"Blender script, baked high→low (bake_kit)",build_prop_shard_isle.py,Baked,In game,518
+Stepping stone,Godot Project/my-world/models/props/shard_isle/stepping_stone.glb,Props & scenery,Street & park furniture,Shard Isle,"Blender script, baked high→low (bake_kit)",build_prop_shard_isle.py,Baked,In game,44
+Sign post,Godot Project/my-world/models/props/void_town/sign_post.glb,Props & scenery,Street & park furniture,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_sign.py,Baked,In game,608
+Chest box,Godot Project/my-world/models/props/skyreach/chest_box.glb,Props & scenery,Gameplay items,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_swamp.py,Baked,In game,144
+Kerb stone,Godot Project/my-world/models/props/skyreach/kerb_stone.glb,Props & scenery,Street & park furniture,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,108
+Prayer flag,Godot Project/my-world/models/props/skyreach/prayer_flag.glb,Props & scenery,Street & park furniture,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,108
+Ring rock,Godot Project/my-world/models/props/skyreach/ring_rock.glb,Props & scenery,Rocks & crystals,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,320
+Star bloom,Godot Project/my-world/models/props/skyreach/star_bloom.glb,Props & scenery,Nature: plants & trees,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,780
+Trail pine,Godot Project/my-world/models/props/skyreach/trail_pine.glb,Props & scenery,Nature: plants & trees,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,498
+Waystone,Godot Project/my-world/models/props/skyreach/waystone.glb,Props & scenery,Rocks & crystals,Skyreach Trail,"Blender script, baked high→low (bake_kit)",build_prop_skyreach.py,Baked,In game,388
+Slide tower,Godot Project/my-world/models/props/stars_hollow/slide_tower.glb,Props & scenery,Play & sports,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_play.py,Baked,In game,1800
+Soccer goal,Godot Project/my-world/models/props/void_town/soccer_goal.glb,Props & scenery,Play & sports,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_sports.py,Baked,In game,1268
+Spring cave,Godot Project/my-world/models/props/void_town/spring_cave.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,240
+Spring rim,Godot Project/my-world/models/props/void_town/spring_rim.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_5.py,Baked,In game,648
+Springs gate,Godot Project/my-world/models/props/rhythm_springs/springs_gate.glb,Props & scenery,Buildings & structures,Rhythm Springs,"Blender script, baked high→low (bake_kit)",build_prop_island.py,Baked,In game,2372
+Arena hatch,Godot Project/my-world/models/props/star_arena/arena_hatch.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,288
+Arena tunnel,Godot Project/my-world/models/props/star_arena/arena_tunnel.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,108
+Arena wall,Godot Project/my-world/models/props/star_arena/arena_wall.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,24
+Blip podium,Godot Project/my-world/models/props/star_arena/blip_podium.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,192
+Round board,Godot Project/my-world/models/props/star_arena/round_board.glb,Props & scenery,Gameplay items,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,96
+Spotlight tower,Godot Project/my-world/models/props/star_arena/spotlight_tower.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,380
+Stand step,Godot Project/my-world/models/props/star_arena/stand_step.glb,Props & scenery,Buildings & structures,Star Arena,"Blender script, baked high→low (bake_kit)",build_prop_star_arena.py,Baked,In game,48
+Street lamp,Godot Project/my-world/models/props/stars_hollow/street_lamp.glb,Props & scenery,Lights & lamps,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_lamp.py,Baked,In game,2740
+Bark,Godot Project/my-world/models/props/surfaces/bark.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Barn boards,Godot Project/my-world/models/props/surfaces/barn_boards.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Brick,Godot Project/my-world/models/props/surfaces/brick.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Brushed metal,Godot Project/my-world/models/props/surfaces/brushed_metal.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Clapboard,Godot Project/my-world/models/props/surfaces/clapboard.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Coral,Godot Project/my-world/models/props/surfaces/coral.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Dome scales,Godot Project/my-world/models/props/surfaces/dome_scales.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Drystone,Godot Project/my-world/models/props/surfaces/drystone.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Floor tiles,Godot Project/my-world/models/props/surfaces/floor_tiles.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Floorboards,Godot Project/my-world/models/props/surfaces/floorboards.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Glass facade,Godot Project/my-world/models/props/surfaces/glass_facade.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Goblin skin,Godot Project/my-world/models/props/surfaces/goblin_skin.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Grip tape,Godot Project/my-world/models/props/surfaces/grip_tape.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Ice,Godot Project/my-world/models/props/surfaces/ice.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Leaf skin,Godot Project/my-world/models/props/surfaces/leaf_skin.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Maple,Godot Project/my-world/models/props/surfaces/maple.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Metal panel,Godot Project/my-world/models/props/surfaces/metal_panel.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Plaster,Godot Project/my-world/models/props/surfaces/plaster.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Reptile scales,Godot Project/my-world/models/props/surfaces/reptile_scales.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Rock,Godot Project/my-world/models/props/surfaces/rock.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Shingles,Godot Project/my-world/models/props/surfaces/shingles.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Snow,Godot Project/my-world/models/props/surfaces/snow.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Stone,Godot Project/my-world/models/props/surfaces/stone.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Tread,Godot Project/my-world/models/props/surfaces/tread.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Tweed,Godot Project/my-world/models/props/surfaces/tweed.glb,Detail surfaces,Surface patches (tiling detail),Everywhere (tiling),"Blender script, baked high→low (bake_kit)",build_prop_surfaces.py,Baked,In game,2
+Chest box dusk,Godot Project/my-world/models/props/swamp/chest_box_dusk.glb,Props & scenery,Gameplay items,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,36
+Chest box lanternmoor,Godot Project/my-world/models/props/swamp/chest_box_lanternmoor.glb,Props & scenery,Lights & lamps,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,36
+Chest lid dusk,Godot Project/my-world/models/props/swamp/chest_lid_dusk.glb,Props & scenery,Gameplay items,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,48
+Chest lid lanternmoor,Godot Project/my-world/models/props/swamp/chest_lid_lanternmoor.glb,Props & scenery,Lights & lamps,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,48
+Hut lanternmoor,Godot Project/my-world/models/props/swamp/hut_lanternmoor.glb,Props & scenery,Buildings & structures,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,380
+Island dusk,Godot Project/my-world/models/props/swamp/island_dusk.glb,Props & scenery,Rocks & crystals,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,432
+Island lanternmoor,Godot Project/my-world/models/props/swamp/island_lanternmoor.glb,Props & scenery,Lights & lamps,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,432
+Log dusk,Godot Project/my-world/models/props/swamp/log_dusk.glb,Props & scenery,Nature: plants & trees,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,252
+Lookout dusk,Godot Project/my-world/models/props/swamp/lookout_dusk.glb,Props & scenery,Buildings & structures,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,866
+Lookout lanternmoor,Godot Project/my-world/models/props/swamp/lookout_lanternmoor.glb,Props & scenery,Buildings & structures,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,866
+Plank dusk,Godot Project/my-world/models/props/swamp/plank_dusk.glb,Props & scenery,Other scenery,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,12
+Plank lanternmoor,Godot Project/my-world/models/props/swamp/plank_lanternmoor.glb,Props & scenery,Lights & lamps,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,12
+Sinker dusk,Godot Project/my-world/models/props/swamp/sinker_dusk.glb,Props & scenery,Rocks & crystals,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,160
+Stone dusk,Godot Project/my-world/models/props/swamp/stone_dusk.glb,Props & scenery,Street & park furniture,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,160
+Swamp tree dusk,Godot Project/my-world/models/props/swamp/swamp_tree_dusk.glb,Props & scenery,Nature: plants & trees,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,2450
+Swamp tree lanternmoor,Godot Project/my-world/models/props/swamp/swamp_tree_lanternmoor.glb,Props & scenery,Lights & lamps,Swamps,"Blender script, baked high→low (bake_kit)",,Baked,In game,2450
+Swing set,Godot Project/my-world/models/props/stars_hollow/swing_set.glb,Props & scenery,Play & sports,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_play.py,Baked,In game,640
+Telescope,Godot Project/my-world/models/props/stars_hollow/telescope.glb,Props & scenery,Play & sports,Stars Hollow (Earth),"Blender script, baked high→low (bake_kit)",build_prop_creek.py,Baked,In game,640
+Tennis net,Godot Project/my-world/models/props/void_town/tennis_net.glb,Props & scenery,Play & sports,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_sports.py,Baked,In game,100
+Boat,Godot Project/my-world/models/props/tide_reef/boat.glb,Vehicles & rides,Vehicles & rides,Tide Reef,"Blender script, baked high→low (bake_kit)",build_prop_tide_reef.py,Baked,In game,1312
+Coral dome,Godot Project/my-world/models/props/tide_reef/coral_dome.glb,Props & scenery,Buildings & structures,Tide Reef,"Blender script, baked high→low (bake_kit)",build_prop_tide_reef.py,Baked,In game,800
+Coral trim,Godot Project/my-world/models/props/tide_reef/coral_trim.glb,Props & scenery,Other scenery,Tide Reef,"Blender script, baked high→low (bake_kit)",build_prop_tide_reef.py,Baked,In game,2296
+Lamp post,Godot Project/my-world/models/props/tide_reef/lamp_post.glb,Props & scenery,Lights & lamps,Tide Reef,"Blender script, baked high→low (bake_kit)",build_prop_tide_reef.py,Baked,In game,584
+Tiki torch,Godot Project/my-world/models/props/rhythm_springs/tiki_torch.glb,Props & scenery,Lights & lamps,Rhythm Springs,"Blender script, baked high→low (bake_kit)",build_prop_island.py,Baked,In game,876
+Tree house,Godot Project/my-world/models/props/void_town/tree_house.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,1464
+Tune up,Godot Project/my-world/models/props/race/tune_up.glb,Props & scenery,Gameplay items,Race circuits,"Blender script, baked high→low (bake_kit)",build_prop_void_gate.py,Baked,In game,280
+Vein crystals,Godot Project/my-world/models/props/shared/vein_crystals.glb,Props & scenery,Rocks & crystals,Portal worlds,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,306
+Vein rock,Godot Project/my-world/models/props/shared/vein_rock.glb,Props & scenery,Rocks & crystals,Portal worlds,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,400
+Vein stubs,Godot Project/my-world/models/props/shared/vein_stubs.glb,Props & scenery,Rocks & crystals,Portal worlds,"Blender script, baked high→low (bake_kit)",build_prop_void_4.py,Baked,In game,288
+Void fountain,Godot Project/my-world/models/props/void_town/void_fountain.glb,Props & scenery,Buildings & structures,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_fountain.py,Baked,In game,2808
+Void lamp,Godot Project/my-world/models/props/void_town/void_lamp.glb,Props & scenery,Lights & lamps,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_fountain.py,Baked,In game,808
+Workbench,Godot Project/my-world/models/props/void_town/workbench.glb,Props & scenery,Gameplay items,The Void town,"Blender script, baked high→low (bake_kit)",build_prop_void_more.py,Baked,In game,132
+Gloop,Godot Project/my-world/scripts/gloop.gd,Enemies,Enemy,The Void town,Built in Godot code,gloop.gd,Not baked,In game,
+Crocodillo,Godot Project/my-world/scripts/crocodillo.gd,Enemies,Enemy,The Void town,Built in Godot code,crocodillo.gd,Baked,In game,
+Time Goblin,Godot Project/my-world/scripts/time_goblin.gd,Enemies,Enemy,The Void town (clockyard),Built in Godot code,time_goblin.gd,Baked,In game,
+Glorp,Godot Project/my-world/scripts/glorp.gd,Enemies,Enemy,The Void town,Built in Godot code,glorp.gd,Not baked,In game,
+Fizzler,Godot Project/my-world/scripts/fizzler.gd,Enemies,Enemy,The Void town,Built in Godot code,fizzler.gd,Not baked,In game,
+Shadow ghost,Godot Project/my-world/scripts/shadow_ghost.gd,Enemies,Enemy,Dark Hollow,Built in Godot code,shadow_ghost.gd,Not baked,In game,
+Peeper,Godot Project/my-world/scripts/peeper.gd,Enemies,Shy critter,Portal worlds,Built in Godot code,peeper.gd,Baked,In game,
+Bog Wailer,Godot Project/my-world/scripts/bog_wailer.gd,Enemies,Enemy,Swamps,Built in Godot code,bog_wailer.gd,Baked,In game,
+Centipede,Godot Project/my-world/scripts/centipede_friend.gd,Enemies,Friend / boss,Dusk's Embrace,Built in Godot code,centipede_friend.gd,Baked,In game,
+Wisps and glow-eyes,Godot Project/my-world/scripts/wisp.gd,Enemies,Spooky scenery,Dusk's Embrace,Built in Godot code,wisp.gd,Not baked,In game,
+Snappy,Godot Project/my-world/scripts/snappy.gd,Enemies,Bramble's flytrap,The Void town,Built in Godot code,snappy.gd,Not baked,In game,
+Gloop King,Godot Project/my-world/scripts/gloop_king.gd,Bosses,Boss,Gloop Kingdom,Built in Godot code,gloop_king.gd,Partly (crown only),In game,
+Grandfather Tock,Godot Project/my-world/scripts/time_goblin_boss.gd,Bosses,Boss,Clockwork Tower,Built in Godot code,time_goblin_boss.gd,Baked,In game,
+Boulderdillo,Godot Project/my-world/scripts/crocodillo_boss.gd,Bosses,Boss,Boulder Canyon,Built in Godot code,crocodillo_boss.gd,Baked,In game,
+Tuskwinter,Godot Project/my-world/scripts/frost_gloop.gd,Bosses,World boss,Frozen Moment,Built in Godot code,frost_gloop.gd,Baked,In game,
+Grumblefin,Godot Project/my-world/scripts/riptide_gloop.gd,Bosses,World boss,Tide Reef,Built in Godot code,riptide_gloop.gd,Baked,In game,
+Dawn Snatcher,Godot Project/my-world/scripts/dawn_snatcher.gd,Bosses,World boss,Lanternmoor,Built in Godot code,dawn_snatcher.gd,Baked,In game,
+Stormram,Godot Project/my-world/scripts/stormram.gd,Bosses,World boss,Glenmoor,Built in Godot code,stormram.gd,Baked,In game,
+The Off-Beat,Godot Project/my-world/scripts/off_beat.gd,Bosses,World boss,Rhythm Springs,Built in Godot code,off_beat.gd,Baked,In game,
+Old Ember,Godot Project/my-world/scripts/old_ember.gd,Bosses,Optional boss,Rhythm Springs (volcano),Built in Godot code,old_ember.gd,Baked,In game,
+The Hush,Godot Project/my-world/scripts/the_hush.gd,Bosses,World boss,Dark Hollow,Built in Godot code,the_hush.gd,Not baked,In game,
+Thornknot,Godot Project/my-world/scripts/thorn_knot.gd,Bosses,World boss,Rootmind,Built in Godot code,thorn_knot.gd,Not baked,In game,
+Captain Glitch,Godot Project/my-world/scripts/captain_glitch.gd,Bosses,World boss,Far Future,Built in Godot code,captain_glitch.gd,Not baked,In game,
+The Seraph (Starhorn),Godot Project/my-world/scripts/starhorn.gd,Bosses,Optional boss,Skyreach Trail,Built in Godot code,starhorn.gd,Baked,In game,
+Glimmerwing,Godot Project/my-world/scripts/guardian.gd,Bosses,Guardian,The Void town (hidden),Built in Godot code,guardian.gd,Baked,In game,
+Old Bubblebeard,Godot Project/my-world/scripts/guardian.gd,Bosses,Guardian,The Void town (hidden),Built in Godot code,guardian.gd,Baked,In game,
+Ribbontail,Godot Project/my-world/scripts/guardian.gd,Bosses,Guardian,The Void town (hidden),Built in Godot code,guardian.gd,Baked,In game,
+Mama Glorp,Godot Project/my-world/scripts/glorp_mother.gd,Bosses,Arena boss,Star Arena,Built in Godot code,glorp_mother.gd,Not baked,In game,
+Big Buzz,Godot Project/my-world/scripts/big_buzz.gd,Bosses,Arena boss,Star Arena,Built in Godot code,big_buzz.gd,Not baked,In game,
+The Gloam,Godot Project/my-world/scripts/the_gloam.gd,Bosses,Arena boss,Star Arena,Built in Godot code,the_gloam.gd,Not baked,In game,
+Centipede (boss fight),Godot Project/my-world/scripts/centipede_boss.gd,Bosses,Boss,Dusk's Embrace,Built in Godot code,centipede_boss.gd,Baked,In game,
+Skateboard,Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+SK8 Deck (Bruno),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+BMX (Dash),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked,In game,
+Paw Skates (Rex),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Four-Paw Skates (Rook),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Hover Wings (Pip),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Scooter (Heather),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Leaf Board (Green Man),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Mayor-mobile (Mr. Palmer),Godot Project/my-world/scripts/rides.gd,Vehicles & rides,Ride,Everywhere,Built in Godot code,rides.gd,Baked (surface patches),In game,
+Overboard,Godot Project/my-world/scripts/ride_upgrades.gd,Vehicles & rides,Ride upgrade,Everywhere,Built in Godot code,ride_upgrades.gd,Baked (surface patches),In game,
+Hover Bike,Godot Project/my-world/scripts/ride_upgrades.gd,Vehicles & rides,Ride upgrade,Everywhere,Built in Godot code,ride_upgrades.gd,Baked (surface patches),In game,
+Rocket Board,Godot Project/my-world/scripts/ride_upgrades.gd,Vehicles & rides,Ride upgrade,Everywhere,Built in Godot code,ride_upgrades.gd,Baked (surface patches),In game,
+Rocket Bike,Godot Project/my-world/scripts/ride_upgrades.gd,Vehicles & rides,Ride upgrade,Everywhere,Built in Godot code,ride_upgrades.gd,Baked (surface patches),In game,
+Flying Saucer,Godot Project/my-world/scripts/ride_upgrades.gd,Vehicles & rides,Ride upgrade,Everywhere,Built in Godot code,ride_upgrades.gd,Baked (surface patches),In game,
+Mothership,Godot Project/my-world/tools/build_mothership.gd,Vehicles & rides,Vehicle,The Void sky,Built in Godot code,build_mothership.gd,Not baked,In game,
+Mini saucers,Godot Project/my-world/scripts/mini_saucer.gd,Vehicles & rides,Little aliens' saucers,The Void town,Built in Godot code,mini_saucer.gd,Not baked,In game,
+Star Popper,Godot Project/my-world/scripts/star_popper.gd,Gadgets,Gadget,Player,Built in Godot code,star_popper.gd,Not baked,In game,
+Fizz Flinger,Godot Project/my-world/scripts/fizz_bomb.gd,Gadgets,Gadget,Player,Built in Godot code,fizz_bomb.gd,Not baked,In game,
+Disco Ball,Godot Project/my-world/scripts/disco_ball.gd,Gadgets,Gadget,Player,Built in Godot code,disco_ball.gd,Not baked,In game,
+Plushinator,Godot Project/my-world/scripts/plush_bolt.gd,Gadgets,Gadget,Player,Built in Godot code,plush_bolt.gd,Not baked,In game,
+Buzz Bots,Godot Project/my-world/scripts/buzz_bots.gd,Gadgets,Gadget,Player,Built in Godot code,buzz_bots.gd,Not baked,In game,
+Rainbow Ray,Godot Project/my-world/scripts/rainbow_ray.gd,Gadgets,Gadget,Player,Built in Godot code,rainbow_ray.gd,Not baked,In game,
+Jelly Mines,Godot Project/my-world/scripts/jelly_mine.gd,Gadgets,Gadget,Player,Built in Godot code,jelly_mine.gd,Not baked,In game,
+Spray can,Godot Project/my-world/scripts/spray_can.gd,Gadgets,Tool,Player,Built in Godot code,spray_can.gd,Not baked,In game,
+Stars Hollow (Earth),Godot Project/my-world/tools/build_earth.gd,Places & levels,Level,Stars Hollow (Earth),Built in Godot code (builder) + baked props,build_earth.gd,Baked,In game,
+The Void town,Godot Project/my-world/tools/build_town.gd,Places & levels,Level,The Void town,Built in Godot code (builder) + baked props,build_town.gd,Baked,In game,
+School palace,Godot Project/my-world/tools/build_school.gd,Places & levels,Level,School palace,Built in Godot code (builder) + baked props,build_school.gd,Baked (insides),In game,
+Insides (19 rooms),Godot Project/my-world/tools/build_interiors.gd,Places & levels,Level,Insides (19 rooms),Built in Godot code (builder) + baked props,build_interiors.gd + insides.gd,Baked,In game,
+Secret Garden,Godot Project/my-world/tools/build_secret_garden.gd,Places & levels,Level,Secret Garden,Built in Godot code (builder) + baked props,build_secret_garden.gd,Baked,In game,
+Dusk's Embrace,Godot Project/my-world/tools/build_scary_world.gd,Places & levels,Level,Dusk's Embrace,Built in Godot code (builder) + baked props,build_scary_world.gd,Baked,In game,
+Shard Isle,Godot Project/my-world/tools/build_shard_isle.gd,Places & levels,Level,Shard Isle,Built in Godot code (builder) + baked props,build_shard_isle.gd,Baked,In game,
+Rootmind,Godot Project/my-world/tools/build_rootmind.gd,Places & levels,Level,Rootmind,Built in Godot code (builder) + baked props,build_rootmind.gd,Baked,In game,
+Frozen Moment,Godot Project/my-world/tools/build_frozen_moment.gd,Places & levels,Level,Frozen Moment,Built in Godot code (builder) + baked props,build_frozen_moment.gd,Baked,In game,
+Lanternmoor,Godot Project/my-world/tools/build_lanternmoor.gd,Places & levels,Level,Lanternmoor,Built in Godot code (builder) + baked props,build_lanternmoor.gd,Baked,In game,
+Rhythm Springs,Godot Project/my-world/tools/build_rhythm_springs.gd,Places & levels,Level,Rhythm Springs,Built in Godot code (builder) + baked props,build_rhythm_springs.gd,Baked,In game,
+Glenmoor,Godot Project/my-world/tools/build_glenmoor.gd,Places & levels,Level,Glenmoor,Built in Godot code (builder) + baked props,build_glenmoor.gd,Baked,In game,
+Tide Reef,Godot Project/my-world/tools/build_tide_reef.gd,Places & levels,Level,Tide Reef,Built in Godot code (builder) + baked props,build_tide_reef.gd,Baked,In game,
+Dark Hollow,Godot Project/my-world/tools/build_dark_hollow.gd,Places & levels,Level,Dark Hollow,Built in Godot code (builder) + baked props,build_dark_hollow.gd,Baked,In game,
+Far Future,Godot Project/my-world/tools/build_far_future.gd,Places & levels,Level,Far Future,Built in Godot code (builder) + baked props,build_far_future.gd,Baked,In game,
+Gloop Kingdom,Godot Project/my-world/tools/build_gloop_kingdom.gd,Places & levels,Level,Gloop Kingdom,Built in Godot code (builder) + baked props,build_gloop_kingdom.gd,Baked,In game,
+Clockwork Tower,Godot Project/my-world/tools/build_boss_lairs.gd,Places & levels,Level,Clockwork Tower,Built in Godot code (builder) + baked props,build_boss_lairs.gd,Baked,In game,
+Boulder Canyon,Godot Project/my-world/tools/build_boss_lairs.gd,Places & levels,Level,Boulder Canyon,Built in Godot code (builder) + baked props,build_boss_lairs.gd,Baked,In game,
+Skyreach Trail,Godot Project/my-world/tools/build_boss_lairs.gd,Places & levels,Level,Skyreach Trail,Built in Godot code (builder) + baked props,build_boss_lairs.gd,Baked,In game,
+Star Arena,Godot Project/my-world/tools/build_arena.gd,Places & levels,Level,Star Arena,Built in Godot code (builder) + baked props,build_arena.gd,Baked,In game,
+Race circuits (5),Godot Project/my-world/tools/build_race_circuits.gd,Places & levels,Level,Race circuits (5),Built in Godot code (builder) + baked props,build_race_circuits.gd,Baked,In game,
+Skate test park,Godot Project/my-world/tools/build_skate_test.gd,Places & levels,Level,Skate test park,Built in Godot code (builder) + baked props,build_skate_test.gd,Not baked,In game,
+Divine Mind voice lines (277 files),Godot Project/my-world/audio/mind/*.ogg,Audio,Divine Mind voice lines,Everywhere,Made with Kokoro voice (make_mind_voice.py),,n/a,In game,
+Sound effects (43 files),Godot Project/my-world/audio/sfx/*.wav,Audio,Sound effects,Everywhere,Made in code (make_placeholder_audio.py),,n/a,In game,
+Music (12 files),Godot Project/my-world/audio/music/*.ogg,Audio,Music,Everywhere,Made in code; drop-in replacements welcome,,n/a,In game,
+Placeholder music (4 files),Godot Project/my-world/audio/music/placeholder/*.ogg,Audio,Placeholder music,Everywhere,Placeholder,,n/a,Placeholder,
+Ambience loops (6 files),Godot Project/my-world/audio/ambience/*.ogg,Audio,Ambience loops,Everywhere,Made in code (make_soundscape.py),,n/a,In game,

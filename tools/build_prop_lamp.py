@@ -5,7 +5,7 @@
 # shared by every lamp in town). Same size and spot as the old pole-and-box lamp (tools/build_earth.gd _lamp_post),
 # so its light (3.5 m up) still sits in the lantern.
 #
-#   python tools/build_prop_lamp.py "Godot Project/my-world/models/props/street_lamp.glb" [--blend]
+#   python tools/build_prop_lamp.py "Godot Project/my-world/models/props/stars_hollow/street_lamp.glb" [--blend]
 #   (or: blender -b --python tools/build_prop_lamp.py -- <out.glb>)
 #
 # Blender is Z up (the exporter turns it to Godot's Y up). Base at the origin.

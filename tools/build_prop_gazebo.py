@@ -8,7 +8,7 @@
 # eight posts 3.9 m out, railings 1 m high with the front open, and the eaves above the string of bulbs (4.5 m out,
 # 3.2 to 3.35 m up), which stay the builder's along with the lights, the "Town Green" label and the pumpkins.
 #
-#   python tools/build_prop_gazebo.py "Godot Project/my-world/models/props/gazebo.glb" [--blend] [--preview]
+#   python tools/build_prop_gazebo.py "Godot Project/my-world/models/props/stars_hollow/gazebo.glb" [--blend] [--preview]
 
 import math
 import sys

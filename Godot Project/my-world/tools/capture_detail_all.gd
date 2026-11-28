@@ -132,7 +132,7 @@ func _studio() -> void:
 	for st in STALLS:
 		var kind: String = st[0]
 		var hi_path := "res://models/props/_preview/market_stall_%s_high_preview.glb" % kind
-		var lo_path := "res://models/props/market_stall_%s.glb" % kind
+		var lo_path := "res://models/props/void_town/market_stall_%s.glb" % kind
 		if not ResourceLoader.exists(lo_path):
 			continue
 		var parts := []
