@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c34dm6k6qv765"
-path="res://.godot/imported/market_stall_crystals_market_stall_crystals_emit.png-dab01ccf2cb4c26cbd383b055e93a691.ctex"
+path="res://.godot/imported/market_stall_crystals_market_stall_crystals_emit.png-5c3d23bd85b1ddff5219368910210a78.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/market_stall_crystals_market_stall_crystals_emit.png"
-dest_files=["res://.godot/imported/market_stall_crystals_market_stall_crystals_emit.png-dab01ccf2cb4c26cbd383b055e93a691.ctex"]
+dest_files=["res://.godot/imported/market_stall_crystals_market_stall_crystals_emit.png-5c3d23bd85b1ddff5219368910210a78.ctex"]
 
 [params]
 

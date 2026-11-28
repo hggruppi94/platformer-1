@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://8we4cjv6ru6c"
-path="res://.godot/imported/sailboat.glb-7862f21c75666dd4f1f401b20cbfa6c9.scn"
+path="res://.godot/imported/sailboat.glb-ab31034906646c7eb7c32d96ec47e29e.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/sailboat.glb"
-dest_files=["res://.godot/imported/sailboat.glb-7862f21c75666dd4f1f401b20cbfa6c9.scn"]
+dest_files=["res://.godot/imported/sailboat.glb-ab31034906646c7eb7c32d96ec47e29e.scn"]
 
 [params]
 

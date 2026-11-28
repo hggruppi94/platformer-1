@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cmkff83a40ve2"
-path="res://.godot/imported/race_board.glb-eabbb4bb29c4df019fd6699a95d8d51d.scn"
+path="res://.godot/imported/race_board.glb-406f4bf0d484bef9f8fcda76c100766a.scn"
 
 [deps]
 
 source_file="res://models/props/race/race_board.glb"
-dest_files=["res://.godot/imported/race_board.glb-eabbb4bb29c4df019fd6699a95d8d51d.scn"]
+dest_files=["res://.godot/imported/race_board.glb-406f4bf0d484bef9f8fcda76c100766a.scn"]
 
 [params]
 

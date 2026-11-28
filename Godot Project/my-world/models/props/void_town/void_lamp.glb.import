@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://m2wh5t7s00bf"
-path="res://.godot/imported/void_lamp.glb-710b5011968c10766a46cd5dec29aa1b.scn"
+path="res://.godot/imported/void_lamp.glb-76000826d044b31299b3e732d890c710.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/void_lamp.glb"
-dest_files=["res://.godot/imported/void_lamp.glb-710b5011968c10766a46cd5dec29aa1b.scn"]
+dest_files=["res://.godot/imported/void_lamp.glb-76000826d044b31299b3e732d890c710.scn"]
 
 [params]
 

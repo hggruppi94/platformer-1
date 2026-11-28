@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bscxkelw7xveu"
-path="res://.godot/imported/clock_case_clock_case_color.png-d411f209a9245c93e6f26157be90babf.ctex"
+path="res://.godot/imported/clock_case_clock_case_color.png-1e799952341b295a341ddadd5debf290.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/clock_case_clock_case_color.png"
-dest_files=["res://.godot/imported/clock_case_clock_case_color.png-d411f209a9245c93e6f26157be90babf.ctex"]
+dest_files=["res://.godot/imported/clock_case_clock_case_color.png-1e799952341b295a341ddadd5debf290.ctex"]
 
 [params]
 

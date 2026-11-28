@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://c1pcoqrq4kcvw"
-path="res://.godot/imported/swing_set.glb-95eb76616e0686dd314d2923c74f2fde.scn"
+path="res://.godot/imported/swing_set.glb-0f2f434e43af3ee4026676e2d45d11c2.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/swing_set.glb"
-dest_files=["res://.godot/imported/swing_set.glb-95eb76616e0686dd314d2923c74f2fde.scn"]
+dest_files=["res://.godot/imported/swing_set.glb-0f2f434e43af3ee4026676e2d45d11c2.scn"]
 
 [params]
 

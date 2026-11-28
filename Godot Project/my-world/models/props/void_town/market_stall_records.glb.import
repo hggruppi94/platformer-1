@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cttfrq1swpjyo"
-path="res://.godot/imported/market_stall_records.glb-a592406d547a0d4b2f5af6a79dccfa0e.scn"
+path="res://.godot/imported/market_stall_records.glb-042b594e71e33c3b469be74889be6b3a.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/market_stall_records.glb"
-dest_files=["res://.godot/imported/market_stall_records.glb-a592406d547a0d4b2f5af6a79dccfa0e.scn"]
+dest_files=["res://.godot/imported/market_stall_records.glb-042b594e71e33c3b469be74889be6b3a.scn"]
 
 [params]
 

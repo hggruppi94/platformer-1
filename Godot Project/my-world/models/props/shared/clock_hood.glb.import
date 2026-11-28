@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dq6s3mdx8c2f7"
-path="res://.godot/imported/clock_hood.glb-bdd00385e05a61e8ab6d108de7969f31.scn"
+path="res://.godot/imported/clock_hood.glb-e08ef15c640dc0024db98b99f862e5d3.scn"
 
 [deps]
 
 source_file="res://models/props/shared/clock_hood.glb"
-dest_files=["res://.godot/imported/clock_hood.glb-bdd00385e05a61e8ab6d108de7969f31.scn"]
+dest_files=["res://.godot/imported/clock_hood.glb-e08ef15c640dc0024db98b99f862e5d3.scn"]
 
 [params]
 

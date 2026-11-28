@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d2u8sqb2c23rf"
-path="res://.godot/imported/arch_tower.glb-1533f8a9baf7950f9cce2f15914294e1.scn"
+path="res://.godot/imported/arch_tower.glb-65bf3233d5714cd3d7c1a8accfd63947.scn"
 
 [deps]
 
 source_file="res://models/props/race/arch_tower.glb"
-dest_files=["res://.godot/imported/arch_tower.glb-1533f8a9baf7950f9cce2f15914294e1.scn"]
+dest_files=["res://.godot/imported/arch_tower.glb-65bf3233d5714cd3d7c1a8accfd63947.scn"]
 
 [params]
 

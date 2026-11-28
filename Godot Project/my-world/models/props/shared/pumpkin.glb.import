@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://b5rcac510ryst"
-path="res://.godot/imported/pumpkin.glb-55543d37275f4815db174f9b05a3c337.scn"
+path="res://.godot/imported/pumpkin.glb-5be94ad1a2e6d3c250e927f9e300754c.scn"
 
 [deps]
 
 source_file="res://models/props/shared/pumpkin.glb"
-dest_files=["res://.godot/imported/pumpkin.glb-55543d37275f4815db174f9b05a3c337.scn"]
+dest_files=["res://.godot/imported/pumpkin.glb-5be94ad1a2e6d3c250e927f9e300754c.scn"]
 
 [params]
 

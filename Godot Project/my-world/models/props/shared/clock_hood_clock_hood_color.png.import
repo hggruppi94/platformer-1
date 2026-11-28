@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cgkyr0a2gj1nb"
-path="res://.godot/imported/clock_hood_clock_hood_color.png-da9b6c25cf8b923d9f020fb86e4cfdf2.ctex"
+path="res://.godot/imported/clock_hood_clock_hood_color.png-cde1eb1d5bcdf1648259ce22a78105b4.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/clock_hood_clock_hood_color.png"
-dest_files=["res://.godot/imported/clock_hood_clock_hood_color.png-da9b6c25cf8b923d9f020fb86e4cfdf2.ctex"]
+dest_files=["res://.godot/imported/clock_hood_clock_hood_color.png-cde1eb1d5bcdf1648259ce22a78105b4.ctex"]
 
 [params]
 

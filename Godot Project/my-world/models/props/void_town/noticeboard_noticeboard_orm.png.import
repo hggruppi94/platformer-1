@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ct8q1fnujkb6a"
-path="res://.godot/imported/noticeboard_noticeboard_orm.png-c11c90772e9de533d693b4fbc5c37180.ctex"
+path="res://.godot/imported/noticeboard_noticeboard_orm.png-834f726bf443a40d8c7553f38de8747a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/noticeboard_noticeboard_orm.png"
-dest_files=["res://.godot/imported/noticeboard_noticeboard_orm.png-c11c90772e9de533d693b4fbc5c37180.ctex"]
+dest_files=["res://.godot/imported/noticeboard_noticeboard_orm.png-834f726bf443a40d8c7553f38de8747a.ctex"]
 
 [params]
 

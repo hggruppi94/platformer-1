@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b8k02b20sacjo"
-path="res://.godot/imported/boardwalk_pile_boardwalk_pile_normal.png-128d4d25f3cbbf2901270a3b5501b6f7.ctex"
+path="res://.godot/imported/boardwalk_pile_boardwalk_pile_normal.png-929355c798760244d5f11820b3c5439f.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/boardwalk_pile_boardwalk_pile_normal.png"
-dest_files=["res://.godot/imported/boardwalk_pile_boardwalk_pile_normal.png-128d4d25f3cbbf2901270a3b5501b6f7.ctex"]
+dest_files=["res://.godot/imported/boardwalk_pile_boardwalk_pile_normal.png-929355c798760244d5f11820b3c5439f.ctex"]
 
 [params]
 

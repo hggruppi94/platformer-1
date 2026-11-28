@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kcimvt1sp0qg"
-path="res://.godot/imported/slide_tower_slide_tower_orm.png-c9256c2e332019d044e73cfbdcb00111.ctex"
+path="res://.godot/imported/slide_tower_slide_tower_orm.png-c634304b75e4397b2205db5706fe1e92.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/slide_tower_slide_tower_orm.png"
-dest_files=["res://.godot/imported/slide_tower_slide_tower_orm.png-c9256c2e332019d044e73cfbdcb00111.ctex"]
+dest_files=["res://.godot/imported/slide_tower_slide_tower_orm.png-c634304b75e4397b2205db5706fe1e92.ctex"]
 
 [params]
 

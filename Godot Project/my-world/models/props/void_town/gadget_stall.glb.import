@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cixkiy4l12wou"
-path="res://.godot/imported/gadget_stall.glb-fbbbc34908a093229bb28666f88c21c2.scn"
+path="res://.godot/imported/gadget_stall.glb-937466e163d6c46bb64c2606445a0215.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/gadget_stall.glb"
-dest_files=["res://.godot/imported/gadget_stall.glb-fbbbc34908a093229bb28666f88c21c2.scn"]
+dest_files=["res://.godot/imported/gadget_stall.glb-937466e163d6c46bb64c2606445a0215.scn"]
 
 [params]
 

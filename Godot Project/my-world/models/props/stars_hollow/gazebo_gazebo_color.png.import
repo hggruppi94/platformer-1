@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bp43txoadwbb5"
-path="res://.godot/imported/gazebo_gazebo_color.png-8c5ab849f3c3ca8a85e6f7aa8e0b1fdc.ctex"
+path="res://.godot/imported/gazebo_gazebo_color.png-37ce34f781c2ae42a5dad88b72ec060c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/gazebo_gazebo_color.png"
-dest_files=["res://.godot/imported/gazebo_gazebo_color.png-8c5ab849f3c3ca8a85e6f7aa8e0b1fdc.ctex"]
+dest_files=["res://.godot/imported/gazebo_gazebo_color.png-37ce34f781c2ae42a5dad88b72ec060c.ctex"]
 
 [params]
 

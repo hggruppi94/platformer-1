@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d1nc15j8xkwdf"
-path="res://.godot/imported/rowing_boat.glb-9147d625751922a3f81d83f2b0ea0a0c.scn"
+path="res://.godot/imported/rowing_boat.glb-1f64356fdd524fbf4f5ef1e64046f213.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/rowing_boat.glb"
-dest_files=["res://.godot/imported/rowing_boat.glb-9147d625751922a3f81d83f2b0ea0a0c.scn"]
+dest_files=["res://.godot/imported/rowing_boat.glb-1f64356fdd524fbf4f5ef1e64046f213.scn"]
 
 [params]
 

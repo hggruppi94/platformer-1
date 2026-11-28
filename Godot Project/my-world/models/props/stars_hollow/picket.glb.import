@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://djg72jl4cc6wa"
-path="res://.godot/imported/picket.glb-84bcfcde2109bc13ee5f2afc60381b60.scn"
+path="res://.godot/imported/picket.glb-e1cc04288eb8b84d91732b64bdd9fabc.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/picket.glb"
-dest_files=["res://.godot/imported/picket.glb-84bcfcde2109bc13ee5f2afc60381b60.scn"]
+dest_files=["res://.godot/imported/picket.glb-e1cc04288eb8b84d91732b64bdd9fabc.scn"]
 
 [params]
 

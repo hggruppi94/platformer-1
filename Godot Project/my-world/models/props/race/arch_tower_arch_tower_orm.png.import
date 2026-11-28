@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ccyub077bc4y0"
-path="res://.godot/imported/arch_tower_arch_tower_orm.png-3865af1cf956fcae3b7054b2e8826aad.ctex"
+path="res://.godot/imported/arch_tower_arch_tower_orm.png-f278620a0c0fa75f7290e5cc91eb1428.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/race/arch_tower_arch_tower_orm.png"
-dest_files=["res://.godot/imported/arch_tower_arch_tower_orm.png-3865af1cf956fcae3b7054b2e8826aad.ctex"]
+dest_files=["res://.godot/imported/arch_tower_arch_tower_orm.png-f278620a0c0fa75f7290e5cc91eb1428.ctex"]
 
 [params]
 

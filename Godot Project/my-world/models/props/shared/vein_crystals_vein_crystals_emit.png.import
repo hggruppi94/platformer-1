@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://kmaxhount1y"
-path="res://.godot/imported/vein_crystals_vein_crystals_emit.png-774bd24c22d61920c31cb61c684ae3ff.ctex"
+path="res://.godot/imported/vein_crystals_vein_crystals_emit.png-9136ac6ac550a59062cc2d050046db18.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/vein_crystals_vein_crystals_emit.png"
-dest_files=["res://.godot/imported/vein_crystals_vein_crystals_emit.png-774bd24c22d61920c31cb61c684ae3ff.ctex"]
+dest_files=["res://.godot/imported/vein_crystals_vein_crystals_emit.png-9136ac6ac550a59062cc2d050046db18.ctex"]
 
 [params]
 

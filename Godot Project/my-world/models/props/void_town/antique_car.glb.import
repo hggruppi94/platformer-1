@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://c32taulhxdws8"
-path="res://.godot/imported/antique_car.glb-59dded48afb350b3ed3b6225909675c0.scn"
+path="res://.godot/imported/antique_car.glb-2f7e4ba1c7ed0278deb9b55605e349f0.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/antique_car.glb"
-dest_files=["res://.godot/imported/antique_car.glb-59dded48afb350b3ed3b6225909675c0.scn"]
+dest_files=["res://.godot/imported/antique_car.glb-2f7e4ba1c7ed0278deb9b55605e349f0.scn"]
 
 [params]
 

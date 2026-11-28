@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cvgjka0jx4opy"
-path="res://.godot/imported/pool_lip_pool_lip_color.png-d500981eb189f1b67f5733a7f96b9d4c.ctex"
+path="res://.godot/imported/pool_lip_pool_lip_color.png-013a361b9c8826f22ebdf2877431936c.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/pool_lip_pool_lip_color.png"
-dest_files=["res://.godot/imported/pool_lip_pool_lip_color.png-d500981eb189f1b67f5733a7f96b9d4c.ctex"]
+dest_files=["res://.godot/imported/pool_lip_pool_lip_color.png-013a361b9c8826f22ebdf2877431936c.ctex"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dv50f6new5pfr"
-path="res://.godot/imported/void_lamp_void_lamp_emit.png-1e358ecfa2c0cf9b781808ec93b9e7eb.ctex"
+path="res://.godot/imported/void_lamp_void_lamp_emit.png-fe89ae81c0ed2090232f423d446b542e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/void_lamp_void_lamp_emit.png"
-dest_files=["res://.godot/imported/void_lamp_void_lamp_emit.png-1e358ecfa2c0cf9b781808ec93b9e7eb.ctex"]
+dest_files=["res://.godot/imported/void_lamp_void_lamp_emit.png-fe89ae81c0ed2090232f423d446b542e.ctex"]
 
 [params]
 

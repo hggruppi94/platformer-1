@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://i26sgafe2lot"
-path="res://.godot/imported/porch_roof.glb-05870febae12cd07d2f7ba235e964e3c.scn"
+path="res://.godot/imported/porch_roof.glb-a34defe3e83e98a6307b78e87f4f2b5b.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/porch_roof.glb"
-dest_files=["res://.godot/imported/porch_roof.glb-05870febae12cd07d2f7ba235e964e3c.scn"]
+dest_files=["res://.godot/imported/porch_roof.glb-a34defe3e83e98a6307b78e87f4f2b5b.scn"]
 
 [params]
 

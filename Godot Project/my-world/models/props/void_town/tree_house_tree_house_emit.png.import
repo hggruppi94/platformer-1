@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpxgl676emhaw"
-path="res://.godot/imported/tree_house_tree_house_emit.png-a5870be941897dae2a49bb69054e6663.ctex"
+path="res://.godot/imported/tree_house_tree_house_emit.png-5f1c6fa878c8a61b466e907e78c1f1cd.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/tree_house_tree_house_emit.png"
-dest_files=["res://.godot/imported/tree_house_tree_house_emit.png-a5870be941897dae2a49bb69054e6663.ctex"]
+dest_files=["res://.godot/imported/tree_house_tree_house_emit.png-5f1c6fa878c8a61b466e907e78c1f1cd.ctex"]
 
 [params]
 

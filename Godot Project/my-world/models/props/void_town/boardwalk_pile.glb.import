@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dwdunb47plina"
-path="res://.godot/imported/boardwalk_pile.glb-2dabfc676215656ffdc1b8c064b7c920.scn"
+path="res://.godot/imported/boardwalk_pile.glb-3aaaf53c83b0a93a29ceb145341ac1b3.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/boardwalk_pile.glb"
-dest_files=["res://.godot/imported/boardwalk_pile.glb-2dabfc676215656ffdc1b8c064b7c920.scn"]
+dest_files=["res://.godot/imported/boardwalk_pile.glb-3aaaf53c83b0a93a29ceb145341ac1b3.scn"]
 
 [params]
 

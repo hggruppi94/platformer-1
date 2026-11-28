@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7fxo4goj83s0"
-path="res://.godot/imported/tune_up_tune_up_normal.png-3835658588d1a8abb1b8e99962173566.ctex"
+path="res://.godot/imported/tune_up_tune_up_normal.png-e6a92fdf2393250189d7780b35ba48cb.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/race/tune_up_tune_up_normal.png"
-dest_files=["res://.godot/imported/tune_up_tune_up_normal.png-3835658588d1a8abb1b8e99962173566.ctex"]
+dest_files=["res://.godot/imported/tune_up_tune_up_normal.png-e6a92fdf2393250189d7780b35ba48cb.ctex"]
 
 [params]
 

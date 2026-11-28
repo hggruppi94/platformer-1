@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pmovhhexcexv"
-path="res://.godot/imported/sign_post_sign_post_color.png-f622e755ea53dc3d456f14f11d335019.ctex"
+path="res://.godot/imported/sign_post_sign_post_color.png-28d559f58f6b42c648bbf73705b9bf27.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/sign_post_sign_post_color.png"
-dest_files=["res://.godot/imported/sign_post_sign_post_color.png-f622e755ea53dc3d456f14f11d335019.ctex"]
+dest_files=["res://.godot/imported/sign_post_sign_post_color.png-28d559f58f6b42c648bbf73705b9bf27.ctex"]
 
 [params]
 

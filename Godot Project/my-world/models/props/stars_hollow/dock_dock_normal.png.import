@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ckvs3dmbongvp"
-path="res://.godot/imported/dock_dock_normal.png-6f3200b7b04d06f15192fdc40090e404.ctex"
+path="res://.godot/imported/dock_dock_normal.png-c5ef7bcbf49b40218e9f976a98537bfd.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/dock_dock_normal.png"
-dest_files=["res://.godot/imported/dock_dock_normal.png-6f3200b7b04d06f15192fdc40090e404.ctex"]
+dest_files=["res://.godot/imported/dock_dock_normal.png-c5ef7bcbf49b40218e9f976a98537bfd.ctex"]
 
 [params]
 

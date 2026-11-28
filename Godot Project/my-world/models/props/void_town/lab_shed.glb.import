@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://b117yx4sknq0p"
-path="res://.godot/imported/lab_shed.glb-5fe3f5e8a11ca501a82f9bff29c4ac41.scn"
+path="res://.godot/imported/lab_shed.glb-300db17bdc2f7669334ab8282c29ebd5.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/lab_shed.glb"
-dest_files=["res://.godot/imported/lab_shed.glb-5fe3f5e8a11ca501a82f9bff29c4ac41.scn"]
+dest_files=["res://.godot/imported/lab_shed.glb-300db17bdc2f7669334ab8282c29ebd5.scn"]
 
 [params]
 

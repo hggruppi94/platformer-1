@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7b0rh7fot664"
-path="res://.godot/imported/request_board_request_board_orm.png-cd0f60ae37bfb079ed4d8118cd0ced6d.ctex"
+path="res://.godot/imported/request_board_request_board_orm.png-010d722a50640cac97386f2bdd0eb7df.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/request_board_request_board_orm.png"
-dest_files=["res://.godot/imported/request_board_request_board_orm.png-cd0f60ae37bfb079ed4d8118cd0ced6d.ctex"]
+dest_files=["res://.godot/imported/request_board_request_board_orm.png-010d722a50640cac97386f2bdd0eb7df.ctex"]
 
 [params]
 

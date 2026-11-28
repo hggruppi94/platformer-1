@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cdb2j7pyqvr73"
-path="res://.godot/imported/noticeboard.glb-ab39c34b75c2def90fcf4661f51847a4.scn"
+path="res://.godot/imported/noticeboard.glb-7fa89c3d581828e50cca39ce8317ad08.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/noticeboard.glb"
-dest_files=["res://.godot/imported/noticeboard.glb-ab39c34b75c2def90fcf4661f51847a4.scn"]
+dest_files=["res://.godot/imported/noticeboard.glb-7fa89c3d581828e50cca39ce8317ad08.scn"]
 
 [params]
 

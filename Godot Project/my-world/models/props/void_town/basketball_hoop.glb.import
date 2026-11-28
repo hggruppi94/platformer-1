@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ciyv1e8bxgs1s"
-path="res://.godot/imported/basketball_hoop.glb-6ccd99da280f988f1e9fdda17bfb2b60.scn"
+path="res://.godot/imported/basketball_hoop.glb-cec0788b290b458b420d5cb6940f5d00.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/basketball_hoop.glb"
-dest_files=["res://.godot/imported/basketball_hoop.glb-6ccd99da280f988f1e9fdda17bfb2b60.scn"]
+dest_files=["res://.godot/imported/basketball_hoop.glb-cec0788b290b458b420d5cb6940f5d00.scn"]
 
 [params]
 

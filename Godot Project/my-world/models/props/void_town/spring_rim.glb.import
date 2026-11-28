@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cji001yn3k3gy"
-path="res://.godot/imported/spring_rim.glb-a8818c4d1f1a10970d80413667ed9503.scn"
+path="res://.godot/imported/spring_rim.glb-6c43a2d57a0b54d629eefd6aaf04f29f.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/spring_rim.glb"
-dest_files=["res://.godot/imported/spring_rim.glb-a8818c4d1f1a10970d80413667ed9503.scn"]
+dest_files=["res://.godot/imported/spring_rim.glb-6c43a2d57a0b54d629eefd6aaf04f29f.scn"]
 
 [params]
 

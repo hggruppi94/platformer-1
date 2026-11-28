@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://b4nl038al4tra"
-path="res://.godot/imported/hay_bale.glb-8c8c56efa909b3beda085b6cf9f13fd5.scn"
+path="res://.godot/imported/hay_bale.glb-4bfc8d86cf5ab3e959aedb010098674e.scn"
 
 [deps]
 
 source_file="res://models/props/shared/hay_bale.glb"
-dest_files=["res://.godot/imported/hay_bale.glb-8c8c56efa909b3beda085b6cf9f13fd5.scn"]
+dest_files=["res://.godot/imported/hay_bale.glb-4bfc8d86cf5ab3e959aedb010098674e.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dt02fvn8b1kby"
-path="res://.godot/imported/covered_bridge.glb-241f76eae99960a82e738ccbcb6d5307.scn"
+path="res://.godot/imported/covered_bridge.glb-027eeda69d65741f2c0b3c194a95c56d.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/covered_bridge.glb"
-dest_files=["res://.godot/imported/covered_bridge.glb-241f76eae99960a82e738ccbcb6d5307.scn"]
+dest_files=["res://.godot/imported/covered_bridge.glb-027eeda69d65741f2c0b3c194a95c56d.scn"]
 
 [params]
 

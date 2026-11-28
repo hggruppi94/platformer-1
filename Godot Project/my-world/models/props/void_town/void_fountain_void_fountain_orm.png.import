@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4j2cj1mt4s2o"
-path="res://.godot/imported/void_fountain_void_fountain_orm.png-22543bcfc408034ac3a420a964d0eb5a.ctex"
+path="res://.godot/imported/void_fountain_void_fountain_orm.png-c1f2e5fb76c24cf36a1c19d8b7c6a375.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/void_fountain_void_fountain_orm.png"
-dest_files=["res://.godot/imported/void_fountain_void_fountain_orm.png-22543bcfc408034ac3a420a964d0eb5a.ctex"]
+dest_files=["res://.godot/imported/void_fountain_void_fountain_orm.png-c1f2e5fb76c24cf36a1c19d8b7c6a375.ctex"]
 
 [params]
 

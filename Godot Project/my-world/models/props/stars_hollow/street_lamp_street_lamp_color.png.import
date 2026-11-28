@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cr6i076pchop6"
-path="res://.godot/imported/street_lamp_street_lamp_color.png-fb53e1fad28dcb533203c6fc5ac8dd30.ctex"
+path="res://.godot/imported/street_lamp_street_lamp_color.png-0563e502777d99cc4998ba0f111b5a43.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/street_lamp_street_lamp_color.png"
-dest_files=["res://.godot/imported/street_lamp_street_lamp_color.png-fb53e1fad28dcb533203c6fc5ac8dd30.ctex"]
+dest_files=["res://.godot/imported/street_lamp_street_lamp_color.png-0563e502777d99cc4998ba0f111b5a43.ctex"]
 
 [params]
 

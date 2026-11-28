@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ddudktqugw2ye"
-path="res://.godot/imported/corn_sheaf.glb-8ffde402094330016a1c28dc6331d0d4.scn"
+path="res://.godot/imported/corn_sheaf.glb-e526fc7dc965eeebc445c6ac605b6a95.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/corn_sheaf.glb"
-dest_files=["res://.godot/imported/corn_sheaf.glb-8ffde402094330016a1c28dc6331d0d4.scn"]
+dest_files=["res://.godot/imported/corn_sheaf.glb-e526fc7dc965eeebc445c6ac605b6a95.scn"]
 
 [params]
 

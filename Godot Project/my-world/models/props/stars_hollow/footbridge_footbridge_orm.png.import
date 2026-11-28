@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cpi3yhxpg1auq"
-path="res://.godot/imported/footbridge_footbridge_orm.png-315fa2ea76464cf234ab1aae9ec16c0d.ctex"
+path="res://.godot/imported/footbridge_footbridge_orm.png-9dfe4aaff8478a75f22087a2d1b068c7.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/footbridge_footbridge_orm.png"
-dest_files=["res://.godot/imported/footbridge_footbridge_orm.png-315fa2ea76464cf234ab1aae9ec16c0d.ctex"]
+dest_files=["res://.godot/imported/footbridge_footbridge_orm.png-9dfe4aaff8478a75f22087a2d1b068c7.ctex"]
 
 [params]
 

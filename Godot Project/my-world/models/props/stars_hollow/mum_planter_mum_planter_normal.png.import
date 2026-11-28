@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d17uobtb2oqd6"
-path="res://.godot/imported/mum_planter_mum_planter_normal.png-d239c8472d6a87ff55f4f3de6d4e1c33.ctex"
+path="res://.godot/imported/mum_planter_mum_planter_normal.png-0a440bc73ce96a80a37f1fbe4ea0d923.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/mum_planter_mum_planter_normal.png"
-dest_files=["res://.godot/imported/mum_planter_mum_planter_normal.png-d239c8472d6a87ff55f4f3de6d4e1c33.ctex"]
+dest_files=["res://.godot/imported/mum_planter_mum_planter_normal.png-0a440bc73ce96a80a37f1fbe4ea0d923.ctex"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bpkyxu6qa0ioi"
-path="res://.godot/imported/springs_gate.glb-bc0d7457a3a87c1a01eb726c91d6ff58.scn"
+path="res://.godot/imported/springs_gate.glb-7af945bf6b9d0ab867c9eb3fc8efb3a7.scn"
 
 [deps]
 
 source_file="res://models/props/rhythm_springs/springs_gate.glb"
-dest_files=["res://.godot/imported/springs_gate.glb-bc0d7457a3a87c1a01eb726c91d6ff58.scn"]
+dest_files=["res://.godot/imported/springs_gate.glb-7af945bf6b9d0ab867c9eb3fc8efb3a7.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ddd3rwcarah42"
-path="res://.godot/imported/picnic_basket.glb-c8e87b3fea3b96b0290848706c3e2d3a.scn"
+path="res://.godot/imported/picnic_basket.glb-894fc5e33c5f32dbbe7af50cccfd647b.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/picnic_basket.glb"
-dest_files=["res://.godot/imported/picnic_basket.glb-c8e87b3fea3b96b0290848706c3e2d3a.scn"]
+dest_files=["res://.godot/imported/picnic_basket.glb-894fc5e33c5f32dbbe7af50cccfd647b.scn"]
 
 [params]
 

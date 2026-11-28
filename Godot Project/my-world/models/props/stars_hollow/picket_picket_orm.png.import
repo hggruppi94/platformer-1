@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0iqstfhojqam"
-path="res://.godot/imported/picket_picket_orm.png-45f4f7ba66df6dd5876563056c243fd6.ctex"
+path="res://.godot/imported/picket_picket_orm.png-51048530a24fbad469a68c71cf25a265.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/picket_picket_orm.png"
-dest_files=["res://.godot/imported/picket_picket_orm.png-45f4f7ba66df6dd5876563056c243fd6.ctex"]
+dest_files=["res://.godot/imported/picket_picket_orm.png-51048530a24fbad469a68c71cf25a265.ctex"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cr7md2fyw8nii"
-path="res://.godot/imported/fence_post.glb-943a27091f43ca7275705158f73c35e1.scn"
+path="res://.godot/imported/fence_post.glb-bb86511f7a64b3d48315dd0bdc9e4c81.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/fence_post.glb"
-dest_files=["res://.godot/imported/fence_post.glb-943a27091f43ca7275705158f73c35e1.scn"]
+dest_files=["res://.godot/imported/fence_post.glb-bb86511f7a64b3d48315dd0bdc9e4c81.scn"]
 
 [params]
 

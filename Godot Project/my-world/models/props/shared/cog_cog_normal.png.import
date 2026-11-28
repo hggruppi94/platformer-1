@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cou3pgrumygp0"
-path="res://.godot/imported/cog_cog_normal.png-0ba436b7bdd39be13f1c6084d7c25e25.ctex"
+path="res://.godot/imported/cog_cog_normal.png-35663192fb4dd3d2828e1ba66f60e0aa.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/cog_cog_normal.png"
-dest_files=["res://.godot/imported/cog_cog_normal.png-0ba436b7bdd39be13f1c6084d7c25e25.ctex"]
+dest_files=["res://.godot/imported/cog_cog_normal.png-35663192fb4dd3d2828e1ba66f60e0aa.ctex"]
 
 [params]
 

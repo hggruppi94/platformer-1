@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://djtlvga11ecv"
-path="res://.godot/imported/lab_kit.glb-6e38dff2a9fdb08b24123de80a887daa.scn"
+path="res://.godot/imported/lab_kit.glb-c8fd39401e77560ef04c462a222bddaa.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/lab_kit.glb"
-dest_files=["res://.godot/imported/lab_kit.glb-6e38dff2a9fdb08b24123de80a887daa.scn"]
+dest_files=["res://.godot/imported/lab_kit.glb-c8fd39401e77560ef04c462a222bddaa.scn"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://op3uk85j1np8"
-path="res://.godot/imported/old_slide_old_slide_orm.png-ef2e283754812789f6a8c7584540f408.ctex"
+path="res://.godot/imported/old_slide_old_slide_orm.png-e995465e8583280ec7a3c0ad4bc114af.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/old_slide_old_slide_orm.png"
-dest_files=["res://.godot/imported/old_slide_old_slide_orm.png-ef2e283754812789f6a8c7584540f408.ctex"]
+dest_files=["res://.godot/imported/old_slide_old_slide_orm.png-e995465e8583280ec7a3c0ad4bc114af.ctex"]
 
 [params]
 

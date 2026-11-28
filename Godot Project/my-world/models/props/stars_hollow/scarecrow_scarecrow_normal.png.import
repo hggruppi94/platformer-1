@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hluewegwy2io"
-path="res://.godot/imported/scarecrow_scarecrow_normal.png-2c5f0b774d0b363a28c6274d4c16e0e3.ctex"
+path="res://.godot/imported/scarecrow_scarecrow_normal.png-c1bcee360f2997feb52d7d2764c2982a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/scarecrow_scarecrow_normal.png"
-dest_files=["res://.godot/imported/scarecrow_scarecrow_normal.png-2c5f0b774d0b363a28c6274d4c16e0e3.ctex"]
+dest_files=["res://.godot/imported/scarecrow_scarecrow_normal.png-c1bcee360f2997feb52d7d2764c2982a.ctex"]
 
 [params]
 

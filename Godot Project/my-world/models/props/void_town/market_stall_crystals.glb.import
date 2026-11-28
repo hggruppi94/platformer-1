@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://tihuacxs3vh6"
-path="res://.godot/imported/market_stall_crystals.glb-6df73a8020985425c731fcf819582a8d.scn"
+path="res://.godot/imported/market_stall_crystals.glb-9b436e0f8b28afb5b346a874ce9035bb.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/market_stall_crystals.glb"
-dest_files=["res://.godot/imported/market_stall_crystals.glb-6df73a8020985425c731fcf819582a8d.scn"]
+dest_files=["res://.godot/imported/market_stall_crystals.glb-9b436e0f8b28afb5b346a874ce9035bb.scn"]
 
 [params]
 

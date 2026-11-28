@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://b8ehd30a2tvl1"
-path="res://.godot/imported/market_stall_flowers.glb-c40be12db4f34b9e40e2e1afdb3cb868.scn"
+path="res://.godot/imported/market_stall_flowers.glb-b5cf652a58f0dce88046fab7f9dc90a6.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/market_stall_flowers.glb"
-dest_files=["res://.godot/imported/market_stall_flowers.glb-c40be12db4f34b9e40e2e1afdb3cb868.scn"]
+dest_files=["res://.godot/imported/market_stall_flowers.glb-b5cf652a58f0dce88046fab7f9dc90a6.scn"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cx4uca6cdqeku"
-path="res://.godot/imported/boulder_boulder_color.png-1268dd8f3561d64fa936df684e1c802b.ctex"
+path="res://.godot/imported/boulder_boulder_color.png-8ff05705a0cb4636a1d897ca873f559e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/boulder_boulder_color.png"
-dest_files=["res://.godot/imported/boulder_boulder_color.png-1268dd8f3561d64fa936df684e1c802b.ctex"]
+dest_files=["res://.godot/imported/boulder_boulder_color.png-8ff05705a0cb4636a1d897ca873f559e.ctex"]
 
 [params]
 

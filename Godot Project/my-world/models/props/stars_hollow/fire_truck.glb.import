@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://mrw8ktd0skpt"
-path="res://.godot/imported/fire_truck.glb-e8d0ec6798786bcb113173e115c25e81.scn"
+path="res://.godot/imported/fire_truck.glb-85a96158174b8ea2b6334be5f9a025c6.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/fire_truck.glb"
-dest_files=["res://.godot/imported/fire_truck.glb-e8d0ec6798786bcb113173e115c25e81.scn"]
+dest_files=["res://.godot/imported/fire_truck.glb-85a96158174b8ea2b6334be5f9a025c6.scn"]
 
 [params]
 

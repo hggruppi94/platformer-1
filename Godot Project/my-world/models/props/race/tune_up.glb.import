@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cm7qhgvkycym2"
-path="res://.godot/imported/tune_up.glb-b4b5d9ce8aa0f2a8cb2d2205f97cb8a0.scn"
+path="res://.godot/imported/tune_up.glb-9147527e6fe0d205c5c5c6887359f5a3.scn"
 
 [deps]
 
 source_file="res://models/props/race/tune_up.glb"
-dest_files=["res://.godot/imported/tune_up.glb-b4b5d9ce8aa0f2a8cb2d2205f97cb8a0.scn"]
+dest_files=["res://.godot/imported/tune_up.glb-9147527e6fe0d205c5c5c6887359f5a3.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dsur31r80cdae"
-path="res://.godot/imported/spring_cave.glb-17e91652a155e0bc0f73378e776d5ef7.scn"
+path="res://.godot/imported/spring_cave.glb-6be47ce475de8936a0c44e46638a7048.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/spring_cave.glb"
-dest_files=["res://.godot/imported/spring_cave.glb-17e91652a155e0bc0f73378e776d5ef7.scn"]
+dest_files=["res://.godot/imported/spring_cave.glb-6be47ce475de8936a0c44e46638a7048.scn"]
 
 [params]
 

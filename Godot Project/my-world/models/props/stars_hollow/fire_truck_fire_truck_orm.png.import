@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://duqg1stv0wpbd"
-path="res://.godot/imported/fire_truck_fire_truck_orm.png-cd8184331a0bdd6c71761445b61bc0d8.ctex"
+path="res://.godot/imported/fire_truck_fire_truck_orm.png-58158180ad3ffe33f64e970cf648c3fa.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/fire_truck_fire_truck_orm.png"
-dest_files=["res://.godot/imported/fire_truck_fire_truck_orm.png-cd8184331a0bdd6c71761445b61bc0d8.ctex"]
+dest_files=["res://.godot/imported/fire_truck_fire_truck_orm.png-58158180ad3ffe33f64e970cf648c3fa.ctex"]
 
 [params]
 

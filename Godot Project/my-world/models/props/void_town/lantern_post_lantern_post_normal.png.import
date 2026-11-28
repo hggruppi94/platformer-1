@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c7ny3p8cb216f"
-path="res://.godot/imported/lantern_post_lantern_post_normal.png-0de33065abafbeaa6f052aa3f10770d7.ctex"
+path="res://.godot/imported/lantern_post_lantern_post_normal.png-a5c0367dfb8abc7c2a11ec07ce2253b1.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/lantern_post_lantern_post_normal.png"
-dest_files=["res://.godot/imported/lantern_post_lantern_post_normal.png-0de33065abafbeaa6f052aa3f10770d7.ctex"]
+dest_files=["res://.godot/imported/lantern_post_lantern_post_normal.png-a5c0367dfb8abc7c2a11ec07ce2253b1.ctex"]
 
 [params]
 

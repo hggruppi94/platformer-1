@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ctryhgqnrmfgk"
-path="res://.godot/imported/tree_house.glb-299789f4df260b24c1ba5bcaa24cc59a.scn"
+path="res://.godot/imported/tree_house.glb-bc0e65e704678eb2c35f3a3e42dec3c4.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/tree_house.glb"
-dest_files=["res://.godot/imported/tree_house.glb-299789f4df260b24c1ba5bcaa24cc59a.scn"]
+dest_files=["res://.godot/imported/tree_house.glb-bc0e65e704678eb2c35f3a3e42dec3c4.scn"]
 
 [params]
 

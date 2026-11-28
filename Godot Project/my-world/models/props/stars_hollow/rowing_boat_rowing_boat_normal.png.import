@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://brshg63k8jwyj"
-path="res://.godot/imported/rowing_boat_rowing_boat_normal.png-30e5086e4de039846b0e0a2533981854.ctex"
+path="res://.godot/imported/rowing_boat_rowing_boat_normal.png-04dccddf67b7968709d890d61f201bd6.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/rowing_boat_rowing_boat_normal.png"
-dest_files=["res://.godot/imported/rowing_boat_rowing_boat_normal.png-30e5086e4de039846b0e0a2533981854.ctex"]
+dest_files=["res://.godot/imported/rowing_boat_rowing_boat_normal.png-04dccddf67b7968709d890d61f201bd6.ctex"]
 
 [params]
 

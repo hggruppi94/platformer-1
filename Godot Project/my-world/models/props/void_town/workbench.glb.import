@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bh8jis68s5132"
-path="res://.godot/imported/workbench.glb-323948bed225b386903ce86d75b8b175.scn"
+path="res://.godot/imported/workbench.glb-a75baff61f4e84624ad24e03091c1035.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/workbench.glb"
-dest_files=["res://.godot/imported/workbench.glb-323948bed225b386903ce86d75b8b175.scn"]
+dest_files=["res://.godot/imported/workbench.glb-a75baff61f4e84624ad24e03091c1035.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d4ebc3tqgsec0"
-path="res://.godot/imported/mum_planter.glb-46be7c9c548914ab1b4cf09df0c15b5a.scn"
+path="res://.godot/imported/mum_planter.glb-af3623b6009a9a86bb42b899657e7fc1.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/mum_planter.glb"
-dest_files=["res://.godot/imported/mum_planter.glb-46be7c9c548914ab1b4cf09df0c15b5a.scn"]
+dest_files=["res://.godot/imported/mum_planter.glb-af3623b6009a9a86bb42b899657e7fc1.scn"]
 
 [params]
 

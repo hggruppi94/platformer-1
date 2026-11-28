@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ipms6lam6ft6"
-path="res://.godot/imported/request_board_request_board_color.png-d8c29f76facca0abc7df4d3a65d9eb2a.ctex"
+path="res://.godot/imported/request_board_request_board_color.png-891814d0c93a92cee3b0fa7f9b26576d.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/request_board_request_board_color.png"
-dest_files=["res://.godot/imported/request_board_request_board_color.png-d8c29f76facca0abc7df4d3a65d9eb2a.ctex"]
+dest_files=["res://.godot/imported/request_board_request_board_color.png-891814d0c93a92cee3b0fa7f9b26576d.ctex"]
 
 [params]
 

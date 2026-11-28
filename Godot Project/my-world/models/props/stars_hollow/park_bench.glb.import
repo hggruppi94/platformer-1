@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d3u3ry4lr6lke"
-path="res://.godot/imported/park_bench.glb-2b65f4227aa1b953e1ba63e717cf9b2c.scn"
+path="res://.godot/imported/park_bench.glb-a42eee79fc5f005a2d669ff72c177501.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/park_bench.glb"
-dest_files=["res://.godot/imported/park_bench.glb-2b65f4227aa1b953e1ba63e717cf9b2c.scn"]
+dest_files=["res://.godot/imported/park_bench.glb-a42eee79fc5f005a2d669ff72c177501.scn"]
 
 [params]
 

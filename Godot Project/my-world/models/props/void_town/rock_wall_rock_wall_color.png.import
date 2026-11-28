@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c87wjy4vpnp0p"
-path="res://.godot/imported/rock_wall_rock_wall_color.png-24de2c004f5d20e47e6f0e0f0c613bd8.ctex"
+path="res://.godot/imported/rock_wall_rock_wall_color.png-61b826824dd7022bd0fdb56e9429497a.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/rock_wall_rock_wall_color.png"
-dest_files=["res://.godot/imported/rock_wall_rock_wall_color.png-24de2c004f5d20e47e6f0e0f0c613bd8.ctex"]
+dest_files=["res://.godot/imported/rock_wall_rock_wall_color.png-61b826824dd7022bd0fdb56e9429497a.ctex"]
 
 [params]
 

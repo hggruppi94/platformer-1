@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dleygrth1xt7d"
-path="res://.godot/imported/sandbox.glb-53aa2410cc7414b1a1c79018410e0c39.scn"
+path="res://.godot/imported/sandbox.glb-98785712932c46a3ca9abe2ee7b34e74.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/sandbox.glb"
-dest_files=["res://.godot/imported/sandbox.glb-53aa2410cc7414b1a1c79018410e0c39.scn"]
+dest_files=["res://.godot/imported/sandbox.glb-98785712932c46a3ca9abe2ee7b34e74.scn"]
 
 [params]
 

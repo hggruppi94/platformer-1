@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://buye7ko3agn43"
-path="res://.godot/imported/tiki_torch.glb-25b235eb74a863ac068e0a21edab8ee9.scn"
+path="res://.godot/imported/tiki_torch.glb-d63fd5a3b6566aaae976bda6e4c90634.scn"
 
 [deps]
 
 source_file="res://models/props/rhythm_springs/tiki_torch.glb"
-dest_files=["res://.godot/imported/tiki_torch.glb-25b235eb74a863ac068e0a21edab8ee9.scn"]
+dest_files=["res://.godot/imported/tiki_torch.glb-d63fd5a3b6566aaae976bda6e4c90634.scn"]
 
 [params]
 

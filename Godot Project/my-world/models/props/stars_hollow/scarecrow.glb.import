@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://d4h7uji7oo02j"
-path="res://.godot/imported/scarecrow.glb-ffa621514be3ddd9f7b151ca650106d2.scn"
+path="res://.godot/imported/scarecrow.glb-907f3eb35e85de2507138cd1981334d7.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/scarecrow.glb"
-dest_files=["res://.godot/imported/scarecrow.glb-ffa621514be3ddd9f7b151ca650106d2.scn"]
+dest_files=["res://.godot/imported/scarecrow.glb-907f3eb35e85de2507138cd1981334d7.scn"]
 
 [params]
 

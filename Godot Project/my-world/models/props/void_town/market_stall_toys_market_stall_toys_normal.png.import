@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dtb44eldnwesd"
-path="res://.godot/imported/market_stall_toys_market_stall_toys_normal.png-6cde85015f2d959acbdff07f3e9b105c.ctex"
+path="res://.godot/imported/market_stall_toys_market_stall_toys_normal.png-99cf1d4eddfcb64161482b587d1b35eb.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/market_stall_toys_market_stall_toys_normal.png"
-dest_files=["res://.godot/imported/market_stall_toys_market_stall_toys_normal.png-6cde85015f2d959acbdff07f3e9b105c.ctex"]
+dest_files=["res://.godot/imported/market_stall_toys_market_stall_toys_normal.png-99cf1d4eddfcb64161482b587d1b35eb.ctex"]
 
 [params]
 

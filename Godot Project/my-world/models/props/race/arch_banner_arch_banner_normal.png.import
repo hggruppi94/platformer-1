@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://offrmhwsy5qs"
-path="res://.godot/imported/arch_banner_arch_banner_normal.png-4f28596db88d80f8ed0ffceaaaf1355b.ctex"
+path="res://.godot/imported/arch_banner_arch_banner_normal.png-19597e7290196026d8423781d93513f1.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/race/arch_banner_arch_banner_normal.png"
-dest_files=["res://.godot/imported/arch_banner_arch_banner_normal.png-4f28596db88d80f8ed0ffceaaaf1355b.ctex"]
+dest_files=["res://.godot/imported/arch_banner_arch_banner_normal.png-19597e7290196026d8423781d93513f1.ctex"]
 
 [params]
 

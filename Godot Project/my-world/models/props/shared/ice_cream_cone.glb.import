@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://66kenf4s4l3i"
-path="res://.godot/imported/ice_cream_cone.glb-f350485d5d57fbb8e56a1b5e883af0bc.scn"
+path="res://.godot/imported/ice_cream_cone.glb-f1b559be546afca9c4404c625bc8d02e.scn"
 
 [deps]
 
 source_file="res://models/props/shared/ice_cream_cone.glb"
-dest_files=["res://.godot/imported/ice_cream_cone.glb-f350485d5d57fbb8e56a1b5e883af0bc.scn"]
+dest_files=["res://.godot/imported/ice_cream_cone.glb-f1b559be546afca9c4404c625bc8d02e.scn"]
 
 [params]
 

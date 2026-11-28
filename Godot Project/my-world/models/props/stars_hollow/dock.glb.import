@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://da1011jg5joap"
-path="res://.godot/imported/dock.glb-f36a847397228eae6085d1b0f57e92e6.scn"
+path="res://.godot/imported/dock.glb-9f4a9f1fc5c9ecf8d140f5c58e722a75.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/dock.glb"
-dest_files=["res://.godot/imported/dock.glb-f36a847397228eae6085d1b0f57e92e6.scn"]
+dest_files=["res://.godot/imported/dock.glb-9f4a9f1fc5c9ecf8d140f5c58e722a75.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://boadubbpq8d4f"
-path="res://.godot/imported/palm.glb-958d791d0021454a55dc7cb8d45bfbe2.scn"
+path="res://.godot/imported/palm.glb-4370aaa009d3272c46b8282f9ca706bd.scn"
 
 [deps]
 
 source_file="res://models/props/rhythm_springs/palm.glb"
-dest_files=["res://.godot/imported/palm.glb-958d791d0021454a55dc7cb8d45bfbe2.scn"]
+dest_files=["res://.godot/imported/palm.glb-4370aaa009d3272c46b8282f9ca706bd.scn"]
 
 [params]
 

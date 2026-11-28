@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dfppelywsm573"
-path="res://.godot/imported/lantern_post.glb-8ed03c9c4acfe092d16103c2388e4e1d.scn"
+path="res://.godot/imported/lantern_post.glb-374cba4d50ce6758cf56195955d85c6f.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/lantern_post.glb"
-dest_files=["res://.godot/imported/lantern_post.glb-8ed03c9c4acfe092d16103c2388e4e1d.scn"]
+dest_files=["res://.godot/imported/lantern_post.glb-374cba4d50ce6758cf56195955d85c6f.scn"]
 
 [params]
 

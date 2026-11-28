@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbofj1ra8kvj1"
-path="res://.godot/imported/picnic_basket_picnic_basket_normal.png-ea5d9976b90bbd6252d70d0739816f9c.ctex"
+path="res://.godot/imported/picnic_basket_picnic_basket_normal.png-9cd5f1a3ef980b25e165cd33aa655fb4.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/picnic_basket_picnic_basket_normal.png"
-dest_files=["res://.godot/imported/picnic_basket_picnic_basket_normal.png-ea5d9976b90bbd6252d70d0739816f9c.ctex"]
+dest_files=["res://.godot/imported/picnic_basket_picnic_basket_normal.png-9cd5f1a3ef980b25e165cd33aa655fb4.ctex"]
 
 [params]
 

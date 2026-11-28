@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dlop874502ls5"
-path="res://.godot/imported/rock_wall.glb-12a527ba33f1d3e0c9afadce61ecc06a.scn"
+path="res://.godot/imported/rock_wall.glb-f0f3ca4362e79e152f9dee5622fe2f07.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/rock_wall.glb"
-dest_files=["res://.godot/imported/rock_wall.glb-12a527ba33f1d3e0c9afadce61ecc06a.scn"]
+dest_files=["res://.godot/imported/rock_wall.glb-f0f3ca4362e79e152f9dee5622fe2f07.scn"]
 
 [params]
 

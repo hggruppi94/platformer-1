@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdirnv1qdc14l"
-path="res://.godot/imported/porch_roof_porch_roof_normal.png-87df6d9aea767df9f7fa6af25e0fdea1.ctex"
+path="res://.godot/imported/porch_roof_porch_roof_normal.png-44ea2a5a380815afc9ddd228ba7f6fa2.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/porch_roof_porch_roof_normal.png"
-dest_files=["res://.godot/imported/porch_roof_porch_roof_normal.png-87df6d9aea767df9f7fa6af25e0fdea1.ctex"]
+dest_files=["res://.godot/imported/porch_roof_porch_roof_normal.png-44ea2a5a380815afc9ddd228ba7f6fa2.ctex"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cafsoakn6whnr"
-path="res://.godot/imported/pool_wall.glb-56bc98262170fdf0cf3f7f0fd7e125a9.scn"
+path="res://.godot/imported/pool_wall.glb-1bebbe520fa356fe4d72f27e616a5e7a.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/pool_wall.glb"
-dest_files=["res://.godot/imported/pool_wall.glb-56bc98262170fdf0cf3f7f0fd7e125a9.scn"]
+dest_files=["res://.godot/imported/pool_wall.glb-1bebbe520fa356fe4d72f27e616a5e7a.scn"]
 
 [params]
 

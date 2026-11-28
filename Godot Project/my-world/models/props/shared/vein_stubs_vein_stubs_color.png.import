@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dwt0b5t5snnt6"
-path="res://.godot/imported/vein_stubs_vein_stubs_color.png-cb5cebc8162c0a3942f96618b844195d.ctex"
+path="res://.godot/imported/vein_stubs_vein_stubs_color.png-37d7b2abbef95f23b8801be2eaaf0ecb.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/vein_stubs_vein_stubs_color.png"
-dest_files=["res://.godot/imported/vein_stubs_vein_stubs_color.png-cb5cebc8162c0a3942f96618b844195d.ctex"]
+dest_files=["res://.godot/imported/vein_stubs_vein_stubs_color.png-37d7b2abbef95f23b8801be2eaaf0ecb.ctex"]
 
 [params]
 

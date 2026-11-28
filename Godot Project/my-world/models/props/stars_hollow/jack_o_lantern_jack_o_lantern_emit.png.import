@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bohcxcg4m5bld"
-path="res://.godot/imported/jack_o_lantern_jack_o_lantern_emit.png-3ba55dbca1cf99348f17a9963b9b2b60.ctex"
+path="res://.godot/imported/jack_o_lantern_jack_o_lantern_emit.png-c5f1cff61d275a90aec657a63fe18550.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/jack_o_lantern_jack_o_lantern_emit.png"
-dest_files=["res://.godot/imported/jack_o_lantern_jack_o_lantern_emit.png-3ba55dbca1cf99348f17a9963b9b2b60.ctex"]
+dest_files=["res://.godot/imported/jack_o_lantern_jack_o_lantern_emit.png-c5f1cff61d275a90aec657a63fe18550.ctex"]
 
 [params]
 

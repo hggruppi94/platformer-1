@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bhdv65crwivbf"
-path="res://.godot/imported/street_lamp.glb-f146b7c5aad7ae94403b6593206780c9.scn"
+path="res://.godot/imported/street_lamp.glb-17abf601fd20e3c8911a805dd1b9c733.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/street_lamp.glb"
-dest_files=["res://.godot/imported/street_lamp.glb-f146b7c5aad7ae94403b6593206780c9.scn"]
+dest_files=["res://.godot/imported/street_lamp.glb-17abf601fd20e3c8911a805dd1b9c733.scn"]
 
 [params]
 

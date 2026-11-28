@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bbjhdxmi0vptu"
-path="res://.godot/imported/pool_lip.glb-dbfef7c83e0d3498573cf6ff03a2f896.scn"
+path="res://.godot/imported/pool_lip.glb-1d102476812aab40c55af8970b2a0f79.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/pool_lip.glb"
-dest_files=["res://.godot/imported/pool_lip.glb-dbfef7c83e0d3498573cf6ff03a2f896.scn"]
+dest_files=["res://.godot/imported/pool_lip.glb-1d102476812aab40c55af8970b2a0f79.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cc1vsa24l5sb8"
-path="res://.godot/imported/arch_banner.glb-e4a55c8fe189957882b4284a776d7882.scn"
+path="res://.godot/imported/arch_banner.glb-c7df1a9587e8d9d5f50b031daf216951.scn"
 
 [deps]
 
 source_file="res://models/props/race/arch_banner.glb"
-dest_files=["res://.godot/imported/arch_banner.glb-e4a55c8fe189957882b4284a776d7882.scn"]
+dest_files=["res://.godot/imported/arch_banner.glb-c7df1a9587e8d9d5f50b031daf216951.scn"]
 
 [params]
 

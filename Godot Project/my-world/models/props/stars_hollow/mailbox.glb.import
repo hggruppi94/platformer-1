@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dfdcmfh0ks7dm"
-path="res://.godot/imported/mailbox.glb-efdb352765eae6164ad28fb886713d0f.scn"
+path="res://.godot/imported/mailbox.glb-a6688730b71d9bbce47d3ad59c0769fd.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/mailbox.glb"
-dest_files=["res://.godot/imported/mailbox.glb-efdb352765eae6164ad28fb886713d0f.scn"]
+dest_files=["res://.godot/imported/mailbox.glb-a6688730b71d9bbce47d3ad59c0769fd.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cgcno664bcekw"
-path="res://.godot/imported/footbridge.glb-debd465726fec0af520cddde164d43d3.scn"
+path="res://.godot/imported/footbridge.glb-da6093414d5c8bef639113baafd193cc.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/footbridge.glb"
-dest_files=["res://.godot/imported/footbridge.glb-debd465726fec0af520cddde164d43d3.scn"]
+dest_files=["res://.godot/imported/footbridge.glb-da6093414d5c8bef639113baafd193cc.scn"]
 
 [params]
 

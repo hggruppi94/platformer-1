@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://5h6ak6tord0x"
-path="res://.godot/imported/park_bench_park_bench_normal.png-0bbd0bc8602ce9b165b093b77e4fc6aa.ctex"
+path="res://.godot/imported/park_bench_park_bench_normal.png-2694d7093dd41e32412f32a086e8df95.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/stars_hollow/park_bench_park_bench_normal.png"
-dest_files=["res://.godot/imported/park_bench_park_bench_normal.png-0bbd0bc8602ce9b165b093b77e4fc6aa.ctex"]
+dest_files=["res://.godot/imported/park_bench_park_bench_normal.png-2694d7093dd41e32412f32a086e8df95.ctex"]
 
 [params]
 

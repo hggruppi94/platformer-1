@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://xob6xqe840k"
-path="res://.godot/imported/mothership_pad.glb-916d6aa0a25181a47d4182bba2381431.scn"
+path="res://.godot/imported/mothership_pad.glb-5416a1f74ea88a957871b88f05e2322b.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/mothership_pad.glb"
-dest_files=["res://.godot/imported/mothership_pad.glb-916d6aa0a25181a47d4182bba2381431.scn"]
+dest_files=["res://.godot/imported/mothership_pad.glb-5416a1f74ea88a957871b88f05e2322b.scn"]
 
 [params]
 

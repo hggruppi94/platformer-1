@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://ckoetwck8ryek"
-path="res://.godot/imported/jack_o_lantern.glb-93c320b572279b5ec7fbd6d5b3d5f9b3.scn"
+path="res://.godot/imported/jack_o_lantern.glb-5aeae5b1625b29f4fdcbc494d5ca4468.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/jack_o_lantern.glb"
-dest_files=["res://.godot/imported/jack_o_lantern.glb-93c320b572279b5ec7fbd6d5b3d5f9b3.scn"]
+dest_files=["res://.godot/imported/jack_o_lantern.glb-5aeae5b1625b29f4fdcbc494d5ca4468.scn"]
 
 [params]
 

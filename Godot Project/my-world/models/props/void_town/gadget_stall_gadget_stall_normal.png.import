@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://caaqgsqn2rk8j"
-path="res://.godot/imported/gadget_stall_gadget_stall_normal.png-ed9928981065a78a797accb01fd9ba27.ctex"
+path="res://.godot/imported/gadget_stall_gadget_stall_normal.png-5dcdd4c3d451872e0a9a75860b986c16.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/gadget_stall_gadget_stall_normal.png"
-dest_files=["res://.godot/imported/gadget_stall_gadget_stall_normal.png-ed9928981065a78a797accb01fd9ba27.ctex"]
+dest_files=["res://.godot/imported/gadget_stall_gadget_stall_normal.png-5dcdd4c3d451872e0a9a75860b986c16.ctex"]
 
 [params]
 

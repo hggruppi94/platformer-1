@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://m4u6bcd7562n"
-path="res://.godot/imported/antique_car_antique_car_normal.png-5ea8a62cdcb663ca47a58d72464e152b.ctex"
+path="res://.godot/imported/antique_car_antique_car_normal.png-5e08f84147ffa8350d844e2ee9dd5aaa.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/antique_car_antique_car_normal.png"
-dest_files=["res://.godot/imported/antique_car_antique_car_normal.png-5ea8a62cdcb663ca47a58d72464e152b.ctex"]
+dest_files=["res://.godot/imported/antique_car_antique_car_normal.png-5e08f84147ffa8350d844e2ee9dd5aaa.ctex"]
 
 [params]
 

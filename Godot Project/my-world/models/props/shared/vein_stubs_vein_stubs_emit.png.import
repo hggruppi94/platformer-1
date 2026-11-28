@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://1bxy7q40bhep"
-path="res://.godot/imported/vein_stubs_vein_stubs_emit.png-77e05c9edfc0844ecc5d3a1eb72d4685.ctex"
+path="res://.godot/imported/vein_stubs_vein_stubs_emit.png-1687575f893b75501d37916e23b77070.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/shared/vein_stubs_vein_stubs_emit.png"
-dest_files=["res://.godot/imported/vein_stubs_vein_stubs_emit.png-77e05c9edfc0844ecc5d3a1eb72d4685.ctex"]
+dest_files=["res://.godot/imported/vein_stubs_vein_stubs_emit.png-1687575f893b75501d37916e23b77070.ctex"]
 
 [params]
 

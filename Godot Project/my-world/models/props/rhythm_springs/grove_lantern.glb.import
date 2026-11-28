@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dedydgcnlldu"
-path="res://.godot/imported/grove_lantern.glb-ec3c03e3e7526ef551842407b60326f6.scn"
+path="res://.godot/imported/grove_lantern.glb-078afe3999ec5a19a95490c32a939acf.scn"
 
 [deps]
 
 source_file="res://models/props/rhythm_springs/grove_lantern.glb"
-dest_files=["res://.godot/imported/grove_lantern.glb-ec3c03e3e7526ef551842407b60326f6.scn"]
+dest_files=["res://.godot/imported/grove_lantern.glb-078afe3999ec5a19a95490c32a939acf.scn"]
 
 [params]
 

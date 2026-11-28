@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ryevkhvy8q57"
-path="res://.godot/imported/sailboat_sailboat_sail_orm.png-9d3bf764d7362e1bad872de3033065a0.ctex"
+path="res://.godot/imported/sailboat_sailboat_sail_orm.png-bc29d75acc456116e56d6e9e54a5b7cf.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/sailboat_sailboat_sail_orm.png"
-dest_files=["res://.godot/imported/sailboat_sailboat_sail_orm.png-9d3bf764d7362e1bad872de3033065a0.ctex"]
+dest_files=["res://.godot/imported/sailboat_sailboat_sail_orm.png-bc29d75acc456116e56d6e9e54a5b7cf.ctex"]
 
 [params]
 

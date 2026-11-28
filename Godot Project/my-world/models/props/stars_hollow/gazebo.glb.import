@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://sv7ilf5t4403"
-path="res://.godot/imported/gazebo.glb-84e6c25423d3d140e589d436b50605b1.scn"
+path="res://.godot/imported/gazebo.glb-e1b42b67f6f47fce2ee6db7f49afc660.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/gazebo.glb"
-dest_files=["res://.godot/imported/gazebo.glb-84e6c25423d3d140e589d436b50605b1.scn"]
+dest_files=["res://.godot/imported/gazebo.glb-e1b42b67f6f47fce2ee6db7f49afc660.scn"]
 
 [params]
 

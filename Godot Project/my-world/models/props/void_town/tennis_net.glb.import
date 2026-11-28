@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dyka8o42xdy6p"
-path="res://.godot/imported/tennis_net.glb-273f5338bd1fb375c0f1b822b870ea8e.scn"
+path="res://.godot/imported/tennis_net.glb-a5d6104163c7e751fb5a48347b3079b5.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/tennis_net.glb"
-dest_files=["res://.godot/imported/tennis_net.glb-273f5338bd1fb375c0f1b822b870ea8e.scn"]
+dest_files=["res://.godot/imported/tennis_net.glb-a5d6104163c7e751fb5a48347b3079b5.scn"]
 
 [params]
 

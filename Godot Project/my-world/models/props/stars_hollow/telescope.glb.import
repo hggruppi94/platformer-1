@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bu1vrqvrffpcv"
-path="res://.godot/imported/telescope.glb-23e487935f86eaad42a48b48d6d93434.scn"
+path="res://.godot/imported/telescope.glb-280ce1f3720f2e3ea83d87ee8573e188.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/telescope.glb"
-dest_files=["res://.godot/imported/telescope.glb-23e487935f86eaad42a48b48d6d93434.scn"]
+dest_files=["res://.godot/imported/telescope.glb-280ce1f3720f2e3ea83d87ee8573e188.scn"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bhqk63exw0ewx"
-path="res://.godot/imported/market_stall_fruit_market_stall_fruit_normal.png-546acd2b7bfca5155113d084fa56be54.ctex"
+path="res://.godot/imported/market_stall_fruit_market_stall_fruit_normal.png-1b29afc8ef13a98556c7dbf7d7b9e194.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/market_stall_fruit_market_stall_fruit_normal.png"
-dest_files=["res://.godot/imported/market_stall_fruit_market_stall_fruit_normal.png-546acd2b7bfca5155113d084fa56be54.ctex"]
+dest_files=["res://.godot/imported/market_stall_fruit_market_stall_fruit_normal.png-1b29afc8ef13a98556c7dbf7d7b9e194.ctex"]
 
 [params]
 

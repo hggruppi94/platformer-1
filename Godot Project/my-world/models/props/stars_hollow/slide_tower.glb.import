@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cmgygrd17nybq"
-path="res://.godot/imported/slide_tower.glb-ac6fd45168012616655756316a54aba1.scn"
+path="res://.godot/imported/slide_tower.glb-59641228af72ab74591b78b8b0bb2f8e.scn"
 
 [deps]
 
 source_file="res://models/props/stars_hollow/slide_tower.glb"
-dest_files=["res://.godot/imported/slide_tower.glb-ac6fd45168012616655756316a54aba1.scn"]
+dest_files=["res://.godot/imported/slide_tower.glb-59641228af72ab74591b78b8b0bb2f8e.scn"]
 
 [params]
 

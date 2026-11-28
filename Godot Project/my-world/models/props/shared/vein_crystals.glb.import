@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cdk5jhikt7qe4"
-path="res://.godot/imported/vein_crystals.glb-a97b2aed33cf55cba8a00cac0303ab3f.scn"
+path="res://.godot/imported/vein_crystals.glb-a0a95f1d2de1e79ca7c77a9b4dd25520.scn"
 
 [deps]
 
 source_file="res://models/props/shared/vein_crystals.glb"
-dest_files=["res://.godot/imported/vein_crystals.glb-a97b2aed33cf55cba8a00cac0303ab3f.scn"]
+dest_files=["res://.godot/imported/vein_crystals.glb-a0a95f1d2de1e79ca7c77a9b4dd25520.scn"]
 
 [params]
 

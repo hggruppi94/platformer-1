@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cjyesft6ycld3"
-path="res://.godot/imported/bike.glb-413582b3d367aed03c0c7d0af13b0ecd.scn"
+path="res://.godot/imported/bike.glb-16870d489320e91c4732995865e0120f.scn"
 
 [deps]
 
 source_file="res://models/props/shared/bike.glb"
-dest_files=["res://.godot/imported/bike.glb-413582b3d367aed03c0c7d0af13b0ecd.scn"]
+dest_files=["res://.godot/imported/bike.glb-16870d489320e91c4732995865e0120f.scn"]
 
 [params]
 

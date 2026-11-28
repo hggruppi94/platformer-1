@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b72ujt7hretva"
-path="res://.godot/imported/springs_gate_springs_gate_color.png-76c5ff38174cb6ab0564c8c3327c60b6.ctex"
+path="res://.godot/imported/springs_gate_springs_gate_color.png-0c01b2f226442c78ee64ddb21102af6e.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/rhythm_springs/springs_gate_springs_gate_color.png"
-dest_files=["res://.godot/imported/springs_gate_springs_gate_color.png-76c5ff38174cb6ab0564c8c3327c60b6.ctex"]
+dest_files=["res://.godot/imported/springs_gate_springs_gate_color.png-0c01b2f226442c78ee64ddb21102af6e.ctex"]
 
 [params]
 

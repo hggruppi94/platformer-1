@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://xv7i0hs3x40i"
-path="res://.godot/imported/spring_cave_spring_cave_orm.png-ca75e0acb81d4476e203009c86d6c44a.ctex"
+path="res://.godot/imported/spring_cave_spring_cave_orm.png-ffe6548b5e6eb596469ae50b2fc91219.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/void_town/spring_cave_spring_cave_orm.png"
-dest_files=["res://.godot/imported/spring_cave_spring_cave_orm.png-ca75e0acb81d4476e203009c86d6c44a.ctex"]
+dest_files=["res://.godot/imported/spring_cave_spring_cave_orm.png-ffe6548b5e6eb596469ae50b2fc91219.ctex"]
 
 [params]
 

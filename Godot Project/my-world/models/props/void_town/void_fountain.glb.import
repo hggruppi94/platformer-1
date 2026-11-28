@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://bjqi0pb34t3gk"
-path="res://.godot/imported/void_fountain.glb-9b0e621efce94dcbb1b4e80156dd88e4.scn"
+path="res://.godot/imported/void_fountain.glb-66ec2e2bb31217b0bddb34e132fa38b2.scn"
 
 [deps]
 
 source_file="res://models/props/void_town/void_fountain.glb"
-dest_files=["res://.godot/imported/void_fountain.glb-9b0e621efce94dcbb1b4e80156dd88e4.scn"]
+dest_files=["res://.godot/imported/void_fountain.glb-66ec2e2bb31217b0bddb34e132fa38b2.scn"]
 
 [params]
 

@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cn53kguiy72h"
-path="res://.godot/imported/vein_rock.glb-b7fcc67666c60bbe5a96fdab331e1600.scn"
+path="res://.godot/imported/vein_rock.glb-4cc3e8fe44b10ef724c26c23ba460a05.scn"
 
 [deps]
 
 source_file="res://models/props/shared/vein_rock.glb"
-dest_files=["res://.godot/imported/vein_rock.glb-b7fcc67666c60bbe5a96fdab331e1600.scn"]
+dest_files=["res://.godot/imported/vein_rock.glb-4cc3e8fe44b10ef724c26c23ba460a05.scn"]
 
 [params]
 

@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cw7i8o08ium1l"
-path="res://.godot/imported/grove_lantern_grove_lantern_normal.png-3caa1886b9999798282342e4493318b7.ctex"
+path="res://.godot/imported/grove_lantern_grove_lantern_normal.png-5aca63a323f07e0e1c2ff9ca781ee42d.ctex"
 metadata={
 "vram_texture": false
 }
@@ -14,7 +14,7 @@ generator_parameters={
 [deps]
 
 source_file="res://models/props/rhythm_springs/grove_lantern_grove_lantern_normal.png"
-dest_files=["res://.godot/imported/grove_lantern_grove_lantern_normal.png-3caa1886b9999798282342e4493318b7.ctex"]
+dest_files=["res://.godot/imported/grove_lantern_grove_lantern_normal.png-5aca63a323f07e0e1c2ff9ca781ee42d.ctex"]
 
 [params]
 

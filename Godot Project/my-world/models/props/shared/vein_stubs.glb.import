@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://cfl5nteyijsl4"
-path="res://.godot/imported/vein_stubs.glb-311269487474de9effac72956f2df040.scn"
+path="res://.godot/imported/vein_stubs.glb-f50d2ccd426928bd997bbd7b75e68c42.scn"
 
 [deps]
 
 source_file="res://models/props/shared/vein_stubs.glb"
-dest_files=["res://.godot/imported/vein_stubs.glb-311269487474de9effac72956f2df040.scn"]
+dest_files=["res://.godot/imported/vein_stubs.glb-f50d2ccd426928bd997bbd7b75e68c42.scn"]
 
 [params]
 
