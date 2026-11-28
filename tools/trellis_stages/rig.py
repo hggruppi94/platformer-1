@@ -45,20 +45,26 @@ try:
     _col = _PL.face_colours(ob)
     _cen = _np.array([(ob.matrix_world @ p_.center)[:] for p_ in ob.data.polygons])
     _top = _cen[:, 2] > _cen[:, 2].min() + 0.75 * (_cen[:, 2].max() - _cen[:, 2].min())
-    # an eye white sits right beside a dark pupil; white hair shine or a white collar doesn't
-    _white = _top & (_col.min(1) > 225)
+    # an eye white sits right beside a dark pupil; white hair shine or a white collar doesn't. The whites can be dull
+    # where the generator baked shading in, so try a few brightness levels, brightest first.
+    _span = _cen[:, 2].max() - _cen[:, 2].min()
     _dark = _top & (_col.max(1) < 60)
-    if _white.any() and _dark.any():
+    _kd = None
+    if _dark.any():
         from mathutils.kdtree import KDTree as _KD
         _kd = _KD(int(_dark.sum()))
         for _i, _c in enumerate(_cen[_dark]):
             _kd.insert(_c, _i)
         _kd.balance()
-        _span = _cen[:, 2].max() - _cen[:, 2].min()
-        _near = _np.array([_kd.find(c)[2] < 0.03 * _span for c in _cen[_white]])
-        _w = _np.where(_white)[0][_near]
-        _white = _np.zeros(len(_cen), bool)
-        _white[_w] = True
+    for _t in (225, 200, 180):
+        _white = _top & (_col.min(1) > _t)
+        if _kd is not None and _white.any():
+            _near = _np.array([_kd.find(c)[2] < 0.03 * _span for c in _cen[_white]])
+            _w = _np.where(_white)[0][_near]
+            _white = _np.zeros(len(_cen), bool)
+            _white[_w] = True
+        if _white.sum() >= 12:
+            break
     if _white.sum() >= 12:
         _mid = _cen[_top][:, :2].mean(0)
         _d = _cen[_white][:, :2].mean(0) - _mid

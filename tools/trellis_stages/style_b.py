@@ -10,6 +10,8 @@ from PIL import Image, ImageDraw
 ref_path, out = Path(sys.argv[1]), Path(sys.argv[2])
 lora = sys.argv[3] if len(sys.argv) > 3 else None
 lora_w = float(sys.argv[4]) if len(sys.argv) > 4 else 0.9
+# optional sweep: "ip:cn:seed,ip:cn:seed,..." (else the default 8)
+SWEEP = [tuple(float(v) for v in x.split(":")) for x in sys.argv[5].split(",")] if len(sys.argv) > 5 else None
 out.mkdir(parents=True, exist_ok=True)
 
 # The skeleton, in OpenPose's COCO-18 order and colours: her joints as measured on the approved front picture
@@ -46,15 +48,17 @@ pipe.enable_model_cpu_offload()
 ref = Image.open(ref_path).convert("RGB")
 tag = "sofistyle, " if lora else ""
 P = (tag + "3d cartoon render of a cute baby hippo girl standing straight and facing the camera, full body, front view, "
-     "arms relaxed slightly away from her body, empty hands, warm grey-brown skin, glossy red bob haircut with a "
+     "arms hanging down relaxed and slightly away from her body, empty open hands not holding anything, not touching the straps, warm grey-brown skin, glossy red bob haircut with a "
      "fringe, big red bow on top of her head, big brown eyes with lashes, two buck teeth, happy smile, white t-shirt, "
      "long pink overalls with rolled cuffs, yellow backpack on her back with its straps over her shoulders, pink "
      "sneakers, plain white background")
-N = "side view, three quarter view, turned, holding anything, text, letters, watermark, blurry, extra limbs, shorts, multiple characters"
-for ip in (0.5, 0.7):
+N = "side view, three quarter view, turned, holding anything, holding straps, hands on straps, hands on backpack, text, letters, watermark, blurry, extra limbs, shorts, multiple characters"
+runs = SWEEP or [(ip, cs, sd) for ip in (0.5, 0.7) for cs in (0.7, 0.95) for sd in (0, 1)]
+for ip, cs, seed in runs:
+    seed = int(seed)
     pipe.set_ip_adapter_scale(ip)
-    for cs in (0.7, 0.95):
-        for seed in (0, 1):
+    if True:
+        if True:
             im = pipe(prompt=P, negative_prompt=N, image=pose, ip_adapter_image=ref, controlnet_conditioning_scale=cs,
                       num_inference_steps=30, guidance_scale=6.0, width=1024, height=1024,
                       generator=torch.Generator("cuda").manual_seed(seed)).images[0]
