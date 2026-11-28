@@ -7,6 +7,7 @@ SD=/c/Users/hggru/Game_dev/ai3d/sdscripts
 C=/c/Users/hggru/Game_dev/ai3d/style_test/C
 BASE=$(ls -d ~/.cache/huggingface/hub/models--stabilityai--stable-diffusion-xl-base-1.0/snapshots/*/ | head -1)
 cd "$SD" || exit 1
+export PYTHONIOENCODING=utf-8 PYTHONUTF8=1      # some of its log lines can't be printed in the Windows console's codepage
 venv/Scripts/python.exe sdxl_train_network.py \
   --pretrained_model_name_or_path="$BASE" \
   --train_data_dir="$C/data" --output_dir="$C/lora" --output_name=sofistyle \

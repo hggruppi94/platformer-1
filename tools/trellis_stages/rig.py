@@ -33,9 +33,43 @@ for o in [o for o in bpy.context.scene.objects if o.type != "MESH"]:
 # Turned to face the camera (-Y): the generator says how much in trellis.json ("yaw"); older runs without it are
 # local TRELLIS.2 (faces +X, -90) or the online TRELLIS (faces the camera already)
 info = Path(SRC).with_name("trellis.json")
-if info.exists():
-    meta = json.load(open(info))
+yaw = None
+meta = json.load(open(info)) if info.exists() else {}
+# Which way is she facing? TRELLIS.2 doesn't always hand models back the same way round, so look for the eyes: the
+# whitest bits of texture in the top quarter of the model (eye whites), and turn her so they face the camera (-Y),
+# to the nearest quarter turn. Falls back to the generator's own note when no eyes are found.
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import parts_lib as _PL                                          # noqa: E402
+    import numpy as _np                                              # noqa: E402
+    _col = _PL.face_colours(ob)
+    _cen = _np.array([(ob.matrix_world @ p_.center)[:] for p_ in ob.data.polygons])
+    _top = _cen[:, 2] > _cen[:, 2].min() + 0.75 * (_cen[:, 2].max() - _cen[:, 2].min())
+    # an eye white sits right beside a dark pupil; white hair shine or a white collar doesn't
+    _white = _top & (_col.min(1) > 225)
+    _dark = _top & (_col.max(1) < 60)
+    if _white.any() and _dark.any():
+        from mathutils.kdtree import KDTree as _KD
+        _kd = _KD(int(_dark.sum()))
+        for _i, _c in enumerate(_cen[_dark]):
+            _kd.insert(_c, _i)
+        _kd.balance()
+        _span = _cen[:, 2].max() - _cen[:, 2].min()
+        _near = _np.array([_kd.find(c)[2] < 0.03 * _span for c in _cen[_white]])
+        _w = _np.where(_white)[0][_near]
+        _white = _np.zeros(len(_cen), bool)
+        _white[_w] = True
+    if _white.sum() >= 12:
+        _mid = _cen[_top][:, :2].mean(0)
+        _d = _cen[_white][:, :2].mean(0) - _mid
+        _ang = math.degrees(math.atan2(_d[1], _d[0]))            # facing direction in the ground plane
+        yaw = round((-90 - _ang) / 90) * 90                      # turn it to -90 degrees (-Y)
+        print("FACING eyes found", int(_white.sum()), "faces; turning", yaw, "(generator said", meta.get("yaw"), ")")
+except Exception as e:                                              # noqa: BLE001
+    print("FACING eye search failed:", e)
+if yaw is None and meta:
     yaw = meta.get("yaw", -90 if "local" in meta.get("backend", "") else 0)
+if yaw:
     ob.matrix_world = Matrix.Rotation(math.radians(yaw), 4, "Z") @ ob.matrix_world
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 ob.name = ob.data.name = "Nina"
