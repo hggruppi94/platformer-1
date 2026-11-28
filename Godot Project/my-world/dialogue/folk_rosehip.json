@@ -1,0 +1,57 @@
+{
+  "name": "Rosehip",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_rosehip"
+      },
+      "lines": [
+        "Welcome, little one. I am Rosehip.",
+        "I keep the garden, and its stories.",
+        "Would you catch fireflies for our Hollow?"
+      ],
+      "set": "folk_rosehip_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_rosehip:fireflies"
+      },
+      "lines": [
+        "Fireflies love the stone lanterns. Gently now."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_rosehip:back"
+      },
+      "lines": [
+        "Ah. They'll light our doors tonight.",
+        "Thank you, friend of the garden."
+      ],
+      "set": "folk_rosehip_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_rosehip",
+        "not_flag": "folk_rosehip_thanks"
+      },
+      "lines": [
+        "The garden likes you. I can tell."
+      ],
+      "set": "folk_rosehip_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "This garden is older than the oldest tree."
+        ],
+        [
+          "We Tuftlings have always lived here."
+        ],
+        [
+          "Listen. The garden is humming."
+        ]
+      ]
+    }
+  ]
+}

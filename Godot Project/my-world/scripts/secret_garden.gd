@@ -103,9 +103,22 @@ func _ready() -> void:
 	_way_out()
 	_dress_own()
 	_solidify.call_deferred()
+	_folk.call_deferred()
 	_player = get_tree().get_first_node_in_group("player") as Node3D
 	awake = Dialogue.flags.has("sg_awake")
 	_set_awake(1.0 if awake else 0.0)
+
+
+# The Tuftlings, the garden's own little folk, their burrows round the Great Tree and their quests
+# (scripts/garden_folk.gd). Made after _solidify(), so they can look for free ground.
+var folk: Node3D
+
+
+func _folk() -> void:
+	folk = load("res://scripts/garden_folk.gd").new()
+	folk.name = "Tuftlings"
+	add_child(folk)
+	folk.call("build", self)
 
 
 # The garden's own walls and the old door wear the same baked stone and planks as the parts.

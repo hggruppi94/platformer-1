@@ -11,7 +11,9 @@
 #
 #   <who>: rex (wolf), dash (bike_boy), pip (moth_kid), bruno, melody, heather (cattle_girl), bramble (plant_girl),
 #   chaos (chaos_giant, the Agent of Chaos), gorilla (cyber_gorilla), hermez (the crane), rolo (the rhino),
-#   girl (human_girl) and boy (human_boy), the hero's two bodies in the creator, or "all". The out path defaults
+#   girl (human_girl) and boy (human_boy), the hero's two bodies in the creator, folk_<id> (the Secret Garden's
+#   Tuftlings: folk_fennick, folk_thistle, folk_moss, folk_bluebell, folk_bracken, folk_clem, folk_tumble,
+#   folk_rosehip; baked at 1024, they're small), or "all". The out path defaults
 #   to the model in models/characters/. Reads source_art/characters/<model>.blend and never saves over it. About 3 to 5 minutes each on 4 cloud cores.
 
 import sys
@@ -393,6 +395,23 @@ CHARS = {
     },
 }
 
+# The Tuftlings, the Secret Garden's little folk (tools/build_garden_folk.py): fur all over, leaf skirts with veins,
+# leather straps, feathers, claws and fangs like horn. What's on their head decides the "Wrap" recipe.
+FOLK_HEAD = {"fennick": "linen", "thistle": "leaf", "moss": "leaf", "bluebell": "linen", "bracken": "bark",
+             "clem": "linen", "tumble": "skin", "rosehip": "linen"}
+for _fid, _wrap in FOLK_HEAD.items():
+    CHARS["folk_" + _fid] = {
+        "model": "garden_folk_" + _fid, "body": "GardenFolk", "rig": "GardenFolkRig", "hair": ["Fur", "Fur Dark"],
+        "ao": 0.012, "size": 1024,
+        "flat": EYES + ["Lash", "Gem"],
+        "parts": {"Fur": "fur", "Muzzle": "fur", "Fur Dark": "fur", "Ear Inner": "skin", "Nose": "nose",
+                  "Leaf": "leaf", "Leaf Dark": "leaf", "Wrap": _wrap, "Wrap Light": "leaf" if _wrap == "leaf" else
+                  ("horn" if _wrap == "bark" else "skin" if _wrap == "skin" else "linen"),
+                  "Feather": "feather", "Leather": "leather", "Leather Dark": "leather", "Metal": "metal",
+                  "Cord": "cord", "Shoe": "leather", "Bow Wood": "bark", "Linen": "linen", "String": "cord",
+                  "Claw": "horn"},
+    }
+
 
 def _spread(body, names):
     """The middle (x, y over the hair, z near its top) and the radius of the parts named, in the body's own space."""
@@ -430,7 +449,7 @@ def build(who, out=None, size=2048):
         else:
             recipe = R[c["parts"].get(m.name, "skin")]
             K.dress(m, lambda N, r=recipe: r(N, spread))
-    maps = K.bake(body, rig, size=size, name=c["model"], ao_distance=c.get("ao", 0.025))
+    maps = K.bake(body, rig, size=c.get("size", size), name=c["model"], ao_distance=c.get("ao", 0.025))
     tmp = out.parent / f"_{c['model']}_detail"
     pngs = {k: K.save_png(img, tmp / f"{c['model']}_{k}.png") for k, img in maps.items()}
     done = K.add_textures(out, pngs, c["flat"], c["model"])

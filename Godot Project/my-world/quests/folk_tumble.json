@@ -1,0 +1,34 @@
+{
+  "name": "Hide and Seek",
+  "giver": "folk_tumble",
+  "start": {
+    "flag": "folk_tumble_start"
+  },
+  "steps": [
+    {
+      "id": "hide1",
+      "text": "Find Tumble! Near falling water.",
+      "done": {
+        "flag": "folk_hide_1"
+      }
+    },
+    {
+      "id": "hide2",
+      "text": "Find Tumble! Somewhere glassy.",
+      "done": {
+        "flag": "folk_hide_2"
+      }
+    },
+    {
+      "id": "hide3",
+      "text": "Find Tumble! Near a roofed bridge.",
+      "done": {
+        "flag": "folk_hide_3"
+      }
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "You found Tumble three times! +10 sparkles."
+  }
+}

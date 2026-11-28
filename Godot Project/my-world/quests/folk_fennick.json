@@ -1,0 +1,53 @@
+{
+  "name": "Fennick's Arrows",
+  "giver": "folk_fennick",
+  "start": {
+    "flag": "folk_fennick_start"
+  },
+  "steps": [
+    {
+      "id": "arrows",
+      "text": "Find 4 of Fennick's arrows.",
+      "checklist": [
+        [
+          "folk_arrow_1",
+          "By the Lake Temple"
+        ],
+        [
+          "folk_arrow_2",
+          "Up the Cypress Walk"
+        ],
+        [
+          "folk_arrow_3",
+          "In the Supertree Grove"
+        ],
+        [
+          "folk_arrow_4",
+          "In the Formal Garden"
+        ]
+      ],
+      "done": {
+        "flags": [
+          "folk_arrow_1",
+          "folk_arrow_2",
+          "folk_arrow_3",
+          "folk_arrow_4"
+        ]
+      }
+    },
+    {
+      "id": "back",
+      "text": "Bring them to Fennick.",
+      "done": {
+        "flag": "folk_fennick_back"
+      },
+      "where": [
+        "folk_fennick"
+      ]
+    }
+  ],
+  "reward": {
+    "sparkles": 10,
+    "message": "Fennick's arrows are home! +10 sparkles."
+  }
+}

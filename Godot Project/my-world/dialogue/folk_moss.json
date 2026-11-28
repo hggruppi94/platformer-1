@@ -1,0 +1,57 @@
+{
+  "name": "Moss",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_moss"
+      },
+      "lines": [
+        "Mm? Oh. Hello. I'm Moss.",
+        "So... sleepy. A cup of tea would help.",
+        "The Tea House is by the koi pond. Zzz..."
+      ],
+      "set": "folk_moss_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_moss:tea"
+      },
+      "lines": [
+        "Tea... Tea House... zzz..."
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_moss:back"
+      },
+      "lines": [
+        "Tea! You're the best.",
+        "*sip* Wow. I can see colours again."
+      ],
+      "set": "folk_moss_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_moss",
+        "not_flag": "folk_moss_thanks"
+      },
+      "lines": [
+        "I'm awake! For now."
+      ],
+      "set": "folk_moss_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "Zzz... oh! I wasn't asleep."
+        ],
+        [
+          "A nap is a tiny holiday."
+        ],
+        [
+          "Five more minutes..."
+        ]
+      ]
+    }
+  ]
+}

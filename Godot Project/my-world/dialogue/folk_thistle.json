@@ -1,0 +1,57 @@
+{
+  "name": "Thistle",
+  "conversations": [
+    {
+      "when": {
+        "quest_not_started": "folk_thistle"
+      },
+      "lines": [
+        "Hi hi HI! I'm Thistle! I love flowers!",
+        "Can you pick me three bunches?",
+        "Tulips, roses, and some from the veggie beds!"
+      ],
+      "set": "folk_thistle_start"
+    },
+    {
+      "when": {
+        "quest_step": "folk_thistle:flowers"
+      },
+      "lines": [
+        "Three bunches! Pink ones are best. And white!"
+      ]
+    },
+    {
+      "when": {
+        "quest_step": "folk_thistle:back"
+      },
+      "lines": [
+        "Ooh! Hold still...",
+        "There! A flower crown for me!"
+      ],
+      "set": "folk_thistle_back"
+    },
+    {
+      "when": {
+        "quest_done": "folk_thistle",
+        "not_flag": "folk_thistle_thanks"
+      },
+      "lines": [
+        "Do I look like a queen? A flower queen!"
+      ],
+      "set": "folk_thistle_thanks"
+    },
+    {
+      "rotate": [
+        [
+          "Every flower here has a name. I named them!"
+        ],
+        [
+          "Pink and white together. My favourite!"
+        ],
+        [
+          "Sniff that! Smells like sunshine."
+        ]
+      ]
+    }
+  ]
+}
